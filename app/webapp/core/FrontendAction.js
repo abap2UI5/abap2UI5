@@ -9,7 +9,7 @@ sap.ui.define(
     "sap/ui/model/Sorter",
     "sap/m/library",
     "sap/ui/util/Storage",
-    "sap/ui/core/routing/HashChanger",
+    "z2ui5/core/Router",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
@@ -24,7 +24,7 @@ sap.ui.define(
     Sorter,
     mobileLibrary,
     Storage,
-    HashChanger,
+    Router,
     Lib,
     ViewSlots,
     AppState,
@@ -595,13 +595,12 @@ sap.ui.define(
     function evNavToRoute(oController, args) {
       // Navigate to another app by setting the hash route - the UI5 navTo
       // equivalent. args[1] is the target app class (or a full "app/<CLASS>"
-      // route). setHash adds a browser history entry, so Back returns to the
-      // current app; the HashChanger listener (Server.onHashChange) then starts
-      // the target app. No-op unless the session enabled routing.
+      // route). The push adds a browser history entry, so Back returns to the
+      // current app; the router's hashChanged handler then starts the target
+      // app. No-op unless the app enabled routing.
       const raw = Lib.toText(args[1]);
       if (!raw) return;
-      const cls = Lib.appOfRoute(raw) || raw;
-      HashChanger.getInstance().setHash(Lib.routeForApp(cls));
+      Router.navToApp(raw);
     }
 
     function evClipboardCopy(oController, args) {
@@ -612,10 +611,11 @@ sap.ui.define(
       // Guard against a missing response so the copied link never carries
       // the literal "undefined" as its state id.
       const id = AppState.state.oResponse?.ID || "";
-      // Strip any existing hash (e.g. an active app-state) so the copied
-      // link carries only the fresh state id.
-      const base = window.location.href.split("#")[0];
-      Lib.copyToClipboard(`${base}#/z2ui5-xapp-state=${id}`);
+      // Router.hrefFor drops the current app hash (e.g. an active app-state)
+      // so the link carries only the fresh state id, but KEEPS the FLP shell
+      // hash - without it the recipient lands on the launchpad home page
+      // instead of this app.
+      Lib.copyToClipboard(Router.hrefFor(`/z2ui5-xapp-state=${id}`));
     }
 
     function evDownloadB64File(oController, args) {

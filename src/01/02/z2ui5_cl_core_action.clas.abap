@@ -224,6 +224,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         result->mo_app->mo_app = val.
     ENDTRY.
 
+    " routing is inherited by the app being navigated to, unless it already
+    " chose a mode of its own - so enabling it once in the entry app is enough
+    " for the whole app stack (see z2ui5_cl_core_app=>mv_nav_mode)
+    IF result->mo_app->mv_nav_mode IS INITIAL.
+      result->mo_app->mv_nav_mode = mo_app->mv_nav_mode.
+    ENDIF.
+
     result->mo_app->ms_draft-id          = val->id_draft.
 
     result->mo_app->ms_draft-id_prev     = mo_app->ms_draft-id.

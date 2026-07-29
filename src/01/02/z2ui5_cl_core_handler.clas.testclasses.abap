@@ -37,6 +37,12 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_view_update_popup FOR TESTING RAISING cx_static_check.
     METHODS test_view_update_none  FOR TESTING RAISING cx_static_check.
     METHODS test_constructor       FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_app_part     FOR TESTING RAISING cx_static_check.
+    METHODS test_route_standalone  FOR TESTING RAISING cx_static_check.
+    METHODS test_route_launchpad   FOR TESTING RAISING cx_static_check.
+    METHODS test_route_no_route    FOR TESTING RAISING cx_static_check.
+    METHODS test_app_state_hash    FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_mode_resent   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
@@ -417,6 +423,139 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `test payload`
                                         act = lo_handler->mv_request_json ).
     cl_abap_unit_assert=>assert_bound( lo_handler->mo_action ).
+
+  ENDMETHOD.
+
+  METHOD test_hash_app_part.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+
+    " standalone - the whole hash belongs to the app
+    cl_abap_unit_assert=>assert_equals( exp = `/app/ZCL_X/D1`
+                                        act = lo_handler->hash_get_app_part( `#/app/ZCL_X/D1` ) ).
+
+    " launchpad - the shell owns everything before '&/'
+    cl_abap_unit_assert=>assert_equals( exp = `app/ZCL_X/D1`
+                                        act = lo_handler->hash_get_app_part( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
+
+    " ... including a shell hash that carries its own parameters
+    cl_abap_unit_assert=>assert_equals( exp = `app/ZCL_X`
+                                        act = lo_handler->hash_get_app_part( `#Z2UI5-display?a=b&c=d&/app/ZCL_X` ) ).
+
+    " an app hash containing '&/' must not be split
+    cl_abap_unit_assert=>assert_equals( exp = `/app/ZCL_X/D1?next=&/y`
+                                        act = lo_handler->hash_get_app_part( `#/app/ZCL_X/D1?next=&/y` ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_handler->hash_get_app_part( `` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_route_standalone.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
+                                        act = lo_handler->request_app_start_route( `#/app/ZCL_X/D1` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `D1`
+                                        act = lo_handler->request_app_start_route_draft( `#/app/ZCL_X/D1` ) ).
+
+    " class-only route (routing mode FRESH) carries no draft
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
+                                        act = lo_handler->request_app_start_route( `#/app/ZCL_X` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_handler->request_app_start_route_draft( `#/app/ZCL_X` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_route_launchpad.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+
+    " the same routes, but reached through the launchpad shell hash - the
+    " browser Back button inside the FLP sends exactly this
+    cl_abap_unit_assert=>assert_equals(
+        exp = `ZCL_X`
+        act = lo_handler->request_app_start_route( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `D1`
+        act = lo_handler->request_app_start_route_draft( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
+
+    " our slash-prefixed routes appended verbatim by older shells
+    cl_abap_unit_assert=>assert_equals(
+        exp = `ZCL_X`
+        act = lo_handler->request_app_start_route( `#Z2UI5-display&//app/ZCL_X/D1` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_route_no_route.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+
+    " no hash at all (normal boot), an app-owned hash, a bare shell hash and
+    " an 'app/' occurring mid-hash must all resolve to "no route", so the
+    " '?app_start=' query keeps winning
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_handler->request_app_start_route( `` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_handler->request_app_start_route( `#/head/pos/42` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_handler->request_app_start_route( `#Z2UI5-display` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_handler->request_app_start_route( `#/head/app/ZCL_X` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_app_state_hash.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+
+    " the app-state link format, standalone and inside the launchpad
+    cl_abap_unit_assert=>assert_equals(
+        exp = `ABC123`
+        act = lo_handler->request_app_start_draft( `#/z2ui5-xapp-state=ABC123` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `ABC123`
+        act = lo_handler->request_app_start_draft( `#Z2UI5-display&/z2ui5-xapp-state=ABC123` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_mode_resent.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_app TYPE REF TO ltcl_app_nav_loop.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    " An app configures routing ONCE. main_end therefore re-sends the mode the
+    " app carries whenever the roundtrip did not set one itself, so a later
+    " render of the same app stays routed without calling set_nav_routing( )
+    " again - and an app that never opted in keeps sending nothing.
+    lo_handler = NEW #( val = `` ).
+    lo_app = NEW #( ).
+    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
+                                        act = lo_handler->ms_response-s_front-params-set_nav_routing ).
+
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-set_nav_routing ).
 
   ENDMETHOD.
 

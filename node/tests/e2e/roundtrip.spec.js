@@ -60,9 +60,7 @@ test("chains the session draft across roundtrips", async ({ request }) => {
   expect(second.S_FRONT.ID).not.toBe(first.S_FRONT.ID);
 });
 
-test("returns the backend-built view XML on app start", async ({
-  request,
-}) => {
+test("returns the backend-built view XML on app start", async ({ request }) => {
   const body = await (
     await request.post("/", {
       data: frontBody({ SEARCH: "?app_start=z2ui5_cl_app_hello_world" }),
@@ -106,9 +104,7 @@ test("applies the model delta before on_event and answers the event", async ({
     })
   ).json();
 
-  expect(second.S_FRONT.PARAMS?.S_MSG_BOX?.TEXT).toBe(
-    "Your name is Roundtrip",
-  );
+  expect(second.S_FRONT.PARAMS?.S_MSG_BOX?.TEXT).toBe("Your name is Roundtrip");
   // an event roundtrip without view_display must not resend the view
   expect(second.S_FRONT.PARAMS?.S_VIEW?.XML).toBeUndefined();
 });
@@ -118,8 +114,12 @@ test("rejects a broken request body with a framework error", async ({
 }) => {
   const res = await request.post("/", { data: "no json at all" });
 
+  // The single top-level catch in z2ui5_cl_http_handler=>_main turns the
+  // parse failure into a 500 carrying the raw exception text, so the frontend
+  // shows the real reason instead of the generic SAP ICF 500 page. Assert on
+  // that text - the body deliberately does not carry a product marker.
   expect(res.status()).toBe(500);
-  expect(await res.text()).toContain("abap2UI5");
+  expect(await res.text()).toContain("Json parsing error");
 });
 
 test("boots the UI5 shell in the browser and issues the initial roundtrip", async ({

@@ -35,43 +35,9 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  (AppState, Element) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Hash-based app routing (UI5 Router style). The URL hash names the running` && |\n| &&
-             `    // app AND its state as a bookmarkable route "/app/<CLASS>/<DRAFTID>" - the` && |\n| &&
-             `    // client-side equivalent of a UI5 route pattern "app/{class}/{state}". The` && |\n| &&
-             `    // <CLASS> segment is human-readable; the <DRAFTID> segment is the server` && |\n| &&
-             `    // draft that holds the app's state, so the browser Back/Forward buttons` && |\n| &&
-             `    // restore the EXACT preserved state (and a reload/bookmark restores it too,` && |\n| &&
-             `    // falling back to a fresh start of <CLASS> once the draft has expired).` && |\n| &&
-             `    // routeForApp builds it; appOfRoute / draftOfRoute parse the two segments` && |\n| &&
-             `    // back out (empty when the hash is not an app route, so non-routing hashes` && |\n| &&
-             `    // - e.g. an app's own set_push_state - are ignored by the router).` && |\n| &&
-             `    const APP_ROUTE_PREFIX = "/app/";` && |\n| &&
-             `` && |\n| &&
-             `    function routeForApp(sClass, sDraftId) {` && |\n| &&
-             `      const base = ``${APP_ROUTE_PREFIX}${sClass}``;` && |\n| &&
-             `      return sDraftId ? ``${base}/${sDraftId}`` : base;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function segmentsOfRoute(sHash) {` && |\n| &&
-             `      if (!sHash) return null;` && |\n| &&
-             `      // Accept an optional leading "#" and "/" so both HashChanger hashes` && |\n| &&
-             `      // (no "#") and raw location.hash values resolve to the same route.` && |\n| &&
-             `      const clean = sHash.replace(/^#/, "").replace(/^\//, "");` && |\n| &&
-             `      const marker = "app/";` && |\n| &&
-             `      if (!clean.startsWith(marker)) return null;` && |\n| &&
-             `      // Stop at any route/query separator, then split class / draft id.` && |\n| &&
-             `      return clean.slice(marker.length).split(/[&?]/)[0].split("/");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function appOfRoute(sHash) {` && |\n| &&
-             `      const parts = segmentsOfRoute(sHash);` && |\n| &&
-             `      return parts ? parts[0] : "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function draftOfRoute(sHash) {` && |\n| &&
-             `      const parts = segmentsOfRoute(sHash);` && |\n| &&
-             `      return parts && parts.length > 1 ? parts[1] : "";` && |\n| &&
-             `    }` && |\n| &&
+             `    // Everything hash/route related lives in core/Router.js - it is the one` && |\n| &&
+             `    // module that knows how a URL hash is split between the FLP shell and the` && |\n| &&
+             `    // running app, and nothing else may reach for the hash directly.` && |\n| &&
              `` && |\n| &&
              `    // Resolve a control id to its sap.ui.core.Element via the global registry.` && |\n| &&
              `    // Element.getElementById arrived in UI5 1.119; older bootstraps fall back` && |\n| &&
@@ -417,8 +383,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      const delta = {};` && |\n| &&
              `      for (const path of paths) {` && |\n| &&
              `        // path looks like "/<attr>" or "/<attr>/<row>/<field>" with` && |\n| &&
-             `        // arbitrarily deep <row>/<subtable> repetitions for nested tables` && |\n|.
-    result = result &&
+             `        // arbitrarily deep <row>/<subtable> repetitions for nested tables` && |\n| &&
              `        const parts = path.slice(1).split("/");` && |\n| &&
              `        const attr = parts[0];` && |\n| &&
              `        const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
@@ -452,7 +417,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `          // already covers this deeper edit.` && |\n| &&
              `          if (field in rowDelta && !rowDelta[field]?.__delta) break;` && |\n| &&
              `          if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };` && |\n| &&
-             `          node = rowDelta[field];` && |\n| &&
+             `          node = rowDelta[field];` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      return delta;` && |\n| &&
@@ -525,9 +491,6 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
-             `      routeForApp,` && |\n| &&
-             `      appOfRoute,` && |\n| &&
-             `      draftOfRoute,` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
              `      isAlive,` && |\n| &&

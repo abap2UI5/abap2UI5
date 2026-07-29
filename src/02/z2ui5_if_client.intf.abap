@@ -116,13 +116,24 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE abap_bool DEFAULT abap_true.
 
-  "! Enable hash-based app routing for this session (UI5 Router style). Once
+  "! Enable hash-based app routing for this app (UI5 Router style). Once
   "! enabled, the URL hash mirrors the running app as a bookmarkable route, and
   "! the browser Back/Forward buttons navigate between apps via that hash. A
   "! forward navigation to another app (client->nav_app_call) pushes a new route
   "! history entry, so the browser Back button returns to the calling app - the
-  "! routing equivalent of a UI5 navTo. Call once (e.g. in the launcher app's
-  "! check_on_init).
+  "! routing equivalent of a UI5 navTo.
+  "!
+  "! Call it ONCE, in check_on_init - the way a UI5 app configures routing once
+  "! in its manifest. The mode is remembered on the app (it travels in the
+  "! draft) and re-sent with every response, so it does not have to be
+  "! re-asserted on every render; an app called via nav_app_call inherits it,
+  "! and an app the user navigates back to keeps its own mode even when the app
+  "! in between ran with a different one.
+  "!
+  "! Works inside the SAP Fiori Launchpad as well: the route is written as the
+  "! app (inner) hash behind the shell hash, so the FLP back button returns to
+  "! the previous app instead of the launchpad home page, and the shell hash
+  "! survives every hash update.
   "!
   "! The mode (see cs_nav_mode) decides what Back/Forward/reload/bookmark
   "! restore: keep (default) restores the exact preserved state via a draft id

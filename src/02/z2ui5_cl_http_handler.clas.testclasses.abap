@@ -177,7 +177,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_csrf_inactive.
 
-    " opt-in: with csrf disabled even a cross-origin request is allowed
+    " opt-out: with csrf disabled even a cross-origin request is allowed
     DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
                             active  = abap_false
                             origin  = `https://evil.example.com`

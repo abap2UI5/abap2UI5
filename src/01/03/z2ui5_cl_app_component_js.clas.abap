@@ -29,7 +29,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
              `    "z2ui5/model/formatter",` && |\n| &&
-             `    "sap/ui/core/routing/HashChanger",` && |\n| &&
+             `    "z2ui5/core/Router",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    UIComponent,` && |\n| &&
@@ -41,7 +41,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
              `    Formatter,` && |\n| &&
-             `    HashChanger,` && |\n| &&
+             `    Router,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -105,17 +105,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        this._installDeveloperToolsShortcut();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `        this._installRouterListener();` && |\n| &&
-             `` && |\n| &&
-             `        // The stopped router removed with the manifest routing section used` && |\n| &&
-             `        // to initialize the HashChanger (and its underlying hasher` && |\n| &&
-             `        // singleton) as a side effect. Without that init hasher never` && |\n| &&
-             `        // learns the URL's current hash, so the app-state cleanup after` && |\n| &&
-             `        // every roundtrip (View1._updateBrowserHistory calling` && |\n| &&
-             `        // replaceHash("")) is treated as a change and rewrites the URL to` && |\n| &&
-             `        // "...#" - every app start ended with a dangling "#". Initialize it` && |\n| &&
-             `        // explicitly; inside the FLP the shell has already done this and` && |\n| &&
-             `        // init() is a guarded no-op.` && |\n| &&
-             `        HashChanger.getInstance().init();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
@@ -161,20 +150,15 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installRouterListener() {` && |\n| &&
-             `        // Hash-based app routing (UI5 Router style). The HashChanger is the` && |\n| &&
-             `        // same engine the sap.ui.core.routing.Router sits on; listening to its` && |\n| &&
-             `        // hashChanged event makes the native browser Back/Forward buttons (and` && |\n| &&
-             `        // manual URL edits / bookmarks) drive navigation - a hash of the form` && |\n| &&
-             `        // "#/app/<CLASS>" starts that app. Only sessions that opted in via` && |\n| &&
-             `        // client->set_nav_routing( ) act on it (Server.onHashChange guards on` && |\n| &&
-             `        // AppState.navRouting), so apps that manage their own hash are` && |\n| &&
-             `        // unaffected.` && |\n| &&
-             `        this._boundHashChanged = (oEvent) =>` && |\n| &&
-             `          Server.onHashChange(oEvent.getParameter("newHash"));` && |\n| &&
-             `        HashChanger.getInstance().attachEvent(` && |\n| &&
-             `          "hashChanged",` && |\n| &&
-             `          this._boundHashChanged,` && |\n| &&
-             `        );` && |\n| &&
+             `        // Hash-based app routing (UI5 Router style), owned by core/Router.js.` && |\n| &&
+             `        // It sits on the HashChanger - the same engine` && |\n| &&
+             `        // sap.ui.core.routing.Router uses, and inside the FLP the shell's own` && |\n| &&
+             `        // one - so the native browser Back/Forward buttons and the launchpad` && |\n| &&
+             `        // back button drive navigation. Only apps that opted in via` && |\n| &&
+             `        // client->set_nav_routing( ) act on it, so apps that manage their own` && |\n| &&
+             `        // hash are unaffected. Server does the actual restore roundtrip; it is` && |\n| &&
+             `        // injected here so the router stays free of a Server dependency.` && |\n| &&
+             `        Router.init(() => Server.restoreFromRoute());` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
@@ -282,10 +266,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
-             `        HashChanger.getInstance().detachEvent(` && |\n| &&
-             `          "hashChanged",` && |\n| &&
-             `          this._boundHashChanged,` && |\n| &&
-             `        );` && |\n| &&
+             `        Router.exit();` && |\n| &&
              `` && |\n| &&
              `        // The developer tools control is created lazily by the Ctrl+F12` && |\n| &&
              `        // shortcut - destroy it (which also closes its dialog) so a re-launch` && |\n| &&

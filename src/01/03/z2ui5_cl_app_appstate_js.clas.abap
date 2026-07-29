@@ -141,6 +141,8 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      pendingCustomJs: null,` && |\n| &&
              `` && |\n| &&
              `      // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).` && |\n| &&
+             `      // Owned by core/Router.js - see there for the route format and how the` && |\n| &&
+             `      // hash is split between the FLP shell and the app.` && |\n| &&
              `      //  navRouting  once the running app enabled routing, the URL hash mirrors` && |\n| &&
              `      //              the current app as a bookmarkable route and browser` && |\n| &&
              `      //              Back/Forward navigate between apps via the hash.` && |\n| &&
@@ -155,7 +157,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      //                 our own hash writes do not re-trigger a navigation, and` && |\n| &&
              `      //                 (KEEP) browser Back/Forward restore the exact draft.` && |\n| &&
              `      //  navFromHash    the pending roundtrip was triggered by a browser` && |\n| &&
-             `      //                 Back/Forward (or manual hash edit) via onHashChange, so` && |\n| &&
+             `      //                 Back/Forward (or manual hash edit) via the router, so` && |\n| &&
              `      //                 the resulting render must NOT rewrite the hash: the` && |\n| &&
              `      //                 browser is at a non-top history position and rewriting` && |\n| &&
              `      //                 there drops the forward entries (Forward would break).` && |\n| &&
