@@ -241,6 +241,14 @@ test("a non-app hash and disabled routing are both ignored", () => {
 // 3b. Write side - sync
 // ---------------------------------------------------------------------------
 
+// Writes reach the HashChanger WITHOUT the route's leading slash: standalone,
+// hasher (prependHash "/") adds exactly one of its own - handing it a
+// slash-prefixed route put "#//app/X" into the URL, which the frontend never
+// saw (reads come back trimmed) but which hid the route from the backend's
+// raw window.location.hash parser: every Back/Forward/reload fell back to
+// the "?app_start=" boot query and restarted the boot app instead of
+// restoring the routed one (forward navigation appeared to do nothing).
+
 // the response of the roundtrip that ran client->nav_app_call
 function navCallParams() {
   return {
@@ -257,7 +265,7 @@ test("a plain roundtrip replaces the current entry with the newest draft", () =>
   Router.sync({}, "D2");
 
   expect(writes).toEqual([
-    { op: "replace", hash: `/app/${CALLER}/D2`, guard: "D2" },
+    { op: "replace", hash: `app/${CALLER}/D2`, guard: "D2" },
   ]);
 });
 
@@ -271,9 +279,9 @@ test("a nav_app_call repoints the caller's entry, then pushes the called app", (
   expect(writes).toEqual([
     // the caller's entry now points at the draft that carries the user's
     // client-side changes ...
-    { op: "replace", hash: `/app/${CALLER}/D2`, guard: "D2" },
+    { op: "replace", hash: `app/${CALLER}/D2`, guard: "D2" },
     // ... and the called app gets a NEW entry, so Back returns to it
-    { op: "set", hash: `/app/${CALLEE}/D9`, guard: "D9" },
+    { op: "set", hash: `app/${CALLEE}/D9`, guard: "D9" },
   ]);
   // the state ends up on the called app (the repoint must not leak)
   expect(state.currentApp).toBe(CALLEE);
@@ -288,7 +296,7 @@ test("the repoint is skipped when the caller's entry is already current", () => 
   Router.sync(navCallParams(), "D9");
 
   expect(writes).toEqual([
-    { op: "set", hash: `/app/${CALLEE}/D9`, guard: "D9" },
+    { op: "set", hash: `app/${CALLEE}/D9`, guard: "D9" },
   ]);
 });
 
@@ -299,7 +307,7 @@ test("a nav_app_call without the caller info only pushes (older backend)", () =>
   Router.sync({ CHECK_NAV_APP_CALL: true }, "D9");
 
   expect(writes).toEqual([
-    { op: "set", hash: `/app/${CALLEE}/D9`, guard: "D9" },
+    { op: "set", hash: `app/${CALLEE}/D9`, guard: "D9" },
   ]);
 });
 
@@ -311,7 +319,7 @@ test("FRESH mode routes by class only and never repoints", () => {
 
   Router.sync(navCallParams(), "D9");
 
-  expect(writes).toEqual([{ op: "set", hash: `/app/${CALLEE}`, guard: null }]);
+  expect(writes).toEqual([{ op: "set", hash: `app/${CALLEE}`, guard: null }]);
 });
 
 test("a render caused by browser Back/Forward writes no hash at all", () => {
@@ -336,7 +344,7 @@ test("the routing mode arrives with every response and switches modes live", () 
   expect(state.navRouting).toBe(true);
   expect(state.navMode).toBe("KEEP");
   expect(writes).toEqual([
-    { op: "replace", hash: `/app/${CALLER}/D2`, guard: "D2" },
+    { op: "replace", hash: `app/${CALLER}/D2`, guard: "D2" },
   ]);
 
   // DEFAULT turns routing off again and hands the hash back to the app
@@ -363,10 +371,35 @@ test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
   expect(standalone.pushes).toEqual(["/sap/z2ui5#/app/X/D1?pos=42"]);
 });
 
-test("the app-state hash is written with its leading slash", () => {
+test("the app-state hash reaches the HashChanger slash-less too", () => {
+  // hasher prepends the one canonical "/" - the live URL becomes
+  // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes
   const { Router, writes } = loadRouter({ state: { navRouting: false } });
   Router.sync({ SET_APP_STATE_ACTIVE: true }, "ABC");
   expect(writes).toEqual([
-    { op: "replace", hash: "/z2ui5-xapp-state=ABC", guard: "D1" },
+    { op: "replace", hash: "z2ui5-xapp-state=ABC", guard: "D1" },
   ]);
+});
+
+test("navTo strips every leading slash before writing", () => {
+  // regression: with the slash left in, hasher turned "/app/X" into
+  // "#//app/X" and the backend route parser no longer matched it
+  const { Router, writes } = loadRouter();
+  Router.navTo(`/app/${CALLEE}/D9`);
+  Router.navTo(`//app/${CALLEE}`, true);
+  expect(writes).toEqual([
+    { op: "set", hash: `app/${CALLEE}/D9`, guard: "D1" },
+    { op: "replace", hash: `app/${CALLEE}`, guard: "D1" },
+  ]);
+});
+
+test("routes with stacked leading slashes still parse (old history entries)", () => {
+  // "#//app/X" URLs written before navTo stripped its slash live on in
+  // bookmarks and history entries - Back/Forward hands them to the router
+  const { Router } = loadRouter();
+  expect(Router.parse(`#//app/${CALLEE}/D9`)).toEqual({
+    app: CALLEE,
+    draft: "D9",
+  });
+  expect(Router.appOf(`//app/${CALLEE}`)).toBe(CALLEE);
 });

@@ -79,9 +79,13 @@ sap.ui.define(
     // The app hash the browser currently stands on. Inside the FLP the
     // HashChanger is the shell's own and already returns the inner hash;
     // appHashOf normalizes the standalone case (and any release that hands
-    // back the full hash) to the same shape.
+    // back the full hash) to the same shape. Standalone, hasher trims the
+    // "/" it prepended on write; the FLP shell hands the inner hash back
+    // without one - re-add it so comparisons against the slash-prefixed
+    // routes this router builds hold on both stacks.
     function getHash() {
-      return appHashOf(hashChanger().getHash());
+      const app = appHashOf(hashChanger().getHash());
+      return app && !app.startsWith("/") ? `/${app}` : app;
     }
 
     // Build an absolute URL for an app hash, keeping the FLP shell hash in
@@ -113,7 +117,9 @@ sap.ui.define(
     }
 
     function segmentsOf(sHash) {
-      const app = appHashOf(sHash).replace(/^\//, "");
+      // tolerate any number of leading slashes: routes written before navTo
+      // stripped its slash live on in bookmarks and history as "#//app/X"
+      const app = appHashOf(sHash).replace(/^\/+/, "");
       const marker = "app/";
       if (!app.startsWith(marker)) return null;
       // Stop at any route/query separator, then split class / draft id.
@@ -147,11 +153,22 @@ sap.ui.define(
     // returns to the current app), replaceHash updates the current one in
     // place and leaves the history depth alone. Both go through the
     // HashChanger, so inside the FLP only the app hash is rewritten.
+    //
+    // The hash is handed over WITHOUT its leading slash: standalone, the
+    // HashChanger's engine (hasher, prependHash "/") unconditionally prepends
+    // one more - a slash-prefixed route would put "#//app/X" into the URL.
+    // Reads through the HashChanger come back trimmed, so the frontend never
+    // noticed, but the backend parses window.location.hash raw: the double
+    // slash hid the route from it and every browser Back/Forward/reload fell
+    // back to the "?app_start=" boot query (the app restarted instead of the
+    // routed one being restored). Inside the FLP the shell appends the hash
+    // after "&/" - the canonical launchpad spelling is slash-less anyway.
     function navTo(sRoute, bReplace) {
+      const sHash = String(sRoute || "").replace(/^\/+/, "");
       if (bReplace) {
-        hashChanger().replaceHash(sRoute);
+        hashChanger().replaceHash(sHash);
       } else {
-        hashChanger().setHash(sRoute);
+        hashChanger().setHash(sHash);
       }
     }
 
@@ -313,13 +330,13 @@ sap.ui.define(
           const newUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${PARAMS.SET_PUSH_STATE}`;
           history.pushState(null, "", newUrl);
         }
-        // Keep the leading "/" so the live URL matches the format the copy
-        // link (FrontendAction.evClipboardAppState) writes and the backend
-        // restore path expects: the app-state id is read as a URL parameter
-        // of the app hash, i.e. after exactly one "/". Without the slash the
-        // live hash is "#z2ui5-xapp-state=..." and the historic "+2" parser
-        // ate the leading "z", so bookmarking/reloading the live URL never
-        // restored the app state (only the explicitly copied link did).
+        // The live URL must match the format the copy link
+        // (FrontendAction.evClipboardAppState) writes and the backend restore
+        // path expects: the app-state id is read as a URL parameter of the
+        // app hash, i.e. after exactly one "/". navTo strips the leading
+        // slash and standalone hasher prepends exactly one again; inside the
+        // FLP the shell appends the slash-less hash after "&/" - both end up
+        // in the canonical single-slash form.
         const newHash = PARAMS.SET_APP_STATE_ACTIVE
           ? `/z2ui5-xapp-state=${ID || ""}`
           : "";

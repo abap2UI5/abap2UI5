@@ -322,12 +322,11 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD request_app_start_draft.
     TRY.
         DATA(lv_hash) = hash_get_app_part( iv_hash ).
-        " the app hash may carry a leading '/' ('#/z2ui5-xapp-state=...');
-        " url_param_get matches parameter names verbatim, so strip it
-        IF strlen( lv_hash ) > 0 AND lv_hash(1) = `/`.
-          lv_hash = substring( val = lv_hash
-                               off = 1 ).
-        ENDIF.
+        " the app hash may carry leading slashes ('#/z2ui5-xapp-state=...',
+        " or '#//...' from URLs written through the UI5 HashChanger before
+        " navTo stripped its slash); url_param_get matches parameter names
+        " verbatim, so strip them all
+        SHIFT lv_hash LEFT DELETING LEADING `/`.
         result = z2ui5_cl_a2ui5_context=>c_trim_upper(
             z2ui5_cl_a2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
                                           url          = lv_hash ) ).
@@ -344,12 +343,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " '#/app/X' and '#Z2UI5-display&/app/X' resolve identically.
     DATA(lv_hash) = hash_get_app_part( iv_hash ).
 
-    " the leading '/' is optional: the launchpad convention writes the app
-    " hash without it ('&/app/X'), our own routes carry it ('#/app/X')
-    IF strlen( lv_hash ) > 0 AND lv_hash(1) = `/`.
-      lv_hash = substring( val = lv_hash
-                           off = 1 ).
-    ENDIF.
+    " leading slashes are optional AND may stack: the launchpad convention
+    " writes the app hash without one ('&/app/X'), our own routes carry one
+    " ('#/app/X'), and URLs written through the UI5 HashChanger before navTo
+    " stripped its slash carry two ('#//app/X' - hasher prepends a '/' of its
+    " own); those live on in bookmarks and browser history, so strip them all
+    SHIFT lv_hash LEFT DELETING LEADING `/`.
 
     IF strlen( lv_hash ) < 4 OR lv_hash(4) <> `app/`.
       RETURN.
