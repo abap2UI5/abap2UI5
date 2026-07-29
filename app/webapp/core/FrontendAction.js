@@ -149,8 +149,47 @@ sap.ui.define(
     // drives the render lifecycle by hand. (The backend is the trusted driver, so
     // this is a footgun guard, not a security boundary - and control[method] is
     // still checked to be a function before the call, so a typo just no-ops.)
-    const CONTROL_METHOD_DENY =
-      /^(_|destroy|bind|unbind|attach|detach|removeAll|addDependent|placeAt|rerender|invalidate|applySettings|clone|setModel|setBindingContext|setParent|setBinding|setAssociation)/;
+    // Named setters/mutators (setVisible, addItem, removeItem, ...) stay
+    // allowed - they are the API the backend legitimately drives. Denied are
+    // the framework-hostile methods: teardown/reparenting (destroy*, exit,
+    // setParent, addDependent, placeAt), model/binding swaps (setModel,
+    // setBinding*, bind*/unbind*), event-handler tampering (attach*/detach*,
+    // fireEvent), the render lifecycle (rerender, invalidate) and the GENERIC
+    // reflection aggregation mutators (setAggregation/add/insert/remove* and
+    // removeAll*) which reparent tracked controls behind the framework's back
+    // (the named per-aggregation methods above remain allowed).
+    // Built from a list (not one long literal) so no single source line is too
+    // long once embedded into the ABAP string constant (trans2abap.js caps
+    // generated lines at 255 chars). Each entry is a method-name PREFIX.
+    const CONTROL_METHOD_DENY_PREFIXES = [
+      "_",
+      "destroy",
+      "bind",
+      "unbind",
+      "attach",
+      "detach",
+      "fireEvent",
+      "exit",
+      "removeAll",
+      "removeAggregation",
+      "addAggregation",
+      "insertAggregation",
+      "setAggregation",
+      "addDependent",
+      "placeAt",
+      "rerender",
+      "invalidate",
+      "applySettings",
+      "clone",
+      "setModel",
+      "setBindingContext",
+      "setParent",
+      "setBinding",
+      "setAssociation",
+    ];
+    const CONTROL_METHOD_DENY = new RegExp(
+      "^(" + CONTROL_METHOD_DENY_PREFIXES.join("|") + ")",
+    );
     function isSafeControlMethod(method) {
       return (
         typeof method === "string" &&
@@ -584,11 +623,24 @@ sap.ui.define(
         Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");
         return;
       }
+      // A data: URL carrying active HTML combined with an attacker-chosen
+      // .html/.hta filename is a known drive-by vector; block executable data:
+      // MIME types outright (real downloads are octet-stream, images, pdf, ...).
+      if (
+        /^data:(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(
+          args[1],
+        )
+      ) {
+        Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");
+        return;
+      }
       const a = document.createElement("a");
       a.href = args[1];
       // Fall back to an empty download attribute when the backend omits the
-      // filename, so the anchor never carries the literal "undefined".
-      a.download = args[2] || "";
+      // filename, so the anchor never carries the literal "undefined". Strip
+      // path separators and control characters so the filename cannot escape
+      // the download directory or carry a misleading name.
+      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");
       // Firefox only triggers a programmatic download click when the anchor
       // is part of the document, so attach it briefly and remove it again.
       document.body.appendChild(a);
@@ -1092,6 +1144,14 @@ sap.ui.define(
 
     function evUrlHelper(oController, args) {
       const params = args[2] ?? {};
+      // mailto:/sms:/tel: targets are handed to URLHelper as-is; a CR/LF in a
+      // recipient/subject can inject extra headers in some mail clients. Reject
+      // any control character in the string params up front.
+      const hasControlChar = (v) => typeof v === "string" && /[\r\n]/.test(v);
+      if (Object.values(params).some(hasControlChar)) {
+        Lib.logError("URLHELPER: blocked control character in parameters");
+        return;
+      }
       const actions = {
         REDIRECT: () => {
           if (!Lib.isSafeRedirectProtocol(params.URL)) {
@@ -1431,6 +1491,13 @@ sap.ui.define(
     }
 
     function evPlayAudio(oController, args) {
+      // Only http(s)/data:/blob: sources are meaningful for Audio; validating
+      // the protocol keeps this consistent with the other URL-consuming
+      // actions and blocks odd schemes early.
+      if (!Lib.isSafeDownloadURL(args[1])) {
+        Lib.logError("PLAY_AUDIO: blocked unsafe audio URL");
+        return;
+      }
       try {
         const playing = new Audio(args[1]).play();
         // play() returns a Promise; a rejection (e.g. blocked by the

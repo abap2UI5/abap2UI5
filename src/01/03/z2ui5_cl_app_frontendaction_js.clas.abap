@@ -169,8 +169,47 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // drives the render lifecycle by hand. (The backend is the trusted driver, so` && |\n| &&
              `    // this is a footgun guard, not a security boundary - and control[method] is` && |\n| &&
              `    // still checked to be a function before the call, so a typo just no-ops.)` && |\n| &&
-             `    const CONTROL_METHOD_DENY =` && |\n| &&
-             `      /^(_|destroy|bind|unbind|attach|detach|removeAll|addDependent|placeAt|rerender|invalidate|applySettings|clone|setModel|setBindingContext|setParent|setBinding|setAssociation)/;` && |\n| &&
+             `    // Named setters/mutators (setVisible, addItem, removeItem, ...) stay` && |\n| &&
+             `    // allowed - they are the API the backend legitimately drives. Denied are` && |\n| &&
+             `    // the framework-hostile methods: teardown/reparenting (destroy*, exit,` && |\n| &&
+             `    // setParent, addDependent, placeAt), model/binding swaps (setModel,` && |\n| &&
+             `    // setBinding*, bind*/unbind*), event-handler tampering (attach*/detach*,` && |\n| &&
+             `    // fireEvent), the render lifecycle (rerender, invalidate) and the GENERIC` && |\n| &&
+             `    // reflection aggregation mutators (setAggregation/add/insert/remove* and` && |\n| &&
+             `    // removeAll*) which reparent tracked controls behind the framework's back` && |\n| &&
+             `    // (the named per-aggregation methods above remain allowed).` && |\n| &&
+             `    // Built from a list (not one long literal) so no single source line is too` && |\n| &&
+             `    // long once embedded into the ABAP string constant (trans2abap.js caps` && |\n| &&
+             `    // generated lines at 255 chars). Each entry is a method-name PREFIX.` && |\n| &&
+             `    const CONTROL_METHOD_DENY_PREFIXES = [` && |\n| &&
+             `      "_",` && |\n| &&
+             `      "destroy",` && |\n| &&
+             `      "bind",` && |\n| &&
+             `      "unbind",` && |\n| &&
+             `      "attach",` && |\n| &&
+             `      "detach",` && |\n| &&
+             `      "fireEvent",` && |\n| &&
+             `      "exit",` && |\n| &&
+             `      "removeAll",` && |\n| &&
+             `      "removeAggregation",` && |\n| &&
+             `      "addAggregation",` && |\n| &&
+             `      "insertAggregation",` && |\n| &&
+             `      "setAggregation",` && |\n| &&
+             `      "addDependent",` && |\n| &&
+             `      "placeAt",` && |\n| &&
+             `      "rerender",` && |\n| &&
+             `      "invalidate",` && |\n| &&
+             `      "applySettings",` && |\n| &&
+             `      "clone",` && |\n| &&
+             `      "setModel",` && |\n| &&
+             `      "setBindingContext",` && |\n| &&
+             `      "setParent",` && |\n| &&
+             `      "setBinding",` && |\n| &&
+             `      "setAssociation",` && |\n| &&
+             `    ];` && |\n| &&
+             `    const CONTROL_METHOD_DENY = new RegExp(` && |\n| &&
+             `      "^(" + CONTROL_METHOD_DENY_PREFIXES.join("|") + ")",` && |\n| &&
+             `    );` && |\n| &&
              `    function isSafeControlMethod(method) {` && |\n| &&
              `      return (` && |\n| &&
              `        typeof method === "string" &&` && |\n| &&
@@ -378,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // args: [_, object, method, ...params]` && |\n| &&
              `    function evControlCall(oController, args) {` && |\n| &&
-             `      const [, name, method] = args;` && |\n| &&
+             `      const [, name, method] = args;` && |\n|.
+    result = result &&
              `      const target = GLOBAL_TARGETS[name];` && |\n| &&
              `      const kinds = target?.methods[method];` && |\n| &&
              `      if (!kinds) {` && |\n| &&
@@ -417,8 +457,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        /\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,` && |\n| &&
              `        (m, i, tText, fText) => {` && |\n| &&
              `          const n = Number(i);` && |\n| &&
-             `          if (n >= values.length) return m;` && |\n|.
-    result = result &&
+             `          if (n >= values.length) return m;` && |\n| &&
              `          const v = String(values[n]);` && |\n| &&
              `          if (tText === undefined) return v;` && |\n| &&
              `          const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);` && |\n| &&
@@ -605,11 +644,24 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `      // A data: URL carrying active HTML combined with an attacker-chosen` && |\n| &&
+             `      // .html/.hta filename is a known drive-by vector; block executable data:` && |\n| &&
+             `      // MIME types outright (real downloads are octet-stream, images, pdf, ...).` && |\n| &&
+             `      if (` && |\n| &&
+             `        /^data:(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(` && |\n| &&
+             `          args[1],` && |\n| &&
+             `        )` && |\n| &&
+             `      ) {` && |\n| &&
+             `        Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      const a = document.createElement("a");` && |\n| &&
              `      a.href = args[1];` && |\n| &&
              `      // Fall back to an empty download attribute when the backend omits the` && |\n| &&
-             `      // filename, so the anchor never carries the literal "undefined".` && |\n| &&
-             `      a.download = args[2] || "";` && |\n| &&
+             `      // filename, so the anchor never carries the literal "undefined". Strip` && |\n| &&
+             `      // path separators and control characters so the filename cannot escape` && |\n| &&
+             `      // the download directory or carry a misleading name.` && |\n| &&
+             `      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");` && |\n| &&
              `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
              `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
              `      document.body.appendChild(a);` && |\n| &&
@@ -766,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      let frame;` && |\n| &&
              `      const finish = () => {` && |\n| &&
              `        if (done) return;` && |\n| &&
-             `        done = true;` && |\n| &&
+             `        done = true;` && |\n|.
+    result = result &&
              `        // Remove the hidden BSP-kill iframe. On a successful logout the page` && |\n| &&
              `        // navigates away and unload cleans up anyway; but if redirectToLogout` && |\n| &&
              `        // blocks an invalid URL (MessageBox, no navigation) the iframe would` && |\n| &&
@@ -818,8 +871,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // BIND_ELEMENT: element-bind a whole view slot (popup / popover / main) to` && |\n| &&
-             `    // a row of a registered table, so the fragment's relative bindings ({Name},` && |\n|.
-    result = result &&
+             `    // a row of a registered table, so the fragment's relative bindings ({Name},` && |\n| &&
              `    // {ProductPicUrl}, ...) resolve against that row - the abap2UI5 equivalent of` && |\n| &&
              `    // oControl.bindElement(oCtx.getPath()). args = [slot, index, path]; the path` && |\n| &&
              `    // comes from client->_bind( table ) (braces already stripped server-side and` && |\n| &&
@@ -1114,6 +1166,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&
              `      const params = args[2] ?? {};` && |\n| &&
+             `      // mailto:/sms:/tel: targets are handed to URLHelper as-is; a CR/LF in a` && |\n| &&
+             `      // recipient/subject can inject extra headers in some mail clients. Reject` && |\n| &&
+             `      // any control character in the string params up front.` && |\n| &&
+             `      const hasControlChar = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n| &&
+             `      if (Object.values(params).some(hasControlChar)) {` && |\n| &&
+             `        Lib.logError("URLHELPER: blocked control character in parameters");` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      const actions = {` && |\n| &&
              `        REDIRECT: () => {` && |\n| &&
              `          if (!Lib.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
@@ -1159,7 +1219,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evStartTimer(oController, args) {` && |\n| &&
              `      // Intentionally a single timer slot: args[0] is always the event` && |\n| &&
              `      // name "START_TIMER", so a new START_TIMER replaces the previous` && |\n| &&
-             `      // one. At most one backend timer is pending at any time - this is` && |\n| &&
+             `      // one. At most one backend timer is pending at any time - this is` && |\n|.
+    result = result &&
              `      // by design, not a bug.` && |\n| &&
              `      const timerKey = args[0];` && |\n| &&
              `      const callbackEvent = args[1];` && |\n| &&
@@ -1219,8 +1280,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // the same normalized form for an actual keydown event` && |\n| &&
              `    function shortcutFromEvent(oEvent) {` && |\n| &&
-             `      const key = String(oEvent.key ?? "").toLowerCase();` && |\n|.
-    result = result &&
+             `      const key = String(oEvent.key ?? "").toLowerCase();` && |\n| &&
              `      // a bare modifier press is not a shortcut` && |\n| &&
              `      if (key === "" || SHORTCUT_MODIFIERS.includes(shortcutToken(key)))` && |\n| &&
              `        return "";` && |\n| &&
@@ -1454,6 +1514,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evPlayAudio(oController, args) {` && |\n| &&
+             `      // Only http(s)/data:/blob: sources are meaningful for Audio; validating` && |\n| &&
+             `      // the protocol keeps this consistent with the other URL-consuming` && |\n| &&
+             `      // actions and blocks odd schemes early.` && |\n| &&
+             `      if (!Lib.isSafeDownloadURL(args[1])) {` && |\n| &&
+             `        Lib.logError("PLAY_AUDIO: blocked unsafe audio URL");` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      try {` && |\n| &&
              `        const playing = new Audio(args[1]).play();` && |\n| &&
              `        // play() returns a Promise; a rejection (e.g. blocked by the` && |\n| &&
