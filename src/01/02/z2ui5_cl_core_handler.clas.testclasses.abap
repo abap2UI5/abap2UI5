@@ -468,6 +468,16 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = ``
                                         act = lo_handler->request_app_start_route_draft( `#/app/ZCL_X` ) ).
 
+    " the double-slash form the UI5 HashChanger wrote before navTo stripped
+    " its slash (hasher prepends one of its own) - lives on in bookmarks and
+    " browser history entries, and Back/Forward sends exactly this
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
+                                        act = lo_handler->request_app_start_route( `#//app/ZCL_X/D1` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `D1`
+                                        act = lo_handler->request_app_start_route_draft( `#//app/ZCL_X/D1` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
+                                        act = lo_handler->request_app_start_route( `#//app/ZCL_X` ) ).
+
   ENDMETHOD.
 
   METHOD test_route_launchpad.
@@ -522,6 +532,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `ABC123`
         act = lo_handler->request_app_start_draft( `#Z2UI5-display&/z2ui5-xapp-state=ABC123` ) ).
+
+    " the double-slash form older HashChanger-written live URLs carry
+    cl_abap_unit_assert=>assert_equals(
+        exp = `ABC123`
+        act = lo_handler->request_app_start_draft( `#//z2ui5-xapp-state=ABC123` ) ).
 
   ENDMETHOD.
 

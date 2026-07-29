@@ -99,9 +99,13 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `    // The app hash the browser currently stands on. Inside the FLP the` && |\n| &&
              `    // HashChanger is the shell's own and already returns the inner hash;` && |\n| &&
              `    // appHashOf normalizes the standalone case (and any release that hands` && |\n| &&
-             `    // back the full hash) to the same shape.` && |\n| &&
+             `    // back the full hash) to the same shape. Standalone, hasher trims the` && |\n| &&
+             `    // "/" it prepended on write; the FLP shell hands the inner hash back` && |\n| &&
+             `    // without one - re-add it so comparisons against the slash-prefixed` && |\n| &&
+             `    // routes this router builds hold on both stacks.` && |\n| &&
              `    function getHash() {` && |\n| &&
-             `      return appHashOf(hashChanger().getHash());` && |\n| &&
+             `      const app = appHashOf(hashChanger().getHash());` && |\n| &&
+             `      return app && !app.startsWith("/") ? ``/${app}`` : app;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Build an absolute URL for an app hash, keeping the FLP shell hash in` && |\n| &&
@@ -133,7 +137,9 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function segmentsOf(sHash) {` && |\n| &&
-             `      const app = appHashOf(sHash).replace(/^\//, "");` && |\n| &&
+             `      // tolerate any number of leading slashes: routes written before navTo` && |\n| &&
+             `      // stripped its slash live on in bookmarks and history as "#//app/X"` && |\n| &&
+             `      const app = appHashOf(sHash).replace(/^\/+/, "");` && |\n| &&
              `      const marker = "app/";` && |\n| &&
              `      if (!app.startsWith(marker)) return null;` && |\n| &&
              `      // Stop at any route/query separator, then split class / draft id.` && |\n| &&
@@ -167,11 +173,22 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `    // returns to the current app), replaceHash updates the current one in` && |\n| &&
              `    // place and leaves the history depth alone. Both go through the` && |\n| &&
              `    // HashChanger, so inside the FLP only the app hash is rewritten.` && |\n| &&
+             `    //` && |\n| &&
+             `    // The hash is handed over WITHOUT its leading slash: standalone, the` && |\n| &&
+             `    // HashChanger's engine (hasher, prependHash "/") unconditionally prepends` && |\n| &&
+             `    // one more - a slash-prefixed route would put "#//app/X" into the URL.` && |\n| &&
+             `    // Reads through the HashChanger come back trimmed, so the frontend never` && |\n| &&
+             `    // noticed, but the backend parses window.location.hash raw: the double` && |\n| &&
+             `    // slash hid the route from it and every browser Back/Forward/reload fell` && |\n| &&
+             `    // back to the "?app_start=" boot query (the app restarted instead of the` && |\n| &&
+             `    // routed one being restored). Inside the FLP the shell appends the hash` && |\n| &&
+             `    // after "&/" - the canonical launchpad spelling is slash-less anyway.` && |\n| &&
              `    function navTo(sRoute, bReplace) {` && |\n| &&
+             `      const sHash = String(sRoute || "").replace(/^\/+/, "");` && |\n| &&
              `      if (bReplace) {` && |\n| &&
-             `        hashChanger().replaceHash(sRoute);` && |\n| &&
+             `        hashChanger().replaceHash(sHash);` && |\n| &&
              `      } else {` && |\n| &&
-             `        hashChanger().setHash(sRoute);` && |\n| &&
+             `        hashChanger().setHash(sHash);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -333,13 +350,13 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `          const newUrl = ``${window.location.pathname}${window.location.search}#${getRawHash()}${PARAMS.SET_PUSH_STATE}``;` && |\n| &&
              `          history.pushState(null, "", newUrl);` && |\n| &&
              `        }` && |\n| &&
-             `        // Keep the leading "/" so the live URL matches the format the copy` && |\n| &&
-             `        // link (FrontendAction.evClipboardAppState) writes and the backend` && |\n| &&
-             `        // restore path expects: the app-state id is read as a URL parameter` && |\n| &&
-             `        // of the app hash, i.e. after exactly one "/". Without the slash the` && |\n| &&
-             `        // live hash is "#z2ui5-xapp-state=..." and the historic "+2" parser` && |\n| &&
-             `        // ate the leading "z", so bookmarking/reloading the live URL never` && |\n| &&
-             `        // restored the app state (only the explicitly copied link did).` && |\n| &&
+             `        // The live URL must match the format the copy link` && |\n| &&
+             `        // (FrontendAction.evClipboardAppState) writes and the backend restore` && |\n| &&
+             `        // path expects: the app-state id is read as a URL parameter of the` && |\n| &&
+             `        // app hash, i.e. after exactly one "/". navTo strips the leading` && |\n| &&
+             `        // slash and standalone hasher prepends exactly one again; inside the` && |\n| &&
+             `        // FLP the shell appends the slash-less hash after "&/" - both end up` && |\n| &&
+             `        // in the canonical single-slash form.` && |\n| &&
              `        const newHash = PARAMS.SET_APP_STATE_ACTIVE` && |\n| &&
              `          ? ``/z2ui5-xapp-state=${ID || ""}``` && |\n| &&
              `          : "";` && |\n| &&
@@ -400,7 +417,8 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
               ``.
 
   ENDMETHOD.
