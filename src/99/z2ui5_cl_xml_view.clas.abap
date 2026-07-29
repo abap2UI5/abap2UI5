@@ -7530,15 +7530,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! Smart filter bar with auto-generated controls based on OData metadata.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.SmartFilterBar.
     "!
-    "! @parameter persistencykey | (string) Key for storing user variants.
-    "! @parameter entityset      | (string) OData entity set.
+    "! @parameter persistencykey         | (string) Key for storing user variants.
+    "! @parameter entityset              | (string) OData entity set.
+    "! @parameter smartvariant           | (sap.ui.core.ID) Id of the SmartVariantManagement owning the variants (page variant).
+    "! @parameter assignedfilterschanged | (event) Fired when the set of assigned filters changes.
     METHODS smart_filter_bar
       IMPORTING
-        id             TYPE clike OPTIONAL
-        persistencykey TYPE clike OPTIONAL
-        entityset      TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
+        persistencykey         TYPE clike OPTIONAL
+        entityset              TYPE clike OPTIONAL
+        smartvariant           TYPE clike OPTIONAL
+        assignedfilterschanged TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartfilterbar.ControlConfiguration</p>
     "!
@@ -7579,6 +7583,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter showrowcount            | (boolean) Show row count in header. Default: true.
     "! @parameter enableexport            | (boolean) Enable export button. Default: true.
     "! @parameter enableautobinding       | (boolean) Bind table automatically. Default: false.
+    "! @parameter persistencykey          | (string) Key under which the table's variants are persisted.
+    "! @parameter smartvariant            | (sap.ui.core.ID) Id of the SmartVariantManagement owning the variants (page variant).
     METHODS smart_table
       IMPORTING
         id                      TYPE clike OPTIONAL
@@ -7594,6 +7600,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         showrowcount            TYPE clike OPTIONAL
         enableexport            TYPE clike OPTIONAL
         enableautobinding       TYPE clike OPTIONAL
+        persistencykey          TYPE clike OPTIONAL
+        smartvariant            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
@@ -15177,6 +15185,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `smartFilterBar`    v = `sap.ui.comp.smartfilterbar` )
           ( n = `smartVariantManagement`    v = `sap.ui.comp.smartvariants` )
           ( n = `smartTable`        v = `sap.ui.comp.smarttable` )
+          ( n = `smartForm`         v = `sap.ui.comp.smartform` )
+          ( n = `smartField`        v = `sap.ui.comp.smartfield` )
+          ( n = `smartChart`        v = `sap.ui.comp.smartchart` )
+          ( n = `navpopover`        v = `sap.ui.comp.navpopover` )
           ( n = `webc`              v = `sap.ui.webc.main` )
           ( n = `uxap`              v = `sap.uxap` )
           ( n = `sap`               v = `sap` )
@@ -15642,7 +15654,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `smartFilterBar`
                        t_prop = VALUE #( ( n = `id`  v = id )
                                          ( n = `entitySet`  v = entityset )
-                                         ( n = `persistencyKey`  v = persistencykey ) ) ).
+                                         ( n = `persistencyKey`  v = persistencykey )
+                                         ( n = `smartVariant`  v = smartvariant )
+                                         ( n = `assignedFiltersChanged`  v = assignedfilterschanged ) ) ).
 
   ENDMETHOD.
 
@@ -15680,6 +15694,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `showRowCount`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( showrowcount ) )
             ( n = `enableExport`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( enableexport ) )
             ( n = `enableAutoBinding`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( enableautobinding ) )
+            ( n = `persistencyKey`  v = persistencykey )
+            ( n = `smartVariant`  v = smartvariant )
                           ) ).
 
   ENDMETHOD.
