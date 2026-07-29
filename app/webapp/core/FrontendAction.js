@@ -1062,6 +1062,11 @@ sap.ui.define(
     // Management already pulled it in, asynchronously otherwise.
     function withPersonalizableInfo(callback) {
       const name = "sap/ui/comp/smartvariants/PersonalizableInfo";
+      /* ui5lint-disable no-globals --
+       the guard has to read the global sap.ui itself: the point of this
+       function is to load a module that must NOT be a declared dependency
+       (sap.ui.comp is SAPUI5-only and 404s on OpenUI5), so sap.ui.require is
+       the only entry point and there is no injected equivalent to probe. */
       if (
         typeof sap === "undefined" ||
         !sap.ui ||
@@ -1080,6 +1085,7 @@ sap.ui.define(
           "FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available",
         ),
       );
+      /* ui5lint-enable no-globals */
     }
 
     function evFilterBarVariantInit(oController, args) {
