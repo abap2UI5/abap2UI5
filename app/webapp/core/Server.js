@@ -336,45 +336,13 @@ sap.ui.define(
         }
       },
 
-      // Hash-router handler (registered by Component.js on the HashChanger's
-      // hashChanged event). This is what makes the browser Back/Forward buttons
-      // - and manual URL edits / bookmarks - navigate between apps: a hash of
-      // the form "#/app/<CLASS>/<DRAFTID>" restores that app's draft (its
-      // preserved state), falling back to a fresh start of <CLASS> when the
-      // draft has expired. It is the abap2UI5 equivalent of a UI5 route's
-      // patternMatched handler.
-      onHashChange(sNewHash) {
-        const state = AppState.state;
-
-        // Routing is opt-in per session (client->set_nav_routing); until an app
-        // enabled it, leave the hash entirely to the app (e.g. set_push_state).
-        if (!state.navRouting) return;
-
-        const target = Lib.appOfRoute(sNewHash);
-
-        // Not an app route (empty / some app-owned hash) - ignore.
-        if (!target) return;
-
-        const targetDraft = Lib.draftOfRoute(sNewHash);
-
-        // Ignore the echo of our own hash write after rendering (not a user
-        // navigation), so we do not loop. Match on the draft id when the route
-        // carries one - that is the precise app state - otherwise on the class.
-        if (targetDraft) {
-          if (targetDraft === state.currentDraftId) return;
-        } else if (
-          target.toUpperCase() === String(state.currentApp).toUpperCase()
-        ) {
-          return;
-        }
-
-        // A different app state: restore it. An empty body (no ID) makes the
-        // backend take the first-start path and read the target class + draft
-        // from the hash it receives (request_app_start_route[_draft]). Mark the
-        // roundtrip as browser-initiated so the render does NOT rewrite the hash
-        // (the browser is at a non-top history position - rewriting there would
-        // drop the forward entries and break the Forward button).
-        state.navFromHash = true;
+      // Restore the app state a matched hash route points at. Wired into
+      // core/Router by Component.js and called when the browser Back/Forward
+      // buttons (or a manual URL edit / bookmark) select a different route.
+      // An empty body (no ID) makes the backend take the first-start path and
+      // read the target class + draft from the hash it receives
+      // (request_app_start_route[_draft]).
+      restoreFromRoute() {
         this.roundtrip({});
       },
 

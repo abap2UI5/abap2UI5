@@ -1,0 +1,382 @@
+// The abap2UI5 hash router - the framework counterpart of
+// sap.ui.core.routing.Router, and the ONLY module that touches the URL hash.
+//
+// Why a module of its own: a UI5 app hash means two different things
+// depending on where the app runs, and every place that reads or writes the
+// hash has to know it. Concentrating that knowledge here is what makes the
+// router work inside the SAP Fiori Launchpad as well as standalone.
+//
+//   standalone   #/app/<CLASS>/<DRAFT>
+//   inside FLP   #<SemanticObject>-<action>&/app/<CLASS>/<DRAFT>
+//                 \______ shell hash ______/  \___ app hash ___/
+//
+// The shell owns everything before "&/" (it is how the launchpad knows which
+// tile the user is on); the part after it is the "app hash" - the inner hash
+// a UI5 router configures its route patterns against. splitHash() is the one
+// place that separates the two, so the rest of the frontend - and the backend
+// route parser, which mirrors the same rule - only ever deals with app
+// hashes. Writing goes through the HashChanger, which is the shell's own
+// HashChanger inside the FLP and therefore preserves the shell hash by
+// construction.
+//
+// The routes themselves mirror a UI5 route pattern "app/{class}/{state}":
+// the <CLASS> segment names the app (human-readable), the <DRAFT> segment is
+// the server draft holding its state, so Back/Forward/reload/bookmark restore
+// the EXACT state. In FRESH mode the draft segment is omitted and the app
+// restarts clean. Routing is opt-in per app (client->set_nav_routing).
+sap.ui.define(
+  ["sap/ui/core/routing/HashChanger", "z2ui5/core/AppState", "z2ui5/core/Lib"],
+  (HashChanger, AppState, Lib) => {
+    "use strict";
+
+    const APP_ROUTE_PREFIX = "/app/";
+    // Separates the FLP shell hash from the app (inner) hash.
+    const SHELL_SEPARATOR = "&/";
+
+    // Injected by Component.js - runs the roundtrip that restores the app a
+    // matched route points at. Kept as a callback so the router does not
+    // depend on Server (Component wires both and owns their lifecycle).
+    let _fnNavigate = null;
+    let _boundHashChanged = null;
+
+    function hashChanger() {
+      return HashChanger.getInstance();
+    }
+
+    // ------------------------------------------------------------------
+    // FLP shell hash vs. app hash
+    // ------------------------------------------------------------------
+
+    // Split a hash into its shell and app part. Accepts every form the hash
+    // reaches us in: a raw window.location.hash (leading "#"), a HashChanger
+    // hash (no "#"), and the newHash of a hashChanged event (already the app
+    // hash inside the FLP).
+    //
+    // The app part is always normalized to a leading "/", the shape every
+    // route this router builds has. That absorbs the two spellings the FLP
+    // separator produces - "&/app/X" (the launchpad convention, app hashes
+    // written without a leading slash) and "&//app/X" (our slash-prefixed
+    // routes appended verbatim) - so comparing a hash against a route never
+    // depends on which one a ushell release wrote.
+    function splitHash(sHash) {
+      const raw = String(sHash || "").replace(/^#/, "");
+      // An app hash always starts with "/", a shell hash never does - it is
+      // "<SemanticObject>-<action>" optionally followed by "?<params>".
+      // Checking this FIRST matters: an app hash may legitimately contain
+      // "&/" in a query parameter, and splitting on that would truncate it.
+      if (!raw || raw.startsWith("/")) return { shell: "", app: raw };
+      const i = raw.indexOf(SHELL_SEPARATOR);
+      if (i < 0) return { shell: "", app: raw };
+      let app = raw.slice(i + SHELL_SEPARATOR.length).replace(/^\/+/, "");
+      if (app) app = `/${app}`;
+      return { shell: raw.slice(0, i), app };
+    }
+
+    function appHashOf(sHash) {
+      return splitHash(sHash).app;
+    }
+
+    // The app hash the browser currently stands on. Inside the FLP the
+    // HashChanger is the shell's own and already returns the inner hash;
+    // appHashOf normalizes the standalone case (and any release that hands
+    // back the full hash) to the same shape.
+    function getHash() {
+      return appHashOf(hashChanger().getHash());
+    }
+
+    // Build an absolute URL for an app hash, keeping the FLP shell hash in
+    // place so the link reopens the same launchpad target. Used by the
+    // copy-link features - a bare `location.href.split("#")[0] + "#" + hash`
+    // would drop the shell hash and land the recipient on the FLP home page.
+    function hrefFor(sAppHash) {
+      const base = window.location.href.split("#")[0];
+      const shell = splitHash(window.location.hash).shell;
+      if (!shell) return `${base}#${sAppHash}`;
+      // Canonical launchpad spelling: the "/" of "&/" already opens the app
+      // hash, so the app hash itself is appended without its leading slash.
+      return `${base}#${shell}${SHELL_SEPARATOR}${String(sAppHash).replace(/^\/+/, "")}`;
+    }
+
+    // The raw hash (shell part included) - for callers that rebuild a whole
+    // URL rather than hand an app hash to the HashChanger.
+    function getRawHash() {
+      return String(window.location.hash || "").replace(/^#/, "");
+    }
+
+    // ------------------------------------------------------------------
+    // Route patterns - "app/{class}/{state}"
+    // ------------------------------------------------------------------
+
+    function patternFor(sClass, sDraftId) {
+      const base = `${APP_ROUTE_PREFIX}${sClass}`;
+      return sDraftId ? `${base}/${sDraftId}` : base;
+    }
+
+    function segmentsOf(sHash) {
+      const app = appHashOf(sHash).replace(/^\//, "");
+      const marker = "app/";
+      if (!app.startsWith(marker)) return null;
+      // Stop at any route/query separator, then split class / draft id.
+      return app.slice(marker.length).split(/[&?]/)[0].split("/");
+    }
+
+    // Parse a hash into the route it matches, or null when it is no app
+    // route at all (an app-owned hash from set_push_state, the legacy
+    // app-state hash, a bare FLP shell hash - all ignored by the router).
+    function parse(sHash) {
+      const parts = segmentsOf(sHash);
+      if (!parts || !parts[0]) return null;
+      return { app: parts[0], draft: parts.length > 1 ? parts[1] : "" };
+    }
+
+    function appOf(sHash) {
+      const route = parse(sHash);
+      return route ? route.app : "";
+    }
+
+    function draftOf(sHash) {
+      const route = parse(sHash);
+      return route ? route.draft : "";
+    }
+
+    // ------------------------------------------------------------------
+    // Navigation
+    // ------------------------------------------------------------------
+
+    // The UI5 navTo equivalent: setHash pushes a new history entry (Back
+    // returns to the current app), replaceHash updates the current one in
+    // place and leaves the history depth alone. Both go through the
+    // HashChanger, so inside the FLP only the app hash is rewritten.
+    function navTo(sRoute, bReplace) {
+      if (bReplace) {
+        hashChanger().replaceHash(sRoute);
+      } else {
+        hashChanger().setHash(sRoute);
+      }
+    }
+
+    // Navigate to an app class by route (the NAV_TO_ROUTE frontend action).
+    function navToApp(sClassOrRoute) {
+      const cls = appOf(sClassOrRoute) || sClassOrRoute;
+      navTo(patternFor(cls));
+    }
+
+    // ------------------------------------------------------------------
+    // Route matched - the read side
+    // ------------------------------------------------------------------
+
+    // Called for every hash change (browser Back/Forward, a manual URL edit,
+    // a bookmark, and the echo of our own writes). The abap2UI5 equivalent of
+    // a UI5 route's patternMatched handler: it decides whether the new hash
+    // names a DIFFERENT app state than the one on screen and, if so, asks the
+    // backend to restore it.
+    function onHashChanged(sNewHash) {
+      const state = AppState.state;
+
+      // Routing is opt-in per app (client->set_nav_routing); until one
+      // enabled it, the hash belongs entirely to the app (set_push_state).
+      if (!state.navRouting) return;
+
+      const route = parse(sNewHash);
+      if (!route) return;
+
+      // Ignore the echo of our own hash write after rendering (not a user
+      // navigation), so we do not loop. Match on the draft id when the route
+      // carries one - that is the precise app state - otherwise on the class.
+      if (route.draft) {
+        if (route.draft === state.currentDraftId) return;
+      } else if (
+        route.app.toUpperCase() === String(state.currentApp).toUpperCase()
+      ) {
+        return;
+      }
+
+      // A different app state: restore it. Mark the roundtrip as
+      // browser-initiated so the render does NOT rewrite the hash (the
+      // browser sits at a non-top history position - rewriting there would
+      // drop the forward entries and break the Forward button).
+      state.navFromHash = true;
+      if (_fnNavigate) _fnNavigate();
+    }
+
+    // ------------------------------------------------------------------
+    // Hash sync after a render - the write side
+    // ------------------------------------------------------------------
+
+    // Point the CALLING app's history entry at the draft the backend saved
+    // for it during this very nav_app_call (PARAMS.NAV_APP_CALL_PREV_*).
+    // That draft carries every client-side change the user made since the
+    // caller last rendered - two-way bound switches, checkboxes, input - all
+    // of which travelled to the backend with the event that triggered the
+    // navigation. The entry itself still carries the older draft of that
+    // last render, so without this Back restores the caller as it was
+    // RENDERED and silently drops those changes. The entry is still the top
+    // one here (the called app's route is pushed right after), so a
+    // replaceHash updates it in place and leaves the history depth alone.
+    // KEEP mode only - a FRESH route carries no draft and always restarts
+    // the app anyway.
+    function repointCallerEntry(PARAMS, draftForRoute) {
+      const state = AppState.state;
+      const prevApp = PARAMS.NAV_APP_CALL_PREV_APP;
+      const prevDraft = PARAMS.NAV_APP_CALL_PREV_ID;
+      if (!draftForRoute || !prevApp || !prevDraft) return;
+      const prevRoute = patternFor(prevApp, prevDraft);
+      if (getHash() === prevRoute) return;
+      // onHashChanged ignores the echo of our own hash writes by comparing
+      // the route's draft id against currentDraftId - adopt the caller's
+      // fresh draft BEFORE replacing, or the write reads as a user
+      // navigation and fires a restore roundtrip. The caller of this
+      // function sets the state back to the called app right afterwards.
+      state.currentDraftId = prevDraft;
+      navTo(prevRoute, true);
+    }
+
+    // Apply the routing mode the backend sent with this response. The flag
+    // carries the MODE (z2ui5_if_client=>cs_nav_mode): "KEEP" routes by class
+    // + draft id (exact state restored on Back/Forward), "FRESH" routes by
+    // class only (Back/Forward start the app fresh); any other non-empty
+    // value ("DEFAULT") turns routing back OFF. An EMPTY value is "no change".
+    //
+    // The backend re-sends the mode with EVERY response of an app that
+    // enabled it (it is remembered on the app, not on the session), so the
+    // mode follows the app the user is actually looking at - the way UI5
+    // routing is configured once in the manifest rather than re-asserted on
+    // every navigation.
+    function applyMode(PARAMS) {
+      if (!PARAMS.SET_NAV_ROUTING) return;
+      const mode = String(PARAMS.SET_NAV_ROUTING).toUpperCase();
+      const on = mode === "KEEP" || mode === "FRESH";
+      AppState.state.navRouting = on;
+      AppState.state.navMode = on ? mode : null;
+    }
+
+    // Keep the URL in sync with what was just rendered. Called once per
+    // roundtrip from View1's after-render phase.
+    function sync(PARAMS, ID) {
+      try {
+        applyMode(PARAMS);
+
+        const state = AppState.state;
+        if (state.navRouting) {
+          const app = state.oResponse?.APP;
+          if (app) {
+            // In FRESH mode the route carries the class only, so every history
+            // entry (Back/Forward/reload/bookmark) starts the app fresh; in
+            // KEEP mode it carries the draft id too, so they restore the exact
+            // preserved state. draftForRoute is what the route (and the echo
+            // guard in onHashChanged) uses - null in FRESH, the app-state ID
+            // in KEEP.
+            const draftForRoute = state.navMode === "FRESH" ? null : ID;
+            // Set current app/draft BEFORE touching the hash: the writes below
+            // re-fire hashChanged, and onHashChanged compares the incoming
+            // route's draft id against currentDraftId to ignore our own echo.
+            // In FRESH mode there is no draft, so the guard matches the class.
+            state.currentApp = app;
+            state.currentDraftId = draftForRoute;
+            if (state.navFromHash) {
+              // This render is the result of a browser Back/Forward (or a
+              // manual hash edit) routed through onHashChanged. The hash
+              // already matches this history entry and the browser sits at a
+              // non-top position - rewriting it here would drop the forward
+              // entries and break the Forward button. Just adopt the state.
+              state.navFromHash = false;
+            } else if (!PARAMS.SET_PUSH_STATE) {
+              // Reflect the running app in the URL as a bookmarkable route. A
+              // forward navigation done in the backend (client->nav_app_call,
+              // CHECK_NAV_APP_CALL) pushes a NEW history entry so Back returns
+              // to the calling app - the routing equivalent of a UI5 navTo. A
+              // plain roundtrip only replaces the current (top) entry,
+              // advancing it to the app's latest draft so a later Forward
+              // restores the newest state.
+              const route = patternFor(app, draftForRoute);
+              if (PARAMS.CHECK_NAV_APP_CALL) {
+                // repoint the caller's entry first - it borrows the echo
+                // guard, so restore it to this app before pushing the route
+                repointCallerEntry(PARAMS, draftForRoute);
+                state.currentApp = app;
+                state.currentDraftId = draftForRoute;
+                navTo(route);
+              } else if (getHash() !== route) {
+                navTo(route, true);
+              }
+            }
+          }
+          // Routing owns the app-state hash; skip the legacy handling below.
+          if (!PARAMS.SET_PUSH_STATE) return;
+        }
+
+        if (PARAMS.SET_PUSH_STATE) {
+          // The app pushes its own hash suffix. Build the new URL on the RAW
+          // hash so the FLP shell hash survives - appending to the app hash
+          // alone would rewrite "#SO-action&/x" to "#x" and strand the
+          // launchpad.
+          const newUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${PARAMS.SET_PUSH_STATE}`;
+          history.pushState(null, "", newUrl);
+        }
+        // Keep the leading "/" so the live URL matches the format the copy
+        // link (FrontendAction.evClipboardAppState) writes and the backend
+        // restore path expects: the app-state id is read as a URL parameter
+        // of the app hash, i.e. after exactly one "/". Without the slash the
+        // live hash is "#z2ui5-xapp-state=..." and the historic "+2" parser
+        // ate the leading "z", so bookmarking/reloading the live URL never
+        // restored the app state (only the explicitly copied link did).
+        const newHash = PARAMS.SET_APP_STATE_ACTIVE
+          ? `/z2ui5-xapp-state=${ID || ""}`
+          : "";
+        navTo(newHash, true);
+      } catch (e) {
+        Lib.logError("Router.sync: history update failed", e);
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // Lifecycle
+    // ------------------------------------------------------------------
+
+    function init(fnNavigate) {
+      _fnNavigate = fnNavigate;
+      // Listening to the HashChanger's hashChanged event is what makes the
+      // native browser Back/Forward buttons - and the FLP shell's back
+      // button, which drives the same history - navigate between apps.
+      _boundHashChanged = (oEvent) =>
+        onHashChanged(oEvent.getParameter("newHash"));
+      hashChanger().attachEvent("hashChanged", _boundHashChanged);
+
+      // The stopped router removed with the manifest routing section used to
+      // initialize the HashChanger (and its underlying hasher singleton) as a
+      // side effect. Without that init hasher never learns the URL's current
+      // hash, so the app-state cleanup after every roundtrip (sync calling
+      // navTo("", true)) is treated as a change and rewrites the URL to
+      // "...#" - every app start ended with a dangling "#". Initialize it
+      // explicitly; inside the FLP the shell has already done this and
+      // init() is a guarded no-op.
+      hashChanger().init();
+    }
+
+    function exit() {
+      if (_boundHashChanged) {
+        hashChanger().detachEvent("hashChanged", _boundHashChanged);
+        _boundHashChanged = null;
+      }
+      _fnNavigate = null;
+    }
+
+    return {
+      init,
+      exit,
+      splitHash,
+      appHashOf,
+      getHash,
+      getRawHash,
+      hrefFor,
+      patternFor,
+      parse,
+      appOf,
+      draftOf,
+      navTo,
+      navToApp,
+      onHashChanged,
+      sync,
+    };
+  },
+);

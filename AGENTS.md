@@ -76,6 +76,27 @@ result-s_control-check_launchpad = xsdbool(
 
 Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclasses.abap` (`test_parse_body_with_wrapper` / `test_parse_body_without_wrapper`).
 
+#### Launchpad Special Case — The URL Hash
+
+The second place the FLP changes the ground rules is the **URL hash**. Standalone the whole hash belongs to the app; inside the launchpad the shell owns the part in front of `&/` and only the remainder is the **app hash**:
+
+```
+standalone   #/app/<CLASS>/<DRAFT>
+inside FLP   #<SemanticObject>-<action>&/app/<CLASS>/<DRAFT>
+              \______ shell hash ______/  \___ app hash ___/
+```
+
+Any code that reads the hash must reduce it to the app hash first, and any code that writes one must leave the shell hash alone — dropping it strands the launchpad (the user lands on the FLP home page). There are exactly two places that know this rule, and they mirror each other:
+
+| Side | Owner |
+|---|---|
+| Frontend | `app/webapp/core/Router.js` — `splitHash()`; **the only module allowed to touch the hash**. Writes go through the `HashChanger`, which inside the FLP is the shell's own and preserves the shell hash by construction |
+| Backend | `z2ui5_cl_core_handler=>hash_get_app_part` — used by both the route parser (`parse_app_route_rest`) and the app-state parser (`request_app_start_draft`) |
+
+Both key the split off the **leading `/` of an app hash** (a shell hash never starts with one) rather than off the first `&/`, so an app hash that itself contains `&/` in a parameter is never truncated. Do not re-implement either of them elsewhere, and do not rebuild a URL from `location.href.split("#")[0]` plus an app hash — use `Router.hrefFor()`.
+
+Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
+
 ### Layered Design
 
 ```

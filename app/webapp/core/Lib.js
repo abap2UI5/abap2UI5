@@ -15,43 +15,9 @@ sap.ui.define(
   (AppState, Element) => {
     "use strict";
 
-    // Hash-based app routing (UI5 Router style). The URL hash names the running
-    // app AND its state as a bookmarkable route "/app/<CLASS>/<DRAFTID>" - the
-    // client-side equivalent of a UI5 route pattern "app/{class}/{state}". The
-    // <CLASS> segment is human-readable; the <DRAFTID> segment is the server
-    // draft that holds the app's state, so the browser Back/Forward buttons
-    // restore the EXACT preserved state (and a reload/bookmark restores it too,
-    // falling back to a fresh start of <CLASS> once the draft has expired).
-    // routeForApp builds it; appOfRoute / draftOfRoute parse the two segments
-    // back out (empty when the hash is not an app route, so non-routing hashes
-    // - e.g. an app's own set_push_state - are ignored by the router).
-    const APP_ROUTE_PREFIX = "/app/";
-
-    function routeForApp(sClass, sDraftId) {
-      const base = `${APP_ROUTE_PREFIX}${sClass}`;
-      return sDraftId ? `${base}/${sDraftId}` : base;
-    }
-
-    function segmentsOfRoute(sHash) {
-      if (!sHash) return null;
-      // Accept an optional leading "#" and "/" so both HashChanger hashes
-      // (no "#") and raw location.hash values resolve to the same route.
-      const clean = sHash.replace(/^#/, "").replace(/^\//, "");
-      const marker = "app/";
-      if (!clean.startsWith(marker)) return null;
-      // Stop at any route/query separator, then split class / draft id.
-      return clean.slice(marker.length).split(/[&?]/)[0].split("/");
-    }
-
-    function appOfRoute(sHash) {
-      const parts = segmentsOfRoute(sHash);
-      return parts ? parts[0] : "";
-    }
-
-    function draftOfRoute(sHash) {
-      const parts = segmentsOfRoute(sHash);
-      return parts && parts.length > 1 ? parts[1] : "";
-    }
+    // Everything hash/route related lives in core/Router.js - it is the one
+    // module that knows how a URL hash is split between the FLP shell and the
+    // running app, and nothing else may reach for the hash directly.
 
     // Resolve a control id to its sap.ui.core.Element via the global registry.
     // Element.getElementById arrived in UI5 1.119; older bootstraps fall back
@@ -504,9 +470,6 @@ sap.ui.define(
     }
 
     return {
-      routeForApp,
-      appOfRoute,
-      draftOfRoute,
       logError,
       isDestroyed,
       isAlive,

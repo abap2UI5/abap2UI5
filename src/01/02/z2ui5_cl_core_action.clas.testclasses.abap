@@ -23,6 +23,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_reset_view_flags   FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_action DEFINITION LOCAL FRIENDS ltcl_test.
@@ -286,6 +287,44 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
                                         act = lo_chained->ms_next-s_set-nav_app_call_prev_id ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_mode_inherited.
+    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_called TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_own TYPE REF TO z2ui5_cl_core_action.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    " an app enables routing once ( check_on_init ); every app it navigates to
+    " inherits the mode, so a whole app stack is routed after a single opt-in
+    lo_http = NEW #( val = `` ).
+
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app       = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id  = `CURRENT_DRAFT`.
+    lo_action->mo_app->mv_nav_mode  = z2ui5_if_client=>cs_nav_mode-keep.
+    lo_action->ms_next-o_app_call   = NEW ltcl_test_app( ).
+
+    lo_called = lo_action->factory_stack_call( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
+                                        act = lo_called->mo_app->mv_nav_mode ).
+
+    " an app that never enabled routing passes nothing on - the called app
+    " stays unrouted, so the opt-in really is an opt-in
+    lo_own = NEW #( val = lo_http ).
+    lo_own->mo_app->mo_app      = NEW ltcl_test_app( ).
+    lo_own->mo_app->ms_draft-id = `PLAIN_DRAFT`.
+    lo_own->ms_next-o_app_call  = NEW ltcl_test_app( ).
+
+    lo_called = lo_own->factory_stack_call( ).
+
+    cl_abap_unit_assert=>assert_initial( lo_called->mo_app->mv_nav_mode ).
 
   ENDMETHOD.
 

@@ -121,6 +121,8 @@ sap.ui.define([], () => {
       pendingCustomJs: null,
 
       // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).
+      // Owned by core/Router.js - see there for the route format and how the
+      // hash is split between the FLP shell and the app.
       //  navRouting  once the running app enabled routing, the URL hash mirrors
       //              the current app as a bookmarkable route and browser
       //              Back/Forward navigate between apps via the hash.
@@ -135,7 +137,7 @@ sap.ui.define([], () => {
       //                 our own hash writes do not re-trigger a navigation, and
       //                 (KEEP) browser Back/Forward restore the exact draft.
       //  navFromHash    the pending roundtrip was triggered by a browser
-      //                 Back/Forward (or manual hash edit) via onHashChange, so
+      //                 Back/Forward (or manual hash edit) via the router, so
       //                 the resulting render must NOT rewrite the hash: the
       //                 browser is at a non-top history position and rewriting
       //                 there drops the forward entries (Forward would break).
