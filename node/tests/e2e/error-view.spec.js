@@ -37,7 +37,39 @@ async function showErrorView(/** @type {boolean} */ withRetry) {
             const options = retry
               ? { onRetry: () => (window["__retried"] = true) }
               : undefined;
-            ErrorView.show("something broke", undefined, options);
+            // ErrorView.show prefers the friendly UI5 dialog and only builds
+            // the raw-DOM overlay tested here when sap.m cannot be resolved.
+            // In a real browser those controls are always loaded, so deny just
+            // the sap/m/* lookups for the duration of this one call: the
+            // synchronous form returns undefined (showFriendlyDialog bails)
+            // and the array form takes the errback (loadFriendlyDialogAsync
+            // bails), which is exactly the last-resort path the overlay exists
+            // for. Restored right after, so UI5's own module loading - which
+            // also goes through sap.ui.require - stays untouched.
+            const realRequire = window["sap"].ui.require;
+            const isControl = (/** @type {any} */ dep) =>
+              typeof dep === "string" && dep.startsWith("sap/m/");
+            window["sap"].ui.require = function (
+              /** @type {any} */ deps,
+              /** @type {any} */ cb,
+              /** @type {any} */ errback,
+            ) {
+              if (typeof deps === "string") {
+                return isControl(deps)
+                  ? undefined
+                  : realRequire.call(this, deps);
+              }
+              if (Array.isArray(deps) && deps.some(isControl)) {
+                if (errback) errback(new Error("sap.m denied by test"));
+                return undefined;
+              }
+              return realRequire.call(this, deps, cb, errback);
+            };
+            try {
+              ErrorView.show("something broke", undefined, options);
+            } finally {
+              window["sap"].ui.require = realRequire;
+            }
             resolve(undefined);
           },
         );
