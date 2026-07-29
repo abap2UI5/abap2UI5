@@ -53,7 +53,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
                                                                title      = title
           )->content( ).
 
-    DATA(tab) = popup->table( items = client->_bind( <tab_out> ) 
+    DATA(tab) = popup->table( items = client->_bind( <tab_out> )
                               growing = growing
                               growingthreshold = growingthreshold ).
 
