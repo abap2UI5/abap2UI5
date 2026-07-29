@@ -115,6 +115,14 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
     cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
 
+    " CSRF protection is on by default: the whole state machine hangs off the
+    " POST, so out of the box a cross-origin POST must be rejected rather than
+    " relying on a fronting SAP ICF/CSRF layer that may or may not be there.
+    " Seeded before the user exit runs, so an app that must accept cross-origin
+    " POSTs still has the escape hatch of setting it back to abap_false in its
+    " own set_config_http_post.
+    cs_config-check_csrf_active = abap_true.
+
     IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_post( EXPORTING is_context = context
                                           CHANGING  cs_config  = cs_config ).
