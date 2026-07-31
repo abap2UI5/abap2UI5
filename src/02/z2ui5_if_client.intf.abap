@@ -299,7 +299,7 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
-  "! obsolete - identical to _bind (both two-way), please use _bind
+  "! obsolete - behaves like _bind (both two-way), please use _bind
   METHODS _bind_edit
     IMPORTING
       val                  TYPE data
