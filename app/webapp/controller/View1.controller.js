@@ -96,7 +96,12 @@ sap.ui.define(
           const PARAMS = oResponse.PARAMS;
           if (!PARAMS) return;
 
-          await this._displayPendingViews(PARAMS);
+          // Stamp of the request this response belongs to: every await in
+          // the display phase re-checks it, so a response superseded by a
+          // parallel request (check_allow_multi_req, Back/Forward restore)
+          // never attaches popups/nested views the backend no longer knows.
+          const seq = Server._requestSeq;
+          await this._displayPendingViews(PARAMS, seq);
           // The app may have been torn down (reset / FLP re-launch) while the
           // pending views loaded; don't mutate history or fire onAfterRendering
           // hooks against a dead app (the custom-JS phase below guards the same
@@ -116,13 +121,13 @@ sap.ui.define(
           // run the follow-up JS snippets the backend asked for. Doing it here
           // - rather than as an early microtask - guarantees render-dependent
           // actions like SET_FOCUS find their target control in the DOM.
-          this._runPendingCustomJs();
+          this._runPendingCustomJs(AppState.state.oResponse);
         }
       },
 
       // Phase 1: open/destroy the popup, nested views and popover the
       // response asked for.
-      async _displayPendingViews(PARAMS) {
+      async _displayPendingViews(PARAMS, seq) {
         const S_POPUP = PARAMS.S_POPUP;
         const S_VIEW_NEST = PARAMS.S_VIEW_NEST;
         const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;
@@ -135,24 +140,34 @@ sap.ui.define(
 
         if (S_POPUP?.XML) {
           this.destroyPopup();
-          await this.displayFragment(S_POPUP.XML);
+          await this.displayFragment(S_POPUP.XML, seq);
         }
 
         if (!AppState.state.checkNestAfter && S_VIEW_NEST?.XML) {
           this.destroyNestView();
-          await this.displayNestedView(S_VIEW_NEST.XML, "NEST");
+          await this.displayNestedView(
+            S_VIEW_NEST.XML,
+            "NEST",
+            S_VIEW_NEST,
+            seq,
+          );
           AppState.state.checkNestAfter = true;
         }
 
         if (!AppState.state.checkNestAfter2 && S_VIEW_NEST2?.XML) {
           this.destroyNestView2();
-          await this.displayNestedView(S_VIEW_NEST2.XML, "NEST2");
+          await this.displayNestedView(
+            S_VIEW_NEST2.XML,
+            "NEST2",
+            S_VIEW_NEST2,
+            seq,
+          );
           AppState.state.checkNestAfter2 = true;
         }
 
         if (S_POPOVER?.XML) {
           this.destroyPopover();
-          await this.displayPopover(S_POPOVER.XML, S_POPOVER.OPEN_BY_ID);
+          await this.displayPopover(S_POPOVER.XML, S_POPOVER.OPEN_BY_ID, seq);
         }
       },
 
@@ -165,9 +180,9 @@ sap.ui.define(
 
       // Execute the follow-up JS snippets stashed by Server.responseSuccess.
       // Runs once per roundtrip, after the view has rendered.
-      _runPendingCustomJs() {
-        const customJs = AppState.state.pendingCustomJs;
-        AppState.state.pendingCustomJs = null;
+      _runPendingCustomJs(oResponse) {
+        const customJs = oResponse?._pendingCustomJs;
+        if (oResponse) oResponse._pendingCustomJs = null;
         if (!customJs) return;
         if (Lib.isDestroyed(this)) return;
         for (const item of customJs) {
@@ -184,7 +199,7 @@ sap.ui.define(
       // Display: popups, popovers, nested views, main view
       // ------------------------------------------------------------------
 
-      async displayFragment(xml) {
+      async displayFragment(xml, seq) {
         const oModel = this._createViewModel();
         applyStoredSizeLimit("POPUP", oModel);
         const oFragment = await Fragment.load({
@@ -192,8 +207,10 @@ sap.ui.define(
           controller: ViewSlots.getController("POPUP"),
           id: "popupId",
         });
-        // The app might have been torn down while the fragment loaded.
-        if (!Lib.isAlive(AppState.state.oApp)) {
+        // The app might have been torn down while the fragment loaded, or a
+        // newer request superseded this response - don't open a dialog the
+        // backend no longer knows about.
+        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {
           oFragment.destroy();
           return;
         }
@@ -205,7 +222,14 @@ sap.ui.define(
         oFragment.open();
       },
 
-      async displayPopover(xml, openById) {
+      // True when this response was superseded by a newer request while an
+      // async view build was awaiting (undefined seq = no check, for
+      // custom-JS callers of the display helpers).
+      _isSuperseded(seq) {
+        return seq !== undefined && seq !== Server._requestSeq;
+      },
+
+      async displayPopover(xml, openById, seq) {
         // No catch-all here on purpose: a malformed-XML load or render
         // failure must propagate to _processAfterRendering and surface the
         // fatal "App Terminated" overlay, exactly like displayFragment and
@@ -220,7 +244,7 @@ sap.ui.define(
           controller: ViewSlots.getController("POPOVER"),
           id: "popoverId",
         });
-        if (!Lib.isAlive(AppState.state.oApp)) {
+        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {
           oFragment.destroy();
           return;
         }
@@ -241,7 +265,7 @@ sap.ui.define(
         oFragment.openBy(oControl);
       },
 
-      async displayNestedView(xml, slotKey) {
+      async displayNestedView(xml, slotKey, nestParamsIn, seq) {
         const paramKey = ViewSlots.paramByKey(slotKey);
         // Nested views do NOT create their own model. They are inserted into
         // the MAIN control tree below and inherit its default JSON model via
@@ -261,12 +285,18 @@ sap.ui.define(
           preprocessors: { xml: { models: { template: oTemplateModel } } },
         });
 
-        if (!Lib.isAlive(AppState.state.oApp)) {
+        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {
           oView.destroy();
           return;
         }
 
-        const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];
+        // Prefer the params passed by _displayPendingViews: they belong to
+        // the same response as the XML. Re-reading the live global here
+        // would mix this response's view with a newer response's parent id
+        // and insert/destroy methods. The global stays as fallback for
+        // custom-JS callers.
+        const nestParams =
+          nestParamsIn ?? AppState.state.oResponse?.PARAMS?.[paramKey];
         if (!nestParams) {
           Lib.logError(`displayNestedView: missing PARAMS.${paramKey}`);
           oView.destroy();
@@ -562,7 +592,15 @@ sap.ui.define(
         // while XMLView.create was awaiting - discard this rebuild instead of
         // letting an out-of-order resolve overwrite the newer view. Last-write
         // wins by request order, not by which create() happened to resolve last.
-        if (reqSeq !== undefined && reqSeq !== Server._requestSeq) {
+        // Only discard when a newer view actually took the slot: if the
+        // superseding response was data-only, dropping this build too would
+        // leave the app permanently blank - a slightly stale view is the
+        // better outcome then.
+        if (
+          reqSeq !== undefined &&
+          reqSeq !== Server._requestSeq &&
+          ViewSlots.getView("MAIN")
+        ) {
           oView.destroy();
           if (switchPath) oModel.destroy();
           return;

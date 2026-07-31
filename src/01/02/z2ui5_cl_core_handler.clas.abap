@@ -169,6 +169,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDIF.
 
     lo_ajson = lo_ajson->slice( lv_root && `/S_FRONT` ).
+    " valid JSON without an S_FRONT container (health-check POST, rewrapping
+    " proxy) - return the empty result so main_begin takes its system-startup
+    " branch instead of dumping on the unbound slice below
+    IF lo_ajson IS NOT BOUND.
+      RETURN.
+    ENDIF.
 
     request_parse_event_args( EXPORTING io_front          = lo_ajson
                               IMPORTING ev_check_override = DATA(lv_check_arg_object)
@@ -558,6 +564,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " turns them into a 500 response carrying the exception text
     IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
       li_client->popup_destroy( ).
+      " a popover floats next to the MAIN view exactly like a popup and
+      " survives the view replacement the same way - close it too
+      li_client->popover_destroy( ).
       li_client->nav_app_leave( ).
     ELSE.
       li_app->main( li_client ).

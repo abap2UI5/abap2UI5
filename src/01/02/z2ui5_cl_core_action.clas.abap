@@ -270,12 +270,14 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     CLEAR result->ms_next-s_set-s_msg_toast.
     CLEAR result->ms_next-s_set-s_follow_up_action.
 
-    " always destroy an open popup on navigation, so an app never has to close
-    " a popup explicitly before nav_app_call / nav_app_leave. If the app that
-    " is navigated to renders a popup itself, its popup_display( ) overwrites
-    " this destroy request again ( the frontend processes CHECK_DESTROY before
-    " the new popup XML ). Destroying when no popup is open is a no-op.
-    result->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
+    " always destroy an open popup/popover on navigation, so an app never has
+    " to close them explicitly before nav_app_call / nav_app_leave. If the app
+    " that is navigated to renders one itself, its popup_display( ) /
+    " popover_display( ) overwrites this destroy request again ( the frontend
+    " processes CHECK_DESTROY before the new XML ). Destroying when nothing is
+    " open is a no-op.
+    result->ms_next-s_set-s_popup   = VALUE #( check_destroy = abap_true ).
+    result->ms_next-s_set-s_popover = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 

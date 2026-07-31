@@ -1214,7 +1214,11 @@ sap.ui.define(
       clearTimeout(timers[timerKey]);
       timers[timerKey] = setTimeout(() => {
         delete timers[timerKey];
-        oController.eB([callbackEvent]);
+        // dispatch as a background event (args[2] = ignore busy) - a timer
+        // firing while an ordinary roundtrip is in flight must not be
+        // swallowed by the busy guard, or a self-rescheduling poll chain
+        // dies on the first collision with a user click
+        oController.eB([callbackEvent, false, true]);
       }, delay);
     }
 

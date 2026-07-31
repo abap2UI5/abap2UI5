@@ -1005,17 +1005,17 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_include.
 
-    TRY.
-
-        cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
-                                             RECEIVING  p_descr_ref    = DATA(type_desc)
-                                             EXCEPTIONS type_not_found = 1 ).
-
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING
-            previous = x.
-    ENDTRY.
+    cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
+                                         RECEIVING  p_descr_ref    = DATA(type_desc)
+                                         EXCEPTIONS type_not_found = 1 ).
+    " classic exception method: a missing type sets sy-subrc and leaves the
+    " ref unbound instead of raising - check it, or get_components below
+    " dumps with CX_SY_REF_IS_INITIAL
+    IF sy-subrc <> 0 OR type_desc IS NOT BOUND.
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        EXPORTING
+          val = |Include type '{ type->absolute_name }' not found|.
+    ENDIF.
     DATA(sdescr) = CAST cl_abap_structdescr( type_desc ).
     DATA(comps) = sdescr->get_components( ).
     result = expand_components( comps ).
@@ -1169,6 +1169,12 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
     LOOP AT lt_param REFERENCE INTO DATA(lr_param).
       SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+      " an empty segment (empty search string, trailing &) would otherwise
+      " produce a phantom nameless parameter that url_param_create_url
+      " writes back out as a stray `=&`
+      IF lv_name IS INITIAL.
+        CONTINUE.
+      ENDIF.
       " normalize the name so lookups are case-insensitive on every input
       " shape (with or without a leading path/question mark) - the value
       " keeps its original case
@@ -1233,12 +1239,15 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
               srtti       = srtti.
           CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
-        CATCH cx_root.
+        CATCH cx_root INTO DATA(lx_srtti).
 
+          " keep the root cause - a transformation error on the app's own
+          " data must not be masked behind a bare UNSUPPORTED_FEATURE
           DATA(lv_text) = `UNSUPPORTED_FEATURE`.
           RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
             EXPORTING
-              val = lv_text.
+              val      = lv_text
+              previous = lx_srtti.
 
       ENDTRY.
     ENDIF.
@@ -1461,7 +1470,36 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     INSERT VALUE #( n = `app_start`
                     v = to_lower( classname ) ) INTO TABLE lt_param.
 
-    result = |{ origin }{ pathname }?| && url_param_create_url( lt_param ) && hash.
+    " keep only the launchpad shell part of the hash: the app-owned part
+    " (leading `/` standalone, or everything after `&/` inside the FLP)
+    " carries THIS app's route/app-state, which the backend prefers over
+    " app_start - appending it verbatim would re-open the current app
+    " instead of the requested one
+    DATA(lv_hash) = CONV string( hash ).
+    IF lv_hash IS NOT INITIAL.
+      DATA(lv_content) = lv_hash.
+      IF lv_content(1) = `#`.
+        lv_content = substring( val = lv_content
+                                off = 1 ).
+      ENDIF.
+      IF lv_content IS INITIAL OR lv_content(1) = `/`.
+        " pure app hash (route or app-state) - drop it entirely
+        lv_hash = ``.
+      ELSE.
+        " inside the FLP keep the shell part, cut the app part after `&/`
+        DATA(lv_off) = find( val = lv_content
+                             sub = `&/` ).
+        IF lv_off = 0.
+          lv_hash = ``.
+        ELSEIF lv_off > 0.
+          lv_hash = |#{ lv_content(lv_off) }|.
+        ELSE.
+          lv_hash = |#{ lv_content }|.
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+    result = |{ origin }{ pathname }?| && url_param_create_url( lt_param ) && lv_hash.
 
   ENDMETHOD.
 
@@ -2017,7 +2055,10 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
       WHEN OTHERS.
 
-        IF rtti_check_clike( val ).
+        " skip an empty character value like the struct branch does -
+        " otherwise msg_get_t's val2 fallback can never take over and the
+        " caller renders a message box with blank text
+        IF rtti_check_clike( val ) AND val IS NOT INITIAL.
           INSERT VALUE #( text = val ) INTO TABLE result.
         ENDIF.
     ENDCASE.

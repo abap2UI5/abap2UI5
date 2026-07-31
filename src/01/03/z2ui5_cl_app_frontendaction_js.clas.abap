@@ -1237,7 +1237,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      clearTimeout(timers[timerKey]);` && |\n| &&
              `      timers[timerKey] = setTimeout(() => {` && |\n| &&
              `        delete timers[timerKey];` && |\n| &&
-             `        oController.eB([callbackEvent]);` && |\n| &&
+             `        // dispatch as a background event (args[2] = ignore busy) - a timer` && |\n| &&
+             `        // firing while an ordinary roundtrip is in flight must not be` && |\n| &&
+             `        // swallowed by the busy guard, or a self-rescheduling poll chain` && |\n| &&
+             `        // dies on the first collision with a user click` && |\n| &&
+             `        oController.eB([callbackEvent, false, true]);` && |\n| &&
              `      }, delay);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
