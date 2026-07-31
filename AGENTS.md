@@ -345,7 +345,7 @@ npm run unit                  # Unit tests
 
 ### Frontend Tooling (`app/`)
 
-The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOMER_BASE`) with UI5-specific dev dependencies (`@ui5/cli`, `@ui5/linter`, `@sap/ui5-builder-webide-extension`, `@sap/ux-ui5-tooling`, `eslint`, `prettier`). Key scripts:
+The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOMER_BASE`) with UI5-specific dev dependencies (`@ui5/cli`, `@ui5/linter`, `@sap/ux-ui5-tooling`, `eslint`, `prettier`). Key scripts:
 
 | Script (run inside `app/`) | Purpose |
 |---|---|
