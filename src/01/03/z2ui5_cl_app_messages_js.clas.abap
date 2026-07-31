@@ -116,7 +116,12 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `      if (msg.TITLE) oParams.title = msg.TITLE;` && |\n| &&
              `      if (msg.STYLECLASS) oParams.styleClass = msg.STYLECLASS;` && |\n| &&
              `      if (msg.ONCLOSE) {` && |\n| &&
-             `        oParams.onClose = (sAction) => oController.eB([msg.ONCLOSE, sAction]);` && |\n| &&
+             `        // the pressed action must ride OUTSIDE the event array: eB treats` && |\n| &&
+             `        // args[0] as the event array (name + flags) and Server.roundtrip` && |\n| &&
+             `        // shifts the WHOLE array away, so anything placed inside it never` && |\n| &&
+             `        // reaches T_EVENT_ARG - the action then has to be the first` && |\n| &&
+             `        // positional argument, like evImageEditorPopupClose's eB(["SAVE"], image)` && |\n| &&
+             `        oParams.onClose = (sAction) => oController.eB([msg.ONCLOSE], sAction);` && |\n| &&
              `      }` && |\n| &&
              `      if (msg.ACTIONS) oParams.actions = msg.ACTIONS;` && |\n| &&
              `      if (msg.EMPHASIZEDACTION) oParams.emphasizedAction = msg.EMPHASIZEDACTION;` && |\n| &&

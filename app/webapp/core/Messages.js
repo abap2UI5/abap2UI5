@@ -96,7 +96,12 @@ sap.ui.define(
       if (msg.TITLE) oParams.title = msg.TITLE;
       if (msg.STYLECLASS) oParams.styleClass = msg.STYLECLASS;
       if (msg.ONCLOSE) {
-        oParams.onClose = (sAction) => oController.eB([msg.ONCLOSE, sAction]);
+        // the pressed action must ride OUTSIDE the event array: eB treats
+        // args[0] as the event array (name + flags) and Server.roundtrip
+        // shifts the WHOLE array away, so anything placed inside it never
+        // reaches T_EVENT_ARG - the action then has to be the first
+        // positional argument, like evImageEditorPopupClose's eB(["SAVE"], image)
+        oParams.onClose = (sAction) => oController.eB([msg.ONCLOSE], sAction);
       }
       if (msg.ACTIONS) oParams.actions = msg.ACTIONS;
       if (msg.EMPHASIZEDACTION) oParams.emphasizedAction = msg.EMPHASIZEDACTION;
