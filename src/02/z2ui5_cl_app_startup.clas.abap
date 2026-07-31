@@ -161,6 +161,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     ms_home-btn_event_id   = cs_event-button_check.
     ms_home-btn_icon       = `sap-icon://validate`.
     ms_home-class_editable = abap_true.
+    " drop the previous check's outcome, otherwise the re-opened input
+    " still shows the old value state and a stale step-5 link ( `None`
+    " rather than CLEAR - the bound value must stay a valid ValueState )
+    ms_home-class_value_state = `None`.
+    CLEAR: ms_home-url,
+           ms_home-class_value_state_text.
 
   ENDMETHOD.
 
@@ -218,11 +224,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       )->label( `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
-      form->input( placeholder = `fill in the class name and press 'check'`
-                   enabled     = client->_bind( ms_home-class_editable )
-                   value       = client->_bind_edit( ms_home-classname )
-                   submit      = client->_event( ms_home-btn_event_id )
-                   width       = `70%` ).
+      form->input( placeholder    = `fill in the class name and press 'check'`
+                   enabled        = client->_bind( ms_home-class_editable )
+                   value          = client->_bind_edit( ms_home-classname )
+                   valuestate     = client->_bind( ms_home-class_value_state )
+                   valuestatetext = client->_bind( ms_home-class_value_state_text )
+                   submit         = client->_event( ms_home-btn_event_id )
+                   width          = `70%` ).
     ELSE.
       form->text( ms_home-classname ).
     ENDIF.
@@ -315,7 +323,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     form->toolbar( )->title( `abap2UI5` ).
     form->label( `Version` ).
     form->text( z2ui5_if_app=>version ).
-    form->label( `Draft Entries` ).
+    form->label( `Draft Entries (own)` ).
     form->text( CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
 
     popup->end_button( )->button( text  = `Close`

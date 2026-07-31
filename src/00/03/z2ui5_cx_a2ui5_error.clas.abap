@@ -45,23 +45,28 @@ CLASS z2ui5_cx_a2ui5_error IMPLEMENTATION.
 
     IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text( ).
-
-      DATA(error) = abap_true.
     ELSEIF ms_error-text IS NOT INITIAL.
       result = ms_error-text.
-      error = abap_true.
     ENDIF.
 
     IF previous IS BOUND.
       DATA(lo_x) = previous.
       WHILE lo_x IS BOUND.
         result = result && z2ui5_cl_a2ui5_context=>cv_char_util_newline && lo_x->get_text( ).
-        lo_x = lo_x->previous.
+        " a nested z2ui5 error just rendered its own previous-chain -
+        " walking it again here would duplicate every deeper cause
+        TRY.
+            DATA(lo_dummy) = CAST z2ui5_cx_a2ui5_error( lo_x ) ##NEEDED.
+            EXIT.
+          CATCH cx_sy_move_cast_error.
+            lo_x = lo_x->previous.
+        ENDTRY.
       ENDWHILE.
     ENDIF.
 
-
-    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `UNKNOWN_ERROR` ELSE result ).
+    " never answer with an empty text - a raise without val/previous would
+    " otherwise produce a blank 500 body downstream
+    result = COND #( WHEN result IS INITIAL THEN `UNKNOWN_ERROR` ELSE result ).
 
   ENDMETHOD.
 ENDCLASS.

@@ -251,28 +251,10 @@ INTERFACE z2ui5_if_core_types
     END OF ty_s_request.
 
   TYPES:
-    BEGIN OF ty_s_draft,
-      id                TYPE string,
-      id_prev           TYPE string,
-      id_prev_app       TYPE string,
-      id_prev_app_stack TYPE string,
-      app               TYPE REF TO z2ui5_if_app,
-    END OF ty_s_draft.
-
-  TYPES:
-    BEGIN OF ty_s_config,
-      origin   TYPE string,
-      pathname TYPE string,
-      search   TYPE string,
-    END OF ty_s_config.
-
-  TYPES:
     BEGIN OF ty_s_actual,
       event              TYPE string,
       t_event_arg        TYPE string_table,
       check_on_navigated TYPE abap_bool,
-      s_draft            TYPE ty_s_draft,
-      s_config           TYPE ty_s_config,
       r_data             TYPE REF TO data,
     END OF ty_s_actual.
 
