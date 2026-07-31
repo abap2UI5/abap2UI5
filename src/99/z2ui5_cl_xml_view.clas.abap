@@ -402,7 +402,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable. DEPRECATED as of 2.0 - replaced by the OData V4 Table Building Block.
     "! Most properties (selectionMode, rowMode, toolbar, columns) are inherited from sap.ui.table.Table.
     "!
-    "! @parameter ns            | (string) XML namespace prefix (typically `t` for sap.ui.table).
+    "! @parameter ns            | (string) XML namespace prefix. Defaults to `table` (sap.ui.table).
     "! @parameter selectionmode | (sap.ui.table.SelectionMode) None | Single | MultiToggle. `Multi` is deprecated since 1.38 (use MultiToggle). Default: MultiToggle.
     "! @parameter rowmode       | (sap.ui.table.rowmodes.RowMode) Aggregation - use the `auto`, `fixed` or `interactive` builder methods.
     "! @parameter toolbar       | (binding path) Aggregation slot for the table toolbar.
@@ -419,7 +419,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">Aggregation `rowMode`</p>
     "!
-    "! @parameter ns | (string) XML namespace prefix (typically `t` for sap.ui.table).
+    "! @parameter ns | (string) XML namespace prefix. Defaults to `table` (sap.ui.table).
     METHODS rowmode
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -476,7 +476,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
-    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter ns                  | (string) XML namespace prefix. Defaults to `trm` (sap.ui.table.rowmodes).
     "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
     "! @parameter minrowcount         | (int) Minimum number of displayed rows. Default: 5.
     "! @parameter maxrowcount         | (int) Maximum number of displayed rows (-1 = no limit). Default: -1.
@@ -497,7 +497,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Fixed. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
-    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter ns                  | (string) XML namespace prefix. Defaults to `trm` (sap.ui.table.rowmodes).
     "! @parameter rowcount            | (int) Number of displayed rows. Default: 10.
     "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
     "! @parameter fixedtoprowcount    | (int) Number of fixed rows at the top. Default: 0.
@@ -516,7 +516,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Interactive. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
-    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter ns                  | (string) XML namespace prefix. Defaults to `trm` (sap.ui.table.rowmodes).
     "! @parameter rowcount            | (int) Initial number of displayed rows. Default: 10.
     "! @parameter minrowcount         | (int) Minimum number of displayed rows. Default: 5.
     "! @parameter maxrowcount         | (int) Maximum number of displayed rows (-1 = no limit). Default: -1.
@@ -1802,7 +1802,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable. DEPRECATED as of 2.0 - replaced by the OData V4 Table Building Block.
     "!
-    "! @parameter ns | (string) XML namespace prefix (typically `t`).
+    "! @parameter ns | (string) XML namespace prefix. Defaults to `table` (sap.ui.table).
     METHODS analytical_column
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -2116,7 +2116,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! Smart field that combines display / edit modes for a value. See https://ui5.sap.com/#/api/sap.ui.mdc.Field.
     "!
-    "! @parameter ns                 | (string) XML namespace prefix (typically `mdc`).
+    "! @parameter ns                 | (string) XML namespace prefix. Defaults to `mdc` (sap.ui.mdc).
     "! @parameter value              | (any) Value (use `client->_bind_edit( var )`).
     "! @parameter editmode           | (sap.ui.mdc.enums.FieldEditMode) Editable | Display | EditableReadOnly | EditableDisplay. Default: Editable.
     "! @parameter showemptyindicator | (boolean) Show "-" for empty values in display mode. Default: false.
@@ -7813,7 +7813,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.MapContainer</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vk.MapContainer</p>
     "!
     "! @parameter autoadjustheight | (boolean) Auto-adjust height. Default: false.
     "! @parameter showhome         | (boolean) Show "Home" button. Default: true.
@@ -15475,7 +15475,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD field.
     result = _generic(
         name   = `Field`
-        ns     = ns
+        ns     = SWITCH #( ns WHEN `` THEN `mdc` ELSE ns )
         t_prop = VALUE #( ( n = `id`        v = id )
                           ( n = `value`     v = value )
                           ( n = `editMode`  v = editmode )
@@ -15499,13 +15499,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD analytical_column.
-    result = _generic( ns   = ns
+    result = _generic( ns   = SWITCH #( ns WHEN `` THEN `table` ELSE ns )
                        name = `AnalyticalColumn` ).
   ENDMETHOD.
 
   METHOD analytical_table.
     result = _generic( name   = `AnalyticalTable`
-                       ns     = ns
+                       ns     = SWITCH #( ns WHEN `` THEN `table` ELSE ns )
                        t_prop = VALUE #( ( n = `selectionMode`              v = selectionmode )
                                          ( n = `rowMode`                    v = rowmode )
                                          ( n = `toolbar`                    v = toolbar )
@@ -15513,7 +15513,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD auto.
-    result = _generic( ns     = ns
+    result = _generic( ns     = SWITCH #( ns WHEN `` THEN `trm` ELSE ns )
                        name   = `Auto`
                        t_prop = VALUE #( ( n = `rowContentHeight`    v = rowcontentheight )
                                          ( n = `minRowCount`         v = minrowcount )
@@ -15523,7 +15523,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD fixed.
-    result = _generic( ns     = ns
+    result = _generic( ns     = SWITCH #( ns WHEN `` THEN `trm` ELSE ns )
                        name   = `Fixed`
                        t_prop = VALUE #( ( n = `rowCount`            v = rowcount )
                                          ( n = `rowContentHeight`    v = rowcontentheight )
@@ -15532,7 +15532,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD interactive.
-    result = _generic( ns     = ns
+    result = _generic( ns     = SWITCH #( ns WHEN `` THEN `trm` ELSE ns )
                        name   = `Interactive`
                        t_prop = VALUE #( ( n = `rowCount`            v = rowcount )
                                          ( n = `minRowCount`         v = minrowcount )
@@ -15612,7 +15612,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD rowmode.
     result = _generic( name = `rowMode`
-                       ns   = ns ).
+                       ns   = SWITCH #( ns WHEN `` THEN `table` ELSE ns ) ).
   ENDMETHOD.
 
   METHOD breadcrumbs.
