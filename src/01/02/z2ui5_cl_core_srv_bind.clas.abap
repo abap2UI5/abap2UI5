@@ -126,8 +126,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
                      ir_new      = ms_config-custom_filter
                      iv_label    = `filters` ).
 
-    " custom_filter_back was previously unchecked (the fourth, missing guard) -
-    " close the gap so a conflicting filter-back is rejected like the others
     check_same_impl( ir_existing = mr_attri->custom_filter_back
                      ir_new      = ms_config-custom_filter_back
                      iv_label    = `filters back` ).
@@ -145,10 +143,12 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   METHOD check_raise_new.
 
-    check_serializable( ir_ref   = mr_attri->custom_filter_back
+    " check the incoming config - mr_attri->custom_* is only filled
+    " afterwards by update_model_attri and is still initial here
+    check_serializable( ir_ref   = ms_config-custom_filter_back
                         iv_label = `custom_filter_back` ).
 
-    check_serializable( ir_ref   = mr_attri->custom_mapper_back
+    check_serializable( ir_ref   = ms_config-custom_mapper_back
                         iv_label = `custom_mapper_back` ).
 
   ENDMETHOD.

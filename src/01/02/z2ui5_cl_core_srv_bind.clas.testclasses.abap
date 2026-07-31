@@ -28,15 +28,6 @@ CLASS ltcl_test_app DEFINITION FINAL
     DATA mo_app   TYPE REF TO ltcl_test_bind ##NEEDED.
 
     DATA xx       TYPE string ##NEEDED.
-
-    METHODS constructor.
-ENDCLASS.
-
-
-CLASS ltcl_test_app IMPLEMENTATION.
-  METHOD constructor.
-
-  ENDMETHOD.
 ENDCLASS.
 
 

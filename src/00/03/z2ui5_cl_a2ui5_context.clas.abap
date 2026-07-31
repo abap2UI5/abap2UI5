@@ -30,7 +30,7 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
 
     CLASS-DATA cv_char_util_charsize       TYPE i          READ-ONLY.
 
-    CLASS-DATA cv_format_e_xml_attr             TYPE i          READ-ONLY.
+    CLASS-DATA cv_format_e_xml_attr        TYPE i          READ-ONLY.
 
     " RTTI type-kind / kind / visibility constants, so callers can branch on
     " stored type_kind/kind fields without referencing cl_abap_typedescr /
@@ -693,7 +693,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     cv_char_util_cr_lf          = cl_abap_char_utilities=>cr_lf.
     cv_char_util_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
     cv_char_util_charsize       = cl_abap_char_utilities=>charsize.
-    cv_format_e_xml_attr             = cl_abap_format=>e_xml_attr.
+    cv_format_e_xml_attr        = cl_abap_format=>e_xml_attr.
 
     cv_typedescr_typekind_table      = cl_abap_typedescr=>typekind_table.
     cv_typedescr_typekind_dref       = cl_abap_typedescr=>typekind_dref.
@@ -1008,7 +1008,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     TRY.
 
         cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
-                                             RECEIVING p_descr_ref     = DATA(type_desc)
+                                             RECEIVING  p_descr_ref    = DATA(type_desc)
                                              EXCEPTIONS type_not_found = 1 ).
 
       CATCH cx_root INTO DATA(x).
@@ -1410,20 +1410,25 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
     DATA(lt_msg) = msg_get_t( val ).
 
-    IF lines( lt_msg ) = 1.
-      result-text  = lt_msg[ 1 ]-text.
-      result-type  = to_lower( ui5_get_msg_type( lt_msg[ 1 ]-type ) ).
-      result-title = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+    DATA(lv_lines) = lines( lt_msg ).
+    IF lv_lines > 0.
+      DATA(lv_type) = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+    ENDIF.
 
-    ELSEIF lines( lt_msg ) > 1.
-      result-text = | { lines( lt_msg ) } Messages found: |.
+    IF lv_lines = 1.
+      result-text  = lt_msg[ 1 ]-text.
+      result-type  = to_lower( lv_type ).
+      result-title = lv_type.
+
+    ELSEIF lv_lines > 1.
+      result-text = | { lv_lines } Messages found: |.
       DATA lt_detail_items TYPE string_table.
       LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
         INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
       ENDLOOP.
       result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
-      result-title   = ui5_get_msg_type( lt_msg[ 1 ]-type ).
-      result-type    = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+      result-title   = lv_type.
+      result-type    = to_lower( lv_type ).
 
     ELSE.
       result-skip = abap_true.
@@ -1774,7 +1779,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
             scrtext_m TYPE string,
             scrtext_l TYPE string,
           END OF ddic.
-    DATA struct_desrc TYPE REF TO cl_abap_structdescr.
+    DATA struct_descr TYPE REF TO cl_abap_structdescr.
     FIELD-SYMBOLS <ddic> TYPE data.
     DATA lo_typedescr TYPE REF TO cl_abap_typedescr.
     DATA data_descr   TYPE REF TO cl_abap_datadescr.
@@ -1784,16 +1789,16 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
     cl_abap_typedescr=>describe_by_name( `T100` ).
 
-    struct_desrc ?= cl_abap_structdescr=>describe_by_name( `DFIES` ).
+    struct_descr ?= cl_abap_structdescr=>describe_by_name( `DFIES` ).
 
-    CREATE DATA ddic_ref TYPE HANDLE struct_desrc.
+    CREATE DATA ddic_ref TYPE HANDLE struct_descr.
 
     ASSIGN ddic_ref->* TO <ddic>.
     ASSERT sy-subrc = 0.
 
-    cl_abap_elemdescr=>describe_by_name( EXPORTING  p_name     = name
-                                         RECEIVING p_descr_ref = lo_typedescr
-                                         EXCEPTIONS OTHERS     = 1 ).
+    cl_abap_elemdescr=>describe_by_name( EXPORTING  p_name      = name
+                                         RECEIVING  p_descr_ref = lo_typedescr
+                                         EXCEPTIONS OTHERS      = 1 ).
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.

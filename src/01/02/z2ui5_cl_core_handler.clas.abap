@@ -207,7 +207,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDIF.
 
     result-s_control-check_launchpad = xsdbool(
-        result-s_front-search   CS `scenario=LAUNCHPAD`
+        result-s_front-search CS `scenario=LAUNCHPAD`
         OR result-s_front-pathname CS `/ui2/flp`
         OR result-s_front-pathname CS `test/flpSandbox` ).
   ENDMETHOD.
@@ -276,7 +276,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     result = z2ui5_cl_a2ui5_context=>c_trim_upper(
         z2ui5_cl_a2ui5_context=>url_param_get( val = `app_start`
-                                      url          = iv_search ) ).
+                                               url = iv_search ) ).
   ENDMETHOD.
 
   METHOD hash_get_app_part.
@@ -329,7 +329,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         SHIFT lv_hash LEFT DELETING LEADING `/`.
         result = z2ui5_cl_a2ui5_context=>c_trim_upper(
             z2ui5_cl_a2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
-                                          url          = lv_hash ) ).
+                                                   url = lv_hash ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.

@@ -508,10 +508,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD attri_create_new.
 
     DATA(lo_descr) = z2ui5_cl_a2ui5_context=>rtti_get_typedescr_by_data_ref( attri_get_val_ref( name ) ).
-    result = VALUE z2ui5_if_core_types=>ty_s_attri( name         = name
-                                                     o_typedescr = lo_descr
-                                                     type_kind   = lo_descr->type_kind
-                                                     kind        = lo_descr->kind ).
+    result = VALUE z2ui5_if_core_types=>ty_s_attri( name        = name
+                                                    o_typedescr = lo_descr
+                                                    type_kind   = lo_descr->type_kind
+                                                    kind        = lo_descr->kind ).
 
   ENDMETHOD.
 

@@ -226,14 +226,10 @@ CLASS ltcl_test_app_sub DEFINITION FINAL
 
     DATA mv_value TYPE string ##NEEDED.
     DATA mr_value TYPE REF TO string.
-
-    METHODS constructor.
 ENDCLASS.
 
 
 CLASS ltcl_test_app_sub IMPLEMENTATION.
-  METHOD constructor.
-  ENDMETHOD.
 ENDCLASS.
 
 
