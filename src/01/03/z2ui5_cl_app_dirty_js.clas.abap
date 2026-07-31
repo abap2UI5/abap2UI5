@@ -78,7 +78,7 @@ CLASS z2ui5_cl_app_dirty_js IMPLEMENTATION.
              `            syncUnloadPrompt(anyDirty);` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError("Dirty.setIsDirty: setDirtyFlag failed", e);` && |\n| &&
+             `          Lib.logError("Dirty._applyDirtyState: setDirtyFlag failed", e);` && |\n| &&
              `          syncUnloadPrompt(anyDirty);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

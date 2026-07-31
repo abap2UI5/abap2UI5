@@ -617,6 +617,8 @@ sap.ui.define(
         modelData.editor_visible = true;
         modelData.source_visible = false;
         modelData.isTemplating = Boolean(content?.includes("xmlns:template"));
+        // the toggle always starts on the original source for this tab
+        modelData.templatingSource = false;
         modelData.value = content;
         modelData.previousValue = content;
         modelData.xContent = xcontent;

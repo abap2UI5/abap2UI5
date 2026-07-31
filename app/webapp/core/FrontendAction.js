@@ -1178,8 +1178,9 @@ sap.ui.define(
             params.BCC,
             params.NEW_WINDOW,
           ),
-        TRIGGER_SMS: () => _URLHelper.triggerSms(params),
-        TRIGGER_TEL: () => _URLHelper.triggerTel(params),
+        TRIGGER_SMS: () =>
+          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),
+        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),
       };
       try {
         const fn = actions[args[1]];
@@ -1376,7 +1377,9 @@ sap.ui.define(
       // Native Element.scrollTo is only used as a fallback for controls
       // without a delegate.
       try {
-        const oElement = ViewSlots.byId("MAIN", args[1]);
+        // resolveById like SET_FOCUS / SCROLL_INTO_VIEW, so controls in
+        // popups/popovers/nested views and fully-qualified ids work too
+        const oElement = ViewSlots.resolveById(args[1]);
         if (!oElement) return;
         const y = Number(args[2]) || 0;
         const x = Number(args[3]) || 0;

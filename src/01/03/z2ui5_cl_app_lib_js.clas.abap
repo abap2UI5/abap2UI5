@@ -24,7 +24,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `// here reach it via AppState.state instead of the z2ui5 global.` && |\n| &&
              `//` && |\n| &&
              `// Shared rendering pattern of the custom controls (Timer.js, Focus.js,` && |\n| &&
-             `// Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a` && |\n| &&
+             `// Scrolling.js, ...): the renderer only *marks* work by setting a` && |\n| &&
              `// ``_pending*`` flag on the control instance, and onAfterRendering() consumes` && |\n| &&
              `// the flag and performs the actual DOM work (focus, scrolling, timers, tree` && |\n| &&
              `// state). Renderers must stay cheap and free of visible side effects` && |\n| &&

@@ -1200,8 +1200,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            params.BCC,` && |\n| &&
              `            params.NEW_WINDOW,` && |\n| &&
              `          ),` && |\n| &&
-             `        TRIGGER_SMS: () => _URLHelper.triggerSms(params),` && |\n| &&
-             `        TRIGGER_TEL: () => _URLHelper.triggerTel(params),` && |\n| &&
+             `        TRIGGER_SMS: () =>` && |\n| &&
+             `          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),` && |\n| &&
+             `        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),` && |\n| &&
              `      };` && |\n| &&
              `      try {` && |\n| &&
              `        const fn = actions[args[1]];` && |\n| &&
@@ -1218,9 +1219,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      ViewSlots.destroy("POPUP");` && |\n|.
+             `      }` && |\n|.
     result = result &&
+             `      ViewSlots.destroy("POPUP");` && |\n| &&
              `      oController.eB(["SAVE"], image);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -1399,7 +1400,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `        // resolveById like SET_FOCUS / SCROLL_INTO_VIEW, so controls in` && |\n| &&
+             `        // popups/popovers/nested views and fully-qualified ids work too` && |\n| &&
+             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&

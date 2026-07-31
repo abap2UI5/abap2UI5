@@ -609,7 +609,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
       lv_depth = lv_depth + 1.
       IF lv_depth >= max_dissolve_depth.
-        RETURN.
+        " EXIT, not RETURN - attri_update_entry_refs must still run for the
+        " already dissolved rows, otherwise name_ref stays empty and the
+        " serialize/deserialize ref de-duplication silently breaks
+        EXIT.
       ENDIF.
 
       TRY.

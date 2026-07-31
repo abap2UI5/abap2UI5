@@ -51,6 +51,12 @@ sap.ui.define(
       },
       exit() {
         Lib.unregisterCallback("onAfterRendering", this._setupBound);
+        // remove this control's own rows from the message model, otherwise a
+        // full view rebuild leaves them behind and re-adds a duplicate set
+        if (this._added.size && this._messaging) {
+          this._messaging.removeMessages([...this._added.values()]);
+        }
+        this._added.clear();
       },
       renderer: { apiVersion: 2, render() {} },
 

@@ -1159,7 +1159,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
                                         sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
 
-    lv_search2 = substring_after( val = c_trim_lower( lv_search )
+    lv_search2 = substring_after( val = lv_search
                                   sub = `?` ).
     IF lv_search2 IS NOT INITIAL.
       lv_search = lv_search2.
@@ -1169,7 +1169,10 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
     LOOP AT lt_param REFERENCE INTO DATA(lr_param).
       SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-      INSERT VALUE #( n = lv_name
+      " normalize the name so lookups are case-insensitive on every input
+      " shape (with or without a leading path/question mark) - the value
+      " keeps its original case
+      INSERT VALUE #( n = c_trim_lower( lv_name )
                       v = lv_value ) INTO TABLE rt_params.
     ENDLOOP.
 

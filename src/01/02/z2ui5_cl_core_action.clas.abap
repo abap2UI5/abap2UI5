@@ -86,6 +86,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_set-set_app_state_active = abap_true.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
+              " normalize the chain like factory_by_frontend: id_prev must
+              " point at the draft this restore was loaded from, not at
+              " whatever id was serialized in a previous session
+              result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_control-app_start_draft.
               result->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
               RETURN.
             CATCH cx_root.
@@ -154,6 +158,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   METHOD factory_stack_leave.
 
     result = prepare_app_stack( ms_next-o_app_leave ).
+
+    " a leave is a back-navigation - never inherit a call-hop's route push
+    " from the same request ( A -> nav_app_call B -> B leaves again ), else
+    " the frontend pushes a new history entry for what is a step back
+    CLEAR: result->ms_next-s_set-check_nav_app_call,
+           result->ms_next-s_set-nav_app_call_prev_app,
+           result->ms_next-s_set-nav_app_call_prev_id.
 
     DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
 

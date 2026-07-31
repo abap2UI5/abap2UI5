@@ -638,6 +638,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
              `        modelData.isTemplating = Boolean(content?.includes("xmlns:template"));` && |\n| &&
+             `        // the toggle always starts on the original source for this tab` && |\n| &&
+             `        modelData.templatingSource = false;` && |\n| &&
              `        modelData.value = content;` && |\n| &&
              `        modelData.previousValue = content;` && |\n| &&
              `        modelData.xContent = xcontent;` && |\n| &&
