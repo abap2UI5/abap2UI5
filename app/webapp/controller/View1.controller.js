@@ -368,12 +368,14 @@ sap.ui.define(
       // The name is part of the protocol - backend-generated view XML binds
       // events to eB/eF - and must not be renamed.
       //
-      // args[0] is the event array built by the backend:
+      // args[0] is the event array built by the backend (get_event):
       //   [0] event name
+      //   [1] reserved placeholder, always false
       //   [2] "ignore busy" flag - background events (e.g. timers) skip the
       //       busy guard below
       //   [3] "use main view model" flag - events fired from a popup or
-      //       popover controller that still target the main app's model
+      //       popover controller that still target the main app's model;
+      //       not emitted by the framework today, only by custom JS
       // ------------------------------------------------------------------
       eB(...args) {
         const [, , ignoreBusy, useMainModel] = args[0];

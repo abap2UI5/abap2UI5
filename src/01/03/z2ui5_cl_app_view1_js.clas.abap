@@ -388,12 +388,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // The name is part of the protocol - backend-generated view XML binds` && |\n| &&
              `      // events to eB/eF - and must not be renamed.` && |\n| &&
              `      //` && |\n| &&
-             `      // args[0] is the event array built by the backend:` && |\n| &&
+             `      // args[0] is the event array built by the backend (get_event):` && |\n| &&
              `      //   [0] event name` && |\n| &&
+             `      //   [1] reserved placeholder, always false` && |\n| &&
              `      //   [2] "ignore busy" flag - background events (e.g. timers) skip the` && |\n| &&
              `      //       busy guard below` && |\n| &&
              `      //   [3] "use main view model" flag - events fired from a popup or` && |\n| &&
-             `      //       popover controller that still target the main app's model` && |\n| &&
+             `      //       popover controller that still target the main app's model;` && |\n| &&
+             `      //       not emitted by the framework today, only by custom JS` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eB(...args) {` && |\n| &&
              `        const [, , ignoreBusy, useMainModel] = args[0];` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (AppState.state.isBusy && !ignoreBusy) {` && |\n| &&
              `          BusyIndicator.show(0);` && |\n| &&
              `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // A new roundtrip overrides any pending timer - timers that fired` && |\n|.
+             `        }` && |\n|.
     result = result &&
+             `` && |\n| &&
+             `        // A new roundtrip overrides any pending timer - timers that fired` && |\n| &&
              `        // already removed themselves before calling eB, so this only cancels` && |\n| &&
              `        // timers that are still waiting.` && |\n| &&
              `        for (const key in AppState.state.timers) {` && |\n| &&

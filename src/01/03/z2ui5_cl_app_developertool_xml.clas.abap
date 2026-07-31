@@ -139,6 +139,11 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `             footer; UI5 lays the buttons out in an overflow toolbar. -->` &&
              `        <buttons>` &&
              `            <Button` &&
+             `                text="Retry"` &&
+             `                visible="{/hasRetry}"` &&
+             `                press=".onErrorRetry"` &&
+             `            />` &&
+             `            <Button` &&
              `                text="Logout"` &&
              `                press=".onErrorLogout"` &&
              `            />` &&

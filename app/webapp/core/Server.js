@@ -25,10 +25,9 @@ sap.ui.define(
 
     const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
 
-    // Quote characters recognised by the eF( ) argument parser below. The
-    // single quote is built from its char code on purpose: keeping a literal
-    // single-quote character out of this file avoids confusing the ABAP
-    // source generator, which ships this module as an ABAP string literal.
+    // Quote characters recognised by the eF( ) argument parser below, built
+    // from char codes so both quote kinds are declared symmetrically and
+    // stand out from the surrounding string literals.
     const CH_SQUOTE = String.fromCharCode(39);
     const CH_DQUOTE = String.fromCharCode(34);
 

@@ -2,7 +2,7 @@
 const { defineConfig } = require('@playwright/test');
 
 /**
- * Minimal config for pure unit tests — no browser, no server needed.
+ * Minimal config for pure unit tests - no browser, no server needed.
  */
 module.exports = defineConfig({
   testDir: './tests',

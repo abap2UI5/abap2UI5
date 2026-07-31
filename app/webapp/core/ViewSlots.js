@@ -187,9 +187,8 @@ sap.ui.define(
         }
       }
       try {
-        // Drop the validation registration the controller added via
-        // _attachMessaging, so the messaging facade holds no stale entry
-        // for the destroyed view.
+        // Drop the validation registration attachSharedModels added, so
+        // the messaging facade holds no stale entry for the destroyed view.
         Lib.getMessaging?.()?.unregisterObject(view);
       } catch (e) {
         Lib.logError(

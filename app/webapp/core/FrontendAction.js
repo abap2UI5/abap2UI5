@@ -640,6 +640,7 @@ sap.ui.define(
       // filename, so the anchor never carries the literal "undefined". Strip
       // path separators and control characters so the filename cannot escape
       // the download directory or carry a misleading name.
+      // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here
       a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");
       // Firefox only triggers a programmatic download click when the anchor
       // is part of the document, so attach it briefly and remove it again.
@@ -1151,11 +1152,11 @@ sap.ui.define(
     function evUrlHelper(oController, args) {
       const params = args[2] ?? {};
       // mailto:/sms:/tel: targets are handed to URLHelper as-is; a CR/LF in a
-      // recipient/subject can inject extra headers in some mail clients. Reject
-      // any control character in the string params up front.
-      const hasControlChar = (v) => typeof v === "string" && /[\r\n]/.test(v);
-      if (Object.values(params).some(hasControlChar)) {
-        Lib.logError("URLHELPER: blocked control character in parameters");
+      // recipient/subject can inject extra headers in some mail clients.
+      // Reject CR/LF in the string params up front.
+      const hasCrLf = (v) => typeof v === "string" && /[\r\n]/.test(v);
+      if (Object.values(params).some(hasCrLf)) {
+        Lib.logError("URLHELPER: blocked CR/LF in parameters");
         return;
       }
       const actions = {

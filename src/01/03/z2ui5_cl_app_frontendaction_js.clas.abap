@@ -661,6 +661,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // filename, so the anchor never carries the literal "undefined". Strip` && |\n| &&
              `      // path separators and control characters so the filename cannot escape` && |\n| &&
              `      // the download directory or carry a misleading name.` && |\n| &&
+             `      // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here` && |\n| &&
              `      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");` && |\n| &&
              `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
              `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
@@ -817,9 +818,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      let done = false;` && |\n| &&
              `      let frame;` && |\n| &&
              `      const finish = () => {` && |\n| &&
-             `        if (done) return;` && |\n| &&
-             `        done = true;` && |\n|.
+             `        if (done) return;` && |\n|.
     result = result &&
+             `        done = true;` && |\n| &&
              `        // Remove the hidden BSP-kill iframe. On a successful logout the page` && |\n| &&
              `        // navigates away and unload cleans up anyway; but if redirectToLogout` && |\n| &&
              `        // blocks an invalid URL (MessageBox, no navigation) the iframe would` && |\n| &&
@@ -1173,11 +1174,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evUrlHelper(oController, args) {` && |\n| &&
              `      const params = args[2] ?? {};` && |\n| &&
              `      // mailto:/sms:/tel: targets are handed to URLHelper as-is; a CR/LF in a` && |\n| &&
-             `      // recipient/subject can inject extra headers in some mail clients. Reject` && |\n| &&
-             `      // any control character in the string params up front.` && |\n| &&
-             `      const hasControlChar = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n| &&
-             `      if (Object.values(params).some(hasControlChar)) {` && |\n| &&
-             `        Lib.logError("URLHELPER: blocked control character in parameters");` && |\n| &&
+             `      // recipient/subject can inject extra headers in some mail clients.` && |\n| &&
+             `      // Reject CR/LF in the string params up front.` && |\n| &&
+             `      const hasCrLf = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n| &&
+             `      if (Object.values(params).some(hasCrLf)) {` && |\n| &&
+             `        Lib.logError("URLHELPER: blocked CR/LF in parameters");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const actions = {` && |\n| &&
@@ -1218,9 +1219,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
              `      }` && |\n| &&
-             `      ViewSlots.destroy("POPUP");` && |\n| &&
-             `      oController.eB(["SAVE"], image);` && |\n|.
+             `      ViewSlots.destroy("POPUP");` && |\n|.
     result = result &&
+             `      oController.eB(["SAVE"], image);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evStartTimer(oController, args) {` && |\n| &&

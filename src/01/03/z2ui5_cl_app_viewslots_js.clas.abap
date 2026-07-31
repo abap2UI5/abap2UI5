@@ -207,9 +207,8 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
-             `        // Drop the validation registration the controller added via` && |\n| &&
-             `        // _attachMessaging, so the messaging facade holds no stale entry` && |\n| &&
-             `        // for the destroyed view.` && |\n| &&
+             `        // Drop the validation registration attachSharedModels added, so` && |\n| &&
+             `        // the messaging facade holds no stale entry for the destroyed view.` && |\n| &&
              `        Lib.getMessaging?.()?.unregisterObject(view);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(` && |\n| &&

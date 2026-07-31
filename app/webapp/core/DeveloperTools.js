@@ -518,7 +518,6 @@ sap.ui.define(
               }),
               afterClose: () => dialog.destroy(),
             });
-            dialog.addStyleClass("dbg-ltr");
             dialog.open();
           },
         );
@@ -607,8 +606,6 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = false;
         modelData.source_visible = true;
-        // Drives the "Open in ABAP Development Tools" link's visibility.
-        modelData.hasSource = Boolean(url);
         oModel.refresh();
       },
 
@@ -683,7 +680,6 @@ sap.ui.define(
             type: "json",
             source_visible: false,
             editor_visible: true,
-            hasSource: false,
             hasError: Boolean(AppState.state.lastError),
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
             value: value,
@@ -699,7 +695,6 @@ sap.ui.define(
 
           const oModel = new JSONModel(oData);
           const oDialog = this.oDialog;
-          oDialog.addStyleClass("dbg-ltr");
           oDialog.setModel(oModel);
           // Render the requested tab's content (the default "PLAIN" already
           // matches the JSON response seeded above, so only re-render when a

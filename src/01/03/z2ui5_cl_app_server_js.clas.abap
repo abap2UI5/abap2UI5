@@ -45,10 +45,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
              `` && |\n| &&
-             `    // Quote characters recognised by the eF( ) argument parser below. The` && |\n| &&
-             `    // single quote is built from its char code on purpose: keeping a literal` && |\n| &&
-             `    // single-quote character out of this file avoids confusing the ABAP` && |\n| &&
-             `    // source generator, which ships this module as an ABAP string literal.` && |\n| &&
+             `    // Quote characters recognised by the eF( ) argument parser below, built` && |\n| &&
+             `    // from char codes so both quote kinds are declared symmetrically and` && |\n| &&
+             `    // stand out from the surrounding string literals.` && |\n| &&
              `    const CH_SQUOTE = String.fromCharCode(39);` && |\n| &&
              `    const CH_DQUOTE = String.fromCharCode(34);` && |\n| &&
              `` && |\n| &&
@@ -417,9 +416,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        state.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
              `        // Keep the shared record in sync (developer tools "Previous Request",` && |\n| &&
-             `        // app hooks); the parameter stays the working object. Calls without` && |\n|.
+             `        // app hooks); the parameter stays the working object. Calls without` && |\n| &&
+             `        // a body (initial roundtrip, route changes) start from scratch.` && |\n|.
     result = result &&
-             `        // a body (initial roundtrip, route changes) start from scratch.` && |\n| &&
              `        state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Pick the first event argument (event name) safely.` && |\n| &&
