@@ -31,6 +31,12 @@ CLASS ltcl_test_app DEFINITION FINAL
 ENDCLASS.
 
 
+" the transpiler only emits a class that has an implementation part,
+" so keep the empty block even though the class declares no methods
+CLASS ltcl_test_app IMPLEMENTATION.
+ENDCLASS.
+
+
 CLASS ltcl_test_bind DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
