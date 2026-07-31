@@ -11,6 +11,8 @@ Thank you for your interest in contributing to abap2UI5! This guide helps ABAP d
 - [Making Your First Contribution](#making-your-first-contribution)
 - [Submitting Changes](#submitting-changes)
 - [Community Guidelines](#community-guidelines)
+- [Advanced Topics](#advanced-topics)
+- [Thank You!](#thank-you)
 
 ## Getting Started
 
@@ -35,6 +37,7 @@ abap2UI5 is a framework for developing UI5 applications purely in ABAP, without 
 
 The repository structure:
 - `src/` - Core ABAP framework classes
+- `app/` - UI5 frontend source (`app/webapp/`) and frontend tooling
 - `node/` - Node.js transpilation setup
 - `.github/` - CI/CD workflows and configurations
 - `package.json` - Node.js dependencies and build scripts
@@ -76,7 +79,7 @@ The framework supports easy installation via abapGit with no extra deployment ne
    - Choose package name (e.g., `$ZABAP2UI5` or `ZABAP2UI5`)
    - Install the repository
 
-### Development Workflow
+### abapGit Development Workflow
 
 **For ABAP Developers (Recommended Path):**
 
