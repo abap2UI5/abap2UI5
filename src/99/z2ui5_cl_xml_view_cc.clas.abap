@@ -184,6 +184,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       IMPORTING
         items         TYPE clike OPTIONAL
         change        TYPE clike OPTIONAL
+          PREFERRED PARAMETER items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
