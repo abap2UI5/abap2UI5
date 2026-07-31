@@ -354,7 +354,7 @@ The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOME
 | `npm run format` / `format:check` | Prettier |
 | `npm run lint` | ESLint on `webapp/**/*.js` (eslint:recommended + `eqeqeq` "smart", `prefer-const`, `no-new-func`) |
 
-Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `ui5-local.yaml`, `ui5-mock.yaml`.
+Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `ui5-local.yaml`.
 
 ### Testing
 
