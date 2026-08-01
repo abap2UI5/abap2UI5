@@ -152,7 +152,7 @@ sap.ui.define(
     //         "S_VIEW_NEST", "S_VIEW_NEST2", "S_POPUP", "S_POPOVER": same,
     //         "S_MSG_TOAST": { "TEXT": "...", ... },
     //         "S_MSG_BOX":   { "TEXT": "...", "TYPE": "error", ... },
-    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["eF('SET_FOCUS','id1')"] },
+    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["[\"SET_FOCUS\",\"id1\"]"] },
     //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",
     //         "SET_NAV_BACK": ""           // browser/history follow-ups
     //       }
@@ -664,9 +664,10 @@ sap.ui.define(
 
           if (sView?.CHECK_DESTROY) ViewSlots.destroy("MAIN");
 
-          // The backend can send small JS snippets to run after the response.
-          // Each snippet is either a literal expression or an "eF(...)" call
-          // whose arguments are wrapped in single quotes. They are stashed
+          // The backend can send follow-up actions to run after the response.
+          // Each entry is a JSON array ["EVENT", ...args] (framework actions,
+          // pure data), a legacy "eF(...)" call string, or a raw JS
+          // expression - see _runCustomJs. They are stashed
           // here and executed at the end of _processAfterRendering, i.e. once
           // the (possibly freshly built) view is actually rendered. Running
           // them earlier would break render-dependent actions such as
@@ -754,16 +755,37 @@ sap.ui.define(
         this.responseError(err);
       },
 
-      // Executes a single custom-JS snippet from the backend.
-      // Format A:  a raw expression such as alert(123) - needs a CSP that
+      // Executes a single follow-up action / custom-JS snippet from the backend.
+      // Format A:  a JSON array ["EVENT", ...args] - the structured form the
+      //            backend (z2ui5_cl_core_srv_event=>get_event_client_json)
+      //            emits for every framework follow-up action. Pure data,
+      //            serialized and escaped entirely in ABAP; dispatched via
+      //            oController.eF( ) after a single JSON.parse - no code is
+      //            parsed or evaluated on this path.
+      // Format B:  a structured eF( ) frontend-event call - the legacy wire
+      //            format, still produced by apps that pass raw "eF(...)"
+      //            strings to follow_up_action. Its argument list is parsed
+      //            manually (no eval / Function) so it runs under a strict
+      //            CSP while keeping object / array / string arguments intact.
+      // Format C:  a raw expression such as alert(123) - needs a CSP that
       //            allows unsafe-eval, otherwise it is a no-op.
-      // Format B:  a structured eF( ) frontend-event call - dispatched via
-      //            oController.eF( ). Its argument list is parsed manually
-      //            (no eval / Function) so it runs under a strict CSP while
-      //            keeping object / array / string arguments intact.
       _runCustomJs(item, oController) {
         try {
           const snippet = item.trim();
+          if (snippet.startsWith("[")) {
+            // JSON array -> structured follow-up action. A raw-JS expression
+            // that merely starts with "[" is no JSON array, so it fails the
+            // parse and falls through to the legacy formats below.
+            try {
+              const args = JSON.parse(snippet);
+              if (Array.isArray(args)) {
+                oController.eF(...args);
+                return;
+              }
+            } catch {
+              // not JSON - keep going with the legacy formats
+            }
+          }
           const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);
           if (match) {
             oController.eF(...parseEfArgs(match[1]));

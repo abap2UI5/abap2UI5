@@ -46,9 +46,12 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     IF val IS NOT INITIAL
         AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      lv_js = mo_srv_event->get_event_client( val   = val
-                                              view  = view
-                                              t_arg = t_arg ).
+      " a framework event travels as pure data - a JSON array serialized and
+      " escaped entirely in ABAP (get_event_client_json); only a raw JS
+      " expression passed by the app keeps the code form
+      lv_js = mo_srv_event->get_event_client_json( val   = val
+                                                   view  = view
+                                                   t_arg = t_arg ).
     ENDIF.
 
     INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
