@@ -10,6 +10,8 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_main_post_no_app  FOR TESTING RAISING cx_static_check.
     METHODS test_main_get_routing  FOR TESTING RAISING cx_static_check.
     METHODS test_main_post_routing FOR TESTING RAISING cx_static_check.
+    METHODS test_main_unsupported  FOR TESTING RAISING cx_static_check.
+    METHODS test_post_no_s_front   FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_inactive     FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_same_origin  FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_cross_origin FOR TESTING RAISING cx_static_check.
@@ -135,6 +137,44 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
                                         act = ls_result-status_code ).
     cl_abap_unit_assert=>assert_char_cp( act = ls_result-body
                                          exp = `*Z2UI5_CL_APP_DOES_NOT_EXIST*does not exist*` ).
+
+  ENDMETHOD.
+
+  METHOD test_main_unsupported.
+
+    " OPTIONS/PUT/... must answer 405, not fall through with status code 0
+    DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
+    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+
+    ls_req-method = `OPTIONS`.
+
+    ls_result = z2ui5_cl_http_handler=>_main( ls_req ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 405
+                                        act = ls_result-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = `Method Not Allowed`
+                                        act = ls_result-status_reason ).
+
+  ENDMETHOD.
+
+  METHOD test_post_no_s_front.
+
+    " valid JSON without an S_FRONT container (health-check POST, rewrapping
+    " proxy) must take the system-startup path, not answer 500
+    DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
+    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    ls_req-method = `POST`.
+    ls_req-body = `{"value":{}}`.
+
+    ls_result = z2ui5_cl_http_handler=>_main( ls_req ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
 
   ENDMETHOD.
 

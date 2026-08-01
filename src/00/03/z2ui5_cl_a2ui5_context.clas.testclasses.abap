@@ -10,6 +10,10 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_bool_string_binding  FOR TESTING RAISING cx_static_check.
     METHODS test_bool_check_by_data   FOR TESTING RAISING cx_static_check.
     METHODS test_bool_cache_hit       FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_case       FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_no_phantom FOR TESTING RAISING cx_static_check.
+    METHODS test_app_url_hash_app     FOR TESTING RAISING cx_static_check.
+    METHODS test_app_url_hash_shell   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -100,6 +104,68 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `false`
         act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_false ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_param_case.
+
+    " the parameter-name lookup is case-insensitive on every input shape -
+    " with a full URL and with a bare query string; the value keeps its case
+    cl_abap_unit_assert=>assert_equals(
+        exp = `MixedCase`
+        act = z2ui5_cl_a2ui5_context=>url_param_get(
+                  val = `app_start`
+                  url = `https://h/p?APP_START=MixedCase` ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `MixedCase`
+        act = z2ui5_cl_a2ui5_context=>url_param_get(
+                  val = `app_start`
+                  url = `?APP_START=MixedCase` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_param_no_phantom.
+
+    " an empty search string yields no parameters at all - the former
+    " phantom nameless row leaked back out of url_param_create_url as `=&`
+    cl_abap_unit_assert=>assert_initial(
+        z2ui5_cl_a2ui5_context=>url_param_get_tab( `` ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = 1
+        act = lines( z2ui5_cl_a2ui5_context=>url_param_get_tab( `?a=1&` ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_app_url_hash_app.
+
+    " the app-owned hash (route or app-state, leading `/`) must be dropped -
+    " the backend prefers it over app_start, so keeping it would re-open the
+    " current app instead of the requested one
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://h/p?app_start=zcl_new`
+        act = z2ui5_cl_a2ui5_context=>app_get_url(
+                  classname = `ZCL_NEW`
+                  origin    = `https://h`
+                  pathname  = `/p`
+                  search    = ``
+                  hash      = `#/app/ZCL_OLD/DRAFT1` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_app_url_hash_shell.
+
+    " inside the FLP the shell part of the hash survives, only the app part
+    " after `&/` is cut
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://h/p?app_start=zcl_new#Shell-home`
+        act = z2ui5_cl_a2ui5_context=>app_get_url(
+                  classname = `ZCL_NEW`
+                  origin    = `https://h`
+                  pathname  = `/p`
+                  search    = ``
+                  hash      = `#Shell-home&/app/ZCL_OLD/DRAFT1` ) ).
 
   ENDMETHOD.
 
