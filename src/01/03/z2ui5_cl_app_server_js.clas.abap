@@ -172,7 +172,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //         "S_VIEW_NEST", "S_VIEW_NEST2", "S_POPUP", "S_POPOVER": same,` && |\n| &&
              `    //         "S_MSG_TOAST": { "TEXT": "...", ... },` && |\n| &&
              `    //         "S_MSG_BOX":   { "TEXT": "...", "TYPE": "error", ... },` && |\n| &&
-             `    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["eF('SET_FOCUS','id1')"] },` && |\n| &&
+             `    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["[\"SET_FOCUS\",\"id1\"]"] },` && |\n| &&
              `    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",` && |\n| &&
              `    //         "SET_NAV_BACK": ""           // browser/history follow-ups` && |\n| &&
              `    //       }` && |\n| &&
@@ -685,9 +685,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          if (sView?.CHECK_DESTROY) ViewSlots.destroy("MAIN");` && |\n| &&
              `` && |\n| &&
-             `          // The backend can send small JS snippets to run after the response.` && |\n| &&
-             `          // Each snippet is either a literal expression or an "eF(...)" call` && |\n| &&
-             `          // whose arguments are wrapped in single quotes. They are stashed` && |\n| &&
+             `          // The backend can send follow-up actions to run after the response.` && |\n| &&
+             `          // Each entry is a JSON array ["EVENT", ...args] (framework actions,` && |\n| &&
+             `          // pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
+             `          // expression - see _runCustomJs. They are stashed` && |\n| &&
              `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&
              `          // the (possibly freshly built) view is actually rendered. Running` && |\n| &&
              `          // them earlier would break render-dependent actions such as` && |\n| &&
@@ -775,16 +776,37 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        this.responseError(err);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Executes a single custom-JS snippet from the backend.` && |\n| &&
-             `      // Format A:  a raw expression such as alert(123) - needs a CSP that` && |\n| &&
+             `      // Executes a single follow-up action / custom-JS snippet from the backend.` && |\n| &&
+             `      // Format A:  a JSON array ["EVENT", ...args] - the structured form the` && |\n| &&
+             `      //            backend (z2ui5_cl_core_srv_event=>get_event_client_json)` && |\n| &&
+             `      //            emits for every framework follow-up action. Pure data,` && |\n| &&
+             `      //            serialized and escaped entirely in ABAP; dispatched via` && |\n| &&
+             `      //            oController.eF( ) after a single JSON.parse - no code is` && |\n| &&
+             `      //            parsed or evaluated on this path.` && |\n| &&
+             `      // Format B:  a structured eF( ) frontend-event call - the legacy wire` && |\n| &&
+             `      //            format, still produced by apps that pass raw "eF(...)"` && |\n| &&
+             `      //            strings to follow_up_action. Its argument list is parsed` && |\n| &&
+             `      //            manually (no eval / Function) so it runs under a strict` && |\n| &&
+             `      //            CSP while keeping object / array / string arguments intact.` && |\n| &&
+             `      // Format C:  a raw expression such as alert(123) - needs a CSP that` && |\n| &&
              `      //            allows unsafe-eval, otherwise it is a no-op.` && |\n| &&
-             `      // Format B:  a structured eF( ) frontend-event call - dispatched via` && |\n| &&
-             `      //            oController.eF( ). Its argument list is parsed manually` && |\n| &&
-             `      //            (no eval / Function) so it runs under a strict CSP while` && |\n| &&
-             `      //            keeping object / array / string arguments intact.` && |\n| &&
              `      _runCustomJs(item, oController) {` && |\n| &&
              `        try {` && |\n| &&
              `          const snippet = item.trim();` && |\n| &&
+             `          if (snippet.startsWith("[")) {` && |\n| &&
+             `            // JSON array -> structured follow-up action. A raw-JS expression` && |\n| &&
+             `            // that merely starts with "[" is no JSON array, so it fails the` && |\n| &&
+             `            // parse and falls through to the legacy formats below.` && |\n| &&
+             `            try {` && |\n| &&
+             `              const args = JSON.parse(snippet);` && |\n| &&
+             `              if (Array.isArray(args)) {` && |\n| &&
+             `                oController.eF(...args);` && |\n| &&
+             `                return;` && |\n| &&
+             `              }` && |\n| &&
+             `            } catch {` && |\n| &&
+             `              // not JSON - keep going with the legacy formats` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
              `          const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);` && |\n| &&
              `          if (match) {` && |\n| &&
              `            oController.eF(...parseEfArgs(match[1]));` && |\n| &&
@@ -796,7 +818,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("customJs: execution failed", e);` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Terminate the roundtrip in an unrecoverable state: clear the busy` && |\n| &&
