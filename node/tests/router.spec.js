@@ -371,6 +371,24 @@ test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
   expect(standalone.pushes).toEqual(["/sap/z2ui5#/app/X/D1?pos=42"]);
 });
 
+test("set_push_state survives the app-state cleanup when routing is on", () => {
+  // with routing enabled hasher's cached hash holds the app route, so the
+  // trailing replaceHash("") cleanup would count as a change and wipe both
+  // the route and the suffix pushed a moment earlier - sync must stop after
+  // the push
+  const { Router, writes, pushes } = loadRouter({
+    state: { navRouting: true, navMode: "KEEP", currentApp: CALLER },
+    hash: `app/${CALLER}/D1`,
+    href: `https://host/sap/z2ui5#/app/${CALLER}/D1`,
+  });
+  Router.sync(
+    { SET_PUSH_STATE: "?pos=42", APP: CALLER, SET_NAV_ROUTING: "KEEP" },
+    "D1",
+  );
+  expect(pushes).toEqual([`/sap/z2ui5#/app/${CALLER}/D1?pos=42`]);
+  expect(writes.filter((w) => w.hash === "")).toEqual([]);
+});
+
 test("the app-state hash reaches the HashChanger slash-less too", () => {
   // hasher prepends the one canonical "/" - the live URL becomes
   // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes

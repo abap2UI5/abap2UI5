@@ -329,6 +329,12 @@ sap.ui.define(
           // launchpad.
           const newUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${PARAMS.SET_PUSH_STATE}`;
           history.pushState(null, "", newUrl);
+          // The pushed hash IS the desired URL - stop here. The cleanup below
+          // is a no-op while hasher's cached hash is empty (legacy mode), but
+          // with routing on the cache holds the app route, so replaceHash("")
+          // would count as a change and wipe both the route and the suffix
+          // pushed one line above.
+          return;
         }
         // The live URL must match the format the copy link
         // (FrontendAction.evClipboardAppState) writes and the backend restore

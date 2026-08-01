@@ -813,13 +813,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const separator = path.includes("?") ? "&" : "?";` && |\n| &&
-             `      const bspKill = ``${path}${separator}sap-sessioncmd=logoff``;` && |\n| &&
+             `      // location.pathname never contains a query string, so "?" always starts` && |\n| &&
+             `      // the sap-sessioncmd parameter` && |\n| &&
+             `      const bspKill = ``${path}?sap-sessioncmd=logoff``;` && |\n| &&
              `      let done = false;` && |\n| &&
              `      let frame;` && |\n| &&
-             `      const finish = () => {` && |\n| &&
-             `        if (done) return;` && |\n|.
+             `      const finish = () => {` && |\n|.
     result = result &&
+             `        if (done) return;` && |\n| &&
              `        done = true;` && |\n| &&
              `        // Remove the hidden BSP-kill iframe. On a successful logout the page` && |\n| &&
              `        // navigates away and unload cleans up anyway; but if redirectToLogout` && |\n| &&
@@ -1218,9 +1219,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const editor = ViewSlots.byId("POPUP", "imageEditor");` && |\n| &&
              `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
-             `      }` && |\n|.
+             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n|.
     result = result &&
+             `      }` && |\n| &&
              `      ViewSlots.destroy("POPUP");` && |\n| &&
              `      oController.eB(["SAVE"], image);` && |\n| &&
              `    }` && |\n| &&

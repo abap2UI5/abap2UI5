@@ -84,7 +84,7 @@ CLASS z2ui5_cl_app_messagemanager_js IMPLEMENTATION.
              `        if (this.getProperty("checkInit")) return;` && |\n| &&
              `        const messaging = Lib.getMessaging?.();` && |\n| &&
              `        if (!messaging) return;` && |\n| &&
-             `        this.setProperty("checkInit", true);` && |\n| &&
+             `        this.setProperty("checkInit", true, true);` && |\n| &&
              `        this._messaging = messaging;` && |\n| &&
              `        const view = ViewSlots.getView(` && |\n| &&
              `          ViewSlots.containingSlotKey(this) ?? "MAIN",` && |\n| &&

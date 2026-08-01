@@ -408,18 +408,21 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          "VIEW MODEL",` && |\n| &&
              `          json(() => jsonSources.MODEL()),` && |\n| &&
              `        );` && |\n| &&
-             `        if (getResponseXml("S_POPUP")) {` && |\n| &&
+             `        // gate on the live slot too - the response only carries the XML in` && |\n| &&
+             `        // the roundtrip that opened the popup/popover, but the live model is` && |\n| &&
+             `        // exportable for as long as one is open` && |\n| &&
+             `        if (getResponseXml("S_POPUP") || ViewSlots.getView("POPUP")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPUP",` && |\n| &&
              `            xml(() => xmlSources.POPUP().xml),` && |\n| &&
              `          );` && |\n| &&
              `          push(` && |\n| &&
-             `            "POPUP MODEL",` && |\n| &&
+             `            "POPUP MODEL",` && |\n|.
+    result = result &&
              `            json(() => jsonSources.POPUP_MODEL()),` && |\n| &&
              `          );` && |\n| &&
-             `        }` && |\n|.
-    result = result &&
-             `        if (getResponseXml("S_POPOVER")) {` && |\n| &&
+             `        }` && |\n| &&
+             `        if (getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPOVER",` && |\n| &&
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
@@ -712,8 +715,15 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            templatingSource: false,` && |\n| &&
              `            activeNest1: Boolean(getViewContent(ViewSlots.getView("NEST"))),` && |\n| &&
              `            activeNest2: Boolean(getViewContent(ViewSlots.getView("NEST2"))),` && |\n| &&
-             `            activePopup: Boolean(getResponseXml("S_POPUP")),` && |\n| &&
-             `            activePopover: Boolean(getResponseXml("S_POPOVER")),` && |\n| &&
+             `            // The response only carries the fragment XML in the roundtrip` && |\n| &&
+             `            // that opened the popup/popover - also check the live slot so` && |\n| &&
+             `            // the tabs stay usable while one is open after later roundtrips.` && |\n| &&
+             `            activePopup: Boolean(` && |\n| &&
+             `              getResponseXml("S_POPUP") || ViewSlots.getView("POPUP"),` && |\n| &&
+             `            ),` && |\n| &&
+             `            activePopover: Boolean(` && |\n| &&
+             `              getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER"),` && |\n| &&
+             `            ),` && |\n| &&
              `          };` && |\n| &&
              `` && |\n| &&
              `          const oModel = new JSONModel(oData);` && |\n| &&

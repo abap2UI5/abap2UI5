@@ -64,7 +64,7 @@ sap.ui.define(
         if (this.getProperty("checkInit")) return;
         const messaging = Lib.getMessaging?.();
         if (!messaging) return;
-        this.setProperty("checkInit", true);
+        this.setProperty("checkInit", true, true);
         this._messaging = messaging;
         const view = ViewSlots.getView(
           ViewSlots.containingSlotKey(this) ?? "MAIN",

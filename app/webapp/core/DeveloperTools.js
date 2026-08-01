@@ -388,7 +388,10 @@ sap.ui.define(
           "VIEW MODEL",
           json(() => jsonSources.MODEL()),
         );
-        if (getResponseXml("S_POPUP")) {
+        // gate on the live slot too - the response only carries the XML in
+        // the roundtrip that opened the popup/popover, but the live model is
+        // exportable for as long as one is open
+        if (getResponseXml("S_POPUP") || ViewSlots.getView("POPUP")) {
           push(
             "POPUP",
             xml(() => xmlSources.POPUP().xml),
@@ -398,7 +401,7 @@ sap.ui.define(
             json(() => jsonSources.POPUP_MODEL()),
           );
         }
-        if (getResponseXml("S_POPOVER")) {
+        if (getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER")) {
           push(
             "POPOVER",
             xml(() => xmlSources.POPOVER().xml),
@@ -691,8 +694,15 @@ sap.ui.define(
             templatingSource: false,
             activeNest1: Boolean(getViewContent(ViewSlots.getView("NEST"))),
             activeNest2: Boolean(getViewContent(ViewSlots.getView("NEST2"))),
-            activePopup: Boolean(getResponseXml("S_POPUP")),
-            activePopover: Boolean(getResponseXml("S_POPOVER")),
+            // The response only carries the fragment XML in the roundtrip
+            // that opened the popup/popover - also check the live slot so
+            // the tabs stay usable while one is open after later roundtrips.
+            activePopup: Boolean(
+              getResponseXml("S_POPUP") || ViewSlots.getView("POPUP"),
+            ),
+            activePopover: Boolean(
+              getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER"),
+            ),
           };
 
           const oModel = new JSONModel(oData);
