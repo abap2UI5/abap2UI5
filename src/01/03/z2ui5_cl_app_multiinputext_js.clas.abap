@@ -80,7 +80,7 @@ CLASS z2ui5_cl_app_multiinputext_js IMPLEMENTATION.
              `          this.getProperty("MultiInputId"),` && |\n| &&
              `        );` && |\n| &&
              `        if (!input || this.getProperty("checkInit")) return;` && |\n| &&
-             `        this.setProperty("checkInit", true);` && |\n| &&
+             `        this.setProperty("checkInit", true, true);` && |\n| &&
              `        try {` && |\n| &&
              `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
              `          // Custom validator: turn any free-text entry into a Token where` && |\n| &&

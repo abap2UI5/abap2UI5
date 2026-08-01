@@ -792,8 +792,9 @@ sap.ui.define(
         return;
       }
 
-      const separator = path.includes("?") ? "&" : "?";
-      const bspKill = `${path}${separator}sap-sessioncmd=logoff`;
+      // location.pathname never contains a query string, so "?" always starts
+      // the sap-sessioncmd parameter
+      const bspKill = `${path}?sap-sessioncmd=logoff`;
       let done = false;
       let frame;
       const finish = () => {

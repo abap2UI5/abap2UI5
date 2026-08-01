@@ -56,6 +56,27 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `    ];` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // True for an ABAP date that carries no date: the INITIAL value of a DATS` && |\n| &&
+             `  // field is "00000000", and a row with an optional date ships it that way` && |\n| &&
+             `  // (one template, so the attribute cannot be omitted per row). Handing it to` && |\n| &&
+             `  // the Date constructor would silently produce 1899-11-30 - a plausible-` && |\n| &&
+             `  // looking wrong date rather than an obvious error - so it is treated like` && |\n| &&
+             `  // the empty string below and yields null, which is what "no date" means to` && |\n| &&
+             `  // a UI5 date property. Anything that is not 8 digits is rejected too: an` && |\n| &&
+             `  // Invalid Date is TRUTHY and only blows up much later inside a calendar` && |\n| &&
+             `  // control (see DateCreateObject).` && |\n| &&
+             `  function isNoAbapDate(d) {` && |\n| &&
+             `    const s = String(d);` && |\n| &&
+             `    if (!/^\d{8}$/.test(s)) return true;` && |\n| &&
+             `    // a zero year, month or day is never a real date - "00000000" is the` && |\n| &&
+             `    // initial DATS value, the partial forms turn up in half-filled records` && |\n| &&
+             `    return (` && |\n| &&
+             `      Number(s.slice(0, 4)) === 0 ||` && |\n| &&
+             `      Number(s.slice(4, 6)) === 0 ||` && |\n| &&
+             `      Number(s.slice(6, 8)) === 0` && |\n| &&
+             `    );` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  // Product stock status -> its value state + status icon, kept as one` && |\n| &&
              `  // entry per status so the two formatters below cannot drift apart` && |\n| &&
              `  // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).` && |\n| &&
@@ -81,12 +102,12 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `      return new Date(s);` && |\n| &&
              `    },` && |\n| &&
              `    DateAbapDateToDateObject(d) {` && |\n| &&
-             `      if (!d) return null;` && |\n| &&
+             `      if (isNoAbapDate(d)) return null;` && |\n| &&
              `      return new Date(...parseYmd(d));` && |\n| &&
              `    },` && |\n| &&
              `    // t is an ABAP time string "HHMMSS"; if omitted we default to midnight.` && |\n| &&
              `    DateAbapDateTimeToDateObject(d, t = "000000") {` && |\n| &&
-             `      if (!d) return null;` && |\n| &&
+             `      if (isNoAbapDate(d)) return null;` && |\n| &&
              `      return new Date(` && |\n| &&
              `        ...parseYmd(d),` && |\n| &&
              `        Number(t.slice(0, 2)),` && |\n| &&

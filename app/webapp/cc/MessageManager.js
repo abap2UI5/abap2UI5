@@ -64,7 +64,7 @@ sap.ui.define(
         if (this.getProperty("checkInit")) return;
         const messaging = Lib.getMessaging?.();
         if (!messaging) return;
-        this.setProperty("checkInit", true);
+        this.setProperty("checkInit", true, true);
         this._messaging = messaging;
         const view = ViewSlots.getView(
           ViewSlots.containingSlotKey(this) ?? "MAIN",
@@ -89,17 +89,26 @@ sap.ui.define(
       reconcile() {
         const rows = this.getProperty("items") || [];
         const wanted = new Map(rows.map((r) => [keyOf(r), r]));
+        // `change` reports an actual message update, so it only fires when
+        // this pass added or removed something. Firing unconditionally made
+        // every model update (the table is two-way bound, so it arrives on
+        // each roundtrip) look like a change - and an app that binds the
+        // event to a backend roundtrip would answer with the next model
+        // update, i.e. loop.
+        let changed = false;
 
         // remove app rows no longer wanted
         for (const [key, oMessage] of this._added) {
           if (!wanted.has(key)) {
             this._messaging.removeMessages(oMessage);
             this._added.delete(key);
+            changed = true;
           }
         }
         // add newly wanted rows
         for (const [key, r] of wanted) {
           if (this._added.has(key)) continue;
+          changed = true;
           const oMessage = new Message({
             message: r.MESSAGE ?? "",
             description: r.DESCRIPTION ?? "",
@@ -116,7 +125,7 @@ sap.ui.define(
           this._messaging.addMessages(oMessage);
           this._added.set(key, oMessage);
         }
-        this.fireChange();
+        if (changed) this.fireChange();
       },
     });
   },

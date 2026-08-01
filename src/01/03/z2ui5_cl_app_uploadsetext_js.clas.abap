@@ -111,7 +111,7 @@ CLASS z2ui5_cl_app_uploadsetext_js IMPLEMENTATION.
              `          this.getProperty("uploadSetId"),` && |\n| &&
              `        );` && |\n| &&
              `        if (!uploadSet || this.getProperty("checkInit")) return;` && |\n| &&
-             `        this.setProperty("checkInit", true);` && |\n| &&
+             `        this.setProperty("checkInit", true, true);` && |\n| &&
              `        try {` && |\n| &&
              `          uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));` && |\n| &&
              `          uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));` && |\n| &&

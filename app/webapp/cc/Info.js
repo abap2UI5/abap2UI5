@@ -65,13 +65,17 @@ sap.ui.define(
       // fires the event.
       onAfterRendering() {
         if (!this._pendingInfo) return;
-        this._pendingInfo = false;
         try {
           // The device model is created by Component.init(); it exposes
-          // system / resize / os / browser info.
+          // system / resize / os / browser info. It reaches this control
+          // through model propagation, so on the very first rendering of a
+          // freshly built view it may not be attached yet - keep the pending
+          // flag in that case so the next rendering retries, instead of
+          // consuming it and never firing `finished` at all.
           const deviceModel = ViewSlots.getView("MAIN")?.getModel("device");
           const deviceData = deviceModel?.getData();
           if (!deviceData) return;
+          this._pendingInfo = false;
 
           const { system, resize, os, browser } = deviceData;
           // Filled by Component._initVersionInfo (async, may not have

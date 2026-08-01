@@ -19,6 +19,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // after the user closes the developer tools they opened via its Details action.
   let lastDialogTitle = "";
   let lastDialogDetails = "";
+  let lastDialogOptions = {};
 
   // The currently open friendly error dialog, so a second fatal error (or a
   // reopen from the Developer Tools) never stacks two of them.
@@ -182,7 +183,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // with Escape - MessageBox always closes on Escape and offers no way to
   // suppress it, whereas a Dialog with an escapeHandler that rejects stays
   // open until the user picks an explicit action.
-  function showFriendlyDialog(title, details) {
+  function showFriendlyDialog(title, details, options = {}) {
     try {
       const Dialog = sap.ui.require("sap/m/Dialog");
       const Button = sap.ui.require("sap/m/Button");
@@ -190,6 +191,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       if (!Dialog || !Button || !Text) return false;
       lastDialogTitle = title;
       lastDialogDetails = details;
+      lastDialogOptions = options;
       // Never stack two error popups (a second fatal error or a reopen).
       if (friendlyDialog) {
         friendlyDialog.destroy();
@@ -218,8 +220,37 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
           }, 1500);
         },
       });
+      // A failure that may never have reached the server (network blip,
+      // timeout) leaves the app state intact, so the caller hands over a
+      // retry that re-sends the exact same request. The raw overlay has
+      // offered it all along; the friendly dialog is what users actually
+      // see, so without this the retry was effectively unreachable and a
+      // dropped connection forced a full restart.
+      const buttons = [
+        new Button({
+          text: "Details",
+          press: () => {
+            dialog.close();
+            openDeveloperTools();
+          },
+        }),
+        copyButton,
+      ];
+      if (typeof options.onRetry === "function") {
+        buttons.push(
+          new Button({
+            text: "Retry",
+            press: () => {
+              dialog.close();
+              options.onRetry();
+            },
+          }),
+        );
+      }
+      buttons.push(restartButton);
       // sap.m.Dialog does not allow more than one begin/end button, so use the
-      // `buttons` aggregation to line up Details / Copy / Restart in the footer.
+      // `buttons` aggregation to line up Details / Copy / Retry / Restart in
+      // the footer.
       const dialog = new Dialog({
         title: title || "Application Error",
         type: "Message",
@@ -227,20 +258,10 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         icon: "sap-icon://message-error",
         // Escape must not dismiss the fatal-error popup: rejecting the escape
         // promise keeps it open, so the only ways out are the explicit
-        // Details / Copy / Restart actions below.
+        // actions built above.
         escapeHandler: (oPromise) => oPromise.reject(),
         content: [new Text({ text: message })],
-        buttons: [
-          new Button({
-            text: "Details",
-            press: () => {
-              dialog.close();
-              openDeveloperTools();
-            },
-          }),
-          copyButton,
-          restartButton,
-        ],
+        buttons,
         initialFocus: restartButton,
         afterClose: () => {
           if (friendlyDialog === dialog) friendlyDialog = null;
@@ -259,7 +280,11 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // the user closes the DeveloperTools they opened via the popup's Details action so
   // they land back on the error popup. No-op if UI5 cannot render it.
   function reopenErrorDialog() {
-    return showFriendlyDialog(lastDialogTitle, lastDialogDetails);
+    return showFriendlyDialog(
+      lastDialogTitle,
+      lastDialogDetails,
+      lastDialogOptions,
+    );
   }
 
   // Logout via the launchpad if available; otherwise hit the SAP logoff URL.
@@ -295,7 +320,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       const require = sap?.ui?.require;
       if (typeof require !== "function") return false;
       require(["sap/m/Dialog", "sap/m/Button", "sap/m/Text"], () => {
-        if (!showFriendlyDialog(title, details)) {
+        if (!showFriendlyDialog(title, details, options)) {
           showRawOverlay(title, details, options);
         }
       }, () => showRawOverlay(title, details, options));
@@ -311,7 +336,17 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // for network/timeout failures, where the request may never have reached
   // the server and app state is still intact).
   function show(response, title, options = {}) {
-    const full = response?.stack ? String(response.stack) : String(response);
+    // V8 stacks start with "Error: <message>", but Firefox/SpiderMonkey
+    // stacks are frame lines only - prepend the message when the stack does
+    // not already carry it, so the overlay never shows a stack without the
+    // actual error text.
+    const stack = response?.stack ? String(response.stack) : "";
+    const message = String(response);
+    const full = stack
+      ? stack.includes(message)
+        ? stack
+        : `${message}\n${stack}`
+      : message;
     // Rendered via textContent, so the truncation marker is plain text (an
     // HTML comment would show up literally).
     const errorMessage =
@@ -327,8 +362,9 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       onRetry: typeof options.onRetry === "function" ? options.onRetry : null,
     };
 
-    // Prefer a friendly UI5 dialog (the error text + Details / Restart).
-    if (showFriendlyDialog(title, errorMessage)) return;
+    // Prefer a friendly UI5 dialog (the error text + Details / Restart, plus
+    // Retry when the caller offered one).
+    if (showFriendlyDialog(title, errorMessage, options)) return;
 
     // Its modules were not loaded yet: load them asynchronously and retry, so
     // the error still lands in the friendly popup first (see

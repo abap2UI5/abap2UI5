@@ -31,6 +31,11 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         class_value_state      TYPE string,
         class_value_state_text TYPE string,
         class_editable         TYPE abap_bool VALUE abap_true,
+        " Inverse of class_editable, bound as a plain value to the step-5 link.
+        " It exists as its own field on purpose: deriving it in the view with a
+        " UI5 expression binding ( {= ... } ) would make the view eval-compiled
+        " and break it under a Content-Security-Policy without 'unsafe-eval'.
+        link_enabled           TYPE abap_bool,
       END OF ms_home.
 
     " request handling
@@ -144,6 +149,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         ms_home-btn_icon          = `sap-icon://edit`.
         ms_home-class_value_state = `Success`.
         ms_home-class_editable    = abap_false.
+        ms_home-link_enabled      = abap_true.
         ms_home-url               = get_app_url( ms_home-classname ).
 
       CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
@@ -161,6 +167,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     ms_home-btn_event_id   = cs_event-button_check.
     ms_home-btn_icon       = `sap-icon://validate`.
     ms_home-class_editable = abap_true.
+    ms_home-link_enabled   = abap_false.
     " drop the previous check's outcome, otherwise the re-opened input
     " still shows the old value state and a stale step-5 link ( `None`
     " rather than CLEAR - the bound value must stay a valid ValueState )
@@ -245,7 +252,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       )->link( text    = `Link to the Application`
                target  = `_blank`
                href    = client->_bind( ms_home-url )
-               enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
+               enabled = client->_bind( ms_home-link_enabled ) ).
 
   ENDMETHOD.
 

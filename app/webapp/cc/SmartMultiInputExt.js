@@ -116,7 +116,7 @@ sap.ui.define(
           this.getProperty("multiInputId"),
         );
         if (!input || this.getProperty("checkInit")) return;
-        this.setProperty("checkInit", true);
+        this.setProperty("checkInit", true, true);
         try {
           input.attachTokenUpdate(this.onTokenUpdate.bind(this));
           input.attachInnerControlsCreated(

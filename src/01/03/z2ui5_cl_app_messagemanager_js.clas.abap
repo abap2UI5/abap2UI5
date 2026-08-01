@@ -84,7 +84,7 @@ CLASS z2ui5_cl_app_messagemanager_js IMPLEMENTATION.
              `        if (this.getProperty("checkInit")) return;` && |\n| &&
              `        const messaging = Lib.getMessaging?.();` && |\n| &&
              `        if (!messaging) return;` && |\n| &&
-             `        this.setProperty("checkInit", true);` && |\n| &&
+             `        this.setProperty("checkInit", true, true);` && |\n| &&
              `        this._messaging = messaging;` && |\n| &&
              `        const view = ViewSlots.getView(` && |\n| &&
              `          ViewSlots.containingSlotKey(this) ?? "MAIN",` && |\n| &&
@@ -109,17 +109,26 @@ CLASS z2ui5_cl_app_messagemanager_js IMPLEMENTATION.
              `      reconcile() {` && |\n| &&
              `        const rows = this.getProperty("items") || [];` && |\n| &&
              `        const wanted = new Map(rows.map((r) => [keyOf(r), r]));` && |\n| &&
+             `        // ``change`` reports an actual message update, so it only fires when` && |\n| &&
+             `        // this pass added or removed something. Firing unconditionally made` && |\n| &&
+             `        // every model update (the table is two-way bound, so it arrives on` && |\n| &&
+             `        // each roundtrip) look like a change - and an app that binds the` && |\n| &&
+             `        // event to a backend roundtrip would answer with the next model` && |\n| &&
+             `        // update, i.e. loop.` && |\n| &&
+             `        let changed = false;` && |\n| &&
              `` && |\n| &&
              `        // remove app rows no longer wanted` && |\n| &&
              `        for (const [key, oMessage] of this._added) {` && |\n| &&
              `          if (!wanted.has(key)) {` && |\n| &&
              `            this._messaging.removeMessages(oMessage);` && |\n| &&
              `            this._added.delete(key);` && |\n| &&
+             `            changed = true;` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `        // add newly wanted rows` && |\n| &&
              `        for (const [key, r] of wanted) {` && |\n| &&
              `          if (this._added.has(key)) continue;` && |\n| &&
+             `          changed = true;` && |\n| &&
              `          const oMessage = new Message({` && |\n| &&
              `            message: r.MESSAGE ?? "",` && |\n| &&
              `            description: r.DESCRIPTION ?? "",` && |\n| &&
@@ -136,7 +145,7 @@ CLASS z2ui5_cl_app_messagemanager_js IMPLEMENTATION.
              `          this._messaging.addMessages(oMessage);` && |\n| &&
              `          this._added.set(key, oMessage);` && |\n| &&
              `        }` && |\n| &&
-             `        this.fireChange();` && |\n| &&
+             `        if (changed) this.fireChange();` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

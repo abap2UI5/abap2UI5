@@ -12,6 +12,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_bool_cache_hit       FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_case       FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_no_phantom FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_startup    FOR TESTING RAISING cx_static_check.
     METHODS test_app_url_hash_app     FOR TESTING RAISING cx_static_check.
     METHODS test_app_url_hash_shell   FOR TESTING RAISING cx_static_check.
 
@@ -135,6 +136,31 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = 1
         act = lines( z2ui5_cl_a2ui5_context=>url_param_get_tab( `?a=1&` ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_param_startup.
+
+    " sap-startup-params is unwrapped wherever it sits in the query string -
+    " as a later parameter, as the first/only parameter (typical FLP target
+    " mapping), and with lowercase percent-encoding
+    cl_abap_unit_assert=>assert_equals(
+        exp = `foo`
+        act = z2ui5_cl_a2ui5_context=>url_param_get(
+                  val = `app_start`
+                  url = `?x=1&sap-startup-params=app_start%3Dfoo` ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `foo`
+        act = z2ui5_cl_a2ui5_context=>url_param_get(
+                  val = `app_start`
+                  url = `?sap-startup-params=app_start%3Dfoo` ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `foo`
+        act = z2ui5_cl_a2ui5_context=>url_param_get(
+                  val = `app_start`
+                  url = `?sap-startup-params=app_start%3dfoo` ) ).
 
   ENDMETHOD.
 
@@ -311,10 +337,15 @@ CLASS ltcl_rtti IMPLEMENTATION.
 
     DATA lv_int  TYPE i VALUE 5.
     DATA lv_char TYPE c LENGTH 4.
+    DATA lv_numc TYPE n LENGTH 4.
+    DATA lv_date TYPE d.
     DATA ls_row  TYPE ty_s_row.
 
     cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_clike( `abc` ) ).
     cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_clike( lv_char ) ).
+    " n, d and t are character-like too and must be accepted
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_clike( lv_numc ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_clike( lv_date ) ).
 
     cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_clike( lv_int ) ).
     cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_clike( ls_row ) ).
@@ -445,6 +476,7 @@ CLASS ltcl_itab DEFINITION FINAL
     METHODS test_filter_ignore_case FOR TESTING RAISING cx_static_check.
     METHODS test_filter_named_field FOR TESTING RAISING cx_static_check.
     METHODS test_filter_no_match    FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_elementary  FOR TESTING RAISING cx_static_check.
     METHODS test_corresponding      FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -516,6 +548,24 @@ CLASS ltcl_itab IMPLEMENTATION.
                                                 CHANGING  tab = lt_row ).
 
     cl_abap_unit_assert=>assert_initial( lt_row ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_elementary.
+
+    " a table with an elementary line type has no components - the filter
+    " matches against the whole line instead of deleting every row
+    DATA lt_str TYPE string_table.
+
+    lt_str = VALUE #( ( `London` ) ( `Wilmslow` ) ( `New York` ) ).
+
+    z2ui5_cl_a2ui5_context=>itab_filter_by_val( EXPORTING val = `London`
+                                                CHANGING  tab = lt_str ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_str ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `London`
+                                        act = lt_str[ 1 ] ).
 
   ENDMETHOD.
 
@@ -636,14 +686,17 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     lt_range = VALUE #( ( sign = `I` option = `EQ` low = `X` )
                         ( sign = `I` option = `BT` low = `1` high = `9` )
-                        ( sign = `I` option = `CP` low = `A` ) ).
+                        ( sign = `I` option = `CP` low = `A` )
+                        ( sign = `E` option = `EQ` low = `Y` ) ).
 
     DATA(lt_token) = z2ui5_cl_a2ui5_context=>filter_get_token_t_by_range_t( lt_range ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 3 act = lines( lt_token ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 4 act = lines( lt_token ) ).
     cl_abap_unit_assert=>assert_equals( exp = `=X`    act = lt_token[ 1 ]-key ).
     cl_abap_unit_assert=>assert_equals( exp = `1...9` act = lt_token[ 2 ]-key ).
     cl_abap_unit_assert=>assert_equals( exp = `*A*`   act = lt_token[ 3 ]-key ).
+    " an excluding row renders negated, not like its including twin
+    cl_abap_unit_assert=>assert_equals( exp = `!(=Y)` act = lt_token[ 4 ]-key ).
 
     " tokens come back visible and editable so the UI5 MultiInput can render
     " and remove them

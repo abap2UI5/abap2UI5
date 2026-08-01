@@ -910,6 +910,12 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
       REPLACE `{LOW}`  IN lv_value WITH lr_row->low.
       REPLACE `{HIGH}` IN lv_value WITH lr_row->high.
 
+      " an excluding row must not render like its including twin - negate the
+      " token so the MultiInput shows the filter's real meaning
+      IF lr_row->sign = `E`.
+        lv_value = |!({ lv_value })|.
+      ENDIF.
+
       INSERT VALUE #( key      = lv_value
                       text     = lv_value
                       visible  = abap_true
@@ -919,10 +925,10 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD itab_filter_by_val.
-    " TRANSPILER NOTE: ABAP CS operator is ALWAYS case-insensitive regardless
-    " of the ignore_case flag. The flag only pre-converts to uppercase for
-    " consistency, but CS itself never does case-sensitive matching.
-    " JS equivalent: always use toLowerCase().includes(toLowerCase()).
+    " TRANSPILER NOTE: ABAP CS is always case-insensitive, so the two match
+    " branches below differ deliberately: ignore_case = abap_true uses
+    " to_upper + CS (JS: toLowerCase().includes(toLowerCase())), the default
+    " uses find( ) for a genuinely case-sensitive match (JS: plain includes()).
     FIELD-SYMBOLS <row>   TYPE any.
     FIELD-SYMBOLS <field> TYPE any.
 
@@ -940,7 +946,13 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
         IF fields IS INITIAL.
           ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO <field>.
           IF sy-subrc <> 0.
-            EXIT.
+            IF lv_index = 1.
+              " elementary line type (e.g. string_table) has no components -
+              " match against the whole line instead of deleting every row
+              ASSIGN <row> TO <field>.
+            ELSE.
+              EXIT.
+            ENDIF.
           ENDIF.
         ELSE.
           IF lv_index > lv_field_count.
@@ -1124,6 +1136,9 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     FIELD-SYMBOLS <unassign> TYPE any.
 
     ASSIGN val->* TO <unassign>.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
     result = <unassign>.
 
   ENDMETHOD.
@@ -1133,6 +1148,9 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     FIELD-SYMBOLS <unassign> TYPE any.
 
     ASSIGN val->* TO <unassign>.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
     result = <unassign>.
 
   ENDMETHOD.
@@ -1162,6 +1180,13 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
                                with = `=`
                                occ  = 0 ).
 
+    " RFC 3986 allows lowercase hex digits in percent-encodings, so decode
+    " %3d the same way as %3D (%26 contains no letters and needs no twin)
+    lv_search = replace( val  = lv_search
+                         sub  = `%3d`
+                         with = `=`
+                         occ  = 0 ).
+
     lv_search = replace( val  = lv_search
                          sub  = `%26`
                          with = `&`
@@ -1170,7 +1195,9 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     lv_search = shift_left( val = lv_search
                             sub = `?` ).
 
-    DATA(lv_search2) = substring_after( val = lv_search
+    " prepend & before searching so sap-startup-params is also unwrapped
+    " when it is the first/only query parameter (typical FLP target mapping)
+    DATA(lv_search2) = substring_after( val = |&{ lv_search }|
                                         sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
 
@@ -1302,7 +1329,14 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
       CASE rtti_get_type_kind( <component> ).
 
-        WHEN cl_abap_typedescr=>typekind_table.
+        " skip components that cannot be moved into the string value: tables,
+        " nested structures and references would raise an unhandled move
+        " error at runtime
+        WHEN cl_abap_typedescr=>typekind_table OR
+             cl_abap_typedescr=>typekind_struct1 OR
+             cl_abap_typedescr=>typekind_struct2 OR
+             cl_abap_typedescr=>typekind_dref OR
+             cl_abap_typedescr=>typekind_oref.
 
         WHEN OTHERS.
           INSERT VALUE #(
@@ -1328,10 +1362,14 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
     DATA(lv_type) = rtti_get_type_kind( val ).
     CASE lv_type.
+      " typekind_clike/_csequence are generic kinds of formal parameters and
+      " can never be returned for a concrete data object - list the concrete
+      " character-like kinds (c, string, n, d, t) instead
       WHEN cl_abap_datadescr=>typekind_char OR
-          cl_abap_datadescr=>typekind_clike OR
-          cl_abap_datadescr=>typekind_csequence OR
-          cl_abap_datadescr=>typekind_string.
+          cl_abap_datadescr=>typekind_string OR
+          cl_abap_datadescr=>typekind_num OR
+          cl_abap_datadescr=>typekind_date OR
+          cl_abap_datadescr=>typekind_time.
         result = abap_true.
     ENDCASE.
 
@@ -2081,7 +2119,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
         DATA(ls_result) = VALUE ty_s_msg( type = `E` text = lx->get_text( ) ).
         DATA(lt_attri_o) = rtti_get_t_attri_by_oref( val ).
         LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
-             WHERE visibility = `U`.
+             WHERE visibility = cv_objectdescr_public.
           DATA(lv_name) = ls_attri_o->name.
           ASSIGN lx->(lv_name) TO <comp>.
           IF sy-subrc <> 0.
@@ -2128,7 +2166,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
                 lt_attri_o = rtti_get_t_attri_by_oref( val ).
                 LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
-                     WHERE visibility = `U`.
+                     WHERE visibility = cv_objectdescr_public.
                   lv_name = ls_attri_o->name.
                   ASSIGN obj->(lv_name) TO <comp>.
                   IF sy-subrc <> 0.

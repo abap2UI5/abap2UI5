@@ -249,13 +249,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    mo_action->ms_next-s_set-s_view_nest2-check_destroy = abap_true.
+    " wipe the whole slot (like popup_destroy) so a display( ) queued earlier
+    " in the same roundtrip does not resurrect the view after the destroy
+    mo_action->ms_next-s_set-s_view_nest2 = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_display.
 
+    " like popup_display/popover_display: displaying cancels a destroy
+    " queued earlier in the same roundtrip
+    mo_action->ms_next-s_set-s_view_nest2-check_destroy  = abap_false.
     mo_action->ms_next-s_set-s_view_nest2-xml            = val.
     mo_action->ms_next-s_set-s_view_nest2-id             = id.
     mo_action->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
@@ -273,13 +278,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    mo_action->ms_next-s_set-s_view_nest-check_destroy = abap_true.
+    " wipe the whole slot (like popup_destroy) so a display( ) queued earlier
+    " in the same roundtrip does not resurrect the view after the destroy
+    mo_action->ms_next-s_set-s_view_nest = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_display.
 
+    " like popup_display/popover_display: displaying cancels a destroy
+    " queued earlier in the same roundtrip
+    mo_action->ms_next-s_set-s_view_nest-check_destroy  = abap_false.
     mo_action->ms_next-s_set-s_view_nest-xml            = val.
     mo_action->ms_next-s_set-s_view_nest-id             = id.
     mo_action->ms_next-s_set-s_view_nest-method_destroy = method_destroy.
@@ -297,7 +307,10 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_destroy.
 
-    mo_action->ms_next-s_set-s_popover-check_destroy = abap_true.
+    " wipe the whole slot (like popup_destroy) - a plain flag would leave the
+    " xml of a popover_display( ) from the same roundtrip in place and the
+    " frontend would destroy and then re-open the popover
+    mo_action->ms_next-s_set-s_popover = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 
@@ -349,6 +362,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_display.
 
+    " like popup_display/popover_display: displaying cancels a destroy
+    " queued earlier in the same roundtrip
+    mo_action->ms_next-s_set-s_view-check_destroy = abap_false.
     mo_action->ms_next-s_set-s_view-xml = val.
     mo_action->ms_next-s_set-s_view-switchdefaultmodelannouri = switch_default_model_anno_uri.
     mo_action->ms_next-s_set-s_view-switch_default_model_path = switch_default_model_path.

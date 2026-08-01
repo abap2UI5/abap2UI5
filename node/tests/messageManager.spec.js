@@ -149,6 +149,26 @@ test.describe("MessageManager companion control", () => {
     expect(env.messaging.removed).toHaveLength(0); // the foreign message stays
   });
 
+  test("fires change only when a message was actually added or removed", () => {
+    const env = load();
+    const ext = makeExt(env);
+    ext.init();
+    ext.setup();
+
+    ext.setItems([{ MESSAGE: "A", TYPE: "Error", TARGET: "/X" }]);
+    expect(env.changeCount).toBe(1);
+
+    // the same table again: nothing to add, nothing to remove. The table is
+    // two-way bound, so it arrives on EVERY roundtrip - firing change here
+    // would make an app that answers the event with a roundtrip loop.
+    ext.setItems([{ MESSAGE: "A", TYPE: "Error", TARGET: "/X" }]);
+    expect(env.changeCount).toBe(1);
+
+    // a real removal reports again
+    ext.setItems([]);
+    expect(env.changeCount).toBe(2);
+  });
+
   test("defers reconcile until setup when items arrive before ready", () => {
     const env = load();
     const ext = makeExt(env);
