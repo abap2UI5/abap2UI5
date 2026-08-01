@@ -110,15 +110,15 @@ Both modules carry the full explanation (hash layout, why the split keys off the
 src/
 ├── 00/   Layer 0: Utilities (AJSON, S-RTTI, framework context/HTTP abstractions)
 ├── 01/   Layer 1: Core engine (handler, action, binding, model, events, draft service, embedded frontend)
-├── 02/   Layer 2: Public API (interfaces, HTTP handler, exit framework)
-└── 99/   FROZEN - do not change. XML view builder (z2ui5_cl_xml_view / _cc, top level, pending replacement by ai-demokit) + retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02). Kept for downstream compatibility only
+├── 02/   Layer 2: Public API (interfaces, HTTP handler, exit framework, z2ui5_cl_ai_xml view builder)
+└── 99/   FROZEN - do not change. Legacy XML view builder (z2ui5_cl_xml_view / _cc, top level, superseded by z2ui5_cl_ai_xml in src/02/) + retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02). Kept for downstream compatibility only
 ```
 
 - **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`), all but `_json_fltr` vendored from abap-util (see "Utilities"). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
-- **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework.
+- **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework and the generic XML view builder `z2ui5_cl_ai_xml` (migrated from [ai-demokit](https://github.com/abap2UI5/ai-demokit), the successor of the frozen `z2ui5_cl_xml_view`).
 - **Package `src/99/` — frozen in its entirety. Do not change anything under `src/99/`.** Everything here exists only so downstream apps keep compiling:
-  - **Package top level** — the fluent XML view builder (`z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`). Still the API every app calls, so it stays readable and installed, but it is **frozen pending replacement** by the builder from [ai-demokit](https://github.com/abap2UI5/ai-demokit), which becomes the new standard. Do **not** add wrapper methods, controls or parameters to it, and do not refactor it — that work goes into the replacement, not here.
+  - **Package top level** — the fluent XML view builder (`z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`). Still the API every app calls, so it stays readable and installed, but it is **frozen and superseded** by the generic builder `z2ui5_cl_ai_xml` (`src/02/`, migrated from [ai-demokit](https://github.com/abap2UI5/ai-demokit)), which is the new standard. Do **not** add wrapper methods, controls or parameters to it, and do not refactor it — that work goes into `z2ui5_cl_ai_xml`, not here.
   - `src/99/01/` — the legacy utility classes (see "Utilities").
   - `src/99/02/` — the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`), obsolete and to be replaced by the [popups addon](https://github.com/abap2UI5-addons/popups).
 
@@ -217,7 +217,8 @@ src/
 │   ├── z2ui5_cl_http_handler.clas.abap # HTTP entry point
 │   ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
 │   ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
-│   └── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
+│   ├── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
+│   └── z2ui5_cl_ai_xml.clas.abap       # Generic XML view builder (successor of z2ui5_cl_xml_view)
 └── 99/                        # FROZEN - do not change anything below this line
     ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~16K lines) - called by apps, frozen
     ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder - called by apps, frozen
@@ -404,7 +405,8 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 |---|---|
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
 | `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
-| `src/99/z2ui5_cl_xml_view.clas.abap` | Fluent view builder called by every app — **read-only, frozen** (see "Layered Design"). ~16K lines, so never read it whole: grep for the method or the UI5 control name and read that section only. Answer questions from it; never change it |
+| `src/02/z2ui5_cl_ai_xml.clas.abap` | Generic XML view builder — the standard for new apps (migrated from ai-demokit) |
+| `src/99/z2ui5_cl_xml_view.clas.abap` | Legacy fluent view builder called by existing apps — **read-only, frozen** (see "Layered Design"). ~16K lines, so never read it whole: grep for the method or the UI5 control name and read that section only. Answer questions from it; never change it |
 | `src/01/02/z2ui5_cl_core_handler.clas.abap` | Central request processor + main loop |
 | `src/01/02/z2ui5_cl_core_client.clas.abap` | Implements z2ui5_if_client |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
@@ -453,7 +455,7 @@ test: add unit tests for utility class
 
 These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, see <https://abap2ui5.github.io/docs/advanced/agent.html> instead.
 
-1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. `src/00/03/` is the opposite case: see "Utilities — the context class is the only door", which settles everything about utilities. **Do not touch `src/99/` — the entire package is frozen**, including the `z2ui5_cl_xml_view` / `_cc` builders at its top level. Read them to answer questions; never change, extend or refactor them, and never add new consumers. The builder is being replaced by the ai-demokit version; that work does not happen in this repository.
+1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. `src/00/03/` is the opposite case: see "Utilities — the context class is the only door", which settles everything about utilities. **Do not touch `src/99/` — the entire package is frozen**, including the `z2ui5_cl_xml_view` / `_cc` builders at its top level. Read them to answer questions; never change, extend or refactor them, and never add new consumers. The legacy builder is superseded by `z2ui5_cl_ai_xml` (`src/02/`, migrated from ai-demokit); builder work happens there.
 2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
    - Change the source under `app/webapp/`
    - Run **`npm run app2abap`** locally (or trigger the `create_app2abap.yaml` workflow). This single command runs the full pipeline in the correct order — `npm --prefix app run format` (Prettier) → `npm run auto_app2abap` (generate) → `npm run auto_abaplint` (normalize) — exactly as CI does. Running `auto_app2abap` on its own produces **un-normalized** ABAP that differs from the committed form in *every* `src/01/03/` file (alignment/whitespace drift); the `auto_abaplint` step reverts that drift so only the files whose `app/webapp/` source actually changed remain modified.
