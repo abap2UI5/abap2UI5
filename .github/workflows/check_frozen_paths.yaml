@@ -1,16 +1,20 @@
 name: check_frozen_paths
 
-# Guard for the frozen package src/99 (see AGENTS.md, "Layered Design").
+# Guard for the historical package src/99 (see AGENTS.md, "Layered Design").
 #
-# Everything under src/99 exists only so downstream apps keep compiling: the
-# retired z2ui5_cl_util* classes (99/01), the built-in popups (99/02) and the
-# XML view builder at the top level, which is pending replacement by the
-# ai-demokit version. None of it may change here.
+# src/99 is history only: the retired z2ui5_cl_util* classes (99/01), the
+# obsolete built-in popups (99/02) and the legacy XML view builder at the top
+# level, superseded by z2ui5_cl_ai_xml in src/02/. Nothing in this repository
+# uses, lints or tests it anymore - it is excluded from abaplint and from the
+# transpiled test backend; only the 702 downport still converts it so the 702
+# release stays compilable for existing downstream installations. It ships
+# solely for those installations, and the repository must work identically if
+# the folder is deleted. Until that deletion, none of it may change here.
 #
 # AGENTS.md says so in prose, which is a request. This is the guarantee.
 #
 # Deliberately limited to src/99: no workflow in this repository writes there
-# (both abaplint configs list /src/99 under noIssues, and auto_downport pushes
+# (both abaplint configs exclude /src/99, and auto_downport pushes
 # to the 702 branch rather than a PR), so this gate has no legitimate
 # exception. The other never-edit-by-hand paths - src/00/01, src/00/02 and
 # src/01/03 - are written by the mirror and app2abap bots via pull requests

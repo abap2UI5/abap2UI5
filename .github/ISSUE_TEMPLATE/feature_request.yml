@@ -20,4 +20,4 @@ body:
     id: alternatives
     attributes:
       label: Alternatives considered
-      description: Workarounds you tried, e.g. custom controls via z2ui5_cl_xml_view_cc or the exit framework.
+      description: Workarounds you tried, e.g. rendering the control directly via the generic builder z2ui5_cl_ai_xml or the exit framework.
