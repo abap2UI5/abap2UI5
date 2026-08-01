@@ -51,6 +51,18 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    const CH_SQUOTE = String.fromCharCode(39);` && |\n| &&
              `    const CH_DQUOTE = String.fromCharCode(34);` && |\n| &&
              `` && |\n| &&
+             `    // Undo the escapes the backend applies to a single-quoted argument` && |\n| &&
+             `    // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the` && |\n| &&
+             `    // line breaks it rewrites to \n / \r - a raw newline would be a syntax` && |\n| &&
+             `    // error inside a JS string literal, so a multi-line argument only ever` && |\n| &&
+             `    // travels escaped. Decoding them in one pass keeps the order right: a` && |\n| &&
+             `    // literal backslash-n ("\\n" on the wire) stays text instead of turning` && |\n| &&
+             `    // into a line break.` && |\n| &&
+             `    const EF_UNESCAPE = { n: "\n", r: "\r" };` && |\n| &&
+             `    function unescapeEfString(body) {` && |\n| &&
+             `      return body.replace(/\\(.)/g, (match, ch) => EF_UNESCAPE[ch] ?? ch);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Convert a single JS-literal argument (as produced by the backend` && |\n| &&
              `    // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,` && |\n| &&
              `    // JSON objects / arrays, numbers, booleans and null.` && |\n| &&
@@ -58,7 +70,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      if (token === "") return undefined;` && |\n| &&
              `      const first = token[0];` && |\n| &&
              `      if (first === CH_SQUOTE) {` && |\n| &&
-             `        return token.slice(1, -1).replace(/\\([\x27\\])/g, "$1");` && |\n| &&
+             `        return unescapeEfString(token.slice(1, -1));` && |\n| &&
              `      }` && |\n| &&
              `      if (first === CH_DQUOTE || first === "{" || first === "[") {` && |\n| &&
              `        try {` && |\n| &&
@@ -405,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // try/catch).` && |\n| &&
              `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
              `            delete store[slot.key];` && |\n| &&
-             `            continue;` && |\n| &&
+             `            continue;` && |\n|.
+    result = result &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          const id = this._stripViewPrefix(` && |\n| &&
@@ -417,8 +430,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            X: entry.dom.scrollLeft || 0,` && |\n| &&
              `            Y: entry.dom.scrollTop || 0,` && |\n| &&
              `          };` && |\n| &&
-             `        }` && |\n|.
-    result = result &&
+             `        }` && |\n| &&
              `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&

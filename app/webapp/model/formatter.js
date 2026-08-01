@@ -36,6 +36,27 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     ];
   }
 
+  // True for an ABAP date that carries no date: the INITIAL value of a DATS
+  // field is "00000000", and a row with an optional date ships it that way
+  // (one template, so the attribute cannot be omitted per row). Handing it to
+  // the Date constructor would silently produce 1899-11-30 - a plausible-
+  // looking wrong date rather than an obvious error - so it is treated like
+  // the empty string below and yields null, which is what "no date" means to
+  // a UI5 date property. Anything that is not 8 digits is rejected too: an
+  // Invalid Date is TRUTHY and only blows up much later inside a calendar
+  // control (see DateCreateObject).
+  function isNoAbapDate(d) {
+    const s = String(d);
+    if (!/^\d{8}$/.test(s)) return true;
+    // a zero year, month or day is never a real date - "00000000" is the
+    // initial DATS value, the partial forms turn up in half-filled records
+    return (
+      Number(s.slice(0, 4)) === 0 ||
+      Number(s.slice(4, 6)) === 0 ||
+      Number(s.slice(6, 8)) === 0
+    );
+  }
+
   // Product stock status -> its value state + status icon, kept as one
   // entry per status so the two formatters below cannot drift apart
   // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).
@@ -61,12 +82,12 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
       return new Date(s);
     },
     DateAbapDateToDateObject(d) {
-      if (!d) return null;
+      if (isNoAbapDate(d)) return null;
       return new Date(...parseYmd(d));
     },
     // t is an ABAP time string "HHMMSS"; if omitted we default to midnight.
     DateAbapDateTimeToDateObject(d, t = "000000") {
-      if (!d) return null;
+      if (isNoAbapDate(d)) return null;
       return new Date(
         ...parseYmd(d),
         Number(t.slice(0, 2)),

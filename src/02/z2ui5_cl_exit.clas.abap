@@ -53,6 +53,13 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
         DATA(exit_classes) = z2ui5_cl_a2ui5_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
         DELETE exit_classes WHERE classname = `Z2UI5_CL_EXIT`.
 
+        " only one user exit can be active, so the pick must not depend on the
+        " order the class lookup happens to return (SEOCLASS select order on
+        " standard ABAP, XCO order on cloud) - a system with two implementing
+        " classes would otherwise silently run a different exit after a
+        " transport or a system copy. Sorting makes it reproducible.
+        SORT exit_classes BY classname.
+
         r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
