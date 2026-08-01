@@ -231,6 +231,12 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     result = bind_tab_cell( iv_name = result
                             iv_val  = val ).
 
+    " same model-switch handling as in main( ) - otherwise a cell bind with
+    " switch_default_model = abap_true silently targets the default model
+    IF ms_config-switch_default_model = abap_true.
+      result = |http>{ result }|.
+    ENDIF.
+
     IF ms_config-path_only = abap_false.
       result = |\{{ result }\}|.
     ENDIF.

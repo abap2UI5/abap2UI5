@@ -196,10 +196,16 @@ CLASS ltcl_test_client IMPLEMENTATION.
     temp8 ?= mo_client.
 
     li_client = temp8.
+    li_client->popover_display( xml   = `<Popover/>`
+                                by_id = `btn1` ).
     li_client->popover_destroy( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_action->ms_next-s_set-s_popover-check_destroy ).
+    " destroy after display in the same roundtrip wipes the slot - otherwise
+    " the frontend would destroy and then re-open the popover
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-xml ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-open_by_id ).
 
   ENDMETHOD.
 
@@ -224,6 +230,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     temp10 ?= mo_client.
 
     li_client = temp10.
+    li_client->nest_view_destroy( ).
     li_client->nest_view_display( val            = `<NestView/>`
                                   id             = `nest1`
                                   method_insert  = `addMidColumnPage`
@@ -235,6 +242,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = mo_action->ms_next-s_set-s_view_nest-id ).
     cl_abap_unit_assert=>assert_equals( exp = `addMidColumnPage`
                                         act = mo_action->ms_next-s_set-s_view_nest-method_insert ).
+    " display after destroy in the same roundtrip cancels the destroy
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = mo_action->ms_next-s_set-s_view_nest-check_destroy ).
 
   ENDMETHOD.
 
@@ -245,10 +255,15 @@ CLASS ltcl_test_client IMPLEMENTATION.
     temp11 ?= mo_client.
 
     li_client = temp11.
+    li_client->nest_view_display( val           = `<NestView/>`
+                                  id            = `nest1`
+                                  method_insert = `addMidColumnPage` ).
     li_client->nest_view_destroy( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_action->ms_next-s_set-s_view_nest-check_destroy ).
+    " destroy after display in the same roundtrip wipes the slot
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view_nest-xml ).
 
   ENDMETHOD.
 

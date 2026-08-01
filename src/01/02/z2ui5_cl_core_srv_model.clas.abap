@@ -389,18 +389,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
+      " clearing the ref detaches the target data object from serialization;
+      " dereferencing and clearing the target itself is unnecessary (and was
+      " unreachable here anyway once the ref is cleared)
       CLEAR <dref>.
-
-      IF lr_attri2->name_ref IS NOT INITIAL.
-        CONTINUE.
-      ENDIF.
-
-      DATA(lv_path_dref_deref) = |MO_APP->{ lr_attri2->name }->*|.
-      ASSIGN (lv_path_dref_deref) TO FIELD-SYMBOL(<dref_deref>).
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
-      CLEAR <dref_deref>.
     ENDLOOP.
 
   ENDMETHOD.
@@ -608,7 +600,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
 
       lv_depth = lv_depth + 1.
-      IF lv_depth >= max_dissolve_depth.
+      " > not >=, so the pass with lv_depth = max_dissolve_depth still runs
+      " and the constant means what it says (5 dissolve passes, not 4)
+      IF lv_depth > max_dissolve_depth.
         " EXIT, not RETURN - attri_update_entry_refs must still run for the
         " already dissolved rows, otherwise name_ref stays empty and the
         " serialize/deserialize ref de-duplication silently breaks
@@ -776,8 +770,15 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
       READ TABLE lt_attri REFERENCE INTO DATA(lr_old) WITH KEY name = lr_attri->name. "#EC CI_SORTSEQ
       IF sy-subrc = 0.
-        lr_attri->bind        = lr_old->bind.
-        lr_attri->name_client = lr_old->name_client.
+        " restore everything update_model_attri stored on the bound attribute -
+        " dropping the mapper/filter refs here would silently serialize the
+        " attribute unmapped after a refresh
+        lr_attri->bind               = lr_old->bind.
+        lr_attri->name_client        = lr_old->name_client.
+        lr_attri->custom_mapper      = lr_old->custom_mapper.
+        lr_attri->custom_mapper_back = lr_old->custom_mapper_back.
+        lr_attri->custom_filter      = lr_old->custom_filter.
+        lr_attri->custom_filter_back = lr_old->custom_filter_back.
       ENDIF.
     ENDLOOP.
 
