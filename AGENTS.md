@@ -218,7 +218,8 @@ src/
 | `node/tests/` | Playwright tests — browser tests in `e2e/` (`example.spec.js` shell smoke test, `roundtrip.spec.js` POST/draft wire contract, `lib-sanitizer.spec.js` XSS regression tests for `Lib.sanitizeMessageDetails`, `error-view.spec.js` fatal-error overlay accessibility/focus/Retry tests, `nav-back-forward.spec.js` browser history navigation; run via `node/playwright.config.js` against the dev server), plus JS unit specs (`*.spec.js` — see the spec-to-module mapping under "Testing" below) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `e2e/`) |
 | `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
 | `.github/workflows/` | CI/CD workflows (see below) |
-| `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`) |
+| `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`); `xml-view-index.mjs` — generates `.github/index/z2ui5_cl_xml_view.md` |
+| `.github/index/` | Generated navigation aids for files too large to read in one go — currently `z2ui5_cl_xml_view.md` (see "Key Files") |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc`, `rename.jsonc` (namespace rename for the `build_rename` workflow, placeholder `zabap2ui5`) |
 | `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/` |
 | `.github/actions/` | `report-scheduled-failure` — composite action that opens/updates an issue when a scheduled workflow fails (used by `auto_abaplint_fix.yaml` and `mirror.yaml`) |
@@ -249,7 +250,7 @@ Grouped by purpose:
 | **Frontend checks** | `UI5.yaml` | UI5 linter via `.github/scripts/ui5lint-gate.mjs`, zero-error policy (accepted findings are suppressed at the source) |
 | **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, JS unit specs + Playwright browser tests, namespace-rename test |
 | **Automation** | `auto_downport.yaml`, `auto_abaplint_fix.yaml`, `auto_abaplint_fix_pr.yaml` | Scheduled downporting and auto-formatting (open PRs) |
-| **Generation** | `create_app2abap.yaml`, `check_app2abap.yaml` | Regenerate `src/01/03/` from `app/webapp/` (`create_app2abap.yaml`); PR drift gate that fails when `app/webapp/` and `src/01/03/` are out of sync (`check_app2abap.yaml`) |
+| **Generation** | `create_app2abap.yaml`, `check_app2abap.yaml`, `check_xml_view_index.yaml` | Regenerate `src/01/03/` from `app/webapp/` (`create_app2abap.yaml`); PR drift gate that fails when `app/webapp/` and `src/01/03/` are out of sync (`check_app2abap.yaml`); PR drift gate for the generated `z2ui5_cl_xml_view` method index (`check_xml_view_index.yaml`) |
 | **Renamed variants** | `build_rename.yaml` | On demand (`workflow_dispatch`): rename all artifacts to a chosen namespace (max. 9 characters) via `abaplint --rename` with `.github/abaplint/rename.jsonc` and push the renamed sources to the branch `rename_<name>` (re-running updates the branch; no push without content changes) |
 | **Mirroring** | `mirror_ajson.yaml`, `mirror_srtti.yaml`, `mirror.yaml` | Sync `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI) from upstream repos; both are thin callers of the reusable `mirror.yaml` |
 | **Downstream sync** | `trigger_local.yaml`, `create_frontend.yaml` | On every push to `main`: `trigger_local.yaml` refreshes the `input/` copy in [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) and pushes it to its `main` via deploy key (secret `ACTION_KEY_LOCAL`), which rebuilds its artifact branches; `create_frontend.yaml` covers [frontend](https://github.com/abap2UI5/frontend) the same way |
@@ -383,7 +384,8 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 |---|---|
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
 | `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
-| `src/99/z2ui5_cl_xml_view.clas.abap` | Fluent view builder (~16K lines, public API despite the src/99 location) — read only sections you need |
+| `src/99/z2ui5_cl_xml_view.clas.abap` | Fluent view builder (~16K lines, public API despite the src/99 location) — **never read it whole**. Grep `.github/index/z2ui5_cl_xml_view.md` for the method name or the UI5 control, then read the class at the offset the index gives |
+| `.github/index/z2ui5_cl_xml_view.md` | Generated map of all 454 public builder methods → UI5 control + declaration/implementation line. Regenerate with `npm run xml_view_index`; `check_xml_view_index.yaml` fails the PR when it drifts |
 | `src/01/02/z2ui5_cl_core_handler.clas.abap` | Central request processor + main loop |
 | `src/01/02/z2ui5_cl_core_client.clas.abap` | Implements z2ui5_if_client |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
