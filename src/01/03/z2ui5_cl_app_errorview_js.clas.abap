@@ -356,7 +356,17 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // for network/timeout failures, where the request may never have reached` && |\n| &&
              `  // the server and app state is still intact).` && |\n| &&
              `  function show(response, title, options = {}) {` && |\n| &&
-             `    const full = response?.stack ? String(response.stack) : String(response);` && |\n| &&
+             `    // V8 stacks start with "Error: <message>", but Firefox/SpiderMonkey` && |\n| &&
+             `    // stacks are frame lines only - prepend the message when the stack does` && |\n| &&
+             `    // not already carry it, so the overlay never shows a stack without the` && |\n| &&
+             `    // actual error text.` && |\n| &&
+             `    const stack = response?.stack ? String(response.stack) : "";` && |\n| &&
+             `    const message = String(response);` && |\n| &&
+             `    const full = stack` && |\n| &&
+             `      ? stack.includes(message)` && |\n| &&
+             `        ? stack` && |\n| &&
+             `        : ``${message}\n${stack}``` && |\n| &&
+             `      : message;` && |\n| &&
              `    // Rendered via textContent, so the truncation marker is plain text (an` && |\n| &&
              `    // HTML comment would show up literally).` && |\n| &&
              `    const errorMessage =` && |\n| &&
@@ -407,7 +417,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    h3.style.cssText = "margin: 0";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
-             `    const btnStyle =` && |\n| &&
+             `    const btnStyle =` && |\n|.
+    result = result &&
              `      "padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;";` && |\n| &&
              `` && |\n| &&
              `    const actionsDiv = document.createElement("div");` && |\n| &&
@@ -417,8 +428,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      const retryBtn = document.createElement("button");` && |\n| &&
              `      retryBtn.type = "button";` && |\n| &&
              `      retryBtn.textContent = "Retry";` && |\n| &&
-             `      retryBtn.style.cssText = btnStyle;` && |\n|.
-    result = result &&
+             `      retryBtn.style.cssText = btnStyle;` && |\n| &&
              `      retryBtn.addEventListener("click", () => {` && |\n| &&
              `        errorContainer.remove();` && |\n| &&
              `        options.onRetry();` && |\n| &&

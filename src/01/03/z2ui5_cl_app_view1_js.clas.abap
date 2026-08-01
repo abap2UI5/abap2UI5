@@ -108,13 +108,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // named phases: display pending fragments/views, then update the` && |\n| &&
              `      // browser history/hash.` && |\n| &&
              `      async _processAfterRendering() {` && |\n| &&
-             `        // Bound outside the try so the finally below runs the follow-up JS of` && |\n| &&
-             `        // THIS response - reading the live global there would let an older` && |\n| &&
-             `        // render consume (and discard) the snippets of a newer response that` && |\n| &&
-             `        // arrived meanwhile, which is exactly what stashing them on the` && |\n| &&
-             `        // response record prevents.` && |\n| &&
-             `        const oResponse = AppState.state.oResponse;` && |\n| &&
+             `        // Hoisted out of the try block: the finally below must run the` && |\n| &&
+             `        // follow-up JS of exactly THIS response. Re-reading the shared` && |\n| &&
+             `        // AppState.state.oResponse there would - after a parallel request` && |\n| &&
+             `        // replaced it during the awaits - consume (and clear) the newer` && |\n| &&
+             `        // response's snippets before its own render.` && |\n| &&
+             `        let oResponse;` && |\n| &&
              `        try {` && |\n| &&
+             `          oResponse = AppState.state.oResponse;` && |\n| &&
              `          if (oResponse._processed) return;` && |\n| &&
              `          oResponse._processed = true;` && |\n| &&
              `` && |\n| &&
@@ -416,9 +417,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // it; the separator defaults to " > ".` && |\n| &&
              `      textPath(oControl, sSeparator) {` && |\n| &&
              `        return Lib.getTextPath(oControl, sSeparator);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n|.
+             `      },` && |\n|.
     result = result &&
+             `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eB = "event backend": triggers a backend roundtrip with arguments.` && |\n| &&
              `      // The name is part of the protocol - backend-generated view XML binds` && |\n| &&
@@ -608,9 +609,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        });` && |\n| &&
              `` && |\n| &&
              `        // Guard against the app being destroyed during the await above.` && |\n| &&
+             `        // oModel covers oViewModel too when they are the same object (no` && |\n| &&
+             `        // switchPath); with an OData default model both must go.` && |\n| &&
              `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
-             `          if (switchPath) oModel.destroy();` && |\n| &&
+             `          oModel.destroy();` && |\n| &&
+             `          if (switchPath) oViewModel.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -628,7 +632,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          ViewSlots.getView("MAIN")` && |\n| &&
              `        ) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
-             `          if (switchPath) oModel.destroy();` && |\n| &&
+             `          oModel.destroy();` && |\n| &&
+             `          if (switchPath) oViewModel.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
