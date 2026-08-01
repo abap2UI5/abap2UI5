@@ -323,7 +323,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     form->toolbar( )->title( `Backend` ).
     form->label( `ABAP for Cloud` ).
     form->checkbox( enabled  = abap_false
-                    selected = z2ui5_cl_a2ui5_context=>context_check_abap_cloud( ) ).
+                    selected = z2ui5_cl_a2ui5_context=>check_abap_cloud( ) ).
     form->label( `User Exit` ).
     form->text( z2ui5_cl_exit=>get_user_exit_class( ) ).
 

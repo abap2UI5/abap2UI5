@@ -446,8 +446,8 @@ CLASS ltcl_rtti IMPLEMENTATION.
     ls_flags-flag_b = abap_false.
     ls_flags-other  = abap_true.
 
-    DATA(lt_found) = z2ui5_cl_a2ui5_context=>scan_flag_prefix( val       = ls_flags
-                                                               iv_prefix = `FLAG_` ).
+    DATA(lt_found) = z2ui5_cl_a2ui5_context=>scan_flag_prefix( val    = ls_flags
+                                                               prefix = `FLAG_` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_found ) ).
