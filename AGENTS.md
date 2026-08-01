@@ -4,6 +4,23 @@
 > agent instruction file of this repository — there is no separate
 > `CLAUDE.md`; Claude Code reads `AGENTS.md` natively.
 
+### Where knowledge lives
+
+This file is loaded into **every** session, so what it costs is paid on every
+task. Keep it to what an agent must know *before* it can know it needs to look
+something up. Everything else belongs closer to the code:
+
+| Kind of knowledge | Where it belongs |
+|---|---|
+| A constraint on **one file or method** ("never change this key", "this dialog must not be Escape-dismissable") | A comment **at that code site**. AGENTS.md may state the rule in one line and point there — it must not repeat the reasoning |
+| A rule that can be **checked mechanically** | A lint rule or a CI gate. Prose is a request; a gate is a guarantee |
+| A **procedure** ("how to regenerate the frontend", "what is out of scope in a review") | A place that is read when the task comes up, not on every task |
+| A **prohibition** an agent would otherwise violate unknowingly | Here — it has to be in context before the mistake, so it cannot be looked up on demand |
+
+When you fix something subtle, write the reasoning **into the code** and add at
+most a pointer here. The comment ages with the code it guards; a paragraph in
+this file does not.
+
 ## Project Overview
 
 abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no JavaScript, OData, or RAP required. It supports all ABAP releases from NW 7.02 to ABAP Cloud, running in both on-premise and cloud environments.
@@ -78,24 +95,14 @@ Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclas
 
 #### Launchpad Special Case — The URL Hash
 
-The second place the FLP changes the ground rules is the **URL hash**. Standalone the whole hash belongs to the app; inside the launchpad the shell owns the part in front of `&/` and only the remainder is the **app hash**:
-
-```
-standalone   #/app/<CLASS>/<DRAFT>
-inside FLP   #<SemanticObject>-<action>&/app/<CLASS>/<DRAFT>
-              \______ shell hash ______/  \___ app hash ___/
-```
-
-Any code that reads the hash must reduce it to the app hash first, and any code that writes one must leave the shell hash alone — dropping it strands the launchpad (the user lands on the FLP home page). There are exactly two places that know this rule, and they mirror each other:
+Inside the FLP the shell owns the front of the hash and only the remainder is the **app hash**. Exactly two places know this rule and they mirror each other — **do not re-implement the split anywhere else**, and do not rebuild a URL from `location.href.split("#")[0]` plus an app hash (use `Router.hrefFor()`):
 
 | Side | Owner |
 |---|---|
-| Frontend | `app/webapp/core/Router.js` — `splitHash()`; **the only module allowed to touch the hash**. Writes go through the `HashChanger`, which inside the FLP is the shell's own and preserves the shell hash by construction |
-| Backend | `z2ui5_cl_core_handler=>hash_get_app_part` — used by both the route parser (`parse_app_route_rest`) and the app-state parser (`request_app_start_draft`) |
+| Frontend | `app/webapp/core/Router.js` — `splitHash()`; the **only** module allowed to touch the hash |
+| Backend | `z2ui5_cl_core_handler=>hash_get_app_part` — used by the route parser and the app-state parser |
 
-Both key the split off the **leading `/` of an app hash** (a shell hash never starts with one) rather than off the first `&/`, so an app hash that itself contains `&/` in a parameter is never truncated. Do not re-implement either of them elsewhere, and do not rebuild a URL from `location.href.split("#")[0]` plus an app hash — use `Router.hrefFor()`.
-
-Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
+Both modules carry the full explanation (hash layout, why the split keys off the leading `/` rather than the first `&/`, what breaks otherwise) in their header comments. Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
 
 ### Layered Design
 
@@ -104,13 +111,18 @@ src/
 ├── 00/   Layer 0: Utilities (AJSON, S-RTTI, framework context/HTTP abstractions)
 ├── 01/   Layer 1: Core engine (handler, action, binding, model, events, draft service, embedded frontend)
 ├── 02/   Layer 2: Public API (interfaces, HTTP handler, exit framework)
-└── 99/   Public XML view builder (z2ui5_cl_xml_view / _cc, package top level) + obsolete subpackages: retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02), kept for downstream compatibility only
+└── 99/   FROZEN - do not change. XML view builder (z2ui5_cl_xml_view / _cc, top level, pending replacement by ai-demokit) + retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02). Kept for downstream compatibility only
 ```
 
 - **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`) — `z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http` and `z2ui5_cx_a2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master catalog (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework.
-- **Package `src/99/`** — Mixed content. The **package top level** holds the still-public **fluent XML view builder** (`z2ui5_cl_xml_view` and `z2ui5_cl_xml_view_cc`) — active public API used by every app (it physically lives here, moved out of `src/02/`, but remains a stable contract: additive changes only, see the size note under "Design Decisions"). The two **subpackages are obsolete**: `src/99/01/` holds the retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`) — the framework no longer uses any of them (replaced by the `z2ui5_cl_a2ui5_*` classes in `src/00/03/`); `src/99/02/` holds the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`). The subpackage contents remain only so existing downstream apps keep compiling and are removal candidates — do not add new consumers and do not extend them. All of `src/99` is covered by the `noIssues` lint exemption.
+- **Package `src/99/` — frozen in its entirety. Do not change anything under `src/99/`.** Everything here exists only so downstream apps keep compiling:
+  - **Package top level** — the fluent XML view builder (`z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`). Still the API every app calls, so it stays readable and installed, but it is **frozen pending replacement** by the builder from [ai-demokit](https://github.com/abap2UI5/ai-demokit), which becomes the new standard. Do **not** add wrapper methods, controls or parameters to it, and do not refactor it — that work goes into the replacement, not here.
+  - `src/99/01/` — retired utility classes (`z2ui5_cl_util`, `_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`), replaced by the `z2ui5_cl_a2ui5_*` classes in `src/00/03/`.
+  - `src/99/02/` — the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`).
+
+  Do not add new consumers of anything under `src/99/`. All of it is covered by the `noIssues` lint exemption and is out of scope for reviews and audits.
 
 ### Vendored Utility Classes (`src/00/03/` ← abap-util)
 
@@ -197,9 +209,9 @@ src/
 │   ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
 │   ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
 │   └── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
-└── 99/                        # Public view builder (top level) + obsolete subpackages
-    ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~16K lines) - public API
-    ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder - public API
+└── 99/                        # FROZEN - do not change anything below this line
+    ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~16K lines) - called by apps, frozen
+    ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder - called by apps, frozen
     ├── 01/                    #   Retired z2ui5_cl_util* classes + z2ui5_t_91 (obsolete)
     └── 02/                    #   Built-in popups (z2ui5_cl_pop_*, formerly src/02/01/) (obsolete)
                                #   to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
@@ -245,6 +257,7 @@ Grouped by purpose:
 
 | Group | Workflows | Purpose |
 |---|---|---|
+| **Frozen-path guard** | `check_frozen_paths.yaml` | Fails any PR that changes a file under `src/99/` — the package is frozen (see "Layered Design") |
 | **Compatibility checks** | `ABAP_702.yaml`, `ABAP_STANDARD.yaml`, `ABAP_CLOUD.yaml` | Lint against each ABAP target environment |
 | **Frontend checks** | `UI5.yaml` | UI5 linter via `.github/scripts/ui5lint-gate.mjs`, zero-error policy (accepted findings are suppressed at the source) |
 | **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, JS unit specs + Playwright browser tests, namespace-rename test |
@@ -320,28 +333,38 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 
 Install dependencies: `npm install`
 
-### Validation sequence (run before every PR)
+### Validation sequence
+
+Two commands, both **non-destructive** — they never modify `src/` or `abaplint.jsonc`:
 
 ```bash
-npx abaplint                  # Lint check (primary quality gate)
-npm run auto_downport         # Downport for 7.02 compatibility
-npm run auto_transpile        # Transpile ABAP → JS
-npm run unit                  # Unit tests
+npm run check     # Fast inner loop: abaplint only (seconds) — run this while iterating
+npm run verify    # Full gate before every PR: check -> downport -> transpile -> unit
 ```
+
+`npm run verify` downports into `node/downport/` and runs the transpiled unit
+tests from there, so the working tree stays exactly as you left it. Use
+`npm run check` for the tight edit/validate loop and `npm run verify` before
+opening a PR. Do **not** use `npm run auto_downport` for validation — see rule 10.
 
 ### Other commands
 
 | Command | Purpose |
 |---|---|
+| `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
+| `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
+| `npm run unit` | Run the transpiled unit tests |
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
 | `npm run express` | Start dev server on port 3000 |
 | `npm run app2abap` | **Canonical** full regeneration pipeline: Prettier (`app` format) → generate → abaplint normalize. Use this after editing `app/webapp/` so only truly-changed `src/01/03/` files differ |
 | `npm run auto_app2abap` | Generate ABAP string constants from `app/webapp/` (raw, **un-normalized** — prefer `npm run app2abap` instead) |
 | `npm run auto_abaplint` | Run the auto-fix config directly |
 | `npm run rename` | Test namespace-rename transformation via abaplint |
-| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` (compatibility step for 7.02 downport) |
-| `npm run strip_trailing_ws` | Strip trailing whitespace from all `src/**/*.abap` files (runs as part of `auto_downport`) |
-| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after downport copy |
+| `npm run auto_downport` | **CI only** — destructive variant that rewrites `src/` in place to produce the `702` branch. Never run this to validate work (rule 10) |
+| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` in `node/downport/` (compatibility step for 7.02 downport) |
+| `npm run strip_trailing_ws` | Strip trailing whitespace from all `node/downport/**/*.abap` files (runs as part of `downport`) |
+| `npm run downport_config` | Generate the gitignored `.github/abaplint/downport_run.jsonc` from `abap_702.jsonc` (same rules, retargeted at `node/downport/`) |
+| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after the `auto_downport` copy |
 
 ### Frontend Tooling (`app/`)
 
@@ -372,7 +395,7 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 |---|---|
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
 | `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
-| `src/99/z2ui5_cl_xml_view.clas.abap` | Fluent view builder (~16K lines, public API despite the src/99 location) — read only sections you need |
+| `src/99/z2ui5_cl_xml_view.clas.abap` | Fluent view builder called by every app — **read-only, frozen** (see "Layered Design"). ~16K lines, so never read it whole: grep for the method or the UI5 control name and read that section only. Answer questions from it; never change it |
 | `src/01/02/z2ui5_cl_core_handler.clas.abap` | Central request processor + main loop |
 | `src/01/02/z2ui5_cl_core_client.clas.abap` | Implements z2ui5_if_client |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
@@ -421,7 +444,7 @@ test: add unit tests for utility class
 
 These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, see <https://abap2ui5.github.io/docs/advanced/agent.html> instead.
 
-1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. **`src/00/03/z2ui5_cl_a2ui5_context` is NOT read-only, though — edit it freely: add new methods and change existing ones directly, right here, whenever the framework needs a utility. This is safe and expected; there is NO upstream-first step and NO problem doing so.** The direction is the reverse of what "vendored" might suggest: the abap-util master **harvests** new/changed methods **from** this copy (local → upstream), so your local edits are the source of truth until the periodic sync-back picks them up (see "Vendored Utility Classes"). The only rules for the context class: keep what you add **generic and reusable** (framework-specific logic belongs in the core `z2ui5_cl_core_*` classes, not here), and leave the as-copied `z2ui5_cl_a2ui5_http` / `z2ui5_cx_a2ui5_error` untouched unless a fix is genuinely needed. **Do not touch `src/99/`** — obsolete classes kept only for downstream compatibility; never add new consumers of them.
+1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. **`src/00/03/z2ui5_cl_a2ui5_context` is NOT read-only, though — edit it freely: add new methods and change existing ones directly, right here, whenever the framework needs a utility. This is safe and expected; there is NO upstream-first step and NO problem doing so.** The direction is the reverse of what "vendored" might suggest: the abap-util master **harvests** new/changed methods **from** this copy (local → upstream), so your local edits are the source of truth until the periodic sync-back picks them up (see "Vendored Utility Classes"). The only rules for the context class: keep what you add **generic and reusable** (framework-specific logic belongs in the core `z2ui5_cl_core_*` classes, not here), and leave the as-copied `z2ui5_cl_a2ui5_http` / `z2ui5_cx_a2ui5_error` untouched unless a fix is genuinely needed. **Do not touch `src/99/` — the entire package is frozen**, including the `z2ui5_cl_xml_view` / `_cc` builders at its top level. Read them to answer questions; never change, extend or refactor them, and never add new consumers. The builder is being replaced by the ai-demokit version; that work does not happen in this repository.
 2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
    - Change the source under `app/webapp/`
    - Run **`npm run app2abap`** locally (or trigger the `create_app2abap.yaml` workflow). This single command runs the full pipeline in the correct order — `npm --prefix app run format` (Prettier) → `npm run auto_app2abap` (generate) → `npm run auto_abaplint` (normalize) — exactly as CI does. Running `auto_app2abap` on its own produces **un-normalized** ABAP that differs from the committed form in *every* `src/01/03/` file (alignment/whitespace drift); the `auto_abaplint` step reverts that drift so only the files whose `app/webapp/` source actually changed remain modified.
@@ -441,9 +464,9 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/cc/<Name>` of the custom controls (file location under `webapp/cc/` defines the ID; the `z2ui5` XML namespace maps to `z2ui5.cc` in `z2ui5_cl_xml_view`), their properties/events used by `z2ui5_cl_xml_view_cc`, the controller methods `eB`/`eF`, the `z2ui5/Util` module and the `z2ui5.Util` global (public date helpers — **deprecated**, kept as a backward-compatible alias; new code and new helpers go through `z2ui5/model/formatter` / the `z2ui5.Formatter` global, which re-exports them). Additive changes only. Raw view XML written by apps must declare `xmlns:z2ui5="z2ui5.cc"` (changed from `"z2ui5"` when the controls moved into `cc/`).
 9. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Shared frontend state is owned by `app/webapp/core/AppState.js`** — it documents the complete inventory of the `z2ui5.*` globals (public contract vs. internal fields) and provides the defaults for all internal fields. Framework modules must not reference the `z2ui5` global directly (ui5lint `no-project-globals`): internal fields are accessed via the `AppState.state` module export, public-contract fields via `AppState.getGlobal()/setGlobal()`. AppState itself is the only module that touches the global — it exposes the internal fields there via accessors so external consumers (apps via the js_loader popup, backend-generated HTML) keep working. Do not add new lazy `if (!z2ui5.x)` bootstrapping; add the field with its default to `AppState.createState()` instead.
-10. **`npm run auto_downport` rewrites `src/` in place** (and overwrites `abaplint.jsonc`) — it is meant for throwaway CI checkouts. When running the validation sequence locally, commit your work first and restore afterwards with `git checkout -- src/ abaplint.jsonc`.
+10. **Validate with `npm run verify`, never with `npm run auto_downport`.** `auto_downport` rewrites `src/` in place *and* overwrites `abaplint.jsonc`; it exists for exactly one purpose — producing the `702` branch in `auto_downport.yaml` — and will destroy uncommitted work if you run it to check your changes. `npm run downport` performs the identical downport into `node/downport/` and leaves the working tree untouched; `npm run verify` wraps it together with lint, transpile and unit tests.
 11. **Custom controls (`app/webapp/cc/`) delegate, they never decide** — a control exposes bindable **properties** and **events** and lets the backend drive the UI; it must not surface its own popups/toasts/dialogs (the `Geolocation` control fires an `error` event with code/message instead of showing a `MessageBox`). Lifecycle (UI5 2.x is strict): `init` and other lifecycle listeners **must not return a value** — never make them `async` (an async function returns a Promise → `_enforceNoReturnValue` FUTURE FATAL; kick the async work off in a separate helper, see `CameraSelector._loadCameras`). After every `await`, bail out when the control was destroyed (`Lib.isDestroyed`). Read the DOM defensively (guard a 0-size canvas, a missing `videoWidth`, an absent element) and **log, never throw** (`Lib.logError`). Prefer reusing a standard control or a binding over writing a new custom control at all.
-12. **Never change the key of an internal table that is passed to a classic function module (or any typed formal parameter) from `WITH DEFAULT KEY` to `WITH EMPTY KEY`.** The table type (including its key) must stay compatible with the formal parameter, otherwise the `CALL FUNCTION` fails at runtime — often silently, when the call is inside a `TRY … CATCH` / `EXCEPTIONS` guard. This bit user-exit discovery: `z2ui5_cl_a2ui5_context=>rtti_get_classes_intf_std` passes `lt_impl` to `SEO_INTERFACE_IMPLEM_GET_ALL` (`impkeys`, a `STANDARD TABLE WITH DEFAULT KEY`); switching `lt_impl` to `WITH EMPTY KEY` made the call fail, returned no `z2ui5_if_exit` implementers, and the user exit was never called. Leave such tables `WITH DEFAULT KEY` — do not "modernize" the key as a cleanup.
+12. **Never "modernize" `WITH DEFAULT KEY` to `WITH EMPTY KEY` on a table that is passed to a classic function module** (or to any typed formal parameter) — the key is part of the table type, and an incompatible one makes the `CALL FUNCTION` fail at runtime, silently when it sits inside a `TRY … CATCH` / `EXCEPTIONS` guard. Reasoning and the concrete breakage: see the comment above `lt_impl` in `z2ui5_cl_a2ui5_context=>rtti_get_classes_intf_std`.
 13. **A module that exists only in newer UI5 must never be a hard `sap.ui.define([...])` dependency.** abap2UI5 supports OpenUI5 down to **1.71**; a dep the old release lacks 404s and the *whole component* fails to load (blank app). Resolve version-specific modules **lazily** with `sap.ui.require("…")` at the point of use and handle `undefined` gracefully (see `Component.js` Theming/Messaging probing, and the `THEMING` target in `FrontendAction.js`). Known post-1.71 modules: `sap/ui/core/Theming` and `sap/ui/core/Messaging` (both since 1.118). Before adding any `sap/ui/core/*` dependency, check its "available since" — if it is newer than 1.71, lazy-require it.
 14. **The app runs under a CSP without `'unsafe-eval'`-free assumptions — keep it eval-capable and avoid eval-only UI5 features.** The default CSP (in `z2ui5_cl_exit`) keeps `'unsafe-eval'` because the OpenUI5 **1.71** ui5loader evals module source; removing it breaks the 1.71 bootstrap with a CSP `EvalError`. Also do **not** use UI5 **expression binding** (`{= … }`) in framework-controlled XML/fragments — it is compiled with `eval`/`new Function`, so it fails wherever a stricter CSP applies; drive such state from a plain model property instead (see the DeveloperTools `closeEnabled` boolean).
 15. **`app/webapp/` source must be 7-bit ASCII.** Every frontend file is embedded verbatim into an ABAP class under `src/01/03/`, which abaplint checks with the `7bit_ascii` rule — a non-ASCII literal (`…`, `©`, `→`, a smart quote) breaks generation/lint. Use ASCII in source (`...` not `…`) and build any non-ASCII runtime string with `String.fromCharCode(...)` / entity decoding at run time, never as a literal.
@@ -463,13 +486,13 @@ The following items may look like gaps but are intentional design choices:
 - **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_app_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
 - **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_core_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
-- **`z2ui5_cl_xml_view` size (~16K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. New wrapper methods, new controls, and new parameters are allowed — but they **must mirror the UI5 SDK API strictly 1:1**: method names, property names, event names, allowed values, and nesting must match the corresponding UI5 control exactly as documented in the UI5 SDK. Never invent convenience shortcuts, renamed properties, or combined helpers that have no direct counterpart in the UI5 control API. When a UI5 control offers a new property/aggregation (e.g. the `rowMode` variants `Auto`/`Fixed`/`Interactive` with their respective properties), model it exactly as the SDK does rather than folding it into an unrelated existing method.
+- **`z2ui5_cl_xml_view` size (~16K lines) — frozen, not a defect to fix.** The class is large because each method wraps one UI5 control for the fluent API. It is **not** being extended or refactored here: the builder from [ai-demokit](https://github.com/abap2UI5/ai-demokit) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
 
 ### Scope Exclusions for Code Reviews, Security Audits & Improvement Work
 
 When reviewing, auditing, or proposing improvements to this repository, treat the following as **out of scope** — do not report findings in them, refactor them, or otherwise invest in them:
 
-- **The two obsolete subpackages `src/99/01/` and `src/99/02/`** — the retired `z2ui5_cl_util*` classes (`src/99/01/`) and the built-in popups (`src/99/02/`) are **obsolete and scheduled for removal**; they exist only so existing downstream apps keep compiling and the framework itself no longer calls them. Do **not** report, harden, or refactor anything in these subpackages. For example, the unescaped single quote in the dynamic `WHERE` builders of `z2ui5_cl_util_ext` (`tab_get_where_by_dfies`, `changdoc_read`, the `tr_*` helpers) is a **non-issue** here — the framework does not use these classes, and they are on their way out. (The still-public **XML view builder at the `src/99/` top level** — `z2ui5_cl_xml_view` / `_cc` — is the exception and stays fully in scope.)
+- **All of `src/99/` — the whole package, without exception.** The retired `z2ui5_cl_util*` classes (`src/99/01/`), the built-in popups (`src/99/02/`) and the XML view builder at the package top level (`z2ui5_cl_xml_view` / `_cc`) are all **frozen**: the first two are scheduled for removal, the builder is pending replacement by the ai-demokit version. They exist only so downstream apps keep compiling. Do **not** report, harden, refactor or extend anything under `src/99/`. For example, the unescaped single quote in the dynamic `WHERE` builders of `z2ui5_cl_util_ext` (`tab_get_where_by_dfies`, `changdoc_read`, the `tr_*` helpers) is a **non-issue** here, and the ~16K-line size of `z2ui5_cl_xml_view` is not a finding either.
 - **The `_bind` / `_bind_edit` "mass assignment" question** — two-way binding was **intentionally unified** (see "Data Binding" above): `_bind` and `_bind_edit` behave identically and every bound attribute is writable from the client `MODEL`. `_bind_edit` is a **compatibility-only alias of `_bind`** and is slated for **removal (~1 year out)**. A proposal to split them again — a separate "editable" flag so `_bind` becomes display-only while only `_bind_edit` writes back — is explicitly **rejected**: it would reintroduce exactly the distinction that was deliberately removed and break the many apps that rely on `_bind` round-tripping. Treat "an attribute exposed via `_bind` is writable from the client model" as **by design**, not a vulnerability.
 - **A secondary index on `Z2UI5_T_01-TIMESTAMPL`** — see the draft-cleanup entry above: rejected as not worth the per-write index-maintenance cost.
 - **The "no app-start authorization" question** — see the app-start entry under "Design Decisions" above. That any authenticated user reaching the ICF node can instantiate any `z2ui5_if_app` class is **by design**: authorization lives in the app's own `z2ui5_if_app~main` (like a transaction guarding itself), not in a framework `AUTHORITY-CHECK` or a `check_app_start_allowed` exit. Do not report the missing central hook as a vulnerability, and do not add one.

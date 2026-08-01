@@ -4,6 +4,7 @@ output
 node/output
 .github/out
 .github/abaplint/rename_run.jsonc
+.github/abaplint/downport_run.jsonc
 
 # Environment files
 .env
