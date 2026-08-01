@@ -52,7 +52,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `          // Some controls expose a scroll delegate; prefer it when available.` && |\n| &&
              `          const delegate = control?.getScrollDelegate?.();` && |\n| &&
              `          if (delegate) return delegate.getScrollTop();` && |\n| &&
-             `          const element = this._getDomInnerElement(item.ID);` && |\n| &&
+             `          const element = this._getDomInnerElement(item.N);` && |\n| &&
              `          return element ? element.scrollTop : 0;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Scrolling._getScrollTop: failed", e);` && |\n| &&
@@ -101,7 +101,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `            control.scrollTo(item.V);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          const element = this._getDomInnerElement(item.ID);` && |\n| &&
+             `          const element = this._getDomInnerElement(item.N);` && |\n| &&
              `          if (element) element.scrollTop = item.V;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Scrolling._restoreScrollPosition: failed", e);` && |\n| &&

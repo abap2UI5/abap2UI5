@@ -71,6 +71,12 @@ CLASS z2ui5_cl_app_messagemanager_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        Lib.unregisterCallback("onAfterRendering", this._setupBound);` && |\n| &&
+             `        // remove this control's own rows from the message model, otherwise a` && |\n| &&
+             `        // full view rebuild leaves them behind and re-adds a duplicate set` && |\n| &&
+             `        if (this._added.size && this._messaging) {` && |\n| &&
+             `          this._messaging.removeMessages([...this._added.values()]);` && |\n| &&
+             `        }` && |\n| &&
+             `        this._added.clear();` && |\n| &&
              `      },` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `` && |\n| &&

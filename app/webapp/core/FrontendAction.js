@@ -640,6 +640,7 @@ sap.ui.define(
       // filename, so the anchor never carries the literal "undefined". Strip
       // path separators and control characters so the filename cannot escape
       // the download directory or carry a misleading name.
+      // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here
       a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");
       // Firefox only triggers a programmatic download click when the anchor
       // is part of the document, so attach it briefly and remove it again.
@@ -1151,11 +1152,11 @@ sap.ui.define(
     function evUrlHelper(oController, args) {
       const params = args[2] ?? {};
       // mailto:/sms:/tel: targets are handed to URLHelper as-is; a CR/LF in a
-      // recipient/subject can inject extra headers in some mail clients. Reject
-      // any control character in the string params up front.
-      const hasControlChar = (v) => typeof v === "string" && /[\r\n]/.test(v);
-      if (Object.values(params).some(hasControlChar)) {
-        Lib.logError("URLHELPER: blocked control character in parameters");
+      // recipient/subject can inject extra headers in some mail clients.
+      // Reject CR/LF in the string params up front.
+      const hasCrLf = (v) => typeof v === "string" && /[\r\n]/.test(v);
+      if (Object.values(params).some(hasCrLf)) {
+        Lib.logError("URLHELPER: blocked CR/LF in parameters");
         return;
       }
       const actions = {
@@ -1177,8 +1178,9 @@ sap.ui.define(
             params.BCC,
             params.NEW_WINDOW,
           ),
-        TRIGGER_SMS: () => _URLHelper.triggerSms(params),
-        TRIGGER_TEL: () => _URLHelper.triggerTel(params),
+        TRIGGER_SMS: () =>
+          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),
+        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),
       };
       try {
         const fn = actions[args[1]];
@@ -1212,7 +1214,11 @@ sap.ui.define(
       clearTimeout(timers[timerKey]);
       timers[timerKey] = setTimeout(() => {
         delete timers[timerKey];
-        oController.eB([callbackEvent]);
+        // dispatch as a background event (args[2] = ignore busy) - a timer
+        // firing while an ordinary roundtrip is in flight must not be
+        // swallowed by the busy guard, or a self-rescheduling poll chain
+        // dies on the first collision with a user click
+        oController.eB([callbackEvent, false, true]);
       }, delay);
     }
 
@@ -1375,7 +1381,9 @@ sap.ui.define(
       // Native Element.scrollTo is only used as a fallback for controls
       // without a delegate.
       try {
-        const oElement = ViewSlots.byId("MAIN", args[1]);
+        // resolveById like SET_FOCUS / SCROLL_INTO_VIEW, so controls in
+        // popups/popovers/nested views and fully-qualified ids work too
+        const oElement = ViewSlots.resolveById(args[1]);
         if (!oElement) return;
         const y = Number(args[2]) || 0;
         const x = Number(args[3]) || 0;

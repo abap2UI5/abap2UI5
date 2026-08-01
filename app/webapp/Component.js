@@ -93,14 +93,15 @@ sap.ui.define(
 
       _installUnloadListener() {
         this._boundUnload = this._onUnload.bind(this);
-        // Safari on iOS does not fire "beforeunload" reliably, so we use
-        // "pagehide" there. iPads on iPadOS 13+ report a Mac user agent
-        // ("desktop site" default) - the touch-point probe catches those,
-        // while real Macs report 0 touch points.
-        const isIos =
-          /iPad|iPhone/.test(navigator.userAgent) ||
-          (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
-        this._unloadEvent = isIos ? "pagehide" : "beforeunload";
+        // "pagehide", not "beforeunload": pagehide fires only after the
+        // navigation is committed (any "leave page?" prompt was answered),
+        // so tearing the app down here can neither swallow the cc/Dirty
+        // unsaved-changes prompt (destroying the app mid-beforeunload
+        // removed its window.onbeforeunload handler before the browser
+        // invoked it) nor kill the live session when the user chooses to
+        // stay. It is also the reliable event on iOS Safari, which never
+        // fired beforeunload dependably.
+        this._unloadEvent = "pagehide";
         window.addEventListener(this._unloadEvent, this._boundUnload);
       },
 
@@ -230,7 +231,10 @@ sap.ui.define(
         return "";
       },
 
-      _onUnload() {
+      _onUnload(event) {
+        // pagehide with persisted = true means the page enters the browser's
+        // back/forward cache and may be shown again - keep the app alive.
+        if (event?.persisted) return;
         // destroy() runs exit(), which removes the unload listener (and every
         // other one) - no need to remove it here too.
         this.destroy();

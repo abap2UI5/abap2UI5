@@ -86,6 +86,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_set-set_app_state_active = abap_true.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
+              " normalize the chain like factory_by_frontend: id_prev must
+              " point at the draft this restore was loaded from, not at
+              " whatever id was serialized in a previous session
+              result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_control-app_start_draft.
               result->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
               RETURN.
             CATCH cx_root.
@@ -154,6 +158,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   METHOD factory_stack_leave.
 
     result = prepare_app_stack( ms_next-o_app_leave ).
+
+    " a leave is a back-navigation - never inherit a call-hop's route push
+    " from the same request ( A -> nav_app_call B -> B leaves again ), else
+    " the frontend pushes a new history entry for what is a step back
+    CLEAR: result->ms_next-s_set-check_nav_app_call,
+           result->ms_next-s_set-nav_app_call_prev_app,
+           result->ms_next-s_set-nav_app_call_prev_id.
 
     DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
 
@@ -259,12 +270,14 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     CLEAR result->ms_next-s_set-s_msg_toast.
     CLEAR result->ms_next-s_set-s_follow_up_action.
 
-    " always destroy an open popup on navigation, so an app never has to close
-    " a popup explicitly before nav_app_call / nav_app_leave. If the app that
-    " is navigated to renders a popup itself, its popup_display( ) overwrites
-    " this destroy request again ( the frontend processes CHECK_DESTROY before
-    " the new popup XML ). Destroying when no popup is open is a no-op.
-    result->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
+    " always destroy an open popup/popover on navigation, so an app never has
+    " to close them explicitly before nav_app_call / nav_app_leave. If the app
+    " that is navigated to renders one itself, its popup_display( ) /
+    " popover_display( ) overwrites this destroy request again ( the frontend
+    " processes CHECK_DESTROY before the new XML ). Destroying when nothing is
+    " open is a no-op.
+    result->ms_next-s_set-s_popup   = VALUE #( check_destroy = abap_true ).
+    result->ms_next-s_set-s_popover = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 

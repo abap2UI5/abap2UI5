@@ -42,6 +42,21 @@
       },
       {
         "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_messagemanager_js$",
+        "newName": "zabap2ui5_cl_app_messageman_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_developertools_js$",
+        "newName": "zabap2ui5_cl_app_developert_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_developertool_xml$",
+        "newName": "zabap2ui5_cl_app_developer_xml"
+      },
+      {
+        "type": "CLAS",
         "oldName": "^z2ui5_cl_app_multiinputext_js$",
         "newName": "zabap2ui5_cl_app_multiinput_js"
       },

@@ -32,7 +32,7 @@ sap.ui.define(
           // Some controls expose a scroll delegate; prefer it when available.
           const delegate = control?.getScrollDelegate?.();
           if (delegate) return delegate.getScrollTop();
-          const element = this._getDomInnerElement(item.ID);
+          const element = this._getDomInnerElement(item.N);
           return element ? element.scrollTop : 0;
         } catch (e) {
           Lib.logError("Scrolling._getScrollTop: failed", e);
@@ -81,7 +81,7 @@ sap.ui.define(
             control.scrollTo(item.V);
             return;
           }
-          const element = this._getDomInnerElement(item.ID);
+          const element = this._getDomInnerElement(item.N);
           if (element) element.scrollTop = item.V;
         } catch (e) {
           Lib.logError("Scrolling._restoreScrollPosition: failed", e);

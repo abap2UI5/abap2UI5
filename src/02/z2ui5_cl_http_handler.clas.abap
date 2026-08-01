@@ -106,6 +106,15 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     ms_req = mo_server->get_req_info( ).
 
+    " initialize the exit context and reset the per-request GET-config cache
+    " up front: the CSRF gate below already calls the user exit, and a
+    " rejected POST never reaches _main( ) - without this the exit would see
+    " the previous request's context and set_response( ) would emit the
+    " previous request's cached security headers ( _main( ) repeats both,
+    " harmlessly - they are idempotent )
+    z2ui5_cl_exit=>init_context( ms_req ).
+    CLEAR: ss_config_http_get, sv_config_http_get_set.
+
     CASE ms_req-method.
       WHEN `HEAD`.
         mo_server->set_session_stateful( 0 ).
@@ -199,7 +208,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     result = NEW #( ).
     result->mo_server = z2ui5_cl_a2ui5_http=>factory_cloud( req = req
-                                                           res  = res ).
+                                                            res = res ).
 
   ENDMETHOD.
 
@@ -328,8 +337,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD _http_post.
 
-    " exceptions are intentionally not caught here - they bubble up to the
-    " single top-level catch in _main( ), which turns them into a 500 response
+    " the request itself is intentionally not wrapped - exceptions bubble up
+    " to the single top-level catch in _main( ), which turns them into a 500.
+    " Only the sticky-handler bookkeeping at the end has its own catch, which
+    " must never turn an already successful response into a 500
     IF so_sticky_handler IS NOT BOUND.
       DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
     ELSE.
@@ -368,6 +379,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
             result = _http_get( ).
           WHEN `POST`.
             result = _http_post( is_req ).
+          WHEN OTHERS.
+            " OPTIONS/PUT/DELETE/... - without this branch the response
+            " would go out with status code 0
+            result = VALUE #( body          = `Method Not Allowed`
+                              status_code   = 405
+                              status_reason = `Method Not Allowed` ).
         ENDCASE.
 
       CATCH cx_root INTO DATA(lx).
@@ -379,7 +396,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         result = VALUE #( body          = COND #( WHEN ls_config_post-check_hide_error_details = abap_true
-                                                  THEN `Internal Server Error - see the application log for details`
+                                                  THEN `Internal Server Error`
                                                   ELSE lx->get_text( ) )
                           status_code   = 500
                           status_reason = `Internal Server Error` ).

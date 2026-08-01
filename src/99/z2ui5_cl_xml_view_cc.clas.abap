@@ -183,6 +183,8 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
     METHODS message_manager
       IMPORTING
         items         TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+          PREFERRED PARAMETER items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -539,7 +541,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     mo_view->_generic( name   = `MessageManager`
                        ns     = `z2ui5`
                        t_prop = VALUE #( ( n = `items`  v = items )
-                ) ).
+                                         ( n = `change` v = change ) ) ).
 
   ENDMETHOD.
 

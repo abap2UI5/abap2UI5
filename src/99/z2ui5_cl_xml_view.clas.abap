@@ -1,6 +1,6 @@
 "! <p class="shorttext synchronized" lang="en">abap2UI5 - view parser</p>
 "!
-"! Builder for SAPUI5 XML views. See CLAUDE.md and the project README for usage.
+"! Builder for SAPUI5 XML views. See AGENTS.md and the project README for usage.
 CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
   PUBLIC SECTION.
@@ -402,7 +402,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable. DEPRECATED as of 2.0 - replaced by the OData V4 Table Building Block.
     "! Most properties (selectionMode, rowMode, toolbar, columns) are inherited from sap.ui.table.Table.
     "!
-    "! @parameter ns            | (string) XML namespace prefix (typically `t` for sap.ui.table).
+    "! @parameter ns            | (string) XML namespace prefix. Defaults to `table` (sap.ui.table).
     "! @parameter selectionmode | (sap.ui.table.SelectionMode) None | Single | MultiToggle. `Multi` is deprecated since 1.38 (use MultiToggle). Default: MultiToggle.
     "! @parameter rowmode       | (sap.ui.table.rowmodes.RowMode) Aggregation - use the `auto`, `fixed` or `interactive` builder methods.
     "! @parameter toolbar       | (binding path) Aggregation slot for the table toolbar.
@@ -419,7 +419,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">Aggregation `rowMode`</p>
     "!
-    "! @parameter ns | (string) XML namespace prefix (typically `t` for sap.ui.table).
+    "! @parameter ns | (string) XML namespace prefix. Defaults to `table` (sap.ui.table).
     METHODS rowmode
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -476,7 +476,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
-    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter ns                  | (string) XML namespace prefix. Defaults to `trm` (sap.ui.table.rowmodes).
     "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
     "! @parameter minrowcount         | (int) Minimum number of displayed rows. Default: 5.
     "! @parameter maxrowcount         | (int) Maximum number of displayed rows (-1 = no limit). Default: -1.
@@ -497,7 +497,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Fixed. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
-    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter ns                  | (string) XML namespace prefix. Defaults to `trm` (sap.ui.table.rowmodes).
     "! @parameter rowcount            | (int) Number of displayed rows. Default: 10.
     "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
     "! @parameter fixedtoprowcount    | (int) Number of fixed rows at the top. Default: 0.
@@ -516,7 +516,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Interactive. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
-    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter ns                  | (string) XML namespace prefix. Defaults to `trm` (sap.ui.table.rowmodes).
     "! @parameter rowcount            | (int) Initial number of displayed rows. Default: 10.
     "! @parameter minrowcount         | (int) Minimum number of displayed rows. Default: 5.
     "! @parameter maxrowcount         | (int) Maximum number of displayed rows (-1 = no limit). Default: -1.
@@ -1802,7 +1802,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable. DEPRECATED as of 2.0 - replaced by the OData V4 Table Building Block.
     "!
-    "! @parameter ns | (string) XML namespace prefix (typically `t`).
+    "! @parameter ns | (string) XML namespace prefix. Defaults to `table` (sap.ui.table).
     METHODS analytical_column
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -2116,7 +2116,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! Smart field that combines display / edit modes for a value. See https://ui5.sap.com/#/api/sap.ui.mdc.Field.
     "!
-    "! @parameter ns                 | (string) XML namespace prefix (typically `mdc`).
+    "! @parameter ns                 | (string) XML namespace prefix. Defaults to `mdc` (sap.ui.mdc).
     "! @parameter value              | (any) Value (use `client->_bind_edit( var )`).
     "! @parameter editmode           | (sap.ui.mdc.enums.FieldEditMode) Editable | Display | EditableReadOnly | EditableDisplay. Default: Editable.
     "! @parameter showemptyindicator | (boolean) Show "-" for empty values in display mode. Default: false.
@@ -2723,14 +2723,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.m.TabContainer</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.webc.main.TabContainer</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.TabContainer. Children are added through `tab`.
+    "! See https://ui5.sap.com/#/api/sap.ui.webc.main.TabContainer. Children are added through `tab`.
     METHODS tab_container
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.m.TabContainerItem</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.webc.main.Tab</p>
     "!
     "! @parameter text     | (string) Tab title.
     "! @parameter selected | (boolean) Whether the tab is initially selected. Default: false.
@@ -5221,16 +5221,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_cc.
 
-    "! <p class="shorttext synchronized" lang="en">sap.gantt.GanttChartContainer</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.GanttChartContainer</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.gantt.GanttChartContainer.
+    "! See https://ui5.sap.com/#/api/sap.gantt.simple.GanttChartContainer.
     METHODS gantt_chart_container
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.gantt.config.ContainerToolbar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.ContainerToolbar</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.gantt.config.ContainerToolbar.
+    "! See https://ui5.sap.com/#/api/sap.gantt.simple.ContainerToolbar.
     "!
     "! @parameter showsearchbutton          | (boolean) Show search button. Default: true.
     "! @parameter aligncustomcontenttoright | (boolean) Align custom toolbar content to right. Default: false.
@@ -5342,7 +5342,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.Task</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.shapes.Task</p>
     "!
     "! @parameter type        | (sap.gantt.simple.shapes.TaskType) Normal | Error | Warning | Success.
     "! @parameter color       | (sap.ui.core.CSSColor) Custom CSS colour.
@@ -5588,9 +5588,9 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Graph</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.ProcessFlow</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph (legacy: sap.suite.ui.commons.ProcessFlow).
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.ProcessFlow (successor: sap.suite.ui.commons.networkgraph.Graph, see network_graph).
     "!
     "! @parameter foldedcorners | (boolean) Render folded corners on nodes. Default: false.
     "! @parameter scrollable    | (boolean) Allow scrolling. Default: true.
@@ -6501,7 +6501,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.PropertyThreshold</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Status</p>
     "!
     "! Generic status entry with custom colours. Used by sap.ndc / status indicator and similar.
     "!
@@ -7813,7 +7813,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.MapContainer</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vk.MapContainer</p>
     "!
     "! @parameter autoadjustheight | (boolean) Auto-adjust height. Default: false.
     "! @parameter showhome         | (boolean) Show "Home" button. Default: true.
@@ -8272,7 +8272,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.f.GridContainerCarouselLayout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.CarouselLayout</p>
     "!
     "! @parameter visiblepagescount | (int) Number of visible pages.
     METHODS carousel_layout
@@ -9160,7 +9160,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.Legend.LegendItem</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.LegendItem</p>
     "!
     "! @parameter text  | (string) Item text.
     "! @parameter color | (sap.ui.core.CSSColor) Item colour.
@@ -9461,7 +9461,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.ResponsiveScale</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ResponsiveScale</p>
     "!
     "! @parameter tickmarksbetweenlabels | (int) Number of tick marks between labels. Default: 5.
     METHODS responsive_scale
@@ -9792,7 +9792,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">sap.m.RowSettings</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.RowSettings</p>
     "!
     "! @parameter highlight     | (sap.ui.core.MessageType | sap.ui.core.IndicationColor) Default: None.
     "! @parameter highlighttext | (string) Custom accessibility text for highlight.
@@ -9853,7 +9853,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     DATA mo_parent   TYPE REF TO z2ui5_cl_xml_view.
     DATA mt_child    TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
 
-    "! <p class="shorttext synchronized" lang="en">Internal recursion that flattens the XML tree into a stri...</p>
+    "! <p class="shorttext synchronized" lang="en">Internal recursion - flattens the XML tree into a string</p>
     "!
     "! @parameter ct_parts | Output - serialised XML fragments.
     METHODS xml_get_parts
@@ -10237,6 +10237,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD calendar_legend_item.
     result = _generic( name   = `CalendarLegendItem`
+                       ns     = `u`
                        t_prop = VALUE #( ( n = `text`                   v = text )
                                          ( n = `type`                   v = type )
                                          ( n = `tooltip`                v = tooltip )
@@ -12800,7 +12801,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD numeric_header.
 
     result = _generic( name   = `NumericHeader`
-                       ns     = `f`
+                       ns     = `card`
                        t_prop = VALUE #(
                            ( n = `id`  v = id )
                            ( n = `class`  v = class )
@@ -12835,7 +12836,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD numeric_side_indicator.
     result = _generic( name   = `NumericSideIndicator`
-                       ns     = `f`
+                       ns     = `card`
                        t_prop = VALUE #( ( n = `id`  v = id )
                                          ( n = `class`  v = class )
                                          ( n = `unit`  v = unit )
@@ -14378,6 +14379,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD tile_info.
     result = _generic( name   = `TileInfo`
+                       ns     = `commons`
                        t_prop = VALUE #( ( n = `id`               v = id )
                                          ( n = `class`               v = class )
                                          ( n = `backgroundColor`            v = backgroundcolor )
@@ -15473,7 +15475,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD field.
     result = _generic(
         name   = `Field`
-        ns     = ns
+        ns     = SWITCH #( ns WHEN `` THEN `mdc` ELSE ns )
         t_prop = VALUE #( ( n = `id`        v = id )
                           ( n = `value`     v = value )
                           ( n = `editMode`  v = editmode )
@@ -15497,13 +15499,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD analytical_column.
-    result = _generic( ns   = ns
+    result = _generic( ns   = SWITCH #( ns WHEN `` THEN `table` ELSE ns )
                        name = `AnalyticalColumn` ).
   ENDMETHOD.
 
   METHOD analytical_table.
     result = _generic( name   = `AnalyticalTable`
-                       ns     = ns
+                       ns     = SWITCH #( ns WHEN `` THEN `table` ELSE ns )
                        t_prop = VALUE #( ( n = `selectionMode`              v = selectionmode )
                                          ( n = `rowMode`                    v = rowmode )
                                          ( n = `toolbar`                    v = toolbar )
@@ -15511,7 +15513,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD auto.
-    result = _generic( ns     = ns
+    result = _generic( ns     = SWITCH #( ns WHEN `` THEN `trm` ELSE ns )
                        name   = `Auto`
                        t_prop = VALUE #( ( n = `rowContentHeight`    v = rowcontentheight )
                                          ( n = `minRowCount`         v = minrowcount )
@@ -15521,7 +15523,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD fixed.
-    result = _generic( ns     = ns
+    result = _generic( ns     = SWITCH #( ns WHEN `` THEN `trm` ELSE ns )
                        name   = `Fixed`
                        t_prop = VALUE #( ( n = `rowCount`            v = rowcount )
                                          ( n = `rowContentHeight`    v = rowcontentheight )
@@ -15530,7 +15532,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD interactive.
-    result = _generic( ns     = ns
+    result = _generic( ns     = SWITCH #( ns WHEN `` THEN `trm` ELSE ns )
                        name   = `Interactive`
                        t_prop = VALUE #( ( n = `rowCount`            v = rowcount )
                                          ( n = `minRowCount`         v = minrowcount )
@@ -15610,7 +15612,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD rowmode.
     result = _generic( name = `rowMode`
-                       ns   = ns ).
+                       ns   = SWITCH #( ns WHEN `` THEN `table` ELSE ns ) ).
   ENDMETHOD.
 
   METHOD breadcrumbs.

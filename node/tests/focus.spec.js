@@ -68,7 +68,7 @@ function targetWithInput(dom) {
 }
 
 // Drive onAfterRendering with the given captured selection props.
-function run(Focus, target, { selectionStart, selectionEnd }) {
+function run(Focus, { selectionStart, selectionEnd }) {
   const inst = new Focus();
   const props = { focusId: "field", selectionStart, selectionEnd };
   inst.getProperty = (k) => props[k];
@@ -87,7 +87,7 @@ test("clamps a captured range beyond the current value length", () => {
   const { Focus } = load({ target, activeElement: null });
 
   // Captured caret was 5/5 (from a longer value that has since been cleared).
-  run(Focus, target, { selectionStart: "5", selectionEnd: "5" });
+  run(Focus, { selectionStart: "5", selectionEnd: "5" });
 
   expect(target.applied).toHaveLength(1);
   expect(target.applied[0].selectionStart).toBe(2);
@@ -102,7 +102,7 @@ test("keeps the live caret when the user typed past the restored position", () =
   const { Focus } = load({ target, activeElement: dom });
 
   // Stale captured caret is 0 (e.g. from the clear "X" click).
-  run(Focus, target, { selectionStart: "0", selectionEnd: "0" });
+  run(Focus, { selectionStart: "0", selectionEnd: "0" });
 
   // Race guard wins: the live caret (2) is restored, not the stale captured 0.
   expect(target.applied).toHaveLength(1);
@@ -122,7 +122,7 @@ test("keeps the live caret from the snapshot after a full view rebuild", () => {
   const { Focus } = load({ target, activeElement: oldInput });
 
   // Captured caret was the stale 1 from when the request was dispatched.
-  run(Focus, target, { selectionStart: "1", selectionEnd: "1" });
+  run(Focus, { selectionStart: "1", selectionEnd: "1" });
 
   // The pre-render snapshot (3) wins over the stale captured 1, even though the
   // restored input is no longer the active element.
@@ -139,7 +139,7 @@ test("clamps the kept snapshot caret to the rebuilt value length", () => {
   const oldInput = inputDom({ value: "abcd", selectionStart: 4, selectionEnd: 4 });
   const { Focus } = load({ target, activeElement: oldInput });
 
-  run(Focus, target, { selectionStart: "1", selectionEnd: "1" });
+  run(Focus, { selectionStart: "1", selectionEnd: "1" });
 
   expect(target.applied).toHaveLength(1);
   expect(target.applied[0].selectionStart).toBe(2);
@@ -152,7 +152,7 @@ test("restores the clamped caret when the field is not focused", () => {
   // A different element holds focus - the roundtrip legitimately restores.
   const { Focus } = load({ target, activeElement: { tagName: "BODY" } });
 
-  run(Focus, target, { selectionStart: "1", selectionEnd: "1" });
+  run(Focus, { selectionStart: "1", selectionEnd: "1" });
 
   expect(target.applied).toHaveLength(1);
   expect(target.applied[0].selectionStart).toBe(1);
@@ -171,7 +171,7 @@ test("applies the raw selection for controls without a text field", () => {
   };
   const { Focus } = load({ target, activeElement: null });
 
-  run(Focus, target, { selectionStart: "0", selectionEnd: "0" });
+  run(Focus, { selectionStart: "0", selectionEnd: "0" });
 
   expect(target.applied).toHaveLength(1);
   expect(target.applied[0].selectionStart).toBe(0);

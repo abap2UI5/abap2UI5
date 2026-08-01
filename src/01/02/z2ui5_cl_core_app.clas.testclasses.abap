@@ -53,8 +53,6 @@ CLASS ltcl_test_db DEFINITION FINAL
 
     INTERFACES z2ui5_if_app.
 
-    METHODS constructor.
-
     METHODS test_db_save            FOR TESTING.
     METHODS test_db_roundtrip       FOR TESTING.
     METHODS test_db_save_complex    FOR TESTING.
@@ -67,10 +65,6 @@ ENDCLASS.
 
 
 CLASS ltcl_test_db IMPLEMENTATION.
-  METHOD constructor.
-
-  ENDMETHOD.
-
   METHOD test_db_save.
     DATA lo_app_user TYPE REF TO ltcl_test_db.
     DATA lo_app TYPE REF TO z2ui5_cl_core_app.

@@ -2,7 +2,6 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
-    CONSTANTS c_min_exp_time_in_hours TYPE i VALUE 1.
 
     TYPES ty_s_db TYPE z2ui5_t_01.
 
@@ -54,10 +53,9 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
     z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
+    " z2ui5_cl_exit=>set_config_http_post already guarantees a positive
+    " expiry ( <= 0 falls back to its default ), so no second clamp here
     DATA(lv_exp_time_in_hours) = ls_config-draft_exp_time_in_hours.
-    IF lv_exp_time_in_hours < c_min_exp_time_in_hours.
-      lv_exp_time_in_hours = c_min_exp_time_in_hours.
-    ENDIF.
 
     DATA(lv_n_hours_ago) = z2ui5_cl_a2ui5_context=>time_subtract_seconds(
                                time    = z2ui5_cl_a2ui5_context=>time_get_timestampl( )
@@ -160,7 +158,10 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
   METHOD count_entries.
 
-    SELECT COUNT( * ) FROM z2ui5_t_01                   "#EC CI_NOWHERE
+    " owner-scoped like read/check_exists ( blank owner = legacy rows from
+    " before the UNAME column existed, tolerated during upgrade )
+    SELECT COUNT( * ) FROM z2ui5_t_01
+      WHERE uname = @sy-uname OR uname = @space
       INTO @result.
 
   ENDMETHOD.

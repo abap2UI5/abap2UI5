@@ -58,7 +58,7 @@ sap.ui.define(
             syncUnloadPrompt(anyDirty);
           }
         } catch (e) {
-          Lib.logError("Dirty.setIsDirty: setDirtyFlag failed", e);
+          Lib.logError("Dirty._applyDirtyState: setDirtyFlag failed", e);
           syncUnloadPrompt(anyDirty);
         }
       },

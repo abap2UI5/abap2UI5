@@ -38,7 +38,9 @@ jobs:
 
       - name: Fail on drift
         run: |
-          if ! git diff --exit-code -- app/webapp src/01/03; then
+          # stage first so newly generated (untracked) files count as drift too
+          git add -A -- app/webapp src/01/03
+          if ! git diff --cached --exit-code -- app/webapp src/01/03; then
             echo "::error::app/webapp and src/01/03 are out of sync."
             echo "Run 'npm run app2abap' locally and commit the regenerated src/01/03 (and any prettier changes)."
             exit 1

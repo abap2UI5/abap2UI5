@@ -3,7 +3,6 @@ CLASS ltcl_test DEFINITION FINAL
 
   PUBLIC SECTION.
 
-    METHODS constructor.
     METHODS test_create           FOR TESTING.
     METHODS test_create_and_read  FOR TESTING.
     METHODS test_read_info        FOR TESTING.
@@ -18,10 +17,6 @@ ENDCLASS.
 
 
 CLASS ltcl_test IMPLEMENTATION.
-  METHOD constructor.
-
-  ENDMETHOD.
-
   METHOD test_create.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.

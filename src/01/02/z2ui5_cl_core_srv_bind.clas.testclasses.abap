@@ -28,15 +28,12 @@ CLASS ltcl_test_app DEFINITION FINAL
     DATA mo_app   TYPE REF TO ltcl_test_bind ##NEEDED.
 
     DATA xx       TYPE string ##NEEDED.
-
-    METHODS constructor.
 ENDCLASS.
 
 
+" the transpiler only emits a class that has an implementation part,
+" so keep the empty block even though the class declares no methods
 CLASS ltcl_test_app IMPLEMENTATION.
-  METHOD constructor.
-
-  ENDMETHOD.
 ENDCLASS.
 
 

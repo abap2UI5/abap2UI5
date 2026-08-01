@@ -4,7 +4,7 @@
 // here reach it via AppState.state instead of the z2ui5 global.
 //
 // Shared rendering pattern of the custom controls (Timer.js, Focus.js,
-// Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a
+// Scrolling.js, ...): the renderer only *marks* work by setting a
 // `_pending*` flag on the control instance, and onAfterRendering() consumes
 // the flag and performs the actual DOM work (focus, scrolling, timers, tree
 // state). Renderers must stay cheap and free of visible side effects

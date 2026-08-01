@@ -113,14 +113,15 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `      _installUnloadListener() {` && |\n| &&
              `        this._boundUnload = this._onUnload.bind(this);` && |\n| &&
-             `        // Safari on iOS does not fire "beforeunload" reliably, so we use` && |\n| &&
-             `        // "pagehide" there. iPads on iPadOS 13+ report a Mac user agent` && |\n| &&
-             `        // ("desktop site" default) - the touch-point probe catches those,` && |\n| &&
-             `        // while real Macs report 0 touch points.` && |\n| &&
-             `        const isIos =` && |\n| &&
-             `          /iPad|iPhone/.test(navigator.userAgent) ||` && |\n| &&
-             `          (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);` && |\n| &&
-             `        this._unloadEvent = isIos ? "pagehide" : "beforeunload";` && |\n| &&
+             `        // "pagehide", not "beforeunload": pagehide fires only after the` && |\n| &&
+             `        // navigation is committed (any "leave page?" prompt was answered),` && |\n| &&
+             `        // so tearing the app down here can neither swallow the cc/Dirty` && |\n| &&
+             `        // unsaved-changes prompt (destroying the app mid-beforeunload` && |\n| &&
+             `        // removed its window.onbeforeunload handler before the browser` && |\n| &&
+             `        // invoked it) nor kill the live session when the user chooses to` && |\n| &&
+             `        // stay. It is also the reliable event on iOS Safari, which never` && |\n| &&
+             `        // fired beforeunload dependably.` && |\n| &&
+             `        this._unloadEvent = "pagehide";` && |\n| &&
              `        window.addEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -250,7 +251,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        return "";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _onUnload() {` && |\n| &&
+             `      _onUnload(event) {` && |\n| &&
+             `        // pagehide with persisted = true means the page enters the browser's` && |\n| &&
+             `        // back/forward cache and may be shown again - keep the app alive.` && |\n| &&
+             `        if (event?.persisted) return;` && |\n| &&
              `        // destroy() runs exit(), which removes the unload listener (and every` && |\n| &&
              `        // other one) - no need to remove it here too.` && |\n| &&
              `        this.destroy();` && |\n| &&

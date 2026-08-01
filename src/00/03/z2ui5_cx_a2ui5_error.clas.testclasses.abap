@@ -33,6 +33,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       CATCH z2ui5_cx_a2ui5_error INTO DATA(lx).
         cl_abap_unit_assert=>assert_bound( lx ).
         cl_abap_unit_assert=>assert_not_initial( lx->ms_error-uuid ).
+        " never an empty text - it would end up as a blank 500 body
+        cl_abap_unit_assert=>assert_equals( exp = `UNKNOWN_ERROR`
+                                            act = lx->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.
@@ -94,9 +97,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                                previous = lx_middle ).
 
     DATA(lv_text) = lx_outer->get_text( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `outer` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `middle` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `inner` ) ).
+    DATA(lv_nl) = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
+    " exact match - each cause exactly once, no duplicated deeper causes
+    cl_abap_unit_assert=>assert_equals( exp = |outer{ lv_nl }middle{ lv_nl }inner|
+                                        act = lv_text ).
 
   ENDMETHOD.
 ENDCLASS.

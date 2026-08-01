@@ -661,6 +661,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // filename, so the anchor never carries the literal "undefined". Strip` && |\n| &&
              `      // path separators and control characters so the filename cannot escape` && |\n| &&
              `      // the download directory or carry a misleading name.` && |\n| &&
+             `      // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here` && |\n| &&
              `      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");` && |\n| &&
              `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
              `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
@@ -817,9 +818,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      let done = false;` && |\n| &&
              `      let frame;` && |\n| &&
              `      const finish = () => {` && |\n| &&
-             `        if (done) return;` && |\n| &&
-             `        done = true;` && |\n|.
+             `        if (done) return;` && |\n|.
     result = result &&
+             `        done = true;` && |\n| &&
              `        // Remove the hidden BSP-kill iframe. On a successful logout the page` && |\n| &&
              `        // navigates away and unload cleans up anyway; but if redirectToLogout` && |\n| &&
              `        // blocks an invalid URL (MessageBox, no navigation) the iframe would` && |\n| &&
@@ -1173,11 +1174,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evUrlHelper(oController, args) {` && |\n| &&
              `      const params = args[2] ?? {};` && |\n| &&
              `      // mailto:/sms:/tel: targets are handed to URLHelper as-is; a CR/LF in a` && |\n| &&
-             `      // recipient/subject can inject extra headers in some mail clients. Reject` && |\n| &&
-             `      // any control character in the string params up front.` && |\n| &&
-             `      const hasControlChar = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n| &&
-             `      if (Object.values(params).some(hasControlChar)) {` && |\n| &&
-             `        Lib.logError("URLHELPER: blocked control character in parameters");` && |\n| &&
+             `      // recipient/subject can inject extra headers in some mail clients.` && |\n| &&
+             `      // Reject CR/LF in the string params up front.` && |\n| &&
+             `      const hasCrLf = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n| &&
+             `      if (Object.values(params).some(hasCrLf)) {` && |\n| &&
+             `        Lib.logError("URLHELPER: blocked CR/LF in parameters");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const actions = {` && |\n| &&
@@ -1199,8 +1200,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            params.BCC,` && |\n| &&
              `            params.NEW_WINDOW,` && |\n| &&
              `          ),` && |\n| &&
-             `        TRIGGER_SMS: () => _URLHelper.triggerSms(params),` && |\n| &&
-             `        TRIGGER_TEL: () => _URLHelper.triggerTel(params),` && |\n| &&
+             `        TRIGGER_SMS: () =>` && |\n| &&
+             `          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),` && |\n| &&
+             `        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),` && |\n| &&
              `      };` && |\n| &&
              `      try {` && |\n| &&
              `        const fn = actions[args[1]];` && |\n| &&
@@ -1217,10 +1219,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      ViewSlots.destroy("POPUP");` && |\n| &&
-             `      oController.eB(["SAVE"], image);` && |\n|.
+             `      }` && |\n|.
     result = result &&
+             `      ViewSlots.destroy("POPUP");` && |\n| &&
+             `      oController.eB(["SAVE"], image);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evStartTimer(oController, args) {` && |\n| &&
@@ -1235,7 +1237,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      clearTimeout(timers[timerKey]);` && |\n| &&
              `      timers[timerKey] = setTimeout(() => {` && |\n| &&
              `        delete timers[timerKey];` && |\n| &&
-             `        oController.eB([callbackEvent]);` && |\n| &&
+             `        // dispatch as a background event (args[2] = ignore busy) - a timer` && |\n| &&
+             `        // firing while an ordinary roundtrip is in flight must not be` && |\n| &&
+             `        // swallowed by the busy guard, or a self-rescheduling poll chain` && |\n| &&
+             `        // dies on the first collision with a user click` && |\n| &&
+             `        oController.eB([callbackEvent, false, true]);` && |\n| &&
              `      }, delay);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -1398,7 +1404,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `        // resolveById like SET_FOCUS / SCROLL_INTO_VIEW, so controls in` && |\n| &&
+             `        // popups/popovers/nested views and fully-qualified ids work too` && |\n| &&
+             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&

@@ -116,7 +116,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const PARAMS = oResponse.PARAMS;` && |\n| &&
              `          if (!PARAMS) return;` && |\n| &&
              `` && |\n| &&
-             `          await this._displayPendingViews(PARAMS);` && |\n| &&
+             `          // Stamp of the request this response belongs to: every await in` && |\n| &&
+             `          // the display phase re-checks it, so a response superseded by a` && |\n| &&
+             `          // parallel request (check_allow_multi_req, Back/Forward restore)` && |\n| &&
+             `          // never attaches popups/nested views the backend no longer knows.` && |\n| &&
+             `          const seq = Server._requestSeq;` && |\n| &&
+             `          await this._displayPendingViews(PARAMS, seq);` && |\n| &&
              `          // The app may have been torn down (reset / FLP re-launch) while the` && |\n| &&
              `          // pending views loaded; don't mutate history or fire onAfterRendering` && |\n| &&
              `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
@@ -136,13 +141,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // run the follow-up JS snippets the backend asked for. Doing it here` && |\n| &&
              `          // - rather than as an early microtask - guarantees render-dependent` && |\n| &&
              `          // actions like SET_FOCUS find their target control in the DOM.` && |\n| &&
-             `          this._runPendingCustomJs();` && |\n| &&
+             `          this._runPendingCustomJs(AppState.state.oResponse);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Phase 1: open/destroy the popup, nested views and popover the` && |\n| &&
              `      // response asked for.` && |\n| &&
-             `      async _displayPendingViews(PARAMS) {` && |\n| &&
+             `      async _displayPendingViews(PARAMS, seq) {` && |\n| &&
              `        const S_POPUP = PARAMS.S_POPUP;` && |\n| &&
              `        const S_VIEW_NEST = PARAMS.S_VIEW_NEST;` && |\n| &&
              `        const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;` && |\n| &&
@@ -155,24 +160,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (S_POPUP?.XML) {` && |\n| &&
              `          this.destroyPopup();` && |\n| &&
-             `          await this.displayFragment(S_POPUP.XML);` && |\n| &&
+             `          await this.displayFragment(S_POPUP.XML, seq);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (!AppState.state.checkNestAfter && S_VIEW_NEST?.XML) {` && |\n| &&
              `          this.destroyNestView();` && |\n| &&
-             `          await this.displayNestedView(S_VIEW_NEST.XML, "NEST");` && |\n| &&
+             `          await this.displayNestedView(` && |\n| &&
+             `            S_VIEW_NEST.XML,` && |\n| &&
+             `            "NEST",` && |\n| &&
+             `            S_VIEW_NEST,` && |\n| &&
+             `            seq,` && |\n| &&
+             `          );` && |\n| &&
              `          AppState.state.checkNestAfter = true;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (!AppState.state.checkNestAfter2 && S_VIEW_NEST2?.XML) {` && |\n| &&
              `          this.destroyNestView2();` && |\n| &&
-             `          await this.displayNestedView(S_VIEW_NEST2.XML, "NEST2");` && |\n| &&
+             `          await this.displayNestedView(` && |\n| &&
+             `            S_VIEW_NEST2.XML,` && |\n| &&
+             `            "NEST2",` && |\n| &&
+             `            S_VIEW_NEST2,` && |\n| &&
+             `            seq,` && |\n| &&
+             `          );` && |\n| &&
              `          AppState.state.checkNestAfter2 = true;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (S_POPOVER?.XML) {` && |\n| &&
              `          this.destroyPopover();` && |\n| &&
-             `          await this.displayPopover(S_POPOVER.XML, S_POPOVER.OPEN_BY_ID);` && |\n| &&
+             `          await this.displayPopover(S_POPOVER.XML, S_POPOVER.OPEN_BY_ID, seq);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -185,9 +200,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
              `      // Runs once per roundtrip, after the view has rendered.` && |\n| &&
-             `      _runPendingCustomJs() {` && |\n| &&
-             `        const customJs = AppState.state.pendingCustomJs;` && |\n| &&
-             `        AppState.state.pendingCustomJs = null;` && |\n| &&
+             `      _runPendingCustomJs(oResponse) {` && |\n| &&
+             `        const customJs = oResponse?._pendingCustomJs;` && |\n| &&
+             `        if (oResponse) oResponse._pendingCustomJs = null;` && |\n| &&
              `        if (!customJs) return;` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        for (const item of customJs) {` && |\n| &&
@@ -204,7 +219,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Display: popups, popovers, nested views, main view` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `      async displayFragment(xml) {` && |\n| &&
+             `      async displayFragment(xml, seq) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit("POPUP", oModel);` && |\n| &&
              `        const oFragment = await Fragment.load({` && |\n| &&
@@ -212,8 +227,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          controller: ViewSlots.getController("POPUP"),` && |\n| &&
              `          id: "popupId",` && |\n| &&
              `        });` && |\n| &&
-             `        // The app might have been torn down while the fragment loaded.` && |\n| &&
-             `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
+             `        // The app might have been torn down while the fragment loaded, or a` && |\n| &&
+             `        // newer request superseded this response - don't open a dialog the` && |\n| &&
+             `        // backend no longer knows about.` && |\n| &&
+             `        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -225,7 +242,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        oFragment.open();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async displayPopover(xml, openById) {` && |\n| &&
+             `      // True when this response was superseded by a newer request while an` && |\n| &&
+             `      // async view build was awaiting (undefined seq = no check, for` && |\n| &&
+             `      // custom-JS callers of the display helpers).` && |\n| &&
+             `      _isSuperseded(seq) {` && |\n| &&
+             `        return seq !== undefined && seq !== Server._requestSeq;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      async displayPopover(xml, openById, seq) {` && |\n| &&
              `        // No catch-all here on purpose: a malformed-XML load or render` && |\n| &&
              `        // failure must propagate to _processAfterRendering and surface the` && |\n| &&
              `        // fatal "App Terminated" overlay, exactly like displayFragment and` && |\n| &&
@@ -240,7 +264,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          controller: ViewSlots.getController("POPOVER"),` && |\n| &&
              `          id: "popoverId",` && |\n| &&
              `        });` && |\n| &&
-             `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
+             `        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -261,7 +285,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        oFragment.openBy(oControl);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async displayNestedView(xml, slotKey) {` && |\n| &&
+             `      async displayNestedView(xml, slotKey, nestParamsIn, seq) {` && |\n| &&
              `        const paramKey = ViewSlots.paramByKey(slotKey);` && |\n| &&
              `        // Nested views do NOT create their own model. They are inserted into` && |\n| &&
              `        // the MAIN control tree below and inherit its default JSON model via` && |\n| &&
@@ -281,12 +305,18 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          preprocessors: { xml: { models: { template: oTemplateModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
+             `        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];` && |\n| &&
+             `        // Prefer the params passed by _displayPendingViews: they belong to` && |\n| &&
+             `        // the same response as the XML. Re-reading the live global here` && |\n| &&
+             `        // would mix this response's view with a newer response's parent id` && |\n| &&
+             `        // and insert/destroy methods. The global stays as fallback for` && |\n| &&
+             `        // custom-JS callers.` && |\n| &&
+             `        const nestParams =` && |\n| &&
+             `          nestParamsIn ?? AppState.state.oResponse?.PARAMS?.[paramKey];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
              `          Lib.logError(``displayNestedView: missing PARAMS.${paramKey}``);` && |\n| &&
              `          oView.destroy();` && |\n| &&
@@ -387,13 +417,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // eB = "event backend": triggers a backend roundtrip with arguments.` && |\n| &&
              `      // The name is part of the protocol - backend-generated view XML binds` && |\n| &&
              `      // events to eB/eF - and must not be renamed.` && |\n| &&
-             `      //` && |\n| &&
-             `      // args[0] is the event array built by the backend:` && |\n| &&
+             `      //` && |\n|.
+    result = result &&
+             `      // args[0] is the event array built by the backend (get_event):` && |\n| &&
              `      //   [0] event name` && |\n| &&
+             `      //   [1] reserved placeholder, always false` && |\n| &&
              `      //   [2] "ignore busy" flag - background events (e.g. timers) skip the` && |\n| &&
              `      //       busy guard below` && |\n| &&
              `      //   [3] "use main view model" flag - events fired from a popup or` && |\n| &&
-             `      //       popover controller that still target the main app's model` && |\n| &&
+             `      //       popover controller that still target the main app's model;` && |\n| &&
+             `      //       not emitted by the framework today, only by custom JS` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eB(...args) {` && |\n| &&
              `        const [, , ignoreBusy, useMainModel] = args[0];` && |\n| &&
@@ -417,8 +450,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // A new roundtrip overrides any pending timer - timers that fired` && |\n|.
-    result = result &&
+             `        // A new roundtrip overrides any pending timer - timers that fired` && |\n| &&
              `        // already removed themselves before calling eB, so this only cancels` && |\n| &&
              `        // timers that are still waiting.` && |\n| &&
              `        for (const key in AppState.state.timers) {` && |\n| &&
@@ -581,7 +613,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // while XMLView.create was awaiting - discard this rebuild instead of` && |\n| &&
              `        // letting an out-of-order resolve overwrite the newer view. Last-write` && |\n| &&
              `        // wins by request order, not by which create() happened to resolve last.` && |\n| &&
-             `        if (reqSeq !== undefined && reqSeq !== Server._requestSeq) {` && |\n| &&
+             `        // Only discard when a newer view actually took the slot: if the` && |\n| &&
+             `        // superseding response was data-only, dropping this build too would` && |\n| &&
+             `        // leave the app permanently blank - a slightly stale view is the` && |\n| &&
+             `        // better outcome then.` && |\n| &&
+             `        if (` && |\n| &&
+             `          reqSeq !== undefined &&` && |\n| &&
+             `          reqSeq !== Server._requestSeq &&` && |\n| &&
+             `          ViewSlots.getView("MAIN")` && |\n| &&
+             `        ) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
              `          return;` && |\n| &&

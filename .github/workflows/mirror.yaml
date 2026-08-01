@@ -26,11 +26,11 @@ permissions:
 
 jobs:
   mirror:
-    # Origin repo only
     permissions:
       contents: write  # for peter-evans/create-pull-request to create branch
       pull-requests: write  # for peter-evans/create-pull-request to create a PR
       issues: write  # to report failed scheduled runs
+    # Origin repo only
     if: github.repository == 'abap2UI5/abap2UI5'
 
     runs-on: ubuntu-latest

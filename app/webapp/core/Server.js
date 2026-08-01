@@ -25,10 +25,9 @@ sap.ui.define(
 
     const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
 
-    // Quote characters recognised by the eF( ) argument parser below. The
-    // single quote is built from its char code on purpose: keeping a literal
-    // single-quote character out of this file avoids confusing the ABAP
-    // source generator, which ships this module as an ABAP string literal.
+    // Quote characters recognised by the eF( ) argument parser below, built
+    // from char codes so both quote kinds are declared symmetrically and
+    // stand out from the surrounding string literals.
     const CH_SQUOTE = String.fromCharCode(39);
     const CH_DQUOTE = String.fromCharCode(34);
 
@@ -112,7 +111,8 @@ sap.ui.define(
     // The request body travels through the steps as a parameter; it is
     // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the developer tools
     // can inspect it. Only the response side still crosses an async boundary
-    // (the rendering) via the globals oResponse and pendingCustomJs.
+    // (the rendering) via the oResponse global; the follow-up JS snippets
+    // travel on the response record itself (_pendingCustomJs).
     //
     // Wire format - request (POST body; ARGUMENTS is folded into
     // S_FRONT before sending, empty fields are removed):
@@ -161,6 +161,11 @@ sap.ui.define(
       // request aborts them all - it supersedes them, so there is no point
       // letting the backend finish work whose response would be dropped anyway.
       _inflight: new Set(),
+
+      // Chain that serializes full MAIN-view rebuilds (see responseSuccess):
+      // XMLView.create claims the fixed "mainView" id synchronously, so two
+      // overlapping builds would throw "duplicate id".
+      _viewBuild: null,
 
       endSession() {
         if (!Lib.isValidContextId(AppState.state.contextId)) return;
@@ -343,6 +348,12 @@ sap.ui.define(
       // read the target class + draft from the hash it receives
       // (request_app_start_route[_draft]).
       restoreFromRoute() {
+        // Participate in the normal busy protocol: without it the app looks
+        // idle during the restore, and an ordinary click would dispatch a
+        // request that aborts the Back/Forward navigation without any
+        // feedback. _processAfterRendering / responseError clear it again.
+        AppState.state.isBusy = true;
+        BusyIndicator.show(0);
         this.roundtrip({});
       },
 
@@ -494,7 +505,15 @@ sap.ui.define(
         // A network blip or timeout may mean the request never reached the
         // server, so the error overlay offers a retry that re-sends the
         // exact same request body instead of forcing a full app restart.
-        const oRetry = { onRetry: () => this.readHttp(oBody) };
+        // Re-arm the busy state first - responseError cleared it, and an
+        // unguarded click during the retry would abort it silently.
+        const oRetry = {
+          onRetry: () => {
+            AppState.state.isBusy = true;
+            BusyIndicator.show(0);
+            this.readHttp(oBody);
+          },
+        };
 
         // Stamp this request and treat its response as stale once a newer
         // request has been dispatched. With parallel requests allowed
@@ -642,18 +661,34 @@ sap.ui.define(
           // SET_FOCUS on the initial view, where the target control does not
           // exist in the DOM yet.
           const followUp = params?.S_FOLLOW_UP_ACTION;
-          AppState.state.pendingCustomJs = followUp?.CUSTOM_JS || null;
+          // carried on the response record, not on shared state: with
+          // parallel responses a single global would let the older render
+          // consume the newer response's snippets (and lose its own)
+          response._pendingCustomJs = followUp?.CUSTOM_JS || null;
 
           for (const t of _MSG_TYPES) Messages.show(t, params, oController);
 
           // Full view replacement -> destroy & rebuild, nothing more to do.
+          // Builds are serialized through _viewBuild: XMLView.create claims
+          // the fixed "mainView" id synchronously, so two overlapping builds
+          // (slow library load + a parallel/multi-req response) would throw
+          // "duplicate id". Each queued build re-checks that it has not been
+          // superseded before tearing down the current view.
           if (sView?.XML) {
-            ViewSlots.destroy("MAIN");
-            await oController.displayView(
-              sView.XML,
-              response.OVIEWMODEL,
-              reqSeq,
-            );
+            this._viewBuild = Promise.resolve(this._viewBuild)
+              .catch(() => {})
+              .then(() => {
+                if (reqSeq !== undefined && reqSeq !== this._requestSeq) {
+                  return;
+                }
+                ViewSlots.destroy("MAIN");
+                return oController.displayView(
+                  sView.XML,
+                  response.OVIEWMODEL,
+                  reqSeq,
+                );
+              });
+            await this._viewBuild;
             return;
           }
 

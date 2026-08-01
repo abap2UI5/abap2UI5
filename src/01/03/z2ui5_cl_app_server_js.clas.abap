@@ -45,10 +45,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
              `` && |\n| &&
-             `    // Quote characters recognised by the eF( ) argument parser below. The` && |\n| &&
-             `    // single quote is built from its char code on purpose: keeping a literal` && |\n| &&
-             `    // single-quote character out of this file avoids confusing the ABAP` && |\n| &&
-             `    // source generator, which ships this module as an ABAP string literal.` && |\n| &&
+             `    // Quote characters recognised by the eF( ) argument parser below, built` && |\n| &&
+             `    // from char codes so both quote kinds are declared symmetrically and` && |\n| &&
+             `    // stand out from the surrounding string literals.` && |\n| &&
              `    const CH_SQUOTE = String.fromCharCode(39);` && |\n| &&
              `    const CH_DQUOTE = String.fromCharCode(34);` && |\n| &&
              `` && |\n| &&
@@ -132,7 +131,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // The request body travels through the steps as a parameter; it is` && |\n| &&
              `    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the developer tools` && |\n| &&
              `    // can inspect it. Only the response side still crosses an async boundary` && |\n| &&
-             `    // (the rendering) via the globals oResponse and pendingCustomJs.` && |\n| &&
+             `    // (the rendering) via the oResponse global; the follow-up JS snippets` && |\n| &&
+             `    // travel on the response record itself (_pendingCustomJs).` && |\n| &&
              `    //` && |\n| &&
              `    // Wire format - request (POST body; ARGUMENTS is folded into` && |\n| &&
              `    // S_FRONT before sending, empty fields are removed):` && |\n| &&
@@ -181,6 +181,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // request aborts them all - it supersedes them, so there is no point` && |\n| &&
              `      // letting the backend finish work whose response would be dropped anyway.` && |\n| &&
              `      _inflight: new Set(),` && |\n| &&
+             `` && |\n| &&
+             `      // Chain that serializes full MAIN-view rebuilds (see responseSuccess):` && |\n| &&
+             `      // XMLView.create claims the fixed "mainView" id synchronously, so two` && |\n| &&
+             `      // overlapping builds would throw "duplicate id".` && |\n| &&
+             `      _viewBuild: null,` && |\n| &&
              `` && |\n| &&
              `      endSession() {` && |\n| &&
              `        if (!Lib.isValidContextId(AppState.state.contextId)) return;` && |\n| &&
@@ -363,6 +368,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // read the target class + draft from the hash it receives` && |\n| &&
              `      // (request_app_start_route[_draft]).` && |\n| &&
              `      restoreFromRoute() {` && |\n| &&
+             `        // Participate in the normal busy protocol: without it the app looks` && |\n| &&
+             `        // idle during the restore, and an ordinary click would dispatch a` && |\n| &&
+             `        // request that aborts the Back/Forward navigation without any` && |\n| &&
+             `        // feedback. _processAfterRendering / responseError clear it again.` && |\n| &&
+             `        AppState.state.isBusy = true;` && |\n| &&
+             `        BusyIndicator.show(0);` && |\n| &&
              `        this.roundtrip({});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -406,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            X: entry.dom.scrollLeft || 0,` && |\n| &&
              `            Y: entry.dom.scrollTop || 0,` && |\n| &&
              `          };` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&
@@ -417,8 +429,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        state.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
              `        // Keep the shared record in sync (developer tools "Previous Request",` && |\n| &&
-             `        // app hooks); the parameter stays the working object. Calls without` && |\n|.
-    result = result &&
+             `        // app hooks); the parameter stays the working object. Calls without` && |\n| &&
              `        // a body (initial roundtrip, route changes) start from scratch.` && |\n| &&
              `        state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
@@ -515,7 +526,15 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // A network blip or timeout may mean the request never reached the` && |\n| &&
              `        // server, so the error overlay offers a retry that re-sends the` && |\n| &&
              `        // exact same request body instead of forcing a full app restart.` && |\n| &&
-             `        const oRetry = { onRetry: () => this.readHttp(oBody) };` && |\n| &&
+             `        // Re-arm the busy state first - responseError cleared it, and an` && |\n| &&
+             `        // unguarded click during the retry would abort it silently.` && |\n| &&
+             `        const oRetry = {` && |\n| &&
+             `          onRetry: () => {` && |\n| &&
+             `            AppState.state.isBusy = true;` && |\n| &&
+             `            BusyIndicator.show(0);` && |\n| &&
+             `            this.readHttp(oBody);` && |\n| &&
+             `          },` && |\n| &&
+             `        };` && |\n| &&
              `` && |\n| &&
              `        // Stamp this request and treat its response as stale once a newer` && |\n| &&
              `        // request has been dispatched. With parallel requests allowed` && |\n| &&
@@ -663,18 +682,34 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&
              `          const followUp = params?.S_FOLLOW_UP_ACTION;` && |\n| &&
-             `          AppState.state.pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
+             `          // carried on the response record, not on shared state: with` && |\n| &&
+             `          // parallel responses a single global would let the older render` && |\n| &&
+             `          // consume the newer response's snippets (and lose its own)` && |\n| &&
+             `          response._pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
              `` && |\n| &&
              `          for (const t of _MSG_TYPES) Messages.show(t, params, oController);` && |\n| &&
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
+             `          // Builds are serialized through _viewBuild: XMLView.create claims` && |\n| &&
+             `          // the fixed "mainView" id synchronously, so two overlapping builds` && |\n| &&
+             `          // (slow library load + a parallel/multi-req response) would throw` && |\n| &&
+             `          // "duplicate id". Each queued build re-checks that it has not been` && |\n| &&
+             `          // superseded before tearing down the current view.` && |\n| &&
              `          if (sView?.XML) {` && |\n| &&
-             `            ViewSlots.destroy("MAIN");` && |\n| &&
-             `            await oController.displayView(` && |\n| &&
-             `              sView.XML,` && |\n| &&
-             `              response.OVIEWMODEL,` && |\n| &&
-             `              reqSeq,` && |\n| &&
-             `            );` && |\n| &&
+             `            this._viewBuild = Promise.resolve(this._viewBuild)` && |\n| &&
+             `              .catch(() => {})` && |\n| &&
+             `              .then(() => {` && |\n| &&
+             `                if (reqSeq !== undefined && reqSeq !== this._requestSeq) {` && |\n| &&
+             `                  return;` && |\n| &&
+             `                }` && |\n| &&
+             `                ViewSlots.destroy("MAIN");` && |\n| &&
+             `                return oController.displayView(` && |\n| &&
+             `                  sView.XML,` && |\n| &&
+             `                  response.OVIEWMODEL,` && |\n| &&
+             `                  reqSeq,` && |\n| &&
+             `                );` && |\n| &&
+             `              });` && |\n| &&
+             `            await this._viewBuild;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&

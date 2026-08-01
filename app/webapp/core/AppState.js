@@ -69,7 +69,6 @@
 //   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip
 //   search            overrides location.search in S_FRONT; never written
 //                     by the framework itself, set externally (custom JS)
-//   pendingCustomJs   follow-up JS to run after rendering (Server)
 //
 // Control / helper state
 //   errors            capped error log, see Lib.logError
@@ -118,7 +117,6 @@ sap.ui.define([], () => {
       checkNestAfter: false,
       checkNestAfter2: false,
       search: null,
-      pendingCustomJs: null,
 
       // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).
       // Owned by core/Router.js - see there for the route format and how the

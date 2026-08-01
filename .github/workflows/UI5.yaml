@@ -26,3 +26,5 @@ jobs:
     - run: cd app && npm ci
     - name: ui5lint (fails on any error)
       run: node .github/scripts/ui5lint-gate.mjs
+    - name: eslint
+      run: cd app && npm run lint

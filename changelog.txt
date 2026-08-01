@@ -1,5 +1,5 @@
 abap2UI5 changelog
-=================
+==================
 
 Legend
 ------
@@ -91,7 +91,7 @@ Legend
 -------------------
 
 + Stateful Session Handling
-+ Object List Item now supports “type” attribute
++ Object List Item now supports "type" attribute
 + Message Strip with formatted text options
 + Customizable Icons for Links, Expandable Text with class attributes
 + Improved Frontend File Organization

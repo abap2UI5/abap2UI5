@@ -134,6 +134,12 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     " non-ABAP runtimes - see z2ui5_cl_a2ui5_context)
     REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf IN result WITH `\n`.
     REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_newline IN result WITH `\n`.
+    " a standalone CR (not part of CR+LF, already collapsed above) is a JS
+    " line terminator too and would break the '...' literal
+    DATA(lv_cr) = substring( val = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf
+                             off = 0
+                             len = 1 ).
+    REPLACE ALL OCCURRENCES OF lv_cr IN result WITH `\r`.
 
   ENDMETHOD.
 
@@ -162,13 +168,17 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " it stays raw as before.
       FIND REGEX `^\{[0-9]+[?}]` IN lv_new.
       DATA(lv_is_placeholder) = xsdbool( sy-subrc = 0 ).
-      IF ( lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*` ) OR lv_is_placeholder = abap_true.
+      IF (     lv_new(1) <> `$`
+           AND lv_new(1) <> `{`
+           AND lv_new NP `.eB(*`
+           AND lv_new NP `.eBP(*`
+           AND lv_new NP `.eF(*` ) OR lv_is_placeholder = abap_true.
         " a quoted arg becomes a single-quoted JS string literal; escape it in
         " full (backslash, quote, CR/LF) so no value - including one carrying a
         " literal backslash or ending in '\' - can close the '...' wrapper and
         " inject JS. The raw-binding branch above (values starting with { $ or
-        " .eB) stays unescaped by design, since those are real bindings/
-        " expressions, not string data.
+        " an .eB/.eBP/.eF event expression) stays unescaped by design, since
+        " those are real bindings/expressions, not string data.
         lv_new = |'{ escape_js_string( lv_new ) }'|.
       ENDIF.
       result = |{ result }{ lv_pending }, { lv_new }|.
