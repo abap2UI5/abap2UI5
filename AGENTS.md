@@ -320,28 +320,39 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 
 Install dependencies: `npm install`
 
-### Validation sequence (run before every PR)
+### Validation sequence
+
+Two commands, both **non-destructive** — they never modify `src/` or `abaplint.jsonc`:
 
 ```bash
-npx abaplint                  # Lint check (primary quality gate)
-npm run auto_downport         # Downport for 7.02 compatibility
-npm run auto_transpile        # Transpile ABAP → JS
-npm run unit                  # Unit tests
+npm run check     # Fast inner loop: abaplint only (seconds) — run this while iterating
+npm run verify    # Full gate before every PR: check -> downport -> transpile -> unit
 ```
+
+`npm run verify` downports into `node/downport/` and runs the transpiled unit
+tests from there, so the working tree stays exactly as you left it. Use
+`npm run check` for the tight edit/validate loop and `npm run verify` before
+opening a PR. Do **not** use `npm run auto_downport` for validation — see rule 10.
 
 ### Other commands
 
 | Command | Purpose |
 |---|---|
+| `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
+| `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
+| `npm run unit` | Run the transpiled unit tests |
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
 | `npm run express` | Start dev server on port 3000 |
 | `npm run app2abap` | **Canonical** full regeneration pipeline: Prettier (`app` format) → generate → abaplint normalize. Use this after editing `app/webapp/` so only truly-changed `src/01/03/` files differ |
 | `npm run auto_app2abap` | Generate ABAP string constants from `app/webapp/` (raw, **un-normalized** — prefer `npm run app2abap` instead) |
 | `npm run auto_abaplint` | Run the auto-fix config directly |
+| `npm run xml_view_index` | Regenerate the `z2ui5_cl_xml_view` method index (see "Key Files") |
 | `npm run rename` | Test namespace-rename transformation via abaplint |
-| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` (compatibility step for 7.02 downport) |
-| `npm run strip_trailing_ws` | Strip trailing whitespace from all `src/**/*.abap` files (runs as part of `auto_downport`) |
-| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after downport copy |
+| `npm run auto_downport` | **CI only** — destructive variant that rewrites `src/` in place to produce the `702` branch. Never run this to validate work (rule 10) |
+| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` in `node/downport/` (compatibility step for 7.02 downport) |
+| `npm run strip_trailing_ws` | Strip trailing whitespace from all `node/downport/**/*.abap` files (runs as part of `downport`) |
+| `npm run downport_config` | Generate the gitignored `.github/abaplint/downport_run.jsonc` from `abap_702.jsonc` (same rules, retargeted at `node/downport/`) |
+| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after the `auto_downport` copy |
 
 ### Frontend Tooling (`app/`)
 
@@ -441,7 +452,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/cc/<Name>` of the custom controls (file location under `webapp/cc/` defines the ID; the `z2ui5` XML namespace maps to `z2ui5.cc` in `z2ui5_cl_xml_view`), their properties/events used by `z2ui5_cl_xml_view_cc`, the controller methods `eB`/`eF`, the `z2ui5/Util` module and the `z2ui5.Util` global (public date helpers — **deprecated**, kept as a backward-compatible alias; new code and new helpers go through `z2ui5/model/formatter` / the `z2ui5.Formatter` global, which re-exports them). Additive changes only. Raw view XML written by apps must declare `xmlns:z2ui5="z2ui5.cc"` (changed from `"z2ui5"` when the controls moved into `cc/`).
 9. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Shared frontend state is owned by `app/webapp/core/AppState.js`** — it documents the complete inventory of the `z2ui5.*` globals (public contract vs. internal fields) and provides the defaults for all internal fields. Framework modules must not reference the `z2ui5` global directly (ui5lint `no-project-globals`): internal fields are accessed via the `AppState.state` module export, public-contract fields via `AppState.getGlobal()/setGlobal()`. AppState itself is the only module that touches the global — it exposes the internal fields there via accessors so external consumers (apps via the js_loader popup, backend-generated HTML) keep working. Do not add new lazy `if (!z2ui5.x)` bootstrapping; add the field with its default to `AppState.createState()` instead.
-10. **`npm run auto_downport` rewrites `src/` in place** (and overwrites `abaplint.jsonc`) — it is meant for throwaway CI checkouts. When running the validation sequence locally, commit your work first and restore afterwards with `git checkout -- src/ abaplint.jsonc`.
+10. **Validate with `npm run verify`, never with `npm run auto_downport`.** `auto_downport` rewrites `src/` in place *and* overwrites `abaplint.jsonc`; it exists for exactly one purpose — producing the `702` branch in `auto_downport.yaml` — and will destroy uncommitted work if you run it to check your changes. `npm run downport` performs the identical downport into `node/downport/` and leaves the working tree untouched; `npm run verify` wraps it together with lint, transpile and unit tests.
 11. **Custom controls (`app/webapp/cc/`) delegate, they never decide** — a control exposes bindable **properties** and **events** and lets the backend drive the UI; it must not surface its own popups/toasts/dialogs (the `Geolocation` control fires an `error` event with code/message instead of showing a `MessageBox`). Lifecycle (UI5 2.x is strict): `init` and other lifecycle listeners **must not return a value** — never make them `async` (an async function returns a Promise → `_enforceNoReturnValue` FUTURE FATAL; kick the async work off in a separate helper, see `CameraSelector._loadCameras`). After every `await`, bail out when the control was destroyed (`Lib.isDestroyed`). Read the DOM defensively (guard a 0-size canvas, a missing `videoWidth`, an absent element) and **log, never throw** (`Lib.logError`). Prefer reusing a standard control or a binding over writing a new custom control at all.
 12. **Never change the key of an internal table that is passed to a classic function module (or any typed formal parameter) from `WITH DEFAULT KEY` to `WITH EMPTY KEY`.** The table type (including its key) must stay compatible with the formal parameter, otherwise the `CALL FUNCTION` fails at runtime — often silently, when the call is inside a `TRY … CATCH` / `EXCEPTIONS` guard. This bit user-exit discovery: `z2ui5_cl_a2ui5_context=>rtti_get_classes_intf_std` passes `lt_impl` to `SEO_INTERFACE_IMPLEM_GET_ALL` (`impkeys`, a `STANDARD TABLE WITH DEFAULT KEY`); switching `lt_impl` to `WITH EMPTY KEY` made the call fail, returned no `z2ui5_if_exit` implementers, and the user exit was never called. Leave such tables `WITH DEFAULT KEY` — do not "modernize" the key as a cleanup.
 13. **A module that exists only in newer UI5 must never be a hard `sap.ui.define([...])` dependency.** abap2UI5 supports OpenUI5 down to **1.71**; a dep the old release lacks 404s and the *whole component* fails to load (blank app). Resolve version-specific modules **lazily** with `sap.ui.require("…")` at the point of use and handle `undefined` gracefully (see `Component.js` Theming/Messaging probing, and the `THEMING` target in `FrontendAction.js`). Known post-1.71 modules: `sap/ui/core/Theming` and `sap/ui/core/Messaging` (both since 1.118). Before adding any `sap/ui/core/*` dependency, check its "available since" — if it is newer than 1.71, lazy-require it.

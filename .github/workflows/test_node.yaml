@@ -21,7 +21,7 @@ jobs:
         node-version: '22'
         cache: 'npm'
     - run: npm ci
-    - run: npm run auto_downport
+    - run: npm run downport
     - run: npm run auto_transpile
     - run: npm run express &
     - name: Wait for server and verify response
