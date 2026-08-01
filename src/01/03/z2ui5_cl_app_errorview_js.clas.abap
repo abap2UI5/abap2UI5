@@ -39,6 +39,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // after the user closes the developer tools they opened via its Details action.` && |\n| &&
              `  let lastDialogTitle = "";` && |\n| &&
              `  let lastDialogDetails = "";` && |\n| &&
+             `  let lastDialogOptions = {};` && |\n| &&
              `` && |\n| &&
              `  // The currently open friendly error dialog, so a second fatal error (or a` && |\n| &&
              `  // reopen from the Developer Tools) never stacks two of them.` && |\n| &&
@@ -202,7 +203,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // with Escape - MessageBox always closes on Escape and offers no way to` && |\n| &&
              `  // suppress it, whereas a Dialog with an escapeHandler that rejects stays` && |\n| &&
              `  // open until the user picks an explicit action.` && |\n| &&
-             `  function showFriendlyDialog(title, details) {` && |\n| &&
+             `  function showFriendlyDialog(title, details, options = {}) {` && |\n| &&
              `    try {` && |\n| &&
              `      const Dialog = sap.ui.require("sap/m/Dialog");` && |\n| &&
              `      const Button = sap.ui.require("sap/m/Button");` && |\n| &&
@@ -210,6 +211,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      if (!Dialog || !Button || !Text) return false;` && |\n| &&
              `      lastDialogTitle = title;` && |\n| &&
              `      lastDialogDetails = details;` && |\n| &&
+             `      lastDialogOptions = options;` && |\n| &&
              `      // Never stack two error popups (a second fatal error or a reopen).` && |\n| &&
              `      if (friendlyDialog) {` && |\n| &&
              `        friendlyDialog.destroy();` && |\n| &&
@@ -238,8 +240,37 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `          }, 1500);` && |\n| &&
              `        },` && |\n| &&
              `      });` && |\n| &&
+             `      // A failure that may never have reached the server (network blip,` && |\n| &&
+             `      // timeout) leaves the app state intact, so the caller hands over a` && |\n| &&
+             `      // retry that re-sends the exact same request. The raw overlay has` && |\n| &&
+             `      // offered it all along; the friendly dialog is what users actually` && |\n| &&
+             `      // see, so without this the retry was effectively unreachable and a` && |\n| &&
+             `      // dropped connection forced a full restart.` && |\n| &&
+             `      const buttons = [` && |\n| &&
+             `        new Button({` && |\n| &&
+             `          text: "Details",` && |\n| &&
+             `          press: () => {` && |\n| &&
+             `            dialog.close();` && |\n| &&
+             `            openDeveloperTools();` && |\n| &&
+             `          },` && |\n| &&
+             `        }),` && |\n| &&
+             `        copyButton,` && |\n| &&
+             `      ];` && |\n| &&
+             `      if (typeof options.onRetry === "function") {` && |\n| &&
+             `        buttons.push(` && |\n| &&
+             `          new Button({` && |\n| &&
+             `            text: "Retry",` && |\n| &&
+             `            press: () => {` && |\n| &&
+             `              dialog.close();` && |\n| &&
+             `              options.onRetry();` && |\n| &&
+             `            },` && |\n| &&
+             `          }),` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      buttons.push(restartButton);` && |\n| &&
              `      // sap.m.Dialog does not allow more than one begin/end button, so use the` && |\n| &&
-             `      // ``buttons`` aggregation to line up Details / Copy / Restart in the footer.` && |\n| &&
+             `      // ``buttons`` aggregation to line up Details / Copy / Retry / Restart in` && |\n| &&
+             `      // the footer.` && |\n| &&
              `      const dialog = new Dialog({` && |\n| &&
              `        title: title || "Application Error",` && |\n| &&
              `        type: "Message",` && |\n| &&
@@ -247,20 +278,10 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        icon: "sap-icon://message-error",` && |\n| &&
              `        // Escape must not dismiss the fatal-error popup: rejecting the escape` && |\n| &&
              `        // promise keeps it open, so the only ways out are the explicit` && |\n| &&
-             `        // Details / Copy / Restart actions below.` && |\n| &&
+             `        // actions built above.` && |\n| &&
              `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
              `        content: [new Text({ text: message })],` && |\n| &&
-             `        buttons: [` && |\n| &&
-             `          new Button({` && |\n| &&
-             `            text: "Details",` && |\n| &&
-             `            press: () => {` && |\n| &&
-             `              dialog.close();` && |\n| &&
-             `              openDeveloperTools();` && |\n| &&
-             `            },` && |\n| &&
-             `          }),` && |\n| &&
-             `          copyButton,` && |\n| &&
-             `          restartButton,` && |\n| &&
-             `        ],` && |\n| &&
+             `        buttons,` && |\n| &&
              `        initialFocus: restartButton,` && |\n| &&
              `        afterClose: () => {` && |\n| &&
              `          if (friendlyDialog === dialog) friendlyDialog = null;` && |\n| &&
@@ -279,7 +300,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // the user closes the DeveloperTools they opened via the popup's Details action so` && |\n| &&
              `  // they land back on the error popup. No-op if UI5 cannot render it.` && |\n| &&
              `  function reopenErrorDialog() {` && |\n| &&
-             `    return showFriendlyDialog(lastDialogTitle, lastDialogDetails);` && |\n| &&
+             `    return showFriendlyDialog(` && |\n| &&
+             `      lastDialogTitle,` && |\n| &&
+             `      lastDialogDetails,` && |\n| &&
+             `      lastDialogOptions,` && |\n| &&
+             `    );` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Logout via the launchpad if available; otherwise hit the SAP logoff URL.` && |\n| &&
@@ -315,7 +340,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      const require = sap?.ui?.require;` && |\n| &&
              `      if (typeof require !== "function") return false;` && |\n| &&
              `      require(["sap/m/Dialog", "sap/m/Button", "sap/m/Text"], () => {` && |\n| &&
-             `        if (!showFriendlyDialog(title, details)) {` && |\n| &&
+             `        if (!showFriendlyDialog(title, details, options)) {` && |\n| &&
              `          showRawOverlay(title, details, options);` && |\n| &&
              `        }` && |\n| &&
              `      }, () => showRawOverlay(title, details, options));` && |\n| &&
@@ -347,8 +372,9 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // Prefer a friendly UI5 dialog (the error text + Details / Restart).` && |\n| &&
-             `    if (showFriendlyDialog(title, errorMessage)) return;` && |\n| &&
+             `    // Prefer a friendly UI5 dialog (the error text + Details / Restart, plus` && |\n| &&
+             `    // Retry when the caller offered one).` && |\n| &&
+             `    if (showFriendlyDialog(title, errorMessage, options)) return;` && |\n| &&
              `` && |\n| &&
              `    // Its modules were not loaded yet: load them asynchronously and retry, so` && |\n| &&
              `    // the error still lands in the friendly popup first (see` && |\n| &&
@@ -391,7 +417,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      const retryBtn = document.createElement("button");` && |\n| &&
              `      retryBtn.type = "button";` && |\n| &&
              `      retryBtn.textContent = "Retry";` && |\n| &&
-             `      retryBtn.style.cssText = btnStyle;` && |\n| &&
+             `      retryBtn.style.cssText = btnStyle;` && |\n|.
+    result = result &&
              `      retryBtn.addEventListener("click", () => {` && |\n| &&
              `        errorContainer.remove();` && |\n| &&
              `        options.onRetry();` && |\n| &&
@@ -417,8 +444,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
              `    // Keep keyboard focus inside the overlay: Tab cycles through the action` && |\n| &&
-             `    // buttons instead of escaping into the broken page behind it. The button` && |\n|.
-    result = result &&
+             `    // buttons instead of escaping into the broken page behind it. The button` && |\n| &&
              `    // set is complete here (all appended above), so resolve first/last once` && |\n| &&
              `    // rather than re-querying the DOM on every Tab press.` && |\n| &&
              `    const trapButtons = actionsDiv.querySelectorAll("button");` && |\n| &&

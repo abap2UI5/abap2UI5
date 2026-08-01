@@ -108,8 +108,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // named phases: display pending fragments/views, then update the` && |\n| &&
              `      // browser history/hash.` && |\n| &&
              `      async _processAfterRendering() {` && |\n| &&
+             `        // Bound outside the try so the finally below runs the follow-up JS of` && |\n| &&
+             `        // THIS response - reading the live global there would let an older` && |\n| &&
+             `        // render consume (and discard) the snippets of a newer response that` && |\n| &&
+             `        // arrived meanwhile, which is exactly what stashing them on the` && |\n| &&
+             `        // response record prevents.` && |\n| &&
+             `        const oResponse = AppState.state.oResponse;` && |\n| &&
              `        try {` && |\n| &&
-             `          const oResponse = AppState.state.oResponse;` && |\n| &&
              `          if (oResponse._processed) return;` && |\n| &&
              `          oResponse._processed = true;` && |\n| &&
              `` && |\n| &&
@@ -141,7 +146,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // run the follow-up JS snippets the backend asked for. Doing it here` && |\n| &&
              `          // - rather than as an early microtask - guarantees render-dependent` && |\n| &&
              `          // actions like SET_FOCUS find their target control in the DOM.` && |\n| &&
-             `          this._runPendingCustomJs(AppState.state.oResponse);` && |\n| &&
+             `          this._runPendingCustomJs(oResponse);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -412,13 +417,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      textPath(oControl, sSeparator) {` && |\n| &&
              `        return Lib.getTextPath(oControl, sSeparator);` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eB = "event backend": triggers a backend roundtrip with arguments.` && |\n| &&
              `      // The name is part of the protocol - backend-generated view XML binds` && |\n| &&
              `      // events to eB/eF - and must not be renamed.` && |\n| &&
-             `      //` && |\n|.
-    result = result &&
+             `      //` && |\n| &&
              `      // args[0] is the event array built by the backend (get_event):` && |\n| &&
              `      //   [0] event name` && |\n| &&
              `      //   [1] reserved placeholder, always false` && |\n| &&

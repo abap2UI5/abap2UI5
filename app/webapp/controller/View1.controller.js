@@ -88,8 +88,13 @@ sap.ui.define(
       // named phases: display pending fragments/views, then update the
       // browser history/hash.
       async _processAfterRendering() {
+        // Bound outside the try so the finally below runs the follow-up JS of
+        // THIS response - reading the live global there would let an older
+        // render consume (and discard) the snippets of a newer response that
+        // arrived meanwhile, which is exactly what stashing them on the
+        // response record prevents.
+        const oResponse = AppState.state.oResponse;
         try {
-          const oResponse = AppState.state.oResponse;
           if (oResponse._processed) return;
           oResponse._processed = true;
 
@@ -121,7 +126,7 @@ sap.ui.define(
           // run the follow-up JS snippets the backend asked for. Doing it here
           // - rather than as an early microtask - guarantees render-dependent
           // actions like SET_FOCUS find their target control in the DOM.
-          this._runPendingCustomJs(AppState.state.oResponse);
+          this._runPendingCustomJs(oResponse);
         }
       },
 

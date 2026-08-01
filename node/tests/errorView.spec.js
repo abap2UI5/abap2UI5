@@ -226,6 +226,39 @@ test.describe("ErrorView friendly dialog", () => {
     expect(showCalls).toEqual(["ERROR"]);
   });
 
+  test("offers Retry in the dialog when the caller passed one", () => {
+    const { ErrorView, created } = load();
+    const retries = [];
+    // Server.readHttp offers a retry for network/timeout failures - the
+    // request may never have reached the server, so the app state is intact
+    // and re-sending the same body beats a full restart. The friendly dialog
+    // is what users actually see, so it has to carry the action.
+    ErrorView.show("Network error: failed to fetch", undefined, {
+      onRetry: () => retries.push(true),
+    });
+    const dialog = created.dialogs[0];
+    const [details, copy, retry, restart] = dialog.settings.buttons;
+    expect([details.settings.text, copy.settings.text]).toEqual([
+      "Details",
+      "Copy",
+    ]);
+    expect(retry.settings.text).toBe("Retry");
+    expect(restart.settings.text).toBe("Restart");
+
+    retry.settings.press();
+    expect(dialog.open_called).toBe(false); // dialog closed first
+    expect(retries).toEqual([true]);
+  });
+
+  test("omits Retry when the caller offered none", () => {
+    const { ErrorView, created } = load();
+    ErrorView.show("dump");
+    const labels = created.dialogs[0].settings.buttons.map(
+      (b) => b.settings.text,
+    );
+    expect(labels).toEqual(["Details", "Copy", "Restart"]);
+  });
+
   test("Restart reloads the page", () => {
     const { ErrorView, reloads, created } = load();
     ErrorView.show("dump");

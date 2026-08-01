@@ -85,13 +85,17 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `      // fires the event.` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        if (!this._pendingInfo) return;` && |\n| &&
-             `        this._pendingInfo = false;` && |\n| &&
              `        try {` && |\n| &&
              `          // The device model is created by Component.init(); it exposes` && |\n| &&
-             `          // system / resize / os / browser info.` && |\n| &&
+             `          // system / resize / os / browser info. It reaches this control` && |\n| &&
+             `          // through model propagation, so on the very first rendering of a` && |\n| &&
+             `          // freshly built view it may not be attached yet - keep the pending` && |\n| &&
+             `          // flag in that case so the next rendering retries, instead of` && |\n| &&
+             `          // consuming it and never firing ``finished`` at all.` && |\n| &&
              `          const deviceModel = ViewSlots.getView("MAIN")?.getModel("device");` && |\n| &&
              `          const deviceData = deviceModel?.getData();` && |\n| &&
              `          if (!deviceData) return;` && |\n| &&
+             `          this._pendingInfo = false;` && |\n| &&
              `` && |\n| &&
              `          const { system, resize, os, browser } = deviceData;` && |\n| &&
              `          // Filled by Component._initVersionInfo (async, may not have` && |\n| &&

@@ -31,6 +31,18 @@ sap.ui.define(
     const CH_SQUOTE = String.fromCharCode(39);
     const CH_DQUOTE = String.fromCharCode(34);
 
+    // Undo the escapes the backend applies to a single-quoted argument
+    // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the
+    // line breaks it rewrites to \n / \r - a raw newline would be a syntax
+    // error inside a JS string literal, so a multi-line argument only ever
+    // travels escaped. Decoding them in one pass keeps the order right: a
+    // literal backslash-n ("\\n" on the wire) stays text instead of turning
+    // into a line break.
+    const EF_UNESCAPE = { n: "\n", r: "\r" };
+    function unescapeEfString(body) {
+      return body.replace(/\\(.)/g, (match, ch) => EF_UNESCAPE[ch] ?? ch);
+    }
+
     // Convert a single JS-literal argument (as produced by the backend
     // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,
     // JSON objects / arrays, numbers, booleans and null.
@@ -38,7 +50,7 @@ sap.ui.define(
       if (token === "") return undefined;
       const first = token[0];
       if (first === CH_SQUOTE) {
-        return token.slice(1, -1).replace(/\\([\x27\\])/g, "$1");
+        return unescapeEfString(token.slice(1, -1));
       }
       if (first === CH_DQUOTE || first === "{" || first === "[") {
         try {

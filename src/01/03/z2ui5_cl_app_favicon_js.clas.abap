@@ -35,7 +35,12 @@ CLASS z2ui5_cl_app_favicon_js IMPLEMENTATION.
              `      // (updating the <link> tag) is what actually matters.` && |\n| &&
              `      this.setProperty("favicon", val, true);` && |\n| &&
              `      const href = Lib.toText(val);` && |\n| &&
-             `      const existing = document.head.querySelector('link[rel="shortcut icon"]');` && |\n| &&
+             `      // Match ANY icon link, not just rel="shortcut icon": a page that` && |\n| &&
+             `      // declares the modern rel="icon" (or "icon shortcut") would otherwise` && |\n| &&
+             `      // keep its own link and get a second, competing one appended on every` && |\n| &&
+             `      // app start - which icon the browser then shows is up to it.` && |\n| &&
+             `      // ~= matches one entry of the whitespace-separated rel list.` && |\n| &&
+             `      const existing = document.head.querySelector('link[rel~="icon"]');` && |\n| &&
              `      if (existing) {` && |\n| &&
              `        existing.href = href;` && |\n| &&
              `        return;` && |\n| &&
