@@ -1,7 +1,14 @@
 {
   "global": {
-    "files": "/../../src/**/*.*",
-    "noIssues": [ "/src/00", "/src/99" ]
+    // src/99 is deliberately NOT listed: historical only (see AGENTS.md),
+    // never analyzed or fixed
+    "files": [
+      "/../../src/00/**/*.*",
+      "/../../src/01/**/*.*",
+      "/../../src/02/**/*.*",
+      "/../../src/*.*"
+    ],
+    "noIssues": [ "/src/00" ]
   },
   "dependencies": [
     {
