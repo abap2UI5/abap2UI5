@@ -19,11 +19,14 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_ai_xml=>factory( ).
 
-    view->open( n = `View` ns = `mvc`
-        )->a( n = `xmlns` v = `sap.m`
+    view->open( n  = `View`
+                ns = `mvc`
+        )->a( n = `xmlns`
+              v = `sap.m`
 
         )->leaf( `Text`
-            )->a( n = `text` v = `Hello`
+            )->a( n = `text`
+                  v = `Hello`
 
         )->open( `Panel`
             )->leaf( `Title`
@@ -44,9 +47,11 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     view->open( `Page`
         )->leaf( `Text`
-            )->a( n = `text` v = `first`
+            )->a( n = `text`
+                  v = `first`
         )->leaf( `Text`
-            )->a( n = `text` v = `second` ).
+            )->a( n = `text`
+                  v = `second` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -64,8 +69,9 @@ CLASS ltcl_builder IMPLEMENTATION.
     view->open( `Panel`
         )->leaf( `Title`
 
-    )->shut(
-        )->a( n = `width` v = `100%` ).
+      )->shut(
+        )->a( n = `width`
+              v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -94,7 +100,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ai_xml=>factory( ).
 
     view->leaf( `Text`
-        )->a( n = `text` v = `a<b>&"c` ).
+        )->a( n = `text`
+              v = `a<b>&"c` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -110,7 +117,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ai_xml=>factory( ).
 
     view->leaf( `Text`
-        )->a( n = `text` v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
+        )->a( n = `text`
+              v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )

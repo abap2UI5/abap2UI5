@@ -133,12 +133,15 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
 
   METHOD parse_attr.
 
-    DATA(off) = find( val = kv sub = `=` ).
+    DATA(off) = find( val = kv
+                      sub = `=` ).
     IF off < 0.
       result-n = condense( kv ).
     ELSE.
-      result-n = condense( substring( val = kv len = off ) ).
-      result-v = substring( val = kv off = off + 1 ).
+      result-n = condense( substring( val = kv
+                                      len = off ) ).
+      result-v = substring( val = kv
+                            off = off + 1 ).
     ENDIF.
 
   ENDMETHOD.
@@ -242,18 +245,39 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
   METHOD xml_escape.
 
     result = val.
-    result = replace( val = result sub = `&` with = `&amp;` occ = 0 ).
-    result = replace( val = result sub = `<` with = `&lt;` occ = 0 ).
-    result = replace( val = result sub = `>` with = `&gt;` occ = 0 ).
-    result = replace( val = result sub = `"` with = `&quot;` occ = 0 ).
+    result = replace( val  = result
+                      sub  = `&`
+                      with = `&amp;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `<`
+                      with = `&lt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `>`
+                      with = `&gt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `&quot;`
+                      occ  = 0 ).
     " whitespace as character references - a literal LF/CR/TAB in an attribute
     " value is turned into a plain space by XML attribute-value normalization,
     " so line breaks (e.g. a two-line noDataText) would silently disappear.
     " char constants come from the context class - the one place allowed to
     " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
-    result = replace( val = result sub = z2ui5_cl_a2ui5_context=>cv_char_util_newline        with = `&#xA;` occ = 0 ).
-    result = replace( val = result sub = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)       with = `&#xD;` occ = 0 ).
-    result = replace( val = result sub = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab with = `&#x9;` occ = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_newline
+                      with = `&#xA;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)
+                      with = `&#xD;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab
+                      with = `&#x9;`
+                      occ  = 0 ).
 
   ENDMETHOD.
 

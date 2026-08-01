@@ -181,16 +181,24 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_ai_xml=>factory( ).
 
-    DATA(page) = view->open( n = `View` ns = `mvc`
-        )->a( n = `xmlns`        v = `sap.m`
-        )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
-        )->a( n = `xmlns:form`   v = `sap.ui.layout.form`
-        )->a( n = `displayBlock` v = `true`
-        )->a( n = `height`       v = `100%`
+    DATA(page) = view->open( n  = `View`
+                             ns = `mvc`
+        )->a( n = `xmlns`
+              v = `sap.m`
+        )->a( n = `xmlns:mvc`
+              v = `sap.ui.core.mvc`
+        )->a( n = `xmlns:form`
+              v = `sap.ui.layout.form`
+        )->a( n = `displayBlock`
+              v = `true`
+        )->a( n = `height`
+              v = `100%`
         )->open( `Shell`
         )->open( `Page`
-            )->a( n = `title`         v = `abap2UI5 - Building UI5 Apps Purely in ABAP`
-            )->a( n = `showNavButton` v = `false` ).
+            )->a( n = `title`
+                  v = `abap2UI5 - Building UI5 Apps Purely in ABAP`
+            )->a( n = `showNavButton`
+                  v = `false` ).
 
     render_header_toolbar( page ).
 
@@ -209,19 +217,28 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     DATA(toolbar) = page->open( `headerContent` ).
     toolbar->leaf( `ToolbarSpacer`
       )->leaf( `Button`
-          )->a( n = `text`  v = `Developer Tools`
-          )->a( n = `icon`  v = `sap-icon://enablement`
-          )->a( n = `press` v = client->_event( cs_event-open_debug )
+          )->a( n = `text`
+                v = `Developer Tools`
+          )->a( n = `icon`
+                v = `sap-icon://enablement`
+          )->a( n = `press`
+                v = client->_event( cs_event-open_debug )
       )->leaf( `Button`
-          )->a( n = `text`  v = `System`
-          )->a( n = `icon`  v = `sap-icon://information`
-          )->a( n = `press` v = client->_event( cs_event-open_info ) ).
+          )->a( n = `text`
+                v = `System`
+          )->a( n = `icon`
+                v = `sap-icon://information`
+          )->a( n = `press`
+                v = client->_event( cs_event-open_info ) ).
 
     IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->leaf( `Button`
-          )->a( n = `text`  v = `Config`
-          )->a( n = `icon`  v = `sap-icon://settings`
-          )->a( n = `press` v = client->_event( cs_event-set_config ) ).
+          )->a( n = `text`
+                v = `Config`
+          )->a( n = `icon`
+                v = `sap-icon://settings`
+          )->a( n = `press`
+                v = client->_event( cs_event-set_config ) ).
     ENDIF.
 
   ENDMETHOD.
@@ -229,73 +246,110 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD render_quickstart.
 
     form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text` v = `Quickstart`
-    )->shut( ).
+        )->leaf( `Title` )->a( n = `text`
+                               v = `Quickstart`
+      )->shut( ).
 
-    form->leaf( `Label` )->a( n = `text` v = `Step 1`
-      )->leaf( `Text` )->a( n = `text` v = `Create a new class in your ABAP system`
-      )->leaf( `Label` )->a( n = `text` v = `Step 2`
-      )->leaf( `Text` )->a( n = `text` v = `Add the interface: Z2UI5_IF_APP`
-      )->leaf( `Label` )->a( n = `text` v = `Step 3`
-      )->leaf( `Text` )->a( n = `text` v = `Define the view, implement behavior`
+    form->leaf( `Label` )->a( n = `text`
+                              v = `Step 1`
+      )->leaf( `Text` )->a( n = `text`
+                            v = `Create a new class in your ABAP system`
+      )->leaf( `Label` )->a( n = `text`
+                             v = `Step 2`
+      )->leaf( `Text` )->a( n = `text`
+                            v = `Add the interface: Z2UI5_IF_APP`
+      )->leaf( `Label` )->a( n = `text`
+                             v = `Step 3`
+      )->leaf( `Text` )->a( n = `text`
+                            v = `Define the view, implement behavior`
       )->leaf( `Label`
       )->leaf( `Link`
-          )->a( n = `text`   v = `(Example)`
-          )->a( n = `target` v = `_blank`
-          )->a( n = `href`   v = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_app_hello_world.clas.abap`
-      )->leaf( `Label` )->a( n = `text` v = `Step 4` ).
+          )->a( n = `text`
+                v = `(Example)`
+          )->a( n = `target`
+                v = `_blank`
+          )->a( n = `href`
+                v = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_app_hello_world.clas.abap`
+      )->leaf( `Label` )->a( n = `text`
+                             v = `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
       form->leaf( `Input`
-          )->a( n = `placeholder`    v = `fill in the class name and press 'check'`
-          )->a( n = `enabled`        v = client->_bind( ms_home-class_editable )
-          )->a( n = `value`          v = client->_bind_edit( ms_home-classname )
-          )->a( n = `valueState`     v = client->_bind( ms_home-class_value_state )
-          )->a( n = `valueStateText` v = client->_bind( ms_home-class_value_state_text )
-          )->a( n = `submit`         v = client->_event( ms_home-btn_event_id )
-          )->a( n = `width`          v = `70%` ).
+          )->a( n = `placeholder`
+                v = `fill in the class name and press 'check'`
+          )->a( n = `enabled`
+                v = client->_bind( ms_home-class_editable )
+          )->a( n = `value`
+                v = client->_bind_edit( ms_home-classname )
+          )->a( n = `valueState`
+                v = client->_bind( ms_home-class_value_state )
+          )->a( n = `valueStateText`
+                v = client->_bind( ms_home-class_value_state_text )
+          )->a( n = `submit`
+                v = client->_event( ms_home-btn_event_id )
+          )->a( n = `width`
+                v = `70%` ).
     ELSE.
-      form->leaf( `Text` )->a( n = `text` v = ms_home-classname ).
+      form->leaf( `Text` )->a( n = `text`
+                               v = ms_home-classname ).
     ENDIF.
 
     form->leaf( `Label` ).
     form->leaf( `Button`
-        )->a( n = `press` v = client->_event( ms_home-btn_event_id )
-        )->a( n = `text`  v = client->_bind( ms_home-btn_text )
-        )->a( n = `icon`  v = client->_bind( ms_home-btn_icon )
-        )->a( n = `width` v = `70%` ).
+        )->a( n = `press`
+              v = client->_event( ms_home-btn_event_id )
+        )->a( n = `text`
+              v = client->_bind( ms_home-btn_text )
+        )->a( n = `icon`
+              v = client->_bind( ms_home-btn_icon )
+        )->a( n = `width`
+              v = `70%` ).
 
-    form->leaf( `Label` )->a( n = `text` v = `Step 5`
+    form->leaf( `Label` )->a( n = `text`
+                              v = `Step 5`
       )->leaf( `Link`
-          )->a( n = `text`    v = `Link to the Application`
-          )->a( n = `target`  v = `_blank`
-          )->a( n = `href`    v = client->_bind( ms_home-url )
-          )->a( n = `enabled` v = client->_bind( ms_home-link_enabled ) ).
+          )->a( n = `text`
+                v = `Link to the Application`
+          )->a( n = `target`
+                v = `_blank`
+          )->a( n = `href`
+                v = client->_bind( ms_home-url )
+          )->a( n = `enabled`
+                v = client->_bind( ms_home-link_enabled ) ).
 
   ENDMETHOD.
 
   METHOD render_whats_next.
 
     form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text` v = `What's next?`
-    )->shut( ).
+        )->leaf( `Title` )->a( n = `text`
+                               v = `What's next?`
+      )->shut( ).
 
     DATA(lv_class_samples) = COND string(
       WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
 
     IF lv_class_samples IS NOT INITIAL.
-      form->leaf( `Label` )->a( n = `text` v = `Start Developing` ).
+      form->leaf( `Label` )->a( n = `text`
+                                v = `Start Developing` ).
       form->leaf( `Button`
-          )->a( n = `text`  v = `Explore Code Samples`
-          )->a( n = `press` v = client->_event_client( val   = client->cs_event-open_new_tab
+          )->a( n = `text`
+                v = `Explore Code Samples`
+          )->a( n = `press`
+                v = client->_event_client( val               = client->cs_event-open_new_tab
                                                        t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
-          )->a( n = `width` v = `70%` ).
+          )->a( n = `width`
+                v = `70%` ).
     ELSE.
-      form->leaf( `Label` )->a( n = `text` v = `Install the sample repository` ).
+      form->leaf( `Label` )->a( n = `text`
+                                v = `Install the sample repository` ).
       form->leaf( `Link`
-          )->a( n = `text`   v = `And explore more than 250 sample apps...`
-          )->a( n = `target` v = `_blank`
-          )->a( n = `href`   v = `https://github.com/abap2UI5/samples` ).
+          )->a( n = `text`
+                v = `And explore more than 250 sample apps...`
+          )->a( n = `target`
+                v = `_blank`
+          )->a( n = `href`
+                v = `https://github.com/abap2UI5/samples` ).
     ENDIF.
 
   ENDMETHOD.
@@ -303,34 +357,47 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD render_contribution.
 
     form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text` v = `Contribution`
-    )->shut( ).
+        )->leaf( `Title` )->a( n = `text`
+                               v = `Contribution`
+      )->shut( ).
 
-    form->leaf( `Label` )->a( n = `text` v = `Open an issue` ).
+    form->leaf( `Label` )->a( n = `text`
+                              v = `Open an issue` ).
     form->leaf( `Link`
-        )->a( n = `text`   v = `You have problems, comments or wishes?`
-        )->a( n = `target` v = `_blank`
-        )->a( n = `href`   v = `https://github.com/abap2UI5/abap2UI5/issues` ).
+        )->a( n = `text`
+              v = `You have problems, comments or wishes?`
+        )->a( n = `target`
+              v = `_blank`
+        )->a( n = `href`
+              v = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
-    form->leaf( `Label` )->a( n = `text` v = `Open a Pull Request` ).
+    form->leaf( `Label` )->a( n = `text`
+                              v = `Open a Pull Request` ).
     form->leaf( `Link`
-        )->a( n = `text`   v = `You added a new feature or fixed a bug?`
-        )->a( n = `target` v = `_blank`
-        )->a( n = `href`   v = `https://github.com/abap2UI5/abap2UI5/pulls` ).
+        )->a( n = `text`
+              v = `You added a new feature or fixed a bug?`
+        )->a( n = `target`
+              v = `_blank`
+        )->a( n = `href`
+              v = `https://github.com/abap2UI5/abap2UI5/pulls` ).
 
   ENDMETHOD.
 
   METHOD render_documentation.
 
     form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text` v = `Documentation`
-    )->shut( ).
+        )->leaf( `Title` )->a( n = `text`
+                               v = `Documentation`
+      )->shut( ).
 
     form->leaf( `Label` ).
     form->leaf( `Link`
-        )->a( n = `text`   v = `abap2UI5.org`
-        )->a( n = `target` v = `_blank`
-        )->a( n = `href`   v = `https://abap2UI5.org` ).
+        )->a( n = `text`
+              v = `abap2UI5.org`
+        )->a( n = `target`
+              v = `_blank`
+        )->a( n = `href`
+              v = `https://abap2UI5.org` ).
 
   ENDMETHOD.
 
@@ -338,50 +405,76 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_ai_xml=>factory( ).
 
-    DATA(dialog) = popup->open( n = `FragmentDefinition` ns = `core`
-        )->a( n = `xmlns`      v = `sap.m`
-        )->a( n = `xmlns:core` v = `sap.ui.core`
-        )->a( n = `xmlns:form` v = `sap.ui.layout.form`
+    DATA(dialog) = popup->open( n  = `FragmentDefinition`
+                                ns = `core`
+        )->a( n = `xmlns`
+              v = `sap.m`
+        )->a( n = `xmlns:core`
+              v = `sap.ui.core`
+        )->a( n = `xmlns:form`
+              v = `sap.ui.layout.form`
         )->open( `Dialog`
-            )->a( n = `title`      v = `abap2UI5 - System Information`
-            )->a( n = `afterClose` v = client->_event( cs_event-close ) ).
+            )->a( n = `title`
+                  v = `abap2UI5 - System Information`
+            )->a( n = `afterClose`
+                  v = client->_event( cs_event-close ) ).
 
     DATA(form) = create_layout_form( dialog->open( `content` ) ).
     DATA(ls_client) = client->get( ).
 
     form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text` v = `Frontend`
-    )->shut( ).
-    form->leaf( `Label` )->a( n = `text` v = `UI5 Version` ).
-    form->leaf( `Text` )->a( n = `text` v = ls_client-s_ui5-version ).
-    form->leaf( `Label` )->a( n = `text` v = `Launchpad active` ).
+        )->leaf( `Title` )->a( n = `text`
+                               v = `Frontend`
+      )->shut( ).
+    form->leaf( `Label` )->a( n = `text`
+                              v = `UI5 Version` ).
+    form->leaf( `Text` )->a( n = `text`
+                             v = ls_client-s_ui5-version ).
+    form->leaf( `Label` )->a( n = `text`
+                              v = `Launchpad active` ).
     form->leaf( `CheckBox`
-        )->a( n = `selected` v = z2ui5_cl_ai_xml=>as_bool( ls_client-check_launchpad_active )
-        )->a( n = `enabled`  v = `false` ).
+        )->a( n = `selected`
+              v = z2ui5_cl_ai_xml=>as_bool( ls_client-check_launchpad_active )
+        )->a( n = `enabled`
+              v = `false` ).
 
     form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text` v = `Backend`
-    )->shut( ).
-    form->leaf( `Label` )->a( n = `text` v = `ABAP for Cloud` ).
+        )->leaf( `Title` )->a( n = `text`
+                               v = `Backend`
+      )->shut( ).
+    form->leaf( `Label` )->a( n = `text`
+                              v = `ABAP for Cloud` ).
     form->leaf( `CheckBox`
-        )->a( n = `selected` v = z2ui5_cl_ai_xml=>as_bool( z2ui5_cl_a2ui5_context=>check_abap_cloud( ) )
-        )->a( n = `enabled`  v = `false` ).
-    form->leaf( `Label` )->a( n = `text` v = `User Exit` ).
-    form->leaf( `Text` )->a( n = `text` v = z2ui5_cl_exit=>get_user_exit_class( ) ).
+        )->a( n = `selected`
+              v = z2ui5_cl_ai_xml=>as_bool( z2ui5_cl_a2ui5_context=>check_abap_cloud( ) )
+        )->a( n = `enabled`
+              v = `false` ).
+    form->leaf( `Label` )->a( n = `text`
+                              v = `User Exit` ).
+    form->leaf( `Text` )->a( n = `text`
+                             v = z2ui5_cl_exit=>get_user_exit_class( ) ).
 
     form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text` v = `abap2UI5`
-    )->shut( ).
-    form->leaf( `Label` )->a( n = `text` v = `Version` ).
-    form->leaf( `Text` )->a( n = `text` v = z2ui5_if_app=>version ).
-    form->leaf( `Label` )->a( n = `text` v = `Draft Entries (own)` ).
-    form->leaf( `Text` )->a( n = `text` v = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
+        )->leaf( `Title` )->a( n = `text`
+                               v = `abap2UI5`
+      )->shut( ).
+    form->leaf( `Label` )->a( n = `text`
+                              v = `Version` ).
+    form->leaf( `Text` )->a( n = `text`
+                             v = z2ui5_if_app=>version ).
+    form->leaf( `Label` )->a( n = `text`
+                              v = `Draft Entries (own)` ).
+    form->leaf( `Text` )->a( n = `text`
+                             v = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
 
     dialog->open( `endButton`
         )->leaf( `Button`
-            )->a( n = `text`  v = `Close`
-            )->a( n = `press` v = client->_event( cs_event-close )
-            )->a( n = `type`  v = `Emphasized` ).
+            )->a( n = `text`
+                  v = `Close`
+            )->a( n = `press`
+                  v = client->_event( cs_event-close )
+            )->a( n = `type`
+                  v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -389,23 +482,40 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD create_layout_form.
 
-    result = view->open( n = `SimpleForm` ns = `form`
-        )->a( n = `editable`                v = `true`
-        )->a( n = `layout`                  v = `ResponsiveGridLayout`
-        )->a( n = `labelSpanXL`             v = `4`
-        )->a( n = `labelSpanL`              v = `3`
-        )->a( n = `labelSpanM`              v = `4`
-        )->a( n = `labelSpanS`              v = `12`
-        )->a( n = `adjustLabelSpan`         v = `false`
-        )->a( n = `emptySpanXL`             v = `0`
-        )->a( n = `emptySpanL`              v = `4`
-        )->a( n = `emptySpanM`              v = `0`
-        )->a( n = `emptySpanS`              v = `0`
-        )->a( n = `columnsXL`               v = `1`
-        )->a( n = `columnsL`                v = `1`
-        )->a( n = `columnsM`                v = `1`
-        )->a( n = `singleContainerFullSize` v = `false`
-        )->open( n = `content` ns = `form` ).
+    result = view->open( n  = `SimpleForm`
+                         ns = `form`
+        )->a( n = `editable`
+              v = `true`
+        )->a( n = `layout`
+              v = `ResponsiveGridLayout`
+        )->a( n = `labelSpanXL`
+              v = `4`
+        )->a( n = `labelSpanL`
+              v = `3`
+        )->a( n = `labelSpanM`
+              v = `4`
+        )->a( n = `labelSpanS`
+              v = `12`
+        )->a( n = `adjustLabelSpan`
+              v = `false`
+        )->a( n = `emptySpanXL`
+              v = `0`
+        )->a( n = `emptySpanL`
+              v = `4`
+        )->a( n = `emptySpanM`
+              v = `0`
+        )->a( n = `emptySpanS`
+              v = `0`
+        )->a( n = `columnsXL`
+              v = `1`
+        )->a( n = `columnsL`
+              v = `1`
+        )->a( n = `columnsM`
+              v = `1`
+        )->a( n = `singleContainerFullSize`
+              v = `false`
+        )->open( n  = `content`
+                 ns = `form` ).
 
   ENDMETHOD.
 
