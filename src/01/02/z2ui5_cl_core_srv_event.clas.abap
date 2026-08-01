@@ -18,7 +18,29 @@ CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    METHODS get_event_client_json
+      IMPORTING
+        val           TYPE clike
+        view          TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
+        t_arg         TYPE string_table OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
+    TYPES:
+      BEGIN OF ty_s_client_event,
+        val   TYPE string,
+        t_arg TYPE string_table,
+      END OF ty_s_client_event.
+
+    METHODS map_client_event
+      IMPORTING
+        val           TYPE clike
+        view          TYPE clike
+        t_arg         TYPE string_table
+      RETURNING
+        VALUE(result) TYPE ty_s_client_event.
+
     METHODS get_t_arg
       IMPORTING
         val           TYPE string_table
@@ -70,6 +92,16 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   METHOD get_event_client.
 
+    DATA(ls_event) = map_client_event( val   = val
+                                       view  = view
+                                       t_arg = t_arg ).
+
+    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ escape_js_string( ls_event-val ) }'{ get_t_arg( ls_event-t_arg ) }|.
+
+  ENDMETHOD.
+
+  METHOD map_client_event.
+
     DATA(lv_val) = CONV string( val ).
     DATA(lt_arg) = t_arg.
 
@@ -120,7 +152,72 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
                         ( lv_bind_path ) ).
     ENDIF.
 
-    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ escape_js_string( lv_val ) }'{ get_t_arg( lt_arg ) }|.
+    result-val   = lv_val.
+    result-t_arg = lt_arg.
+
+  ENDMETHOD.
+
+  METHOD get_event_client_json.
+
+    " Serialize a framework follow-up action as DATA - a JSON array
+    " ["EVENT", arg1, ...] - instead of an executable eF( ) JS snippet. The
+    " backend owns the whole serialization including the escaping (via AJSON);
+    " the frontend only JSON-parses the array and dispatches it
+    " (Server._runCustomJs), so no JS string literal is built here or
+    " re-parsed there on this path. The XML-bound handler strings
+    " (get_event_client) keep the JS form - they live inside view XML, where
+    " UI5 itself parses the handler expression.
+    DATA(ls_event) = map_client_event( val   = val
+                                       view  = view
+                                       t_arg = t_arg ).
+
+    " same contract as get_t_arg: an empty argument between filled ones keeps
+    " its position, trailing empties are dropped - the frontend only casts the
+    " args that were sent, so a trailing `` would turn open() into open('')
+    DATA(lv_index) = lines( ls_event-t_arg ).
+    WHILE lv_index > 0.
+      IF ls_event-t_arg[ lv_index ] IS NOT INITIAL.
+        EXIT.
+      ENDIF.
+      DELETE ls_event-t_arg INDEX lv_index.
+      lv_index = lv_index - 1.
+    ENDWHILE.
+
+    TRY.
+        DATA(li_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        li_json->touch_array( `/` ).
+        li_json->push( iv_path = `/`
+                       iv_val  = ls_event-val ).
+
+        LOOP AT ls_event-t_arg INTO DATA(lv_arg).
+          DATA(lv_is_embedded) = abap_false.
+          IF lv_arg IS NOT INITIAL AND ( lv_arg(1) = `{` OR lv_arg(1) = `[` ).
+            " a JSON object/array argument (the STORE_DATA payload, the
+            " compound filter groups, ...) is embedded as real JSON so the
+            " frontend receives a ready-to-use object - the counterpart of
+            " the raw (unquoted) branch in get_t_arg. Values that only look
+            " like JSON ({0} message placeholders, {/PATH} bindings) fail to
+            " parse and stay plain strings, exactly what the frontend's own
+            " JSON.parse fallback produced for them before.
+            TRY.
+                li_json->push( iv_path = `/`
+                               iv_val  = z2ui5_cl_ajson=>parse( lv_arg ) ).
+                lv_is_embedded = abap_true.
+              CATCH cx_root ##NO_HANDLER.
+            ENDTRY.
+          ENDIF.
+          IF lv_is_embedded = abap_false.
+            li_json->push( iv_path = `/`
+                           iv_val  = lv_arg ).
+          ENDIF.
+        ENDLOOP.
+
+        result = li_json->stringify( ).
+      CATCH cx_root INTO DATA(lx_error).
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING
+            val = lx_error.
+    ENDTRY.
 
   ENDMETHOD.
 

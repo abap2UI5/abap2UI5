@@ -388,11 +388,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                  t_arg = VALUE #( ( `My Title` ) ) ).
     li_client->follow_up_action( z2ui5_if_client=>cs_event-history_back ).
 
+    " framework events travel as pure data - a JSON array serialized in ABAP
+    " (get_event_client_json), not as an executable eF( ) JS snippet
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `.eF('SET_TITLE', 'My Title')`
+    cl_abap_unit_assert=>assert_equals( exp = `["SET_TITLE","My Title"]`
                                         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
-    cl_abap_unit_assert=>assert_equals( exp = `.eF('HISTORY_BACK')`
+    cl_abap_unit_assert=>assert_equals( exp = `["HISTORY_BACK"]`
                                         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
 
   ENDMETHOD.
@@ -412,10 +414,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eF('CONTROL_BY_ID', 'myContainer', 'MAIN', 'to', 'myPage')`
+        exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eF('CONTROL_BY_ID', 'popContainer', 'POPUP', 'to', 'popPage')`
+        exp = `["CONTROL_BY_ID","popContainer","POPUP","to","popPage"]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
 
   ENDMETHOD.
@@ -440,13 +442,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eF('CONTROL_GLOBAL', 'MESSAGE_TOAST', 'show', 'Hello')`
+        exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Hello"]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
+        exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eF('CONTROL_BY_ID', 'demoPanel', 'POPOVER', 'setExpanded', 'X')`
+        exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 3 ] ).
 
   ENDMETHOD.

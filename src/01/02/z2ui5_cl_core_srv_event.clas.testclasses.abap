@@ -20,6 +20,14 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_backslash_escaped FOR TESTING.
     METHODS event_lone_cr_escaped FOR TESTING.
     METHODS event_placeholder_quoted FOR TESTING.
+    METHODS json_basic FOR TESTING.
+    METHODS json_no_args FOR TESTING.
+    METHODS json_nav_container FOR TESTING.
+    METHODS json_view_param FOR TESTING.
+    METHODS json_empty_args FOR TESTING.
+    METHODS json_object_arg FOR TESTING.
+    METHODS json_placeholder_stays_string FOR TESTING.
+    METHODS json_escaping FOR TESTING.
 
   PROTECTED SECTION.
 
@@ -399,6 +407,115 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lv_cond) = lo_event->get_event( val   = `EVT`
                                          t_arg = VALUE #( ( `{0?Pressed:Unpressed}` ) ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_cond CS `'{0?Pressed:Unpressed}'` ) ).
+
+  ENDMETHOD.
+
+  METHOD json_basic.
+
+    " the structured follow-up form: a JSON array ["EVENT", ...args] built
+    " and escaped entirely in ABAP - data, not an executable eF( ) snippet
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["SET_TITLE","My Title"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-set_title
+                                               t_arg = VALUE #( ( `My Title` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_no_args.
+
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["HISTORY_BACK"]`
+        act = lo_event->get_event_client_json( z2ui5_if_client=>cs_event-history_back ) ).
+
+  ENDMETHOD.
+
+  METHOD json_nav_container.
+
+    " the *_nav_container_to remap to the generic CONTROL_BY_ID call is shared
+    " with the JS path via map_client_event
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-nav_container_to
+                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_view_param.
+
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    " a concrete view fills the slot at position 2, the default main view
+    " keeps it empty (cross-view resolveById on the frontend)
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
+                                               view  = z2ui5_if_client=>cs_view-popover
+                                               t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
+                                               t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_empty_args.
+
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    " an empty argument between filled ones keeps its position, trailing
+    " empties are dropped - same contract as the JS form (get_t_arg)
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","demoPanel","","setExpanded"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
+                                               t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_object_arg.
+
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    " a JSON object argument (e.g. the STORE_DATA payload) is embedded as
+    " real JSON, so the frontend receives a ready-to-use object after one
+    " JSON.parse of the whole array
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["STORE_DATA",{"KEY":"K1"}]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-store_data
+                                               t_arg = VALUE #( ( `{"KEY":"K1"}` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_placeholder_stays_string.
+
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    " a message-template placeholder only looks like JSON - it fails the
+    " parse and stays a plain string, like the frontend fallback produced
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","{0} Pressed"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_global
+                                               t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `{0} Pressed` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_escaping.
+
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    " quotes and backslashes in an argument are JSON-escaped by the ABAP
+    " serializer - no hand-written escaping, no JS string literal to break
+    " out of (the injection surface of the old eF( ) form)
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CLIPBOARD_COPY","he said \"hi\" \\ bye"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-clipboard_copy
+                                               t_arg = VALUE #( ( `he said "hi" \ bye` ) ) ) ).
 
   ENDMETHOD.
 
