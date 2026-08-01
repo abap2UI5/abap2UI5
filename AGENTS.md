@@ -4,6 +4,23 @@
 > agent instruction file of this repository — there is no separate
 > `CLAUDE.md`; Claude Code reads `AGENTS.md` natively.
 
+### Where knowledge lives
+
+This file is loaded into **every** session, so what it costs is paid on every
+task. Keep it to what an agent must know *before* it can know it needs to look
+something up. Everything else belongs closer to the code:
+
+| Kind of knowledge | Where it belongs |
+|---|---|
+| A constraint on **one file or method** ("never change this key", "this dialog must not be Escape-dismissable") | A comment **at that code site**. AGENTS.md may state the rule in one line and point there — it must not repeat the reasoning |
+| A rule that can be **checked mechanically** | A lint rule or a CI gate. Prose is a request; a gate is a guarantee |
+| A **procedure** ("how to regenerate the frontend", "what is out of scope in a review") | A place that is read when the task comes up, not on every task |
+| A **prohibition** an agent would otherwise violate unknowingly | Here — it has to be in context before the mistake, so it cannot be looked up on demand |
+
+When you fix something subtle, write the reasoning **into the code** and add at
+most a pointer here. The comment ages with the code it guards; a paragraph in
+this file does not.
+
 ## Project Overview
 
 abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no JavaScript, OData, or RAP required. It supports all ABAP releases from NW 7.02 to ABAP Cloud, running in both on-premise and cloud environments.
@@ -78,24 +95,14 @@ Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclas
 
 #### Launchpad Special Case — The URL Hash
 
-The second place the FLP changes the ground rules is the **URL hash**. Standalone the whole hash belongs to the app; inside the launchpad the shell owns the part in front of `&/` and only the remainder is the **app hash**:
-
-```
-standalone   #/app/<CLASS>/<DRAFT>
-inside FLP   #<SemanticObject>-<action>&/app/<CLASS>/<DRAFT>
-              \______ shell hash ______/  \___ app hash ___/
-```
-
-Any code that reads the hash must reduce it to the app hash first, and any code that writes one must leave the shell hash alone — dropping it strands the launchpad (the user lands on the FLP home page). There are exactly two places that know this rule, and they mirror each other:
+Inside the FLP the shell owns the front of the hash and only the remainder is the **app hash**. Exactly two places know this rule and they mirror each other — **do not re-implement the split anywhere else**, and do not rebuild a URL from `location.href.split("#")[0]` plus an app hash (use `Router.hrefFor()`):
 
 | Side | Owner |
 |---|---|
-| Frontend | `app/webapp/core/Router.js` — `splitHash()`; **the only module allowed to touch the hash**. Writes go through the `HashChanger`, which inside the FLP is the shell's own and preserves the shell hash by construction |
-| Backend | `z2ui5_cl_core_handler=>hash_get_app_part` — used by both the route parser (`parse_app_route_rest`) and the app-state parser (`request_app_start_draft`) |
+| Frontend | `app/webapp/core/Router.js` — `splitHash()`; the **only** module allowed to touch the hash |
+| Backend | `z2ui5_cl_core_handler=>hash_get_app_part` — used by the route parser and the app-state parser |
 
-Both key the split off the **leading `/` of an app hash** (a shell hash never starts with one) rather than off the first `&/`, so an app hash that itself contains `&/` in a parameter is never truncated. Do not re-implement either of them elsewhere, and do not rebuild a URL from `location.href.split("#")[0]` plus an app hash — use `Router.hrefFor()`.
-
-Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
+Both modules carry the full explanation (hash layout, why the split keys off the leading `/` rather than the first `&/`, what breaks otherwise) in their header comments. Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
 
 ### Layered Design
 
@@ -456,7 +463,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 9. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Shared frontend state is owned by `app/webapp/core/AppState.js`** — it documents the complete inventory of the `z2ui5.*` globals (public contract vs. internal fields) and provides the defaults for all internal fields. Framework modules must not reference the `z2ui5` global directly (ui5lint `no-project-globals`): internal fields are accessed via the `AppState.state` module export, public-contract fields via `AppState.getGlobal()/setGlobal()`. AppState itself is the only module that touches the global — it exposes the internal fields there via accessors so external consumers (apps via the js_loader popup, backend-generated HTML) keep working. Do not add new lazy `if (!z2ui5.x)` bootstrapping; add the field with its default to `AppState.createState()` instead.
 10. **Validate with `npm run verify`, never with `npm run auto_downport`.** `auto_downport` rewrites `src/` in place *and* overwrites `abaplint.jsonc`; it exists for exactly one purpose — producing the `702` branch in `auto_downport.yaml` — and will destroy uncommitted work if you run it to check your changes. `npm run downport` performs the identical downport into `node/downport/` and leaves the working tree untouched; `npm run verify` wraps it together with lint, transpile and unit tests.
 11. **Custom controls (`app/webapp/cc/`) delegate, they never decide** — a control exposes bindable **properties** and **events** and lets the backend drive the UI; it must not surface its own popups/toasts/dialogs (the `Geolocation` control fires an `error` event with code/message instead of showing a `MessageBox`). Lifecycle (UI5 2.x is strict): `init` and other lifecycle listeners **must not return a value** — never make them `async` (an async function returns a Promise → `_enforceNoReturnValue` FUTURE FATAL; kick the async work off in a separate helper, see `CameraSelector._loadCameras`). After every `await`, bail out when the control was destroyed (`Lib.isDestroyed`). Read the DOM defensively (guard a 0-size canvas, a missing `videoWidth`, an absent element) and **log, never throw** (`Lib.logError`). Prefer reusing a standard control or a binding over writing a new custom control at all.
-12. **Never change the key of an internal table that is passed to a classic function module (or any typed formal parameter) from `WITH DEFAULT KEY` to `WITH EMPTY KEY`.** The table type (including its key) must stay compatible with the formal parameter, otherwise the `CALL FUNCTION` fails at runtime — often silently, when the call is inside a `TRY … CATCH` / `EXCEPTIONS` guard. This bit user-exit discovery: `z2ui5_cl_a2ui5_context=>rtti_get_classes_intf_std` passes `lt_impl` to `SEO_INTERFACE_IMPLEM_GET_ALL` (`impkeys`, a `STANDARD TABLE WITH DEFAULT KEY`); switching `lt_impl` to `WITH EMPTY KEY` made the call fail, returned no `z2ui5_if_exit` implementers, and the user exit was never called. Leave such tables `WITH DEFAULT KEY` — do not "modernize" the key as a cleanup.
+12. **Never "modernize" `WITH DEFAULT KEY` to `WITH EMPTY KEY` on a table that is passed to a classic function module** (or to any typed formal parameter) — the key is part of the table type, and an incompatible one makes the `CALL FUNCTION` fail at runtime, silently when it sits inside a `TRY … CATCH` / `EXCEPTIONS` guard. Reasoning and the concrete breakage: see the comment above `lt_impl` in `z2ui5_cl_a2ui5_context=>rtti_get_classes_intf_std`.
 13. **A module that exists only in newer UI5 must never be a hard `sap.ui.define([...])` dependency.** abap2UI5 supports OpenUI5 down to **1.71**; a dep the old release lacks 404s and the *whole component* fails to load (blank app). Resolve version-specific modules **lazily** with `sap.ui.require("…")` at the point of use and handle `undefined` gracefully (see `Component.js` Theming/Messaging probing, and the `THEMING` target in `FrontendAction.js`). Known post-1.71 modules: `sap/ui/core/Theming` and `sap/ui/core/Messaging` (both since 1.118). Before adding any `sap/ui/core/*` dependency, check its "available since" — if it is newer than 1.71, lazy-require it.
 14. **The app runs under a CSP without `'unsafe-eval'`-free assumptions — keep it eval-capable and avoid eval-only UI5 features.** The default CSP (in `z2ui5_cl_exit`) keeps `'unsafe-eval'` because the OpenUI5 **1.71** ui5loader evals module source; removing it breaks the 1.71 bootstrap with a CSP `EvalError`. Also do **not** use UI5 **expression binding** (`{= … }`) in framework-controlled XML/fragments — it is compiled with `eval`/`new Function`, so it fails wherever a stricter CSP applies; drive such state from a plain model property instead (see the DeveloperTools `closeEnabled` boolean).
 15. **`app/webapp/` source must be 7-bit ASCII.** Every frontend file is embedded verbatim into an ABAP class under `src/01/03/`, which abaplint checks with the `7bit_ascii` rule — a non-ASCII literal (`…`, `©`, `→`, a smart quote) breaks generation/lint. Use ASCII in source (`...` not `…`) and build any non-ASCII runtime string with `String.fromCharCode(...)` / entity decoding at run time, never as a literal.
