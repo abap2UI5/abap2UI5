@@ -349,6 +349,12 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `          // launchpad.` && |\n| &&
              `          const newUrl = ``${window.location.pathname}${window.location.search}#${getRawHash()}${PARAMS.SET_PUSH_STATE}``;` && |\n| &&
              `          history.pushState(null, "", newUrl);` && |\n| &&
+             `          // The pushed hash IS the desired URL - stop here. The cleanup below` && |\n| &&
+             `          // is a no-op while hasher's cached hash is empty (legacy mode), but` && |\n| &&
+             `          // with routing on the cache holds the app route, so replaceHash("")` && |\n| &&
+             `          // would count as a change and wipe both the route and the suffix` && |\n| &&
+             `          // pushed one line above.` && |\n| &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
              `        // The live URL must match the format the copy link` && |\n| &&
              `        // (FrontendAction.evClipboardAppState) writes and the backend restore` && |\n| &&
@@ -411,14 +417,14 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `      appOf,` && |\n| &&
              `      draftOf,` && |\n| &&
              `      navTo,` && |\n| &&
-             `      navToApp,` && |\n| &&
+             `      navToApp,` && |\n|.
+    result = result &&
              `      onHashChanged,` && |\n| &&
              `      sync,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
               ``.
 
   ENDMETHOD.

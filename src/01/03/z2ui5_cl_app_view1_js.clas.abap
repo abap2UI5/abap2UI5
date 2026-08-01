@@ -108,8 +108,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // named phases: display pending fragments/views, then update the` && |\n| &&
              `      // browser history/hash.` && |\n| &&
              `      async _processAfterRendering() {` && |\n| &&
+             `        // Hoisted out of the try block: the finally below must run the` && |\n| &&
+             `        // follow-up JS of exactly THIS response. Re-reading the shared` && |\n| &&
+             `        // AppState.state.oResponse there would - after a parallel request` && |\n| &&
+             `        // replaced it during the awaits - consume (and clear) the newer` && |\n| &&
+             `        // response's snippets before its own render.` && |\n| &&
+             `        let oResponse;` && |\n| &&
              `        try {` && |\n| &&
-             `          const oResponse = AppState.state.oResponse;` && |\n| &&
+             `          oResponse = AppState.state.oResponse;` && |\n| &&
              `          if (oResponse._processed) return;` && |\n| &&
              `          oResponse._processed = true;` && |\n| &&
              `` && |\n| &&
@@ -141,7 +147,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // run the follow-up JS snippets the backend asked for. Doing it here` && |\n| &&
              `          // - rather than as an early microtask - guarantees render-dependent` && |\n| &&
              `          // actions like SET_FOCUS find their target control in the DOM.` && |\n| &&
-             `          this._runPendingCustomJs(AppState.state.oResponse);` && |\n| &&
+             `          this._runPendingCustomJs(oResponse);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -411,14 +417,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // it; the separator defaults to " > ".` && |\n| &&
              `      textPath(oControl, sSeparator) {` && |\n| &&
              `        return Lib.getTextPath(oControl, sSeparator);` && |\n| &&
-             `      },` && |\n| &&
+             `      },` && |\n|.
+    result = result &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eB = "event backend": triggers a backend roundtrip with arguments.` && |\n| &&
              `      // The name is part of the protocol - backend-generated view XML binds` && |\n| &&
              `      // events to eB/eF - and must not be renamed.` && |\n| &&
-             `      //` && |\n|.
-    result = result &&
+             `      //` && |\n| &&
              `      // args[0] is the event array built by the backend (get_event):` && |\n| &&
              `      //   [0] event name` && |\n| &&
              `      //   [1] reserved placeholder, always false` && |\n| &&
@@ -603,9 +609,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        });` && |\n| &&
              `` && |\n| &&
              `        // Guard against the app being destroyed during the await above.` && |\n| &&
+             `        // oModel covers oViewModel too when they are the same object (no` && |\n| &&
+             `        // switchPath); with an OData default model both must go.` && |\n| &&
              `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
-             `          if (switchPath) oModel.destroy();` && |\n| &&
+             `          oModel.destroy();` && |\n| &&
+             `          if (switchPath) oViewModel.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -623,7 +632,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          ViewSlots.getView("MAIN")` && |\n| &&
              `        ) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
-             `          if (switchPath) oModel.destroy();` && |\n| &&
+             `          oModel.destroy();` && |\n| &&
+             `          if (switchPath) oViewModel.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&

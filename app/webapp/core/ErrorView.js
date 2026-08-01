@@ -311,7 +311,17 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // for network/timeout failures, where the request may never have reached
   // the server and app state is still intact).
   function show(response, title, options = {}) {
-    const full = response?.stack ? String(response.stack) : String(response);
+    // V8 stacks start with "Error: <message>", but Firefox/SpiderMonkey
+    // stacks are frame lines only - prepend the message when the stack does
+    // not already carry it, so the overlay never shows a stack without the
+    // actual error text.
+    const stack = response?.stack ? String(response.stack) : "";
+    const message = String(response);
+    const full = stack
+      ? stack.includes(message)
+        ? stack
+        : `${message}\n${stack}`
+      : message;
     // Rendered via textContent, so the truncation marker is plain text (an
     // HTML comment would show up literally).
     const errorMessage =

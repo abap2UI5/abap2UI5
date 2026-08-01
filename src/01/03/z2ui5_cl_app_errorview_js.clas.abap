@@ -331,7 +331,17 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // for network/timeout failures, where the request may never have reached` && |\n| &&
              `  // the server and app state is still intact).` && |\n| &&
              `  function show(response, title, options = {}) {` && |\n| &&
-             `    const full = response?.stack ? String(response.stack) : String(response);` && |\n| &&
+             `    // V8 stacks start with "Error: <message>", but Firefox/SpiderMonkey` && |\n| &&
+             `    // stacks are frame lines only - prepend the message when the stack does` && |\n| &&
+             `    // not already carry it, so the overlay never shows a stack without the` && |\n| &&
+             `    // actual error text.` && |\n| &&
+             `    const stack = response?.stack ? String(response.stack) : "";` && |\n| &&
+             `    const message = String(response);` && |\n| &&
+             `    const full = stack` && |\n| &&
+             `      ? stack.includes(message)` && |\n| &&
+             `        ? stack` && |\n| &&
+             `        : ``${message}\n${stack}``` && |\n| &&
+             `      : message;` && |\n| &&
              `    // Rendered via textContent, so the truncation marker is plain text (an` && |\n| &&
              `    // HTML comment would show up literally).` && |\n| &&
              `    const errorMessage =` && |\n| &&
@@ -407,7 +417,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    actionsDiv.appendChild(refreshBtn);` && |\n| &&
              `` && |\n| &&
              `    const logoutBtn = document.createElement("button");` && |\n| &&
-             `    logoutBtn.type = "button";` && |\n| &&
+             `    logoutBtn.type = "button";` && |\n|.
+    result = result &&
              `    logoutBtn.textContent = "Logout";` && |\n| &&
              `    logoutBtn.style.cssText = btnStyle;` && |\n| &&
              `    logoutBtn.addEventListener("click", () => handleLogout());` && |\n| &&
@@ -417,8 +428,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
              `    // Keep keyboard focus inside the overlay: Tab cycles through the action` && |\n| &&
-             `    // buttons instead of escaping into the broken page behind it. The button` && |\n|.
-    result = result &&
+             `    // buttons instead of escaping into the broken page behind it. The button` && |\n| &&
              `    // set is complete here (all appended above), so resolve first/last once` && |\n| &&
              `    // rather than re-querying the DOM on every Tab press.` && |\n| &&
              `    const trapButtons = actionsDiv.querySelectorAll("button");` && |\n| &&

@@ -88,8 +88,14 @@ sap.ui.define(
       // named phases: display pending fragments/views, then update the
       // browser history/hash.
       async _processAfterRendering() {
+        // Hoisted out of the try block: the finally below must run the
+        // follow-up JS of exactly THIS response. Re-reading the shared
+        // AppState.state.oResponse there would - after a parallel request
+        // replaced it during the awaits - consume (and clear) the newer
+        // response's snippets before its own render.
+        let oResponse;
         try {
-          const oResponse = AppState.state.oResponse;
+          oResponse = AppState.state.oResponse;
           if (oResponse._processed) return;
           oResponse._processed = true;
 
@@ -121,7 +127,7 @@ sap.ui.define(
           // run the follow-up JS snippets the backend asked for. Doing it here
           // - rather than as an early microtask - guarantees render-dependent
           // actions like SET_FOCUS find their target control in the DOM.
-          this._runPendingCustomJs(AppState.state.oResponse);
+          this._runPendingCustomJs(oResponse);
         }
       },
 
@@ -582,9 +588,12 @@ sap.ui.define(
         });
 
         // Guard against the app being destroyed during the await above.
+        // oModel covers oViewModel too when they are the same object (no
+        // switchPath); with an OData default model both must go.
         if (!Lib.isAlive(AppState.state.oApp)) {
           oView.destroy();
-          if (switchPath) oModel.destroy();
+          oModel.destroy();
+          if (switchPath) oViewModel.destroy();
           return;
         }
 
@@ -602,7 +611,8 @@ sap.ui.define(
           ViewSlots.getView("MAIN")
         ) {
           oView.destroy();
-          if (switchPath) oModel.destroy();
+          oModel.destroy();
+          if (switchPath) oViewModel.destroy();
           return;
         }
 
