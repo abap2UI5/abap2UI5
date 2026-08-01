@@ -16,7 +16,6 @@
     "app2abap": "npm --prefix app run format && npm run auto_app2abap && npm run auto_abaplint",
     "auto_abaplint": "npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix",
     "auto_transpile": "rm -rf node/output && cp node/srv/*.abap node/srv/*.clas.xml node/downport && abap_transpile ./node/setup/abap_transpile.json",
-    "xml_view_index": "node .github/scripts/xml-view-index.mjs",
     "rename": "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename",
     "express": "node node/srv/express.mjs",
     "unit": "echo RUNNING && node node/output/index.mjs",
