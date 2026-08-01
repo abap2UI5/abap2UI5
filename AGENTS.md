@@ -37,7 +37,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [abap2UI5](https://github.com/abap2UI5/abap2UI5) | Core framework (this repo) |
 | [samples](https://github.com/abap2UI5/samples) | Sample applications and usage examples |
 | [docs](https://github.com/abap2UI5/docs) | Project documentation |
-| [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities (all classes, all methods) — `src/00/03/` holds renamed copies of the classes the framework needs, with the context class trimmed to the used methods (see "Vendored utility classes" below) |
+| [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of the vendored copies in `src/00/03/` (see "Vendored Utility Classes") |
 
 > **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle, deprecated controls — see the single canonical guide at <https://abap2ui5.github.io/docs/advanced/agent.html>.
 
@@ -114,7 +114,7 @@ src/
 └── 99/   FROZEN - do not change. XML view builder (z2ui5_cl_xml_view / _cc, top level, pending replacement by ai-demokit) + retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02). Kept for downstream compatibility only
 ```
 
-- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`) — `z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http` and `z2ui5_cx_a2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master catalog (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
+- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`), all but `_json_fltr` vendored from abap-util (see "Vendored Utility Classes"). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework.
 - **Package `src/99/` — frozen in its entirety. Do not change anything under `src/99/`.** Everything here exists only so downstream apps keep compiling:
@@ -137,13 +137,13 @@ Platform-abstraction utilities (RTTI, conversions, UUID, messages, HTTP, environ
 (`z2ui5_cl_a2ui5_json_fltr` is framework-owned and has no abap-util master.)
 
 **How the copies are maintained:**
-- **Editing `z2ui5_cl_a2ui5_context` is safe and problem-free — do it without hesitation.** It is *not* a read-only mirror: add new methods, change existing ones, extract private helpers, refactor duplicated blocks — all directly in this copy, with no upstream-first step and nothing to coordinate. The master catalog pulls your changes **from** here (local → upstream), so this copy leads and abap-util follows. (Only the AJSON/S-RTTI mirrors in `src/00/01` and `src/00/02` are truly off-limits.)
-- **Class-level selection, method-level trimming for the context class only.** The framework vendors just the classes it needs; `z2ui5_cl_a2ui5_context` carries only the methods the framework uses (plus the private helpers those methods need), while the other vendored classes are copied as-is.
-- **New methods are added locally.** When the framework needs a utility method the context class doesn't have yet, write it directly into `z2ui5_cl_a2ui5_context`. If the method already exists in abap-util, copy it from there (with its helper closure) instead of re-implementing it.
-- **Periodic AI sync-back:** every few weeks an AI compares abap-util with all consumers and merges methods that were added locally back into abap-util, so the master catalog stays the superset of all methods and other projects can reuse them.
-- **Framework-specific logic does not belong in the context class.** Only generic, reusable utilities go there (they will be harvested into abap-util by the sync); abap2UI5-specific helpers live in the appropriate core class instead.
+- **`z2ui5_cl_a2ui5_context` is not a read-only mirror — edit it directly.** Add methods, change existing ones, extract private helpers, refactor: all here, with no upstream-first step. The direction is local → upstream; the master catalog harvests your changes **from** this copy. (Only the AJSON/S-RTTI mirrors in `src/00/01` and `src/00/02` are off-limits.) If a method you need already exists in abap-util, copy it from there with its helper closure instead of re-implementing it.
+- **Class-level selection, method-level trimming for the context class only.** The other vendored classes are copied as-is; leave `z2ui5_cl_a2ui5_http` / `z2ui5_cx_a2ui5_error` alone unless a fix is genuinely needed.
+- **Keep what you add generic.** Framework-specific logic belongs in the core `z2ui5_cl_core_*` classes — the sync harvests this class into a catalog other projects consume.
+- **Periodic AI sync-back:** every few weeks an AI merges what was added or fixed here back into abap-util. It diffs method *bodies*, not just names — see the sync rules in [abap-util's AGENTS.md](https://github.com/abap-util/abap-util/blob/main/AGENTS.md).
+- **The trim is not driven by the core engine alone.** Symbols marked `FROZEN-ONLY` in the class have no caller in `src/00`–`src/02` and exist only because the frozen `src/99` still calls them; they go when `src/99` goes. The class header explains it — do not add new callers on them.
 
-The same pattern is used by other projects in the ecosystem (e.g. [popups](https://github.com/abap2UI5-addons/popups) with `z2ui5_cl_popup_context`), each with its own namespace and its own method subset.
+The same pattern is used elsewhere in the ecosystem (e.g. [popups](https://github.com/abap2UI5-addons/popups) with `z2ui5_cl_popup_context`), each with its own namespace and method subset.
 
 ### Data Binding
 
@@ -305,7 +305,7 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   CATCH cx_root ##NO_HANDLER.
   ```
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
-- **Utility access:** Framework utilities live in `z2ui5_cl_a2ui5_context` (`src/00/03/`) — a vendored copy of `zabaputil_cl_util_context` from [abap-util](https://github.com/abap-util/abap-util), trimmed to the methods the framework uses (see "Vendored Utility Classes" in the Architecture section). Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside this class via `z2ui5_cl_a2ui5_context=>context_check_abap_cloud( )` using dynamic calls, so it compiles on all targets. The former utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_ext`, …) are retired in `src/99/` — do not use them in framework code
+- **Utility access:** Framework utilities live in `z2ui5_cl_a2ui5_context` (`src/00/03/`; see "Vendored Utility Classes"). Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside this class via `check_abap_cloud( )` and dynamic calls, so it compiles on all targets. The former utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_ext`, …) are retired in `src/99/` — do not use them in framework code
   ```abap
   z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
   ```
@@ -413,7 +413,7 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 | `src/01/02/z2ui5_cl_core_srv_model.clas.abap` | JSON model management |
 | `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
-| `src/00/03/z2ui5_cl_a2ui5_context.clas.abap` | Framework utility/context class (RTTI, conversions, UUID, messages, environment detection) — vendored copy from [abap-util](https://github.com/abap-util/abap-util), trimmed to used methods; new methods may be added locally and are periodically synced back to abap-util |
+| `src/00/03/z2ui5_cl_a2ui5_context.clas.abap` | Framework utility/context class (RTTI, conversions, UUID, messages, environment detection) — see "Vendored Utility Classes" |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
 | `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
 | `app/webapp/core/Lib.js` | Shared frontend helpers |
@@ -444,7 +444,7 @@ test: add unit tests for utility class
 
 These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, see <https://abap2ui5.github.io/docs/advanced/agent.html> instead.
 
-1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. **`src/00/03/z2ui5_cl_a2ui5_context` is NOT read-only, though — edit it freely: add new methods and change existing ones directly, right here, whenever the framework needs a utility. This is safe and expected; there is NO upstream-first step and NO problem doing so.** The direction is the reverse of what "vendored" might suggest: the abap-util master **harvests** new/changed methods **from** this copy (local → upstream), so your local edits are the source of truth until the periodic sync-back picks them up (see "Vendored Utility Classes"). The only rules for the context class: keep what you add **generic and reusable** (framework-specific logic belongs in the core `z2ui5_cl_core_*` classes, not here), and leave the as-copied `z2ui5_cl_a2ui5_http` / `z2ui5_cx_a2ui5_error` untouched unless a fix is genuinely needed. **Do not touch `src/99/` — the entire package is frozen**, including the `z2ui5_cl_xml_view` / `_cc` builders at its top level. Read them to answer questions; never change, extend or refactor them, and never add new consumers. The builder is being replaced by the ai-demokit version; that work does not happen in this repository.
+1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. **`src/00/03/z2ui5_cl_a2ui5_context` is a different case: edit it directly** — it is vendored but leads its upstream, so there is no upstream-first step (see "Vendored Utility Classes"). **Do not touch `src/99/` — the entire package is frozen**, including the `z2ui5_cl_xml_view` / `_cc` builders at its top level. Read them to answer questions; never change, extend or refactor them, and never add new consumers. The builder is being replaced by the ai-demokit version; that work does not happen in this repository.
 2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
    - Change the source under `app/webapp/`
    - Run **`npm run app2abap`** locally (or trigger the `create_app2abap.yaml` workflow). This single command runs the full pipeline in the correct order — `npm --prefix app run format` (Prettier) → `npm run auto_app2abap` (generate) → `npm run auto_abaplint` (normalize) — exactly as CI does. Running `auto_app2abap` on its own produces **un-normalized** ABAP that differs from the committed form in *every* `src/01/03/` file (alignment/whitespace drift); the `auto_abaplint` step reverts that drift so only the files whose `app/webapp/` source actually changed remain modified.
