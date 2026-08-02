@@ -39,7 +39,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [docs](https://github.com/abap2UI5/docs) | Project documentation |
 | [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of `src/00/03/` (see "Utilities") |
 
-> **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle, deprecated controls — see the single canonical guide at <https://abap2ui5.github.io/docs/advanced/agent.html>.
+> **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle — read the in-repo guide **`docs/agents/building-apps.md`** (also wired as the `build-an-app` Claude Code skill; `llms.txt` indexes both audiences). The rendered docs site is <https://abap2ui5.github.io/docs/> — unreachable from many sandboxes, which is why the guide lives in-repo.
 
 ## Architecture
 
@@ -195,7 +195,7 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 
 ### Building Apps
 
-App-building guidance (view builder choice, deprecated controls, lifecycle patterns, canonical app template, client API) lives exclusively at <https://abap2ui5.github.io/docs/advanced/agent.html>. Do not duplicate it here.
+App-building guidance (view builder choice, lifecycle patterns, canonical app template, client API) lives in **`docs/agents/building-apps.md`** — the self-contained in-repo guide, also exposed as the `build-an-app` skill. Do not duplicate it here; the rendered docs site is <https://abap2ui5.github.io/docs/>.
 
 ## Repository Structure
 

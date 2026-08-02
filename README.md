@@ -99,6 +99,11 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 * Code cleanup with [ABAP Cleaner](https://github.com/SAP/abap-cleaner) [(contributors)](https://github.com/SAP/abap-cleaner/graphs/contributors)
 * Documentation created with [VitePress](https://vitepress.dev/) [(contributors)](https://github.com/vuejs/vitepress/graphs/contributors)
 
+#### AI assistants
+* [docs/agents/building-apps.md](docs/agents/building-apps.md) - Self-contained agent guide for **building apps** with abap2UI5
+* [AGENTS.md](AGENTS.md) - The briefing for AI assistants working **on the framework** itself
+* [llms.txt](llms.txt) - Index of both entry points and the surrounding tooling (linter, MCP server, samples)
+
 #### Get involved
 We welcome all contributions! Here's how you can help:
 * [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report issues and provide feedback

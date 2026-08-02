@@ -1,0 +1,35 @@
+# abap2UI5
+
+> Framework for building SAP UI5 applications purely in ABAP - no JavaScript,
+> OData or RAP required. One ABAP class per app; the framework renders UI5 XML
+> views, binds ABAP data two-way and dispatches events over stateless HTTP
+> roundtrips. Supports NW 7.02 to ABAP Cloud, on-premise and cloud.
+
+Two audiences, two entry points:
+
+## Building apps with abap2UI5
+
+- [Agent guide: building apps](docs/agents/building-apps.md): self-contained
+  offline reference - app template, lifecycle, view builder, binding, events,
+  popups, navigation, validation tooling
+- [Client API contract](src/02/z2ui5_if_client.intf.abap): every method an app
+  can call, with inline documentation
+- [App interface](src/02/z2ui5_if_app.intf.abap): the one interface an app implements
+- [View builder](src/02/z2ui5_cl_ai_xml.clas.abap): generic 1:1 UI5 XML builder
+- [Hello world](src/02/z2ui5_cl_app_hello_world.clas.abap): smallest complete app
+- [Rendered documentation](https://abap2ui5.github.io/docs/): the human docs site
+- [Samples](https://github.com/abap2UI5/samples): curated example apps
+- [ai-demokit](https://github.com/abap2UI5/ai-demokit): ~280 gate-verified
+  ports of the official UI5 demo kit samples, plus CAPABILITIES.md (what
+  abap2UI5 can express)
+- [abap2UI5-linter](https://github.com/abap2UI5/abap2UI5-linter): static +
+  headless-render checks for app view code (CLI, GitHub Action, VS Code)
+- [ai-mcp](https://github.com/abap2UI5/ai-mcp): MCP server with the
+  deploy -> build -> run -> screenshot loop, no SAP system needed
+
+## Developing the framework itself
+
+- [AGENTS.md](AGENTS.md): the complete briefing for changes to this
+  repository - architecture, layered design, coding rules, validation
+- [CONTRIBUTING.md](CONTRIBUTING.md): human contributor workflow
+- [abaplint.jsonc](abaplint.jsonc): machine-checked code standards
