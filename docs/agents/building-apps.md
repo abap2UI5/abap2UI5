@@ -60,6 +60,8 @@ CLASS zcl_my_app IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_event( ).
       on_event( ).
+    ELSEIF client->check_on_navigated( ).
+      view_display( ).
     ENDIF.
 
   ENDMETHOD.
@@ -120,9 +122,12 @@ ENDCLASS.
 Conventions that keep apps uniform (proven in the ai-demokit corpus):
 `main` is a pure dispatcher; methods follow in call order with `model_init`
 last; add `model_init`/`on_event` only when the app has data/events; always
-dispatch events with `CASE client->get( )-event.` even for a single event; a
-`check_on_navigated( )` `ELSEIF` branch re-runs `view_display` when the user
-navigates back to the app.
+dispatch events with `CASE client->get( )-event.` even for a single event.
+**The `check_on_navigated( )` branch is part of the canonical dispatcher, not
+an option**: without it the view is only ever built on `check_on_init`, so
+navigating away (`nav_app_call`) and back leaves the app blank — the
+framework fires `check_on_navigated`, nothing re-displays. Always re-run
+`view_display( )` there.
 
 ## 3. The view builder — `z2ui5_cl_ai_xml`
 
