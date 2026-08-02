@@ -262,15 +262,15 @@ ships for existing apps but is **frozen** — new apps and new code use
   [abap2UI5/app-template](https://github.com/abap2UI5/app-template)** — it
   ships the starter app, abaplint + linter CI, this guide as its AGENTS.md
   and the agent permission setup preconfigured.
-- **[abap2UI5-linter](https://github.com/abap2UI5/abap2UI5-linter)** checks
+- **[abap2UI5-linter](https://github.com/abap2UI5/linter)** checks
   app classes statically (unknown/deprecated/too-new controls and members,
   binding mistakes, builder-tree defects) and can render the view headless:
-  `npx --yes github:abap2UI5/abap2UI5-linter my_app.clas.abap` — also
+  `npx --yes github:abap2UI5/linter my_app.clas.abap` — also
   available as a GitHub Action and inside the VS Code extension.
 - **[ai-mcp](https://github.com/abap2UI5/ai-mcp)** gives MCP-capable agents
   the full loop without a SAP system: `capabilities` → `deploy_app` →
   `build_backend` → `run_app` (headless screenshot + errors).
-- **[vscode-extension](https://github.com/abap2UI5-addons/vscode-extension)**:
+- **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:
   F9 launches the class in an embedded preview against a real system.
 - **Worked examples**: ~280 gate-verified sample apps in
   [ai-demokit](https://github.com/abap2UI5/ai-demokit) (`src/`), curated

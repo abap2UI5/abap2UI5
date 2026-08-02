@@ -28,7 +28,7 @@ Quick orientation while it loads:
   frontend). UI5 1.71 is the compatibility floor — check "available since".
 - The app checks its own authorizations at the top of `main`.
 - Validate with the abap2UI5-linter
-  (`npx --yes github:abap2UI5/abap2UI5-linter <file>`); iterate without a SAP
+  (`npx --yes github:abap2UI5/linter <file>`); iterate without a SAP
   system via the ai-mcp server (`deploy_app` → `build_backend` → `run_app`).
 - The API contract is `src/02/z2ui5_if_client.intf.abap` — when unsure about
   a method or a `cs_event` action, read it there; the `follow_up_action`
