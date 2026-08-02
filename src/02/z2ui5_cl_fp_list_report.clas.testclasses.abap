@@ -86,9 +86,9 @@ CLASS ltcl_test DEFINITION FINAL
 
     TYPES:
       BEGIN OF ty_s_row,
-        product    TYPE string,
-        city_name  TYPE string,
-        stock      TYPE i,
+        product   TYPE string,
+        city_name TYPE string,
+        stock     TYPE i,
       END OF ty_s_row.
     TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
@@ -127,15 +127,15 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD get_data.
 
-    result = VALUE #( ( product = `Notebook`
+    result = VALUE #( ( product   = `Notebook`
                         city_name = `Berlin`
-                        stock = 10 )
-                      ( product = `Phone`
+                        stock     = 10 )
+                      ( product   = `Phone`
                         city_name = `Paris`
-                        stock = 5 )
-                      ( product = `Screen`
+                        stock     = 5 )
+                      ( product   = `Screen`
                         city_name = `Berlin`
-                        stock = 2 ) ).
+                        stock     = 2 ) ).
 
   ENDMETHOD.
 

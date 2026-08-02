@@ -260,10 +260,10 @@ CLASS z2ui5_cl_fp_list_report IMPLEMENTATION.
     DATA(lv_kind) = z2ui5_cl_a2ui5_context=>rtti_get_type_kind( val ).
     CASE lv_kind.
       WHEN z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table
-        OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_struct1
-        OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_struct2
-        OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_dref
-        OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_oref.
+          OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_struct1
+          OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_struct2
+          OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_dref
+          OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_oref.
         result = abap_false.
       WHEN OTHERS.
         result = abap_true.
@@ -330,8 +330,8 @@ CLASS z2ui5_cl_fp_list_report IMPLEMENTATION.
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
-        IF    ( mv_sort_descending = abap_false AND <val_cand> > <val> )
-           OR ( mv_sort_descending = abap_true  AND <val_cand> < <val> ).
+        IF ( mv_sort_descending = abap_false AND <val_cand> > <val> )
+            OR ( mv_sort_descending = abap_true  AND <val_cand> < <val> ).
           lv_insert = sy-tabix.
           EXIT.
         ENDIF.
