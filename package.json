@@ -5,7 +5,8 @@
   "description": "Developing UI5 Apps Purely in ABAP.",
   "scripts": {
     "check": "npx abaplint",
-    "verify": "npm run check && npm run downport && npm run auto_transpile && npm run unit",
+    "check_visibility": "node .github/scripts/testclass-visibility-gate.mjs",
+    "verify": "npm run check && npm run check_visibility && npm run downport && npm run auto_transpile && npm run unit",
     "syfixes": "find node/downport -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} +",
     "strip_trailing_ws": "find node/downport -type f -name '*.abap' -exec sed -i 's/[[:space:]]\\+$//' {} +",
     "abaplintpathfix": "sed -i 's|\"files\": \"/\\.\\.\\/\\.\\.\\/src\\/\\*\\*\\/\\*\\.\\*\"|\"files\": \"/src/**/*.*\"|g' abaplint.jsonc",

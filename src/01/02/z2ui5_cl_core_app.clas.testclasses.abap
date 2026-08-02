@@ -72,11 +72,6 @@ CLASS ltcl_test_db IMPLEMENTATION.
     DATA temp1 TYPE REF TO ltcl_test_db.
     DATA lo_app_user_db LIKE temp1.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
-
     lo_app_user = NEW #( ).
     lo_app_user->mv_value = `my value`.
 
@@ -106,11 +101,6 @@ CLASS ltcl_test_db IMPLEMENTATION.
     DATA lo_loaded TYPE REF TO z2ui5_cl_core_app.
     DATA temp2 TYPE REF TO ltcl_test_db.
     DATA lo_restored LIKE temp2.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
 
     lo_app_user = NEW #( ).
     lo_app_user->mv_value = `roundtrip value`.
@@ -145,11 +135,6 @@ CLASS ltcl_test_db IMPLEMENTATION.
     DATA lo_app_user TYPE REF TO ltcl_test_db.
     DATA lo_app TYPE REF TO z2ui5_cl_core_app.
     DATA temp3 TYPE REF TO z2ui5_if_app.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
 
     lo_app_user = NEW #( ).
     lo_app_user->mv_value = `complex`.
