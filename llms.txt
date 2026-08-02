@@ -24,7 +24,7 @@ Two audiences, two entry points:
 - [ai-demokit](https://github.com/abap2UI5/ai-demokit): ~280 gate-verified
   ports of the official UI5 demo kit samples, plus CAPABILITIES.md (what
   abap2UI5 can express)
-- [abap2UI5-linter](https://github.com/abap2UI5/abap2UI5-linter): static +
+- [abap2UI5-linter](https://github.com/abap2UI5/linter): static +
   headless-render checks for app view code (CLI, GitHub Action, VS Code)
 - [ai-mcp](https://github.com/abap2UI5/ai-mcp): MCP server with the
   deploy -> build -> run -> screenshot loop, no SAP system needed
