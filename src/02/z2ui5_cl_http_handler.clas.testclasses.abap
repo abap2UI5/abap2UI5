@@ -80,10 +80,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
     DATA temp6 TYPE xsdboolean.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
@@ -124,10 +120,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_DOES_NOT_EXIST"}}}`.
 
@@ -164,10 +156,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
     ls_req-method = `POST`.
     ls_req-body = `{"value":{}}`.
 
@@ -200,10 +188,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.

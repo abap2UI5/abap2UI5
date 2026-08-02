@@ -240,7 +240,7 @@ src/
 | `node/tests/` | Playwright tests — browser tests in `e2e/` (`example.spec.js` shell smoke test, `roundtrip.spec.js` POST/draft wire contract, `lib-sanitizer.spec.js` XSS regression tests for `Lib.sanitizeMessageDetails`, `error-view.spec.js` fatal-error overlay accessibility/focus/Retry tests, `nav-back-forward.spec.js` browser history navigation; run via `node/playwright.config.js` against the dev server), plus JS unit specs (`*.spec.js` — see the spec-to-module mapping under "Testing" below) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `e2e/`) |
 | `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
 | `.github/workflows/` | CI/CD workflows (see below) |
-| `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`) |
+| `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`); `testclass-visibility-gate.mjs` — fails when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc`, `rename.jsonc` (namespace rename for the `build_rename` workflow, placeholder `zabap2ui5`) |
 | `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/` |
 | `.github/actions/` | `report-scheduled-failure` — composite action that opens/updates an issue when a scheduled workflow fails (used by `auto_abaplint_fix.yaml` and `mirror.yaml`) |
@@ -351,8 +351,9 @@ Three commands, all **non-destructive** — they never modify `src/` or `abaplin
 
 ```bash
 npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
-npm run verify       # Gate before every PR: all three abaplint targets -> downport ->
-                     # transpile -> unit -> JS unit specs -> frozen-path check
+npm run verify       # Gate before every PR: all three abaplint targets ->
+                     # testclass-visibility gate -> downport -> transpile -> unit ->
+                     # JS unit specs -> frozen-path check
 npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
                      # installs app/node_modules itself. Run when app/webapp/ changed
 ```
@@ -384,6 +385,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | Command | Purpose |
 |---|---|
 | `npm run deps` | Fetch the three pinned git dependencies into `node/deps/` (auto-run by `check`/`downport`; `-- --print-latest` shows upstream HEADs for a pin bump) |
+| `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`; abaplint and the transpiler cannot see this) |
 | `npm run check:standard` / `check:cloud` | abaplint against the standard-ABAP / ABAP-Cloud target configs (part of `verify`) |
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
@@ -393,6 +395,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
 | `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
 | `npm run unit` | Run the transpiled unit tests |
+| `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`, gated in `ABAP_STANDARD.yaml`) |
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
 | `npm run express` | Start dev server on port 3000 |
 | `npm run app2abap` | **Canonical** full regeneration pipeline: Prettier (`app` format) → generate → abaplint normalize. Use this after editing `app/webapp/` so only truly-changed `src/01/03/` files differ |
@@ -424,6 +427,8 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 - **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_core_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
 - **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `core/Router.js` (`router.spec.js`), `Component.js` unload wiring (`componentUnload.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `cc/Focus.js` (`focus.spec.js`), `cc/Dirty.js` (`dirty.spec.js`), `cc/MessageManager.js` (`messageManager.spec.js`), `core/Messages.js` (`messages.spec.js`), `core/DeveloperTools.js` (`developerTools.spec.js`), `core/ErrorView.js` (`errorView.spec.js`), `core/FrontendAction.js` (`frontendAction.spec.js`), `controller/View1.controller.js` event handling (`view1Events.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`), request sequencing (`serverRequestSeq.spec.js`), focus-info capture (`serverFocusInfo.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`serverClosestElement.spec.js`), `model/formatter.js` (`formatter.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
+- **Never skip a test with `IF sy-sysid = ` + backtick-`ABC`.** `ABC` is the system ID of the Node runtime, so such a guard makes the method a silent no-op in `npm run unit` while it still runs in a real system — CI stays green over assertions nobody executes. A test that genuinely cannot run under the transpiler belongs in the `skip` list of `node/setup/abap_transpile.json` **with a note naming the missing runtime capability**; the runner then prints it as skipped instead of pretending it passed.
+- **A test class touching PRIVATE/PROTECTED members of the class under test needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** Neither abaplint nor the transpiler enforces visibility, so the class pool compiles here and fails on activation in a real system. Gated by `npm run check_visibility` (`.github/scripts/testclass-visibility-gate.mjs`).
 - **Test SICF handler:** `node/srv/zcl_sicf.clas.abap` is copied into `node/downport/` during `auto_transpile` so the Node runtime has a minimal HTTP entry point.
 
 ## Key Files
