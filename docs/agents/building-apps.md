@@ -252,6 +252,10 @@ ships for existing apps but is **frozen** — new apps and new code use
 
 ## 9. Validate and iterate like the framework does
 
+- **Starting a new app repo? Use
+  [abap2UI5/app-template](https://github.com/abap2UI5/app-template)** — it
+  ships the starter app, abaplint + linter CI, this guide as its AGENTS.md
+  and the agent permission setup preconfigured.
 - **[abap2UI5-linter](https://github.com/abap2UI5/abap2UI5-linter)** checks
   app classes statically (unknown/deprecated/too-new controls and members,
   binding mistakes, builder-tree defects) and can render the view headless:

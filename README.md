@@ -100,6 +100,7 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 * Documentation created with [VitePress](https://vitepress.dev/) [(contributors)](https://github.com/vuejs/vitepress/graphs/contributors)
 
 #### AI assistants
+* [app-template](https://github.com/abap2UI5/app-template) - Starter repo for **new app projects**: gates, CI and agent setup preconfigured
 * [docs/agents/building-apps.md](docs/agents/building-apps.md) - Self-contained agent guide for **building apps** with abap2UI5
 * [AGENTS.md](AGENTS.md) - The briefing for AI assistants working **on the framework** itself
 * [llms.txt](llms.txt) - Index of both entry points and the surrounding tooling (linter, MCP server, samples)

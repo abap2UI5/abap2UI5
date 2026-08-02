@@ -9,6 +9,8 @@ Two audiences, two entry points:
 
 ## Building apps with abap2UI5
 
+- [app-template](https://github.com/abap2UI5/app-template): starter repo with
+  the validation gates, CI and agent setup preconfigured - begin here
 - [Agent guide: building apps](docs/agents/building-apps.md): self-contained
   offline reference - app template, lifecycle, view builder, binding, events,
   popups, navigation, validation tooling
