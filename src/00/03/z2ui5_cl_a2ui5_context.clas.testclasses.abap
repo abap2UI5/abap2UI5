@@ -331,6 +331,9 @@ CLASS ltcl_rtti DEFINITION FINAL
 ENDCLASS.
 
 
+CLASS z2ui5_cl_a2ui5_context DEFINITION LOCAL FRIENDS ltcl_rtti.
+
+
 CLASS ltcl_rtti IMPLEMENTATION.
 
   METHOD test_check_clike.
