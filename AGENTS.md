@@ -268,6 +268,7 @@ Grouped by purpose:
 | Group | Workflows | Purpose |
 |---|---|---|
 | **Frozen-path guard** | `check_frozen_paths.yaml` | Fails any PR that changes a file under `src/99/` — the package is history only (see "Layered Design") |
+| **API-contract guard** | `check_api_contract.yaml` | Fails any PR that removes or changes a public symbol of `src/02/` (rule 5); additions must be recorded in `.github/api-snapshot.json` via `node .github/scripts/api-snapshot.mjs --write` |
 | **Compatibility checks** | `ABAP_702.yaml`, `ABAP_STANDARD.yaml`, `ABAP_CLOUD.yaml` | Lint against each ABAP target environment |
 | **Frontend checks** | `UI5.yaml` | UI5 linter via `.github/scripts/ui5lint-gate.mjs`, zero-error policy (accepted findings are suppressed at the source) |
 | **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, JS unit specs + Playwright browser tests, namespace-rename test |
@@ -341,15 +342,19 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 
 ## Build & Validation
 
-Install dependencies: `npm install`
+Install dependencies: `npm install` (frontend gates additionally need
+`npm --prefix app ci` — `verify:full` runs that itself)
 
 ### Validation sequence
 
-Two commands, both **non-destructive** — they never modify `src/` or `abaplint.jsonc`:
+Three commands, all **non-destructive** — they never modify `src/` or `abaplint.jsonc`:
 
 ```bash
-npm run check     # Fast inner loop: abaplint only (seconds) — run this while iterating
-npm run verify    # Full gate before every PR: check -> downport -> transpile -> unit
+npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
+npm run verify       # Gate before every PR: all three abaplint targets -> downport ->
+                     # transpile -> unit -> JS unit specs -> frozen-path check
+npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
+                     # installs app/node_modules itself. Run when app/webapp/ changed
 ```
 
 `npm run verify` downports into `node/downport/` and runs the transpiled unit
@@ -357,10 +362,34 @@ tests from there, so the working tree stays exactly as you left it. Use
 `npm run check` for the tight edit/validate loop and `npm run verify` before
 opening a PR. Do **not** use `npm run auto_downport` for validation — see rule 9.
 
+**What `verify` still does not cover** (CI-only): the browser e2e tests
+(`test_browser.yaml` — needs browsers + the UI5 CDN), the express smoke test
+(`test_node.yaml`), the namespace-rename test (`test_rename.yaml`), the
+`src/01/03` drift gate (`check_app2abap.yaml` — run `npm run check:app2abap`
+after editing `app/webapp/`, note it regenerates via Prettier + abaplint fix),
+and the `src/02` API-contract gate (`check_api_contract.yaml` — run
+`npm run check:api`).
+
+**Pinned git dependencies:** abaplint and the transpiler clone three upstream
+repos (steampunk API intersection, open-abap-core, express-icf-shim). These
+are pinned to fixed SHAs via `node node/setup/fetch-deps.mjs` (auto-run by
+`check`/`downport`; materializes `node/deps/`, gitignored) so a build cannot
+turn red because an upstream moved. Bump pins deliberately: `--print-latest`,
+edit the SHAs in `fetch-deps.mjs`, `npm run verify`. Without network the tools
+fall back to a floating HEAD clone — treat unexplained lint/transpile failures
+in untouched code as a possible upstream move only in that fallback case.
+
 ### Other commands
 
 | Command | Purpose |
 |---|---|
+| `npm run deps` | Fetch the three pinned git dependencies into `node/deps/` (auto-run by `check`/`downport`; `-- --print-latest` shows upstream HEADs for a pin bump) |
+| `npm run check:standard` / `check:cloud` | abaplint against the standard-ABAP / ABAP-Cloud target configs (part of `verify`) |
+| `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
+| `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
+| `npm run check:ui5` | The ui5lint zero-error gate (`.github/scripts/ui5lint-gate.mjs`; part of `verify:full`, needs `app/node_modules`) |
+| `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5) |
+| `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place) |
 | `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
 | `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
 | `npm run unit` | Run the transpiled unit tests |
@@ -470,6 +499,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
    - Do not change the type or default value of existing parameters in any public method
    - Additive changes are allowed (new methods, new optional parameters, new constants)
    - When in doubt, add rather than change
+   - **Machine-enforced** by `check_api_contract.yaml`: every public `src/02` signature is recorded in `.github/api-snapshot.json`; a removed/changed signature fails the PR (revert it — never edit the snapshot to silence the gate), and an addition fails until you record it with `node .github/scripts/api-snapshot.mjs --write` and commit the snapshot alongside
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/cc/<Name>` of the custom controls (file location under `webapp/cc/` defines the ID), their properties and events (bound by existing app views), the controller methods `eB`/`eF`, the `z2ui5/Util` module and the `z2ui5.Util` global (public date helpers — **deprecated**, kept as a backward-compatible alias; new code and new helpers go through `z2ui5/model/formatter` / the `z2ui5.Formatter` global, which re-exports them). Additive changes only. View XML using the custom controls must declare `xmlns:z2ui5="z2ui5.cc"` (changed from `"z2ui5"` when the controls moved into `cc/`).
 8. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Shared frontend state is owned by `app/webapp/core/AppState.js`** — it documents the complete inventory of the `z2ui5.*` globals (public contract vs. internal fields) and provides the defaults for all internal fields. Framework modules must not reference the `z2ui5` global directly (ui5lint `no-project-globals`): internal fields are accessed via the `AppState.state` module export, public-contract fields via `AppState.getGlobal()/setGlobal()`. AppState itself is the only module that touches the global — it exposes the internal fields there via accessors so external consumers (apps via the js_loader popup, backend-generated HTML) keep working. Do not add new lazy `if (!z2ui5.x)` bootstrapping; add the field with its default to `AppState.createState()` instead.
@@ -485,6 +515,17 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 17. **A dialog loaded from a fragment with a fixed `id` must be loaded once and reused across open/close — never destroyed on close and re-loaded on the next open.** On OpenUI5 1.71 the destroy races the dialog's close animation, so a fragment-scoped control id is still registered when the reload runs → `adding element with duplicate id 'z2ui5DeveloperTools--developerToolsEditor'`. Pattern (see `DeveloperTools.js`): `show()` reuses an existing `this.oDialog` and only re-seeds the model; `close()` just closes it (and reuses it next time); `exit()` is the sole place that destroys it.
 18. **Do not declare a physical resource in `manifest.json` that the ABAP deployment does not actually serve.** `sap.ui5/resources.css` made UI5 load `css/style.css` as a real `<link>`, which 404s on the ABAP system — frontend files are served through the module preload (`z2ui5_cl_app_preload`), not as ICF resources at their raw URLs. The placeholder `style.css` was empty, so the entry was removed. If a real stylesheet is ever needed, serve it through the preload / HTTP handler, not a bare manifest `<link>`.
 19. **The frontend is a thin, data-driven executor — grow it through the declarative whitelists, not through new bespoke logic.** The backend drives frontend behaviour by *data* (an event name plus positional args), and `FrontendAction.js` turns that data into UI5 calls through three declarative whitelists: `CONTROL_METHODS` (imperative methods on a control resolved by id — `to`, `open`, `scrollToIndex`, `expandToLevel`, …), `GLOBAL_TARGETS` (whitelisted methods on a global object — `MessageToast`, `MessageBox`, `BusyIndicator`, `Theming`), and `BINDING_METHODS` (aggregation-binding ops — `filter`/`sort`, built from paths + whitelisted `FILTER_OPERATORS`, never from code). **When a new need is "call a UI5 control / global / binding method", add a whitelist entry** (method name + its arg *kinds*, cast via `castArg`) — do **not** add a new hand-written `handlers` entry that re-implements the dispatch. Only add a new `handlers` function for a genuine *browser capability* that has no control-method equivalent (clipboard, history, download, storage, timer, focus/scroll/caret, audio, launchpad nav). Whichever you add, it stays a thin executor: resolve/cast args, guard the DOM, and `Lib.logError` on failure — **never** embed business decisions, thresholds, unit conversions, or app-specific branching (those belong in the backend model; the one curated exception is the reactive value formatters in `model/formatter.js`, which must serve two-way-bound editable data to justify living client-side). This keeps the "delegate, never decide" contract (rule 10) at the action layer and keeps every payload data, not code — CSP-clean without `unsafe-eval` for the dispatch path.
+
+> **Enforcement status — know which rules a green CI actually proves.** Rules
+> 1 (`src/99` part), 2, 3, 4, 5 and 14 are backed by CI gates. **The
+> OpenUI5-1.71 compatibility cluster — rules 12, 13, 15, 16, 17, 18 — is
+> enforced by NOTHING automated**: the browser tests run against the latest
+> UI5 CDN build, never 1.71, and `manifest.json` (where `minUI5Version: 1.71`
+> lives) is excluded from ui5lint. A green CI therefore does **not** prove
+> 1.71 safety — these rules are reviewer-enforced, so check them manually on
+> every frontend change ("available since" of every module, aggregation and
+> control against 1.71) until a pinned-1.71 test project exists.
+
 
 ## Design Decisions & Known Non-Issues
 

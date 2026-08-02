@@ -1,4 +1,5 @@
 downport
+node/deps/
 node_modules
 output
 node/output
