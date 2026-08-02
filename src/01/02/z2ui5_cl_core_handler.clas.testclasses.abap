@@ -55,11 +55,6 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA temp1 TYPE REF TO z2ui5_cl_app_startup.
     DATA lo_startup LIKE temp1.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
-
     lv_payload = `{"value" : { "S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}}`.
 
     lo_post = NEW #( val = lv_payload ).
@@ -544,10 +539,6 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_app TYPE REF TO ltcl_app_nav_loop.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
 
     " An app configures routing ONCE. main_end therefore re-sends the mode the
     " app carries whenever the roundtrip did not set one itself, so a later
