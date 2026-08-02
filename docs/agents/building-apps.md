@@ -209,13 +209,14 @@ ships for existing apps but is **frozen** — new apps and new code use
 
 ## 6. Popups, popovers, messages
 
-- `client->popup_display( xml )` opens a `core:FragmentDefinition` string
-  (build it with `z2ui5_cl_ai_xml` too) as a dialog. Closing: wire a Close
-  button to `client->_event( z2ui5_if_client=>cs_event-popup_close )` (the
-  framework handles it without reaching your `on_event`), or call
+- `client->popup_display( val = … )` opens a `core:FragmentDefinition`
+  string (build it with `z2ui5_cl_ai_xml` too) as a dialog. Closing: wire a
+  Close button to `client->_event( z2ui5_if_client=>cs_event-popup_close )`
+  (the framework handles it without reaching your `on_event`), or call
   `client->popup_destroy( )` server-side after handling your own event.
 - `client->popover_display( xml = … by_id = … )` anchors a popover to a
-  control id (note: the parameter is `xml`).
+  control id. **Mind the asymmetry**: the popup takes its XML as `val`, the
+  popover as `xml` — one of the most common first-try mistakes.
 - `client->message_toast_display( text )` and
   `client->message_box_display( text type title actions … )` for messages —
   never build your own toast/dialog for these.
