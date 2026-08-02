@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm ci)",
+      "Bash(npm install)",
+      "Bash(npm run check)",
+      "Bash(npm run check:*)",
+      "Bash(npm run check_visibility)",
+      "Bash(npm run verify)",
+      "Bash(npm run verify:*)",
+      "Bash(npm run deps)",
+      "Bash(npm run deps -- --print-latest)",
+      "Bash(npm run downport)",
+      "Bash(npm run auto_transpile)",
+      "Bash(npm run unit)",
+      "Bash(npm run app2abap)",
+      "Bash(npm run express)",
+      "Bash(npx abaplint:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(node .github/scripts/*)",
+      "Bash(node node/setup/fetch-deps.mjs:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)"
+    ],
+    "deny": [
+      "Read(src/99/**)",
+      "Edit(src/99/**)",
+      "Edit(src/01/03/**)",
+      "Edit(src/00/01/**)",
+      "Edit(src/00/02/**)",
+      "Edit(.github/api-snapshot.json)"
+    ]
+  }
+}

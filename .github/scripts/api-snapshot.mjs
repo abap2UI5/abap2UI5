@@ -1,0 +1,224 @@
+#!/usr/bin/env node
+// Machine gate for AGENTS.md rule 5: the public API under src/02/ is a stable
+// contract consumed by thousands of downstream apps - existing public methods,
+// attributes, constants and types must never be removed or changed (additive
+// changes are allowed, but must be recorded so they become part of the guarded
+// contract).
+//
+// The committed snapshot .github/api-snapshot.json holds one normalized
+// signature per public symbol. Modes:
+//
+//   node .github/scripts/api-snapshot.mjs          compare against the snapshot
+//                                                  (exit 1 on removed, changed
+//                                                  OR unrecorded-added symbols)
+//   node .github/scripts/api-snapshot.mjs --write  regenerate the snapshot
+//                                                  (run after an intentional
+//                                                  additive change; the diff of
+//                                                  the snapshot then shows the
+//                                                  API change for review)
+//
+// A "changed" or "removed" finding is a rule-5 violation - do not update the
+// snapshot to silence it; restore the signature instead. Renames count as
+// remove + add. The parser is deliberately simple (definitions only, comments
+// stripped, whitespace normalized); if it ever mis-parses a construct, fix the
+// parser in the same change and note it here.
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const SRC02 = path.join(ROOT, "src", "02");
+const SNAPSHOT = path.join(ROOT, ".github", "api-snapshot.json");
+
+function stripComments(code) {
+  return code
+    .split("\n")
+    .map((line) => {
+      const t = line.trimStart();
+      if (t.startsWith("*") || t.startsWith('"')) return "";
+      // inline " comment - safe here because src/02 definition literals use
+      // backticks/single quotes; only strip when not inside a literal
+      let out = "";
+      let inTick = false;
+      let inQuote = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === "`" && !inQuote) inTick = !inTick;
+        else if (c === "'" && !inTick) inQuote = !inQuote;
+        else if (c === '"' && !inTick && !inQuote) break;
+        out += c;
+      }
+      return out;
+    })
+    .join("\n");
+}
+
+// split a section body into period-terminated statements (periods inside
+// literals are respected)
+function statements(body) {
+  const out = [];
+  let cur = "";
+  let inTick = false;
+  let inQuote = false;
+  for (const c of body) {
+    if (c === "`" && !inQuote) inTick = !inTick;
+    else if (c === "'" && !inTick) inQuote = !inQuote;
+    if (c === "." && !inTick && !inQuote) {
+      if (cur.trim()) out.push(cur.trim());
+      cur = "";
+    } else {
+      cur += c;
+    }
+  }
+  return out;
+}
+
+const norm = (s) => s.replace(/\s+/g, " ").trim().toLowerCase();
+
+const KIND_RE =
+  /^(class-methods|methods|class-data|data|constants|types|interfaces|aliases|class-events|events)\b/i;
+
+// expand a chained declaration (KEYWORD: a ..., b ...) into single statements
+function unchain(stmt) {
+  const m = stmt.match(KIND_RE);
+  if (!m) return [stmt];
+  const kw = m[0];
+  let rest = stmt.slice(m[0].length).trim();
+  if (!rest.startsWith(":")) return [stmt];
+  rest = rest.slice(1);
+  const parts = [];
+  let depth = 0;
+  let cur = "";
+  let inTick = false;
+  let inQuote = false;
+  for (const c of rest) {
+    if (c === "`" && !inQuote) inTick = !inTick;
+    else if (c === "'" && !inTick) inQuote = !inQuote;
+    if (!inTick && !inQuote) {
+      if (c === "(") depth++;
+      if (c === ")") depth--;
+      if (c === "," && depth === 0) {
+        parts.push(cur);
+        cur = "";
+        continue;
+      }
+    }
+    cur += c;
+  }
+  if (cur.trim()) parts.push(cur);
+  return parts.map((p) => `${kw} ${p.trim()}`);
+}
+
+// group BEGIN OF ... END OF blocks (TYPES / CONSTANTS / DATA / CLASS-DATA)
+// into one entry per structure - a member change then reads as a change of
+// the whole named block
+function groupTypes(stmts) {
+  const BEGIN = /^(types|constants|class-data|data)\s+begin\s+of\s+(?:enum\s+)?(\S+)/i;
+  const END = /^(?:types|constants|class-data|data)\s+end\s+of\s+(?:enum\s+)?(\S+)/i;
+  const out = [];
+  let block = null;
+  let blockKind = null;
+  let blockName = null;
+  let depth = 0;
+  for (const s of stmts) {
+    const begin = s.match(BEGIN);
+    const end = s.match(END);
+    if (block === null && begin) {
+      block = [s];
+      blockKind = begin[1].toLowerCase().replace(/\s+/g, "-");
+      blockName = begin[2];
+      depth = 1;
+      continue;
+    }
+    if (block !== null) {
+      block.push(s);
+      if (begin) depth++;
+      if (end) {
+        depth--;
+        if (depth === 0) {
+          out.push({ kind: blockKind, name: blockName.toLowerCase(), sig: block.join(" . ") });
+          block = null;
+        }
+      }
+      continue;
+    }
+    out.push(s);
+  }
+  if (block !== null)
+    out.push({ kind: blockKind, name: blockName.toLowerCase(), sig: block.join(" . ") });
+  return out;
+}
+
+function publicBody(file, code) {
+  if (file.endsWith(".intf.abap")) {
+    const m = code.match(/^\s*interface\b[\s\S]*?\.\s*$/im);
+    const start = code.search(/^\s*interface\b.*?\.\s*$/im);
+    const from = m ? code.indexOf(".", start) + 1 : 0;
+    const to = code.search(/^\s*endinterface\b/im);
+    return code.slice(from, to === -1 ? undefined : to);
+  }
+  const pub = code.search(/^\s*public\s+section\s*\./im);
+  if (pub === -1) return "";
+  const from = code.indexOf(".", pub) + 1;
+  const rest = code.slice(from);
+  const end = rest.search(/^\s*(protected\s+section|private\s+section|endclass)\b/im);
+  return end === -1 ? rest : rest.slice(0, end);
+}
+
+function extract() {
+  const api = {};
+  for (const f of fs.readdirSync(SRC02).sort()) {
+    if (!f.endsWith(".intf.abap") && !f.endsWith(".clas.abap")) continue;
+    if (f.endsWith(".testclasses.abap")) continue;
+    const code = stripComments(fs.readFileSync(path.join(SRC02, f), "utf8"));
+    const body = publicBody(f, code);
+    const stmts = statements(body).flatMap(unchain);
+    for (const entry of groupTypes(stmts)) {
+      if (typeof entry === "object") {
+        api[`${f}#${entry.kind}:${entry.name}`] = norm(entry.sig);
+        continue;
+      }
+      const m = entry.match(KIND_RE);
+      if (!m) continue; // PUBLIC SECTION noise (e.g. pragmas)
+      const kind = m[0].toLowerCase().replace(/\s+/g, "-");
+      const nameM = entry.slice(m[0].length).match(/^\s*:?\s*([a-z0-9_~\/]+)/i);
+      if (!nameM) continue;
+      api[`${f}#${kind}:${nameM[1].toLowerCase()}`] = norm(entry);
+    }
+  }
+  return api;
+}
+
+const current = extract();
+
+if (process.argv.includes("--write")) {
+  fs.writeFileSync(SNAPSHOT, JSON.stringify(current, null, 2) + "\n");
+  console.log(`api-snapshot: ${Object.keys(current).length} public symbols written`);
+  process.exit(0);
+}
+
+if (!fs.existsSync(SNAPSHOT)) {
+  console.error("api-snapshot: no snapshot found - run with --write once to create it");
+  process.exit(1);
+}
+const snap = JSON.parse(fs.readFileSync(SNAPSHOT, "utf8"));
+
+const removed = Object.keys(snap).filter((k) => !(k in current));
+const changed = Object.keys(snap).filter((k) => k in current && current[k] !== snap[k]);
+const added = Object.keys(current).filter((k) => !(k in snap));
+
+for (const k of removed) console.error(`REMOVED (rule-5 violation): ${k}\n  was: ${snap[k]}`);
+for (const k of changed)
+  console.error(`CHANGED (rule-5 violation): ${k}\n  was: ${snap[k]}\n  now: ${current[k]}`);
+for (const k of added)
+  console.error(
+    `ADDED (allowed, but unrecorded): ${k}\n  run: node .github/scripts/api-snapshot.mjs --write  (and commit the snapshot so the addition is reviewed + guarded)`,
+  );
+
+if (removed.length || changed.length || added.length) {
+  console.error(
+    `api-snapshot: ${removed.length} removed, ${changed.length} changed, ${added.length} unrecorded - FAIL`,
+  );
+  process.exit(1);
+}
+console.log(`api-snapshot: ${Object.keys(current).length} public symbols unchanged - OK`);

@@ -1,3 +1,10 @@
+* =====================================================================
+* GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
+* Embedded frontend resource, generated from app/webapp/ by
+* .github/app2abap/trans2abap.js. Change the source under app/webapp/
+* and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
+* fails any manual edit here.
+* =====================================================================
 CLASS z2ui5_cl_app_storage_js DEFINITION
   PUBLIC
   FINAL

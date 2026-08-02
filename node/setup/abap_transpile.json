@@ -3,10 +3,12 @@
   "output_folder": "node/output",
   "libs": [
     {
-      "url": "https://github.com/open-abap/open-abap-core"
+      "url": "https://github.com/open-abap/open-abap-core",
+      "folder": "/node/deps/open-abap-core"
     },
     {
-      "url": "https://github.com/open-abap/express-icf-shim"
+      "url": "https://github.com/open-abap/express-icf-shim",
+      "folder": "/node/deps/express-icf-shim"
     }
   ],
   "write_unit_tests": true,
