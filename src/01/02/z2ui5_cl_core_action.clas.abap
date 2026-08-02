@@ -118,8 +118,8 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         " characters before reflecting it into the error text - a real typo
         " still shows for diagnostics, but a crafted value cannot smuggle
         " markup/script into the response body.
-        DATA(lv_app_name) = CONV string( mo_http_post->ms_request-s_control-app_start ).
-        REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH ``.
+        DATA(lv_app_name) = mo_http_post->ms_request-s_control-app_start.
+        REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH `` ##REGEX_POSIX.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
             val      = |The app '{ lv_app_name }' does not exist in the system.|

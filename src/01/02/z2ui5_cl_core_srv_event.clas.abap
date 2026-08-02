@@ -263,7 +263,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " bindings/object literals like {/PATH} or {..}. {0/field} (relative
       " binding) keeps a `/` after the digits and is therefore not matched, so
       " it stays raw as before.
-      FIND REGEX `^\{[0-9]+[?}]` IN lv_new.
+      FIND REGEX `^\{[0-9]+[?}]` IN lv_new ##REGEX_POSIX.
       DATA(lv_is_placeholder) = xsdbool( sy-subrc = 0 ).
       IF (     lv_new(1) <> `$`
            AND lv_new(1) <> `{`
