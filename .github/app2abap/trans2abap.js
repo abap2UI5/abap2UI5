@@ -41,7 +41,7 @@ function formatAsAbapClass(content, className, isSpecialFile) {
         // byte (smart quote, ellipsis, arrow, ...) breaks generation/lint
         // downstream with a confusing error, so fail here at the exact source
         // line instead. Runtime non-ASCII must be built via String.fromCharCode
-        // / entity decoding (see AGENTS.md rule 15).
+        // / entity decoding (see AGENTS.md rule 14).
         const nonAscii = line.match(/[^\x00-\x7F]/);
         if (nonAscii) {
             throw new Error(

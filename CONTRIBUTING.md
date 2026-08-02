@@ -2,6 +2,11 @@
 
 Thank you for your interest in contributing to abap2UI5! This guide helps ABAP developers get started with open source contributions, whether you're new to Git or experienced with development workflows.
 
+> **Working with an AI assistant (or as one)?** [AGENTS.md](AGENTS.md) is the
+> authoritative briefing for changes to this repository — architecture, coding
+> rules, and the validation commands. Where this guide and AGENTS.md differ,
+> AGENTS.md wins.
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
@@ -147,10 +152,12 @@ For rule customization, see [abaplint documentation](https://abaplint.org/).
 # Recommended for all changes
 npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix
 
-# Optional - only for complex changes or debugging
-npm run auto_downport
-npm run auto_transpile
-npm run unit
+# Fast inner loop: abaplint only (seconds)
+npm run check
+
+# Full gate before every PR: check -> downport -> transpile -> unit
+# (non-destructive - runs in node/downport/, never touches src/)
+npm run verify
 ```
 
 ### Automated Testing
@@ -194,12 +201,16 @@ Look for issues labeled:
 3. **Test Your Changes:**
    ```bash
    # Always run (catches most issues)
-   npx abaplint
+   npm run check
 
-   # Optional (GitHub Actions will run these)
-   npm run auto_downport
-   npm run auto_transpile
+   # Before opening a PR (non-destructive full gate)
+   npm run verify
    ```
+
+   > Never validate with `npm run auto_downport` — it rewrites `src/` in place
+   > and overwrites `abaplint.jsonc`, destroying uncommitted work. It exists
+   > only to produce the `702` branch in CI. `npm run verify` performs the
+   > identical downport non-destructively in `node/downport/`.
 
 4. **Commit Your Changes:**
    ```bash
