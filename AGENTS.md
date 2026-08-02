@@ -341,6 +341,30 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 - No Yoda conditions
 - `forbidden_void_type` blocks SAP standard types — use `abap_bool`, `i`, `string` etc.
 
+### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
+
+The sources are also run through the extended program check in real systems,
+which flags things `npm run check` cannot see. Known traps — avoid them up
+front, a green abaplint does not prove their absence:
+
+- **POSIX regex is deprecated.** `FIND/REPLACE ... REGEX` uses the POSIX
+  standard; the PCRE replacement (`FIND PCRE`) only exists on >= 7.55 and this
+  repo targets v750/7.02. Prefer plain string logic over regex where feasible;
+  when a regex is genuinely needed, add the `##REGEX_POSIX` pragma to the
+  statement (the established convention — the vendored AJSON code does the same).
+- **No redundant conversions.** Do not wrap a value in `CONV string( ... )`
+  (or `CONV #( ... )`) when the source already has the target type — assign it
+  directly (bit us in `z2ui5_cl_core_action=>factory_first_start`, where
+  `s_control-app_start` is already a `string`).
+- **ABAP Doc (`"!`) position:** a doc comment must sit directly before the one
+  declaration it documents. In a chained statement (`CONSTANTS: BEGIN OF ...`)
+  that means *inside* the chain, directly before the element — a `"!` block
+  before the chain keyword is "in the wrong position" (bit us on
+  `z2ui5_if_client=>cs_nav_mode`).
+- **ABAP Doc is parsed as HTML:** a literal `<`/`>`/`&` must be escaped as
+  `&lt;`/`&gt;`/`&amp;` — a placeholder like `#/app/<CLASS>` is otherwise read
+  as an unsupported, unclosed HTML tag; write `#/app/&lt;CLASS&gt;`.
+
 ## Build & Validation
 
 Install dependencies: `npm install` (frontend gates additionally need

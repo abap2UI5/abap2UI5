@@ -73,17 +73,17 @@ INTERFACE z2ui5_if_client
       popover TYPE string VALUE `POPOVER`,
     END OF cs_view.
 
-  "! Hash-based app routing modes (see set_nav_routing). The mode decides how
-  "! much of the running app the URL hash carries, and therefore what the
-  "! browser Back/Forward buttons (and a reload / bookmark) restore:
-  "!  default - no routing: the hash is left untouched, exactly as before this
-  "!            feature. Back/Forward leave the abap2UI5 page (framework default).
-  "!  fresh   - route '#/app/<CLASS>' (class only): Back/Forward/reload/bookmark
-  "!            start the app FRESH (a clean instance, no preserved input).
-  "!  keep    - route '#/app/<CLASS>/<DRAFT>' (class + server draft): the exact
-  "!            preserved state is restored (all user input), falling back to a
-  "!            fresh start once the draft has expired.
   CONSTANTS:
+    "! Hash-based app routing modes (see set_nav_routing). The mode decides how
+    "! much of the running app the URL hash carries, and therefore what the
+    "! browser Back/Forward buttons (and a reload / bookmark) restore:
+    "!  default - no routing: the hash is left untouched, exactly as before this
+    "!            feature. Back/Forward leave the abap2UI5 page (framework default).
+    "!  fresh   - route '#/app/&lt;CLASS&gt;' (class only): Back/Forward/reload/bookmark
+    "!            start the app FRESH (a clean instance, no preserved input).
+    "!  keep    - route '#/app/&lt;CLASS&gt;/&lt;DRAFT&gt;' (class + server draft): the exact
+    "!            preserved state is restored (all user input), falling back to a
+    "!            fresh start once the draft has expired.
     BEGIN OF cs_nav_mode,
       default TYPE string VALUE `DEFAULT`,
       fresh   TYPE string VALUE `FRESH`,
@@ -137,8 +137,8 @@ INTERFACE z2ui5_if_client
   "!
   "! The mode (see cs_nav_mode) decides what Back/Forward/reload/bookmark
   "! restore: keep (default) restores the exact preserved state via a draft id
-  "! in the route '#/app/<CLASS>/<DRAFT>'; fresh routes by class only
-  "! '#/app/<CLASS>' and always starts the app fresh; default disables routing
+  "! in the route '#/app/&lt;CLASS&gt;/&lt;DRAFT&gt;'; fresh routes by class only
+  "! '#/app/&lt;CLASS&gt;' and always starts the app fresh; default disables routing
   "! (framework behaviour as before this feature).
   "!
   "! In keep mode the calling app's route entry is advanced to the draft saved
