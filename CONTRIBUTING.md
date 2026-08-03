@@ -143,7 +143,7 @@ For rule customization, see [abaplint documentation](https://abaplint.org/).
 ### When to Run Local Tests
 
 **For ABAP System Development:**
-- ✅ **Always run:** `npx abaplint` (catches syntax and style issues)
+- ✅ **Always run:** `npm run check` (catches syntax and style issues)
 - ⚠️ **Optional:** Transpilation tests (GitHub Actions handles this automatically)
 - ✅ **For complex changes:** Run full pipeline to catch issues early
 
@@ -196,7 +196,7 @@ Look for issues labeled:
 
 2. **Make Your Changes:**
    - **ABAP Changes:** Use abapGit workflow (recommended)
-   - **Node.js Changes:** Edit files directly and test with `npm run auto_transpile`
+   - **Frontend (`app/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend with `npm run app2abap`
 
 3. **Test Your Changes:**
    ```bash
