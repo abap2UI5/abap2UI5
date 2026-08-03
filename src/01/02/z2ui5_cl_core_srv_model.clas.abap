@@ -41,8 +41,6 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-
-
     CONSTANTS max_dissolve_depth TYPE i VALUE 5.
 
     DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
@@ -338,8 +336,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     dissolve( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
-         WHERE name_ref  IS INITIAL
-               AND type_kind  = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_dref.
+         WHERE name_ref IS INITIAL
+               AND type_kind = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_dref.
 
       DATA(lv_path_ref) = |MO_APP->{ lr_attri->name }|.
       ASSIGN (lv_path_ref) TO FIELD-SYMBOL(<ref>).
@@ -358,9 +356,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         WHEN z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table.
 
           LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
-               WHERE name_ref    IS INITIAL
-                     AND type_kind    = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table
-                     AND name_parent  = lr_attri->name.
+               WHERE name_ref IS INITIAL
+                     AND type_kind = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table
+                     AND name_parent = lr_attri->name.
 
             DATA(lv_path_child) = |MO_APP->{ lr_attri_child->name }|.
             ASSIGN (lv_path_child) TO FIELD-SYMBOL(<val_ref>).
@@ -381,10 +379,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)  "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_dref)  "#EC CI_SORTSEQ
          WHERE type_kind = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_dref.
 
-      DATA(lv_path_dref) = |MO_APP->{ lr_attri2->name }|.
+      DATA(lv_path_dref) = |MO_APP->{ lr_attri_dref->name }|.
       ASSIGN (lv_path_dref) TO FIELD-SYMBOL(<dref>).
       IF sy-subrc <> 0.
         CONTINUE.
@@ -467,9 +465,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDIF.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
-         WHERE name_ref  IS INITIAL
-               AND type_kind  = lo_datadescr->type_kind
-               AND kind       = lo_datadescr->kind.
+         WHERE name_ref IS INITIAL
+               AND type_kind = lo_datadescr->type_kind
+               AND kind = lo_datadescr->kind.
 
       " compare by name - descriptor instances are not stable in the
       " abaplint transpiler runtime; the data reference check below is
@@ -630,8 +628,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     DATA lr_attri_ref_ref TYPE REF TO data.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
-         WHERE check_dissolved  = abap_true
-               AND name_ref        IS INITIAL.
+         WHERE check_dissolved = abap_true
+               AND name_ref IS INITIAL.
 
       TRY.
           DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
@@ -644,10 +642,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         WHEN z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table.
 
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
-               WHERE check_dissolved  = abap_true
-                     AND name            <> lr_attri->name
-                     AND name_ref        IS INITIAL
-                     AND type_kind        = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table.
+               WHERE check_dissolved = abap_true
+                     AND name <> lr_attri->name
+                     AND name_ref IS INITIAL
+                     AND type_kind = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table.
 
             TRY.
                 lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
@@ -667,9 +665,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<ref>).
 
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
-               WHERE check_dissolved  = abap_true
-                     AND name            <> lr_attri->name
-                     AND name_ref        IS INITIAL
+               WHERE check_dissolved = abap_true
+                     AND name <> lr_attri->name
+                     AND name_ref IS INITIAL
                      AND (    type_kind = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_struct1
                            OR type_kind = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_struct2 ).
 
@@ -751,6 +749,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               " TRY/CATCH around dissolve_run, dumping the whole request
           ENDCASE.
         WHEN OTHERS.
+          " an unknown typedescr kind is left as a non-dissolvable leaf
+          " (this is the unknown-kind WHEN OTHERS the comment above refers to)
       ENDCASE.
 
     ENDLOOP.

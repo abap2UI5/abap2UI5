@@ -54,6 +54,15 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
       IMPORTING
         ir_ref   TYPE REF TO object
         iv_label TYPE string.
+
+    " Apply the ms_config decorations to a finished binding path: the http>
+    " model prefix (switch_default_model) and the surrounding curly braces
+    " (unless path_only). Shared tail of main( ) and main_cell( ).
+    METHODS finalize_path
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -208,15 +217,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       check_raise_new( ).
       update_model_attri( ).
     ENDIF.
-    result = mr_attri->name_client.
-
-    IF ms_config-switch_default_model = abap_true.
-      result = |http>{ result }|.
-    ENDIF.
-
-    IF ms_config-path_only = abap_false.
-      result = |\{{ result }\}|.
-    ENDIF.
+    result = finalize_path( mr_attri->name_client ).
 
   ENDMETHOD.
 
@@ -233,6 +234,14 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     " same model-switch handling as in main( ) - otherwise a cell bind with
     " switch_default_model = abap_true silently targets the default model
+    result = finalize_path( result ).
+
+  ENDMETHOD.
+
+  METHOD finalize_path.
+
+    result = val.
+
     IF ms_config-switch_default_model = abap_true.
       result = |http>{ result }|.
     ENDIF.

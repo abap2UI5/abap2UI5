@@ -146,7 +146,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     SELECT SINGLE id, uname FROM z2ui5_t_01
       WHERE id = @id
-      INTO @DATA(ls_row) ##NEEDED.
+      INTO @DATA(ls_row).
 
     " existence is owner-scoped (see read( )): a draft owned by another user
     " counts as non-existent here. Legacy blank-owner rows stay visible during
