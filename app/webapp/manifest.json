@@ -73,6 +73,9 @@
       "viewName": "z2ui5.view.App",
       "type": "XML",
       "id": "App"
+    },
+    "resourceRoots": {
+      "z2ui5cc": "../z2ui5cc/"
     }
   },
   "sap.cloud": {
