@@ -410,7 +410,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | Command | Purpose |
 |---|---|
 | `npm run deps` | Fetch the three pinned git dependencies into `node/deps/` (auto-run by `check`/`downport`; `-- --print-latest` shows upstream HEADs for a pin bump) |
-| `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`; abaplint and the transpiler cannot see this) |
+| `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`, gated in `ABAP_STANDARD.yaml`; abaplint and the transpiler cannot see this) |
 | `npm run check:standard` / `check:cloud` | abaplint against the standard-ABAP / ABAP-Cloud target configs (part of `verify`) |
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
@@ -421,7 +421,6 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
 | `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
 | `npm run unit` | Run the transpiled unit tests |
-| `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`, gated in `ABAP_STANDARD.yaml`) |
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
 | `npm run express` | Start dev server on port 3000 |
 | `npm run app2abap` | **Canonical** full regeneration pipeline: Prettier (`app` format) → generate → abaplint normalize. Use this after editing `app/webapp/` so only truly-changed `src/01/03/` files differ |
