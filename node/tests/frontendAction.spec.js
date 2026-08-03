@@ -31,6 +31,7 @@ function load({ sandbox } = {}) {
   const Lib = {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
+    toText: (val) => (val == null ? "" : String(val)),
     whenRendered: (_control, _owner, fn) => fn(),
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
   };
@@ -1241,5 +1242,76 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     const { FrontendAction, errors, oController } = loadWithDoc();
     FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+", "SAVE"]);
     expect(errors[0]).toContain("names no key");
+  });
+});
+
+test.describe("SET_FAVICON (browser tab icon)", () => {
+  // Minimal <head> stub: enough to see whether the handler reuses an existing
+  // icon link or appends one, which is the whole behavior worth pinning down.
+  function docStub(existingRel) {
+    const head = [];
+    if (existingRel !== undefined) head.push({ rel: existingRel, href: "old" });
+    return {
+      head,
+      document: {
+        head: {
+          querySelector: (selector) => {
+            // only the one selector the handler uses
+            if (selector !== 'link[rel~="icon"]') return null;
+            return (
+              head.find((el) => String(el.rel).split(/\s+/).includes("icon")) ||
+              null
+            );
+          },
+          appendChild: (el) => head.push(el),
+        },
+        createElement: () => ({ rel: "", href: "" }),
+      },
+    };
+  }
+
+  function loadWithDoc(existingRel) {
+    const doc = docStub(existingRel);
+    return { ...load({ sandbox: { document: doc.document } }), doc };
+  }
+
+  test("appends an icon link when the page has none", () => {
+    const { FrontendAction, doc } = loadWithDoc();
+    FrontendAction.execute(null, ["SET_FAVICON", "/icon.png"]);
+    expect(doc.head).toEqual([{ rel: "icon", href: "/icon.png" }]);
+  });
+
+  test("reuses the existing link instead of appending a second one", () => {
+    const { FrontendAction, doc } = loadWithDoc("icon");
+    FrontendAction.execute(null, ["SET_FAVICON", "/new.png"]);
+    expect(doc.head).toEqual([{ rel: "icon", href: "/new.png" }]);
+  });
+
+  test("also finds the legacy rel='shortcut icon'", () => {
+    const { FrontendAction, doc } = loadWithDoc("shortcut icon");
+    FrontendAction.execute(null, ["SET_FAVICON", "/new.png"]);
+    expect(doc.head).toEqual([{ rel: "shortcut icon", href: "/new.png" }]);
+  });
+
+  test("a missing argument clears the href instead of writing 'undefined'", () => {
+    const { FrontendAction, doc } = loadWithDoc("icon");
+    FrontendAction.execute(null, ["SET_FAVICON"]);
+    expect(doc.head).toEqual([{ rel: "icon", href: "" }]);
+  });
+
+  test("reports a failing DOM instead of throwing", () => {
+    const { FrontendAction, errors } = load({
+      sandbox: {
+        document: {
+          head: {
+            querySelector: () => {
+              throw new Error("no head");
+            },
+          },
+        },
+      },
+    });
+    FrontendAction.execute(null, ["SET_FAVICON", "/icon.png"]);
+    expect(errors[0]).toContain("SET_FAVICON");
   });
 });
