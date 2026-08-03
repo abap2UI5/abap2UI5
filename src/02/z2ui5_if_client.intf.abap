@@ -331,8 +331,11 @@ INTERFACE z2ui5_if_client
   "! view parameter (default cs_view-main resolves the id across all open
   "! views; pass cs_view-popup/popover/... to scope the lookup to that view).
   "! cs_event-control_global - call a whitelisted method on a global object
-  "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING):
+  "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING, POPUP):
   "! t_arg = object, method, params.
+  "! POPUP-setWithinArea confines every popup to the control whose id is
+  "! passed (sap.ui.core.Popup.setWithinArea, needs UI5 &gt;= 1.89) instead of
+  "! to the window; an EMPTY argument releases the restriction again.
   "! cs_event-smart_variant_init - run the initialise( ) handshake sap.ui.comp
   "! variant management needs (a controller would call
   "! oSmartVariantManagement.initialise( fnCallback, oPersonalizableControl )).

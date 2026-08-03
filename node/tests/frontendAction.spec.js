@@ -17,6 +17,7 @@ function load({ sandbox } = {}) {
   const MessageBox = { show: rec("box.show"), error: rec("box.error") };
   const BusyIndicator = { show: rec("busy.show"), hide: rec("busy.hide") };
   const Theming = { setTheme: rec("theme.set") };
+  const Popup = { setWithinArea: rec("popup.setWithinArea") };
   const controls = {};
   const views = {};
   const ViewSlots = {
@@ -66,6 +67,7 @@ function load({ sandbox } = {}) {
     controls,
     views,
     AppState,
+    Popup,
     ctx,
   };
 }
@@ -188,6 +190,45 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "0",
     ]);
     expect(calls).toEqual([["busy.show", 0]]);
+  });
+
+  test("POPUP.setWithinArea resolves a control id and hands over the CONTROL", () => {
+    const { FrontendAction, calls, controls, Popup, ctx } = load();
+    const area = { id: "withinArea" };
+    controls.withinArea = area;
+    ctx.sap.ui.require = (name) =>
+      name === "sap/ui/core/Popup" ? Popup : null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "POPUP",
+      "setWithinArea",
+      "withinArea",
+    ]);
+    // the control, not its DOM node: Popup dereferences it when a popup opens,
+    // so the area survives a re-render in between
+    expect(calls).toEqual([["popup.setWithinArea", area]]);
+  });
+
+  test("POPUP.setWithinArea releases the area on an empty argument", () => {
+    const { FrontendAction, calls, Popup, ctx } = load();
+    ctx.sap.ui.require = (name) =>
+      name === "sap/ui/core/Popup" ? Popup : null;
+    FrontendAction.execute(null, ["CONTROL_GLOBAL", "POPUP", "setWithinArea", ""]);
+    expect(calls).toEqual([["popup.setWithinArea", null]]);
+  });
+
+  test("POPUP.setWithinArea reports an older runtime instead of throwing", () => {
+    const { FrontendAction, calls, errors, ctx } = load();
+    // UI5 1.71 has sap/ui/core/Popup but not setWithinArea (@since 1.89)
+    ctx.sap.ui.require = () => ({});
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "POPUP",
+      "setWithinArea",
+      "withinArea",
+    ]);
+    expect(calls).toHaveLength(0);
+    expect(errors).toEqual(["CONTROL_GLOBAL: 'POPUP.setWithinArea' not available"]);
   });
 
   test("rejects a non-whitelisted object or method", () => {

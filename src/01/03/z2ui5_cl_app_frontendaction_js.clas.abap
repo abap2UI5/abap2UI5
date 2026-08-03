@@ -250,6 +250,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        get: () => sap.ui.require("sap/ui/core/Theming"),` && |\n| &&
              `        methods: { setTheme: ["string"] },` && |\n| &&
              `      },` && |\n| &&
+             `      // sap/ui/core/Popup exists on every supported release, but` && |\n| &&
+             `      // setWithinArea is @since 1.89 - so resolve the module lazily like` && |\n| &&
+             `      // THEMING and let the "not available" guard below report the older` && |\n| &&
+             `      // runtime instead of failing the component load.` && |\n| &&
+             `      POPUP: {` && |\n| &&
+             `        get: () => sap.ui.require("sap/ui/core/Popup"),` && |\n| &&
+             `        methods: { setWithinArea: ["within"] },` && |\n| &&
+             `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Cast one raw string argument to the kind the whitelist declared.` && |\n| &&
@@ -279,6 +287,19 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          return (` && |\n| &&
              `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
              `            ViewSlots.resolveById(raw)` && |\n| &&
+             `          );` && |\n| &&
+             `        case "within":` && |\n| &&
+             `          // sap.ui.core.Popup.setWithinArea: a control id confines every popup` && |\n| &&
+             `          // to that control, an EMPTY argument releases the restriction (the` && |\n| &&
+             `          // popup is bounded by the window again). Popup.convertWithin()` && |\n| &&
+             `          // accepts a sap.ui.core.Element and dereferences its DOM node when a` && |\n| &&
+             `          // popup opens, so handing over the CONTROL - not its DOM element -` && |\n| &&
+             `          // is what survives a re-render of the area in between.` && |\n| &&
+             `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
+             `          return (` && |\n| &&
+             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
+             `            ViewSlots.resolveById(raw) ||` && |\n| &&
+             `            null` && |\n| &&
              `          );` && |\n| &&
              `        case "object":` && |\n| &&
              `          try {` && |\n| &&
@@ -403,7 +424,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          Lib.logError(` && |\n| &&
              `            ``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``,` && |\n| &&
              `          );` && |\n| &&
-             `          return;` && |\n| &&
+             `          return;` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
              `        // Same reason as toggleBy: wait for the anchor to render.` && |\n| &&
@@ -424,8 +446,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // args: [_, object, method, ...params]` && |\n| &&
              `    function evControlCall(oController, args) {` && |\n| &&
-             `      const [, name, method] = args;` && |\n|.
-    result = result &&
+             `      const [, name, method] = args;` && |\n| &&
              `      const target = GLOBAL_TARGETS[name];` && |\n| &&
              `      const kinds = target?.methods[method];` && |\n| &&
              `      if (!kinds) {` && |\n| &&
@@ -804,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
              `      }` && |\n| &&
              `      logoutViaBspTerminate(logoutUrl);` && |\n| &&
-             `    }` && |\n| &&
+             `    }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    // When abap2UI5 is hosted as a BSP application,` && |\n| &&
              `    // /sap/public/bc/icf/logoff alone does not terminate the stateful` && |\n| &&
@@ -825,8 +847,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const bspKill = ``${path}?sap-sessioncmd=logoff``;` && |\n| &&
              `      let done = false;` && |\n| &&
              `      let frame;` && |\n| &&
-             `      const finish = () => {` && |\n|.
-    result = result &&
+             `      const finish = () => {` && |\n| &&
              `        if (done) return;` && |\n| &&
              `        done = true;` && |\n| &&
              `        // Remove the hidden BSP-kill iframe. On a successful logout the page` && |\n| &&
@@ -1205,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            params.SUBJECT,` && |\n| &&
              `            params.BODY,` && |\n| &&
              `            params.CC,` && |\n| &&
-             `            params.BCC,` && |\n| &&
+             `            params.BCC,` && |\n|.
+    result = result &&
              `            params.NEW_WINDOW,` && |\n| &&
              `          ),` && |\n| &&
              `        TRIGGER_SMS: () =>` && |\n| &&
@@ -1226,8 +1248,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const editor = ViewSlots.byId("POPUP", "imageEditor");` && |\n| &&
              `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n|.
-    result = result &&
+             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
              `      }` && |\n| &&
              `      ViewSlots.destroy("POPUP");` && |\n| &&
              `      oController.eB(["SAVE"], image);` && |\n| &&
@@ -1606,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const handler = handlers[args[0]];` && |\n| &&
              `        if (handler) handler(oController, args);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        // Backstop: individual handlers already guard themselves, but a` && |\n| &&
+             `        // Backstop: individual handlers already guard themselves, but a` && |\n|.
+    result = result &&
              `        // malformed payload must never let an error escape into the caller.` && |\n| &&
              `        Lib.logError(``FrontendAction: handler '${args[0]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&
