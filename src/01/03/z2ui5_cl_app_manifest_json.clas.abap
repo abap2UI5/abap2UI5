@@ -100,6 +100,9 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      "viewName": "z2ui5.view.App",` &&
              `      "type": "XML",` &&
              `      "id": "App"` &&
+             `    },` &&
+             `    "resourceRoots": {` &&
+             `      "z2ui5cc": "../z2ui5cc/"` &&
              `    }` &&
              `  },` &&
              `  "sap.cloud": {` &&
