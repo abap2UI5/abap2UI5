@@ -232,6 +232,28 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       lv_style_css = ls_config-styles_css.
     ENDIF.
 
+    " Custom controls live in their own BSP, which the frontend finds through
+    " the reserved resourceRoot in manifest.json ("z2ui5cc": "../z2ui5cc/").
+    " That path is a sibling of the FRONTEND BSP and is therefore only correct
+    " when the app is served from it. Here the component base is this ICF node,
+    " so the very same relative path resolves next to /sap/bc/ and nothing is
+    " there - the module fails to load with a plausible-looking URL.
+    "
+    " Register the absolute BSP path instead, so the standalone HTTP service
+    " reaches the same control BSP as the frontend one. Two constraints decide
+    " where this can go:
+    "   - it must be absolute, because there is no relative path from this ICF
+    "     node to the BSP tree that also holds when the node is renamed. The
+    "     manifest cannot carry it: Manifest~defineResourceRoots drops absolute
+    "     paths. sap.ui.loader.config has no such restriction.
+    "   - it must run AFTER the manifest, which registers the relative path
+    "     during component creation and would otherwise win. The Component.js
+    "     module body is evaluated after that step, and custom_js is injected
+    "     exactly there - hence prepending rather than a separate <script>.
+    " Registration is lazy: without a Z2UI5CC BSP nothing is ever requested.
+    DATA(lv_cc_resource_root) =
+        |sap.ui.loader.config(\{paths:\{"z2ui5cc":"/sap/bc/ui5_ui5/sap/z2ui5cc"\}\});|.
+
     result-body = |<!DOCTYPE html>| && |\n| &&
                |<html lang="en">| && |\n| &&
                |<head>| && |\n| &&
@@ -250,7 +272,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
              " generated preload mapping (see .github/app2abap/trans2abap.js),
              " so the list can never run out of sync with app/webapp.
              z2ui5_cl_app_preload=>get( styles_css = lv_style_css
-                                        custom_js  = ls_config-custom_js ) &&
+                                        custom_js  = |{ lv_cc_resource_root }{ ls_config-custom_js }| ) &&
              |    \});| && |\n| &&
              |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{| && |\n| &&
              |     window.z2ui5 = \{ checkLocal : true \}; ComponentSupport.run();| && |\n| &&
