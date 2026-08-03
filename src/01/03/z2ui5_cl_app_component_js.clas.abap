@@ -66,6 +66,22 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // a fully initialized global from here on.` && |\n| &&
              `        AppState.initGlobal();` && |\n| &&
              `` && |\n| &&
+             `        // A custom-control BSP is normally found through the reserved` && |\n| &&
+             `        // resourceRoot in manifest.json ("z2ui5cc": "../z2ui5cc/"), a sibling` && |\n| &&
+             `        // of THIS BSP. In the standalone HTTP service there is no BSP for it` && |\n| &&
+             `        // to be a sibling of, so the backend hands the absolute path over on` && |\n| &&
+             `        // the global instead (z2ui5_cl_http_handler=>_http_get).` && |\n| &&
+             `        //` && |\n| &&
+             `        // It has to be applied HERE and not in the page: the manifest` && |\n| &&
+             `        // registers its own value while the component is being created, which` && |\n| &&
+             `        // is after everything the shell can run, so a registration made there` && |\n| &&
+             `        // is overwritten again. init() runs after manifest processing.` && |\n| &&
+             `        // Absent in BSP and Launchpad mode, where the manifest entry is right.` && |\n| &&
+             `        const ccResourceRoot = AppState.getGlobal("ccResourceRoot");` && |\n| &&
+             `        if (ccResourceRoot) {` && |\n| &&
+             `          sap.ui.loader.config({ paths: { z2ui5cc: ccResourceRoot } });` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
              `` && |\n| &&
              `        AppState.getGlobal("oConfig").ComponentData = this.getComponentData();` && |\n| &&
