@@ -223,6 +223,14 @@ sap.ui.define(
         get: () => sap.ui.require("sap/ui/core/Theming"),
         methods: { setTheme: ["string"] },
       },
+      // sap/ui/core/Popup exists on every supported release, but
+      // setWithinArea is @since 1.89 - so resolve the module lazily like
+      // THEMING and let the "not available" guard below report the older
+      // runtime instead of failing the component load.
+      POPUP: {
+        get: () => sap.ui.require("sap/ui/core/Popup"),
+        methods: { setWithinArea: ["within"] },
+      },
     };
 
     // Cast one raw string argument to the kind the whitelist declared.
@@ -252,6 +260,19 @@ sap.ui.define(
           return (
             (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
             ViewSlots.resolveById(raw)
+          );
+        case "within":
+          // sap.ui.core.Popup.setWithinArea: a control id confines every popup
+          // to that control, an EMPTY argument releases the restriction (the
+          // popup is bounded by the window again). Popup.convertWithin()
+          // accepts a sap.ui.core.Element and dereferences its DOM node when a
+          // popup opens, so handing over the CONTROL - not its DOM element -
+          // is what survives a re-render of the area in between.
+          if (raw === "" || raw === undefined || raw === null) return null;
+          return (
+            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
+            ViewSlots.resolveById(raw) ||
+            null
           );
         case "object":
           try {
