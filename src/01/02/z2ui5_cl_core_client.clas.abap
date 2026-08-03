@@ -27,7 +27,6 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
 

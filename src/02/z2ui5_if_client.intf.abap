@@ -35,8 +35,6 @@ INTERFACE z2ui5_if_client
       "Control Action
       wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
 
-
-
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
       history_back              TYPE string VALUE `HISTORY_BACK`,
@@ -139,7 +137,7 @@ INTERFACE z2ui5_if_client
   "! restore: keep (default) restores the exact preserved state via a draft id
   "! in the route '#/app/&lt;CLASS&gt;/&lt;DRAFT&gt;'; fresh routes by class only
   "! '#/app/&lt;CLASS&gt;' and always starts the app fresh; default disables routing
-  "! (framework behaviour as before this feature).
+  "! (framework behavior as before this feature).
   "!
   "! In keep mode the calling app's route entry is advanced to the draft saved
   "! for it during the nav_app_call, so Back restores it as the user LEFT it -
@@ -290,9 +288,7 @@ INTERFACE z2ui5_if_client
       "obsolete - inactive, not passed on internally
       view                 TYPE clike                         DEFAULT cs_view-main
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-*      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-*      custom_filter_back   TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
       tab                  TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
       switch_default_model TYPE abap_bool                     DEFAULT abap_false

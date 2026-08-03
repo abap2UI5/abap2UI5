@@ -7,8 +7,6 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_app_startup.
 
-
-
     CONSTANTS:
       BEGIN OF cs_event,
         button_check  TYPE string VALUE `BUTTON_CHECK`,
@@ -276,7 +274,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     IF ms_home-class_editable = abap_true.
       form->leaf( `Input`
           )->a( n = `placeholder`
-                v = `fill in the class name and press 'check'`
+                v = `Fill in the class name and press 'Check'`
           )->a( n = `enabled`
                 v = client->_bind( ms_home-class_editable )
           )->a( n = `value`
@@ -336,8 +334,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `text`
                 v = `Explore Code Samples`
           )->a( n = `press`
-                v = client->_event_client( val               = client->cs_event-open_new_tab
-                                                       t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
+                v = client->_event_client( val   = client->cs_event-open_new_tab
+                                           t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
           )->a( n = `width`
                 v = `70%` ).
     ELSE.
