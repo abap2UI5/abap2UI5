@@ -8,7 +8,7 @@
 
 ## Checklist
 
-- [ ] `npx abaplint` passes (0 issues)
+- [ ] `npm run verify` passes (`npm run verify:full` when `app/webapp/` changed)
 - [ ] Unit tests added/updated where it makes sense (`.testclasses.abap` / `node/tests/`)
 - [ ] No manual edits under `src/00/01/`, `src/00/02/` or `src/01/03/` (see AGENTS.md)
 - [ ] Public API in `src/02/` only changed additively
