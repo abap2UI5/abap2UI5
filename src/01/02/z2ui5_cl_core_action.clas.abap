@@ -200,7 +200,9 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   METHOD reset_view_update_flags.
 
-    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
+    " only the model-owning slots carry the flag - the nested slots inherit the
+    " root model and have none ( z2ui5_if_core_types=>cs_model_slot_list )
+    SPLIT z2ui5_if_core_types=>cs_model_slot_list AT `,` INTO TABLE DATA(lt_slot).
     LOOP AT lt_slot INTO DATA(lv_slot).
       ASSIGN COMPONENT lv_slot OF STRUCTURE ms_next-s_set TO FIELD-SYMBOL(<slot>).
       IF sy-subrc <> 0.

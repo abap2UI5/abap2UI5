@@ -23,6 +23,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
     METHODS test_view_destroy         FOR TESTING RAISING cx_static_check.
     METHODS test_view_model_update    FOR TESTING RAISING cx_static_check.
+    METHODS test_nest_model_update    FOR TESTING RAISING cx_static_check.
     METHODS test_popup_display        FOR TESTING RAISING cx_static_check.
     METHODS test_popup_destroy        FOR TESTING RAISING cx_static_check.
     METHODS test_popup_model_update   FOR TESTING RAISING cx_static_check.
@@ -122,6 +123,28 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     li_client = temp3.
     li_client->view_model_update( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_action->ms_next-s_set-s_view-check_update_model ).
+
+  ENDMETHOD.
+
+  METHOD test_nest_model_update.
+
+    " both nested variants refresh the root model, because a nested view has
+    " none of its own - they must set the MAIN flag, not a nest-only one
+    DATA temp4 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp4.
+    temp4 ?= mo_client.
+
+    li_client = temp4.
+    li_client->nest_view_model_update( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_action->ms_next-s_set-s_view-check_update_model ).
+
+    mo_action->ms_next-s_set-s_view-check_update_model = abap_false.
+    li_client->nest2_view_model_update( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_action->ms_next-s_set-s_view-check_update_model ).

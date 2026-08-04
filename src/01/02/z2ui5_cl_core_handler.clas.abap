@@ -490,9 +490,31 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD check_view_update_needed.
 
+    " a slot that ships new XML always needs the model with it - this covers
+    " all five slots, the nested ones included
     SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
     LOOP AT lt_slot INTO DATA(lv_slot).
       ASSIGN COMPONENT lv_slot OF STRUCTURE ms_response-s_front-params TO FIELD-SYMBOL(<slot>).
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in response params|.
+      ENDIF.
+      ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO FIELD-SYMBOL(<xml>).
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Internal error - XML missing in view slot '{ lv_slot }'|.
+      ENDIF.
+      IF <xml> IS NOT INITIAL.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+    " a data-only roundtrip asks for the model through the flag, which only the
+    " model-owning slots have ( z2ui5_if_core_types=>cs_model_slot_list )
+    SPLIT z2ui5_if_core_types=>cs_model_slot_list AT `,` INTO TABLE lt_slot.
+    LOOP AT lt_slot INTO lv_slot.
+      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_response-s_front-params TO <slot>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in response params|.
@@ -502,12 +524,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
       ENDIF.
-      ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO FIELD-SYMBOL(<xml>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - XML missing in view slot '{ lv_slot }'|.
-      ENDIF.
-      IF <check_update_model> = abap_true OR <xml> IS NOT INITIAL.
+      IF <check_update_model> = abap_true.
         result = abap_true.
         RETURN.
       ENDIF.
