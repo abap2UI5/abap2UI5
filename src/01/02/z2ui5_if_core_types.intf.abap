@@ -12,18 +12,6 @@ INTERFACE z2ui5_if_core_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
-  " single source of truth for the five view slots in ty_s_next_frontend -
-  " consumers SPLIT at the comma and access the components dynamically
-  CONSTANTS cs_view_slot_list TYPE string VALUE `S_VIEW,S_VIEW_NEST,S_VIEW_NEST2,S_POPUP,S_POPOVER`.
-
-  " the subset of those slots that owns a CHECK_UPDATE_MODEL flag. The nested
-  " slots are absent on purpose: a nested view is inserted into the MAIN
-  " control tree and inherits its JSON model by UI5 model propagation, so it
-  " has no model of its own to refresh - nest_view_model_update( ) therefore
-  " delegates to view_model_update( ) and only S_VIEW carries the flag for the
-  " whole root model. S_POPUP / S_POPOVER are standalone and keep their own.
-  CONSTANTS cs_model_slot_list TYPE string VALUE `S_VIEW,S_POPUP,S_POPOVER`.
-
   TYPES:
     BEGIN OF ty_s_http_res,
       body          TYPE string,
@@ -68,7 +56,7 @@ INTERFACE z2ui5_if_core_types
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
   " the two nested-view slots share the exact same shape. No
-  " check_update_model here - see cs_model_slot_list above
+  " check_update_model here - a nested view inherits the MAIN view's model
   TYPES:
     BEGIN OF ty_s_view_nest,
       xml            TYPE string,

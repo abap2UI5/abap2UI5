@@ -200,22 +200,12 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   METHOD reset_view_update_flags.
 
-    " only the model-owning slots carry the flag - the nested slots inherit the
-    " root model and have none ( z2ui5_if_core_types=>cs_model_slot_list )
-    SPLIT z2ui5_if_core_types=>cs_model_slot_list AT `,` INTO TABLE DATA(lt_slot).
-    LOOP AT lt_slot INTO DATA(lv_slot).
-      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_next-s_set TO FIELD-SYMBOL(<slot>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in s_set|.
-      ENDIF.
-      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
-      ENDIF.
-      <check_update_model> = abap_false.
-    ENDLOOP.
+    " these three are every slot that owns a model: MAIN holds the root model,
+    " popup and popover their own. The nested slots are inserted into the MAIN
+    " control tree and inherit its model, so they have no flag to reset
+    CLEAR ms_next-s_set-s_view-check_update_model.
+    CLEAR ms_next-s_set-s_popup-check_update_model.
+    CLEAR ms_next-s_set-s_popover-check_update_model.
 
   ENDMETHOD.
 

@@ -179,7 +179,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action = NEW #( val = lo_http ).
 
     " only the model-owning slots have the flag - the nested slots inherit the
-    " root model and carry none ( cs_model_slot_list )
+    " root model and carry none - see reset_view_update_flags
     lo_action->ms_next-s_set-s_view-check_update_model    = abap_true.
     lo_action->ms_next-s_set-s_popup-check_update_model   = abap_true.
     lo_action->ms_next-s_set-s_popover-check_update_model = abap_true.

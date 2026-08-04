@@ -146,11 +146,11 @@ Not part of any public contract; removable whenever.
 - [ ] **`follow_up_action( _event( ) )` snippet parsing** —
       `z2ui5_cl_core_action.clas.abap:256-262`. A `SPLIT` on `.eB(['` that
       reverse-engineers the next event out of a legacy JS string.
-- [ ] **The dynamic slot loops** — `reset_view_update_flags`
-      (`z2ui5_cl_core_action`, 20 lines) and `check_view_update_needed`
-      (`z2ui5_cl_core_handler`, 43 lines). With the flag on only 3 statically
-      known slots, plain `CLEAR` / `IF` statements replace both, drop
-      `cs_view_slot_list` and `cs_model_slot_list`, and save ~45 lines.
+- [x] **The dynamic slot loops** — `reset_view_update_flags` 20 → 10 lines,
+      `check_view_update_needed` 43 → 22. Plain `CLEAR` / `IF` on the statically
+      known slots; `cs_view_slot_list` and `cs_model_slot_list` are gone, and
+      with them four `ASSIGN COMPONENT` runtime guards that the syntax check
+      now covers instead.
 
 ---
 
