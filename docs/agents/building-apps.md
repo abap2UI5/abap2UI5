@@ -239,8 +239,17 @@ ships for existing apps but is **frozen** — new apps and new code use
 
 - **Thin frontend**: business logic (thresholds, classification, unit
   conversion, validation) is computed in ABAP and bound as a finished value —
-  never in a frontend formatter or custom JS. Presentation-only formatting
-  (dates, numbers) may use the shipped `z2ui5.Formatter` helpers.
+  never in a frontend formatter or custom JS. The shipped `z2ui5.Formatter`
+  helpers are a **marshalling layer, not a formatting toolbox**: a function
+  only lives there when ABAP physically cannot produce the finished value —
+  a real JS `Date` for an object-typed property (`DateCreateObject`,
+  `DateAbapDateToDateObject`, `DateAbapDateTimeToDateObject`) or an icon-font
+  glyph of the loaded theme (`expandInlineIcons`). That is the whole set.
+  Rounding a number, joining fields into a string or mapping a status to a
+  `ValueState`/icon is your app's job: compute it in ABAP and bind it
+  (`state="{STATUS_STATE}"`). Functions that did those things were shipped
+  once and removed again — the module header states the admission criteria
+  and `npm run check:formatter` enforces them.
 - **UI5 1.71 floor**: the framework supports OpenUI5 down to 1.71. Before
   using a control/property/aggregation, check its "available since" in the
   UI5 API — post-1.71 members need a UI5 release that has them; a wrong
