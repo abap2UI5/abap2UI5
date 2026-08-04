@@ -5,18 +5,52 @@
 //
 //   <mvc:View xmlns:core="sap.ui.core"
 //             core:require="{Formatter: 'z2ui5/model/formatter'}">
-//     ... src="{ path: 'STATUS', formatter: 'Formatter.stockStatusIcon' }"
+//     ... dateValue="{ path: 'DATE', formatter: 'Formatter.DateCreateObject' }"
 //
 // The module is also published as the z2ui5.Formatter global, so
-// formatter: 'z2ui5.Formatter.stockStatusIcon' keeps working on releases
+// formatter: 'z2ui5.Formatter.DateCreateObject' keeps working on releases
 // without core:require support.
 //
-// The set is CURATED and grows via framework PRs: every function here is a
-// real, served script resource - CSP-clean, no runtime code generation (an
-// eval-based register-a-JS-string API was rejected for exactly that
-// reason). Scope: general-purpose value formatters that apps and demo-kit
-// ports commonly need; keep app-specific one-offs out (expression bindings
-// cover most of those).
+// ---------------------------------------------------------------------
+// ADMISSION CRITERIA - all three must hold, and they are not negotiable
+// ---------------------------------------------------------------------
+// abap2UI5 is a THIN FRONTEND: the backend decides, the frontend renders.
+// Every function admitted here moves one decision from ABAP into JS, and
+// taking it back out later breaks the apps that adopted it. So the set is
+// CURATED and stays small - it is a marshalling layer, not a place to put
+// logic that ABAP could just as well have finished:
+//
+//   1. ONE VALUE - the function formats exactly the value handed to it. A
+//      function that reads other fields, other rows or the whole model to
+//      decide something is a computation wearing a formatter's name; it
+//      belongs in the app's ABAP model.
+//   2. FRONTEND-ONLY - there is a technical reason it cannot be done in
+//      ABAP: the result is a JavaScript type the JSON model cannot carry
+//      ('js-type'), an icon-font glyph resolved from the loaded theme
+//      ('icon-font'), or a browser locale/theme artefact ('locale-theme').
+//      If ABAP can produce the finished value, ABAP produces it and the
+//      view binds it directly.
+//   3. NO DOMAIN VOCABULARY - no business statuses, thresholds, units or
+//      classifications, and therefore no hardcoded ValueState or icon URI
+//      here. Mapping "Available" to Success is classification, which is
+//      backend work (bind state="{STATUS_STATE}" instead).
+//
+// Criteria 2 and 3 are machine-checked by
+// .github/scripts/formatter-scope-gate.mjs (npm run check:formatter): the
+// export surface must match that gate's manifest, every entry names its
+// frontend-only reason, and the module must contain no ValueState or
+// sap-icon:// literal. Criterion 1 is reviewer-enforced.
+//
+// Precedent, so the line is not re-litigated: weightState /
+// weightStateByValue (parseFloat + KG conversion + thresholds) and the
+// stock/delivery status packs (round2DP, dimensions, stockStatusState,
+// stockStatusIcon, deliveryStatusState) were shipped and then REMOVED -
+// the first for criterion 2 and 3, the rest for 2 or 3. Ports compute
+// those in ABAP and bind the finished field.
+//
+// Everything here is a real, served script resource - CSP-clean, no
+// runtime code generation (an eval-based register-a-JS-string API was
+// rejected for exactly that reason).
 //
 // This module also OWNS the public date helpers historically shipped as
 // z2ui5.Util: the implementations live here, Util.js re-exports them as
@@ -57,17 +91,16 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     );
   }
 
-  // Product stock status -> its value state + status icon, kept as one
-  // entry per status so the two formatters below cannot drift apart
-  // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).
-  const STOCK_STATUS = {
-    Available: { state: "Success", icon: "sap-icon://accept" },
-    "Out of Stock": { state: "Warning", icon: "sap-icon://alert" },
-    Discontinued: { state: "Error", icon: "sap-icon://decline" },
-  };
-
   return {
     // --- date helpers (the z2ui5.Util legacy contract) ---
+    //
+    // Criterion 2: 'js-type'. UI5 properties typed "object"
+    // (DatePicker.dateValue, PlanningCalendar.startDate, a
+    // CalendarAppointment's startDate/endDate) demand a real JS Date, and
+    // JSON has no date type - so the ABAP model physically cannot carry
+    // one. The conversion has to happen at the binding; model-level
+    // auto-revival was rejected because it would silently retype every
+    // timestamp field.
     //
     // An EMPTY input yields null, never an Invalid Date. A bound row with an
     // optional date field (one template, so the attribute cannot be omitted
@@ -96,63 +129,20 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
       );
     },
 
-    // --- value formatters ---
+    // --- glyph resolution ---
     //
-    // Presentation only. Deriving a state from a raw measure (the demo kit's
-    // weightState: parseFloat + KG conversion + Success/Warning/Error
-    // thresholds) is BUSINESS LOGIC and does NOT belong here - abap2UI5 is a
-    // thin frontend, so a port computes that in ABAP and binds the finished
-    // value (state="{WEIGHT_STATE}"). The status -> ValueState/icon lookups
-    // below only map an already-classified business status to a visual, which
-    // is presentation.
-
-    // Product stock status -> sap.ui.core.ValueState.
-    stockStatusState(status) {
-      return STOCK_STATUS[status]?.state ?? "None";
-    },
-
-    // Product stock status -> status icon.
-    stockStatusIcon(status) {
-      return STOCK_STATUS[status]?.icon ?? null;
-    },
-
-    // Round to two decimal places, always rendered with two digits
-    // (sap.m.sample.TableBreadcrumb Formatter.js). Non-numeric input maps
-    // to an empty cell rather than the literal "NaN".
-    round2DP(value) {
-      const n = parseFloat(value);
-      if (isNaN(n)) return "";
-      return (Math.round(n * 100) / 100).toFixed(2);
-    },
-
-    // Join the available dimensions with " x " and append the unit;
-    // missing components are skipped (sap.m.sample.TableBreadcrumb
-    // Formatter.js). A component is "missing" only when it is null/undefined
-    // or empty string - a real 0 (a zero-size dimension) is kept, and the
-    // unit is only appended when it is present.
-    dimensions(width, depth, height, unit) {
-      let display = [width, depth, height]
-        .filter((component) => component != null && component !== "")
-        .join(" x ");
-      if (display && unit != null && unit !== "") display += ` ${unit}`;
-      return display;
-    },
-
-    // Delivery status -> sap.ui.core.ValueState
-    // (sap.m.sample.InitialPagePattern model/formatter.js).
-    deliveryStatusState(status) {
-      if (status === "Shipped") return "Success";
-      if (status === "Failed Shipping") return "Error";
-      return "None";
-    },
-
-    // Replace %%icon:sap-icon://<name>%% placeholders in a formatted-text
-    // string with the inline-icon markup MessageStrip formatted text expects
-    // (mirrors sap.m.MessageStripUtilities.getInlineIcon). The glyph is
-    // resolved from the icon font via IconPool - CSP-clean, no code
-    // generation. Plain text passes through unchanged; an unknown icon name
-    // is dropped. Used as a whole-string formatter on a MessageStrip text
-    // binding (sap.m.sample.MessageStripWithEnableFormattedText).
+    // Criterion 2: 'icon-font'. Replace %%icon:sap-icon://<name>%%
+    // placeholders in a formatted-text string with the inline-icon markup
+    // MessageStrip formatted text expects (mirrors
+    // sap.m.MessageStripUtilities.getInlineIcon). The glyph and its font
+    // family come from the icon font of the LOADED THEME via IconPool -
+    // the backend cannot know them, and hardcoding a codepoint in ABAP
+    // would push a frontend detail into the backend, which is the thin-
+    // frontend rule in reverse. CSP-clean, no code generation.
+    //
+    // The icon name travels in the data; this module hardcodes none. Plain
+    // text passes through unchanged; an unknown icon name is dropped. Used
+    // as a whole-string formatter on a MessageStrip text binding.
     expandInlineIcons(text) {
       if (!text) return "";
       return String(text).replace(

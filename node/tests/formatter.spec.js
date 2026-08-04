@@ -26,52 +26,29 @@ function load() {
 }
 
 test.describe("Formatter module", () => {
-  // Note: deriving a ValueState from a raw weight (the former weightState /
-  // weightStateByValue) is business logic and was removed from the curated
-  // formatter - a port classifies the measure in ABAP and binds the finished
-  // state (abap2UI5 is a thin frontend), so there is nothing to test here.
-
-  test("stockStatusState/-Icon map the stock status", () => {
+  // The export surface is the contract, in both directions. Adding a function
+  // moves a decision out of ABAP; removing one breaks the apps that bind it.
+  // The module header states the three admission criteria and
+  // .github/scripts/formatter-scope-gate.mjs enforces the two that a machine
+  // can check - this assertion is the same list seen from the runtime, so a
+  // silent addition fails here even in a change the gate's path filter misses.
+  //
+  // The functions that were shipped and then REMOVED, so nobody re-adds them:
+  // weightState / weightStateByValue (parseFloat + KG conversion + Success/
+  // Warning/Error thresholds) and the demo kit status pack (round2DP,
+  // dimensions, stockStatusState, stockStatusIcon, deliveryStatusState).
+  // Rounding a number, joining dimensions and mapping a business status to a
+  // ValueState are all things ABAP can finish - abap2UI5 is a thin frontend,
+  // so the app computes them in model_init and the view binds the result
+  // (state="{STATUS_STATE}").
+  test("the curated module exports exactly the justified set", () => {
     const { Formatter } = load();
-    expect(Formatter.stockStatusState("Available")).toBe("Success");
-    expect(Formatter.stockStatusState("Out of Stock")).toBe("Warning");
-    expect(Formatter.stockStatusState("Discontinued")).toBe("Error");
-    expect(Formatter.stockStatusState("Unknown")).toBe("None");
-    expect(Formatter.stockStatusIcon("Available")).toBe("sap-icon://accept");
-    expect(Formatter.stockStatusIcon("Out of Stock")).toBe("sap-icon://alert");
-    expect(Formatter.stockStatusIcon("Discontinued")).toBe(
-      "sap-icon://decline",
-    );
-    expect(Formatter.stockStatusIcon("Unknown")).toBeNull();
-  });
-
-  test("round2DP renders two decimal places, empty for non-numeric", () => {
-    const { Formatter } = load();
-    expect(Formatter.round2DP(3.14159)).toBe("3.14");
-    expect(Formatter.round2DP(2)).toBe("2.00");
-    expect(Formatter.round2DP("10.005")).toBe("10.01");
-    // a missing/non-numeric value renders an empty cell, not "NaN"
-    expect(Formatter.round2DP(undefined)).toBe("");
-    expect(Formatter.round2DP("abc")).toBe("");
-  });
-
-  test("dimensions keeps a real 0, skips missing parts and unit", () => {
-    const { Formatter } = load();
-    expect(Formatter.dimensions(10, 20, 30, "cm")).toBe("10 x 20 x 30 cm");
-    // a real zero-size dimension is kept (was dropped by the falsy filter)
-    expect(Formatter.dimensions(40, 28, 0, "cm")).toBe("40 x 28 x 0 cm");
-    // null/undefined/"" parts are skipped
-    expect(Formatter.dimensions(10, null, 30, "cm")).toBe("10 x 30 cm");
-    // a missing unit is not appended as "undefined"
-    expect(Formatter.dimensions(10, 20, 30, undefined)).toBe("10 x 20 x 30");
-    expect(Formatter.dimensions(null, null, null, "cm")).toBe("");
-  });
-
-  test("deliveryStatusState maps the delivery status", () => {
-    const { Formatter } = load();
-    expect(Formatter.deliveryStatusState("Shipped")).toBe("Success");
-    expect(Formatter.deliveryStatusState("Failed Shipping")).toBe("Error");
-    expect(Formatter.deliveryStatusState("Pending")).toBe("None");
+    expect(Object.keys(Formatter).sort()).toEqual([
+      "DateAbapDateTimeToDateObject",
+      "DateAbapDateToDateObject",
+      "DateCreateObject",
+      "expandInlineIcons",
+    ]);
   });
 
   test("expandInlineIcons replaces %%icon:...%% with inline-icon markup", () => {
