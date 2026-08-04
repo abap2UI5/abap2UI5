@@ -12,10 +12,6 @@ INTERFACE z2ui5_if_core_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
-  " single source of truth for the five view slots in ty_s_next_frontend -
-  " consumers SPLIT at the comma and access the components dynamically
-  CONSTANTS cs_view_slot_list TYPE string VALUE `S_VIEW,S_VIEW_NEST,S_VIEW_NEST2,S_POPUP,S_POPOVER`.
-
   TYPES:
     BEGIN OF ty_s_http_res,
       body          TYPE string,
@@ -59,15 +55,15 @@ INTERFACE z2ui5_if_core_types
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
-  " the two nested-view slots share the exact same shape
+  " the two nested-view slots share the exact same shape. No
+  " check_update_model here - a nested view inherits the MAIN view's model
   TYPES:
     BEGIN OF ty_s_view_nest,
-      xml                TYPE string,
-      id                 TYPE string,
-      method_insert      TYPE string,
-      method_destroy     TYPE string,
-      check_destroy      TYPE abap_bool,
-      check_update_model TYPE abap_bool,
+      xml            TYPE string,
+      id             TYPE string,
+      method_insert  TYPE string,
+      method_destroy TYPE string,
+      check_destroy  TYPE abap_bool,
     END OF ty_s_view_nest.
 
   TYPES:

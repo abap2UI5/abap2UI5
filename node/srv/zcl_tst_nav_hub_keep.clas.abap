@@ -56,7 +56,7 @@ CLASS zcl_tst_nav_hub_keep IMPLEMENTATION.
             )->a( n = `title` v = `NAV HUB KEEP` ).
 
     page->leaf( `Label` )->a( n = `text` v = `hubkeep-marker` ).
-    page->leaf( `Input` )->a( n = `value` v = client->_bind_edit( input ) ).
+    page->leaf( `Input` )->a( n = `value` v = client->_bind( input ) ).
     page->leaf( `Button`
         )->a( n = `text`  v = |increment ({ counter })|
         )->a( n = `press` v = client->_event( `INC` ) ).

@@ -273,7 +273,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_model_update.
 
-    mo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+    " a nested view owns no model - it inherits the MAIN view's by UI5 model
+    " propagation, so refreshing "the nest2 model" means refreshing the root
+    " model. Delegating also removes the old trap: the former nest2-only flag
+    " was skipped by the frontend whenever no nested view happened to be open
+    z2ui5_if_client~view_model_update( ).
 
   ENDMETHOD.
 
@@ -302,7 +306,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_model_update.
 
-    mo_action->ms_next-s_set-s_view_nest-check_update_model = abap_true.
+    " see nest2_view_model_update - one root model, so this is view_model_update
+    z2ui5_if_client~view_model_update( ).
 
   ENDMETHOD.
 

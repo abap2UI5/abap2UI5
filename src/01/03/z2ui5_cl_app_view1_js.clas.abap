@@ -552,6 +552,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Refresh a slot's model when the response signals an update for it` && |\n| &&
              `      // (CHECK_UPDATE_MODEL - the data-only roundtrip every app triggers` && |\n| &&
              `      // via client->view_model_update( )).` && |\n| &&
+             `      // Only the three model-owning slots ever carry the flag: MAIN owns the` && |\n| &&
+             `      // root model, POPUP/POPOVER own their own. NEST/NEST2 are inserted into` && |\n| &&
+             `      // the MAIN control tree and inherit its model by propagation, so the` && |\n| &&
+             `      // backend has no CHECK_UPDATE_MODEL for them at all and` && |\n| &&
+             `      // nest_view_model_update( ) refreshes MAIN instead - which is why this` && |\n| &&
+             `      // can setData unconditionally without refreshing one shared model twice.` && |\n| &&
              `      updateModelIfRequired(slotKey) {` && |\n| &&
              `        const params = AppState.state.oResponse?.PARAMS;` && |\n| &&
              `        const slotParams = params?.[ViewSlots.paramByKey(slotKey)];` && |\n| &&
@@ -569,14 +575,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const tracked = this._resolveTrackedModel(oView);` && |\n| &&
              `        if (tracked) {` && |\n| &&
              `          applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
-             `          // MAIN and its nested views resolve to the SAME root model here, and` && |\n| &&
-             `          // the update loop calls this once per slot. setData replaces the` && |\n| &&
-             `          // model's data reference with OVIEWMODEL, so once the first root slot` && |\n| &&
-             `          // has swapped it in, the others already hold it - skip the redundant` && |\n| &&
-             `          // setData (and its full binding refresh) instead of running it once` && |\n| &&
-             `          // per shared slot.` && |\n| &&
-             `          const data = AppState.state.oResponse?.OVIEWMODEL;` && |\n| &&
-             `          if (tracked.getData() !== data) tracked.setData(data);` && |\n| &&
+             `          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&

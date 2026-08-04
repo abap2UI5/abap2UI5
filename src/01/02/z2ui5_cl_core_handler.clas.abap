@@ -490,28 +490,24 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD check_view_update_needed.
 
-    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
-    LOOP AT lt_slot INTO DATA(lv_slot).
-      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_response-s_front-params TO FIELD-SYMBOL(<slot>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in response params|.
-      ENDIF.
-      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
-      ENDIF.
-      ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO FIELD-SYMBOL(<xml>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - XML missing in view slot '{ lv_slot }'|.
-      ENDIF.
-      IF <check_update_model> = abap_true OR <xml> IS NOT INITIAL.
-        result = abap_true.
-        RETURN.
-      ENDIF.
-    ENDLOOP.
+    " a slot that ships new XML always needs the model with it - all five slots,
+    " the nested ones included
+    IF ms_response-s_front-params-s_view-xml       IS NOT INITIAL
+    OR ms_response-s_front-params-s_view_nest-xml  IS NOT INITIAL
+    OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
+    OR ms_response-s_front-params-s_popup-xml      IS NOT INITIAL
+    OR ms_response-s_front-params-s_popover-xml    IS NOT INITIAL.
+      result = abap_true.
+      RETURN.
+    ENDIF.
+
+    " a data-only roundtrip asks for the model through the flag, which only the
+    " three model-owning slots have - see reset_view_update_flags
+    IF ms_response-s_front-params-s_view-check_update_model    = abap_true
+    OR ms_response-s_front-params-s_popup-check_update_model   = abap_true
+    OR ms_response-s_front-params-s_popover-check_update_model = abap_true.
+      result = abap_true.
+    ENDIF.
 
   ENDMETHOD.
 

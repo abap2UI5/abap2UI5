@@ -278,7 +278,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `enabled`
                 v = client->_bind( ms_home-class_editable )
           )->a( n = `value`
-                v = client->_bind_edit( ms_home-classname )
+                v = client->_bind( ms_home-classname )
           )->a( n = `valueState`
                 v = client->_bind( ms_home-class_value_state )
           )->a( n = `valueStateText`

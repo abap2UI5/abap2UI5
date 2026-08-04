@@ -24,6 +24,22 @@ unreleased
   a CI gate (npm run check:formatter): the export surface must match a manifest
   in which every entry names why it cannot live in ABAP, and no ValueState or
   icon URI may be hardcoded
+- BREAKING: removed the component VIEWNAME from z2ui5_if_types=>ty_s_get, the
+  structure returned by client->get( ). The framework has never filled it, so
+  it always carried an empty string; an app that still reads client->get( )-viewname
+  no longer compiles and has to drop the read. This is a deliberate exception to
+  the rule "never remove a public symbol from src/02" - recorded here because the
+  API snapshot had to be regenerated for it
+! All framework-owned apps and the sample repository now call _bind( ) instead of
+  the obsolete alias _bind_edit( ). _bind_edit itself stays part of the public API
+  and keeps working; only calls that pass custom_mapper_back / custom_filter_back
+  still need it, since _bind has no per-direction mapping parameters
+* nest_view_model_update( ) / nest2_view_model_update( ) delegate to
+  view_model_update( ) instead of setting a nest-only flag. A nested view owns no
+  model - it inherits the MAIN view's by UI5 model propagation - so the old flag
+  was skipped by the frontend whenever no nested view happened to be open, making
+  the call a silent no-op. It now always refreshes the root model. The two slots
+  no longer carry CHECK_UPDATE_MODEL on the wire at all
 
 
 2026-07-20 v1.142.0

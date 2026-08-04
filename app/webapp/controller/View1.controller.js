@@ -524,6 +524,12 @@ sap.ui.define(
       // Refresh a slot's model when the response signals an update for it
       // (CHECK_UPDATE_MODEL - the data-only roundtrip every app triggers
       // via client->view_model_update( )).
+      // Only the three model-owning slots ever carry the flag: MAIN owns the
+      // root model, POPUP/POPOVER own their own. NEST/NEST2 are inserted into
+      // the MAIN control tree and inherit its model by propagation, so the
+      // backend has no CHECK_UPDATE_MODEL for them at all and
+      // nest_view_model_update( ) refreshes MAIN instead - which is why this
+      // can setData unconditionally without refreshing one shared model twice.
       updateModelIfRequired(slotKey) {
         const params = AppState.state.oResponse?.PARAMS;
         const slotParams = params?.[ViewSlots.paramByKey(slotKey)];
@@ -541,14 +547,7 @@ sap.ui.define(
         const tracked = this._resolveTrackedModel(oView);
         if (tracked) {
           applyStoredSizeLimit(slotKey, tracked);
-          // MAIN and its nested views resolve to the SAME root model here, and
-          // the update loop calls this once per slot. setData replaces the
-          // model's data reference with OVIEWMODEL, so once the first root slot
-          // has swapped it in, the others already hold it - skip the redundant
-          // setData (and its full binding refresh) instead of running it once
-          // per shared slot.
-          const data = AppState.state.oResponse?.OVIEWMODEL;
-          if (tracked.getData() !== data) tracked.setData(data);
+          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);
           return;
         }
 
