@@ -95,8 +95,6 @@ INTERFACE z2ui5_if_types
       t_event_arg            TYPE string_table,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
-      "obsolete - never filled by the framework
-      viewname               TYPE string,
       s_draft                TYPE ty_s_draft,
       s_config               TYPE ty_s_config,
       t_comp_params          TYPE ty_t_name_value,
