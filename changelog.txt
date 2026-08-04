@@ -10,6 +10,22 @@ Legend
 
 
 
+unreleased
+----------
+- Curated formatter (z2ui5/model/formatter, z2ui5.Formatter): removed round2DP,
+  dimensions, stockStatusState, stockStatusIcon and deliveryStatusState. abap2UI5
+  is a thin frontend - rounding a number, joining fields and mapping a business
+  status to a ValueState/icon are things ABAP finishes, so the app computes them
+  and the view binds the result (state="{STATUS_STATE}"). Remaining and unchanged:
+  the date helpers (DateCreateObject, DateAbapDateToDateObject,
+  DateAbapDateTimeToDateObject) and expandInlineIcons - a JS Date and an icon-font
+  glyph are the two things the backend physically cannot produce
+! The module's admission criteria are now stated in its header and enforced by
+  a CI gate (npm run check:formatter): the export surface must match a manifest
+  in which every entry names why it cannot live in ABAP, and no ValueState or
+  icon URI may be hardcoded
+
+
 2026-07-20 v1.142.0
 -------------------
 + New frontend action functions: control_by_id, binding_call
