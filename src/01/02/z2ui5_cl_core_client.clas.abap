@@ -397,16 +397,27 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
+
+    "future: _bind_edit obsolet
     result = mo_srv_bind->main( val    = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
-                                config = VALUE #(
-                                    path_only            = path
-                                    custom_filter        = custom_filter
-                                    custom_filter_back   = custom_filter_back
-                                    custom_mapper        = custom_mapper
-                                    custom_mapper_back   = custom_mapper_back
-                                    tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
-                                    tab_index            = tab_index
-                                    switch_default_model = switch_default_model ) ).
+                              config = VALUE #(
+                                  path_only            = path
+                                  custom_filter        = custom_filter
+                                  custom_mapper        = custom_mapper
+                                  tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
+                                  tab_index            = tab_index
+                                  switch_default_model = switch_default_model ) ).
+
+*    result = mo_srv_bind->main( val    = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
+*                                config = VALUE #(
+*                                    path_only            = path
+*                                    custom_filter        = custom_filter
+*                                    custom_filter_back   = custom_filter_back
+*                                    custom_mapper        = custom_mapper
+*                                    custom_mapper_back   = custom_mapper_back
+*                                    tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
+*                                    tab_index            = tab_index
+*                                    switch_default_model = switch_default_model ) ).
 
   ENDMETHOD.
 
