@@ -493,10 +493,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " a slot that ships new XML always needs the model with it - all five slots,
     " the nested ones included
     IF ms_response-s_front-params-s_view-xml       IS NOT INITIAL
-    OR ms_response-s_front-params-s_view_nest-xml  IS NOT INITIAL
-    OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
-    OR ms_response-s_front-params-s_popup-xml      IS NOT INITIAL
-    OR ms_response-s_front-params-s_popover-xml    IS NOT INITIAL.
+        OR ms_response-s_front-params-s_view_nest-xml  IS NOT INITIAL
+        OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
+        OR ms_response-s_front-params-s_popup-xml      IS NOT INITIAL
+        OR ms_response-s_front-params-s_popover-xml    IS NOT INITIAL.
       result = abap_true.
       RETURN.
     ENDIF.
@@ -504,8 +504,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " a data-only roundtrip asks for the model through the flag, which only the
     " three model-owning slots have - see reset_view_update_flags
     IF ms_response-s_front-params-s_view-check_update_model    = abap_true
-    OR ms_response-s_front-params-s_popup-check_update_model   = abap_true
-    OR ms_response-s_front-params-s_popover-check_update_model = abap_true.
+        OR ms_response-s_front-params-s_popup-check_update_model   = abap_true
+        OR ms_response-s_front-params-s_popover-check_update_model = abap_true.
       result = abap_true.
     ENDIF.
 
