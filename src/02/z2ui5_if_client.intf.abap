@@ -18,6 +18,7 @@ INTERFACE z2ui5_if_client
       "Actions base
       clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
       set_title                 TYPE string VALUE `SET_TITLE`,
+      set_favicon               TYPE string VALUE `SET_FAVICON`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
       scroll_to                 TYPE string VALUE `SCROLL_TO`,
       scroll_into_view          TYPE string VALUE `SCROLL_INTO_VIEW`,

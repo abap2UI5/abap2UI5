@@ -29,6 +29,7 @@ CLASS z2ui5_cl_app_favicon_js IMPLEMENTATION.
              `// ``favicon`` URL (updates the existing <link> tag or creates one).` && |\n| &&
              `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
+             `  // OBSOLETE: replaced by the frontend event cs_event-set_favicon - kept for backward compatibility.` && |\n| &&
              `  return Control.extend("z2ui5.cc.Favicon", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&

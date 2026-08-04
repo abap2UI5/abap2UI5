@@ -2,6 +2,7 @@
 // `favicon` URL (updates the existing <link> tag or creates one).
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
+  // OBSOLETE: replaced by the frontend event cs_event-set_favicon - kept for backward compatibility.
   return Control.extend("z2ui5.cc.Favicon", {
     metadata: {
       properties: {

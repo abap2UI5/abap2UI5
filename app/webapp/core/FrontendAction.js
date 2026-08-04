@@ -1476,6 +1476,29 @@ sap.ui.define(
       }
     }
 
+    function evSetFavicon(oController, args) {
+      const href = Lib.toText(args[1]);
+      try {
+        // Reuse the icon link the page already has instead of appending a
+        // second one - which of two competing <link rel="icon"> elements the
+        // browser honours is up to it, and an app that switches its icon
+        // would otherwise leave one behind per change. `~=` matches one entry
+        // of the whitespace-separated rel list, so a page declaring the
+        // legacy rel="shortcut icon" is found too.
+        const existing = document.head.querySelector('link[rel~="icon"]');
+        if (existing) {
+          existing.href = href;
+          return;
+        }
+        const link = document.createElement("link");
+        link.rel = "icon";
+        link.href = href;
+        document.head.appendChild(link);
+      } catch (e) {
+        Lib.logError("SET_FAVICON: setting the favicon failed", e);
+      }
+    }
+
     function evSetTitleLaunchpad(oController, args) {
       const title = Lib.toText(args[1]);
       try {
@@ -1570,6 +1593,7 @@ sap.ui.define(
       URLHELPER: evUrlHelper,
       IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,
       SET_TITLE: evSetTitle,
+      SET_FAVICON: evSetFavicon,
       SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,
       SET_FOCUS: evSetFocus,
       SCROLL_TO: evScrollTo,

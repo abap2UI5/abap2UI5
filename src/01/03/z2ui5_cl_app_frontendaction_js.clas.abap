@@ -1506,6 +1506,29 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function evSetFavicon(oController, args) {` && |\n| &&
+             `      const href = Lib.toText(args[1]);` && |\n| &&
+             `      try {` && |\n| &&
+             `        // Reuse the icon link the page already has instead of appending a` && |\n| &&
+             `        // second one - which of two competing <link rel="icon"> elements the` && |\n| &&
+             `        // browser honours is up to it, and an app that switches its icon` && |\n| &&
+             `        // would otherwise leave one behind per change. ``~=`` matches one entry` && |\n| &&
+             `        // of the whitespace-separated rel list, so a page declaring the` && |\n| &&
+             `        // legacy rel="shortcut icon" is found too.` && |\n| &&
+             `        const existing = document.head.querySelector('link[rel~="icon"]');` && |\n| &&
+             `        if (existing) {` && |\n| &&
+             `          existing.href = href;` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const link = document.createElement("link");` && |\n| &&
+             `        link.rel = "icon";` && |\n| &&
+             `        link.href = href;` && |\n| &&
+             `        document.head.appendChild(link);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("SET_FAVICON: setting the favicon failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
              `      try {` && |\n| &&
@@ -1600,10 +1623,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      URLHELPER: evUrlHelper,` && |\n| &&
              `      IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,` && |\n| &&
              `      SET_TITLE: evSetTitle,` && |\n| &&
+             `      SET_FAVICON: evSetFavicon,` && |\n| &&
              `      SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
              `      SET_FOCUS: evSetFocus,` && |\n| &&
              `      SCROLL_TO: evScrollTo,` && |\n| &&
-             `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
+             `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n|.
+    result = result &&
              `      START_TIMER: evStartTimer,` && |\n| &&
              `      KEYBOARD_SET_MODE: evSetInputMode,` && |\n| &&
              `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
@@ -1627,8 +1652,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const handler = handlers[args[0]];` && |\n| &&
              `        if (handler) handler(oController, args);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        // Backstop: individual handlers already guard themselves, but a` && |\n|.
-    result = result &&
+             `        // Backstop: individual handlers already guard themselves, but a` && |\n| &&
              `        // malformed payload must never let an error escape into the caller.` && |\n| &&
              `        Lib.logError(``FrontendAction: handler '${args[0]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&
