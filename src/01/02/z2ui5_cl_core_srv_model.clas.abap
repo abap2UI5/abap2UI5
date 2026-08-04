@@ -593,17 +593,21 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD dissolve.
 
-    DATA lv_depth TYPE i.
+    " DO ... TIMES with the pending check inside the body, not
+    " WHILE line_exists( ... ): the v702 downport of the transpiled browser
+    " build hoists the LINE_EXISTS read out of a WHILE condition and
+    " evaluates it once, before the loop. With an initially empty table that
+    " single evaluation says "nothing pending" forever, so only the first
+    " pass ran and nested components (MS_NESTED-INNER-DEEP1) were never
+    " resolved. DO ... TIMES also replaces the manual lv_depth counter -
+    " max_dissolve_depth still means what it says, 5 dissolve passes.
+    DO max_dissolve_depth TIMES.
 
-    WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
-
-      lv_depth = lv_depth + 1.
-      " > not >=, so the pass with lv_depth = max_dissolve_depth still runs
-      " and the constant means what it says (5 dissolve passes, not 4)
-      IF lv_depth > max_dissolve_depth.
-        " EXIT, not RETURN - attri_update_entry_refs must still run for the
-        " already dissolved rows, otherwise name_ref stays empty and the
-        " serialize/deserialize ref de-duplication silently breaks
+      " EXIT, not RETURN - attri_update_entry_refs must still run for the
+      " already dissolved rows, otherwise name_ref stays empty and the
+      " serialize/deserialize ref de-duplication silently breaks
+      IF mt_attri->* IS NOT INITIAL
+          AND NOT line_exists( mt_attri->*[ check_dissolved = abap_false ] ). "#EC CI_SORTSEQ
         EXIT.
       ENDIF.
 
@@ -613,7 +617,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           main_attri_refresh( ).
       ENDTRY.
 
-    ENDWHILE.
+    ENDDO.
 
     attri_update_entry_refs( ).
 
