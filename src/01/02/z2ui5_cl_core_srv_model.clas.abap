@@ -747,14 +747,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               DATA(lt_attri_dref) = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
-              " an unexpected ref type_kind is left as a non-dissolvable leaf
-              " (like the unknown-kind WHEN OTHERS below) - an ASSERT here
-              " would raise the uncatchable ASSERTION_FAILED and defeat the
-              " TRY/CATCH around dissolve_run, dumping the whole request
+              " an unexpected ref type_kind is left as a non-dissolvable leaf -
+              " an ASSERT here would raise the uncatchable ASSERTION_FAILED and
+              " defeat the TRY/CATCH around dissolve_run, dumping the whole request
           ENDCASE.
         WHEN OTHERS.
-          " an unknown typedescr kind is left as a non-dissolvable leaf
-          " (this is the unknown-kind WHEN OTHERS the comment above refers to)
+          " same as above: an unknown typedescr kind stays a non-dissolvable leaf
       ENDCASE.
 
     ENDLOOP.
@@ -879,10 +877,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             <comp> = io_row_d->get_string( iv_path ).
         ENDCASE.
 
-      CATCH cx_root.
-        " a single malformed cell (e.g. text sent into a numeric target)
-        " must not discard every other edit in this batch - skip just it
-        RETURN.
+      CATCH cx_root ##NO_HANDLER.
+        " skip just this cell - see the method comment
     ENDTRY.
 
   ENDMETHOD.

@@ -232,22 +232,35 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Display: popups, popovers, nested views, main view` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `      async displayFragment(xml, seq) {` && |\n| &&
+             `      // Shared load path of the two fragment slots (popup, popover): create` && |\n| &&
+             `      // the slot's own JSON model, load the fragment and attach the model.` && |\n| &&
+             `      // Returns null when the app was torn down while the fragment loaded or a` && |\n| &&
+             `      // newer request superseded this response - we must not open a dialog the` && |\n| &&
+             `      // backend no longer knows about.` && |\n| &&
+             `      async _loadSlotFragment(slotKey, fragmentId, xml, seq) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit("POPUP", oModel);` && |\n| &&
+             `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
              `        const oFragment = await Fragment.load({` && |\n| &&
              `          definition: xml,` && |\n| &&
-             `          controller: ViewSlots.getController("POPUP"),` && |\n| &&
-             `          id: "popupId",` && |\n| &&
+             `          controller: ViewSlots.getController(slotKey),` && |\n| &&
+             `          id: fragmentId,` && |\n| &&
              `        });` && |\n| &&
-             `        // The app might have been torn down while the fragment loaded, or a` && |\n| &&
-             `        // newer request superseded this response - don't open a dialog the` && |\n| &&
-             `        // backend no longer knows about.` && |\n| &&
              `        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
-             `          return;` && |\n| &&
+             `          return null;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
+             `        return oFragment;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      async displayFragment(xml, seq) {` && |\n| &&
+             `        const oFragment = await this._loadSlotFragment(` && |\n| &&
+             `          "POPUP",` && |\n| &&
+             `          "popupId",` && |\n| &&
+             `          xml,` && |\n| &&
+             `          seq,` && |\n| &&
+             `        );` && |\n| &&
+             `        if (!oFragment) return;` && |\n| &&
              `        // The shared device + message models are attached inside` && |\n| &&
              `        // ViewSlots.setView (the single funnel), so error paths that` && |\n| &&
              `        // destroy a view without reaching setView never register it.` && |\n| &&
@@ -270,18 +283,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // handle expected, non-error conditions (app torn down mid-load, or` && |\n| &&
              `        // the openBy anchor not being present), matching the parent-not-found` && |\n| &&
              `        // guard in displayNestedView.` && |\n| &&
-             `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit("POPOVER", oModel);` && |\n| &&
-             `        const oFragment = await Fragment.load({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          controller: ViewSlots.getController("POPOVER"),` && |\n| &&
-             `          id: "popoverId",` && |\n| &&
-             `        });` && |\n| &&
-             `        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {` && |\n| &&
-             `          oFragment.destroy();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        oFragment.setModel(oModel);` && |\n| &&
+             `        const oFragment = await this._loadSlotFragment(` && |\n| &&
+             `          "POPOVER",` && |\n| &&
+             `          "popoverId",` && |\n| &&
+             `          xml,` && |\n| &&
+             `          seq,` && |\n| &&
+             `        );` && |\n| &&
+             `        if (!oFragment) return;` && |\n| &&
              `` && |\n| &&
              `        // Find the control to attach the popover to: any open slot first,` && |\n| &&
              `        // then the global UI5 control registry as a last resort.` && |\n| &&
@@ -416,7 +424,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        this.eB(...args);` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `      // Ancestor-text breadcrumb of a control resolved in an event argument,` && |\n| &&
              `      // e.g. ``$controller.textPath(${$parameters>/item})`` on a menu's` && |\n| &&
              `      // itemSelected -> "Create New Site > Official Store". The parent-chain` && |\n| &&
@@ -424,8 +433,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // it; the separator defaults to " > ".` && |\n| &&
              `      textPath(oControl, sSeparator) {` && |\n| &&
              `        return Lib.getTextPath(oControl, sSeparator);` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
+             `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eB = "event backend": triggers a backend roundtrip with arguments.` && |\n| &&
@@ -614,13 +622,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        // Guard against the app being destroyed during the await above.` && |\n| &&
              `        // oModel covers oViewModel too when they are the same object (no` && |\n| &&
              `        // switchPath); with an OData default model both must go.` && |\n| &&
-             `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
+             `        const discardBuild = () => {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          oModel.destroy();` && |\n| &&
              `          if (switchPath) oViewModel.destroy();` && |\n| &&
+             `        };` && |\n| &&
+             `` && |\n| &&
+             `        // Guard against the app being destroyed during the await above.` && |\n| &&
+             `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
+             `          discardBuild();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -637,9 +649,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          reqSeq !== Server._requestSeq &&` && |\n| &&
              `          ViewSlots.getView("MAIN")` && |\n| &&
              `        ) {` && |\n| &&
-             `          oView.destroy();` && |\n| &&
-             `          oModel.destroy();` && |\n| &&
-             `          if (switchPath) oViewModel.destroy();` && |\n| &&
+             `          discardBuild();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&

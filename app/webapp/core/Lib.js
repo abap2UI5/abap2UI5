@@ -10,14 +10,14 @@
 // state). Renderers must stay cheap and free of visible side effects
 // (rendering API v2); deferring to onAfterRendering also guarantees the
 // control's DOM exists.
+//
+// Nothing hash/route related belongs here: core/Router.js is the one module
+// that knows how a URL hash is split between the FLP shell and the running
+// app, and nothing else may reach for the hash directly.
 sap.ui.define(
   ["z2ui5/core/AppState", "sap/ui/core/Element"],
   (AppState, Element) => {
     "use strict";
-
-    // Everything hash/route related lives in core/Router.js - it is the one
-    // module that knows how a URL hash is split between the FLP shell and the
-    // running app, and nothing else may reach for the hash directly.
 
     // Resolve a control id to its sap.ui.core.Element via the global registry.
     // Element.getElementById arrived in UI5 1.119; older bootstraps fall back

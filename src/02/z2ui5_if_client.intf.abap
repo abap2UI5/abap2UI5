@@ -298,9 +298,9 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
-  "! obsolete - behaves like _bind (both two-way), please use _bind;
-  "! note: _bind has no custom_mapper_back/custom_filter_back parameters -
-  "! keep using _bind_edit while you pass those
+  "! obsolete - delegates to _bind (both two-way), please use _bind.
+  "! custom_mapper_back / custom_filter_back are still accepted for source
+  "! compatibility but are no longer evaluated.
   METHODS _bind_edit
     IMPORTING
       val                  TYPE data

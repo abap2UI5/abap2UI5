@@ -113,6 +113,15 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
         iv_hash       TYPE string
       RETURNING
         VALUE(result) TYPE string.
+
+    " the part of iv_val before the first iv_sub, or iv_val when it does not
+    " occur - cuts a route token off at the next separator
+    METHODS cut_at
+      IMPORTING
+        iv_val        TYPE string
+        iv_sub        TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -295,17 +304,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " a bookmark fall back to the '?app_start=' query.
     result = iv_hash.
 
-    IF strlen( result ) = 0.
+    IF result IS INITIAL.
       RETURN.
     ENDIF.
 
     IF result(1) = `#`.
       result = substring( val = result
                           off = 1 ).
-    ENDIF.
-
-    IF strlen( result ) = 0.
-      RETURN.
+      IF result IS INITIAL.
+        RETURN.
+      ENDIF.
     ENDIF.
 
     " An app hash starts with '/', a shell hash never does. Checking this
@@ -328,10 +336,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD request_app_start_draft.
     TRY.
         DATA(lv_hash) = hash_get_app_part( iv_hash ).
-        " the app hash may carry leading slashes ('#/z2ui5-xapp-state=...',
-        " or '#//...' from URLs written through the UI5 HashChanger before
-        " navTo stripped its slash); url_param_get matches parameter names
-        " verbatim, so strip them all
+        " strip the leading slashes (see parse_app_route_rest for why they
+        " stack); url_param_get matches parameter names verbatim
         SHIFT lv_hash LEFT DELETING LEADING `/`.
         result = z2ui5_cl_a2ui5_context=>c_trim_upper(
             z2ui5_cl_a2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
@@ -364,6 +370,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                         off = 4 ).
   ENDMETHOD.
 
+  METHOD cut_at.
+    result = iv_val.
+    DATA(lv_off) = find( val = iv_val
+                         sub = iv_sub ).
+    IF lv_off >= 0.
+      result = substring( val = iv_val
+                          len = lv_off ).
+    ENDIF.
+  ENDMETHOD.
+
   METHOD request_app_start_route.
     " Parse the app class from a hash route '#/app/<CLASS>' (UI5 Router style).
     " Returns empty when the hash carries no app route, so a normal boot or an
@@ -374,9 +390,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           RETURN.
         ENDIF.
         " the class token ends at the next route / query separator
-        SPLIT lv_rest AT `/` INTO lv_rest DATA(lv_dummy).
-        SPLIT lv_rest AT `&` INTO lv_rest lv_dummy.
-        SPLIT lv_rest AT `?` INTO lv_rest lv_dummy.
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `/` ).
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `&` ).
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `?` ).
         result = z2ui5_cl_a2ui5_context=>c_trim_upper( lv_rest ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -392,14 +411,21 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         IF lv_rest IS INITIAL.
           RETURN.
         ENDIF.
-        " cut off a trailing query / fragment, then take the 2nd path segment
-        " (the 1st is the class, discarded into lv_dummy)
-        SPLIT lv_rest AT `&` INTO lv_rest DATA(lv_dummy).
-        SPLIT lv_rest AT `?` INTO lv_rest lv_dummy.
-        SPLIT lv_rest AT `/` INTO lv_dummy DATA(lv_draft).
-        " a draft id has no further separators; guard against a stray tail
-        SPLIT lv_draft AT `/` INTO lv_draft lv_dummy.
-        result = z2ui5_cl_a2ui5_context=>c_trim_upper( lv_draft ).
+        " cut off a trailing query / fragment, then take the 2nd path segment -
+        " the 1st is the class, and a draft id carries no further separator
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `&` ).
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `?` ).
+        DATA(lv_off) = find( val = lv_rest
+                             sub = `/` ).
+        IF lv_off < 0.
+          RETURN.
+        ENDIF.
+        result = z2ui5_cl_a2ui5_context=>c_trim_upper(
+            cut_at( iv_val = substring( val = lv_rest
+                                        off = lv_off + 1 )
+                    iv_sub = `/` ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
