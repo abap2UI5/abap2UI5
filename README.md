@@ -44,6 +44,8 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
+No system at hand? [**Try abap2UI5 live in your browser**](https://abap2ui5.github.io/web-abap2UI5-build/) – the whole framework runs client-side (transpiled ABAP + sql.js), rebuilt daily from this repo by [web-abap2UI5](https://github.com/abap2UI5/web-abap2UI5).
+
 #### How It Works
 
 abap2UI5 is a **single-page app**. The browser loads a UI5 shell once, then talks to ABAP via JSON roundtrips:
