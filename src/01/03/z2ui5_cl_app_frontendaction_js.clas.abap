@@ -391,13 +391,24 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      return raw;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // kinds whose EMPTY value is meaningful (null), so a missing trailing` && |\n| &&
+             `    // argument still has to be passed: the backend wire drops a trailing empty` && |\n| &&
+             `    // t_arg entry, and "clear this association" is exactly a call whose only` && |\n| &&
+             `    // argument is empty.` && |\n| &&
+             `    const NULLABLE_KINDS = ["controlIdOrNull"];` && |\n| &&
+             `` && |\n| &&
              `    function castArgs(kinds, rawArgs, view) {` && |\n| &&
              `      // kinds === null: unlisted-but-allowed method, infer each arg's type` && |\n| &&
              `      if (kinds === null) return rawArgs.map((raw) => castArgAuto(raw));` && |\n| &&
              `      // only cast args the caller actually sent - padding missing trailing` && |\n| &&
-             `      // args would turn open() into open(undefined) and ints into NaN` && |\n| &&
+             `      // args would turn open() into open(undefined) and ints into NaN. The one` && |\n| &&
+             `      // exception is a nullable kind (see above): pad it so the call carries` && |\n| &&
+             `      // an explicit null instead of relying on the control's no-arg handling.` && |\n| &&
+             `      let count = rawArgs.length;` && |\n| &&
+             `      while (count < kinds.length && NULLABLE_KINDS.includes(kinds[count]))` && |\n| &&
+             `        count++;` && |\n| &&
              `      return kinds` && |\n| &&
-             `        .slice(0, rawArgs.length)` && |\n| &&
+             `        .slice(0, count)` && |\n| &&
              `        .map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -413,7 +424,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, id, view, method, ...params]` && |\n| &&
+             `    // args: [_, id, view, method, ...params]` && |\n|.
+    result = result &&
              `    function evControlCallById(oController, args) {` && |\n| &&
              `      const [, id, view, method] = args;` && |\n| &&
              `      let kinds = CONTROL_METHODS[method];` && |\n| &&
@@ -424,8 +436,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        kinds = null;` && |\n|.
-    result = result &&
+             `        kinds = null;` && |\n| &&
              `      }` && |\n| &&
              `      const control = view` && |\n| &&
              `        ? ViewSlots.byId(view.toUpperCase(), id)` && |\n| &&
@@ -814,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      if (model) {` && |\n| &&
              `        const effective = Lib.effectiveSizeLimit(` && |\n| &&
              `          AppState.state.viewSizeLimits,` && |\n| &&
-             `          viewKey,` && |\n| &&
+             `          viewKey,` && |\n|.
+    result = result &&
              `        );` && |\n| &&
              `        // 100 is the UI5 JSONModel default size limit.` && |\n| &&
              `        model.setSizeLimit(effective ?? 100);` && |\n| &&
@@ -825,8 +837,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evSetODataModel(oController, args) {` && |\n| &&
              `      let oModel;` && |\n| &&
              `      try {` && |\n| &&
-             `        oModel = new ODataModel({` && |\n|.
-    result = result &&
+             `        oModel = new ODataModel({` && |\n| &&
              `          serviceUrl: args[1],` && |\n| &&
              `          annotationURI: args[3] || "",` && |\n| &&
              `        });` && |\n| &&
@@ -1215,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      ) {` && |\n| &&
              `        Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");` && |\n| &&
              `        return;` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `      const loaded = sap.ui.require(name);` && |\n| &&
              `      if (loaded) {` && |\n| &&
              `        callback(loaded);` && |\n| &&
@@ -1226,8 +1238,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          "FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available",` && |\n| &&
              `        ),` && |\n| &&
              `      );` && |\n| &&
-             `      /* ui5lint-enable no-globals */` && |\n|.
-    result = result &&
+             `      /* ui5lint-enable no-globals */` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evFilterBarVariantInit(oController, args) {` && |\n| &&
@@ -1616,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError("SET_FAVICON: setting the favicon failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
              `      try {` && |\n| &&
@@ -1627,8 +1639,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            result.catch((e) =>` && |\n| &&
              `              Lib.logError(` && |\n| &&
              `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
-             `                e,` && |\n|.
-    result = result &&
+             `                e,` && |\n| &&
              `              ),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&

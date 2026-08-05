@@ -364,13 +364,24 @@ sap.ui.define(
       return raw;
     }
 
+    // kinds whose EMPTY value is meaningful (null), so a missing trailing
+    // argument still has to be passed: the backend wire drops a trailing empty
+    // t_arg entry, and "clear this association" is exactly a call whose only
+    // argument is empty.
+    const NULLABLE_KINDS = ["controlIdOrNull"];
+
     function castArgs(kinds, rawArgs, view) {
       // kinds === null: unlisted-but-allowed method, infer each arg's type
       if (kinds === null) return rawArgs.map((raw) => castArgAuto(raw));
       // only cast args the caller actually sent - padding missing trailing
-      // args would turn open() into open(undefined) and ints into NaN
+      // args would turn open() into open(undefined) and ints into NaN. The one
+      // exception is a nullable kind (see above): pad it so the call carries
+      // an explicit null instead of relying on the control's no-arg handling.
+      let count = rawArgs.length;
+      while (count < kinds.length && NULLABLE_KINDS.includes(kinds[count]))
+        count++;
       return kinds
-        .slice(0, rawArgs.length)
+        .slice(0, count)
         .map((kind, i) => castArg(kind, rawArgs[i], view));
     }
 

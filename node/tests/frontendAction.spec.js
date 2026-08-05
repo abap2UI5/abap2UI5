@@ -413,6 +413,22 @@ test.describe("CONTROL_BY_ID", () => {
     ]);
   });
 
+  test("setSelectedSection still clears when the wire dropped the trailing empty arg", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.opl = {
+      setSelectedSection: (...a) => calls.push(["setSelectedSection", ...a]),
+    };
+    // get_t_arg drops a TRAILING empty t_arg entry, so the action arrives with
+    // no argument at all - a nullable kind is padded so the call is explicit
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "opl",
+      "",
+      "setSelectedSection",
+    ]);
+    expect(calls).toEqual([["setSelectedSection", null]]);
+  });
+
   test("css writes a whitelisted declaration onto the control's DOM node", () => {
     const { FrontendAction, controls } = load();
     const set = [];
