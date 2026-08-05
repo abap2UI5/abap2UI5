@@ -34,8 +34,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    "z2ui5/controller/View1.controller",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BaseController, Controller, Server, AppState) => {` && |\n| &&
+             `  (BaseController, Controller, Server, AppState, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `    return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `      onInit() {` && |\n| &&
@@ -53,16 +54,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          AppState.getGlobal("checkLocal") ? window.location.href : uri,` && |\n| &&
              `        );` && |\n| &&
              `` && |\n| &&
-             `        // Wire up the controller instances and the app container. All other` && |\n| &&
+             `        // Wire up the controller instances and the app container. One` && |\n| &&
+             `        // controller per view slot, driven by the slot table in` && |\n| &&
+             `        // core/ViewSlots - the single place that knows which slots exist, so` && |\n| &&
+             `        // adding one there does not need a matching line here. All other` && |\n| &&
              `        // shared state (callback arrays, error log, roundtrip flags, ...)` && |\n| &&
              `        // starts from the defaults that core/AppState set during` && |\n| &&
              `        // Component.init.` && |\n| &&
-             `        state.oController = new Controller();` && |\n| &&
+             `        for (const slot of ViewSlots.slots) {` && |\n| &&
+             `          state[slot.controllerProp] = new Controller();` && |\n| &&
+             `        }` && |\n| &&
              `        state.oApp = this.getView().byId("app");` && |\n| &&
-             `        state.oControllerNest = new Controller();` && |\n| &&
-             `        state.oControllerNest2 = new Controller();` && |\n| &&
-             `        state.oControllerPopup = new Controller();` && |\n| &&
-             `        state.oControllerPopover = new Controller();` && |\n| &&
              `` && |\n| &&
              `        // Kick off the initial roundtrip. Historically a stopped router's` && |\n| &&
              `        // initial routeMatched event triggered this; the manifest carries no` && |\n| &&

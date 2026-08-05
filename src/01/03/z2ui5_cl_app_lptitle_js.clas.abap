@@ -45,8 +45,8 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `      setTitle(val) {` && |\n| &&
-             `        // Empty renderer -> suppress the no-op invalidation; the shell title` && |\n| &&
-             `        // is set explicitly below.` && |\n| &&
+             `        // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
+             `        // (setting the shell title) is what actually matters.` && |\n| &&
              `        this.setProperty("title", val, true);` && |\n| &&
              `        try {` && |\n| &&
              `          const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n| &&

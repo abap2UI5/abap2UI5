@@ -7,8 +7,9 @@ sap.ui.define(
     "z2ui5/controller/View1.controller",
     "z2ui5/core/Server",
     "z2ui5/core/AppState",
+    "z2ui5/core/ViewSlots",
   ],
-  (BaseController, Controller, Server, AppState) => {
+  (BaseController, Controller, Server, AppState, ViewSlots) => {
     "use strict";
     return BaseController.extend("z2ui5.controller.App", {
       onInit() {
@@ -26,16 +27,17 @@ sap.ui.define(
           AppState.getGlobal("checkLocal") ? window.location.href : uri,
         );
 
-        // Wire up the controller instances and the app container. All other
+        // Wire up the controller instances and the app container. One
+        // controller per view slot, driven by the slot table in
+        // core/ViewSlots - the single place that knows which slots exist, so
+        // adding one there does not need a matching line here. All other
         // shared state (callback arrays, error log, roundtrip flags, ...)
         // starts from the defaults that core/AppState set during
         // Component.init.
-        state.oController = new Controller();
+        for (const slot of ViewSlots.slots) {
+          state[slot.controllerProp] = new Controller();
+        }
         state.oApp = this.getView().byId("app");
-        state.oControllerNest = new Controller();
-        state.oControllerNest2 = new Controller();
-        state.oControllerPopup = new Controller();
-        state.oControllerPopover = new Controller();
 
         // Kick off the initial roundtrip. Historically a stopped router's
         // initial routeMatched event triggered this; the manifest carries no

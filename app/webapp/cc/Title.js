@@ -12,8 +12,8 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       },
     },
     setTitle(val) {
-      // Suppress invalidation: the renderer is empty, so a re-render would be
-      // a no-op; the effect happens explicitly below.
+      // Empty renderer -> suppress the no-op invalidation; the effect below
+      // (setting the tab title) is what actually matters.
       this.setProperty("title", val, true);
       document.title = Lib.toText(val);
     },
