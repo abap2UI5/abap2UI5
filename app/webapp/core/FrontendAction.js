@@ -110,6 +110,10 @@ sap.ui.define(
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
       setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)
+      setSticky: ["object"], // sap.m.ListBase/sap.m.Table: JSON array of sap.m.Sticky keys
+      setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association
+      setSelectedItem: ["controlIdOrNull"], // sap.m.List/sap.m.Select/...: an EMPTY argument clears the selection
+      css: ["string", "string"], // NOT a UI5 method: set one CSS property on the control's own DOM node
       enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of `enabled`
       addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class
       removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class
@@ -131,6 +135,31 @@ sap.ui.define(
       RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),
       DENY_ALL: () => false,
     };
+
+    // CONTROL_METHODS.css writes ONE declaration onto the control's own DOM
+    // node. It exists for the case where a control has no property for the
+    // value at all - sap.m.Page has no `width`, so a sample that resizes its
+    // container (a Slider driving `byId(...).$().width(v + "%")`) has nothing
+    // to bind and no method to call. Where the target DOES have the property,
+    // a bound property stays the correct path (rule "prefer a bindable
+    // property"); this is the residue, not a general styling API.
+    //
+    // The property name is checked against this list so the wire stays a
+    // narrow, declarative contract instead of "write anything anywhere"; the
+    // value goes through CSSOM setProperty, which drops an invalid declaration
+    // (a smuggled second declaration never parses).
+    const CSS_PROPERTIES = [
+      "width",
+      "min-width",
+      "max-width",
+      "height",
+      "min-height",
+      "max-height",
+      "color",
+      "background-color",
+      "font-size",
+      "opacity",
+    ];
 
     function isAbsoluteUrl(url) {
       const s = String(url ?? "").trim();
@@ -231,6 +260,32 @@ sap.ui.define(
         get: () => sap.ui.require("sap/ui/core/Popup"),
         methods: { setWithinArea: ["within"] },
       },
+      // sap/ui/core/InvisibleMessage is @since 1.78 and is a SINGLETON: it
+      // renders nothing, so it has no id CONTROL_BY_ID could resolve - a
+      // global target is the only way a backend-driven content change can be
+      // announced to a screen reader. Lazy-require like THEMING so 1.71 hits
+      // the "not available" guard instead of failing the component load.
+      // announce(sText, sMode) with sMode Polite (default) | Assertive.
+      INVISIBLE_MESSAGE: {
+        get: () => {
+          const IM = sap.ui.require("sap/ui/core/InvisibleMessage");
+          return IM ? IM.getInstance() : undefined;
+        },
+        methods: { announce: ["string", "string"] },
+      },
+      // sap/ui/core/Formatting (@since 1.120) carries the global formatting
+      // configuration. Custom currencies are the case an app cannot express
+      // otherwise: the digit count of a currency code is neither a control
+      // property nor something a per-binding formatter can register for the
+      // standard sap.ui.model.type.Currency. The payload is a JSON object -
+      // data the backend owns anyway. Lazy-require like THEMING.
+      FORMATTING: {
+        get: () => sap.ui.require("sap/ui/core/Formatting"),
+        methods: {
+          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }
+          addCustomCurrency: ["string", "object"], // code, { digits: n }
+        },
+      },
     };
 
     // Cast one raw string argument to the kind the whitelist declared.
@@ -248,6 +303,18 @@ sap.ui.define(
           return (
             (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
             ViewSlots.resolveById(raw)
+          );
+        case "controlIdOrNull":
+          // an ASSOCIATION cannot be data-bound, so clearing one
+          // (setSelectedSection(null), setSelectedItem(null)) can only travel
+          // as a method argument - and an EMPTY argument must arrive as null,
+          // not as the `false` castArgAuto would infer. Same "empty means
+          // null" contract as the `within` kind below.
+          if (raw === "" || raw === undefined || raw === null) return null;
+          return (
+            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
+            ViewSlots.resolveById(raw) ||
+            null
           );
         case "anchor":
           // anchor argument for openBy-style methods: resolve the control id
@@ -354,6 +421,28 @@ sap.ui.define(
           if (control.isOpen?.()) control.close();
           else control.openBy(anchor);
         });
+        return;
+      }
+      // css is not a UI5 method either: it writes one whitelisted CSS
+      // declaration onto the control's own DOM node, for the case where the
+      // control has no property carrying that value (sap.m.Page has no
+      // `width`). Like the original jQuery-style samples do, the declaration
+      // lives on the element and is gone after a re-render - the backend
+      // re-sends it with the next view, exactly as it re-sends every property.
+      if (method === "css") {
+        const prop = String(args[4] ?? "").toLowerCase();
+        if (!CSS_PROPERTIES.includes(prop)) {
+          Lib.logError(
+            `CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})`,
+          );
+          return;
+        }
+        const el = control?.getDomRef?.();
+        if (!el) {
+          Lib.logError(`CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref`);
+          return;
+        }
+        el.style.setProperty(prop, String(args[5] ?? ""));
         return;
       }
       // setAsyncURLHandler takes a FUNCTION, so the argument names a policy

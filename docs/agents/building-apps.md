@@ -183,6 +183,12 @@ ships for existing apps but is **frozen** — new apps and new code use
   `path:` uses the upper-cased ABAP field name.
 - Type numeric/boolean model fields as `i`/`p`/`abap_bool`, not `string` —
   UI5 2.x rejects a JSON string on a float/int/boolean control property.
+- An ABAP field is never *absent* — it is initial — so by default every field
+  reaches the browser as an explicit `""`/`0`, which **overrides the control's
+  own default** (and an enum-typed property rejects the empty string outright).
+  When a bound template's rows fill different subsets of the same properties,
+  bind with `client->_bind( val = t_rows omit_initial = abap_true )`: initial
+  fields then stay out of the model and each control keeps its UI5 default.
 - After changing bound data in an event handler, push it to the browser with
   `client->view_model_update( )` (no full re-render); call `view_display`
   again only when the view structure itself changes.

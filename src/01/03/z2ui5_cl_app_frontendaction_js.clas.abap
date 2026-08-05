@@ -137,6 +137,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
              `      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)` && |\n| &&
+             `      setSticky: ["object"], // sap.m.ListBase/sap.m.Table: JSON array of sap.m.Sticky keys` && |\n| &&
+             `      setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association` && |\n| &&
+             `      setSelectedItem: ["controlIdOrNull"], // sap.m.List/sap.m.Select/...: an EMPTY argument clears the selection` && |\n| &&
+             `      css: ["string", "string"], // NOT a UI5 method: set one CSS property on the control's own DOM node` && |\n| &&
              `      enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of ``enabled``` && |\n| &&
              `      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class` && |\n| &&
              `      removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class` && |\n| &&
@@ -158,6 +162,31 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),` && |\n| &&
              `      DENY_ALL: () => false,` && |\n| &&
              `    };` && |\n| &&
+             `` && |\n| &&
+             `    // CONTROL_METHODS.css writes ONE declaration onto the control's own DOM` && |\n| &&
+             `    // node. It exists for the case where a control has no property for the` && |\n| &&
+             `    // value at all - sap.m.Page has no ``width``, so a sample that resizes its` && |\n| &&
+             `    // container (a Slider driving ``byId(...).$().width(v + "%")``) has nothing` && |\n| &&
+             `    // to bind and no method to call. Where the target DOES have the property,` && |\n| &&
+             `    // a bound property stays the correct path (rule "prefer a bindable` && |\n| &&
+             `    // property"); this is the residue, not a general styling API.` && |\n| &&
+             `    //` && |\n| &&
+             `    // The property name is checked against this list so the wire stays a` && |\n| &&
+             `    // narrow, declarative contract instead of "write anything anywhere"; the` && |\n| &&
+             `    // value goes through CSSOM setProperty, which drops an invalid declaration` && |\n| &&
+             `    // (a smuggled second declaration never parses).` && |\n| &&
+             `    const CSS_PROPERTIES = [` && |\n| &&
+             `      "width",` && |\n| &&
+             `      "min-width",` && |\n| &&
+             `      "max-width",` && |\n| &&
+             `      "height",` && |\n| &&
+             `      "min-height",` && |\n| &&
+             `      "max-height",` && |\n| &&
+             `      "color",` && |\n| &&
+             `      "background-color",` && |\n| &&
+             `      "font-size",` && |\n| &&
+             `      "opacity",` && |\n| &&
+             `    ];` && |\n| &&
              `` && |\n| &&
              `    function isAbsoluteUrl(url) {` && |\n| &&
              `      const s = String(url ?? "").trim();` && |\n| &&
@@ -258,6 +287,32 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        get: () => sap.ui.require("sap/ui/core/Popup"),` && |\n| &&
              `        methods: { setWithinArea: ["within"] },` && |\n| &&
              `      },` && |\n| &&
+             `      // sap/ui/core/InvisibleMessage is @since 1.78 and is a SINGLETON: it` && |\n| &&
+             `      // renders nothing, so it has no id CONTROL_BY_ID could resolve - a` && |\n| &&
+             `      // global target is the only way a backend-driven content change can be` && |\n| &&
+             `      // announced to a screen reader. Lazy-require like THEMING so 1.71 hits` && |\n| &&
+             `      // the "not available" guard instead of failing the component load.` && |\n| &&
+             `      // announce(sText, sMode) with sMode Polite (default) | Assertive.` && |\n| &&
+             `      INVISIBLE_MESSAGE: {` && |\n| &&
+             `        get: () => {` && |\n| &&
+             `          const IM = sap.ui.require("sap/ui/core/InvisibleMessage");` && |\n| &&
+             `          return IM ? IM.getInstance() : undefined;` && |\n| &&
+             `        },` && |\n| &&
+             `        methods: { announce: ["string", "string"] },` && |\n| &&
+             `      },` && |\n| &&
+             `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
+             `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
+             `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
+             `      // property nor something a per-binding formatter can register for the` && |\n| &&
+             `      // standard sap.ui.model.type.Currency. The payload is a JSON object -` && |\n| &&
+             `      // data the backend owns anyway. Lazy-require like THEMING.` && |\n| &&
+             `      FORMATTING: {` && |\n| &&
+             `        get: () => sap.ui.require("sap/ui/core/Formatting"),` && |\n| &&
+             `        methods: {` && |\n| &&
+             `          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }` && |\n| &&
+             `          addCustomCurrency: ["string", "object"], // code, { digits: n }` && |\n| &&
+             `        },` && |\n| &&
+             `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Cast one raw string argument to the kind the whitelist declared.` && |\n| &&
@@ -275,6 +330,18 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          return (` && |\n| &&
              `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
              `            ViewSlots.resolveById(raw)` && |\n| &&
+             `          );` && |\n| &&
+             `        case "controlIdOrNull":` && |\n| &&
+             `          // an ASSOCIATION cannot be data-bound, so clearing one` && |\n| &&
+             `          // (setSelectedSection(null), setSelectedItem(null)) can only travel` && |\n| &&
+             `          // as a method argument - and an EMPTY argument must arrive as null,` && |\n| &&
+             `          // not as the ``false`` castArgAuto would infer. Same "empty means` && |\n| &&
+             `          // null" contract as the ``within`` kind below.` && |\n| &&
+             `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
+             `          return (` && |\n| &&
+             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
+             `            ViewSlots.resolveById(raw) ||` && |\n| &&
+             `            null` && |\n| &&
              `          );` && |\n| &&
              `        case "anchor":` && |\n| &&
              `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
@@ -357,7 +424,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        kinds = null;` && |\n| &&
+             `        kinds = null;` && |\n|.
+    result = result &&
              `      }` && |\n| &&
              `      const control = view` && |\n| &&
              `        ? ViewSlots.byId(view.toUpperCase(), id)` && |\n| &&
@@ -381,6 +449,28 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          if (control.isOpen?.()) control.close();` && |\n| &&
              `          else control.openBy(anchor);` && |\n| &&
              `        });` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      // css is not a UI5 method either: it writes one whitelisted CSS` && |\n| &&
+             `      // declaration onto the control's own DOM node, for the case where the` && |\n| &&
+             `      // control has no property carrying that value (sap.m.Page has no` && |\n| &&
+             `      // ``width``). Like the original jQuery-style samples do, the declaration` && |\n| &&
+             `      // lives on the element and is gone after a re-render - the backend` && |\n| &&
+             `      // re-sends it with the next view, exactly as it re-sends every property.` && |\n| &&
+             `      if (method === "css") {` && |\n| &&
+             `        const prop = String(args[4] ?? "").toLowerCase();` && |\n| &&
+             `        if (!CSS_PROPERTIES.includes(prop)) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const el = control?.getDomRef?.();` && |\n| &&
+             `        if (!el) {` && |\n| &&
+             `          Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        el.style.setProperty(prop, String(args[5] ?? ""));` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      // setAsyncURLHandler takes a FUNCTION, so the argument names a policy` && |\n| &&
@@ -424,8 +514,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          Lib.logError(` && |\n| &&
              `            ``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``,` && |\n| &&
              `          );` && |\n| &&
-             `          return;` && |\n|.
-    result = result &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
              `        // Same reason as toggleBy: wait for the anchor to render.` && |\n| &&
@@ -736,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evSetODataModel(oController, args) {` && |\n| &&
              `      let oModel;` && |\n| &&
              `      try {` && |\n| &&
-             `        oModel = new ODataModel({` && |\n| &&
+             `        oModel = new ODataModel({` && |\n|.
+    result = result &&
              `          serviceUrl: args[1],` && |\n| &&
              `          annotationURI: args[3] || "",` && |\n| &&
              `        });` && |\n| &&
@@ -825,8 +915,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
              `      }` && |\n| &&
              `      logoutViaBspTerminate(logoutUrl);` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    // When abap2UI5 is hosted as a BSP application,` && |\n| &&
              `    // /sap/public/bc/icf/logoff alone does not terminate the stateful` && |\n| &&
@@ -1137,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          "FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available",` && |\n| &&
              `        ),` && |\n| &&
              `      );` && |\n| &&
-             `      /* ui5lint-enable no-globals */` && |\n| &&
+             `      /* ui5lint-enable no-globals */` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evFilterBarVariantInit(oController, args) {` && |\n| &&
@@ -1226,8 +1316,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            params.SUBJECT,` && |\n| &&
              `            params.BODY,` && |\n| &&
              `            params.CC,` && |\n| &&
-             `            params.BCC,` && |\n|.
-    result = result &&
+             `            params.BCC,` && |\n| &&
              `            params.NEW_WINDOW,` && |\n| &&
              `          ),` && |\n| &&
              `        TRIGGER_SMS: () =>` && |\n| &&
@@ -1538,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            result.catch((e) =>` && |\n| &&
              `              Lib.logError(` && |\n| &&
              `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
-             `                e,` && |\n| &&
+             `                e,` && |\n|.
+    result = result &&
              `              ),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
@@ -1627,8 +1717,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      SET_FOCUS: evSetFocus,` && |\n| &&
              `      SCROLL_TO: evScrollTo,` && |\n| &&
              `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
-             `      START_TIMER: evStartTimer,` && |\n|.
-    result = result &&
+             `      START_TIMER: evStartTimer,` && |\n| &&
              `      KEYBOARD_SET_MODE: evSetInputMode,` && |\n| &&
              `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
              `      Z2UI5: evZ2ui5Custom,` && |\n| &&

@@ -239,6 +239,58 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(calls).toHaveLength(0);
     expect(errors).toHaveLength(2);
   });
+
+  test("INVISIBLE_MESSAGE.announce goes through the singleton instance", () => {
+    const { FrontendAction, calls, ctx } = load();
+    const announced = [];
+    const instance = { announce: (...a) => announced.push(a) };
+    ctx.sap.ui.require = (name) =>
+      name === "sap/ui/core/InvisibleMessage"
+        ? { getInstance: () => instance }
+        : null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "INVISIBLE_MESSAGE",
+      "announce",
+      "New Information Bar of type Warning",
+      "Assertive",
+    ]);
+    expect(announced).toEqual([
+      ["New Information Bar of type Warning", "Assertive"],
+    ]);
+    expect(calls).toHaveLength(0);
+  });
+
+  test("INVISIBLE_MESSAGE reports an older runtime instead of throwing", () => {
+    const { FrontendAction, errors, ctx } = load();
+    // @since 1.78 - on 1.71 the lazy require returns undefined
+    ctx.sap.ui.require = () => null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "INVISIBLE_MESSAGE",
+      "announce",
+      "hello",
+    ]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'INVISIBLE_MESSAGE.announce' not available",
+    ]);
+  });
+
+  test("FORMATTING.setCustomCurrencies parses its JSON payload", () => {
+    const { FrontendAction, ctx } = load();
+    const set = [];
+    ctx.sap.ui.require = (name) =>
+      name === "sap/ui/core/Formatting"
+        ? { setCustomCurrencies: (v) => set.push(v) }
+        : null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "FORMATTING",
+      "setCustomCurrencies",
+      '{"BGN4":{"digits":4},"WWWW":{"digits":5}}',
+    ]);
+    expect(set).toEqual([{ BGN4: { digits: 4 }, WWWW: { digits: 5 } }]);
+  });
 });
 
 test.describe("CONTROL_BY_ID", () => {
@@ -316,6 +368,93 @@ test.describe("CONTROL_BY_ID", () => {
     controls.t = { setHiddenInPopin: (a) => calls.push(["setHiddenInPopin", a]) };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "t", "", "setHiddenInPopin", '["High"]']);
     expect(calls).toEqual([["setHiddenInPopin", ["High"]]]);
+  });
+
+  test("setSticky receives its ARRAY, not the raw string", () => {
+    const { FrontendAction, calls, controls } = load();
+    // without the ["object"] kind the inference would hand over a string and
+    // sap.m.ListBase would reject it
+    controls.tab = { setSticky: (a) => calls.push(["setSticky", a]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "tab",
+      "",
+      "setSticky",
+      '["ColumnHeaders","HeaderToolbar"]',
+    ]);
+    expect(calls).toEqual([["setSticky", ["ColumnHeaders", "HeaderToolbar"]]]);
+  });
+
+  test("setSelectedSection clears the association on an EMPTY argument", () => {
+    const { FrontendAction, calls, controls } = load();
+    const goals = { id: "goals" };
+    controls.goals = goals;
+    controls.opl = {
+      setSelectedSection: (a) => calls.push(["setSelectedSection", a]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "opl",
+      "",
+      "setSelectedSection",
+      "goals",
+    ]);
+    // empty -> null, NOT the `false` the inference path would produce
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "opl",
+      "",
+      "setSelectedSection",
+      "",
+    ]);
+    expect(calls).toEqual([
+      ["setSelectedSection", goals],
+      ["setSelectedSection", null],
+    ]);
+  });
+
+  test("css writes a whitelisted declaration onto the control's DOM node", () => {
+    const { FrontendAction, controls } = load();
+    const set = [];
+    controls.page = {
+      getDomRef: () => ({ style: { setProperty: (p, v) => set.push([p, v]) } }),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "page",
+      "",
+      "css",
+      "width",
+      "60%",
+    ]);
+    expect(set).toEqual([["width", "60%"]]);
+  });
+
+  test("css rejects a property outside the whitelist and a control with no DOM ref", () => {
+    const { FrontendAction, controls, errors } = load();
+    const set = [];
+    controls.page = {
+      getDomRef: () => ({ style: { setProperty: (p, v) => set.push([p, v]) } }),
+    };
+    controls.hidden = { getDomRef: () => null };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "page",
+      "",
+      "css",
+      "position",
+      "absolute",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "hidden",
+      "",
+      "css",
+      "width",
+      "60%",
+    ]);
+    expect(set).toHaveLength(0);
+    expect(errors).toHaveLength(2);
   });
 
   test("open/close without args stay true no-arg calls (popup-mode PDFViewer, Dialog)", () => {

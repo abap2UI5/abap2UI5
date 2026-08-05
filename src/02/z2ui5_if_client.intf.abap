@@ -295,6 +295,13 @@ INTERFACE z2ui5_if_client
       tab                  TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
       switch_default_model TYPE abap_bool                     DEFAULT abap_false
+      "! keep INITIAL fields out of the serialized model instead of sending
+      "! them as `` / 0. An ABAP field is never absent - it is initial - so by
+      "! default every field reaches the client as an explicit value, which
+      "! overrides the UI5 property default the original view relies on (and an
+      "! enum-typed property rejects the empty string outright). Set it when a
+      "! bound template's rows fill different subsets of the same properties.
+      omit_initial         TYPE abap_bool                     DEFAULT abap_false
     RETURNING
       VALUE(result)        TYPE string.
 
@@ -329,12 +336,30 @@ INTERFACE z2ui5_if_client
   "! The view is passed as the separate
   "! view parameter (default cs_view-main resolves the id across all open
   "! views; pass cs_view-popup/popover/... to scope the lookup to that view).
+  "! Two entries are NOT UI5 methods but frontend capabilities in method form:
+  "! `css` sets ONE whitelisted CSS declaration on the control's own DOM node
+  "! (t_arg = id, `css`, property, value) - for a value the control has no
+  "! property for at all, e.g. the width of a sap.m.Page; prefer a bound
+  "! property wherever one exists. `toggleBy` opens/closes a popup anchored to
+  "! a control (t_arg = id, `toggleBy`, anchor id).
+  "! An association setter (setSelectedSection, setSelectedItem) clears the
+  "! association when its argument is EMPTY.
   "! cs_event-control_global - call a whitelisted method on a global object
-  "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING, POPUP):
-  "! t_arg = object, method, params.
+  "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING, POPUP,
+  "! INVISIBLE_MESSAGE, FORMATTING): t_arg = object, method, params.
   "! POPUP-setWithinArea confines every popup to the control whose id is
   "! passed (sap.ui.core.Popup.setWithinArea, needs UI5 &gt;= 1.89) instead of
   "! to the window; an EMPTY argument releases the restriction again.
+  "! INVISIBLE_MESSAGE-announce reads a text out to a screen reader without
+  "! rendering it (sap.ui.core.InvisibleMessage, needs UI5 &gt;= 1.78):
+  "! t_arg = text, mode (Polite, default, or Assertive). It is a singleton, so
+  "! there is no control id - this is the only way to announce a change the
+  "! backend made.
+  "! FORMATTING-setCustomCurrencies registers currency codes the standard
+  "! sap.ui.model.type.Currency does not know, or overrides their digit count
+  "! (sap.ui.core.Formatting, needs UI5 &gt;= 1.120):
+  "! t_arg = JSON object, e.g. \{"BGN4":\{"digits":4\}\}. addCustomCurrency
+  "! adds a single one: t_arg = code, JSON object.
   "! cs_event-smart_variant_init - run the initialise( ) handshake sap.ui.comp
   "! variant management needs (a controller would call
   "! oSmartVariantManagement.initialise( fnCallback, oPersonalizableControl )).
