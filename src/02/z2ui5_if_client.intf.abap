@@ -302,6 +302,12 @@ INTERFACE z2ui5_if_client
       "! enum-typed property rejects the empty string outright). Set it when a
       "! bound template's rows fill different subsets of the same properties.
       omit_initial         TYPE abap_bool                     DEFAULT abap_false
+      "! the same omission SCOPED to the listed fields (upper-cased column
+      "! names, the last path segment). Use it when the blanket flag is too
+      "! coarse: an abap_false that MUST reach the client is itself initial, so
+      "! omit_initial would drop it and the control would fall back to its own
+      "! default - list the numeric/enum columns instead and leave the booleans.
+      omit_initial_paths   TYPE string_table                   OPTIONAL
     RETURNING
       VALUE(result)        TYPE string.
 

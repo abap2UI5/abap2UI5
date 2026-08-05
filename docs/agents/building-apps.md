@@ -189,6 +189,11 @@ ships for existing apps but is **frozen** — new apps and new code use
   When a bound template's rows fill different subsets of the same properties,
   bind with `client->_bind( val = t_rows omit_initial = abap_true )`: initial
   fields then stay out of the model and each control keeps its UI5 default.
+  A **boolean that must send `false`** is the exception — `abap_false` is
+  itself initial, so the blanket flag would drop it and the control would fall
+  back to its default `true`. Scope the omission instead:
+  `client->_bind( val = t_rows omit_initial_paths = VALUE #( ( `MIN` ) ( `MAX` ) ) )`
+  lists the columns that may vanish and leaves every other field alone.
 - After changing bound data in an event handler, push it to the browser with
   `client->view_model_update( )` (no full re-render); call `view_display`
   again only when the view structure itself changes.

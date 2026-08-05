@@ -388,14 +388,21 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     " already evaluates (z2ui5_cl_core_srv_model->main_json_stringify), so an
     " initial field stays ABSENT from the model and the control keeps its own
     " default. A caller-supplied filter is kept: both have to pass.
-    IF omit_initial = abap_true.
+    IF omit_initial = abap_true OR omit_initial_paths IS NOT INITIAL.
       TRY.
-          DATA(li_empty) = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ).
+          DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+          IF omit_initial_paths IS NOT INITIAL.
+            " scoped: only the listed columns are dropped when initial, so a
+            " boolean that must send abap_false survives
+            li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
+          ELSE.
+            li_omit = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ).
+          ENDIF.
           IF li_filter IS BOUND.
             li_filter = z2ui5_cl_ajson_filter_lib=>create_and_filter(
-                            VALUE #( ( li_filter ) ( li_empty ) ) ).
+                            VALUE #( ( li_filter ) ( li_omit ) ) ).
           ELSE.
-            li_filter = li_empty.
+            li_filter = li_omit.
           ENDIF.
         CATCH cx_root.
           " a filter that cannot be built must not kill the roundtrip - the
