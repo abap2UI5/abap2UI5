@@ -226,65 +226,66 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     DATA(ls_config) = config_http_get( ).
 
-    IF ls_config-styles_css IS INITIAL.
-      DATA(lv_style_css) = z2ui5_cl_app_style_css=>get( ).
-    ELSE.
-      lv_style_css = ls_config-styles_css.
-    ENDIF.
+    DATA(lv_style_css) = COND string( WHEN ls_config-styles_css IS INITIAL
+                                      THEN z2ui5_cl_app_style_css=>get( )
+                                      ELSE ls_config-styles_css ).
 
-    result-body = |<!DOCTYPE html>| && |\n| &&
-               |<html lang="en">| && |\n| &&
-               |<head>| && |\n| &&
+    " The entries for all embedded frontend files come from the generated
+    " preload mapping (see .github/app2abap/trans2abap.js), so the list can
+    " never run out of sync with app/webapp.
+    DATA(lv_preload) = z2ui5_cl_app_preload=>get( styles_css = lv_style_css
+                                                  custom_js  = ls_config-custom_js ).
+
+    " Custom controls live in their own BSP, which the frontend finds through
+    " the reserved resourceRoot in manifest.json ("z2ui5cc": "../z2ui5cc/").
+    " That path is a sibling of the FRONTEND BSP, so it is only correct when
+    " the app is served from it. Here the component base is this ICF node and
+    " the same relative path resolves next to /sap/bc/, where nothing is.
+    "
+    " Hand the absolute BSP path to the frontend instead. It cannot be applied
+    " here: the manifest registers its own value during component creation,
+    " which happens after everything this page can run, so it would win.
+    " Component.js applies the field in init( ), after manifest processing.
+    " AppState~initGlobal keeps fields that are already on the global when
+    " checkLocal is true, so it survives the component start. In BSP and
+    " Launchpad mode the field is absent and the manifest entry stands.
+    DATA(lv_globals) = |window.z2ui5 = \{ checkLocal : true, | &&
+                       |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5cc" \};|.
+
+    result-body = |<!DOCTYPE html>\n| &&
+                  |<html lang="en">\n| &&
+                  |<head>\n| &&
                   |{ ls_config-content_security_policy }\n| &&
-               |    <meta charset="UTF-8">| && |\n| &&
-               |    <meta name="viewport" content="width=device-width, initial-scale=1.0">| && |\n| &&
-               |    <meta http-equiv="X-UA-Compatible" content="IE=edge">| && |\n| &&
-                |<title>{ ls_config-title }</title>\n| &&
-                | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
-                |            height: 100%;\n| &&
-                |        \}</style> \n| &&
-                |<script>| && |\n| &&
-             |  function onInitComponent()\{| && |\n| &&
-             |    sap.ui.require.preload(\{| && |\n| &&
-             " The entries for all embedded frontend files come from the
-             " generated preload mapping (see .github/app2abap/trans2abap.js),
-             " so the list can never run out of sync with app/webapp.
-             z2ui5_cl_app_preload=>get( styles_css = lv_style_css
-                                        custom_js  = ls_config-custom_js ) &&
-             |    \});| && |\n| &&
-             |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{| && |\n| &&
-             " Custom controls live in their own BSP, which the frontend finds
-             " through the reserved resourceRoot in manifest.json
-             " ("z2ui5cc": "../z2ui5cc/"). That path is a sibling of the
-             " FRONTEND BSP, so it is only correct when the app is served from
-             " it. Here the component base is this ICF node and the same
-             " relative path resolves next to /sap/bc/, where nothing is.
-             "
-             " Hand the absolute BSP path to the frontend instead. It cannot be
-             " applied here: the manifest registers its own value during
-             " component creation, which happens after everything this page can
-             " run, so it would win. Component.js applies the field in init( ),
-             " after manifest processing. AppState~initGlobal keeps fields that
-             " are already on the global when checkLocal is true, so it
-             " survives the component start. In BSP and Launchpad mode the
-             " field is absent and the manifest entry stands.
-             |     window.z2ui5 = \{ checkLocal : true, ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5cc" \}; ComponentSupport.run();| && |\n| &&
-             |    \});| && |\n| &&
-             |  \}| && |\n| &&
-             |</script>| && |\n| &&
-                |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./" \}' data-sap-ui-oninit="onInitComponent" | && |\n| &&
-                 |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"| && |\n| &&
-                 |data-sap-ui-theme="{ ls_config-theme }" src="{ ls_config-src }"|.
+                  |    <meta charset="UTF-8">\n| &&
+                  |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
+                  |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
+                  |<title>{ ls_config-title }</title>\n| &&
+                  | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
+                  |            height: 100%;\n| &&
+                  |        \}</style> \n| &&
+                  |<script>\n| &&
+                  |  function onInitComponent()\{\n| &&
+                  |    sap.ui.require.preload(\{\n| &&
+                  lv_preload &&
+                  |    \});\n| &&
+                  |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
+                  |     { lv_globals } ComponentSupport.run();\n| &&
+                  |    \});\n| &&
+                  |  \}\n| &&
+                  |</script>\n| &&
+                  |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./" \}' data-sap-ui-oninit="onInitComponent" \n| &&
+                  |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
+                  |data-sap-ui-theme="{ ls_config-theme }" src="{ ls_config-src }"|.
 
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
       result-body = |{ result-body } { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
-    result-body          = result-body &&
-                 | ></script></head>| && |\n| &&
-                 |<body class="sapUiBody sapUiSizeCompact" id="content">| && |\n| &&
-                 |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='\{"id" : "z2ui5"\}' data-handle-validation="true"></div>| && |\n| &&
-                 | </body></html>|.
+    result-body = result-body &&
+                  | ></script></head>\n| &&
+                  |<body class="sapUiBody sapUiSizeCompact" id="content">\n| &&
+                  |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='\{"id" : "z2ui5"\}' data-handle-validation="true"></div>\n| &&
+                  | </body></html>|.
 
     result-status_code   = 200.
     result-status_reason = `success`.

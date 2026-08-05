@@ -431,31 +431,25 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    const actionsDiv = document.createElement("div");` && |\n| &&
              `    actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
              `` && |\n| &&
+             `    // The order the buttons are added is also the Tab order and the order the` && |\n| &&
+             `    // focus trap below cycles through.` && |\n| &&
+             `    const addAction = (label, onClick) => {` && |\n| &&
+             `      const button = document.createElement("button");` && |\n| &&
+             `      button.type = "button";` && |\n| &&
+             `      button.textContent = label;` && |\n| &&
+             `      button.style.cssText = btnStyle;` && |\n| &&
+             `      button.addEventListener("click", onClick);` && |\n| &&
+             `      actionsDiv.appendChild(button);` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    if (typeof options.onRetry === "function") {` && |\n| &&
-             `      const retryBtn = document.createElement("button");` && |\n| &&
-             `      retryBtn.type = "button";` && |\n| &&
-             `      retryBtn.textContent = "Retry";` && |\n| &&
-             `      retryBtn.style.cssText = btnStyle;` && |\n| &&
-             `      retryBtn.addEventListener("click", () => {` && |\n| &&
+             `      addAction("Retry", () => {` && |\n| &&
              `        errorContainer.remove();` && |\n| &&
              `        options.onRetry();` && |\n| &&
              `      });` && |\n| &&
-             `      actionsDiv.appendChild(retryBtn);` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
-             `    const refreshBtn = document.createElement("button");` && |\n| &&
-             `    refreshBtn.type = "button";` && |\n| &&
-             `    refreshBtn.textContent = "Refresh";` && |\n| &&
-             `    refreshBtn.style.cssText = btnStyle;` && |\n| &&
-             `    refreshBtn.addEventListener("click", () => window.location.reload());` && |\n| &&
-             `    actionsDiv.appendChild(refreshBtn);` && |\n| &&
-             `` && |\n| &&
-             `    const logoutBtn = document.createElement("button");` && |\n| &&
-             `    logoutBtn.type = "button";` && |\n| &&
-             `    logoutBtn.textContent = "Logout";` && |\n| &&
-             `    logoutBtn.style.cssText = btnStyle;` && |\n| &&
-             `    logoutBtn.addEventListener("click", () => handleLogout());` && |\n| &&
-             `    actionsDiv.appendChild(logoutBtn);` && |\n| &&
+             `    addAction("Refresh", () => window.location.reload());` && |\n| &&
+             `    addAction("Logout", () => handleLogout());` && |\n| &&
              `` && |\n| &&
              `    headerDiv.appendChild(actionsDiv);` && |\n| &&
              `    errorContainer.appendChild(headerDiv);` && |\n| &&
@@ -486,24 +480,25 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    iframe.setAttribute("sandbox", "allow-same-origin");` && |\n| &&
              `    errorContainer.appendChild(iframe);` && |\n| &&
              `` && |\n| &&
-             `    const preStyle =` && |\n| &&
-             `      "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";` && |\n| &&
+             `    // textContent does not parse HTML, so the untrusted backend message` && |\n| &&
+             `    // cannot execute wherever this <pre> ends up.` && |\n| &&
+             `    const createPre = (ownerDocument) => {` && |\n| &&
+             `      const pre = ownerDocument.createElement("pre");` && |\n| &&
+             `      pre.style.cssText =` && |\n| &&
+             `        "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";` && |\n| &&
+             `      pre.textContent = errorMessage;` && |\n| &&
+             `      return pre;` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    const contentDocument = iframe.contentDocument;` && |\n| &&
              `    if (contentDocument) {` && |\n| &&
-             `      const pre = contentDocument.createElement("pre");` && |\n| &&
-             `      pre.style.cssText = preStyle;` && |\n| &&
-             `      pre.textContent = errorMessage;` && |\n| &&
              `      const target = contentDocument.body || contentDocument.documentElement;` && |\n| &&
-             `      target.appendChild(pre);` && |\n| &&
+             `      target.appendChild(createPre(contentDocument));` && |\n| &&
              `    } else {` && |\n| &&
              `      // The sandboxed iframe document was not reachable (sandbox/timing` && |\n| &&
              `      // edge). Never leave the fatal overlay empty: fall back to a plain` && |\n| &&
-             `      // <pre> in the container. textContent does not parse HTML, so the` && |\n| &&
-             `      // untrusted backend message still cannot execute.` && |\n| &&
-             `      const pre = document.createElement("pre");` && |\n| &&
-             `      pre.style.cssText = preStyle;` && |\n| &&
-             `      pre.textContent = errorMessage;` && |\n| &&
-             `      errorContainer.appendChild(pre);` && |\n| &&
+             `      // <pre> in the container.` && |\n| &&
+             `      errorContainer.appendChild(createPre(document));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Move focus into the dialog so keyboard and screen-reader users land on` && |\n| &&

@@ -294,6 +294,54 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `      AppState.state.navMode = on ? mode : null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Adopt the rendered app as the current route and write it to the hash.` && |\n| &&
+             `    // Only called while routing is on and the response named an app.` && |\n| &&
+             `    function updateAppRoute(PARAMS, ID, app) {` && |\n| &&
+             `      const state = AppState.state;` && |\n| &&
+             `` && |\n| &&
+             `      // In FRESH mode the route carries the class only, so every history` && |\n| &&
+             `      // entry (Back/Forward/reload/bookmark) starts the app fresh; in KEEP` && |\n| &&
+             `      // mode it carries the draft id too, so they restore the exact preserved` && |\n| &&
+             `      // state. draftForRoute is what the route (and the echo guard in` && |\n| &&
+             `      // onHashChanged) uses - null in FRESH, the app-state ID in KEEP.` && |\n| &&
+             `      const draftForRoute = state.navMode === "FRESH" ? null : ID;` && |\n| &&
+             `      // Set current app/draft BEFORE touching the hash: the writes below` && |\n| &&
+             `      // re-fire hashChanged, and onHashChanged compares the incoming route's` && |\n| &&
+             `      // draft id against currentDraftId to ignore our own echo. In FRESH mode` && |\n| &&
+             `      // there is no draft, so the guard matches the class.` && |\n| &&
+             `      state.currentApp = app;` && |\n| &&
+             `      state.currentDraftId = draftForRoute;` && |\n| &&
+             `` && |\n| &&
+             `      if (state.navFromHash) {` && |\n| &&
+             `        // This render is the result of a browser Back/Forward (or a manual` && |\n| &&
+             `        // hash edit) routed through onHashChanged. The hash already matches` && |\n| &&
+             `        // this history entry and the browser sits at a non-top position -` && |\n| &&
+             `        // rewriting it here would drop the forward entries and break the` && |\n| &&
+             `        // Forward button. Just adopt the state.` && |\n| &&
+             `        state.navFromHash = false;` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (PARAMS.SET_PUSH_STATE) return;` && |\n| &&
+             `` && |\n| &&
+             `      // Reflect the running app in the URL as a bookmarkable route. A forward` && |\n| &&
+             `      // navigation done in the backend (client->nav_app_call,` && |\n| &&
+             `      // CHECK_NAV_APP_CALL) pushes a NEW history entry so Back returns to the` && |\n| &&
+             `      // calling app - the routing equivalent of a UI5 navTo. A plain roundtrip` && |\n| &&
+             `      // only replaces the current (top) entry, advancing it to the app's` && |\n| &&
+             `      // latest draft so a later Forward restores the newest state.` && |\n| &&
+             `      const route = patternFor(app, draftForRoute);` && |\n| &&
+             `      if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
+             `        // repoint the caller's entry first - it borrows the echo guard, so` && |\n| &&
+             `        // restore it to this app before pushing the route` && |\n| &&
+             `        repointCallerEntry(PARAMS, draftForRoute);` && |\n| &&
+             `        state.currentApp = app;` && |\n| &&
+             `        state.currentDraftId = draftForRoute;` && |\n| &&
+             `        navTo(route);` && |\n| &&
+             `      } else if (getHash() !== route) {` && |\n| &&
+             `        navTo(route, true);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Keep the URL in sync with what was just rendered. Called once per` && |\n| &&
              `    // roundtrip from View1's after-render phase.` && |\n| &&
              `    function sync(PARAMS, ID) {` && |\n| &&
@@ -303,48 +351,7 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `        const state = AppState.state;` && |\n| &&
              `        if (state.navRouting) {` && |\n| &&
              `          const app = state.oResponse?.APP;` && |\n| &&
-             `          if (app) {` && |\n| &&
-             `            // In FRESH mode the route carries the class only, so every history` && |\n| &&
-             `            // entry (Back/Forward/reload/bookmark) starts the app fresh; in` && |\n| &&
-             `            // KEEP mode it carries the draft id too, so they restore the exact` && |\n| &&
-             `            // preserved state. draftForRoute is what the route (and the echo` && |\n| &&
-             `            // guard in onHashChanged) uses - null in FRESH, the app-state ID` && |\n| &&
-             `            // in KEEP.` && |\n| &&
-             `            const draftForRoute = state.navMode === "FRESH" ? null : ID;` && |\n| &&
-             `            // Set current app/draft BEFORE touching the hash: the writes below` && |\n| &&
-             `            // re-fire hashChanged, and onHashChanged compares the incoming` && |\n| &&
-             `            // route's draft id against currentDraftId to ignore our own echo.` && |\n| &&
-             `            // In FRESH mode there is no draft, so the guard matches the class.` && |\n| &&
-             `            state.currentApp = app;` && |\n| &&
-             `            state.currentDraftId = draftForRoute;` && |\n| &&
-             `            if (state.navFromHash) {` && |\n| &&
-             `              // This render is the result of a browser Back/Forward (or a` && |\n| &&
-             `              // manual hash edit) routed through onHashChanged. The hash` && |\n| &&
-             `              // already matches this history entry and the browser sits at a` && |\n| &&
-             `              // non-top position - rewriting it here would drop the forward` && |\n| &&
-             `              // entries and break the Forward button. Just adopt the state.` && |\n| &&
-             `              state.navFromHash = false;` && |\n| &&
-             `            } else if (!PARAMS.SET_PUSH_STATE) {` && |\n| &&
-             `              // Reflect the running app in the URL as a bookmarkable route. A` && |\n| &&
-             `              // forward navigation done in the backend (client->nav_app_call,` && |\n| &&
-             `              // CHECK_NAV_APP_CALL) pushes a NEW history entry so Back returns` && |\n| &&
-             `              // to the calling app - the routing equivalent of a UI5 navTo. A` && |\n| &&
-             `              // plain roundtrip only replaces the current (top) entry,` && |\n| &&
-             `              // advancing it to the app's latest draft so a later Forward` && |\n| &&
-             `              // restores the newest state.` && |\n| &&
-             `              const route = patternFor(app, draftForRoute);` && |\n| &&
-             `              if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
-             `                // repoint the caller's entry first - it borrows the echo` && |\n| &&
-             `                // guard, so restore it to this app before pushing the route` && |\n| &&
-             `                repointCallerEntry(PARAMS, draftForRoute);` && |\n| &&
-             `                state.currentApp = app;` && |\n| &&
-             `                state.currentDraftId = draftForRoute;` && |\n| &&
-             `                navTo(route);` && |\n| &&
-             `              } else if (getHash() !== route) {` && |\n| &&
-             `                navTo(route, true);` && |\n| &&
-             `              }` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
+             `          if (app) updateAppRoute(PARAMS, ID, app);` && |\n| &&
              `          // Routing owns the app-state hash; skip the legacy handling below.` && |\n| &&
              `          if (!PARAMS.SET_PUSH_STATE) return;` && |\n| &&
              `        }` && |\n| &&
@@ -417,15 +424,15 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `      splitHash,` && |\n| &&
              `      appHashOf,` && |\n| &&
              `      getHash,` && |\n| &&
-             `      getRawHash,` && |\n| &&
+             `      getRawHash,` && |\n|.
+    result = result &&
              `      hrefFor,` && |\n| &&
              `      patternFor,` && |\n| &&
              `      parse,` && |\n| &&
              `      appOf,` && |\n| &&
              `      draftOf,` && |\n| &&
              `      navTo,` && |\n| &&
-             `      navToApp,` && |\n|.
-    result = result &&
+             `      navToApp,` && |\n| &&
              `      onHashChanged,` && |\n| &&
              `      sync,` && |\n| &&
              `    };` && |\n| &&
