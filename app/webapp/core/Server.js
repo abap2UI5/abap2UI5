@@ -278,24 +278,14 @@ sap.ui.define(
           // Read the caret from the actual text field, not from
           // document.activeElement directly. Clicking an inner part of a
           // control (e.g. a SearchField's clear "X" button) can leave the
-          // active element a non-text node whose selectionStart is undefined -
-          // reporting that as 0 would later snap the caret to the far left.
-          // When no text field owns a selection, omit SELECTION_* entirely so
-          // the backend restores focus without forcing a caret position.
+          // active element a non-text node. When no text field owns a
+          // selection, omit SELECTION_* entirely so the backend restores
+          // focus without forcing a caret position.
           const info = { ID: id };
-          const input = this._focusTextInput(active, ui5El);
-          if (input) {
-            try {
-              const start = input.selectionStart;
-              const end = input.selectionEnd;
-              if (start != null && end != null) {
-                info.SELECTION_START = start;
-                info.SELECTION_END = end;
-              }
-            } catch {
-              // Input types without text selection (number, date, ...) throw
-              // or return null here - restore focus only, no caret.
-            }
+          const caret = Lib.readCaret(this._focusTextInput(active, ui5El));
+          if (caret) {
+            info.SELECTION_START = caret.start;
+            info.SELECTION_END = caret.end;
           }
           return info;
         } catch {
@@ -309,14 +299,12 @@ sap.ui.define(
       // Returns null when the control has no text field (e.g. a button), so the
       // caller omits the selection instead of reporting a bogus 0.
       _focusTextInput(active, ui5El) {
-        const isTextInput = (el) =>
-          !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
-        if (isTextInput(active)) return active;
+        if (Lib.isTextInput(active)) return active;
         const focusRef = ui5El?.getFocusDomRef?.();
-        if (isTextInput(focusRef)) return focusRef;
+        if (Lib.isTextInput(focusRef)) return focusRef;
         const root = ui5El?.getDomRef?.();
         const inner = root?.querySelector?.("input, textarea");
-        return isTextInput(inner) ? inner : null;
+        return Lib.isTextInput(inner) ? inner : null;
       },
 
       // Records which element the user actually scrolled, per view slot.

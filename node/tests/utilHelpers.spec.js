@@ -283,3 +283,85 @@ test.describe("getTextPath (ancestor-text breadcrumb of a control)", () => {
     expect(Lib.getTextPath(node).split(" > ").length).toBe(100);
   });
 });
+
+test.describe("isTextInput / readCaret (caret capture)", () => {
+  const { Lib } = loadLib();
+
+  const field = (tagName, start, end) => ({
+    tagName,
+    selectionStart: start,
+    selectionEnd: end,
+  });
+
+  test("recognizes input and textarea only", () => {
+    expect(Lib.isTextInput(field("INPUT"))).toBe(true);
+    expect(Lib.isTextInput(field("TEXTAREA"))).toBe(true);
+    expect(Lib.isTextInput(field("BUTTON"))).toBe(false);
+    expect(Lib.isTextInput(null)).toBe(false);
+    expect(Lib.isTextInput(undefined)).toBe(false);
+  });
+
+  test("reads the caret of a text field", () => {
+    expect(Lib.readCaret(field("INPUT", 2, 5))).toEqual({ start: 2, end: 5 });
+    expect(Lib.readCaret(field("TEXTAREA", 0, 0))).toEqual({ start: 0, end: 0 });
+  });
+
+  test("returns null for a non-text element", () => {
+    expect(Lib.readCaret(field("BUTTON", 1, 1))).toBeNull();
+    expect(Lib.readCaret(null)).toBeNull();
+  });
+
+  // A caret at 0 must stay distinguishable from "no caret" - reporting the
+  // missing one as 0 would snap the cursor to the far left on restore.
+  test("returns null when the field exposes no selection", () => {
+    expect(Lib.readCaret(field("INPUT", null, null))).toBeNull();
+    expect(Lib.readCaret(field("INPUT", undefined, undefined))).toBeNull();
+  });
+
+  test("returns null when reading the selection throws", () => {
+    const hostile = {
+      tagName: "INPUT",
+      get selectionStart() {
+        throw new Error("unsupported input type");
+      },
+    };
+    expect(Lib.readCaret(hostile)).toBeNull();
+  });
+});
+
+test.describe("claimOnce (companion-control wiring guard)", () => {
+  const { Lib } = loadLib();
+
+  const control = () => {
+    const props = { checkInit: false };
+    return {
+      getProperty: (name) => props[name],
+      setProperty: (name, value) => {
+        props[name] = value;
+      },
+      props,
+    };
+  };
+
+  test("claims on the first render that resolved a target", () => {
+    const owner = control();
+    expect(Lib.claimOnce(owner, { id: "target" })).toBe(true);
+    expect(owner.props.checkInit).toBe(true);
+  });
+
+  test("never claims twice - the render hook fires every roundtrip", () => {
+    const owner = control();
+    const target = { id: "target" };
+    expect(Lib.claimOnce(owner, target)).toBe(true);
+    expect(Lib.claimOnce(owner, target)).toBe(false);
+    expect(Lib.claimOnce(owner, target)).toBe(false);
+  });
+
+  test("does not claim while the target is still unresolved", () => {
+    const owner = control();
+    expect(Lib.claimOnce(owner, null)).toBe(false);
+    expect(owner.props.checkInit).toBe(false);
+    // ... and still claims once the target shows up on a later render
+    expect(Lib.claimOnce(owner, { id: "target" })).toBe(true);
+  });
+});

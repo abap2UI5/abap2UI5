@@ -120,6 +120,19 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      return Boolean(obj?.isDestroyed && obj.isDestroyed());` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // A companion control (MultiInputExt, UploadSetExt, ...) resolves its` && |\n| &&
+             `    // target after EVERY render - the onAfterRendering hook it registers in` && |\n| &&
+             `    // init() fires once per roundtrip - but may attach its handlers only` && |\n| &&
+             `    // once, or every roundtrip would add another listener. Returns true` && |\n| &&
+             `    // exactly once: the first render at which ``target`` actually resolved.` && |\n| &&
+             `    // The claim is recorded in the control's own ``checkInit`` property (set` && |\n| &&
+             `    // without invalidating, these controls render nothing).` && |\n| &&
+             `    function claimOnce(owner, target) {` && |\n| &&
+             `      if (!target || owner.getProperty("checkInit")) return false;` && |\n| &&
+             `      owner.setProperty("checkInit", true, true);` && |\n| &&
+             `      return true;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // True when the object exists and is not destroyed. Used to guard` && |\n| &&
              `    // async continuations (await, FileReader, getUserMedia, ...) against` && |\n| &&
              `    // controls or views that were torn down in the meantime.` && |\n| &&
@@ -276,6 +289,30 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      return val == null ? "" : String(val);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // True for a DOM element that carries a text caret.` && |\n| &&
+             `    function isTextInput(el) {` && |\n| &&
+             `      return (` && |\n| &&
+             `        Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The caret of a text field as { start, end }, or null when the element` && |\n| &&
+             `    // is no text field or carries no selection. Input types without a text` && |\n| &&
+             `    // selection (number, date, ...) throw or return null on selectionStart -` && |\n| &&
+             `    // reporting that as 0 would later snap the cursor to the far left, so` && |\n| &&
+             `    // "no caret" has to stay distinguishable from "caret at 0".` && |\n| &&
+             `    function readCaret(el) {` && |\n| &&
+             `      if (!isTextInput(el)) return null;` && |\n| &&
+             `      try {` && |\n| &&
+             `        const start = el.selectionStart;` && |\n| &&
+             `        const end = el.selectionEnd;` && |\n| &&
+             `        if (start == null || end == null) return null;` && |\n| &&
+             `        return { start, end };` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Collapse a UI5 Device ``system`` flag object into a single label. The` && |\n| &&
              `    // order matters - phone/tablet/combi are mutually exclusive with the` && |\n| &&
              `    // desktop fallback. Shared by Server._getDeviceInfo (request payload) and` && |\n| &&
@@ -387,7 +424,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    // edit in a nested/tree table ships only the changed cell instead of` && |\n| &&
              `    // the whole outer table.` && |\n| &&
              `    function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
-             `      const delta = {};` && |\n| &&
+             `      const delta = {};` && |\n|.
+    result = result &&
              `      for (const path of paths) {` && |\n| &&
              `        // path looks like "/<attr>" or "/<attr>/<row>/<field>" with` && |\n| &&
              `        // arbitrarily deep <row>/<subtable> repetitions for nested tables` && |\n| &&
@@ -424,8 +462,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `          // already covers this deeper edit.` && |\n| &&
              `          if (field in rowDelta && !rowDelta[field]?.__delta) break;` && |\n| &&
              `          if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };` && |\n| &&
-             `          node = rowDelta[field];` && |\n|.
-    result = result &&
+             `          node = rowDelta[field];` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      return delta;` && |\n| &&
@@ -501,6 +538,9 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
              `      isAlive,` && |\n| &&
+             `      claimOnce,` && |\n| &&
+             `      isTextInput,` && |\n| &&
+             `      readCaret,` && |\n| &&
              `      registerCallback,` && |\n| &&
              `      unregisterCallback,` && |\n| &&
              `      readFileAsDataURL,` && |\n| &&

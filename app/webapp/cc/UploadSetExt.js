@@ -90,8 +90,7 @@ sap.ui.define(
           this,
           this.getProperty("uploadSetId"),
         );
-        if (!uploadSet || this.getProperty("checkInit")) return;
-        this.setProperty("checkInit", true, true);
+        if (!Lib.claimOnce(this, uploadSet)) return;
         try {
           uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));
           uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));
