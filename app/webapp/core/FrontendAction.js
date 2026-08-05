@@ -1361,10 +1361,13 @@ sap.ui.define(
       }
     }
 
+    // The three handlers below resolve their target with ViewSlots.resolveById
+    // (not byId "MAIN"): it searches every open slot first, so controls in a
+    // popup/popover/nested view are found, and falls back to the global
+    // registry, so a fully-qualified id resolves too - ids that come from a
+    // UI5 Message (getControlIds()) or any event carry the view prefix.
+
     function evSetFocus(oController, args) {
-      // resolveById (not byId "MAIN") so a fully-qualified control id also
-      // resolves - ids that come from a UI5 Message (getControlIds()) or any
-      // event carry the view prefix and only match via the global registry.
       const oElement = ViewSlots.resolveById(args[1]);
       if (!oElement) return;
 
@@ -1403,8 +1406,6 @@ sap.ui.define(
       // Native Element.scrollTo is only used as a fallback for controls
       // without a delegate.
       try {
-        // resolveById like SET_FOCUS / SCROLL_INTO_VIEW, so controls in
-        // popups/popovers/nested views and fully-qualified ids work too
         const oElement = ViewSlots.resolveById(args[1]);
         if (!oElement) return;
         const y = Number(args[2]) || 0;
@@ -1451,8 +1452,6 @@ sap.ui.define(
       // Modern declarative scroll: bring a control into the viewport,
       // regardless of where the surrounding scroll container currently is.
       try {
-        // resolveById so a fully-qualified control id (e.g. from a UI5
-        // Message's getControlIds()) also resolves, not just a MAIN-local id.
         const oElement = ViewSlots.resolveById(args[1]);
         if (!oElement) return;
         const dom = oElement.getDomRef();

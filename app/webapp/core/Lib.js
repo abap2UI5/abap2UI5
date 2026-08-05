@@ -10,14 +10,14 @@
 // state). Renderers must stay cheap and free of visible side effects
 // (rendering API v2); deferring to onAfterRendering also guarantees the
 // control's DOM exists.
+//
+// Nothing hash/route related belongs here: core/Router.js is the one module
+// that knows how a URL hash is split between the FLP shell and the running
+// app, and nothing else may reach for the hash directly.
 sap.ui.define(
   ["z2ui5/core/AppState", "sap/ui/core/Element"],
   (AppState, Element) => {
     "use strict";
-
-    // Everything hash/route related lives in core/Router.js - it is the one
-    // module that knows how a URL hash is split between the FLP shell and the
-    // running app, and nothing else may reach for the hash directly.
 
     // Resolve a control id to its sap.ui.core.Element via the global registry.
     // Element.getElementById arrived in UI5 1.119; older bootstraps fall back
@@ -91,6 +91,19 @@ sap.ui.define(
     // True when the object supports isDestroyed() and reports destroyed.
     function isDestroyed(obj) {
       return Boolean(obj?.isDestroyed && obj.isDestroyed());
+    }
+
+    // A companion control (MultiInputExt, UploadSetExt, ...) resolves its
+    // target after EVERY render - the onAfterRendering hook it registers in
+    // init() fires once per roundtrip - but may attach its handlers only
+    // once, or every roundtrip would add another listener. Returns true
+    // exactly once: the first render at which `target` actually resolved.
+    // The claim is recorded in the control's own `checkInit` property (set
+    // without invalidating, these controls render nothing).
+    function claimOnce(owner, target) {
+      if (!target || owner.getProperty("checkInit")) return false;
+      owner.setProperty("checkInit", true, true);
+      return true;
     }
 
     // True when the object exists and is not destroyed. Used to guard
@@ -247,6 +260,30 @@ sap.ui.define(
     // string, everything else its string representation.
     function toText(val) {
       return val == null ? "" : String(val);
+    }
+
+    // True for a DOM element that carries a text caret.
+    function isTextInput(el) {
+      return (
+        Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")
+      );
+    }
+
+    // The caret of a text field as { start, end }, or null when the element
+    // is no text field or carries no selection. Input types without a text
+    // selection (number, date, ...) throw or return null on selectionStart -
+    // reporting that as 0 would later snap the cursor to the far left, so
+    // "no caret" has to stay distinguishable from "caret at 0".
+    function readCaret(el) {
+      if (!isTextInput(el)) return null;
+      try {
+        const start = el.selectionStart;
+        const end = el.selectionEnd;
+        if (start == null || end == null) return null;
+        return { start, end };
+      } catch {
+        return null;
+      }
     }
 
     // Collapse a UI5 Device `system` flag object into a single label. The
@@ -473,6 +510,9 @@ sap.ui.define(
       logError,
       isDestroyed,
       isAlive,
+      claimOnce,
+      isTextInput,
+      readCaret,
       registerCallback,
       unregisterCallback,
       readFileAsDataURL,

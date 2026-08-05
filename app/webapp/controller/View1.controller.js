@@ -205,22 +205,35 @@ sap.ui.define(
       // Display: popups, popovers, nested views, main view
       // ------------------------------------------------------------------
 
-      async displayFragment(xml, seq) {
+      // Shared load path of the two fragment slots (popup, popover): create
+      // the slot's own JSON model, load the fragment and attach the model.
+      // Returns null when the app was torn down while the fragment loaded or a
+      // newer request superseded this response - we must not open a dialog the
+      // backend no longer knows about.
+      async _loadSlotFragment(slotKey, fragmentId, xml, seq) {
         const oModel = this._createViewModel();
-        applyStoredSizeLimit("POPUP", oModel);
+        applyStoredSizeLimit(slotKey, oModel);
         const oFragment = await Fragment.load({
           definition: xml,
-          controller: ViewSlots.getController("POPUP"),
-          id: "popupId",
+          controller: ViewSlots.getController(slotKey),
+          id: fragmentId,
         });
-        // The app might have been torn down while the fragment loaded, or a
-        // newer request superseded this response - don't open a dialog the
-        // backend no longer knows about.
         if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {
           oFragment.destroy();
-          return;
+          return null;
         }
         oFragment.setModel(oModel);
+        return oFragment;
+      },
+
+      async displayFragment(xml, seq) {
+        const oFragment = await this._loadSlotFragment(
+          "POPUP",
+          "popupId",
+          xml,
+          seq,
+        );
+        if (!oFragment) return;
         // The shared device + message models are attached inside
         // ViewSlots.setView (the single funnel), so error paths that
         // destroy a view without reaching setView never register it.
@@ -243,18 +256,13 @@ sap.ui.define(
         // handle expected, non-error conditions (app torn down mid-load, or
         // the openBy anchor not being present), matching the parent-not-found
         // guard in displayNestedView.
-        const oModel = this._createViewModel();
-        applyStoredSizeLimit("POPOVER", oModel);
-        const oFragment = await Fragment.load({
-          definition: xml,
-          controller: ViewSlots.getController("POPOVER"),
-          id: "popoverId",
-        });
-        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {
-          oFragment.destroy();
-          return;
-        }
-        oFragment.setModel(oModel);
+        const oFragment = await this._loadSlotFragment(
+          "POPOVER",
+          "popoverId",
+          xml,
+          seq,
+        );
+        if (!oFragment) return;
 
         // Find the control to attach the popover to: any open slot first,
         // then the global UI5 control registry as a last resort.
@@ -586,13 +594,17 @@ sap.ui.define(
           preprocessors: { xml: { models: { template: oViewModel } } },
         });
 
-        // Guard against the app being destroyed during the await above.
         // oModel covers oViewModel too when they are the same object (no
         // switchPath); with an OData default model both must go.
-        if (!Lib.isAlive(AppState.state.oApp)) {
+        const discardBuild = () => {
           oView.destroy();
           oModel.destroy();
           if (switchPath) oViewModel.destroy();
+        };
+
+        // Guard against the app being destroyed during the await above.
+        if (!Lib.isAlive(AppState.state.oApp)) {
+          discardBuild();
           return;
         }
 
@@ -609,9 +621,7 @@ sap.ui.define(
           reqSeq !== Server._requestSeq &&
           ViewSlots.getView("MAIN")
         ) {
-          oView.destroy();
-          oModel.destroy();
-          if (switchPath) oViewModel.destroy();
+          discardBuild();
           return;
         }
 

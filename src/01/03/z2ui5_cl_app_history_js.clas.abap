@@ -40,8 +40,8 @@ CLASS z2ui5_cl_app_history_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `    setSearch(val) {` && |\n| &&
-             `      // Empty renderer -> suppress the no-op invalidation; the URL rewrite` && |\n| &&
-             `      // below is the actual effect.` && |\n| &&
+             `      // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
+             `      // (rewriting the URL) is what actually matters.` && |\n| &&
              `      this.setProperty("search", val, true);` && |\n| &&
              `      try {` && |\n| &&
              `        const search = Lib.toText(val);` && |\n| &&

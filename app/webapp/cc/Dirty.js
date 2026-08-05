@@ -32,8 +32,8 @@ sap.ui.define(
         },
       },
       setIsDirty(val) {
-        // Empty renderer -> suppress the no-op invalidation; the dirty state
-        // is applied explicitly below.
+        // Empty renderer -> suppress the no-op invalidation; the effect below
+        // (applying the dirty state) is what actually matters.
         this.setProperty("isDirty", val, true);
         if (val) {
           dirtyControls.add(this);

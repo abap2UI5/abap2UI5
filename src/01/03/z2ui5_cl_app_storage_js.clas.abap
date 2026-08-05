@@ -25,15 +25,15 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
+    result = `// Invisible control that reads a value from browser storage` && |\n| &&
+             `// (session/local, see sap.ui.util.Storage) into its ``value`` property` && |\n| &&
+             `// and fires ``finished`` when the stored value differs from the current` && |\n| &&
+             `// one. The write side is handled by the STORE_DATA frontend action.` && |\n| &&
+             `sap.ui.define(` && |\n| &&
              `  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/core/Lib"],` && |\n| &&
              `  (Control, Storage, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Invisible control that reads a value from browser storage` && |\n| &&
-             `    // (session/local, see sap.ui.util.Storage) into its ``value`` property` && |\n| &&
-             `    // and fires ``finished`` when the stored value differs from the current` && |\n| &&
-             `    // one. The write side is handled by the STORE_DATA frontend action.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Storage", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&

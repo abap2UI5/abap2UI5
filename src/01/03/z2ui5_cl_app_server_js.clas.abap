@@ -305,24 +305,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // Read the caret from the actual text field, not from` && |\n| &&
              `          // document.activeElement directly. Clicking an inner part of a` && |\n| &&
              `          // control (e.g. a SearchField's clear "X" button) can leave the` && |\n| &&
-             `          // active element a non-text node whose selectionStart is undefined -` && |\n| &&
-             `          // reporting that as 0 would later snap the caret to the far left.` && |\n| &&
-             `          // When no text field owns a selection, omit SELECTION_* entirely so` && |\n| &&
-             `          // the backend restores focus without forcing a caret position.` && |\n| &&
+             `          // active element a non-text node. When no text field owns a` && |\n| &&
+             `          // selection, omit SELECTION_* entirely so the backend restores` && |\n| &&
+             `          // focus without forcing a caret position.` && |\n| &&
              `          const info = { ID: id };` && |\n| &&
-             `          const input = this._focusTextInput(active, ui5El);` && |\n| &&
-             `          if (input) {` && |\n| &&
-             `            try {` && |\n| &&
-             `              const start = input.selectionStart;` && |\n| &&
-             `              const end = input.selectionEnd;` && |\n| &&
-             `              if (start != null && end != null) {` && |\n| &&
-             `                info.SELECTION_START = start;` && |\n| &&
-             `                info.SELECTION_END = end;` && |\n| &&
-             `              }` && |\n| &&
-             `            } catch {` && |\n| &&
-             `              // Input types without text selection (number, date, ...) throw` && |\n| &&
-             `              // or return null here - restore focus only, no caret.` && |\n| &&
-             `            }` && |\n| &&
+             `          const caret = Lib.readCaret(this._focusTextInput(active, ui5El));` && |\n| &&
+             `          if (caret) {` && |\n| &&
+             `            info.SELECTION_START = caret.start;` && |\n| &&
+             `            info.SELECTION_END = caret.end;` && |\n| &&
              `          }` && |\n| &&
              `          return info;` && |\n| &&
              `        } catch {` && |\n| &&
@@ -336,14 +326,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // Returns null when the control has no text field (e.g. a button), so the` && |\n| &&
              `      // caller omits the selection instead of reporting a bogus 0.` && |\n| &&
              `      _focusTextInput(active, ui5El) {` && |\n| &&
-             `        const isTextInput = (el) =>` && |\n| &&
-             `          !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");` && |\n| &&
-             `        if (isTextInput(active)) return active;` && |\n| &&
+             `        if (Lib.isTextInput(active)) return active;` && |\n| &&
              `        const focusRef = ui5El?.getFocusDomRef?.();` && |\n| &&
-             `        if (isTextInput(focusRef)) return focusRef;` && |\n| &&
+             `        if (Lib.isTextInput(focusRef)) return focusRef;` && |\n| &&
              `        const root = ui5El?.getDomRef?.();` && |\n| &&
              `        const inner = root?.querySelector?.("input, textarea");` && |\n| &&
-             `        return isTextInput(inner) ? inner : null;` && |\n| &&
+             `        return Lib.isTextInput(inner) ? inner : null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Records which element the user actually scrolled, per view slot.` && |\n| &&
@@ -424,8 +412,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // try/catch).` && |\n| &&
              `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
              `            delete store[slot.key];` && |\n| &&
-             `            continue;` && |\n|.
-    result = result &&
+             `            continue;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          const id = this._stripViewPrefix(` && |\n| &&
@@ -437,7 +424,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            X: entry.dom.scrollLeft || 0,` && |\n| &&
              `            Y: entry.dom.scrollTop || 0,` && |\n| &&
              `          };` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&
@@ -825,8 +813,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("customJs: execution failed", e);` && |\n| &&
-             `        }` && |\n|.
-    result = result &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Terminate the roundtrip in an unrecoverable state: clear the busy` && |\n| &&
@@ -838,7 +825,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      responseError(response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
              `        AppState.state.isBusy = false;` && |\n| &&
-             `        ErrorView.show(response, title, oOptions);` && |\n| &&
+             `        ErrorView.show(response, title, oOptions);` && |\n|.
+    result = result &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

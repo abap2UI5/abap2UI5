@@ -70,6 +70,31 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    " Building blocks of the SimpleForm rows above. Private on purpose: this
+    " class lives in the public src/02 package, so everything added to its
+    " public section joins the framework's stable API contract (rule 5).
+
+    " the section headline every render_* method opens with
+    METHODS render_section
+      IMPORTING
+        form  TYPE REF TO z2ui5_cl_ai_xml
+        title TYPE string.
+
+    " a form row of Label + external Link; an empty label renders a blank one,
+    " which is how the SimpleForm keeps the link in the value column
+    METHODS render_link
+      IMPORTING
+        form  TYPE REF TO z2ui5_cl_ai_xml
+        label TYPE string OPTIONAL
+        text  TYPE string
+        href  TYPE string.
+
+    " a form row of Label + read-only Text
+    METHODS render_text
+      IMPORTING
+        form  TYPE REF TO z2ui5_cl_ai_xml
+        label TYPE string
+        text  TYPE string.
 ENDCLASS.
 
 
@@ -243,10 +268,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_quickstart.
 
-    form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text`
-                               v = `Quickstart`
-      )->shut( ).
+    render_section( form  = form
+                    title = `Quickstart` ).
 
     form->leaf( `Label` )->a( n = `text`
                               v = `Step 1`
@@ -259,17 +282,14 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       )->leaf( `Label` )->a( n = `text`
                              v = `Step 3`
       )->leaf( `Text` )->a( n = `text`
-                            v = `Define the view, implement behavior`
-      )->leaf( `Label`
-      )->leaf( `Link`
-          )->a( n = `text`
-                v = `(Example)`
-          )->a( n = `target`
-                v = `_blank`
-          )->a( n = `href`
-                v = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_app_hello_world.clas.abap`
-      )->leaf( `Label` )->a( n = `text`
-                             v = `Step 4` ).
+                            v = `Define the view, implement behavior` ).
+
+    render_link( form = form
+                 text = `(Example)`
+                 href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_app_hello_world.clas.abap` ).
+
+    form->leaf( `Label` )->a( n = `text`
+                              v = `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
       form->leaf( `Input`
@@ -303,6 +323,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         )->a( n = `width`
               v = `70%` ).
 
+    " not render_link: this one is bound and additionally disabled until the
+    " class name was checked
     form->leaf( `Label` )->a( n = `text`
                               v = `Step 5`
       )->leaf( `Link`
@@ -319,10 +341,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_whats_next.
 
-    form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text`
-                               v = `What's next?`
-      )->shut( ).
+    render_section( form  = form
+                    title = `What's next?` ).
 
     DATA(lv_class_samples) = COND string(
       WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
@@ -339,63 +359,39 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `width`
                 v = `70%` ).
     ELSE.
-      form->leaf( `Label` )->a( n = `text`
-                                v = `Install the sample repository` ).
-      form->leaf( `Link`
-          )->a( n = `text`
-                v = `And explore more than 250 sample apps...`
-          )->a( n = `target`
-                v = `_blank`
-          )->a( n = `href`
-                v = `https://github.com/abap2UI5/samples` ).
+      render_link( form  = form
+                   label = `Install the sample repository`
+                   text  = `And explore more than 250 sample apps...`
+                   href  = `https://github.com/abap2UI5/samples` ).
     ENDIF.
 
   ENDMETHOD.
 
   METHOD render_contribution.
 
-    form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text`
-                               v = `Contribution`
-      )->shut( ).
+    render_section( form  = form
+                    title = `Contribution` ).
 
-    form->leaf( `Label` )->a( n = `text`
-                              v = `Open an issue` ).
-    form->leaf( `Link`
-        )->a( n = `text`
-              v = `You have problems, comments or wishes?`
-        )->a( n = `target`
-              v = `_blank`
-        )->a( n = `href`
-              v = `https://github.com/abap2UI5/abap2UI5/issues` ).
+    render_link( form  = form
+                 label = `Open an issue`
+                 text  = `You have problems, comments or wishes?`
+                 href  = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
-    form->leaf( `Label` )->a( n = `text`
-                              v = `Open a Pull Request` ).
-    form->leaf( `Link`
-        )->a( n = `text`
-              v = `You added a new feature or fixed a bug?`
-        )->a( n = `target`
-              v = `_blank`
-        )->a( n = `href`
-              v = `https://github.com/abap2UI5/abap2UI5/pulls` ).
+    render_link( form  = form
+                 label = `Open a Pull Request`
+                 text  = `You added a new feature or fixed a bug?`
+                 href  = `https://github.com/abap2UI5/abap2UI5/pulls` ).
 
   ENDMETHOD.
 
   METHOD render_documentation.
 
-    form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text`
-                               v = `Documentation`
-      )->shut( ).
+    render_section( form  = form
+                    title = `Documentation` ).
 
-    form->leaf( `Label` ).
-    form->leaf( `Link`
-        )->a( n = `text`
-              v = `abap2UI5.org`
-        )->a( n = `target`
-              v = `_blank`
-        )->a( n = `href`
-              v = `https://abap2UI5.org` ).
+    render_link( form = form
+                 text = `abap2UI5.org`
+                 href = `https://abap2UI5.org` ).
 
   ENDMETHOD.
 
@@ -420,14 +416,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     DATA(form) = create_layout_form( dialog->open( `content` ) ).
     DATA(ls_client) = client->get( ).
 
-    form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text`
-                               v = `Frontend`
-      )->shut( ).
-    form->leaf( `Label` )->a( n = `text`
-                              v = `UI5 Version` ).
-    form->leaf( `Text` )->a( n = `text`
-                             v = ls_client-s_ui5-version ).
+    render_section( form  = form
+                    title = `Frontend` ).
+    render_text( form  = form
+                 label = `UI5 Version`
+                 text  = ls_client-s_ui5-version ).
     form->leaf( `Label` )->a( n = `text`
                               v = `Launchpad active` ).
     form->leaf( `CheckBox`
@@ -436,10 +429,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         )->a( n = `enabled`
               v = `false` ).
 
-    form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text`
-                               v = `Backend`
-      )->shut( ).
+    render_section( form  = form
+                    title = `Backend` ).
     form->leaf( `Label` )->a( n = `text`
                               v = `ABAP for Cloud` ).
     form->leaf( `CheckBox`
@@ -447,23 +438,18 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
               v = z2ui5_cl_ai_xml=>as_bool( z2ui5_cl_a2ui5_context=>check_abap_cloud( ) )
         )->a( n = `enabled`
               v = `false` ).
-    form->leaf( `Label` )->a( n = `text`
-                              v = `User Exit` ).
-    form->leaf( `Text` )->a( n = `text`
-                             v = z2ui5_cl_exit=>get_user_exit_class( ) ).
+    render_text( form  = form
+                 label = `User Exit`
+                 text  = z2ui5_cl_exit=>get_user_exit_class( ) ).
 
-    form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text`
-                               v = `abap2UI5`
-      )->shut( ).
-    form->leaf( `Label` )->a( n = `text`
-                              v = `Version` ).
-    form->leaf( `Text` )->a( n = `text`
-                             v = z2ui5_if_app=>version ).
-    form->leaf( `Label` )->a( n = `text`
-                              v = `Draft Entries (own)` ).
-    form->leaf( `Text` )->a( n = `text`
-                             v = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
+    render_section( form  = form
+                    title = `abap2UI5` ).
+    render_text( form  = form
+                 label = `Version`
+                 text  = z2ui5_if_app=>version ).
+    render_text( form  = form
+                 label = `Draft Entries (own)`
+                 text  = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
 
     dialog->open( `endButton`
         )->leaf( `Button`
@@ -475,6 +461,42 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                   v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD render_section.
+
+    form->open( `Toolbar`
+        )->leaf( `Title` )->a( n = `text`
+                               v = title
+      )->shut( ).
+
+  ENDMETHOD.
+
+  METHOD render_link.
+
+    form->leaf( `Label` ).
+    IF label IS NOT INITIAL.
+      form->a( n = `text`
+               v = label ).
+    ENDIF.
+
+    form->leaf( `Link`
+        )->a( n = `text`
+              v = text
+        )->a( n = `target`
+              v = `_blank`
+        )->a( n = `href`
+              v = href ).
+
+  ENDMETHOD.
+
+  METHOD render_text.
+
+    form->leaf( `Label` )->a( n = `text`
+                              v = label
+      )->leaf( `Text` )->a( n = `text`
+                            v = text ).
 
   ENDMETHOD.
 

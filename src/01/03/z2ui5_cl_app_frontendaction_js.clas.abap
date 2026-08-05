@@ -1391,10 +1391,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // The three handlers below resolve their target with ViewSlots.resolveById` && |\n| &&
+             `    // (not byId "MAIN"): it searches every open slot first, so controls in a` && |\n| &&
+             `    // popup/popover/nested view are found, and falls back to the global` && |\n| &&
+             `    // registry, so a fully-qualified id resolves too - ids that come from a` && |\n| &&
+             `    // UI5 Message (getControlIds()) or any event carry the view prefix.` && |\n| &&
+             `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
-             `      // resolveById (not byId "MAIN") so a fully-qualified control id also` && |\n| &&
-             `      // resolves - ids that come from a UI5 Message (getControlIds()) or any` && |\n| &&
-             `      // event carry the view prefix and only match via the global registry.` && |\n| &&
              `      const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
              `` && |\n| &&
@@ -1433,8 +1436,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
              `      try {` && |\n| &&
-             `        // resolveById like SET_FOCUS / SCROLL_INTO_VIEW, so controls in` && |\n| &&
-             `        // popups/popovers/nested views and fully-qualified ids work too` && |\n| &&
              `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
@@ -1481,8 +1482,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Modern declarative scroll: bring a control into the viewport,` && |\n| &&
              `      // regardless of where the surrounding scroll container currently is.` && |\n| &&
              `      try {` && |\n| &&
-             `        // resolveById so a fully-qualified control id (e.g. from a UI5` && |\n| &&
-             `        // Message's getControlIds()) also resolves, not just a MAIN-local id.` && |\n| &&
              `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
@@ -1627,9 +1626,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
              `      SET_FOCUS: evSetFocus,` && |\n| &&
              `      SCROLL_TO: evScrollTo,` && |\n| &&
-             `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n|.
+             `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
+             `      START_TIMER: evStartTimer,` && |\n|.
     result = result &&
-             `      START_TIMER: evStartTimer,` && |\n| &&
              `      KEYBOARD_SET_MODE: evSetInputMode,` && |\n| &&
              `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
              `      Z2UI5: evZ2ui5Custom,` && |\n| &&

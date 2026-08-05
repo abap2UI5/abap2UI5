@@ -45,22 +45,7 @@ sap.ui.define(
         // the user had typed past the (stale) captured position. Reading it
         // here - while the old, still-focused element is in the DOM - keeps the
         // guard working across a full view rebuild, not only an in-place patch.
-        this._liveCaret = null;
-        try {
-          const active = document.activeElement;
-          if (
-            active &&
-            (active.tagName === "INPUT" || active.tagName === "TEXTAREA")
-          ) {
-            const s = active.selectionStart;
-            const e = active.selectionEnd;
-            if (s != null && e != null) {
-              this._liveCaret = { start: s, end: e };
-            }
-          }
-        } catch {
-          this._liveCaret = null;
-        }
+        this._liveCaret = Lib.readCaret(document.activeElement);
       },
       onAfterRendering() {
         const liveCaret = this._liveCaret;

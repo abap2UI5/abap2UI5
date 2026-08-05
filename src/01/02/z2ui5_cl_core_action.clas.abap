@@ -168,16 +168,17 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
 
-    " check for new app?
+    " the leave target was never persisted (a fresh app instance) - it takes
+    " over the current app's position in the stack
     IF lo_draft->check_exists( ms_next-o_app_leave->id_draft ) = abap_false.
       result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
       RETURN.
     ENDIF.
 
-    " check for already existing app? Guard the ancestor stack draft with
-    " check_exists too - in a long-lived session the ancestor may have been
-    " purged by cleanup( ) while the leave target still exists, and read_info
-    " would raise NO_DRAFT_ENTRY and break back-navigation
+    " a known app is returned to: pop one level off the stack. Guard the
+    " ancestor stack draft with check_exists too - in a long-lived session the
+    " ancestor may have been purged by cleanup( ) while the leave target still
+    " exists, and read_info would raise NO_DRAFT_ENTRY and break back-navigation
     IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL
         AND lo_draft->check_exists( mo_app->ms_draft-id_prev_app_stack ) = abap_true.
       DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).

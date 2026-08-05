@@ -251,8 +251,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    " wipe the whole slot (like popup_destroy) so a display( ) queued earlier
-    " in the same roundtrip does not resurrect the view after the destroy
+    " see popover_destroy for why the whole slot is wiped instead of setting a flag
     mo_action->ms_next-s_set-s_view_nest2 = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
@@ -260,8 +259,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    " like popup_display/popover_display: displaying cancels a destroy
-    " queued earlier in the same roundtrip
     mo_action->ms_next-s_set-s_view_nest2-check_destroy  = abap_false.
     mo_action->ms_next-s_set-s_view_nest2-xml            = val.
     mo_action->ms_next-s_set-s_view_nest2-id             = id.
@@ -284,8 +281,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    " wipe the whole slot (like popup_destroy) so a display( ) queued earlier
-    " in the same roundtrip does not resurrect the view after the destroy
+    " see popover_destroy for why the whole slot is wiped instead of setting a flag
     mo_action->ms_next-s_set-s_view_nest = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
@@ -293,8 +289,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    " like popup_display/popover_display: displaying cancels a destroy
-    " queued earlier in the same roundtrip
     mo_action->ms_next-s_set-s_view_nest-check_destroy  = abap_false.
     mo_action->ms_next-s_set-s_view_nest-xml            = val.
     mo_action->ms_next-s_set-s_view_nest-id             = id.
@@ -402,27 +396,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-
-    "future: _bind_edit obsolet
-    result = mo_srv_bind->main( val  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
-                              config = VALUE #(
-                                  path_only            = path
-                                  custom_filter        = custom_filter
-                                  custom_mapper        = custom_mapper
-                                  tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
-                                  tab_index            = tab_index
-                                  switch_default_model = switch_default_model ) ).
-
-*    result = mo_srv_bind->main( val    = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
-*                                config = VALUE #(
-*                                    path_only            = path
-*                                    custom_filter        = custom_filter
-*                                    custom_filter_back   = custom_filter_back
-*                                    custom_mapper        = custom_mapper
-*                                    custom_mapper_back   = custom_mapper_back
-*                                    tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
-*                                    tab_index            = tab_index
-*                                    switch_default_model = switch_default_model ) ).
+    " compatibility alias of _bind - delegate instead of repeating the call so
+    " both can never drift apart. custom_mapper_back / custom_filter_back exist
+    " only on this signature and are deliberately no longer evaluated (_bind
+    " has no counterpart for them).
+    result = z2ui5_if_client~_bind( val                  = val
+                                    path                 = path
+                                    view                 = view
+                                    custom_mapper        = custom_mapper
+                                    custom_filter        = custom_filter
+                                    tab                  = tab
+                                    tab_index            = tab_index
+                                    switch_default_model = switch_default_model ).
 
   ENDMETHOD.
 

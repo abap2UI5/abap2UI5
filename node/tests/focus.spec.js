@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadLib } = require("./loadLibModule");
 
 // Tests the real app/webapp/cc/Focus.js caret restore. After a roundtrip the
 // Focus control re-applies the caret position captured before the request.
@@ -28,7 +29,9 @@ function controlStub() {
 // Build a Focus instance wired to a target element and a stubbed document.
 function load({ target, activeElement } = {}) {
   const errors = [];
-  const Lib = { logError: (m) => errors.push(m) };
+  // The real Lib, so the caret capture exercises the shipped readCaret
+  // instead of a copy; only logError is replaced to capture the messages.
+  const Lib = { ...loadLib().Lib, logError: (m) => errors.push(m) };
   const ViewSlots = { byIdOfOwner: () => target };
   const { module: Focus } = loadModule("cc/Focus.js", {
     deps: {

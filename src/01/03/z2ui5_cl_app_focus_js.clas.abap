@@ -72,22 +72,7 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `        // the user had typed past the (stale) captured position. Reading it` && |\n| &&
              `        // here - while the old, still-focused element is in the DOM - keeps the` && |\n| &&
              `        // guard working across a full view rebuild, not only an in-place patch.` && |\n| &&
-             `        this._liveCaret = null;` && |\n| &&
-             `        try {` && |\n| &&
-             `          const active = document.activeElement;` && |\n| &&
-             `          if (` && |\n| &&
-             `            active &&` && |\n| &&
-             `            (active.tagName === "INPUT" || active.tagName === "TEXTAREA")` && |\n| &&
-             `          ) {` && |\n| &&
-             `            const s = active.selectionStart;` && |\n| &&
-             `            const e = active.selectionEnd;` && |\n| &&
-             `            if (s != null && e != null) {` && |\n| &&
-             `              this._liveCaret = { start: s, end: e };` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          this._liveCaret = null;` && |\n| &&
-             `        }` && |\n| &&
+             `        this._liveCaret = Lib.readCaret(document.activeElement);` && |\n| &&
              `      },` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        const liveCaret = this._liveCaret;` && |\n| &&

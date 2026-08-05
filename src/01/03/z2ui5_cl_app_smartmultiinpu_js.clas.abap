@@ -142,8 +142,7 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `          this,` && |\n| &&
              `          this.getProperty("multiInputId"),` && |\n| &&
              `        );` && |\n| &&
-             `        if (!input || this.getProperty("checkInit")) return;` && |\n| &&
-             `        this.setProperty("checkInit", true, true);` && |\n| &&
+             `        if (!Lib.claimOnce(this, input)) return;` && |\n| &&
              `        try {` && |\n| &&
              `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
              `          input.attachInnerControlsCreated(` && |\n| &&

@@ -39,8 +39,8 @@ CLASS z2ui5_cl_app_title_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `    setTitle(val) {` && |\n| &&
-             `      // Suppress invalidation: the renderer is empty, so a re-render would be` && |\n| &&
-             `      // a no-op; the effect happens explicitly below.` && |\n| &&
+             `      // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
+             `      // (setting the tab title) is what actually matters.` && |\n| &&
              `      this.setProperty("title", val, true);` && |\n| &&
              `      document.title = Lib.toText(val);` && |\n| &&
              `    },` && |\n| &&
