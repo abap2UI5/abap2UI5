@@ -355,6 +355,15 @@ INTERFACE z2ui5_if_client
   "! a control (t_arg = id, `toggleBy`, anchor id).
   "! An association setter (setSelectedSection, setSelectedItem) clears the
   "! association when its argument is EMPTY.
+  "! Wherever an argument takes a CONTROL ID, it also takes an aggregation
+  "! ITEM, addressed positionally as `&lt;id&gt;/&lt;aggregation&gt;/&lt;index&gt;`
+  "! (`carousel/pages/2`, 0-based). A control cloned from an aggregation
+  "! template has no id the backend can spell - UI5 mints it from the template
+  "! id, the parent id and the index, and the parent id carries the view prefix
+  "! assigned at runtime - so this is the only way to reach one. It is the
+  "! equivalent of the UI5 controller idiom
+  "! `oCarousel.setActivePage( oCarousel.getPages()[ i ] )`. A plain id (no
+  "! slashes) resolves exactly as before.
   "! cs_event-control_global - call a whitelisted method on a global object
   "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING, POPUP,
   "! INVISIBLE_MESSAGE, FORMATTING): t_arg = object, method, params.

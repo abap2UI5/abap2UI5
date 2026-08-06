@@ -316,6 +316,78 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["to", page2]]);
   });
 
+  // A control CLONED from an aggregation template has no id the backend can
+  // spell: UI5 mints it as `<templateId>-<parentId>-<index>` and the parent id
+  // carries the runtime view prefix (measured: `v1--tpl-v1--car-0`). So an
+  // aggregation item is addressed positionally - "<id>/<aggregation>/<index>" -
+  // which is the UI5 controller idiom oCarousel.getPages()[i] no id-based call
+  // can express (sap.m.sample.ComparisonPattern, app 012).
+  test.describe("aggregation-item addressing", () => {
+    function carousel(calls, controls) {
+      const pages = [{ id: "p0" }, { id: "p1" }, { id: "p2" }];
+      controls.car = {
+        getAggregation: (name) => (name === "pages" ? pages : null),
+        setActivePage: (p) => calls.push(["setActivePage", p]),
+      };
+      return pages;
+    }
+
+    test("resolves the Nth item of an aggregation", () => {
+      const { FrontendAction, calls, controls } = load();
+      const pages = carousel(calls, controls);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/2",
+      ]);
+      expect(calls).toEqual([["setActivePage", pages[2]]]);
+    });
+
+    test("index 0 is an item, not an empty argument", () => {
+      const { FrontendAction, calls, controls } = load();
+      const pages = carousel(calls, controls);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/0",
+      ]);
+      expect(calls).toEqual([["setActivePage", pages[0]]]);
+    });
+
+    test("a plain id still resolves exactly as before", () => {
+      const { FrontendAction, calls, controls } = load();
+      const page2 = { id: "page2" };
+      controls.page2 = page2;
+      controls.NavCon = { to: (ctrl) => calls.push(["to", ctrl]) };
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
+      expect(calls).toEqual([["to", page2]]);
+    });
+
+    test("an out-of-range index is reported, not silently passed as undefined", () => {
+      const { FrontendAction, calls, errors, controls } = load();
+      carousel(calls, controls);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/9",
+      ]);
+      expect(calls).toEqual([["setActivePage", null]]);
+      expect(errors.join(" ")).toContain("3 item(s)");
+    });
+
+    test("a single-valued aggregation is refused", () => {
+      const { FrontendAction, calls, errors, controls } = load();
+      carousel(calls, controls);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "car/footer/0",
+      ]);
+      expect(errors.join(" ")).toContain("no multiple aggregation");
+    });
+
+    test("an unknown owner control is reported", () => {
+      const { FrontendAction, errors, controls } = load();
+      controls.car = { setActivePage: () => {} };
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "nosuch/pages/0",
+      ]);
+      expect(errors.join(" ")).toContain("nosuch");
+    });
+  });
+
   test("rejects a framework-hostile method (destroy is on the denylist)", () => {
     const { FrontendAction, calls, errors, controls } = load();
     controls.x = { destroy: () => calls.push(["destroy"]) };

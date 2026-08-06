@@ -293,6 +293,52 @@ sap.ui.define(
     // controlId argument resolves against the same view first - this keeps
     // slot-local ids unambiguous (e.g. a NavContainer navigating to one of
     // its own pages) before falling back to the global lookup.
+    // A control CLONED from an aggregation template has no id the backend can
+    // spell. UI5 mints it as `<templateId>-<parentId>-<index>` - deterministic,
+    // but the parent id carries the VIEW PREFIX the framework assigns at
+    // runtime (`v1--tpl-v1--car-0`), which the backend never sees. So an
+    // aggregation item is addressed positionally instead:
+    //
+    //     "<controlId>/<aggregation>/<index>"     e.g. "carousel/pages/2"
+    //
+    // resolved here, on the client, where both the prefix and the aggregation
+    // are known. This is the equivalent of the UI5 controller idiom
+    // `oCarousel.setActivePage(oCarousel.getPages()[i])`, which no id-based
+    // call can express. A plain id (no slashes) resolves exactly as before.
+    const AGG_ITEM = /^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;
+
+    function resolveControl(raw, view) {
+      const byId = (id) =>
+        (view && ViewSlots.byId(view.toUpperCase(), id)) ||
+        ViewSlots.resolveById(id);
+
+      const m = AGG_ITEM.exec(String(raw ?? ""));
+      if (!m) return byId(raw);
+
+      const owner = byId(m[1]);
+      if (!owner || typeof owner.getAggregation !== "function") {
+        Lib.logError(`aggregation item '${raw}': no control '${m[1]}'`);
+        return null;
+      }
+      const items = owner.getAggregation(m[2]);
+      if (!Array.isArray(items)) {
+        Lib.logError(
+          `aggregation item '${raw}': '${m[2]}' is no multiple aggregation of ${m[1]}`,
+        );
+        return null;
+      }
+      const item = items[Number(m[3])];
+      if (!item) {
+        // out of range is not an error the app can see otherwise - the method
+        // would silently receive undefined and do nothing
+        Lib.logError(
+          `aggregation item '${raw}': ${m[2]} has ${items.length} item(s)`,
+        );
+        return null;
+      }
+      return item;
+    }
+
     function castArg(kind, raw, view) {
       switch (kind) {
         case "int":
@@ -300,10 +346,7 @@ sap.ui.define(
         case "bool":
           return raw === "true" || raw === "X" || raw === true;
         case "controlId":
-          return (
-            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw)
-          );
+          return resolveControl(raw, view);
         case "controlIdOrNull":
           // an ASSOCIATION cannot be data-bound, so clearing one
           // (setSelectedSection(null), setSelectedItem(null)) can only travel
@@ -311,11 +354,7 @@ sap.ui.define(
           // not as the `false` castArgAuto would infer. Same "empty means
           // null" contract as the `within` kind below.
           if (raw === "" || raw === undefined || raw === null) return null;
-          return (
-            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw) ||
-            null
-          );
+          return resolveControl(raw, view) || null;
         case "anchor":
           // anchor argument for openBy-style methods: resolve the control id
           // and hand over the CONTROL itself, not its DOM element. Every
@@ -324,10 +363,7 @@ sap.ui.define(
           // element throws ("getParent is not a function") and the popup never
           // opens. DatePicker/TimePicker/Menu accept a control just as well,
           // so a control is the universally-correct anchor.
-          return (
-            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw)
-          );
+          return resolveControl(raw, view);
         case "within":
           // sap.ui.core.Popup.setWithinArea: a control id confines every popup
           // to that control, an EMPTY argument releases the restriction (the
@@ -336,11 +372,7 @@ sap.ui.define(
           // popup opens, so handing over the CONTROL - not its DOM element -
           // is what survives a re-render of the area in between.
           if (raw === "" || raw === undefined || raw === null) return null;
-          return (
-            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw) ||
-            null
-          );
+          return resolveControl(raw, view) || null;
         case "object":
           try {
             return JSON.parse(raw);

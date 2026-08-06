@@ -320,6 +320,52 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // controlId argument resolves against the same view first - this keeps` && |\n| &&
              `    // slot-local ids unambiguous (e.g. a NavContainer navigating to one of` && |\n| &&
              `    // its own pages) before falling back to the global lookup.` && |\n| &&
+             `    // A control CLONED from an aggregation template has no id the backend can` && |\n| &&
+             `    // spell. UI5 mints it as ``<templateId>-<parentId>-<index>`` - deterministic,` && |\n| &&
+             `    // but the parent id carries the VIEW PREFIX the framework assigns at` && |\n| &&
+             `    // runtime (``v1--tpl-v1--car-0``), which the backend never sees. So an` && |\n| &&
+             `    // aggregation item is addressed positionally instead:` && |\n| &&
+             `    //` && |\n| &&
+             `    //     "<controlId>/<aggregation>/<index>"     e.g. "carousel/pages/2"` && |\n| &&
+             `    //` && |\n| &&
+             `    // resolved here, on the client, where both the prefix and the aggregation` && |\n| &&
+             `    // are known. This is the equivalent of the UI5 controller idiom` && |\n| &&
+             `    // ``oCarousel.setActivePage(oCarousel.getPages()[i])``, which no id-based` && |\n| &&
+             `    // call can express. A plain id (no slashes) resolves exactly as before.` && |\n| &&
+             `    const AGG_ITEM = /^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;` && |\n| &&
+             `` && |\n| &&
+             `    function resolveControl(raw, view) {` && |\n| &&
+             `      const byId = (id) =>` && |\n| &&
+             `        (view && ViewSlots.byId(view.toUpperCase(), id)) ||` && |\n| &&
+             `        ViewSlots.resolveById(id);` && |\n| &&
+             `` && |\n| &&
+             `      const m = AGG_ITEM.exec(String(raw ?? ""));` && |\n| &&
+             `      if (!m) return byId(raw);` && |\n| &&
+             `` && |\n| &&
+             `      const owner = byId(m[1]);` && |\n| &&
+             `      if (!owner || typeof owner.getAggregation !== "function") {` && |\n| &&
+             `        Lib.logError(``aggregation item '${raw}': no control '${m[1]}'``);` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      const items = owner.getAggregation(m[2]);` && |\n| &&
+             `      if (!Array.isArray(items)) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``aggregation item '${raw}': '${m[2]}' is no multiple aggregation of ${m[1]}``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      const item = items[Number(m[3])];` && |\n| &&
+             `      if (!item) {` && |\n| &&
+             `        // out of range is not an error the app can see otherwise - the method` && |\n| &&
+             `        // would silently receive undefined and do nothing` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      return item;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function castArg(kind, raw, view) {` && |\n| &&
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
@@ -327,10 +373,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        case "bool":` && |\n| &&
              `          return raw === "true" || raw === "X" || raw === true;` && |\n| &&
              `        case "controlId":` && |\n| &&
-             `          return (` && |\n| &&
-             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw)` && |\n| &&
-             `          );` && |\n| &&
+             `          return resolveControl(raw, view);` && |\n| &&
              `        case "controlIdOrNull":` && |\n| &&
              `          // an ASSOCIATION cannot be data-bound, so clearing one` && |\n| &&
              `          // (setSelectedSection(null), setSelectedItem(null)) can only travel` && |\n| &&
@@ -338,11 +381,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // not as the ``false`` castArgAuto would infer. Same "empty means` && |\n| &&
              `          // null" contract as the ``within`` kind below.` && |\n| &&
              `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
-             `          return (` && |\n| &&
-             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw) ||` && |\n| &&
-             `            null` && |\n| &&
-             `          );` && |\n| &&
+             `          return resolveControl(raw, view) || null;` && |\n| &&
              `        case "anchor":` && |\n| &&
              `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
              `          // and hand over the CONTROL itself, not its DOM element. Every` && |\n| &&
@@ -351,10 +390,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // element throws ("getParent is not a function") and the popup never` && |\n| &&
              `          // opens. DatePicker/TimePicker/Menu accept a control just as well,` && |\n| &&
              `          // so a control is the universally-correct anchor.` && |\n| &&
-             `          return (` && |\n| &&
-             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw)` && |\n| &&
-             `          );` && |\n| &&
+             `          return resolveControl(raw, view);` && |\n| &&
              `        case "within":` && |\n| &&
              `          // sap.ui.core.Popup.setWithinArea: a control id confines every popup` && |\n| &&
              `          // to that control, an EMPTY argument releases the restriction (the` && |\n| &&
@@ -363,11 +399,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // popup opens, so handing over the CONTROL - not its DOM element -` && |\n| &&
              `          // is what survives a re-render of the area in between.` && |\n| &&
              `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
-             `          return (` && |\n| &&
-             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw) ||` && |\n| &&
-             `            null` && |\n| &&
-             `          );` && |\n| &&
+             `          return resolveControl(raw, view) || null;` && |\n| &&
              `        case "object":` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
@@ -392,7 +424,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // kinds whose EMPTY value is meaningful (null), so a missing trailing` && |\n| &&
-             `    // argument still has to be passed: the backend wire drops a trailing empty` && |\n| &&
+             `    // argument still has to be passed: the backend wire drops a trailing empty` && |\n|.
+    result = result &&
              `    // t_arg entry, and "clear this association" is exactly a call whose only` && |\n| &&
              `    // argument is empty.` && |\n| &&
              `    const NULLABLE_KINDS = ["controlIdOrNull"];` && |\n| &&
@@ -424,8 +457,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, id, view, method, ...params]` && |\n|.
-    result = result &&
+             `    // args: [_, id, view, method, ...params]` && |\n| &&
              `    function evControlCallById(oController, args) {` && |\n| &&
              `      const [, id, view, method] = args;` && |\n| &&
              `      let kinds = CONTROL_METHODS[method];` && |\n| &&
@@ -793,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");` && |\n| &&
              `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
              `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
-             `      document.body.appendChild(a);` && |\n| &&
+             `      document.body.appendChild(a);` && |\n|.
+    result = result &&
              `      a.click();` && |\n| &&
              `      document.body.removeChild(a);` && |\n| &&
              `    }` && |\n| &&
@@ -825,8 +858,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      if (model) {` && |\n| &&
              `        const effective = Lib.effectiveSizeLimit(` && |\n| &&
              `          AppState.state.viewSizeLimits,` && |\n| &&
-             `          viewKey,` && |\n|.
-    result = result &&
+             `          viewKey,` && |\n| &&
              `        );` && |\n| &&
              `        // 100 is the UI5 JSONModel default size limit.` && |\n| &&
              `        model.setSizeLimit(effective ?? 100);` && |\n| &&
@@ -1194,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // every filter change makes the current variant dirty (the "*" next to the` && |\n| &&
              `    // variant title) and refreshes the bar's assigned-filters summary` && |\n| &&
              `    function attachFilterBarChange(oSVM, oFilterBar) {` && |\n| &&
-             `      oFilterBar.getAllFilterItems().forEach((item) => {` && |\n| &&
+             `      oFilterBar.getAllFilterItems().forEach((item) => {` && |\n|.
+    result = result &&
              `        const control = filterItemControl(item);` && |\n| &&
              `        if (!control || typeof control.attachChange !== "function") return;` && |\n| &&
              `        control.attachChange((oEvent) => {` && |\n| &&
@@ -1226,8 +1259,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      ) {` && |\n| &&
              `        Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");` && |\n| &&
              `        return;` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
+             `      }` && |\n| &&
              `      const loaded = sap.ui.require(name);` && |\n| &&
              `      if (loaded) {` && |\n| &&
              `        callback(loaded);` && |\n| &&
@@ -1595,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          if (dom?.scrollTo) {` && |\n| &&
              `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
              `          } else if (dom) {` && |\n| &&
-             `            dom.scrollTop = y;` && |\n| &&
+             `            dom.scrollTop = y;` && |\n|.
+    result = result &&
              `            dom.scrollLeft = x;` && |\n| &&
              `          } else if (oElement.scrollTo) {` && |\n| &&
              `            // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&
@@ -1627,8 +1660,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetTitle(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
