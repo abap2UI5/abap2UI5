@@ -1606,7 +1606,34 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // The control may still be missing from the DOM when SET_FOCUS runs` && |\n| &&
              `      // together with a fresh view build. Apply now if it is rendered,` && |\n| &&
              `      // otherwise once it is.` && |\n| &&
-             `      Lib.whenRendered(oElement, oController, applyFocus);` && |\n| &&
+             `      Lib.whenRendered(oElement, oController, () => {` && |\n| &&
+             `        applyFocus();` && |\n| &&
+             `        const dom = oElement.getDomRef();` && |\n| &&
+             `        if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
+             `        // The focus did not stick. A view_model_update in the same response` && |\n| &&
+             `        // may have changed the control - e.g. re-enabled a locked input via` && |\n| &&
+             `        // its ``enabled`` binding: the control already reports the new state,` && |\n| &&
+             `        // but the DOM still carries the OLD rendering until UI5's async` && |\n| &&
+             `        // re-render, and the browser silently ignores focus() on a disabled` && |\n| &&
+             `        // element. Re-apply once after the pending re-render has replaced` && |\n| &&
+             `        // the DOM - but only when the focus was not actively moved elsewhere` && |\n| &&
+             `        // in between, so a re-render at some arbitrary later point can never` && |\n| &&
+             `        // steal the user's focus.` && |\n| &&
+             `        const prevActive = document.activeElement;` && |\n| &&
+             `        const delegate = {` && |\n| &&
+             `          onAfterRendering: () => {` && |\n| &&
+             `            oElement.removeEventDelegate(delegate);` && |\n| &&
+             `            if (Lib.isDestroyed(oController)) return;` && |\n| &&
+             `            const active = document.activeElement;` && |\n| &&
+             `            if (active && active !== document.body && active !== prevActive) {` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n|.
+    result = result &&
+             `            applyFocus();` && |\n| &&
+             `          },` && |\n| &&
+             `        };` && |\n| &&
+             `        oElement.addEventDelegate(delegate);` && |\n| &&
+             `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&
@@ -1627,8 +1654,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
-             `        const behavior = args[4] || "auto";` && |\n|.
-    result = result &&
+             `        const behavior = args[4] || "auto";` && |\n| &&
              `        const smooth = behavior === "smooth";` && |\n| &&
              `` && |\n| &&
              `        let handled = false;` && |\n| &&
