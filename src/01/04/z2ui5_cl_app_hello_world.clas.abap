@@ -1,7 +1,7 @@
 CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ui5_app.
+    INTERFACES z2ui5_if_app.
     DATA name TYPE string.
 
   PROTECTED SECTION.
@@ -11,7 +11,7 @@ ENDCLASS.
 
 CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
-  METHOD z2ui5_if_ui5_app~main.
+  METHOD z2ui5_if_app~main.
 
     IF client->check_on_init( ).
       DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
