@@ -1606,7 +1606,47 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // The control may still be missing from the DOM when SET_FOCUS runs` && |\n| &&
              `      // together with a fresh view build. Apply now if it is rendered,` && |\n| &&
              `      // otherwise once it is.` && |\n| &&
-             `      Lib.whenRendered(oElement, oController, applyFocus);` && |\n| &&
+             `      Lib.whenRendered(oElement, oController, () => {` && |\n| &&
+             `        applyFocus();` && |\n| &&
+             `        const dom = oElement.getDomRef();` && |\n| &&
+             `        if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
+             `        // The focus did not stick. A view_model_update in the same response` && |\n| &&
+             `        // may have changed the control - e.g. re-enabled a locked input via` && |\n| &&
+             `        // its ``enabled`` binding: the control already reports the new state,` && |\n| &&
+             `        // but the DOM still carries the OLD rendering until UI5's async` && |\n| &&
+             `        // re-render, and the browser silently ignores focus() on a disabled` && |\n| &&
+             `        // element. Re-apply once after the pending re-render has replaced` && |\n| &&
+             `        // the DOM.` && |\n| &&
+             `        const prevActive = document.activeElement;` && |\n| &&
+             `        // "Same place" by node OR by element id: when the re-render also` && |\n| &&
+             `        // rebuilt the element that held the focus (the pressed button in the` && |\n| &&
+             `        // same form), the focus sits on a NEW node of the SAME control` && |\n| &&
+             `        // afterwards - that still counts as "the user did not move it".` && |\n| &&
+             `        const samePlace = (el) =>` && |\n| &&
+             `          el == null ||` && |\n| &&
+             `          el === document.body ||` && |\n| &&
+             `          el === prevActive ||` && |\n| &&
+             `          Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
+             `        const delegate = {` && |\n|.
+    result = result &&
+             `          onAfterRendering: () => {` && |\n| &&
+             `            oElement.removeEventDelegate(delegate);` && |\n| &&
+             `            // Defer past the rendering task: when the re-render replaced the` && |\n| &&
+             `            // focused element, UI5's FocusHandler restores its focus AFTER` && |\n| &&
+             `            // all onAfterRendering delegates ran - focusing here would be` && |\n| &&
+             `            // overridden right away.` && |\n| &&
+             `            setTimeout(() => {` && |\n| &&
+             `              if (Lib.isDestroyed(oController)) return;` && |\n| &&
+             `              // Only when the focus was not actively moved elsewhere in` && |\n| &&
+             `              // between - a re-render at some arbitrary later point must` && |\n| &&
+             `              // never steal the user's focus.` && |\n| &&
+             `              if (!samePlace(document.activeElement)) return;` && |\n| &&
+             `              applyFocus();` && |\n| &&
+             `            }, 0);` && |\n| &&
+             `          },` && |\n| &&
+             `        };` && |\n| &&
+             `        oElement.addEventDelegate(delegate);` && |\n| &&
+             `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&
@@ -1627,8 +1667,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
-             `        const behavior = args[4] || "auto";` && |\n|.
-    result = result &&
+             `        const behavior = args[4] || "auto";` && |\n| &&
              `        const smooth = behavior === "smooth";` && |\n| &&
              `` && |\n| &&
              `        let handled = false;` && |\n| &&

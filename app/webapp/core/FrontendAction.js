@@ -1576,7 +1576,46 @@ sap.ui.define(
       // The control may still be missing from the DOM when SET_FOCUS runs
       // together with a fresh view build. Apply now if it is rendered,
       // otherwise once it is.
-      Lib.whenRendered(oElement, oController, applyFocus);
+      Lib.whenRendered(oElement, oController, () => {
+        applyFocus();
+        const dom = oElement.getDomRef();
+        if (dom && dom.contains(document.activeElement)) return;
+        // The focus did not stick. A view_model_update in the same response
+        // may have changed the control - e.g. re-enabled a locked input via
+        // its `enabled` binding: the control already reports the new state,
+        // but the DOM still carries the OLD rendering until UI5's async
+        // re-render, and the browser silently ignores focus() on a disabled
+        // element. Re-apply once after the pending re-render has replaced
+        // the DOM.
+        const prevActive = document.activeElement;
+        // "Same place" by node OR by element id: when the re-render also
+        // rebuilt the element that held the focus (the pressed button in the
+        // same form), the focus sits on a NEW node of the SAME control
+        // afterwards - that still counts as "the user did not move it".
+        const samePlace = (el) =>
+          el == null ||
+          el === document.body ||
+          el === prevActive ||
+          Boolean(el.id && prevActive && el.id === prevActive.id);
+        const delegate = {
+          onAfterRendering: () => {
+            oElement.removeEventDelegate(delegate);
+            // Defer past the rendering task: when the re-render replaced the
+            // focused element, UI5's FocusHandler restores its focus AFTER
+            // all onAfterRendering delegates ran - focusing here would be
+            // overridden right away.
+            setTimeout(() => {
+              if (Lib.isDestroyed(oController)) return;
+              // Only when the focus was not actively moved elsewhere in
+              // between - a re-render at some arbitrary later point must
+              // never steal the user's focus.
+              if (!samePlace(document.activeElement)) return;
+              applyFocus();
+            }, 0);
+          },
+        };
+        oElement.addEventDelegate(delegate);
+      });
     }
 
     function evScrollTo(oController, args) {

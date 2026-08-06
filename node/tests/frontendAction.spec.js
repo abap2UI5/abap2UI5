@@ -1594,6 +1594,119 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
   });
 });
 
+test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
+  // Minimal focus fixture: a control whose DOM accepts focus only while
+  // `focusable` is true - the disabled-input case of a view_model_update that
+  // re-enables a field in the same roundtrip (the control reports the new
+  // state, the DOM still carries the old disabled rendering).
+  function focusFixture({ focusable }) {
+    const body = {};
+    const doc = { body, activeElement: body };
+    const inner = {};
+    const applied = [];
+    const delegates = [];
+    let isFocusable = focusable;
+    const control = {
+      getDomRef: () => ({ contains: (el) => el === inner }),
+      getFocusInfo: () => ({}),
+      applyFocusInfo: (info) => {
+        applied.push(info);
+        if (isFocusable) doc.activeElement = inner;
+      },
+      addEventDelegate: (d) => delegates.push(d),
+      removeEventDelegate: (d) => {
+        const i = delegates.indexOf(d);
+        if (i >= 0) delegates.splice(i, 1);
+      },
+    };
+    return {
+      doc,
+      control,
+      applied,
+      delegates,
+      inner,
+      enable: () => {
+        isFocusable = true;
+      },
+    };
+  }
+
+  function loadWithFocus(fixture) {
+    const loaded = load({ sandbox: { document: fixture.doc } });
+    loaded.controls.inp = fixture.control;
+    return loaded;
+  }
+
+  test("applies focus + selection immediately when the DOM accepts it", () => {
+    const fx = focusFixture({ focusable: true });
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(fx.applied).toEqual([{ selectionStart: 0, selectionEnd: 4 }]);
+    expect(fx.doc.activeElement).toBe(fx.inner);
+    // the focus stuck, so no retry delegate may linger on the control
+    expect(fx.delegates).toEqual([]);
+  });
+
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  test("re-applies after the pending re-render when the DOM refused the focus", async () => {
+    const fx = focusFixture({ focusable: false });
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    // first attempt hit the still-disabled DOM: focus did not move, so a
+    // one-shot retry waits for the control's re-render
+    expect(fx.applied).toHaveLength(1);
+    expect(fx.doc.activeElement).toBe(fx.doc.body);
+    expect(fx.delegates).toHaveLength(1);
+    // UI5 re-renders the control with the new enabled state
+    fx.enable();
+    fx.delegates[0].onAfterRendering();
+    // the delegate is one-shot and the retry waits out the rendering task
+    expect(fx.delegates).toEqual([]);
+    expect(fx.applied).toHaveLength(1);
+    await tick();
+    expect(fx.applied).toHaveLength(2);
+    expect(fx.applied[1]).toEqual({ selectionStart: 0, selectionEnd: 4 });
+    expect(fx.doc.activeElement).toBe(fx.inner);
+  });
+
+  test("wins over UI5's own focus restore of a re-rendered trigger button", async () => {
+    // The press that triggered the roundtrip left the focus on the button;
+    // the re-render also rebuilt the button, so AFTER the retry delegate ran
+    // UI5's FocusHandler put the focus back on the button's NEW DOM node.
+    const fx = focusFixture({ focusable: false });
+    const { FrontendAction } = loadWithFocus(fx);
+    fx.doc.activeElement = { id: "btnUnlock" };
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(fx.delegates).toHaveLength(1);
+    fx.enable();
+    fx.delegates[0].onAfterRendering();
+    // UI5 focus restore, after all onAfterRendering delegates: same control,
+    // new DOM node
+    fx.doc.activeElement = { id: "btnUnlock" };
+    await tick();
+    // the deferred retry still moves the focus into the input
+    expect(fx.applied).toHaveLength(2);
+    expect(fx.doc.activeElement).toBe(fx.inner);
+  });
+
+  test("does not steal a focus the user moved elsewhere in between", async () => {
+    const fx = focusFixture({ focusable: false });
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(fx.delegates).toHaveLength(1);
+    // the user focused another field before the re-render fired
+    const otherField = { id: "otherField" };
+    fx.doc.activeElement = otherField;
+    fx.enable();
+    fx.delegates[0].onAfterRendering();
+    await tick();
+    expect(fx.applied).toHaveLength(1);
+    expect(fx.doc.activeElement).toBe(otherField);
+    expect(fx.delegates).toEqual([]);
+  });
+});
+
 test.describe("SET_FAVICON (browser tab icon)", () => {
   // Minimal <head> stub: enough to see whether the handler reuses an existing
   // icon link or appends one, which is the whole behavior worth pinning down.
