@@ -2,12 +2,17 @@
 "! chaining. Every letter of the API is the initial of the term it stands for:
 "!   new - factory   a new empty builder root
 "!   ele - element   add a child element and DESCEND into it (returns the child)
+"!   tag - tag       add a child element and STAY here (returns the same node)
 "!   att - attribute set an attribute on the element you are standing on
 "!   end - end       ascend to the parent element (returns the parent)
 "!   stringify      render the whole view, always from the root
 "! Element = n (name), namespace prefix = ns (e.g. `f`, `core`, `l`).
 "! There is exactly one rule: att( ) always applies to the CURRENT element, the
-"! one the last ele( ) descended into. Every ele( ) may be closed by an end( );
+"! one the last ele( ) descended into. tag( ) does not move, so its attributes
+"! travel with it in t_att - after a tag( ) the chain still stands on the
+"! parent, and an att( ) there would attach to the parent. Reach for tag( ) on
+"! a leaf whose attributes are literals, and for ele( )/end( ) everywhere else.
+"! Every ele( ) may be closed by an end( );
 "! a trailing end( ) at the end of the chain can be omitted, because stringify( )
 "! renders from the root no matter where the chain stopped.
 "! The root mvc:View element and its xmlns declarations are written by hand,
@@ -22,6 +27,11 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
 
   PUBLIC SECTION.
 
+    "! attribute list for tag( ) - one `key=value` string per attribute, e.g.
+    "! t_att = VALUE #( ( `text=Hello` ) ( `width=100%` ) ). Split on the FIRST
+    "! `=`, so the value may contain further ones.
+    TYPES ty_t_attr TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+
     "! returns an empty builder root; open the mvc:View element and declare the
     "! xmlns namespaces yourself, exactly like any other control
     CLASS-METHODS new
@@ -34,6 +44,19 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
       IMPORTING
         n             TYPE string
         ns            TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
+
+    "! add a child element and STAY on the current one, so the next tag( ) or
+    "! ele( ) becomes its sibling and no end( ) is needed. Its attributes must
+    "! travel with it in t_att - a following att( ) would land on the element
+    "! the chain is standing on, which is the PARENT, not the tag just added.
+    "! Use ele( )/end( ) whenever an attribute needs a computed value.
+    METHODS tag
+      IMPORTING
+        n             TYPE string
+        ns            TYPE string OPTIONAL
+        t_att         TYPE ty_t_attr OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
@@ -75,6 +98,13 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
     DATA parent  TYPE REF TO z2ui5_cl_ui5_view_builder.
     DATA root    TYPE REF TO z2ui5_cl_ui5_view_builder.
 
+    "! split one `key=value` attribute string on its first `=`
+    METHODS parse_attr
+      IMPORTING
+        kv            TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_s_pair.
+
     METHODS render
       RETURNING
         VALUE(result) TYPE string.
@@ -107,6 +137,37 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     result->name = n.
     result->prefix = ns.
     APPEND result TO t_child.
+
+  ENDMETHOD.
+
+
+  METHOD parse_attr.
+
+    DATA(off) = find( val = kv
+                      sub = `=` ).
+    IF off < 0.
+      result-n = condense( kv ).
+    ELSE.
+      result-n = condense( substring( val = kv
+                                      len = off ) ).
+      result-v = substring( val = kv
+                            off = off + 1 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD tag.
+
+    DATA(child) = ele( n  = n
+                       ns = ns ).
+    LOOP AT t_att INTO DATA(kv).
+      DATA(pair) = parse_attr( kv ).
+      ASSERT NOT line_exists( child->t_pair[ n = pair-n ] ).
+      APPEND pair TO child->t_pair.
+    ENDLOOP.
+    " stay where we are - the tag is complete, its siblings follow directly
+    result = me.
 
   ENDMETHOD.
 
