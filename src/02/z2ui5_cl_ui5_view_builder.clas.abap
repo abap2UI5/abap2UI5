@@ -19,10 +19,8 @@
 "! exactly like a real UI5 view:
 "!   DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 "!   view->ele( n = `View` ns = `mvc`
-"!       )->att( n = `xmlns` v = `sap.m`
+"!       )->att( n = `xmlns`     v = `sap.m`
 "!       )->att( n = `xmlns:mvc` v = `sap.ui.core.mvc` ) ...
-"! Write one call per line, arguments included, and let the indentation carry
-"! the nesting - a chain is read as a view, and a view is read as its tags.
 "! `v` may be any string expression (literal, a client bind/event, || template).
 "! For a boolean from an ABAP variable pass b instead of v.
 CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
