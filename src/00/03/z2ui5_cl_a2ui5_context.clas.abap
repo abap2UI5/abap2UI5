@@ -159,6 +159,13 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_msg.
 
+    CLASS-METHODS msg_get
+      IMPORTING
+        !val          TYPE any
+      RETURNING
+        VALUE(result) TYPE ty_s_msg.
+
+
     " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
     CLASS-METHODS rtti_get_data_element_text_l
       IMPORTING
@@ -2489,6 +2496,13 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
       WHEN 10 THEN `Permission denied`
       WHEN 11 THEN `Validation failed`
       ELSE |Operation failed (cause code { cause })| ).
+
+  ENDMETHOD.
+
+  METHOD msg_get.
+
+    data(result2) = msg_get_internal( val ).
+    result = result2[ 1 ].
 
   ENDMETHOD.
 

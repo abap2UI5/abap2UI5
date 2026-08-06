@@ -484,7 +484,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_app->check_initialized = abap_false.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_client->z2ui5_if_client~check_on_init( ) ).
+                                        act = mo_client->z2ui5_if_ui5_client~check_on_init( ) ).
 
   ENDMETHOD.
 
@@ -495,7 +495,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_app->check_initialized = abap_true.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = mo_client->z2ui5_if_client~check_on_init( ) ).
+                                        act = mo_client->z2ui5_if_ui5_client~check_on_init( ) ).
 
   ENDMETHOD.
 

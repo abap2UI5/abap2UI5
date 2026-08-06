@@ -1,7 +1,10 @@
 CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_client.
+    INTERFACES z2ui5_if_ui5_client.
+
+    ALIASES follow_up_action FOR z2ui5_if_client~follow_up_action.
+    ALIASES nest2_view_destroy FOR z2ui5_if_client~nest2_view_destroy.
 
     DATA mo_action TYPE REF TO z2ui5_cl_core_action.
 
@@ -39,7 +42,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~follow_up_action.
+  METHOD z2ui5_if_ui5_client~follow_up_action.
 
     DATA(lv_js) = val.
 
@@ -58,7 +61,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~check_on_event.
+  METHOD z2ui5_if_ui5_client~check_on_event.
 
     IF val IS NOT INITIAL.
       result = xsdbool( mo_action->ms_actual-event = val ).
@@ -69,7 +72,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~get.
+  METHOD z2ui5_if_ui5_client~get.
 
     result = VALUE #( event                  = mo_action->ms_actual-event
                       check_launchpad_active = mo_action->mo_http_post->ms_request-s_control-check_launchpad
@@ -111,7 +114,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~get_event_arg.
+  METHOD z2ui5_if_ui5_client~get_event_arg.
 
     TRY.
         result = mo_action->ms_actual-t_event_arg[ v ].
@@ -121,7 +124,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~get_app.
+  METHOD z2ui5_if_ui5_client~get_app.
 
     IF id IS NOT INITIAL.
       DATA(lo_app) = z2ui5_cl_core_app=>db_load( id ).
@@ -133,7 +136,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~message_box_display.
+  METHOD z2ui5_if_ui5_client~message_box_display.
 
     DATA lv_text    TYPE string.
     DATA lv_type    TYPE string.
@@ -185,7 +188,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~message_toast_display.
+  METHOD z2ui5_if_ui5_client~message_toast_display.
 
     mo_action->ms_next-s_set-s_msg_toast = VALUE #( text                     = text
                                                     duration                 = duration
@@ -221,7 +224,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nav_app_call.
+  METHOD z2ui5_if_ui5_client~nav_app_call.
 
     mo_action->ms_next-o_app_call = app.
     result = nav_app_set_id( app ).
@@ -229,10 +232,10 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nav_app_leave.
+  METHOD z2ui5_if_ui5_client~nav_app_leave.
 
     IF app IS NOT SUPPLIED.
-      app = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app_stack ).
+      app = z2ui5_if_ui5_client~get_app( mo_action->mo_app->ms_draft-id_prev_app_stack ).
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.
@@ -249,7 +252,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest2_view_destroy.
+  METHOD z2ui5_if_ui5_client~nest2_view_destroy.
 
     " see popover_destroy for why the whole slot is wiped instead of setting a flag
     mo_action->ms_next-s_set-s_view_nest2 = VALUE #( check_destroy = abap_true ).
@@ -257,7 +260,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest2_view_display.
+  METHOD z2ui5_if_ui5_client~nest2_view_display.
 
     mo_action->ms_next-s_set-s_view_nest2-check_destroy  = abap_false.
     mo_action->ms_next-s_set-s_view_nest2-xml            = val.
@@ -268,18 +271,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest2_view_model_update.
+  METHOD z2ui5_if_ui5_client~nest2_view_model_update.
 
     " a nested view owns no model - it inherits the MAIN view's by UI5 model
     " propagation, so refreshing "the nest2 model" means refreshing the root
     " model. Delegating also removes the old trap: the former nest2-only flag
     " was skipped by the frontend whenever no nested view happened to be open
-    z2ui5_if_client~view_model_update( ).
+    z2ui5_if_ui5_client~view_model_update( ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest_view_destroy.
+  METHOD z2ui5_if_ui5_client~nest_view_destroy.
 
     " see popover_destroy for why the whole slot is wiped instead of setting a flag
     mo_action->ms_next-s_set-s_view_nest = VALUE #( check_destroy = abap_true ).
@@ -287,7 +290,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest_view_display.
+  METHOD z2ui5_if_ui5_client~nest_view_display.
 
     mo_action->ms_next-s_set-s_view_nest-check_destroy  = abap_false.
     mo_action->ms_next-s_set-s_view_nest-xml            = val.
@@ -298,15 +301,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest_view_model_update.
+  METHOD z2ui5_if_ui5_client~nest_view_model_update.
 
     " see nest2_view_model_update - one root model, so this is view_model_update
-    z2ui5_if_client~view_model_update( ).
+    z2ui5_if_ui5_client~view_model_update( ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popover_destroy.
+  METHOD z2ui5_if_ui5_client~popover_destroy.
 
     " wipe the whole slot (like popup_destroy) - a plain flag would leave the
     " xml of a popover_display( ) from the same roundtrip in place and the
@@ -316,7 +319,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popover_display.
+  METHOD z2ui5_if_ui5_client~popover_display.
 
     mo_action->ms_next-s_set-s_popover-check_destroy = abap_false.
     mo_action->ms_next-s_set-s_popover-xml           = xml.
@@ -325,21 +328,21 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popover_model_update.
+  METHOD z2ui5_if_ui5_client~popover_model_update.
 
     mo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popup_destroy.
+  METHOD z2ui5_if_ui5_client~popup_destroy.
 
     mo_action->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popup_display.
+  METHOD z2ui5_if_ui5_client~popup_display.
 
     mo_action->ms_next-s_set-s_popup-check_destroy = abap_false.
     mo_action->ms_next-s_set-s_popup-xml           = val.
@@ -347,21 +350,21 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popup_model_update.
+  METHOD z2ui5_if_ui5_client~popup_model_update.
 
     mo_action->ms_next-s_set-s_popup-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~view_destroy.
+  METHOD z2ui5_if_ui5_client~view_destroy.
 
     mo_action->ms_next-s_set-s_view-check_destroy = abap_true.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~view_display.
+  METHOD z2ui5_if_ui5_client~view_display.
 
     " like popup_display/popover_display: displaying cancels a destroy
     " queued earlier in the same roundtrip
@@ -373,14 +376,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~view_model_update.
+  METHOD z2ui5_if_ui5_client~view_model_update.
 
     mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~_bind.
+  METHOD z2ui5_if_ui5_client~_bind.
 
     DATA(li_filter) = custom_filter.
 
@@ -423,13 +426,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~_bind_edit.
+  METHOD z2ui5_if_ui5_client~_bind_edit.
 
     " compatibility alias of _bind - delegate instead of repeating the call so
     " both can never drift apart. custom_mapper_back / custom_filter_back exist
     " only on this signature and are deliberately no longer evaluated (_bind
     " has no counterpart for them).
-    result = z2ui5_if_client~_bind( val                  = val
+    result = z2ui5_if_ui5_client~_bind( val                  = val
                                     path                 = path
                                     view                 = view
                                     custom_mapper        = custom_mapper
@@ -441,7 +444,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~_event.
+  METHOD z2ui5_if_ui5_client~_event.
 
     result = mo_srv_event->get_event( val   = val
                                       t_arg = t_arg
@@ -454,7 +457,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~_event_client.
+  METHOD z2ui5_if_ui5_client~_event_client.
 
     result = mo_srv_event->get_event_client( val   = val
                                              view  = view
@@ -463,21 +466,21 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_nav_back.
+  METHOD z2ui5_if_ui5_client~set_nav_back.
 
     mo_action->ms_next-s_set-set_nav_back = val.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_push_state.
+  METHOD z2ui5_if_ui5_client~set_push_state.
 
     mo_action->ms_next-s_set-set_push_state = val.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_nav_routing.
+  METHOD z2ui5_if_ui5_client~set_nav_routing.
 
     mo_action->ms_next-s_set-set_nav_routing = mode.
     " remember the mode on the app so every later response of this app carries
@@ -487,14 +490,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_app_state_active.
+  METHOD z2ui5_if_ui5_client~set_app_state_active.
 
     mo_action->ms_next-s_set-set_app_state_active = val.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_session_stateful.
+  METHOD z2ui5_if_ui5_client~set_session_stateful.
 
     DATA(li_app) = get_if_app( ).
     IF li_app->check_sticky = val.
@@ -508,14 +511,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~check_app_prev_stack.
+  METHOD z2ui5_if_ui5_client~check_app_prev_stack.
 
     result = xsdbool( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~check_on_init.
+  METHOD z2ui5_if_ui5_client~check_on_init.
 
     " keep the interface access on a typed variable - reading the attribute
     " directly on the method-call chain breaks in the abaplint transpiler
@@ -526,23 +529,23 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~check_on_navigated.
+  METHOD z2ui5_if_ui5_client~check_on_navigated.
 
     result = mo_action->ms_actual-check_on_navigated.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~get_app_prev.
+  METHOD z2ui5_if_ui5_client~get_app_prev.
 
-    result = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app ).
+    result = z2ui5_if_ui5_client~get_app( mo_action->mo_app->ms_draft-id_prev_app ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~_event_nav_app_leave.
+  METHOD z2ui5_if_ui5_client~_event_nav_app_leave.
 
-    result = z2ui5_if_client~_event( z2ui5_if_core_types=>cs_event_nav_app_leave ).
+    result = z2ui5_if_ui5_client~_event( z2ui5_if_core_types=>cs_event_nav_app_leave ).
 
   ENDMETHOD.
 
