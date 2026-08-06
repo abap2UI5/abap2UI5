@@ -265,7 +265,12 @@ INTERFACE z2ui5_if_client
   "! built-in default for this event (oEvent.preventDefault(), e.g. a
   "! sap.tnt NavigationListItem press that must not select the item) before
   "! the roundtrip - the event is still sent, so the backend stays in charge
-  "! of what happens instead.
+  "! of what happens instead. That flag is baked per WIRE at render time;
+  "! prevent_default_expr is the same veto decided per FIRING - a client
+  "! expression evaluated when the event fires, so one wire can protect one
+  "! row/column and let the rest through
+  "! (`${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`). It wins
+  "! over the flag when both are set.
   METHODS _event
     IMPORTING
       val           TYPE clike                              OPTIONAL

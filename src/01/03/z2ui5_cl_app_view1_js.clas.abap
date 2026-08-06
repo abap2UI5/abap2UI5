@@ -416,16 +416,22 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Example: sap.tnt NavigationListItem.press, where cancelling the` && |\n| &&
              `      // default suppresses the item selection and leaves the decision to` && |\n| &&
              `      // the backend. The name is part of the protocol - do not rename it.` && |\n| &&
+             `      //` && |\n| &&
+             `      // The second argument is the veto CONDITION, so the decision can be` && |\n| &&
+             `      // made per firing instead of per wire: s_ctrl-check_prevent_default` && |\n| &&
+             `      // sends the constant true, s_ctrl-prevent_default_expr sends an` && |\n| &&
+             `      // expression UI5 resolves on each firing (e.g. "is this the one column` && |\n| &&
+             `      // that must not be resized?"). Everything after it is the eB payload.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
-             `      eBP(oEvent, ...args) {` && |\n| &&
-             `        // guard the call: a malformed wire (no $event) must still round-trip` && |\n| &&
-             `        if (typeof oEvent?.preventDefault === "function") {` && |\n| &&
+             `      eBP(oEvent, bVeto, ...args) {` && |\n| &&
+             `        // guard the call: a malformed wire (no $event) must still round-trip` && |\n|.
+    result = result &&
+             `        if (bVeto && typeof oEvent?.preventDefault === "function") {` && |\n| &&
              `          oEvent.preventDefault();` && |\n| &&
              `        }` && |\n| &&
              `        this.eB(...args);` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      // Ancestor-text breadcrumb of a control resolved in an event argument,` && |\n| &&
              `      // e.g. ``$controller.textPath(${$parameters>/item})`` on a menu's` && |\n| &&
              `      // itemSelected -> "Create New Site > Official Store". The parent-chain` && |\n| &&

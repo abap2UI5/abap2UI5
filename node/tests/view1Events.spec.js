@@ -41,21 +41,50 @@ test.describe("eBP (roundtrip with preventDefault)", () => {
     const { controller, sent } = withRecordedEB();
     let prevented = false;
     const oEvent = { preventDefault: () => (prevented = true) };
-    controller.eBP(oEvent, ["ITEM_PRESS"], "__item0");
+    // the flag form: the backend sends the constant true as the condition
+    controller.eBP(oEvent, true, ["ITEM_PRESS"], "__item0");
     expect(prevented).toBe(true);
     expect(sent).toEqual([[["ITEM_PRESS"], "__item0"]]);
   });
 
   test("still round-trips when no event object arrives", () => {
     const { controller, sent } = withRecordedEB();
-    controller.eBP(undefined, ["ITEM_PRESS"]);
+    controller.eBP(undefined, true, ["ITEM_PRESS"]);
     expect(sent).toEqual([[["ITEM_PRESS"]]]);
   });
 
   test("does not call a non-function preventDefault", () => {
     const { controller, sent } = withRecordedEB();
-    controller.eBP({ preventDefault: "not a function" }, ["ITEM_PRESS"]);
+    controller.eBP({ preventDefault: "not a function" }, true, ["ITEM_PRESS"]);
     expect(sent).toEqual([[["ITEM_PRESS"]]]);
+  });
+
+  // s_ctrl-prevent_default_expr: the condition is an expression UI5 resolves
+  // per firing, so ONE wire can veto one row/column and let the rest through.
+  // Whatever it resolves to, the event is always sent - the backend stays in
+  // charge, exactly as with the flag.
+  test("a falsy condition lets the control's default through", () => {
+    const { controller, sent } = withRecordedEB();
+    let prevented = false;
+    const oEvent = { preventDefault: () => (prevented = true) };
+    controller.eBP(oEvent, false, ["COLUMN_RESIZE"], "100px");
+    expect(prevented).toBe(false);
+    expect(sent).toEqual([[["COLUMN_RESIZE"], "100px"]]);
+  });
+
+  test("the same wire vetoes or not, per firing", () => {
+    const { controller, sent } = withRecordedEB();
+    const fire = (bVeto) => {
+      let prevented = false;
+      controller.eBP({ preventDefault: () => (prevented = true) }, bVeto, [
+        "COLUMN_RESIZE",
+      ]);
+      return prevented;
+    };
+    expect(fire(true)).toBe(true);
+    expect(fire(false)).toBe(false);
+    // both firings round-tripped with an identical payload
+    expect(sent).toEqual([[["COLUMN_RESIZE"]], [["COLUMN_RESIZE"]]]);
   });
 });
 

@@ -224,10 +224,30 @@ function isAdditiveOptionalParams(oldSig, newSig) {
   return /^(?: [a-z_0-9]+ type .+?(?: optional| default \S+))+$/.test(appended);
 }
 
+// The same rule for a public STRUCTURE TYPE: appending a component at the end
+// is additive - every existing `VALUE #( a = ... )` and every field access
+// still compiles, and a caller that never sets the new component gets its
+// initial value. Only an APPEND counts: a removed, renamed, retyped or
+// reordered component changes the meaning of code that already exists and
+// stays a violation.
+function isAdditiveTypeComponents(oldSig, newSig) {
+  const END = / types end of [a-z_0-9]+\.?$/;
+  const oldEnd = oldSig.match(END)?.[0];
+  if (!oldEnd || newSig.match(END)?.[0] !== oldEnd) return false;
+  const oldHead = oldSig.slice(0, oldSig.length - oldEnd.length);
+  const newHead = newSig.slice(0, newSig.length - oldEnd.length);
+  if (!newHead.startsWith(`${oldHead} `)) return false;
+  const appended = newHead.slice(oldHead.length);
+  return /^(?: types [a-z_0-9]+ type [^.]+ \.)+$/.test(appended);
+}
+
+const isAdditive = (oldSig, newSig) =>
+  isAdditiveOptionalParams(oldSig, newSig) || isAdditiveTypeComponents(oldSig, newSig);
+
 const removed = Object.keys(snap).filter((k) => !(k in current));
 const differing = Object.keys(snap).filter((k) => k in current && current[k] !== snap[k]);
-const changed = differing.filter((k) => !isAdditiveOptionalParams(snap[k], current[k]));
-const extended = differing.filter((k) => isAdditiveOptionalParams(snap[k], current[k]));
+const changed = differing.filter((k) => !isAdditive(snap[k], current[k]));
+const extended = differing.filter((k) => isAdditive(snap[k], current[k]));
 const added = Object.keys(current).filter((k) => !(k in snap));
 
 for (const k of removed) console.error(`REMOVED (rule-5 violation): ${k}\n  was: ${snap[k]}`);
@@ -235,7 +255,7 @@ for (const k of changed)
   console.error(`CHANGED (rule-5 violation): ${k}\n  was: ${snap[k]}\n  now: ${current[k]}`);
 for (const k of extended)
   console.error(
-    `EXTENDED by optional parameter(s) (allowed, but unrecorded): ${k}\n  was: ${snap[k]}\n  now: ${current[k]}\n  run: node .github/scripts/api-snapshot.mjs --write  (and commit the snapshot so the addition is reviewed + guarded)`,
+    `EXTENDED additively (allowed, but unrecorded): ${k}\n  was: ${snap[k]}\n  now: ${current[k]}\n  run: node .github/scripts/api-snapshot.mjs --write  (and commit the snapshot so the addition is reviewed + guarded)`,
   );
 for (const k of added)
   console.error(

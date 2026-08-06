@@ -14,6 +14,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_view_param FOR TESTING.
     METHODS event_multi_req   FOR TESTING.
     METHODS event_prevent_default FOR TESTING.
+    METHODS event_prevent_default_expr FOR TESTING.
     METHODS event_client_args FOR TESTING.
     METHODS event_nav_container FOR TESTING.
     METHODS event_quote_escaped FOR TESTING.
@@ -294,12 +295,12 @@ CLASS ltcl_test IMPLEMENTATION.
     " frontend needs to cancel the control's built-in default before the
     " roundtrip - everything after it is the unchanged .eB payload
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,['ITEM_PRESS'])`
+        exp = `.eBP($event,true,['ITEM_PRESS'])`
         act = lo_event->get_event( val   = `ITEM_PRESS`
                                    s_cnt = ls_ctrl ) ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,['ITEM_PRESS'], $event.oSource.sId)`
+        exp = `.eBP($event,true,['ITEM_PRESS'], $event.oSource.sId)`
         act = lo_event->get_event( val   = `ITEM_PRESS`
                                    t_arg = VALUE #( ( `$event.oSource.sId` ) )
                                    s_cnt = ls_ctrl ) ).
@@ -307,7 +308,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " both flags together stay independent
     ls_ctrl-check_allow_multi_req = abap_true.
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,['ITEM_PRESS',false,true])`
+        exp = `.eBP($event,true,['ITEM_PRESS',false,true])`
         act = lo_event->get_event( val   = `ITEM_PRESS`
                                    s_cnt = ls_ctrl ) ).
 
@@ -316,6 +317,42 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['ITEM_PRESS'])`
         act = lo_event->get_event( val   = `ITEM_PRESS`
+                                   s_cnt = ls_ctrl ) ).
+
+  ENDMETHOD.
+
+  METHOD event_prevent_default_expr.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA ls_ctrl TYPE z2ui5_if_types=>ty_s_event_control.
+    lo_event = NEW #( ).
+
+    CLEAR ls_ctrl.
+    ls_ctrl-prevent_default_expr = `${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`.
+
+    " the expression takes the place of the constant `true`, so the veto is
+    " decided per firing - one wire protects one column and lets the rest
+    " through. The payload after it is unchanged
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,${$parameters>/column}.getId().indexOf('COL_DATE') >= 0,['COLUMN_RESIZE'], ${$parameters>/width})`
+        act = lo_event->get_event( val   = `COLUMN_RESIZE`
+                                   t_arg = VALUE #( ( `${$parameters>/width}` ) )
+                                   s_cnt = ls_ctrl ) ).
+
+    " the expression wins over the flag when both are set
+    ls_ctrl-check_prevent_default = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,${$parameters>/column}.getId().indexOf('COL_DATE') >= 0,['COLUMN_RESIZE'])`
+        act = lo_event->get_event( val   = `COLUMN_RESIZE`
+                                   s_cnt = ls_ctrl ) ).
+
+    " and it combines with the multi-request flag like the plain form
+    CLEAR ls_ctrl.
+    ls_ctrl-prevent_default_expr  = `${$parameters>/on}`.
+    ls_ctrl-check_allow_multi_req = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,${$parameters>/on},['COLUMN_RESIZE',false,true])`
+        act = lo_event->get_event( val   = `COLUMN_RESIZE`
                                    s_cnt = ls_ctrl ) ).
 
   ENDMETHOD.
