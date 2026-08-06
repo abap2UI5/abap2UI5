@@ -1,0 +1,170 @@
+CLASS ltcl_builder DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+    METHODS render_nested_view FOR TESTING.
+    METHODS att_hits_current_element FOR TESTING.
+    METHODS att_after_end_hits_parent FOR TESTING.
+    METHODS att_after_children FOR TESTING.
+    METHODS trailing_end_is_optional FOR TESTING.
+    METHODS escape_attribute_value FOR TESTING.
+    METHODS escape_whitespace_chars FOR TESTING.
+    METHODS bool_parameter FOR TESTING.
+ENDCLASS.
+
+
+CLASS ltcl_builder IMPLEMENTATION.
+
+  METHOD render_nested_view.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+
+    view->ele( n  = `View`
+               ns = `mvc`
+        )->att( n = `xmlns`
+                v = `sap.m`
+
+        )->ele( `Text`
+            )->att( n = `text`
+                    v = `Hello`
+        )->end(
+
+        )->ele( `Panel`
+            )->ele( `Title` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->xml( )
+      exp = `<mvc:View xmlns="sap.m"><Text text="Hello"/><Panel><Title/></Panel></mvc:View>` ).
+
+  ENDMETHOD.
+
+
+  METHOD att_hits_current_element.
+
+    " the one rule: att( ) lands on the element the chain is standing on, so
+    " repeated ele( )/end( ) pairs produce siblings each carrying their own
+    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+
+    view->ele( `Page`
+        )->ele( `Text`
+            )->att( n = `text`
+                    v = `first`
+        )->end(
+        )->ele( `Text`
+            )->att( n = `text`
+                    v = `second` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->xml( )
+      exp = `<Page><Text text="first"/><Text text="second"/></Page>` ).
+
+  ENDMETHOD.
+
+
+  METHOD att_after_end_hits_parent.
+
+    " after end( ) the chain stands on the parent - att( ) attaches there,
+    " which is what the indentation suggests and what the old builder could
+    " not do
+    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+
+    view->ele( `Panel`
+            )->ele( `Title`
+        )->end(
+        )->att( n = `width`
+                v = `100%` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->xml( )
+      exp = `<Panel width="100%"><Title/></Panel>` ).
+
+  ENDMETHOD.
+
+
+  METHOD att_after_children.
+
+    " an attribute may follow the children of its own element - impossible in
+    " the predecessor, where it silently went to the last child
+    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+
+    view->ele( `Panel`
+            )->ele( `Title`
+            )->end(
+        )->att( n = `width`
+                v = `100%` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->xml( )
+      exp = `<Panel width="100%"><Title/></Panel>` ).
+
+  ENDMETHOD.
+
+
+  METHOD trailing_end_is_optional.
+
+    " xml( ) renders from the root, so the chain may simply stop
+    DATA(closed) = z2ui5_cl_ui5_view_builder=>new( ).
+    closed->ele( `Page` )->ele( `Panel` )->ele( `Title` )->end( )->end( ).
+
+    DATA(open) = z2ui5_cl_ui5_view_builder=>new( ).
+    open->ele( `Page` )->ele( `Panel` )->ele( `Title` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = open->xml( )
+      exp = closed->xml( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_attribute_value.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+
+    view->ele( `Text`
+        )->att( n = `text`
+                v = `a<b>&"c` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->xml( )
+      exp = `<Text text="a&lt;b&gt;&amp;&quot;c"/>` ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_whitespace_chars.
+
+    " a literal LF/TAB in an attribute value must survive XML attribute-value
+    " normalization as a character reference (e.g. a two-line noDataText)
+    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+
+    view->ele( `Text`
+        )->att( n = `text`
+                v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->xml( )
+      exp = `<Text text="line1&#xA;line2&#x9;end"/>` ).
+
+  ENDMETHOD.
+
+
+  METHOD bool_parameter.
+
+    " b replaces the predecessor's as_bool( ) helper - abap_false must render
+    " as `false`, not vanish, which is why it is read with IS SUPPLIED
+    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+
+    view->ele( `Panel`
+        )->att( n = `visible`
+                b = abap_true
+        )->att( n = `expanded`
+                b = abap_false ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->xml( )
+      exp = `<Panel visible="true" expanded="false"/>` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
