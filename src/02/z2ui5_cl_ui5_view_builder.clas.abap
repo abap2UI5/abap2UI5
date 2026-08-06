@@ -4,11 +4,11 @@
 "!   ele - element   add a child element and DESCEND into it (returns the child)
 "!   att - attribute set an attribute on the element you are standing on
 "!   end - end       ascend to the parent element (returns the parent)
-"!   xml - xml       render the whole view, always from the root
+"!   stringify      render the whole view, always from the root
 "! Element = n (name), namespace prefix = ns (e.g. `f`, `core`, `l`).
 "! There is exactly one rule: att( ) always applies to the CURRENT element, the
 "! one the last ele( ) descended into. Every ele( ) may be closed by an end( );
-"! a trailing end( ) at the end of the chain can be omitted, because xml( )
+"! a trailing end( ) at the end of the chain can be omitted, because stringify( )
 "! renders from the root no matter where the chain stopped.
 "! The root mvc:View element and its xmlns declarations are written by hand,
 "! exactly like a real UI5 view:
@@ -55,7 +55,7 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
 
     "! render the complete view as XML - always from the root, no matter which
     "! element this reference currently points at
-    METHODS xml
+    METHODS stringify
       RETURNING
         VALUE(result) TYPE string.
 
@@ -211,7 +211,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD xml.
+  METHOD stringify.
 
     result = root->render( ).
 

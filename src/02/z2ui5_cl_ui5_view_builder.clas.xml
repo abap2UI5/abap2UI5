@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_UI5_VIEW_BUILDER</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - view builder - new/ele/att/end/xml</DESCRIPT>
+    <DESCRIPT>abap2UI5 - view builder - new/ele/att/end</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

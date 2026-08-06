@@ -34,7 +34,7 @@ CLASS ltcl_builder IMPLEMENTATION.
             )->ele( `Title` ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = view->xml( )
+      act = view->stringify( )
       exp = `<mvc:View xmlns="sap.m"><Text text="Hello"/><Panel><Title/></Panel></mvc:View>` ).
 
   ENDMETHOD.
@@ -56,7 +56,7 @@ CLASS ltcl_builder IMPLEMENTATION.
                     v = `second` ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = view->xml( )
+      act = view->stringify( )
       exp = `<Page><Text text="first"/><Text text="second"/></Page>` ).
 
   ENDMETHOD.
@@ -76,7 +76,7 @@ CLASS ltcl_builder IMPLEMENTATION.
                 v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = view->xml( )
+      act = view->stringify( )
       exp = `<Panel width="100%"><Title/></Panel>` ).
 
   ENDMETHOD.
@@ -95,7 +95,7 @@ CLASS ltcl_builder IMPLEMENTATION.
                 v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = view->xml( )
+      act = view->stringify( )
       exp = `<Panel width="100%"><Title/></Panel>` ).
 
   ENDMETHOD.
@@ -103,7 +103,7 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD trailing_end_is_optional.
 
-    " xml( ) renders from the root, so the chain may simply stop
+    " stringify( ) renders from the root, so the chain may simply stop
     DATA(closed) = z2ui5_cl_ui5_view_builder=>new( ).
     closed->ele( `Page` )->ele( `Panel` )->ele( `Title` )->end( )->end( ).
 
@@ -111,8 +111,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     open->ele( `Page` )->ele( `Panel` )->ele( `Title` ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = open->xml( )
-      exp = closed->xml( ) ).
+      act = open->stringify( )
+      exp = closed->stringify( ) ).
 
   ENDMETHOD.
 
@@ -126,7 +126,7 @@ CLASS ltcl_builder IMPLEMENTATION.
                 v = `a<b>&"c` ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = view->xml( )
+      act = view->stringify( )
       exp = `<Text text="a&lt;b&gt;&amp;&quot;c"/>` ).
 
   ENDMETHOD.
@@ -143,7 +143,7 @@ CLASS ltcl_builder IMPLEMENTATION.
                 v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = view->xml( )
+      act = view->stringify( )
       exp = `<Text text="line1&#xA;line2&#x9;end"/>` ).
 
   ENDMETHOD.
@@ -162,7 +162,7 @@ CLASS ltcl_builder IMPLEMENTATION.
                 b = abap_false ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = view->xml( )
+      act = view->stringify( )
       exp = `<Panel visible="true" expanded="false"/>` ).
 
   ENDMETHOD.
