@@ -18,8 +18,8 @@ sap.ui.define(
         },
       },
       setTitle(val) {
-        // Empty renderer -> suppress the no-op invalidation; the shell title
-        // is set explicitly below.
+        // Empty renderer -> suppress the no-op invalidation; the effect below
+        // (setting the shell title) is what actually matters.
         this.setProperty("title", val, true);
         try {
           const shell = AppState.state.oLaunchpad?.ShellUIService;

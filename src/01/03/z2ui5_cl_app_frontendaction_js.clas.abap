@@ -137,6 +137,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
              `      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)` && |\n| &&
+             `      setSticky: ["object"], // sap.m.ListBase/sap.m.Table: JSON array of sap.m.Sticky keys` && |\n| &&
+             `      setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association` && |\n| &&
+             `      setSelectedItem: ["controlIdOrNull"], // sap.m.List/sap.m.Select/...: an EMPTY argument clears the selection` && |\n| &&
+             `      css: ["string", "string"], // NOT a UI5 method: set one CSS property on the control's own DOM node` && |\n| &&
              `      enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of ``enabled``` && |\n| &&
              `      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class` && |\n| &&
              `      removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class` && |\n| &&
@@ -158,6 +162,31 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),` && |\n| &&
              `      DENY_ALL: () => false,` && |\n| &&
              `    };` && |\n| &&
+             `` && |\n| &&
+             `    // CONTROL_METHODS.css writes ONE declaration onto the control's own DOM` && |\n| &&
+             `    // node. It exists for the case where a control has no property for the` && |\n| &&
+             `    // value at all - sap.m.Page has no ``width``, so a sample that resizes its` && |\n| &&
+             `    // container (a Slider driving ``byId(...).$().width(v + "%")``) has nothing` && |\n| &&
+             `    // to bind and no method to call. Where the target DOES have the property,` && |\n| &&
+             `    // a bound property stays the correct path (rule "prefer a bindable` && |\n| &&
+             `    // property"); this is the residue, not a general styling API.` && |\n| &&
+             `    //` && |\n| &&
+             `    // The property name is checked against this list so the wire stays a` && |\n| &&
+             `    // narrow, declarative contract instead of "write anything anywhere"; the` && |\n| &&
+             `    // value goes through CSSOM setProperty, which drops an invalid declaration` && |\n| &&
+             `    // (a smuggled second declaration never parses).` && |\n| &&
+             `    const CSS_PROPERTIES = [` && |\n| &&
+             `      "width",` && |\n| &&
+             `      "min-width",` && |\n| &&
+             `      "max-width",` && |\n| &&
+             `      "height",` && |\n| &&
+             `      "min-height",` && |\n| &&
+             `      "max-height",` && |\n| &&
+             `      "color",` && |\n| &&
+             `      "background-color",` && |\n| &&
+             `      "font-size",` && |\n| &&
+             `      "opacity",` && |\n| &&
+             `    ];` && |\n| &&
              `` && |\n| &&
              `    function isAbsoluteUrl(url) {` && |\n| &&
              `      const s = String(url ?? "").trim();` && |\n| &&
@@ -258,6 +287,32 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        get: () => sap.ui.require("sap/ui/core/Popup"),` && |\n| &&
              `        methods: { setWithinArea: ["within"] },` && |\n| &&
              `      },` && |\n| &&
+             `      // sap/ui/core/InvisibleMessage is @since 1.78 and is a SINGLETON: it` && |\n| &&
+             `      // renders nothing, so it has no id CONTROL_BY_ID could resolve - a` && |\n| &&
+             `      // global target is the only way a backend-driven content change can be` && |\n| &&
+             `      // announced to a screen reader. Lazy-require like THEMING so 1.71 hits` && |\n| &&
+             `      // the "not available" guard instead of failing the component load.` && |\n| &&
+             `      // announce(sText, sMode) with sMode Polite (default) | Assertive.` && |\n| &&
+             `      INVISIBLE_MESSAGE: {` && |\n| &&
+             `        get: () => {` && |\n| &&
+             `          const IM = sap.ui.require("sap/ui/core/InvisibleMessage");` && |\n| &&
+             `          return IM ? IM.getInstance() : undefined;` && |\n| &&
+             `        },` && |\n| &&
+             `        methods: { announce: ["string", "string"] },` && |\n| &&
+             `      },` && |\n| &&
+             `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
+             `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
+             `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
+             `      // property nor something a per-binding formatter can register for the` && |\n| &&
+             `      // standard sap.ui.model.type.Currency. The payload is a JSON object -` && |\n| &&
+             `      // data the backend owns anyway. Lazy-require like THEMING.` && |\n| &&
+             `      FORMATTING: {` && |\n| &&
+             `        get: () => sap.ui.require("sap/ui/core/Formatting"),` && |\n| &&
+             `        methods: {` && |\n| &&
+             `          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }` && |\n| &&
+             `          addCustomCurrency: ["string", "object"], // code, { digits: n }` && |\n| &&
+             `        },` && |\n| &&
+             `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Cast one raw string argument to the kind the whitelist declared.` && |\n| &&
@@ -265,6 +320,52 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // controlId argument resolves against the same view first - this keeps` && |\n| &&
              `    // slot-local ids unambiguous (e.g. a NavContainer navigating to one of` && |\n| &&
              `    // its own pages) before falling back to the global lookup.` && |\n| &&
+             `    // A control CLONED from an aggregation template has no id the backend can` && |\n| &&
+             `    // spell. UI5 mints it as ``<templateId>-<parentId>-<index>`` - deterministic,` && |\n| &&
+             `    // but the parent id carries the VIEW PREFIX the framework assigns at` && |\n| &&
+             `    // runtime (``v1--tpl-v1--car-0``), which the backend never sees. So an` && |\n| &&
+             `    // aggregation item is addressed positionally instead:` && |\n| &&
+             `    //` && |\n| &&
+             `    //     "<controlId>/<aggregation>/<index>"     e.g. "carousel/pages/2"` && |\n| &&
+             `    //` && |\n| &&
+             `    // resolved here, on the client, where both the prefix and the aggregation` && |\n| &&
+             `    // are known. This is the equivalent of the UI5 controller idiom` && |\n| &&
+             `    // ``oCarousel.setActivePage(oCarousel.getPages()[i])``, which no id-based` && |\n| &&
+             `    // call can express. A plain id (no slashes) resolves exactly as before.` && |\n| &&
+             `    const AGG_ITEM = /^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;` && |\n| &&
+             `` && |\n| &&
+             `    function resolveControl(raw, view) {` && |\n| &&
+             `      const byId = (id) =>` && |\n| &&
+             `        (view && ViewSlots.byId(view.toUpperCase(), id)) ||` && |\n| &&
+             `        ViewSlots.resolveById(id);` && |\n| &&
+             `` && |\n| &&
+             `      const m = AGG_ITEM.exec(String(raw ?? ""));` && |\n| &&
+             `      if (!m) return byId(raw);` && |\n| &&
+             `` && |\n| &&
+             `      const owner = byId(m[1]);` && |\n| &&
+             `      if (!owner || typeof owner.getAggregation !== "function") {` && |\n| &&
+             `        Lib.logError(``aggregation item '${raw}': no control '${m[1]}'``);` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      const items = owner.getAggregation(m[2]);` && |\n| &&
+             `      if (!Array.isArray(items)) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``aggregation item '${raw}': '${m[2]}' is no multiple aggregation of ${m[1]}``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      const item = items[Number(m[3])];` && |\n| &&
+             `      if (!item) {` && |\n| &&
+             `        // out of range is not an error the app can see otherwise - the method` && |\n| &&
+             `        // would silently receive undefined and do nothing` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      return item;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function castArg(kind, raw, view) {` && |\n| &&
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
@@ -272,10 +373,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        case "bool":` && |\n| &&
              `          return raw === "true" || raw === "X" || raw === true;` && |\n| &&
              `        case "controlId":` && |\n| &&
-             `          return (` && |\n| &&
-             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw)` && |\n| &&
-             `          );` && |\n| &&
+             `          return resolveControl(raw, view);` && |\n| &&
+             `        case "controlIdOrNull":` && |\n| &&
+             `          // an ASSOCIATION cannot be data-bound, so clearing one` && |\n| &&
+             `          // (setSelectedSection(null), setSelectedItem(null)) can only travel` && |\n| &&
+             `          // as a method argument - and an EMPTY argument must arrive as null,` && |\n| &&
+             `          // not as the ``false`` castArgAuto would infer. Same "empty means` && |\n| &&
+             `          // null" contract as the ``within`` kind below.` && |\n| &&
+             `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
+             `          return resolveControl(raw, view) || null;` && |\n| &&
              `        case "anchor":` && |\n| &&
              `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
              `          // and hand over the CONTROL itself, not its DOM element. Every` && |\n| &&
@@ -284,10 +390,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // element throws ("getParent is not a function") and the popup never` && |\n| &&
              `          // opens. DatePicker/TimePicker/Menu accept a control just as well,` && |\n| &&
              `          // so a control is the universally-correct anchor.` && |\n| &&
-             `          return (` && |\n| &&
-             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw)` && |\n| &&
-             `          );` && |\n| &&
+             `          return resolveControl(raw, view);` && |\n| &&
              `        case "within":` && |\n| &&
              `          // sap.ui.core.Popup.setWithinArea: a control id confines every popup` && |\n| &&
              `          // to that control, an EMPTY argument releases the restriction (the` && |\n| &&
@@ -296,11 +399,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // popup opens, so handing over the CONTROL - not its DOM element -` && |\n| &&
              `          // is what survives a re-render of the area in between.` && |\n| &&
              `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
-             `          return (` && |\n| &&
-             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw) ||` && |\n| &&
-             `            null` && |\n| &&
-             `          );` && |\n| &&
+             `          return resolveControl(raw, view) || null;` && |\n| &&
              `        case "object":` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
@@ -324,13 +423,25 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      return raw;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // kinds whose EMPTY value is meaningful (null), so a missing trailing` && |\n| &&
+             `    // argument still has to be passed: the backend wire drops a trailing empty` && |\n|.
+    result = result &&
+             `    // t_arg entry, and "clear this association" is exactly a call whose only` && |\n| &&
+             `    // argument is empty.` && |\n| &&
+             `    const NULLABLE_KINDS = ["controlIdOrNull"];` && |\n| &&
+             `` && |\n| &&
              `    function castArgs(kinds, rawArgs, view) {` && |\n| &&
              `      // kinds === null: unlisted-but-allowed method, infer each arg's type` && |\n| &&
              `      if (kinds === null) return rawArgs.map((raw) => castArgAuto(raw));` && |\n| &&
              `      // only cast args the caller actually sent - padding missing trailing` && |\n| &&
-             `      // args would turn open() into open(undefined) and ints into NaN` && |\n| &&
+             `      // args would turn open() into open(undefined) and ints into NaN. The one` && |\n| &&
+             `      // exception is a nullable kind (see above): pad it so the call carries` && |\n| &&
+             `      // an explicit null instead of relying on the control's no-arg handling.` && |\n| &&
+             `      let count = rawArgs.length;` && |\n| &&
+             `      while (count < kinds.length && NULLABLE_KINDS.includes(kinds[count]))` && |\n| &&
+             `        count++;` && |\n| &&
              `      return kinds` && |\n| &&
-             `        .slice(0, rawArgs.length)` && |\n| &&
+             `        .slice(0, count)` && |\n| &&
              `        .map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -383,6 +494,28 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `      // css is not a UI5 method either: it writes one whitelisted CSS` && |\n| &&
+             `      // declaration onto the control's own DOM node, for the case where the` && |\n| &&
+             `      // control has no property carrying that value (sap.m.Page has no` && |\n| &&
+             `      // ``width``). Like the original jQuery-style samples do, the declaration` && |\n| &&
+             `      // lives on the element and is gone after a re-render - the backend` && |\n| &&
+             `      // re-sends it with the next view, exactly as it re-sends every property.` && |\n| &&
+             `      if (method === "css") {` && |\n| &&
+             `        const prop = String(args[4] ?? "").toLowerCase();` && |\n| &&
+             `        if (!CSS_PROPERTIES.includes(prop)) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const el = control?.getDomRef?.();` && |\n| &&
+             `        if (!el) {` && |\n| &&
+             `          Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        el.style.setProperty(prop, String(args[5] ?? ""));` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      // setAsyncURLHandler takes a FUNCTION, so the argument names a policy` && |\n| &&
              `      // (see URL_POLICIES) and the client installs the matching built-in` && |\n| &&
              `      // validator - the wire still carries data, never code.` && |\n| &&
@@ -424,8 +557,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          Lib.logError(` && |\n| &&
              `            ``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``,` && |\n| &&
              `          );` && |\n| &&
-             `          return;` && |\n|.
-    result = result &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
              `        // Same reason as toggleBy: wait for the anchor to render.` && |\n| &&
@@ -693,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");` && |\n| &&
              `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
              `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
-             `      document.body.appendChild(a);` && |\n| &&
+             `      document.body.appendChild(a);` && |\n|.
+    result = result &&
              `      a.click();` && |\n| &&
              `      document.body.removeChild(a);` && |\n| &&
              `    }` && |\n| &&
@@ -825,8 +958,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
              `      }` && |\n| &&
              `      logoutViaBspTerminate(logoutUrl);` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    // When abap2UI5 is hosted as a BSP application,` && |\n| &&
              `    // /sap/public/bc/icf/logoff alone does not terminate the stateful` && |\n| &&
@@ -1094,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // every filter change makes the current variant dirty (the "*" next to the` && |\n| &&
              `    // variant title) and refreshes the bar's assigned-filters summary` && |\n| &&
              `    function attachFilterBarChange(oSVM, oFilterBar) {` && |\n| &&
-             `      oFilterBar.getAllFilterItems().forEach((item) => {` && |\n| &&
+             `      oFilterBar.getAllFilterItems().forEach((item) => {` && |\n|.
+    result = result &&
              `        const control = filterItemControl(item);` && |\n| &&
              `        if (!control || typeof control.attachChange !== "function") return;` && |\n| &&
              `        control.attachChange((oEvent) => {` && |\n| &&
@@ -1226,8 +1359,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            params.SUBJECT,` && |\n| &&
              `            params.BODY,` && |\n| &&
              `            params.CC,` && |\n| &&
-             `            params.BCC,` && |\n|.
-    result = result &&
+             `            params.BCC,` && |\n| &&
              `            params.NEW_WINDOW,` && |\n| &&
              `          ),` && |\n| &&
              `        TRIGGER_SMS: () =>` && |\n| &&
@@ -1333,13 +1465,55 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      return [...mods, key].join("+");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // A shortcut may be SCOPED, which is how UI5's own CommandExecution` && |\n| &&
+             `    // behaves: one in a Popover's dependents shadows the page-level one for` && |\n| &&
+             `    // the same command while that popover is open. A scope is either` && |\n| &&
+             `    //` && |\n| &&
+             `    //   a VIEW SLOT   - POPOVER/POPUP/NEST2/NEST/MAIN, open when the framework` && |\n| &&
+             `    //                   has that slot showing (popover_display, popup_display,` && |\n| &&
+             `    //                   a nested view)` && |\n| &&
+             `    //   a CONTROL ID  - any control DECLARED IN THE VIEW that can be open or` && |\n| &&
+             `    //                   closed: a sap.m.Popover/Dialog in ``dependents`` opened` && |\n| &&
+             `    //                   with control_by_id openBy, which is the shape the demo` && |\n| &&
+             `    //                   kit's Commands sample actually uses. It never enters a` && |\n| &&
+             `    //                   framework slot, so the slot form alone would never fire.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Dispatch prefers a CONTROL scope (the more specific statement) over a` && |\n| &&
+             `    // slot scope, then takes the innermost open slot, then the unscoped entry.` && |\n| &&
+             `    const SHORTCUT_SLOTS = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];` && |\n| &&
+             `    const SHORTCUT_GLOBAL = ""; // the unscoped registration` && |\n| &&
+             `` && |\n| &&
+             `    // A control scope counts while the control is OPEN - isOpen() for the` && |\n| &&
+             `    // popup-like controls this is for, visibility otherwise.` && |\n| &&
+             `    function scopeControlOpen(id) {` && |\n| &&
+             `      const c = ViewSlots.resolveById(id);` && |\n| &&
+             `      if (!c) return false;` && |\n| &&
+             `      if (typeof c.isOpen === "function") return !!c.isOpen();` && |\n| &&
+             `      return typeof c.getVisible === "function"` && |\n| &&
+             `        ? c.getVisible() !== false` && |\n| &&
+             `        : true;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function shortcutEntry(combo) {` && |\n| &&
+             `      const scopes = AppState.state.shortcuts[combo];` && |\n| &&
+             `      if (!scopes) return undefined;` && |\n| &&
+             `      for (const key of Object.keys(scopes)) {` && |\n| &&
+             `        if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;` && |\n| &&
+             `        if (scopeControlOpen(key)) return scopes[key];` && |\n| &&
+             `      }` && |\n| &&
+             `      for (const key of SHORTCUT_SLOTS) {` && |\n| &&
+             `        if (scopes[key] && ViewSlots.getView(key)) return scopes[key];` && |\n| &&
+             `      }` && |\n| &&
+             `      return scopes[SHORTCUT_GLOBAL];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    let shortcutListener = null;` && |\n| &&
              `` && |\n| &&
              `    function installShortcutListener() {` && |\n| &&
              `      if (shortcutListener || typeof document === "undefined") return;` && |\n| &&
              `      shortcutListener = (oEvent) => {` && |\n| &&
              `        try {` && |\n| &&
-             `          const entry = AppState.state.shortcuts[shortcutFromEvent(oEvent)];` && |\n| &&
+             `          const entry = shortcutEntry(shortcutFromEvent(oEvent));` && |\n| &&
              `          if (!entry) return;` && |\n| &&
              `          // the browser's own default for the combo (Ctrl+S saves the page,` && |\n| &&
              `          // Ctrl+D bookmarks it) must not fire alongside the app command` && |\n| &&
@@ -1352,7 +1526,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      document.addEventListener("keydown", shortcutListener);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, combo, eventName] - an empty event name unregisters the combo` && |\n| &&
+             `    // args: [_, combo, eventName, scope] - an empty event name unregisters the` && |\n| &&
+             `    // combo IN THAT SCOPE; scope is a view slot key (cs_view-popover/popup/...)` && |\n| &&
+             `    // and defaults to the unscoped, always-eligible registration` && |\n| &&
              `    function evKeyboardShortcut(oController, args) {` && |\n| &&
              `      const combo = normalizeShortcut(args[1]);` && |\n| &&
              `      if (!combo) {` && |\n| &&
@@ -1361,14 +1537,25 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `      // a slot key is matched case-insensitively; anything else is taken as a` && |\n| &&
+             `      // control id and keeps its case, because that is how it must resolve` && |\n| &&
+             `      const raw = String(args[3] ?? "");` && |\n| &&
+             `      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())` && |\n| &&
+             `        ? raw.toUpperCase()` && |\n| &&
+             `        : raw;` && |\n| &&
              `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
+             `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
              `      if (!args[2]) {` && |\n| &&
-             `        delete shortcuts[combo];` && |\n| &&
+             `        delete scopes[scope];` && |\n| &&
+             `        // a combo with no registration left must not keep an empty entry:` && |\n| &&
+             `        // shortcutEntry would still find it and fall through to undefined,` && |\n| &&
+             `        // but preventDefault has already been decided by then` && |\n| &&
+             `        if (Object.keys(scopes).length === 0) delete shortcuts[combo];` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      // re-registering a combo replaces it, so the backend can rebind a` && |\n| &&
-             `      // shortcut without unregistering it first` && |\n| &&
-             `      shortcuts[combo] = { event: args[2], controller: oController };` && |\n| &&
+             `      // re-registering a combo in the same scope replaces it, so the backend` && |\n| &&
+             `      // can rebind a shortcut without unregistering it first` && |\n| &&
+             `      scopes[scope] = { event: args[2], controller: oController };` && |\n| &&
              `      installShortcutListener();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -1391,10 +1578,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // The three handlers below resolve their target with ViewSlots.resolveById` && |\n| &&
+             `    // (not byId "MAIN"): it searches every open slot first, so controls in a` && |\n| &&
+             `    // popup/popover/nested view are found, and falls back to the global` && |\n| &&
+             `    // registry, so a fully-qualified id resolves too - ids that come from a` && |\n| &&
+             `    // UI5 Message (getControlIds()) or any event carry the view prefix.` && |\n| &&
+             `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
-             `      // resolveById (not byId "MAIN") so a fully-qualified control id also` && |\n| &&
-             `      // resolves - ids that come from a UI5 Message (getControlIds()) or any` && |\n| &&
-             `      // event carry the view prefix and only match via the global registry.` && |\n| &&
              `      const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
              `` && |\n| &&
@@ -1433,13 +1623,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
              `      try {` && |\n| &&
-             `        // resolveById like SET_FOCUS / SCROLL_INTO_VIEW, so controls in` && |\n| &&
-             `        // popups/popovers/nested views and fully-qualified ids work too` && |\n| &&
              `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
-             `        const behavior = args[4] || "auto";` && |\n| &&
+             `        const behavior = args[4] || "auto";` && |\n|.
+    result = result &&
              `        const smooth = behavior === "smooth";` && |\n| &&
              `` && |\n| &&
              `        let handled = false;` && |\n| &&
@@ -1481,8 +1670,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Modern declarative scroll: bring a control into the viewport,` && |\n| &&
              `      // regardless of where the surrounding scroll container currently is.` && |\n| &&
              `      try {` && |\n| &&
-             `        // resolveById so a fully-qualified control id (e.g. from a UI5` && |\n| &&
-             `        // Message's getControlIds()) also resolves, not just a MAIN-local id.` && |\n| &&
              `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
@@ -1627,8 +1814,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
              `      SET_FOCUS: evSetFocus,` && |\n| &&
              `      SCROLL_TO: evScrollTo,` && |\n| &&
-             `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n|.
-    result = result &&
+             `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
              `      START_TIMER: evStartTimer,` && |\n| &&
              `      KEYBOARD_SET_MODE: evSetInputMode,` && |\n| &&
              `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&

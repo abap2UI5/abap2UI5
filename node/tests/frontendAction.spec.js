@@ -239,6 +239,58 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(calls).toHaveLength(0);
     expect(errors).toHaveLength(2);
   });
+
+  test("INVISIBLE_MESSAGE.announce goes through the singleton instance", () => {
+    const { FrontendAction, calls, ctx } = load();
+    const announced = [];
+    const instance = { announce: (...a) => announced.push(a) };
+    ctx.sap.ui.require = (name) =>
+      name === "sap/ui/core/InvisibleMessage"
+        ? { getInstance: () => instance }
+        : null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "INVISIBLE_MESSAGE",
+      "announce",
+      "New Information Bar of type Warning",
+      "Assertive",
+    ]);
+    expect(announced).toEqual([
+      ["New Information Bar of type Warning", "Assertive"],
+    ]);
+    expect(calls).toHaveLength(0);
+  });
+
+  test("INVISIBLE_MESSAGE reports an older runtime instead of throwing", () => {
+    const { FrontendAction, errors, ctx } = load();
+    // @since 1.78 - on 1.71 the lazy require returns undefined
+    ctx.sap.ui.require = () => null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "INVISIBLE_MESSAGE",
+      "announce",
+      "hello",
+    ]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'INVISIBLE_MESSAGE.announce' not available",
+    ]);
+  });
+
+  test("FORMATTING.setCustomCurrencies parses its JSON payload", () => {
+    const { FrontendAction, ctx } = load();
+    const set = [];
+    ctx.sap.ui.require = (name) =>
+      name === "sap/ui/core/Formatting"
+        ? { setCustomCurrencies: (v) => set.push(v) }
+        : null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "FORMATTING",
+      "setCustomCurrencies",
+      '{"BGN4":{"digits":4},"WWWW":{"digits":5}}',
+    ]);
+    expect(set).toEqual([{ BGN4: { digits: 4 }, WWWW: { digits: 5 } }]);
+  });
 });
 
 test.describe("CONTROL_BY_ID", () => {
@@ -262,6 +314,78 @@ test.describe("CONTROL_BY_ID", () => {
     controls.NavCon = { to: (ctrl) => calls.push(["to", ctrl]) };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
     expect(calls).toEqual([["to", page2]]);
+  });
+
+  // A control CLONED from an aggregation template has no id the backend can
+  // spell: UI5 mints it as `<templateId>-<parentId>-<index>` and the parent id
+  // carries the runtime view prefix (measured: `v1--tpl-v1--car-0`). So an
+  // aggregation item is addressed positionally - "<id>/<aggregation>/<index>" -
+  // which is the UI5 controller idiom oCarousel.getPages()[i] no id-based call
+  // can express (sap.m.sample.ComparisonPattern, app 012).
+  test.describe("aggregation-item addressing", () => {
+    function carousel(calls, controls) {
+      const pages = [{ id: "p0" }, { id: "p1" }, { id: "p2" }];
+      controls.car = {
+        getAggregation: (name) => (name === "pages" ? pages : null),
+        setActivePage: (p) => calls.push(["setActivePage", p]),
+      };
+      return pages;
+    }
+
+    test("resolves the Nth item of an aggregation", () => {
+      const { FrontendAction, calls, controls } = load();
+      const pages = carousel(calls, controls);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/2",
+      ]);
+      expect(calls).toEqual([["setActivePage", pages[2]]]);
+    });
+
+    test("index 0 is an item, not an empty argument", () => {
+      const { FrontendAction, calls, controls } = load();
+      const pages = carousel(calls, controls);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/0",
+      ]);
+      expect(calls).toEqual([["setActivePage", pages[0]]]);
+    });
+
+    test("a plain id still resolves exactly as before", () => {
+      const { FrontendAction, calls, controls } = load();
+      const page2 = { id: "page2" };
+      controls.page2 = page2;
+      controls.NavCon = { to: (ctrl) => calls.push(["to", ctrl]) };
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
+      expect(calls).toEqual([["to", page2]]);
+    });
+
+    test("an out-of-range index is reported, not silently passed as undefined", () => {
+      const { FrontendAction, calls, errors, controls } = load();
+      carousel(calls, controls);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/9",
+      ]);
+      expect(calls).toEqual([["setActivePage", null]]);
+      expect(errors.join(" ")).toContain("3 item(s)");
+    });
+
+    test("a single-valued aggregation is refused", () => {
+      const { FrontendAction, calls, errors, controls } = load();
+      carousel(calls, controls);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "car/footer/0",
+      ]);
+      expect(errors.join(" ")).toContain("no multiple aggregation");
+    });
+
+    test("an unknown owner control is reported", () => {
+      const { FrontendAction, errors, controls } = load();
+      controls.car = { setActivePage: () => {} };
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "car", "", "setActivePage", "nosuch/pages/0",
+      ]);
+      expect(errors.join(" ")).toContain("nosuch");
+    });
   });
 
   test("rejects a framework-hostile method (destroy is on the denylist)", () => {
@@ -316,6 +440,109 @@ test.describe("CONTROL_BY_ID", () => {
     controls.t = { setHiddenInPopin: (a) => calls.push(["setHiddenInPopin", a]) };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "t", "", "setHiddenInPopin", '["High"]']);
     expect(calls).toEqual([["setHiddenInPopin", ["High"]]]);
+  });
+
+  test("setSticky receives its ARRAY, not the raw string", () => {
+    const { FrontendAction, calls, controls } = load();
+    // without the ["object"] kind the inference would hand over a string and
+    // sap.m.ListBase would reject it
+    controls.tab = { setSticky: (a) => calls.push(["setSticky", a]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "tab",
+      "",
+      "setSticky",
+      '["ColumnHeaders","HeaderToolbar"]',
+    ]);
+    expect(calls).toEqual([["setSticky", ["ColumnHeaders", "HeaderToolbar"]]]);
+  });
+
+  test("setSelectedSection clears the association on an EMPTY argument", () => {
+    const { FrontendAction, calls, controls } = load();
+    const goals = { id: "goals" };
+    controls.goals = goals;
+    controls.opl = {
+      setSelectedSection: (a) => calls.push(["setSelectedSection", a]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "opl",
+      "",
+      "setSelectedSection",
+      "goals",
+    ]);
+    // empty -> null, NOT the `false` the inference path would produce
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "opl",
+      "",
+      "setSelectedSection",
+      "",
+    ]);
+    expect(calls).toEqual([
+      ["setSelectedSection", goals],
+      ["setSelectedSection", null],
+    ]);
+  });
+
+  test("setSelectedSection still clears when the wire dropped the trailing empty arg", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.opl = {
+      setSelectedSection: (...a) => calls.push(["setSelectedSection", ...a]),
+    };
+    // get_t_arg drops a TRAILING empty t_arg entry, so the action arrives with
+    // no argument at all - a nullable kind is padded so the call is explicit
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "opl",
+      "",
+      "setSelectedSection",
+    ]);
+    expect(calls).toEqual([["setSelectedSection", null]]);
+  });
+
+  test("css writes a whitelisted declaration onto the control's DOM node", () => {
+    const { FrontendAction, controls } = load();
+    const set = [];
+    controls.page = {
+      getDomRef: () => ({ style: { setProperty: (p, v) => set.push([p, v]) } }),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "page",
+      "",
+      "css",
+      "width",
+      "60%",
+    ]);
+    expect(set).toEqual([["width", "60%"]]);
+  });
+
+  test("css rejects a property outside the whitelist and a control with no DOM ref", () => {
+    const { FrontendAction, controls, errors } = load();
+    const set = [];
+    controls.page = {
+      getDomRef: () => ({ style: { setProperty: (p, v) => set.push([p, v]) } }),
+    };
+    controls.hidden = { getDomRef: () => null };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "page",
+      "",
+      "css",
+      "position",
+      "absolute",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "hidden",
+      "",
+      "css",
+      "width",
+      "60%",
+    ]);
+    expect(set).toHaveLength(0);
+    expect(errors).toHaveLength(2);
   });
 
   test("open/close without args stay true no-arg calls (popup-mode PDFViewer, Dialog)", () => {
@@ -1179,6 +1406,128 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     const oController = { eB: (args) => fired.push(args) };
     return { ...ctx, doc, fired, oController };
   }
+
+  // A shortcut scoped to a view slot shadows the unscoped one while that slot
+  // is OPEN - the abap2UI5 equivalent of a UI5 CommandExecution sitting in a
+  // Popover's dependents, which shadows the page-level one for the same
+  // command (sap.ui.core.sample.Commands). `views` is ViewSlots' open-slot
+  // map: a key present there means the slot is showing.
+  test.describe("scope", () => {
+    test("the scoped registration wins while its slot is open", () => {
+      const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPOVER", "POPOVER",
+      ]);
+
+      // popover closed -> the page-level command
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"]]);
+
+      // popover open -> its own command shadows it
+      views.POPOVER = {};
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"], ["SAVE_POPOVER"]]);
+
+      // and back again when it closes
+      delete views.POPOVER;
+      doc.press("s", { ctrlKey: true });
+      expect(fired).toEqual([["SAVE"], ["SAVE_POPOVER"], ["SAVE"]]);
+    });
+
+    test("the innermost open slot wins", () => {
+      const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
+      for (const [event, scope] of [
+        ["SAVE", ""], ["SAVE_NEST", "NEST"], ["SAVE_POPOVER", "POPOVER"],
+      ]) {
+        FrontendAction.execute(
+          oController,
+          ["KEYBOARD_SHORTCUT", "Ctrl+S", event, scope].filter((a, i) => i < 3 || a),
+        );
+      }
+      views.NEST = {};
+      views.POPOVER = {};
+      doc.press("s", { ctrlKey: true });
+      expect(fired).toEqual([["SAVE_POPOVER"]]);
+    });
+
+    test("a scoped registration with no open slot falls back to the unscoped one", () => {
+      const { FrontendAction, doc, fired, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPUP", "POPUP",
+      ]);
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"]]);
+    });
+
+    test("unregistering one scope leaves the other alone", () => {
+      const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPOVER", "POPOVER",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "", "POPOVER",
+      ]);
+      views.POPOVER = {};
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"]]);
+    });
+
+    test("removing the last scope stops swallowing the browser default", () => {
+      const { FrontendAction, doc, fired, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", ""]);
+      // Ctrl+S must save the PAGE again, not silently do nothing
+      expect(doc.press("s", { ctrlKey: true })).toBe(false);
+      expect(fired).toEqual([]);
+    });
+
+    // The shape the demo kit's Commands sample actually uses: the Popover is a
+    // CONTROL declared in the view's dependents and opened with openBy, so it
+    // never enters a framework slot. A control id is therefore a scope too,
+    // active while that control is open.
+    test("a control-id scope wins while that control is open", () => {
+      const { FrontendAction, doc, fired, controls, oController } = loadWithDoc();
+      let open = false;
+      controls.popoverCommand = { isOpen: () => open };
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "PSAVE", "popoverCommand",
+      ]);
+
+      doc.press("s", { ctrlKey: true });          // closed -> the page command
+      open = true;
+      doc.press("s", { ctrlKey: true });          // open -> the popover's own
+      open = false;
+      doc.press("s", { ctrlKey: true });          // closed again
+      expect(fired).toEqual([["SAVE"], ["PSAVE"], ["SAVE"]]);
+    });
+
+    test("a control scope beats a slot scope - it is the more specific statement", () => {
+      const { FrontendAction, doc, fired, controls, views, oController } = loadWithDoc();
+      controls.dlg = { isOpen: () => true };
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SLOT", "POPOVER",
+      ]);
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "CTRL", "dlg"]);
+      views.POPOVER = {};
+      doc.press("s", { ctrlKey: true });
+      expect(fired).toEqual([["CTRL"]]);
+    });
+
+    test("a control scope whose control is gone falls back to the unscoped one", () => {
+      const { FrontendAction, doc, fired, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "PSAVE", "nosuchcontrol",
+      ]);
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"]]);
+    });
+  });
 
   test("fires the registered event and swallows the browser default", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();

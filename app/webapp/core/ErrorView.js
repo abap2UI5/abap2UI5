@@ -403,31 +403,25 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     const actionsDiv = document.createElement("div");
     actionsDiv.style.cssText = "display: flex; gap: 8px;";
 
+    // The order the buttons are added is also the Tab order and the order the
+    // focus trap below cycles through.
+    const addAction = (label, onClick) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.style.cssText = btnStyle;
+      button.addEventListener("click", onClick);
+      actionsDiv.appendChild(button);
+    };
+
     if (typeof options.onRetry === "function") {
-      const retryBtn = document.createElement("button");
-      retryBtn.type = "button";
-      retryBtn.textContent = "Retry";
-      retryBtn.style.cssText = btnStyle;
-      retryBtn.addEventListener("click", () => {
+      addAction("Retry", () => {
         errorContainer.remove();
         options.onRetry();
       });
-      actionsDiv.appendChild(retryBtn);
     }
-
-    const refreshBtn = document.createElement("button");
-    refreshBtn.type = "button";
-    refreshBtn.textContent = "Refresh";
-    refreshBtn.style.cssText = btnStyle;
-    refreshBtn.addEventListener("click", () => window.location.reload());
-    actionsDiv.appendChild(refreshBtn);
-
-    const logoutBtn = document.createElement("button");
-    logoutBtn.type = "button";
-    logoutBtn.textContent = "Logout";
-    logoutBtn.style.cssText = btnStyle;
-    logoutBtn.addEventListener("click", () => handleLogout());
-    actionsDiv.appendChild(logoutBtn);
+    addAction("Refresh", () => window.location.reload());
+    addAction("Logout", () => handleLogout());
 
     headerDiv.appendChild(actionsDiv);
     errorContainer.appendChild(headerDiv);
@@ -458,24 +452,25 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     iframe.setAttribute("sandbox", "allow-same-origin");
     errorContainer.appendChild(iframe);
 
-    const preStyle =
-      "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";
+    // textContent does not parse HTML, so the untrusted backend message
+    // cannot execute wherever this <pre> ends up.
+    const createPre = (ownerDocument) => {
+      const pre = ownerDocument.createElement("pre");
+      pre.style.cssText =
+        "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";
+      pre.textContent = errorMessage;
+      return pre;
+    };
+
     const contentDocument = iframe.contentDocument;
     if (contentDocument) {
-      const pre = contentDocument.createElement("pre");
-      pre.style.cssText = preStyle;
-      pre.textContent = errorMessage;
       const target = contentDocument.body || contentDocument.documentElement;
-      target.appendChild(pre);
+      target.appendChild(createPre(contentDocument));
     } else {
       // The sandboxed iframe document was not reachable (sandbox/timing
       // edge). Never leave the fatal overlay empty: fall back to a plain
-      // <pre> in the container. textContent does not parse HTML, so the
-      // untrusted backend message still cannot execute.
-      const pre = document.createElement("pre");
-      pre.style.cssText = preStyle;
-      pre.textContent = errorMessage;
-      errorContainer.appendChild(pre);
+      // <pre> in the container.
+      errorContainer.appendChild(createPre(document));
     }
 
     // Move focus into the dialog so keyboard and screen-reader users land on

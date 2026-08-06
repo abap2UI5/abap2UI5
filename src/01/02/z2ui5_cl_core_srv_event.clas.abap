@@ -71,11 +71,19 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     " event is bound to .eBP instead, which cancels the default and then
     " roundtrips like .eB. It needs the UI5 event object, which UI5 resolves
     " for the reserved $event argument in the handler expression.
+    "
+    " eBP's second argument is the veto CONDITION. The flag form sends the
+    " constant `true`; prevent_default_expr sends an expression instead, which
+    " UI5 resolves per firing like any other $-prefixed argument - so one wire
+    " can veto one row/column and let the rest through.
     DATA lv_func TYPE string.
     DATA lv_event_arg TYPE string.
-    IF s_cnt-check_prevent_default = abap_true.
+    IF s_cnt-prevent_default_expr IS NOT INITIAL.
       lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_prevent.
-      lv_event_arg = `$event,`.
+      lv_event_arg = |$event,{ s_cnt-prevent_default_expr },|.
+    ELSEIF s_cnt-check_prevent_default = abap_true.
+      lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_prevent.
+      lv_event_arg = `$event,true,`.
     ELSE.
       lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_function.
     ENDIF.
@@ -135,8 +143,6 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " views (resolveById); a concrete view scopes the lookup to that slot.
       DATA(lv_view_slot) = COND string( WHEN view = z2ui5_if_client=>cs_view-main THEN ``
                                         ELSE CONV string( view ) ).
-      " lt_arg already equals t_arg (set at the top); this branch did not
-      " touch it, so inject the view slot directly.
       INSERT lv_view_slot INTO lt_arg INDEX 2.
     ELSEIF lv_val = z2ui5_if_client=>cs_event-bind_element.
       " element-bind a whole view slot to a table row: args = slot, index,
@@ -144,7 +150,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " binding with braces ({/MT_TAB}), which would be an invalid raw JS
       " argument, so strip the braces here to a plain path ('/MT_TAB') that
       " get_t_arg then quotes. The slot is the follow_up_action view parameter.
-      DATA(lv_bind_path) = CONV string( VALUE #( t_arg[ 2 ] OPTIONAL ) ).
+      DATA(lv_bind_path) = VALUE string( t_arg[ 2 ] OPTIONAL ).
       REPLACE ALL OCCURRENCES OF `{` IN lv_bind_path WITH ``.
       REPLACE ALL OCCURRENCES OF `}` IN lv_bind_path WITH ``.
       lt_arg = VALUE #( ( CONV string( view ) )

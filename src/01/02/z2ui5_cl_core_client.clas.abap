@@ -251,8 +251,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    " wipe the whole slot (like popup_destroy) so a display( ) queued earlier
-    " in the same roundtrip does not resurrect the view after the destroy
+    " see popover_destroy for why the whole slot is wiped instead of setting a flag
     mo_action->ms_next-s_set-s_view_nest2 = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
@@ -260,8 +259,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    " like popup_display/popover_display: displaying cancels a destroy
-    " queued earlier in the same roundtrip
     mo_action->ms_next-s_set-s_view_nest2-check_destroy  = abap_false.
     mo_action->ms_next-s_set-s_view_nest2-xml            = val.
     mo_action->ms_next-s_set-s_view_nest2-id             = id.
@@ -273,15 +270,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_model_update.
 
-    mo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+    " a nested view owns no model - it inherits the MAIN view's by UI5 model
+    " propagation, so refreshing "the nest2 model" means refreshing the root
+    " model. Delegating also removes the old trap: the former nest2-only flag
+    " was skipped by the frontend whenever no nested view happened to be open
+    z2ui5_if_client~view_model_update( ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    " wipe the whole slot (like popup_destroy) so a display( ) queued earlier
-    " in the same roundtrip does not resurrect the view after the destroy
+    " see popover_destroy for why the whole slot is wiped instead of setting a flag
     mo_action->ms_next-s_set-s_view_nest = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
@@ -289,8 +289,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    " like popup_display/popover_display: displaying cancels a destroy
-    " queued earlier in the same roundtrip
     mo_action->ms_next-s_set-s_view_nest-check_destroy  = abap_false.
     mo_action->ms_next-s_set-s_view_nest-xml            = val.
     mo_action->ms_next-s_set-s_view_nest-id             = id.
@@ -302,7 +300,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_model_update.
 
-    mo_action->ms_next-s_set-s_view_nest-check_update_model = abap_true.
+    " see nest2_view_model_update - one root model, so this is view_model_update
+    z2ui5_if_client~view_model_update( ).
 
   ENDMETHOD.
 
@@ -383,10 +382,39 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
+    DATA(li_filter) = custom_filter.
+
+    " omit_initial wires ajson's empty filter into the slot the serializer
+    " already evaluates (z2ui5_cl_core_srv_model->main_json_stringify), so an
+    " initial field stays ABSENT from the model and the control keeps its own
+    " default. A caller-supplied filter is kept: both have to pass.
+    IF omit_initial = abap_true OR omit_initial_paths IS NOT INITIAL.
+      TRY.
+          DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+          IF omit_initial_paths IS NOT INITIAL.
+            " scoped: only the listed columns are dropped when initial, so a
+            " boolean that must send abap_false survives
+            li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
+          ELSE.
+            li_omit = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ).
+          ENDIF.
+          IF li_filter IS BOUND.
+            li_filter = z2ui5_cl_ajson_filter_lib=>create_and_filter(
+                            VALUE #( ( li_filter ) ( li_omit ) ) ).
+          ELSE.
+            li_filter = li_omit.
+          ENDIF.
+        CATCH cx_root.
+          " a filter that cannot be built must not kill the roundtrip - the
+          " model is then serialized as before (initial fields included)
+          li_filter = custom_filter.
+      ENDTRY.
+    ENDIF.
+
     result = mo_srv_bind->main( val    = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
                                 config = VALUE #(
                                     path_only            = path
-                                    custom_filter        = custom_filter
+                                    custom_filter        = li_filter
                                     custom_mapper        = custom_mapper
                                     tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
                                     tab_index            = tab_index
@@ -397,16 +425,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_srv_bind->main( val    = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
-                                config = VALUE #(
-                                    path_only            = path
-                                    custom_filter        = custom_filter
-                                    custom_filter_back   = custom_filter_back
+    " compatibility alias of _bind - delegate instead of repeating the call so
+    " both can never drift apart. custom_mapper_back / custom_filter_back exist
+    " only on this signature and are deliberately no longer evaluated (_bind
+    " has no counterpart for them).
+    result = z2ui5_if_client~_bind( val                  = val
+                                    path                 = path
+                                    view                 = view
                                     custom_mapper        = custom_mapper
-                                    custom_mapper_back   = custom_mapper_back
-                                    tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
+                                    custom_filter        = custom_filter
+                                    tab                  = tab
                                     tab_index            = tab_index
-                                    switch_default_model = switch_default_model ) ).
+                                    switch_default_model = switch_default_model ).
 
   ENDMETHOD.
 

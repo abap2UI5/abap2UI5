@@ -203,21 +203,68 @@ if (!fs.existsSync(SNAPSHOT)) {
 }
 const snap = JSON.parse(fs.readFileSync(SNAPSHOT, "utf8"));
 
+// Rule 5 allows one kind of signature change: a NEW OPTIONAL PARAMETER on an
+// existing method ("new optional parameters" / "additive changes are allowed").
+// Plain string equality cannot see that, so a compatible addition used to be
+// reported as a rule-5 violation. Classify a signature that ONLY APPENDS
+// optional/defaulted importing parameters - same clause order, nothing
+// reordered, every other clause byte-identical - as an addition instead. Any
+// other difference (a removed parameter, a changed type or default, a
+// reordering, a new MANDATORY parameter) stays a violation.
+const CLAUSE_TAIL = /(\s(?:exporting|changing|returning|raising)\s[\s\S]*)$/;
+function isAdditiveOptionalParams(oldSig, newSig) {
+  const oldTail = oldSig.match(CLAUSE_TAIL)?.[1] ?? "";
+  const newTail = newSig.match(CLAUSE_TAIL)?.[1] ?? "";
+  if (oldTail !== newTail) return false;
+  const oldHead = oldSig.slice(0, oldSig.length - oldTail.length);
+  const newHead = newSig.slice(0, newSig.length - newTail.length);
+  if (!newHead.startsWith(`${oldHead} `)) return false;
+  const appended = newHead.slice(oldHead.length);
+  // each appended parameter must be optional or carry a default
+  return /^(?: [a-z_0-9]+ type .+?(?: optional| default \S+))+$/.test(appended);
+}
+
+// The same rule for a public STRUCTURE TYPE: appending a component at the end
+// is additive - every existing `VALUE #( a = ... )` and every field access
+// still compiles, and a caller that never sets the new component gets its
+// initial value. Only an APPEND counts: a removed, renamed, retyped or
+// reordered component changes the meaning of code that already exists and
+// stays a violation.
+function isAdditiveTypeComponents(oldSig, newSig) {
+  const END = / types end of [a-z_0-9]+\.?$/;
+  const oldEnd = oldSig.match(END)?.[0];
+  if (!oldEnd || newSig.match(END)?.[0] !== oldEnd) return false;
+  const oldHead = oldSig.slice(0, oldSig.length - oldEnd.length);
+  const newHead = newSig.slice(0, newSig.length - oldEnd.length);
+  if (!newHead.startsWith(`${oldHead} `)) return false;
+  const appended = newHead.slice(oldHead.length);
+  return /^(?: types [a-z_0-9]+ type [^.]+ \.)+$/.test(appended);
+}
+
+const isAdditive = (oldSig, newSig) =>
+  isAdditiveOptionalParams(oldSig, newSig) || isAdditiveTypeComponents(oldSig, newSig);
+
 const removed = Object.keys(snap).filter((k) => !(k in current));
-const changed = Object.keys(snap).filter((k) => k in current && current[k] !== snap[k]);
+const differing = Object.keys(snap).filter((k) => k in current && current[k] !== snap[k]);
+const changed = differing.filter((k) => !isAdditive(snap[k], current[k]));
+const extended = differing.filter((k) => isAdditive(snap[k], current[k]));
 const added = Object.keys(current).filter((k) => !(k in snap));
 
 for (const k of removed) console.error(`REMOVED (rule-5 violation): ${k}\n  was: ${snap[k]}`);
 for (const k of changed)
   console.error(`CHANGED (rule-5 violation): ${k}\n  was: ${snap[k]}\n  now: ${current[k]}`);
+for (const k of extended)
+  console.error(
+    `EXTENDED additively (allowed, but unrecorded): ${k}\n  was: ${snap[k]}\n  now: ${current[k]}\n  run: node .github/scripts/api-snapshot.mjs --write  (and commit the snapshot so the addition is reviewed + guarded)`,
+  );
 for (const k of added)
   console.error(
     `ADDED (allowed, but unrecorded): ${k}\n  run: node .github/scripts/api-snapshot.mjs --write  (and commit the snapshot so the addition is reviewed + guarded)`,
   );
 
-if (removed.length || changed.length || added.length) {
+if (removed.length || changed.length || extended.length || added.length) {
   console.error(
-    `api-snapshot: ${removed.length} removed, ${changed.length} changed, ${added.length} unrecorded - FAIL`,
+    `api-snapshot: ${removed.length} removed, ${changed.length} changed, ${extended.length} extended, ${added.length} unrecorded - FAIL`,
   );
   process.exit(1);
 }

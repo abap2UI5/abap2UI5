@@ -95,8 +95,6 @@ INTERFACE z2ui5_if_types
       t_event_arg            TYPE string_table,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
-      "obsolete - never filled by the framework
-      viewname               TYPE string,
       s_draft                TYPE ty_s_draft,
       s_config               TYPE ty_s_config,
       t_comp_params          TYPE ty_t_name_value,
@@ -174,6 +172,15 @@ INTERFACE z2ui5_if_types
       " press without the automatic item selection); the event itself is
       " still sent, so the backend decides what happens instead
       check_prevent_default TYPE abap_bool,
+      " the same veto, but decided PER FIRING instead of per wire: a client
+      " expression that is evaluated when the event fires and cancels the
+      " default only when it is truthy, e.g.
+      "   `${$parameters>/column}.getId() CS 'COL_DATE'` in UI5 terms:
+      "   `${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`
+      " so ONE wire can protect one row/column and let the rest through.
+      " Wins over check_prevent_default when both are set; the event is sent
+      " in either case, exactly as with the flag
+      prevent_default_expr  TYPE string,
     END OF ty_s_event_control.
 
 ENDINTERFACE.

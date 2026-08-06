@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadLib } = require("./loadLibModule");
 
 // Tests Server._focusTextInput / _getFocusInfo: the caret must be read from
 // the control's real <input>/<textarea>, not from document.activeElement
@@ -11,7 +12,13 @@ const { loadModule } = require("./loadModule");
 
 function loadServer({ Element = {}, deps = {}, sandbox = {} } = {}) {
   return loadModule("core/Server.js", {
-    deps: { "sap/ui/core/Element": Element, ...deps },
+    deps: {
+      "sap/ui/core/Element": Element,
+      // the real Lib - the text-field detection and the caret read under
+      // test live there, so a stub would test a copy
+      "z2ui5/core/Lib": loadLib().Lib,
+      ...deps,
+    },
     sandbox,
   });
 }

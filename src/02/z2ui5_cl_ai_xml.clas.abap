@@ -244,40 +244,29 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
 
   METHOD xml_escape.
 
+    " `&` must be replaced first so the entities added afterwards are not
+    " escaped again. The three whitespace characters become character
+    " references because XML attribute-value normalization would otherwise
+    " turn a literal LF/CR/TAB into a plain space and silently drop the line
+    " breaks of e.g. a two-line noDataText. The char constants come from the
+    " context class - the one place allowed to reference cl_abap_char_utilities
+    " (see "Utilities" in AGENTS.md).
+    DATA(lt_escape) = VALUE ty_t_pair(
+        ( n = `&`                                                v = `&amp;` )
+        ( n = `<`                                                v = `&lt;` )
+        ( n = `>`                                                v = `&gt;` )
+        ( n = `"`                                                v = `&quot;` )
+        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_newline        v = `&#xA;` )
+        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)       v = `&#xD;` )
+        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab v = `&#x9;` ) ).
+
     result = val.
-    result = replace( val  = result
-                      sub  = `&`
-                      with = `&amp;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `<`
-                      with = `&lt;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `>`
-                      with = `&gt;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `"`
-                      with = `&quot;`
-                      occ  = 0 ).
-    " whitespace as character references - a literal LF/CR/TAB in an attribute
-    " value is turned into a plain space by XML attribute-value normalization,
-    " so line breaks (e.g. a two-line noDataText) would silently disappear.
-    " char constants come from the context class - the one place allowed to
-    " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
-    result = replace( val  = result
-                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_newline
-                      with = `&#xA;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)
-                      with = `&#xD;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab
-                      with = `&#x9;`
-                      occ  = 0 ).
+    LOOP AT lt_escape INTO DATA(escape).
+      result = replace( val  = result
+                        sub  = escape-n
+                        with = escape-v
+                        occ  = 0 ).
+    ENDLOOP.
 
   ENDMETHOD.
 

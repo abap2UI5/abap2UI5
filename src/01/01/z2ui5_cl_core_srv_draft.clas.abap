@@ -55,11 +55,9 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     " z2ui5_cl_exit=>set_config_http_post already guarantees a positive
     " expiry ( <= 0 falls back to its default ), so no second clamp here
-    DATA(lv_exp_time_in_hours) = ls_config-draft_exp_time_in_hours.
-
     DATA(lv_n_hours_ago) = z2ui5_cl_a2ui5_context=>time_subtract_seconds(
                                time    = z2ui5_cl_a2ui5_context=>time_get_timestampl( )
-                               seconds = c_seconds_per_hour * lv_exp_time_in_hours ).
+                               seconds = c_seconds_per_hour * ls_config-draft_exp_time_in_hours ).
 
     DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago ##SUBRC_OK.
     COMMIT WORK.

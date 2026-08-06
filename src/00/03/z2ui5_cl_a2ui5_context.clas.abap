@@ -975,7 +975,6 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
           ENDIF.
         ELSEIF find( val = lv_value
                      sub = lv_search ) >= 0.
-          " Case-sensitive: use find() because CS is always case-insensitive
           lv_check_found = abap_true.
           EXIT.
         ENDIF.
@@ -1466,30 +1465,31 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
   METHOD ui5_msg_box_format.
 
     DATA(lt_msg) = msg_get_t( val ).
-
     DATA(lv_lines) = lines( lt_msg ).
-    IF lv_lines > 0.
-      DATA(lv_type) = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+
+    IF lv_lines = 0.
+      result-skip = abap_true.
+      RETURN.
     ENDIF.
+
+    " the box takes its type/title from the FIRST message, also when several
+    " are collapsed into one box below
+    DATA(lv_type) = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+    result-title = lv_type.
+    result-type  = to_lower( lv_type ).
 
     IF lv_lines = 1.
-      result-text  = lt_msg[ 1 ]-text.
-      result-type  = to_lower( lv_type ).
-      result-title = lv_type.
-
-    ELSEIF lv_lines > 1.
-      result-text = | { lv_lines } Messages found: |.
-      DATA lt_detail_items TYPE string_table.
-      LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
-        INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
-      ENDLOOP.
-      result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
-      result-title   = lv_type.
-      result-type    = to_lower( lv_type ).
-
-    ELSE.
-      result-skip = abap_true.
+      result-text = lt_msg[ 1 ]-text.
+      RETURN.
     ENDIF.
+
+    " several messages: a counting headline plus every text as a bullet
+    result-text = | { lv_lines } Messages found: |.
+    DATA lt_detail_items TYPE string_table.
+    LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
+      INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
+    ENDLOOP.
+    result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
 
   ENDMETHOD.
 

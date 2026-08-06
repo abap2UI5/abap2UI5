@@ -54,7 +54,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
                           )->leaf( `Input`
                               )->a( n = `value`
-                                    v = client->_bind_edit( name )
+                                    v = client->_bind( name )
 
                           )->leaf( `Button`
                               )->a( n = `text`

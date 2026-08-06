@@ -593,17 +593,21 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD dissolve.
 
-    DATA lv_depth TYPE i.
+    " DO ... TIMES with the pending check inside the body, not
+    " WHILE line_exists( ... ): the v702 downport of the transpiled browser
+    " build hoists the LINE_EXISTS read out of a WHILE condition and
+    " evaluates it once, before the loop. With an initially empty table that
+    " single evaluation says "nothing pending" forever, so only the first
+    " pass ran and nested components (MS_NESTED-INNER-DEEP1) were never
+    " resolved. DO ... TIMES also replaces the manual lv_depth counter -
+    " max_dissolve_depth still means what it says, 5 dissolve passes.
+    DO max_dissolve_depth TIMES.
 
-    WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
-
-      lv_depth = lv_depth + 1.
-      " > not >=, so the pass with lv_depth = max_dissolve_depth still runs
-      " and the constant means what it says (5 dissolve passes, not 4)
-      IF lv_depth > max_dissolve_depth.
-        " EXIT, not RETURN - attri_update_entry_refs must still run for the
-        " already dissolved rows, otherwise name_ref stays empty and the
-        " serialize/deserialize ref de-duplication silently breaks
+      " EXIT, not RETURN - attri_update_entry_refs must still run for the
+      " already dissolved rows, otherwise name_ref stays empty and the
+      " serialize/deserialize ref de-duplication silently breaks
+      IF mt_attri->* IS NOT INITIAL
+          AND NOT line_exists( mt_attri->*[ check_dissolved = abap_false ] ). "#EC CI_SORTSEQ
         EXIT.
       ENDIF.
 
@@ -613,7 +617,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           main_attri_refresh( ).
       ENDTRY.
 
-    ENDWHILE.
+    ENDDO.
 
     attri_update_entry_refs( ).
 
@@ -743,14 +747,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               DATA(lt_attri_dref) = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
-              " an unexpected ref type_kind is left as a non-dissolvable leaf
-              " (like the unknown-kind WHEN OTHERS below) - an ASSERT here
-              " would raise the uncatchable ASSERTION_FAILED and defeat the
-              " TRY/CATCH around dissolve_run, dumping the whole request
+              " an unexpected ref type_kind is left as a non-dissolvable leaf -
+              " an ASSERT here would raise the uncatchable ASSERTION_FAILED and
+              " defeat the TRY/CATCH around dissolve_run, dumping the whole request
           ENDCASE.
         WHEN OTHERS.
-          " an unknown typedescr kind is left as a non-dissolvable leaf
-          " (this is the unknown-kind WHEN OTHERS the comment above refers to)
+          " same as above: an unknown typedescr kind stays a non-dissolvable leaf
       ENDCASE.
 
     ENDLOOP.
@@ -875,10 +877,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             <comp> = io_row_d->get_string( iv_path ).
         ENDCASE.
 
-      CATCH cx_root.
-        " a single malformed cell (e.g. text sent into a numeric target)
-        " must not discard every other edit in this batch - skip just it
-        RETURN.
+      CATCH cx_root ##NO_HANDLER.
+        " skip just this cell - see the method comment
     ENDTRY.
 
   ENDMETHOD.

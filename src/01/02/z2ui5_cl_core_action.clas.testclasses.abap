@@ -178,20 +178,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lo_action = NEW #( val = lo_http ).
 
-    lo_action->ms_next-s_set-s_view-check_update_model      = abap_true.
-    lo_action->ms_next-s_set-s_view_nest-check_update_model  = abap_true.
-    lo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
-    lo_action->ms_next-s_set-s_popup-check_update_model      = abap_true.
-    lo_action->ms_next-s_set-s_popover-check_update_model    = abap_true.
+    " only the model-owning slots have the flag - the nested slots inherit the
+    " root model and carry none - see reset_view_update_flags
+    lo_action->ms_next-s_set-s_view-check_update_model    = abap_true.
+    lo_action->ms_next-s_set-s_popup-check_update_model   = abap_true.
+    lo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
 
     lo_action->reset_view_update_flags( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_action->ms_next-s_set-s_view-check_update_model ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_action->ms_next-s_set-s_view_nest-check_update_model ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_action->ms_next-s_set-s_view_nest2-check_update_model ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_action->ms_next-s_set-s_popup-check_update_model ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false

@@ -205,22 +205,35 @@ sap.ui.define(
       // Display: popups, popovers, nested views, main view
       // ------------------------------------------------------------------
 
-      async displayFragment(xml, seq) {
+      // Shared load path of the two fragment slots (popup, popover): create
+      // the slot's own JSON model, load the fragment and attach the model.
+      // Returns null when the app was torn down while the fragment loaded or a
+      // newer request superseded this response - we must not open a dialog the
+      // backend no longer knows about.
+      async _loadSlotFragment(slotKey, fragmentId, xml, seq) {
         const oModel = this._createViewModel();
-        applyStoredSizeLimit("POPUP", oModel);
+        applyStoredSizeLimit(slotKey, oModel);
         const oFragment = await Fragment.load({
           definition: xml,
-          controller: ViewSlots.getController("POPUP"),
-          id: "popupId",
+          controller: ViewSlots.getController(slotKey),
+          id: fragmentId,
         });
-        // The app might have been torn down while the fragment loaded, or a
-        // newer request superseded this response - don't open a dialog the
-        // backend no longer knows about.
         if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {
           oFragment.destroy();
-          return;
+          return null;
         }
         oFragment.setModel(oModel);
+        return oFragment;
+      },
+
+      async displayFragment(xml, seq) {
+        const oFragment = await this._loadSlotFragment(
+          "POPUP",
+          "popupId",
+          xml,
+          seq,
+        );
+        if (!oFragment) return;
         // The shared device + message models are attached inside
         // ViewSlots.setView (the single funnel), so error paths that
         // destroy a view without reaching setView never register it.
@@ -243,18 +256,13 @@ sap.ui.define(
         // handle expected, non-error conditions (app torn down mid-load, or
         // the openBy anchor not being present), matching the parent-not-found
         // guard in displayNestedView.
-        const oModel = this._createViewModel();
-        applyStoredSizeLimit("POPOVER", oModel);
-        const oFragment = await Fragment.load({
-          definition: xml,
-          controller: ViewSlots.getController("POPOVER"),
-          id: "popoverId",
-        });
-        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {
-          oFragment.destroy();
-          return;
-        }
-        oFragment.setModel(oModel);
+        const oFragment = await this._loadSlotFragment(
+          "POPOVER",
+          "popoverId",
+          xml,
+          seq,
+        );
+        if (!oFragment) return;
 
         // Find the control to attach the popover to: any open slot first,
         // then the global UI5 control registry as a last resort.
@@ -381,10 +389,16 @@ sap.ui.define(
       // Example: sap.tnt NavigationListItem.press, where cancelling the
       // default suppresses the item selection and leaves the decision to
       // the backend. The name is part of the protocol - do not rename it.
+      //
+      // The second argument is the veto CONDITION, so the decision can be
+      // made per firing instead of per wire: s_ctrl-check_prevent_default
+      // sends the constant true, s_ctrl-prevent_default_expr sends an
+      // expression UI5 resolves on each firing (e.g. "is this the one column
+      // that must not be resized?"). Everything after it is the eB payload.
       // ------------------------------------------------------------------
-      eBP(oEvent, ...args) {
+      eBP(oEvent, bVeto, ...args) {
         // guard the call: a malformed wire (no $event) must still round-trip
-        if (typeof oEvent?.preventDefault === "function") {
+        if (bVeto && typeof oEvent?.preventDefault === "function") {
           oEvent.preventDefault();
         }
         this.eB(...args);
@@ -524,6 +538,12 @@ sap.ui.define(
       // Refresh a slot's model when the response signals an update for it
       // (CHECK_UPDATE_MODEL - the data-only roundtrip every app triggers
       // via client->view_model_update( )).
+      // Only the three model-owning slots ever carry the flag: MAIN owns the
+      // root model, POPUP/POPOVER own their own. NEST/NEST2 are inserted into
+      // the MAIN control tree and inherit its model by propagation, so the
+      // backend has no CHECK_UPDATE_MODEL for them at all and
+      // nest_view_model_update( ) refreshes MAIN instead - which is why this
+      // can setData unconditionally without refreshing one shared model twice.
       updateModelIfRequired(slotKey) {
         const params = AppState.state.oResponse?.PARAMS;
         const slotParams = params?.[ViewSlots.paramByKey(slotKey)];
@@ -541,14 +561,7 @@ sap.ui.define(
         const tracked = this._resolveTrackedModel(oView);
         if (tracked) {
           applyStoredSizeLimit(slotKey, tracked);
-          // MAIN and its nested views resolve to the SAME root model here, and
-          // the update loop calls this once per slot. setData replaces the
-          // model's data reference with OVIEWMODEL, so once the first root slot
-          // has swapped it in, the others already hold it - skip the redundant
-          // setData (and its full binding refresh) instead of running it once
-          // per shared slot.
-          const data = AppState.state.oResponse?.OVIEWMODEL;
-          if (tracked.getData() !== data) tracked.setData(data);
+          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);
           return;
         }
 
@@ -587,13 +600,17 @@ sap.ui.define(
           preprocessors: { xml: { models: { template: oViewModel } } },
         });
 
-        // Guard against the app being destroyed during the await above.
         // oModel covers oViewModel too when they are the same object (no
         // switchPath); with an OData default model both must go.
-        if (!Lib.isAlive(AppState.state.oApp)) {
+        const discardBuild = () => {
           oView.destroy();
           oModel.destroy();
           if (switchPath) oViewModel.destroy();
+        };
+
+        // Guard against the app being destroyed during the await above.
+        if (!Lib.isAlive(AppState.state.oApp)) {
+          discardBuild();
           return;
         }
 
@@ -610,9 +627,7 @@ sap.ui.define(
           reqSeq !== Server._requestSeq &&
           ViewSlots.getView("MAIN")
         ) {
-          oView.destroy();
-          oModel.destroy();
-          if (switchPath) oViewModel.destroy();
+          discardBuild();
           return;
         }
 

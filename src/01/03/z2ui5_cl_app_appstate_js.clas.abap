@@ -101,7 +101,11 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   errors            capped error log, see Lib.logError` && |\n| &&
              `//   timers            single pending backend timer (FrontendAction)` && |\n| &&
              `//   shortcuts         registered keyboard shortcuts, normalized combo ->` && |\n| &&
-             `//                     { event, controller } (FrontendAction.KEYBOARD_SHORTCUT);` && |\n| &&
+             `//                     scope -> { event, controller }, the scope being a view` && |\n| &&
+             `//                     slot key or "" for unscoped (FrontendAction.` && |\n| &&
+             `//                     KEYBOARD_SHORTCUT). Dispatch takes the innermost OPEN` && |\n| &&
+             `//                     scope, so a popover-local shortcut shadows the page one` && |\n| &&
+             `//                     the way a UI5 CommandExecution in dependents does;` && |\n| &&
              `//                     an app switch resets it, the document listener stays` && |\n| &&
              `//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)` && |\n| &&
              `//   viewSizeLimits    per-slot model size limits (FrontendAction)` && |\n| &&

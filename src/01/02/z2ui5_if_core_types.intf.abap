@@ -12,10 +12,6 @@ INTERFACE z2ui5_if_core_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
-  " single source of truth for the five view slots in ty_s_next_frontend -
-  " consumers SPLIT at the comma and access the components dynamically
-  CONSTANTS cs_view_slot_list TYPE string VALUE `S_VIEW,S_VIEW_NEST,S_VIEW_NEST2,S_POPUP,S_POPOVER`.
-
   TYPES:
     BEGIN OF ty_s_http_res,
       body          TYPE string,
@@ -59,15 +55,15 @@ INTERFACE z2ui5_if_core_types
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
-  " the two nested-view slots share the exact same shape
+  " the two nested-view slots share the exact same shape. No
+  " check_update_model here - a nested view inherits the MAIN view's model
   TYPES:
     BEGIN OF ty_s_view_nest,
-      xml                TYPE string,
-      id                 TYPE string,
-      method_insert      TYPE string,
-      method_destroy     TYPE string,
-      check_destroy      TYPE abap_bool,
-      check_update_model TYPE abap_bool,
+      xml            TYPE string,
+      id             TYPE string,
+      method_insert  TYPE string,
+      method_destroy TYPE string,
+      check_destroy  TYPE abap_bool,
     END OF ty_s_view_nest.
 
   TYPES:
@@ -135,8 +131,10 @@ INTERFACE z2ui5_if_core_types
       " Hash-based app routing (UI5 Router style): when active, the frontend
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash
-      " (see app/webapp Component.js HashChanger listener). Opt-in per session
-      " via client->set_nav_routing( ). The value carries the routing MODE (see
+      " (see app/webapp/core/Router.js). Opt-in per APP via
+      " client->set_nav_routing( ) - the mode is remembered on the app and
+      " travels in its draft, so it is re-sent with every response of that app
+      " (see z2ui5_cl_core_app=>mv_nav_mode). The value carries the MODE (see
       " z2ui5_if_client=>cs_nav_mode): 'KEEP' syncs the class AND its draft id
       " '#/app/<CLASS>/<DRAFT>' so Back/Forward restore the exact preserved
       " state; 'FRESH' syncs the class only '#/app/<CLASS>' so they start the
@@ -175,10 +173,9 @@ INTERFACE z2ui5_if_core_types
   TYPES:
     BEGIN OF ty_s_response,
       BEGIN OF s_front,
-        params    TYPE ty_s_next_frontend,
-        id        TYPE string,
-        app_start TYPE string,
-        app       TYPE string,
+        params TYPE ty_s_next_frontend,
+        id     TYPE string,
+        app    TYPE string,
       END OF s_front,
       model TYPE string,
     END OF ty_s_response.
