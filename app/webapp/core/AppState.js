@@ -74,7 +74,11 @@
 //   errors            capped error log, see Lib.logError
 //   timers            single pending backend timer (FrontendAction)
 //   shortcuts         registered keyboard shortcuts, normalized combo ->
-//                     { event, controller } (FrontendAction.KEYBOARD_SHORTCUT);
+//                     scope -> { event, controller }, the scope being a view
+//                     slot key or "" for unscoped (FrontendAction.
+//                     KEYBOARD_SHORTCUT). Dispatch takes the innermost OPEN
+//                     scope, so a popover-local shortcut shadows the page one
+//                     the way a UI5 CommandExecution in dependents does;
 //                     an app switch resets it, the document listener stays
 //   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
 //   viewSizeLimits    per-slot model size limits (FrontendAction)

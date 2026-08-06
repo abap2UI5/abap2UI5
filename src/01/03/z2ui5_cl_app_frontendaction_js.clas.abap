@@ -1433,13 +1433,32 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      return [...mods, key].join("+");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // A shortcut may be SCOPED to a view slot, which is how UI5's own` && |\n| &&
+             `    // CommandExecution behaves: one in a Popover's dependents shadows the` && |\n| &&
+             `    // page-level one for the same command while the popover is open. The` && |\n| &&
+             `    // registry therefore holds one entry per scope, and dispatch picks the` && |\n| &&
+             `    // INNERMOST OPEN scope - a popup/popover first, then a nested view, then` && |\n| &&
+             `    // the unscoped registration. ViewSlots.getView is the "is open" test: it` && |\n| &&
+             `    // returns undefined for a slot that is not showing.` && |\n| &&
+             `    const SHORTCUT_SCOPES = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];` && |\n| &&
+             `    const SHORTCUT_GLOBAL = ""; // the unscoped registration` && |\n| &&
+             `` && |\n| &&
+             `    function shortcutEntry(combo) {` && |\n| &&
+             `      const scopes = AppState.state.shortcuts[combo];` && |\n| &&
+             `      if (!scopes) return undefined;` && |\n| &&
+             `      for (const key of SHORTCUT_SCOPES) {` && |\n| &&
+             `        if (scopes[key] && ViewSlots.getView(key)) return scopes[key];` && |\n| &&
+             `      }` && |\n| &&
+             `      return scopes[SHORTCUT_GLOBAL];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    let shortcutListener = null;` && |\n| &&
              `` && |\n| &&
              `    function installShortcutListener() {` && |\n| &&
              `      if (shortcutListener || typeof document === "undefined") return;` && |\n| &&
              `      shortcutListener = (oEvent) => {` && |\n| &&
              `        try {` && |\n| &&
-             `          const entry = AppState.state.shortcuts[shortcutFromEvent(oEvent)];` && |\n| &&
+             `          const entry = shortcutEntry(shortcutFromEvent(oEvent));` && |\n| &&
              `          if (!entry) return;` && |\n| &&
              `          // the browser's own default for the combo (Ctrl+S saves the page,` && |\n| &&
              `          // Ctrl+D bookmarks it) must not fire alongside the app command` && |\n| &&
@@ -1452,7 +1471,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      document.addEventListener("keydown", shortcutListener);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, combo, eventName] - an empty event name unregisters the combo` && |\n| &&
+             `    // args: [_, combo, eventName, scope] - an empty event name unregisters the` && |\n| &&
+             `    // combo IN THAT SCOPE; scope is a view slot key (cs_view-popover/popup/...)` && |\n| &&
+             `    // and defaults to the unscoped, always-eligible registration` && |\n| &&
              `    function evKeyboardShortcut(oController, args) {` && |\n| &&
              `      const combo = normalizeShortcut(args[1]);` && |\n| &&
              `      if (!combo) {` && |\n| &&
@@ -1461,14 +1482,26 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
-             `      if (!args[2]) {` && |\n| &&
-             `        delete shortcuts[combo];` && |\n| &&
+             `      const scope = String(args[3] ?? "").toUpperCase();` && |\n| &&
+             `      if (scope && !SHORTCUT_SCOPES.includes(scope)) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``KEYBOARD_SHORTCUT: '${args[3]}' is no view slot - use cs_view-main/nested/nested2/popup/popover``,` && |\n| &&
+             `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      // re-registering a combo replaces it, so the backend can rebind a` && |\n| &&
-             `      // shortcut without unregistering it first` && |\n| &&
-             `      shortcuts[combo] = { event: args[2], controller: oController };` && |\n| &&
+             `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
+             `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
+             `      if (!args[2]) {` && |\n| &&
+             `        delete scopes[scope];` && |\n| &&
+             `        // a combo with no registration left must not keep an empty entry:` && |\n| &&
+             `        // shortcutEntry would still find it and fall through to undefined,` && |\n| &&
+             `        // but preventDefault has already been decided by then` && |\n| &&
+             `        if (Object.keys(scopes).length === 0) delete shortcuts[combo];` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      // re-registering a combo in the same scope replaces it, so the backend` && |\n| &&
+             `      // can rebind a shortcut without unregistering it first` && |\n| &&
+             `      scopes[scope] = { event: args[2], controller: oController };` && |\n| &&
              `      installShortcutListener();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -1594,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
+             `    }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    function evSetTitle(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
@@ -1627,8 +1661,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError("SET_FAVICON: setting the favicon failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
              `      try {` && |\n| &&

@@ -1403,13 +1403,32 @@ sap.ui.define(
       return [...mods, key].join("+");
     }
 
+    // A shortcut may be SCOPED to a view slot, which is how UI5's own
+    // CommandExecution behaves: one in a Popover's dependents shadows the
+    // page-level one for the same command while the popover is open. The
+    // registry therefore holds one entry per scope, and dispatch picks the
+    // INNERMOST OPEN scope - a popup/popover first, then a nested view, then
+    // the unscoped registration. ViewSlots.getView is the "is open" test: it
+    // returns undefined for a slot that is not showing.
+    const SHORTCUT_SCOPES = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];
+    const SHORTCUT_GLOBAL = ""; // the unscoped registration
+
+    function shortcutEntry(combo) {
+      const scopes = AppState.state.shortcuts[combo];
+      if (!scopes) return undefined;
+      for (const key of SHORTCUT_SCOPES) {
+        if (scopes[key] && ViewSlots.getView(key)) return scopes[key];
+      }
+      return scopes[SHORTCUT_GLOBAL];
+    }
+
     let shortcutListener = null;
 
     function installShortcutListener() {
       if (shortcutListener || typeof document === "undefined") return;
       shortcutListener = (oEvent) => {
         try {
-          const entry = AppState.state.shortcuts[shortcutFromEvent(oEvent)];
+          const entry = shortcutEntry(shortcutFromEvent(oEvent));
           if (!entry) return;
           // the browser's own default for the combo (Ctrl+S saves the page,
           // Ctrl+D bookmarks it) must not fire alongside the app command
@@ -1422,7 +1441,9 @@ sap.ui.define(
       document.addEventListener("keydown", shortcutListener);
     }
 
-    // args: [_, combo, eventName] - an empty event name unregisters the combo
+    // args: [_, combo, eventName, scope] - an empty event name unregisters the
+    // combo IN THAT SCOPE; scope is a view slot key (cs_view-popover/popup/...)
+    // and defaults to the unscoped, always-eligible registration
     function evKeyboardShortcut(oController, args) {
       const combo = normalizeShortcut(args[1]);
       if (!combo) {
@@ -1431,14 +1452,26 @@ sap.ui.define(
         );
         return;
       }
-      const shortcuts = AppState.state.shortcuts;
-      if (!args[2]) {
-        delete shortcuts[combo];
+      const scope = String(args[3] ?? "").toUpperCase();
+      if (scope && !SHORTCUT_SCOPES.includes(scope)) {
+        Lib.logError(
+          `KEYBOARD_SHORTCUT: '${args[3]}' is no view slot - use cs_view-main/nested/nested2/popup/popover`,
+        );
         return;
       }
-      // re-registering a combo replaces it, so the backend can rebind a
-      // shortcut without unregistering it first
-      shortcuts[combo] = { event: args[2], controller: oController };
+      const shortcuts = AppState.state.shortcuts;
+      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});
+      if (!args[2]) {
+        delete scopes[scope];
+        // a combo with no registration left must not keep an empty entry:
+        // shortcutEntry would still find it and fall through to undefined,
+        // but preventDefault has already been decided by then
+        if (Object.keys(scopes).length === 0) delete shortcuts[combo];
+        return;
+      }
+      // re-registering a combo in the same scope replaces it, so the backend
+      // can rebind a shortcut without unregistering it first
+      scopes[scope] = { event: args[2], controller: oController };
       installShortcutListener();
     }
 

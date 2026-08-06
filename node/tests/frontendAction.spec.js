@@ -1335,6 +1335,94 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     return { ...ctx, doc, fired, oController };
   }
 
+  // A shortcut scoped to a view slot shadows the unscoped one while that slot
+  // is OPEN - the abap2UI5 equivalent of a UI5 CommandExecution sitting in a
+  // Popover's dependents, which shadows the page-level one for the same
+  // command (sap.ui.core.sample.Commands). `views` is ViewSlots' open-slot
+  // map: a key present there means the slot is showing.
+  test.describe("scope", () => {
+    test("the scoped registration wins while its slot is open", () => {
+      const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPOVER", "POPOVER",
+      ]);
+
+      // popover closed -> the page-level command
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"]]);
+
+      // popover open -> its own command shadows it
+      views.POPOVER = {};
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"], ["SAVE_POPOVER"]]);
+
+      // and back again when it closes
+      delete views.POPOVER;
+      doc.press("s", { ctrlKey: true });
+      expect(fired).toEqual([["SAVE"], ["SAVE_POPOVER"], ["SAVE"]]);
+    });
+
+    test("the innermost open slot wins", () => {
+      const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
+      for (const [event, scope] of [
+        ["SAVE", ""], ["SAVE_NEST", "NEST"], ["SAVE_POPOVER", "POPOVER"],
+      ]) {
+        FrontendAction.execute(
+          oController,
+          ["KEYBOARD_SHORTCUT", "Ctrl+S", event, scope].filter((a, i) => i < 3 || a),
+        );
+      }
+      views.NEST = {};
+      views.POPOVER = {};
+      doc.press("s", { ctrlKey: true });
+      expect(fired).toEqual([["SAVE_POPOVER"]]);
+    });
+
+    test("a scoped registration with no open slot falls back to the unscoped one", () => {
+      const { FrontendAction, doc, fired, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPUP", "POPUP",
+      ]);
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"]]);
+    });
+
+    test("unregistering one scope leaves the other alone", () => {
+      const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPOVER", "POPOVER",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "", "POPOVER",
+      ]);
+      views.POPOVER = {};
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"]]);
+    });
+
+    test("removing the last scope stops swallowing the browser default", () => {
+      const { FrontendAction, doc, fired, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", ""]);
+      // Ctrl+S must save the PAGE again, not silently do nothing
+      expect(doc.press("s", { ctrlKey: true })).toBe(false);
+      expect(fired).toEqual([]);
+    });
+
+    test("an unknown scope is refused instead of registering a dead shortcut", () => {
+      const { FrontendAction, doc, fired, errors, oController } = loadWithDoc();
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE", "SIDEBAR",
+      ]);
+      expect(doc.press("s", { ctrlKey: true })).toBe(false);
+      expect(fired).toEqual([]);
+      expect(errors.join(" ")).toContain("SIDEBAR");
+    });
+  });
+
   test("fires the registered event and swallows the browser default", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
     FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
