@@ -3,10 +3,6 @@ INTERFACE z2ui5_if_ui5_client
 
   INTERFACES z2ui5_if_client.
 
-  " The constants are declared here, not aliased: a reference of this type
-  " reads them as its own components, and z2ui5_if_client keeps its copy for
-  " every reference still typed on the old name. Both lists therefore have to
-  " be changed together until the old interface goes.
   CONSTANTS:
     BEGIN OF cs_event,
 

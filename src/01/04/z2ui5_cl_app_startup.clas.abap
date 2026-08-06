@@ -17,7 +17,7 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         close         TYPE string VALUE `CLOSE`,
       END OF cs_event.
 
-    DATA client TYPE REF TO z2ui5_if_client.
+    DATA client TYPE REF TO z2ui5_if_ui5_client.
 
     DATA:
       BEGIN OF ms_home,
