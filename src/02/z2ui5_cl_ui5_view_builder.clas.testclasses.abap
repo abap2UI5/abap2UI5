@@ -11,9 +11,9 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS escape_attribute_value FOR TESTING.
     METHODS escape_whitespace_chars FOR TESTING.
     METHODS bool_parameter FOR TESTING.
-    METHODS tag_stays_and_siblings FOR TESTING.
-    METHODS tag_attr_splits_first_equals FOR TESTING.
-    METHODS att_after_tag_hits_parent FOR TESTING.
+    METHODS add_stays_and_siblings FOR TESTING.
+    METHODS add_attr_splits_first_equals FOR TESTING.
+    METHODS att_after_add_hits_parent FOR TESTING.
 ENDCLASS.
 
 
@@ -171,17 +171,17 @@ CLASS ltcl_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD tag_stays_and_siblings.
+  METHOD add_stays_and_siblings.
 
-    " tag( ) does not move, so siblings follow directly and no end( ) is needed
+    " add( ) does not move, so siblings follow directly and no end( ) is needed
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Page`
-        )->tag( n     = `Text`
+        )->add( n     = `Text`
                 t_att = VALUE #( ( `text=first` ) )
-        )->tag( n     = `Text`
+        )->add( n     = `Text`
                 t_att = VALUE #( ( `text=second` ) )
-        )->tag( `ToolbarSpacer` ).
+        )->add( `ToolbarSpacer` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -190,12 +190,12 @@ CLASS ltcl_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD tag_attr_splits_first_equals.
+  METHOD add_attr_splits_first_equals.
 
     " attributes split on the FIRST equals sign, so the value may contain more
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
-    view->tag( n     = `Text`
+    view->add( n     = `Text`
                ns    = `m`
                t_att = VALUE #( ( `text=a=b` ) ( `width=100%` ) ) ).
 
@@ -206,15 +206,15 @@ CLASS ltcl_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD att_after_tag_hits_parent.
+  METHOD att_after_add_hits_parent.
 
-    " pinned on purpose: tag( ) does not move, so a following att( ) attaches
-    " to the element the chain stands on - the PARENT, not the tag just added.
-    " That is the one rule holding; attributes of a tag belong in t_att.
+    " pinned on purpose: add( ) does not move, so a following att( ) attaches
+    " to the element the chain stands on - the PARENT, not the element just
+    " added. That is the one rule holding; its attributes belong in t_att.
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Panel`
-        )->tag( `Title`
+        )->add( `Title`
         )->att( n = `width`
                 v = `100%` ).
 

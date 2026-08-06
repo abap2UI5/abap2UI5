@@ -12,15 +12,15 @@ Legend
 
 unreleased
 ----------
+! z2ui5_cl_ui5_view_builder: tag( ) renamed to add( ). ele( ) and tag( ) are the
+  same word in XML, so the names said nothing about the only difference that
+  matters - ele( ) descends into the new element, add( ) adds it and stays. The
+  builder has not shipped in a release yet, so nothing downstream can be affected
 ! The two shipped apps (z2ui5_cl_app_hello_world, z2ui5_cl_app_startup) now build
   their views with z2ui5_cl_ui5_view_builder instead of z2ui5_cl_ai_xml. The
-  rendered XML is unchanged, byte for byte
-! BREAKING: consequently the public render helpers of z2ui5_cl_app_startup
-  (render_header_toolbar, render_quickstart, render_whats_next, render_contribution,
-  render_documentation, create_layout_form) take and return z2ui5_cl_ui5_view_builder
-  instead of z2ui5_cl_ai_xml. They are internals of the shipped startup app that
-  happen to sit in a public section; only code passing a builder of its own into
-  them is affected
+  rendered XML is unchanged, byte for byte. Their render helpers take and return
+  the new builder accordingly - both apps moved out of src/02 in the package
+  reorganization, so this is no longer part of the guarded public API
 - Curated formatter (z2ui5/model/formatter, z2ui5.Formatter): removed round2DP,
   dimensions, stockStatusState, stockStatusIcon and deliveryStatusState. abap2UI5
   is a thin frontend - rounding a number, joining fields and mapping a business

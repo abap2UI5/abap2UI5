@@ -2,15 +2,15 @@
 "! chaining. Every letter of the API is the initial of the term it stands for:
 "!   new - factory   a new empty builder root
 "!   ele - element   add a child element and DESCEND into it (returns the child)
-"!   tag - tag       add a child element and STAY here (returns the same node)
+"!   add - add       add a child element and STAY here (returns the same node)
 "!   att - attribute set an attribute on the element you are standing on
 "!   end - end       ascend to the parent element (returns the parent)
 "!   stringify      render the whole view, always from the root
 "! Element = n (name), namespace prefix = ns (e.g. `f`, `core`, `l`).
 "! There is exactly one rule: att( ) always applies to the CURRENT element, the
-"! one the last ele( ) descended into. tag( ) does not move, so its attributes
-"! travel with it in t_att - after a tag( ) the chain still stands on the
-"! parent, and an att( ) there would attach to the parent. Reach for tag( ) on
+"! one the last ele( ) descended into. add( ) does not move, so its attributes
+"! travel with it in t_att - after an add( ) the chain still stands on the
+"! parent, and an att( ) there would attach to the parent. Reach for add( ) on
 "! a leaf whose attributes are literals, and for ele( )/end( ) everywhere else.
 "! Every ele( ) may be closed by an end( );
 "! a trailing end( ) at the end of the chain can be omitted, because stringify( )
@@ -27,7 +27,7 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
 
   PUBLIC SECTION.
 
-    "! attribute list for tag( ) - one `key=value` string per attribute, e.g.
+    "! attribute list for add( ) - one `key=value` string per attribute, e.g.
     "! t_att = VALUE #( ( `text=Hello` ) ( `width=100%` ) ). Split on the FIRST
     "! `=`, so the value may contain further ones.
     TYPES ty_t_attr TYPE STANDARD TABLE OF string WITH EMPTY KEY.
@@ -47,12 +47,12 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    "! add a child element and STAY on the current one, so the next tag( ) or
+    "! add a child element and STAY on the current one, so the next add( ) or
     "! ele( ) becomes its sibling and no end( ) is needed. Its attributes must
     "! travel with it in t_att - a following att( ) would land on the element
-    "! the chain is standing on, which is the PARENT, not the tag just added.
-    "! Use ele( )/end( ) whenever an attribute needs a computed value.
-    METHODS tag
+    "! the chain is standing on, which is the PARENT, not the element just
+    "! added. Use ele( )/end( ) whenever an attribute needs a computed value.
+    METHODS add
       IMPORTING
         n             TYPE string
         ns            TYPE string OPTIONAL
@@ -157,7 +157,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD tag.
+  METHOD add.
 
     DATA(child) = ele( n  = n
                        ns = ns ).
@@ -166,7 +166,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       ASSERT NOT line_exists( child->t_pair[ n = pair-n ] ).
       APPEND pair TO child->t_pair.
     ENDLOOP.
-    " stay where we are - the tag is complete, its siblings follow directly
+    " stay where we are - the element is complete, its siblings follow directly
     result = me.
 
   ENDMETHOD.
