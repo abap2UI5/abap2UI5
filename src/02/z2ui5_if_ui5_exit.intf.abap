@@ -1,4 +1,4 @@
-INTERFACE z2ui5_if_exit
+INTERFACE z2ui5_if_ui5_exit
   PUBLIC.
 
   METHODS set_config_http_get

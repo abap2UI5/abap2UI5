@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
+CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     CLASS-METHODS run
@@ -13,7 +13,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
         req           TYPE REF TO object
         res           TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_http_handler.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_http_handler.
 
     CLASS-METHODS factory
       IMPORTING
@@ -22,7 +22,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
         res           TYPE REF TO object OPTIONAL
           PREFERRED PARAMETER server
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_http_handler.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_http_handler.
 
     CLASS-METHODS _http_post
       IMPORTING
@@ -100,7 +100,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD main.
 
