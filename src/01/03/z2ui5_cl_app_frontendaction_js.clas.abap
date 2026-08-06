@@ -1465,20 +1465,43 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      return [...mods, key].join("+");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // A shortcut may be SCOPED to a view slot, which is how UI5's own` && |\n| &&
-             `    // CommandExecution behaves: one in a Popover's dependents shadows the` && |\n| &&
-             `    // page-level one for the same command while the popover is open. The` && |\n| &&
-             `    // registry therefore holds one entry per scope, and dispatch picks the` && |\n| &&
-             `    // INNERMOST OPEN scope - a popup/popover first, then a nested view, then` && |\n| &&
-             `    // the unscoped registration. ViewSlots.getView is the "is open" test: it` && |\n| &&
-             `    // returns undefined for a slot that is not showing.` && |\n| &&
-             `    const SHORTCUT_SCOPES = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];` && |\n| &&
+             `    // A shortcut may be SCOPED, which is how UI5's own CommandExecution` && |\n| &&
+             `    // behaves: one in a Popover's dependents shadows the page-level one for` && |\n| &&
+             `    // the same command while that popover is open. A scope is either` && |\n| &&
+             `    //` && |\n| &&
+             `    //   a VIEW SLOT   - POPOVER/POPUP/NEST2/NEST/MAIN, open when the framework` && |\n| &&
+             `    //                   has that slot showing (popover_display, popup_display,` && |\n| &&
+             `    //                   a nested view)` && |\n| &&
+             `    //   a CONTROL ID  - any control DECLARED IN THE VIEW that can be open or` && |\n| &&
+             `    //                   closed: a sap.m.Popover/Dialog in ``dependents`` opened` && |\n| &&
+             `    //                   with control_by_id openBy, which is the shape the demo` && |\n| &&
+             `    //                   kit's Commands sample actually uses. It never enters a` && |\n| &&
+             `    //                   framework slot, so the slot form alone would never fire.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Dispatch prefers a CONTROL scope (the more specific statement) over a` && |\n| &&
+             `    // slot scope, then takes the innermost open slot, then the unscoped entry.` && |\n| &&
+             `    const SHORTCUT_SLOTS = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];` && |\n| &&
              `    const SHORTCUT_GLOBAL = ""; // the unscoped registration` && |\n| &&
+             `` && |\n| &&
+             `    // A control scope counts while the control is OPEN - isOpen() for the` && |\n| &&
+             `    // popup-like controls this is for, visibility otherwise.` && |\n| &&
+             `    function scopeControlOpen(id) {` && |\n| &&
+             `      const c = ViewSlots.resolveById(id);` && |\n| &&
+             `      if (!c) return false;` && |\n| &&
+             `      if (typeof c.isOpen === "function") return !!c.isOpen();` && |\n| &&
+             `      return typeof c.getVisible === "function"` && |\n| &&
+             `        ? c.getVisible() !== false` && |\n| &&
+             `        : true;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    function shortcutEntry(combo) {` && |\n| &&
              `      const scopes = AppState.state.shortcuts[combo];` && |\n| &&
              `      if (!scopes) return undefined;` && |\n| &&
-             `      for (const key of SHORTCUT_SCOPES) {` && |\n| &&
+             `      for (const key of Object.keys(scopes)) {` && |\n| &&
+             `        if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;` && |\n| &&
+             `        if (scopeControlOpen(key)) return scopes[key];` && |\n| &&
+             `      }` && |\n| &&
+             `      for (const key of SHORTCUT_SLOTS) {` && |\n| &&
              `        if (scopes[key] && ViewSlots.getView(key)) return scopes[key];` && |\n| &&
              `      }` && |\n| &&
              `      return scopes[SHORTCUT_GLOBAL];` && |\n| &&
@@ -1514,13 +1537,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const scope = String(args[3] ?? "").toUpperCase();` && |\n| &&
-             `      if (scope && !SHORTCUT_SCOPES.includes(scope)) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``KEYBOARD_SHORTCUT: '${args[3]}' is no view slot - use cs_view-main/nested/nested2/popup/popover``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
+             `      // a slot key is matched case-insensitively; anything else is taken as a` && |\n| &&
+             `      // control id and keeps its case, because that is how it must resolve` && |\n| &&
+             `      const raw = String(args[3] ?? "");` && |\n| &&
+             `      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())` && |\n| &&
+             `        ? raw.toUpperCase()` && |\n| &&
+             `        : raw;` && |\n| &&
              `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
              `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
              `      if (!args[2]) {` && |\n| &&
@@ -1605,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
-             `        const behavior = args[4] || "auto";` && |\n| &&
+             `        const behavior = args[4] || "auto";` && |\n|.
+    result = result &&
              `        const smooth = behavior === "smooth";` && |\n| &&
              `` && |\n| &&
              `        let handled = false;` && |\n| &&
@@ -1627,8 +1650,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          if (dom?.scrollTo) {` && |\n| &&
              `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
              `          } else if (dom) {` && |\n| &&
-             `            dom.scrollTop = y;` && |\n|.
-    result = result &&
+             `            dom.scrollTop = y;` && |\n| &&
              `            dom.scrollLeft = x;` && |\n| &&
              `          } else if (oElement.scrollTo) {` && |\n| &&
              `            // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&

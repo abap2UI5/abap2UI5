@@ -1484,14 +1484,48 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
       expect(fired).toEqual([]);
     });
 
-    test("an unknown scope is refused instead of registering a dead shortcut", () => {
-      const { FrontendAction, doc, fired, errors, oController } = loadWithDoc();
+    // The shape the demo kit's Commands sample actually uses: the Popover is a
+    // CONTROL declared in the view's dependents and opened with openBy, so it
+    // never enters a framework slot. A control id is therefore a scope too,
+    // active while that control is open.
+    test("a control-id scope wins while that control is open", () => {
+      const { FrontendAction, doc, fired, controls, oController } = loadWithDoc();
+      let open = false;
+      controls.popoverCommand = { isOpen: () => open };
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE", "SIDEBAR",
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "PSAVE", "popoverCommand",
       ]);
-      expect(doc.press("s", { ctrlKey: true })).toBe(false);
-      expect(fired).toEqual([]);
-      expect(errors.join(" ")).toContain("SIDEBAR");
+
+      doc.press("s", { ctrlKey: true });          // closed -> the page command
+      open = true;
+      doc.press("s", { ctrlKey: true });          // open -> the popover's own
+      open = false;
+      doc.press("s", { ctrlKey: true });          // closed again
+      expect(fired).toEqual([["SAVE"], ["PSAVE"], ["SAVE"]]);
+    });
+
+    test("a control scope beats a slot scope - it is the more specific statement", () => {
+      const { FrontendAction, doc, fired, controls, views, oController } = loadWithDoc();
+      controls.dlg = { isOpen: () => true };
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "SLOT", "POPOVER",
+      ]);
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "CTRL", "dlg"]);
+      views.POPOVER = {};
+      doc.press("s", { ctrlKey: true });
+      expect(fired).toEqual([["CTRL"]]);
+    });
+
+    test("a control scope whose control is gone falls back to the unscoped one", () => {
+      const { FrontendAction, doc, fired, oController } = loadWithDoc();
+      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT", "Ctrl+S", "PSAVE", "nosuchcontrol",
+      ]);
+      expect(doc.press("s", { ctrlKey: true })).toBe(true);
+      expect(fired).toEqual([["SAVE"]]);
     });
   });
 

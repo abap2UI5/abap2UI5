@@ -1435,20 +1435,43 @@ sap.ui.define(
       return [...mods, key].join("+");
     }
 
-    // A shortcut may be SCOPED to a view slot, which is how UI5's own
-    // CommandExecution behaves: one in a Popover's dependents shadows the
-    // page-level one for the same command while the popover is open. The
-    // registry therefore holds one entry per scope, and dispatch picks the
-    // INNERMOST OPEN scope - a popup/popover first, then a nested view, then
-    // the unscoped registration. ViewSlots.getView is the "is open" test: it
-    // returns undefined for a slot that is not showing.
-    const SHORTCUT_SCOPES = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];
+    // A shortcut may be SCOPED, which is how UI5's own CommandExecution
+    // behaves: one in a Popover's dependents shadows the page-level one for
+    // the same command while that popover is open. A scope is either
+    //
+    //   a VIEW SLOT   - POPOVER/POPUP/NEST2/NEST/MAIN, open when the framework
+    //                   has that slot showing (popover_display, popup_display,
+    //                   a nested view)
+    //   a CONTROL ID  - any control DECLARED IN THE VIEW that can be open or
+    //                   closed: a sap.m.Popover/Dialog in `dependents` opened
+    //                   with control_by_id openBy, which is the shape the demo
+    //                   kit's Commands sample actually uses. It never enters a
+    //                   framework slot, so the slot form alone would never fire.
+    //
+    // Dispatch prefers a CONTROL scope (the more specific statement) over a
+    // slot scope, then takes the innermost open slot, then the unscoped entry.
+    const SHORTCUT_SLOTS = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];
     const SHORTCUT_GLOBAL = ""; // the unscoped registration
+
+    // A control scope counts while the control is OPEN - isOpen() for the
+    // popup-like controls this is for, visibility otherwise.
+    function scopeControlOpen(id) {
+      const c = ViewSlots.resolveById(id);
+      if (!c) return false;
+      if (typeof c.isOpen === "function") return !!c.isOpen();
+      return typeof c.getVisible === "function"
+        ? c.getVisible() !== false
+        : true;
+    }
 
     function shortcutEntry(combo) {
       const scopes = AppState.state.shortcuts[combo];
       if (!scopes) return undefined;
-      for (const key of SHORTCUT_SCOPES) {
+      for (const key of Object.keys(scopes)) {
+        if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;
+        if (scopeControlOpen(key)) return scopes[key];
+      }
+      for (const key of SHORTCUT_SLOTS) {
         if (scopes[key] && ViewSlots.getView(key)) return scopes[key];
       }
       return scopes[SHORTCUT_GLOBAL];
@@ -1484,13 +1507,12 @@ sap.ui.define(
         );
         return;
       }
-      const scope = String(args[3] ?? "").toUpperCase();
-      if (scope && !SHORTCUT_SCOPES.includes(scope)) {
-        Lib.logError(
-          `KEYBOARD_SHORTCUT: '${args[3]}' is no view slot - use cs_view-main/nested/nested2/popup/popover`,
-        );
-        return;
-      }
+      // a slot key is matched case-insensitively; anything else is taken as a
+      // control id and keeps its case, because that is how it must resolve
+      const raw = String(args[3] ?? "");
+      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())
+        ? raw.toUpperCase()
+        : raw;
       const shortcuts = AppState.state.shortcuts;
       const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});
       if (!args[2]) {

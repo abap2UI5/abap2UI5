@@ -410,12 +410,16 @@ INTERFACE z2ui5_if_client
   "! own default for the combination. Registering the same combination again
   "! rebinds it; an empty event name removes it. The registrations belong to
   "! the running app and are dropped when another app takes over.
-  "! An optional THIRD t_arg scopes the shortcut to a view slot
-  "! (cs_view-popover/popup/nested/nested2/main): the scoped registration wins
-  "! while that slot is OPEN and the unscoped one applies otherwise, which is
+  "! An optional THIRD t_arg SCOPES the shortcut: the scoped registration wins
+  "! while its scope is OPEN and the unscoped one applies otherwise, which is
   "! how a UI5 CommandExecution in a Popover's dependents shadows the
-  "! page-level one for the same command. Innermost open slot wins, and an
-  "! empty event name removes the registration of THAT scope only.
+  "! page-level one for the same command. A scope is either a view slot
+  "! (cs_view-popover/popup/nested/nested2/main) or the ID OF A CONTROL that
+  "! can be open or closed - a Popover/Dialog declared in the view and opened
+  "! with control_by_id openBy, which never enters a framework slot. A control
+  "! scope beats a slot scope (it is the more specific statement), then the
+  "! innermost open slot wins. An empty event name removes the registration of
+  "! THAT scope only.
   "! cs_event-binding_call - apply a declarative filter/sorter to an
   "! aggregation binding, the client-side equivalent of the UI5 controller
   "! pattern getBinding('items').filter(...); the model data stays untouched:
