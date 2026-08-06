@@ -14,53 +14,56 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     IF client->check_on_init( ).
-      DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+      DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
-      view->open( n  = `View`
-                  ns = `mvc`
-          )->a( n = `xmlns`
-                v = `sap.m`
-          )->a( n = `xmlns:mvc`
-                v = `sap.ui.core.mvc`
-          )->a( n = `xmlns:core`
-                v = `sap.ui.core`
-          )->a( n = `xmlns:form`
-                v = `sap.ui.layout.form`
-          )->a( n = `displayBlock`
-                v = `true`
-          )->a( n = `height`
-                v = `100%`
+      view->ele( n  = `View`
+                 ns = `mvc`
+          )->att( n = `xmlns`
+                  v = `sap.m`
+          )->att( n = `xmlns:mvc`
+                  v = `sap.ui.core.mvc`
+          )->att( n = `xmlns:core`
+                  v = `sap.ui.core`
+          )->att( n = `xmlns:form`
+                  v = `sap.ui.layout.form`
+          )->att( n = `displayBlock`
+                  v = `true`
+          )->att( n = `height`
+                  v = `100%`
 
-          )->open( `Shell`
-              )->open( `Page`
-                  )->a( n = `title`
-                        v = `abap2UI5 - Hello World`
+          )->ele( `Shell`
+              )->ele( `Page`
+                  )->att( n = `title`
+                          v = `abap2UI5 - Hello World`
 
-                  )->open( n  = `SimpleForm`
-                           ns = `form`
-                      )->a( n = `editable`
-                            v = `true`
-                      )->open( n  = `content`
-                               ns = `form`
+                  )->ele( n  = `SimpleForm`
+                          ns = `form`
+                      )->att( n = `editable`
+                              v = `true`
+                      )->ele( n  = `content`
+                              ns = `form`
 
-                          )->leaf( n  = `Title`
-                                   ns = `core`
-                              )->a( n = `text`
-                                    v = `Enter a value and send it to the server...`
+                          )->ele( n  = `Title`
+                                  ns = `core`
+                              )->att( n = `text`
+                                      v = `Enter a value and send it to the server...`
+                          )->end(
 
-                          )->leaf( `Label`
-                              )->a( n = `text`
-                                    v = `Name`
+                          )->ele( `Label`
+                              )->att( n = `text`
+                                      v = `Name`
+                          )->end(
 
-                          )->leaf( `Input`
-                              )->a( n = `value`
-                                    v = client->_bind( name )
+                          )->ele( `Input`
+                              )->att( n = `value`
+                                      v = client->_bind( name )
+                          )->end(
 
-                          )->leaf( `Button`
-                              )->a( n = `text`
-                                    v = `Post`
-                              )->a( n = `press`
-                                    v = client->_event( `BUTTON_POST` ) ).
+                          )->ele( `Button`
+                              )->att( n = `text`
+                                      v = `Post`
+                              )->att( n = `press`
+                                      v = client->_event( `BUTTON_POST` ) ).
 
       client->view_display( view->stringify( ) ).
 
