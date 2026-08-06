@@ -23,16 +23,11 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
-    view->ele( n  = `View`
-               ns = `mvc`
-        )->att( n = `xmlns`
-                v = `sap.m`
-
+    view->ele( n = `View` ns = `mvc`
+        )->att( n = `xmlns` v = `sap.m`
         )->ele( `Text`
-            )->att( n = `text`
-                    v = `Hello`
+            )->att( n = `text` v = `Hello`
         )->end(
-
         )->ele( `Panel`
             )->ele( `Title` ).
 
@@ -51,12 +46,10 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     view->ele( `Page`
         )->ele( `Text`
-            )->att( n = `text`
-                    v = `first`
+            )->att( n = `text` v = `first`
         )->end(
         )->ele( `Text`
-            )->att( n = `text`
-                    v = `second` ).
+            )->att( n = `text` v = `second` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -75,8 +68,7 @@ CLASS ltcl_builder IMPLEMENTATION.
     view->ele( `Panel`
             )->ele( `Title`
         )->end(
-        )->att( n = `width`
-                v = `100%` ).
+        )->att( n = `width` v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -94,8 +86,7 @@ CLASS ltcl_builder IMPLEMENTATION.
     view->ele( `Panel`
             )->ele( `Title`
             )->end(
-        )->att( n = `width`
-                v = `100%` ).
+        )->att( n = `width` v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -125,8 +116,7 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Text`
-        )->att( n = `text`
-                v = `a<b>&"c` ).
+        )->att( n = `text` v = `a<b>&"c` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -142,8 +132,7 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Text`
-        )->att( n = `text`
-                v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
+        )->att( n = `text` v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -159,10 +148,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Panel`
-        )->att( n = `visible`
-                b = abap_true
-        )->att( n = `expanded`
-                b = abap_false ).
+        )->att( n = `visible` b = abap_true
+        )->att( n = `expanded` b = abap_false ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -177,10 +164,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Page`
-        )->add( n     = `Text`
-                t_att = VALUE #( ( `text=first` ) )
-        )->add( n     = `Text`
-                t_att = VALUE #( ( `text=second` ) )
+        )->add( n = `Text` t_att = VALUE #( ( `text=first` ) )
+        )->add( n = `Text` t_att = VALUE #( ( `text=second` ) )
         )->add( `ToolbarSpacer` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -195,9 +180,7 @@ CLASS ltcl_builder IMPLEMENTATION.
     " attributes split on the FIRST equals sign, so the value may contain more
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
-    view->add( n     = `Text`
-               ns    = `m`
-               t_att = VALUE #( ( `text=a=b` ) ( `width=100%` ) ) ).
+    view->add( n = `Text` ns = `m` t_att = VALUE #( ( `text=a=b` ) ( `width=100%` ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -215,8 +198,7 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     view->ele( `Panel`
         )->add( `Title`
-        )->att( n = `width`
-                v = `100%` ).
+        )->att( n = `width` v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )

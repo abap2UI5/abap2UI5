@@ -204,24 +204,16 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
 
-    DATA(page) = view->ele( n  = `View`
-                            ns = `mvc`
-        )->att( n = `xmlns`
-                v = `sap.m`
-        )->att( n = `xmlns:mvc`
-                v = `sap.ui.core.mvc`
-        )->att( n = `xmlns:form`
-                v = `sap.ui.layout.form`
-        )->att( n = `displayBlock`
-                v = `true`
-        )->att( n = `height`
-                v = `100%`
+    DATA(page) = view->ele( n = `View` ns = `mvc`
+        )->att( n = `xmlns` v = `sap.m`
+        )->att( n = `xmlns:mvc` v = `sap.ui.core.mvc`
+        )->att( n = `xmlns:form` v = `sap.ui.layout.form`
+        )->att( n = `displayBlock` v = `true`
+        )->att( n = `height` v = `100%`
         )->ele( `Shell`
         )->ele( `Page`
-            )->att( n = `title`
-                    v = `abap2UI5 - Building UI5 Apps Purely in ABAP`
-            )->att( n = `showNavButton`
-                    v = `false` ).
+            )->att( n = `title` v = `abap2UI5 - Building UI5 Apps Purely in ABAP`
+            )->att( n = `showNavButton` v = `false` ).
 
     render_header_toolbar( page ).
 
@@ -243,29 +235,20 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     " buttons bind an event, so they are opened with ele( ) and closed again
     toolbar->add( `ToolbarSpacer`
       )->ele( `Button`
-          )->att( n = `text`
-                  v = `Developer Tools`
-          )->att( n = `icon`
-                  v = `sap-icon://enablement`
-          )->att( n = `press`
-                  v = client->_event( cs_event-open_debug )
+          )->att( n = `text` v = `Developer Tools`
+          )->att( n = `icon` v = `sap-icon://enablement`
+          )->att( n = `press` v = client->_event( cs_event-open_debug )
       )->end(
       )->ele( `Button`
-          )->att( n = `text`
-                  v = `System`
-          )->att( n = `icon`
-                  v = `sap-icon://information`
-          )->att( n = `press`
-                  v = client->_event( cs_event-open_info ) ).
+          )->att( n = `text` v = `System`
+          )->att( n = `icon` v = `sap-icon://information`
+          )->att( n = `press` v = client->_event( cs_event-open_info ) ).
 
     IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->ele( `Button`
-          )->att( n = `text`
-                  v = `Config`
-          )->att( n = `icon`
-                  v = `sap-icon://settings`
-          )->att( n = `press`
-                  v = client->_event( cs_event-set_config ) ).
+          )->att( n = `text` v = `Config`
+          )->att( n = `icon` v = `sap-icon://settings`
+          )->att( n = `press` v = client->_event( cs_event-set_config ) ).
     ENDIF.
 
   ENDMETHOD.
@@ -277,71 +260,47 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     " every row of steps 1-3 is a leaf with literal attributes only, so it is
     " one add( ) each and the chain never leaves the form
-    form->add( n     = `Label`
-               t_att = VALUE #( ( `text=Step 1` ) )
-      )->add( n     = `Text`
-              t_att = VALUE #( ( `text=Create a new class in your ABAP system` ) )
-      )->add( n     = `Label`
-              t_att = VALUE #( ( `text=Step 2` ) )
-      )->add( n     = `Text`
-              t_att = VALUE #( ( `text=Add the interface: Z2UI5_IF_APP` ) )
-      )->add( n     = `Label`
-              t_att = VALUE #( ( `text=Step 3` ) )
-      )->add( n     = `Text`
-              t_att = VALUE #( ( `text=Define the view, implement behavior` ) ) ).
+    form->add( n = `Label` t_att = VALUE #( ( `text=Step 1` ) )
+      )->add( n = `Text` t_att = VALUE #( ( `text=Create a new class in your ABAP system` ) )
+      )->add( n = `Label` t_att = VALUE #( ( `text=Step 2` ) )
+      )->add( n = `Text` t_att = VALUE #( ( `text=Add the interface: Z2UI5_IF_APP` ) )
+      )->add( n = `Label` t_att = VALUE #( ( `text=Step 3` ) )
+      )->add( n = `Text` t_att = VALUE #( ( `text=Define the view, implement behavior` ) ) ).
 
     render_link( form = form
                  text = `(Example)`
                  href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_app_hello_world.clas.abap` ).
 
-    form->add( n     = `Label`
-               t_att = VALUE #( ( `text=Step 4` ) ) ).
+    form->add( n = `Label` t_att = VALUE #( ( `text=Step 4` ) ) ).
 
     IF ms_home-class_editable = abap_true.
       form->ele( `Input`
-          )->att( n = `placeholder`
-                  v = `Fill in the class name and press 'Check'`
-          )->att( n = `enabled`
-                  v = client->_bind( ms_home-class_editable )
-          )->att( n = `value`
-                  v = client->_bind( ms_home-classname )
-          )->att( n = `valueState`
-                  v = client->_bind( ms_home-class_value_state )
-          )->att( n = `valueStateText`
-                  v = client->_bind( ms_home-class_value_state_text )
-          )->att( n = `submit`
-                  v = client->_event( ms_home-btn_event_id )
-          )->att( n = `width`
-                  v = `70%` ).
+          )->att( n = `placeholder` v = `Fill in the class name and press 'Check'`
+          )->att( n = `enabled` v = client->_bind( ms_home-class_editable )
+          )->att( n = `value` v = client->_bind( ms_home-classname )
+          )->att( n = `valueState` v = client->_bind( ms_home-class_value_state )
+          )->att( n = `valueStateText` v = client->_bind( ms_home-class_value_state_text )
+          )->att( n = `submit` v = client->_event( ms_home-btn_event_id )
+          )->att( n = `width` v = `70%` ).
     ELSE.
-      form->ele( `Text` )->att( n = `text`
-                                v = ms_home-classname ).
+      form->ele( `Text` )->att( n = `text` v = ms_home-classname ).
     ENDIF.
 
     form->add( `Label` ).
     form->ele( `Button`
-        )->att( n = `press`
-                v = client->_event( ms_home-btn_event_id )
-        )->att( n = `text`
-                v = client->_bind( ms_home-btn_text )
-        )->att( n = `icon`
-                v = client->_bind( ms_home-btn_icon )
-        )->att( n = `width`
-                v = `70%` ).
+        )->att( n = `press` v = client->_event( ms_home-btn_event_id )
+        )->att( n = `text` v = client->_bind( ms_home-btn_text )
+        )->att( n = `icon` v = client->_bind( ms_home-btn_icon )
+        )->att( n = `width` v = `70%` ).
 
     " not render_link: this one is bound and additionally disabled until the
     " class name was checked
-    form->add( n     = `Label`
-               t_att = VALUE #( ( `text=Step 5` ) ) ).
+    form->add( n = `Label` t_att = VALUE #( ( `text=Step 5` ) ) ).
     form->ele( `Link`
-        )->att( n = `text`
-                v = `Link to the Application`
-        )->att( n = `target`
-                v = `_blank`
-        )->att( n = `href`
-                v = client->_bind( ms_home-url )
-        )->att( n = `enabled`
-                v = client->_bind( ms_home-link_enabled ) ).
+        )->att( n = `text` v = `Link to the Application`
+        )->att( n = `target` v = `_blank`
+        )->att( n = `href` v = client->_bind( ms_home-url )
+        )->att( n = `enabled` v = client->_bind( ms_home-link_enabled ) ).
 
   ENDMETHOD.
 
@@ -354,16 +313,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
 
     IF lv_class_samples IS NOT INITIAL.
-      form->add( n     = `Label`
-                 t_att = VALUE #( ( `text=Start Developing` ) ) ).
+      form->add( n = `Label` t_att = VALUE #( ( `text=Start Developing` ) ) ).
       form->ele( `Button`
-          )->att( n = `text`
-                  v = `Explore Code Samples`
-          )->att( n = `press`
-                  v = client->_event_client( val   = client->cs_event-open_new_tab
-                                             t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
-          )->att( n = `width`
-                  v = `70%` ).
+          )->att( n = `text` v = `Explore Code Samples`
+          )->att( n = `press` v = client->_event_client(
+                      val   = client->cs_event-open_new_tab
+                      t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
+          )->att( n = `width` v = `70%` ).
     ELSE.
       render_link( form  = form
                    label = `Install the sample repository`
@@ -405,19 +361,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_ui5_view_builder=>new( ).
 
-    DATA(dialog) = popup->ele( n  = `FragmentDefinition`
-                               ns = `core`
-        )->att( n = `xmlns`
-                v = `sap.m`
-        )->att( n = `xmlns:core`
-                v = `sap.ui.core`
-        )->att( n = `xmlns:form`
-                v = `sap.ui.layout.form`
+    DATA(dialog) = popup->ele( n = `FragmentDefinition` ns = `core`
+        )->att( n = `xmlns` v = `sap.m`
+        )->att( n = `xmlns:core` v = `sap.ui.core`
+        )->att( n = `xmlns:form` v = `sap.ui.layout.form`
         )->ele( `Dialog`
-            )->att( n = `title`
-                    v = `abap2UI5 - System Information`
-            )->att( n = `afterClose`
-                    v = client->_event( cs_event-close ) ).
+            )->att( n = `title` v = `abap2UI5 - System Information`
+            )->att( n = `afterClose` v = client->_event( cs_event-close ) ).
 
     DATA(form) = create_layout_form( dialog->ele( `content` ) ).
     DATA(ls_client) = client->get( ).
@@ -427,24 +377,18 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     render_text( form  = form
                  label = `UI5 Version`
                  text  = ls_client-s_ui5-version ).
-    form->add( n     = `Label`
-               t_att = VALUE #( ( `text=Launchpad active` ) ) ).
+    form->add( n = `Label` t_att = VALUE #( ( `text=Launchpad active` ) ) ).
     " an ABAP boolean goes in as b - the predecessor needed as_bool( ) here
     form->ele( `CheckBox`
-        )->att( n = `selected`
-                b = ls_client-check_launchpad_active
-        )->att( n = `enabled`
-                v = `false` ).
+        )->att( n = `selected` b = ls_client-check_launchpad_active
+        )->att( n = `enabled` v = `false` ).
 
     render_section( form  = form
                     title = `Backend` ).
-    form->add( n     = `Label`
-               t_att = VALUE #( ( `text=ABAP for Cloud` ) ) ).
+    form->add( n = `Label` t_att = VALUE #( ( `text=ABAP for Cloud` ) ) ).
     form->ele( `CheckBox`
-        )->att( n = `selected`
-                b = z2ui5_cl_a2ui5_context=>check_abap_cloud( )
-        )->att( n = `enabled`
-                v = `false` ).
+        )->att( n = `selected` b = z2ui5_cl_a2ui5_context=>check_abap_cloud( )
+        )->att( n = `enabled` v = `false` ).
     render_text( form  = form
                  label = `User Exit`
                  text  = z2ui5_cl_exit=>get_user_exit_class( ) ).
@@ -460,12 +404,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     dialog->ele( `endButton`
         )->ele( `Button`
-            )->att( n = `text`
-                    v = `Close`
-            )->att( n = `press`
-                    v = client->_event( cs_event-close )
-            )->att( n = `type`
-                    v = `Emphasized` ).
+            )->att( n = `text` v = `Close`
+            )->att( n = `press` v = client->_event( cs_event-close )
+            )->att( n = `type` v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -477,8 +418,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     " chain may simply stop on the Title
     form->ele( `Toolbar`
         )->ele( `Title`
-            )->att( n = `text`
-                    v = title ).
+            )->att( n = `text` v = title ).
 
   ENDMETHOD.
 
@@ -489,68 +429,45 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     " called on, never on whatever was added last
     DATA(row_label) = form->ele( `Label` ).
     IF label IS NOT INITIAL.
-      row_label->att( n = `text`
-                      v = label ).
+      row_label->att( n = `text` v = label ).
     ENDIF.
 
     form->ele( `Link`
-        )->att( n = `text`
-                v = text
-        )->att( n = `target`
-                v = `_blank`
-        )->att( n = `href`
-                v = href ).
+        )->att( n = `text` v = text
+        )->att( n = `target` v = `_blank`
+        )->att( n = `href` v = href ).
 
   ENDMETHOD.
 
   METHOD render_text.
 
     form->ele( `Label`
-        )->att( n = `text`
-                v = label
+        )->att( n = `text` v = label
       )->end(
       )->ele( `Text`
-          )->att( n = `text`
-                  v = text ).
+          )->att( n = `text` v = text ).
 
   ENDMETHOD.
 
   METHOD create_layout_form.
 
-    result = view->ele( n  = `SimpleForm`
-                        ns = `form`
-        )->att( n = `editable`
-                v = `true`
-        )->att( n = `layout`
-                v = `ResponsiveGridLayout`
-        )->att( n = `labelSpanXL`
-                v = `4`
-        )->att( n = `labelSpanL`
-                v = `3`
-        )->att( n = `labelSpanM`
-                v = `4`
-        )->att( n = `labelSpanS`
-                v = `12`
-        )->att( n = `adjustLabelSpan`
-                v = `false`
-        )->att( n = `emptySpanXL`
-                v = `0`
-        )->att( n = `emptySpanL`
-                v = `4`
-        )->att( n = `emptySpanM`
-                v = `0`
-        )->att( n = `emptySpanS`
-                v = `0`
-        )->att( n = `columnsXL`
-                v = `1`
-        )->att( n = `columnsL`
-                v = `1`
-        )->att( n = `columnsM`
-                v = `1`
-        )->att( n = `singleContainerFullSize`
-                v = `false`
-        )->ele( n  = `content`
-                ns = `form` ).
+    result = view->ele( n = `SimpleForm` ns = `form`
+        )->att( n = `editable` v = `true`
+        )->att( n = `layout` v = `ResponsiveGridLayout`
+        )->att( n = `labelSpanXL` v = `4`
+        )->att( n = `labelSpanL` v = `3`
+        )->att( n = `labelSpanM` v = `4`
+        )->att( n = `labelSpanS` v = `12`
+        )->att( n = `adjustLabelSpan` v = `false`
+        )->att( n = `emptySpanXL` v = `0`
+        )->att( n = `emptySpanL` v = `4`
+        )->att( n = `emptySpanM` v = `0`
+        )->att( n = `emptySpanS` v = `0`
+        )->att( n = `columnsXL` v = `1`
+        )->att( n = `columnsL` v = `1`
+        )->att( n = `columnsM` v = `1`
+        )->att( n = `singleContainerFullSize` v = `false`
+        )->ele( n = `content` ns = `form` ).
 
   ENDMETHOD.
 
