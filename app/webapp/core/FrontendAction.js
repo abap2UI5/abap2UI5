@@ -110,6 +110,10 @@ sap.ui.define(
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
       setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)
+      setSticky: ["object"], // sap.m.ListBase/sap.m.Table: JSON array of sap.m.Sticky keys
+      setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association
+      setSelectedItem: ["controlIdOrNull"], // sap.m.List/sap.m.Select/...: an EMPTY argument clears the selection
+      css: ["string", "string"], // NOT a UI5 method: set one CSS property on the control's own DOM node
       enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of `enabled`
       addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class
       removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class
@@ -131,6 +135,31 @@ sap.ui.define(
       RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),
       DENY_ALL: () => false,
     };
+
+    // CONTROL_METHODS.css writes ONE declaration onto the control's own DOM
+    // node. It exists for the case where a control has no property for the
+    // value at all - sap.m.Page has no `width`, so a sample that resizes its
+    // container (a Slider driving `byId(...).$().width(v + "%")`) has nothing
+    // to bind and no method to call. Where the target DOES have the property,
+    // a bound property stays the correct path (rule "prefer a bindable
+    // property"); this is the residue, not a general styling API.
+    //
+    // The property name is checked against this list so the wire stays a
+    // narrow, declarative contract instead of "write anything anywhere"; the
+    // value goes through CSSOM setProperty, which drops an invalid declaration
+    // (a smuggled second declaration never parses).
+    const CSS_PROPERTIES = [
+      "width",
+      "min-width",
+      "max-width",
+      "height",
+      "min-height",
+      "max-height",
+      "color",
+      "background-color",
+      "font-size",
+      "opacity",
+    ];
 
     function isAbsoluteUrl(url) {
       const s = String(url ?? "").trim();
@@ -231,6 +260,32 @@ sap.ui.define(
         get: () => sap.ui.require("sap/ui/core/Popup"),
         methods: { setWithinArea: ["within"] },
       },
+      // sap/ui/core/InvisibleMessage is @since 1.78 and is a SINGLETON: it
+      // renders nothing, so it has no id CONTROL_BY_ID could resolve - a
+      // global target is the only way a backend-driven content change can be
+      // announced to a screen reader. Lazy-require like THEMING so 1.71 hits
+      // the "not available" guard instead of failing the component load.
+      // announce(sText, sMode) with sMode Polite (default) | Assertive.
+      INVISIBLE_MESSAGE: {
+        get: () => {
+          const IM = sap.ui.require("sap/ui/core/InvisibleMessage");
+          return IM ? IM.getInstance() : undefined;
+        },
+        methods: { announce: ["string", "string"] },
+      },
+      // sap/ui/core/Formatting (@since 1.120) carries the global formatting
+      // configuration. Custom currencies are the case an app cannot express
+      // otherwise: the digit count of a currency code is neither a control
+      // property nor something a per-binding formatter can register for the
+      // standard sap.ui.model.type.Currency. The payload is a JSON object -
+      // data the backend owns anyway. Lazy-require like THEMING.
+      FORMATTING: {
+        get: () => sap.ui.require("sap/ui/core/Formatting"),
+        methods: {
+          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }
+          addCustomCurrency: ["string", "object"], // code, { digits: n }
+        },
+      },
     };
 
     // Cast one raw string argument to the kind the whitelist declared.
@@ -238,6 +293,52 @@ sap.ui.define(
     // controlId argument resolves against the same view first - this keeps
     // slot-local ids unambiguous (e.g. a NavContainer navigating to one of
     // its own pages) before falling back to the global lookup.
+    // A control CLONED from an aggregation template has no id the backend can
+    // spell. UI5 mints it as `<templateId>-<parentId>-<index>` - deterministic,
+    // but the parent id carries the VIEW PREFIX the framework assigns at
+    // runtime (`v1--tpl-v1--car-0`), which the backend never sees. So an
+    // aggregation item is addressed positionally instead:
+    //
+    //     "<controlId>/<aggregation>/<index>"     e.g. "carousel/pages/2"
+    //
+    // resolved here, on the client, where both the prefix and the aggregation
+    // are known. This is the equivalent of the UI5 controller idiom
+    // `oCarousel.setActivePage(oCarousel.getPages()[i])`, which no id-based
+    // call can express. A plain id (no slashes) resolves exactly as before.
+    const AGG_ITEM = /^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;
+
+    function resolveControl(raw, view) {
+      const byId = (id) =>
+        (view && ViewSlots.byId(view.toUpperCase(), id)) ||
+        ViewSlots.resolveById(id);
+
+      const m = AGG_ITEM.exec(String(raw ?? ""));
+      if (!m) return byId(raw);
+
+      const owner = byId(m[1]);
+      if (!owner || typeof owner.getAggregation !== "function") {
+        Lib.logError(`aggregation item '${raw}': no control '${m[1]}'`);
+        return null;
+      }
+      const items = owner.getAggregation(m[2]);
+      if (!Array.isArray(items)) {
+        Lib.logError(
+          `aggregation item '${raw}': '${m[2]}' is no multiple aggregation of ${m[1]}`,
+        );
+        return null;
+      }
+      const item = items[Number(m[3])];
+      if (!item) {
+        // out of range is not an error the app can see otherwise - the method
+        // would silently receive undefined and do nothing
+        Lib.logError(
+          `aggregation item '${raw}': ${m[2]} has ${items.length} item(s)`,
+        );
+        return null;
+      }
+      return item;
+    }
+
     function castArg(kind, raw, view) {
       switch (kind) {
         case "int":
@@ -245,10 +346,15 @@ sap.ui.define(
         case "bool":
           return raw === "true" || raw === "X" || raw === true;
         case "controlId":
-          return (
-            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw)
-          );
+          return resolveControl(raw, view);
+        case "controlIdOrNull":
+          // an ASSOCIATION cannot be data-bound, so clearing one
+          // (setSelectedSection(null), setSelectedItem(null)) can only travel
+          // as a method argument - and an EMPTY argument must arrive as null,
+          // not as the `false` castArgAuto would infer. Same "empty means
+          // null" contract as the `within` kind below.
+          if (raw === "" || raw === undefined || raw === null) return null;
+          return resolveControl(raw, view) || null;
         case "anchor":
           // anchor argument for openBy-style methods: resolve the control id
           // and hand over the CONTROL itself, not its DOM element. Every
@@ -257,10 +363,7 @@ sap.ui.define(
           // element throws ("getParent is not a function") and the popup never
           // opens. DatePicker/TimePicker/Menu accept a control just as well,
           // so a control is the universally-correct anchor.
-          return (
-            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw)
-          );
+          return resolveControl(raw, view);
         case "within":
           // sap.ui.core.Popup.setWithinArea: a control id confines every popup
           // to that control, an EMPTY argument releases the restriction (the
@@ -269,11 +372,7 @@ sap.ui.define(
           // popup opens, so handing over the CONTROL - not its DOM element -
           // is what survives a re-render of the area in between.
           if (raw === "" || raw === undefined || raw === null) return null;
-          return (
-            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw) ||
-            null
-          );
+          return resolveControl(raw, view) || null;
         case "object":
           try {
             return JSON.parse(raw);
@@ -297,13 +396,24 @@ sap.ui.define(
       return raw;
     }
 
+    // kinds whose EMPTY value is meaningful (null), so a missing trailing
+    // argument still has to be passed: the backend wire drops a trailing empty
+    // t_arg entry, and "clear this association" is exactly a call whose only
+    // argument is empty.
+    const NULLABLE_KINDS = ["controlIdOrNull"];
+
     function castArgs(kinds, rawArgs, view) {
       // kinds === null: unlisted-but-allowed method, infer each arg's type
       if (kinds === null) return rawArgs.map((raw) => castArgAuto(raw));
       // only cast args the caller actually sent - padding missing trailing
-      // args would turn open() into open(undefined) and ints into NaN
+      // args would turn open() into open(undefined) and ints into NaN. The one
+      // exception is a nullable kind (see above): pad it so the call carries
+      // an explicit null instead of relying on the control's no-arg handling.
+      let count = rawArgs.length;
+      while (count < kinds.length && NULLABLE_KINDS.includes(kinds[count]))
+        count++;
       return kinds
-        .slice(0, rawArgs.length)
+        .slice(0, count)
         .map((kind, i) => castArg(kind, rawArgs[i], view));
     }
 
@@ -354,6 +464,28 @@ sap.ui.define(
           if (control.isOpen?.()) control.close();
           else control.openBy(anchor);
         });
+        return;
+      }
+      // css is not a UI5 method either: it writes one whitelisted CSS
+      // declaration onto the control's own DOM node, for the case where the
+      // control has no property carrying that value (sap.m.Page has no
+      // `width`). Like the original jQuery-style samples do, the declaration
+      // lives on the element and is gone after a re-render - the backend
+      // re-sends it with the next view, exactly as it re-sends every property.
+      if (method === "css") {
+        const prop = String(args[4] ?? "").toLowerCase();
+        if (!CSS_PROPERTIES.includes(prop)) {
+          Lib.logError(
+            `CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})`,
+          );
+          return;
+        }
+        const el = control?.getDomRef?.();
+        if (!el) {
+          Lib.logError(`CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref`);
+          return;
+        }
+        el.style.setProperty(prop, String(args[5] ?? ""));
         return;
       }
       // setAsyncURLHandler takes a FUNCTION, so the argument names a policy
@@ -1303,13 +1435,55 @@ sap.ui.define(
       return [...mods, key].join("+");
     }
 
+    // A shortcut may be SCOPED, which is how UI5's own CommandExecution
+    // behaves: one in a Popover's dependents shadows the page-level one for
+    // the same command while that popover is open. A scope is either
+    //
+    //   a VIEW SLOT   - POPOVER/POPUP/NEST2/NEST/MAIN, open when the framework
+    //                   has that slot showing (popover_display, popup_display,
+    //                   a nested view)
+    //   a CONTROL ID  - any control DECLARED IN THE VIEW that can be open or
+    //                   closed: a sap.m.Popover/Dialog in `dependents` opened
+    //                   with control_by_id openBy, which is the shape the demo
+    //                   kit's Commands sample actually uses. It never enters a
+    //                   framework slot, so the slot form alone would never fire.
+    //
+    // Dispatch prefers a CONTROL scope (the more specific statement) over a
+    // slot scope, then takes the innermost open slot, then the unscoped entry.
+    const SHORTCUT_SLOTS = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];
+    const SHORTCUT_GLOBAL = ""; // the unscoped registration
+
+    // A control scope counts while the control is OPEN - isOpen() for the
+    // popup-like controls this is for, visibility otherwise.
+    function scopeControlOpen(id) {
+      const c = ViewSlots.resolveById(id);
+      if (!c) return false;
+      if (typeof c.isOpen === "function") return !!c.isOpen();
+      return typeof c.getVisible === "function"
+        ? c.getVisible() !== false
+        : true;
+    }
+
+    function shortcutEntry(combo) {
+      const scopes = AppState.state.shortcuts[combo];
+      if (!scopes) return undefined;
+      for (const key of Object.keys(scopes)) {
+        if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;
+        if (scopeControlOpen(key)) return scopes[key];
+      }
+      for (const key of SHORTCUT_SLOTS) {
+        if (scopes[key] && ViewSlots.getView(key)) return scopes[key];
+      }
+      return scopes[SHORTCUT_GLOBAL];
+    }
+
     let shortcutListener = null;
 
     function installShortcutListener() {
       if (shortcutListener || typeof document === "undefined") return;
       shortcutListener = (oEvent) => {
         try {
-          const entry = AppState.state.shortcuts[shortcutFromEvent(oEvent)];
+          const entry = shortcutEntry(shortcutFromEvent(oEvent));
           if (!entry) return;
           // the browser's own default for the combo (Ctrl+S saves the page,
           // Ctrl+D bookmarks it) must not fire alongside the app command
@@ -1322,7 +1496,9 @@ sap.ui.define(
       document.addEventListener("keydown", shortcutListener);
     }
 
-    // args: [_, combo, eventName] - an empty event name unregisters the combo
+    // args: [_, combo, eventName, scope] - an empty event name unregisters the
+    // combo IN THAT SCOPE; scope is a view slot key (cs_view-popover/popup/...)
+    // and defaults to the unscoped, always-eligible registration
     function evKeyboardShortcut(oController, args) {
       const combo = normalizeShortcut(args[1]);
       if (!combo) {
@@ -1331,14 +1507,25 @@ sap.ui.define(
         );
         return;
       }
+      // a slot key is matched case-insensitively; anything else is taken as a
+      // control id and keeps its case, because that is how it must resolve
+      const raw = String(args[3] ?? "");
+      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())
+        ? raw.toUpperCase()
+        : raw;
       const shortcuts = AppState.state.shortcuts;
+      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});
       if (!args[2]) {
-        delete shortcuts[combo];
+        delete scopes[scope];
+        // a combo with no registration left must not keep an empty entry:
+        // shortcutEntry would still find it and fall through to undefined,
+        // but preventDefault has already been decided by then
+        if (Object.keys(scopes).length === 0) delete shortcuts[combo];
         return;
       }
-      // re-registering a combo replaces it, so the backend can rebind a
-      // shortcut without unregistering it first
-      shortcuts[combo] = { event: args[2], controller: oController };
+      // re-registering a combo in the same scope replaces it, so the backend
+      // can rebind a shortcut without unregistering it first
+      scopes[scope] = { event: args[2], controller: oController };
       installShortcutListener();
     }
 

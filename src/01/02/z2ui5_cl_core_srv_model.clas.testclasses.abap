@@ -1000,6 +1000,7 @@ CLASS ltcl_test_json_stringify DEFINITION FINAL
   PRIVATE SECTION.
     METHODS test_simple_string FOR TESTING RAISING cx_static_check.
     METHODS test_empty_no_bind FOR TESTING RAISING cx_static_check.
+    METHODS test_omit_initial  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_test_json_stringify IMPLEMENTATION.
@@ -1036,6 +1037,36 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
     DATA(lv_json) = lo_model->main_json_stringify( ).
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lv_json ).
+  ENDMETHOD.
+
+  METHOD test_omit_initial.
+    " what z2ui5_if_client~_bind( omit_initial = abap_true ) wires up: an
+    " INITIAL field stays absent from the model, so the control keeps its own
+    " default instead of receiving `` (which an enum-typed property rejects).
+    " A filled field of the same bind is untouched.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->ms_nested-name = `filled`.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr_nested) WITH KEY name = `MS_NESTED`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr_nested->bind          = abap_true.
+    lr_nested->name_client   = `/MS_NESTED`.
+    lr_nested->custom_filter = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ).
+
+    DATA(lo_result) = z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `filled`
+                                        act = lo_result->get_string( `/MS_NESTED/NAME` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = lo_result->exists( `/MS_NESTED/VALUE` )
+        msg = `an initial field must stay ABSENT, not serialize as an empty string` ).
   ENDMETHOD.
 
 ENDCLASS.

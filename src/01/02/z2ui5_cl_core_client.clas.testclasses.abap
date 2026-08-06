@@ -59,6 +59,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_set_nav_back         FOR TESTING RAISING cx_static_check.
     METHODS test_get_event_arg        FOR TESTING RAISING cx_static_check.
     METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
+    METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_client DEFINITION LOCAL FRIENDS ltcl_test_client.
@@ -741,6 +742,40 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = li_client->get_event_arg( 2 ) ).
 
   ENDMETHOD.
+
+  METHOD test_omit_initial_paths.
+
+    " the filter behind _bind( omit_initial_paths ): only a LISTED column is
+    " dropped when initial, so an abap_false that must reach the client (itself
+    " initial) survives as long as its column is not listed. That is the whole
+    " reason the scoped form exists next to the blanket omit_initial.
+    DATA(li_filter) = CAST z2ui5_if_ajson_filter(
+        NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ( `/ROWS/MAX` ) ) ) ).
+
+    " listed + initial -> dropped
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = li_filter->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
+    " listed by its last path segment as well
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = li_filter->keep_node( VALUE #( name = `MAX` type = `str` value = `` ) ) ).
+    " listed but filled -> kept
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = li_filter->keep_node( VALUE #( name = `MIN` type = `num` value = `5` ) ) ).
+    " NOT listed and initial -> kept: this is the boolean that must send false
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = li_filter->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
+    " an object/array visit always passes, or the row around a dropped field would go
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = li_filter->keep_node( is_node  = VALUE #( name = `MIN` type = `object` )
+                                    iv_visit = z2ui5_if_ajson_filter=>visit_type-open ) ).
+
+  ENDMETHOD.
+
 
   METHOD test_set_app_state_active.
 

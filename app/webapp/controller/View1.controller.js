@@ -389,10 +389,16 @@ sap.ui.define(
       // Example: sap.tnt NavigationListItem.press, where cancelling the
       // default suppresses the item selection and leaves the decision to
       // the backend. The name is part of the protocol - do not rename it.
+      //
+      // The second argument is the veto CONDITION, so the decision can be
+      // made per firing instead of per wire: s_ctrl-check_prevent_default
+      // sends the constant true, s_ctrl-prevent_default_expr sends an
+      // expression UI5 resolves on each firing (e.g. "is this the one column
+      // that must not be resized?"). Everything after it is the eB payload.
       // ------------------------------------------------------------------
-      eBP(oEvent, ...args) {
+      eBP(oEvent, bVeto, ...args) {
         // guard the call: a malformed wire (no $event) must still round-trip
-        if (typeof oEvent?.preventDefault === "function") {
+        if (bVeto && typeof oEvent?.preventDefault === "function") {
           oEvent.preventDefault();
         }
         this.eB(...args);

@@ -265,7 +265,12 @@ INTERFACE z2ui5_if_client
   "! built-in default for this event (oEvent.preventDefault(), e.g. a
   "! sap.tnt NavigationListItem press that must not select the item) before
   "! the roundtrip - the event is still sent, so the backend stays in charge
-  "! of what happens instead.
+  "! of what happens instead. That flag is baked per WIRE at render time;
+  "! prevent_default_expr is the same veto decided per FIRING - a client
+  "! expression evaluated when the event fires, so one wire can protect one
+  "! row/column and let the rest through
+  "! (`${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`). It wins
+  "! over the flag when both are set.
   METHODS _event
     IMPORTING
       val           TYPE clike                              OPTIONAL
@@ -295,6 +300,19 @@ INTERFACE z2ui5_if_client
       tab                  TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
       switch_default_model TYPE abap_bool                     DEFAULT abap_false
+      "! keep INITIAL fields out of the serialized model instead of sending
+      "! them as `` / 0. An ABAP field is never absent - it is initial - so by
+      "! default every field reaches the client as an explicit value, which
+      "! overrides the UI5 property default the original view relies on (and an
+      "! enum-typed property rejects the empty string outright). Set it when a
+      "! bound template's rows fill different subsets of the same properties.
+      omit_initial         TYPE abap_bool                     DEFAULT abap_false
+      "! the same omission SCOPED to the listed fields (upper-cased column
+      "! names, the last path segment). Use it when the blanket flag is too
+      "! coarse: an abap_false that MUST reach the client is itself initial, so
+      "! omit_initial would drop it and the control would fall back to its own
+      "! default - list the numeric/enum columns instead and leave the booleans.
+      omit_initial_paths   TYPE string_table                   OPTIONAL
     RETURNING
       VALUE(result)        TYPE string.
 
@@ -329,12 +347,39 @@ INTERFACE z2ui5_if_client
   "! The view is passed as the separate
   "! view parameter (default cs_view-main resolves the id across all open
   "! views; pass cs_view-popup/popover/... to scope the lookup to that view).
+  "! Two entries are NOT UI5 methods but frontend capabilities in method form:
+  "! `css` sets ONE whitelisted CSS declaration on the control's own DOM node
+  "! (t_arg = id, `css`, property, value) - for a value the control has no
+  "! property for at all, e.g. the width of a sap.m.Page; prefer a bound
+  "! property wherever one exists. `toggleBy` opens/closes a popup anchored to
+  "! a control (t_arg = id, `toggleBy`, anchor id).
+  "! An association setter (setSelectedSection, setSelectedItem) clears the
+  "! association when its argument is EMPTY.
+  "! Wherever an argument takes a CONTROL ID, it also takes an aggregation
+  "! ITEM, addressed positionally as `&lt;id&gt;/&lt;aggregation&gt;/&lt;index&gt;`
+  "! (`carousel/pages/2`, 0-based). A control cloned from an aggregation
+  "! template has no id the backend can spell - UI5 mints it from the template
+  "! id, the parent id and the index, and the parent id carries the view prefix
+  "! assigned at runtime - so this is the only way to reach one. It is the
+  "! equivalent of the UI5 controller idiom
+  "! `oCarousel.setActivePage( oCarousel.getPages()[ i ] )`. A plain id (no
+  "! slashes) resolves exactly as before.
   "! cs_event-control_global - call a whitelisted method on a global object
-  "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING, POPUP):
-  "! t_arg = object, method, params.
+  "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING, POPUP,
+  "! INVISIBLE_MESSAGE, FORMATTING): t_arg = object, method, params.
   "! POPUP-setWithinArea confines every popup to the control whose id is
   "! passed (sap.ui.core.Popup.setWithinArea, needs UI5 &gt;= 1.89) instead of
   "! to the window; an EMPTY argument releases the restriction again.
+  "! INVISIBLE_MESSAGE-announce reads a text out to a screen reader without
+  "! rendering it (sap.ui.core.InvisibleMessage, needs UI5 &gt;= 1.78):
+  "! t_arg = text, mode (Polite, default, or Assertive). It is a singleton, so
+  "! there is no control id - this is the only way to announce a change the
+  "! backend made.
+  "! FORMATTING-setCustomCurrencies registers currency codes the standard
+  "! sap.ui.model.type.Currency does not know, or overrides their digit count
+  "! (sap.ui.core.Formatting, needs UI5 &gt;= 1.120):
+  "! t_arg = JSON object, e.g. \{"BGN4":\{"digits":4\}\}. addCustomCurrency
+  "! adds a single one: t_arg = code, JSON object.
   "! cs_event-smart_variant_init - run the initialise( ) handshake sap.ui.comp
   "! variant management needs (a controller would call
   "! oSmartVariantManagement.initialise( fnCallback, oPersonalizableControl )).
@@ -365,6 +410,16 @@ INTERFACE z2ui5_if_client
   "! own default for the combination. Registering the same combination again
   "! rebinds it; an empty event name removes it. The registrations belong to
   "! the running app and are dropped when another app takes over.
+  "! An optional THIRD t_arg SCOPES the shortcut: the scoped registration wins
+  "! while its scope is OPEN and the unscoped one applies otherwise, which is
+  "! how a UI5 CommandExecution in a Popover's dependents shadows the
+  "! page-level one for the same command. A scope is either a view slot
+  "! (cs_view-popover/popup/nested/nested2/main) or the ID OF A CONTROL that
+  "! can be open or closed - a Popover/Dialog declared in the view and opened
+  "! with control_by_id openBy, which never enters a framework slot. A control
+  "! scope beats a slot scope (it is the more specific statement), then the
+  "! innermost open slot wins. An empty event name removes the registration of
+  "! THAT scope only.
   "! cs_event-binding_call - apply a declarative filter/sorter to an
   "! aggregation binding, the client-side equivalent of the UI5 controller
   "! pattern getBinding('items').filter(...); the model data stays untouched:
