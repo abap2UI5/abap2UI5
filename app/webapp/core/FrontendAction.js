@@ -1586,19 +1586,32 @@ sap.ui.define(
         // but the DOM still carries the OLD rendering until UI5's async
         // re-render, and the browser silently ignores focus() on a disabled
         // element. Re-apply once after the pending re-render has replaced
-        // the DOM - but only when the focus was not actively moved elsewhere
-        // in between, so a re-render at some arbitrary later point can never
-        // steal the user's focus.
+        // the DOM.
         const prevActive = document.activeElement;
+        // "Same place" by node OR by element id: when the re-render also
+        // rebuilt the element that held the focus (the pressed button in the
+        // same form), the focus sits on a NEW node of the SAME control
+        // afterwards - that still counts as "the user did not move it".
+        const samePlace = (el) =>
+          el == null ||
+          el === document.body ||
+          el === prevActive ||
+          Boolean(el.id && prevActive && el.id === prevActive.id);
         const delegate = {
           onAfterRendering: () => {
             oElement.removeEventDelegate(delegate);
-            if (Lib.isDestroyed(oController)) return;
-            const active = document.activeElement;
-            if (active && active !== document.body && active !== prevActive) {
-              return;
-            }
-            applyFocus();
+            // Defer past the rendering task: when the re-render replaced the
+            // focused element, UI5's FocusHandler restores its focus AFTER
+            // all onAfterRendering delegates ran - focusing here would be
+            // overridden right away.
+            setTimeout(() => {
+              if (Lib.isDestroyed(oController)) return;
+              // Only when the focus was not actively moved elsewhere in
+              // between - a re-render at some arbitrary later point must
+              // never steal the user's focus.
+              if (!samePlace(document.activeElement)) return;
+              applyFocus();
+            }, 0);
           },
         };
         oElement.addEventDelegate(delegate);

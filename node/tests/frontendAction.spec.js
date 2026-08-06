@@ -1647,7 +1647,9 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
     expect(fx.delegates).toEqual([]);
   });
 
-  test("re-applies after the pending re-render when the DOM refused the focus", () => {
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  test("re-applies after the pending re-render when the DOM refused the focus", async () => {
     const fx = focusFixture({ focusable: false });
     const { FrontendAction } = loadWithFocus(fx);
     FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
@@ -1659,24 +1661,46 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
     // UI5 re-renders the control with the new enabled state
     fx.enable();
     fx.delegates[0].onAfterRendering();
+    // the delegate is one-shot and the retry waits out the rendering task
+    expect(fx.delegates).toEqual([]);
+    expect(fx.applied).toHaveLength(1);
+    await tick();
     expect(fx.applied).toHaveLength(2);
     expect(fx.applied[1]).toEqual({ selectionStart: 0, selectionEnd: 4 });
     expect(fx.doc.activeElement).toBe(fx.inner);
-    // the delegate is one-shot
-    expect(fx.delegates).toEqual([]);
   });
 
-  test("does not steal a focus the user moved elsewhere in between", () => {
+  test("wins over UI5's own focus restore of a re-rendered trigger button", async () => {
+    // The press that triggered the roundtrip left the focus on the button;
+    // the re-render also rebuilt the button, so AFTER the retry delegate ran
+    // UI5's FocusHandler put the focus back on the button's NEW DOM node.
+    const fx = focusFixture({ focusable: false });
+    const { FrontendAction } = loadWithFocus(fx);
+    fx.doc.activeElement = { id: "btnUnlock" };
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(fx.delegates).toHaveLength(1);
+    fx.enable();
+    fx.delegates[0].onAfterRendering();
+    // UI5 focus restore, after all onAfterRendering delegates: same control,
+    // new DOM node
+    fx.doc.activeElement = { id: "btnUnlock" };
+    await tick();
+    // the deferred retry still moves the focus into the input
+    expect(fx.applied).toHaveLength(2);
+    expect(fx.doc.activeElement).toBe(fx.inner);
+  });
+
+  test("does not steal a focus the user moved elsewhere in between", async () => {
     const fx = focusFixture({ focusable: false });
     const { FrontendAction } = loadWithFocus(fx);
     FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
     expect(fx.delegates).toHaveLength(1);
     // the user focused another field before the re-render fired
-    const otherField = {};
+    const otherField = { id: "otherField" };
     fx.doc.activeElement = otherField;
     fx.enable();
-    const delegate = fx.delegates[0];
-    delegate.onAfterRendering();
+    fx.delegates[0].onAfterRendering();
+    await tick();
     expect(fx.applied).toHaveLength(1);
     expect(fx.doc.activeElement).toBe(otherField);
     expect(fx.delegates).toEqual([]);
