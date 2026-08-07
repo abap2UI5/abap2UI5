@@ -300,18 +300,18 @@ INTERFACE z2ui5_if_client
       tab                  TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
       switch_default_model TYPE abap_bool                     DEFAULT abap_false
-      "! keep INITIAL fields out of the serialized model instead of sending
-      "! them as `` / 0. An ABAP field is never absent - it is initial - so by
-      "! default every field reaches the client as an explicit value, which
-      "! overrides the UI5 property default the original view relies on (and an
-      "! enum-typed property rejects the empty string outright). Set it when a
-      "! bound template's rows fill different subsets of the same properties.
+      " keep INITIAL fields out of the serialized model instead of sending
+      " them as `` / 0. An ABAP field is never absent - it is initial - so by
+      " default every field reaches the client as an explicit value, which
+      " overrides the UI5 property default the original view relies on (and an
+      " enum-typed property rejects the empty string outright). Set it when a
+      " bound template's rows fill different subsets of the same properties.
       omit_initial         TYPE abap_bool                     DEFAULT abap_false
-      "! the same omission SCOPED to the listed fields (upper-cased column
-      "! names, the last path segment). Use it when the blanket flag is too
-      "! coarse: an abap_false that MUST reach the client is itself initial, so
-      "! omit_initial would drop it and the control would fall back to its own
-      "! default - list the numeric/enum columns instead and leave the booleans.
+      " the same omission SCOPED to the listed fields (upper-cased column
+      " names, the last path segment). Use it when the blanket flag is too
+      " coarse: an abap_false that MUST reach the client is itself initial, so
+      " omit_initial would drop it and the control would fall back to its own
+      " default - list the numeric/enum columns instead and leave the booleans.
       omit_initial_paths   TYPE string_table                   OPTIONAL
     RETURNING
       VALUE(result)        TYPE string.
