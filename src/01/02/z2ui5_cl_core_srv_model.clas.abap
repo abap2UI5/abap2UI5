@@ -161,9 +161,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                                  IMPORTING ev_container     = <val> ).
 
         CATCH cx_root INTO DATA(x).
+          " chain the cause instead of inlining its text: the parser error
+          " below carries the position/attributes that say WHICH value did
+          " not fit, and only the chain transports them to the client
           RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
             EXPORTING
-              val = |JSON_PARSING_ERROR: { x->get_text( ) }|.
+              val      = |JSON_PARSING_ERROR - attribute '{ lr_attri->name }' (model path '{ lr_attri->name_client }')|
+              previous = x.
       ENDTRY.
     ENDLOOP.
 

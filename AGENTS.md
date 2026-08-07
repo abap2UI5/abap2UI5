@@ -320,6 +320,7 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 
   CATCH cx_root ##NO_HANDLER.
   ```
+  The exception handed over as `val` is chained as `previous` automatically, so the whole cause chain survives up to the single top-level catch, which renders it into the 500 body via `z2ui5_cx_a2ui5_error=>get_text_full` (chain entries with class, source position, kernel id and exception attributes). **Never inline a cause into a message** (`val = |MY_ERROR: { x->get_text( ) }|`) — that flattens it to one line and drops everything below; pass the message as `val` and the cause as `previous`. Reasoning at `z2ui5_cx_a2ui5_error`.
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
 - **Utility access:** every system- and environment-specific call goes through `z2ui5_cl_a2ui5_context` — never directly to `cl_abap_*` or a function module. Full rules in "Utilities — the context class is the only door"
   ```abap

@@ -111,9 +111,14 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       CATCH cx_root INTO DATA(x) ##NO_HANDLER.
     ENDTRY.
 
+    " chain the last serialization failure instead of inlining its text - the
+    " cause names the attribute/type that is not serializable and carries the
+    " source position of the transformation that gave up
     RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
       EXPORTING
-        val = |<p>{ x->get_text( ) }<p>Please check if all generic data references are public attributes of your class|.
+        val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
+                   |Please check if all generic data references are public attributes of your class|
+        previous = x.
 
   ENDMETHOD.
 

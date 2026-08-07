@@ -23,6 +23,14 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
 
+    " Everything about the failing roundtrip that only this class knows:
+    " the running app, the event that was dispatched, the draft ids and the
+    " request origin. Rendered as the outermost entry of the error chain.
+    " Must never raise itself - it runs while an exception is being handled.
+    METHODS request_context_info
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS main_begin.
 
     METHODS main_loop.
@@ -460,13 +468,75 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main.
 
-    main_begin( ).
-    main_loop( ).
+    " The exception itself only says WHAT went wrong. Which app, which event
+    " and which draft it went wrong in is known here and nowhere above, so
+    " annotate it on the way out - the top-level catch in
+    " z2ui5_cl_http_handler=>_main renders the whole chain, this frame
+    " included, into the 500 body.
+    TRY.
+        main_begin( ).
+        main_loop( ).
+      CATCH cx_root INTO DATA(x).
+        DATA lv_context TYPE string.
+        " belt and braces: an annotation that fails must not replace the
+        " error it was meant to describe
+        TRY.
+            lv_context = request_context_info( ).
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING
+            val      = lv_context
+            previous = x.
+    ENDTRY.
 
     result = VALUE #( body          = mv_response
                       s_stateful    = ms_response-s_front-params-s_stateful
                       status_code   = 200
                       status_reason = `success` ).
+
+  ENDMETHOD.
+
+  METHOD request_context_info.
+
+    DATA lv_app   TYPE string.
+    DATA lv_event TYPE string.
+    DATA lv_draft TYPE string.
+
+    " The request may have died before any of this existed - a bad JSON body
+    " leaves the action without an app, an unknown app class leaves the app
+    " without an instance. Check every reference before following it: a
+    " missing detail must shorten the context line, never replace the
+    " original error with a follow-up dump. Nested IFs, not a chained AND -
+    " the guard must hold on every target the sources are compiled for.
+    IF mo_action IS BOUND.
+      lv_event = mo_action->ms_actual-event.
+
+      IF mo_action->mo_app IS BOUND.
+        lv_draft = mo_action->mo_app->ms_draft-id_prev.
+
+        IF mo_action->mo_app->mo_app IS BOUND.
+          lv_app = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
+        ENDIF.
+      ENDIF.
+    ENDIF.
+
+    " the url comes from the client - cap it so a crafted request cannot pad
+    " the error body with kilobytes of noise
+    DATA(lv_url) = ms_request-s_front-pathname && ms_request-s_front-search.
+    IF strlen( lv_url ) > 300.
+      lv_url = substring( val = lv_url
+                          len = 300 ) && `...`.
+    ENDIF.
+
+    result = |Request failed| &&
+             COND #( WHEN lv_app   IS NOT INITIAL THEN | in app { lv_app }| ) &&
+             COND #( WHEN lv_event IS NOT INITIAL THEN |, event { lv_event }|
+                     ELSE |, no event (initial rendering)| ) &&
+             COND #( WHEN lv_draft IS NOT INITIAL THEN |, draft { lv_draft }| ) &&
+             COND #( WHEN ms_request-s_control-app_start IS NOT INITIAL
+                     THEN |, app_start { ms_request-s_control-app_start }| ) &&
+             COND #( WHEN lv_url IS NOT INITIAL THEN |, url { lv_url }| ).
 
   ENDMETHOD.
 
