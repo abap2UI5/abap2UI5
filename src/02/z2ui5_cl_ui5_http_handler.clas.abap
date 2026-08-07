@@ -413,7 +413,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
         result = VALUE #( body          = COND #( WHEN ls_config_post-check_hide_error_details = abap_true
                                                   THEN `Internal Server Error`
-                                                  ELSE z2ui5_cl_a2ui5_CONTEXT=>msg_get( lx )-text )
+                                                  ELSE z2ui5_cl_a2ui5_context=>msg_get( lx )-text )
                           status_code   = 500
                           status_reason = `Internal Server Error` ).
     ENDTRY.
