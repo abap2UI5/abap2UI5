@@ -115,11 +115,15 @@ test("rejects a broken request body with a framework error", async ({
   const res = await request.post("/", { data: "no json at all" });
 
   // The single top-level catch in z2ui5_cl_http_handler=>_main turns the
-  // parse failure into a 500 carrying the raw exception text, so the frontend
-  // shows the real reason instead of the generic SAP ICF 500 page. Assert on
-  // that text - the body deliberately does not carry a product marker.
+  // parse failure into a 500 carrying the full exception dump, so the frontend
+  // shows the real reason instead of the generic SAP ICF 500 page: a header
+  // line naming the framework and version, the message, and one block per
+  // entry of the previous chain.
   expect(res.status()).toBe(500);
-  expect(await res.text()).toContain("Json parsing error");
+  const body = await res.text();
+  expect(body).toContain("abap2UI5");
+  expect(body).toContain("Json parsing error");
+  expect(body).toContain("exception chain");
 });
 
 test("boots the UI5 shell in the browser and issues the initial roundtrip", async ({

@@ -88,6 +88,17 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_if_types=>ty_s_http_config.
 
+    " The plain-text body of a 500 response: one header line naming the
+    " framework version and the request method, then the full exception dump
+    " (see z2ui5_cx_a2ui5_error=>get_text_full). Only reached when the exit
+    " did not ask for hidden error details.
+    CLASS-METHODS _error_body
+      IMPORTING
+        !val          TYPE REF TO cx_root
+        !method       TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
     " reduce an Origin/Referer/Host value to its bare host[:port] authority
     " (lower-cased, scheme and path/query/fragment stripped) for same-origin
     " comparison in _check_csrf_rejected
@@ -405,18 +416,35 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(lx).
         " In hardened installations the exit sets check_hide_error_details, so
-        " the raw exception text (RTTI/class/DDIC names, dynamic-call failures)
-        " is replaced by a generic message instead of leaking to the client.
+        " the raw exception text (RTTI/class/DDIC names, dynamic-call failures,
+        " and the system/user context the full dump carries) is replaced by a
+        " generic message instead of leaking to the client.
         " Default is abap_false -> the real reason is returned as before.
         DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
         z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
+        " the body is the only diagnostic the developer gets - the browser
+        " shows it in the fatal-error overlay and nothing of it survives the
+        " roundtrip anywhere else. Ship the FULL dump (whole previous chain
+        " with class, source position, kernel id and exception attributes),
+        " not just the outermost message: a MOVE_CAST or a failed dynamic
+        " call says nothing without the cause below it
         result = VALUE #( body          = COND #( WHEN ls_config_post-check_hide_error_details = abap_true
                                                   THEN `Internal Server Error`
-                                                  ELSE lx->get_text( ) )
+                                                  ELSE _error_body( val    = lx
+                                                                    method = is_req-method ) )
                           status_code   = 500
                           status_reason = `Internal Server Error` ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD _error_body.
+
+    DATA(lv_nl) = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
+
+    result = |abap2UI5 { z2ui5_if_app=>version } - unhandled exception in a { method } request| &&
+             lv_nl && lv_nl && z2ui5_cx_a2ui5_error=>get_text_full( val ).
 
   ENDMETHOD.
 

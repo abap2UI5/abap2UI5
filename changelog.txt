@@ -12,6 +12,23 @@ Legend
 
 unreleased
 ----------
+! Error output: a 500 response no longer carries only the outermost message. The
+  body now holds the full diagnostic - the message chain, then one block per
+  entry of the previous chain with the exception class, its own text, the source
+  position it was raised at (program / class include / line - what identifies
+  the failing method for a CX_SY_MOVE_CAST_ERROR, whose text names only the two
+  types), the kernel error id and every public exception attribute that carries a
+  value - followed by the app / event / draft / url of the failing roundtrip and
+  the system context (system, client, host, release, user, time). Rendered by the
+  new z2ui5_cx_a2ui5_error=>get_text_full( ), which works for any exception
+* z2ui5_cx_a2ui5_error chains the exception passed as val as its previous. The
+  framework's dominant raise pattern (EXPORTING val = x, no previous) used to
+  drop everything below x, so the cause of a wrapped error - and its source
+  position - never reached the client. Nested causes are still printed exactly
+  once, and the chain walk is bounded so a self-referencing previous cannot hang
+  the renderer
+! The exit z2ui5_if_exit~set_config_http_post -> check_hide_error_details keeps
+  suppressing the whole body (now including the system context) as before
 - Curated formatter (z2ui5/model/formatter, z2ui5.Formatter): removed round2DP,
   dimensions, stockStatusState, stockStatusIcon and deliveryStatusState. abap2UI5
   is a thin frontend - rounding a number, joining fields and mapping a business
