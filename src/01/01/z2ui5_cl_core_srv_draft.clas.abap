@@ -11,7 +11,7 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
 
     METHODS create
       IMPORTING
-        draft     TYPE z2ui5_if_types=>ty_s_draft
+        draft     TYPE z2ui5_if_ui5_client=>ty_s_draft
         model_xml TYPE clike.
 
     METHODS read_draft
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
       IMPORTING
         id            TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_s_draft.
+        VALUE(result) TYPE z2ui5_if_ui5_client=>ty_s_draft.
 
     METHODS check_exists
       IMPORTING
@@ -50,7 +50,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
   METHOD cleanup.
 
-    DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+    DATA(ls_config) = VALUE z2ui5_if_ui5_client=>ty_s_http_config_post( ).
     z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
     " z2ui5_cl_exit=>set_config_http_post already guarantees a positive

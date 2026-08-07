@@ -20,7 +20,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_create.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
-    DATA temp1 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp1 TYPE z2ui5_if_ui5_client=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
 
@@ -41,7 +41,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_create_and_read.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
-    DATA temp2 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp2 TYPE z2ui5_if_ui5_client=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
 
@@ -67,8 +67,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_read_info.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
-    DATA temp3 TYPE z2ui5_if_types=>ty_s_draft.
-    DATA ls_info TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp3 TYPE z2ui5_if_ui5_client=>ty_s_draft.
+    DATA ls_info TYPE z2ui5_if_ui5_client=>ty_s_draft.
     lo_draft = NEW #( ).
 
 
@@ -91,7 +91,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_buffer.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
-    DATA temp4 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp4 TYPE z2ui5_if_ui5_client=>ty_s_draft.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
@@ -115,8 +115,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_overwrite.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
-    DATA temp5 TYPE z2ui5_if_types=>ty_s_draft.
-    DATA temp6 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp5 TYPE z2ui5_if_ui5_client=>ty_s_draft.
+    DATA temp6 TYPE z2ui5_if_ui5_client=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
 

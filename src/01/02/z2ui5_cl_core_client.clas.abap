@@ -1,7 +1,47 @@
 CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_client.
     INTERFACES z2ui5_if_client.
+
+    ALIASES view_destroy            FOR z2ui5_if_ui5_client~view_destroy.
+    ALIASES view_display            FOR z2ui5_if_ui5_client~view_display.
+    ALIASES view_model_update       FOR z2ui5_if_ui5_client~view_model_update.
+    ALIASES set_session_stateful    FOR z2ui5_if_ui5_client~set_session_stateful.
+    ALIASES set_app_state_active    FOR z2ui5_if_ui5_client~set_app_state_active.
+    ALIASES set_push_state          FOR z2ui5_if_ui5_client~set_push_state.
+    ALIASES set_nav_back            FOR z2ui5_if_ui5_client~set_nav_back.
+    ALIASES set_nav_routing         FOR z2ui5_if_ui5_client~set_nav_routing.
+    ALIASES nest_view_display       FOR z2ui5_if_ui5_client~nest_view_display.
+    ALIASES nest_view_destroy       FOR z2ui5_if_ui5_client~nest_view_destroy.
+    ALIASES nest_view_model_update  FOR z2ui5_if_ui5_client~nest_view_model_update.
+    ALIASES nest2_view_display      FOR z2ui5_if_ui5_client~nest2_view_display.
+    ALIASES nest2_view_destroy      FOR z2ui5_if_ui5_client~nest2_view_destroy.
+    ALIASES nest2_view_model_update FOR z2ui5_if_ui5_client~nest2_view_model_update.
+    ALIASES popup_display           FOR z2ui5_if_ui5_client~popup_display.
+    ALIASES popup_model_update      FOR z2ui5_if_ui5_client~popup_model_update.
+    ALIASES popup_destroy           FOR z2ui5_if_ui5_client~popup_destroy.
+    ALIASES popover_model_update    FOR z2ui5_if_ui5_client~popover_model_update.
+    ALIASES popover_display         FOR z2ui5_if_ui5_client~popover_display.
+    ALIASES popover_destroy         FOR z2ui5_if_ui5_client~popover_destroy.
+    ALIASES get                     FOR z2ui5_if_ui5_client~get.
+    ALIASES get_event_arg           FOR z2ui5_if_ui5_client~get_event_arg.
+    ALIASES get_app                 FOR z2ui5_if_ui5_client~get_app.
+    ALIASES _event_nav_app_leave    FOR z2ui5_if_ui5_client~_event_nav_app_leave.
+    ALIASES nav_app_leave           FOR z2ui5_if_ui5_client~nav_app_leave.
+    ALIASES nav_app_call            FOR z2ui5_if_ui5_client~nav_app_call.
+    ALIASES message_box_display     FOR z2ui5_if_ui5_client~message_box_display.
+    ALIASES message_toast_display   FOR z2ui5_if_ui5_client~message_toast_display.
+    ALIASES _event                  FOR z2ui5_if_ui5_client~_event.
+    ALIASES _event_client           FOR z2ui5_if_ui5_client~_event_client.
+    ALIASES _bind                   FOR z2ui5_if_ui5_client~_bind.
+    ALIASES _bind_edit              FOR z2ui5_if_ui5_client~_bind_edit.
+    ALIASES follow_up_action        FOR z2ui5_if_ui5_client~follow_up_action.
+    ALIASES check_on_event          FOR z2ui5_if_ui5_client~check_on_event.
+    ALIASES check_on_init           FOR z2ui5_if_ui5_client~check_on_init.
+    ALIASES check_app_prev_stack    FOR z2ui5_if_ui5_client~check_app_prev_stack.
+    ALIASES check_on_navigated      FOR z2ui5_if_ui5_client~check_on_navigated.
+    ALIASES get_app_prev            FOR z2ui5_if_ui5_client~get_app_prev.
 
     DATA mo_action TYPE REF TO z2ui5_cl_core_action.
 

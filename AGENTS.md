@@ -336,7 +336,10 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 ### Style Rules
 
 - Max 50 statements per method, max cyclomatic complexity 10, max nesting depth 5
-- No aliases, no STATICS, no BREAK-POINT, no DEFINE macros
+- No STATICS, no BREAK-POINT, no DEFINE macros
+- Aliases only to rename a public interface: the new name is a compound interface
+  over the old one plus one `ALIASES` per method (`z2ui5_if_ui5_client`), so the
+  method keeps its single implementation. Never as a convenience shorthand
 - `NEW #()` instead of `CREATE OBJECT`; `xsdbool()` for booleans (NEVER use `boolc()` — the downport pipeline converts `xsdbool` to `boolc` automatically); `line_exists()` instead of READ TABLE
 - Backtick string literals (`` ` ``) preferred over single quotes
 - `IS NOT` over `NOT ... IS`; `RETURNING` over `EXPORTING` for single outputs

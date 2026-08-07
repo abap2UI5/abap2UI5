@@ -32,7 +32,12 @@
     "keyword_case": true,
     "contains_tab": true,
     "colon_missing_space": true,
-    "line_break_multiple_parameters": true,
+    // off: --fix breaks every multi-parameter call onto one line per parameter,
+    // which pulls the view-builder chains apart - there one CALL belongs on one
+    // line, arguments included, and the indentation carries the XML nesting. The
+    // active abaplint.jsonc has the rule off as well, so this only stops the
+    // scheduled auto-format from undoing it again.
+    "line_break_multiple_parameters": false,
     "line_only_punc": true,
     "max_one_method_parameter_per_line": true,
     "sequential_blank": true,

@@ -574,7 +574,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main_process.
 
-    DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_core_client( mo_action ) ).
+    DATA(li_client) = CAST z2ui5_if_ui5_client( NEW z2ui5_cl_core_client( mo_action ) ).
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
     IF li_app->check_sticky = abap_false.

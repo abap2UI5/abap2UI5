@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
+CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     CLASS-METHODS run
@@ -13,7 +13,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
         req           TYPE REF TO object
         res           TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_http_handler.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_http_handler.
 
     CLASS-METHODS factory
       IMPORTING
@@ -22,7 +22,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
         res           TYPE REF TO object OPTIONAL
           PREFERRED PARAMETER server
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_http_handler.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_http_handler.
 
     CLASS-METHODS _http_post
       IMPORTING
@@ -81,12 +81,12 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
     " and set_response (security headers) need it; without the cache the user
     " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
     " after init_context( ), so the exit always sees the current request context.
-    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_types=>ty_s_http_config.
+    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_ui5_client=>ty_s_http_config.
     CLASS-DATA sv_config_http_get_set TYPE abap_bool.
 
     CLASS-METHODS config_http_get
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_s_http_config.
+        VALUE(result) TYPE z2ui5_if_ui5_client=>ty_s_http_config.
 
     " reduce an Origin/Referer/Host value to its bare host[:port] authority
     " (lower-cased, scheme and path/query/fragment stripped) for same-origin
@@ -100,7 +100,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD main.
 
@@ -125,7 +125,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_exit=>
         " set_config_http_post), so a cross-origin POST is rejected unless an
         " app opts out via its own exit.
-        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+        DATA(ls_config_post) = VALUE z2ui5_if_ui5_client=>ty_s_http_config_post( ).
         z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
@@ -408,12 +408,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         " the raw exception text (RTTI/class/DDIC names, dynamic-call failures)
         " is replaced by a generic message instead of leaking to the client.
         " Default is abap_false -> the real reason is returned as before.
-        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+        DATA(ls_config_post) = VALUE z2ui5_if_ui5_client=>ty_s_http_config_post( ).
         z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         result = VALUE #( body          = COND #( WHEN ls_config_post-check_hide_error_details = abap_true
                                                   THEN `Internal Server Error`
-                                                  ELSE lx->get_text( ) )
+                                                  ELSE z2ui5_cl_a2ui5_context=>msg_get( lx )-text )
                           status_code   = 500
                           status_reason = `Internal Server Error` ).
     ENDTRY.

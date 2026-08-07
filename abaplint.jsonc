@@ -225,7 +225,12 @@
       "depth": 5
     },
     "newline_between_methods": true,
-    "no_aliases": true,
+    // off since z2ui5_if_ui5_client: a renamed public interface is declared as a
+    // compound interface over the old one, with one ALIAS per method. That is the
+    // only construct that renames an API without duplicating it - the method keeps
+    // its single implementation and both names reach it. Aliases stay unwelcome
+    // everywhere else - use them to rename a public API, not for convenience.
+    "no_aliases": false,
     "no_chained_assignment": true,
     "no_comments_between_methods": true,
     "no_external_form_calls": true,
