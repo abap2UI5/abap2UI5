@@ -1,4 +1,5 @@
 INTERFACE z2ui5_if_app PUBLIC.
+
   INTERFACES if_serializable_object.
 
   CONSTANTS version TYPE string VALUE `1.142.0`.

@@ -35,7 +35,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_set_config_http_get.
 
     DATA(li_exit) = z2ui5_cl_exit=>get_instance( ).
-    DATA ls_config TYPE z2ui5_if_ui5_client=>ty_s_http_config.
+    DATA ls_config TYPE z2ui5_if_types=>ty_s_http_config.
 
     li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
@@ -50,7 +50,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_set_config_http_post.
 
     DATA(li_exit) = z2ui5_cl_exit=>get_instance( ).
-    DATA ls_config TYPE z2ui5_if_ui5_client=>ty_s_http_config_post.
+    DATA ls_config TYPE z2ui5_if_types=>ty_s_http_config_post.
 
     li_exit->set_config_http_post( CHANGING cs_config = ls_config ).
 
@@ -67,7 +67,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_post_default_exp_time.
 
     DATA(li_exit) = z2ui5_cl_exit=>get_instance( ).
-    DATA ls_config TYPE z2ui5_if_ui5_client=>ty_s_http_config_post.
+    DATA ls_config TYPE z2ui5_if_types=>ty_s_http_config_post.
     ls_config-draft_exp_time_in_hours = -1.
 
     li_exit->set_config_http_post( CHANGING cs_config = ls_config ).

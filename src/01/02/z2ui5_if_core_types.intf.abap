@@ -17,7 +17,7 @@ INTERFACE z2ui5_if_core_types
       body          TYPE string,
       status_code   TYPE i,
       status_reason TYPE string,
-      t_header      TYPE z2ui5_if_ui5_client=>ty_t_name_value,
+      t_header      TYPE z2ui5_if_types=>ty_t_name_value,
       BEGIN OF s_stateful,
         active   TYPE i,
         switched TYPE abap_bool,
