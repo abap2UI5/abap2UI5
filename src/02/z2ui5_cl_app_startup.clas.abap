@@ -344,7 +344,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     render_section( form  = form
                     title = `What's next?` ).
 
+    " the samples repository renamed its overview app from z2ui5_cl_demo_app_g00
+    " to z2ui5_cl_smp_app_000 - check the current name first, keep the old one as
+    " a fallback so an older samples installation still gets the button
     DATA(lv_class_samples) = COND string(
+      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_smp_app_000` ) THEN `z2ui5_cl_smp_app_000`
       WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
 
     IF lv_class_samples IS NOT INITIAL.
