@@ -366,6 +366,14 @@ front, a green abaplint does not prove their absence:
   that means *inside* the chain, directly before the element — a `"!` block
   before the chain keyword is "in the wrong position" (bit us on
   `z2ui5_if_client=>cs_nav_mode`).
+- **Never `"!` inside a parameter list.** A single parameter of a `METHODS`
+  statement is not a declaration of its own, so a `"!` block in front of it
+  (anywhere between `IMPORTING` and the final `.`) is "in the wrong position".
+  Document parameters in the method's own doc block, before the `METHODS`
+  keyword, with `"! @parameter <name> | <text>` (see `z2ui5_cl_xml_view` for
+  the house style; bit us on `z2ui5_if_client~_bind( omit_initial )`). A plain
+  `"` comment inside the list stays legal — that is why the `"obsolete …` note
+  on `path` has no `!`.
 - **ABAP Doc is parsed as HTML:** a literal `<`/`>`/`&` must be escaped as
   `&lt;`/`&gt;`/`&amp;` — a placeholder like `#/app/<CLASS>` is otherwise read
   as an unsupported, unclosed HTML tag; write `#/app/&lt;CLASS&gt;`.
