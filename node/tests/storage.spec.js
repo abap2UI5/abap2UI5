@@ -8,7 +8,7 @@ const { loadModule } = require("./loadModule");
 // what it holds, so a structured payload comes back as a fresh object every
 // read and a reference comparison would fire on every render (round-trip
 // loop).
-function load({ stored = "", value = "" } = {}) {
+function load({ stored = null, value = "" } = {}) {
   const errors = [];
   const { module: StorageControl } = loadModule("cc/Storage.js", {
     deps: {
@@ -141,12 +141,33 @@ test("an array is never equal to an object", () => {
   expect(fired).toHaveLength(1);
 });
 
-test("null is not equal to an empty object", () => {
-  const { instance, fired } = load({ stored: null, value: {} });
+test("a missing key does not fire and does not clobber the bound value", () => {
+  // the regression: an app binding a STRUCTURE used to get the plain "" of an
+  // absent key written into its model field, which the backend could not
+  // parse back onto a deep target
+  const bound = { FIELD1: 1, FIELD2: "text" };
+  const { instance, fired } = load({ stored: null, value: bound });
 
   instance.onAfterRendering();
 
-  // Storage.get() ?? "" turns null into the empty string, which differs
+  expect(fired).toHaveLength(0);
+  expect(instance.getProperty("value")).toEqual(bound);
+});
+
+test("a missing key leaves a bound STRING untouched too", () => {
+  const { instance, fired } = load({ stored: null, value: "keep me" });
+
+  instance.onAfterRendering();
+
+  expect(fired).toHaveLength(0);
+  expect(instance.getProperty("value")).toBe("keep me");
+});
+
+test("an empty string IS a stored value and is reported", () => {
+  const { instance, fired } = load({ stored: "", value: "old" });
+
+  instance.onAfterRendering();
+
   expect(fired).toHaveLength(1);
   expect(fired[0].value).toBe("");
 });
