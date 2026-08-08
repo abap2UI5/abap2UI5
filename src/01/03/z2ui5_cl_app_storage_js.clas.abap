@@ -117,11 +117,20 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const storageType = Storage.Type[type] || Storage.Type.session;` && |\n| &&
              `          const storage = new Storage(storageType, prefix);` && |\n| &&
-             `          stored = storage.get(key) ?? "";` && |\n| &&
+             `          stored = storage.get(key);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        // A key that holds nothing must leave the bound field ALONE. Reporting` && |\n| &&
+             `        // the empty string for it used to overwrite whatever the app had -` && |\n| &&
+             `        // and, worse, its TYPE: an app binding a structure got a plain "" on` && |\n| &&
+             `        // the very first render, which the next roundtrip could not parse back` && |\n| &&
+             `        // ("JSON_PARSING_ERROR ... Unsupported target for value [v]", because` && |\n| &&
+             `        // a string cannot land on a deep ABAP target). "Nothing is stored" is` && |\n| &&
+             `        // not a value, so there is nothing to report.` && |\n| &&
+             `        if (stored === null || stored === undefined) return;` && |\n| &&
              `` && |\n| &&
              `        // Only fire "finished" when the stored value differs from the` && |\n| &&
              `        // current property to avoid feedback loops.` && |\n| &&

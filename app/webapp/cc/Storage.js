@@ -90,11 +90,20 @@ sap.ui.define(
         try {
           const storageType = Storage.Type[type] || Storage.Type.session;
           const storage = new Storage(storageType, prefix);
-          stored = storage.get(key) ?? "";
+          stored = storage.get(key);
         } catch (e) {
           Lib.logError(`Storage: read failed for key '${key}'`, e);
           return;
         }
+
+        // A key that holds nothing must leave the bound field ALONE. Reporting
+        // the empty string for it used to overwrite whatever the app had -
+        // and, worse, its TYPE: an app binding a structure got a plain "" on
+        // the very first render, which the next roundtrip could not parse back
+        // ("JSON_PARSING_ERROR ... Unsupported target for value [v]", because
+        // a string cannot land on a deep ABAP target). "Nothing is stored" is
+        // not a value, so there is nothing to report.
+        if (stored === null || stored === undefined) return;
 
         // Only fire "finished" when the stored value differs from the
         // current property to avoid feedback loops.
