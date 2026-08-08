@@ -75,7 +75,8 @@
       "id": "App"
     },
     "resourceRoots": {
-      "z2ui5cc": "../z2ui5cc/"
+      "z2ui5cc": "../z2ui5cc/",
+      "z2ui5ext": "../z2ui5ext/"
     }
   },
   "sap.cloud": {
