@@ -217,6 +217,13 @@ ships for existing apps but is **frozen** — new apps and new code use
   properties, so `client->get_event_arg( )` returns a JSON array you read with
   `z2ui5_cl_ajson`. Do **not** parse a display string such as
   `filterString` — it is localized and its format is not a contract.
+  **Map corresponding fields only**: the payload carries *every* public
+  property of the control, not just the ones you modelled — a
+  `ViewSettingsItem` also brings `enabled`, `textDirection` and `wrapping` —
+  and a plain `to_abap( )` aborts on the first field your structure lacks
+  (`Path not found @/1/wrapping`). Chain
+  `parse( … )->to_abap_corresponding_only( )->to_abap( … )` and declare only
+  the fields you actually use.
 - Roundtrip-free client actions: `client->_event_client( val = … t_arg = … )`
   runs a whitelisted frontend action without a server call (toast from a row
   value, client-side sort/filter via `binding_call`, …).
