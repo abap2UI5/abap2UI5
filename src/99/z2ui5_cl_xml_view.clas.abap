@@ -5844,6 +5844,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         selected      TYPE clike OPTIONAL
         text          TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
+        items         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -15077,6 +15078,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `selected`        v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( selected ) )
                                    ( n = `text`            v = text )
                                    ( n = `textDirection`   v = textdirection )
+                                   ( n = `items`           v = items )
                                    ( n = `multiSelect`     v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( multiselect ) ) ) ).
   ENDMETHOD.
 
