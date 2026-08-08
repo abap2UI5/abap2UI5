@@ -152,8 +152,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_text) = z2ui5_cx_a2ui5_error=>get_text_full( lx_outer ).
 
-    " headline (both messages), one detail block per chain entry, the class
-    " name of every entry and the system context
+    " the message section (both messages), one detail block per chain entry,
+    " the class name of every entry and the system context. The `--- error ---`
+    " header is a contract with the frontend: app/webapp/core/ErrorView.js
+    " lifts exactly that section into the error popup
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `--- error ---` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `outer problem` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `root cause` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `exception chain` ) ).
