@@ -65,22 +65,53 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       .join(" - ");
   }
 
-  // Turn the raw error text into a one-glance preview for the friendly dialog.
-  // Backend errors often arrive as a whole HTML page (an ABAP dump rendered as
-  // a 500 error page): prefer the structured error message, else fall back to
-  // stripping script/style/title and the remaining tags. Rendered as plain
-  // MessageBox text, so the stripped markup cannot execute.
+  // A framework 500 body is a sectioned plain-text dump built by
+  // z2ui5_cx_a2ui5_error=>get_text_full: a version header line, then
+  // `--- error ---` with the message chain (one message per line), then
+  // `--- exception chain ---` (a block per cause with class, source position,
+  // kernel id, attributes) and `--- context ---`. The popup shows only the
+  // messages; the rest is one click away behind Details and in Copy, which
+  // both work on the untruncated text. Returns "" when the text is not such
+  // a dump - a network error, a client-side failure or an ABAP dump rendered
+  // as an HTML error page all keep the single-line preview below.
+  const ERROR_SECTION_HEADER = "--- error ---";
+
+  function extractFrameworkMessages(text) {
+    const lines = text.split("\n");
+    const start = lines.findIndex(
+      (line) => line.trim() === ERROR_SECTION_HEADER,
+    );
+    if (start < 0) return "";
+    const messages = [];
+    for (const line of lines.slice(start + 1)) {
+      // the next section header ends the block
+      if (line.trim().startsWith("---")) break;
+      const cleaned = cleanText(line);
+      if (cleaned) messages.push(cleaned);
+    }
+    return messages.join("\n");
+  }
+
+  // Turn the raw error text into a preview for the friendly dialog: the
+  // framework's own messages when the body carries them, otherwise a
+  // one-glance line. Backend errors may also arrive as a whole HTML page (an
+  // ABAP dump rendered as a 500 error page): prefer the structured error
+  // message, else fall back to stripping script/style/title and the remaining
+  // tags. Rendered as plain text, so the stripped markup cannot execute.
   function buildErrorPreview(text) {
     if (!text) return "";
-    let preview = text;
-    if (/<[a-z][\s\S]*>/i.test(preview)) {
-      preview =
-        extractServerError(preview) ||
-        cleanText(
-          preview.replace(/<(script|style|title)[\s\S]*?<\/\1>/gi, " "),
-        );
+    let preview = extractFrameworkMessages(text);
+    if (!preview) {
+      preview = text;
+      if (/<[a-z][\s\S]*>/i.test(preview)) {
+        preview =
+          extractServerError(preview) ||
+          cleanText(
+            preview.replace(/<(script|style|title)[\s\S]*?<\/\1>/gi, " "),
+          );
+      }
+      preview = preview.replace(/\s+/g, " ").trim();
     }
-    preview = preview.replace(/\s+/g, " ").trim();
     return preview.length > PREVIEW_MAX_LENGTH
       ? `${preview.slice(0, PREVIEW_MAX_LENGTH)}...`
       : preview;
@@ -200,6 +231,15 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       // Show only the extracted error text; a short neutral fallback covers
       // the rare case where nothing could be extracted.
       const message = buildErrorPreview(details) || "An error occurred.";
+      // A framework preview is one message per line, so the line breaks have
+      // to survive - sap.m.Text normalizes whitespace unless told otherwise.
+      // Set through the mutator and guarded: the property arrived in UI5 1.60
+      // and a control without it must not take the whole dialog down (the
+      // catch below would drop the user to the raw overlay).
+      const messageText = new Text({ text: message });
+      if (typeof messageText.setRenderWhitespace === "function") {
+        messageText.setRenderWhitespace(true);
+      }
       // Restart is the primary action, so it also gets the initial focus.
       const restartButton = new Button({
         text: "Restart",
@@ -260,7 +300,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         // promise keeps it open, so the only ways out are the explicit
         // actions built above.
         escapeHandler: (oPromise) => oPromise.reject(),
-        content: [new Text({ text: message })],
+        content: [messageText],
         buttons,
         initialFocus: restartButton,
         afterClose: () => {
