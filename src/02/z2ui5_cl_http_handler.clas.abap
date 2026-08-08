@@ -247,21 +247,27 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DATA(lv_preload) = z2ui5_cl_app_preload=>get( styles_css = lv_style_css
                                                   custom_js  = ls_config-custom_js ).
 
-    " Custom controls live in their own BSP, which the frontend finds through
-    " the reserved resourceRoot in manifest.json ("z2ui5cc": "../z2ui5cc/").
-    " That path is a sibling of the FRONTEND BSP, so it is only correct when
-    " the app is served from it. Here the component base is this ICF node and
-    " the same relative path resolves next to /sap/bc/, where nothing is.
+    " Custom controls (z2ui5cc, abap2UI5-addons/custom-controls) and the
+    " customer's own frontend artefacts (z2ui5ext,
+    " abap2UI5/customer-frontend-extension) each live in their own BSP, which
+    " the frontend finds through the reserved resourceRoots in manifest.json
+    " ("z2ui5cc": "../z2ui5cc/", "z2ui5ext": "../z2ui5ext/"). Those paths are
+    " siblings of the FRONTEND BSP, so they are only correct when the app is
+    " served from it. Here the component base is this ICF node and the same
+    " relative path resolves next to /sap/bc/, where nothing is.
     "
-    " Hand the absolute BSP path to the frontend instead. It cannot be applied
-    " here: the manifest registers its own value during component creation,
-    " which happens after everything this page can run, so it would win.
-    " Component.js applies the field in init( ), after manifest processing.
-    " AppState~initGlobal keeps fields that are already on the global when
-    " checkLocal is true, so it survives the component start. In BSP and
-    " Launchpad mode the field is absent and the manifest entry stands.
+    " Hand the absolute BSP paths to the frontend instead. They cannot be
+    " applied here: the manifest registers its own value during component
+    " creation, which happens after everything this page can run, so it would
+    " win. Component.js applies the fields in init( ), after manifest
+    " processing. AppState~initGlobal keeps fields that are already on the
+    " global when checkLocal is true, so they survive the component start. In
+    " BSP and Launchpad mode the fields are absent and the manifest entries
+    " stand. Registering a path costs nothing when the BSP is not installed -
+    " nothing is requested from it until a view names the namespace.
     DATA(lv_globals) = |window.z2ui5 = \{ checkLocal : true, | &&
-                       |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5cc" \};|.
+                       |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5cc", | &&
+                       |extResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5ext" \};|.
 
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&

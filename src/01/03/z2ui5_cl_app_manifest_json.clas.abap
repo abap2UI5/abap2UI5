@@ -102,7 +102,8 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      "id": "App"` &&
              `    },` &&
              `    "resourceRoots": {` &&
-             `      "z2ui5cc": "../z2ui5cc/"` &&
+             `      "z2ui5cc": "../z2ui5cc/",` &&
+             `      "z2ui5ext": "../z2ui5ext/"` &&
              `    }` &&
              `  },` &&
              `  "sap.cloud": {` &&

@@ -58,6 +58,11 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     core:require; the global covers releases without` && |\n| &&
              `//                     core:require); owns the date helpers Util` && |\n| &&
              `//                     re-exports - grows via framework PRs only (Component)` && |\n| &&
+             `//   ccResourceRoot    absolute path of the custom-control BSP, set by the` && |\n| &&
+             `//                     backend GET page when there is no sibling BSP to` && |\n| &&
+             `//                     resolve "../z2ui5cc/" against (backend HTML)` && |\n| &&
+             `//   extResourceRoot   same for the customer frontend-extension BSP` && |\n| &&
+             `//                     ("../z2ui5ext/") (backend HTML)` && |\n| &&
              `//   requestTimeoutMs  optional override for the roundtrip timeout (apps)` && |\n| &&
              `//   <custom>          apps can register functions via the js_loader popup` && |\n| &&
              `//                     and call them through the Z2UI5 frontend event` && |\n| &&
