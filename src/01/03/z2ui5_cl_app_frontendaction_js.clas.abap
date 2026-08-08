@@ -140,6 +140,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      setSticky: ["object"], // sap.m.ListBase/sap.m.Table: JSON array of sap.m.Sticky keys` && |\n| &&
              `      setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association` && |\n| &&
              `      setSelectedItem: ["controlIdOrNull"], // sap.m.List/sap.m.Select/...: an EMPTY argument clears the selection` && |\n| &&
+             `      setP13nData: ["object"], // sap.m.p13n.*Panel: JSON array of the panel's items` && |\n| &&
+             `` && |\n| &&
              `      css: ["string", "string"], // NOT a UI5 method: set one CSS property on the control's own DOM node` && |\n| &&
              `      enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of ``enabled``` && |\n| &&
              `      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      if (raw === "" || raw === " " || raw === "false") return false;` && |\n| &&
              `      return raw;` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
-             `    // kinds whose EMPTY value is meaningful (null), so a missing trailing` && |\n| &&
-             `    // argument still has to be passed: the backend wire drops a trailing empty` && |\n|.
+             `` && |\n|.
     result = result &&
+             `    // kinds whose EMPTY value is meaningful (null), so a missing trailing` && |\n| &&
+             `    // argument still has to be passed: the backend wire drops a trailing empty` && |\n| &&
              `    // t_arg entry, and "clear this association" is exactly a call whose only` && |\n| &&
              `    // argument is empty.` && |\n| &&
              `    const NULLABLE_KINDS = ["controlIdOrNull"];` && |\n| &&
@@ -823,10 +825,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // the download directory or carry a misleading name.` && |\n| &&
              `      // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here` && |\n| &&
              `      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");` && |\n| &&
-             `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
-             `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
-             `      document.body.appendChild(a);` && |\n|.
+             `      // Firefox only triggers a programmatic download click when the anchor` && |\n|.
     result = result &&
+             `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
+             `      document.body.appendChild(a);` && |\n| &&
              `      a.click();` && |\n| &&
              `      document.body.removeChild(a);` && |\n| &&
              `    }` && |\n| &&
@@ -1224,10 +1226,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // every filter change makes the current variant dirty (the "*" next to the` && |\n| &&
-             `    // variant title) and refreshes the bar's assigned-filters summary` && |\n| &&
-             `    function attachFilterBarChange(oSVM, oFilterBar) {` && |\n| &&
-             `      oFilterBar.getAllFilterItems().forEach((item) => {` && |\n|.
+             `    // variant title) and refreshes the bar's assigned-filters summary` && |\n|.
     result = result &&
+             `    function attachFilterBarChange(oSVM, oFilterBar) {` && |\n| &&
+             `      oFilterBar.getAllFilterItems().forEach((item) => {` && |\n| &&
              `        const control = filterItemControl(item);` && |\n| &&
              `        if (!control || typeof control.attachChange !== "function") return;` && |\n| &&
              `        control.attachChange((oEvent) => {` && |\n| &&
@@ -1625,10 +1627,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const samePlace = (el) =>` && |\n| &&
              `          el == null ||` && |\n| &&
              `          el === document.body ||` && |\n| &&
-             `          el === prevActive ||` && |\n| &&
-             `          Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
-             `        const delegate = {` && |\n|.
+             `          el === prevActive ||` && |\n|.
     result = result &&
+             `          Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
+             `        const delegate = {` && |\n| &&
              `          onAfterRendering: () => {` && |\n| &&
              `            oElement.removeEventDelegate(delegate);` && |\n| &&
              `            // Defer past the rendering task: when the re-render replaced the` && |\n| &&

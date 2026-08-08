@@ -523,10 +523,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // turned into JSON strings by the backend when it fills` && |\n| &&
              `        // T_EVENT_ARG, so apps keep receiving them as strings; stringifying` && |\n| &&
              `        // them here as well would encode (and escape) the payload twice.` && |\n| &&
-             `        // ``args`` is this call's own rest-parameter array (Server.roundtrip` && |\n| &&
-             `        // mutates ARGUMENTS via shift), so it can be handed over directly -` && |\n| &&
-             `        // no defensive copy needed.` && |\n| &&
-             `        oBody.ARGUMENTS = args;` && |\n| &&
+             `        // Control-valued arguments are marshalled into plain data first (see` && |\n| &&
+             `        // Lib.normalizeEventArgs): a UI5 event parameter is often a control or` && |\n| &&
+             `        // an array of controls, and JSON.stringify throws on the circular` && |\n| &&
+             `        // parent/aggregation graph of a ManagedObject. Everything else passes` && |\n| &&
+             `        // through untouched. normalizeEventArgs returns a fresh array, which` && |\n| &&
+             `        // is what Server.roundtrip needs - it mutates ARGUMENTS via shift and` && |\n| &&
+             `        // must not reach this call's own rest-parameter array.` && |\n| &&
+             `        oBody.ARGUMENTS = Lib.normalizeEventArgs(args);` && |\n| &&
              `` && |\n| &&
              `        Server.roundtrip(oBody);` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onAfterRoundtrip);` && |\n| &&

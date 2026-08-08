@@ -534,6 +534,69 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      oRm.close("span");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Event arguments are whatever the UI5 expression grammar produced for` && |\n| &&
+             `    // them. Most are strings or numbers, but a UI5 event parameter is quite` && |\n| &&
+             `    // often a CONTROL or an ARRAY OF CONTROLS -` && |\n| &&
+             `    // ViewSettingsDialog.confirm/filterItems, Menu.itemSelected/item,` && |\n| &&
+             `    // SinglePlanningCalendar.selectedDatesChange with its DateRange list. Those` && |\n| &&
+             `    // could not travel before: JSON.stringify walks a ManagedObject through its` && |\n| &&
+             `    // parent/aggregation graph and throws on the circular reference, so the` && |\n| &&
+             `    // whole roundtrip body failed to serialize. The expression grammar has no` && |\n| &&
+             `    // loop or lambda either, so an app could not project the array itself and` && |\n| &&
+             `    // was left parsing a display string (the localized ``filterString``) instead.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Marshal them into plain data here: one object per control carrying its` && |\n| &&
+             `    // control id plus the values of its metadata PROPERTIES. Which properties` && |\n| &&
+             `    // exist is asked of the control's own metadata - nothing is interpreted,` && |\n| &&
+             `    // renamed or decided, so this stays the thin-executor contract. The` && |\n| &&
+             `    // backend receives it as the JSON string every object argument becomes in` && |\n| &&
+             `    // T_EVENT_ARG and parses it with ajson.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Anything that is not a control is handed through untouched, so this is` && |\n| &&
+             `    // purely additive for every wire that works today.` && |\n| &&
+             `    const MAX_ARG_DEPTH = 4;` && |\n| &&
+             `` && |\n| &&
+             `    function isManagedObject(value) {` && |\n| &&
+             `      return (` && |\n| &&
+             `        value !== null &&` && |\n| &&
+             `        typeof value === "object" &&` && |\n| &&
+             `        typeof value.isA === "function" &&` && |\n| &&
+             `        value.isA("sap.ui.base.ManagedObject")` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function projectControl(control) {` && |\n| &&
+             `      const result = { ID: control.getId() };` && |\n| &&
+             `      const properties = control.getMetadata().getAllProperties();` && |\n| &&
+             `      for (const name in properties) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const value = control.getProperty(name);` && |\n| &&
+             `          if (value !== undefined) result[name] = value;` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          // a property whose getter throws is simply not reported - the` && |\n| &&
+             `          // remaining ones still have to reach the backend` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      return result;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function normalizeEventArg(value, depth) {` && |\n| &&
+             `      const level = depth || 0;` && |\n| &&
+             `      if (level > MAX_ARG_DEPTH) return value;` && |\n| &&
+             `      if (isManagedObject(value)) return projectControl(value);` && |\n| &&
+             `      if (Array.isArray(value)) {` && |\n| &&
+             `        return value.map((entry) => normalizeEventArg(entry, level + 1));` && |\n| &&
+             `      }` && |\n| &&
+             `      return value;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Always returns a fresh top-level array: Server.roundtrip shifts` && |\n| &&
+             `    // oBody.ARGUMENTS, which must not reach the caller's own rest-parameter` && |\n| &&
+             `    // array.` && |\n| &&
+             `    function normalizeEventArgs(args) {` && |\n| &&
+             `      return args.map((arg) => normalizeEventArg(arg, 0));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return {` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
@@ -563,6 +626,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      isRootModelSlot,` && |\n| &&
              `      effectiveSizeLimit,` && |\n| &&
              `      renderInvisibleSpan,` && |\n| &&
+             `      normalizeEventArgs,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

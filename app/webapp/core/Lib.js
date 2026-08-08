@@ -506,6 +506,69 @@ sap.ui.define(
       oRm.close("span");
     }
 
+    // Event arguments are whatever the UI5 expression grammar produced for
+    // them. Most are strings or numbers, but a UI5 event parameter is quite
+    // often a CONTROL or an ARRAY OF CONTROLS -
+    // ViewSettingsDialog.confirm/filterItems, Menu.itemSelected/item,
+    // SinglePlanningCalendar.selectedDatesChange with its DateRange list. Those
+    // could not travel before: JSON.stringify walks a ManagedObject through its
+    // parent/aggregation graph and throws on the circular reference, so the
+    // whole roundtrip body failed to serialize. The expression grammar has no
+    // loop or lambda either, so an app could not project the array itself and
+    // was left parsing a display string (the localized `filterString`) instead.
+    //
+    // Marshal them into plain data here: one object per control carrying its
+    // control id plus the values of its metadata PROPERTIES. Which properties
+    // exist is asked of the control's own metadata - nothing is interpreted,
+    // renamed or decided, so this stays the thin-executor contract. The
+    // backend receives it as the JSON string every object argument becomes in
+    // T_EVENT_ARG and parses it with ajson.
+    //
+    // Anything that is not a control is handed through untouched, so this is
+    // purely additive for every wire that works today.
+    const MAX_ARG_DEPTH = 4;
+
+    function isManagedObject(value) {
+      return (
+        value !== null &&
+        typeof value === "object" &&
+        typeof value.isA === "function" &&
+        value.isA("sap.ui.base.ManagedObject")
+      );
+    }
+
+    function projectControl(control) {
+      const result = { ID: control.getId() };
+      const properties = control.getMetadata().getAllProperties();
+      for (const name in properties) {
+        try {
+          const value = control.getProperty(name);
+          if (value !== undefined) result[name] = value;
+        } catch {
+          // a property whose getter throws is simply not reported - the
+          // remaining ones still have to reach the backend
+        }
+      }
+      return result;
+    }
+
+    function normalizeEventArg(value, depth) {
+      const level = depth || 0;
+      if (level > MAX_ARG_DEPTH) return value;
+      if (isManagedObject(value)) return projectControl(value);
+      if (Array.isArray(value)) {
+        return value.map((entry) => normalizeEventArg(entry, level + 1));
+      }
+      return value;
+    }
+
+    // Always returns a fresh top-level array: Server.roundtrip shifts
+    // oBody.ARGUMENTS, which must not reach the caller's own rest-parameter
+    // array.
+    function normalizeEventArgs(args) {
+      return args.map((arg) => normalizeEventArg(arg, 0));
+    }
+
     return {
       logError,
       isDestroyed,
@@ -535,6 +598,7 @@ sap.ui.define(
       isRootModelSlot,
       effectiveSizeLimit,
       renderInvisibleSpan,
+      normalizeEventArgs,
     };
   },
 );
