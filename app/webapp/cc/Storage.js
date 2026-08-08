@@ -7,6 +7,33 @@ sap.ui.define(
   (Control, Storage, Lib) => {
     "use strict";
 
+    // Value equality for the stored payload. `value` is typed `any`: a plain
+    // string for the common case, a structure or a table once an app binds
+    // one. A reference comparison reports EVERY object as different, because
+    // sap/ui/util/Storage JSON-round-trips what it stores and therefore hands
+    // back a fresh object on every read - the control would fire `finished`
+    // on each render, the backend would answer with a re-render, and that
+    // fires again: an endless round-trip loop that made a structured value
+    // unusable. Compare by value instead. Key order is not significant (the
+    // stored copy went through JSON, the bound one comes from the model), and
+    // the payload is JSON by construction, so this covers every shape that
+    // can reach the property.
+    function isSameValue(a, b) {
+      if (a === b) return true;
+      if (a === null || b === null) return false;
+      if (typeof a !== "object" || typeof b !== "object") return false;
+      if (Array.isArray(a) !== Array.isArray(b)) return false;
+      if (Array.isArray(a)) {
+        return a.length === b.length && a.every((v, i) => isSameValue(v, b[i]));
+      }
+      const keys = Object.keys(a);
+      if (keys.length !== Object.keys(b).length) return false;
+      return keys.every(
+        (k) =>
+          Object.prototype.hasOwnProperty.call(b, k) && isSameValue(a[k], b[k]),
+      );
+    }
+
     return Control.extend("z2ui5.cc.Storage", {
       metadata: {
         properties: {
@@ -71,7 +98,7 @@ sap.ui.define(
 
         // Only fire "finished" when the stored value differs from the
         // current property to avoid feedback loops.
-        if (stored !== value) {
+        if (!isSameValue(stored, value)) {
           this.setProperty("value", stored, true);
           this.fireFinished({ type, prefix, key, value: stored });
         }

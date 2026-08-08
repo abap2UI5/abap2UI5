@@ -12,6 +12,32 @@ Legend
 
 unreleased
 ----------
++ Event arguments: a control-valued event parameter now reaches the backend as
+  data. Several UI5 events hand over a control or an array of controls instead
+  of a scalar - ViewSettingsDialog.confirm gives filterItems,
+  SinglePlanningCalendar.selectedDatesChange a list of DateRange - and those
+  could not travel at all: JSON.stringify walks a ManagedObject through its
+  circular parent/aggregation graph and threw, so the whole roundtrip body
+  failed to serialize. The expression grammar has no loop or lambda either, so
+  an app could not project the array itself and was left parsing a localized
+  display string (filterString). Lib.normalizeEventArgs now marshals each
+  control into an object carrying its ID plus the values of its metadata
+  properties, which the app reads from get_event_arg( ) with z2ui5_cl_ajson.
+  Which properties exist comes from the control's own metadata - nothing is
+  interpreted or renamed - and every argument that is not a control passes
+  through untouched, so existing wires are unaffected
++ CONTROL_METHODS: setP13nData (object). The sap.m.p13n panels
+  (SelectionPanel, SortPanel, GroupPanel) take their item list only through
+  this method - they expose no bindable aggregation for it - so seeding a p13n
+  popup previously required hand-written custom JS. It is now a
+  follow_up_action( cs_event-control_by_id ) like any other imperative call,
+  with the list travelling as one JSON payload
+* cc/Storage: the "did the stored value change" check compares by value
+  instead of by reference. sap/ui/util/Storage JSON-round-trips what it holds,
+  so a structured payload came back as a fresh object on every read, fired
+  `finished` on every render, was answered with a re-render and fired again -
+  an endless roundtrip loop that made anything other than a plain string
+  unusable. A structure or a table can now be stored and read back
 ! Error output: a 500 response no longer carries only the outermost message. The
   body now holds the full diagnostic - the message chain, then one block per
   entry of the previous chain with the exception class, its own text, the source

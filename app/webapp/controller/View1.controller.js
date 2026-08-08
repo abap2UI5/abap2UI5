@@ -495,10 +495,14 @@ sap.ui.define(
         // turned into JSON strings by the backend when it fills
         // T_EVENT_ARG, so apps keep receiving them as strings; stringifying
         // them here as well would encode (and escape) the payload twice.
-        // `args` is this call's own rest-parameter array (Server.roundtrip
-        // mutates ARGUMENTS via shift), so it can be handed over directly -
-        // no defensive copy needed.
-        oBody.ARGUMENTS = args;
+        // Control-valued arguments are marshalled into plain data first (see
+        // Lib.normalizeEventArgs): a UI5 event parameter is often a control or
+        // an array of controls, and JSON.stringify throws on the circular
+        // parent/aggregation graph of a ManagedObject. Everything else passes
+        // through untouched. normalizeEventArgs returns a fresh array, which
+        // is what Server.roundtrip needs - it mutates ARGUMENTS via shift and
+        // must not reach this call's own rest-parameter array.
+        oBody.ARGUMENTS = Lib.normalizeEventArgs(args);
 
         Server.roundtrip(oBody);
         Lib.runCallbacks(AppState.state.onAfterRoundtrip);

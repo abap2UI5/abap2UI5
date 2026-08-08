@@ -113,6 +113,8 @@ sap.ui.define(
       setSticky: ["object"], // sap.m.ListBase/sap.m.Table: JSON array of sap.m.Sticky keys
       setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association
       setSelectedItem: ["controlIdOrNull"], // sap.m.List/sap.m.Select/...: an EMPTY argument clears the selection
+      setP13nData: ["object"], // sap.m.p13n.*Panel: JSON array of the panel's items
+
       css: ["string", "string"], // NOT a UI5 method: set one CSS property on the control's own DOM node
       enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of `enabled`
       addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class

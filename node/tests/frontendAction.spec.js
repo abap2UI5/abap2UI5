@@ -307,6 +307,27 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["scroll", 42]]);
   });
 
+  // sap.m.p13n.SelectionPanel/SortPanel/GroupPanel take their items through
+  // setP13nData() only - the panels expose no bindable aggregation for them -
+  // so seeding a p13n popup used to need hand-written custom JS. The `object`
+  // arg kind carries the whole item list as one JSON payload.
+  test("casts the setP13nData payload from JSON (p13n panels)", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.columnsPanel = {
+      setP13nData: (data) => calls.push(["setP13nData", data]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "columnsPanel",
+      "",
+      "setP13nData",
+      '[{"name":"key1","label":"City","visible":true}]',
+    ]);
+    expect(calls).toEqual([
+      ["setP13nData", [{ name: "key1", label: "City", visible: true }]],
+    ]);
+  });
+
   test("resolves a controlId argument to the control (to)", () => {
     const { FrontendAction, calls, controls } = load();
     const page2 = { id: "page2" };

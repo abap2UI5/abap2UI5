@@ -208,6 +208,15 @@ ships for existing apps but is **frozen** — new apps and new code use
   `` `$event.oSource.sId` `` (the pressed control's id),
   `` `${$parameters>/selected}` `` (an event parameter). A bare `{…}` arg is
   NOT resolved and arrives empty. Booleans arrive as `abap_bool` (`X`/space).
+- **A control-valued event parameter arrives as JSON.** Several UI5 events
+  hand over a control or a whole array of controls rather than a scalar —
+  `ViewSettingsDialog.confirm` gives `filterItems`,
+  `SinglePlanningCalendar.selectedDatesChange` a list of `DateRange`. Pass the
+  parameter like any other (`` `${$parameters>/filterItems}` ``); the frontend
+  marshals each control into an object carrying its `ID` plus its public
+  properties, so `client->get_event_arg( )` returns a JSON array you read with
+  `z2ui5_cl_ajson`. Do **not** parse a display string such as
+  `filterString` — it is localized and its format is not a contract.
 - Roundtrip-free client actions: `client->_event_client( val = … t_arg = … )`
   runs a whitelisted frontend action without a server call (toast from a row
   value, client-side sort/filter via `binding_call`, …).
@@ -275,6 +284,24 @@ ships for existing apps but is **frozen** — new apps and new code use
 - The default UI5 bootstrap loads from the CDN; system-local hosting and
   CSP/theme/bootstrap customizing go through `z2ui5_if_exit` /
   `z2ui5_cl_exit`.
+- **A third-party JS library is a deployment decision, not a view trick.**
+  The default CSP in `z2ui5_cl_exit` already whitelists `cdn.jsdelivr.net`
+  and `cdnjs.cloudflare.com`, so a library loaded from one of them is
+  allowed out of the box — anything else needs your own
+  `content_security_policy` in the exit, and a system-local copy served by
+  your own ICF node is the option that survives an offline system. Whichever
+  you pick, load the library through the UI5 loader
+  (`sap.ui.loader.config` path mapping + `sap.ui.define`) and drive it from a
+  custom control; do **not** rely on the jQuery `$` global — UI5 2.x no
+  longer ships it — and keep the library call itself free of business
+  decisions (see "thin frontend" above).
+- **An imperative UI5 method that has no bindable equivalent** — the
+  `sap.m.p13n.*` panels take their item list only through `setP13nData( )`,
+  a `sap.m.Carousel` only moves via `setActivePage( )` — is reached with
+  `client->follow_up_action( val = cs_event-control_by_id … )`. Check
+  `cs_event` and the whitelist before writing custom JS: an argument the
+  whitelist does not declare is silently dropped, but a method it declares
+  needs no JS at all.
 
 ## 9. Validate and iterate like the framework does
 
