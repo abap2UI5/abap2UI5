@@ -18,7 +18,7 @@ CLASS z2ui5_cl_ai_xml DEFINITION PUBLIC CREATE PRIVATE.
 
     "! attribute list - one `key=value` string per attribute, e.g.
     "! a = VALUE #( ( `text=Hello` ) ( `width=100%` ) ). Split on the first `=`.
-    TYPES ty_t_attr TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    TYPES ty_t_attr TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
 
     "! render an ABAP boolean as the UI5 attribute value `true` / `false`,
     "! e.g. a = VALUE #( |visible={ z2ui5_cl_ai_xml=>as_bool( flag ) }| )
@@ -70,13 +70,13 @@ CLASS z2ui5_cl_ai_xml DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ai_xml WITH EMPTY KEY.
+    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ai_xml WITH DEFAULT KEY.
     TYPES:
       BEGIN OF ty_s_pair,
         n TYPE string,
         v TYPE string,
       END OF ty_s_pair.
-    TYPES ty_t_pair TYPE STANDARD TABLE OF ty_s_pair WITH EMPTY KEY.
+    TYPES ty_t_pair TYPE STANDARD TABLE OF ty_s_pair WITH DEFAULT KEY.
 
     DATA name   TYPE string.
     DATA prefix TYPE string.
@@ -118,14 +118,20 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
 
   METHOD as_bool.
 
-    result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
+    DATA temp3 TYPE string.
+    IF val = abap_true.
+      temp3 = `true`.
+    ELSE.
+      temp3 = `false`.
+    ENDIF.
+    result = temp3.
 
   ENDMETHOD.
 
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = result.
 
   ENDMETHOD.
@@ -133,7 +139,8 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
 
   METHOD parse_attr.
 
-    DATA(off) = find( val = kv
+    DATA off TYPE i.
+    off = find( val = kv
                       sub = `=` ).
     IF off < 0.
       result-n = condense( kv ).
@@ -148,15 +155,23 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
 
 
   METHOD elem.
+    DATA kv LIKE LINE OF a.
+      DATA pair TYPE z2ui5_cl_ai_xml=>ty_s_pair.
+      DATA temp4 LIKE sy-subrc.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = root.
     result->parent = me.
     result->name = n.
     result->prefix = ns.
-    LOOP AT a INTO DATA(kv).
-      DATA(pair) = parse_attr( kv ).
-      ASSERT NOT line_exists( result->t_pair[ n = pair-n ] ).
+
+    LOOP AT a INTO kv.
+
+      pair = parse_attr( kv ).
+
+      READ TABLE result->t_pair WITH KEY n = pair-n TRANSPORTING NO FIELDS.
+      temp4 = sy-subrc.
+      ASSERT NOT temp4 = 0.
       APPEND pair TO result->t_pair.
     ENDLOOP.
     APPEND result TO t_child.
@@ -184,6 +199,13 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
 
 
   METHOD a.
+      DATA temp5 LIKE sy-subrc.
+      DATA temp6 TYPE z2ui5_cl_ai_xml=>ty_s_pair.
+      DATA target LIKE LINE OF t_child.
+      DATA temp1 LIKE LINE OF t_child.
+      DATA temp2 LIKE sy-tabix.
+      DATA temp7 LIKE sy-subrc.
+      DATA temp8 TYPE z2ui5_cl_ai_xml=>ty_s_pair.
 
     " set the attribute on the element the chain is currently pointing at:
     " the just-added child (after open/leaf) or - if none yet - this node
@@ -192,12 +214,35 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
     " is no element to attach to, and a duplicate name renders invalid XML
     ASSERT name IS NOT INITIAL OR t_child IS NOT INITIAL.
     IF t_child IS INITIAL.
-      ASSERT NOT line_exists( t_pair[ n = n ] ).
-      APPEND VALUE #( n = n v = v ) TO t_pair.
+
+      READ TABLE t_pair WITH KEY n = n TRANSPORTING NO FIELDS.
+      temp5 = sy-subrc.
+      ASSERT NOT temp5 = 0.
+
+      CLEAR temp6.
+      temp6-n = n.
+      temp6-v = v.
+      APPEND temp6 TO t_pair.
     ELSE.
-      DATA(target) = t_child[ lines( t_child ) ].
-      ASSERT NOT line_exists( target->t_pair[ n = n ] ).
-      APPEND VALUE #( n = n v = v ) TO target->t_pair.
+
+
+
+      temp2 = sy-tabix.
+      READ TABLE t_child INDEX lines( t_child ) INTO temp1.
+      sy-tabix = temp2.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      target = temp1.
+
+      READ TABLE target->t_pair WITH KEY n = n TRANSPORTING NO FIELDS.
+      temp7 = sy-subrc.
+      ASSERT NOT temp7 = 0.
+
+      CLEAR temp8.
+      temp8-n = n.
+      temp8-v = v.
+      APPEND temp8 TO target->t_pair.
     ENDIF.
     result = me.
 
@@ -216,8 +261,15 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
 
   METHOD render.
 
-    DATA(inner) = ``.
-    LOOP AT t_child INTO DATA(child).
+    DATA inner TYPE string.
+    DATA child LIKE LINE OF t_child.
+    DATA temp9 TYPE string.
+    DATA qname LIKE temp9.
+    DATA attrs TYPE string.
+    DATA pair LIKE LINE OF t_pair.
+    inner = ``.
+
+    LOOP AT t_child INTO child.
       inner = |{ inner }{ child->render( ) }|.
     ENDLOOP.
 
@@ -227,9 +279,18 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
-    DATA(attrs) = ``.
-    LOOP AT t_pair INTO DATA(pair).
+
+    IF prefix IS INITIAL.
+      temp9 = name.
+    ELSE.
+      temp9 = |{ prefix }:{ name }|.
+    ENDIF.
+
+    qname = temp9.
+
+    attrs = ``.
+
+    LOOP AT t_pair INTO pair.
       attrs = |{ attrs } { pair-n }="{ xml_escape( pair-v ) }"|.
     ENDLOOP.
 
@@ -251,17 +312,39 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
     " breaks of e.g. a two-line noDataText. The char constants come from the
     " context class - the one place allowed to reference cl_abap_char_utilities
     " (see "Utilities" in AGENTS.md).
-    DATA(lt_escape) = VALUE ty_t_pair(
-        ( n = `&`                                                v = `&amp;` )
-        ( n = `<`                                                v = `&lt;` )
-        ( n = `>`                                                v = `&gt;` )
-        ( n = `"`                                                v = `&quot;` )
-        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_newline        v = `&#xA;` )
-        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)       v = `&#xD;` )
-        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab v = `&#x9;` ) ).
+    DATA temp10 TYPE ty_t_pair.
+    DATA temp11 LIKE LINE OF temp10.
+    DATA lt_escape LIKE temp10.
+    DATA escape LIKE LINE OF lt_escape.
+    CLEAR temp10.
+
+    temp11-n = `&`.
+    temp11-v = `&amp;`.
+    INSERT temp11 INTO TABLE temp10.
+    temp11-n = `<`.
+    temp11-v = `&lt;`.
+    INSERT temp11 INTO TABLE temp10.
+    temp11-n = `>`.
+    temp11-v = `&gt;`.
+    INSERT temp11 INTO TABLE temp10.
+    temp11-n = `"`.
+    temp11-v = `&quot;`.
+    INSERT temp11 INTO TABLE temp10.
+    temp11-n = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
+    temp11-v = `&#xA;`.
+    INSERT temp11 INTO TABLE temp10.
+    temp11-n = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1).
+    temp11-v = `&#xD;`.
+    INSERT temp11 INTO TABLE temp10.
+    temp11-n = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab.
+    temp11-v = `&#x9;`.
+    INSERT temp11 INTO TABLE temp10.
+
+    lt_escape = temp10.
 
     result = val.
-    LOOP AT lt_escape INTO DATA(escape).
+
+    LOOP AT lt_escape INTO escape.
       result = replace( val  = result
                         sub  = escape-n
                         with = escape-v

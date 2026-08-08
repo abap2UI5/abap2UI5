@@ -12,9 +12,11 @@ ENDCLASS.
 CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA view TYPE REF TO z2ui5_cl_ai_xml.
 
-    IF client->check_on_init( ).
-      DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
+
+      view = z2ui5_cl_ai_xml=>factory( ).
 
       view->open( n  = `View`
                   ns = `mvc`
@@ -64,7 +66,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
       client->view_display( view->stringify( ) ).
 
-    ELSEIF client->check_on_event( `BUTTON_POST` ).
+    ELSEIF client->check_on_event( `BUTTON_POST` ) IS NOT INITIAL.
       client->message_box_display( |Your name is { name }| ).
     ENDIF.
 

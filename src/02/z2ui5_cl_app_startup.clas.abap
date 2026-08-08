@@ -102,7 +102,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
 
   ENDMETHOD.
 
@@ -110,7 +110,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       on_init( ).
       render_start( ).
       RETURN.
@@ -121,9 +121,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_init.
+    DATA temp1 TYPE REF TO z2ui5_cl_app_hello_world.
 
     reset_button_state( ).
-    ms_home-classname = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
+
+    CREATE OBJECT temp1 TYPE z2ui5_cl_app_hello_world.
+    ms_home-classname = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( temp1 ).
 
   ENDMETHOD.
 
@@ -161,6 +164,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD on_event_check.
 
     DATA li_app_test TYPE REF TO z2ui5_if_app.
+        DATA lx TYPE REF TO cx_root.
 
     TRY.
         ms_home-classname = z2ui5_cl_a2ui5_context=>c_trim_upper( ms_home-classname ).
@@ -175,7 +179,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         ms_home-link_enabled      = abap_true.
         ms_home-url               = get_app_url( ms_home-classname ).
 
-      CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
+
+      CATCH cx_root INTO lx.
         ms_home-class_value_state_text = lx->get_text( ).
         ms_home-class_value_state      = `Warning`.
         client->message_box_display( text = ms_home-class_value_state_text
@@ -202,9 +207,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_start.
 
-    DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ai_xml.
+    DATA page TYPE REF TO z2ui5_cl_ai_xml.
+    DATA form TYPE REF TO z2ui5_cl_ai_xml.
+    view = z2ui5_cl_ai_xml=>factory( ).
 
-    DATA(page) = view->open( n  = `View`
+
+    page = view->open( n  = `View`
                              ns = `mvc`
         )->a( n = `xmlns`
               v = `sap.m`
@@ -225,7 +234,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     render_header_toolbar( page ).
 
-    DATA(form) = create_layout_form( page ).
+
+    form = create_layout_form( page ).
     render_quickstart( form ).
     render_whats_next( form ).
     render_contribution( form ).
@@ -237,7 +247,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_header_toolbar.
 
-    DATA(toolbar) = page->open( `headerContent` ).
+    DATA toolbar TYPE REF TO z2ui5_cl_ai_xml.
+    toolbar = page->open( `headerContent` ).
     toolbar->leaf( `ToolbarSpacer`
       )->leaf( `Button`
           )->a( n = `text`
@@ -254,7 +265,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `press`
                 v = client->_event( cs_event-open_info ) ).
 
-    IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+    IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ) IS NOT INITIAL.
       toolbar->leaf( `Button`
           )->a( n = `text`
                 v = `Config`
@@ -340,6 +351,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD render_whats_next.
+    DATA temp2 TYPE string.
+    DATA lv_class_samples LIKE temp2.
+      DATA temp3 TYPE string_table.
 
     render_section( form  = form
                     title = `What's next?` ).
@@ -347,19 +361,29 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     " the samples repository renamed its overview app from z2ui5_cl_demo_app_g00
     " to z2ui5_cl_smp_app_000 - check the current name first, keep the old one as
     " a fallback so an older samples installation still gets the button
-    DATA(lv_class_samples) = COND string(
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_smp_app_000` ) THEN `z2ui5_cl_smp_app_000`
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
+
+    IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_smp_app_000` ) IS NOT INITIAL.
+      temp2 = `z2ui5_cl_smp_app_000`.
+    ELSEIF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) IS NOT INITIAL.
+      temp2 = `z2ui5_cl_demo_app_g00`.
+    ELSE.
+      CLEAR temp2.
+    ENDIF.
+
+    lv_class_samples = temp2.
 
     IF lv_class_samples IS NOT INITIAL.
       form->leaf( `Label` )->a( n = `text`
                                 v = `Start Developing` ).
+
+      CLEAR temp3.
+      INSERT get_app_url( lv_class_samples ) INTO TABLE temp3.
       form->leaf( `Button`
           )->a( n = `text`
                 v = `Explore Code Samples`
           )->a( n = `press`
                 v = client->_event_client( val   = client->cs_event-open_new_tab
-                                           t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
+                                           t_arg = temp3 )
           )->a( n = `width`
                 v = `70%` ).
     ELSE.
@@ -401,9 +425,16 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_system_popup.
 
-    DATA(popup) = z2ui5_cl_ai_xml=>factory( ).
+    DATA popup TYPE REF TO z2ui5_cl_ai_xml.
+    DATA dialog TYPE REF TO z2ui5_cl_ai_xml.
+    DATA form TYPE REF TO z2ui5_cl_ai_xml.
+    DATA ls_client TYPE z2ui5_if_types=>ty_s_get.
+    DATA temp5 TYPE string.
+    DATA temp1 TYPE REF TO z2ui5_cl_core_srv_draft.
+    popup = z2ui5_cl_ai_xml=>factory( ).
 
-    DATA(dialog) = popup->open( n  = `FragmentDefinition`
+
+    dialog = popup->open( n  = `FragmentDefinition`
                                 ns = `core`
         )->a( n = `xmlns`
               v = `sap.m`
@@ -417,8 +448,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
             )->a( n = `afterClose`
                   v = client->_event( cs_event-close ) ).
 
-    DATA(form) = create_layout_form( dialog->open( `content` ) ).
-    DATA(ls_client) = client->get( ).
+
+    form = create_layout_form( dialog->open( `content` ) ).
+
+    ls_client = client->get( ).
 
     render_section( form  = form
                     title = `Frontend` ).
@@ -451,9 +484,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     render_text( form  = form
                  label = `Version`
                  text  = z2ui5_if_app=>version ).
+
+
+    CREATE OBJECT temp1 TYPE z2ui5_cl_core_srv_draft.
+    temp5 = temp1->count_entries( ).
     render_text( form  = form
                  label = `Draft Entries (own)`
-                 text  = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
+                 text  = temp5 ).
 
     dialog->open( `endButton`
         )->leaf( `Button`
@@ -545,7 +582,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD get_app_url.
 
-    DATA(ls_config) = client->get( )-s_config.
+    DATA ls_config TYPE z2ui5_if_types=>ty_s_config.
+    ls_config = client->get( )-s_config.
     result = z2ui5_cl_a2ui5_context=>app_get_url( classname = classname
                                                   origin    = ls_config-origin
                                                   pathname  = ls_config-pathname

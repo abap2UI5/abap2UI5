@@ -30,7 +30,7 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
     "! attribute list for tag( ) - one `key=value` string per attribute, e.g.
     "! t_att = VALUE #( ( `text=Hello` ) ( `width=100%` ) ). Split on the FIRST
     "! `=`, so the value may contain further ones.
-    TYPES ty_t_attr TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    TYPES ty_t_attr TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
 
     "! returns an empty builder root; open the mvc:View element and declare the
     "! xmlns namespaces yourself, exactly like any other control
@@ -83,13 +83,13 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH EMPTY KEY.
+    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH DEFAULT KEY.
     TYPES:
       BEGIN OF ty_s_pair,
         n TYPE string,
         v TYPE string,
       END OF ty_s_pair.
-    TYPES ty_t_pair TYPE STANDARD TABLE OF ty_s_pair WITH EMPTY KEY.
+    TYPES ty_t_pair TYPE STANDARD TABLE OF ty_s_pair WITH DEFAULT KEY.
 
     DATA name    TYPE string.
     DATA prefix  TYPE string.
@@ -123,7 +123,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD new.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = result.
 
   ENDMETHOD.
@@ -131,7 +131,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD ele.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = root.
     result->parent = me.
     result->name = n.
@@ -143,7 +143,8 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD parse_attr.
 
-    DATA(off) = find( val = kv
+    DATA off TYPE i.
+    off = find( val = kv
                       sub = `=` ).
     IF off < 0.
       result-n = condense( kv ).
@@ -159,11 +160,20 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD tag.
 
-    DATA(child) = ele( n  = n
+    DATA child TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA kv LIKE LINE OF t_att.
+      DATA pair TYPE z2ui5_cl_ui5_view_builder=>ty_s_pair.
+      DATA temp5 LIKE sy-subrc.
+    child = ele( n  = n
                        ns = ns ).
-    LOOP AT t_att INTO DATA(kv).
-      DATA(pair) = parse_attr( kv ).
-      ASSERT NOT line_exists( child->t_pair[ n = pair-n ] ).
+
+    LOOP AT t_att INTO kv.
+
+      pair = parse_attr( kv ).
+
+      READ TABLE child->t_pair WITH KEY n = pair-n TRANSPORTING NO FIELDS.
+      temp5 = sy-subrc.
+      ASSERT NOT temp5 = 0.
       APPEND pair TO child->t_pair.
     ENDLOOP.
     " stay where we are - the tag is complete, its siblings follow directly
@@ -173,21 +183,40 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
 
   METHOD att.
+    DATA temp6 LIKE sy-subrc.
+      DATA temp7 TYPE z2ui5_cl_ui5_view_builder=>ty_s_pair.
+      DATA temp4 TYPE z2ui5_cl_ui5_view_builder=>ty_s_pair-v.
+      DATA temp8 TYPE z2ui5_cl_ui5_view_builder=>ty_s_pair.
 
     " one rule: the attribute lands on the element the chain is standing on.
     " fail fast instead of dropping silently: on the empty builder root there
     " is no element to attach to, and a duplicate name renders invalid XML
     ASSERT name IS NOT INITIAL.
-    ASSERT NOT line_exists( t_pair[ n = n ] ).
+
+    READ TABLE t_pair WITH KEY n = n TRANSPORTING NO FIELDS.
+    temp6 = sy-subrc.
+    ASSERT NOT temp6 = 0.
     " b and v are mutually exclusive - b is checked with IS SUPPLIED because
     " abap_false and "not passed" are the same character
     IF b IS SUPPLIED.
       ASSERT v IS INITIAL.
-      APPEND VALUE #( n = n
-                      v = COND #( WHEN b = abap_true THEN `true` ELSE `false` ) ) TO t_pair.
+
+      CLEAR temp7.
+      temp7-n = n.
+
+      IF b = abap_true.
+        temp4 = `true`.
+      ELSE.
+        temp4 = `false`.
+      ENDIF.
+      temp7-v = temp4.
+      APPEND temp7 TO t_pair.
     ELSE.
-      APPEND VALUE #( n = n
-                      v = v ) TO t_pair.
+
+      CLEAR temp8.
+      temp8-n = n.
+      temp8-v = v.
+      APPEND temp8 TO t_pair.
     ENDIF.
     result = me.
 
@@ -206,8 +235,15 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD render.
 
-    DATA(inner) = ``.
-    LOOP AT t_child INTO DATA(child).
+    DATA inner TYPE string.
+    DATA child LIKE LINE OF t_child.
+    DATA temp9 TYPE string.
+    DATA qname LIKE temp9.
+    DATA attrs TYPE string.
+    DATA pair LIKE LINE OF t_pair.
+    inner = ``.
+
+    LOOP AT t_child INTO child.
       inner = |{ inner }{ child->render( ) }|.
     ENDLOOP.
 
@@ -217,9 +253,18 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
-    DATA(attrs) = ``.
-    LOOP AT t_pair INTO DATA(pair).
+
+    IF prefix IS INITIAL.
+      temp9 = name.
+    ELSE.
+      temp9 = |{ prefix }:{ name }|.
+    ENDIF.
+
+    qname = temp9.
+
+    attrs = ``.
+
+    LOOP AT t_pair INTO pair.
       attrs = |{ attrs } { pair-n }="{ xml_escape( pair-v ) }"|.
     ENDLOOP.
 

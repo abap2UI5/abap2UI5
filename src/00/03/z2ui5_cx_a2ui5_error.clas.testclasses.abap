@@ -19,13 +19,15 @@ ENDCLASS.
 
 CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_raise.
+        DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
 
     TRY.
 
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = `this is an error text`.
 
-      CATCH z2ui5_cx_a2ui5_error INTO DATA(lx).
+
+      CATCH z2ui5_cx_a2ui5_error INTO lx.
         cl_abap_unit_assert=>assert_equals( exp = `this is an error text`
                                             act = lx->get_text( ) ).
     ENDTRY.
@@ -33,10 +35,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_raise_empty.
+        DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
 
     TRY.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error.
-      CATCH z2ui5_cx_a2ui5_error INTO DATA(lx).
+
+      CATCH z2ui5_cx_a2ui5_error INTO lx.
         cl_abap_unit_assert=>assert_bound( lx ).
         cl_abap_unit_assert=>assert_not_initial( lx->ms_error-uuid ).
         " never an empty text - it would end up as a blank 500 body
@@ -48,33 +52,50 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_raise_with_prev.
 
-    DATA(lx_prev) = NEW z2ui5_cx_a2ui5_error( val = `previous error` ).
+    DATA lx_prev TYPE REF TO z2ui5_cx_a2ui5_error.
+        DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
+        DATA lv_text TYPE string.
+        DATA temp1 TYPE xsdboolean.
+        DATA temp2 TYPE xsdboolean.
+    CREATE OBJECT lx_prev TYPE z2ui5_cx_a2ui5_error EXPORTING val = `previous error`.
 
     TRY.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val      = `current error`
                     previous = lx_prev.
-      CATCH z2ui5_cx_a2ui5_error INTO DATA(lx).
-        DATA(lv_text) = lx->get_text( ).
+
+      CATCH z2ui5_cx_a2ui5_error INTO lx.
+
+        lv_text = lx->get_text( ).
+
+        temp1 = boolc( lv_text CS `current error` ).
         cl_abap_unit_assert=>assert_true(
-          xsdbool( lv_text CS `current error` ) ).
+          temp1 ).
+
+        temp2 = boolc( lv_text CS `previous error` ).
         cl_abap_unit_assert=>assert_true(
-          xsdbool( lv_text CS `previous error` ) ).
+          temp2 ).
     ENDTRY.
 
   ENDMETHOD.
 
   METHOD test_raise_with_cx.
+        DATA lv_val TYPE i.
+        DATA lx_root TYPE REF TO cx_root.
+        DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
 
     TRY.
-        DATA(lv_val) = 1 / 0 ##NEEDED.
-      CATCH cx_root INTO DATA(lx_root).
+
+        lv_val = 1 / 0 ##NEEDED.
+
+      CATCH cx_root INTO lx_root.
     ENDTRY.
 
     TRY.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = lx_root.
-      CATCH z2ui5_cx_a2ui5_error INTO DATA(lx).
+
+      CATCH z2ui5_cx_a2ui5_error INTO lx.
         cl_abap_unit_assert=>assert_not_initial( lx->get_text( ) ).
         cl_abap_unit_assert=>assert_bound( lx->ms_error-x_root ).
     ENDTRY.
@@ -82,11 +103,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_uuid_populated.
+        DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
 
     TRY.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = `test`.
-      CATCH z2ui5_cx_a2ui5_error INTO DATA(lx).
+
+      CATCH z2ui5_cx_a2ui5_error INTO lx.
         cl_abap_unit_assert=>assert_not_initial( lx->ms_error-uuid ).
         cl_abap_unit_assert=>assert_equals( exp = 32
                                             act = strlen( lx->ms_error-uuid ) ).
@@ -96,14 +119,21 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_chain_texts.
 
-    DATA(lx_inner) = NEW z2ui5_cx_a2ui5_error( val = `inner` ).
-    DATA(lx_middle) = NEW z2ui5_cx_a2ui5_error( val   = `middle`
-                                                previous = lx_inner ).
-    DATA(lx_outer) = NEW z2ui5_cx_a2ui5_error( val   = `outer`
-                                               previous = lx_middle ).
+    DATA lx_inner TYPE REF TO z2ui5_cx_a2ui5_error.
+    DATA lx_middle TYPE REF TO z2ui5_cx_a2ui5_error.
+    DATA lx_outer TYPE REF TO z2ui5_cx_a2ui5_error.
+    DATA lv_text TYPE string.
+    DATA lv_nl LIKE z2ui5_cl_a2ui5_context=>cv_char_util_newline.
+    CREATE OBJECT lx_inner TYPE z2ui5_cx_a2ui5_error EXPORTING val = `inner`.
 
-    DATA(lv_text) = lx_outer->get_text( ).
-    DATA(lv_nl) = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
+    CREATE OBJECT lx_middle TYPE z2ui5_cx_a2ui5_error EXPORTING val = `middle` previous = lx_inner.
+
+    CREATE OBJECT lx_outer TYPE z2ui5_cx_a2ui5_error EXPORTING val = `outer` previous = lx_middle.
+
+
+    lv_text = lx_outer->get_text( ).
+
+    lv_nl = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
     " exact match - each cause exactly once, no duplicated deeper causes
     cl_abap_unit_assert=>assert_equals( exp = |outer{ lv_nl }middle{ lv_nl }inner|
                                         act = lv_text ).
@@ -115,15 +145,21 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     " the framework's dominant pattern: the caught exception is handed over
     " as `val`, without a `previous`. Everything below it must survive - it
     " used to be dropped, leaving only the outermost message
-    DATA(lx_inner) = NEW z2ui5_cx_a2ui5_error( val = `root cause` ).
-    DATA(lx_middle) = NEW z2ui5_cx_a2ui5_error( val   = `middle layer`
-                                                previous = lx_inner ).
+    DATA lx_inner TYPE REF TO z2ui5_cx_a2ui5_error.
+    DATA lx_middle TYPE REF TO z2ui5_cx_a2ui5_error.
+        DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
+        DATA lv_nl LIKE z2ui5_cl_a2ui5_context=>cv_char_util_newline.
+    CREATE OBJECT lx_inner TYPE z2ui5_cx_a2ui5_error EXPORTING val = `root cause`.
+
+    CREATE OBJECT lx_middle TYPE z2ui5_cx_a2ui5_error EXPORTING val = `middle layer` previous = lx_inner.
 
     TRY.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = lx_middle.
-      CATCH z2ui5_cx_a2ui5_error INTO DATA(lx).
-        DATA(lv_nl) = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
+
+      CATCH z2ui5_cx_a2ui5_error INTO lx.
+
+        lv_nl = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
         cl_abap_unit_assert=>assert_equals( exp = |middle layer{ lv_nl }root cause|
                                             act = lx->get_text( ) ).
         cl_abap_unit_assert=>assert_bound( lx->previous ).
@@ -135,9 +171,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     " a wrapper that only re-raises carries the same text as its cause -
     " it must appear once, not twice
-    DATA(lx_inner) = NEW z2ui5_cx_a2ui5_error( val = `same text` ).
-    DATA(lx_outer) = NEW z2ui5_cx_a2ui5_error( val      = `same text`
-                                               previous = lx_inner ).
+    DATA lx_inner TYPE REF TO z2ui5_cx_a2ui5_error.
+    DATA lx_outer TYPE REF TO z2ui5_cx_a2ui5_error.
+    CREATE OBJECT lx_inner TYPE z2ui5_cx_a2ui5_error EXPORTING val = `same text`.
+
+    CREATE OBJECT lx_outer TYPE z2ui5_cx_a2ui5_error EXPORTING val = `same text` previous = lx_inner.
 
     cl_abap_unit_assert=>assert_equals( exp = `same text`
                                         act = lx_outer->get_text( ) ).
@@ -146,39 +184,76 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_text_full_chain.
 
-    DATA(lx_inner) = NEW z2ui5_cx_a2ui5_error( val = `root cause` ).
-    DATA(lx_outer) = NEW z2ui5_cx_a2ui5_error( val      = `outer problem`
-                                               previous = lx_inner ).
+    DATA lx_inner TYPE REF TO z2ui5_cx_a2ui5_error.
+    DATA lx_outer TYPE REF TO z2ui5_cx_a2ui5_error.
+    DATA lv_text TYPE string.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+    DATA temp6 TYPE xsdboolean.
+    DATA temp7 TYPE xsdboolean.
+    DATA temp8 TYPE xsdboolean.
+    DATA temp9 TYPE xsdboolean.
+    CREATE OBJECT lx_inner TYPE z2ui5_cx_a2ui5_error EXPORTING val = `root cause`.
 
-    DATA(lv_text) = z2ui5_cx_a2ui5_error=>get_text_full( lx_outer ).
+    CREATE OBJECT lx_outer TYPE z2ui5_cx_a2ui5_error EXPORTING val = `outer problem` previous = lx_inner.
+
+
+    lv_text = z2ui5_cx_a2ui5_error=>get_text_full( lx_outer ).
 
     " the message section (both messages), one detail block per chain entry,
     " the class name of every entry and the system context. The `--- error ---`
     " header is a contract with the frontend: app/webapp/core/ErrorView.js
     " lifts exactly that section into the error popup
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `--- error ---` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `outer problem` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `root cause` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `exception chain` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `[1] Z2UI5_CX_A2UI5_ERROR` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `[2] Z2UI5_CX_A2UI5_ERROR` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `context` ) ).
+
+    temp3 = boolc( lv_text CS `--- error ---` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
+
+    temp4 = boolc( lv_text CS `outer problem` ).
+    cl_abap_unit_assert=>assert_true( temp4 ).
+
+    temp5 = boolc( lv_text CS `root cause` ).
+    cl_abap_unit_assert=>assert_true( temp5 ).
+
+    temp6 = boolc( lv_text CS `exception chain` ).
+    cl_abap_unit_assert=>assert_true( temp6 ).
+
+    temp7 = boolc( lv_text CS `[1] Z2UI5_CX_A2UI5_ERROR` ).
+    cl_abap_unit_assert=>assert_true( temp7 ).
+
+    temp8 = boolc( lv_text CS `[2] Z2UI5_CX_A2UI5_ERROR` ).
+    cl_abap_unit_assert=>assert_true( temp8 ).
+
+    temp9 = boolc( lv_text CS `context` ).
+    cl_abap_unit_assert=>assert_true( temp9 ).
 
   ENDMETHOD.
 
   METHOD test_text_full_any_cx.
+        DATA lv_val TYPE i.
+        DATA lx_root TYPE REF TO cx_root.
+    DATA lv_text TYPE string.
+    DATA temp10 TYPE xsdboolean.
+    DATA temp11 TYPE xsdboolean.
 
     " the top-level catch sees whatever was raised - a plain SAP exception
     " must be rendered as fully as a framework one
     TRY.
-        DATA(lv_val) = 1 / 0 ##NEEDED.
-      CATCH cx_root INTO DATA(lx_root).
+
+        lv_val = 1 / 0 ##NEEDED.
+
+      CATCH cx_root INTO lx_root.
     ENDTRY.
 
-    DATA(lv_text) = z2ui5_cx_a2ui5_error=>get_text_full( lx_root ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `[1] CX_SY_ZERODIVIDE` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `exception chain` ) ).
+    lv_text = z2ui5_cx_a2ui5_error=>get_text_full( lx_root ).
+
+
+    temp10 = boolc( lv_text CS `[1] CX_SY_ZERODIVIDE` ).
+    cl_abap_unit_assert=>assert_true( temp10 ).
+
+    temp11 = boolc( lv_text CS `exception chain` ).
+    cl_abap_unit_assert=>assert_true( temp11 ).
 
   ENDMETHOD.
 
@@ -198,15 +273,18 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     " the chain walk is capped so a self-referencing `previous` cannot hang
     " the one routine that must always answer - and the reader is told that
     " the output was cut, instead of silently seeing a shortened chain
-    DATA(lx) = NEW z2ui5_cx_a2ui5_error( val = `level 0` ).
+    DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
+    DATA temp12 TYPE xsdboolean.
+    CREATE OBJECT lx TYPE z2ui5_cx_a2ui5_error EXPORTING val = `level 0`.
 
     DO 30 TIMES.
-      lx = NEW z2ui5_cx_a2ui5_error( val      = |level { sy-index }|
-                                     previous = lx ).
+      CREATE OBJECT lx TYPE z2ui5_cx_a2ui5_error EXPORTING val = |level { sy-index }| previous = lx.
     ENDDO.
 
+
+    temp12 = boolc( z2ui5_cx_a2ui5_error=>get_text_full( lx ) CS `chain truncated` ).
     cl_abap_unit_assert=>assert_true(
-      xsdbool( z2ui5_cx_a2ui5_error=>get_text_full( lx ) CS `chain truncated` ) ).
+      temp12 ).
     cl_abap_unit_assert=>assert_not_initial( lx->get_text( ) ).
 
   ENDMETHOD.

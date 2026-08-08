@@ -29,7 +29,7 @@ CLASS z2ui5_cl_pop_to_inform IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
     r_result->icon                = i_icon.
     r_result->question_text       = i_text.
@@ -39,7 +39,8 @@ CLASS z2ui5_cl_pop_to_inform IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
                                                                afterclose = client->_event( `BUTTON_CONFIRM` )
               )->content(
@@ -59,12 +60,12 @@ CLASS z2ui5_cl_pop_to_inform IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
 
-    IF client->check_on_event( `BUTTON_CONFIRM` ).
+    IF client->check_on_event( `BUTTON_CONFIRM` ) IS NOT INITIAL.
       client->popup_destroy( ).
       client->nav_app_leave( ).
     ENDIF.

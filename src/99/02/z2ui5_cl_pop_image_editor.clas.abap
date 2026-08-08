@@ -54,7 +54,7 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->mv_image                 = iv_image.
     r_result->mv_title                 = iv_title.
     r_result->mv_cancel_text           = iv_cancel_text.
@@ -73,7 +73,7 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       display( ).
       RETURN.
     ENDIF.
@@ -98,7 +98,8 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup(
                                   )->dialog( title               = mv_title
                                              icon                = `sap-icon://edit`
                                              contentheight       = `80%`

@@ -21,7 +21,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD render_nested_view.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( n  = `View`
                ns = `mvc`
@@ -47,7 +48,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " the one rule: att( ) lands on the element the chain is standing on, so
     " repeated ele( )/end( ) pairs produce siblings each carrying their own
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Page`
         )->ele( `Text`
@@ -70,7 +72,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     " after end( ) the chain stands on the parent - att( ) attaches there,
     " which is what the indentation suggests and what the old builder could
     " not do
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Panel`
             )->ele( `Title`
@@ -89,7 +92,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " an attribute may follow the children of its own element - impossible in
     " the predecessor, where it silently went to the last child
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Panel`
             )->ele( `Title`
@@ -107,10 +111,13 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD trailing_end_is_optional.
 
     " stringify( ) renders from the root, so the chain may simply stop
-    DATA(closed) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA closed TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA open TYPE REF TO z2ui5_cl_ui5_view_builder.
+    closed = z2ui5_cl_ui5_view_builder=>new( ).
     closed->ele( `Page` )->ele( `Panel` )->ele( `Title` )->end( )->end( ).
 
-    DATA(open) = z2ui5_cl_ui5_view_builder=>new( ).
+
+    open = z2ui5_cl_ui5_view_builder=>new( ).
     open->ele( `Page` )->ele( `Panel` )->ele( `Title` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -122,7 +129,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD escape_attribute_value.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Text`
         )->att( n = `text`
@@ -139,7 +147,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " a literal LF/TAB in an attribute value must survive XML attribute-value
     " normalization as a character reference (e.g. a two-line noDataText)
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Text`
         )->att( n = `text`
@@ -156,7 +165,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " b replaces the predecessor's as_bool( ) helper - abap_false must render
     " as `false`, not vanish, which is why it is read with IS SUPPLIED
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Panel`
         )->att( n = `visible`
@@ -174,13 +184,22 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD tag_stays_and_siblings.
 
     " tag( ) does not move, so siblings follow directly and no end( ) is needed
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp1 TYPE z2ui5_cl_ui5_view_builder=>ty_t_attr.
+    DATA temp2 TYPE z2ui5_cl_ui5_view_builder=>ty_t_attr.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
+
+    CLEAR temp1.
+    INSERT `text=first` INTO TABLE temp1.
+
+    CLEAR temp2.
+    INSERT `text=second` INTO TABLE temp2.
     view->ele( `Page`
         )->tag( n     = `Text`
-                t_att = VALUE #( ( `text=first` ) )
+                t_att = temp1
         )->tag( n     = `Text`
-                t_att = VALUE #( ( `text=second` ) )
+                t_att = temp2
         )->tag( `ToolbarSpacer` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -193,11 +212,17 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD tag_attr_splits_first_equals.
 
     " attributes split on the FIRST equals sign, so the value may contain more
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp3 TYPE z2ui5_cl_ui5_view_builder=>ty_t_attr.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
+
+    CLEAR temp3.
+    INSERT `text=a=b` INTO TABLE temp3.
+    INSERT `width=100%` INTO TABLE temp3.
     view->tag( n     = `Text`
                ns    = `m`
-               t_att = VALUE #( ( `text=a=b` ) ( `width=100%` ) ) ).
+               t_att = temp3 ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -211,7 +236,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     " pinned on purpose: tag( ) does not move, so a following att( ) attaches
     " to the element the chain stands on - the PARENT, not the tag just added.
     " That is the one rule holding; attributes of a tag belong in t_att.
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>new( ).
 
     view->ele( `Panel`
         )->tag( `Title`

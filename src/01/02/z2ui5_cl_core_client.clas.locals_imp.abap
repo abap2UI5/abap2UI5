@@ -25,7 +25,8 @@ CLASS lcl_initial_paths_filter DEFINITION FINAL.
         it_paths TYPE string_table.
 
   PRIVATE SECTION.
-    DATA mt_names TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+    TYPES temp1_65587aa3fe TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+DATA mt_names TYPE temp1_65587aa3fe.
 
 ENDCLASS.
 
@@ -34,14 +35,34 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
 
   METHOD constructor.
 
-    LOOP AT it_paths INTO DATA(lv_path).
-      DATA(lv_name) = to_upper( lv_path ).
+    DATA lv_path LIKE LINE OF it_paths.
+      DATA lv_name TYPE string.
+        TYPES temp2 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_parts TYPE temp2.
+        DATA temp34 TYPE string.
+        DATA temp35 TYPE string.
+      DATA temp36 LIKE sy-subrc.
+    LOOP AT it_paths INTO lv_path.
+
+      lv_name = to_upper( lv_path ).
       " a caller may write the field with or without a leading slash
       IF lv_name CS `/`.
-        SPLIT lv_name AT `/` INTO TABLE DATA(lt_parts).
-        lv_name = VALUE #( lt_parts[ lines( lt_parts ) ] OPTIONAL ).
+
+
+        SPLIT lv_name AT `/` INTO TABLE lt_parts.
+
+        CLEAR temp34.
+
+        READ TABLE lt_parts INTO temp35 INDEX lines( lt_parts ).
+        IF sy-subrc = 0.
+          temp34 = temp35.
+        ENDIF.
+        lv_name = temp34.
       ENDIF.
-      IF lv_name IS NOT INITIAL AND NOT line_exists( mt_names[ table_line = lv_name ] ).
+
+      READ TABLE mt_names WITH KEY table_line = lv_name TRANSPORTING NO FIELDS.
+      temp36 = sy-subrc.
+      IF lv_name IS NOT INITIAL AND NOT temp36 = 0.
         INSERT lv_name INTO TABLE mt_names.
       ENDIF.
     ENDLOOP.
@@ -50,6 +71,9 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson_filter~keep_node.
+    DATA temp37 LIKE sy-subrc.
+      DATA temp1 TYPE xsdboolean.
+      DATA temp2 TYPE xsdboolean.
 
     rv_keep = abap_true.
 
@@ -59,14 +83,21 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF NOT line_exists( mt_names[ table_line = to_upper( is_node-name ) ] ).
+
+    READ TABLE mt_names WITH KEY table_line = to_upper( is_node-name ) TRANSPORTING NO FIELDS.
+    temp37 = sy-subrc.
+    IF NOT temp37 = 0.
       RETURN.
     ENDIF.
 
     IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
-      rv_keep = xsdbool( is_node-value <> '0' ).
+
+      temp1 = boolc( is_node-value <> '0' ).
+      rv_keep = temp1.
     ELSE.
-      rv_keep = xsdbool( is_node-value IS NOT INITIAL ).
+
+      temp2 = boolc( is_node-value IS NOT INITIAL ).
+      rv_keep = temp2.
     ENDIF.
 
   ENDMETHOD.

@@ -22,7 +22,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
     DATA temp1 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp1.
@@ -43,7 +43,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
     DATA temp2 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp2.
@@ -69,7 +69,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
     DATA temp3 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_info TYPE z2ui5_if_types=>ty_s_draft.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp3.
@@ -94,7 +94,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp4 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp4.
@@ -118,7 +118,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp5 TYPE z2ui5_if_types=>ty_s_draft.
     DATA temp6 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp5.
@@ -146,16 +146,18 @@ CLASS ltcl_test IMPLEMENTATION.
     " write a row with a foreign owner directly, then assert both read_draft
     " and check_exists refuse it for the current user
     DATA ls_db TYPE z2ui5_t_01.
+    DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
+    DATA lv_raised TYPE abap_bool.
     ls_db-id    = `TEST_OWNER`.
     ls_db-uname = |{ sy-uname }_OTHER|.
     ls_db-data  = `secret state`.
-    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    MODIFY z2ui5_t_01 FROM ls_db ##SUBRC_OK.
     COMMIT WORK.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
-    lo_draft = NEW #( ).
 
-    DATA lv_raised TYPE abap_bool.
+    CREATE OBJECT lo_draft.
+
+
     TRY.
         lo_draft->read_draft( `TEST_OWNER` ).
       CATCH z2ui5_cx_a2ui5_error.

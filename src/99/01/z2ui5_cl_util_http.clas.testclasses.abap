@@ -26,9 +26,19 @@ CLASS ltcl_fake_request IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_header_field.
+        DATA temp1 LIKE LINE OF mt_header.
+        DATA temp2 LIKE sy-tabix.
 
     TRY.
-        value = mt_header[ n = name ]-v.
+
+
+        temp2 = sy-tabix.
+        READ TABLE mt_header WITH KEY n = name INTO temp1.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        value = temp1-v.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -77,16 +87,29 @@ CLASS ltcl_fake_response IMPLEMENTATION.
 
   METHOD set_header_field.
 
-    INSERT VALUE #( n = name
-                    v = value ) INTO TABLE mt_header.
+    DATA temp3 TYPE z2ui5_cl_util=>ty_s_name_value.
+    CLEAR temp3.
+    temp3-n = name.
+    temp3-v = value.
+    INSERT temp3 INTO TABLE mt_header.
 
   ENDMETHOD.
 
   METHOD get_cookie.
+        DATA temp4 LIKE LINE OF mt_cookie.
+        DATA temp5 LIKE sy-tabix.
 
     CLEAR value.
     TRY.
-        value = mt_cookie[ n = name ]-v.
+
+
+        temp5 = sy-tabix.
+        READ TABLE mt_cookie WITH KEY n = name INTO temp4.
+        sy-tabix = temp5.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        value = temp4-v.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -121,8 +144,8 @@ CLASS ltcl_fake_server IMPLEMENTATION.
 
   METHOD constructor.
 
-    request  = NEW #( ).
-    response = NEW #( ).
+    CREATE OBJECT request.
+    CREATE OBJECT response.
 
   ENDMETHOD.
 
@@ -161,7 +184,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_server = NEW #( ).
+    CREATE OBJECT mo_server.
     mo_cut = z2ui5_cl_util_http=>factory( mo_server ).
 
   ENDMETHOD.
@@ -175,8 +198,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_cloud.
 
-    DATA(lo_cut) = z2ui5_cl_util_http=>factory_cloud( req = NEW ltcl_fake_request( )
-                                                      res = NEW ltcl_fake_response( ) ).
+    DATA lo_cut TYPE REF TO z2ui5_cl_util_http.
+    DATA temp1 TYPE REF TO ltcl_fake_request.
+    DATA temp2 TYPE REF TO ltcl_fake_response.
+    CREATE OBJECT temp1 TYPE ltcl_fake_request.
+
+    CREATE OBJECT temp2 TYPE ltcl_fake_response.
+    lo_cut = z2ui5_cl_util_http=>factory_cloud( req = temp1
+                                                      res = temp2 ).
 
     cl_abap_unit_assert=>assert_bound( lo_cut->mo_request_cloud ).
     cl_abap_unit_assert=>assert_bound( lo_cut->mo_response_cloud ).
@@ -195,8 +224,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_get_header_field.
 
-    INSERT VALUE #( n = `~path`
-                    v = `/sap/bc/z2ui5` ) INTO TABLE mo_server->request->mt_header.
+    DATA temp6 TYPE z2ui5_cl_util=>ty_s_name_value.
+    CLEAR temp6.
+    temp6-n = `~path`.
+    temp6-v = `/sap/bc/z2ui5`.
+    INSERT temp6 INTO TABLE mo_server->request->mt_header.
 
     cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
                                         act = mo_cut->get_header_field( `~path` ) ).
@@ -213,20 +245,33 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_set_header_field.
+    DATA temp7 LIKE LINE OF mo_server->response->mt_header.
+    DATA temp8 LIKE sy-tabix.
 
     mo_cut->set_header_field( n = `content-type`
                               v = `application/json` ).
 
+
+
+    temp8 = sy-tabix.
+    READ TABLE mo_server->response->mt_header WITH KEY n = `content-type` INTO temp7.
+    sy-tabix = temp8.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `application/json`
-        act = mo_server->response->mt_header[ n = `content-type` ]-v ).
+        act = temp7-v ).
 
   ENDMETHOD.
 
   METHOD test_get_response_cookie.
 
-    INSERT VALUE #( n = `sap-sessionid`
-                    v = `ABC123` ) INTO TABLE mo_server->response->mt_cookie.
+    DATA temp9 TYPE z2ui5_cl_util=>ty_s_name_value.
+    CLEAR temp9.
+    temp9-n = `sap-sessionid`.
+    temp9-v = `ABC123`.
+    INSERT temp9 INTO TABLE mo_server->response->mt_cookie.
 
     cl_abap_unit_assert=>assert_equals( exp = `ABC123`
                                         act = mo_cut->get_response_cookie( `sap-sessionid` ) ).

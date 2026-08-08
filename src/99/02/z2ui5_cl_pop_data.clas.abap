@@ -27,17 +27,19 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
   METHOD display.
 
     FIELD-SYMBOLS <data> TYPE any.
+      DATA lt_result TYPE z2ui5_cl_a2ui5_context=>ty_t_name_value.
 
     ASSIGN mr_data->* TO <data>.
 
-    IF z2ui5_cl_a2ui5_context=>rtti_check_table( <data> ).
+    IF z2ui5_cl_a2ui5_context=>rtti_check_table( <data> ) IS NOT INITIAL.
 
       client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = <data>
                                                          i_title = title ) ).
 
-    ELSEIF z2ui5_cl_a2ui5_context=>rtti_check_structure( <data> ).
+    ELSEIF z2ui5_cl_a2ui5_context=>rtti_check_structure( <data> ) IS NOT INITIAL.
 
-      DATA(lt_result) = z2ui5_cl_a2ui5_context=>itab_get_by_struc( <data> ).
+
+      lt_result = z2ui5_cl_a2ui5_context=>itab_get_by_struc( <data> ).
       client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = lt_result
                                                          i_title = title ) ).
 
@@ -49,7 +51,7 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
 
     FIELD-SYMBOLS <data> TYPE any.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     IF title IS NOT INITIAL.
       r_result->title = title.
     ENDIF.
@@ -63,7 +65,7 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     me->client = client.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       display( ).
       RETURN.
     ENDIF.

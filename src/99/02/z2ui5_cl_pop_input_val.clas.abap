@@ -43,7 +43,7 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = title.
 
     r_result->question_text       = text.
@@ -61,7 +61,8 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
                   )->vbox( `sapUiMediumMargin`
@@ -81,18 +82,23 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+    DATA lv_event TYPE z2ui5_if_types=>ty_s_get-event.
+        DATA temp1 TYPE xsdboolean.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
 
-    DATA(lv_event) = client->get( )-event.
+
+    lv_event = client->get( )-event.
     CASE lv_event.
       WHEN `BUTTON_CONFIRM` OR `BUTTON_CANCEL`.
-        ms_result-check_confirmed = xsdbool( lv_event = `BUTTON_CONFIRM` ).
+
+        temp1 = boolc( lv_event = `BUTTON_CONFIRM` ).
+        ms_result-check_confirmed = temp1.
         client->popup_destroy( ).
         client->nav_app_leave( ).
     ENDCASE.

@@ -34,9 +34,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    lo_http = NEW #( val = `` ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
 
-    lo_action = NEW #( val = lo_http ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
 
     cl_abap_unit_assert=>assert_bound( lo_action ).
     cl_abap_unit_assert=>assert_bound( lo_action->mo_http_post ).
@@ -49,9 +49,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
     DATA lo_result TYPE REF TO z2ui5_cl_core_action.
 
-    lo_http = NEW #( val = `` ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
 
-    lo_action = NEW #( val = lo_http ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
 
 
     lo_result = lo_action->factory_system_startup( ).
@@ -72,11 +72,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
 
-    lo_http = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_http EXPORTING val = lv_payload.
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
 
 
-    lo_action = NEW #( val = lo_http ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
 
     lo_result = lo_action->factory_first_start( ).
 
@@ -96,11 +96,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
 
-    lo_http = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_http EXPORTING val = lv_payload.
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
     lo_http->ms_request-s_control-app_start_draft = `THIS_DRAFT_DOES_NOT_EXIST`.
 
-    lo_action = NEW #( val = lo_http ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
 
     lo_result = lo_action->factory_first_start( ).
 
@@ -118,13 +118,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
     DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
     DATA temp1 TYPE xsdboolean.
+        DATA temp2 TYPE xsdboolean.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=NONEXISTENT_CLASS"}}}`.
 
-    lo_http = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_http EXPORTING val = lv_payload.
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
 
 
-    lo_action = NEW #( val = lo_http ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
 
     TRY.
         lo_action->factory_first_start( ).
@@ -132,7 +133,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
       CATCH z2ui5_cx_a2ui5_error INTO lx.
 
-        temp1 = xsdbool( lx->get_text( ) CS `NONEXISTENT_CLASS` ).
+
+        temp2 = boolc( lx->get_text( ) CS `NONEXISTENT_CLASS` ).
+        temp1 = temp2.
         cl_abap_unit_assert=>assert_true( temp1 ).
     ENDTRY.
 
@@ -146,12 +149,12 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
-    lo_http = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_http EXPORTING val = lv_payload.
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
 
 
-    lo_action = NEW #( val = lo_http ).
-    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
+    CREATE OBJECT lo_action->mo_app->mo_app TYPE ltcl_test_app.
     lo_action->mo_app->ms_draft-id = `OLD_DRAFT_ID`.
     lo_http->mo_action = lo_action.
 
@@ -174,9 +177,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    lo_http = NEW #( val = `` ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
 
-    lo_action = NEW #( val = lo_http ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
 
     " only the model-owning slots have the flag - the nested slots inherit the
     " root model and carry none - see reset_view_update_flags
@@ -202,14 +205,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_result TYPE REF TO z2ui5_cl_core_action.
     DATA lo_chained TYPE REF TO z2ui5_cl_core_action.
 
-    lo_http = NEW #( val = `` ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
 
-    lo_action = NEW #( val = lo_http ).
-    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
+    CREATE OBJECT lo_action->mo_app->mo_app TYPE ltcl_test_app.
     lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
 
 
-    lo_new_app = NEW #( ).
+    CREATE OBJECT lo_new_app.
     lo_action->ms_next-o_app_call = lo_new_app.
 
     " frontend actions queued by the calling app - messages and follow-up
@@ -254,7 +257,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a chained call ( A -> B -> C ) keeps the FIRST caller - that is the entry
     " the browser is standing on, i.e. the app the user navigated away from
-    lo_result->ms_next-o_app_call  = NEW ltcl_test_app( ).
+    CREATE OBJECT lo_result->ms_next-o_app_call TYPE ltcl_test_app.
     lo_result->mo_app->ms_draft-id = `SECOND_DRAFT`.
 
     lo_chained = lo_result->factory_stack_call( ).
@@ -272,13 +275,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " an app enables routing once ( check_on_init ); every app it navigates to
     " inherits the mode, so a whole app stack is routed after a single opt-in
-    lo_http = NEW #( val = `` ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
 
-    lo_action = NEW #( val = lo_http ).
-    lo_action->mo_app->mo_app       = NEW ltcl_test_app( ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
+    CREATE OBJECT lo_action->mo_app->mo_app TYPE ltcl_test_app.
     lo_action->mo_app->ms_draft-id  = `CURRENT_DRAFT`.
     lo_action->mo_app->mv_nav_mode  = z2ui5_if_client=>cs_nav_mode-keep.
-    lo_action->ms_next-o_app_call   = NEW ltcl_test_app( ).
+    CREATE OBJECT lo_action->ms_next-o_app_call TYPE ltcl_test_app.
 
     lo_called = lo_action->factory_stack_call( ).
 
@@ -287,10 +290,10 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " an app that never enabled routing passes nothing on - the called app
     " stays unrouted, so the opt-in really is an opt-in
-    lo_own = NEW #( val = lo_http ).
-    lo_own->mo_app->mo_app      = NEW ltcl_test_app( ).
+    CREATE OBJECT lo_own EXPORTING val = lo_http.
+    CREATE OBJECT lo_own->mo_app->mo_app TYPE ltcl_test_app.
     lo_own->mo_app->ms_draft-id = `PLAIN_DRAFT`.
-    lo_own->ms_next-o_app_call  = NEW ltcl_test_app( ).
+    CREATE OBJECT lo_own->ms_next-o_app_call TYPE ltcl_test_app.
 
     lo_called = lo_own->factory_stack_call( ).
 
@@ -304,14 +307,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_prev_app TYPE REF TO ltcl_test_app.
     DATA lo_result TYPE REF TO z2ui5_cl_core_action.
 
-    lo_http = NEW #( val = `` ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
 
-    lo_action = NEW #( val = lo_http ).
-    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    CREATE OBJECT lo_action EXPORTING val = lo_http.
+    CREATE OBJECT lo_action->mo_app->mo_app TYPE ltcl_test_app.
     lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
 
 
-    lo_prev_app = NEW #( ).
+    CREATE OBJECT lo_prev_app.
     lo_action->ms_next-o_app_leave = lo_prev_app.
 
     " frontend actions queued by the leaving app - messages and follow-up

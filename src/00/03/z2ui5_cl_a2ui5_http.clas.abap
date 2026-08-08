@@ -121,11 +121,18 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
   METHOD client_create.
 
     DATA lv_classname TYPE c LENGTH 14.
+    DATA lv_destination TYPE c LENGTH 32.
+    DATA temp10 TYPE string.
+    DATA lv_url LIKE temp10.
+        DATA x TYPE REF TO cx_root.
     lv_classname = `CL_HTTP_CLIENT`.
 
-    DATA lv_destination TYPE c LENGTH 32.
+
     lv_destination = destination.
-    DATA(lv_url) = CONV string( url ).
+
+    temp10 = url.
+
+    lv_url = temp10.
 
     TRY.
 
@@ -163,7 +170,8 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
           CLEAR result.
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
@@ -182,7 +190,13 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
     DATA lv_message  TYPE string.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA(lo_client) = client_create( destination = destination
+    DATA lo_client TYPE REF TO object.
+        DATA temp11 TYPE string.
+        DATA lv_method LIKE temp11.
+        DATA temp12 TYPE string.
+        DATA lv_body LIKE temp12.
+        DATA x TYPE REF TO cx_root.
+    lo_client = client_create( destination = destination
                                      url         = url ).
 
     TRY.
@@ -191,12 +205,18 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
         ASSERT sy-subrc = 0.
         lo_request = <any>.
 
-        DATA(lv_method) = CONV string( method ).
+
+        temp11 = method.
+
+        lv_method = temp11.
         CALL METHOD lo_request->(`SET_METHOD`)
           EXPORTING
             method = lv_method.
 
-        DATA(lv_body) = CONV string( body ).
+
+        temp12 = body.
+
+        lv_body = temp12.
         CALL METHOD lo_request->(`SET_CDATA`)
           EXPORTING
             data = lv_body.
@@ -246,7 +266,8 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
           EXCEPTIONS
             OTHERS = 1.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
@@ -255,11 +276,17 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
 
   METHOD delete_response_cookie.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp13 TYPE string.
+    DATA lv_val LIKE temp13.
+      DATA object TYPE REF TO object.
+    temp13 = val.
+
+    lv_val = temp13.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`DELETE_COOKIE`)
         EXPORTING
@@ -271,11 +298,17 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
 
   METHOD get_response_cookie.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp14 TYPE string.
+    DATA lv_val LIKE temp14.
+      DATA object TYPE REF TO object.
+    temp14 = val.
+
+    lv_val = temp14.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`GET_COOKIE`)
         EXPORTING
@@ -289,11 +322,17 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
 
   METHOD get_header_field.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp15 TYPE string.
+    DATA lv_val LIKE temp15.
+      DATA object TYPE REF TO object.
+    temp15 = val.
+
+    lv_val = temp15.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_request_onprem( ).
+
+      object = get_request_onprem( ).
 
       CALL METHOD object->(`GET_HEADER_FIELD`)
         EXPORTING
@@ -315,11 +354,22 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
 
   METHOD set_header_field.
 
-    DATA(lv_n) = CONV string( n ).
-    DATA(lv_v) = CONV string( v ).
+    DATA temp16 TYPE string.
+    DATA lv_n LIKE temp16.
+    DATA temp17 TYPE string.
+    DATA lv_v LIKE temp17.
+      DATA object TYPE REF TO object.
+    temp16 = n.
+
+    lv_n = temp16.
+
+    temp17 = v.
+
+    lv_v = temp17.
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`SET_HEADER_FIELD`)
         EXPORTING
@@ -339,24 +389,26 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mo_server_onprem = server.
 
   ENDMETHOD.
 
   METHOD factory_cloud.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mo_request_cloud  = req.
     result->mo_response_cloud = res.
 
   ENDMETHOD.
 
   METHOD get_cdata.
+      DATA object TYPE REF TO object.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_request_onprem( ).
+
+      object = get_request_onprem( ).
 
       CALL METHOD object->(`GET_CDATA`)
         RECEIVING
@@ -373,10 +425,12 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_method.
+      DATA object TYPE REF TO object.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_request_onprem( ).
+
+      object = get_request_onprem( ).
 
       CALL METHOD object->(`IF_HTTP_REQUEST~GET_METHOD`)
         RECEIVING
@@ -393,10 +447,12 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_cdata.
+      DATA object TYPE REF TO object.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`SET_CDATA`)
         EXPORTING
@@ -414,11 +470,17 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
 
   METHOD set_status.
 
-    DATA(lv_reason) = CONV string( reason ).
+    DATA temp18 TYPE string.
+    DATA lv_reason LIKE temp18.
+      DATA object TYPE REF TO object.
+    temp18 = reason.
+
+    lv_reason = temp18.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`IF_HTTP_RESPONSE~SET_STATUS`)
         EXPORTING
@@ -450,9 +512,10 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_request_onprem.
+      FIELD-SYMBOLS <any> TYPE any.
 
     IF mo_request_onprem IS NOT BOUND.
-      FIELD-SYMBOLS <any> TYPE any.
+
       ASSIGN mo_server_onprem->(`REQUEST`) TO <any>.
       ASSERT sy-subrc = 0.
       mo_request_onprem = <any>.
@@ -463,9 +526,10 @@ CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_response_onprem.
+      FIELD-SYMBOLS <any> TYPE any.
 
     IF mo_response_onprem IS NOT BOUND.
-      FIELD-SYMBOLS <any> TYPE any.
+
       ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
       ASSERT sy-subrc = 0.
       mo_response_onprem = <any>.

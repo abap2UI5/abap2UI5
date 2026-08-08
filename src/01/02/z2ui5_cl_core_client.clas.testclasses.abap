@@ -70,12 +70,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_test_app TYPE REF TO ltcl_test_app.
-    lo_http = NEW #( val = `` ).
-    mo_action = NEW #( val = lo_http ).
-    lo_test_app = NEW #( ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
+    CREATE OBJECT mo_action EXPORTING val = lo_http.
+    CREATE OBJECT lo_test_app.
     lo_test_app->z2ui5_if_app~check_initialized = abap_false.
     mo_action->mo_app->mo_app = lo_test_app.
-    mo_client = NEW #( action = mo_action ).
+    CREATE OBJECT mo_client EXPORTING action = mo_action.
 
   ENDMETHOD.
 
@@ -406,74 +406,176 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_follow_up_action_ev.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp1 TYPE string_table.
+    DATA temp3 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp4 LIKE sy-tabix.
+    DATA temp5 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp6 LIKE sy-tabix.
     li_client ?= mo_client.
 
+
+    CLEAR temp1.
+    INSERT `My Title` INTO TABLE temp1.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_title
-                                 t_arg = VALUE #( ( `My Title` ) ) ).
+                                 t_arg = temp1 ).
     li_client->follow_up_action( z2ui5_if_client=>cs_event-history_back ).
 
     " framework events travel as pure data - a JSON array serialized in ABAP
     " (get_event_client_json), not as an executable eF( ) JS snippet
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+
+
+    temp4 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 1 INTO temp3.
+    sy-tabix = temp4.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `["SET_TITLE","My Title"]`
-                                        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
+                                        act = temp3 ).
+
+
+    temp6 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 2 INTO temp5.
+    sy-tabix = temp6.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `["HISTORY_BACK"]`
-                                        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+                                        act = temp5 ).
 
   ENDMETHOD.
 
   METHOD test_follow_up_action_nav.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp7 TYPE string_table.
+    DATA temp9 TYPE string_table.
+    DATA temp11 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp12 LIKE sy-tabix.
+    DATA temp13 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp14 LIKE sy-tabix.
     li_client ?= mo_client.
 
     " a *_nav_container_to event is rerouted to the generic CONTROL_BY_ID call
     " (method `to`, slot as the view) instead of emitting a dedicated event
+
+    CLEAR temp7.
+    INSERT `myContainer` INTO TABLE temp7.
+    INSERT `myPage` INTO TABLE temp7.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-nav_container_to
-                                 t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ).
+                                 t_arg = temp7 ).
+
+    CLEAR temp9.
+    INSERT `popContainer` INTO TABLE temp9.
+    INSERT `popPage` INTO TABLE temp9.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-popup_nav_container_to
-                                 t_arg = VALUE #( ( `popContainer` ) ( `popPage` ) ) ).
+                                 t_arg = temp9 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+
+
+    temp12 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 1 INTO temp11.
+    sy-tabix = temp12.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
+        act = temp11 ).
+
+
+    temp14 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 2 INTO temp13.
+    sy-tabix = temp14.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","popContainer","POPUP","to","popPage"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+        act = temp13 ).
 
   ENDMETHOD.
 
   METHOD test_follow_up_action_ctrl.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp15 TYPE string_table.
+    DATA temp17 TYPE string_table.
+    DATA temp19 TYPE string_table.
+    DATA temp21 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp22 LIKE sy-tabix.
+    DATA temp23 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp24 LIKE sy-tabix.
+    DATA temp25 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp26 LIKE sy-tabix.
     li_client ?= mo_client.
 
     " the whitelisted control calls are plain follow-up events - t_arg is
     " positional: control_global = object, method, params; control_by_id =
     " id, method, params (the view is the separate view parameter, default
     " cs_view-main -> empty slot; a concrete view fills the slot)
+
+    CLEAR temp15.
+    INSERT `MESSAGE_TOAST` INTO TABLE temp15.
+    INSERT `show` INTO TABLE temp15.
+    INSERT `Hello` INTO TABLE temp15.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                 t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `Hello` ) ) ).
+                                 t_arg = temp15 ).
+
+    CLEAR temp17.
+    INSERT `demoPanel` INTO TABLE temp17.
+    INSERT `setExpanded` INTO TABLE temp17.
+    INSERT `X` INTO TABLE temp17.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
-                                 t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ).
+                                 t_arg = temp17 ).
+
+    CLEAR temp19.
+    INSERT `demoPanel` INTO TABLE temp19.
+    INSERT `setExpanded` INTO TABLE temp19.
+    INSERT `X` INTO TABLE temp19.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
                                  view  = z2ui5_if_client=>cs_view-popover
-                                 t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ).
+                                 t_arg = temp19 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+
+
+    temp22 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 1 INTO temp21.
+    sy-tabix = temp22.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Hello"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
+        act = temp21 ).
+
+
+    temp24 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 2 INTO temp23.
+    sy-tabix = temp24.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+        act = temp23 ).
+
+
+    temp26 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 3 INTO temp25.
+    sy-tabix = temp26.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 3 ] ).
+        act = temp25 ).
 
   ENDMETHOD.
 
@@ -555,7 +657,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp24 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp24.
     DATA lv_id TYPE string.
-    lo_new_app = NEW #( ).
+    CREATE OBJECT lo_new_app.
 
     temp24 ?= mo_client.
 
@@ -575,7 +677,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_id_first TYPE string.
     DATA lv_id_second TYPE string.
-    lo_new_app = NEW #( ).
+    CREATE OBJECT lo_new_app.
     li_client ?= mo_client.
 
     lv_id_first  = li_client->nav_app_call( lo_new_app ).
@@ -593,7 +695,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app   = lo_app
@@ -613,7 +715,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_data TYPE string VALUE `payload`.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app    = lo_app
@@ -630,7 +732,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_data TYPE string.
     FIELD-SYMBOLS <data> TYPE data.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app    = lo_app
@@ -648,7 +750,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app   = lo_app
@@ -663,7 +765,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lr_data TYPE REF TO data.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app    = lo_app
@@ -749,29 +851,66 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " dropped when initial, so an abap_false that must reach the client (itself
     " initial) survives as long as its column is not listed. That is the whole
     " reason the scoped form exists next to the blanket omit_initial.
-    DATA(li_filter) = CAST z2ui5_if_ajson_filter(
-        NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ( `/ROWS/MAX` ) ) ) ).
+    DATA temp27 TYPE string_table.
+    DATA temp1 TYPE REF TO z2ui5_if_ajson_filter.
+    DATA li_filter LIKE temp1.
+    DATA temp29 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp30 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp31 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp32 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp33 TYPE z2ui5_if_ajson_types=>ty_node.
+    CLEAR temp27.
+    INSERT `MIN` INTO TABLE temp27.
+    INSERT `/ROWS/MAX` INTO TABLE temp27.
+
+    CREATE OBJECT temp1 TYPE lcl_initial_paths_filter EXPORTING IT_PATHS = temp27.
+
+    li_filter = temp1.
 
     " listed + initial -> dropped
+
+    CLEAR temp29.
+    temp29-name = `MIN`.
+    temp29-type = `num`.
+    temp29-value = `0`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = li_filter->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
+        act = li_filter->keep_node( temp29 ) ).
     " listed by its last path segment as well
+
+    CLEAR temp30.
+    temp30-name = `MAX`.
+    temp30-type = `str`.
+    temp30-value = ``.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = li_filter->keep_node( VALUE #( name = `MAX` type = `str` value = `` ) ) ).
+        act = li_filter->keep_node( temp30 ) ).
     " listed but filled -> kept
+
+    CLEAR temp31.
+    temp31-name = `MIN`.
+    temp31-type = `num`.
+    temp31-value = `5`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_filter->keep_node( VALUE #( name = `MIN` type = `num` value = `5` ) ) ).
+        act = li_filter->keep_node( temp31 ) ).
     " NOT listed and initial -> kept: this is the boolean that must send false
+
+    CLEAR temp32.
+    temp32-name = `ENABLED`.
+    temp32-type = `bool`.
+    temp32-value = `false`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_filter->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
+        act = li_filter->keep_node( temp32 ) ).
     " an object/array visit always passes, or the row around a dropped field would go
+
+    CLEAR temp33.
+    temp33-name = `MIN`.
+    temp33-type = `object`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_filter->keep_node( is_node  = VALUE #( name = `MIN` type = `object` )
+        act = li_filter->keep_node( is_node  = temp33
                                     iv_visit = z2ui5_if_ajson_filter=>visit_type-open ) ).
 
   ENDMETHOD.

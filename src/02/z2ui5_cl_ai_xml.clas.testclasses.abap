@@ -17,7 +17,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD render_nested_view.
 
-    DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ai_xml.
+    view = z2ui5_cl_ai_xml=>factory( ).
 
     view->open( n  = `View`
                 ns = `mvc`
@@ -43,7 +44,8 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD attr_targets_last_child.
 
     " after a leaf the chain stays on the parent - a( ) must still hit the leaf
-    DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ai_xml.
+    view = z2ui5_cl_ai_xml=>factory( ).
 
     view->open( `Page`
         )->leaf( `Text`
@@ -64,7 +66,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " after a shut the chain points at the parent whose last child is the
     " container just closed - a( ) attaches to that container
-    DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ai_xml.
+    view = z2ui5_cl_ai_xml=>factory( ).
 
     view->open( `Panel`
         )->leaf( `Title`
@@ -83,10 +86,16 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD upfront_attr_table.
 
     " attributes passed as a `key=value` table split on the FIRST equals sign
-    DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ai_xml.
+    DATA temp1 TYPE z2ui5_cl_ai_xml=>ty_t_attr.
+    view = z2ui5_cl_ai_xml=>factory( ).
 
+
+    CLEAR temp1.
+    INSERT `text=a=b` INTO TABLE temp1.
+    INSERT `width=100%` INTO TABLE temp1.
     view->leaf( n = `Text`
-                a = VALUE #( ( `text=a=b` ) ( `width=100%` ) ) ).
+                a = temp1 ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -97,7 +106,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD escape_attribute_value.
 
-    DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ai_xml.
+    view = z2ui5_cl_ai_xml=>factory( ).
 
     view->leaf( `Text`
         )->a( n = `text`
@@ -114,7 +124,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " a literal LF/TAB in an attribute value must survive XML attribute-value
     " normalization as a character reference (e.g. a two-line noDataText)
-    DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ai_xml.
+    view = z2ui5_cl_ai_xml=>factory( ).
 
     view->leaf( `Text`
         )->a( n = `text`
