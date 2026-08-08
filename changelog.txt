@@ -39,14 +39,19 @@ unreleased
   an endless roundtrip loop that made anything other than a plain string
   unusable. A structure or a table can now be stored and read back
 ! Error output: a 500 response no longer carries only the outermost message. The
-  body now holds the full diagnostic - the message chain, then one block per
-  entry of the previous chain with the exception class, its own text, the source
-  position it was raised at (program / class include / line - what identifies
-  the failing method for a CX_SY_MOVE_CAST_ERROR, whose text names only the two
-  types), the kernel error id and every public exception attribute that carries a
-  value - followed by the app / event / draft / url of the failing roundtrip and
-  the system context (system, client, host, release, user, time). Rendered by the
+  body now holds the full diagnostic in sections - `--- error ---` with the
+  message chain, `--- exception chain ---` with one block per entry of the
+  previous chain (exception class, own text, the source position it was raised
+  at - program / class include / line, what identifies the failing method for a
+  CX_SY_MOVE_CAST_ERROR whose text names only the two types - the kernel error
+  id and every public exception attribute that carries a value), and
+  `--- context ---` with the app / event / draft / url of the failing roundtrip
+  and the system (system, client, host, release, user, time). Rendered by the
   new z2ui5_cx_a2ui5_error=>get_text_full( ), which works for any exception
+! The error popup shows only the messages of that dump, one per line; the detail
+  sections stay one click away behind Details (developer tools Error tab) and in
+  Copy, which both carry the untruncated text. Non-framework errors (network,
+  client-side, SAP HTML error page) keep the single-line preview
 * z2ui5_cx_a2ui5_error chains the exception passed as val as its previous. The
   framework's dominant raise pattern (EXPORTING val = x, no previous) used to
   drop everything below x, so the cause of a wrapped error - and its source

@@ -73,6 +73,9 @@ function load({ ui5 = true } = {}) {
       // The Copy button flips its label via setText; mirror it into settings so
       // tests can observe the "Copied" feedback.
       inst.setText = (t) => (inst.settings.text = t);
+      // The message Text keeps its line breaks via setRenderWhitespace; mirror
+      // it the same way so the dialog test can assert it was set.
+      inst.setRenderWhitespace = (v) => (inst.settings.renderWhitespace = v);
       if (kind === "Dialog") created.dialogs.push(inst);
       return inst;
     };
@@ -201,6 +204,50 @@ test.describe("ErrorView friendly dialog", () => {
     expect(message).not.toContain("color: red");
     expect(message).not.toContain("20260719");
     expect(message).not.toContain("<");
+  });
+
+  test("shows only the messages of a framework dump, one per line", () => {
+    const { ErrorView, state, created } = load();
+    // The 500 body built by z2ui5_cx_a2ui5_error=>get_text_full: version
+    // header, the `--- error ---` message chain, then the detail sections.
+    const dump = [
+      "abap2UI5 1.142.0 - unhandled exception in a POST request",
+      "",
+      "--- error ---",
+      "Request failed in app ZCL_MY_APP, event ONPRESS",
+      "Json parsing error: Not JSON @Line 1, Offset 1",
+      "",
+      "--- exception chain ---",
+      "[1] Z2UI5_CX_A2UI5_ERROR",
+      "    position : CLASS=ZCL_MY_APP=====CP / line 42",
+      "",
+      "--- context ---",
+      "    user     : SMITH",
+    ].join("\n");
+    ErrorView.show(dump);
+    const messageControl = created.dialogs[0].settings.content[0];
+    // Only the two messages, kept on separate lines.
+    expect(messageControl.settings.text).toBe(
+      "Request failed in app ZCL_MY_APP, event ONPRESS\n" +
+        "Json parsing error: Not JSON @Line 1, Offset 1",
+    );
+    // sap.m.Text would collapse those line breaks without this.
+    expect(messageControl.settings.renderWhitespace).toBe(true);
+    // Everything else stays behind Details / Copy - and the Error tab keeps
+    // the untruncated dump.
+    expect(messageControl.settings.text).not.toContain("abap2UI5");
+    expect(messageControl.settings.text).not.toContain("position");
+    expect(messageControl.settings.text).not.toContain("SMITH");
+    expect(state.lastError.text).toBe(dump);
+  });
+
+  test("keeps the single-line preview for a non-framework error", () => {
+    const { ErrorView, created } = load();
+    // No `--- error ---` section: a network failure is one line as before.
+    ErrorView.show("Network error: failed to fetch");
+    expect(created.dialogs[0].settings.content[0].settings.text).toBe(
+      "Network error: failed to fetch",
+    );
   });
 
   test("truncates a long preview but keeps the full text for the Error tab", () => {

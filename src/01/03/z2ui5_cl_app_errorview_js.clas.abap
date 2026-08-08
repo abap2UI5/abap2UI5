@@ -92,22 +92,53 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      .join(" - ");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Turn the raw error text into a one-glance preview for the friendly dialog.` && |\n| &&
-             `  // Backend errors often arrive as a whole HTML page (an ABAP dump rendered as` && |\n| &&
-             `  // a 500 error page): prefer the structured error message, else fall back to` && |\n| &&
-             `  // stripping script/style/title and the remaining tags. Rendered as plain` && |\n| &&
-             `  // MessageBox text, so the stripped markup cannot execute.` && |\n| &&
+             `  // A framework 500 body is a sectioned plain-text dump built by` && |\n| &&
+             `  // z2ui5_cx_a2ui5_error=>get_text_full: a version header line, then` && |\n| &&
+             `  // ``--- error ---`` with the message chain (one message per line), then` && |\n| &&
+             `  // ``--- exception chain ---`` (a block per cause with class, source position,` && |\n| &&
+             `  // kernel id, attributes) and ``--- context ---``. The popup shows only the` && |\n| &&
+             `  // messages; the rest is one click away behind Details and in Copy, which` && |\n| &&
+             `  // both work on the untruncated text. Returns "" when the text is not such` && |\n| &&
+             `  // a dump - a network error, a client-side failure or an ABAP dump rendered` && |\n| &&
+             `  // as an HTML error page all keep the single-line preview below.` && |\n| &&
+             `  const ERROR_SECTION_HEADER = "--- error ---";` && |\n| &&
+             `` && |\n| &&
+             `  function extractFrameworkMessages(text) {` && |\n| &&
+             `    const lines = text.split("\n");` && |\n| &&
+             `    const start = lines.findIndex(` && |\n| &&
+             `      (line) => line.trim() === ERROR_SECTION_HEADER,` && |\n| &&
+             `    );` && |\n| &&
+             `    if (start < 0) return "";` && |\n| &&
+             `    const messages = [];` && |\n| &&
+             `    for (const line of lines.slice(start + 1)) {` && |\n| &&
+             `      // the next section header ends the block` && |\n| &&
+             `      if (line.trim().startsWith("---")) break;` && |\n| &&
+             `      const cleaned = cleanText(line);` && |\n| &&
+             `      if (cleaned) messages.push(cleaned);` && |\n| &&
+             `    }` && |\n| &&
+             `    return messages.join("\n");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Turn the raw error text into a preview for the friendly dialog: the` && |\n| &&
+             `  // framework's own messages when the body carries them, otherwise a` && |\n| &&
+             `  // one-glance line. Backend errors may also arrive as a whole HTML page (an` && |\n| &&
+             `  // ABAP dump rendered as a 500 error page): prefer the structured error` && |\n| &&
+             `  // message, else fall back to stripping script/style/title and the remaining` && |\n| &&
+             `  // tags. Rendered as plain text, so the stripped markup cannot execute.` && |\n| &&
              `  function buildErrorPreview(text) {` && |\n| &&
              `    if (!text) return "";` && |\n| &&
-             `    let preview = text;` && |\n| &&
-             `    if (/<[a-z][\s\S]*>/i.test(preview)) {` && |\n| &&
-             `      preview =` && |\n| &&
-             `        extractServerError(preview) ||` && |\n| &&
-             `        cleanText(` && |\n| &&
-             `          preview.replace(/<(script|style|title)[\s\S]*?<\/\1>/gi, " "),` && |\n| &&
-             `        );` && |\n| &&
+             `    let preview = extractFrameworkMessages(text);` && |\n| &&
+             `    if (!preview) {` && |\n| &&
+             `      preview = text;` && |\n| &&
+             `      if (/<[a-z][\s\S]*>/i.test(preview)) {` && |\n| &&
+             `        preview =` && |\n| &&
+             `          extractServerError(preview) ||` && |\n| &&
+             `          cleanText(` && |\n| &&
+             `            preview.replace(/<(script|style|title)[\s\S]*?<\/\1>/gi, " "),` && |\n| &&
+             `          );` && |\n| &&
+             `      }` && |\n| &&
+             `      preview = preview.replace(/\s+/g, " ").trim();` && |\n| &&
              `    }` && |\n| &&
-             `    preview = preview.replace(/\s+/g, " ").trim();` && |\n| &&
              `    return preview.length > PREVIEW_MAX_LENGTH` && |\n| &&
              `      ? ``${preview.slice(0, PREVIEW_MAX_LENGTH)}...``` && |\n| &&
              `      : preview;` && |\n| &&
@@ -227,6 +258,15 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      // Show only the extracted error text; a short neutral fallback covers` && |\n| &&
              `      // the rare case where nothing could be extracted.` && |\n| &&
              `      const message = buildErrorPreview(details) || "An error occurred.";` && |\n| &&
+             `      // A framework preview is one message per line, so the line breaks have` && |\n| &&
+             `      // to survive - sap.m.Text normalizes whitespace unless told otherwise.` && |\n| &&
+             `      // Set through the mutator and guarded: the property arrived in UI5 1.60` && |\n| &&
+             `      // and a control without it must not take the whole dialog down (the` && |\n| &&
+             `      // catch below would drop the user to the raw overlay).` && |\n| &&
+             `      const messageText = new Text({ text: message });` && |\n| &&
+             `      if (typeof messageText.setRenderWhitespace === "function") {` && |\n| &&
+             `        messageText.setRenderWhitespace(true);` && |\n| &&
+             `      }` && |\n| &&
              `      // Restart is the primary action, so it also gets the initial focus.` && |\n| &&
              `      const restartButton = new Button({` && |\n| &&
              `        text: "Restart",` && |\n| &&
@@ -287,7 +327,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        // promise keeps it open, so the only ways out are the explicit` && |\n| &&
              `        // actions built above.` && |\n| &&
              `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
-             `        content: [new Text({ text: message })],` && |\n| &&
+             `        content: [messageText],` && |\n| &&
              `        buttons,` && |\n| &&
              `        initialFocus: restartButton,` && |\n| &&
              `        afterClose: () => {` && |\n| &&
@@ -384,7 +424,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    // Record the fatal error so the Developer Tools Error tab can re-show it` && |\n| &&
              `    // (title, text and the same Retry action) after the overlay is gone.` && |\n| &&
              `    AppState.state.lastError = {` && |\n| &&
-             `      title: title || "Application Error - Please Restart The App",` && |\n| &&
+             `      title: title || "Application Error - Please Restart The App",` && |\n|.
+    result = result &&
              `      text: errorMessage,` && |\n| &&
              `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
              `    };` && |\n| &&
@@ -424,8 +465,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    h3.style.cssText = "margin: 0";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
-             `    const btnStyle =` && |\n|.
-    result = result &&
+             `    const btnStyle =` && |\n| &&
              `      "padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;";` && |\n| &&
              `` && |\n| &&
              `    const actionsDiv = document.createElement("div");` && |\n| &&

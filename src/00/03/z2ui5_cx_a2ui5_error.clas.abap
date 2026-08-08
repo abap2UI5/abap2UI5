@@ -173,14 +173,17 @@ CLASS z2ui5_cx_a2ui5_error IMPLEMENTATION.
 
     DATA(lv_nl) = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
 
-    " headline first: the plain message chain, unchanged - the detail blocks
-    " below only add to it, so nothing that used to be readable at a glance
-    " moved somewhere else. get_text( ) on a z2ui5 error already renders the
-    " whole concise chain, every other exception class has only its own text
-    result = val->get_text( ).
-    result = COND #( WHEN result IS INITIAL THEN `UNKNOWN_ERROR` ELSE result ).
+    " The messages first, one per line: this section is what the frontend
+    " lifts out for the error popup (app/webapp/core/ErrorView.js reads it by
+    " its `--- error ---` header, everything after the next `--- ` header
+    " stays behind Details) - keep the header spelling in sync with it.
+    " get_text( ) on a z2ui5 error already renders the whole concise chain,
+    " every other exception class has only its own text.
+    DATA(lv_message) = val->get_text( ).
+    lv_message = COND #( WHEN lv_message IS INITIAL THEN `UNKNOWN_ERROR` ELSE lv_message ).
 
-    result = result && lv_nl && lv_nl && `--- exception chain ---`.
+    result = `--- error ---` && lv_nl && lv_message &&
+             lv_nl && lv_nl && `--- exception chain ---`.
 
     DATA(lo_x) = val.
     WHILE lo_x IS BOUND AND lv_count < cv_chain_max.
