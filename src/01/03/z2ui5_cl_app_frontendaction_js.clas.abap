@@ -209,49 +209,66 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // still checked to be a function before the call, so a typo just no-ops.)` && |\n| &&
              `    // Named setters/mutators (setVisible, addItem, removeItem, ...) stay` && |\n| &&
              `    // allowed - they are the API the backend legitimately drives. Denied are` && |\n| &&
-             `    // the framework-hostile methods: teardown/reparenting (destroy*, exit,` && |\n| &&
+             `    // the framework-hostile methods: teardown/reparenting (destroy, exit,` && |\n| &&
              `    // setParent, addDependent, placeAt), model/binding swaps (setModel,` && |\n| &&
              `    // setBinding*, bind*/unbind*), event-handler tampering (attach*/detach*,` && |\n| &&
              `    // fireEvent), the render lifecycle (rerender, invalidate) and the GENERIC` && |\n| &&
-             `    // reflection aggregation mutators (setAggregation/add/insert/remove* and` && |\n| &&
-             `    // removeAll*) which reparent tracked controls behind the framework's back` && |\n| &&
-             `    // (the named per-aggregation methods above remain allowed).` && |\n| &&
-             `    // Built from a list (not one long literal) so no single source line is too` && |\n| &&
+             `    // reflection mutators (setAggregation/addAggregation/insertAggregation/` && |\n| &&
+             `    // removeAggregation/removeAllAggregation and their Association twins),` && |\n| &&
+             `    // which take the member NAME as an argument and reparent tracked controls` && |\n| &&
+             `    // behind the framework's back.` && |\n| &&
+             `    // Two lists, because the two halves need different matching. A generic` && |\n| &&
+             `    // reflection mutator has ONE spelling, so it is denied by EXACT name -` && |\n| &&
+             `    // matching it by prefix would swallow the named per-aggregation methods` && |\n| &&
+             `    // that share those first characters (removeAllSelectedDates,` && |\n| &&
+             `    // removeAllItems, destroySpecialDates, ...), which are exactly the API` && |\n| &&
+             `    // this allowlist is meant to offer: they detach or destroy children the` && |\n| &&
+             `    // control itself owns - the same footprint the already-allowed removeItem` && |\n| &&
+             `    // has - and carry no invariant beyond it. The other half is hostile in` && |\n| &&
+             `    // every spelling (bindProperty as much as bind), so it stays a PREFIX.` && |\n| &&
+             `    // Built from lists (not one long literal) so no single source line is too` && |\n| &&
              `    // long once embedded into the ABAP string constant (trans2abap.js caps` && |\n| &&
-             `    // generated lines at 255 chars). Each entry is a method-name PREFIX.` && |\n| &&
+             `    // generated lines at 255 chars).` && |\n| &&
+             `    const CONTROL_METHOD_DENY_EXACT = [` && |\n| &&
+             `      "destroy",` && |\n| &&
+             `      "exit",` && |\n| &&
+             `      "fireEvent",` && |\n| &&
+             `      "clone",` && |\n| &&
+             `      "applySettings",` && |\n| &&
+             `      "setAggregation",` && |\n| &&
+             `      "addAggregation",` && |\n| &&
+             `      "insertAggregation",` && |\n| &&
+             `      "removeAggregation",` && |\n| &&
+             `      "removeAllAggregation",` && |\n| &&
+             `      "destroyAggregation",` && |\n| &&
+             `      "setAssociation",` && |\n| &&
+             `      "addAssociation",` && |\n| &&
+             `      "removeAssociation",` && |\n| &&
+             `      "removeAllAssociation",` && |\n| &&
+             `    ];` && |\n| &&
              `    const CONTROL_METHOD_DENY_PREFIXES = [` && |\n| &&
              `      "_",` && |\n| &&
-             `      "destroy",` && |\n| &&
              `      "bind",` && |\n| &&
              `      "unbind",` && |\n| &&
              `      "attach",` && |\n| &&
              `      "detach",` && |\n| &&
-             `      "fireEvent",` && |\n| &&
-             `      "exit",` && |\n| &&
-             `      "removeAll",` && |\n| &&
-             `      "removeAggregation",` && |\n| &&
-             `      "addAggregation",` && |\n| &&
-             `      "insertAggregation",` && |\n| &&
-             `      "setAggregation",` && |\n| &&
              `      "addDependent",` && |\n| &&
              `      "placeAt",` && |\n| &&
              `      "rerender",` && |\n| &&
              `      "invalidate",` && |\n| &&
-             `      "applySettings",` && |\n| &&
-             `      "clone",` && |\n| &&
              `      "setModel",` && |\n| &&
-             `      "setBindingContext",` && |\n| &&
+             `      "setBinding", // covers setBindingContext` && |\n| &&
              `      "setParent",` && |\n| &&
-             `      "setBinding",` && |\n| &&
-             `      "setAssociation",` && |\n| &&
              `    ];` && |\n| &&
              `    const CONTROL_METHOD_DENY = new RegExp(` && |\n| &&
              `      "^(" + CONTROL_METHOD_DENY_PREFIXES.join("|") + ")",` && |\n| &&
              `    );` && |\n| &&
+             `    const CONTROL_METHOD_DENY_SET = new Set(CONTROL_METHOD_DENY_EXACT);` && |\n| &&
              `    function isSafeControlMethod(method) {` && |\n| &&
              `      return (` && |\n| &&
              `        typeof method === "string" &&` && |\n| &&
              `        method.length > 0 &&` && |\n| &&
+             `        !CONTROL_METHOD_DENY_SET.has(method) &&` && |\n| &&
              `        !CONTROL_METHOD_DENY.test(method)` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
@@ -407,7 +424,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            return JSON.parse(raw);` && |\n| &&
              `          } catch {` && |\n| &&
              `            return {};` && |\n| &&
-             `          }` && |\n| &&
+             `          }` && |\n|.
+    result = result &&
              `        default:` && |\n| &&
              `          return raw;` && |\n| &&
              `      }` && |\n| &&
@@ -424,8 +442,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      if (raw === "" || raw === " " || raw === "false") return false;` && |\n| &&
              `      return raw;` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `    // kinds whose EMPTY value is meaningful (null), so a missing trailing` && |\n| &&
              `    // argument still has to be passed: the backend wire drops a trailing empty` && |\n| &&
              `    // t_arg entry, and "clear this association" is exactly a call whose only` && |\n| &&
@@ -808,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      // A data: URL carrying active HTML combined with an attacker-chosen` && |\n| &&
              `      // .html/.hta filename is a known drive-by vector; block executable data:` && |\n| &&
-             `      // MIME types outright (real downloads are octet-stream, images, pdf, ...).` && |\n| &&
+             `      // MIME types outright (real downloads are octet-stream, images, pdf, ...).` && |\n|.
+    result = result &&
              `      if (` && |\n| &&
              `        /^data:(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(` && |\n| &&
              `          args[1],` && |\n| &&
@@ -825,8 +843,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // the download directory or carry a misleading name.` && |\n| &&
              `      // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here` && |\n| &&
              `      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");` && |\n| &&
-             `      // Firefox only triggers a programmatic download click when the anchor` && |\n|.
-    result = result &&
+             `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
              `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
              `      document.body.appendChild(a);` && |\n| &&
              `      a.click();` && |\n| &&
@@ -1209,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          const control = oFilterBar.determineControlByName(` && |\n| &&
              `            entry.fieldName,` && |\n| &&
              `            entry.groupName,` && |\n| &&
-             `          );` && |\n| &&
+             `          );` && |\n|.
+    result = result &&
              `          // setValue, not a model write: the two-way binding abap2UI5 put on` && |\n| &&
              `          // the property carries the restored value back to the backend on the` && |\n| &&
              `          // next roundtrip, so selecting a variant needs none of its own` && |\n| &&
@@ -1226,8 +1244,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // every filter change makes the current variant dirty (the "*" next to the` && |\n| &&
-             `    // variant title) and refreshes the bar's assigned-filters summary` && |\n|.
-    result = result &&
+             `    // variant title) and refreshes the bar's assigned-filters summary` && |\n| &&
              `    function attachFilterBarChange(oSVM, oFilterBar) {` && |\n| &&
              `      oFilterBar.getAllFilterItems().forEach((item) => {` && |\n| &&
              `        const control = filterItemControl(item);` && |\n| &&
@@ -1610,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // otherwise once it is.` && |\n| &&
              `      Lib.whenRendered(oElement, oController, () => {` && |\n| &&
              `        applyFocus();` && |\n| &&
-             `        const dom = oElement.getDomRef();` && |\n| &&
+             `        const dom = oElement.getDomRef();` && |\n|.
+    result = result &&
              `        if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
              `        // The focus did not stick. A view_model_update in the same response` && |\n| &&
              `        // may have changed the control - e.g. re-enabled a locked input via` && |\n| &&
@@ -1627,8 +1645,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const samePlace = (el) =>` && |\n| &&
              `          el == null ||` && |\n| &&
              `          el === document.body ||` && |\n| &&
-             `          el === prevActive ||` && |\n|.
-    result = result &&
+             `          el === prevActive ||` && |\n| &&
              `          Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
              `        const delegate = {` && |\n| &&
              `          onAfterRendering: () => {` && |\n| &&

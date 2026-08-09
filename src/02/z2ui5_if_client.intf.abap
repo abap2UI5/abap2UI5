@@ -351,6 +351,10 @@ INTERFACE z2ui5_if_client
   "! cs_event-control_by_id - call a method on a control resolved by id:
   "! t_arg = id, method, params. Any public control method works unless it is
   "! on the frontend denylist (methods that would break framework invariants).
+  "! The named per-aggregation mutators are on the allowed side of that line -
+  "! addItem, removeItem, removeAllItems, destroyContent - and only the GENERIC
+  "! reflection variants that take the member name as an argument are denied
+  "! (addAggregation, removeAllAggregation, setAssociation, ...).
   "! The view is passed as the separate
   "! view parameter (default cs_view-main resolves the id across all open
   "! views; pass cs_view-popup/popover/... to scope the lookup to that view).

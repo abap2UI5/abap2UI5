@@ -182,49 +182,66 @@ sap.ui.define(
     // still checked to be a function before the call, so a typo just no-ops.)
     // Named setters/mutators (setVisible, addItem, removeItem, ...) stay
     // allowed - they are the API the backend legitimately drives. Denied are
-    // the framework-hostile methods: teardown/reparenting (destroy*, exit,
+    // the framework-hostile methods: teardown/reparenting (destroy, exit,
     // setParent, addDependent, placeAt), model/binding swaps (setModel,
     // setBinding*, bind*/unbind*), event-handler tampering (attach*/detach*,
     // fireEvent), the render lifecycle (rerender, invalidate) and the GENERIC
-    // reflection aggregation mutators (setAggregation/add/insert/remove* and
-    // removeAll*) which reparent tracked controls behind the framework's back
-    // (the named per-aggregation methods above remain allowed).
-    // Built from a list (not one long literal) so no single source line is too
+    // reflection mutators (setAggregation/addAggregation/insertAggregation/
+    // removeAggregation/removeAllAggregation and their Association twins),
+    // which take the member NAME as an argument and reparent tracked controls
+    // behind the framework's back.
+    // Two lists, because the two halves need different matching. A generic
+    // reflection mutator has ONE spelling, so it is denied by EXACT name -
+    // matching it by prefix would swallow the named per-aggregation methods
+    // that share those first characters (removeAllSelectedDates,
+    // removeAllItems, destroySpecialDates, ...), which are exactly the API
+    // this allowlist is meant to offer: they detach or destroy children the
+    // control itself owns - the same footprint the already-allowed removeItem
+    // has - and carry no invariant beyond it. The other half is hostile in
+    // every spelling (bindProperty as much as bind), so it stays a PREFIX.
+    // Built from lists (not one long literal) so no single source line is too
     // long once embedded into the ABAP string constant (trans2abap.js caps
-    // generated lines at 255 chars). Each entry is a method-name PREFIX.
+    // generated lines at 255 chars).
+    const CONTROL_METHOD_DENY_EXACT = [
+      "destroy",
+      "exit",
+      "fireEvent",
+      "clone",
+      "applySettings",
+      "setAggregation",
+      "addAggregation",
+      "insertAggregation",
+      "removeAggregation",
+      "removeAllAggregation",
+      "destroyAggregation",
+      "setAssociation",
+      "addAssociation",
+      "removeAssociation",
+      "removeAllAssociation",
+    ];
     const CONTROL_METHOD_DENY_PREFIXES = [
       "_",
-      "destroy",
       "bind",
       "unbind",
       "attach",
       "detach",
-      "fireEvent",
-      "exit",
-      "removeAll",
-      "removeAggregation",
-      "addAggregation",
-      "insertAggregation",
-      "setAggregation",
       "addDependent",
       "placeAt",
       "rerender",
       "invalidate",
-      "applySettings",
-      "clone",
       "setModel",
-      "setBindingContext",
+      "setBinding", // covers setBindingContext
       "setParent",
-      "setBinding",
-      "setAssociation",
     ];
     const CONTROL_METHOD_DENY = new RegExp(
       "^(" + CONTROL_METHOD_DENY_PREFIXES.join("|") + ")",
     );
+    const CONTROL_METHOD_DENY_SET = new Set(CONTROL_METHOD_DENY_EXACT);
     function isSafeControlMethod(method) {
       return (
         typeof method === "string" &&
         method.length > 0 &&
+        !CONTROL_METHOD_DENY_SET.has(method) &&
         !CONTROL_METHOD_DENY.test(method)
       );
     }
