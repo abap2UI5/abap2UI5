@@ -1,5 +1,8 @@
 // @ts-check
-const { test, expect } = require("@playwright/test");
+// Loaded via ./fixtures so the ui5-1.71 project can pin the UI5 build the
+// browser-level tests below boot with; the request-level tests are
+// bootstrap-independent and run unchanged in every project.
+const { test, expect } = require("./fixtures");
 
 // End-to-end coverage of the abap2UI5 roundtrip against the transpiled
 // backend (node/srv/express.mjs): the POST wire contract (request parsing,

@@ -470,7 +470,7 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 ### Testing
 
 - **Unit tests:** Embedded in source files as `.testclasses.abap`, run via abaplint transpiler in Node.js
-- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_core_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
+- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile), plus the pinned `ui5-1.71` project (Chromium, smoke + roundtrip specs against pinned OpenUI5 1.71 via the bootstrap rewrite in `node/tests/e2e/fixtures.js` — the executable part of the 1.71 rules, see the enforcement-status note). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_core_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
 - **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `core/Router.js` (`router.spec.js`), `Component.js` unload wiring (`componentUnload.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `cc/Focus.js` (`focus.spec.js`), `cc/Dirty.js` (`dirty.spec.js`), `cc/MessageManager.js` (`messageManager.spec.js`), `cc/Websocket.js` (`websocket.spec.js`), `cc/Geolocation.js` (`geolocation.spec.js`), `cc/CameraSelector.js` (`cameraSelector.spec.js`), `cc/CameraPicture.js` (`cameraPicture.spec.js`), `cc/FileUploader.js` (`fileUploader.spec.js`), `cc/UploadSetExt.js` (`uploadSetExt.spec.js`), `cc/MultiInputExt.js` (`multiInputExt.spec.js`), `cc/SmartMultiInputExt.js` (`smartMultiInputExt.spec.js`), `cc/Scrolling.js` (`scrolling.spec.js`), `cc/LPTitle.js` (`lpTitle.spec.js`), `controller/App.controller.js` startup wiring (`appController.spec.js`), `core/Messages.js` (`messages.spec.js`), `core/DeveloperTools.js` (`developerTools.spec.js`), `core/ErrorView.js` (`errorView.spec.js`), `core/FrontendAction.js` (`frontendAction.spec.js`), `controller/View1.controller.js` event handling (`view1Events.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`), request sequencing (`serverRequestSeq.spec.js`), custom-JS handling (`serverCustomJs.spec.js`), focus-info capture (`serverFocusInfo.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`serverClosestElement.spec.js`), `model/formatter.js` (`formatter.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
 - **Never skip a test with `IF sy-sysid = ` + backtick-`ABC`.** `ABC` is the system ID of the Node runtime, so such a guard makes the method a silent no-op in `npm run unit` while it still runs in a real system — CI stays green over assertions nobody executes. A test that genuinely cannot run under the transpiler belongs in the `skip` list of `node/setup/abap_transpile.json` **with a note naming the missing runtime capability**; the runner then prints it as skipped instead of pretending it passed.
@@ -571,14 +571,20 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 > **Enforcement status — know which rules a green CI actually proves.** Rules
 > 1 (`src/99` part), 2, 3, 4, 5 and 14 are backed by CI gates, and rule 19's
 > curated-formatter half by `check_formatter_scope.yaml` (its criteria 2 and
-> 3 — "one value only" still needs a reader). **The
-> OpenUI5-1.71 compatibility cluster — rules 12, 13, 15, 16, 17, 18 — is
-> enforced by NOTHING automated**: the browser tests run against the latest
-> UI5 CDN build, never 1.71, and `manifest.json` (where `minUI5Version: 1.71`
-> lives) is excluded from ui5lint. A green CI therefore does **not** prove
-> 1.71 safety — these rules are reviewer-enforced, so check them manually on
-> every frontend change ("available since" of every module, aggregation and
-> control against 1.71) until a pinned-1.71 test project exists.
+> 3 — "one value only" still needs a reader). **The OpenUI5-1.71
+> compatibility cluster — rules 12, 13, 15, 16, 17, 18 — now has a partial
+> executable gate**: the `ui5-1.71` Playwright project (`test_browser.yaml`,
+> pinned build in `node/playwright.config.js`, bootstrap rewrite in
+> `node/tests/e2e/fixtures.js`) boots the shell and runs the smoke +
+> roundtrip specs against pinned OpenUI5 1.71, so a hard 1.71 breakage on
+> that path — a post-1.71 `sap.ui.define` dependency in a core module (rule
+> 12), an eval-hostile bootstrap (rule 13), a bad aggregation in the shell
+> views (rule 15) — fails the PR. It only exercises what those specs render:
+> everything outside that path (popups, fragments, the other custom
+> controls; rules 16, 17, 18 in particular) is **still reviewer-enforced**,
+> and `manifest.json` (where `minUI5Version: 1.71` lives) is excluded from
+> ui5lint. So keep checking "available since" of every module, aggregation
+> and control against 1.71 on every frontend change the gate does not reach.
 
 
 ## Design Decisions & Known Non-Issues
