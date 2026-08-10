@@ -40,13 +40,14 @@ sap.ui.define(
         AppState.initGlobal();
 
         // Two sibling BSPs carry frontend artefacts the framework itself does
-        // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5cci
+        // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5_ccc
         // (abap2UI5/customer-frontend-extension, the customer's own library).
-        // The two roots differ by one underscore and are NOT the same BSP -
-        // z2ui5_cci matches that repository's ABAP prefix z2ui5_cl_cci.
+        // The two roots differ in one letter and are NOT the same BSP - each
+        // matches the ABAP prefix of its repository (z2ui5_cl_cci for the
+        // community controls, z2ui5_cl_ccc for the customer extension).
         // Both are normally found through their reserved resourceRoot in
-        // manifest.json ("z2ui5_cci": "../z2ui5_cci/", "z2ui5cci":
-        // "../z2ui5cci/"), a sibling of THIS BSP. In the standalone HTTP
+        // manifest.json ("z2ui5_cci": "../z2ui5_cci/", "z2ui5_ccc":
+        // "../z2ui5_ccc/"), a sibling of THIS BSP. In the standalone HTTP
         // service there is no BSP for them to be a sibling of, so the backend
         // hands the absolute paths over on the global instead
         // (z2ui5_cl_http_handler=>_http_get).
@@ -63,9 +64,9 @@ sap.ui.define(
         if (ccResourceRoot) {
           sap.ui.loader.config({ paths: { z2ui5_cci: ccResourceRoot } });
         }
-        const cciResourceRoot = AppState.getGlobal("cciResourceRoot");
-        if (cciResourceRoot) {
-          sap.ui.loader.config({ paths: { z2ui5cci: cciResourceRoot } });
+        const cccResourceRoot = AppState.getGlobal("cccResourceRoot");
+        if (cccResourceRoot) {
+          sap.ui.loader.config({ paths: { z2ui5_ccc: cccResourceRoot } });
         }
 
         UIComponent.prototype.init.call(this);

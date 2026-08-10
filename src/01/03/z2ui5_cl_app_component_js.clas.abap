@@ -67,13 +67,14 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        AppState.initGlobal();` && |\n| &&
              `` && |\n| &&
              `        // Two sibling BSPs carry frontend artefacts the framework itself does` && |\n| &&
-             `        // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5cci` && |\n| &&
+             `        // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5_ccc` && |\n| &&
              `        // (abap2UI5/customer-frontend-extension, the customer's own library).` && |\n| &&
-             `        // The two roots differ by one underscore and are NOT the same BSP -` && |\n| &&
-             `        // z2ui5_cci matches that repository's ABAP prefix z2ui5_cl_cci.` && |\n| &&
+             `        // The two roots differ in one letter and are NOT the same BSP - each` && |\n| &&
+             `        // matches the ABAP prefix of its repository (z2ui5_cl_cci for the` && |\n| &&
+             `        // community controls, z2ui5_cl_ccc for the customer extension).` && |\n| &&
              `        // Both are normally found through their reserved resourceRoot in` && |\n| &&
-             `        // manifest.json ("z2ui5_cci": "../z2ui5_cci/", "z2ui5cci":` && |\n| &&
-             `        // "../z2ui5cci/"), a sibling of THIS BSP. In the standalone HTTP` && |\n| &&
+             `        // manifest.json ("z2ui5_cci": "../z2ui5_cci/", "z2ui5_ccc":` && |\n| &&
+             `        // "../z2ui5_ccc/"), a sibling of THIS BSP. In the standalone HTTP` && |\n| &&
              `        // service there is no BSP for them to be a sibling of, so the backend` && |\n| &&
              `        // hands the absolute paths over on the global instead` && |\n| &&
              `        // (z2ui5_cl_http_handler=>_http_get).` && |\n| &&
@@ -90,9 +91,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        if (ccResourceRoot) {` && |\n| &&
              `          sap.ui.loader.config({ paths: { z2ui5_cci: ccResourceRoot } });` && |\n| &&
              `        }` && |\n| &&
-             `        const cciResourceRoot = AppState.getGlobal("cciResourceRoot");` && |\n| &&
-             `        if (cciResourceRoot) {` && |\n| &&
-             `          sap.ui.loader.config({ paths: { z2ui5cci: cciResourceRoot } });` && |\n| &&
+             `        const cccResourceRoot = AppState.getGlobal("cccResourceRoot");` && |\n| &&
+             `        if (cccResourceRoot) {` && |\n| &&
+             `          sap.ui.loader.config({ paths: { z2ui5_ccc: cccResourceRoot } });` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
