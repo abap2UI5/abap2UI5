@@ -70,6 +70,13 @@ function load({ ui5 = true } = {}) {
       };
       inst.destroy = () => (inst.destroyed = true);
       inst.focus = () => {};
+      // The dialog and its message/hint texts are styled through style
+      // classes; record them so the tests can assert what got which.
+      inst.classes = [];
+      inst.addStyleClass = (c) => {
+        inst.classes.push(c);
+        return inst;
+      };
       // The Copy button flips its label via setText; mirror it into settings so
       // tests can observe the "Copied" feedback.
       inst.setText = (t) => (inst.settings.text = t);
@@ -141,8 +148,14 @@ test.describe("ErrorView friendly dialog", () => {
     ErrorView.show("some backend dump");
     expect(created.dialogs).toHaveLength(1);
     const dlg = created.dialogs[0].settings;
-    // No "An unexpected error occurred" prefix - just the error text.
+    // No "An unexpected error occurred" prefix - just the error text, and
+    // nothing else: the whole error is shown, so there is no Details hint.
+    expect(dlg.content).toHaveLength(1);
     expect(dlg.content[0].settings.text).toBe("some backend dump");
+    // The squared-off styling is applied to the dialog and to the message.
+    expect(created.dialogs[0].classes).toEqual(["z2ui5ErrorDialog"]);
+    expect(dlg.content[0].classes).toEqual(["z2ui5ErrorMessage"]);
+    expect(dlg.contentWidth).toBe("36rem");
     // The footer uses the `buttons` aggregation: Details / Copy / Restart.
     const [detailsButton, copyButton, restartButton] = dlg.buttons;
     expect(detailsButton.settings.text).toBe("Details");
@@ -225,19 +238,29 @@ test.describe("ErrorView friendly dialog", () => {
       "    user     : SMITH",
     ].join("\n");
     ErrorView.show(dump);
-    const messageControl = created.dialogs[0].settings.content[0];
-    // Only the two messages, kept on separate lines.
-    expect(messageControl.settings.text).toBe(
-      "Request failed in app ZCL_MY_APP, event ONPRESS\n" +
-        "Json parsing error: Not JSON @Line 1, Offset 1",
+    const content = created.dialogs[0].settings.content;
+    // Only the two messages, each one its own Text control.
+    const messages = content.filter((c) =>
+      c.classes.includes("z2ui5ErrorMessage"),
     );
-    // sap.m.Text would collapse those line breaks without this.
-    expect(messageControl.settings.renderWhitespace).toBe(true);
+    expect(messages.map((c) => c.settings.text)).toEqual([
+      "Request failed in app ZCL_MY_APP, event ONPRESS",
+      "Json parsing error: Not JSON @Line 1, Offset 1",
+    ]);
+    // sap.m.Text would collapse the whitespace of a message without this.
+    expect(messages[0].settings.renderWhitespace).toBe(true);
+    // The rest of the dump is not lost, just one click away - the popup says so.
+    const hint = content[content.length - 1];
+    expect(hint.classes).toEqual(["z2ui5ErrorHint"]);
+    expect(hint.settings.text).toBe(
+      "Choose Details for the full technical information.",
+    );
     // Everything else stays behind Details / Copy - and the Error tab keeps
     // the untruncated dump.
-    expect(messageControl.settings.text).not.toContain("abap2UI5");
-    expect(messageControl.settings.text).not.toContain("position");
-    expect(messageControl.settings.text).not.toContain("SMITH");
+    const shown = messages.map((c) => c.settings.text).join("\n");
+    expect(shown).not.toContain("abap2UI5");
+    expect(shown).not.toContain("position");
+    expect(shown).not.toContain("SMITH");
     expect(state.lastError.text).toBe(dump);
   });
 

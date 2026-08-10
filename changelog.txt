@@ -63,6 +63,14 @@ unreleased
   sections stay one click away behind Details (developer tools Error tab) and in
   Copy, which both carry the untruncated text. Non-framework errors (network,
   client-side, SAP HTML error page) keep the single-line preview
+! Error popup design: a square frame instead of rounded corners, and every
+  message is its own block with a red rule in front of it rather than one run-on
+  paragraph. A fixed content width keeps a long url or class name from stretching
+  the box across the screen, and a hint line below the messages names Details as
+  the way to the exception chain and the system context - the shortened popup no
+  longer looks like all there is. Colors come from the UI5 theme parameters, so
+  the popup follows the app theme; the raw-DOM fallback overlay (shown when the
+  UI5 core itself cannot render) got the same square frame
 * z2ui5_cx_a2ui5_error chains the exception passed as val as its previous. The
   framework's dominant raise pattern (EXPORTING val = x, no previous) used to
   drop everything below x, so the cause of a wrapped error - and its source

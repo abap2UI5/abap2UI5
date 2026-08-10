@@ -42,6 +42,15 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // full text stays on the Developer Tools Error tab); longer previews are cut.` && |\n| &&
              `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
              `` && |\n| &&
+             `  // The stylesheet that squares off the fatal-error dialog and lays out its` && |\n| &&
+             `  // messages. Injected once, on demand - the overlay is the one place that` && |\n| &&
+             `  // needs it and a fatal error must not depend on a stylesheet the app may` && |\n| &&
+             `  // never load.` && |\n| &&
+             `  const STYLE_ID = "z2ui5ErrorViewStyle";` && |\n| &&
+             `  const DIALOG_CLASS = "z2ui5ErrorDialog";` && |\n| &&
+             `  const MESSAGE_CLASS = "z2ui5ErrorMessage";` && |\n| &&
+             `  const HINT_CLASS = "z2ui5ErrorHint";` && |\n| &&
+             `` && |\n| &&
              `  // Remember the last dialog's inputs so the DeveloperTools can re-show the popup` && |\n| &&
              `  // after the user closes the developer tools they opened via its Details action.` && |\n| &&
              `  let lastDialogTitle = "";` && |\n| &&
@@ -174,6 +183,65 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // The dialog is deliberately square: a fatal error is not a regular popup,` && |\n| &&
+             `  // and the sharp frame plus the red rule in front of every message sets it` && |\n| &&
+             `  // apart from the app behind it. Colors come from the UI5 theme parameters` && |\n| &&
+             `  // (with a literal fallback), so the overlay follows the app theme instead of` && |\n| &&
+             `  // hard-coding one. Injected once and best-effort - a browser that refuses` && |\n| &&
+             `  // the stylesheet still gets the fully functional, just unstyled, dialog.` && |\n| &&
+             `  const DIALOG_STYLES = ``` && |\n| &&
+             `.${DIALOG_CLASS}.sapMDialog,` && |\n| &&
+             `.${DIALOG_CLASS} .sapMDialogTitleGroup,` && |\n| &&
+             `.${DIALOG_CLASS} .sapMIBar,` && |\n| &&
+             `.${DIALOG_CLASS} .sapMDialogFooter,` && |\n| &&
+             `.${DIALOG_CLASS} .sapMDialogScrollCont,` && |\n| &&
+             `.${DIALOG_CLASS} .sapMBtnInner {` && |\n| &&
+             `  border-radius: 0 !important;` && |\n| &&
+             `}` && |\n| &&
+             `.${MESSAGE_CLASS} {` && |\n| &&
+             `  display: block;` && |\n| &&
+             `  margin: 0 0 0.5rem 0;` && |\n| &&
+             `  padding: 0.5rem 0.75rem;` && |\n| &&
+             `  border-left: 0.1875rem solid var(--sapNegativeColor, #bb0000);` && |\n| &&
+             `  background: var(--sapErrorBackground, #ffebeb);` && |\n| &&
+             `  color: var(--sapTextColor, #32363a);` && |\n| &&
+             `  line-height: 1.4;` && |\n| &&
+             `  overflow-wrap: anywhere;` && |\n| &&
+             `}` && |\n| &&
+             `.${MESSAGE_CLASS}:last-of-type {` && |\n| &&
+             `  margin-bottom: 0;` && |\n| &&
+             `}` && |\n| &&
+             `.${HINT_CLASS} {` && |\n| &&
+             `  display: block;` && |\n| &&
+             `  margin-top: 0.75rem;` && |\n| &&
+             `  color: var(--sapContent_LabelColor, #6a6d70);` && |\n| &&
+             `  font-size: 0.8125rem;` && |\n| &&
+             `}` && |\n| &&
+             ```;` && |\n| &&
+             `` && |\n| &&
+             `  function ensureDialogStyles() {` && |\n| &&
+             `    try {` && |\n| &&
+             `      if (document.getElementById(STYLE_ID)) return;` && |\n| &&
+             `      const head = document.head || document.documentElement;` && |\n| &&
+             `      if (!head) return;` && |\n| &&
+             `      const style = document.createElement("style");` && |\n| &&
+             `      style.id = STYLE_ID;` && |\n| &&
+             `      style.textContent = DIALOG_STYLES;` && |\n| &&
+             `      head.appendChild(style);` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      // Styling is cosmetic - never let it take the error dialog down.` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // addStyleClass comes from sap.ui.core.Control, but the fatal-error path` && |\n| &&
+             `  // must survive a half-broken core, so it is called defensively.` && |\n| &&
+             `  function withClass(control, className) {` && |\n| &&
+             `    if (control && typeof control.addStyleClass === "function") {` && |\n| &&
+             `      control.addStyleClass(className);` && |\n| &&
+             `    }` && |\n| &&
+             `    return control;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function createContainer() {` && |\n| &&
              `    // Always start from a fresh element: reusing a previous overlay would` && |\n| &&
              `    // keep its keydown focus-trap listener alive and stack a duplicate on` && |\n| &&
@@ -182,6 +250,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `` && |\n| &&
              `    const container = document.createElement("div");` && |\n| &&
              `    container.id = "serverErrorContainer";` && |\n| &&
+             `    // Square frame, same as the friendly dialog above - the two are the same` && |\n| &&
+             `    // overlay to the user, one just renders without UI5.` && |\n| &&
              `    container.style.cssText = ``` && |\n| &&
              `      position: fixed;` && |\n| &&
              `      top: 50%;` && |\n| &&
@@ -190,12 +260,13 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      width: 90%;` && |\n| &&
              `      height: 90%;` && |\n| &&
              `      background: white;` && |\n| &&
-             `      border: 2px solid #d32f2f;` && |\n| &&
-             `      border-radius: 4px;` && |\n| &&
-             `      box-shadow: 0 4px 6px rgba(0,0,0,0.3);` && |\n| &&
+             `      border: 1px solid #bb0000;` && |\n| &&
+             `      border-radius: 0;` && |\n| &&
+             `      box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);` && |\n| &&
              `      z-index: 9999;` && |\n| &&
              `      display: flex;` && |\n| &&
              `      flex-direction: column;` && |\n| &&
+             `      font-family: "72", "72full", Arial, Helvetica, sans-serif;` && |\n| &&
              `    ``;` && |\n| &&
              `    document.body.appendChild(container);` && |\n| &&
              `    return container;` && |\n| &&
@@ -255,17 +326,39 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        friendlyDialog.destroy();` && |\n| &&
              `        friendlyDialog = null;` && |\n| &&
              `      }` && |\n| &&
+             `      ensureDialogStyles();` && |\n| &&
              `      // Show only the extracted error text; a short neutral fallback covers` && |\n| &&
              `      // the rare case where nothing could be extracted.` && |\n| &&
              `      const message = buildErrorPreview(details) || "An error occurred.";` && |\n| &&
-             `      // A framework preview is one message per line, so the line breaks have` && |\n| &&
-             `      // to survive - sap.m.Text normalizes whitespace unless told otherwise.` && |\n| &&
-             `      // Set through the mutator and guarded: the property arrived in UI5 1.60` && |\n| &&
-             `      // and a control without it must not take the whole dialog down (the` && |\n| &&
-             `      // catch below would drop the user to the raw overlay).` && |\n| &&
-             `      const messageText = new Text({ text: message });` && |\n| &&
-             `      if (typeof messageText.setRenderWhitespace === "function") {` && |\n| &&
-             `        messageText.setRenderWhitespace(true);` && |\n| &&
+             `      // A framework preview is one message per line: give each message its own` && |\n| &&
+             `      // Text so the dialog reads as a list of messages instead of a paragraph.` && |\n| &&
+             `      // Dialog.content stacks its controls vertically, so this needs no layout` && |\n| &&
+             `      // control - sap.m.Text is the only content type the dialog depends on,` && |\n| &&
+             `      // which is what keeps it renderable on a half-broken core.` && |\n| &&
+             `      const content = message.split("\n").map((line) => {` && |\n| &&
+             `        const text = new Text({ text: line });` && |\n| &&
+             `        // A single message can still carry its own indentation (a chain entry` && |\n| &&
+             `        // that slipped through), so keep whitespace. Set through the mutator` && |\n| &&
+             `        // and guarded: the property arrived in UI5 1.60 and a control without` && |\n| &&
+             `        // it must not take the whole dialog down (the catch below would drop` && |\n| &&
+             `        // the user to the raw overlay).` && |\n| &&
+             `        if (typeof text.setRenderWhitespace === "function") {` && |\n| &&
+             `          text.setRenderWhitespace(true);` && |\n| &&
+             `        }` && |\n| &&
+             `        return withClass(text, MESSAGE_CLASS);` && |\n| &&
+             `      });` && |\n| &&
+             `      // Everything the popup left out - the exception chain, the source` && |\n| &&
+             `      // positions, the system context - is behind Details and in Copy. Say so,` && |\n| &&
+             `      // otherwise the shortened popup looks like all there is.` && |\n| &&
+             `      if (String(details || "").trim() !== message) {` && |\n| &&
+             `        content.push(` && |\n| &&
+             `          withClass(` && |\n| &&
+             `            new Text({` && |\n| &&
+             `              text: "Choose Details for the full technical information.",` && |\n| &&
+             `            }),` && |\n| &&
+             `            HINT_CLASS,` && |\n| &&
+             `          ),` && |\n| &&
+             `        );` && |\n| &&
              `      }` && |\n| &&
              `      // Restart is the primary action, so it also gets the initial focus.` && |\n| &&
              `      const restartButton = new Button({` && |\n| &&
@@ -323,11 +416,17 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        type: "Message",` && |\n| &&
              `        state: "Error",` && |\n| &&
              `        icon: "sap-icon://message-error",` && |\n| &&
+             `        // Without a width the message dialog sizes itself to the longest` && |\n| &&
+             `        // unbreakable run of the error text - a URL or a class name stretches` && |\n| &&
+             `        // it across the screen. A fixed content width keeps the box the same` && |\n| &&
+             `        // shape whatever the backend sent.` && |\n| &&
+             `        contentWidth: "36rem",` && |\n| &&
              `        // Escape must not dismiss the fatal-error popup: rejecting the escape` && |\n| &&
              `        // promise keeps it open, so the only ways out are the explicit` && |\n| &&
              `        // actions built above.` && |\n| &&
-             `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
-             `        content: [messageText],` && |\n| &&
+             `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n|.
+    result = result &&
+             `        content,` && |\n| &&
              `        buttons,` && |\n| &&
              `        initialFocus: restartButton,` && |\n| &&
              `        afterClose: () => {` && |\n| &&
@@ -335,6 +434,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `          dialog.destroy();` && |\n| &&
              `        },` && |\n| &&
              `      });` && |\n| &&
+             `      withClass(dialog, DIALOG_CLASS);` && |\n| &&
              `      friendlyDialog = dialog;` && |\n| &&
              `      dialog.open();` && |\n| &&
              `      return true;` && |\n| &&
@@ -424,8 +524,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    // Record the fatal error so the Developer Tools Error tab can re-show it` && |\n| &&
              `    // (title, text and the same Retry action) after the overlay is gone.` && |\n| &&
              `    AppState.state.lastError = {` && |\n| &&
-             `      title: title || "Application Error - Please Restart The App",` && |\n|.
-    result = result &&
+             `      title: title || "Application Error - Please Restart The App",` && |\n| &&
              `      text: errorMessage,` && |\n| &&
              `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
              `    };` && |\n| &&
@@ -457,16 +556,16 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    // Header bar with title and action buttons.` && |\n| &&
              `    const headerDiv = document.createElement("div");` && |\n| &&
              `    headerDiv.style.cssText =` && |\n| &&
-             `      "padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;";` && |\n| &&
+             `      "padding: 0.75rem 1rem; background: #bb0000; color: white; display: flex; justify-content: space-between; align-items: center; gap: 1rem;";` && |\n| &&
              `` && |\n| &&
              `    const h3 = document.createElement("h3");` && |\n| &&
              `    h3.id = "serverErrorTitle";` && |\n| &&
              `    h3.textContent = title || "Application Error - Please Restart The App";` && |\n| &&
-             `    h3.style.cssText = "margin: 0";` && |\n| &&
+             `    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
              `    const btnStyle =` && |\n| &&
-             `      "padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;";` && |\n| &&
+             `      "padding: 0.375rem 0.875rem; background: white; color: #bb0000; border: 1px solid white; border-radius: 0; cursor: pointer; font: inherit; font-weight: bold; white-space: nowrap;";` && |\n| &&
              `` && |\n| &&
              `    const actionsDiv = document.createElement("div");` && |\n| &&
              `    actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
@@ -525,7 +624,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    const createPre = (ownerDocument) => {` && |\n| &&
              `      const pre = ownerDocument.createElement("pre");` && |\n| &&
              `      pre.style.cssText =` && |\n| &&
-             `        "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";` && |\n| &&
+             `        "margin:0;padding:1rem;font-family:monospace;font-size:0.75rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;";` && |\n| &&
              `      pre.textContent = errorMessage;` && |\n| &&
              `      return pre;` && |\n| &&
              `    };` && |\n| &&
