@@ -15,6 +15,15 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // full text stays on the Developer Tools Error tab); longer previews are cut.
   const PREVIEW_MAX_LENGTH = 500;
 
+  // The stylesheet that squares off the fatal-error dialog and lays out its
+  // messages. Injected once, on demand - the overlay is the one place that
+  // needs it and a fatal error must not depend on a stylesheet the app may
+  // never load.
+  const STYLE_ID = "z2ui5ErrorViewStyle";
+  const DIALOG_CLASS = "z2ui5ErrorDialog";
+  const MESSAGE_CLASS = "z2ui5ErrorMessage";
+  const HINT_CLASS = "z2ui5ErrorHint";
+
   // Remember the last dialog's inputs so the DeveloperTools can re-show the popup
   // after the user closes the developer tools they opened via its Details action.
   let lastDialogTitle = "";
@@ -147,6 +156,65 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     }
   }
 
+  // The dialog is deliberately square: a fatal error is not a regular popup,
+  // and the sharp frame plus the red rule in front of every message sets it
+  // apart from the app behind it. Colors come from the UI5 theme parameters
+  // (with a literal fallback), so the overlay follows the app theme instead of
+  // hard-coding one. Injected once and best-effort - a browser that refuses
+  // the stylesheet still gets the fully functional, just unstyled, dialog.
+  const DIALOG_STYLES = `
+.${DIALOG_CLASS}.sapMDialog,
+.${DIALOG_CLASS} .sapMDialogTitleGroup,
+.${DIALOG_CLASS} .sapMIBar,
+.${DIALOG_CLASS} .sapMDialogFooter,
+.${DIALOG_CLASS} .sapMDialogScrollCont,
+.${DIALOG_CLASS} .sapMBtnInner {
+  border-radius: 0 !important;
+}
+.${MESSAGE_CLASS} {
+  display: block;
+  margin: 0 0 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 0.1875rem solid var(--sapNegativeColor, #bb0000);
+  background: var(--sapErrorBackground, #ffebeb);
+  color: var(--sapTextColor, #32363a);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.${MESSAGE_CLASS}:last-of-type {
+  margin-bottom: 0;
+}
+.${HINT_CLASS} {
+  display: block;
+  margin-top: 0.75rem;
+  color: var(--sapContent_LabelColor, #6a6d70);
+  font-size: 0.8125rem;
+}
+`;
+
+  function ensureDialogStyles() {
+    try {
+      if (document.getElementById(STYLE_ID)) return;
+      const head = document.head || document.documentElement;
+      if (!head) return;
+      const style = document.createElement("style");
+      style.id = STYLE_ID;
+      style.textContent = DIALOG_STYLES;
+      head.appendChild(style);
+    } catch {
+      // Styling is cosmetic - never let it take the error dialog down.
+    }
+  }
+
+  // addStyleClass comes from sap.ui.core.Control, but the fatal-error path
+  // must survive a half-broken core, so it is called defensively.
+  function withClass(control, className) {
+    if (control && typeof control.addStyleClass === "function") {
+      control.addStyleClass(className);
+    }
+    return control;
+  }
+
   function createContainer() {
     // Always start from a fresh element: reusing a previous overlay would
     // keep its keydown focus-trap listener alive and stack a duplicate on
@@ -155,6 +223,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
 
     const container = document.createElement("div");
     container.id = "serverErrorContainer";
+    // Square frame, same as the friendly dialog above - the two are the same
+    // overlay to the user, one just renders without UI5.
     container.style.cssText = `
       position: fixed;
       top: 50%;
@@ -163,12 +233,13 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       width: 90%;
       height: 90%;
       background: white;
-      border: 2px solid #d32f2f;
-      border-radius: 4px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      border: 1px solid #bb0000;
+      border-radius: 0;
+      box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.25);
       z-index: 9999;
       display: flex;
       flex-direction: column;
+      font-family: "72", "72full", Arial, Helvetica, sans-serif;
     `;
     document.body.appendChild(container);
     return container;
@@ -228,17 +299,39 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         friendlyDialog.destroy();
         friendlyDialog = null;
       }
+      ensureDialogStyles();
       // Show only the extracted error text; a short neutral fallback covers
       // the rare case where nothing could be extracted.
       const message = buildErrorPreview(details) || "An error occurred.";
-      // A framework preview is one message per line, so the line breaks have
-      // to survive - sap.m.Text normalizes whitespace unless told otherwise.
-      // Set through the mutator and guarded: the property arrived in UI5 1.60
-      // and a control without it must not take the whole dialog down (the
-      // catch below would drop the user to the raw overlay).
-      const messageText = new Text({ text: message });
-      if (typeof messageText.setRenderWhitespace === "function") {
-        messageText.setRenderWhitespace(true);
+      // A framework preview is one message per line: give each message its own
+      // Text so the dialog reads as a list of messages instead of a paragraph.
+      // Dialog.content stacks its controls vertically, so this needs no layout
+      // control - sap.m.Text is the only content type the dialog depends on,
+      // which is what keeps it renderable on a half-broken core.
+      const content = message.split("\n").map((line) => {
+        const text = new Text({ text: line });
+        // A single message can still carry its own indentation (a chain entry
+        // that slipped through), so keep whitespace. Set through the mutator
+        // and guarded: the property arrived in UI5 1.60 and a control without
+        // it must not take the whole dialog down (the catch below would drop
+        // the user to the raw overlay).
+        if (typeof text.setRenderWhitespace === "function") {
+          text.setRenderWhitespace(true);
+        }
+        return withClass(text, MESSAGE_CLASS);
+      });
+      // Everything the popup left out - the exception chain, the source
+      // positions, the system context - is behind Details and in Copy. Say so,
+      // otherwise the shortened popup looks like all there is.
+      if (String(details || "").trim() !== message) {
+        content.push(
+          withClass(
+            new Text({
+              text: "Choose Details for the full technical information.",
+            }),
+            HINT_CLASS,
+          ),
+        );
       }
       // Restart is the primary action, so it also gets the initial focus.
       const restartButton = new Button({
@@ -296,11 +389,16 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         type: "Message",
         state: "Error",
         icon: "sap-icon://message-error",
+        // Without a width the message dialog sizes itself to the longest
+        // unbreakable run of the error text - a URL or a class name stretches
+        // it across the screen. A fixed content width keeps the box the same
+        // shape whatever the backend sent.
+        contentWidth: "36rem",
         // Escape must not dismiss the fatal-error popup: rejecting the escape
         // promise keeps it open, so the only ways out are the explicit
         // actions built above.
         escapeHandler: (oPromise) => oPromise.reject(),
-        content: [messageText],
+        content,
         buttons,
         initialFocus: restartButton,
         afterClose: () => {
@@ -308,6 +406,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
           dialog.destroy();
         },
       });
+      withClass(dialog, DIALOG_CLASS);
       friendlyDialog = dialog;
       dialog.open();
       return true;
@@ -429,16 +528,16 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     // Header bar with title and action buttons.
     const headerDiv = document.createElement("div");
     headerDiv.style.cssText =
-      "padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;";
+      "padding: 0.75rem 1rem; background: #bb0000; color: white; display: flex; justify-content: space-between; align-items: center; gap: 1rem;";
 
     const h3 = document.createElement("h3");
     h3.id = "serverErrorTitle";
     h3.textContent = title || "Application Error - Please Restart The App";
-    h3.style.cssText = "margin: 0";
+    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";
     headerDiv.appendChild(h3);
 
     const btnStyle =
-      "padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;";
+      "padding: 0.375rem 0.875rem; background: white; color: #bb0000; border: 1px solid white; border-radius: 0; cursor: pointer; font: inherit; font-weight: bold; white-space: nowrap;";
 
     const actionsDiv = document.createElement("div");
     actionsDiv.style.cssText = "display: flex; gap: 8px;";
@@ -497,7 +596,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     const createPre = (ownerDocument) => {
       const pre = ownerDocument.createElement("pre");
       pre.style.cssText =
-        "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";
+        "margin:0;padding:1rem;font-family:monospace;font-size:0.75rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;";
       pre.textContent = errorMessage;
       return pre;
     };
