@@ -387,14 +387,19 @@ Install dependencies: `npm install` (frontend gates additionally need
 
 ### Validation sequence
 
-Three commands, all **non-destructive** — they never modify `src/` or `abaplint.jsonc`:
+Three commands, all **non-destructive** — they never modify `src/` or
+`abaplint.jsonc`. (One nuance: `verify`'s final app2abap drift gate re-runs
+the `src/01/03/` generation in place — on an in-sync tree the output is
+byte-identical, and a difference is exactly the drift the gate exists to
+fail on.)
 
 ```bash
 npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
 npm run verify       # Gate before every PR: abaplint -> testclass-visibility gate ->
                      # standard/cloud abaplint targets -> downport -> transpile -> unit ->
                      # JS unit specs -> frozen-path check -> guide-API check ->
-                     # curated-formatter scope gate
+                     # curated-formatter scope gate -> src/02 API-snapshot gate ->
+                     # src/01/03 app2abap drift gate (matches the PR gates in CI)
 npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
                      # installs app/node_modules itself. Run when app/webapp/ changed
 ```
@@ -403,14 +408,13 @@ npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, esl
 tests from there, so the working tree stays exactly as you left it. Use
 `npm run check` for the tight edit/validate loop and `npm run verify` before
 opening a PR. Do **not** use `npm run auto_downport` for validation — see rule 9.
+The app2abap drift gate needs the frontend toolchain and installs
+`app/node_modules` itself when it is missing (only then — no reinstall on
+every run).
 
 **What `verify` still does not cover** (CI-only): the browser e2e tests
 (`test_browser.yaml` — needs browsers + the UI5 CDN), the express smoke test
-(`test_node.yaml`), the namespace-rename test (`test_rename.yaml`), the
-`src/01/03` drift gate (`check_app2abap.yaml` — run `npm run check:app2abap`
-after editing `app/webapp/`, note it regenerates via Prettier + abaplint fix),
-and the `src/02` API-contract gate (`check_api_contract.yaml` — run
-`npm run check:api`).
+(`test_node.yaml`), and the namespace-rename test (`test_rename.yaml`).
 
 **Pinned git dependencies:** abaplint and the transpiler clone three upstream
 repos (steampunk API intersection, open-abap-core, express-icf-shim). These
@@ -431,10 +435,10 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
 | `npm run check:ui5` | The ui5lint zero-error gate (`.github/scripts/ui5lint-gate.mjs`; part of `verify:full`, needs `app/node_modules`) |
-| `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5) |
+| `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5; part of `verify`, gated in `check_api_contract.yaml`) |
 | `npm run check:guide` | Fail when `docs/agents/building-apps.md` names a client method or `cs_*` constant the API does not have (part of `verify`) |
 | `npm run check:formatter` | The curated-formatter scope gate — the exports of `app/webapp/model/formatter.js` must match the gate's justified manifest and the module must hardcode no ValueState/icon URI (see rule 19; part of `verify`, gated in `check_formatter_scope.yaml`) |
-| `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place) |
+| `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place; installs `app/node_modules` when missing; part of `verify`) |
 | `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
 | `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
 | `npm run unit` | Run the transpiled unit tests |
@@ -466,8 +470,8 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 ### Testing
 
 - **Unit tests:** Embedded in source files as `.testclasses.abap`, run via abaplint transpiler in Node.js
-- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_core_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
-- **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `core/Router.js` (`router.spec.js`), `Component.js` unload wiring (`componentUnload.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `cc/Focus.js` (`focus.spec.js`), `cc/Dirty.js` (`dirty.spec.js`), `cc/MessageManager.js` (`messageManager.spec.js`), `core/Messages.js` (`messages.spec.js`), `core/DeveloperTools.js` (`developerTools.spec.js`), `core/ErrorView.js` (`errorView.spec.js`), `core/FrontendAction.js` (`frontendAction.spec.js`), `controller/View1.controller.js` event handling (`view1Events.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`), request sequencing (`serverRequestSeq.spec.js`), custom-JS handling (`serverCustomJs.spec.js`), focus-info capture (`serverFocusInfo.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`serverClosestElement.spec.js`), `model/formatter.js` (`formatter.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
+- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile), plus the pinned `ui5-1.71` project (Chromium, smoke + roundtrip specs against pinned OpenUI5 1.71 via the bootstrap rewrite in `node/tests/e2e/fixtures.js` — the executable part of the 1.71 rules, see the enforcement-status note). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_core_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
+- **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `core/Router.js` (`router.spec.js`), `Component.js` unload wiring (`componentUnload.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `cc/Focus.js` (`focus.spec.js`), `cc/Dirty.js` (`dirty.spec.js`), `cc/MessageManager.js` (`messageManager.spec.js`), `cc/Websocket.js` (`websocket.spec.js`), `cc/Geolocation.js` (`geolocation.spec.js`), `cc/CameraSelector.js` (`cameraSelector.spec.js`), `cc/CameraPicture.js` (`cameraPicture.spec.js`), `cc/FileUploader.js` (`fileUploader.spec.js`), `cc/UploadSetExt.js` (`uploadSetExt.spec.js`), `cc/MultiInputExt.js` (`multiInputExt.spec.js`), `cc/SmartMultiInputExt.js` (`smartMultiInputExt.spec.js`), `cc/Scrolling.js` (`scrolling.spec.js`), `cc/LPTitle.js` (`lpTitle.spec.js`), `controller/App.controller.js` startup wiring (`appController.spec.js`), `core/Messages.js` (`messages.spec.js`), `core/DeveloperTools.js` (`developerTools.spec.js`), `core/ErrorView.js` (`errorView.spec.js`), `core/FrontendAction.js` (`frontendAction.spec.js`), `controller/View1.controller.js` event handling (`view1Events.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`), request sequencing (`serverRequestSeq.spec.js`), custom-JS handling (`serverCustomJs.spec.js`), focus-info capture (`serverFocusInfo.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`serverClosestElement.spec.js`), `model/formatter.js` (`formatter.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
 - **Never skip a test with `IF sy-sysid = ` + backtick-`ABC`.** `ABC` is the system ID of the Node runtime, so such a guard makes the method a silent no-op in `npm run unit` while it still runs in a real system — CI stays green over assertions nobody executes. A test that genuinely cannot run under the transpiler belongs in the `skip` list of `node/setup/abap_transpile.json` **with a note naming the missing runtime capability**; the runner then prints it as skipped instead of pretending it passed.
 - **A test class touching PRIVATE/PROTECTED members of the class under test needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** Neither abaplint nor the transpiler enforces visibility, so the class pool compiles here and fails on activation in a real system. Gated by `npm run check_visibility` (`.github/scripts/testclass-visibility-gate.mjs`).
@@ -567,14 +571,20 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 > **Enforcement status — know which rules a green CI actually proves.** Rules
 > 1 (`src/99` part), 2, 3, 4, 5 and 14 are backed by CI gates, and rule 19's
 > curated-formatter half by `check_formatter_scope.yaml` (its criteria 2 and
-> 3 — "one value only" still needs a reader). **The
-> OpenUI5-1.71 compatibility cluster — rules 12, 13, 15, 16, 17, 18 — is
-> enforced by NOTHING automated**: the browser tests run against the latest
-> UI5 CDN build, never 1.71, and `manifest.json` (where `minUI5Version: 1.71`
-> lives) is excluded from ui5lint. A green CI therefore does **not** prove
-> 1.71 safety — these rules are reviewer-enforced, so check them manually on
-> every frontend change ("available since" of every module, aggregation and
-> control against 1.71) until a pinned-1.71 test project exists.
+> 3 — "one value only" still needs a reader). **The OpenUI5-1.71
+> compatibility cluster — rules 12, 13, 15, 16, 17, 18 — now has a partial
+> executable gate**: the `ui5-1.71` Playwright project (`test_browser.yaml`,
+> pinned build in `node/playwright.config.js`, bootstrap rewrite in
+> `node/tests/e2e/fixtures.js`) boots the shell and runs the smoke +
+> roundtrip specs against pinned OpenUI5 1.71, so a hard 1.71 breakage on
+> that path — a post-1.71 `sap.ui.define` dependency in a core module (rule
+> 12), an eval-hostile bootstrap (rule 13), a bad aggregation in the shell
+> views (rule 15) — fails the PR. It only exercises what those specs render:
+> everything outside that path (popups, fragments, the other custom
+> controls; rules 16, 17, 18 in particular) is **still reviewer-enforced**,
+> and `manifest.json` (where `minUI5Version: 1.71` lives) is excluded from
+> ui5lint. So keep checking "available since" of every module, aggregation
+> and control against 1.71 on every frontend change the gate does not reach.
 
 
 ## Design Decisions & Known Non-Issues

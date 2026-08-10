@@ -8,9 +8,16 @@ const { defineConfig, devices } = require('@playwright/test');
 // require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 /**
+ * Custom project options (see tests/e2e/fixtures.js): ui5Src pins the UI5
+ * bootstrap the served page boots with, ui5Theme the theme.
+ * @typedef {{ ui5Src?: string, ui5Theme?: string }} Z2UI5TestOptions
+ */
+
+/**
  * @see https://playwright.dev/docs/test-configuration
  */
-module.exports = defineConfig({
+module.exports = defineConfig(
+  /** @type {import('@playwright/test').PlaywrightTestConfig<Z2UI5TestOptions>} */ ({
   testDir: './tests',
   /* Browser tests live in tests/e2e/ and need the dev server on port 3000;
      everything else in tests/ is a unit spec run via playwright-unit.config.js */
@@ -54,6 +61,33 @@ module.exports = defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
 
+    /* Pinned OpenUI5 1.71 gate: the oldest supported release, run as an
+       executable check for the 1.71 compatibility rules (AGENTS.md rules
+       12, 13, 15-18) instead of reviewer lore. tests/e2e/fixtures.js
+       rewrites the served page's bootstrap src to the pinned build and the
+       theme to one that exists in 1.71 (sap_horizon needs >= 1.102).
+       Scoped to the shell smoke + roundtrip specs - the wire contract and
+       shell boot that must always work on 1.71. The remaining e2e specs
+       (error-view, nav-back-forward, lib-sanitizer, focus-after-enable)
+       are excluded because they load `test` from @playwright/test and
+       create their own pages via browser.newPage() in beforeAll, which
+       bypasses the fixture's page rewrite - under this project they would
+       silently boot the evergreen CDN build and gate nothing. To promote
+       one, port it to ./tests/e2e/fixtures and to the shared page fixture
+       first, then verify it against 1.71 and widen this testMatch. Runs as
+       its own CI step in test_browser.yaml; for sandboxes without CDN
+       egress see UI5_PINNED_RESOURCES in tests/e2e/fixtures.js. */
+    {
+      name: 'ui5-1.71',
+      testMatch: /e2e[/\\](example|roundtrip)\.spec\.js$/,
+      use: {
+        ...devices['Desktop Chrome'],
+        /* newest 1.71 patch on the CDN at pin time - bump deliberately */
+        ui5Src: 'https://sdk.openui5.org/1.71.80/resources/sap-ui-core.js',
+        ui5Theme: 'sap_fiori_3',
+      },
+    },
+
     /* Test against mobile viewports. */
     // {
     //   name: 'Mobile Chrome',
@@ -81,5 +115,5 @@ module.exports = defineConfig({
      url: 'http://localhost:3000',
      reuseExistingServer: !process.env.CI,
    },
-});
+}));
 
