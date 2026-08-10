@@ -40,10 +40,10 @@ sap.ui.define(
         AppState.initGlobal();
 
         // Two sibling BSPs carry frontend artefacts the framework itself does
-        // not ship: z2ui5cc (abap2UI5-addons/custom-controls) and z2ui5ext
+        // not ship: z2ui5ccc (abap2UI5-addons/custom-controls) and z2ui5ext
         // (abap2UI5/customer-frontend-extension, the customer's own library).
         // Both are normally found through their reserved resourceRoot in
-        // manifest.json ("z2ui5cc": "../z2ui5cc/", "z2ui5ext":
+        // manifest.json ("z2ui5ccc": "../z2ui5ccc/", "z2ui5ext":
         // "../z2ui5ext/"), a sibling of THIS BSP. In the standalone HTTP
         // service there is no BSP for them to be a sibling of, so the backend
         // hands the absolute paths over on the global instead
@@ -59,7 +59,7 @@ sap.ui.define(
         // of them installed (or neither) never pays for the other.
         const ccResourceRoot = AppState.getGlobal("ccResourceRoot");
         if (ccResourceRoot) {
-          sap.ui.loader.config({ paths: { z2ui5cc: ccResourceRoot } });
+          sap.ui.loader.config({ paths: { z2ui5ccc: ccResourceRoot } });
         }
         const extResourceRoot = AppState.getGlobal("extResourceRoot");
         if (extResourceRoot) {
