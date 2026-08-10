@@ -432,6 +432,43 @@ test.describe("CONTROL_BY_ID", () => {
     expect(errors).toHaveLength(4);
   });
 
+  test("rejects the GENERIC reflection mutators by exact name", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    const generic = [
+      "setAggregation", "addAggregation", "insertAggregation",
+      "removeAggregation", "removeAllAggregation", "destroyAggregation",
+      "setAssociation", "addAssociation", "removeAssociation",
+      "removeAllAssociation",
+    ];
+    controls.x = {};
+    for (const m of generic) controls.x[m] = () => calls.push([m]);
+    for (const m of generic) {
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "x", "", m, "items"]);
+    }
+    expect(calls).toHaveLength(0);
+    expect(errors).toHaveLength(generic.length);
+  });
+
+  test("but the NAMED per-aggregation mutators that share their prefix are allowed", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    // the deny entries are "removeAllAggregation"/"destroy"/... by exact name,
+    // so these keep working: they detach or destroy children the control owns,
+    // the same footprint the long-allowed removeItem has (app 307's
+    // Calendar.removeAllSelectedDates has no bindable alternative - the
+    // control writes the user's selection into that aggregation itself).
+    const named = [
+      "removeAllSelectedDates", "removeAllItems", "removeAllContent",
+      "destroySpecialDates", "destroyItems", "removeItem",
+    ];
+    controls.cal = {};
+    for (const m of named) controls.cal[m] = () => calls.push([m]);
+    for (const m of named) {
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "cal", "", m]);
+    }
+    expect(calls).toEqual(named.map((m) => [m]));
+    expect(errors).toHaveLength(0);
+  });
+
   test("calls an unlisted but safe public method (generalized allowlist)", () => {
     const { FrontendAction, calls, controls } = load();
     // enablePostButton is NOT in CONTROL_METHODS, but it is a public, non-denied
