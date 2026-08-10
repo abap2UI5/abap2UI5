@@ -174,10 +174,21 @@ test.describe("ErrorView friendly dialog", () => {
     expect(copyButton.settings.text).toBe("Copy");
     copyButton.settings.press();
     // execCommand is unavailable in the stubbed DOM, so it falls back to the
-    // async clipboard API with the full (untruncated) error text.
-    expect(clipboardWrites).toEqual(["full backend dump"]);
+    // async clipboard API. The clipboard carries exactly what the Developer
+    // Tools Error tab shows: the headline, a blank line, then the full
+    // (untruncated) error text.
+    expect(clipboardWrites).toEqual([
+      "Application Error - Please Restart The App\n\nfull backend dump",
+    ]);
     // The label flips to "Copied" as feedback.
     expect(copyButton.settings.text).toBe("Copied");
+  });
+
+  test("Copy keeps a caller-supplied title as the headline", () => {
+    const { ErrorView, created, clipboardWrites } = load();
+    ErrorView.show("dump text", "Custom Error Title");
+    created.dialogs[0].settings.buttons[1].settings.press();
+    expect(clipboardWrites).toEqual(["Custom Error Title\n\ndump text"]);
   });
 
   test("Escape does not dismiss the fatal-error popup", () => {

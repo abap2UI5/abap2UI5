@@ -42,6 +42,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // full text stays on the Developer Tools Error tab); longer previews are cut.` && |\n| &&
              `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
              `` && |\n| &&
+             `  // The default headline of the fatal-error overlay. Also the first line of` && |\n| &&
+             `  // what Copy puts on the clipboard, so it must match what the Developer` && |\n| &&
+             `  // Tools Error tab renders (formatLastError in DeveloperTools.js).` && |\n| &&
+             `  const DEFAULT_TITLE = "Application Error - Please Restart The App";` && |\n| &&
+             `` && |\n| &&
              `  // The stylesheet that squares off the fatal-error dialog and lays out its` && |\n| &&
              `  // messages. Injected once, on demand - the overlay is the one place that` && |\n| &&
              `  // needs it and a fatal error must not depend on a stylesheet the app may` && |\n| &&
@@ -367,13 +372,17 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        press: () => window.location.reload(),` && |\n| &&
              `      });` && |\n| &&
              `      // Copy the full error text (not just the shown preview) to the clipboard` && |\n| &&
-             `      // so the user can paste it into a ticket or chat. Briefly flip the label` && |\n| &&
-             `      // to "Copied" as feedback, then restore it (guarding against a dialog` && |\n| &&
-             `      // that was closed in the meantime).` && |\n| &&
+             `      // so the user can paste it into a ticket or chat. What lands on the` && |\n| &&
+             `      // clipboard is exactly what the Developer Tools Error tab shows -` && |\n| &&
+             `      // headline, blank line, then the whole untruncated dump - so a pasted` && |\n| &&
+             `      // report is complete without opening Details first. Briefly flip the` && |\n| &&
+             `      // label to "Copied" as feedback, then restore it (guarding against a` && |\n| &&
+             `      // dialog that was closed in the meantime).` && |\n| &&
+             `      const copyText = ``${title || DEFAULT_TITLE}\n\n${details}``;` && |\n| &&
              `      const copyButton = new Button({` && |\n| &&
              `        text: "Copy",` && |\n| &&
              `        press: () => {` && |\n| &&
-             `          copyToClipboard(details);` && |\n| &&
+             `          copyToClipboard(copyText);` && |\n| &&
              `          copyButton.setText("Copied");` && |\n| &&
              `          setTimeout(() => {` && |\n| &&
              `            if (!copyButton.bIsDestroyed) copyButton.setText("Copy");` && |\n| &&
@@ -415,7 +424,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        title: title || "Application Error",` && |\n| &&
              `        type: "Message",` && |\n| &&
              `        state: "Error",` && |\n| &&
-             `        icon: "sap-icon://message-error",` && |\n| &&
+             `        icon: "sap-icon://message-error",` && |\n|.
+    result = result &&
              `        // Without a width the message dialog sizes itself to the longest` && |\n| &&
              `        // unbreakable run of the error text - a URL or a class name stretches` && |\n| &&
              `        // it across the screen. A fixed content width keeps the box the same` && |\n| &&
@@ -424,8 +434,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        // Escape must not dismiss the fatal-error popup: rejecting the escape` && |\n| &&
              `        // promise keeps it open, so the only ways out are the explicit` && |\n| &&
              `        // actions built above.` && |\n| &&
-             `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n|.
-    result = result &&
+             `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
              `        content,` && |\n| &&
              `        buttons,` && |\n| &&
              `        initialFocus: restartButton,` && |\n| &&
@@ -524,7 +533,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    // Record the fatal error so the Developer Tools Error tab can re-show it` && |\n| &&
              `    // (title, text and the same Retry action) after the overlay is gone.` && |\n| &&
              `    AppState.state.lastError = {` && |\n| &&
-             `      title: title || "Application Error - Please Restart The App",` && |\n| &&
+             `      title: title || DEFAULT_TITLE,` && |\n| &&
              `      text: errorMessage,` && |\n| &&
              `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
              `    };` && |\n| &&
@@ -560,7 +569,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `` && |\n| &&
              `    const h3 = document.createElement("h3");` && |\n| &&
              `    h3.id = "serverErrorTitle";` && |\n| &&
-             `    h3.textContent = title || "Application Error - Please Restart The App";` && |\n| &&
+             `    h3.textContent = title || DEFAULT_TITLE;` && |\n| &&
              `    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
