@@ -48,6 +48,7 @@ CLASS z2ui5_cl_app_preload IMPLEMENTATION.
              |      "z2ui5/cc/Tree.js": function()\{{ z2ui5_cl_app_tree_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/UITableExt.js": function()\{{ z2ui5_cl_app_uitableext_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/UploadSetExt.js": function()\{{ z2ui5_cl_app_uploadsetext_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/cc/Websocket.js": function()\{{ z2ui5_cl_app_websocket_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/Component.js": function()\{{ z2ui5_cl_app_component_js=>get( ) }{ custom_js }\},| && |\n| &&
              |      "z2ui5/controller/App.controller.js": function()\{{ z2ui5_cl_app_app_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/controller/View1.controller.js": function()\{{ z2ui5_cl_app_view1_js=>get( ) }\},| && |\n| &&
