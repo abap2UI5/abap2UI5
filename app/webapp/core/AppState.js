@@ -33,7 +33,7 @@
 //                     re-exports - grows via framework PRs only (Component)
 //   ccResourceRoot    absolute path of the custom-control BSP, set by the
 //                     backend GET page when there is no sibling BSP to
-//                     resolve "../z2ui5cc/" against (backend HTML)
+//                     resolve "../z2ui5ccc/" against (backend HTML)
 //   cciResourceRoot   same for the customer frontend-extension BSP
 //                     ("../z2ui5cci/") (backend HTML)
 //   requestTimeoutMs  optional override for the roundtrip timeout (apps)

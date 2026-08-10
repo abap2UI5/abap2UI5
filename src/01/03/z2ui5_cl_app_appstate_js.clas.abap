@@ -60,7 +60,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     re-exports - grows via framework PRs only (Component)` && |\n| &&
              `//   ccResourceRoot    absolute path of the custom-control BSP, set by the` && |\n| &&
              `//                     backend GET page when there is no sibling BSP to` && |\n| &&
-             `//                     resolve "../z2ui5cc/" against (backend HTML)` && |\n| &&
+             `//                     resolve "../z2ui5ccc/" against (backend HTML)` && |\n| &&
              `//   cciResourceRoot   same for the customer frontend-extension BSP` && |\n| &&
              `//                     ("../z2ui5cci/") (backend HTML)` && |\n| &&
              `//   requestTimeoutMs  optional override for the roundtrip timeout (apps)` && |\n| &&

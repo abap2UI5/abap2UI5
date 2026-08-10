@@ -102,7 +102,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      "id": "App"` &&
              `    },` &&
              `    "resourceRoots": {` &&
-             `      "z2ui5cc": "../z2ui5cc/",` &&
+             `      "z2ui5ccc": "../z2ui5ccc/",` &&
              `      "z2ui5cci": "../z2ui5cci/"` &&
              `    }` &&
              `  },` &&
