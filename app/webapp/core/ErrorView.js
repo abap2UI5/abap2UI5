@@ -15,6 +15,11 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // full text stays on the Developer Tools Error tab); longer previews are cut.
   const PREVIEW_MAX_LENGTH = 500;
 
+  // The default headline of the fatal-error overlay. Also the first line of
+  // what Copy puts on the clipboard, so it must match what the Developer
+  // Tools Error tab renders (formatLastError in DeveloperTools.js).
+  const DEFAULT_TITLE = "Application Error - Please Restart The App";
+
   // The stylesheet that squares off the fatal-error dialog and lays out its
   // messages. Injected once, on demand - the overlay is the one place that
   // needs it and a fatal error must not depend on a stylesheet the app may
@@ -340,13 +345,17 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         press: () => window.location.reload(),
       });
       // Copy the full error text (not just the shown preview) to the clipboard
-      // so the user can paste it into a ticket or chat. Briefly flip the label
-      // to "Copied" as feedback, then restore it (guarding against a dialog
-      // that was closed in the meantime).
+      // so the user can paste it into a ticket or chat. What lands on the
+      // clipboard is exactly what the Developer Tools Error tab shows -
+      // headline, blank line, then the whole untruncated dump - so a pasted
+      // report is complete without opening Details first. Briefly flip the
+      // label to "Copied" as feedback, then restore it (guarding against a
+      // dialog that was closed in the meantime).
+      const copyText = `${title || DEFAULT_TITLE}\n\n${details}`;
       const copyButton = new Button({
         text: "Copy",
         press: () => {
-          copyToClipboard(details);
+          copyToClipboard(copyText);
           copyButton.setText("Copied");
           setTimeout(() => {
             if (!copyButton.bIsDestroyed) copyButton.setText("Copy");
@@ -496,7 +505,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     // Record the fatal error so the Developer Tools Error tab can re-show it
     // (title, text and the same Retry action) after the overlay is gone.
     AppState.state.lastError = {
-      title: title || "Application Error - Please Restart The App",
+      title: title || DEFAULT_TITLE,
       text: errorMessage,
       onRetry: typeof options.onRetry === "function" ? options.onRetry : null,
     };
@@ -532,7 +541,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
 
     const h3 = document.createElement("h3");
     h3.id = "serverErrorTitle";
-    h3.textContent = title || "Application Error - Please Restart The App";
+    h3.textContent = title || DEFAULT_TITLE;
     h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";
     headerDiv.appendChild(h3);
 
