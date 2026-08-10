@@ -248,10 +248,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                                                   custom_js  = ls_config-custom_js ).
 
     " Custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
-    " customer's own frontend artefacts (z2ui5cci,
+    " customer's own frontend artefacts (z2ui5_ccc,
     " abap2UI5/customer-frontend-extension) each live in their own BSP, which
     " the frontend finds through the reserved resourceRoots in manifest.json
-    " ("z2ui5_cci": "../z2ui5_cci/", "z2ui5cci": "../z2ui5cci/"). Those paths are
+    " ("z2ui5_cci": "../z2ui5_cci/", "z2ui5_ccc": "../z2ui5_ccc/"). Those paths are
     " siblings of the FRONTEND BSP, so they are only correct when the app is
     " served from it. Here the component base is this ICF node and the same
     " relative path resolves next to /sap/bc/, where nothing is.
@@ -267,7 +267,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     " nothing is requested from it until a view names the namespace.
     DATA(lv_globals) = |window.z2ui5 = \{ checkLocal : true, | &&
                        |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
-                       |cciResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5cci" \};|.
+                       |cccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_ccc" \};|.
 
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&
