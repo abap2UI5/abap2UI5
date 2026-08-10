@@ -34,8 +34,8 @@
 //   ccResourceRoot    absolute path of the custom-control BSP, set by the
 //                     backend GET page when there is no sibling BSP to
 //                     resolve "../z2ui5ccc/" against (backend HTML)
-//   extResourceRoot   same for the customer frontend-extension BSP
-//                     ("../z2ui5ext/") (backend HTML)
+//   cciResourceRoot   same for the customer frontend-extension BSP
+//                     ("../z2ui5cci/") (backend HTML)
 //   requestTimeoutMs  optional override for the roundtrip timeout (apps)
 //   <custom>          apps can register functions via the js_loader popup
 //                     and call them through the Z2UI5 frontend event

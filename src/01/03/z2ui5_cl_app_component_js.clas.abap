@@ -67,11 +67,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        AppState.initGlobal();` && |\n| &&
              `` && |\n| &&
              `        // Two sibling BSPs carry frontend artefacts the framework itself does` && |\n| &&
-             `        // not ship: z2ui5ccc (abap2UI5-addons/custom-controls) and z2ui5ext` && |\n| &&
+             `        // not ship: z2ui5ccc (abap2UI5-addons/custom-controls) and z2ui5cci` && |\n| &&
              `        // (abap2UI5/customer-frontend-extension, the customer's own library).` && |\n| &&
              `        // Both are normally found through their reserved resourceRoot in` && |\n| &&
-             `        // manifest.json ("z2ui5ccc": "../z2ui5ccc/", "z2ui5ext":` && |\n| &&
-             `        // "../z2ui5ext/"), a sibling of THIS BSP. In the standalone HTTP` && |\n| &&
+             `        // manifest.json ("z2ui5ccc": "../z2ui5ccc/", "z2ui5cci":` && |\n| &&
+             `        // "../z2ui5cci/"), a sibling of THIS BSP. In the standalone HTTP` && |\n| &&
              `        // service there is no BSP for them to be a sibling of, so the backend` && |\n| &&
              `        // hands the absolute paths over on the global instead` && |\n| &&
              `        // (z2ui5_cl_http_handler=>_http_get).` && |\n| &&
@@ -88,9 +88,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        if (ccResourceRoot) {` && |\n| &&
              `          sap.ui.loader.config({ paths: { z2ui5ccc: ccResourceRoot } });` && |\n| &&
              `        }` && |\n| &&
-             `        const extResourceRoot = AppState.getGlobal("extResourceRoot");` && |\n| &&
-             `        if (extResourceRoot) {` && |\n| &&
-             `          sap.ui.loader.config({ paths: { z2ui5ext: extResourceRoot } });` && |\n| &&
+             `        const cciResourceRoot = AppState.getGlobal("cciResourceRoot");` && |\n| &&
+             `        if (cciResourceRoot) {` && |\n| &&
+             `          sap.ui.loader.config({ paths: { z2ui5cci: cciResourceRoot } });` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
