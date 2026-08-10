@@ -37,9 +37,10 @@ CLASS z2ui5_cl_app_websocket_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // A roundtrip already in flight makes View1.eB DROP the event (its` && |\n| &&
-             `    // isBusy guard), so inbound messages are queued and reported one per` && |\n| &&
-             `    // roundtrip instead of being lost in a burst. This is the retry interval` && |\n| &&
-             `    // of the drain loop - it only runs while messages are actually waiting.` && |\n| &&
+             `    // isBusy guard), so everything the control reports is queued and` && |\n| &&
+             `    // delivered one item per roundtrip instead of being lost in a burst.` && |\n| &&
+             `    // This is the retry interval of the drain loop - it only runs while` && |\n| &&
+             `    // items are actually waiting.` && |\n| &&
              `    const DRAIN_RETRY_MS = 50;` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.Websocket", {` && |\n| &&
@@ -70,6 +71,19 @@ CLASS z2ui5_cl_app_websocket_js IMPLEMENTATION.
              `          received: {` && |\n| &&
              `            allowPreventDefault: true,` && |\n| &&
              `            parameters: {},` && |\n| &&
+             `          },` && |\n| &&
+             `          // Fired when the connection could not be opened or ended without` && |\n| &&
+             `          // the app asking for it, so a backend can react. ``code`` is the` && |\n| &&
+             `          // WebSocket close code ("1006" for a handshake that never` && |\n| &&
+             `          // completed - inactive ICF node, rejected authentication, unknown` && |\n| &&
+             `          // APC application) or "CONSTRUCT" when the constructor itself` && |\n| &&
+             `          // threw. The control never surfaces any UI on its own - handling` && |\n| &&
+             `          // is delegated entirely to whoever binds this event.` && |\n| &&
+             `          error: {` && |\n| &&
+             `            parameters: {` && |\n| &&
+             `              code: { type: "string" },` && |\n| &&
+             `              message: { type: "string" },` && |\n| &&
+             `            },` && |\n| &&
              `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
@@ -103,14 +117,21 @@ CLASS z2ui5_cl_app_websocket_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      _connect() {` && |\n| &&
              `        if (this._ws || !this._url) return;` && |\n| &&
+             `        const url = this._url;` && |\n| &&
              `        let ws;` && |\n| &&
              `        try {` && |\n| &&
-             `          ws = new WebSocket(this._url);` && |\n| &&
+             `          ws = new WebSocket(url);` && |\n| &&
              `        } catch (err) {` && |\n| &&
-             `          Lib.logError("Websocket: cannot open " + this._url, err);` && |\n| &&
+             `          const message = "Cannot open " + url + ": " + (err.message || err);` && |\n| &&
+             `          Lib.logError("Websocket: " + message, err);` && |\n| &&
+             `          this._report({ kind: "error", code: "CONSTRUCT", message });` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        this._ws = ws;` && |\n| &&
+             `        this._opened = false;` && |\n| &&
+             `        ws.onopen = () => {` && |\n| &&
+             `          if (this._ws === ws) this._opened = true;` && |\n| &&
+             `        };` && |\n| &&
              `        ws.onmessage = (event) => {` && |\n| &&
              `          // The control may have been torn down, or replaced by a newer` && |\n| &&
              `          // connection, while this socket was still open.` && |\n| &&
@@ -119,21 +140,39 @@ CLASS z2ui5_cl_app_websocket_js IMPLEMENTATION.
              `            Lib.logError("Websocket: ignored a non-text message");` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          this._queue.push(event.data);` && |\n| &&
              `          if (!this.getProperty("checkRepeat")) this._disconnect();` && |\n| &&
-             `          this._drain();` && |\n| &&
+             `          this._report({ kind: "message", value: event.data });` && |\n| &&
              `        };` && |\n| &&
              `        ws.onerror = () => {` && |\n| &&
-             `          Lib.logError("Websocket: connection error on " + this._url);` && |\n| &&
+             `          // The WebSocket error event carries no detail by specification -` && |\n| &&
+             `          // it is always followed by onclose, which is where the actual` && |\n| &&
+             `          // reason (the close code) becomes available and is reported.` && |\n| &&
+             `          Lib.logError("Websocket: connection error on " + url);` && |\n| &&
              `        };` && |\n| &&
-             `        ws.onclose = () => {` && |\n| &&
-             `          if (this._ws === ws) this._ws = null;` && |\n| &&
+             `        // A close the app asked for never gets here: _disconnect() drops the` && |\n| &&
+             `        // handlers first. So every close reaching this point is one the` && |\n| &&
+             `        // server or the network caused, and the backend should hear about it.` && |\n| &&
+             `        ws.onclose = (event) => {` && |\n| &&
+             `          if (this._ws !== ws) return;` && |\n| &&
+             `          this._ws = null;` && |\n| &&
+             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          const cause = this._opened` && |\n| &&
+             `            ? "Connection to " + url + " was closed"` && |\n| &&
+             `            : "Connection to " + url + " could not be established";` && |\n| &&
+             `          const message = event.reason ? cause + ": " + event.reason : cause;` && |\n| &&
+             `          Lib.logError("Websocket (" + event.code + "): " + message);` && |\n| &&
+             `          this._report({` && |\n| &&
+             `            kind: "error",` && |\n| &&
+             `            code: String(event.code),` && |\n| &&
+             `            message: message,` && |\n| &&
+             `          });` && |\n| &&
              `        };` && |\n| &&
              `      },` && |\n| &&
              `      _disconnect() {` && |\n| &&
              `        const ws = this._ws;` && |\n| &&
              `        if (!ws) return;` && |\n| &&
              `        this._ws = null;` && |\n| &&
+             `        ws.onopen = null;` && |\n| &&
              `        ws.onmessage = null;` && |\n| &&
              `        ws.onerror = null;` && |\n| &&
              `        ws.onclose = null;` && |\n| &&
@@ -143,17 +182,32 @@ CLASS z2ui5_cl_app_websocket_js IMPLEMENTATION.
              `          Lib.logError("Websocket: close failed", err);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
-             `      // Report the oldest queued message and round-trip once. While the` && |\n| &&
-             `      // backend is busy nothing is consumed - the queue is retried until the` && |\n| &&
-             `      // event can actually get through, so no message is dropped.` && |\n| &&
+             `      // Queue one item for the backend and start draining. Messages and` && |\n| &&
+             `      // errors share the queue so they reach the app in the order they` && |\n| &&
+             `      // happened - an error after three messages is reported after them.` && |\n| &&
+             `      _report(item) {` && |\n| &&
+             `        this._queue.push(item);` && |\n| &&
+             `        this._drain();` && |\n| &&
+             `      },` && |\n| &&
+             `      // Hand the oldest queued item to the backend and round-trip once.` && |\n| &&
+             `      // While the backend is busy nothing is consumed - the queue is retried` && |\n| &&
+             `      // until the event can actually get through, so nothing is dropped.` && |\n| &&
              `      _drain() {` && |\n| &&
              `        if (!this._queue.length) return;` && |\n| &&
              `        if (AppState.state.isBusy) {` && |\n| &&
              `          this._scheduleDrain();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        this.setProperty("value", this._queue.shift(), true);` && |\n| &&
-             `        this.fireReceived();` && |\n| &&
+             `        const item = this._queue.shift();` && |\n| &&
+             `        if (item.kind === "error") {` && |\n| &&
+             `          this.fireError({` && |\n| &&
+             `            code: item.code,` && |\n| &&
+             `            message: item.message,` && |\n| &&
+             `          });` && |\n| &&
+             `        } else {` && |\n| &&
+             `          this.setProperty("value", item.value, true);` && |\n| &&
+             `          this.fireReceived();` && |\n| &&
+             `        }` && |\n| &&
              `        if (this._queue.length) this._scheduleDrain();` && |\n| &&
              `      },` && |\n| &&
              `      _scheduleDrain() {` && |\n| &&

@@ -10,9 +10,10 @@ sap.ui.define(
     "use strict";
 
     // A roundtrip already in flight makes View1.eB DROP the event (its
-    // isBusy guard), so inbound messages are queued and reported one per
-    // roundtrip instead of being lost in a burst. This is the retry interval
-    // of the drain loop - it only runs while messages are actually waiting.
+    // isBusy guard), so everything the control reports is queued and
+    // delivered one item per roundtrip instead of being lost in a burst.
+    // This is the retry interval of the drain loop - it only runs while
+    // items are actually waiting.
     const DRAIN_RETRY_MS = 50;
 
     return Control.extend("z2ui5.cc.Websocket", {
@@ -43,6 +44,19 @@ sap.ui.define(
           received: {
             allowPreventDefault: true,
             parameters: {},
+          },
+          // Fired when the connection could not be opened or ended without
+          // the app asking for it, so a backend can react. `code` is the
+          // WebSocket close code ("1006" for a handshake that never
+          // completed - inactive ICF node, rejected authentication, unknown
+          // APC application) or "CONSTRUCT" when the constructor itself
+          // threw. The control never surfaces any UI on its own - handling
+          // is delegated entirely to whoever binds this event.
+          error: {
+            parameters: {
+              code: { type: "string" },
+              message: { type: "string" },
+            },
           },
         },
       },
@@ -76,14 +90,21 @@ sap.ui.define(
       },
       _connect() {
         if (this._ws || !this._url) return;
+        const url = this._url;
         let ws;
         try {
-          ws = new WebSocket(this._url);
+          ws = new WebSocket(url);
         } catch (err) {
-          Lib.logError("Websocket: cannot open " + this._url, err);
+          const message = "Cannot open " + url + ": " + (err.message || err);
+          Lib.logError("Websocket: " + message, err);
+          this._report({ kind: "error", code: "CONSTRUCT", message });
           return;
         }
         this._ws = ws;
+        this._opened = false;
+        ws.onopen = () => {
+          if (this._ws === ws) this._opened = true;
+        };
         ws.onmessage = (event) => {
           // The control may have been torn down, or replaced by a newer
           // connection, while this socket was still open.
@@ -92,21 +113,39 @@ sap.ui.define(
             Lib.logError("Websocket: ignored a non-text message");
             return;
           }
-          this._queue.push(event.data);
           if (!this.getProperty("checkRepeat")) this._disconnect();
-          this._drain();
+          this._report({ kind: "message", value: event.data });
         };
         ws.onerror = () => {
-          Lib.logError("Websocket: connection error on " + this._url);
+          // The WebSocket error event carries no detail by specification -
+          // it is always followed by onclose, which is where the actual
+          // reason (the close code) becomes available and is reported.
+          Lib.logError("Websocket: connection error on " + url);
         };
-        ws.onclose = () => {
-          if (this._ws === ws) this._ws = null;
+        // A close the app asked for never gets here: _disconnect() drops the
+        // handlers first. So every close reaching this point is one the
+        // server or the network caused, and the backend should hear about it.
+        ws.onclose = (event) => {
+          if (this._ws !== ws) return;
+          this._ws = null;
+          if (Lib.isDestroyed(this)) return;
+          const cause = this._opened
+            ? "Connection to " + url + " was closed"
+            : "Connection to " + url + " could not be established";
+          const message = event.reason ? cause + ": " + event.reason : cause;
+          Lib.logError("Websocket (" + event.code + "): " + message);
+          this._report({
+            kind: "error",
+            code: String(event.code),
+            message: message,
+          });
         };
       },
       _disconnect() {
         const ws = this._ws;
         if (!ws) return;
         this._ws = null;
+        ws.onopen = null;
         ws.onmessage = null;
         ws.onerror = null;
         ws.onclose = null;
@@ -116,17 +155,32 @@ sap.ui.define(
           Lib.logError("Websocket: close failed", err);
         }
       },
-      // Report the oldest queued message and round-trip once. While the
-      // backend is busy nothing is consumed - the queue is retried until the
-      // event can actually get through, so no message is dropped.
+      // Queue one item for the backend and start draining. Messages and
+      // errors share the queue so they reach the app in the order they
+      // happened - an error after three messages is reported after them.
+      _report(item) {
+        this._queue.push(item);
+        this._drain();
+      },
+      // Hand the oldest queued item to the backend and round-trip once.
+      // While the backend is busy nothing is consumed - the queue is retried
+      // until the event can actually get through, so nothing is dropped.
       _drain() {
         if (!this._queue.length) return;
         if (AppState.state.isBusy) {
           this._scheduleDrain();
           return;
         }
-        this.setProperty("value", this._queue.shift(), true);
-        this.fireReceived();
+        const item = this._queue.shift();
+        if (item.kind === "error") {
+          this.fireError({
+            code: item.code,
+            message: item.message,
+          });
+        } else {
+          this.setProperty("value", item.value, true);
+          this.fireReceived();
+        }
         if (this._queue.length) this._scheduleDrain();
       },
       _scheduleDrain() {
