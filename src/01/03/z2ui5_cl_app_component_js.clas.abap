@@ -67,10 +67,12 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        AppState.initGlobal();` && |\n| &&
              `` && |\n| &&
              `        // Two sibling BSPs carry frontend artefacts the framework itself does` && |\n| &&
-             `        // not ship: z2ui5ccc (abap2UI5-addons/custom-controls) and z2ui5cci` && |\n| &&
+             `        // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5cci` && |\n| &&
              `        // (abap2UI5/customer-frontend-extension, the customer's own library).` && |\n| &&
+             `        // The two roots differ by one underscore and are NOT the same BSP -` && |\n| &&
+             `        // z2ui5_cci matches that repository's ABAP prefix z2ui5_cl_cci.` && |\n| &&
              `        // Both are normally found through their reserved resourceRoot in` && |\n| &&
-             `        // manifest.json ("z2ui5ccc": "../z2ui5ccc/", "z2ui5cci":` && |\n| &&
+             `        // manifest.json ("z2ui5_cci": "../z2ui5_cci/", "z2ui5cci":` && |\n| &&
              `        // "../z2ui5cci/"), a sibling of THIS BSP. In the standalone HTTP` && |\n| &&
              `        // service there is no BSP for them to be a sibling of, so the backend` && |\n| &&
              `        // hands the absolute paths over on the global instead` && |\n| &&
@@ -86,7 +88,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // of them installed (or neither) never pays for the other.` && |\n| &&
              `        const ccResourceRoot = AppState.getGlobal("ccResourceRoot");` && |\n| &&
              `        if (ccResourceRoot) {` && |\n| &&
-             `          sap.ui.loader.config({ paths: { z2ui5ccc: ccResourceRoot } });` && |\n| &&
+             `          sap.ui.loader.config({ paths: { z2ui5_cci: ccResourceRoot } });` && |\n| &&
              `        }` && |\n| &&
              `        const cciResourceRoot = AppState.getGlobal("cciResourceRoot");` && |\n| &&
              `        if (cciResourceRoot) {` && |\n| &&
