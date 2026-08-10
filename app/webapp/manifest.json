@@ -76,7 +76,7 @@
     },
     "resourceRoots": {
       "z2ui5cc": "../z2ui5cc/",
-      "z2ui5ext": "../z2ui5ext/"
+      "z2ui5cci": "../z2ui5cci/"
     }
   },
   "sap.cloud": {
