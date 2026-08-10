@@ -387,14 +387,19 @@ Install dependencies: `npm install` (frontend gates additionally need
 
 ### Validation sequence
 
-Three commands, all **non-destructive** — they never modify `src/` or `abaplint.jsonc`:
+Three commands, all **non-destructive** — they never modify `src/` or
+`abaplint.jsonc`. (One nuance: `verify`'s final app2abap drift gate re-runs
+the `src/01/03/` generation in place — on an in-sync tree the output is
+byte-identical, and a difference is exactly the drift the gate exists to
+fail on.)
 
 ```bash
 npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
 npm run verify       # Gate before every PR: abaplint -> testclass-visibility gate ->
                      # standard/cloud abaplint targets -> downport -> transpile -> unit ->
                      # JS unit specs -> frozen-path check -> guide-API check ->
-                     # curated-formatter scope gate
+                     # curated-formatter scope gate -> src/02 API-snapshot gate ->
+                     # src/01/03 app2abap drift gate (matches the PR gates in CI)
 npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
                      # installs app/node_modules itself. Run when app/webapp/ changed
 ```
@@ -403,14 +408,13 @@ npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, esl
 tests from there, so the working tree stays exactly as you left it. Use
 `npm run check` for the tight edit/validate loop and `npm run verify` before
 opening a PR. Do **not** use `npm run auto_downport` for validation — see rule 9.
+The app2abap drift gate needs the frontend toolchain and installs
+`app/node_modules` itself when it is missing (only then — no reinstall on
+every run).
 
 **What `verify` still does not cover** (CI-only): the browser e2e tests
 (`test_browser.yaml` — needs browsers + the UI5 CDN), the express smoke test
-(`test_node.yaml`), the namespace-rename test (`test_rename.yaml`), the
-`src/01/03` drift gate (`check_app2abap.yaml` — run `npm run check:app2abap`
-after editing `app/webapp/`, note it regenerates via Prettier + abaplint fix),
-and the `src/02` API-contract gate (`check_api_contract.yaml` — run
-`npm run check:api`).
+(`test_node.yaml`), and the namespace-rename test (`test_rename.yaml`).
 
 **Pinned git dependencies:** abaplint and the transpiler clone three upstream
 repos (steampunk API intersection, open-abap-core, express-icf-shim). These
@@ -431,10 +435,10 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
 | `npm run check:ui5` | The ui5lint zero-error gate (`.github/scripts/ui5lint-gate.mjs`; part of `verify:full`, needs `app/node_modules`) |
-| `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5) |
+| `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5; part of `verify`, gated in `check_api_contract.yaml`) |
 | `npm run check:guide` | Fail when `docs/agents/building-apps.md` names a client method or `cs_*` constant the API does not have (part of `verify`) |
 | `npm run check:formatter` | The curated-formatter scope gate — the exports of `app/webapp/model/formatter.js` must match the gate's justified manifest and the module must hardcode no ValueState/icon URI (see rule 19; part of `verify`, gated in `check_formatter_scope.yaml`) |
-| `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place) |
+| `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place; installs `app/node_modules` when missing; part of `verify`) |
 | `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
 | `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
 | `npm run unit` | Run the transpiled unit tests |
