@@ -418,7 +418,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                     custom_mapper        = custom_mapper
                                     tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
                                     tab_index            = tab_index
-                                    switch_default_model = switch_default_model ) ).
+                                    switch_default_model = switch_default_model
+                                    check_json           = json ) ).
 
   ENDMETHOD.
 

@@ -194,6 +194,17 @@ ships for existing apps but is **frozen** — new apps and new code use
   back to its default `true`. Scope the omission instead:
   `client->_bind( val = t_rows omit_initial_paths = VALUE #( ( `MIN` ) ( `MAX` ) ) )`
   lists the columns that may vanish and leaves every other field alone.
+- A control property that expects an **object** — a `sap.ui.integration`
+  widgets:Card `manifest` is the case this exists for — cannot be fed from a
+  typed ABAP value at all: a manifest's keys (`sap.app`, `sap.card`) are not
+  valid ABAP field names, so it is no structure, and UI5 reads a *string*
+  manifest as a manifest **URL**. Keep the JSON in a `string` attribute and
+  bind it with `client->_bind( val = manifest json = abap_true )` — the
+  serializer then splices its content into the model as a JSON node instead of
+  a quoted string. Outbound only (the client renders such a payload, it never
+  authors it), and a string that does not parse raises rather than shipping
+  broken JSON. Where the sample keeps one manifest per file, bind its URL
+  instead — that path needs no flag.
 - After changing bound data in an event handler, push it to the browser with
   `client->view_model_update( )` (no full re-render); call `view_display`
   again only when the view structure itself changes.

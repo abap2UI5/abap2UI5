@@ -307,6 +307,16 @@ INTERFACE z2ui5_if_client
   "!                                would drop it and the control would fall back
   "!                                to its own default - list the numeric/enum
   "!                                columns instead and leave the booleans.
+  "! @parameter json               | the bound string already CONTAINS JSON -
+  "!                                splice it into the model as a JSON node
+  "!                                instead of sending it as a quoted string.
+  "!                                For a control property that must receive an
+  "!                                OBJECT, which no typed ABAP value can be
+  "!                                (a sap.ui.integration Card manifest: its
+  "!                                keys `sap.app`/`sap.card` are not valid ABAP
+  "!                                field names, and a string is read as a
+  "!                                manifest URL). Outbound only - see
+  "!                                z2ui5_cl_core_srv_model.
   METHODS _bind
     IMPORTING
       val                  TYPE data
@@ -320,6 +330,7 @@ INTERFACE z2ui5_if_client
       switch_default_model TYPE abap_bool                     DEFAULT abap_false
       omit_initial         TYPE abap_bool                     DEFAULT abap_false
       omit_initial_paths   TYPE string_table                  OPTIONAL
+      json                 TYPE abap_bool                     DEFAULT abap_false
     RETURNING
       VALUE(result)        TYPE string.
 

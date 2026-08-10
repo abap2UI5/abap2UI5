@@ -12,6 +12,17 @@ Legend
 
 unreleased
 ----------
++ _bind( json = abap_true ): a bound string that already CONTAINS JSON is
+  spliced into the model as a JSON node instead of being sent as a quoted
+  string. It exists for a control property that must receive an OBJECT, which
+  no typed ABAP value can be: a sap.ui.integration Card manifest has keys like
+  `sap.app` and `sap.card`, which are not valid ABAP field names, so it cannot
+  be modelled as a structure - and Card.createManifest reads a STRING manifest
+  as a manifest URL, so an inline manifest had no way to reach the control at
+  all. The flag is outbound only (the client renders such a payload but never
+  authors it, and reading a JSON node back would mean writing an object into a
+  string field), and a string that does not parse raises instead of emitting
+  broken JSON
 + Event arguments: a control-valued event parameter now reaches the backend as
   data. Several UI5 events hand over a control or an array of controls instead
   of a scalar - ViewSettingsDialog.confirm gives filterItems,

@@ -130,6 +130,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE bind = abap_true.                        "#EC CI_SORTSEQ
       TRY.
 
+          " _bind( json = abap_true ) is outbound only: the attribute holds
+          " configuration the client renders but never edits, and reading the
+          " node back would mean writing an object into a string field. Skip it
+          " rather than mangle it - the ABAP side stays the single author
+          IF lr_attri->check_json = abap_true.
+            CONTINUE.
+          ENDIF.
+
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
           IF lo_val_front IS NOT BOUND.
             CONTINUE.
@@ -213,6 +221,21 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           ENDTRY.
 
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+
+          " _bind( json = abap_true ): the ABAP string already CONTAINS JSON, so
+          " it is parsed and spliced in as a node. Serialized as a value it
+          " would arrive quoted, which is a different thing for a control
+          " property that must receive an OBJECT - and no typed ABAP value can
+          " be that object (a sap.ui.integration Card manifest has keys like
+          " `sap.app`, which are not valid ABAP field names). The parse also
+          " decides the failure mode: an unparseable string raises here instead
+          " of emitting broken JSON the frontend would choke on. No mapper runs
+          " over it - the keys are the payload's own and must survive verbatim
+          IF lr_attri->check_json = abap_true.
+            ajson_result->set( iv_path = lr_attri->name_client
+                               iv_val  = z2ui5_cl_ajson=>parse( <val> ) ).
+            CONTINUE.
+          ENDIF.
 
           ajson->set( iv_ignore_empty = abap_false
                       iv_path         = `/`
@@ -785,6 +808,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         lr_attri->custom_mapper_back = lr_old->custom_mapper_back.
         lr_attri->custom_filter      = lr_old->custom_filter.
         lr_attri->custom_filter_back = lr_old->custom_filter_back.
+        lr_attri->check_json         = lr_old->check_json.
       ENDIF.
     ENDLOOP.
 

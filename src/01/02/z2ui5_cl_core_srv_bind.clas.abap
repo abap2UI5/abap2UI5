@@ -259,6 +259,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     mr_attri->custom_filter_back = ms_config-custom_filter_back.
     mr_attri->custom_mapper      = ms_config-custom_mapper.
     mr_attri->custom_mapper_back = ms_config-custom_mapper_back.
+    mr_attri->check_json         = ms_config-check_json.
     mr_attri->name_client        = get_client_name( ).
 
   ENDMETHOD.

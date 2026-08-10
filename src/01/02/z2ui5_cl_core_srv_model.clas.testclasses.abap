@@ -1001,6 +1001,8 @@ CLASS ltcl_test_json_stringify DEFINITION FINAL
     METHODS test_simple_string FOR TESTING RAISING cx_static_check.
     METHODS test_empty_no_bind FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial  FOR TESTING RAISING cx_static_check.
+    METHODS test_json_node     FOR TESTING RAISING cx_static_check.
+    METHODS test_json_invalid  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_test_json_stringify IMPLEMENTATION.
@@ -1069,6 +1071,63 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
         msg = `an initial field must stay ABSENT, not serialize as an empty string` ).
   ENDMETHOD.
 
+  METHOD test_json_node.
+    " what z2ui5_if_client~_bind( json = abap_true ) wires up: the ABAP string
+    " already CONTAINS JSON, so it is spliced into the model as a node instead
+    " of arriving quoted. Keys that no ABAP field name could carry (`sap.app`)
+    " survive verbatim - that is the whole point for a card manifest
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mv_simple = `{"_version":"1.0","sap.app":{"type":"card"},"sap.card":{"type":"List"}}`.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr_simple) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr_simple->bind        = abap_true.
+    lr_simple->name_client = `/MV_SIMPLE`.
+    lr_simple->check_json  = abap_true.
+
+    DATA(lo_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lo_model->main_json_stringify( ) ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = z2ui5_if_ajson_types=>node_type-object
+        act = lo_result->get_node_type( `/MV_SIMPLE` )
+        msg = `the raw JSON must become a node, not a quoted string` ).
+    cl_abap_unit_assert=>assert_equals( exp = `card`
+                                        act = lo_result->get_string( `/MV_SIMPLE/sap.app/type` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `List`
+                                        act = lo_result->get_string( `/MV_SIMPLE/sap.card/type` ) ).
+  ENDMETHOD.
+
+  METHOD test_json_invalid.
+    " a string the app declared as JSON but that is not must fail loudly here -
+    " emitting it raw would produce a broken model the frontend cannot parse
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mv_simple = `not json at all`.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr_simple) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr_simple->bind        = abap_true.
+    lr_simple->name_client = `/MV_SIMPLE`.
+    lr_simple->check_json  = abap_true.
+
+    TRY.
+        lo_model->main_json_stringify( ).
+        cl_abap_unit_assert=>fail( `an unparseable json bind must raise` ).
+      CATCH z2ui5_cx_a2ui5_error ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -1077,6 +1136,7 @@ CLASS ltcl_test_json_to_attri DEFINITION FINAL
   PRIVATE SECTION.
     METHODS test_updates_bound   FOR TESTING RAISING cx_static_check.
     METHODS test_skips_unbound   FOR TESTING RAISING cx_static_check.
+    METHODS test_skips_json      FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_test_json_to_attri IMPLEMENTATION.
@@ -1104,6 +1164,38 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `updated`
                                         act = lo_app->mv_simple ).
+  ENDMETHOD.
+
+  METHOD test_skips_json.
+    " _bind( json = abap_true ) is outbound only: the client renders the payload
+    " but never authors it, and reading a JSON node back would mean writing an
+    " object into a string field. The ABAP value must stay untouched
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mv_simple = `{"sap.app":{"type":"card"}}`.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr_json) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr_json->bind        = abap_true.
+    lr_json->name_client = `/MV_SIMPLE`.
+    lr_json->check_json  = abap_true.
+
+    DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
+    lo_model_json = z2ui5_cl_ajson=>create_empty( ).
+    lo_model_json->set( iv_path = `/MV_SIMPLE`
+                        iv_val  = `overwritten` ).
+
+    lo_model->main_json_to_attri( lo_model_json ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{"sap.app":{"type":"card"}}`
+        act = lo_app->mv_simple
+        msg = `a json bind must not be read back from the client model` ).
   ENDMETHOD.
 
   METHOD test_skips_unbound.
