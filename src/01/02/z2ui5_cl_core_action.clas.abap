@@ -240,6 +240,8 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " for the whole app stack (see z2ui5_cl_core_app=>mv_nav_mode)
     IF result->mo_app->mv_nav_mode IS INITIAL.
       result->mo_app->mv_nav_mode = mo_app->mv_nav_mode.
+      " the browser told us about itself once, for this session - not per app
+      result->mo_app->ms_session = mo_app->ms_session.
     ENDIF.
 
     result->mo_app->ms_draft-id          = val->id_draft.

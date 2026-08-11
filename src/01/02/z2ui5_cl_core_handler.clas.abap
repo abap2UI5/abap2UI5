@@ -71,6 +71,10 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     "! exists for it.
     METHODS nav_action_serialize.
 
+    "! Reconcile what this request says about the browser with what the draft
+    "! already knows - see the method body.
+    METHODS session_merge.
+
     METHODS set_nav_opt
       IMPORTING
         json TYPE REF TO z2ui5_if_ajson
@@ -610,6 +614,52 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     ELSE.
       mo_action = mo_action->factory_system_startup( ).
+    ENDIF.
+
+    session_merge( ).
+
+  ENDMETHOD.
+
+  METHOD session_merge.
+
+    IF mo_action->mo_app IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    " A request that CARRIES the block wins: that is the first roundtrip of a
+    " page load, and it is also how a draft reopened on a different device
+    " gets the new device's data instead of the one that created the draft.
+    " Every later roundtrip omits it and is answered from the draft.
+    IF ms_request-s_front-s_device-system IS NOT INITIAL
+        OR ms_request-s_front-s_ui5-version IS NOT INITIAL.
+
+      mo_action->mo_app->ms_session = VALUE #( s_ui5    = ms_request-s_front-s_ui5
+                                               s_device = ms_request-s_front-s_device ).
+      IF ms_request-s_front-o_comp_data IS BOUND.
+        TRY.
+            mo_action->mo_app->ms_session-comp_data = ms_request-s_front-o_comp_data->stringify( ).
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+    " Answer this roundtrip from the draft - but keep the two device fields
+    " that are NOT session-constant: the window can be resized and a phone
+    " rotated while the app runs, so orientation and resize travel with every
+    " request and win over the stored ones.
+    DATA(ls_device) = mo_action->mo_app->ms_session-s_device.
+    ls_device-orientation = ms_request-s_front-s_device-orientation.
+    ls_device-resize      = ms_request-s_front-s_device-resize.
+
+    ms_request-s_front-s_device = ls_device.
+    ms_request-s_front-s_ui5    = mo_action->mo_app->ms_session-s_ui5.
+
+    IF mo_action->mo_app->ms_session-comp_data IS NOT INITIAL.
+      TRY.
+          ms_request-s_front-o_comp_data = z2ui5_cl_ajson=>parse( mo_action->mo_app->ms_session-comp_data ).
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
     ENDIF.
 
   ENDMETHOD.

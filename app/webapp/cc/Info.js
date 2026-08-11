@@ -83,7 +83,7 @@ sap.ui.define(
           const ui5Info = AppState.getGlobal("oConfig")?.S_UI5;
           const ui5Version = ui5Info?.VERSION || "";
 
-          // Single system-type label, same derivation as Server._getDeviceInfo.
+          // Single system-type label, same derivation as Server._getDeviceStatic.
           const systemType = Lib.deriveSystemType(system);
 
           const props = [

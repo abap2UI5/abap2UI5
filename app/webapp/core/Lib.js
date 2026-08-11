@@ -288,7 +288,7 @@ sap.ui.define(
 
     // Collapse a UI5 Device `system` flag object into a single label. The
     // order matters - phone/tablet/combi are mutually exclusive with the
-    // desktop fallback. Shared by Server._getDeviceInfo (request payload) and
+    // desktop fallback. Shared by Server._getDeviceStatic (request payload) and
     // the Info control so both report the same value.
     function deriveSystemType(system) {
       if (!system) return "desktop";

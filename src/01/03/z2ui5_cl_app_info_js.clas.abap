@@ -110,7 +110,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `          const ui5Info = AppState.getGlobal("oConfig")?.S_UI5;` && |\n| &&
              `          const ui5Version = ui5Info?.VERSION || "";` && |\n| &&
              `` && |\n| &&
-             `          // Single system-type label, same derivation as Server._getDeviceInfo.` && |\n| &&
+             `          // Single system-type label, same derivation as Server._getDeviceStatic.` && |\n| &&
              `          const systemType = Lib.deriveSystemType(system);` && |\n| &&
              `` && |\n| &&
              `          const props = [` && |\n| &&

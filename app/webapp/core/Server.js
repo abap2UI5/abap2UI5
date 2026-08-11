@@ -199,10 +199,36 @@ sap.ui.define(
         AppState.state.contextId = null;
       },
 
-      _getDeviceInfo() {
-        // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the
-        // session, so resolve them once and reuse the cached block; only
-        // ORIENTATION and RESIZE are read fresh on every roundtrip.
+      // What the backend only needs ONCE per page load: the UI5 build and the
+      // launchpad's ComponentData. It stores them with the draft, so every
+      // later roundtrip omits them - a few hundred bytes off every event.
+      //
+      // Sent until it has gone out COMPLETE, not just once: the version info
+      // is loaded asynchronously during component init, so the first roundtrip
+      // can fire before it exists. Repeating it costs the same bytes it used
+      // to cost every time, and stops as soon as there is something to store.
+      //
+      // A page load always starts by sending it again, which is what makes a
+      // draft reopened on a different device pick up THAT device instead of
+      // the one that created it.
+      _sessionConfig(oConfig) {
+        // orientation and resize are the two device fields that are NOT
+        // session-constant - a window is resized and a phone rotated while
+        // the app runs - so they travel every time and the backend merges
+        // them over the block it stored.
+        const live = this._getDeviceLive();
+        if (this._sessionConfigSent) return { S_DEVICE: live };
+        if (oConfig?.S_UI5) this._sessionConfigSent = true;
+        return {
+          S_UI5: oConfig?.S_UI5,
+          ComponentData: oConfig?.ComponentData,
+          S_DEVICE: { ...this._getDeviceStatic(), ...live },
+        };
+      },
+
+      // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the
+      // session, so resolve them once and reuse the cached block.
+      _getDeviceStatic() {
         if (!this._deviceStatic) {
           this._deviceStatic = {
             SYSTEM: Lib.deriveSystemType(Device.system),
@@ -221,8 +247,11 @@ sap.ui.define(
             },
           };
         }
+        return this._deviceStatic;
+      },
+
+      _getDeviceLive() {
         return {
-          ...this._deviceStatic,
           ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",
           RESIZE: {
             WIDTH: Device.resize.width || window.innerWidth,
@@ -420,11 +449,10 @@ sap.ui.define(
         const oConfig = AppState.getGlobal("oConfig");
         oBody.S_FRONT = {
           CONFIG: {
-            S_UI5: oConfig?.S_UI5,
-            S_DEVICE: this._getDeviceInfo(),
+            ...this._sessionConfig(oConfig),
+            // focus and scroll are per roundtrip by nature
             S_FOCUS: this._getFocusInfo(),
             S_SCROLL: this._getScrollInfo(),
-            ComponentData: oConfig?.ComponentData,
           },
           ID: oBody.ID,
           ORIGIN: window.location.origin,

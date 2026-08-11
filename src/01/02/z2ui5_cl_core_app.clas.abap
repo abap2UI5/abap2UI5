@@ -16,6 +16,14 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
     " even when the app in between ran with a different one.
     DATA mv_nav_mode TYPE string.
 
+    " What the browser told us about itself. It lives on the app - and
+    " therefore in its draft - so the frontend sends it once per page load
+    " instead of with every roundtrip. A draft reopened from a DIFFERENT
+    " browser overwrites it: that browser's first roundtrip carries its own
+    " block, and z2ui5_cl_core_handler=>session_merge takes whatever a request
+    " brings over whatever the draft held.
+    DATA ms_session TYPE z2ui5_if_core_types=>ty_s_session.
+
     METHODS model_json_stringify
       RETURNING
         VALUE(result) TYPE string.

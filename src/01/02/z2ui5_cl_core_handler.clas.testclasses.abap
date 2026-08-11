@@ -66,6 +66,9 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_slots FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
+    METHODS test_session_stored       FOR TESTING RAISING cx_static_check.
+    METHODS test_session_from_draft   FOR TESTING RAISING cx_static_check.
+    METHODS test_session_new_device   FOR TESTING RAISING cx_static_check.
     METHODS test_response_no_model    FOR TESTING RAISING cx_static_check.
     METHODS test_system_slot_order    FOR TESTING RAISING cx_static_check.
     METHODS test_system_last_wins     FOR TESTING RAISING cx_static_check.
@@ -384,6 +387,75 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     temp4 = xsdbool( lv_json CS `{"name":"test"}` ).
     cl_abap_unit_assert=>assert_true( temp4 ).
+
+  ENDMETHOD.
+
+  METHOD test_session_stored.
+
+    " the first roundtrip of a page load carries the block - it is stored on
+    " the app, and therefore in its draft
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_front-s_device-system   = `desktop`.
+    lo_handler->ms_request-s_front-s_device-os-name  = `Windows`.
+    lo_handler->ms_request-s_front-s_ui5-version     = `1.120.0`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `desktop`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `1.120.0`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_ui5-version ).
+
+  ENDMETHOD.
+
+  METHOD test_session_from_draft.
+
+    " a later roundtrip sends none of it and is answered from the draft - but
+    " orientation and resize are NOT session-constant and win from the request
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->ms_session = VALUE #(
+        s_ui5-version         = `1.120.0`
+        s_device-system       = `phone`
+        s_device-os-name      = `iOS`
+        s_device-orientation  = `portrait`
+        s_device-resize-width = 400 ).
+
+    lo_handler->ms_request-s_front-s_device-orientation  = `landscape`.
+    lo_handler->ms_request-s_front-s_device-resize-width = 900.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `phone`
+                                        act = lo_handler->ms_request-s_front-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `1.120.0`
+                                        act = lo_handler->ms_request-s_front-s_ui5-version ).
+    cl_abap_unit_assert=>assert_equals( exp = `landscape`
+                                        act = lo_handler->ms_request-s_front-s_device-orientation ).
+    cl_abap_unit_assert=>assert_equals( exp = 900
+                                        act = lo_handler->ms_request-s_front-s_device-resize-width ).
+
+  ENDMETHOD.
+
+  METHOD test_session_new_device.
+
+    " the same draft reopened from ANOTHER browser: its first roundtrip
+    " carries a block again, and that block replaces what the draft held
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->ms_session = VALUE #( s_device-system = `phone`
+                                                        s_device-os-name = `iOS` ).
+
+    lo_handler->ms_request-s_front-s_device-system  = `desktop`.
+    lo_handler->ms_request-s_front-s_device-os-name = `Windows`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `desktop`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `Windows`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-os-name ).
 
   ENDMETHOD.
 

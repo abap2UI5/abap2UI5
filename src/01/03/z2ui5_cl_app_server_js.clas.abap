@@ -226,10 +226,36 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        AppState.state.contextId = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _getDeviceInfo() {` && |\n| &&
-             `        // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the` && |\n| &&
-             `        // session, so resolve them once and reuse the cached block; only` && |\n| &&
-             `        // ORIENTATION and RESIZE are read fresh on every roundtrip.` && |\n| &&
+             `      // What the backend only needs ONCE per page load: the UI5 build and the` && |\n| &&
+             `      // launchpad's ComponentData. It stores them with the draft, so every` && |\n| &&
+             `      // later roundtrip omits them - a few hundred bytes off every event.` && |\n| &&
+             `      //` && |\n| &&
+             `      // Sent until it has gone out COMPLETE, not just once: the version info` && |\n| &&
+             `      // is loaded asynchronously during component init, so the first roundtrip` && |\n| &&
+             `      // can fire before it exists. Repeating it costs the same bytes it used` && |\n| &&
+             `      // to cost every time, and stops as soon as there is something to store.` && |\n| &&
+             `      //` && |\n| &&
+             `      // A page load always starts by sending it again, which is what makes a` && |\n| &&
+             `      // draft reopened on a different device pick up THAT device instead of` && |\n| &&
+             `      // the one that created it.` && |\n| &&
+             `      _sessionConfig(oConfig) {` && |\n| &&
+             `        // orientation and resize are the two device fields that are NOT` && |\n| &&
+             `        // session-constant - a window is resized and a phone rotated while` && |\n| &&
+             `        // the app runs - so they travel every time and the backend merges` && |\n| &&
+             `        // them over the block it stored.` && |\n| &&
+             `        const live = this._getDeviceLive();` && |\n| &&
+             `        if (this._sessionConfigSent) return { S_DEVICE: live };` && |\n| &&
+             `        if (oConfig?.S_UI5) this._sessionConfigSent = true;` && |\n| &&
+             `        return {` && |\n| &&
+             `          S_UI5: oConfig?.S_UI5,` && |\n| &&
+             `          ComponentData: oConfig?.ComponentData,` && |\n| &&
+             `          S_DEVICE: { ...this._getDeviceStatic(), ...live },` && |\n| &&
+             `        };` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the` && |\n| &&
+             `      // session, so resolve them once and reuse the cached block.` && |\n| &&
+             `      _getDeviceStatic() {` && |\n| &&
              `        if (!this._deviceStatic) {` && |\n| &&
              `          this._deviceStatic = {` && |\n| &&
              `            SYSTEM: Lib.deriveSystemType(Device.system),` && |\n| &&
@@ -248,8 +274,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            },` && |\n| &&
              `          };` && |\n| &&
              `        }` && |\n| &&
+             `        return this._deviceStatic;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _getDeviceLive() {` && |\n| &&
              `        return {` && |\n| &&
-             `          ...this._deviceStatic,` && |\n| &&
              `          ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
              `          RESIZE: {` && |\n| &&
              `            WIDTH: Device.resize.width || window.innerWidth,` && |\n| &&
@@ -395,7 +424,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // until the user scrolls the next time.` && |\n| &&
              `        if (this._lastScrollTarget && !this._lastScrollTarget.isConnected) {` && |\n| &&
              `          this._lastScrollTarget = undefined;` && |\n| &&
-             `          this._lastScrollUi5El = undefined;` && |\n| &&
+             `          this._lastScrollUi5El = undefined;` && |\n|.
+    result = result &&
              `          this._lastScrollSlotKey = undefined;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -424,8 +454,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            ViewSlots.getView(slot.key),` && |\n| &&
              `          );` && |\n| &&
              `          out[slot.key] = {` && |\n| &&
-             `            ID: id,` && |\n|.
-    result = result &&
+             `            ID: id,` && |\n| &&
              `            X: entry.dom.scrollLeft || 0,` && |\n| &&
              `            Y: entry.dom.scrollTop || 0,` && |\n| &&
              `          };` && |\n| &&
@@ -448,11 +477,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          CONFIG: {` && |\n| &&
-             `            S_UI5: oConfig?.S_UI5,` && |\n| &&
-             `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
+             `            ...this._sessionConfig(oConfig),` && |\n| &&
+             `            // focus and scroll are per roundtrip by nature` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
-             `            ComponentData: oConfig?.ComponentData,` && |\n| &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
              `          ORIGIN: window.location.origin,` && |\n| &&
@@ -797,7 +825,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                oController.eF(...args);` && |\n| &&
              `                return;` && |\n| &&
              `              }` && |\n| &&
-             `            } catch {` && |\n| &&
+             `            } catch {` && |\n|.
+    result = result &&
              `              // not JSON - keep going with the legacy formats` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
@@ -825,8 +854,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        BusyIndicator.hide();` && |\n| &&
              `        AppState.state.isBusy = false;` && |\n| &&
              `        ErrorView.show(response, title, oOptions);` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
+             `      },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

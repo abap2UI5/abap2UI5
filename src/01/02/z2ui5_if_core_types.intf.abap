@@ -130,6 +130,7 @@ INTERFACE z2ui5_if_core_types
       nav_app_call_prev_id  TYPE string,
     END OF ty_s_nav.
 
+
   TYPES:
     BEGIN OF ty_s_next,
       o_app_call         TYPE REF TO z2ui5_if_app,
@@ -232,6 +233,22 @@ INTERFACE z2ui5_if_core_types
         app_start_draft TYPE string,
       END OF s_control,
     END OF ty_s_request.
+
+  " What a browser tells the backend about ITSELF, once per page load instead
+  " of on every roundtrip: the UI5 build, the device it runs on, and the
+  " launchpad's ComponentData. It is stored on the app and therefore travels
+  " in the draft, so a follow-up roundtrip needs to send none of it.
+  "
+  " Two parts of s_device are NOT session-constant and keep travelling with
+  " every request - orientation and resize change while the app runs. They are
+  " merged over the stored block, so client->get( )-s_device still answers with
+  " a device record that is current in every field.
+  TYPES:
+    BEGIN OF ty_s_session,
+      s_ui5     TYPE ty_s_request-s_front-s_ui5,
+      s_device  TYPE ty_s_request-s_front-s_device,
+      comp_data TYPE string,
+    END OF ty_s_session.
 
   TYPES:
     BEGIN OF ty_s_actual,
