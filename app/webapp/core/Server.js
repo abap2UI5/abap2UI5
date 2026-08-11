@@ -21,86 +21,6 @@ sap.ui.define(
   ) => {
     "use strict";
 
-    // Quote characters recognised by the eF( ) argument parser below, built
-    // from char codes so both quote kinds are declared symmetrically and
-    // stand out from the surrounding string literals.
-    const CH_SQUOTE = String.fromCharCode(39);
-    const CH_DQUOTE = String.fromCharCode(34);
-
-    // Undo the escapes the backend applies to a single-quoted argument
-    // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the
-    // line breaks it rewrites to \n / \r - a raw newline would be a syntax
-    // error inside a JS string literal, so a multi-line argument only ever
-    // travels escaped. Decoding them in one pass keeps the order right: a
-    // literal backslash-n ("\\n" on the wire) stays text instead of turning
-    // into a line break.
-    const EF_UNESCAPE = { n: "\n", r: "\r" };
-    function unescapeEfString(body) {
-      return body.replace(/\\(.)/g, (match, ch) => EF_UNESCAPE[ch] ?? ch);
-    }
-
-    // Convert a single JS-literal argument (as produced by the backend
-    // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,
-    // JSON objects / arrays, numbers, booleans and null.
-    function parseEfValue(token) {
-      if (token === "") return undefined;
-      const first = token[0];
-      if (first === CH_SQUOTE) {
-        return unescapeEfString(token.slice(1, -1));
-      }
-      if (first === CH_DQUOTE || first === "{" || first === "[") {
-        try {
-          return JSON.parse(token);
-        } catch {
-          return token;
-        }
-      }
-      if (token === "true") return true;
-      if (token === "false") return false;
-      if (token === "null") return null;
-      if (token === "undefined") return undefined;
-      const num = Number(token);
-      return Number.isNaN(num) ? token : num;
-    }
-
-    // Split the argument list of an eF( ) call into its top-level arguments,
-    // respecting nested (), {}, [] and quoted strings, and convert each one
-    // to a value. Done manually (no eval / Function) so it works under a
-    // strict Content-Security-Policy without unsafe-eval, while keeping
-    // object, array and quoted-string arguments intact.
-    function parseEfArgs(str) {
-      const args = [];
-      let depth = 0;
-      let quote = null;
-      let token = "";
-      for (let i = 0; i < str.length; i++) {
-        const ch = str[i];
-        if (quote) {
-          token += ch;
-          if (ch === "\\" && i + 1 < str.length) token += str[++i];
-          else if (ch === quote) quote = null;
-          continue;
-        }
-        if (ch === CH_SQUOTE || ch === CH_DQUOTE) {
-          quote = ch;
-          token += ch;
-        } else if (ch === "{" || ch === "[" || ch === "(") {
-          depth++;
-          token += ch;
-        } else if (ch === "}" || ch === "]" || ch === ")") {
-          depth--;
-          token += ch;
-        } else if (ch === "," && depth === 0) {
-          args.push(parseEfValue(token.trim()));
-          token = "";
-        } else {
-          token += ch;
-        }
-      }
-      if (token.trim() !== "") args.push(parseEfValue(token.trim()));
-      return args;
-    }
-
     // Last-resort client-side timeout for backend roundtrips. Infrastructure
     // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and
     // surface as a regular error response; this backstop only ensures that a
@@ -141,23 +61,24 @@ sap.ui.define(
     //                     "ComponentData": {...} }
     //   } } }
     //
-    // Wire format - response:
+    // Wire format - response. PARAMS carries nothing but the action lists:
+    // every view build, teardown, model push and history update is an
+    // action, run by View1/FrontendAction in the documented order.
     //   { "S_FRONT": {
     //       "ID": "<new draft id>",        // sent back with the next request
+    //       "APP": "<app class name>",     // rendered app, for the router
     //       "PARAMS": {
-    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },
     //         "S_ACTION": {
     //           // SYSTEM: the framework's own view-lifecycle calls, run
-    //           // first, in order, before the view is rendered
+    //           // first, in order, before the view is rendered; the
+    //           // ROUTER/sync call is always queued last
     //           "T_SYSTEM": [
     //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",
     //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"
     //           ],
     //           // APP: what the app queued, run last, once the DOM exists
     //           "T_CUSTOM": ["[\"SET_FOCUS\",\"id1\"]"]
-    //         },
-    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",
-    //         "SET_NAV_BACK": ""           // browser/history follow-ups
+    //         }
     //       }
     //     },
     //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes
@@ -685,7 +606,7 @@ sap.ui.define(
           // The backend can send follow-up actions to run after the response.
           // Each entry is a JSON array ["EVENT", ...args] (framework actions,
           // pure data), a legacy "eF(...)" call string, or a raw JS
-          // expression - see _runCustomJs. They are stashed
+          // expression - see FrontendAction.runCustom. They are stashed
           // here and executed at the end of _processAfterRendering, i.e. once
           // the (possibly freshly built) view is actually rendered. Running
           // them earlier would break render-dependent actions such as
@@ -704,8 +625,10 @@ sap.ui.define(
           // and it cannot be, once the rebuild is one of the actions they run.
           // It stays harmless - _processAfterRendering marks the response as
           // processed before the first action, so the render it causes finds
-          // nothing left to do.
-          oController._processAfterRendering();
+          // nothing left to do. The request stamp rides along so the display
+          // guards compare against THIS response's request, not whatever is
+          // newest by the time processing starts.
+          oController._processAfterRendering(reqSeq);
         } catch (e) {
           BusyIndicator.hide();
           AppState.state.isBusy = false;
@@ -748,71 +671,6 @@ sap.ui.define(
           return;
         }
         this.responseError(err);
-      },
-
-      // Executes a single follow-up action / custom-JS snippet from the backend.
-      // Format A:  a JSON array ["EVENT", ...args] - the structured form the
-      //            backend (z2ui5_cl_core_srv_event=>get_event_client_json)
-      //            emits for every framework follow-up action. Pure data,
-      //            serialized and escaped entirely in ABAP; dispatched via
-      //            oController.eF( ) after a single JSON.parse - no code is
-      //            parsed or evaluated on this path.
-      // Format B:  a structured eF( ) frontend-event call - the legacy wire
-      //            format, still produced by apps that pass raw "eF(...)"
-      //            strings to follow_up_action. Its argument list is parsed
-      //            manually (no eval / Function) so it runs under a strict
-      //            CSP while keeping object / array / string arguments intact.
-      // Format C:  a raw expression such as alert(123) - needs a CSP that
-      //            allows unsafe-eval, otherwise it is a no-op.
-      // Run one SYSTEM action. Unlike _runCustomJs there are no legacy
-      // formats to support - a system action is always framework-generated
-      // and therefore always a JSON array - and no catch: a failing view
-      // display has to reach _processAfterRendering, which turns it into the
-      // fatal overlay instead of leaving the app half-built.
-      _runSystemJs(item, oController) {
-        let args;
-        try {
-          args = JSON.parse(item);
-        } catch (e) {
-          Lib.logError(`systemJs: '${item}' is no action payload`, e);
-          return undefined;
-        }
-        if (!Array.isArray(args)) {
-          Lib.logError(`systemJs: '${item}' is no action payload`);
-          return undefined;
-        }
-        return oController.eFS(...args);
-      },
-
-      _runCustomJs(item, oController) {
-        try {
-          const snippet = item.trim();
-          if (snippet.startsWith("[")) {
-            // JSON array -> structured follow-up action. A raw-JS expression
-            // that merely starts with "[" is no JSON array, so it fails the
-            // parse and falls through to the legacy formats below.
-            try {
-              const args = JSON.parse(snippet);
-              if (Array.isArray(args)) {
-                oController.eF(...args);
-                return;
-              }
-            } catch {
-              // not JSON - keep going with the legacy formats
-            }
-          }
-          const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);
-          if (match) {
-            oController.eF(...parseEfArgs(match[1]));
-          } else {
-            // A raw JavaScript expression - only runs when the CSP allows
-            // unsafe-eval.
-            // eslint-disable-next-line no-new-func
-            Function("return " + item)();
-          }
-        } catch (e) {
-          Lib.logError("customJs: execution failed", e);
-        }
       },
 
       // Terminate the roundtrip in an unrecoverable state: clear the busy

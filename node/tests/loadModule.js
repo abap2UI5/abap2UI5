@@ -16,17 +16,15 @@ const WEBAPP_DIR = path.join(__dirname, "..", "..", "app", "webapp");
 //               `window` is the sandbox global object itself, mirroring
 //               the browser where window === globalThis
 // Returns { module, sandbox } - the module's export and the live sandbox.
-function loadModule(relPath, { deps = {}, sandbox = {} } = {}) {
-  const source = fs.readFileSync(path.join(WEBAPP_DIR, relPath), "utf8");
-  let exported;
+//
+// With `autoLoad: true`, a z2ui5/* dependency that is NOT stubbed in `deps`
+// is loaded for real from app/webapp (recursively, sharing this call's deps
+// and sandbox), so a module composed from submodules - core/FrontendAction.js
+// and its core/actions/* - is tested as the composition that ships. Without
+// the flag (and for sap/* dependencies always), an unstubbed dependency
+// resolves to undefined, exactly as before.
+function loadModule(relPath, { deps = {}, sandbox = {}, autoLoad = false } = {}) {
   const context = {
-    sap: {
-      ui: {
-        define: (depNames, factory) => {
-          exported = factory(...depNames.map((name) => deps[name]));
-        },
-      },
-    },
     URL,
     // Timers are browser globals the modules legitimately use (deferred
     // retries, START_TIMER); a vm context has none of its own, so hand the
@@ -38,11 +36,44 @@ function loadModule(relPath, { deps = {}, sandbox = {} } = {}) {
     ...sandbox,
   };
   if (!("window" in context)) context.window = context;
-  vm.runInNewContext(source, context, { filename: relPath });
-  if (!exported) {
-    throw new Error(`${relPath} did not register via sap.ui.define`);
+
+  // one instance per module name and load() call - two modules requiring
+  // z2ui5/core/Lib share the same live object, like the UI5 loader
+  const loaded = new Map();
+
+  function resolveDep(name) {
+    if (name in deps) return deps[name];
+    if (!autoLoad || !name.startsWith("z2ui5/")) return undefined;
+    if (!loaded.has(name)) {
+      loaded.set(name, run(`${name.slice("z2ui5/".length)}.js`));
+    }
+    return loaded.get(name);
   }
-  return { module: exported, sandbox: context };
+
+  function run(modulePath) {
+    const source = fs.readFileSync(path.join(WEBAPP_DIR, modulePath), "utf8");
+    let exported;
+    // sap.ui.define is scoped per module run: the recursive dependency loads
+    // below must not overwrite an outer module's capture mid-factory. Rebuilt
+    // with spreads so sap members a spec seeded (e.g. sap.ui.require) survive.
+    context.sap = {
+      ...context.sap,
+      ui: {
+        ...context.sap?.ui,
+        define: (depNames, factory) => {
+          exported = factory(...depNames.map(resolveDep));
+        },
+      },
+    };
+    vm.runInNewContext(source, context, { filename: modulePath });
+    if (!exported) {
+      throw new Error(`${modulePath} did not register via sap.ui.define`);
+    }
+    return exported;
+  }
+
+  const module = run(relPath);
+  return { module, sandbox: context };
 }
 
 module.exports = { loadModule };

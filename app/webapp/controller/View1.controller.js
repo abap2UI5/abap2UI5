@@ -84,8 +84,10 @@ sap.ui.define(
 
       // Runs once after each roundtrip's view has been rendered, in two
       // named phases: display pending fragments/views, then update the
-      // browser history/hash.
-      async _processAfterRendering() {
+      // browser history/hash. `reqSeq` is the stamp of the request the
+      // response being processed belongs to (Server.responseSuccess); the
+      // onAfterRendering entry above has none and falls back to the newest.
+      async _processAfterRendering(reqSeq) {
         // Hoisted out of the try block: the finally below must run the
         // follow-up JS of exactly THIS response. Re-reading the shared
         // AppState.state.oResponse there would - after a parallel request
@@ -104,7 +106,7 @@ sap.ui.define(
           // the display phase re-checks it, so a response superseded by a
           // parallel request (check_allow_multi_req, Back/Forward restore)
           // never attaches popups/nested views the backend no longer knows.
-          const seq = Server._requestSeq;
+          const seq = reqSeq ?? Server._requestSeq;
           await this._runSystemActions(oResponse, seq);
           // The app may have been torn down (reset / FLP re-launch) while the
           // pending views loaded; don't mutate history or fire onAfterRendering
@@ -141,7 +143,7 @@ sap.ui.define(
         try {
           for (const item of systemJs) {
             if (Lib.isDestroyed(this)) return;
-            await Server._runSystemJs(item, this);
+            await FrontendAction.runSystem(item, this);
           }
         } finally {
           this._systemSeq = undefined;
@@ -200,13 +202,6 @@ sap.ui.define(
         return Server._viewBuild;
       },
 
-      // eFS = "event frontend, system": the SYSTEM phase counterpart of eF.
-      // It returns the handler's result so an async display can be awaited,
-      // and lets errors propagate - see FrontendAction.executeSystem.
-      eFS(...args) {
-        return FrontendAction.executeSystem(this, args);
-      },
-
       // Execute the follow-up JS snippets stashed by Server.responseSuccess.
       // Runs once per roundtrip, after the view has rendered.
       _runPendingCustomJs(oResponse) {
@@ -215,7 +210,7 @@ sap.ui.define(
         if (!customJs) return;
         if (Lib.isDestroyed(this)) return;
         for (const item of customJs) {
-          Server._runCustomJs(item, this);
+          FrontendAction.runCustom(item, this);
         }
       },
 

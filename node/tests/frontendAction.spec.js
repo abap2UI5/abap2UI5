@@ -23,23 +23,6 @@ function load({ sandbox } = {}) {
     error: rec("box.error"),
     success: rec("box.success"),
   };
-  // MESSAGE_TOAST / MESSAGE_BOX are routed through Messages by their display
-  // hook. The stub records the same shape the globals would have, plus the
-  // options object whenever one rode along.
-  const Messages = {
-    showToast: (text, opts) =>
-      calls.push(
-        Object.keys(opts || {}).length
-          ? ["toast.show", text, opts]
-          : ["toast.show", text],
-      ),
-    showBox: (type, text, opts) =>
-      calls.push(
-        Object.keys(opts || {}).length
-          ? [`box.${type}`, text, opts]
-          : [`box.${type}`, text],
-      ),
-  };
   const BusyIndicator = { show: rec("busy.show"), hide: rec("busy.hide") };
   const Theming = { setTheme: rec("theme.set") };
   const Popup = { setWithinArea: rec("popup.setWithinArea") };
@@ -71,6 +54,9 @@ function load({ sandbox } = {}) {
   }
   const FilterOperator = new Proxy({}, { get: (_t, op) => op });
   const { module, sandbox: ctx } = loadModule("core/FrontendAction.js", {
+    // the domain modules under core/actions/ load for real - this spec
+    // exercises the composed dispatch exactly as it ships
+    autoLoad: true,
     deps: {
       "sap/m/MessageBox": MessageBox,
       "sap/m/MessageToast": MessageToast,
@@ -84,7 +70,6 @@ function load({ sandbox } = {}) {
       "sap/ui/util/Storage": function () {},
       "z2ui5/core/Router": Router,
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/Messages": Messages,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
     },
@@ -163,9 +148,9 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "Saved!",
       { duration: 250, class: "myCls" },
     ]);
-    expect(calls).toEqual([
-      ["toast.show", "Saved!", { duration: 250, class: "myCls" }],
-    ]);
+    // `class` is no MessageToast option - it is stripped here and applied to
+    // the toast's DOM node instead (see actions/ControlCall showToast)
+    expect(calls).toEqual([["toast.show", "Saved!", { duration: 250 }]]);
   });
 
   test("a template and an options object survive each other", () => {
@@ -183,16 +168,23 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
 
   test("the box type is the method, and it takes options too", () => {
     const { FrontendAction, calls } = load();
-    FrontendAction.execute(null, [
+    const ebCalls = [];
+    const oController = { eB: (...a) => ebCalls.push(a) };
+    FrontendAction.execute(oController, [
       "CONTROL_GLOBAL",
       "MESSAGE_BOX",
       "confirm",
       "Delete?",
       { onClose: "ANSWERED" },
     ]);
-    expect(calls).toEqual([
-      ["box.confirm", "Delete?", { onClose: "ANSWERED" }],
-    ]);
+    expect(calls).toHaveLength(1);
+    const [name, text, opts] = calls[0];
+    expect([name, text]).toEqual(["box.confirm", "Delete?"]);
+    // the ONCLOSE event name was turned into the callback that round-trips
+    // the pressed action through eB (outside the event array - see
+    // actions/ControlCall showBox)
+    opts.onClose("OK");
+    expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
 
   test("ROUTER/sync hands the whole options object to the router", () => {

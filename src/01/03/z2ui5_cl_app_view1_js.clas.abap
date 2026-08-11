@@ -111,8 +111,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      // Runs once after each roundtrip's view has been rendered, in two` && |\n| &&
              `      // named phases: display pending fragments/views, then update the` && |\n| &&
-             `      // browser history/hash.` && |\n| &&
-             `      async _processAfterRendering() {` && |\n| &&
+             `      // browser history/hash. ``reqSeq`` is the stamp of the request the` && |\n| &&
+             `      // response being processed belongs to (Server.responseSuccess); the` && |\n| &&
+             `      // onAfterRendering entry above has none and falls back to the newest.` && |\n| &&
+             `      async _processAfterRendering(reqSeq) {` && |\n| &&
              `        // Hoisted out of the try block: the finally below must run the` && |\n| &&
              `        // follow-up JS of exactly THIS response. Re-reading the shared` && |\n| &&
              `        // AppState.state.oResponse there would - after a parallel request` && |\n| &&
@@ -131,7 +133,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // the display phase re-checks it, so a response superseded by a` && |\n| &&
              `          // parallel request (check_allow_multi_req, Back/Forward restore)` && |\n| &&
              `          // never attaches popups/nested views the backend no longer knows.` && |\n| &&
-             `          const seq = Server._requestSeq;` && |\n| &&
+             `          const seq = reqSeq ?? Server._requestSeq;` && |\n| &&
              `          await this._runSystemActions(oResponse, seq);` && |\n| &&
              `          // The app may have been torn down (reset / FLP re-launch) while the` && |\n| &&
              `          // pending views loaded; don't mutate history or fire onAfterRendering` && |\n| &&
@@ -168,7 +170,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          for (const item of systemJs) {` && |\n| &&
              `            if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `            await Server._runSystemJs(item, this);` && |\n| &&
+             `            await FrontendAction.runSystem(item, this);` && |\n| &&
              `          }` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._systemSeq = undefined;` && |\n| &&
@@ -227,13 +229,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        return Server._viewBuild;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // eFS = "event frontend, system": the SYSTEM phase counterpart of eF.` && |\n| &&
-             `      // It returns the handler's result so an async display can be awaited,` && |\n| &&
-             `      // and lets errors propagate - see FrontendAction.executeSystem.` && |\n| &&
-             `      eFS(...args) {` && |\n| &&
-             `        return FrontendAction.executeSystem(this, args);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
              `      // Runs once per roundtrip, after the view has rendered.` && |\n| &&
              `      _runPendingCustomJs(oResponse) {` && |\n| &&
@@ -242,7 +237,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!customJs) return;` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        for (const item of customJs) {` && |\n| &&
-             `          Server._runCustomJs(item, this);` && |\n| &&
+             `          FrontendAction.runCustom(item, this);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -424,13 +419,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        FrontendAction.execute(this, args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n|.
-    result = result &&
+             `      // ------------------------------------------------------------------` && |\n| &&
              `      // eBP = "event backend, prevent default": cancels the control's` && |\n| &&
              `      // built-in default for this event and then round-trips exactly like` && |\n| &&
              `      // eB. The backend emits it (instead of eB) for an event registered` && |\n| &&
              `      // with s_ctrl-check_prevent_default, passing $event as the first` && |\n| &&
-             `      // argument - preventDefault() only works synchronously inside the` && |\n| &&
+             `      // argument - preventDefault() only works synchronously inside the` && |\n|.
+    result = result &&
              `      // handler, so it cannot be a follow-up action from the response.` && |\n| &&
              `      // Example: sap.tnt NavigationListItem.press, where cancelling the` && |\n| &&
              `      // default suppresses the item selection and leaves the decision to` && |\n| &&

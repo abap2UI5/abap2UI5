@@ -48,86 +48,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Quote characters recognised by the eF( ) argument parser below, built` && |\n| &&
-             `    // from char codes so both quote kinds are declared symmetrically and` && |\n| &&
-             `    // stand out from the surrounding string literals.` && |\n| &&
-             `    const CH_SQUOTE = String.fromCharCode(39);` && |\n| &&
-             `    const CH_DQUOTE = String.fromCharCode(34);` && |\n| &&
-             `` && |\n| &&
-             `    // Undo the escapes the backend applies to a single-quoted argument` && |\n| &&
-             `    // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the` && |\n| &&
-             `    // line breaks it rewrites to \n / \r - a raw newline would be a syntax` && |\n| &&
-             `    // error inside a JS string literal, so a multi-line argument only ever` && |\n| &&
-             `    // travels escaped. Decoding them in one pass keeps the order right: a` && |\n| &&
-             `    // literal backslash-n ("\\n" on the wire) stays text instead of turning` && |\n| &&
-             `    // into a line break.` && |\n| &&
-             `    const EF_UNESCAPE = { n: "\n", r: "\r" };` && |\n| &&
-             `    function unescapeEfString(body) {` && |\n| &&
-             `      return body.replace(/\\(.)/g, (match, ch) => EF_UNESCAPE[ch] ?? ch);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Convert a single JS-literal argument (as produced by the backend` && |\n| &&
-             `    // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,` && |\n| &&
-             `    // JSON objects / arrays, numbers, booleans and null.` && |\n| &&
-             `    function parseEfValue(token) {` && |\n| &&
-             `      if (token === "") return undefined;` && |\n| &&
-             `      const first = token[0];` && |\n| &&
-             `      if (first === CH_SQUOTE) {` && |\n| &&
-             `        return unescapeEfString(token.slice(1, -1));` && |\n| &&
-             `      }` && |\n| &&
-             `      if (first === CH_DQUOTE || first === "{" || first === "[") {` && |\n| &&
-             `        try {` && |\n| &&
-             `          return JSON.parse(token);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          return token;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (token === "true") return true;` && |\n| &&
-             `      if (token === "false") return false;` && |\n| &&
-             `      if (token === "null") return null;` && |\n| &&
-             `      if (token === "undefined") return undefined;` && |\n| &&
-             `      const num = Number(token);` && |\n| &&
-             `      return Number.isNaN(num) ? token : num;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Split the argument list of an eF( ) call into its top-level arguments,` && |\n| &&
-             `    // respecting nested (), {}, [] and quoted strings, and convert each one` && |\n| &&
-             `    // to a value. Done manually (no eval / Function) so it works under a` && |\n| &&
-             `    // strict Content-Security-Policy without unsafe-eval, while keeping` && |\n| &&
-             `    // object, array and quoted-string arguments intact.` && |\n| &&
-             `    function parseEfArgs(str) {` && |\n| &&
-             `      const args = [];` && |\n| &&
-             `      let depth = 0;` && |\n| &&
-             `      let quote = null;` && |\n| &&
-             `      let token = "";` && |\n| &&
-             `      for (let i = 0; i < str.length; i++) {` && |\n| &&
-             `        const ch = str[i];` && |\n| &&
-             `        if (quote) {` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `          if (ch === "\\" && i + 1 < str.length) token += str[++i];` && |\n| &&
-             `          else if (ch === quote) quote = null;` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (ch === CH_SQUOTE || ch === CH_DQUOTE) {` && |\n| &&
-             `          quote = ch;` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `        } else if (ch === "{" || ch === "[" || ch === "(") {` && |\n| &&
-             `          depth++;` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `        } else if (ch === "}" || ch === "]" || ch === ")") {` && |\n| &&
-             `          depth--;` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `        } else if (ch === "," && depth === 0) {` && |\n| &&
-             `          args.push(parseEfValue(token.trim()));` && |\n| &&
-             `          token = "";` && |\n| &&
-             `        } else {` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (token.trim() !== "") args.push(parseEfValue(token.trim()));` && |\n| &&
-             `      return args;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    // Last-resort client-side timeout for backend roundtrips. Infrastructure` && |\n| &&
              `    // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and` && |\n| &&
              `    // surface as a regular error response; this backstop only ensures that a` && |\n| &&
@@ -168,23 +88,24 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //                     "ComponentData": {...} }` && |\n| &&
              `    //   } } }` && |\n| &&
              `    //` && |\n| &&
-             `    // Wire format - response:` && |\n| &&
+             `    // Wire format - response. PARAMS carries nothing but the action lists:` && |\n| &&
+             `    // every view build, teardown, model push and history update is an` && |\n| &&
+             `    // action, run by View1/FrontendAction in the documented order.` && |\n| &&
              `    //   { "S_FRONT": {` && |\n| &&
              `    //       "ID": "<new draft id>",        // sent back with the next request` && |\n| &&
+             `    //       "APP": "<app class name>",     // rendered app, for the router` && |\n| &&
              `    //       "PARAMS": {` && |\n| &&
-             `    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },` && |\n| &&
              `    //         "S_ACTION": {` && |\n| &&
              `    //           // SYSTEM: the framework's own view-lifecycle calls, run` && |\n| &&
-             `    //           // first, in order, before the view is rendered` && |\n| &&
+             `    //           // first, in order, before the view is rendered; the` && |\n| &&
+             `    //           // ROUTER/sync call is always queued last` && |\n| &&
              `    //           "T_SYSTEM": [` && |\n| &&
              `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",` && |\n| &&
              `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"` && |\n| &&
              `    //           ],` && |\n| &&
              `    //           // APP: what the app queued, run last, once the DOM exists` && |\n| &&
              `    //           "T_CUSTOM": ["[\"SET_FOCUS\",\"id1\"]"]` && |\n| &&
-             `    //         },` && |\n| &&
-             `    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",` && |\n| &&
-             `    //         "SET_NAV_BACK": ""           // browser/history follow-ups` && |\n| &&
+             `    //         }` && |\n| &&
              `    //       }` && |\n| &&
              `    //     },` && |\n| &&
              `    //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes` && |\n| &&
@@ -424,8 +345,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // until the user scrolls the next time.` && |\n| &&
              `        if (this._lastScrollTarget && !this._lastScrollTarget.isConnected) {` && |\n| &&
              `          this._lastScrollTarget = undefined;` && |\n| &&
-             `          this._lastScrollUi5El = undefined;` && |\n|.
-    result = result &&
+             `          this._lastScrollUi5El = undefined;` && |\n| &&
              `          this._lastScrollSlotKey = undefined;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -504,7 +424,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
              `        if (!oBody.MODEL) delete oBody.MODEL;` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `        this.readHttp(oBody);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -713,7 +634,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // The backend can send follow-up actions to run after the response.` && |\n| &&
              `          // Each entry is a JSON array ["EVENT", ...args] (framework actions,` && |\n| &&
              `          // pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
-             `          // expression - see _runCustomJs. They are stashed` && |\n| &&
+             `          // expression - see FrontendAction.runCustom. They are stashed` && |\n| &&
              `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&
              `          // the (possibly freshly built) view is actually rendered. Running` && |\n| &&
              `          // them earlier would break render-dependent actions such as` && |\n| &&
@@ -732,8 +653,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // and it cannot be, once the rebuild is one of the actions they run.` && |\n| &&
              `          // It stays harmless - _processAfterRendering marks the response as` && |\n| &&
              `          // processed before the first action, so the render it causes finds` && |\n| &&
-             `          // nothing left to do.` && |\n| &&
-             `          oController._processAfterRendering();` && |\n| &&
+             `          // nothing left to do. The request stamp rides along so the display` && |\n| &&
+             `          // guards compare against THIS response's request, not whatever is` && |\n| &&
+             `          // newest by the time processing starts.` && |\n| &&
+             `          oController._processAfterRendering(reqSeq);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          AppState.state.isBusy = false;` && |\n| &&
@@ -776,72 +699,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        this.responseError(err);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Executes a single follow-up action / custom-JS snippet from the backend.` && |\n| &&
-             `      // Format A:  a JSON array ["EVENT", ...args] - the structured form the` && |\n| &&
-             `      //            backend (z2ui5_cl_core_srv_event=>get_event_client_json)` && |\n| &&
-             `      //            emits for every framework follow-up action. Pure data,` && |\n| &&
-             `      //            serialized and escaped entirely in ABAP; dispatched via` && |\n| &&
-             `      //            oController.eF( ) after a single JSON.parse - no code is` && |\n| &&
-             `      //            parsed or evaluated on this path.` && |\n| &&
-             `      // Format B:  a structured eF( ) frontend-event call - the legacy wire` && |\n| &&
-             `      //            format, still produced by apps that pass raw "eF(...)"` && |\n| &&
-             `      //            strings to follow_up_action. Its argument list is parsed` && |\n| &&
-             `      //            manually (no eval / Function) so it runs under a strict` && |\n| &&
-             `      //            CSP while keeping object / array / string arguments intact.` && |\n| &&
-             `      // Format C:  a raw expression such as alert(123) - needs a CSP that` && |\n| &&
-             `      //            allows unsafe-eval, otherwise it is a no-op.` && |\n| &&
-             `      // Run one SYSTEM action. Unlike _runCustomJs there are no legacy` && |\n| &&
-             `      // formats to support - a system action is always framework-generated` && |\n| &&
-             `      // and therefore always a JSON array - and no catch: a failing view` && |\n| &&
-             `      // display has to reach _processAfterRendering, which turns it into the` && |\n| &&
-             `      // fatal overlay instead of leaving the app half-built.` && |\n| &&
-             `      _runSystemJs(item, oController) {` && |\n| &&
-             `        let args;` && |\n| &&
-             `        try {` && |\n| &&
-             `          args = JSON.parse(item);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``systemJs: '${item}' is no action payload``, e);` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!Array.isArray(args)) {` && |\n| &&
-             `          Lib.logError(``systemJs: '${item}' is no action payload``);` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `        return oController.eFS(...args);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _runCustomJs(item, oController) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const snippet = item.trim();` && |\n| &&
-             `          if (snippet.startsWith("[")) {` && |\n| &&
-             `            // JSON array -> structured follow-up action. A raw-JS expression` && |\n| &&
-             `            // that merely starts with "[" is no JSON array, so it fails the` && |\n| &&
-             `            // parse and falls through to the legacy formats below.` && |\n| &&
-             `            try {` && |\n| &&
-             `              const args = JSON.parse(snippet);` && |\n| &&
-             `              if (Array.isArray(args)) {` && |\n| &&
-             `                oController.eF(...args);` && |\n| &&
-             `                return;` && |\n| &&
-             `              }` && |\n| &&
-             `            } catch {` && |\n|.
-    result = result &&
-             `              // not JSON - keep going with the legacy formats` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `          const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);` && |\n| &&
-             `          if (match) {` && |\n| &&
-             `            oController.eF(...parseEfArgs(match[1]));` && |\n| &&
-             `          } else {` && |\n| &&
-             `            // A raw JavaScript expression - only runs when the CSP allows` && |\n| &&
-             `            // unsafe-eval.` && |\n| &&
-             `            // eslint-disable-next-line no-new-func` && |\n| &&
-             `            Function("return " + item)();` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("customJs: execution failed", e);` && |\n| &&
-             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Terminate the roundtrip in an unrecoverable state: clear the busy` && |\n| &&
