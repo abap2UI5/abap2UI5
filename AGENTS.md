@@ -596,6 +596,18 @@ The following items may look like gaps but are intentional design choices:
 - **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_app_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
 - **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_core_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
+- **An app implements `z2ui5_if_app` — there is deliberately NO app base
+  class, and the dispatcher boilerplate is accepted.** Every app hand-writes
+  the same `main( )` lifecycle branching (`check_on_init` / `check_on_event`
+  / `check_on_navigated`) plus its `client` member — measured in the
+  ai-demokit corpus as ~4.4k lines of identical ceremony across 366 classes.
+  A proposal for an optional abstract `z2ui5_cl_app` with
+  `on_init`/`on_event`/`on_navigated` hooks (plain inheritance, 702-safe,
+  purely additive) was made and **declined 2026-08-11**: it is too much
+  overhead for the gain — the app contract stays ONE interface, with no
+  inheritance chain, no base-class lifecycle to learn and no second way to
+  write an app. Do not add a base class, do not add lifecycle hooks to
+  `z2ui5_if_app`, and do not report the repeated dispatcher as duplication.
 - **Named frontend-action wrappers belong in a future ACTION OBJECT, not on
   `z2ui5_if_client` — parked, do not re-add them to the interface.** A set of
   named convenience methods over the positional `t_arg` wire (`toast_client`,
