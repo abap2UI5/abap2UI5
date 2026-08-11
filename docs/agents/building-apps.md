@@ -254,6 +254,19 @@ ships for existing apps but is **frozen** — new apps and new code use
   method on a control), `binding_call` (filter/sort an aggregation binding).
   The full catalog with per-action `t_arg` documentation sits on
   `z2ui5_if_client=>follow_up_action` and in `cs_event`.
+- **Prefer the named wrappers for the high-frequency kinds** — they emit a
+  byte-identical wire but replace the positional `t_arg` tuple with
+  compiler-checked parameter names:
+  `client->toast_client( template = `Item selected: \{0\}`
+  t_arg = VALUE #( ( `${$parameters>/item}.getText()` ) ) )` (client-composed
+  toast), `client->control_call( id = … method = … t_arg = … view = … )` /
+  `client->control_call_client( … )` (control method by id, roundtrip /
+  handler-string form), `client->binding_filter( id = … path = …
+  operator = … value1 = … )` / `client->binding_sort( id = … path = …
+  descending = … )` and their `…_client` twins (aggregation-binding
+  filter/sort). The generic `follow_up_action` / `_event_client` stay the
+  escape hatch for every kind without a named form (compound filter groups,
+  rare actions).
 
 ## 6. Popups, popovers, messages
 

@@ -485,6 +485,101 @@ INTERFACE z2ui5_if_client
       view  TYPE clike        DEFAULT cs_view-main
       t_arg TYPE string_table OPTIONAL.
 
+  "! Named wrapper over _event_client for the client-composed MessageToast
+  "! (CONTROL_GLOBAL / MESSAGE_TOAST / show) - the roundtrip-free toast whose
+  "! text is composed on the client. Returns the handler string for a view
+  "! event attribute. template may carry \{0\}/\{1\}... placeholders, filled by
+  "! the resolved t_arg values; each arg is a full UI5 expression like every
+  "! event arg (`${$parameters>/item}.getText()`, `$event.oSource.sId`,
+  "! `${COLUMN}`). Emits exactly the t_arg tuple the generic API takes
+  "! (object, method, template, args) - same wire, byte-identical handler.
+  METHODS toast_client
+    IMPORTING
+      template      TYPE clike
+      t_arg         TYPE string_table OPTIONAL
+    RETURNING
+      VALUE(result) TYPE string.
+
+  "! Named wrapper over follow_up_action for a control method call by id
+  "! (CONTROL_BY_ID): id, method and view are named parameters instead of
+  "! positional t_arg slots; t_arg holds only the method's own arguments.
+  "! Same wire and same rules as the generic form - the frontend allow/deny
+  "! list, the declared argument kinds of listed methods, and the
+  "! aggregation-item addressing `id/aggregation/index` all apply unchanged.
+  METHODS control_call
+    IMPORTING
+      id     TYPE clike
+      method TYPE clike
+      t_arg  TYPE string_table OPTIONAL
+      view   TYPE clike        DEFAULT cs_view-main.
+
+  "! The roundtrip-free twin of control_call: the same CONTROL_BY_ID wire
+  "! built as a view event handler via _event_client; returns the handler
+  "! string for a view event attribute.
+  METHODS control_call_client
+    IMPORTING
+      id            TYPE clike
+      method        TYPE clike
+      t_arg         TYPE string_table OPTIONAL
+      view          TYPE clike        DEFAULT cs_view-main
+    RETURNING
+      VALUE(result) TYPE string.
+
+  "! Named wrapper over follow_up_action for the declarative aggregation-
+  "! binding filter (BINDING_CALL / filter) - the client-side equivalent of
+  "! the controller pattern getBinding('items').filter(...); the model data
+  "! stays untouched. Empty operator/values clear the filter. For compound
+  "! filter groups keep the generic follow_up_action form with its JSON
+  "! object t_arg.
+  METHODS binding_filter
+    IMPORTING
+      id          TYPE clike
+      aggregation TYPE clike DEFAULT `items`
+      path        TYPE clike
+      operator    TYPE clike OPTIONAL
+      value1      TYPE clike OPTIONAL
+      value2      TYPE clike OPTIONAL.
+
+  "! The roundtrip-free twin of binding_filter: the same BINDING_CALL wire
+  "! built as a view event handler via _event_client; returns the handler
+  "! string. A $-prefixed value (`${$parameters>/query}`) is resolved on the
+  "! client when the event fires.
+  METHODS binding_filter_client
+    IMPORTING
+      id            TYPE clike
+      aggregation   TYPE clike DEFAULT `items`
+      path          TYPE clike
+      operator      TYPE clike OPTIONAL
+      value1        TYPE clike OPTIONAL
+      value2        TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE string.
+
+  "! Named wrapper over follow_up_action for the declarative aggregation-
+  "! binding sort (BINDING_CALL / sort). Sort state applied this way lives on
+  "! the client's aggregation binding only - it does not survive a view
+  "! rebuild (see the generic API's notes).
+  METHODS binding_sort
+    IMPORTING
+      id          TYPE clike
+      aggregation TYPE clike DEFAULT `items`
+      path        TYPE clike
+      descending  TYPE abap_bool DEFAULT abap_false
+      group       TYPE abap_bool DEFAULT abap_false.
+
+  "! The roundtrip-free twin of binding_sort: the same BINDING_CALL wire
+  "! built as a view event handler via _event_client; returns the handler
+  "! string.
+  METHODS binding_sort_client
+    IMPORTING
+      id            TYPE clike
+      aggregation   TYPE clike DEFAULT `items`
+      path          TYPE clike
+      descending    TYPE abap_bool DEFAULT abap_false
+      group         TYPE abap_bool DEFAULT abap_false
+    RETURNING
+      VALUE(result) TYPE string.
+
   METHODS check_on_event
     IMPORTING
       val           TYPE clike OPTIONAL

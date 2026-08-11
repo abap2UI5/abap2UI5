@@ -12,6 +12,18 @@ Legend
 
 unreleased
 ----------
++ named frontend-action wrappers: toast_client( template, t_arg ) for the
+  client-composed MessageToast, control_call( id, method, t_arg, view ) and
+  control_call_client( ) for a CONTROL_BY_ID method call, binding_filter( ) /
+  binding_sort( ) and their _client twins for the declarative BINDING_CALL
+  filter/sort. Each wrapper only assembles the positional t_arg tuple of the
+  generic API and delegates to follow_up_action/_event_client, so the wire is
+  byte-identical (unit-tested as such) and every rule of the generic form
+  (frontend allow/deny list, argument kinds, aggregation-item addressing)
+  applies unchanged - the gain is that the tuple order and the wire tokens
+  (MESSAGE_TOAST, filter/sort params) move out of the app code and behind
+  compiler-checked parameter names. The generic follow_up_action /
+  _event_client stay the escape hatch for every kind without a named form
 + set_model_auto_update( ): opt an app in to automatic model updates. Called
   once in check_on_init (remembered on the app, like set_nav_routing), the
   framework then compares the model state before main( ) - taken after the

@@ -464,6 +464,106 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~toast_client.
+
+    " like every named wrapper below: only assemble the positional t_arg
+    " tuple of the generic frontend-action API and delegate - the wire stays
+    " byte-identical, the generic follow_up_action/_event_client remain the
+    " escape hatch for every kind without a named form
+    result = z2ui5_if_client~_event_client(
+                 val   = z2ui5_if_client=>cs_event-control_global
+                 t_arg = VALUE #( ( `MESSAGE_TOAST` )
+                                  ( `show` )
+                                  ( CONV string( template ) )
+                                  ( LINES OF t_arg ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~control_call.
+
+    z2ui5_if_client~follow_up_action(
+        val   = z2ui5_if_client=>cs_event-control_by_id
+        view  = view
+        t_arg = VALUE #( ( CONV string( id ) )
+                         ( CONV string( method ) )
+                         ( LINES OF t_arg ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~control_call_client.
+
+    result = z2ui5_if_client~_event_client(
+                 val   = z2ui5_if_client=>cs_event-control_by_id
+                 view  = view
+                 t_arg = VALUE #( ( CONV string( id ) )
+                                  ( CONV string( method ) )
+                                  ( LINES OF t_arg ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~binding_filter.
+
+    z2ui5_if_client~follow_up_action(
+        val   = z2ui5_if_client=>cs_event-binding_call
+        t_arg = VALUE #( ( CONV string( id ) )
+                         ( CONV string( aggregation ) )
+                         ( `filter` )
+                         ( CONV string( path ) )
+                         ( CONV string( operator ) )
+                         ( CONV string( value1 ) )
+                         ( CONV string( value2 ) ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~binding_filter_client.
+
+    result = z2ui5_if_client~_event_client(
+                 val   = z2ui5_if_client=>cs_event-binding_call
+                 t_arg = VALUE #( ( CONV string( id ) )
+                                  ( CONV string( aggregation ) )
+                                  ( `filter` )
+                                  ( CONV string( path ) )
+                                  ( CONV string( operator ) )
+                                  ( CONV string( value1 ) )
+                                  ( CONV string( value2 ) ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~binding_sort.
+
+    " the descending/group flags travel as the wire's `X`/`` string tokens -
+    " the char->string conversion renders abap_false as the empty string
+    z2ui5_if_client~follow_up_action(
+        val   = z2ui5_if_client=>cs_event-binding_call
+        t_arg = VALUE #( ( CONV string( id ) )
+                         ( CONV string( aggregation ) )
+                         ( `sort` )
+                         ( CONV string( path ) )
+                         ( CONV string( descending ) )
+                         ( CONV string( group ) ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~binding_sort_client.
+
+    result = z2ui5_if_client~_event_client(
+                 val   = z2ui5_if_client=>cs_event-binding_call
+                 t_arg = VALUE #( ( CONV string( id ) )
+                                  ( CONV string( aggregation ) )
+                                  ( `sort` )
+                                  ( CONV string( path ) )
+                                  ( CONV string( descending ) )
+                                  ( CONV string( group ) ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~set_nav_back.
 
     mo_action->ms_next-s_set-set_nav_back = val.
