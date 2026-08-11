@@ -33,11 +33,10 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `  [` && |\n| &&
              `    "sap/m/MessageBox",` && |\n| &&
              `    "sap/m/MessageToast",` && |\n| &&
-             `    "sap/ui/core/Popup",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
-             `  (MessageBox, MessageToast, Popup, Lib, ViewSlots) => {` && |\n| &&
+             `  (MessageBox, MessageToast, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Parse a value as integer milliseconds, falling back to ``fallback``` && |\n| &&
@@ -46,23 +45,6 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    function parseMs(val, fallback) {` && |\n| &&
              `      const parsed = Number(val);` && |\n| &&
              `      return val && Number.isFinite(parsed) ? parsed : fallback;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Resolve a dock position ("center bottom", "begin top", ...) to the` && |\n| &&
-             `    // sap.ui.core.Popup.Dock value of the running UI5 version. Older UI5` && |\n| &&
-             `    // keeps the jQuery-style "center bottom" spelling, newer UI5 switched` && |\n| &&
-             `    // the enum to "CenterBottom" (and rejects the old form in MessageToast's` && |\n| &&
-             `    // dock validation with a console error). Looking the position up by its` && |\n| &&
-             `    // PascalCase key returns whichever spelling this version expects, so the` && |\n| &&
-             `    // value validates on both. Unknown values are passed through unchanged.` && |\n| &&
-             `    function toDockValue(pos) {` && |\n| &&
-             `      if (!pos) return pos;` && |\n| &&
-             `      const key = pos` && |\n| &&
-             `        .trim()` && |\n| &&
-             `        .split(/\s+/)` && |\n| &&
-             `        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())` && |\n| &&
-             `        .join("");` && |\n| &&
-             `      return Popup.Dock[key] || pos;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showToast(msg, oController) {` && |\n| &&
@@ -87,8 +69,16 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `      // the lift, so a bare toast would sit lower than a native MessageToast.show().` && |\n| &&
              `      // Omitting them lets UI5 own the defaults, so we never mirror (and drift from)` && |\n| &&
              `      // its internal values.` && |\n| &&
-             `      if (msg.MY) mOptions.my = toDockValue(msg.MY);` && |\n| &&
-             `      if (msg.AT) mOptions.at = toDockValue(msg.AT);` && |\n| &&
+             `      // my/at are passed through as the app spelled them. Both the jQuery-style` && |\n| &&
+             `      // "center bottom" and the enum-style "CenterBottom" position correctly on` && |\n| &&
+             `      // every supported release: sap.ui.core.Popup normalizes PascalCase to the` && |\n| &&
+             `      // spaced form (convertDockEnum) and passes anything else through to` && |\n| &&
+             `      // jQuery UI position(), which takes the spaced form natively. Only` && |\n| &&
+             `      // MessageToast's own validation logs (does not reject) the spelling the` && |\n| &&
+             `      // running version does not list - the same console line the original UI5` && |\n| &&
+             `      // sample produces for the same value.` && |\n| &&
+             `      if (msg.MY) mOptions.my = msg.MY;` && |\n| &&
+             `      if (msg.AT) mOptions.at = msg.AT;` && |\n| &&
              `      if (msg.OF) mOptions.of = msg.OF;` && |\n| &&
              `      if (msg.OFFSET) mOptions.offset = msg.OFFSET;` && |\n| &&
              `      if (msg.COLLISION) mOptions.collision = msg.COLLISION;` && |\n| &&
