@@ -97,7 +97,6 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF ty_s_nav,
       set_app_state_active  TYPE abap_bool,
       set_push_state        TYPE string,
-      set_nav_back          TYPE abap_bool,
       " Hash-based app routing (UI5 Router style): when active, the frontend
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash

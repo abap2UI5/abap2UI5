@@ -276,9 +276,10 @@ ships for existing apps but is **frozen** — new apps and new code use
 - Call another app: `client->nav_app_call( NEW zcl_other_app( ) )`; return
   with `client->nav_app_leave( )` (or `client->get_app_prev( )` to hand data
   back). The framework keeps the app stack across roundtrips.
-- URL routing: `client->set_nav_routing( )` in `check_on_init` makes the app
-  bookmarkable and wires the browser Back/Forward buttons —
-  `cs_nav_mode-keep` (default) restores the exact draft state,
+- URL routing: `client->follow_up_action( val = z2ui5_if_client=>cs_event-set_nav_routing )`
+  in `check_on_init` makes the app bookmarkable and wires the browser
+  Back/Forward buttons — the mode rides in `t_arg`: `cs_nav_mode-keep` (the
+  default when `t_arg` is empty) restores the exact draft state,
   `cs_nav_mode-fresh` restarts clean. Works inside the Fiori Launchpad.
 
 ## 8. Rules that keep apps portable

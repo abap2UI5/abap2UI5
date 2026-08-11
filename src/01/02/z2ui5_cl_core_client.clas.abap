@@ -44,6 +44,37 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
+    " These three configure how the browser URL has to look after this
+    " roundtrip. Router derives ONE outcome from all of them together, so they
+    " are collected here and leave as options of the single ROUTER/sync call
+    " main_end( ) queues - never as actions of their own, which would make the
+    " router run several times and fight over the same hash.
+    DATA(lv_arg) = VALUE string( t_arg[ 1 ] OPTIONAL ).
+
+    CASE val.
+      WHEN z2ui5_if_client=>cs_event-set_nav_routing.
+        " the mode is remembered on the app as well, so every later response
+        " of this app carries it again ( z2ui5_cl_core_app=>mv_nav_mode ), an
+        " app called via nav_app_call inherits it, and a draft restored later
+        " still knows how it was routed
+        IF lv_arg IS INITIAL.
+          lv_arg = z2ui5_if_client=>cs_nav_mode-keep.
+        ENDIF.
+        mo_action->ms_next-s_nav-set_nav_routing = lv_arg.
+        mo_action->mo_app->mv_nav_mode           = lv_arg.
+        RETURN.
+
+      WHEN z2ui5_if_client=>cs_event-set_push_state.
+        mo_action->ms_next-s_nav-set_push_state = lv_arg.
+        RETURN.
+
+      WHEN z2ui5_if_client=>cs_event-set_app_state_active.
+        " an empty argument list switches it ON - a single space is how an
+        " app switches it off again, since an empty t_arg cannot say `false`
+        mo_action->ms_next-s_nav-set_app_state_active = xsdbool( lv_arg <> ` ` ).
+        RETURN.
+    ENDCASE.
+
 
     IF result IS SUPPLIED.
 
@@ -437,33 +468,19 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_nav_back.
-
-    mo_action->ms_next-s_nav-set_nav_back = val.
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~set_push_state.
 
-    mo_action->ms_next-s_nav-set_push_state = val.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~set_nav_routing.
-
-    mo_action->ms_next-s_nav-set_nav_routing = mode.
-    " remember the mode on the app so every later response of this app carries
-    " it again - see z2ui5_cl_core_app=>mv_nav_mode
-    mo_action->mo_app->mv_nav_mode = mode.
+    z2ui5_if_client~follow_up_action( val   = z2ui5_if_client=>cs_event-set_push_state
+                                      t_arg = VALUE #( ( val ) ) ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~set_app_state_active.
 
-    mo_action->ms_next-s_nav-set_app_state_active = val.
+    z2ui5_if_client~follow_up_action(
+        val   = z2ui5_if_client=>cs_event-set_app_state_active
+        t_arg = VALUE #( ( COND string( WHEN val = abap_true THEN abap_true ELSE ` ` ) ) ) ).
 
   ENDMETHOD.
 

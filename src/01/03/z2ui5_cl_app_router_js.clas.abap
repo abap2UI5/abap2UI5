@@ -248,7 +248,7 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    // Point the CALLING app's history entry at the draft the backend saved` && |\n| &&
-             `    // for it during this very nav_app_call (PARAMS.NAV_APP_CALL_PREV_*).` && |\n| &&
+             `    // for it during this very nav_app_call (the navAppCallPrev* options).` && |\n| &&
              `    // That draft carries every client-side change the user made since the` && |\n| &&
              `    // caller last rendered - two-way bound switches, checkboxes, input - all` && |\n| &&
              `    // of which travelled to the backend with the event that triggered the` && |\n| &&
@@ -259,10 +259,10 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `    // replaceHash updates it in place and leaves the history depth alone.` && |\n| &&
              `    // KEEP mode only - a FRESH route carries no draft and always restarts` && |\n| &&
              `    // the app anyway.` && |\n| &&
-             `    function repointCallerEntry(PARAMS, draftForRoute) {` && |\n| &&
+             `    function repointCallerEntry(mOptions, draftForRoute) {` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
-             `      const prevApp = PARAMS.NAV_APP_CALL_PREV_APP;` && |\n| &&
-             `      const prevDraft = PARAMS.NAV_APP_CALL_PREV_ID;` && |\n| &&
+             `      const prevApp = mOptions.navAppCallPrevApp;` && |\n| &&
+             `      const prevDraft = mOptions.navAppCallPrevId;` && |\n| &&
              `      if (!draftForRoute || !prevApp || !prevDraft) return;` && |\n| &&
              `      const prevRoute = patternFor(prevApp, prevDraft);` && |\n| &&
              `      if (getHash() === prevRoute) return;` && |\n| &&
@@ -286,9 +286,9 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `    // mode follows the app the user is actually looking at - the way UI5` && |\n| &&
              `    // routing is configured once in the manifest rather than re-asserted on` && |\n| &&
              `    // every navigation.` && |\n| &&
-             `    function applyMode(PARAMS) {` && |\n| &&
-             `      if (!PARAMS.SET_NAV_ROUTING) return;` && |\n| &&
-             `      const mode = String(PARAMS.SET_NAV_ROUTING).toUpperCase();` && |\n| &&
+             `    function applyMode(mOptions) {` && |\n| &&
+             `      if (!mOptions.setNavRouting) return;` && |\n| &&
+             `      const mode = String(mOptions.setNavRouting).toUpperCase();` && |\n| &&
              `      const on = mode === "KEEP" || mode === "FRESH";` && |\n| &&
              `      AppState.state.navRouting = on;` && |\n| &&
              `      AppState.state.navMode = on ? mode : null;` && |\n| &&
@@ -296,7 +296,7 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Adopt the rendered app as the current route and write it to the hash.` && |\n| &&
              `    // Only called while routing is on and the response named an app.` && |\n| &&
-             `    function updateAppRoute(PARAMS, ID, app) {` && |\n| &&
+             `    function updateAppRoute(mOptions, ID, app) {` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
              `` && |\n| &&
              `      // In FRESH mode the route carries the class only, so every history` && |\n| &&
@@ -321,7 +321,7 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `        state.navFromHash = false;` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      if (PARAMS.SET_PUSH_STATE) return;` && |\n| &&
+             `      if (mOptions.setPushState) return;` && |\n| &&
              `` && |\n| &&
              `      // Reflect the running app in the URL as a bookmarkable route. A forward` && |\n| &&
              `      // navigation done in the backend (client->nav_app_call,` && |\n| &&
@@ -330,10 +330,10 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `      // only replaces the current (top) entry, advancing it to the app's` && |\n| &&
              `      // latest draft so a later Forward restores the newest state.` && |\n| &&
              `      const route = patternFor(app, draftForRoute);` && |\n| &&
-             `      if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
+             `      if (mOptions.checkNavAppCall) {` && |\n| &&
              `        // repoint the caller's entry first - it borrows the echo guard, so` && |\n| &&
              `        // restore it to this app before pushing the route` && |\n| &&
-             `        repointCallerEntry(PARAMS, draftForRoute);` && |\n| &&
+             `        repointCallerEntry(mOptions, draftForRoute);` && |\n| &&
              `        state.currentApp = app;` && |\n| &&
              `        state.currentDraftId = draftForRoute;` && |\n| &&
              `        navTo(route);` && |\n| &&
@@ -344,24 +344,24 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Keep the URL in sync with what was just rendered. Called once per` && |\n| &&
              `    // roundtrip from View1's after-render phase.` && |\n| &&
-             `    function sync(PARAMS, ID) {` && |\n| &&
+             `    function sync(mOptions, ID) {` && |\n| &&
              `      try {` && |\n| &&
-             `        applyMode(PARAMS);` && |\n| &&
+             `        applyMode(mOptions);` && |\n| &&
              `` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
              `        if (state.navRouting) {` && |\n| &&
              `          const app = state.oResponse?.APP;` && |\n| &&
-             `          if (app) updateAppRoute(PARAMS, ID, app);` && |\n| &&
+             `          if (app) updateAppRoute(mOptions, ID, app);` && |\n| &&
              `          // Routing owns the app-state hash; skip the legacy handling below.` && |\n| &&
-             `          if (!PARAMS.SET_PUSH_STATE) return;` && |\n| &&
+             `          if (!mOptions.setPushState) return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (PARAMS.SET_PUSH_STATE) {` && |\n| &&
+             `        if (mOptions.setPushState) {` && |\n| &&
              `          // The app pushes its own hash suffix. Build the new URL on the RAW` && |\n| &&
              `          // hash so the FLP shell hash survives - appending to the app hash` && |\n| &&
              `          // alone would rewrite "#SO-action&/x" to "#x" and strand the` && |\n| &&
              `          // launchpad.` && |\n| &&
-             `          const newUrl = ``${window.location.pathname}${window.location.search}#${getRawHash()}${PARAMS.SET_PUSH_STATE}``;` && |\n| &&
+             `          const newUrl = ``${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setPushState}``;` && |\n| &&
              `          history.pushState(null, "", newUrl);` && |\n| &&
              `          // The pushed hash IS the desired URL - stop here. The cleanup below` && |\n| &&
              `          // is a no-op while hasher's cached hash is empty (legacy mode), but` && |\n| &&
@@ -377,7 +377,7 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `        // slash and standalone hasher prepends exactly one again; inside the` && |\n| &&
              `        // FLP the shell appends the slash-less hash after "&/" - both end up` && |\n| &&
              `        // in the canonical single-slash form.` && |\n| &&
-             `        const newHash = PARAMS.SET_APP_STATE_ACTIVE` && |\n| &&
+             `        const newHash = mOptions.setAppStateActive` && |\n| &&
              `          ? ``/z2ui5-xapp-state=${ID || ""}``` && |\n| &&
              `          : "";` && |\n| &&
              `        navTo(newHash, true);` && |\n| &&

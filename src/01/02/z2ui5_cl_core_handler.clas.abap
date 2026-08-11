@@ -716,13 +716,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
             val = |NAV_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
 
-    " a requested back-navigation IS the history event the frontend already
-    " has - queued for the APP phase, so it happens once everything else this
-    " roundtrip asked for has run
-    IF ls_nav-set_nav_back = abap_true.
-      INSERT lo_srv_event->get_event_client_json( z2ui5_if_client=>cs_event-history_back )
-             INTO TABLE ms_response-s_front-params-s_action-t_custom.
-    ENDIF.
 
   ENDMETHOD.
 

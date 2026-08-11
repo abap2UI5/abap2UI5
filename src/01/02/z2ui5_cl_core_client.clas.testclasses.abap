@@ -45,6 +45,8 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_box_dependent FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_type     FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
+    METHODS test_set_nav_routing      FOR TESTING RAISING cx_static_check.
+    METHODS test_set_nav_routing_default FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_nav FOR TESTING RAISING cx_static_check.
@@ -63,7 +65,6 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_nav_leave_r_data_unbound FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
     METHODS test_set_push_state       FOR TESTING RAISING cx_static_check.
-    METHODS test_set_nav_back         FOR TESTING RAISING cx_static_check.
     METHODS test_get_event_arg        FOR TESTING RAISING cx_static_check.
     METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
@@ -401,6 +402,38 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_set_nav_routing.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " SET_NAV_ROUTING configures the app rather than calling the frontend: it
+    " is remembered on the app ( so a later response of this app, and an app
+    " that inherits from it, carry it again ) and queues no action of its own
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_nav_routing
+                                 t_arg = VALUE #( ( z2ui5_if_client=>cs_nav_mode-fresh ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
+                                        act = mo_action->ms_next-s_nav-set_nav_routing ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
+                                        act = mo_action->mo_app->mv_nav_mode ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_action-t_custom ).
+
+  ENDMETHOD.
+
+  METHOD test_set_nav_routing_default.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " an empty argument list means keep
+    li_client->follow_up_action( z2ui5_if_client=>cs_event-set_nav_routing ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
+                                        act = mo_action->mo_app->mv_nav_mode ).
+
+  ENDMETHOD.
+
   METHOD test_follow_up_action.
 
     DATA temp17 TYPE REF TO z2ui5_if_client.
@@ -719,19 +752,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_set_nav_back.
-
-    DATA temp27 TYPE REF TO z2ui5_if_client.
-    DATA li_client LIKE temp27.
-    temp27 ?= mo_client.
-
-    li_client = temp27.
-    li_client->set_nav_back( abap_true ).
-
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_nav-set_nav_back ).
-
-  ENDMETHOD.
 
   METHOD test_get_event_arg.
 

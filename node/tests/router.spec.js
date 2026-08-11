@@ -252,9 +252,9 @@ test("a non-app hash and disabled routing are both ignored", () => {
 // the response of the roundtrip that ran client->nav_app_call
 function navCallParams() {
   return {
-    CHECK_NAV_APP_CALL: true,
-    NAV_APP_CALL_PREV_APP: CALLER,
-    NAV_APP_CALL_PREV_ID: "D2",
+    checkNavAppCall: true,
+    navAppCallPrevApp: CALLER,
+    navAppCallPrevId: "D2",
   };
 }
 
@@ -304,7 +304,7 @@ test("a nav_app_call without the caller info only pushes (older backend)", () =>
   const { Router, state, writes } = loadRouter();
   state.oResponse = { APP: CALLEE };
 
-  Router.sync({ CHECK_NAV_APP_CALL: true }, "D9");
+  Router.sync({ checkNavAppCall: true }, "D9");
 
   expect(writes).toEqual([
     { op: "set", hash: `app/${CALLEE}/D9`, guard: "D9" },
@@ -340,7 +340,7 @@ test("the routing mode arrives with every response and switches modes live", () 
   });
   state.oResponse = { APP: CALLER };
 
-  Router.sync({ SET_NAV_ROUTING: "KEEP" }, "D2");
+  Router.sync({ setNavRouting: "KEEP" }, "D2");
   expect(state.navRouting).toBe(true);
   expect(state.navMode).toBe("KEEP");
   expect(writes).toEqual([
@@ -348,7 +348,7 @@ test("the routing mode arrives with every response and switches modes live", () 
   ]);
 
   // DEFAULT turns routing off again and hands the hash back to the app
-  Router.sync({ SET_NAV_ROUTING: "DEFAULT" }, "D3");
+  Router.sync({ setNavRouting: "DEFAULT" }, "D3");
   expect(state.navRouting).toBe(false);
   expect(state.navMode).toBe(null);
 });
@@ -358,7 +358,7 @@ test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
     state: { navRouting: false },
     href: `https://host/flp#${FLP_SHELL}&/app/X/D1`,
   });
-  flp.Router.sync({ SET_PUSH_STATE: "?pos=42" }, "D2");
+  flp.Router.sync({ setPushState: "?pos=42" }, "D2");
   expect(flp.pushes).toEqual([
     `/sap/z2ui5#${FLP_SHELL}&/app/X/D1?pos=42`,
   ]);
@@ -367,7 +367,7 @@ test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
     state: { navRouting: false },
     href: "https://host/sap/z2ui5#/app/X/D1",
   });
-  standalone.Router.sync({ SET_PUSH_STATE: "?pos=42" }, "D2");
+  standalone.Router.sync({ setPushState: "?pos=42" }, "D2");
   expect(standalone.pushes).toEqual(["/sap/z2ui5#/app/X/D1?pos=42"]);
 });
 
@@ -382,7 +382,7 @@ test("set_push_state survives the app-state cleanup when routing is on", () => {
     href: `https://host/sap/z2ui5#/app/${CALLER}/D1`,
   });
   Router.sync(
-    { SET_PUSH_STATE: "?pos=42", APP: CALLER, SET_NAV_ROUTING: "KEEP" },
+    { setPushState: "?pos=42", APP: CALLER, setNavRouting: "KEEP" },
     "D1",
   );
   expect(pushes).toEqual([`/sap/z2ui5#/app/${CALLER}/D1?pos=42`]);
@@ -393,7 +393,7 @@ test("the app-state hash reaches the HashChanger slash-less too", () => {
   // hasher prepends the one canonical "/" - the live URL becomes
   // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes
   const { Router, writes } = loadRouter({ state: { navRouting: false } });
-  Router.sync({ SET_APP_STATE_ACTIVE: true }, "ABC");
+  Router.sync({ setAppStateActive: true }, "ABC");
   expect(writes).toEqual([
     { op: "replace", hash: "z2ui5-xapp-state=ABC", guard: "D1" },
   ]);
@@ -420,4 +420,24 @@ test("routes with stacked leading slashes still parse (old history entries)", ()
     draft: "D9",
   });
   expect(Router.appOf(`//app/${CALLEE}`)).toBe(CALLEE);
+});
+
+// The option names are a contract with the backend: z2ui5_cl_core_handler=>
+// nav_action_serialize writes exactly these keys into the ROUTER/sync call.
+// A rename on either side silently disables routing - the router would read
+// undefined everywhere and simply do nothing - so pin the set here.
+test("reads exactly the option names the backend writes", () => {
+  const src = require("fs").readFileSync(
+    require("path").join(__dirname, "..", "..", "app", "webapp", "core", "Router.js"),
+    "utf8",
+  );
+  const read = [...src.matchAll(/mOptions\.([a-zA-Z]+)/g)].map((m) => m[1]);
+  expect([...new Set(read)].sort()).toEqual([
+    "checkNavAppCall",
+    "navAppCallPrevApp",
+    "navAppCallPrevId",
+    "setAppStateActive",
+    "setNavRouting",
+    "setPushState",
+  ]);
 });
