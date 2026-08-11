@@ -93,14 +93,20 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // malformed-XML load has always propagated to _processAfterRendering and` && |\n| &&
              `    // surfaced the fatal "App Terminated" overlay rather than leaving the app` && |\n| &&
              `    // half-built behind a log line.` && |\n| &&
-             `    function executeSystem(oController, args) {` && |\n| &&
+             `    //` && |\n| &&
+             `    // ``ctx`` is the action context: today it carries ``seq``, the stamp of the` && |\n| &&
+             `    // request the processed response belongs to, which the VIEW_SLOTS` && |\n| &&
+             `    // display path needs to discard builds a newer request superseded. It is` && |\n| &&
+             `    // threaded through the dispatch as an argument - never parked on shared` && |\n| &&
+             `    // state, where a parallel response's phase would overwrite it.` && |\n| &&
+             `    function executeSystem(oController, args, ctx) {` && |\n| &&
              `      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);` && |\n| &&
              `      const handler = handlers[args[0]];` && |\n| &&
              `      if (!handler) {` && |\n| &&
              `        Lib.logError(``FrontendAction: unknown system action '${args[0]}'``);` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
-             `      return handler(oController, args);` && |\n| &&
+             `      return handler(oController, args, ctx);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Run one SYSTEM action from the response's T_SYSTEM list. A system` && |\n| &&
@@ -108,7 +114,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // array - there are no legacy formats here - and errors propagate: a` && |\n| &&
              `    // failing view display has to reach _processAfterRendering, which turns` && |\n| &&
              `    // it into the fatal overlay instead of leaving the app half-built.` && |\n| &&
-             `    function runSystem(item, oController) {` && |\n| &&
+             `    function runSystem(item, oController, ctx) {` && |\n| &&
              `      let args;` && |\n| &&
              `      try {` && |\n| &&
              `        args = JSON.parse(item);` && |\n| &&
@@ -120,7 +126,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError(``systemJs: '${item}' is no action payload``);` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
-             `      return executeSystem(oController, args);` && |\n| &&
+             `      return executeSystem(oController, args, ctx);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Run one APP follow-up action / custom-JS snippet from the response's` && |\n| &&

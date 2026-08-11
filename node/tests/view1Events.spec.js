@@ -37,13 +37,21 @@ function withRecordedEB() {
 }
 
 // The model push: the backend sends ONE updateModel action naming no slot,
-// so the controller has to fan it out over the open model-owning slots
+// so actions/Slots has to fan it out over the open model-owning slots
 // itself. Asserting the dispatch alone is not enough - what matters is that
 // the data actually lands in every open slot and in none of the others.
 function withSlots(openKeys, model) {
   const applied = [];
   const views = {};
-  for (const key of openKeys) views[key] = { key };
+  for (const key of openKeys) {
+    // each open slot carries its own framework-owned (tracked) model; a
+    // push must land as setData on exactly that model
+    const tracked = {
+      _z2ui5Tracked: true,
+      setData: (data) => applied.push({ key, data }),
+    };
+    views[key] = { getModel: (name) => (name ? undefined : tracked) };
+  }
   const ViewSlots = {
     slots: [
       { key: "MAIN", ownsModel: true },
@@ -55,44 +63,39 @@ function withSlots(openKeys, model) {
     getView: (key) => views[key],
     destroy: () => {},
   };
-  const { module: Lib } = loadModule("core/Lib.js", {
-    deps: { "z2ui5/core/AppState": { state: {} }, "sap/ui/core/Element": {} },
-  });
-  const { module: ctrl } = loadModule("controller/View1.controller.js", {
+  const { module: Slots } = loadModule("core/actions/Slots.js", {
     deps: {
-      "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
-      "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
-      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/Server": {},
+      "z2ui5/core/Lib": { effectiveSizeLimit: () => undefined },
       "z2ui5/core/ViewSlots": ViewSlots,
-      "z2ui5/core/AppState": { state: { oResponse: { OVIEWMODEL: model } } },
+      "z2ui5/core/AppState": {
+        state: { oResponse: { OVIEWMODEL: model }, viewSizeLimits: {} },
+      },
     },
   });
-  const controller = Object.create(ctrl);
-  // stand in for the real model resolution - the point here is WHICH slots
-  // get pushed to, not how a slot's model is reused
-  controller.updateModelIfRequired = (slotKey) => {
-    if (!views[slotKey]) return;
-    applied.push(slotKey);
-  };
-  return { controller, applied };
+  return { Slots, applied };
 }
 
 test.describe("updateModel (one action, every open model slot)", () => {
   test("pushes into each OPEN slot that owns a model", () => {
-    const { controller, applied } = withSlots(["MAIN", "POPOVER"], { A: 1 });
-    controller.slotAction("updateModel", undefined, undefined, {});
-    expect(applied).toEqual(["MAIN", "POPOVER"]);
+    const model = { A: 1 };
+    const { Slots, applied } = withSlots(["MAIN", "POPOVER"], model);
+    Slots.action(null, "updateModel", undefined, undefined, {});
+    expect(applied).toEqual([
+      { key: "MAIN", data: model },
+      { key: "POPOVER", data: model },
+    ]);
   });
 
   test("skips the nested slots - they inherit MAIN's model", () => {
-    const { controller, applied } = withSlots(["MAIN", "NEST", "NEST2"], {});
-    controller.slotAction("updateModel", undefined, undefined, {});
-    expect(applied).toEqual(["MAIN"]);
+    const { Slots, applied } = withSlots(["MAIN", "NEST", "NEST2"], {});
+    Slots.action(null, "updateModel", undefined, undefined, {});
+    expect(applied.map((a) => a.key)).toEqual(["MAIN"]);
   });
 
   test("a closed slot is simply not pushed to", () => {
-    const { controller, applied } = withSlots([], {});
-    controller.slotAction("updateModel", undefined, undefined, {});
+    const { Slots, applied } = withSlots([], {});
+    Slots.action(null, "updateModel", undefined, undefined, {});
     expect(applied).toEqual([]);
   });
 });

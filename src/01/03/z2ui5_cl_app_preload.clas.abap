@@ -57,6 +57,7 @@ CLASS z2ui5_cl_app_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/Launchpad.js": function()\{{ z2ui5_cl_app_launchpad_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/LegacyCustomJs.js": function()\{{ z2ui5_cl_app_legacycustomjs_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Shortcuts.js": function()\{{ z2ui5_cl_app_shortcuts_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/actions/Slots.js": function()\{{ z2ui5_cl_app_slots_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Variants.js": function()\{{ z2ui5_cl_app_variants_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ViewOps.js": function()\{{ z2ui5_cl_app_viewops_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/AppState.js": function()\{{ z2ui5_cl_app_appstate_js=>get( ) }\},| && |\n| &&

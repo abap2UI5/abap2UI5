@@ -36,6 +36,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/actions/Slots",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    MessageBox,` && |\n| &&
@@ -47,6 +48,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    Router,` && |\n| &&
              `    Lib,` && |\n| &&
              `    ViewSlots,` && |\n| &&
+             `    Slots,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -358,7 +360,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      // slots (MAIN, NEST, NEST2, POPUP, POPOVER) are what a backend response` && |\n| &&
              `      // opens, fills and tears down, and every one of those calls is a` && |\n| &&
              `      // SYSTEM follow-up action. ``display`` and ``updateModel`` are not` && |\n| &&
-             `      // ViewSlots methods - they live on the controller, which owns the` && |\n| &&
+             `      // ViewSlots methods - they live in actions/Slots, which owns the` && |\n| &&
              `      // fragment loading and the model - so the hook below routes them there.` && |\n| &&
              `      VIEW_SLOTS: {` && |\n| &&
              `        get: () => ViewSlots,` && |\n| &&
@@ -372,8 +374,15 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `          // knowledge, so the action only says that the model changed` && |\n| &&
              `          updateModel: [],` && |\n| &&
              `        },` && |\n| &&
-             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
-             `          oController.slotAction(method, aArgs[0], aArgs[1], mOptions),` && |\n| &&
+             `        display: (oController, method, aArgs, mOptions, ctx) =>` && |\n| &&
+             `          Slots.action(` && |\n| &&
+             `            oController,` && |\n| &&
+             `            method,` && |\n| &&
+             `            aArgs[0],` && |\n| &&
+             `            aArgs[1],` && |\n| &&
+             `            mOptions,` && |\n| &&
+             `            ctx?.seq,` && |\n| &&
+             `          ),` && |\n| &&
              `        // display and updateModel are not ViewSlots methods at all, so the` && |\n| &&
              `        // "does this UI5 version carry it" check below has nothing to look` && |\n| &&
              `        // at - and nothing to answer either, since none of the three depends` && |\n| &&
@@ -415,7 +424,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      // global target is the only way a backend-driven content change can be` && |\n| &&
              `      // announced to a screen reader. Lazy-require like THEMING so 1.71 hits` && |\n| &&
              `      // the "not available" guard instead of failing the component load.` && |\n| &&
-             `      // announce(sText, sMode) with sMode Polite (default) | Assertive.` && |\n| &&
+             `      // announce(sText, sMode) with sMode Polite (default) | Assertive.` && |\n|.
+    result = result &&
              `      INVISIBLE_MESSAGE: {` && |\n| &&
              `        get: () => {` && |\n| &&
              `          const IM = sap.ui.require("sap/ui/core/InvisibleMessage");` && |\n| &&
@@ -424,8 +434,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        methods: { announce: ["string", "string"] },` && |\n| &&
              `      },` && |\n| &&
              `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
-             `      // configuration. Custom currencies are the case an app cannot express` && |\n|.
-    result = result &&
+             `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
              `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
              `      // property nor something a per-binding formatter can register for the` && |\n| &&
              `      // standard sap.ui.model.type.Currency. The payload is a JSON object -` && |\n| &&
@@ -703,8 +712,10 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      control[method](...castArgs(kinds, args.slice(4), view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, object, method, ...params]` && |\n| &&
-             `    function evControlCall(oController, args) {` && |\n| &&
+             `    // args: [_, object, method, ...params]. ``ctx`` is the action context the` && |\n| &&
+             `    // dispatcher threads through (FrontendAction.executeSystem) - it carries` && |\n| &&
+             `    // the request stamp the VIEW_SLOTS display hook needs.` && |\n| &&
+             `    function evControlCall(oController, args, ctx) {` && |\n| &&
              `      const [, name, method] = args;` && |\n| &&
              `      const target = GLOBAL_TARGETS[name];` && |\n| &&
              `      const kinds = target?.methods[method];` && |\n| &&
@@ -744,7 +755,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        raw = [formatTemplate(String(raw[0]), raw.slice(1))];` && |\n| &&
              `      }` && |\n| &&
              `      if (target.display) {` && |\n| &&
-             `        return target.display(oController, method, raw, mOptions || {});` && |\n| &&
+             `        return target.display(oController, method, raw, mOptions || {}, ctx);` && |\n| &&
              `      }` && |\n| &&
              `      obj[method](...castArgs(kinds, raw));` && |\n| &&
              `    }` && |\n| &&
@@ -814,7 +825,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    // of groups, each group an array of [path, operator, value1, value2?]` && |\n| &&
              `    // rows - OR inside a group, AND across groups (the FacetFilter /` && |\n| &&
              `    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted` && |\n| &&
-             `    // operators and values - never code. An empty groups array clears.` && |\n| &&
+             `    // operators and values - never code. An empty groups array clears.` && |\n|.
+    result = result &&
              `    function buildFilterGroups(binding, json) {` && |\n| &&
              `      let groups;` && |\n| &&
              `      try {` && |\n| &&
@@ -825,8 +837,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      if (!Array.isArray(groups)) {` && |\n| &&
              `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
-             `        return;` && |\n|.
-    result = result &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
              `      groups = groups.filter((g) => Array.isArray(g) && g.length);` && |\n| &&
              `      if (!groups.length) {` && |\n| &&

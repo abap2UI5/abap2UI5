@@ -66,14 +66,20 @@ sap.ui.define(
     // malformed-XML load has always propagated to _processAfterRendering and
     // surfaced the fatal "App Terminated" overlay rather than leaving the app
     // half-built behind a log line.
-    function executeSystem(oController, args) {
+    //
+    // `ctx` is the action context: today it carries `seq`, the stamp of the
+    // request the processed response belongs to, which the VIEW_SLOTS
+    // display path needs to discard builds a newer request superseded. It is
+    // threaded through the dispatch as an argument - never parked on shared
+    // state, where a parallel response's phase would overwrite it.
+    function executeSystem(oController, args, ctx) {
       Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);
       const handler = handlers[args[0]];
       if (!handler) {
         Lib.logError(`FrontendAction: unknown system action '${args[0]}'`);
         return undefined;
       }
-      return handler(oController, args);
+      return handler(oController, args, ctx);
     }
 
     // Run one SYSTEM action from the response's T_SYSTEM list. A system
@@ -81,7 +87,7 @@ sap.ui.define(
     // array - there are no legacy formats here - and errors propagate: a
     // failing view display has to reach _processAfterRendering, which turns
     // it into the fatal overlay instead of leaving the app half-built.
-    function runSystem(item, oController) {
+    function runSystem(item, oController, ctx) {
       let args;
       try {
         args = JSON.parse(item);
@@ -93,7 +99,7 @@ sap.ui.define(
         Lib.logError(`systemJs: '${item}' is no action payload`);
         return undefined;
       }
-      return executeSystem(oController, args);
+      return executeSystem(oController, args, ctx);
     }
 
     // Run one APP follow-up action / custom-JS snippet from the response's

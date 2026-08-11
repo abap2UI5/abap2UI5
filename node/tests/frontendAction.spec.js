@@ -46,6 +46,12 @@ function load({ sandbox } = {}) {
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
   };
   const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
+  // the VIEW_SLOTS display/updateModel hook routes into actions/Slots; the
+  // stub records the routed calls and lets a test swap the behavior
+  const slotCalls = [];
+  const Slots = {
+    action: (...a) => slotCalls.push(a),
+  };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
   }
@@ -72,6 +78,7 @@ function load({ sandbox } = {}) {
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
+      "z2ui5/core/actions/Slots": Slots,
     },
     sandbox,
   });
@@ -84,6 +91,8 @@ function load({ sandbox } = {}) {
     AppState,
     Popup,
     ctx,
+    slotCalls,
+    Slots,
   };
 }
 
@@ -372,15 +381,12 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
-  test("VIEW_SLOTS routes destroy/display/updateModel to the controller", () => {
+  test("VIEW_SLOTS routes destroy/display/updateModel to actions/Slots", () => {
     // the view slots are the framework's own registry, not a UI5 global -
-    // destroy is ViewSlots' own method, display and updateModel live on the
-    // controller, and the hook sends all three to slotAction
-    const { FrontendAction } = load();
-    const slotCalls = [];
-    const oController = {
-      slotAction: (...a) => slotCalls.push(a),
-    };
+    // destroy is ViewSlots' own method, display and updateModel live in
+    // actions/Slots, and the hook sends all three to Slots.action
+    const { FrontendAction, slotCalls } = load();
+    const oController = {};
     FrontendAction.execute(oController, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
@@ -401,19 +407,39 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "updateModel",
     ]);
     expect(slotCalls).toEqual([
-      ["destroy", "POPUP", undefined, {}],
+      [oController, "destroy", "POPUP", undefined, {}, undefined],
       // the XML is a positional argument of its own - it must NOT be read as
       // a template value for the slot name
-      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }],
+      [
+        oController,
+        "display",
+        "POPOVER",
+        "<Popover/>",
+        { openById: "btn1" },
+        undefined,
+      ],
       // no slot: the frontend picks the open ones itself
-      ["updateModel", undefined, undefined, {}],
+      [oController, "updateModel", undefined, undefined, {}, undefined],
+    ]);
+  });
+
+  test("the system phase threads the request stamp into the display", () => {
+    // the seq travels as the action CONTEXT (never shared state), so the
+    // slot display can discard a build a newer parallel request superseded
+    const { FrontendAction, slotCalls } = load();
+    FrontendAction.executeSystem(
+      null,
+      ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "POPUP", "<Dialog/>"],
+      { seq: 7 },
+    );
+    expect(slotCalls).toEqual([
+      [null, "display", "POPUP", "<Dialog/>", {}, 7],
     ]);
   });
 
   test("an unlisted VIEW_SLOTS method is rejected", () => {
     const { FrontendAction, errors } = load();
-    const oController = { slotAction: () => {} };
-    FrontendAction.execute(oController, [
+    FrontendAction.execute({}, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
       "wipe",
@@ -461,11 +487,9 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
 
 test.describe("executeSystem (the SYSTEM phase entry point)", () => {
   test("returns the handler result so an async display can be awaited", async () => {
-    const { FrontendAction } = load();
-    const oController = {
-      slotAction: (_m, _slot, xml) => Promise.resolve(`built:${xml}`),
-    };
-    const result = FrontendAction.executeSystem(oController, [
+    const { FrontendAction, Slots } = load();
+    Slots.action = (_c, _m, _slot, xml) => Promise.resolve(`built:${xml}`);
+    const result = FrontendAction.executeSystem(null, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
       "display",
@@ -478,14 +502,12 @@ test.describe("executeSystem (the SYSTEM phase entry point)", () => {
   test("does NOT swallow a failing display", () => {
     // execute( ) logs and moves on; a broken view build has to reach
     // _processAfterRendering and surface the fatal overlay instead
-    const { FrontendAction } = load();
-    const oController = {
-      slotAction: () => {
-        throw new Error("malformed XML");
-      },
+    const { FrontendAction, Slots } = load();
+    Slots.action = () => {
+      throw new Error("malformed XML");
     };
     expect(() =>
-      FrontendAction.executeSystem(oController, [
+      FrontendAction.executeSystem(null, [
         "CONTROL_GLOBAL",
         "VIEW_SLOTS",
         "display",

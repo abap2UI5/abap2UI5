@@ -9,6 +9,7 @@ sap.ui.define(
     "z2ui5/core/Router",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/actions/Slots",
   ],
   (
     MessageBox,
@@ -20,6 +21,7 @@ sap.ui.define(
     Router,
     Lib,
     ViewSlots,
+    Slots,
   ) => {
     "use strict";
 
@@ -331,7 +333,7 @@ sap.ui.define(
       // slots (MAIN, NEST, NEST2, POPUP, POPOVER) are what a backend response
       // opens, fills and tears down, and every one of those calls is a
       // SYSTEM follow-up action. `display` and `updateModel` are not
-      // ViewSlots methods - they live on the controller, which owns the
+      // ViewSlots methods - they live in actions/Slots, which owns the
       // fragment loading and the model - so the hook below routes them there.
       VIEW_SLOTS: {
         get: () => ViewSlots,
@@ -345,8 +347,15 @@ sap.ui.define(
           // knowledge, so the action only says that the model changed
           updateModel: [],
         },
-        display: (oController, method, aArgs, mOptions) =>
-          oController.slotAction(method, aArgs[0], aArgs[1], mOptions),
+        display: (oController, method, aArgs, mOptions, ctx) =>
+          Slots.action(
+            oController,
+            method,
+            aArgs[0],
+            aArgs[1],
+            mOptions,
+            ctx?.seq,
+          ),
         // display and updateModel are not ViewSlots methods at all, so the
         // "does this UI5 version carry it" check below has nothing to look
         // at - and nothing to answer either, since none of the three depends
@@ -675,8 +684,10 @@ sap.ui.define(
       control[method](...castArgs(kinds, args.slice(4), view));
     }
 
-    // args: [_, object, method, ...params]
-    function evControlCall(oController, args) {
+    // args: [_, object, method, ...params]. `ctx` is the action context the
+    // dispatcher threads through (FrontendAction.executeSystem) - it carries
+    // the request stamp the VIEW_SLOTS display hook needs.
+    function evControlCall(oController, args, ctx) {
       const [, name, method] = args;
       const target = GLOBAL_TARGETS[name];
       const kinds = target?.methods[method];
@@ -716,7 +727,7 @@ sap.ui.define(
         raw = [formatTemplate(String(raw[0]), raw.slice(1))];
       }
       if (target.display) {
-        return target.display(oController, method, raw, mOptions || {});
+        return target.display(oController, method, raw, mOptions || {}, ctx);
       }
       obj[method](...castArgs(kinds, raw));
     }
