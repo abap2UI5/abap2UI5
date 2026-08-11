@@ -74,6 +74,12 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
     DATA ms_req    TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
     DATA ms_res    TYPE z2ui5_if_core_types=>ty_s_http_res.
 
+    " which stack built mo_server: only the ON-PREM ICF stack carries the
+    " if_http_response set_compression( ) hook (see set_response); the cloud
+    " accessor would ASSERT on an unbound onprem server, so the flag decides
+    " up front instead of probing
+    DATA mv_check_onprem TYPE abap_bool.
+
     METHODS set_response.
 
   PRIVATE SECTION.
@@ -205,6 +211,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     IF server IS BOUND.
       result = NEW #( ).
       result->mo_server = z2ui5_cl_a2ui5_http=>factory( server ).
+      result->mv_check_onprem = abap_true.
     ELSEIF req IS BOUND AND res IS BOUND.
       result = factory_cloud( req = req
                               res = res ).
@@ -335,6 +342,26 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         ELSE `application/json; charset=UTF-8` ).
     mo_server->set_header_field( n = `content-type`
                                  v = lv_content_type ).
+
+    " Ask the ICF runtime to gzip the response when the client accepts it.
+    " Every body this handler sends is text (the GET shell carries the whole
+    " embedded frontend, ~400KB; the POST roundtrip the model JSON), so this
+    " is a 70-85% transfer cut on installations whose ICM profile does not
+    " compress already - and a no-op on ones that do. Dynamic on purpose:
+    " if_http_response does not exist in the cloud language version (the
+    " platform router compresses there, mv_check_onprem skips it), and the
+    " transpiled test backend's response shim simply lacks the method - both
+    " must keep compiling and running, so a missing method is caught, never
+    " declared. AFTER the content-type header: the default compression mode
+    " decides based on the MIME type set at this point.
+    IF mv_check_onprem = abap_true.
+      TRY.
+          DATA(lo_response) = mo_server->get_response_onprem( ).
+          CALL METHOD lo_response->(`SET_COMPRESSION`).
+        CATCH cx_root ##NO_HANDLER.
+          " no compression support on this stack - the response stays plain
+      ENDTRY.
+    ENDIF.
 
     DATA(ls_config) = config_http_get( ).
 

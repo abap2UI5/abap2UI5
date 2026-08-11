@@ -12,6 +12,12 @@ Legend
 
 unreleased
 ----------
++ the http handler asks the ICF runtime to gzip its responses
+  (if_http_response set_compression) when the client accepts it - the GET
+  shell carries the whole embedded frontend and every POST roundtrip the
+  model JSON, so this cuts 70-85% off the transfer on installations whose
+  ICM profile does not compress already, and is a no-op on ones that do
+  (and on the cloud stack, where the platform router owns compression)
 - BREAKING: removed set_nav_back( ) and set_nav_routing( ) from
   z2ui5_if_client. Both are follow_up_action events now: history back rides
   the existing cs_event-history_back, routing is configured with
