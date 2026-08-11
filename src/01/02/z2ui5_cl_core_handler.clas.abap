@@ -619,7 +619,11 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " destroy that always precedes its display.
     DATA lt_sorted TYPE z2ui5_if_core_types=>ty_t_system_action.
 
-    LOOP AT VALUE string_table( ( `MAIN` ) ( `NEST` ) ( `NEST2` ) ( `POPUP` ) ( `POPOVER` ) )
+    LOOP AT VALUE string_table( ( z2ui5_cl_core_action_front=>cs_slot-main )
+                                ( z2ui5_cl_core_action_front=>cs_slot-nest )
+                                ( z2ui5_cl_core_action_front=>cs_slot-nest2 )
+                                ( z2ui5_cl_core_action_front=>cs_slot-popup )
+                                ( z2ui5_cl_core_action_front=>cs_slot-popover ) )
          INTO DATA(lv_slot).
       LOOP AT mo_action->ms_next-t_action_front INTO DATA(ls_action) WHERE slot = lv_slot.
         INSERT ls_action INTO TABLE lt_sorted.

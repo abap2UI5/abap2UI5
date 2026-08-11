@@ -62,7 +62,7 @@ INTERFACE z2ui5_if_core_types
   " until main_end( ) rather than serialized on the spot, because two things
   " can only be decided once the app has run: a slot may be displayed twice
   " and only the last call counts, and the calls have to leave in slot order,
-  " never in call order (see cs_slot_rank).
+  " never in call order.
   TYPES:
     BEGIN OF ty_s_system_action,
       slot    TYPE string,
@@ -73,19 +73,6 @@ INTERFACE z2ui5_if_core_types
       options TYPE string,
     END OF ty_s_system_action.
   TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
-
-  " The order the slots are served in, whatever order the app called them in.
-  " MAIN goes first because a NESTed view is inserted INTO its control tree -
-  " a nested view built before the page it belongs to would find no parent.
-  " The two fragment slots are standalone and come last.
-  CONSTANTS:
-    BEGIN OF cs_slot_rank,
-      main    TYPE i VALUE 1,
-      nest    TYPE i VALUE 2,
-      nest2   TYPE i VALUE 3,
-      popup   TYPE i VALUE 4,
-      popover TYPE i VALUE 5,
-    END OF cs_slot_rank.
 
   TYPES:
     BEGIN OF ty_s_next_frontend,
