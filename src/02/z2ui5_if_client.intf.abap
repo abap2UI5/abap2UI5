@@ -287,7 +287,6 @@ INTERFACE z2ui5_if_client
       val           TYPE clike                              OPTIONAL
       t_arg         TYPE string_table                       OPTIONAL
       s_ctrl        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
-      r_data        TYPE data                               OPTIONAL
         PREFERRED PARAMETER val
     RETURNING
       VALUE(result) TYPE string.
