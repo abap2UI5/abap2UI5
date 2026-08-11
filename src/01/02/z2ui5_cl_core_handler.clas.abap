@@ -53,13 +53,12 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     " otherwise loop the work process forever
     DATA mv_dispatch_limit TYPE i VALUE 1000.
 
-    " automatic model update (z2ui5_if_client=>set_model_auto_update): the
-    " model snapshot taken in main_process BEFORE main( ) ran, compared in
-    " main_end. The taken flag exists because the snapshot string cannot
-    " distinguish "not taken" from an empty model - and a snapshot is only
-    " comparable when it was taken in the SAME dispatch iteration that
-    " main_end responds for (an app that opts in during this very round-trip
-    " has no before-state yet).
+    " automatic model update: the model snapshot taken in main_process BEFORE
+    " main( ) ran, compared in main_end. The taken flag exists because the
+    " snapshot string cannot distinguish "not taken" from an empty model, and
+    " a snapshot is only comparable when it was taken in the SAME dispatch
+    " iteration main_end responds for (a nav_app_call/leave hop re-snapshots
+    " for the app that then answers).
     DATA mv_model_before       TYPE string.
     DATA mv_model_before_taken TYPE abap_bool.
 
@@ -635,10 +634,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     IF check_view_update_needed( ).
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
-      " automatic model update (z2ui5_if_client=>set_model_auto_update):
-      " main( ) neither displayed nor pushed - send the model only when
-      " main( ) itself changed it, exactly as view_model_update( ) would
-      " (same payload, same frontend flag); unchanged responds `{}` as today
+      " automatic model update: main( ) neither displayed nor asked for a
+      " push - send the model only when main( ) itself changed it, exactly as
+      " an explicit view_model_update( ) would (same payload, same frontend
+      " flag); an unchanged model still responds `{}` as before
       DATA(lv_model) = mo_action->mo_app->model_json_stringify( ).
       IF lv_model = mv_model_before.
         ms_response-model = `{}`.
@@ -674,10 +673,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " what the client already knows must never trigger a push. Taken per
     " dispatch iteration, so after a nav_app_call/leave the snapshot belongs
     " to the app main_end responds for.
-    mv_model_before_taken = mo_action->mo_app->mv_model_auto_update.
-    IF mv_model_before_taken = abap_true.
-      mv_model_before = mo_action->mo_app->model_json_stringify( ).
-    ENDIF.
+    mv_model_before       = mo_action->mo_app->model_json_stringify( ).
+    mv_model_before_taken = abap_true.
 
     IF li_app->check_sticky = abap_false.
       z2ui5_cl_a2ui5_context=>db_rollback( ).

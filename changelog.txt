@@ -12,19 +12,22 @@ Legend
 
 unreleased
 ----------
-+ set_model_auto_update( ): opt an app in to automatic model updates. Called
-  once in check_on_init (remembered on the app, like set_nav_routing), the
-  framework then compares the model state before main( ) - taken after the
-  incoming two-way deltas were applied, so what the client already knows never
-  triggers a push - with the state after main( ) returned, and when they
-  differ sends the model exactly as an explicit view_model_update( ) would.
-  An event handler that changes bound data can then no longer render stale by
-  forgetting the call; an unchanged model still responds `{}`, so the payload
-  never grows compared to a correct explicit call. Covers the MAIN/root
-  model; popup/popover keep their explicit popup_model_update( ) /
-  popover_model_update( ). Costs one extra model serialization per event
-  round-trip (two when nothing changed) - apps with very large models and
-  high-frequency events should stay on the explicit calls
+! the model is now pushed AUTOMATICALLY when an event round-trip changed it -
+  view_model_update( ) is no longer needed. The framework compares the model
+  state before main( ) - taken after the incoming two-way deltas were applied,
+  so what the client already knows never triggers a push - with the state
+  after main( ) returned, and when they differ sends the model exactly as an
+  explicit view_model_update( ) would (same payload, same frontend flag). An
+  event handler that changes bound data can therefore no longer render stale
+  by forgetting the call, and an unchanged model still responds `{}`, so an
+  idle round-trip carries no payload. Always on, nothing to activate.
+  view_model_update( ) stays in the interface for source compatibility and
+  keeps working: it FORCES the model out even when it did not change, which
+  detection cannot express and which stays legitimate for resetting a control
+  that wrote a bound property on its own without sending it back. Scope is
+  the MAIN/root model - popup/popover own their own model instance and keep
+  their explicit popup_model_update( ) / popover_model_update( ). Cost: one
+  extra model serialization per event round-trip
 + _bind( json = abap_true ): a bound string that already CONTAINS JSON is
   spliced into the model as a JSON node instead of being sent as a quoted
   string. It exists for a control property that must receive an OBJECT, which

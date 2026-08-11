@@ -64,7 +64,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_nav_mode_resent   FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_push  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
-    METHODS test_auto_update_off   FOR TESTING RAISING cx_static_check.
+    METHODS test_auto_update_force FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -562,12 +562,12 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
 
-    " opted in and the snapshot differs from the model after main( ) - the
-    " model is sent exactly as an explicit view_model_update( ) would send it
+    " the snapshot differs from the model after main( ) - the model is sent
+    " exactly as an explicit view_model_update( ) would send it, with no app
+    " opt-in of any kind: automatic model update is always on
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
-    lo_handler->mo_action->mo_app->mv_model_auto_update = abap_true.
     lo_handler->mv_model_before_taken = abap_true.
     lo_handler->mv_model_before       = `<other model state>`.
 
@@ -585,12 +585,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
 
-    " opted in but main( ) changed nothing - the response stays `{}` and no
-    " update flag is set, exactly as today
+    " main( ) changed nothing - the response stays `{}` and no update flag is
+    " set, so an idle event round-trip carries no model payload as before
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
-    lo_handler->mo_action->mo_app->mv_model_auto_update = abap_true.
     lo_handler->mv_model_before_taken = abap_true.
     lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
 
@@ -603,22 +602,26 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD test_auto_update_off.
+  METHOD test_auto_update_force.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
 
-    " no opt-in: the snapshot was never taken, so even a stale before-value
-    " must not trigger a push - existing behavior is untouched
+    " view_model_update( ) stays effective on top of the detection: the model
+    " is UNCHANGED here, so auto-detection alone would answer `{}` - the
+    " explicit flag (set on the action, the path client->view_model_update( )
+    " takes) forces it out anyway. Resetting a control that wrote a bound
+    " property on its own is the one case detection cannot see.
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
-    lo_handler->mv_model_before = `<other model state>`.
+    lo_handler->mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
+    lo_handler->mv_model_before_taken = abap_true.
+    lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `{}`
+    cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
-    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-s_view-check_update_model ).
 
   ENDMETHOD.
 
@@ -627,24 +630,15 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
 
-    " main_process takes the before-main snapshot only for an opted-in app
+    " main_process always takes the before-main snapshot - there is no app
+    " flag to consult any more
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
-    lo_handler->mo_action->mo_app->mv_model_auto_update = abap_true.
 
     lo_handler->main_process( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->mv_model_before_taken ).
-
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
-
-    lo_handler->main_process( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_handler->mv_model_before_taken ).
 
   ENDMETHOD.

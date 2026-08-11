@@ -375,6 +375,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_model_update.
 
+    " no longer required - the handler pushes the model automatically when
+    " main( ) changed it (z2ui5_cl_core_handler=>main_end). Kept working
+    " rather than emptied: the flag FORCES the model even when it did not
+    " change, which detection cannot express and which is the one legitimate
+    " remaining use (resetting a control that wrote a bound property on its
+    " own without sending it back). Calling it is otherwise a no-op in
+    " effect - the same model would be sent anyway
     mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
 
   ENDMETHOD.
@@ -484,15 +491,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     " remember the mode on the app so every later response of this app carries
     " it again - see z2ui5_cl_core_app=>mv_nav_mode
     mo_action->mo_app->mv_nav_mode = mode.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~set_model_auto_update.
-
-    " remembered on the app across round-trips like the nav mode - the
-    " detection runs in z2ui5_cl_core_handler (see z2ui5_cl_core_app)
-    mo_action->mo_app->mv_model_auto_update = val.
 
   ENDMETHOD.
 

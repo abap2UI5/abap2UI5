@@ -205,19 +205,20 @@ ships for existing apps but is **frozen** — new apps and new code use
   authors it), and a string that does not parse raises rather than shipping
   broken JSON. Where the sample keeps one manifest per file, bind its URL
   instead — that path needs no flag.
-- After changing bound data in an event handler, push it to the browser with
-  `client->view_model_update( )` (no full re-render); call `view_display`
-  again only when the view structure itself changes.
-- Or opt the app in to **automatic model updates**: call
-  `client->set_model_auto_update( )` once in `check_on_init` (remembered on
-  the app, like `set_nav_routing`). The framework then compares the model
-  before and after `main( )` on every event round-trip and sends it exactly
-  as `view_model_update( )` would whenever it changed — an event handler can
-  no longer render stale by forgetting the call. Covers the MAIN/root model;
-  a popup/popover owns its own model instance and keeps its explicit
-  `popup_model_update( )` / `popover_model_update( )`. Costs one extra model
-  serialization per event round-trip (two when nothing changed), so for very
-  large models with high-frequency events prefer the explicit calls.
+- **Bound data changed in an event handler is pushed automatically** — the
+  framework compares the model before and after `main( )` on every event
+  round-trip and sends it whenever it changed, so a handler cannot render
+  stale by forgetting anything. Nothing to call, nothing to switch on.
+  `client->view_model_update( )` still exists (source compatibility) and is
+  simply not needed any more; it only still *does* something in the one case
+  detection cannot see — forcing the **unchanged** model back onto the client,
+  e.g. to reset a control that wrote a bound property on its own without
+  sending it back. Call `view_display` again only when the view structure
+  itself changes.
+- Scope: the MAIN/root model (shared by the nested views). A **popup or
+  popover owns its own model instance**, so those keep their explicit
+  `popup_model_update( )` / `popover_model_update( )` — those calls are still
+  required.
 
 ## 5. Events
 
