@@ -274,7 +274,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     " propagation, so refreshing "the nest2 model" means refreshing the root
     " model. Delegating also removes the old trap: the former nest2-only flag
     " was skipped by the frontend whenever no nested view happened to be open
-    z2ui5_if_client~view_model_update( ).
+    "z2ui5_if_client~view_model_update( ).
 
   ENDMETHOD.
 
@@ -301,7 +301,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nest_view_model_update.
 
     " see nest2_view_model_update - one root model, so this is view_model_update
-    z2ui5_if_client~view_model_update( ).
+    "z2ui5_if_client~view_model_update( ).
 
   ENDMETHOD.
 
@@ -327,7 +327,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_model_update.
 
-    mo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
+    "mo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
 
   ENDMETHOD.
 
@@ -349,7 +349,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_model_update.
 
-    mo_action->ms_next-s_set-s_popup-check_update_model = abap_true.
+    "mo_action->ms_next-s_set-s_popup-check_update_model = abap_true.
 
   ENDMETHOD.
 
@@ -382,7 +382,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     " remaining use (resetting a control that wrote a bound property on its
     " own without sending it back). Calling it is otherwise a no-op in
     " effect - the same model would be sent anyway
-    mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
+    "mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
 
   ENDMETHOD.
 
