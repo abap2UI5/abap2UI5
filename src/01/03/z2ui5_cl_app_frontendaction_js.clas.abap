@@ -38,6 +38,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Messages",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
@@ -53,6 +54,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    Storage,` && |\n| &&
              `    Router,` && |\n| &&
              `    Lib,` && |\n| &&
+             `    Messages,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
@@ -420,12 +422,16 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
              `          return resolveControl(raw, view) || null;` && |\n| &&
              `        case "object":` && |\n| &&
+             `          // the backend embeds an argument that starts with { or [ as real` && |\n| &&
+             `          // JSON (get_event_client_json), so on that path the value arrives` && |\n| &&
+             `          // already parsed; only the legacy eF( ) string form needs parsing.` && |\n|.
+    result = result &&
+             `          if (raw && typeof raw === "object") return raw;` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
              `          } catch {` && |\n| &&
              `            return {};` && |\n| &&
-             `          }` && |\n|.
-    result = result &&
+             `          }` && |\n| &&
              `        default:` && |\n| &&
              `          return raw;` && |\n| &&
              `      }` && |\n| &&
@@ -593,6 +599,25 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      control[method](...castArgs(kinds, args.slice(4), view));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The rich message display behind client->message_toast_display( ) /` && |\n| &&
+             `    // message_box_display( ). It carries the full option set, so the options` && |\n| &&
+             `    // travel as ONE JSON object argument rather than positionally - which is` && |\n| &&
+             `    // also why this is its own event instead of a CONTROL_GLOBAL call: there,` && |\n| &&
+             `    // trailing arguments are template values for the text (see evControlCall),` && |\n| &&
+             `    // and an options object would be indistinguishable from one. Both entry` && |\n| &&
+             `    // points end in the same Messages handler.` && |\n| &&
+             `    // args: [_, text, optionsJson]` && |\n| &&
+             `    function evMessageToast(oController, args) {` && |\n| &&
+             `      const [, sText, sOptions] = args;` && |\n| &&
+             `      Messages.showToast(sText, castArg("object", sOptions), oController);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // args: [_, type, text, optionsJson]` && |\n| &&
+             `    function evMessageBox(oController, args) {` && |\n| &&
+             `      const [, sType, sText, sOptions] = args;` && |\n| &&
+             `      Messages.showBox(sType, sText, castArg("object", sOptions), oController);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // args: [_, object, method, ...params]` && |\n| &&
@@ -800,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // app. No-op unless the app enabled routing.` && |\n| &&
              `      const raw = Lib.toText(args[1]);` && |\n| &&
              `      if (!raw) return;` && |\n| &&
-             `      Router.navToApp(raw);` && |\n| &&
+             `      Router.navToApp(raw);` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evClipboardCopy(oController, args) {` && |\n| &&
@@ -825,8 +851,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      // A data: URL carrying active HTML combined with an attacker-chosen` && |\n| &&
              `      // .html/.hta filename is a known drive-by vector; block executable data:` && |\n| &&
-             `      // MIME types outright (real downloads are octet-stream, images, pdf, ...).` && |\n|.
-    result = result &&
+             `      // MIME types outright (real downloads are octet-stream, images, pdf, ...).` && |\n| &&
              `      if (` && |\n| &&
              `        /^data:(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(` && |\n| &&
              `          args[1],` && |\n| &&
@@ -1201,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function filterItemControl(item) {` && |\n| &&
              `      return item && typeof item.getControl === "function"` && |\n| &&
              `        ? item.getControl()` && |\n| &&
-             `        : null;` && |\n| &&
+             `        : null;` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function filterItemValue(item) {` && |\n| &&
@@ -1226,8 +1252,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          const control = oFilterBar.determineControlByName(` && |\n| &&
              `            entry.fieldName,` && |\n| &&
              `            entry.groupName,` && |\n| &&
-             `          );` && |\n|.
-    result = result &&
+             `          );` && |\n| &&
              `          // setValue, not a model write: the two-way binding abap2UI5 put on` && |\n| &&
              `          // the property carries the restored value back to the backend on the` && |\n| &&
              `          // next roundtrip, so selecting a variant needs none of its own` && |\n| &&
@@ -1602,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // popup/popover/nested view are found, and falls back to the global` && |\n| &&
              `    // registry, so a fully-qualified id resolves too - ids that come from a` && |\n| &&
              `    // UI5 Message (getControlIds()) or any event carry the view prefix.` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    function evSetFocus(oController, args) {` && |\n| &&
              `      const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
@@ -1627,8 +1653,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // otherwise once it is.` && |\n| &&
              `      Lib.whenRendered(oElement, oController, () => {` && |\n| &&
              `        applyFocus();` && |\n| &&
-             `        const dom = oElement.getDomRef();` && |\n|.
-    result = result &&
+             `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
              `        // The focus did not stick. A view_model_update in the same response` && |\n| &&
              `        // may have changed the control - e.g. re-enabled a locked input via` && |\n| &&
@@ -1884,6 +1909,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      CONTROL_BY_ID: evControlCallById,` && |\n| &&
              `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
              `      BINDING_CALL: evBindingCall,` && |\n| &&
+             `      MESSAGE_TOAST: evMessageToast,` && |\n| &&
+             `      MESSAGE_BOX: evMessageBox,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&

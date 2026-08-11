@@ -106,8 +106,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " the expired bookmark draft must not block the fresh app start...
     cl_abap_unit_assert=>assert_bound( lo_result->mo_app->mo_app ).
-    " ...and the user is told why the saved state is gone
-    cl_abap_unit_assert=>assert_not_initial( lo_result->ms_next-s_set-s_msg_toast-text ).
+    " ...and the user is told why the saved state is gone, as the follow-up
+    " action message_toast_display( ) would have queued
+    cl_abap_unit_assert=>assert_equals(
+        exp = 1
+        act = lines( lo_result->ms_next-s_set-s_follow_up_action-custom_js ) ).
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `["MESSAGE_TOAST","Bookmarked app state expired*`
+        act = lo_result->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.
 
@@ -212,10 +218,8 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_new_app = NEW #( ).
     lo_action->ms_next-o_app_call = lo_new_app.
 
-    " frontend actions queued by the calling app - messages and follow-up
-    " actions must not leak into the newly called app...
-    lo_action->ms_next-s_set-s_msg_box-text   = `box`.
-    lo_action->ms_next-s_set-s_msg_toast-text = `toast`.
+    " frontend actions queued by the calling app - messages travel as
+    " follow-up actions too and must not leak into the newly called app...
     INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-custom_js.
     lo_action->ms_next-s_set-s_popup-xml    = `<popup/>`.
     lo_action->ms_next-s_set-s_popover-xml  = `<popover/>`.
@@ -227,9 +231,7 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
                                         act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
 
-    " messages and follow-up actions are reset for the called app
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_box ).
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_toast ).
+    " follow-up actions, messages included, are reset for the called app
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
     " a popup is always destroyed on navigation ( a called app that renders
     " its own popup overwrites this destroy request again )
@@ -314,10 +316,9 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_prev_app = NEW #( ).
     lo_action->ms_next-o_app_leave = lo_prev_app.
 
-    " frontend actions queued by the leaving app - messages and follow-up
-    " actions must not leak into the app that is navigated back to...
-    lo_action->ms_next-s_set-s_msg_box-text   = `box`.
-    lo_action->ms_next-s_set-s_msg_toast-text = `toast`.
+    " frontend actions queued by the leaving app - messages travel as
+    " follow-up actions too and must not leak into the app that is
+    " navigated back to...
     INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-custom_js.
     lo_action->ms_next-s_set-s_popup-xml    = `<popup/>`.
     lo_action->ms_next-s_set-s_popover-xml  = `<popover/>`.
@@ -327,9 +328,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_bound( lo_result ).
 
-    " leave behaves like call: messages and follow-up actions are reset
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_box ).
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_toast ).
+    " leave behaves like call: every queued follow-up action is reset
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
     " a popup is always destroyed on navigation, also on leave
     cl_abap_unit_assert=>assert_equals( exp = abap_true

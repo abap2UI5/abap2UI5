@@ -94,9 +94,15 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               RETURN.
             CATCH cx_root.
               " expired or invalid bookmark draft - fall through to a fresh
-              " app start, but tell the user why the saved state is gone
-              result->ms_next-s_set-s_msg_toast-text =
-                `Bookmarked app state expired or could not be restored - starting with a fresh app`.
+              " app start, but tell the user why the saved state is gone.
+              " There is no client object yet at this point in the factory,
+              " so the toast is queued as the follow-up action that
+              " message_toast_display( ) would have produced.
+              INSERT NEW z2ui5_cl_core_srv_event( )->get_event_client_json(
+                             val   = z2ui5_if_client=>cs_event-message_toast
+                             t_arg = VALUE #(
+                                 ( `Bookmarked app state expired or could not be restored - starting with a fresh app` ) ) )
+                     INTO TABLE result->ms_next-s_set-s_follow_up_action-custom_js.
           ENDTRY.
         ENDIF.
 
@@ -257,10 +263,9 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->ms_actual-r_data = ms_next-r_data.
 
     " when navigating between apps ( both nav_app_call and nav_app_leave ),
-    " start the next app with a clean frontend state - messages and follow-up
-    " actions queued by the previous app must not leak into the next one.
-    CLEAR result->ms_next-s_set-s_msg_box.
-    CLEAR result->ms_next-s_set-s_msg_toast.
+    " start the next app with a clean frontend state - follow-up actions
+    " queued by the previous app, messages included, must not leak into the
+    " next one.
     CLEAR result->ms_next-s_set-s_follow_up_action.
 
     " always destroy an open popup/popover on navigation, so an app never has

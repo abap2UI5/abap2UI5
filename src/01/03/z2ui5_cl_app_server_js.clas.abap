@@ -34,7 +34,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
-             `    "z2ui5/core/Messages",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
@@ -45,12 +44,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    Lib,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    ErrorView,` && |\n| &&
-             `    Messages,` && |\n| &&
              `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
              `` && |\n| &&
              `    // Quote characters recognised by the eF( ) argument parser below, built` && |\n| &&
              `    // from char codes so both quote kinds are declared symmetrically and` && |\n| &&
@@ -424,12 +420,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            X: entry.dom.scrollLeft || 0,` && |\n| &&
              `            Y: entry.dom.scrollTop || 0,` && |\n| &&
              `          };` && |\n| &&
-             `        }` && |\n|.
-    result = result &&
+             `        }` && |\n| &&
              `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `      roundtrip(oBody = {}) {` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
              `        state.checkNestAfter = false;` && |\n| &&
@@ -695,8 +691,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // consume the newer response's snippets (and lose its own)` && |\n| &&
              `          response._pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
              `` && |\n| &&
-             `          for (const t of _MSG_TYPES) Messages.show(t, params, oController);` && |\n| &&
-             `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          // Builds are serialized through _viewBuild: XMLView.create claims` && |\n| &&
              `          // the fixed "mainView" id synchronously, so two overlapping builds` && |\n| &&
@@ -825,8 +819,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      responseError(response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
              `        AppState.state.isBusy = false;` && |\n| &&
-             `        ErrorView.show(response, title, oOptions);` && |\n|.
-    result = result &&
+             `        ErrorView.show(response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

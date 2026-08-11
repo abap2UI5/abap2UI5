@@ -329,10 +329,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp14.
     li_client->message_box_display( `Hello World` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `Hello World`
-                                        act = mo_action->ms_next-s_set-s_msg_box-text ).
-    cl_abap_unit_assert=>assert_equals( exp = `show`
-                                        act = mo_action->ms_next-s_set-s_msg_box-type ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
+        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.
 
@@ -346,10 +345,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->message_box_display( text = `Error occurred`
                                     type = `error` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `Error occurred`
-                                        act = mo_action->ms_next-s_set-s_msg_box-text ).
-    cl_abap_unit_assert=>assert_equals( exp = `error`
-                                        act = mo_action->ms_next-s_set-s_msg_box-type ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","error","Error occurred"]`
+        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.
 
@@ -365,10 +363,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                     dependenton  = `myPage`
                                     contentwidth = `20rem` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `myPage`
-                                        act = mo_action->ms_next-s_set-s_msg_box-dependenton ).
-    cl_abap_unit_assert=>assert_equals( exp = `20rem`
-                                        act = mo_action->ms_next-s_set-s_msg_box-contentwidth ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
+              `{"contentWidth":"20rem","dependentOn":"myPage"}]`
+        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.
 
@@ -381,8 +379,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp16.
     li_client->message_toast_display( `Saved` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `Saved`
-                                        act = mo_action->ms_next-s_set-s_msg_toast-text ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_TOAST","Saved"]`
+        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.
 

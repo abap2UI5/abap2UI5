@@ -7,7 +7,6 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
-    "z2ui5/core/Messages",
     "z2ui5/core/AppState",
   ],
   (
@@ -18,12 +17,9 @@ sap.ui.define(
     Lib,
     ViewSlots,
     ErrorView,
-    Messages,
     AppState,
   ) => {
     "use strict";
-
-    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
 
     // Quote characters recognised by the eF( ) argument parser below, built
     // from char codes so both quote kinds are declared symmetrically and
@@ -666,8 +662,6 @@ sap.ui.define(
           // parallel responses a single global would let the older render
           // consume the newer response's snippets (and lose its own)
           response._pendingCustomJs = followUp?.CUSTOM_JS || null;
-
-          for (const t of _MSG_TYPES) Messages.show(t, params, oController);
 
           // Full view replacement -> destroy & rebuild, nothing more to do.
           // Builds are serialized through _viewBuild: XMLView.create claims

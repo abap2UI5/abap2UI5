@@ -11,6 +11,7 @@ sap.ui.define(
     "sap/ui/util/Storage",
     "z2ui5/core/Router",
     "z2ui5/core/Lib",
+    "z2ui5/core/Messages",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
   ],
@@ -26,6 +27,7 @@ sap.ui.define(
     Storage,
     Router,
     Lib,
+    Messages,
     ViewSlots,
     AppState,
   ) => {
@@ -393,6 +395,10 @@ sap.ui.define(
           if (raw === "" || raw === undefined || raw === null) return null;
           return resolveControl(raw, view) || null;
         case "object":
+          // the backend embeds an argument that starts with { or [ as real
+          // JSON (get_event_client_json), so on that path the value arrives
+          // already parsed; only the legacy eF( ) string form needs parsing.
+          if (raw && typeof raw === "object") return raw;
           try {
             return JSON.parse(raw);
           } catch {
@@ -565,6 +571,25 @@ sap.ui.define(
         return;
       }
       control[method](...castArgs(kinds, args.slice(4), view));
+    }
+
+    // The rich message display behind client->message_toast_display( ) /
+    // message_box_display( ). It carries the full option set, so the options
+    // travel as ONE JSON object argument rather than positionally - which is
+    // also why this is its own event instead of a CONTROL_GLOBAL call: there,
+    // trailing arguments are template values for the text (see evControlCall),
+    // and an options object would be indistinguishable from one. Both entry
+    // points end in the same Messages handler.
+    // args: [_, text, optionsJson]
+    function evMessageToast(oController, args) {
+      const [, sText, sOptions] = args;
+      Messages.showToast(sText, castArg("object", sOptions), oController);
+    }
+
+    // args: [_, type, text, optionsJson]
+    function evMessageBox(oController, args) {
+      const [, sType, sText, sOptions] = args;
+      Messages.showBox(sType, sText, castArg("object", sOptions), oController);
     }
 
     // args: [_, object, method, ...params]
@@ -1853,6 +1878,8 @@ sap.ui.define(
       CONTROL_BY_ID: evControlCallById,
       CONTROL_GLOBAL: evControlCall,
       BINDING_CALL: evBindingCall,
+      MESSAGE_TOAST: evMessageToast,
+      MESSAGE_BOX: evMessageBox,
     };
 
     // Entry point called by View1.controller's eF().

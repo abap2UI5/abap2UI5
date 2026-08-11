@@ -241,8 +241,28 @@ function isAdditiveTypeComponents(oldSig, newSig) {
   return /^(?: types [a-z_0-9]+ type [^.]+ \.)+$/.test(appended);
 }
 
+// And for a CONSTANTS BEGIN OF block (cs_event, cs_view, ...): adding a
+// constant is additive wherever it lands. Unlike a structure component, a
+// constant is only ever reached BY NAME - the block is a namespace, not a
+// layout - so position carries no meaning for downstream code and a new
+// constant may be filed in its topical group instead of appended at the end.
+// What must not change is any constant that already exists: every old
+// name/value pair has to survive byte-identically, so a removal, a rename or
+// a changed value is still a violation.
+function isAdditiveConstants(oldSig, newSig) {
+  const BLOCK = /^constants begin of ([a-z_0-9]+) \. ([\s\S]*) \. constants end of \1\.?$/;
+  const oldMatch = oldSig.match(BLOCK);
+  const newMatch = newSig.match(BLOCK);
+  if (!oldMatch || !newMatch || oldMatch[1] !== newMatch[1]) return false;
+  const entries = (body) => body.split(" . ");
+  const newEntries = new Set(entries(newMatch[2]));
+  return entries(oldMatch[2]).every((entry) => newEntries.has(entry));
+}
+
 const isAdditive = (oldSig, newSig) =>
-  isAdditiveOptionalParams(oldSig, newSig) || isAdditiveTypeComponents(oldSig, newSig);
+  isAdditiveOptionalParams(oldSig, newSig) ||
+  isAdditiveTypeComponents(oldSig, newSig) ||
+  isAdditiveConstants(oldSig, newSig);
 
 const removed = Object.keys(snap).filter((k) => !(k in current));
 const differing = Object.keys(snap).filter((k) => k in current && current[k] !== snap[k]);
