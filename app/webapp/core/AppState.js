@@ -59,7 +59,7 @@
 //                     Server.roundtrip/readHttp; this record exists for
 //                     onBeforeRoundtrip hooks and the developer tools
 //                     (View1.eB / Server)
-//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }
+//   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL }
 //   responseData      raw parsed response JSON (Server.readHttp); kept
 //                     besides oResponse because it carries fields the
 //                     cooked record does not (e.g. S_FRONT.APP, used by

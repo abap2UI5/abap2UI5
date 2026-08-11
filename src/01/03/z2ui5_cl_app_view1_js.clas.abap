@@ -80,8 +80,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (oResponse._processed) return;` && |\n| &&
              `          oResponse._processed = true;` && |\n| &&
              `` && |\n| &&
-             `          const PARAMS = oResponse.PARAMS;` && |\n| &&
-             `          if (!PARAMS) return;` && |\n| &&
+             `          if (!oResponse.S_ACTION) return;` && |\n| &&
              `` && |\n| &&
              `          // Stamp of the request this response belongs to: every await in` && |\n| &&
              `          // the display phase re-checks it, so a response superseded by a` && |\n| &&
@@ -117,7 +116,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // travels as the action context, so the slot displays can discard a` && |\n| &&
              `      // build a newer parallel request superseded.` && |\n| &&
              `      async _runSystemActions(oResponse, seq) {` && |\n| &&
-             `        const systemJs = oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;` && |\n| &&
+             `        const systemJs = oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `        if (!systemJs) return;` && |\n| &&
              `        for (const item of systemJs) {` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&

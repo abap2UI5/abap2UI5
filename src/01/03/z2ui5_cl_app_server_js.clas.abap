@@ -88,14 +88,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //                     "ComponentData": {...} }` && |\n| &&
              `    //   } } }` && |\n| &&
              `    //` && |\n| &&
-             `    // Wire format - response. PARAMS carries nothing but the action lists:` && |\n| &&
-             `    // every view build, teardown, model push and history update is an` && |\n| &&
-             `    // action, run by View1/FrontendAction in the documented order.` && |\n| &&
+             `    // Wire format - response. S_FRONT carries nothing but the id, the app` && |\n| &&
+             `    // and the action lists: every view build, teardown, model push and` && |\n| &&
+             `    // history update is an action, run by View1/FrontendAction in the` && |\n| &&
+             `    // documented order.` && |\n| &&
              `    //   { "S_FRONT": {` && |\n| &&
              `    //       "ID": "<new draft id>",        // sent back with the next request` && |\n| &&
              `    //       "APP": "<app class name>",     // rendered app, for the router` && |\n| &&
-             `    //       "PARAMS": {` && |\n| &&
-             `    //         "S_ACTION": {` && |\n| &&
+             `    //       "S_ACTION": {` && |\n| &&
              `    //           // SYSTEM: the framework's own view-lifecycle calls, run` && |\n| &&
              `    //           // first, in order, before the view is rendered; the` && |\n| &&
              `    //           // ROUTER/sync call is always queued last` && |\n| &&
@@ -106,7 +106,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //           // APP: what the app queued, run last, once the DOM exists.` && |\n| &&
              `    //           // A legacy app-authored raw-JS snippet stays a string entry.` && |\n| &&
              `    //           "T_CUSTOM": [["SET_FOCUS","id1"]]` && |\n| &&
-             `    //         }` && |\n| &&
              `    //       }` && |\n| &&
              `    //     },` && |\n| &&
              `    //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes` && |\n| &&
@@ -390,7 +389,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          this.responseSuccess(` && |\n| &&
              `            {` && |\n| &&
              `              ID: responseData.S_FRONT.ID,` && |\n| &&
-             `              PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
+             `              S_ACTION: responseData.S_FRONT.S_ACTION,` && |\n| &&
              `              // A response whose model did not change carries no MODEL key` && |\n| &&
              `              // at all; every consumer downstream sees the empty object it` && |\n| &&
              `              // used to be sent explicitly.` && |\n| &&
@@ -411,23 +410,22 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
              `        try {` && |\n| &&
              `          AppState.state.oResponse = response;` && |\n| &&
-             `          const params = response.PARAMS;` && |\n| &&
              `` && |\n| &&
              `          // The backend can send follow-up actions to run after the response.` && |\n| &&
-             `          // Each entry is a JSON array ["EVENT", ...args] (framework actions,` && |\n| &&
-             `          // pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
+             `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n| &&
+             `          // actions, pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
              `          // expression - see FrontendAction.runCustom. They are stashed` && |\n| &&
              `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&
              `          // the (possibly freshly built) view is actually rendered. Running` && |\n| &&
              `          // them earlier would break render-dependent actions such as` && |\n| &&
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&
-             `          const followUp = params?.S_ACTION;` && |\n| &&
+             `          const followUp = response.S_ACTION;` && |\n| &&
              `          // carried on the response record, not on shared state: with` && |\n| &&
-             `          // parallel responses a single global would let the older render` && |\n|.
-    result = result &&
+             `          // parallel responses a single global would let the older render` && |\n| &&
              `          // consume the newer response's snippets (and lose its own)` && |\n| &&
-             `          response._pendingCustomJs = followUp?.T_CUSTOM || null;` && |\n| &&
+             `          response._pendingCustomJs = followUp?.T_CUSTOM || null;` && |\n|.
+    result = result &&
              `` && |\n| &&
              `          // Every view-lifecycle call, the MAIN rebuild included, is a system` && |\n| &&
              `          // action now - so there is nothing slot-specific left here. The` && |\n| &&

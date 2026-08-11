@@ -53,8 +53,7 @@ sap.ui.define(
           if (oResponse._processed) return;
           oResponse._processed = true;
 
-          const PARAMS = oResponse.PARAMS;
-          if (!PARAMS) return;
+          if (!oResponse.S_ACTION) return;
 
           // Stamp of the request this response belongs to: every await in
           // the display phase re-checks it, so a response superseded by a
@@ -90,7 +89,7 @@ sap.ui.define(
       // travels as the action context, so the slot displays can discard a
       // build a newer parallel request superseded.
       async _runSystemActions(oResponse, seq) {
-        const systemJs = oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;
+        const systemJs = oResponse?.S_ACTION?.T_SYSTEM;
         if (!systemJs) return;
         for (const item of systemJs) {
           if (Lib.isDestroyed(this)) return;

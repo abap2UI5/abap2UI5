@@ -22,7 +22,7 @@ function okResponse(id) {
   return {
     ok: true,
     headers: { get: () => null },
-    json: async () => ({ S_FRONT: { ID: id, PARAMS: {} }, MODEL: {} }),
+    json: async () => ({ S_FRONT: { ID: id, S_ACTION: {} }, MODEL: {} }),
   };
 }
 

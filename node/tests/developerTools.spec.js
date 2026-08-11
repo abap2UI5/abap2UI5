@@ -116,13 +116,11 @@ test.describe("View tab", () => {
       // the XML rides on the system action that displayed the slot - a real
       // nested array on the wire
       oResponse: {
-        PARAMS: {
-          S_ACTION: {
-            T_SYSTEM: [
-              ["CONTROL_GLOBAL", "VIEW_SLOTS", "destroy", "MAIN"],
-              ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "MAIN", "<Page/>"],
-            ],
-          },
+        S_ACTION: {
+          T_SYSTEM: [
+            ["CONTROL_GLOBAL", "VIEW_SLOTS", "destroy", "MAIN"],
+            ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "MAIN", "<Page/>"],
+          ],
         },
       },
     });
@@ -136,12 +134,10 @@ test.describe("View tab", () => {
     const { DeveloperTools } = loadDeveloperTools({
       views: { MAIN: fakeXmlView(undefined) },
       oResponse: {
-        PARAMS: {
-          S_ACTION: {
-            T_SYSTEM: [
-              '["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Page/>"]',
-            ],
-          },
+        S_ACTION: {
+          T_SYSTEM: [
+            '["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Page/>"]',
+          ],
         },
       },
     });

@@ -86,7 +86,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     Server.roundtrip/readHttp; this record exists for` && |\n| &&
              `//                     onBeforeRoundtrip hooks and the developer tools` && |\n| &&
              `//                     (View1.eB / Server)` && |\n| &&
-             `//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }` && |\n| &&
+             `//   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL }` && |\n| &&
              `//   responseData      raw parsed response JSON (Server.readHttp); kept` && |\n| &&
              `//                     besides oResponse because it carries fields the` && |\n| &&
              `//                     cooked record does not (e.g. S_FRONT.APP, used by` && |\n| &&

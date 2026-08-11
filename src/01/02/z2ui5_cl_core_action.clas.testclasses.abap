@@ -110,10 +110,10 @@ CLASS ltcl_test IMPLEMENTATION.
     " action message_toast_display( ) would have queued
     cl_abap_unit_assert=>assert_equals(
         exp = 1
-        act = lines( lo_result->ms_next-s_set-s_action-t_custom ) ).
+        act = lines( lo_result->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_char_cp(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Bookmarked app state expired*`
-        act = lo_result->ms_next-s_set-s_action-t_custom[ 1 ] ).
+        act = lo_result->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -188,7 +188,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " next app - the model would then travel without any view asking for it
     lo_action->ms_next-check_view_shipped = abap_true.
 
-    lo_action->reset_view_update_flags( ).
+    lo_action->reset_frontend_queue( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_action->ms_next-check_view_shipped ).
@@ -214,8 +214,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " frontend actions queued by the calling app - messages travel as
     " follow-up actions too and must not leak into the newly called app...
-    INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_action-t_custom.
-    INSERT `some_system_js` INTO TABLE lo_action->ms_next-s_set-s_action-t_system.
+    INSERT VALUE #( js = `some_js` ) INTO TABLE lo_action->ms_next-s_action-t_custom.
+    INSERT VALUE #( js = `some_system_js` ) INTO TABLE lo_action->ms_next-s_action-t_system.
 
 
     lo_result = lo_action->factory_stack_call( ).
@@ -228,7 +228,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " the system queue is the popup/popover teardown for the called app - it
     " is queued BEFORE that app runs, so a popup_display( ) of its own lands
     " after it and wins
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_action-t_custom ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_action-t_custom ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_result->ms_next-t_action_front ) ).
     cl_abap_unit_assert=>assert_equals( exp = `POPUP|destroy`
@@ -313,8 +313,8 @@ CLASS ltcl_test IMPLEMENTATION.
     " frontend actions queued by the leaving app - messages travel as
     " follow-up actions too and must not leak into the app that is
     " navigated back to...
-    INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_action-t_custom.
-    INSERT `some_system_js` INTO TABLE lo_action->ms_next-s_set-s_action-t_system.
+    INSERT VALUE #( js = `some_js` ) INTO TABLE lo_action->ms_next-s_action-t_custom.
+    INSERT VALUE #( js = `some_system_js` ) INTO TABLE lo_action->ms_next-s_action-t_system.
 
 
     lo_result = lo_action->factory_stack_leave( ).
@@ -322,7 +322,7 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_bound( lo_result ).
 
     " leave behaves like call
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_action-t_custom ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_action-t_custom ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_result->ms_next-t_action_front ) ).
     cl_abap_unit_assert=>assert_equals( exp = `POPUP|destroy`

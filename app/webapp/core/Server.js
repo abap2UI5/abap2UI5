@@ -61,14 +61,14 @@ sap.ui.define(
     //                     "ComponentData": {...} }
     //   } } }
     //
-    // Wire format - response. PARAMS carries nothing but the action lists:
-    // every view build, teardown, model push and history update is an
-    // action, run by View1/FrontendAction in the documented order.
+    // Wire format - response. S_FRONT carries nothing but the id, the app
+    // and the action lists: every view build, teardown, model push and
+    // history update is an action, run by View1/FrontendAction in the
+    // documented order.
     //   { "S_FRONT": {
     //       "ID": "<new draft id>",        // sent back with the next request
     //       "APP": "<app class name>",     // rendered app, for the router
-    //       "PARAMS": {
-    //         "S_ACTION": {
+    //       "S_ACTION": {
     //           // SYSTEM: the framework's own view-lifecycle calls, run
     //           // first, in order, before the view is rendered; the
     //           // ROUTER/sync call is always queued last
@@ -79,7 +79,6 @@ sap.ui.define(
     //           // APP: what the app queued, run last, once the DOM exists.
     //           // A legacy app-authored raw-JS snippet stays a string entry.
     //           "T_CUSTOM": [["SET_FOCUS","id1"]]
-    //         }
     //       }
     //     },
     //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes
@@ -363,7 +362,7 @@ sap.ui.define(
           this.responseSuccess(
             {
               ID: responseData.S_FRONT.ID,
-              PARAMS: responseData.S_FRONT.PARAMS,
+              S_ACTION: responseData.S_FRONT.S_ACTION,
               // A response whose model did not change carries no MODEL key
               // at all; every consumer downstream sees the empty object it
               // used to be sent explicitly.
@@ -384,18 +383,17 @@ sap.ui.define(
         const oController = ViewSlots.getController("MAIN");
         try {
           AppState.state.oResponse = response;
-          const params = response.PARAMS;
 
           // The backend can send follow-up actions to run after the response.
-          // Each entry is a JSON array ["EVENT", ...args] (framework actions,
-          // pure data), a legacy "eF(...)" call string, or a raw JS
+          // Each entry is a real JSON array ["EVENT", ...args] (framework
+          // actions, pure data), a legacy "eF(...)" call string, or a raw JS
           // expression - see FrontendAction.runCustom. They are stashed
           // here and executed at the end of _processAfterRendering, i.e. once
           // the (possibly freshly built) view is actually rendered. Running
           // them earlier would break render-dependent actions such as
           // SET_FOCUS on the initial view, where the target control does not
           // exist in the DOM yet.
-          const followUp = params?.S_ACTION;
+          const followUp = response.S_ACTION;
           // carried on the response record, not on shared state: with
           // parallel responses a single global would let the older render
           // consume the newer response's snippets (and lose its own)

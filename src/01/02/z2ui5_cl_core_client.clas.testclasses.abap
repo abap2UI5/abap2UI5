@@ -24,7 +24,9 @@ CLASS ltcl_test_client DEFINITION FINAL
     "! them survive a second call for the same slot, is the whole contract.
     METHODS system_actions
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
 
     METHODS test_instantiation        FOR TESTING RAISING cx_static_check.
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
@@ -81,8 +83,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
         result = result && `|`.
       ENDIF.
       result = result && |{ ls_action-slot }\|{ ls_action-method }\|{ ls_action-xml }|.
-      IF ls_action-options IS NOT INITIAL.
-        result = result && |\|{ ls_action-options }|.
+      IF ls_action-options IS BOUND AND ls_action-options->is_empty( ) = abap_false.
+        result = result && |\|{ ls_action-options->stringify( ) }|.
       ENDIF.
     ENDLOOP.
 
@@ -151,7 +153,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp3.
     li_client->view_model_update( ).
 
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_action ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -168,7 +170,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->nest_view_model_update( ).
     li_client->nest2_view_model_update( ).
 
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_action ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -212,7 +214,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->popup_model_update( ).
 
     " obsolete NO-OP - main_end( ) queues the model push for every slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_action ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -262,7 +264,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->popover_model_update( ).
 
     " obsolete NO-OP - main_end( ) queues the model push for every slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_action ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -348,7 +350,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 1 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -364,7 +366,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Error occurred"]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 1 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -383,7 +385,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
               `{"contentWidth":"20rem","dependentOn":"myPage"}]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 1 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -398,7 +400,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved"]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 1 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -417,7 +419,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = mo_action->ms_next-s_nav-set_nav_routing ).
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
                                         act = mo_action->mo_app->mv_nav_mode ).
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_action-t_custom ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
 
   ENDMETHOD.
 
@@ -444,7 +446,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->follow_up_action( `sap.m.MessageToast.show('test')` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_action->ms_next-s_set-s_action-t_custom ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
 
   ENDMETHOD.
 
@@ -460,11 +462,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " framework events travel as pure data - a JSON array serialized in ABAP
     " (get_event_client_json), not as an executable eF( ) JS snippet
     cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( mo_action->ms_next-s_set-s_action-t_custom ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["SET_TITLE","My Title"]`
-                                        act = mo_action->ms_next-s_set-s_action-t_custom[ 1 ] ).
+                                        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["HISTORY_BACK"]`
-                                        act = mo_action->ms_next-s_set-s_action-t_custom[ 2 ] ).
+                                        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -481,13 +483,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                  t_arg = VALUE #( ( `popContainer` ) ( `popPage` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( mo_action->ms_next-s_set-s_action-t_custom ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 1 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","popContainer","POPUP","to","popPage"]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 2 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -509,16 +511,16 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                  t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lines( mo_action->ms_next-s_set-s_action-t_custom ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Hello"]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 1 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 2 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
-        act = mo_action->ms_next-s_set-s_action-t_custom[ 3 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 3 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -649,7 +651,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = mo_action->ms_next-next_event ).
     " the dedicated backend event must not emit any client side JS snippet
     cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = lines( mo_action->ms_next-s_set-s_action-t_custom ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
 
   ENDMETHOD.
 

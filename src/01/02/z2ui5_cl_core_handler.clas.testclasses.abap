@@ -80,7 +80,19 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
       IMPORTING
         val           TYPE REF TO z2ui5_cl_core_handler
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! the response's system actions, stringified and pipe-joined - so the
+    "! auto-update/nav tests can assert on the queue like on text
+    METHODS system_actions_of
+      IMPORTING
+        val           TYPE REF TO z2ui5_cl_core_handler
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
@@ -464,18 +476,19 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " the action lists leave as REAL nested JSON arrays, not as escaped
     " strings - and an empty-string positional placeholder inside an action
-    " survives, because the embedding runs AFTER the no-empty-values filter
+    " survives, because the queues are written AFTER the no-empty-values
+    " filter ran
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     DATA ls_response TYPE z2ui5_if_core_types=>ty_s_response.
     lo_handler = NEW #( val = `` ).
     ls_response-s_front-id = `ID123`.
-    INSERT `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]`
-           INTO TABLE ls_response-s_front-params-s_action-t_system.
-    INSERT `["SET_FOCUS","id1"]`
-           INTO TABLE ls_response-s_front-params-s_action-t_custom.
-    " a legacy raw-JS snippet is no JSON and stays a string entry
-    INSERT `eF('SET_FOCUS','id2')`
-           INTO TABLE ls_response-s_front-params-s_action-t_custom.
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]` ) )
+           INTO TABLE ls_response-s_front-s_action-t_system.
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SET_FOCUS","id1"]` ) )
+           INTO TABLE ls_response-s_front-s_action-t_custom.
+    " a legacy raw-JS snippet an app queued keeps riding as a string entry
+    INSERT VALUE #( js = `eF('SET_FOCUS','id2')` )
+           INTO TABLE ls_response-s_front-s_action-t_custom.
 
     DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
 
@@ -528,7 +541,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     li_client->popup_display( `<Dialog/>` ).
     li_client->view_display( `<View/>` ).
 
-    lo_handler->system_actions_serialize( ).
+    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `MAIN|NEST|NEST2|POPUP|POPOVER`
@@ -549,16 +562,16 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     li_client->view_display( `<First/>` ).
     li_client->view_display( `<Second/>` ).
 
-    lo_handler->system_actions_serialize( ).
+    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
 
-    DATA(lt_js) = lo_handler->mo_action->ms_next-s_set-s_action-t_system.
+    DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_js ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","MAIN"]`
-                                        act = lt_js[ 1 ] ).
+                                        act = lt_js[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Second/>"]`
-        act = lt_js[ 2 ] ).
+        act = lt_js[ 2 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -568,10 +581,23 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
 
-    lo_handler->system_actions_serialize( ).
+    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_initial(
-        lo_handler->mo_action->ms_next-s_set-s_action-t_system ).
+        lo_handler->mo_action->ms_next-s_action-t_system ).
+
+  ENDMETHOD.
+
+  METHOD system_actions_of.
+
+    LOOP AT val->ms_response-s_front-s_action-t_system INTO DATA(ls_queued).
+      IF result IS NOT INITIAL.
+        result = result && `|`.
+      ENDIF.
+      result = result && COND #( WHEN ls_queued-o_json IS BOUND
+                                 THEN ls_queued-o_json->stringify( )
+                                 ELSE ls_queued-js ).
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -579,7 +605,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " the slots named by the serialized actions, in order, each one once -
     " so the assertion reads as the sequence and not as a payload dump
-    LOOP AT val->mo_action->ms_next-s_set-s_action-t_system INTO DATA(lv_js).
+    LOOP AT val->mo_action->ms_next-s_action-t_system INTO DATA(ls_queued).
+      DATA(lv_js) = ls_queued-o_json->stringify( ).
       SPLIT lv_js AT `","` INTO TABLE DATA(lt_part).
       DATA(lv_slot) = replace( val  = VALUE string( lt_part[ 4 ] OPTIONAL )
                                sub  = `"]`
@@ -598,14 +625,16 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_view_update_flag.
 
     " every slot displays through a system action, and the display notes that
-    " a view was shipped - the model has to travel with it. No slot of the
-    " response is read back for this any more
+    " a view was shipped - the model has to travel with it (main_end reads
+    " the note; no slot of the response is read back for this any more)
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->ms_next-check_view_shipped = abap_true.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client->view_display( `<View/>` ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->check_view_update_needed( ) ).
+                                        act = lo_handler->mo_action->ms_next-check_view_shipped ).
 
   ENDMETHOD.
 
@@ -620,7 +649,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     li_client->popup_display( `<Dialog/>` ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->check_view_update_needed( ) ).
+                                        act = lo_handler->mo_action->ms_next-check_view_shipped ).
 
   ENDMETHOD.
 
@@ -630,7 +659,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_handler = NEW #( val = `` ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_handler->check_view_update_needed( ) ).
+                                        act = lo_handler->mo_action->ms_next-check_view_shipped ).
 
   ENDMETHOD.
 
@@ -801,9 +830,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_char_cp(
         exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]*`
-        act = concat_lines_of(
-                  table = lo_handler->ms_response-s_front-params-s_action-t_system
-                  sep   = `|` ) ).
+        act = system_actions_of( lo_handler ) ).
     cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
 
@@ -830,9 +857,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " on every roundtrip and is not one
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = xsdbool( concat_lines_of(
-                           table = lo_handler->ms_response-s_front-params-s_action-t_system
-                           sep   = `|` ) CS `updateModel` ) ).
+        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
@@ -855,9 +880,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_char_cp(
         exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]*`
-        act = concat_lines_of(
-                  table = lo_handler->ms_response-s_front-params-s_action-t_system
-                  sep   = `|` ) ).
+        act = system_actions_of( lo_handler ) ).
 
   ENDMETHOD.
 
@@ -901,9 +924,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " response field of its own
     cl_abap_unit_assert=>assert_char_cp(
         exp = `*"setNavRouting":"KEEP"*`
-        act = concat_lines_of(
-                  table = lo_handler->ms_response-s_front-params-s_action-t_system
-                  sep   = `|` ) ).
+        act = system_actions_of( lo_handler ) ).
 
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
@@ -913,9 +934,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = xsdbool( concat_lines_of(
-                           table = lo_handler->ms_response-s_front-params-s_action-t_system
-                           sep   = `|` ) CS `setNavRouting` ) ).
+        act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
   ENDMETHOD.
 

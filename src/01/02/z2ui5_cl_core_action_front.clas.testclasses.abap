@@ -20,7 +20,9 @@ CLASS ltcl_test_action_front DEFINITION FINAL
 
     METHODS queued
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
 ENDCLASS.
 
 
@@ -37,8 +39,12 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
 
   METHOD queued.
 
-    " the APP-phase action the call queued - there is exactly one per test
-    result = VALUE #( mo_action->ms_next-s_set-s_action-t_custom[ 1 ] OPTIONAL ).
+    " the APP-phase action the call queued - there is exactly one per test,
+    " built as its JSON array and stringified here only to assert on it
+    DATA(ls_action) = VALUE #( mo_action->ms_next-s_action-t_custom[ 1 ] OPTIONAL ).
+    IF ls_action-o_json IS BOUND.
+      result = ls_action-o_json->stringify( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -162,7 +168,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_box( lt_msg ).
 
     cl_abap_unit_assert=>assert_initial(
-        mo_action->ms_next-s_set-s_action-t_custom ).
+        mo_action->ms_next-s_action-t_custom ).
 
   ENDMETHOD.
 

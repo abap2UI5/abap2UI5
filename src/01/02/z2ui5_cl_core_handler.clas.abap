@@ -69,40 +69,20 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     " z2ui5_cl_http_handler
     DATA ms_stateful           TYPE z2ui5_if_core_types=>ty_s_http_res-s_stateful.
 
-    "! Turn the collected view-lifecycle calls into the SYSTEM action list -
-    "! in slot order, so the frontend only has to run what it receives.
-    METHODS system_actions_serialize.
-
-    "! Turn the roundtrip's browser-history intent into the ROUTER/sync call,
-    "! and a requested back-navigation into the history event that already
-    "! exists for it.
-    METHODS nav_action_serialize.
-
     "! Reconcile what this request says about the browser with what the draft
     "! already knows - see the method body.
     METHODS session_merge.
 
-    METHODS set_nav_opt
-      IMPORTING
-        json TYPE REF TO z2ui5_if_ajson
-        name TYPE string
-        val  TYPE clike
-      RAISING
-        z2ui5_cx_ajson_error.
-
-    "! Replace the response's action-list STRINGS with the JSON arrays they
-    "! carry - see the method body.
-    METHODS actions_embed
+    "! Write one action queue into the response JSON - each framework action
+    "! as the real nested array it was built as, each legacy raw-JS snippet
+    "! as the string entry the frontend's legacy path keys on.
+    METHODS actions_serialize
       IMPORTING
         ajson    TYPE REF TO z2ui5_if_ajson
         path     TYPE string
-        t_action TYPE string_table
+        t_action TYPE z2ui5_if_core_types=>ty_t_queued_action
       RAISING
         z2ui5_cx_ajson_error.
-
-    METHODS check_view_update_needed
-      RETURNING
-        VALUE(result) TYPE abap_bool.
 
     METHODS request_parse_body
       IMPORTING
@@ -491,19 +471,25 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                                       ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
+        " the action queues are serialized explicitly below - the generic
+        " conversion would render each queue row as a { O_JSON, JS } object
+        " instead of the bare array/string entry the frontend reads
+        DATA(ls_front) = val-s_front.
+        CLEAR ls_front-s_action.
+
         ajson_result->set( iv_path = `/`
-                           iv_val  = val-s_front ).
+                           iv_val  = ls_front ).
         ajson_result = ajson_result->filter( z2ui5_cl_a2ui5_json_fltr=>create_no_empty_values( ) ).
 
         " AFTER the filter, never before: an action array carries empty
         " strings as positional placeholders, which the no-empty-values
         " filter would silently drop
-        actions_embed( ajson    = ajson_result
-                       path     = `/PARAMS/S_ACTION/T_SYSTEM`
-                       t_action = val-s_front-params-s_action-t_system ).
-        actions_embed( ajson    = ajson_result
-                       path     = `/PARAMS/S_ACTION/T_CUSTOM`
-                       t_action = val-s_front-params-s_action-t_custom ).
+        actions_serialize( ajson    = ajson_result
+                           path     = `/S_ACTION/T_SYSTEM`
+                           t_action = val-s_front-s_action-t_system ).
+        actions_serialize( ajson    = ajson_result
+                           path     = `/S_ACTION/T_CUSTOM`
+                           t_action = val-s_front-s_action-t_custom ).
 
         DATA(lv_frontend) = ajson_result->stringify( ).
 
@@ -692,145 +678,21 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD nav_action_serialize.
+  METHOD actions_serialize.
 
-    DATA(ls_nav) = mo_action->ms_next-s_nav.
-    DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
-
-    TRY.
-        " Router computes ONE outcome from all of these - adopt the hash, push
-        " a route entry, replace it, or write the app-state hash - so they
-        " travel as one call with one options object. Queued LAST in the
-        " system phase, after the slots were built, so the route reflects what
-        " was actually rendered.
-        " only what is actually set travels - an absent option reads exactly
-        " like the empty value it would otherwise carry, and the common
-        " roundtrip sets none of them
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        IF ls_nav-set_app_state_active = abap_true.
-          li_opt->set_boolean( iv_path = `/setAppStateActive`
-                               iv_val  = abap_true ).
-        ENDIF.
-        IF ls_nav-check_nav_app_call = abap_true.
-          li_opt->set_boolean( iv_path = `/checkNavAppCall`
-                               iv_val  = abap_true ).
-        ENDIF.
-        set_nav_opt( json = li_opt
-                     name = `setPushState`
-                     val  = ls_nav-set_push_state ).
-        set_nav_opt( json = li_opt
-                     name = `setNavRouting`
-                     val  = ls_nav-set_nav_routing ).
-        set_nav_opt( json = li_opt
-                     name = `navAppCallPrevApp`
-                     val  = ls_nav-nav_app_call_prev_app ).
-        set_nav_opt( json = li_opt
-                     name = `navAppCallPrevId`
-                     val  = ls_nav-nav_app_call_prev_id ).
-        set_nav_opt( json = li_opt
-                     name = `id`
-                     val  = mo_action->mo_app->ms_draft-id ).
-
-        INSERT lo_srv_event->get_event_client_json(
-                   val   = z2ui5_if_client=>cs_event-control_global
-                   t_arg = VALUE #( ( `ROUTER` )
-                                    ( `sync` )
-                                    ( li_opt->stringify( ) ) ) )
-               INTO TABLE ms_response-s_front-params-s_action-t_system.
-
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING
-            val = |NAV_OPTIONS_INVALID - { lx_json->get_text( ) }|.
-    ENDTRY.
-
-
-  ENDMETHOD.
-
-  METHOD set_nav_opt.
-
-    IF val IS NOT INITIAL.
-      json->set_string( iv_path = |/{ name }|
-                        iv_val  = val ).
+    IF t_action IS INITIAL.
+      RETURN.
     ENDIF.
 
-  ENDMETHOD.
-
-  METHOD actions_embed.
-
-    " Every framework action is BUILT as a JSON-array string
-    " (get_event_client_json), because the same payload also has to travel
-    " inside an XML event handler attribute. In the response that string
-    " form is pure cost - each entry would be escaped into the response JSON
-    " only for the frontend to JSON.parse it right back. So the response
-    " carries the actions as REAL nested arrays: the string is parsed once
-    " here and embedded as its JSON subtree.
-    "
-    " T_CUSTOM can also hold an app's raw-JS snippet (the legacy
-    " follow_up_action formats), which is no JSON array - it keeps riding as
-    " a string and the frontend runs it down its legacy path. The `[` sniff
-    " mirrors the frontend's own (FrontendAction.runCustom): a raw-JS
-    " expression that merely STARTS with `[` fails the parse and stays a
-    " string too.
-    LOOP AT t_action INTO DATA(lv_action).
-      DATA(lv_idx) = sy-tabix.
-      IF lv_action IS INITIAL OR lv_action(1) <> `[`.
-        CONTINUE.
+    ajson->touch_array( path ).
+    LOOP AT t_action INTO DATA(ls_action).
+      IF ls_action-o_json IS BOUND.
+        ajson->push( iv_path = path
+                     iv_val  = ls_action-o_json ).
+      ELSE.
+        ajson->push( iv_path = path
+                     iv_val  = ls_action-js ).
       ENDIF.
-      TRY.
-          ajson->set( iv_path = |{ path }/{ lv_idx }|
-                      iv_val  = z2ui5_cl_ajson=>parse( lv_action ) ).
-        CATCH z2ui5_cx_ajson_error ##NO_HANDLER.
-          " not JSON after all - the string entry stays as it is
-      ENDTRY.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD check_view_update_needed.
-
-    " a slot that ships new XML always needs the model with it - all five
-    " slots, the nested ones included. Every display records that
-    " (z2ui5_cl_core_client=>slot_display)
-    result = mo_action->ms_next-check_view_shipped.
-
-  ENDMETHOD.
-
-  METHOD system_actions_serialize.
-
-    " The view-lifecycle calls leave in SLOT order, never in the order the app
-    " happened to make them: a nested view is inserted into the MAIN control
-    " tree, so MAIN has to be built before NEST and NEST2 whichever way round
-    " the app called them. Within one slot the order is kept - that is the
-    " destroy that always precedes its display.
-    DATA lt_sorted TYPE z2ui5_if_core_types=>ty_t_system_action.
-
-    LOOP AT VALUE string_table( ( z2ui5_cl_core_action_front=>cs_slot-main )
-                                ( z2ui5_cl_core_action_front=>cs_slot-nest )
-                                ( z2ui5_cl_core_action_front=>cs_slot-nest2 )
-                                ( z2ui5_cl_core_action_front=>cs_slot-popup )
-                                ( z2ui5_cl_core_action_front=>cs_slot-popover ) )
-         INTO DATA(lv_slot).
-      LOOP AT mo_action->ms_next-t_action_front INTO DATA(ls_action) WHERE slot = lv_slot.
-        INSERT ls_action INTO TABLE lt_sorted.
-      ENDLOOP.
-    ENDLOOP.
-
-    DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
-    LOOP AT lt_sorted INTO ls_action.
-      DATA(lt_arg) = VALUE string_table( ( `VIEW_SLOTS` )
-                                         ( ls_action-method )
-                                         ( ls_action-slot ) ).
-      IF ls_action-method = `display`.
-        INSERT ls_action-xml INTO TABLE lt_arg.
-        IF ls_action-options IS NOT INITIAL.
-          INSERT ls_action-options INTO TABLE lt_arg.
-        ENDIF.
-      ENDIF.
-      INSERT lo_srv_event->get_event_client_json(
-                 val   = z2ui5_if_client=>cs_event-control_global
-                 t_arg = lt_arg )
-             INTO TABLE mo_action->ms_next-s_set-s_action-t_system.
     ENDLOOP.
 
   ENDMETHOD.
@@ -846,42 +708,39 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       mo_action->ms_next-s_nav-set_nav_routing = mo_action->mo_app->mv_nav_mode.
     ENDIF.
 
-    system_actions_serialize( ).
+    DATA(lo_front) = NEW z2ui5_cl_core_action_front( mo_action ).
 
-    ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
-                           s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
+    " the view-lifecycle calls leave first, in slot order
+    lo_front->slots_serialize( ).
 
-    IF check_view_update_needed( ).
-      ms_response-model = mo_action->mo_app->model_json_stringify( ).
+    " The model of this roundtrip. A slot that shipped new XML always needs
+    " the model with it - all five slots, the nested ones included; every
+    " display records that (z2ui5_cl_core_action_front=>slot_display).
+    DATA(lv_model) = `{}`.
+    IF mo_action->ms_next-check_view_shipped = abap_true.
+      lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
       " push - send the model only when main( ) itself changed it, exactly as
-      " an explicit view_model_update( ) would (same payload, same frontend
-      " flag); an unchanged model still responds `{}` as before
-      DATA(lv_model) = mo_action->mo_app->model_json_stringify( ).
-      IF lv_model = mv_model_before.
-        ms_response-model = `{}`.
-      ELSE.
-        ms_response-model = lv_model.
-        " The app has ONE model, but each OPEN slot holds its own frontend
-        " instance of it - and which slots are open is the one thing only the
-        " frontend knows. So the action names no slot at all: it says the
-        " model changed, and every slot carrying a model of its own picks it
-        " up. Appended AFTER the display actions, so a slot built in this same
-        " roundtrip is filled before it is pushed to.
-        INSERT NEW z2ui5_cl_core_srv_event( )->get_event_client_json(
-                   val   = z2ui5_if_client=>cs_event-control_global
-                   t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `updateModel` ) ) )
-               INTO TABLE ms_response-s_front-params-s_action-t_system.
+      " an explicit view_model_update( ) would; an unchanged model still
+      " responds `{}` as before
+      DATA(lv_model_now) = mo_action->mo_app->model_json_stringify( ).
+      IF lv_model_now <> mv_model_before.
+        lv_model = lv_model_now.
+        " queued AFTER the display actions, so a slot built in this same
+        " roundtrip is filled before it is pushed to
+        lo_front->queue_model_update( ).
       ENDIF.
-    ELSE.
-      ms_response-model = `{}`.
     ENDIF.
 
     " last of all, so the route reflects everything this roundtrip did - the
     " slots that were built and the model that was pushed into them
-    nav_action_serialize( ).
+    lo_front->nav_serialize( mo_action->mo_app->ms_draft-id ).
+
+    ms_response = VALUE #( s_front-s_action = mo_action->ms_next-s_action
+                           s_front-id       = mo_action->mo_app->ms_draft-id
+                           s_front-app      = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
+                           model            = lv_model ).
 
     mv_response = response_abap_to_json( ms_response ).
 

@@ -12,6 +12,18 @@ INTERFACE z2ui5_if_core_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
+  " The view slots, spelled as the frontend's ViewSlots module knows them.
+  " Every backend-side slot reference (the system actions, the nav-app
+  " teardown, the NavContainer event mapping) uses these - never a literal.
+  CONSTANTS:
+    BEGIN OF cs_slot,
+      main    TYPE string VALUE `MAIN`,
+      nest    TYPE string VALUE `NEST`,
+      nest2   TYPE string VALUE `NEST2`,
+      popup   TYPE string VALUE `POPUP`,
+      popover TYPE string VALUE `POPOVER`,
+    END OF cs_slot.
+
   TYPES:
     BEGIN OF ty_s_http_res,
       body          TYPE string,
@@ -70,24 +82,34 @@ INTERFACE z2ui5_if_core_types
       xml     TYPE string,
       " the slot-specific extras as a JSON object - the popover's anchor, a
       " nested view's insert/destroy methods, the MAIN view's model switch
-      options TYPE string,
+      options TYPE REF TO z2ui5_if_ajson,
     END OF ty_s_system_action.
   TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
 
+  " One QUEUED frontend action. A framework action is built as JSON right
+  " away (o_json, the ["EVENT",...] array) and embedded into the response
+  " as-is - no string round trip. `js` carries only what an app passed
+  " VERBATIM to follow_up_action: the legacy raw-JS snippet, which travels
+  " as a string entry and which the frontend runs down its legacy path.
   TYPES:
-    BEGIN OF ty_s_next_frontend,
-      BEGIN OF s_action,
-        " SYSTEM actions run FIRST, in the display phase, before the view is
-        " rendered - they are the framework's own view-lifecycle calls
-        " (destroy a slot, display one, push the model into it), which every
-        " later action depends on having happened. APP actions run last, once
-        " the view is in the DOM, so a render-dependent one like SET_FOCUS
-        " finds its target control. Same payload format and same dispatcher
-        " for both, only the phase differs.
-        t_system TYPE string_table,
-        t_custom TYPE string_table,
-      END OF s_action,
-    END OF ty_s_next_frontend.
+    BEGIN OF ty_s_queued_action,
+      o_json TYPE REF TO z2ui5_if_ajson,
+      js     TYPE string,
+    END OF ty_s_queued_action.
+  TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
+
+  " SYSTEM actions run FIRST, in the display phase, before the view is
+  " rendered - they are the framework's own view-lifecycle calls (destroy a
+  " slot, display one, push the model into it), which every later action
+  " depends on having happened. APP actions run last, once the view is in
+  " the DOM, so a render-dependent one like SET_FOCUS finds its target
+  " control. Same payload format and same dispatcher for both, only the
+  " phase differs.
+  TYPES:
+    BEGIN OF ty_s_action,
+      t_system TYPE ty_t_queued_action,
+      t_custom TYPE ty_t_queued_action,
+    END OF ty_s_action.
 
   " The browser-history intent of one roundtrip. Router computes ONE outcome
   " from all of it - adopt the hash, push a route entry, replace it, or write
@@ -135,7 +157,8 @@ INTERFACE z2ui5_if_core_types
       o_app_call         TYPE REF TO z2ui5_if_app,
       o_app_leave        TYPE REF TO z2ui5_if_app,
       next_event         TYPE string,
-      s_set              TYPE ty_s_next_frontend,
+      " the two action queues of this roundtrip, as the response ships them
+      s_action           TYPE ty_s_action,
       r_data             TYPE REF TO data,
       " BACKEND-ONLY, never serialized: the view-lifecycle calls of this
       " roundtrip, collected while the app runs and turned into the SYSTEM
@@ -159,9 +182,9 @@ INTERFACE z2ui5_if_core_types
   TYPES:
     BEGIN OF ty_s_response,
       BEGIN OF s_front,
-        params TYPE ty_s_next_frontend,
-        id     TYPE string,
-        app    TYPE string,
+        s_action TYPE ty_s_action,
+        id       TYPE string,
+        app      TYPE string,
       END OF s_front,
       model TYPE string,
     END OF ty_s_response.

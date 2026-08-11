@@ -162,7 +162,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    // "<slot>","<xml>", {options}?]. Only used as a fallback for the case` && |\n| &&
              `    // where the slot holds no live view to read the content off.` && |\n| &&
              `    function getResponseXml(slotKey) {` && |\n| &&
-             `      const systemJs = AppState.state.oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;` && |\n| &&
+             `      const systemJs = AppState.state.oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `      if (!systemJs) return undefined;` && |\n| &&
              `      for (const item of systemJs) {` && |\n| &&
              `        // a system action arrives as a real JSON array; the stringified` && |\n| &&

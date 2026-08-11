@@ -39,7 +39,7 @@ CLASS z2ui5_cl_core_action DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
   PRIVATE SECTION.
-    METHODS reset_view_update_flags.
+    METHODS reset_frontend_queue.
 ENDCLASS.
 
 
@@ -96,15 +96,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               " expired or invalid bookmark draft - fall through to a fresh
               " app start, but tell the user why the saved state is gone.
               " There is no client object yet at this point in the factory,
-              " so the toast is queued as the follow-up action that
-              " message_toast_display( ) would have produced.
-              INSERT NEW z2ui5_cl_core_srv_event( )->get_event_client_json(
-                             val   = z2ui5_if_client=>cs_event-control_global
-                             t_arg = VALUE #(
-                                 ( `MESSAGE_TOAST` )
-                                 ( `show` )
-                                 ( `Bookmarked app state expired or could not be restored - starting with a fresh app` ) ) )
-                     INTO TABLE result->ms_next-s_set-s_action-t_custom.
+              " so the toast is queued directly through the action builder
+              " message_toast_display( ) delegates to.
+              NEW z2ui5_cl_core_action_front( result )->msg_toast(
+                  `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
           ENDTRY.
         ENDIF.
 
@@ -207,11 +202,11 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD reset_view_update_flags.
+  METHOD reset_frontend_queue.
 
-    " the model push is an action queued in main_end( ), so a carried-over
-    " s_set brings no stale request with it - what has to be reset is the
-    " backend's own note that this roundtrip shipped a view
+    " a navigation hop answers for the app being navigated to - the leaving
+    " app's collected view-lifecycle calls describe a screen that is being
+    " replaced, and so does its note that a view was shipped
     CLEAR ms_next-check_view_shipped.
     CLEAR ms_next-t_action_front.
 
@@ -249,40 +244,40 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->mo_app->ms_draft-id_prev     = mo_app->ms_draft-id.
     result->mo_app->ms_draft-id_prev_app = mo_app->ms_draft-id.
     result->ms_actual-check_on_navigated = abap_true.
-    result->ms_next-s_set                = ms_next-s_set.
-    " the navigation intent and the stateful switch carry over with it: the
-    " routing mode belongs to the app being navigated to, and the
-    " nav_app_call_prev_* guard ( only the FIRST hop of a request records the
-    " caller ) can only hold if the earlier hop's value is still here
-    result->ms_next-s_nav                = ms_next-s_nav.
-    result->ms_next-s_stateful           = ms_next-s_stateful.
+    " Everything the leaving app queued for the frontend goes with it - it
+    " describes a screen that is being replaced, so NONE of ms_next-s_action
+    " and ms_next-t_action_front carries over; the called app starts with an
+    " empty queue by construction (a fresh action instance). What DOES carry
+    " over is the navigation intent and the stateful switch: the routing mode
+    " belongs to the app being navigated to, and the nav_app_call_prev_*
+    " guard ( only the FIRST hop of a request records the caller ) can only
+    " hold if the earlier hop's value is still here.
+    result->ms_next-s_nav      = ms_next-s_nav.
+    result->ms_next-s_stateful = ms_next-s_stateful.
 
-    result->reset_view_update_flags( ).
+    result->reset_frontend_queue( ).
 
     IF ms_next-next_event IS NOT INITIAL.
       result->ms_actual-event = ms_next-next_event.
-    ELSEIF lines( ms_next-s_set-s_action-t_custom ) > 0.
+    ELSE.
       " backward compatibility: derive the next event from a legacy
-      " follow_up_action( _event( ) ) snippet ( deprecated mechanism )
-      DATA(lv_action) = ms_next-s_set-s_action-t_custom[ 1 ].
-      SPLIT lv_action AT `.eB(['` INTO DATA(lv_dummy)
-            result->ms_actual-event.
-      SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
+      " follow_up_action( _event( ) ) snippet ( deprecated mechanism ). Only
+      " a raw-JS entry can carry one, and it is not necessarily the FIRST
+      " queued action - a toast or box queued before it sits in the same
+      " table - so take the first entry that looks like the snippet.
+      LOOP AT ms_next-s_action-t_custom INTO DATA(ls_action).
+        IF ls_action-js NS `.eB(['`.
+          CONTINUE.
+        ENDIF.
+        SPLIT ls_action-js AT `.eB(['` INTO DATA(lv_dummy)
+              result->ms_actual-event.
+        SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
+        EXIT.
+      ENDLOOP.
     ENDIF.
     result->ms_actual-r_data = ms_next-r_data.
 
-    " when navigating between apps ( both nav_app_call and nav_app_leave ),
-    " start the next app with a clean frontend state - follow-up actions
-    " queued by the previous app, messages included, must not leak into the
-    " next one.
-    CLEAR result->ms_next-s_set-s_action.
-
-    " Everything the leaving app queued for the frontend goes with it - it
-    " describes a screen that is being replaced. ms_next-t_action_front is not
-    " carried over by the s_set copy above ( it is backend-only state on
-    " ms_next ), so the called app starts with an empty queue by construction.
-    "
-    " On top of that, always tear the two standalone slots down: they live
+    " Always tear the two standalone slots down on an app switch: they live
     " OUTSIDE the MAIN control tree, so unlike a nested view they do not die
     " with the page the new app renders, and an app should not have to close
     " them explicitly before nav_app_call / nav_app_leave. Queued HERE,
@@ -290,8 +285,8 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " replaces this destroy through slot_reset( ). Destroying when nothing is
     " open is a no-op.
     result->ms_next-t_action_front = VALUE #(
-        ( slot = `POPUP`   method = `destroy` )
-        ( slot = `POPOVER` method = `destroy` ) ).
+        ( slot = z2ui5_if_core_types=>cs_slot-popup   method = `destroy` )
+        ( slot = z2ui5_if_core_types=>cs_slot-popover method = `destroy` ) ).
 
   ENDMETHOD.
 

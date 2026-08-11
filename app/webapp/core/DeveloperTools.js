@@ -135,7 +135,7 @@ sap.ui.define(
     // "<slot>","<xml>", {options}?]. Only used as a fallback for the case
     // where the slot holds no live view to read the content off.
     function getResponseXml(slotKey) {
-      const systemJs = AppState.state.oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;
+      const systemJs = AppState.state.oResponse?.S_ACTION?.T_SYSTEM;
       if (!systemJs) return undefined;
       for (const item of systemJs) {
         // a system action arrives as a real JSON array; the stringified

@@ -85,19 +85,17 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
 
-    DATA(lv_js) = val.
-
     IF val IS NOT INITIAL
         AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      " a framework event travels as pure data - a JSON array serialized and
-      " escaped entirely in ABAP (get_event_client_json); only a raw JS
-      " expression passed by the app keeps the code form
-      lv_js = mo_srv_event->get_event_client_json( val   = val
-                                                   view  = view
-                                                   t_arg = t_arg ).
+      " a framework event travels as pure data - a JSON array built and
+      " escaped entirely in ABAP; only a raw JS expression passed by the app
+      " keeps the code form (the legacy formats, a STRING entry of the list)
+      mo_action_front->queue_app_event( val   = val
+                                        view  = view
+                                        t_arg = t_arg ).
+    ELSE.
+      mo_action_front->queue_app_js( val ).
     ENDIF.
-
-    INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_action-t_custom.
 
   ENDMETHOD.
 
@@ -263,14 +261,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-nest2 ).
+    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-nest2 ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-nest2
+    mo_action_front->slot_display( slot = z2ui5_if_core_types=>cs_slot-nest2
                   xml                   = val
                   id                    = id
                   method_insert         = method_insert
@@ -290,14 +288,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-nest ).
+    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-nest ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-nest
+    mo_action_front->slot_display( slot = z2ui5_if_core_types=>cs_slot-nest
                   xml                   = val
                   id                    = id
                   method_insert         = method_insert
@@ -315,14 +313,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-popover ).
+    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-popover ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_display.
 
-    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-popover
+    mo_action_front->slot_display( slot = z2ui5_if_core_types=>cs_slot-popover
                   xml                   = xml
                   open_by_id            = by_id ).
 
@@ -339,14 +337,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-popup ).
+    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-popup ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_display.
 
-    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-popup
+    mo_action_front->slot_display( slot = z2ui5_if_core_types=>cs_slot-popup
                   xml                   = val ).
 
   ENDMETHOD.
@@ -362,14 +360,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-main ).
+    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-main ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_display.
 
-    mo_action_front->slot_display( slot         = z2ui5_cl_core_action_front=>cs_slot-main
+    mo_action_front->slot_display( slot         = z2ui5_if_core_types=>cs_slot-main
                   xml                           = val
                   switch_default_model_path     = switch_default_model_path
                   switch_default_model_anno_uri = switch_default_model_anno_uri ).
