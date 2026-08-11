@@ -165,11 +165,15 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      const systemJs = AppState.state.oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `      if (!systemJs) return undefined;` && |\n| &&
              `      for (const item of systemJs) {` && |\n| &&
-             `        let args;` && |\n| &&
-             `        try {` && |\n| &&
-             `          args = JSON.parse(item);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          continue;` && |\n| &&
+             `        // a system action arrives as a real JSON array; the stringified` && |\n| &&
+             `        // form stays readable for a skewed backend` && |\n| &&
+             `        let args = item;` && |\n| &&
+             `        if (!Array.isArray(args)) {` && |\n| &&
+             `          try {` && |\n| &&
+             `            args = JSON.parse(item);` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            continue;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `        if (` && |\n| &&
              `          args[1] === "VIEW_SLOTS" &&` && |\n| &&
@@ -420,12 +424,12 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
              `          );` && |\n| &&
              `          push(` && |\n| &&
-             `            "POPOVER MODEL",` && |\n| &&
+             `            "POPOVER MODEL",` && |\n|.
+    result = result &&
              `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n|.
-    result = result &&
+             `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST1",` && |\n| &&
              `            xml(() => xmlSources.NEST1().xml),` && |\n| &&

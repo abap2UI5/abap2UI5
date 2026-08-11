@@ -110,17 +110,21 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Run one SYSTEM action from the response's T_SYSTEM list. A system` && |\n| &&
-             `    // action is always framework-generated and therefore always a JSON` && |\n| &&
-             `    // array - there are no legacy formats here - and errors propagate: a` && |\n| &&
-             `    // failing view display has to reach _processAfterRendering, which turns` && |\n| &&
-             `    // it into the fatal overlay instead of leaving the app half-built.` && |\n| &&
+             `    // action is always framework-generated and arrives as a real JSON array` && |\n| &&
+             `    // (the backend embeds it into the response - handler actions_embed);` && |\n| &&
+             `    // the string form stays accepted so a skewed backend keeps working.` && |\n| &&
+             `    // There are no legacy formats here, and errors propagate: a failing` && |\n| &&
+             `    // view display has to reach _processAfterRendering, which turns it` && |\n| &&
+             `    // into the fatal overlay instead of leaving the app half-built.` && |\n| &&
              `    function runSystem(item, oController, ctx) {` && |\n| &&
-             `      let args;` && |\n| &&
-             `      try {` && |\n| &&
-             `        args = JSON.parse(item);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``systemJs: '${item}' is no action payload``, e);` && |\n| &&
-             `        return undefined;` && |\n| &&
+             `      let args = item;` && |\n| &&
+             `      if (!Array.isArray(args)) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          args = JSON.parse(item);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError(``systemJs: '${item}' is no action payload``, e);` && |\n| &&
+             `          return undefined;` && |\n| &&
+             `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (!Array.isArray(args)) {` && |\n| &&
              `        Lib.logError(``systemJs: '${item}' is no action payload``);` && |\n| &&
@@ -131,15 +135,20 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Run one APP follow-up action / custom-JS snippet from the response's` && |\n| &&
              `    // T_CUSTOM list.` && |\n| &&
-             `    // Format A:  a JSON array ["EVENT", ...args] - the structured form the` && |\n| &&
-             `    //            backend (z2ui5_cl_core_srv_event=>get_event_client_json)` && |\n| &&
-             `    //            emits for every framework follow-up action. Pure data,` && |\n| &&
-             `    //            serialized and escaped entirely in ABAP; dispatched via` && |\n| &&
-             `    //            oController.eF( ) after a single JSON.parse - no code is` && |\n| &&
-             `    //            parsed or evaluated on this path.` && |\n| &&
-             `    // Formats B/C: legacy app-authored snippets - see actions/LegacyCustomJs.` && |\n| &&
+             `    // Format A:  a real JSON array ["EVENT", ...args] - the structured form` && |\n| &&
+             `    //            every framework follow-up action travels in (embedded into` && |\n| &&
+             `    //            the response by the backend - handler actions_embed). Pure` && |\n| &&
+             `    //            data, dispatched via oController.eF( ) - no code is parsed` && |\n| &&
+             `    //            or evaluated on this path. The stringified form stays` && |\n| &&
+             `    //            accepted so a skewed backend keeps working.` && |\n| &&
+             `    // Formats B/C: legacy app-authored snippets (raw strings the backend` && |\n| &&
+             `    //            passes through untouched) - see actions/LegacyCustomJs.` && |\n| &&
              `    function runCustom(item, oController) {` && |\n| &&
              `      try {` && |\n| &&
+             `        if (Array.isArray(item)) {` && |\n| &&
+             `          oController.eF(...item);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        const snippet = item.trim();` && |\n| &&
              `        if (snippet.startsWith("[")) {` && |\n| &&
              `          // JSON array -> structured follow-up action. A raw-JS expression` && |\n| &&

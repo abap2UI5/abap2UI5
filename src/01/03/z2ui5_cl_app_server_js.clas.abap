@@ -100,11 +100,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //           // first, in order, before the view is rendered; the` && |\n| &&
              `    //           // ROUTER/sync call is always queued last` && |\n| &&
              `    //           "T_SYSTEM": [` && |\n| &&
-             `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",` && |\n| &&
-             `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"` && |\n| &&
+             `    //             ["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"],` && |\n| &&
+             `    //             ["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]` && |\n| &&
              `    //           ],` && |\n| &&
-             `    //           // APP: what the app queued, run last, once the DOM exists` && |\n| &&
-             `    //           "T_CUSTOM": ["[\"SET_FOCUS\",\"id1\"]"]` && |\n| &&
+             `    //           // APP: what the app queued, run last, once the DOM exists.` && |\n| &&
+             `    //           // A legacy app-authored raw-JS snippet stays a string entry.` && |\n| &&
+             `    //           "T_CUSTOM": [["SET_FOCUS","id1"]]` && |\n| &&
              `    //         }` && |\n| &&
              `    //       }` && |\n| &&
              `    //     },` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // exist in the DOM yet.` && |\n| &&
              `          const followUp = params?.S_ACTION;` && |\n| &&
              `          // carried on the response record, not on shared state: with` && |\n| &&
-             `          // parallel responses a single global would let the older render` && |\n| &&
-             `          // consume the newer response's snippets (and lose its own)` && |\n|.
+             `          // parallel responses a single global would let the older render` && |\n|.
     result = result &&
+             `          // consume the newer response's snippets (and lose its own)` && |\n| &&
              `          response._pendingCustomJs = followUp?.T_CUSTOM || null;` && |\n| &&
              `` && |\n| &&
              `          // Every view-lifecycle call, the MAIN rebuild included, is a system` && |\n| &&

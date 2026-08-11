@@ -38,7 +38,69 @@ function controllerStub() {
   return { calls, eF: (...args) => calls.push(args) };
 }
 
+test.describe("runSystem", () => {
+  function loadWithHandler(handler) {
+    const noHandlers = { handlers: {} };
+    const { module } = loadModule("core/FrontendAction.js", {
+      autoLoad: true,
+      deps: {
+        "z2ui5/core/actions/ControlCall": noHandlers,
+        "z2ui5/core/actions/Browser": noHandlers,
+        "z2ui5/core/actions/Launchpad": noHandlers,
+        "z2ui5/core/actions/Variants": noHandlers,
+        "z2ui5/core/actions/Shortcuts": noHandlers,
+        "z2ui5/core/actions/ViewOps": { handlers: { TEST_ACTION: handler } },
+        "z2ui5/core/Lib": { logError: () => {}, runCallbacks: () => {} },
+        "z2ui5/core/AppState": { state: { onBeforeEventFrontend: [] } },
+      },
+    });
+    return module;
+  }
+
+  test("runs a real-array action and threads the context through", () => {
+    const seen = [];
+    const FrontendAction = loadWithHandler((oController, args, ctx) =>
+      seen.push([oController, args, ctx]),
+    );
+    const oController = {};
+    FrontendAction.runSystem(["TEST_ACTION", "a1"], oController, { seq: 3 });
+    expect(seen).toEqual([[oController, ["TEST_ACTION", "a1"], { seq: 3 }]]);
+  });
+
+  test("still parses the stringified form of a skewed backend", () => {
+    const seen = [];
+    const FrontendAction = loadWithHandler((_c, args) => seen.push(args));
+    FrontendAction.runSystem('["TEST_ACTION","a1"]', null, {});
+    expect(seen).toEqual([["TEST_ACTION", "a1"]]);
+  });
+});
+
 test.describe("runCustom structured JSON actions", () => {
+  test("dispatches a REAL array as an eF event (the wire form)", () => {
+    // the backend embeds framework actions into the response as real nested
+    // arrays (z2ui5_cl_core_handler=>actions_embed) - no parse, no escaping
+    const FrontendAction = loadFrontendAction();
+    const oController = controllerStub();
+
+    FrontendAction.runCustom(["SET_FOCUS", "myInput"], oController);
+
+    expect(oController.calls).toEqual([["SET_FOCUS", "myInput"]]);
+  });
+
+  test("a real array keeps objects and positional empties intact", () => {
+    const FrontendAction = loadFrontendAction();
+    const oController = controllerStub();
+
+    FrontendAction.runCustom(
+      ["CONTROL_BY_ID", "tab", "", "setHiddenInPopin", { A: 1 }],
+      oController,
+    );
+
+    expect(oController.calls).toEqual([
+      ["CONTROL_BY_ID", "tab", "", "setHiddenInPopin", { A: 1 }],
+    ]);
+  });
+
   test("dispatches a JSON array as an eF event", () => {
     const FrontendAction = loadFrontendAction();
     const oController = controllerStub();

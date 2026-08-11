@@ -73,11 +73,12 @@ sap.ui.define(
     //           // first, in order, before the view is rendered; the
     //           // ROUTER/sync call is always queued last
     //           "T_SYSTEM": [
-    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",
-    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"
+    //             ["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"],
+    //             ["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]
     //           ],
-    //           // APP: what the app queued, run last, once the DOM exists
-    //           "T_CUSTOM": ["[\"SET_FOCUS\",\"id1\"]"]
+    //           // APP: what the app queued, run last, once the DOM exists.
+    //           // A legacy app-authored raw-JS snippet stays a string entry.
+    //           "T_CUSTOM": [["SET_FOCUS","id1"]]
     //         }
     //       }
     //     },

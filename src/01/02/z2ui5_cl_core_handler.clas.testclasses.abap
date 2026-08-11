@@ -70,6 +70,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_session_from_draft   FOR TESTING RAISING cx_static_check.
     METHODS test_session_new_device   FOR TESTING RAISING cx_static_check.
     METHODS test_response_no_model    FOR TESTING RAISING cx_static_check.
+    METHODS test_response_actions_embedded FOR TESTING RAISING cx_static_check.
     METHODS test_system_slot_order    FOR TESTING RAISING cx_static_check.
     METHODS test_system_last_wins     FOR TESTING RAISING cx_static_check.
     METHODS test_system_empty         FOR TESTING RAISING cx_static_check.
@@ -456,6 +457,32 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
                                         act = lo_handler->mo_action->mo_app->ms_session-s_device-system ).
     cl_abap_unit_assert=>assert_equals( exp = `Windows`
                                         act = lo_handler->mo_action->mo_app->ms_session-s_device-os-name ).
+
+  ENDMETHOD.
+
+  METHOD test_response_actions_embedded.
+
+    " the action lists leave as REAL nested JSON arrays, not as escaped
+    " strings - and an empty-string positional placeholder inside an action
+    " survives, because the embedding runs AFTER the no-empty-values filter
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_response TYPE z2ui5_if_core_types=>ty_s_response.
+    lo_handler = NEW #( val = `` ).
+    ls_response-s_front-id = `ID123`.
+    INSERT `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]`
+           INTO TABLE ls_response-s_front-params-s_action-t_system.
+    INSERT `["SET_FOCUS","id1"]`
+           INTO TABLE ls_response-s_front-params-s_action-t_custom.
+    " a legacy raw-JS snippet is no JSON and stays a string entry
+    INSERT `eF('SET_FOCUS','id2')`
+           INTO TABLE ls_response-s_front-params-s_action-t_custom.
+
+    DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( lv_json CS `"T_SYSTEM":[["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]]` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( lv_json CS `"T_CUSTOM":[["SET_FOCUS","id1"],"eF('SET_FOCUS','id2')"]` ) ).
 
   ENDMETHOD.
 

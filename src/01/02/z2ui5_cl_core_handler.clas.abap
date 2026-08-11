@@ -90,6 +90,16 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! Replace the response's action-list STRINGS with the JSON arrays they
+    "! carry - see the method body.
+    METHODS actions_embed
+      IMPORTING
+        ajson    TYPE REF TO z2ui5_if_ajson
+        path     TYPE string
+        t_action TYPE string_table
+      RAISING
+        z2ui5_cx_ajson_error.
+
     METHODS check_view_update_needed
       RETURNING
         VALUE(result) TYPE abap_bool.
@@ -484,6 +494,17 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ajson_result->set( iv_path = `/`
                            iv_val  = val-s_front ).
         ajson_result = ajson_result->filter( z2ui5_cl_a2ui5_json_fltr=>create_no_empty_values( ) ).
+
+        " AFTER the filter, never before: an action array carries empty
+        " strings as positional placeholders, which the no-empty-values
+        " filter would silently drop
+        actions_embed( ajson    = ajson_result
+                       path     = `/PARAMS/S_ACTION/T_SYSTEM`
+                       t_action = val-s_front-params-s_action-t_system ).
+        actions_embed( ajson    = ajson_result
+                       path     = `/PARAMS/S_ACTION/T_CUSTOM`
+                       t_action = val-s_front-params-s_action-t_custom ).
+
         DATA(lv_frontend) = ajson_result->stringify( ).
 
         " An unchanged model is not sent at all - the key is left off rather
@@ -732,6 +753,37 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       json->set_string( iv_path = |/{ name }|
                         iv_val  = val ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD actions_embed.
+
+    " Every framework action is BUILT as a JSON-array string
+    " (get_event_client_json), because the same payload also has to travel
+    " inside an XML event handler attribute. In the response that string
+    " form is pure cost - each entry would be escaped into the response JSON
+    " only for the frontend to JSON.parse it right back. So the response
+    " carries the actions as REAL nested arrays: the string is parsed once
+    " here and embedded as its JSON subtree.
+    "
+    " T_CUSTOM can also hold an app's raw-JS snippet (the legacy
+    " follow_up_action formats), which is no JSON array - it keeps riding as
+    " a string and the frontend runs it down its legacy path. The `[` sniff
+    " mirrors the frontend's own (FrontendAction.runCustom): a raw-JS
+    " expression that merely STARTS with `[` fails the parse and stays a
+    " string too.
+    LOOP AT t_action INTO DATA(lv_action).
+      DATA(lv_idx) = sy-tabix.
+      IF lv_action IS INITIAL OR lv_action(1) <> `[`.
+        CONTINUE.
+      ENDIF.
+      TRY.
+          ajson->set( iv_path = |{ path }/{ lv_idx }|
+                      iv_val  = z2ui5_cl_ajson=>parse( lv_action ) ).
+        CATCH z2ui5_cx_ajson_error ##NO_HANDLER.
+          " not JSON after all - the string entry stays as it is
+      ENDTRY.
+    ENDLOOP.
 
   ENDMETHOD.
 

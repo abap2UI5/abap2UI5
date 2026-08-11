@@ -83,17 +83,21 @@ sap.ui.define(
     }
 
     // Run one SYSTEM action from the response's T_SYSTEM list. A system
-    // action is always framework-generated and therefore always a JSON
-    // array - there are no legacy formats here - and errors propagate: a
-    // failing view display has to reach _processAfterRendering, which turns
-    // it into the fatal overlay instead of leaving the app half-built.
+    // action is always framework-generated and arrives as a real JSON array
+    // (the backend embeds it into the response - handler actions_embed);
+    // the string form stays accepted so a skewed backend keeps working.
+    // There are no legacy formats here, and errors propagate: a failing
+    // view display has to reach _processAfterRendering, which turns it
+    // into the fatal overlay instead of leaving the app half-built.
     function runSystem(item, oController, ctx) {
-      let args;
-      try {
-        args = JSON.parse(item);
-      } catch (e) {
-        Lib.logError(`systemJs: '${item}' is no action payload`, e);
-        return undefined;
+      let args = item;
+      if (!Array.isArray(args)) {
+        try {
+          args = JSON.parse(item);
+        } catch (e) {
+          Lib.logError(`systemJs: '${item}' is no action payload`, e);
+          return undefined;
+        }
       }
       if (!Array.isArray(args)) {
         Lib.logError(`systemJs: '${item}' is no action payload`);
@@ -104,15 +108,20 @@ sap.ui.define(
 
     // Run one APP follow-up action / custom-JS snippet from the response's
     // T_CUSTOM list.
-    // Format A:  a JSON array ["EVENT", ...args] - the structured form the
-    //            backend (z2ui5_cl_core_srv_event=>get_event_client_json)
-    //            emits for every framework follow-up action. Pure data,
-    //            serialized and escaped entirely in ABAP; dispatched via
-    //            oController.eF( ) after a single JSON.parse - no code is
-    //            parsed or evaluated on this path.
-    // Formats B/C: legacy app-authored snippets - see actions/LegacyCustomJs.
+    // Format A:  a real JSON array ["EVENT", ...args] - the structured form
+    //            every framework follow-up action travels in (embedded into
+    //            the response by the backend - handler actions_embed). Pure
+    //            data, dispatched via oController.eF( ) - no code is parsed
+    //            or evaluated on this path. The stringified form stays
+    //            accepted so a skewed backend keeps working.
+    // Formats B/C: legacy app-authored snippets (raw strings the backend
+    //            passes through untouched) - see actions/LegacyCustomJs.
     function runCustom(item, oController) {
       try {
+        if (Array.isArray(item)) {
+          oController.eF(...item);
+          return;
+        }
         const snippet = item.trim();
         if (snippet.startsWith("[")) {
           // JSON array -> structured follow-up action. A raw-JS expression

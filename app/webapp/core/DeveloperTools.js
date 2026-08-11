@@ -138,11 +138,15 @@ sap.ui.define(
       const systemJs = AppState.state.oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;
       if (!systemJs) return undefined;
       for (const item of systemJs) {
-        let args;
-        try {
-          args = JSON.parse(item);
-        } catch {
-          continue;
+        // a system action arrives as a real JSON array; the stringified
+        // form stays readable for a skewed backend
+        let args = item;
+        if (!Array.isArray(args)) {
+          try {
+            args = JSON.parse(item);
+          } catch {
+            continue;
+          }
         }
         if (
           args[1] === "VIEW_SLOTS" &&
