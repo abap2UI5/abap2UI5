@@ -15,6 +15,12 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
     " every render, and an app the user navigates back to keeps its own mode
     " even when the app in between ran with a different one.
     DATA mv_nav_mode TYPE string.
+    " Automatic-model-update opt-in of THIS app, set via
+    " client->set_model_auto_update( ). Like mv_nav_mode it lives on the app -
+    " and therefore in its draft - so the app opts in ONCE (check_on_init) and
+    " every later event round-trip is covered. The detection itself runs in
+    " z2ui5_cl_core_handler (snapshot in main_process, compare in main_end).
+    DATA mv_model_auto_update TYPE abap_bool.
 
     METHODS model_json_stringify
       RETURNING

@@ -13,6 +13,25 @@ CLASS ltcl_app_nav_loop IMPLEMENTATION.
 
 ENDCLASS.
 
+
+CLASS ltcl_app_noop DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA check_init TYPE abap_bool.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_noop IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    " deliberately neither displays nor pushes - the auto-model-update tests
+    " need a main( ) that returns without touching the response
+    check_init = client->check_on_init( ).
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS ltcl_test_handler_post DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -43,6 +62,10 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_route_no_route    FOR TESTING RAISING cx_static_check.
     METHODS test_app_state_hash    FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_resent   FOR TESTING RAISING cx_static_check.
+    METHODS test_auto_update_push  FOR TESTING RAISING cx_static_check.
+    METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
+    METHODS test_auto_update_off   FOR TESTING RAISING cx_static_check.
+    METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
@@ -534,6 +557,98 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
         act = lo_handler->request_app_start_draft( `#//z2ui5-xapp-state=ABC123` ) ).
 
   ENDMETHOD.
+
+  METHOD test_auto_update_push.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+
+    " opted in and the snapshot differs from the model after main( ) - the
+    " model is sent exactly as an explicit view_model_update( ) would send it
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_model_auto_update = abap_true.
+    lo_handler->mv_model_before_taken = abap_true.
+    lo_handler->mv_model_before       = `<other model state>`.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_handler->ms_response-s_front-params-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
+                                        act = lo_handler->ms_response-model ).
+
+  ENDMETHOD.
+
+
+  METHOD test_auto_update_same.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+
+    " opted in but main( ) changed nothing - the response stays `{}` and no
+    " update flag is set, exactly as today
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_model_auto_update = abap_true.
+    lo_handler->mv_model_before_taken = abap_true.
+    lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{}`
+                                        act = lo_handler->ms_response-model ).
+    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-s_view-check_update_model ).
+
+  ENDMETHOD.
+
+
+  METHOD test_auto_update_off.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+
+    " no opt-in: the snapshot was never taken, so even a stale before-value
+    " must not trigger a push - existing behavior is untouched
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    lo_handler->mv_model_before = `<other model state>`.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{}`
+                                        act = lo_handler->ms_response-model ).
+    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-s_view-check_update_model ).
+
+  ENDMETHOD.
+
+
+  METHOD test_auto_update_snapshot.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+
+    " main_process takes the before-main snapshot only for an opted-in app
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_model_auto_update = abap_true.
+
+    lo_handler->main_process( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_handler->mv_model_before_taken ).
+
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+
+    lo_handler->main_process( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = lo_handler->mv_model_before_taken ).
+
+  ENDMETHOD.
+
 
   METHOD test_nav_mode_resent.
 

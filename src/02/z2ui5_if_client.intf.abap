@@ -148,6 +148,35 @@ INTERFACE z2ui5_if_client
     IMPORTING
       mode TYPE string DEFAULT cs_nav_mode-keep.
 
+  "! Opt this app in to AUTOMATIC model updates. Call it ONCE, in
+  "! check_on_init - the choice is remembered on the app (it travels in the
+  "! draft, like set_nav_routing), so every later event round-trip of this
+  "! app is covered without re-asserting it.
+  "!
+  "! Once opted in, an event round-trip that displays no view and requests no
+  "! update itself is checked by the framework: the model state BEFORE
+  "! main( ) ran (taken after the incoming two-way deltas were applied, so
+  "! what the client already knows never triggers a push) is compared with
+  "! the state after main( ) returned, and when they differ the model is sent
+  "! exactly as an explicit view_model_update( ) would send it. An event
+  "! handler that changes bound data can then no longer render stale by
+  "! forgetting the call; view_model_update( ) stays supported and simply
+  "! skips the comparison.
+  "!
+  "! Scope: the MAIN/root model (shared by the nested views). A popup or
+  "! popover owns its own model instance and keeps its explicit
+  "! popup_model_update( ) / popover_model_update( ).
+  "!
+  "! Cost: one extra model serialization per event round-trip (two when the
+  "! model turns out unchanged - the response is then `` as today). The
+  "! response payload never grows compared to a correct explicit call. For
+  "! apps with very large models and high-frequency events prefer the
+  "! explicit calls and leave this off - or switch it off again for a hot
+  "! phase with val = abap_false.
+  METHODS set_model_auto_update
+    IMPORTING
+      val TYPE abap_bool DEFAULT abap_true.
+
   METHODS nest_view_display
     IMPORTING
       val            TYPE clike

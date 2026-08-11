@@ -208,6 +208,16 @@ ships for existing apps but is **frozen** — new apps and new code use
 - After changing bound data in an event handler, push it to the browser with
   `client->view_model_update( )` (no full re-render); call `view_display`
   again only when the view structure itself changes.
+- Or opt the app in to **automatic model updates**: call
+  `client->set_model_auto_update( )` once in `check_on_init` (remembered on
+  the app, like `set_nav_routing`). The framework then compares the model
+  before and after `main( )` on every event round-trip and sends it exactly
+  as `view_model_update( )` would whenever it changed — an event handler can
+  no longer render stale by forgetting the call. Covers the MAIN/root model;
+  a popup/popover owns its own model instance and keeps its explicit
+  `popup_model_update( )` / `popover_model_update( )`. Costs one extra model
+  serialization per event round-trip (two when nothing changed), so for very
+  large models with high-frequency events prefer the explicit calls.
 
 ## 5. Events
 

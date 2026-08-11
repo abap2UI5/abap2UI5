@@ -488,6 +488,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~set_model_auto_update.
+
+    " remembered on the app across round-trips like the nav mode - the
+    " detection runs in z2ui5_cl_core_handler (see z2ui5_cl_core_app)
+    mo_action->mo_app->mv_model_auto_update = val.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~set_app_state_active.
 
     mo_action->ms_next-s_set-set_app_state_active = val.

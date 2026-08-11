@@ -68,6 +68,7 @@
   "z2ui5_if_client.intf.abap#methods:set_push_state": "methods set_push_state importing val type string optional",
   "z2ui5_if_client.intf.abap#methods:set_nav_back": "methods set_nav_back importing val type abap_bool default abap_true",
   "z2ui5_if_client.intf.abap#methods:set_nav_routing": "methods set_nav_routing importing mode type string default cs_nav_mode-keep",
+  "z2ui5_if_client.intf.abap#methods:set_model_auto_update": "methods set_model_auto_update importing val type abap_bool default abap_true",
   "z2ui5_if_client.intf.abap#methods:nest_view_display": "methods nest_view_display importing val type clike id type clike method_insert type clike method_destroy type clike optional",
   "z2ui5_if_client.intf.abap#methods:nest_view_destroy": "methods nest_view_destroy",
   "z2ui5_if_client.intf.abap#methods:nest_view_model_update": "methods nest_view_model_update",
