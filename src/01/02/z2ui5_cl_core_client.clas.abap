@@ -41,6 +41,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
+
+    IF result IS SUPPLIED.
+
+      result = mo_srv_event->get_event_client( val   = val
+                                               view  = view
+                                               t_arg = t_arg ).
+      RETURN.
+    ENDIF.
+
+
     DATA(lv_js) = val.
 
     IF val IS NOT INITIAL
