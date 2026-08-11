@@ -112,7 +112,7 @@ CLASS ltcl_test IMPLEMENTATION.
         exp = 1
         act = lines( lo_result->ms_next-s_set-s_follow_up_action-custom_js ) ).
     cl_abap_unit_assert=>assert_char_cp(
-        exp = `["MESSAGE_TOAST","Bookmarked app state expired*`
+        exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Bookmarked app state expired*`
         act = lo_result->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.

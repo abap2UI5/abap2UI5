@@ -44,11 +44,6 @@ INTERFACE z2ui5_if_client
       store_data                TYPE string VALUE `STORE_DATA`,
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
 
-      "Messages - the transport behind message_toast_display( ) /
-      "message_box_display( ); use those methods rather than the raw events
-      message_toast             TYPE string VALUE `MESSAGE_TOAST`,
-      message_box               TYPE string VALUE `MESSAGE_BOX`,
-
       "Control
       control_by_id             TYPE string VALUE `CONTROL_BY_ID`,
       control_global            TYPE string VALUE `CONTROL_GLOBAL`,

@@ -250,16 +250,33 @@ sap.ui.define(
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
     const GLOBAL_TARGETS = {
-      MESSAGE_TOAST: { get: () => MessageToast, methods: { show: ["string"] } },
+      // The two message targets carry a `display` hook: the call is routed
+      // through Messages instead of straight at the global, so the option
+      // handling client->message_toast_display( ) / message_box_display( )
+      // relies on - an ONCLOSE event name turned into an eB() round-trip, the
+      // details sanitizing, dependentOn, the toast style class - lives in one
+      // place. A bare app call simply arrives without options.
+      MESSAGE_TOAST: {
+        get: () => MessageToast,
+        methods: { show: ["string"] },
+        display: (oController, method, sText, mOptions) =>
+          Messages.showToast(sText, mOptions, oController),
+      },
       MESSAGE_BOX: {
         get: () => MessageBox,
+        // the method IS the box type - the availability check below then
+        // reports a type this UI5 version does not carry
         methods: {
           show: ["string"],
+          alert: ["string"],
+          confirm: ["string"],
           information: ["string"],
           warning: ["string"],
           error: ["string"],
           success: ["string"],
         },
+        display: (oController, method, sText, mOptions) =>
+          Messages.showBox(method, sText, mOptions, oController),
       },
       BUSY_INDICATOR: {
         get: () => BusyIndicator,
@@ -573,25 +590,6 @@ sap.ui.define(
       control[method](...castArgs(kinds, args.slice(4), view));
     }
 
-    // The rich message display behind client->message_toast_display( ) /
-    // message_box_display( ). It carries the full option set, so the options
-    // travel as ONE JSON object argument rather than positionally - which is
-    // also why this is its own event instead of a CONTROL_GLOBAL call: there,
-    // trailing arguments are template values for the text (see evControlCall),
-    // and an options object would be indistinguishable from one. Both entry
-    // points end in the same Messages handler.
-    // args: [_, text, optionsJson]
-    function evMessageToast(oController, args) {
-      const [, sText, sOptions] = args;
-      Messages.showToast(sText, castArg("object", sOptions), oController);
-    }
-
-    // args: [_, type, text, optionsJson]
-    function evMessageBox(oController, args) {
-      const [, sType, sText, sOptions] = args;
-      Messages.showBox(sType, sText, castArg("object", sOptions), oController);
-    }
-
     // args: [_, object, method, ...params]
     function evControlCall(oController, args) {
       const [, name, method] = args;
@@ -606,14 +604,31 @@ sap.ui.define(
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
         return;
       }
-      const raw = args.slice(3);
+      let raw = args.slice(3);
+      // A `display` target additionally takes an OPTIONS OBJECT as its last
+      // argument (the full set client->message_toast_display( ) sends). It
+      // needs no marker to be told apart from the template values below: the
+      // backend embeds a JSON object argument as real JSON
+      // (get_event_client_json), so it arrives here already parsed, while
+      // every positional and template value is a string.
+      let mOptions;
+      if (target.display) {
+        const last = raw[raw.length - 1];
+        if (last && typeof last === "object") {
+          mOptions = last;
+          raw = raw.slice(0, -1);
+        }
+      }
       // a single-string method (MessageToast.show, MessageBox.*) may receive
       // extra positional values: the first arg is then a template and its
       // {0},{1},... placeholders are replaced by the client-resolved extras, so
       // a "X has been activated" toast can be composed on the frontend without a
       // server round-trip. A lone string is passed through unchanged.
       if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {
-        obj[method](formatTemplate(String(raw[0]), raw.slice(1)));
+        raw = [formatTemplate(String(raw[0]), raw.slice(1))];
+      }
+      if (target.display) {
+        target.display(oController, method, raw[0], mOptions || {});
         return;
       }
       obj[method](...castArgs(kinds, raw));
@@ -1878,8 +1893,6 @@ sap.ui.define(
       CONTROL_BY_ID: evControlCallById,
       CONTROL_GLOBAL: evControlCall,
       BINDING_CALL: evBindingCall,
-      MESSAGE_TOAST: evMessageToast,
-      MESSAGE_BOX: evMessageBox,
     };
 
     // Entry point called by View1.controller's eF().

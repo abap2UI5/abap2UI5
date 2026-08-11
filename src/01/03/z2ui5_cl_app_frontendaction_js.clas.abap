@@ -277,16 +277,33 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
              `    const GLOBAL_TARGETS = {` && |\n| &&
-             `      MESSAGE_TOAST: { get: () => MessageToast, methods: { show: ["string"] } },` && |\n| &&
+             `      // The two message targets carry a ``display`` hook: the call is routed` && |\n| &&
+             `      // through Messages instead of straight at the global, so the option` && |\n| &&
+             `      // handling client->message_toast_display( ) / message_box_display( )` && |\n| &&
+             `      // relies on - an ONCLOSE event name turned into an eB() round-trip, the` && |\n| &&
+             `      // details sanitizing, dependentOn, the toast style class - lives in one` && |\n| &&
+             `      // place. A bare app call simply arrives without options.` && |\n| &&
+             `      MESSAGE_TOAST: {` && |\n| &&
+             `        get: () => MessageToast,` && |\n| &&
+             `        methods: { show: ["string"] },` && |\n| &&
+             `        display: (oController, method, sText, mOptions) =>` && |\n| &&
+             `          Messages.showToast(sText, mOptions, oController),` && |\n| &&
+             `      },` && |\n| &&
              `      MESSAGE_BOX: {` && |\n| &&
              `        get: () => MessageBox,` && |\n| &&
+             `        // the method IS the box type - the availability check below then` && |\n| &&
+             `        // reports a type this UI5 version does not carry` && |\n| &&
              `        methods: {` && |\n| &&
              `          show: ["string"],` && |\n| &&
+             `          alert: ["string"],` && |\n| &&
+             `          confirm: ["string"],` && |\n| &&
              `          information: ["string"],` && |\n| &&
              `          warning: ["string"],` && |\n| &&
              `          error: ["string"],` && |\n| &&
              `          success: ["string"],` && |\n| &&
              `        },` && |\n| &&
+             `        display: (oController, method, sText, mOptions) =>` && |\n| &&
+             `          Messages.showBox(method, sText, mOptions, oController),` && |\n| &&
              `      },` && |\n| &&
              `      BUSY_INDICATOR: {` && |\n| &&
              `        get: () => BusyIndicator,` && |\n| &&
@@ -407,7 +424,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
              `          // and hand over the CONTROL itself, not its DOM element. Every` && |\n| &&
              `          // sap.m openBy accepts a control, and MessagePopover.openBy` && |\n| &&
-             `          // dereferences oControl.getParent() on its argument, so a bare DOM` && |\n| &&
+             `          // dereferences oControl.getParent() on its argument, so a bare DOM` && |\n|.
+    result = result &&
              `          // element throws ("getParent is not a function") and the popup never` && |\n| &&
              `          // opens. DatePicker/TimePicker/Menu accept a control just as well,` && |\n| &&
              `          // so a control is the universally-correct anchor.` && |\n| &&
@@ -424,8 +442,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        case "object":` && |\n| &&
              `          // the backend embeds an argument that starts with { or [ as real` && |\n| &&
              `          // JSON (get_event_client_json), so on that path the value arrives` && |\n| &&
-             `          // already parsed; only the legacy eF( ) string form needs parsing.` && |\n|.
-    result = result &&
+             `          // already parsed; only the legacy eF( ) string form needs parsing.` && |\n| &&
              `          if (raw && typeof raw === "object") return raw;` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
@@ -601,25 +618,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      control[method](...castArgs(kinds, args.slice(4), view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The rich message display behind client->message_toast_display( ) /` && |\n| &&
-             `    // message_box_display( ). It carries the full option set, so the options` && |\n| &&
-             `    // travel as ONE JSON object argument rather than positionally - which is` && |\n| &&
-             `    // also why this is its own event instead of a CONTROL_GLOBAL call: there,` && |\n| &&
-             `    // trailing arguments are template values for the text (see evControlCall),` && |\n| &&
-             `    // and an options object would be indistinguishable from one. Both entry` && |\n| &&
-             `    // points end in the same Messages handler.` && |\n| &&
-             `    // args: [_, text, optionsJson]` && |\n| &&
-             `    function evMessageToast(oController, args) {` && |\n| &&
-             `      const [, sText, sOptions] = args;` && |\n| &&
-             `      Messages.showToast(sText, castArg("object", sOptions), oController);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // args: [_, type, text, optionsJson]` && |\n| &&
-             `    function evMessageBox(oController, args) {` && |\n| &&
-             `      const [, sType, sText, sOptions] = args;` && |\n| &&
-             `      Messages.showBox(sType, sText, castArg("object", sOptions), oController);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    // args: [_, object, method, ...params]` && |\n| &&
              `    function evControlCall(oController, args) {` && |\n| &&
              `      const [, name, method] = args;` && |\n| &&
@@ -634,14 +632,31 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const raw = args.slice(3);` && |\n| &&
+             `      let raw = args.slice(3);` && |\n| &&
+             `      // A ``display`` target additionally takes an OPTIONS OBJECT as its last` && |\n| &&
+             `      // argument (the full set client->message_toast_display( ) sends). It` && |\n| &&
+             `      // needs no marker to be told apart from the template values below: the` && |\n| &&
+             `      // backend embeds a JSON object argument as real JSON` && |\n| &&
+             `      // (get_event_client_json), so it arrives here already parsed, while` && |\n| &&
+             `      // every positional and template value is a string.` && |\n| &&
+             `      let mOptions;` && |\n| &&
+             `      if (target.display) {` && |\n| &&
+             `        const last = raw[raw.length - 1];` && |\n| &&
+             `        if (last && typeof last === "object") {` && |\n| &&
+             `          mOptions = last;` && |\n| &&
+             `          raw = raw.slice(0, -1);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
              `      // a single-string method (MessageToast.show, MessageBox.*) may receive` && |\n| &&
              `      // extra positional values: the first arg is then a template and its` && |\n| &&
              `      // {0},{1},... placeholders are replaced by the client-resolved extras, so` && |\n| &&
              `      // a "X has been activated" toast can be composed on the frontend without a` && |\n| &&
              `      // server round-trip. A lone string is passed through unchanged.` && |\n| &&
              `      if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {` && |\n| &&
-             `        obj[method](formatTemplate(String(raw[0]), raw.slice(1)));` && |\n| &&
+             `        raw = [formatTemplate(String(raw[0]), raw.slice(1))];` && |\n| &&
+             `      }` && |\n| &&
+             `      if (target.display) {` && |\n| &&
+             `        target.display(oController, method, raw[0], mOptions || {});` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      obj[method](...castArgs(kinds, raw));` && |\n| &&
@@ -810,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Individual event handlers - one per entry in the dispatch table at` && |\n| &&
              `    // the bottom. Uniform signature (oController, args) so the dispatch` && |\n| &&
-             `    // stays trivial; handlers that don't need the controller ignore it.` && |\n| &&
+             `    // stays trivial; handlers that don't need the controller ignore it.` && |\n|.
+    result = result &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    function evHistoryBack() {` && |\n| &&
@@ -825,8 +841,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // app. No-op unless the app enabled routing.` && |\n| &&
              `      const raw = Lib.toText(args[1]);` && |\n| &&
              `      if (!raw) return;` && |\n| &&
-             `      Router.navToApp(raw);` && |\n|.
-    result = result &&
+             `      Router.navToApp(raw);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evClipboardCopy(oController, args) {` && |\n| &&
@@ -1211,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // A SmartFilterBar registers itself at the variant management (it knows its` && |\n| &&
              `    // fields from the OData metadata), so SMART_VARIANT_INIT above only has to` && |\n| &&
              `    // place the anchor. A classic FilterBar knows nothing about variants: every` && |\n| &&
-             `    // list-report controller hand-writes the same three callbacks` && |\n| &&
+             `    // list-report controller hand-writes the same three callbacks` && |\n|.
+    result = result &&
              `    // (registerFetchData / registerApplyData / registerGetFiltersWithValues),` && |\n| &&
              `    // adds a PersonalizableInfo and marks the variant dirty on each filter` && |\n| &&
              `    // change. That is boilerplate over the bar's own filter items - data, not` && |\n| &&
@@ -1226,8 +1242,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function filterItemControl(item) {` && |\n| &&
              `      return item && typeof item.getControl === "function"` && |\n| &&
              `        ? item.getControl()` && |\n| &&
-             `        : null;` && |\n|.
-    result = result &&
+             `        : null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function filterItemValue(item) {` && |\n| &&
@@ -1612,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const input = dom.matches("input, textarea")` && |\n| &&
              `          ? dom` && |\n| &&
              `          : dom.querySelector("input, textarea");` && |\n| &&
-             `        if (!input) return;` && |\n| &&
+             `        if (!input) return;` && |\n|.
+    result = result &&
              `        input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
@@ -1627,8 +1643,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // popup/popover/nested view are found, and falls back to the global` && |\n| &&
              `    // registry, so a fully-qualified id resolves too - ids that come from a` && |\n| &&
              `    // UI5 Message (getControlIds()) or any event carry the view prefix.` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
              `      const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
@@ -1909,8 +1924,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      CONTROL_BY_ID: evControlCallById,` && |\n| &&
              `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
              `      BINDING_CALL: evBindingCall,` && |\n| &&
-             `      MESSAGE_TOAST: evMessageToast,` && |\n| &&
-             `      MESSAGE_BOX: evMessageBox,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&

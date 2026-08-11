@@ -99,8 +99,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               " so the toast is queued as the follow-up action that
               " message_toast_display( ) would have produced.
               INSERT NEW z2ui5_cl_core_srv_event( )->get_event_client_json(
-                             val   = z2ui5_if_client=>cs_event-message_toast
+                             val   = z2ui5_if_client=>cs_event-control_global
                              t_arg = VALUE #(
+                                 ( `MESSAGE_TOAST` )
+                                 ( `show` )
                                  ( `Bookmarked app state expired or could not be restored - starting with a fresh app` ) ) )
                      INTO TABLE result->ms_next-s_set-s_follow_up_action-custom_js.
           ENDTRY.

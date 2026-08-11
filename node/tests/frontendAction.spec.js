@@ -14,7 +14,32 @@ function load({ sandbox } = {}) {
     (...a) =>
       calls.push([name, ...a]);
   const MessageToast = { show: rec("toast.show") };
-  const MessageBox = { show: rec("box.show"), error: rec("box.error") };
+  const MessageBox = {
+    show: rec("box.show"),
+    alert: rec("box.alert"),
+    confirm: rec("box.confirm"),
+    information: rec("box.information"),
+    warning: rec("box.warning"),
+    error: rec("box.error"),
+    success: rec("box.success"),
+  };
+  // MESSAGE_TOAST / MESSAGE_BOX are routed through Messages by their display
+  // hook. The stub records the same shape the globals would have, plus the
+  // options object whenever one rode along.
+  const Messages = {
+    showToast: (text, opts) =>
+      calls.push(
+        Object.keys(opts || {}).length
+          ? ["toast.show", text, opts]
+          : ["toast.show", text],
+      ),
+    showBox: (type, text, opts) =>
+      calls.push(
+        Object.keys(opts || {}).length
+          ? [`box.${type}`, text, opts]
+          : [`box.${type}`, text],
+      ),
+  };
   const BusyIndicator = { show: rec("busy.show"), hide: rec("busy.hide") };
   const Theming = { setTheme: rec("theme.set") };
   const Popup = { setWithinArea: rec("popup.setWithinArea") };
@@ -56,6 +81,7 @@ function load({ sandbox } = {}) {
       "sap/m/library": {},
       "sap/ui/util/Storage": function () {},
       "z2ui5/core/Lib": Lib,
+      "z2ui5/core/Messages": Messages,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
     },
@@ -120,6 +146,62 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "only-one",
     ]);
     expect(calls).toEqual([["toast.show", "only-one and {1}"]]);
+  });
+
+  test("an options object rides as the last argument", () => {
+    // client->message_toast_display( ) sends the full option set. The backend
+    // embeds it as real JSON, so it arrives as an OBJECT while every template
+    // value is a string - that is what tells the two apart, no marker needed.
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "Saved!",
+      { duration: 250, class: "myCls" },
+    ]);
+    expect(calls).toEqual([
+      ["toast.show", "Saved!", { duration: 250, class: "myCls" }],
+    ]);
+  });
+
+  test("a template and an options object survive each other", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} saved",
+      "Item A",
+      { duration: 250 },
+    ]);
+    expect(calls).toEqual([["toast.show", "Item A saved", { duration: 250 }]]);
+  });
+
+  test("the box type is the method, and it takes options too", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "confirm",
+      "Delete?",
+      { onClose: "ANSWERED" },
+    ]);
+    expect(calls).toEqual([
+      ["box.confirm", "Delete?", { onClose: "ANSWERED" }],
+    ]);
+  });
+
+  test("an unlisted box type is rejected rather than shown", () => {
+    const { FrontendAction, calls, errors } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "notAMethod",
+      "x",
+    ]);
+    expect(calls).toEqual([]);
+    expect(errors[0]).toContain("not allowed");
   });
 
   test("MessageBox variants also accept a template", () => {
@@ -290,6 +372,26 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       '{"BGN4":{"digits":4},"WWWW":{"digits":5}}',
     ]);
     expect(set).toEqual([{ BGN4: { digits: 4 }, WWWW: { digits: 5 } }]);
+  });
+
+  test("a trailing object stays an ARGUMENT on a non-message target", () => {
+    // the options extraction applies to a `display` target only - everywhere
+    // else a trailing object is a declared argument kind and must reach the
+    // method as one
+    const { FrontendAction, ctx } = load();
+    const added = [];
+    ctx.sap.ui.require = (name) =>
+      name === "sap/ui/core/Formatting"
+        ? { addCustomCurrency: (...a) => added.push(a) }
+        : null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "FORMATTING",
+      "addCustomCurrency",
+      "BGN4",
+      { digits: 4 },
+    ]);
+    expect(added).toEqual([["BGN4", { digits: 4 }]]);
   });
 });
 

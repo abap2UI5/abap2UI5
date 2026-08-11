@@ -330,7 +330,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->message_box_display( `Hello World` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
+        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.
@@ -346,7 +346,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                     type = `error` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","error","Error occurred"]`
+        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Error occurred"]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.
@@ -364,7 +364,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                     contentwidth = `20rem` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
+        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
               `{"contentWidth":"20rem","dependentOn":"myPage"}]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
@@ -380,7 +380,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->message_toast_display( `Saved` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_TOAST","Saved"]`
+        exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved"]`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
 
   ENDMETHOD.

@@ -25,6 +25,12 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    "! The sap.m.MessageBox display methods, i.e. the box types the
+    "! whitelisted global call accepts.
+    CLASS-DATA ct_msg_box_type TYPE string_table.
+
+    CLASS-METHODS class_constructor.
+
     "! Resolve what the message box actually shows. text is TYPE any: a
     "! message table ( BAPIRET2 and friends ) is run through the formatter,
     "! a plain text is taken as it stands. The result carries the MessageBox
@@ -60,6 +66,19 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_client IMPLEMENTATION.
+
+
+  METHOD class_constructor.
+
+    ct_msg_box_type = VALUE #( ( `show` )
+                               ( `alert` )
+                               ( `confirm` )
+                               ( `information` )
+                               ( `warning` )
+                               ( `error` )
+                               ( `success` ) ).
+
+  ENDMETHOD.
 
 
   METHOD constructor.
@@ -233,9 +252,12 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                iv_val  = abap_false ).
         ENDIF.
 
+        " sap.m.MessageBox is a global too - and its display methods are the
+        " box types, so the type IS the method of the global call
         z2ui5_if_client~follow_up_action(
-            val   = z2ui5_if_client=>cs_event-message_box
-            t_arg = VALUE #( ( ls_msg-type )
+            val   = z2ui5_if_client=>cs_event-control_global
+            t_arg = VALUE #( ( `MESSAGE_BOX` )
+                             ( ls_msg-type )
                              ( ls_msg-text )
                              ( li_opt->stringify( ) ) ) ).
 
@@ -280,6 +302,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     " the type arrives capitalized from ui5_msg_box_format ( `Error` for a
     " multi-message box ) or however an app spelled it
     result-type = to_lower( result-type ).
+
+    " the type travels as the method of the whitelisted global call, so a type
+    " that is no MessageBox display method would be rejected there and the box
+    " would not appear at all - a requested box is never dropped silently, it
+    " falls back to a plain show( ) like the frontend used to do
+    IF NOT line_exists( ct_msg_box_type[ table_line = result-type ] ).
+      result-type = `show`.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -353,9 +383,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                iv_val  = abap_false ).
         ENDIF.
 
+        " sap.m.MessageToast is a global object, so the toast rides the
+        " generic whitelisted global call - the options object is its last
+        " argument and is dropped again when the app set nothing at all
         z2ui5_if_client~follow_up_action(
-            val   = z2ui5_if_client=>cs_event-message_toast
-            t_arg = VALUE #( ( CONV string( text ) )
+            val   = z2ui5_if_client=>cs_event-control_global
+            t_arg = VALUE #( ( `MESSAGE_TOAST` )
+                             ( `show` )
+                             ( CONV string( text ) )
                              ( li_opt->stringify( ) ) ) ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
