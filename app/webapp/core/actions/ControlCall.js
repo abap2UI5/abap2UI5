@@ -29,15 +29,8 @@ sap.ui.define(
     // The generic, whitelisted call surface of the action protocol:
     // CONTROL_GLOBAL / CONTROL_BY_ID call a method on a global object or a
     // control resolved by id, BINDING_CALL applies a declarative
-    // filter/sorter to an aggregation binding. The whitelist is the safety
-    // boundary; each entry lists the kind of every positional argument so
-    // string payloads are cast/resolved (never "call anything with
-    // anything"). Scope: imperative methods that have no binding equivalent.
-    //
-    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/
-    // POPOVER variants) is dispatched here too: the backend routes those
-    // events through the generic CONTROL_BY_ID path (method "to", the
-    // slot passed as the view).
+    // filter/sorter to an aggregation binding - each detailed at its own
+    // section below.
     // ------------------------------------------------------------------
 
     // ------------------------------------------------------------------
@@ -119,17 +112,16 @@ sap.ui.define(
       else showFn(sText);
     }
 
-    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/
-    // POPOVER variants) is no longer dispatched here: the backend routes those
-    // events through the generic CONTROL_BY_ID path (method "to", the
-    // slot passed as the view), so evControlCallById below handles them.
-
     // ------------------------------------------------------------------
     // CONTROL_GLOBAL / CONTROL_BY_ID: call a whitelisted method on a
     // control (by id) or a global object. The whitelist is the safety
     // boundary; each entry lists the kind of every positional argument so
     // string payloads are cast/resolved (never "call anything with
     // anything"). Scope: imperative methods that have no binding equivalent.
+    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/
+    // POPOVER variants) is dispatched here too: the backend routes those
+    // events through the generic CONTROL_BY_ID path (method "to", the
+    // slot passed as the view), handled by evControlCallById below.
     // ------------------------------------------------------------------
 
     // control method -> kinds of its positional args. Args beyond the

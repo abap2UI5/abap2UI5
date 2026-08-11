@@ -56,15 +56,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    // The generic, whitelisted call surface of the action protocol:` && |\n| &&
              `    // CONTROL_GLOBAL / CONTROL_BY_ID call a method on a global object or a` && |\n| &&
              `    // control resolved by id, BINDING_CALL applies a declarative` && |\n| &&
-             `    // filter/sorter to an aggregation binding. The whitelist is the safety` && |\n| &&
-             `    // boundary; each entry lists the kind of every positional argument so` && |\n| &&
-             `    // string payloads are cast/resolved (never "call anything with` && |\n| &&
-             `    // anything"). Scope: imperative methods that have no binding equivalent.` && |\n| &&
-             `    //` && |\n| &&
-             `    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/` && |\n| &&
-             `    // POPOVER variants) is dispatched here too: the backend routes those` && |\n| &&
-             `    // events through the generic CONTROL_BY_ID path (method "to", the` && |\n| &&
-             `    // slot passed as the view).` && |\n| &&
+             `    // filter/sorter to an aggregation binding - each detailed at its own` && |\n| &&
+             `    // section below.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -146,17 +139,16 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      else showFn(sText);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/` && |\n| &&
-             `    // POPOVER variants) is no longer dispatched here: the backend routes those` && |\n| &&
-             `    // events through the generic CONTROL_BY_ID path (method "to", the` && |\n| &&
-             `    // slot passed as the view), so evControlCallById below handles them.` && |\n| &&
-             `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // CONTROL_GLOBAL / CONTROL_BY_ID: call a whitelisted method on a` && |\n| &&
              `    // control (by id) or a global object. The whitelist is the safety` && |\n| &&
              `    // boundary; each entry lists the kind of every positional argument so` && |\n| &&
              `    // string payloads are cast/resolved (never "call anything with` && |\n| &&
              `    // anything"). Scope: imperative methods that have no binding equivalent.` && |\n| &&
+             `    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/` && |\n| &&
+             `    // POPOVER variants) is dispatched here too: the backend routes those` && |\n| &&
+             `    // events through the generic CONTROL_BY_ID path (method "to", the` && |\n| &&
+             `    // slot passed as the view), handled by evControlCallById below.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    // control method -> kinds of its positional args. Args beyond the` && |\n| &&
@@ -424,8 +416,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      // global target is the only way a backend-driven content change can be` && |\n| &&
              `      // announced to a screen reader. Lazy-require like THEMING so 1.71 hits` && |\n| &&
              `      // the "not available" guard instead of failing the component load.` && |\n| &&
-             `      // announce(sText, sMode) with sMode Polite (default) | Assertive.` && |\n|.
-    result = result &&
+             `      // announce(sText, sMode) with sMode Polite (default) | Assertive.` && |\n| &&
              `      INVISIBLE_MESSAGE: {` && |\n| &&
              `        get: () => {` && |\n| &&
              `          const IM = sap.ui.require("sap/ui/core/InvisibleMessage");` && |\n| &&
@@ -433,7 +424,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        methods: { announce: ["string", "string"] },` && |\n| &&
              `      },` && |\n| &&
-             `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
+             `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n|.
+    result = result &&
              `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
              `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
              `      // property nor something a per-binding formatter can register for the` && |\n| &&
@@ -825,8 +817,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    // of groups, each group an array of [path, operator, value1, value2?]` && |\n| &&
              `    // rows - OR inside a group, AND across groups (the FacetFilter /` && |\n| &&
              `    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted` && |\n| &&
-             `    // operators and values - never code. An empty groups array clears.` && |\n|.
-    result = result &&
+             `    // operators and values - never code. An empty groups array clears.` && |\n| &&
              `    function buildFilterGroups(binding, json) {` && |\n| &&
              `      let groups;` && |\n| &&
              `      try {` && |\n| &&
@@ -834,7 +825,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      } catch {` && |\n| &&
              `        Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
              `        return;` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `      if (!Array.isArray(groups)) {` && |\n| &&
              `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
              `        return;` && |\n| &&
