@@ -10,7 +10,6 @@ sap.ui.define(
     "use strict";
 
     // `key`    short slot name used in frontend events and S_FRONT.VIEW
-    // `param`  key of the slot in the backend response PARAMS
     // `prop` / `controllerProp`  AppState fields holding the live instances
     // `fragmentId`  only on the fragment-based slots (popup/popover): the
     //               id their inner controls are registered under, and the
@@ -18,32 +17,36 @@ sap.ui.define(
     const slots = [
       {
         key: "MAIN",
-        param: "S_VIEW",
+        // holds its own JSON model - NEST/NEST2 are inserted into
+        // the MAIN control tree and inherit theirs by UI5 propagation
+        ownsModel: true,
         prop: "oView",
         controllerProp: "oController",
       },
       {
         key: "NEST",
-        param: "S_VIEW_NEST",
         prop: "oViewNest",
         controllerProp: "oControllerNest",
       },
       {
         key: "NEST2",
-        param: "S_VIEW_NEST2",
         prop: "oViewNest2",
         controllerProp: "oControllerNest2",
       },
       {
         key: "POPUP",
-        param: "S_POPUP",
+        // holds its own JSON model - NEST/NEST2 are inserted into
+        // the MAIN control tree and inherit theirs by UI5 propagation
+        ownsModel: true,
         prop: "oViewPopup",
         controllerProp: "oControllerPopup",
         fragmentId: "popupId",
       },
       {
         key: "POPOVER",
-        param: "S_POPOVER",
+        // holds its own JSON model - NEST/NEST2 are inserted into
+        // the MAIN control tree and inherit theirs by UI5 propagation
+        ownsModel: true,
         prop: "oViewPopover",
         controllerProp: "oControllerPopover",
         fragmentId: "popoverId",
@@ -51,10 +54,9 @@ sap.ui.define(
     ];
 
     // Constant-time lookups for the frequently used resolutions (byId,
-    // getView, paramByKey run on every roundtrip and scroll/focus capture)
+    // getView run on every roundtrip and scroll/focus capture)
     // instead of a linear find() per call.
     const slotsByKey = new Map(slots.map((s) => [s.key, s]));
-    const slotsByParam = new Map(slots.map((s) => [s.param, s]));
 
     function byKey(key) {
       return slotsByKey.get(key);
@@ -97,17 +99,6 @@ sap.ui.define(
     function getController(key) {
       const slot = byKey(key);
       return slot ? AppState.state[slot.controllerProp] : undefined;
-    }
-
-    // Returns the slot key for a response param key ("S_VIEW" -> "MAIN").
-    function keyByParam(param) {
-      return slotsByParam.get(param)?.key;
-    }
-
-    // Returns the response param key for a slot key ("MAIN" -> "S_VIEW").
-    function paramByKey(key) {
-      const slot = byKey(key);
-      return slot ? slot.param : undefined;
     }
 
     // Returns the key of the slot whose controller is `controller` -
@@ -209,8 +200,6 @@ sap.ui.define(
       getView,
       setView,
       getController,
-      keyByParam,
-      paramByKey,
       keyOfController,
       byId,
       byIdOfOwner,

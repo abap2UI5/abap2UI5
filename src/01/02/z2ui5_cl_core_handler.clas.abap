@@ -674,19 +674,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ms_response-model = `{}`.
       ELSE.
         ms_response-model = lv_model.
-        " push into ALL THREE model-owning slots, not just MAIN: the app has
-        " ONE model but each open slot holds its own frontend instance of it,
-        " and the *_model_update( ) methods that used to pick the slot are
-        " empty now. Naming a slot that is not open is free - the frontend
-        " skips a slot without a view. Queued as SYSTEM actions, so the push
-        " lands after any display of the same roundtrip
-        DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
-        LOOP AT VALUE string_table( ( `MAIN` ) ( `POPUP` ) ( `POPOVER` ) ) INTO DATA(lv_slot).
-          INSERT lo_srv_event->get_event_client_json(
-                     val   = z2ui5_if_client=>cs_event-control_global
-                     t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `updateModel` ) ( lv_slot ) ) )
-                 INTO TABLE ms_response-s_front-params-s_action-t_system.
-        ENDLOOP.
+        " The app has ONE model, but each OPEN slot holds its own frontend
+        " instance of it - and which slots are open is the one thing only the
+        " frontend knows. So the action names no slot at all: it says the
+        " model changed, and every slot carrying a model of its own picks it
+        " up. Appended AFTER the display actions, so a slot built in this same
+        " roundtrip is filled before it is pushed to.
+        INSERT NEW z2ui5_cl_core_srv_event( )->get_event_client_json(
+                   val   = z2ui5_if_client=>cs_event-control_global
+                   t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `updateModel` ) ) )
+               INTO TABLE ms_response-s_front-params-s_action-t_system.
       ENDIF.
     ELSE.
       ms_response-model = `{}`.

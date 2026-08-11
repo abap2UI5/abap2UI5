@@ -37,7 +37,6 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // ``key``    short slot name used in frontend events and S_FRONT.VIEW` && |\n| &&
-             `    // ``param``  key of the slot in the backend response PARAMS` && |\n| &&
              `    // ``prop`` / ``controllerProp``  AppState fields holding the live instances` && |\n| &&
              `    // ``fragmentId``  only on the fragment-based slots (popup/popover): the` && |\n| &&
              `    //               id their inner controls are registered under, and the` && |\n| &&
@@ -45,32 +44,36 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `    const slots = [` && |\n| &&
              `      {` && |\n| &&
              `        key: "MAIN",` && |\n| &&
-             `        param: "S_VIEW",` && |\n| &&
+             `        // holds its own JSON model - NEST/NEST2 are inserted into` && |\n| &&
+             `        // the MAIN control tree and inherit theirs by UI5 propagation` && |\n| &&
+             `        ownsModel: true,` && |\n| &&
              `        prop: "oView",` && |\n| &&
              `        controllerProp: "oController",` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "NEST",` && |\n| &&
-             `        param: "S_VIEW_NEST",` && |\n| &&
              `        prop: "oViewNest",` && |\n| &&
              `        controllerProp: "oControllerNest",` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "NEST2",` && |\n| &&
-             `        param: "S_VIEW_NEST2",` && |\n| &&
              `        prop: "oViewNest2",` && |\n| &&
              `        controllerProp: "oControllerNest2",` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "POPUP",` && |\n| &&
-             `        param: "S_POPUP",` && |\n| &&
+             `        // holds its own JSON model - NEST/NEST2 are inserted into` && |\n| &&
+             `        // the MAIN control tree and inherit theirs by UI5 propagation` && |\n| &&
+             `        ownsModel: true,` && |\n| &&
              `        prop: "oViewPopup",` && |\n| &&
              `        controllerProp: "oControllerPopup",` && |\n| &&
              `        fragmentId: "popupId",` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "POPOVER",` && |\n| &&
-             `        param: "S_POPOVER",` && |\n| &&
+             `        // holds its own JSON model - NEST/NEST2 are inserted into` && |\n| &&
+             `        // the MAIN control tree and inherit theirs by UI5 propagation` && |\n| &&
+             `        ownsModel: true,` && |\n| &&
              `        prop: "oViewPopover",` && |\n| &&
              `        controllerProp: "oControllerPopover",` && |\n| &&
              `        fragmentId: "popoverId",` && |\n| &&
@@ -78,10 +81,9 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `    ];` && |\n| &&
              `` && |\n| &&
              `    // Constant-time lookups for the frequently used resolutions (byId,` && |\n| &&
-             `    // getView, paramByKey run on every roundtrip and scroll/focus capture)` && |\n| &&
+             `    // getView run on every roundtrip and scroll/focus capture)` && |\n| &&
              `    // instead of a linear find() per call.` && |\n| &&
              `    const slotsByKey = new Map(slots.map((s) => [s.key, s]));` && |\n| &&
-             `    const slotsByParam = new Map(slots.map((s) => [s.param, s]));` && |\n| &&
              `` && |\n| &&
              `    function byKey(key) {` && |\n| &&
              `      return slotsByKey.get(key);` && |\n| &&
@@ -124,17 +126,6 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `    function getController(key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      return slot ? AppState.state[slot.controllerProp] : undefined;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Returns the slot key for a response param key ("S_VIEW" -> "MAIN").` && |\n| &&
-             `    function keyByParam(param) {` && |\n| &&
-             `      return slotsByParam.get(param)?.key;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Returns the response param key for a slot key ("MAIN" -> "S_VIEW").` && |\n| &&
-             `    function paramByKey(key) {` && |\n| &&
-             `      const slot = byKey(key);` && |\n| &&
-             `      return slot ? slot.param : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Returns the key of the slot whose controller is ``controller`` -` && |\n| &&
@@ -236,8 +227,6 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      getView,` && |\n| &&
              `      setView,` && |\n| &&
              `      getController,` && |\n| &&
-             `      keyByParam,` && |\n| &&
-             `      paramByKey,` && |\n| &&
              `      keyOfController,` && |\n| &&
              `      byId,` && |\n| &&
              `      byIdOfOwner,` && |\n| &&

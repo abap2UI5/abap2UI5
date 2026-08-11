@@ -386,14 +386,14 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
       "updateModel",
-      "MAIN",
     ]);
     expect(slotCalls).toEqual([
       ["destroy", "POPUP", undefined, {}],
       // the XML is a positional argument of its own - it must NOT be read as
       // a template value for the slot name
       ["display", "POPOVER", "<Popover/>", { openById: "btn1" }],
-      ["updateModel", "MAIN", undefined, {}],
+      // no slot: the frontend picks the open ones itself
+      ["updateModel", undefined, undefined, {}],
     ]);
   });
 

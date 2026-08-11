@@ -701,7 +701,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_handler->main_end( ).
 
     cl_abap_unit_assert=>assert_char_cp(
-        exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","MAIN"]*`
+        exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]*`
         act = concat_lines_of(
                   table = lo_handler->ms_response-s_front-params-s_action-t_system
                   sep   = `|` ) ).
@@ -739,10 +739,9 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
 
     " the app has ONE model but every open slot holds its own frontend
-    " instance of it, and the *_model_update( ) methods that used to pick the
-    " slot are empty now - so a detected change must push into ALL THREE
-    " model-owning slots. Naming a closed slot is free: the frontend skips
-    " every slot without a view
+    " instance of it - and which of them are open is the one thing only the
+    " frontend knows. So a detected change queues ONE action naming no slot,
+    " not one per slot the backend guesses at
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
@@ -752,9 +751,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_handler->main_end( ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","MAIN"]` &&
-              `|["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","POPUP"]` &&
-              `|["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","POPOVER"]`
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]`
         act = concat_lines_of(
                   table = lo_handler->ms_response-s_front-params-s_action-t_system
                   sep   = `|` ) ).

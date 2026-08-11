@@ -50,21 +50,15 @@ function load() {
   };
 }
 
-test.describe("key mappings", () => {
-  test("keyByParam maps response param keys to slot keys", () => {
+test.describe("slot table", () => {
+  test("exactly MAIN, POPUP and POPOVER carry a model of their own", () => {
+    // NEST and NEST2 are inserted into the MAIN control tree and inherit its
+    // model by UI5 propagation - giving them one of their own would detach
+    // them from the data every other view binds against
     const { ViewSlots } = load();
-    expect(ViewSlots.keyByParam("S_VIEW")).toBe("MAIN");
-    expect(ViewSlots.keyByParam("S_VIEW_NEST2")).toBe("NEST2");
-    expect(ViewSlots.keyByParam("S_POPUP")).toBe("POPUP");
-    expect(ViewSlots.keyByParam("UNKNOWN")).toBeUndefined();
-  });
-
-  test("paramByKey is the inverse of keyByParam for all slots", () => {
-    const { ViewSlots } = load();
-    for (const slot of ViewSlots.slots) {
-      expect(ViewSlots.paramByKey(slot.key)).toBe(slot.param);
-      expect(ViewSlots.keyByParam(slot.param)).toBe(slot.key);
-    }
+    expect(
+      ViewSlots.slots.filter((s) => s.ownsModel).map((s) => s.key),
+    ).toEqual(["MAIN", "POPUP", "POPOVER"]);
   });
 });
 
