@@ -461,10 +461,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                       t_arg = t_arg
                                       s_cnt = s_ctrl ).
 
-    IF r_data IS NOT INITIAL.
-      mo_action->ms_next-r_data = z2ui5_cl_a2ui5_context=>conv_copy_ref_data( r_data ).
-    ENDIF.
-
   ENDMETHOD.
 
 
