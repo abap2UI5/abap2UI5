@@ -168,7 +168,7 @@ sap.ui.define(
         // sap.ui.core.routing.Router uses, and inside the FLP the shell's own
         // one - so the native browser Back/Forward buttons and the launchpad
         // back button drive navigation. Only apps that opted in via
-        // client->set_nav_routing( ) act on it, so apps that manage their own
+        // follow_up_action( cs_event-set_nav_routing ) act on it, so apps that manage their own
         // hash are unaffected. Server does the actual restore roundtrip; it is
         // injected here so the router stays free of a Server dependency.
         Router.init(() => Server.restoreFromRoute());

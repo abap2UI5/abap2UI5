@@ -31,8 +31,8 @@ sap.ui.define(
     // lives in the domain modules under core/actions/, one handler map
     // per domain, merged here into the one dispatch table. Handlers share
     // the uniform signature (oController, args); ones that need to reach
-    // controller state (slotAction, eB, ...) receive the calling
-    // controller as first argument.
+    // controller state (eB, ...) receive the calling controller as first
+    // argument.
     // ------------------------------------------------------------------
     const handlers = Object.assign(
       {},
@@ -84,7 +84,7 @@ sap.ui.define(
 
     // Run one SYSTEM action from the response's T_SYSTEM list. A system
     // action is always framework-generated and arrives as a real JSON array
-    // (the backend embeds it into the response - handler actions_embed);
+    // (the backend embeds it into the response - handler actions_serialize);
     // the string form stays accepted so a skewed backend keeps working.
     // There are no legacy formats here, and errors propagate: a failing
     // view display has to reach _processAfterRendering, which turns it
@@ -110,7 +110,7 @@ sap.ui.define(
     // T_CUSTOM list.
     // Format A:  a real JSON array ["EVENT", ...args] - the structured form
     //            every framework follow-up action travels in (embedded into
-    //            the response by the backend - handler actions_embed). Pure
+    //            the response by the backend - handler actions_serialize). Pure
     //            data, dispatched via oController.eF( ) - no code is parsed
     //            or evaluated on this path. The stringified form stays
     //            accepted so a skewed backend keeps working.

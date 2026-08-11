@@ -195,7 +195,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // sap.ui.core.routing.Router uses, and inside the FLP the shell's own` && |\n| &&
              `        // one - so the native browser Back/Forward buttons and the launchpad` && |\n| &&
              `        // back button drive navigation. Only apps that opted in via` && |\n| &&
-             `        // client->set_nav_routing( ) act on it, so apps that manage their own` && |\n| &&
+             `        // follow_up_action( cs_event-set_nav_routing ) act on it, so apps that manage their own` && |\n| &&
              `        // hash are unaffected. Server does the actual restore roundtrip; it is` && |\n| &&
              `        // injected here so the router stays free of a Server dependency.` && |\n| &&
              `        Router.init(() => Server.restoreFromRoute());` && |\n| &&

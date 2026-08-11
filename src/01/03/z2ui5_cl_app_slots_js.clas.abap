@@ -388,15 +388,12 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `      return displayNestedView(xml, slotKey, mOptions, seq);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // action is the module's entry point (the VIEW_SLOTS target);` && |\n| &&
+             `    // resolveTrackedModel is what eB's model pick needs (View1.controller).` && |\n| &&
+             `    // Everything else on this file is internal to the display machinery.` && |\n| &&
              `    return {` && |\n| &&
              `      action,` && |\n| &&
-             `      trackChanges,` && |\n| &&
              `      resolveTrackedModel,` && |\n| &&
-             `      updateModelIfRequired,` && |\n| &&
-             `      displayView,` && |\n| &&
-             `      displayFragment,` && |\n| &&
-             `      displayPopover,` && |\n| &&
-             `      displayNestedView,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

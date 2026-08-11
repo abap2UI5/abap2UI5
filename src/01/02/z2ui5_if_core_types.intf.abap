@@ -123,7 +123,7 @@ INTERFACE z2ui5_if_core_types
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash
       " (see app/webapp/core/Router.js). Opt-in per APP via
-      " client->set_nav_routing( ) - the mode is remembered on the app and
+      " follow_up_action( cs_event-set_nav_routing ) - the mode is remembered on the app and
       " travels in its draft, so it is re-sent with every response of that app
       " (see z2ui5_cl_core_app=>mv_nav_mode). The value carries the MODE (see
       " z2ui5_if_client=>cs_nav_mode): 'KEEP' syncs the class AND its draft id

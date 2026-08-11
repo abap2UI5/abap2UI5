@@ -361,15 +361,12 @@ sap.ui.define(
       return displayNestedView(xml, slotKey, mOptions, seq);
     }
 
+    // action is the module's entry point (the VIEW_SLOTS target);
+    // resolveTrackedModel is what eB's model pick needs (View1.controller).
+    // Everything else on this file is internal to the display machinery.
     return {
       action,
-      trackChanges,
       resolveTrackedModel,
-      updateModelIfRequired,
-      displayView,
-      displayFragment,
-      displayPopover,
-      displayNestedView,
     };
   },
 );

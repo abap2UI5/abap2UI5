@@ -130,7 +130,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      let showFn = MessageBox[sType];` && |\n| &&
              `      if (typeof showFn !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
-             `          ``Messages: unknown message box type '${sType}', shown via show()``,` && |\n| &&
+             `          ``ControlCall: unknown message box type '${sType}', shown via show()``,` && |\n| &&
              `        );` && |\n| &&
              `        showFn = MessageBox.show;` && |\n| &&
              `      }` && |\n| &&
@@ -321,7 +321,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
              `    const GLOBAL_TARGETS = {` && |\n| &&
              `      // The two message targets carry a ``display`` hook: the call is routed` && |\n| &&
-             `      // through Messages instead of straight at the global, so the option` && |\n| &&
+             `      // through the local showToast/showBox instead of straight at the` && |\n| &&
+             `      // global, so the option` && |\n| &&
              `      // handling client->message_toast_display( ) / message_box_display( )` && |\n| &&
              `      // relies on - an ONCLOSE event name turned into an eB() round-trip, the` && |\n| &&
              `      // details sanitizing, dependentOn, the toast style class - lives in one` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `          return IM ? IM.getInstance() : undefined;` && |\n| &&
              `        },` && |\n| &&
              `        methods: { announce: ["string", "string"] },` && |\n| &&
-             `      },` && |\n| &&
-             `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n|.
+             `      },` && |\n|.
     result = result &&
+             `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
              `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
              `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
              `      // property nor something a per-binding formatter can register for the` && |\n| &&
@@ -824,9 +825,9 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        groups = JSON.parse(json);` && |\n| &&
              `      } catch {` && |\n| &&
              `        Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n|.
+             `        return;` && |\n|.
     result = result &&
+             `      }` && |\n| &&
              `      if (!Array.isArray(groups)) {` && |\n| &&
              `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
              `        return;` && |\n| &&

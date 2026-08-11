@@ -315,7 +315,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Collapse a UI5 Device ``system`` flag object into a single label. The` && |\n| &&
              `    // order matters - phone/tablet/combi are mutually exclusive with the` && |\n| &&
-             `    // desktop fallback. Shared by Server._getDeviceStatic (request payload) and` && |\n| &&
+             `    // desktop fallback. Shared by core/Session.js (request payload) and` && |\n| &&
              `    // the Info control so both report the same value.` && |\n| &&
              `    function deriveSystemType(system) {` && |\n| &&
              `      if (!system) return "desktop";` && |\n| &&

@@ -63,6 +63,29 @@ test("chains the session draft across roundtrips", async ({ request }) => {
   expect(second.S_FRONT.ID).not.toBe(first.S_FRONT.ID);
 });
 
+// The view XML of a response, read from the system action that displays the
+// slot: ["CONTROL_GLOBAL","VIEW_SLOTS","display","<slot>","<xml>",{...}?] in
+// S_FRONT.S_ACTION.T_SYSTEM - the wire has no per-slot response fields.
+function displayedXml(body, slot = "MAIN") {
+  for (const item of body.S_FRONT?.S_ACTION?.T_SYSTEM ?? []) {
+    const args = Array.isArray(item) ? item : [];
+    if (args[1] === "VIEW_SLOTS" && args[2] === "display" && args[3] === slot) {
+      return args[4];
+    }
+  }
+  return undefined;
+}
+
+// The message-box APP action of a response:
+// ["CONTROL_GLOBAL","MESSAGE_BOX","<type>","<text>",{...}?] in T_CUSTOM.
+function messageBoxText(body) {
+  for (const item of body.S_FRONT?.S_ACTION?.T_CUSTOM ?? []) {
+    const args = Array.isArray(item) ? item : [];
+    if (args[1] === "MESSAGE_BOX") return args[3];
+  }
+  return undefined;
+}
+
 test("returns the backend-built view XML on app start", async ({ request }) => {
   const body = await (
     await request.post("/", {
@@ -70,7 +93,7 @@ test("returns the backend-built view XML on app start", async ({ request }) => {
     })
   ).json();
 
-  const xml = body.S_FRONT.PARAMS?.S_VIEW?.XML;
+  const xml = displayedXml(body);
   expect(xml).toContain("<mvc:View");
   expect(xml).toContain('value="{/NAME}"');
   expect(xml).toContain("BUTTON_POST");
@@ -107,9 +130,9 @@ test("applies the model delta before on_event and answers the event", async ({
     })
   ).json();
 
-  expect(second.S_FRONT.PARAMS?.S_MSG_BOX?.TEXT).toBe("Your name is Roundtrip");
+  expect(messageBoxText(second)).toBe("Your name is Roundtrip");
   // an event roundtrip without view_display must not resend the view
-  expect(second.S_FRONT.PARAMS?.S_VIEW?.XML).toBeUndefined();
+  expect(displayedXml(second)).toBeUndefined();
 });
 
 test("rejects a broken request body with a framework error", async ({
@@ -164,17 +187,17 @@ test("does not append a dangling '#' to the URL after app start", async ({
 }) => {
   // Regression: with the manifest routing gone, nothing initialized the
   // HashChanger's hasher singleton anymore, so the app-state cleanup in
-  // View1._updateBrowserHistory (replaceHash("")) rewrote every started
-  // app's URL to ".../path#". Component.init now initializes the
-  // HashChanger explicitly.
+  // Router.sync (replaceHash(""), dispatched as the ROUTER/sync system
+  // action) rewrote every started app's URL to ".../path#". Component.init
+  // now initializes the HashChanger explicitly.
   const responsePromise = page.waitForResponse(
     (r) => r.request().method() === "POST",
   );
   await page.goto("/?app_start=z2ui5_cl_app_hello_world");
   await responsePromise;
 
-  // _updateBrowserHistory runs inside _processAfterRendering, which flags
-  // the response as processed right before the history update phase - wait
+  // Router.sync runs as the last system action of _processAfterRendering,
+  // which flags the response as processed right before that phase - wait
   // for the flag plus a settle tick so the (synchronous) hash rewrite, if
   // any, has happened before asserting.
   await page.waitForFunction(

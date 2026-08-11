@@ -103,7 +103,7 @@ sap.ui.define(
       let showFn = MessageBox[sType];
       if (typeof showFn !== "function") {
         Lib.logError(
-          `Messages: unknown message box type '${sType}', shown via show()`,
+          `ControlCall: unknown message box type '${sType}', shown via show()`,
         );
         showFn = MessageBox.show;
       }
@@ -294,7 +294,8 @@ sap.ui.define(
     // global object -> lazy getter + its allowed methods (with arg kinds).
     const GLOBAL_TARGETS = {
       // The two message targets carry a `display` hook: the call is routed
-      // through Messages instead of straight at the global, so the option
+      // through the local showToast/showBox instead of straight at the
+      // global, so the option
       // handling client->message_toast_display( ) / message_box_display( )
       // relies on - an ONCLOSE event name turned into an eB() round-trip, the
       // details sanitizing, dependentOn, the toast style class - lives in one

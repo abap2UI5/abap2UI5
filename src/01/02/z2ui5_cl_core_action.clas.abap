@@ -138,7 +138,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     " forward app navigation - when hash routing is active the frontend pushes a
     " new route history entry for the called app, so the browser Back button
-    " returns to the calling app (see View1._updateBrowserHistory)
+    " returns to the calling app (see Router.sync in app/webapp/core/Router.js)
     result->ms_next-s_nav-check_nav_app_call = abap_true.
 
     " prepare_app_stack( ) just saved the calling app under a NEW draft id -

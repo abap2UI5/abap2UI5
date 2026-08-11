@@ -942,7 +942,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " An app configures routing ONCE. main_end therefore re-sends the mode the
     " app carries whenever the roundtrip did not set one itself, so a later
-    " render of the same app stays routed without calling set_nav_routing( )
+    " render of the same app stays routed without queueing set_nav_routing
     " again - and an app that never opted in keeps sending nothing.
     lo_handler = NEW #( val = `` ).
     lo_app = NEW #( ).

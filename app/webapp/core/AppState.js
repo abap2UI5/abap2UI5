@@ -84,7 +84,7 @@
 //                     scope, so a popover-local shortcut shadows the page one
 //                     the way a UI5 CommandExecution in dependents does;
 //                     an app switch resets it, the document listener stays
-//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
+//   lastScrolled      last scrolled element per slot (ScrollFocus.onScrollCapture)
 //   viewSizeLimits    per-slot model size limits (FrontendAction)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
 //   developerTools         DeveloperTools instance (Component, Ctrl+F12)

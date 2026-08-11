@@ -111,7 +111,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     scope, so a popover-local shortcut shadows the page one` && |\n| &&
              `//                     the way a UI5 CommandExecution in dependents does;` && |\n| &&
              `//                     an app switch resets it, the document listener stays` && |\n| &&
-             `//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)` && |\n| &&
+             `//   lastScrolled      last scrolled element per slot (ScrollFocus.onScrollCapture)` && |\n| &&
              `//   viewSizeLimits    per-slot model size limits (FrontendAction)` && |\n| &&
              `//   treeStates        tree binding state per tree_id across rebuilds (Tree control)` && |\n| &&
              `//   developerTools         DeveloperTools instance (Component, Ctrl+F12)` && |\n| &&

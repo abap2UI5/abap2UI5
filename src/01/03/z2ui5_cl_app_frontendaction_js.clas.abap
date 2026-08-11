@@ -58,8 +58,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // lives in the domain modules under core/actions/, one handler map` && |\n| &&
              `    // per domain, merged here into the one dispatch table. Handlers share` && |\n| &&
              `    // the uniform signature (oController, args); ones that need to reach` && |\n| &&
-             `    // controller state (slotAction, eB, ...) receive the calling` && |\n| &&
-             `    // controller as first argument.` && |\n| &&
+             `    // controller state (eB, ...) receive the calling controller as first` && |\n| &&
+             `    // argument.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    const handlers = Object.assign(` && |\n| &&
              `      {},` && |\n| &&
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Run one SYSTEM action from the response's T_SYSTEM list. A system` && |\n| &&
              `    // action is always framework-generated and arrives as a real JSON array` && |\n| &&
-             `    // (the backend embeds it into the response - handler actions_embed);` && |\n| &&
+             `    // (the backend embeds it into the response - handler actions_serialize);` && |\n| &&
              `    // the string form stays accepted so a skewed backend keeps working.` && |\n| &&
              `    // There are no legacy formats here, and errors propagate: a failing` && |\n| &&
              `    // view display has to reach _processAfterRendering, which turns it` && |\n| &&
@@ -137,7 +137,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // T_CUSTOM list.` && |\n| &&
              `    // Format A:  a real JSON array ["EVENT", ...args] - the structured form` && |\n| &&
              `    //            every framework follow-up action travels in (embedded into` && |\n| &&
-             `    //            the response by the backend - handler actions_embed). Pure` && |\n| &&
+             `    //            the response by the backend - handler actions_serialize). Pure` && |\n| &&
              `    //            data, dispatched via oController.eF( ) - no code is parsed` && |\n| &&
              `    //            or evaluated on this path. The stringified form stays` && |\n| &&
              `    //            accepted so a skewed backend keeps working.` && |\n| &&

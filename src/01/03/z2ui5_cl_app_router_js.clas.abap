@@ -50,7 +50,7 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `// the <CLASS> segment names the app (human-readable), the <DRAFT> segment is` && |\n| &&
              `// the server draft holding its state, so Back/Forward/reload/bookmark restore` && |\n| &&
              `// the EXACT state. In FRESH mode the draft segment is omitted and the app` && |\n| &&
-             `// restarts clean. Routing is opt-in per app (client->set_nav_routing).` && |\n| &&
+             `// restarts clean. Routing is opt-in per app (cs_event-set_nav_routing).` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  ["sap/ui/core/routing/HashChanger", "z2ui5/core/AppState", "z2ui5/core/Lib"],` && |\n| &&
              `  (HashChanger, AppState, Lib) => {` && |\n| &&
@@ -217,7 +217,7 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `    function onHashChanged(sNewHash) {` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
              `` && |\n| &&
-             `      // Routing is opt-in per app (client->set_nav_routing); until one` && |\n| &&
+             `      // Routing is opt-in per app (cs_event-set_nav_routing); until one` && |\n| &&
              `      // enabled it, the hash belongs entirely to the app (set_push_state).` && |\n| &&
              `      if (!state.navRouting) return;` && |\n| &&
              `` && |\n| &&
@@ -422,13 +422,10 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `      init,` && |\n| &&
              `      exit,` && |\n| &&
              `      splitHash,` && |\n| &&
-             `      appHashOf,` && |\n| &&
-             `      getHash,` && |\n| &&
-             `      getRawHash,` && |\n|.
-    result = result &&
              `      hrefFor,` && |\n| &&
              `      patternFor,` && |\n| &&
-             `      parse,` && |\n| &&
+             `      parse,` && |\n|.
+    result = result &&
              `      appOf,` && |\n| &&
              `      draftOf,` && |\n| &&
              `      navTo,` && |\n| &&

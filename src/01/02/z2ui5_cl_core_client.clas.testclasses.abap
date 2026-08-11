@@ -460,7 +460,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->follow_up_action( z2ui5_if_client=>cs_event-history_back ).
 
     " framework events travel as pure data - a JSON array serialized in ABAP
-    " (get_event_client_json), not as an executable eF( ) JS snippet
+    " (get_event_client_ajson), not as an executable eF( ) JS snippet
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["SET_TITLE","My Title"]`

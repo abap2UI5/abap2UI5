@@ -717,7 +717,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     " Hash routing is configured once and then belongs to the app, not to the
     " session: re-send the app's own mode whenever this roundtrip did not set
-    " one itself, so an app that called set_nav_routing( ) in check_on_init
+    " one itself, so an app that queued cs_event-set_nav_routing in check_on_init
     " stays routed in its chosen mode - even after the user visited another
     " app that runs with a different one (see z2ui5_cl_core_app=>mv_nav_mode).
     IF mo_action->ms_next-s_nav-set_nav_routing IS INITIAL.
