@@ -118,6 +118,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_view_model_update.
 
+    " the model is pushed automatically now (z2ui5_cl_core_handler=>main_end),
+    " so this method is an obsolete NO-OP kept for source compatibility - it
+    " must not raise and must not set any slot flag
     DATA temp3 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp3.
     temp3 ?= mo_client.
@@ -125,30 +128,24 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp3.
     li_client->view_model_update( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view-check_update_model ).
 
   ENDMETHOD.
 
   METHOD test_nest_model_update.
 
-    " both nested variants refresh the root model, because a nested view has
-    " none of its own - they must set the MAIN flag, not a nest-only one
+    " both nested variants are obsolete NO-OPs too: a nested view owns no
+    " model (it inherits MAIN's by propagation) and MAIN is pushed
+    " automatically - see test_view_model_update
     DATA temp4 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp4.
     temp4 ?= mo_client.
 
     li_client = temp4.
     li_client->nest_view_model_update( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view-check_update_model ).
-
-    mo_action->ms_next-s_set-s_view-check_update_model = abap_false.
     li_client->nest2_view_model_update( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view-check_update_model ).
 
   ENDMETHOD.
 
@@ -191,8 +188,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp6.
     li_client->popup_model_update( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_popup-check_update_model ).
+    " obsolete NO-OP - the automatic push flags the POPUP slot itself
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popup-check_update_model ).
 
   ENDMETHOD.
 
@@ -242,8 +239,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp9.
     li_client->popover_model_update( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_popover-check_update_model ).
+    " obsolete NO-OP - the automatic push flags the POPOVER slot itself
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-check_update_model ).
 
   ENDMETHOD.
 

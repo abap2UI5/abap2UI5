@@ -643,7 +643,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ms_response-model = `{}`.
       ELSE.
         ms_response-model = lv_model.
-        ms_response-s_front-params-s_view-check_update_model = abap_true.
+        " flag ALL THREE model-owning slots, not just MAIN: the app has ONE
+        " model but each open slot holds its own frontend instance of it, and
+        " the *_model_update( ) methods that used to pick the slot are empty
+        " now. Flagging a slot that is not open is free - the frontend loops
+        " over its slots and skips every one without a view
+        " (Server.js responseSuccess -> View1.updateModelIfRequired)
+        ms_response-s_front-params-s_view-check_update_model    = abap_true.
+        ms_response-s_front-params-s_popup-check_update_model   = abap_true.
+        ms_response-s_front-params-s_popover-check_update_model = abap_true.
       ENDIF.
     ELSE.
       ms_response-model = `{}`.

@@ -207,18 +207,15 @@ ships for existing apps but is **frozen** — new apps and new code use
   instead — that path needs no flag.
 - **Bound data changed in an event handler is pushed automatically** — the
   framework compares the model before and after `main( )` on every event
-  round-trip and sends it whenever it changed, so a handler cannot render
-  stale by forgetting anything. Nothing to call, nothing to switch on.
-  `client->view_model_update( )` still exists (source compatibility) and is
-  simply not needed any more; it only still *does* something in the one case
-  detection cannot see — forcing the **unchanged** model back onto the client,
-  e.g. to reset a control that wrote a bound property on its own without
-  sending it back. Call `view_display` again only when the view structure
+  round-trip and, when it differs, sends it to every open view slot (MAIN,
+  POPUP, POPOVER; the nested views inherit MAIN's model). A handler cannot
+  render stale by forgetting anything: there is nothing to call and nothing
+  to switch on. Call `view_display` again only when the view **structure**
   itself changes.
-- Scope: the MAIN/root model (shared by the nested views). A **popup or
-  popover owns its own model instance**, so those keep their explicit
-  `popup_model_update( )` / `popover_model_update( )` — those calls are still
-  required.
+- `view_model_update( )`, `popup_model_update( )`, `popover_model_update( )`
+  and the two nested variants are **obsolete and do nothing**. They stay in
+  the interface so existing apps keep compiling; delete the calls whenever
+  you touch such an app, and never add a new one.
 
 ## 5. Events
 
