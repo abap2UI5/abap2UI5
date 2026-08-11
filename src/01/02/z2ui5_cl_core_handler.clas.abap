@@ -62,6 +62,13 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     DATA mv_model_before       TYPE string.
     DATA mv_model_before_taken TYPE abap_bool.
 
+    " the stateful-session switch of this roundtrip, rescued from ms_next
+    " before main_end( ) clears it - main( ) builds the http result AFTER
+    " main_end( ) ran, so reading mo_action->ms_next there would always see
+    " the cleared struct and set_session_stateful( ) would never reach
+    " z2ui5_cl_http_handler
+    DATA ms_stateful           TYPE z2ui5_if_core_types=>ty_s_http_res-s_stateful.
+
     "! Turn the collected view-lifecycle calls into the SYSTEM action list -
     "! in slot order, so the frontend only has to run what it receives.
     METHODS system_actions_serialize.
@@ -525,7 +532,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDTRY.
 
     result = VALUE #( body          = mv_response
-                      s_stateful    = mo_action->ms_next-s_stateful
+                      s_stateful    = ms_stateful
                       status_code   = 200
                       status_reason = `success` ).
 
@@ -825,6 +832,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     nav_action_serialize( ).
 
     mv_response = response_abap_to_json( ms_response ).
+
+    ms_stateful = mo_action->ms_next-s_stateful.
 
     CLEAR mo_action->ms_next.
 
