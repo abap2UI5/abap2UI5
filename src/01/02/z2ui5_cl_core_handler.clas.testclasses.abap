@@ -378,6 +378,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_view_update_flag.
 
+    " MAIN still ships its XML in the slot, so that one is read off the
+    " response as before
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
     lo_handler->ms_response-s_front-params-s_view-xml = `<View/>`.
@@ -389,9 +391,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_view_update_popup.
 
+    " every other slot displays through a system action, which notes on the
+    " action that a view was shipped - the model has to travel with it
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
-    lo_handler->ms_response-s_front-params-s_popup-check_update_model = abap_true.
+    lo_handler->mo_action->ms_next-check_view_shipped = abap_true.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lo_handler->check_view_update_needed( ) ).
@@ -573,8 +577,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->ms_response-s_front-params-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","MAIN"]*`
+        act = concat_lines_of(
+                  table = lo_handler->ms_response-s_front-params-s_follow_up_action-system_js
+                  sep   = `|` ) ).
     cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
 
@@ -597,7 +604,9 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lo_handler->ms_response-model ).
-    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-s_view-check_update_model ).
+    " an unchanged model asks for no push at all
+    cl_abap_unit_assert=>assert_initial(
+        lo_handler->ms_response-s_front-params-s_follow_up_action-system_js ).
 
   ENDMETHOD.
 
@@ -608,8 +617,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " the app has ONE model but every open slot holds its own frontend
     " instance of it, and the *_model_update( ) methods that used to pick the
-    " slot are empty now - so a detected change must flag ALL THREE
-    " model-owning slots. Flagging a closed slot is free: the frontend skips
+    " slot are empty now - so a detected change must push into ALL THREE
+    " model-owning slots. Naming a closed slot is free: the frontend skips
     " every slot without a view
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
@@ -619,10 +628,13 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->ms_response-s_front-params-s_popup-check_update_model ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->ms_response-s_front-params-s_popover-check_update_model ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","MAIN"]` &&
+              `|["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","POPUP"]` &&
+              `|["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","POPOVER"]`
+        act = concat_lines_of(
+                  table = lo_handler->ms_response-s_front-params-s_follow_up_action-system_js
+                  sep   = `|` ) ).
 
   ENDMETHOD.
 

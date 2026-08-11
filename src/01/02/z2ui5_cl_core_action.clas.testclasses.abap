@@ -184,20 +184,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lo_action = NEW #( val = lo_http ).
 
-    " only the model-owning slots have the flag - the nested slots inherit the
-    " root model and carry none - see reset_view_update_flags
-    lo_action->ms_next-s_set-s_view-check_update_model    = abap_true.
-    lo_action->ms_next-s_set-s_popup-check_update_model   = abap_true.
-    lo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
+    " the note that this roundtrip shipped a view must not survive into the
+    " next app - the model would then travel without any view asking for it
+    lo_action->ms_next-check_view_shipped = abap_true.
 
     lo_action->reset_view_update_flags( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_action->ms_next-s_set-s_view-check_update_model ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_action->ms_next-s_set-s_popup-check_update_model ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_action->ms_next-s_set-s_popover-check_update_model ).
+                                        act = lo_action->ms_next-check_view_shipped ).
 
   ENDMETHOD.
 
@@ -221,8 +215,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " frontend actions queued by the calling app - messages travel as
     " follow-up actions too and must not leak into the newly called app...
     INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-custom_js.
-    lo_action->ms_next-s_set-s_popup-xml    = `<popup/>`.
-    lo_action->ms_next-s_set-s_popover-xml  = `<popover/>`.
+    INSERT `some_system_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-system_js.
 
 
     lo_result = lo_action->factory_stack_call( ).
@@ -231,18 +224,16 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
                                         act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
 
-    " follow-up actions, messages included, are reset for the called app
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
-    " a popup is always destroyed on navigation ( a called app that renders
-    " its own popup overwrites this destroy request again )
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_result->ms_next-s_set-s_popup-check_destroy ).
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_popup-xml ).
-    " a popover is destroyed on navigation just like a popup - the XML of the
-    " calling app must not leak into the called app
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_result->ms_next-s_set-s_popover-check_destroy ).
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_popover-xml ).
+    " everything the calling app queued is gone, and the only thing left in
+    " the system queue is the popup/popover teardown for the called app - it
+    " is queued BEFORE that app runs, so a popup_display( ) of its own lands
+    " after it and wins
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action-custom_js ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"]` &&
+              `|["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPOVER"]`
+        act = concat_lines_of( table = lo_result->ms_next-s_set-s_follow_up_action-system_js
+                               sep   = `|` ) ).
 
     " the frontend is told to push a route entry for the called app, and where
     " the CALLING app was just saved - it repoints the caller's history entry at
@@ -320,24 +311,20 @@ CLASS ltcl_test IMPLEMENTATION.
     " follow-up actions too and must not leak into the app that is
     " navigated back to...
     INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-custom_js.
-    lo_action->ms_next-s_set-s_popup-xml    = `<popup/>`.
-    lo_action->ms_next-s_set-s_popover-xml  = `<popover/>`.
+    INSERT `some_system_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-system_js.
 
 
     lo_result = lo_action->factory_stack_leave( ).
 
     cl_abap_unit_assert=>assert_bound( lo_result ).
 
-    " leave behaves like call: every queued follow-up action is reset
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
-    " a popup is always destroyed on navigation, also on leave
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_result->ms_next-s_set-s_popup-check_destroy ).
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_popup-xml ).
-    " a popover is destroyed on leave as well, for the same reason
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_result->ms_next-s_set-s_popover-check_destroy ).
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_popover-xml ).
+    " leave behaves like call
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action-custom_js ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"]` &&
+              `|["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPOVER"]`
+        act = concat_lines_of( table = lo_result->ms_next-s_set-s_follow_up_action-system_js
+                               sep   = `|` ) ).
 
   ENDMETHOD.
 

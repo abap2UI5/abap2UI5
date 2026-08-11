@@ -209,12 +209,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   METHOD reset_view_update_flags.
 
-    " these three are every slot that owns a model: MAIN holds the root model,
-    " popup and popover their own. The nested slots are inserted into the MAIN
-    " control tree and inherit its model, so they have no flag to reset
-    CLEAR ms_next-s_set-s_view-check_update_model.
-    CLEAR ms_next-s_set-s_popup-check_update_model.
-    CLEAR ms_next-s_set-s_popover-check_update_model.
+    " the model push is an action queued in main_end( ), so a carried-over
+    " s_set brings no stale request with it - what has to be reset is the
+    " backend's own note that this roundtrip shipped a view
+    CLEAR ms_next-check_view_shipped.
 
   ENDMETHOD.
 
@@ -271,13 +269,20 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     CLEAR result->ms_next-s_set-s_follow_up_action.
 
     " always destroy an open popup/popover on navigation, so an app never has
-    " to close them explicitly before nav_app_call / nav_app_leave. If the app
-    " that is navigated to renders one itself, its popup_display( ) /
-    " popover_display( ) overwrites this destroy request again ( the frontend
-    " processes CHECK_DESTROY before the new XML ). Destroying when nothing is
-    " open is a no-op.
-    result->ms_next-s_set-s_popup   = VALUE #( check_destroy = abap_true ).
-    result->ms_next-s_set-s_popover = VALUE #( check_destroy = abap_true ).
+    " to close them explicitly before nav_app_call / nav_app_leave. These are
+    " queued HERE, before the app that is navigated to runs its main( ) - so a
+    " popup_display( ) of that app lands after them in the same system queue
+    " and wins, which is what used to happen through the slot being
+    " overwritten. Destroying when nothing is open is a no-op.
+    DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
+    INSERT lo_srv_event->get_event_client_json(
+               val   = z2ui5_if_client=>cs_event-control_global
+               t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `destroy` ) ( `POPUP` ) ) )
+           INTO TABLE result->ms_next-s_set-s_follow_up_action-system_js.
+    INSERT lo_srv_event->get_event_client_json(
+               val   = z2ui5_if_client=>cs_event-control_global
+               t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `destroy` ) ( `POPOVER` ) ) )
+           INTO TABLE result->ms_next-s_set-s_follow_up_action-system_js.
 
   ENDMETHOD.
 

@@ -134,7 +134,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // parallel request (check_allow_multi_req, Back/Forward restore)` && |\n| &&
              `          // never attaches popups/nested views the backend no longer knows.` && |\n| &&
              `          const seq = Server._requestSeq;` && |\n| &&
-             `          await this._displayPendingViews(PARAMS, seq);` && |\n| &&
+             `          await this._runSystemActions(oResponse, seq);` && |\n| &&
              `          // The app may have been torn down (reset / FLP re-launch) while the` && |\n| &&
              `          // pending views loaded; don't mutate history or fire onAfterRendering` && |\n| &&
              `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
@@ -158,50 +158,66 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Phase 1: open/destroy the popup, nested views and popover the` && |\n| &&
-             `      // response asked for.` && |\n| &&
-             `      async _displayPendingViews(PARAMS, seq) {` && |\n| &&
-             `        const S_POPUP = PARAMS.S_POPUP;` && |\n| &&
-             `        const S_VIEW_NEST = PARAMS.S_VIEW_NEST;` && |\n| &&
-             `        const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;` && |\n| &&
-             `        const S_POPOVER = PARAMS.S_POPOVER;` && |\n| &&
-             `` && |\n| &&
-             `        if (S_POPUP?.CHECK_DESTROY) this.destroyPopup();` && |\n| &&
-             `        if (S_POPOVER?.CHECK_DESTROY) this.destroyPopover();` && |\n| &&
-             `        if (S_VIEW_NEST?.CHECK_DESTROY) this.destroyNestView();` && |\n| &&
-             `        if (S_VIEW_NEST2?.CHECK_DESTROY) this.destroyNestView2();` && |\n| &&
-             `` && |\n| &&
-             `        if (S_POPUP?.XML) {` && |\n| &&
-             `          this.destroyPopup();` && |\n| &&
-             `          await this.displayFragment(S_POPUP.XML, seq);` && |\n| &&
+             `      // Phase 1: run the SYSTEM actions - the framework's own view-lifecycle` && |\n| &&
+             `      // calls (destroy a slot, display one, push the model into it), in the` && |\n| &&
+             `      // order the backend queued them. They run BEFORE anything an app` && |\n| &&
+             `      // queued, and one at a time: a display is async, and the next action` && |\n| &&
+             `      // may well be about the slot it is still building.` && |\n| &&
+             `      async _runSystemActions(oResponse, seq) {` && |\n| &&
+             `        const systemJs = oResponse?.PARAMS?.S_FOLLOW_UP_ACTION?.SYSTEM_JS;` && |\n| &&
+             `        if (!systemJs) return;` && |\n| &&
+             `        // the slot handlers take the request stamp from here rather than` && |\n| &&
+             `        // through the generic action signature, which carries only the` && |\n| &&
+             `        // payload the backend sent` && |\n| &&
+             `        this._systemSeq = seq;` && |\n| &&
+             `        try {` && |\n| &&
+             `          for (const item of systemJs) {` && |\n| &&
+             `            if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `            await Server._runSystemJs(item, this);` && |\n| &&
+             `          }` && |\n| &&
+             `        } finally {` && |\n| &&
+             `          this._systemSeq = undefined;` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
-             `        if (!AppState.state.checkNestAfter && S_VIEW_NEST?.XML) {` && |\n| &&
-             `          this.destroyNestView();` && |\n| &&
-             `          await this.displayNestedView(` && |\n| &&
-             `            S_VIEW_NEST.XML,` && |\n| &&
-             `            "NEST",` && |\n| &&
-             `            S_VIEW_NEST,` && |\n| &&
-             `            seq,` && |\n| &&
-             `          );` && |\n| &&
-             `          AppState.state.checkNestAfter = true;` && |\n| &&
+             `      // The VIEW_SLOTS target of a system action. destroy is ViewSlots' own` && |\n| &&
+             `      // method; display and updateModel live here, because loading a fragment` && |\n| &&
+             `      // and owning the model is the controller's job.` && |\n| &&
+             `      slotAction(method, slotKey, mOptions) {` && |\n| &&
+             `        const seq = this._systemSeq;` && |\n| &&
+             `        if (method === "destroy") {` && |\n| &&
+             `          ViewSlots.destroy(slotKey);` && |\n| &&
+             `          return undefined;` && |\n| &&
              `        }` && |\n| &&
+             `        if (method === "updateModel") {` && |\n| &&
+             `          this.updateModelIfRequired(slotKey);` && |\n| &&
+             `          return undefined;` && |\n| &&
+             `        }` && |\n| &&
+             `        // display: the slot is rebuilt from scratch, so whatever is open in` && |\n| &&
+             `        // it goes first - the same destroy-then-open the slot protocol did.` && |\n| &&
+             `        ViewSlots.destroy(slotKey);` && |\n| &&
+             `        const xml = mOptions.xml;` && |\n| &&
+             `        if (slotKey === "POPUP") return this.displayFragment(xml, seq);` && |\n| &&
+             `        if (slotKey === "POPOVER") {` && |\n| &&
+             `          return this.displayPopover(xml, mOptions.openById, seq);` && |\n| &&
+             `        }` && |\n| &&
+             `        return this.displayNestedView(` && |\n| &&
+             `          xml,` && |\n| &&
+             `          slotKey,` && |\n| &&
+             `          {` && |\n| &&
+             `            ID: mOptions.id,` && |\n| &&
+             `            METHOD_INSERT: mOptions.methodInsert,` && |\n| &&
+             `            METHOD_DESTROY: mOptions.methodDestroy,` && |\n| &&
+             `          },` && |\n| &&
+             `          seq,` && |\n| &&
+             `        );` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
-             `        if (!AppState.state.checkNestAfter2 && S_VIEW_NEST2?.XML) {` && |\n| &&
-             `          this.destroyNestView2();` && |\n| &&
-             `          await this.displayNestedView(` && |\n| &&
-             `            S_VIEW_NEST2.XML,` && |\n| &&
-             `            "NEST2",` && |\n| &&
-             `            S_VIEW_NEST2,` && |\n| &&
-             `            seq,` && |\n| &&
-             `          );` && |\n| &&
-             `          AppState.state.checkNestAfter2 = true;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (S_POPOVER?.XML) {` && |\n| &&
-             `          this.destroyPopover();` && |\n| &&
-             `          await this.displayPopover(S_POPOVER.XML, S_POPOVER.OPEN_BY_ID, seq);` && |\n| &&
-             `        }` && |\n| &&
+             `      // eFS = "event frontend, system": the SYSTEM phase counterpart of eF.` && |\n| &&
+             `      // It returns the handler's result so an async display can be awaited,` && |\n| &&
+             `      // and lets errors propagate - see FrontendAction.executeSystem.` && |\n| &&
+             `      eFS(...args) {` && |\n| &&
+             `        return FrontendAction.executeSystem(this, args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Phase 2: keep the URL in sync with what was rendered - the hash` && |\n| &&
@@ -408,7 +424,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eBP = "event backend, prevent default": cancels the control's` && |\n| &&
-             `      // built-in default for this event and then round-trips exactly like` && |\n| &&
+             `      // built-in default for this event and then round-trips exactly like` && |\n|.
+    result = result &&
              `      // eB. The backend emits it (instead of eB) for an event registered` && |\n| &&
              `      // with s_ctrl-check_prevent_default, passing $event as the first` && |\n| &&
              `      // argument - preventDefault() only works synchronously inside the` && |\n| &&
@@ -424,8 +441,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // that must not be resized?"). Everything after it is the eB payload.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eBP(oEvent, bVeto, ...args) {` && |\n| &&
-             `        // guard the call: a malformed wire (no $event) must still round-trip` && |\n|.
-    result = result &&
+             `        // guard the call: a malformed wire (no $event) must still round-trip` && |\n| &&
              `        if (bVeto && typeof oEvent?.preventDefault === "function") {` && |\n| &&
              `          oEvent.preventDefault();` && |\n| &&
              `        }` && |\n| &&
@@ -576,11 +592,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // backend has no CHECK_UPDATE_MODEL for them at all and` && |\n| &&
              `      // nest_view_model_update( ) refreshes MAIN instead - which is why this` && |\n| &&
              `      // can setData unconditionally without refreshing one shared model twice.` && |\n| &&
+             `      // Push the response's model into an open slot. The backend decides` && |\n| &&
+             `      // WHICH slots by queuing one updateModel system action per model-owning` && |\n| &&
+             `      // slot; naming a slot that is not open is free and ends here.` && |\n| &&
              `      updateModelIfRequired(slotKey) {` && |\n| &&
-             `        const params = AppState.state.oResponse?.PARAMS;` && |\n| &&
-             `        const slotParams = params?.[ViewSlots.paramByKey(slotKey)];` && |\n| &&
-             `        if (!slotParams?.CHECK_UPDATE_MODEL) return;` && |\n| &&
-             `` && |\n| &&
              `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
              `        if (!oView) return;` && |\n| &&
              `` && |\n| &&

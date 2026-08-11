@@ -305,6 +305,27 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        display: (oController, method, sText, mOptions) =>` && |\n| &&
              `          Messages.showBox(method, sText, mOptions, oController),` && |\n| &&
              `      },` && |\n| &&
+             `      // Not a UI5 global but the framework's own view-slot registry: the` && |\n| &&
+             `      // slots (MAIN, NEST, NEST2, POPUP, POPOVER) are what a backend response` && |\n| &&
+             `      // opens, fills and tears down, and every one of those calls is a` && |\n| &&
+             `      // SYSTEM follow-up action. ``display`` and ``updateModel`` are not` && |\n| &&
+             `      // ViewSlots methods - they live on the controller, which owns the` && |\n| &&
+             `      // fragment loading and the model - so the hook below routes them there.` && |\n| &&
+             `      VIEW_SLOTS: {` && |\n| &&
+             `        get: () => ViewSlots,` && |\n| &&
+             `        methods: {` && |\n| &&
+             `          destroy: ["string"],` && |\n| &&
+             `          display: ["string"],` && |\n| &&
+             `          updateModel: ["string"],` && |\n| &&
+             `        },` && |\n| &&
+             `        display: (oController, method, sSlot, mOptions) =>` && |\n| &&
+             `          oController.slotAction(method, sSlot, mOptions),` && |\n| &&
+             `        // display and updateModel are not ViewSlots methods at all, so the` && |\n| &&
+             `        // "does this UI5 version carry it" check below has nothing to look` && |\n| &&
+             `        // at - and nothing to answer either, since none of the three depends` && |\n| &&
+             `        // on the UI5 version. The whitelist above is the only gate.` && |\n| &&
+             `        virtualMethods: true,` && |\n| &&
+             `      },` && |\n| &&
              `      BUSY_INDICATOR: {` && |\n| &&
              `        get: () => BusyIndicator,` && |\n| &&
              `        methods: { show: ["int"], hide: [] },` && |\n| &&
@@ -403,7 +424,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      return item;` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    function castArg(kind, raw, view) {` && |\n| &&
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
@@ -424,8 +446,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
              `          // and hand over the CONTROL itself, not its DOM element. Every` && |\n| &&
              `          // sap.m openBy accepts a control, and MessagePopover.openBy` && |\n| &&
-             `          // dereferences oControl.getParent() on its argument, so a bare DOM` && |\n|.
-    result = result &&
+             `          // dereferences oControl.getParent() on its argument, so a bare DOM` && |\n| &&
              `          // element throws ("getParent is not a function") and the popup never` && |\n| &&
              `          // opens. DatePicker/TimePicker/Menu accept a control just as well,` && |\n| &&
              `          // so a control is the universally-correct anchor.` && |\n| &&
@@ -628,7 +649,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const obj = target.get();` && |\n| &&
-             `      if (!obj || typeof obj[method] !== "function") {` && |\n| &&
+             `      if (` && |\n| &&
+             `        !obj ||` && |\n| &&
+             `        (!target.virtualMethods && typeof obj[method] !== "function")` && |\n| &&
+             `      ) {` && |\n| &&
              `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -656,8 +680,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        raw = [formatTemplate(String(raw[0]), raw.slice(1))];` && |\n| &&
              `      }` && |\n| &&
              `      if (target.display) {` && |\n| &&
-             `        target.display(oController, method, raw[0], mOptions || {});` && |\n| &&
-             `        return;` && |\n| &&
+             `        return target.display(oController, method, raw[0], mOptions || {});` && |\n| &&
              `      }` && |\n| &&
              `      obj[method](...castArgs(kinds, raw));` && |\n| &&
              `    }` && |\n| &&
@@ -802,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
-             `    };` && |\n| &&
+             `    };` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
              `    function evBindingCall(oController, args) {` && |\n| &&
@@ -825,8 +849,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Individual event handlers - one per entry in the dispatch table at` && |\n| &&
              `    // the bottom. Uniform signature (oController, args) so the dispatch` && |\n| &&
-             `    // stays trivial; handlers that don't need the controller ignore it.` && |\n|.
-    result = result &&
+             `    // stays trivial; handlers that don't need the controller ignore it.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    function evHistoryBack() {` && |\n| &&
@@ -1203,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
              `              setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
              `              return;` && |\n| &&
-             `            }` && |\n| &&
+             `            }` && |\n|.
+    result = result &&
              `            Lib.logError(` && |\n| &&
              `              ``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``,` && |\n| &&
              `            );` && |\n| &&
@@ -1226,8 +1250,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // A SmartFilterBar registers itself at the variant management (it knows its` && |\n| &&
              `    // fields from the OData metadata), so SMART_VARIANT_INIT above only has to` && |\n| &&
              `    // place the anchor. A classic FilterBar knows nothing about variants: every` && |\n| &&
-             `    // list-report controller hand-writes the same three callbacks` && |\n|.
-    result = result &&
+             `    // list-report controller hand-writes the same three callbacks` && |\n| &&
              `    // (registerFetchData / registerApplyData / registerGetFiltersWithValues),` && |\n| &&
              `    // adds a PersonalizableInfo and marks the variant dirty on each filter` && |\n| &&
              `    // change. That is boilerplate over the bar's own filter items - data, not` && |\n| &&
@@ -1604,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        : raw;` && |\n| &&
              `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
              `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
-             `      if (!args[2]) {` && |\n| &&
+             `      if (!args[2]) {` && |\n|.
+    result = result &&
              `        delete scopes[scope];` && |\n| &&
              `        // a combo with no registration left must not keep an empty entry:` && |\n| &&
              `        // shortcutEntry would still find it and fall through to undefined,` && |\n| &&
@@ -1627,8 +1651,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const input = dom.matches("input, textarea")` && |\n| &&
              `          ? dom` && |\n| &&
              `          : dom.querySelector("input, textarea");` && |\n| &&
-             `        if (!input) return;` && |\n|.
-    result = result &&
+             `        if (!input) return;` && |\n| &&
              `        input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
@@ -1942,7 +1965,23 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    return { execute };` && |\n| &&
+             `    // Entry point for the SYSTEM phase. Two differences to execute( ), both` && |\n| &&
+             `    // deliberate: the result is RETURNED so an async view display can be` && |\n| &&
+             `    // awaited before the next action runs, and errors are NOT swallowed - a` && |\n| &&
+             `    // malformed-XML load has always propagated to _processAfterRendering and` && |\n| &&
+             `    // surfaced the fatal "App Terminated" overlay rather than leaving the app` && |\n| &&
+             `    // half-built behind a log line.` && |\n| &&
+             `    function executeSystem(oController, args) {` && |\n| &&
+             `      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);` && |\n| &&
+             `      const handler = handlers[args[0]];` && |\n| &&
+             `      if (!handler) {` && |\n| &&
+             `        Lib.logError(``FrontendAction: unknown system action '${args[0]}'``);` && |\n| &&
+             `        return undefined;` && |\n| &&
+             `      }` && |\n| &&
+             `      return handler(oController, args);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    return { execute, executeSystem };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

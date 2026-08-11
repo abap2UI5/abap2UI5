@@ -71,7 +71,6 @@
 //                     once that request wins (Server), so a stale response
 //                     never clears newer edits and edits made in a DIFFERENT
 //                     model (e.g. a popover) are never shipped against this one
-//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip
 //   search            overrides location.search in S_FRONT; never written
 //                     by the framework itself, set externally (custom JS)
 //
@@ -123,8 +122,6 @@ sap.ui.define([], () => {
       contextId: null,
       isBusy: false,
       oSentModel: null,
-      checkNestAfter: false,
-      checkNestAfter2: false,
       search: null,
 
       // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).

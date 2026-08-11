@@ -27,7 +27,6 @@ test.describe("initGlobal", () => {
     const { AppState, ctx } = load();
     AppState.initGlobal();
     expect(ctx.z2ui5.isBusy).toBe(false);
-    expect(ctx.z2ui5.checkNestAfter).toBe(false);
     expect(ctx.z2ui5.oView).toBeNull();
     expect(ctx.z2ui5.errors).toEqual([]);
     expect(ctx.z2ui5.timers).toEqual({});

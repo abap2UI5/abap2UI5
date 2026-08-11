@@ -107,7 +107,7 @@ sap.ui.define(
           // parallel request (check_allow_multi_req, Back/Forward restore)
           // never attaches popups/nested views the backend no longer knows.
           const seq = Server._requestSeq;
-          await this._displayPendingViews(PARAMS, seq);
+          await this._runSystemActions(oResponse, seq);
           // The app may have been torn down (reset / FLP re-launch) while the
           // pending views loaded; don't mutate history or fire onAfterRendering
           // hooks against a dead app (the custom-JS phase below guards the same
@@ -131,50 +131,66 @@ sap.ui.define(
         }
       },
 
-      // Phase 1: open/destroy the popup, nested views and popover the
-      // response asked for.
-      async _displayPendingViews(PARAMS, seq) {
-        const S_POPUP = PARAMS.S_POPUP;
-        const S_VIEW_NEST = PARAMS.S_VIEW_NEST;
-        const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;
-        const S_POPOVER = PARAMS.S_POPOVER;
-
-        if (S_POPUP?.CHECK_DESTROY) this.destroyPopup();
-        if (S_POPOVER?.CHECK_DESTROY) this.destroyPopover();
-        if (S_VIEW_NEST?.CHECK_DESTROY) this.destroyNestView();
-        if (S_VIEW_NEST2?.CHECK_DESTROY) this.destroyNestView2();
-
-        if (S_POPUP?.XML) {
-          this.destroyPopup();
-          await this.displayFragment(S_POPUP.XML, seq);
+      // Phase 1: run the SYSTEM actions - the framework's own view-lifecycle
+      // calls (destroy a slot, display one, push the model into it), in the
+      // order the backend queued them. They run BEFORE anything an app
+      // queued, and one at a time: a display is async, and the next action
+      // may well be about the slot it is still building.
+      async _runSystemActions(oResponse, seq) {
+        const systemJs = oResponse?.PARAMS?.S_FOLLOW_UP_ACTION?.SYSTEM_JS;
+        if (!systemJs) return;
+        // the slot handlers take the request stamp from here rather than
+        // through the generic action signature, which carries only the
+        // payload the backend sent
+        this._systemSeq = seq;
+        try {
+          for (const item of systemJs) {
+            if (Lib.isDestroyed(this)) return;
+            await Server._runSystemJs(item, this);
+          }
+        } finally {
+          this._systemSeq = undefined;
         }
+      },
 
-        if (!AppState.state.checkNestAfter && S_VIEW_NEST?.XML) {
-          this.destroyNestView();
-          await this.displayNestedView(
-            S_VIEW_NEST.XML,
-            "NEST",
-            S_VIEW_NEST,
-            seq,
-          );
-          AppState.state.checkNestAfter = true;
+      // The VIEW_SLOTS target of a system action. destroy is ViewSlots' own
+      // method; display and updateModel live here, because loading a fragment
+      // and owning the model is the controller's job.
+      slotAction(method, slotKey, mOptions) {
+        const seq = this._systemSeq;
+        if (method === "destroy") {
+          ViewSlots.destroy(slotKey);
+          return undefined;
         }
+        if (method === "updateModel") {
+          this.updateModelIfRequired(slotKey);
+          return undefined;
+        }
+        // display: the slot is rebuilt from scratch, so whatever is open in
+        // it goes first - the same destroy-then-open the slot protocol did.
+        ViewSlots.destroy(slotKey);
+        const xml = mOptions.xml;
+        if (slotKey === "POPUP") return this.displayFragment(xml, seq);
+        if (slotKey === "POPOVER") {
+          return this.displayPopover(xml, mOptions.openById, seq);
+        }
+        return this.displayNestedView(
+          xml,
+          slotKey,
+          {
+            ID: mOptions.id,
+            METHOD_INSERT: mOptions.methodInsert,
+            METHOD_DESTROY: mOptions.methodDestroy,
+          },
+          seq,
+        );
+      },
 
-        if (!AppState.state.checkNestAfter2 && S_VIEW_NEST2?.XML) {
-          this.destroyNestView2();
-          await this.displayNestedView(
-            S_VIEW_NEST2.XML,
-            "NEST2",
-            S_VIEW_NEST2,
-            seq,
-          );
-          AppState.state.checkNestAfter2 = true;
-        }
-
-        if (S_POPOVER?.XML) {
-          this.destroyPopover();
-          await this.displayPopover(S_POPOVER.XML, S_POPOVER.OPEN_BY_ID, seq);
-        }
+      // eFS = "event frontend, system": the SYSTEM phase counterpart of eF.
+      // It returns the handler's result so an async display can be awaited,
+      // and lets errors propagate - see FrontendAction.executeSystem.
+      eFS(...args) {
+        return FrontendAction.executeSystem(this, args);
       },
 
       // Phase 2: keep the URL in sync with what was rendered - the hash
@@ -548,11 +564,10 @@ sap.ui.define(
       // backend has no CHECK_UPDATE_MODEL for them at all and
       // nest_view_model_update( ) refreshes MAIN instead - which is why this
       // can setData unconditionally without refreshing one shared model twice.
+      // Push the response's model into an open slot. The backend decides
+      // WHICH slots by queuing one updateModel system action per model-owning
+      // slot; naming a slot that is not open is free and ends here.
       updateModelIfRequired(slotKey) {
-        const params = AppState.state.oResponse?.PARAMS;
-        const slotParams = params?.[ViewSlots.paramByKey(slotKey)];
-        if (!slotParams?.CHECK_UPDATE_MODEL) return;
-
         const oView = ViewSlots.getView(slotKey);
         if (!oView) return;
 

@@ -19,6 +19,12 @@ CLASS ltcl_test_client DEFINITION FINAL
 
     METHODS setup.
 
+    "! the queued SYSTEM actions, joined - the whole point of the phase is
+    "! that they run IN ORDER, so the tests assert the sequence
+    METHODS system_js
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS test_instantiation        FOR TESTING RAISING cx_static_check.
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
     METHODS test_view_destroy         FOR TESTING RAISING cx_static_check.
@@ -65,6 +71,13 @@ ENDCLASS.
 CLASS z2ui5_cl_core_client DEFINITION LOCAL FRIENDS ltcl_test_client.
 
 CLASS ltcl_test_client IMPLEMENTATION.
+
+  METHOD system_js.
+
+    result = concat_lines_of( table = mo_action->ms_next-s_set-s_follow_up_action-system_js
+                              sep   = `|` ).
+
+  ENDMETHOD.
 
   METHOD setup.
 
@@ -128,7 +141,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp3.
     li_client->view_model_update( ).
 
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_follow_up_action ).
 
   ENDMETHOD.
 
@@ -145,7 +158,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->nest_view_model_update( ).
     li_client->nest2_view_model_update( ).
 
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_follow_up_action ).
 
   ENDMETHOD.
 
@@ -158,10 +171,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp4.
     li_client->popup_display( `<Dialog/>` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<Dialog/>`
-                                        act = mo_action->ms_next-s_set-s_popup-xml ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = mo_action->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","POPUP","<Dialog/>"]`
+        act = system_js( ) ).
 
   ENDMETHOD.
 
@@ -174,8 +186,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp5.
     li_client->popup_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"]`
+        act = system_js( ) ).
 
   ENDMETHOD.
 
@@ -188,8 +201,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp6.
     li_client->popup_model_update( ).
 
-    " obsolete NO-OP - the automatic push flags the POPUP slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popup-check_update_model ).
+    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_follow_up_action ).
 
   ENDMETHOD.
 
@@ -203,10 +216,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->popover_display( xml   = `<Popover/>`
                                 by_id = `btn1` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<Popover/>`
-                                        act = mo_action->ms_next-s_set-s_popover-xml ).
-    cl_abap_unit_assert=>assert_equals( exp = `btn1`
-                                        act = mo_action->ms_next-s_set-s_popover-open_by_id ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn1"}]`
+        act = system_js( ) ).
 
   ENDMETHOD.
 
@@ -221,12 +233,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                 by_id = `btn1` ).
     li_client->popover_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_popover-check_destroy ).
-    " destroy after display in the same roundtrip wipes the slot - otherwise
-    " the frontend would destroy and then re-open the popover
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-xml ).
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-open_by_id ).
+    " both are queued and both run, in order - the destroy comes last and
+    " wins, which is what wiping the slot used to achieve
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn1"}]` &&
+              `|["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPOVER"]`
+        act = system_js( ) ).
 
   ENDMETHOD.
 
@@ -239,8 +251,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp9.
     li_client->popover_model_update( ).
 
-    " obsolete NO-OP - the automatic push flags the POPOVER slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-check_update_model ).
+    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_follow_up_action ).
 
   ENDMETHOD.
 
@@ -257,15 +269,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                   method_insert  = `addMidColumnPage`
                                   method_destroy = `removeMidColumnPage` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<NestView/>`
-                                        act = mo_action->ms_next-s_set-s_view_nest-xml ).
-    cl_abap_unit_assert=>assert_equals( exp = `nest1`
-                                        act = mo_action->ms_next-s_set-s_view_nest-id ).
-    cl_abap_unit_assert=>assert_equals( exp = `addMidColumnPage`
-                                        act = mo_action->ms_next-s_set-s_view_nest-method_insert ).
-    " display after destroy in the same roundtrip cancels the destroy
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = mo_action->ms_next-s_set-s_view_nest-check_destroy ).
+    " display after destroy: both are queued, the display runs last and wins
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","NEST"]` &&
+              `|["CONTROL_GLOBAL","VIEW_SLOTS","display","NEST","<NestView/>",` &&
+              `{"id":"nest1","methodDestroy":"removeMidColumnPage","methodInsert":"addMidColumnPage"}]`
+        act = system_js( ) ).
 
   ENDMETHOD.
 
@@ -281,10 +290,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                   method_insert = `addMidColumnPage` ).
     li_client->nest_view_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view_nest-check_destroy ).
-    " destroy after display in the same roundtrip wipes the slot
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view_nest-xml ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","destroy","NEST"]`
+                                         act = system_js( ) ).
 
   ENDMETHOD.
 
@@ -299,10 +306,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                    id            = `nest2`
                                    method_insert = `addEndColumnPage` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<Nest2View/>`
-                                        act = mo_action->ms_next-s_set-s_view_nest2-xml ).
-    cl_abap_unit_assert=>assert_equals( exp = `nest2`
-                                        act = mo_action->ms_next-s_set-s_view_nest2-id ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","NEST2","<Nest2View/>",` &&
+              `{"id":"nest2","methodInsert":"addEndColumnPage"}]`
+        act = system_js( ) ).
 
   ENDMETHOD.
 
@@ -315,8 +322,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp13.
     li_client->nest2_view_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view_nest2-check_destroy ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","destroy","NEST2"]`
+                                         act = system_js( ) ).
 
   ENDMETHOD.
 

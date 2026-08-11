@@ -278,6 +278,27 @@ sap.ui.define(
         display: (oController, method, sText, mOptions) =>
           Messages.showBox(method, sText, mOptions, oController),
       },
+      // Not a UI5 global but the framework's own view-slot registry: the
+      // slots (MAIN, NEST, NEST2, POPUP, POPOVER) are what a backend response
+      // opens, fills and tears down, and every one of those calls is a
+      // SYSTEM follow-up action. `display` and `updateModel` are not
+      // ViewSlots methods - they live on the controller, which owns the
+      // fragment loading and the model - so the hook below routes them there.
+      VIEW_SLOTS: {
+        get: () => ViewSlots,
+        methods: {
+          destroy: ["string"],
+          display: ["string"],
+          updateModel: ["string"],
+        },
+        display: (oController, method, sSlot, mOptions) =>
+          oController.slotAction(method, sSlot, mOptions),
+        // display and updateModel are not ViewSlots methods at all, so the
+        // "does this UI5 version carry it" check below has nothing to look
+        // at - and nothing to answer either, since none of the three depends
+        // on the UI5 version. The whitelist above is the only gate.
+        virtualMethods: true,
+      },
       BUSY_INDICATOR: {
         get: () => BusyIndicator,
         methods: { show: ["int"], hide: [] },
@@ -600,7 +621,10 @@ sap.ui.define(
         return;
       }
       const obj = target.get();
-      if (!obj || typeof obj[method] !== "function") {
+      if (
+        !obj ||
+        (!target.virtualMethods && typeof obj[method] !== "function")
+      ) {
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
         return;
       }
@@ -628,8 +652,7 @@ sap.ui.define(
         raw = [formatTemplate(String(raw[0]), raw.slice(1))];
       }
       if (target.display) {
-        target.display(oController, method, raw[0], mOptions || {});
-        return;
+        return target.display(oController, method, raw[0], mOptions || {});
       }
       obj[method](...castArgs(kinds, raw));
     }
@@ -1911,6 +1934,22 @@ sap.ui.define(
       }
     }
 
-    return { execute };
+    // Entry point for the SYSTEM phase. Two differences to execute( ), both
+    // deliberate: the result is RETURNED so an async view display can be
+    // awaited before the next action runs, and errors are NOT swallowed - a
+    // malformed-XML load has always propagated to _processAfterRendering and
+    // surfaced the fatal "App Terminated" overlay rather than leaving the app
+    // half-built behind a log line.
+    function executeSystem(oController, args) {
+      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);
+      const handler = handlers[args[0]];
+      if (!handler) {
+        Lib.logError(`FrontendAction: unknown system action '${args[0]}'`);
+        return undefined;
+      }
+      return handler(oController, args);
+    }
+
+    return { execute, executeSystem };
   },
 );

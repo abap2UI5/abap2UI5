@@ -25,6 +25,37 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    "! The view slots, spelled as the frontend's ViewSlots module knows them.
+    CONSTANTS:
+      BEGIN OF cs_slot,
+        main    TYPE string VALUE `MAIN`,
+        nest    TYPE string VALUE `NEST`,
+        nest2   TYPE string VALUE `NEST2`,
+        popup   TYPE string VALUE `POPUP`,
+        popover TYPE string VALUE `POPOVER`,
+      END OF cs_slot.
+
+    "! Queue a SYSTEM follow-up action - the framework's own view-lifecycle
+    "! calls, which run before everything an app queued. Same payload and
+    "! same dispatcher as follow_up_action( ), only the phase differs.
+    METHODS follow_up_system
+      IMPORTING
+        t_arg TYPE string_table.
+
+    METHODS slot_destroy
+      IMPORTING
+        slot TYPE clike.
+
+    METHODS slot_display
+      IMPORTING
+        slot           TYPE clike
+        xml            TYPE clike
+        id             TYPE clike OPTIONAL
+        method_insert  TYPE clike OPTIONAL
+        method_destroy TYPE clike OPTIONAL
+        open_by_id     TYPE clike OPTIONAL.
+
 ENDCLASS.
 
 
@@ -56,6 +87,78 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
     INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+
+  ENDMETHOD.
+
+
+  METHOD follow_up_system.
+
+    INSERT mo_srv_event->get_event_client_json(
+               val   = z2ui5_if_client=>cs_event-control_global
+               t_arg = t_arg )
+           INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-system_js.
+
+  ENDMETHOD.
+
+
+  METHOD slot_destroy.
+
+    " every slot tears down through the one ViewSlots.destroy( key ) the
+    " frontend already had - the five *_destroy( ) methods differ in nothing
+    " but the key they name
+    follow_up_system( VALUE #( ( `VIEW_SLOTS` )
+                               ( `destroy` )
+                               ( slot ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD slot_display.
+
+    " The options carry what is specific to a slot - the popover's anchor, a
+    " nested view's insert/destroy methods - so the call itself stays the
+    " same shape for all of them. An option the caller left alone is absent,
+    " never sent as an empty value.
+    DATA(lt_arg) = VALUE string_table( ( `VIEW_SLOTS` )
+                                       ( `display` )
+                                       ( slot )
+                                       ( xml ) ).
+
+    TRY.
+        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        IF id IS NOT INITIAL.
+          li_opt->set_string( iv_path = `/id`
+                              iv_val  = id ).
+        ENDIF.
+        IF method_insert IS NOT INITIAL.
+          li_opt->set_string( iv_path = `/methodInsert`
+                              iv_val  = method_insert ).
+        ENDIF.
+        IF method_destroy IS NOT INITIAL.
+          li_opt->set_string( iv_path = `/methodDestroy`
+                              iv_val  = method_destroy ).
+        ENDIF.
+        IF open_by_id IS NOT INITIAL.
+          li_opt->set_string( iv_path = `/openById`
+                              iv_val  = open_by_id ).
+        ENDIF.
+
+        DATA(lv_opt) = li_opt->stringify( ).
+        IF lv_opt IS NOT INITIAL.
+          INSERT lv_opt INTO TABLE lt_arg.
+        ENDIF.
+
+      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING
+            val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
+    ENDTRY.
+
+    follow_up_system( lt_arg ).
+
+    " new XML in any slot needs the model with it - recorded here rather than
+    " re-derived from the response, see ty_s_next-check_view_shipped
+    mo_action->ms_next-check_view_shipped = abap_true.
 
   ENDMETHOD.
 
@@ -229,19 +332,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    " see popover_destroy for why the whole slot is wiped instead of setting a flag
-    mo_action->ms_next-s_set-s_view_nest2 = VALUE #( check_destroy = abap_true ).
+    slot_destroy( cs_slot-nest2 ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    mo_action->ms_next-s_set-s_view_nest2-check_destroy  = abap_false.
-    mo_action->ms_next-s_set-s_view_nest2-xml            = val.
-    mo_action->ms_next-s_set-s_view_nest2-id             = id.
-    mo_action->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
-    mo_action->ms_next-s_set-s_view_nest2-method_insert  = method_insert.
+    slot_display( slot           = cs_slot-nest2
+                  xml            = val
+                  id             = id
+                  method_insert  = method_insert
+                  method_destroy = method_destroy ).
 
   ENDMETHOD.
 
@@ -257,19 +359,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    " see popover_destroy for why the whole slot is wiped instead of setting a flag
-    mo_action->ms_next-s_set-s_view_nest = VALUE #( check_destroy = abap_true ).
+    slot_destroy( cs_slot-nest ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    mo_action->ms_next-s_set-s_view_nest-check_destroy  = abap_false.
-    mo_action->ms_next-s_set-s_view_nest-xml            = val.
-    mo_action->ms_next-s_set-s_view_nest-id             = id.
-    mo_action->ms_next-s_set-s_view_nest-method_destroy = method_destroy.
-    mo_action->ms_next-s_set-s_view_nest-method_insert  = method_insert.
+    slot_display( slot           = cs_slot-nest
+                  xml            = val
+                  id             = id
+                  method_insert  = method_insert
+                  method_destroy = method_destroy ).
 
   ENDMETHOD.
 
@@ -283,19 +384,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_destroy.
 
-    " wipe the whole slot (like popup_destroy) - a plain flag would leave the
-    " xml of a popover_display( ) from the same roundtrip in place and the
-    " frontend would destroy and then re-open the popover
-    mo_action->ms_next-s_set-s_popover = VALUE #( check_destroy = abap_true ).
+    slot_destroy( cs_slot-popover ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_display.
 
-    mo_action->ms_next-s_set-s_popover-check_destroy = abap_false.
-    mo_action->ms_next-s_set-s_popover-xml           = xml.
-    mo_action->ms_next-s_set-s_popover-open_by_id    = by_id.
+    slot_display( slot       = cs_slot-popover
+                  xml        = xml
+                  open_by_id = by_id ).
 
   ENDMETHOD.
 
@@ -310,15 +408,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_action->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
+    slot_destroy( cs_slot-popup ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_display.
 
-    mo_action->ms_next-s_set-s_popup-check_destroy = abap_false.
-    mo_action->ms_next-s_set-s_popup-xml           = val.
+    slot_display( slot = cs_slot-popup
+                  xml  = val ).
 
   ENDMETHOD.
 
@@ -333,6 +431,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_destroy.
 
+    " MAIN stays on the slot protocol together with view_display( ) - see
+    " ty_s_next_frontend-s_view
     mo_action->ms_next-s_set-s_view-check_destroy = abap_true.
 
   ENDMETHOD.

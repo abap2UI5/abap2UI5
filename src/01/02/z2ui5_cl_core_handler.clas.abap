@@ -595,24 +595,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD check_view_update_needed.
 
-    " a slot that ships new XML always needs the model with it - all five slots,
-    " the nested ones included
-    IF ms_response-s_front-params-s_view-xml       IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest-xml  IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
-        OR ms_response-s_front-params-s_popup-xml      IS NOT INITIAL
-        OR ms_response-s_front-params-s_popover-xml    IS NOT INITIAL.
-      result = abap_true.
-      RETURN.
-    ENDIF.
-
-    " a data-only roundtrip asks for the model through the flag, which only the
-    " three model-owning slots have - see reset_view_update_flags
-    IF ms_response-s_front-params-s_view-check_update_model    = abap_true
-        OR ms_response-s_front-params-s_popup-check_update_model   = abap_true
-        OR ms_response-s_front-params-s_popover-check_update_model = abap_true.
-      result = abap_true.
-    ENDIF.
+    " a slot that ships new XML always needs the model with it - all five
+    " slots, the nested ones included. Every display records that on the
+    " action (z2ui5_cl_core_client=>slot_display), and the MAIN view still
+    " travels as s_view-xml until it becomes an action too
+    result = xsdbool( mo_action->ms_next-check_view_shipped = abap_true
+                      OR ms_response-s_front-params-s_view-xml IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -643,22 +631,22 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ms_response-model = `{}`.
       ELSE.
         ms_response-model = lv_model.
-        " flag ALL THREE model-owning slots, not just MAIN: the app has ONE
-        " model but each open slot holds its own frontend instance of it, and
-        " the *_model_update( ) methods that used to pick the slot are empty
-        " now. Flagging a slot that is not open is free - the frontend loops
-        " over its slots and skips every one without a view
-        " (Server.js responseSuccess -> View1.updateModelIfRequired)
-        ms_response-s_front-params-s_view-check_update_model    = abap_true.
-        ms_response-s_front-params-s_popup-check_update_model   = abap_true.
-        ms_response-s_front-params-s_popover-check_update_model = abap_true.
+        " push into ALL THREE model-owning slots, not just MAIN: the app has
+        " ONE model but each open slot holds its own frontend instance of it,
+        " and the *_model_update( ) methods that used to pick the slot are
+        " empty now. Naming a slot that is not open is free - the frontend
+        " skips a slot without a view. Queued as SYSTEM actions, so the push
+        " lands after any display of the same roundtrip
+        DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
+        LOOP AT VALUE string_table( ( `MAIN` ) ( `POPUP` ) ( `POPOVER` ) ) INTO DATA(lv_slot).
+          INSERT lo_srv_event->get_event_client_json(
+                     val   = z2ui5_if_client=>cs_event-control_global
+                     t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `updateModel` ) ( lv_slot ) ) )
+                 INTO TABLE ms_response-s_front-params-s_follow_up_action-system_js.
+        ENDLOOP.
       ENDIF.
     ELSE.
       ms_response-model = `{}`.
-    ENDIF.
-
-    IF ms_response-s_front-params-s_popup-xml IS NOT INITIAL.
-      ms_response-s_front-params-s_popup-check_update_model = abap_false.
     ENDIF.
 
     mv_response = response_abap_to_json( ms_response ).

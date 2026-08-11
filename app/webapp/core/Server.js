@@ -114,12 +114,13 @@ sap.ui.define(
     //   2. Server.roundtrip(oBody)    adds S_FRONT (device/focus/scroll info)
     //   3. Server.readHttp(oBody)     POSTs { value: oBody }, parses the JSON
     //   4. Server.responseSuccess()   shows messages, rebuilds/updates views
-    //   5. View1._processAfterRendering()  popups, nested views, history,
-    //      then runs pending follow-up JS once rendering is done
+    //   5. View1._processAfterRendering()  system actions (popups, nested
+    //      views, model push), history, then the app follow-up actions once
+    //      rendering is done
     // The request body travels through the steps as a parameter; it is
     // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the developer tools
     // can inspect it. Only the response side still crosses an async boundary
-    // (the rendering) via the oResponse global; the follow-up JS snippets
+    // (the rendering) via the oResponse global; the app follow-up snippets
     // travel on the response record itself (_pendingCustomJs).
     //
     // Wire format - request (POST body; ARGUMENTS is folded into
@@ -145,10 +146,16 @@ sap.ui.define(
     //       "ID": "<new draft id>",        // sent back with the next request
     //       "PARAMS": {
     //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },
-    //         "S_VIEW_NEST", "S_VIEW_NEST2", "S_POPUP", "S_POPOVER": same,
-    //         "S_MSG_TOAST": { "TEXT": "...", ... },
-    //         "S_MSG_BOX":   { "TEXT": "...", "TYPE": "error", ... },
-    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["[\"SET_FOCUS\",\"id1\"]"] },
+    //         "S_FOLLOW_UP_ACTION": {
+    //           // SYSTEM: the framework's own view-lifecycle calls, run
+    //           // first, in order, before the view is rendered
+    //           "SYSTEM_JS": [
+    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",
+    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"
+    //           ],
+    //           // APP: what the app queued, run last, once the DOM exists
+    //           "CUSTOM_JS": ["[\"SET_FOCUS\",\"id1\"]"]
+    //         },
     //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",
     //         "SET_NAV_BACK": ""           // browser/history follow-ups
     //       }
@@ -400,8 +407,6 @@ sap.ui.define(
 
       roundtrip(oBody = {}) {
         const state = AppState.state;
-        state.checkNestAfter = false;
-        state.checkNestAfter2 = false;
 
         // Keep the shared record in sync (developer tools "Previous Request",
         // app hooks); the parameter stays the working object. Calls without
@@ -687,11 +692,9 @@ sap.ui.define(
             return;
           }
 
-          // Partial response: refresh whichever existing views the backend
-          // sent updates for.
-          for (const slot of ViewSlots.slots) {
-            oController.updateModelIfRequired(slot.key);
-          }
+          // Partial response: the model push for the open slots rides in the
+          // system actions like every other view-lifecycle call now, so there
+          // is nothing to do here but run the phases.
           oController._processAfterRendering();
         } catch (e) {
           BusyIndicator.hide();
@@ -751,6 +754,26 @@ sap.ui.define(
       //            CSP while keeping object / array / string arguments intact.
       // Format C:  a raw expression such as alert(123) - needs a CSP that
       //            allows unsafe-eval, otherwise it is a no-op.
+      // Run one SYSTEM action. Unlike _runCustomJs there are no legacy
+      // formats to support - a system action is always framework-generated
+      // and therefore always a JSON array - and no catch: a failing view
+      // display has to reach _processAfterRendering, which turns it into the
+      // fatal overlay instead of leaving the app half-built.
+      _runSystemJs(item, oController) {
+        let args;
+        try {
+          args = JSON.parse(item);
+        } catch (e) {
+          Lib.logError(`systemJs: '${item}' is no action payload`, e);
+          return undefined;
+        }
+        if (!Array.isArray(args)) {
+          Lib.logError(`systemJs: '${item}' is no action payload`);
+          return undefined;
+        }
+        return oController.eFS(...args);
+      },
+
       _runCustomJs(item, oController) {
         try {
           const snippet = item.trim();

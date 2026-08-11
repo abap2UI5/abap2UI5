@@ -46,6 +46,7 @@ function load({ sandbox } = {}) {
   const controls = {};
   const views = {};
   const ViewSlots = {
+    destroy: (key) => calls.push(["slots.destroy", key]),
     resolveById: (id) => controls[id] || null,
     byId: (_key, id) => controls[id] || null,
     getView: (key) => views[key] || null,
@@ -358,6 +359,54 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
+  test("VIEW_SLOTS routes destroy/display/updateModel to the controller", () => {
+    // the view slots are the framework's own registry, not a UI5 global -
+    // destroy is ViewSlots' own method, display and updateModel live on the
+    // controller, and the hook sends all three to slotAction
+    const { FrontendAction } = load();
+    const slotCalls = [];
+    const oController = {
+      slotAction: (...a) => slotCalls.push(a),
+    };
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "destroy",
+      "POPUP",
+    ]);
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "display",
+      "POPOVER",
+      "<Popover/>",
+      { openById: "btn1" },
+    ]);
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "updateModel",
+      "MAIN",
+    ]);
+    expect(slotCalls).toEqual([
+      ["destroy", "POPUP", {}],
+      ["display", "POPOVER", { openById: "btn1" }],
+      ["updateModel", "MAIN", {}],
+    ]);
+  });
+
+  test("an unlisted VIEW_SLOTS method is rejected", () => {
+    const { FrontendAction, errors } = load();
+    const oController = { slotAction: () => {} };
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "wipe",
+      "POPUP",
+    ]);
+    expect(errors[0]).toContain("not allowed");
+  });
+
   test("FORMATTING.setCustomCurrencies parses its JSON payload", () => {
     const { FrontendAction, ctx } = load();
     const set = [];
@@ -392,6 +441,49 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       { digits: 4 },
     ]);
     expect(added).toEqual([["BGN4", { digits: 4 }]]);
+  });
+});
+
+test.describe("executeSystem (the SYSTEM phase entry point)", () => {
+  test("returns the handler result so an async display can be awaited", async () => {
+    const { FrontendAction } = load();
+    const oController = {
+      slotAction: () => Promise.resolve("built"),
+    };
+    const result = FrontendAction.executeSystem(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "display",
+      "POPUP",
+      "<Dialog/>",
+    ]);
+    expect(await result).toBe("built");
+  });
+
+  test("does NOT swallow a failing display", () => {
+    // execute( ) logs and moves on; a broken view build has to reach
+    // _processAfterRendering and surface the fatal overlay instead
+    const { FrontendAction } = load();
+    const oController = {
+      slotAction: () => {
+        throw new Error("malformed XML");
+      },
+    };
+    expect(() =>
+      FrontendAction.executeSystem(oController, [
+        "CONTROL_GLOBAL",
+        "VIEW_SLOTS",
+        "display",
+        "POPUP",
+        "<broken",
+      ]),
+    ).toThrow("malformed XML");
+  });
+
+  test("an unknown system action is reported, not thrown", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.executeSystem(null, ["NO_SUCH_ACTION"]);
+    expect(errors[0]).toContain("unknown system action");
   });
 });
 

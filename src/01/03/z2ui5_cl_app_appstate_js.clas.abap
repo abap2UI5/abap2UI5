@@ -98,7 +98,6 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     once that request wins (Server), so a stale response` && |\n| &&
              `//                     never clears newer edits and edits made in a DIFFERENT` && |\n| &&
              `//                     model (e.g. a popover) are never shipped against this one` && |\n| &&
-             `//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip` && |\n| &&
              `//   search            overrides location.search in S_FRONT; never written` && |\n| &&
              `//                     by the framework itself, set externally (custom JS)` && |\n| &&
              `//` && |\n| &&
@@ -150,8 +149,6 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      contextId: null,` && |\n| &&
              `      isBusy: false,` && |\n| &&
              `      oSentModel: null,` && |\n| &&
-             `      checkNestAfter: false,` && |\n| &&
-             `      checkNestAfter2: false,` && |\n| &&
              `      search: null,` && |\n| &&
              `` && |\n| &&
              `      // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).` && |\n| &&

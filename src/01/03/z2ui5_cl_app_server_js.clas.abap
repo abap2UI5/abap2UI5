@@ -141,12 +141,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //   2. Server.roundtrip(oBody)    adds S_FRONT (device/focus/scroll info)` && |\n| &&
              `    //   3. Server.readHttp(oBody)     POSTs { value: oBody }, parses the JSON` && |\n| &&
              `    //   4. Server.responseSuccess()   shows messages, rebuilds/updates views` && |\n| &&
-             `    //   5. View1._processAfterRendering()  popups, nested views, history,` && |\n| &&
-             `    //      then runs pending follow-up JS once rendering is done` && |\n| &&
+             `    //   5. View1._processAfterRendering()  system actions (popups, nested` && |\n| &&
+             `    //      views, model push), history, then the app follow-up actions once` && |\n| &&
+             `    //      rendering is done` && |\n| &&
              `    // The request body travels through the steps as a parameter; it is` && |\n| &&
              `    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the developer tools` && |\n| &&
              `    // can inspect it. Only the response side still crosses an async boundary` && |\n| &&
-             `    // (the rendering) via the oResponse global; the follow-up JS snippets` && |\n| &&
+             `    // (the rendering) via the oResponse global; the app follow-up snippets` && |\n| &&
              `    // travel on the response record itself (_pendingCustomJs).` && |\n| &&
              `    //` && |\n| &&
              `    // Wire format - request (POST body; ARGUMENTS is folded into` && |\n| &&
@@ -172,10 +173,16 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //       "ID": "<new draft id>",        // sent back with the next request` && |\n| &&
              `    //       "PARAMS": {` && |\n| &&
              `    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },` && |\n| &&
-             `    //         "S_VIEW_NEST", "S_VIEW_NEST2", "S_POPUP", "S_POPOVER": same,` && |\n| &&
-             `    //         "S_MSG_TOAST": { "TEXT": "...", ... },` && |\n| &&
-             `    //         "S_MSG_BOX":   { "TEXT": "...", "TYPE": "error", ... },` && |\n| &&
-             `    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["[\"SET_FOCUS\",\"id1\"]"] },` && |\n| &&
+             `    //         "S_FOLLOW_UP_ACTION": {` && |\n| &&
+             `    //           // SYSTEM: the framework's own view-lifecycle calls, run` && |\n| &&
+             `    //           // first, in order, before the view is rendered` && |\n| &&
+             `    //           "SYSTEM_JS": [` && |\n| &&
+             `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",` && |\n| &&
+             `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"` && |\n| &&
+             `    //           ],` && |\n| &&
+             `    //           // APP: what the app queued, run last, once the DOM exists` && |\n| &&
+             `    //           "CUSTOM_JS": ["[\"SET_FOCUS\",\"id1\"]"]` && |\n| &&
+             `    //         },` && |\n| &&
              `    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",` && |\n| &&
              `    //         "SET_NAV_BACK": ""           // browser/history follow-ups` && |\n| &&
              `    //       }` && |\n| &&
@@ -417,19 +424,17 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          );` && |\n| &&
              `          out[slot.key] = {` && |\n| &&
              `            ID: id,` && |\n| &&
-             `            X: entry.dom.scrollLeft || 0,` && |\n| &&
+             `            X: entry.dom.scrollLeft || 0,` && |\n|.
+    result = result &&
              `            Y: entry.dom.scrollTop || 0,` && |\n| &&
              `          };` && |\n| &&
              `        }` && |\n| &&
              `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      roundtrip(oBody = {}) {` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
-             `        state.checkNestAfter = false;` && |\n| &&
-             `        state.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
              `        // Keep the shared record in sync (developer tools "Previous Request",` && |\n| &&
              `        // app hooks); the parameter stays the working object. Calls without` && |\n| &&
@@ -715,11 +720,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          // Partial response: refresh whichever existing views the backend` && |\n| &&
-             `          // sent updates for.` && |\n| &&
-             `          for (const slot of ViewSlots.slots) {` && |\n| &&
-             `            oController.updateModelIfRequired(slot.key);` && |\n| &&
-             `          }` && |\n| &&
+             `          // Partial response: the model push for the open slots rides in the` && |\n| &&
+             `          // system actions like every other view-lifecycle call now, so there` && |\n| &&
+             `          // is nothing to do here but run the phases.` && |\n| &&
              `          oController._processAfterRendering();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
@@ -779,6 +782,26 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      //            CSP while keeping object / array / string arguments intact.` && |\n| &&
              `      // Format C:  a raw expression such as alert(123) - needs a CSP that` && |\n| &&
              `      //            allows unsafe-eval, otherwise it is a no-op.` && |\n| &&
+             `      // Run one SYSTEM action. Unlike _runCustomJs there are no legacy` && |\n| &&
+             `      // formats to support - a system action is always framework-generated` && |\n| &&
+             `      // and therefore always a JSON array - and no catch: a failing view` && |\n| &&
+             `      // display has to reach _processAfterRendering, which turns it into the` && |\n| &&
+             `      // fatal overlay instead of leaving the app half-built.` && |\n| &&
+             `      _runSystemJs(item, oController) {` && |\n| &&
+             `        let args;` && |\n| &&
+             `        try {` && |\n| &&
+             `          args = JSON.parse(item);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError(``systemJs: '${item}' is no action payload``, e);` && |\n| &&
+             `          return undefined;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (!Array.isArray(args)) {` && |\n| &&
+             `          Lib.logError(``systemJs: '${item}' is no action payload``);` && |\n| &&
+             `          return undefined;` && |\n| &&
+             `        }` && |\n| &&
+             `        return oController.eFS(...args);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _runCustomJs(item, oController) {` && |\n| &&
              `        try {` && |\n| &&
              `          const snippet = item.trim();` && |\n| &&
@@ -802,7 +825,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          } else {` && |\n| &&
              `            // A raw JavaScript expression - only runs when the CSP allows` && |\n| &&
              `            // unsafe-eval.` && |\n| &&
-             `            // eslint-disable-next-line no-new-func` && |\n| &&
+             `            // eslint-disable-next-line no-new-func` && |\n|.
+    result = result &&
              `            Function("return " + item)();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
