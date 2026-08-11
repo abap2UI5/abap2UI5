@@ -727,9 +727,13 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lo_handler->ms_response-model ).
-    " an unchanged model asks for no push at all
-    cl_abap_unit_assert=>assert_initial(
-        lo_handler->ms_response-s_front-params-s_action-t_system ).
+    " an unchanged model asks for no push at all - the router call is queued
+    " on every roundtrip and is not one
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( concat_lines_of(
+                           table = lo_handler->ms_response-s_front-params-s_action-t_system
+                           sep   = `|` ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
@@ -750,8 +754,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]`
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]*`
         act = concat_lines_of(
                   table = lo_handler->ms_response-s_front-params-s_action-t_system
                   sep   = `|` ) ).
@@ -794,8 +798,13 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
-                                        act = lo_handler->ms_response-s_front-params-set_nav_routing ).
+    " the mode reaches the frontend as the ROUTER/sync option, not as a
+    " response field of its own
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `*"setNavRouting":"KEEP"*`
+        act = concat_lines_of(
+                  table = lo_handler->ms_response-s_front-params-s_action-t_system
+                  sep   = `|` ) ).
 
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
@@ -803,7 +812,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-set_nav_routing ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( concat_lines_of(
+                           table = lo_handler->ms_response-s_front-params-s_action-t_system
+                           sep   = `|` ) CS `setNavRouting` ) ).
 
   ENDMETHOD.
 

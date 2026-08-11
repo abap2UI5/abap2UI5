@@ -304,6 +304,16 @@ sap.ui.define(
         // on the UI5 version. The whitelist above is the only gate.
         virtualMethods: true,
       },
+      // The browser history / URL. Router computes ONE outcome from the whole
+      // options object - adopt the hash, push a route entry, replace it, or
+      // write the app-state hash - which is why it is one call and not a
+      // field per decision input.
+      ROUTER: {
+        get: () => Router,
+        methods: { sync: [] },
+        display: (oController, method, aArgs, mOptions) =>
+          Router.sync(mOptions, mOptions.id),
+      },
       BUSY_INDICATOR: {
         get: () => BusyIndicator,
         methods: { show: ["int"], hide: [] },

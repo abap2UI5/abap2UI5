@@ -40,7 +40,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
-             `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/FrontendAction",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
@@ -55,7 +54,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    Fragment,` && |\n| &&
              `    Server,` && |\n| &&
              `    ODataModel,` && |\n| &&
-             `    Router,` && |\n| &&
              `    Lib,` && |\n| &&
              `    FrontendAction,` && |\n| &&
              `    ViewSlots,` && |\n| &&
@@ -140,9 +138,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
              `          // way via isDestroyed).` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          this._updateBrowserHistory(PARAMS, oResponse.ID);` && |\n| &&
-             `          if (PARAMS.SET_NAV_BACK) history.back();` && |\n| &&
-             `` && |\n| &&
              `          Lib.runCallbacks(AppState.state.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
@@ -237,13 +232,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // and lets errors propagate - see FrontendAction.executeSystem.` && |\n| &&
              `      eFS(...args) {` && |\n| &&
              `        return FrontendAction.executeSystem(this, args);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Phase 2: keep the URL in sync with what was rendered - the hash` && |\n| &&
-             `      // route of the running app, plus the legacy push-state / app-state` && |\n| &&
-             `      // hashes. core/Router owns all of it (and the FLP shell-hash rules).` && |\n| &&
-             `      _updateBrowserHistory(PARAMS, ID) {` && |\n| &&
-             `        Router.sync(PARAMS, ID);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
@@ -424,8 +412,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      destroyView() {` && |\n| &&
              `        ViewSlots.destroy("MAIN");` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eF = "event frontend": handles frontend-only events triggered by` && |\n| &&
              `      // the backend response, without a roundtrip. The name is part of the` && |\n| &&
@@ -437,7 +424,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        FrontendAction.execute(this, args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
+             `      // ------------------------------------------------------------------` && |\n|.
+    result = result &&
              `      // eBP = "event backend, prevent default": cancels the control's` && |\n| &&
              `      // built-in default for this event and then round-trips exactly like` && |\n| &&
              `      // eB. The backend emits it (instead of eB) for an event registered` && |\n| &&

@@ -331,6 +331,16 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        // on the UI5 version. The whitelist above is the only gate.` && |\n| &&
              `        virtualMethods: true,` && |\n| &&
              `      },` && |\n| &&
+             `      // The browser history / URL. Router computes ONE outcome from the whole` && |\n| &&
+             `      // options object - adopt the hash, push a route entry, replace it, or` && |\n| &&
+             `      // write the app-state hash - which is why it is one call and not a` && |\n| &&
+             `      // field per decision input.` && |\n| &&
+             `      ROUTER: {` && |\n| &&
+             `        get: () => Router,` && |\n| &&
+             `        methods: { sync: [] },` && |\n| &&
+             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
+             `          Router.sync(mOptions, mOptions.id),` && |\n| &&
+             `      },` && |\n| &&
              `      BUSY_INDICATOR: {` && |\n| &&
              `        get: () => BusyIndicator,` && |\n| &&
              `        methods: { show: ["int"], hide: [] },` && |\n| &&
@@ -414,7 +424,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const items = owner.getAggregation(m[2]);` && |\n| &&
              `      if (!Array.isArray(items)) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
-             `          ``aggregation item '${raw}': '${m[2]}' is no multiple aggregation of ${m[1]}``,` && |\n| &&
+             `          ``aggregation item '${raw}': '${m[2]}' is no multiple aggregation of ${m[1]}``,` && |\n|.
+    result = result &&
              `        );` && |\n| &&
              `        return null;` && |\n| &&
              `      }` && |\n| &&
@@ -424,8 +435,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        // would silently receive undefined and do nothing` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``,` && |\n| &&
-             `        );` && |\n|.
-    result = result &&
+             `        );` && |\n| &&
              `        return null;` && |\n| &&
              `      }` && |\n| &&
              `      return item;` && |\n| &&
@@ -815,7 +825,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        // real filter, so only clear when BOTH values are empty.` && |\n| &&
              `        if (isEmpty(value1) && isEmpty(value2)) {` && |\n| &&
              `          binding.filter([]);` && |\n| &&
-             `          return;` && |\n| &&
+             `          return;` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        if (!FILTER_OPERATORS.has(operator)) {` && |\n| &&
              `          Lib.logError(``BINDING_CALL: operator '${operator}' not allowed``);` && |\n| &&
@@ -825,8 +836,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
-             `      sort(binding, [path, descending, group]) {` && |\n|.
-    result = result &&
+             `      sort(binding, [path, descending, group]) {` && |\n| &&
              `        binding.sort([` && |\n| &&
              `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
              `        ]);` && |\n| &&
@@ -1216,7 +1226,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {` && |\n| &&
              `          Lib.logError(` && |\n| &&
-             `            ``SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n| &&
+             `            ``SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n|.
+    result = result &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -1226,8 +1237,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // means waiting for that registration (it follows the metadata load)` && |\n| &&
              `          const registered = oSVM.getPersonalizableControls` && |\n| &&
              `            ? oSVM.getPersonalizableControls()` && |\n| &&
-             `            : [];` && |\n|.
-    result = result &&
+             `            : [];` && |\n| &&
              `          if (!registered.length) {` && |\n| &&
              `            if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
              `              setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
@@ -1617,7 +1627,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // combo IN THAT SCOPE; scope is a view slot key (cs_view-popover/popup/...)` && |\n| &&
              `    // and defaults to the unscoped, always-eligible registration` && |\n| &&
              `    function evKeyboardShortcut(oController, args) {` && |\n| &&
-             `      const combo = normalizeShortcut(args[1]);` && |\n| &&
+             `      const combo = normalizeShortcut(args[1]);` && |\n|.
+    result = result &&
              `      if (!combo) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``,` && |\n| &&
@@ -1627,8 +1638,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // a slot key is matched case-insensitively; anything else is taken as a` && |\n| &&
              `      // control id and keeps its case, because that is how it must resolve` && |\n| &&
              `      const raw = String(args[3] ?? "");` && |\n| &&
-             `      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())` && |\n|.
-    result = result &&
+             `      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())` && |\n| &&
              `        ? raw.toUpperCase()` && |\n| &&
              `        : raw;` && |\n| &&
              `      const shortcuts = AppState.state.shortcuts;` && |\n| &&

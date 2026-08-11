@@ -439,21 +439,21 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_nav_back.
 
-    mo_action->ms_next-s_set-set_nav_back = val.
+    mo_action->ms_next-s_nav-set_nav_back = val.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~set_push_state.
 
-    mo_action->ms_next-s_set-set_push_state = val.
+    mo_action->ms_next-s_nav-set_push_state = val.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~set_nav_routing.
 
-    mo_action->ms_next-s_set-set_nav_routing = mode.
+    mo_action->ms_next-s_nav-set_nav_routing = mode.
     " remember the mode on the app so every later response of this app carries
     " it again - see z2ui5_cl_core_app=>mv_nav_mode
     mo_action->mo_app->mv_nav_mode = mode.
@@ -463,7 +463,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_app_state_active.
 
-    mo_action->ms_next-s_set-set_app_state_active = val.
+    mo_action->ms_next-s_nav-set_app_state_active = val.
 
   ENDMETHOD.
 
@@ -474,10 +474,10 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF li_app->check_sticky = val.
       RETURN.
     ENDIF.
-    mo_action->ms_next-s_set-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
+    mo_action->ms_next-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
     li_app->check_sticky = val.
 
-    mo_action->ms_next-s_set-s_stateful-switched = xsdbool( mo_action->ms_next-s_set-s_stateful-switched = abap_false ).
+    mo_action->ms_next-s_stateful-switched = xsdbool( mo_action->ms_next-s_stateful-switched = abap_false ).
 
   ENDMETHOD.
 

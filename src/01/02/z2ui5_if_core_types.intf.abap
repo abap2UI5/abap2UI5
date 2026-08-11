@@ -87,6 +87,14 @@ INTERFACE z2ui5_if_core_types
         t_system TYPE string_table,
         t_custom TYPE string_table,
       END OF s_action,
+    END OF ty_s_next_frontend.
+
+  " The browser-history intent of one roundtrip. Router computes ONE outcome
+  " from all of it - adopt the hash, push a route entry, replace it, or write
+  " the app-state hash - so it travels as one call with one options object
+  " rather than as separate fields the frontend would have to recombine.
+  TYPES:
+    BEGIN OF ty_s_nav,
       set_app_state_active  TYPE abap_bool,
       set_push_state        TYPE string,
       set_nav_back          TYPE abap_bool,
@@ -120,8 +128,7 @@ INTERFACE z2ui5_if_core_types
       " user actually navigated away from.
       nav_app_call_prev_app TYPE string,
       nav_app_call_prev_id  TYPE string,
-      s_stateful            TYPE ty_s_http_res-s_stateful,
-    END OF ty_s_next_frontend.
+    END OF ty_s_nav.
 
   TYPES:
     BEGIN OF ty_s_next,
@@ -138,6 +145,15 @@ INTERFACE z2ui5_if_core_types
       " has to travel with new XML, and the decision used to be made by
       " reading the response's own s_*-xml fields back.
       check_view_shipped TYPE abap_bool,
+      " BACKEND-ONLY: what the browser history / URL has to reflect after this
+      " roundtrip. main_end( ) turns it into the ROUTER/sync action - the
+      " frontend router reads its inputs from that call's options, not from
+      " seven separate response fields.
+      s_nav              TYPE ty_s_nav,
+      " BACKEND-ONLY: the stateful-session switch. It never was a frontend
+      " concern - z2ui5_cl_http_handler reads it off the response record to
+      " call set_session_stateful, and no frontend module ever looked at it.
+      s_stateful         TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next.
 
   TYPES:

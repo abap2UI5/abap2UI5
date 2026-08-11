@@ -66,6 +66,19 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     "! in slot order, so the frontend only has to run what it receives.
     METHODS system_actions_serialize.
 
+    "! Turn the roundtrip's browser-history intent into the ROUTER/sync call,
+    "! and a requested back-navigation into the history event that already
+    "! exists for it.
+    METHODS nav_action_serialize.
+
+    METHODS set_nav_opt
+      IMPORTING
+        json TYPE REF TO z2ui5_if_ajson
+        name TYPE string
+        val  TYPE clike
+      RAISING
+        z2ui5_cx_ajson_error.
+
     METHODS check_view_update_needed
       RETURNING
         VALUE(result) TYPE abap_bool.
@@ -508,7 +521,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDTRY.
 
     result = VALUE #( body          = mv_response
-                      s_stateful    = ms_response-s_front-params-s_stateful
+                      s_stateful    = mo_action->ms_next-s_stateful
                       status_code   = 200
                       status_reason = `success` ).
 
@@ -601,6 +614,77 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD nav_action_serialize.
+
+    DATA(ls_nav) = mo_action->ms_next-s_nav.
+    DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
+
+    TRY.
+        " Router computes ONE outcome from all of these - adopt the hash, push
+        " a route entry, replace it, or write the app-state hash - so they
+        " travel as one call with one options object. Queued LAST in the
+        " system phase, after the slots were built, so the route reflects what
+        " was actually rendered.
+        " only what is actually set travels - an absent option reads exactly
+        " like the empty value it would otherwise carry, and the common
+        " roundtrip sets none of them
+        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        IF ls_nav-set_app_state_active = abap_true.
+          li_opt->set_boolean( iv_path = `/setAppStateActive`
+                               iv_val  = abap_true ).
+        ENDIF.
+        IF ls_nav-check_nav_app_call = abap_true.
+          li_opt->set_boolean( iv_path = `/checkNavAppCall`
+                               iv_val  = abap_true ).
+        ENDIF.
+        set_nav_opt( json = li_opt
+                     name = `setPushState`
+                     val  = ls_nav-set_push_state ).
+        set_nav_opt( json = li_opt
+                     name = `setNavRouting`
+                     val  = ls_nav-set_nav_routing ).
+        set_nav_opt( json = li_opt
+                     name = `navAppCallPrevApp`
+                     val  = ls_nav-nav_app_call_prev_app ).
+        set_nav_opt( json = li_opt
+                     name = `navAppCallPrevId`
+                     val  = ls_nav-nav_app_call_prev_id ).
+        set_nav_opt( json = li_opt
+                     name = `id`
+                     val  = mo_action->mo_app->ms_draft-id ).
+
+        INSERT lo_srv_event->get_event_client_json(
+                   val   = z2ui5_if_client=>cs_event-control_global
+                   t_arg = VALUE #( ( `ROUTER` )
+                                    ( `sync` )
+                                    ( li_opt->stringify( ) ) ) )
+               INTO TABLE ms_response-s_front-params-s_action-t_system.
+
+      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING
+            val = |NAV_OPTIONS_INVALID - { lx_json->get_text( ) }|.
+    ENDTRY.
+
+    " a requested back-navigation IS the history event the frontend already
+    " has - queued for the APP phase, so it happens once everything else this
+    " roundtrip asked for has run
+    IF ls_nav-set_nav_back = abap_true.
+      INSERT lo_srv_event->get_event_client_json( z2ui5_if_client=>cs_event-history_back )
+             INTO TABLE ms_response-s_front-params-s_action-t_custom.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD set_nav_opt.
+
+    IF val IS NOT INITIAL.
+      json->set_string( iv_path = |/{ name }|
+                        iv_val  = val ).
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD check_view_update_needed.
 
     " a slot that ships new XML always needs the model with it - all five
@@ -656,8 +740,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " one itself, so an app that called set_nav_routing( ) in check_on_init
     " stays routed in its chosen mode - even after the user visited another
     " app that runs with a different one (see z2ui5_cl_core_app=>mv_nav_mode).
-    IF mo_action->ms_next-s_set-set_nav_routing IS INITIAL.
-      mo_action->ms_next-s_set-set_nav_routing = mo_action->mo_app->mv_nav_mode.
+    IF mo_action->ms_next-s_nav-set_nav_routing IS INITIAL.
+      mo_action->ms_next-s_nav-set_nav_routing = mo_action->mo_app->mv_nav_mode.
     ENDIF.
 
     system_actions_serialize( ).
@@ -692,6 +776,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ELSE.
       ms_response-model = `{}`.
     ENDIF.
+
+    " last of all, so the route reflects everything this roundtrip did - the
+    " slots that were built and the model that was pushed into them
+    nav_action_serialize( ).
 
     mv_response = response_abap_to_json( ms_response ).
 

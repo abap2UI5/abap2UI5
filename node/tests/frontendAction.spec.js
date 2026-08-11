@@ -54,6 +54,7 @@ function load({ sandbox } = {}) {
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight
   // away (the specs treat the anchor as already rendered).
+  const Router = { sync: (...a) => calls.push(["router.sync", ...a]) };
   const Lib = {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
@@ -81,6 +82,7 @@ function load({ sandbox } = {}) {
       "sap/ui/model/Sorter": Sorter,
       "sap/m/library": {},
       "sap/ui/util/Storage": function () {},
+      "z2ui5/core/Router": Router,
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/Messages": Messages,
       "z2ui5/core/ViewSlots": ViewSlots,
@@ -190,6 +192,25 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
     expect(calls).toEqual([
       ["box.confirm", "Delete?", { onClose: "ANSWERED" }],
+    ]);
+  });
+
+  test("ROUTER/sync hands the whole options object to the router", () => {
+    // Router derives ONE outcome from all of it, so it gets the object as it
+    // came - the id rides along because the route carries the draft
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "ROUTER",
+      "sync",
+      { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
+    ]);
+    expect(calls).toEqual([
+      [
+        "router.sync",
+        { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
+        "DRAFT1",
+      ],
     ]);
   });
 

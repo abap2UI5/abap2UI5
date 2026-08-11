@@ -243,10 +243,10 @@ CLASS ltcl_test IMPLEMENTATION.
     " that draft, so Back restores the state the user left it in, not the one it
     " was last rendered with
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_result->ms_next-s_set-check_nav_app_call ).
+                                        act = lo_result->ms_next-s_nav-check_nav_app_call ).
     cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
-                                        act = lo_result->ms_next-s_set-nav_app_call_prev_id ).
-    cl_abap_unit_assert=>assert_not_initial( lo_result->ms_next-s_set-nav_app_call_prev_app ).
+                                        act = lo_result->ms_next-s_nav-nav_app_call_prev_id ).
+    cl_abap_unit_assert=>assert_not_initial( lo_result->ms_next-s_nav-nav_app_call_prev_app ).
 
     " a chained call ( A -> B -> C ) keeps the FIRST caller - that is the entry
     " the browser is standing on, i.e. the app the user navigated away from
@@ -256,7 +256,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_chained = lo_result->factory_stack_call( ).
 
     cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
-                                        act = lo_chained->ms_next-s_set-nav_app_call_prev_id ).
+                                        act = lo_chained->ms_next-s_nav-nav_app_call_prev_id ).
 
   ENDMETHOD.
 

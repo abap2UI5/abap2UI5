@@ -13,7 +13,6 @@ sap.ui.define(
     "sap/ui/core/Fragment",
     "z2ui5/core/Server",
     "sap/ui/model/odata/v2/ODataModel",
-    "z2ui5/core/Router",
     "z2ui5/core/Lib",
     "z2ui5/core/FrontendAction",
     "z2ui5/core/ViewSlots",
@@ -28,7 +27,6 @@ sap.ui.define(
     Fragment,
     Server,
     ODataModel,
-    Router,
     Lib,
     FrontendAction,
     ViewSlots,
@@ -113,9 +111,6 @@ sap.ui.define(
           // hooks against a dead app (the custom-JS phase below guards the same
           // way via isDestroyed).
           if (Lib.isDestroyed(this)) return;
-          this._updateBrowserHistory(PARAMS, oResponse.ID);
-          if (PARAMS.SET_NAV_BACK) history.back();
-
           Lib.runCallbacks(AppState.state.onAfterRendering);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
@@ -210,13 +205,6 @@ sap.ui.define(
       // and lets errors propagate - see FrontendAction.executeSystem.
       eFS(...args) {
         return FrontendAction.executeSystem(this, args);
-      },
-
-      // Phase 2: keep the URL in sync with what was rendered - the hash
-      // route of the running app, plus the legacy push-state / app-state
-      // hashes. core/Router owns all of it (and the FLP shell-hash rules).
-      _updateBrowserHistory(PARAMS, ID) {
-        Router.sync(PARAMS, ID);
       },
 
       // Execute the follow-up JS snippets stashed by Server.responseSuccess.

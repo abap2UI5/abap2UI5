@@ -715,7 +715,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->set_push_state( `mystate` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `mystate`
-                                        act = mo_action->ms_next-s_set-set_push_state ).
+                                        act = mo_action->ms_next-s_nav-set_push_state ).
 
   ENDMETHOD.
 
@@ -729,7 +729,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->set_nav_back( abap_true ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-set_nav_back ).
+                                        act = mo_action->ms_next-s_nav-set_nav_back ).
 
   ENDMETHOD.
 
@@ -799,7 +799,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->set_app_state_active( abap_true ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-set_app_state_active ).
+                                        act = mo_action->ms_next-s_nav-set_app_state_active ).
 
   ENDMETHOD.
 
