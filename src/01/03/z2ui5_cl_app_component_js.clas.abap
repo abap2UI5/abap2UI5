@@ -37,6 +37,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/Util",` && |\n| &&
              `    "z2ui5/model/formatter",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
+             `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    UIComponent,` && |\n| &&
@@ -49,6 +50,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    DateUtil,` && |\n| &&
              `    Formatter,` && |\n| &&
              `    Router,` && |\n| &&
+             `    ScrollFocus,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -178,9 +180,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      _installScrollListener() {` && |\n| &&
              `        // Scroll events do not bubble, but they do trigger capture-phase` && |\n| &&
              `        // listeners on ancestors - a single document-level listener observes` && |\n| &&
-             `        // every scrollable container. Server.onScrollCapture records the` && |\n| &&
+             `        // every scrollable container. ScrollFocus.onScrollCapture records the` && |\n| &&
              `        // last scrolled element per view slot for the S_SCROLL request info.` && |\n| &&
-             `        this._boundScroll = (event) => Server.onScrollCapture(event);` && |\n| &&
+             `        this._boundScroll = (event) => ScrollFocus.onScrollCapture(event);` && |\n| &&
              `        document.addEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `          passive: true,` && |\n| &&

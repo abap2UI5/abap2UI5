@@ -10,6 +10,7 @@ sap.ui.define(
     "z2ui5/Util",
     "z2ui5/model/formatter",
     "z2ui5/core/Router",
+    "z2ui5/core/ScrollFocus",
   ],
   (
     UIComponent,
@@ -22,6 +23,7 @@ sap.ui.define(
     DateUtil,
     Formatter,
     Router,
+    ScrollFocus,
   ) => {
     "use strict";
 
@@ -151,9 +153,9 @@ sap.ui.define(
       _installScrollListener() {
         // Scroll events do not bubble, but they do trigger capture-phase
         // listeners on ancestors - a single document-level listener observes
-        // every scrollable container. Server.onScrollCapture records the
+        // every scrollable container. ScrollFocus.onScrollCapture records the
         // last scrolled element per view slot for the S_SCROLL request info.
-        this._boundScroll = (event) => Server.onScrollCapture(event);
+        this._boundScroll = (event) => ScrollFocus.onScrollCapture(event);
         document.addEventListener("scroll", this._boundScroll, {
           capture: true,
           passive: true,

@@ -28,20 +28,20 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
-             `    "sap/ui/Device",` && |\n| &&
-             `    "sap/ui/core/Element",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Session",` && |\n| &&
+             `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BusyIndicator,` && |\n| &&
-             `    Device,` && |\n| &&
-             `    Element,` && |\n| &&
              `    VersionInfo,` && |\n| &&
              `    Lib,` && |\n| &&
+             `    Session,` && |\n| &&
+             `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    ErrorView,` && |\n| &&
              `    AppState,` && |\n| &&
@@ -147,181 +147,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        AppState.state.contextId = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // What the backend only needs ONCE per page load: the UI5 build and the` && |\n| &&
-             `      // launchpad's ComponentData. It stores them with the draft, so every` && |\n| &&
-             `      // later roundtrip omits them - a few hundred bytes off every event.` && |\n| &&
-             `      //` && |\n| &&
-             `      // Sent until it has gone out COMPLETE, not just once: the version info` && |\n| &&
-             `      // is loaded asynchronously during component init, so the first roundtrip` && |\n| &&
-             `      // can fire before it exists. Repeating it costs the same bytes it used` && |\n| &&
-             `      // to cost every time, and stops as soon as there is something to store.` && |\n| &&
-             `      //` && |\n| &&
-             `      // A page load always starts by sending it again, which is what makes a` && |\n| &&
-             `      // draft reopened on a different device pick up THAT device instead of` && |\n| &&
-             `      // the one that created it.` && |\n| &&
-             `      _sessionConfig(oConfig) {` && |\n| &&
-             `        // orientation and resize are the two device fields that are NOT` && |\n| &&
-             `        // session-constant - a window is resized and a phone rotated while` && |\n| &&
-             `        // the app runs - so they travel every time and the backend merges` && |\n| &&
-             `        // them over the block it stored.` && |\n| &&
-             `        const live = this._getDeviceLive();` && |\n| &&
-             `        if (this._sessionConfigSent) return { S_DEVICE: live };` && |\n| &&
-             `        if (oConfig?.S_UI5) this._sessionConfigSent = true;` && |\n| &&
-             `        return {` && |\n| &&
-             `          S_UI5: oConfig?.S_UI5,` && |\n| &&
-             `          ComponentData: oConfig?.ComponentData,` && |\n| &&
-             `          S_DEVICE: { ...this._getDeviceStatic(), ...live },` && |\n| &&
-             `        };` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the` && |\n| &&
-             `      // session, so resolve them once and reuse the cached block.` && |\n| &&
-             `      _getDeviceStatic() {` && |\n| &&
-             `        if (!this._deviceStatic) {` && |\n| &&
-             `          this._deviceStatic = {` && |\n| &&
-             `            SYSTEM: Lib.deriveSystemType(Device.system),` && |\n| &&
-             `            BROWSER: {` && |\n| &&
-             `              NAME: Device.browser.name || "",` && |\n| &&
-             `              VERSION: String(Device.browser.version || ""),` && |\n| &&
-             `            },` && |\n| &&
-             `            OS: {` && |\n| &&
-             `              NAME: Device.os.name || "",` && |\n| &&
-             `              VERSION: String(Device.os.version || ""),` && |\n| &&
-             `            },` && |\n| &&
-             `            SUPPORT: {` && |\n| &&
-             `              TOUCH: Device.support.touch || false,` && |\n| &&
-             `              POINTER: Device.support.pointer || false,` && |\n| &&
-             `              RETINA: Device.support.retina || false,` && |\n| &&
-             `            },` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `        return this._deviceStatic;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _getDeviceLive() {` && |\n| &&
-             `        return {` && |\n| &&
-             `          ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
-             `          RESIZE: {` && |\n| &&
-             `            WIDTH: Device.resize.width || window.innerWidth,` && |\n| &&
-             `            HEIGHT: Device.resize.height || window.innerHeight,` && |\n| &&
-             `          },` && |\n| &&
-             `        };` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Resolve the UI5 element owning a DOM node. Element.closestTo exists` && |\n| &&
-             `      // as of UI5 1.106; on older bootstraps walk up the DOM to the nearest` && |\n| &&
-             `      // rendered control root (marked with the data-sap-ui attribute) and` && |\n| &&
-             `      // resolve it via the core registry, so scroll and focus capture also` && |\n| &&
-             `      // work there.` && |\n| &&
-             `      _closestUi5Element(dom) {` && |\n| &&
-             `        if (Element.closestTo) return Element.closestTo(dom) ?? null;` && |\n| &&
-             `        let el = dom;` && |\n| &&
-             `        while (el && el.getAttribute) {` && |\n| &&
-             `          if (el.hasAttribute("data-sap-ui")) {` && |\n| &&
-             `            // ui5lint-disable-next-line no-globals, no-deprecated-api -- only resolution path on UI5 < 1.106` && |\n| &&
-             `            return sap.ui.getCore().byId(el.id) || null;` && |\n| &&
-             `          }` && |\n| &&
-             `          el = el.parentElement;` && |\n| &&
-             `        }` && |\n| &&
-             `        return null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Strip the owning view's "<viewId>--" prefix from a control id so the` && |\n| &&
-             `      // backend gets the id as the app declared it. Returns the id unchanged` && |\n| &&
-             `      // when it does not belong to that view.` && |\n| &&
-             `      _stripViewPrefix(fullId, view) {` && |\n| &&
-             `        if (!view) return fullId;` && |\n| &&
-             `        const prefix = ``${view.getId()}--``;` && |\n| &&
-             `        return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Returning undefined when no UI5 control owns the focus lets` && |\n| &&
-             `      // JSON.stringify omit S_FOCUS from the request entirely, matching` && |\n| &&
-             `      // _getScrollInfo (the backend treats a missing key like an empty one).` && |\n| &&
-             `      _getFocusInfo() {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const active = document.activeElement;` && |\n| &&
-             `          if (!active) return undefined;` && |\n| &&
-             `          const ui5El = this._closestUi5Element(active);` && |\n| &&
-             `          if (!ui5El) return undefined;` && |\n| &&
-             `          const fullId = ui5El.getId();` && |\n| &&
-             `          let id = fullId;` && |\n| &&
-             `          for (const slot of ViewSlots.slots) {` && |\n| &&
-             `            const local = this._stripViewPrefix(` && |\n| &&
-             `              fullId,` && |\n| &&
-             `              ViewSlots.getView(slot.key),` && |\n| &&
-             `            );` && |\n| &&
-             `            if (local !== fullId) {` && |\n| &&
-             `              id = local;` && |\n| &&
-             `              break;` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `          // Read the caret from the actual text field, not from` && |\n| &&
-             `          // document.activeElement directly. Clicking an inner part of a` && |\n| &&
-             `          // control (e.g. a SearchField's clear "X" button) can leave the` && |\n| &&
-             `          // active element a non-text node. When no text field owns a` && |\n| &&
-             `          // selection, omit SELECTION_* entirely so the backend restores` && |\n| &&
-             `          // focus without forcing a caret position.` && |\n| &&
-             `          const info = { ID: id };` && |\n| &&
-             `          const caret = Lib.readCaret(this._focusTextInput(active, ui5El));` && |\n| &&
-             `          if (caret) {` && |\n| &&
-             `            info.SELECTION_START = caret.start;` && |\n| &&
-             `            info.SELECTION_END = caret.end;` && |\n| &&
-             `          }` && |\n| &&
-             `          return info;` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Resolve the text field that carries the caret for the focused control:` && |\n| &&
-             `      // the active element itself when it is already an <input>/<textarea>,` && |\n| &&
-             `      // otherwise the control's focus DOM ref (or the first inner text field).` && |\n| &&
-             `      // Returns null when the control has no text field (e.g. a button), so the` && |\n| &&
-             `      // caller omits the selection instead of reporting a bogus 0.` && |\n| &&
-             `      _focusTextInput(active, ui5El) {` && |\n| &&
-             `        if (Lib.isTextInput(active)) return active;` && |\n| &&
-             `        const focusRef = ui5El?.getFocusDomRef?.();` && |\n| &&
-             `        if (Lib.isTextInput(focusRef)) return focusRef;` && |\n| &&
-             `        const root = ui5El?.getDomRef?.();` && |\n| &&
-             `        const inner = root?.querySelector?.("input, textarea");` && |\n| &&
-             `        return Lib.isTextInput(inner) ? inner : null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Records which element the user actually scrolled, per view slot.` && |\n| &&
-             `      // Bound to a single document-level capture-phase listener (installed` && |\n| &&
-             `      // in Component.init): scroll events do not bubble, but they do fire` && |\n| &&
-             `      // capture listeners on ancestors, so one listener observes every` && |\n| &&
-             `      // scrollable container - no per-roundtrip walk over the control tree,` && |\n| &&
-             `      // and no guessing which container "looks scrolled".` && |\n| &&
-             `      onScrollCapture(event) {` && |\n| &&
-             `        const target = event.target;` && |\n| &&
-             `        if (!target || target.nodeType !== 1) return;` && |\n| &&
-             `` && |\n| &&
-             `        // Scroll events fire up to once per frame per element while the user` && |\n| &&
-             `        // drags, but the same DOM element keeps firing throughout a gesture.` && |\n| &&
-             `        // Resolving the UI5 control (_closestUi5Element) and walking it up to` && |\n| &&
-             `        // its view slot (ViewSlots.containingSlotKey) is the expensive part,` && |\n| &&
-             `        // so cache that resolution keyed by the element: it runs once per` && |\n| &&
-             `        // scrolled element instead of once per event. Only the cheap` && |\n| &&
-             `        // scroll-position record stays per event.` && |\n| &&
-             `        if (target !== this._lastScrollTarget) {` && |\n| &&
-             `          const ui5El = this._closestUi5Element(target);` && |\n| &&
-             `          this._lastScrollTarget = target;` && |\n| &&
-             `          this._lastScrollUi5El = ui5El;` && |\n| &&
-             `          this._lastScrollSlotKey = ui5El` && |\n| &&
-             `            ? ViewSlots.containingSlotKey(ui5El)` && |\n| &&
-             `            : undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (this._lastScrollSlotKey) {` && |\n| &&
-             `          AppState.state.lastScrolled[this._lastScrollSlotKey] = {` && |\n| &&
-             `            control: this._lastScrollUi5El,` && |\n| &&
-             `            dom: target,` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      // Restore the app state a matched hash route points at. Wired into` && |\n| &&
              `      // core/Router by Component.js and called when the browser Back/Forward` && |\n| &&
              `      // buttons (or a manual URL edit / bookmark) select a different route.` && |\n| &&
@@ -338,51 +163,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        this.roundtrip({});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _getScrollInfo() {` && |\n| &&
-             `        // Release the per-element resolution cache of onScrollCapture once` && |\n| &&
-             `        // its DOM node left the document (view replaced/destroyed) - the` && |\n| &&
-             `        // detached element and its control would otherwise stay referenced` && |\n| &&
-             `        // until the user scrolls the next time.` && |\n| &&
-             `        if (this._lastScrollTarget && !this._lastScrollTarget.isConnected) {` && |\n| &&
-             `          this._lastScrollTarget = undefined;` && |\n| &&
-             `          this._lastScrollUi5El = undefined;` && |\n| &&
-             `          this._lastScrollSlotKey = undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // Reads scrollLeft/scrollTop straight from the DOM element the user` && |\n| &&
-             `        // last scrolled in each view slot (recorded by onScrollCapture).` && |\n| &&
-             `        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are` && |\n| &&
-             `        // absent from the result - restoring 0/0 would be a no-op anyway.` && |\n| &&
-             `        const store = AppState.state.lastScrolled;` && |\n| &&
-             `        const out = {};` && |\n| &&
-             `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          const entry = store[slot.key];` && |\n| &&
-             `          if (!entry) continue;` && |\n| &&
-             `` && |\n| &&
-             `          // Drop stale references, e.g. after the view was replaced. Also` && |\n| &&
-             `          // drop a destroyed control whose DOM is still transiently` && |\n| &&
-             `          // connected: entry.control.getId() below would throw and abort the` && |\n| &&
-             `          // whole roundtrip (this method, unlike _getFocusInfo, has no outer` && |\n| &&
-             `          // try/catch).` && |\n| &&
-             `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
-             `            delete store[slot.key];` && |\n| &&
-             `            continue;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          const id = this._stripViewPrefix(` && |\n| &&
-             `            entry.control.getId(),` && |\n| &&
-             `            ViewSlots.getView(slot.key),` && |\n| &&
-             `          );` && |\n| &&
-             `          out[slot.key] = {` && |\n| &&
-             `            ID: id,` && |\n| &&
-             `            X: entry.dom.scrollLeft || 0,` && |\n| &&
-             `            Y: entry.dom.scrollTop || 0,` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
-             `        return Object.keys(out).length ? out : undefined;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      roundtrip(oBody = {}) {` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
              `` && |\n| &&
@@ -397,10 +177,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          CONFIG: {` && |\n| &&
-             `            ...this._sessionConfig(oConfig),` && |\n| &&
-             `            // focus and scroll are per roundtrip by nature` && |\n| &&
-             `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
-             `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
+             `            // the session-constant block travels once per page load` && |\n| &&
+             `            // (core/Session.js); focus and scroll are per roundtrip by nature` && |\n| &&
+             `            // (core/ScrollFocus.js)` && |\n| &&
+             `            ...Session.config(oConfig),` && |\n| &&
+             `            S_FOCUS: ScrollFocus.getFocusInfo(),` && |\n| &&
+             `            S_SCROLL: ScrollFocus.getScrollInfo(),` && |\n| &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
              `          ORIGIN: window.location.origin,` && |\n| &&
@@ -424,8 +206,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
              `        if (!oBody.MODEL) delete oBody.MODEL;` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `        this.readHttp(oBody);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -643,7 +424,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const followUp = params?.S_ACTION;` && |\n| &&
              `          // carried on the response record, not on shared state: with` && |\n| &&
              `          // parallel responses a single global would let the older render` && |\n| &&
-             `          // consume the newer response's snippets (and lose its own)` && |\n| &&
+             `          // consume the newer response's snippets (and lose its own)` && |\n|.
+    result = result &&
              `          response._pendingCustomJs = followUp?.T_CUSTOM || null;` && |\n| &&
              `` && |\n| &&
              `          // Every view-lifecycle call, the MAIN rebuild included, is a system` && |\n| &&

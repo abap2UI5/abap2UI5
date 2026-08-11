@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests Server._closestUi5Element: resolving the UI5 element that owns a DOM
+// Tests ScrollFocus.closestUi5Element: resolving the UI5 element that owns a DOM
 // node must work on UI5 >= 1.106 via Element.closestTo and on older
 // bootstraps (e.g. 1.71) via the DOM-walk fallback, so scroll and focus
 // capture are not silently skipped there.
@@ -23,8 +23,8 @@ function fakeDomNode({
   };
 }
 
-function loadServer({ Element = {}, deps = {} } = {}) {
-  return loadModule("core/Server.js", {
+function loadScrollFocus({ Element = {}, deps = {} } = {}) {
+  return loadModule("core/ScrollFocus.js", {
     deps: { "sap/ui/core/Element": Element, ...deps },
   });
 }
@@ -32,7 +32,7 @@ function loadServer({ Element = {}, deps = {} } = {}) {
 test("uses Element.closestTo when available", () => {
   const control = { id: "resolved" };
   const seen = [];
-  const { module: Server } = loadServer({
+  const { module: ScrollFocus } = loadScrollFocus({
     Element: {
       closestTo: (dom) => {
         seen.push(dom);
@@ -42,21 +42,21 @@ test("uses Element.closestTo when available", () => {
   });
 
   const dom = fakeDomNode({ id: "x" });
-  expect(Server._closestUi5Element(dom)).toBe(control);
+  expect(ScrollFocus.closestUi5Element(dom)).toBe(control);
   expect(seen).toEqual([dom]);
 });
 
 test("normalizes a closestTo miss to null", () => {
-  const { module: Server } = loadServer({
+  const { module: ScrollFocus } = loadScrollFocus({
     Element: { closestTo: () => undefined },
   });
 
-  expect(Server._closestUi5Element(fakeDomNode({ id: "x" }))).toBe(null);
+  expect(ScrollFocus.closestUi5Element(fakeDomNode({ id: "x" }))).toBe(null);
 });
 
 test("falls back to the data-sap-ui DOM walk without closestTo", () => {
   const control = { id: "page" };
-  const { module: Server, sandbox } = loadServer();
+  const { module: ScrollFocus, sandbox } = loadScrollFocus();
   sandbox.sap.ui.getCore = () => ({
     byId: (id) => (id === "page" ? control : undefined),
   });
@@ -64,21 +64,21 @@ test("falls back to the data-sap-ui DOM walk without closestTo", () => {
   const root = fakeDomNode({ id: "page", isControlRoot: true });
   const inner = fakeDomNode({ id: "page-cont", parent: root });
 
-  expect(Server._closestUi5Element(inner)).toBe(control);
+  expect(ScrollFocus.closestUi5Element(inner)).toBe(control);
 });
 
 test("fallback returns null when no control root is found", () => {
-  const { module: Server, sandbox } = loadServer();
+  const { module: ScrollFocus, sandbox } = loadScrollFocus();
   sandbox.sap.ui.getCore = () => ({ byId: () => undefined });
 
   const plain = fakeDomNode({ id: "no-control" });
-  expect(Server._closestUi5Element(plain)).toBe(null);
+  expect(ScrollFocus.closestUi5Element(plain)).toBe(null);
 });
 
 test("onScrollCapture records the scrolled slot via the fallback", () => {
   const control = { id: "page" };
   const state = { lastScrolled: {} };
-  const { module: Server, sandbox } = loadServer({
+  const { module: ScrollFocus, sandbox } = loadScrollFocus({
     deps: {
       "z2ui5/core/ViewSlots": {
         containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
@@ -92,7 +92,7 @@ test("onScrollCapture records the scrolled slot via the fallback", () => {
 
   const root = fakeDomNode({ id: "page", isControlRoot: true });
   const scrolled = fakeDomNode({ id: "page-cont", parent: root });
-  Server.onScrollCapture({ target: scrolled });
+  ScrollFocus.onScrollCapture({ target: scrolled });
 
   expect(state.lastScrolled.MAIN).toEqual({
     control,
@@ -102,11 +102,11 @@ test("onScrollCapture records the scrolled slot via the fallback", () => {
 
 // The per-element resolution cache of onScrollCapture must not retain a
 // detached DOM node (and its control) after the view was replaced - it is
-// released on the next roundtrip's _getScrollInfo.
+// released on the next roundtrip's getScrollInfo.
 
-function loadServerWithScrollCache({ connected }) {
+function loadScrollFocusWithScrollCache({ connected }) {
   const control = { id: "page" };
-  const { module: Server, sandbox } = loadServer({
+  const { module: ScrollFocus, sandbox } = loadScrollFocus({
     deps: {
       "z2ui5/core/ViewSlots": {
         containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
@@ -125,25 +125,25 @@ function loadServerWithScrollCache({ connected }) {
     parent: root,
     isConnected: connected,
   });
-  Server.onScrollCapture({ target: scrolled });
-  return { Server, scrolled };
+  ScrollFocus.onScrollCapture({ target: scrolled });
+  return { ScrollFocus, scrolled };
 }
 
-test("_getScrollInfo releases the scroll cache once its DOM node is detached", () => {
-  const { Server, scrolled } = loadServerWithScrollCache({ connected: false });
-  expect(Server._lastScrollTarget).toBe(scrolled);
+test("getScrollInfo releases the scroll cache once its DOM node is detached", () => {
+  const { ScrollFocus, scrolled } = loadScrollFocusWithScrollCache({ connected: false });
+  expect(ScrollFocus._scrollCache.target).toBe(scrolled);
 
-  Server._getScrollInfo();
+  ScrollFocus.getScrollInfo();
 
-  expect(Server._lastScrollTarget).toBe(undefined);
-  expect(Server._lastScrollUi5El).toBe(undefined);
-  expect(Server._lastScrollSlotKey).toBe(undefined);
+  expect(ScrollFocus._scrollCache.target).toBe(undefined);
+  expect(ScrollFocus._scrollCache.ui5El).toBe(undefined);
+  expect(ScrollFocus._scrollCache.slotKey).toBe(undefined);
 });
 
-test("_getScrollInfo keeps the scroll cache while its DOM node is connected", () => {
-  const { Server, scrolled } = loadServerWithScrollCache({ connected: true });
+test("getScrollInfo keeps the scroll cache while its DOM node is connected", () => {
+  const { ScrollFocus, scrolled } = loadScrollFocusWithScrollCache({ connected: true });
 
-  Server._getScrollInfo();
+  ScrollFocus.getScrollInfo();
 
-  expect(Server._lastScrollTarget).toBe(scrolled);
+  expect(ScrollFocus._scrollCache.target).toBe(scrolled);
 });
