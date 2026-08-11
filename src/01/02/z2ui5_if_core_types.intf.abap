@@ -257,9 +257,11 @@ INTERFACE z2ui5_if_core_types
     END OF ty_s_request.
 
   " What a browser tells the backend about ITSELF, once per page load instead
-  " of on every roundtrip: the UI5 build, the device it runs on, and the
-  " launchpad's ComponentData. It is stored on the app and therefore travels
-  " in the draft, so a follow-up roundtrip needs to send none of it.
+  " of on every roundtrip: the UI5 build, the device it runs on, the
+  " launchpad's ComponentData, and the page location (origin, pathname and
+  " query - the hash stays live, it carries the routing state). It is stored
+  " on the app and therefore travels in the draft, so a follow-up roundtrip
+  " needs to send none of it.
   "
   " Two parts of s_device are NOT session-constant and keep travelling with
   " every request - orientation and resize change while the app runs. They are
@@ -270,6 +272,9 @@ INTERFACE z2ui5_if_core_types
       s_ui5     TYPE ty_s_request-s_front-s_ui5,
       s_device  TYPE ty_s_request-s_front-s_device,
       comp_data TYPE string,
+      origin    TYPE string,
+      pathname  TYPE string,
+      search    TYPE string,
     END OF ty_s_session.
 
   TYPES:

@@ -12,8 +12,9 @@ sap.ui.define(
     // Focus and scroll capture for the request: which control holds the
     // focus (with its caret) and which element the user last scrolled in
     // each view slot - the S_FOCUS / S_SCROLL blocks of S_FRONT, read by
-    // Server.roundtrip on every event so the backend can restore both
-    // after a re-render.
+    // Server.roundtrip on every event. The backend does not act on them
+    // itself: it exposes them to the app (client->get( )), which echoes a
+    // SET_FOCUS / SCROLL_TO follow-up action to restore after a re-render.
     // ------------------------------------------------------------------
 
     // Resolve the UI5 element owning a DOM node. Element.closestTo exists

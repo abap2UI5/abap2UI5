@@ -54,8 +54,11 @@ sap.ui.define(
     //         "ID": "<draft id of the previous response>",
     //         "EVENT": "SAVE",             // event name
     //         "T_EVENT_ARG": ["arg1"],     // further event arguments
-    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",
-    //         "SEARCH": "?p=1", "HASH": "#...",
+    //         "HASH": "#...",              // live routing state, every request
+    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...", "SEARCH": "?p=1",
+    //                                      // session-constant location: only on
+    //                                      // app-start-shaped requests and the
+    //                                      // page load's first roundtrip
     //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},
     //                     "S_FOCUS": {...}, "S_SCROLL": {...},
     //                     "ComponentData": {...} }
@@ -158,13 +161,24 @@ sap.ui.define(
             S_SCROLL: ScrollFocus.getScrollInfo(),
           },
           ID: oBody.ID,
-          ORIGIN: window.location.origin,
-          PATHNAME: window.location.pathname,
-          SEARCH: state.search || window.location.search,
           EVENT: eventName,
+          // the hash is NOT session-constant - it carries the live routing
+          // state (route restore, app-state bookmarks) on every request
           HASH: window.location.hash,
         };
         const sFront = oBody.S_FRONT;
+
+        // The page location is session-constant, so the backend stores it
+        // with the draft (session_merge) and event roundtrips omit it. It
+        // still travels with every app-start-shaped request (no draft id):
+        // the backend parses ?app_start= from SEARCH only there, and a route
+        // restore (Back/Forward) is exactly such a request.
+        if (!oBody.ID || !this._locationSent) {
+          this._locationSent = true;
+          sFront.ORIGIN = window.location.origin;
+          sFront.PATHNAME = window.location.pathname;
+          sFront.SEARCH = state.search || window.location.search;
+        }
 
         // The first argument was the event name (already stored as EVENT),
         // the remaining entries are the actual event arguments.

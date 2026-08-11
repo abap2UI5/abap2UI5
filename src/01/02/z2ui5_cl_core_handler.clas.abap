@@ -640,6 +640,22 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " The page location (origin, pathname, query) is session-constant too,
+    " but travels on its own cadence: with every app-start-shaped request
+    " (no draft id - the backend parses ?app_start= from SEARCH there) and
+    " on the first roundtrip of a page load. Event roundtrips omit it and
+    " are answered from the draft. The hash is NOT part of this: it carries
+    " the live routing state and stays a per-request field.
+    IF ms_request-s_front-origin IS NOT INITIAL.
+      mo_action->mo_app->ms_session-origin   = ms_request-s_front-origin.
+      mo_action->mo_app->ms_session-pathname = ms_request-s_front-pathname.
+      mo_action->mo_app->ms_session-search   = ms_request-s_front-search.
+    ELSE.
+      ms_request-s_front-origin   = mo_action->mo_app->ms_session-origin.
+      ms_request-s_front-pathname = mo_action->mo_app->ms_session-pathname.
+      ms_request-s_front-search   = mo_action->mo_app->ms_session-search.
+    ENDIF.
+
     " A request that CARRIES the block wins: that is the first roundtrip of a
     " page load, and it is also how a draft reopened on a different device
     " gets the new device's data instead of the one that created the draft.

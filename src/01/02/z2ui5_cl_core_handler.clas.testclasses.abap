@@ -67,6 +67,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_auto_update_slots FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
     METHODS test_session_stored       FOR TESTING RAISING cx_static_check.
+    METHODS test_session_location     FOR TESTING RAISING cx_static_check.
     METHODS test_session_from_draft   FOR TESTING RAISING cx_static_check.
     METHODS test_session_new_device   FOR TESTING RAISING cx_static_check.
     METHODS test_response_no_model    FOR TESTING RAISING cx_static_check.
@@ -419,6 +420,37 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
                                         act = lo_handler->mo_action->mo_app->ms_session-s_device-system ).
     cl_abap_unit_assert=>assert_equals( exp = `1.120.0`
                                         act = lo_handler->mo_action->mo_app->ms_session-s_ui5-version ).
+
+  ENDMETHOD.
+
+  METHOD test_session_location.
+
+    " the page location travels with app-start-shaped requests and is stored
+    " with the draft; an event roundtrip omits it and reads it back
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_front-origin   = `https://host`.
+    lo_handler->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
+    lo_handler->ms_request-s_front-search   = `?app_start=Z_MY_APP`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://host`
+                                        act = lo_handler->mo_action->mo_app->ms_session-origin ).
+
+    " ...the follow-up event roundtrip carries none of it
+    CLEAR: lo_handler->ms_request-s_front-origin,
+           lo_handler->ms_request-s_front-pathname,
+           lo_handler->ms_request-s_front-search.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://host`
+                                        act = lo_handler->ms_request-s_front-origin ).
+    cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
+                                        act = lo_handler->ms_request-s_front-pathname ).
+    cl_abap_unit_assert=>assert_equals( exp = `?app_start=Z_MY_APP`
+                                        act = lo_handler->ms_request-s_front-search ).
 
   ENDMETHOD.
 

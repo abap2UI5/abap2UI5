@@ -39,8 +39,9 @@ CLASS z2ui5_cl_app_scrollfocus_js IMPLEMENTATION.
              `    // Focus and scroll capture for the request: which control holds the` && |\n| &&
              `    // focus (with its caret) and which element the user last scrolled in` && |\n| &&
              `    // each view slot - the S_FOCUS / S_SCROLL blocks of S_FRONT, read by` && |\n| &&
-             `    // Server.roundtrip on every event so the backend can restore both` && |\n| &&
-             `    // after a re-render.` && |\n| &&
+             `    // Server.roundtrip on every event. The backend does not act on them` && |\n| &&
+             `    // itself: it exposes them to the app (client->get( )), which echoes a` && |\n| &&
+             `    // SET_FOCUS / SCROLL_TO follow-up action to restore after a re-render.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    // Resolve the UI5 element owning a DOM node. Element.closestTo exists` && |\n| &&

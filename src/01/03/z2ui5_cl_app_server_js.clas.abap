@@ -81,8 +81,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //         "ID": "<draft id of the previous response>",` && |\n| &&
              `    //         "EVENT": "SAVE",             // event name` && |\n| &&
              `    //         "T_EVENT_ARG": ["arg1"],     // further event arguments` && |\n| &&
-             `    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",` && |\n| &&
-             `    //         "SEARCH": "?p=1", "HASH": "#...",` && |\n| &&
+             `    //         "HASH": "#...",              // live routing state, every request` && |\n| &&
+             `    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...", "SEARCH": "?p=1",` && |\n| &&
+             `    //                                      // session-constant location: only on` && |\n| &&
+             `    //                                      // app-start-shaped requests and the` && |\n| &&
+             `    //                                      // page load's first roundtrip` && |\n| &&
              `    //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},` && |\n| &&
              `    //                     "S_FOCUS": {...}, "S_SCROLL": {...},` && |\n| &&
              `    //                     "ComponentData": {...} }` && |\n| &&
@@ -185,13 +188,24 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            S_SCROLL: ScrollFocus.getScrollInfo(),` && |\n| &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
-             `          ORIGIN: window.location.origin,` && |\n| &&
-             `          PATHNAME: window.location.pathname,` && |\n| &&
-             `          SEARCH: state.search || window.location.search,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
+             `          // the hash is NOT session-constant - it carries the live routing` && |\n| &&
+             `          // state (route restore, app-state bookmarks) on every request` && |\n| &&
              `          HASH: window.location.hash,` && |\n| &&
              `        };` && |\n| &&
              `        const sFront = oBody.S_FRONT;` && |\n| &&
+             `` && |\n| &&
+             `        // The page location is session-constant, so the backend stores it` && |\n| &&
+             `        // with the draft (session_merge) and event roundtrips omit it. It` && |\n| &&
+             `        // still travels with every app-start-shaped request (no draft id):` && |\n| &&
+             `        // the backend parses ?app_start= from SEARCH only there, and a route` && |\n| &&
+             `        // restore (Back/Forward) is exactly such a request.` && |\n| &&
+             `        if (!oBody.ID || !this._locationSent) {` && |\n| &&
+             `          this._locationSent = true;` && |\n| &&
+             `          sFront.ORIGIN = window.location.origin;` && |\n| &&
+             `          sFront.PATHNAME = window.location.pathname;` && |\n| &&
+             `          sFront.SEARCH = state.search || window.location.search;` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
              `        // The first argument was the event name (already stored as EVENT),` && |\n| &&
              `        // the remaining entries are the actual event arguments.` && |\n| &&
@@ -410,7 +424,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
              `        try {` && |\n| &&
              `          AppState.state.oResponse = response;` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `          // The backend can send follow-up actions to run after the response.` && |\n| &&
              `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n| &&
              `          // actions, pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
@@ -424,8 +439,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // carried on the response record, not on shared state: with` && |\n| &&
              `          // parallel responses a single global would let the older render` && |\n| &&
              `          // consume the newer response's snippets (and lose its own)` && |\n| &&
-             `          response._pendingCustomJs = followUp?.T_CUSTOM || null;` && |\n|.
-    result = result &&
+             `          response._pendingCustomJs = followUp?.T_CUSTOM || null;` && |\n| &&
              `` && |\n| &&
              `          // Every view-lifecycle call, the MAIN rebuild included, is a system` && |\n| &&
              `          // action now - so there is nothing slot-specific left here. The` && |\n| &&
