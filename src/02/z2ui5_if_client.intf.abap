@@ -287,7 +287,6 @@ INTERFACE z2ui5_if_client
       val           TYPE clike                              OPTIONAL
       t_arg         TYPE string_table                       OPTIONAL
       s_ctrl        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
-      r_data        TYPE data                               OPTIONAL
         PREFERRED PARAMETER val
     RETURNING
       VALUE(result) TYPE string.
@@ -463,9 +462,11 @@ INTERFACE z2ui5_if_client
   "! _event_client with the same t_arg (and view).
   METHODS follow_up_action
     IMPORTING
-      val   TYPE string
-      view  TYPE clike        DEFAULT cs_view-main
-      t_arg TYPE string_table OPTIONAL.
+      val           TYPE string
+      view          TYPE clike        DEFAULT cs_view-main
+      t_arg         TYPE string_table OPTIONAL
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS check_on_event
     IMPORTING
