@@ -1,13 +1,54 @@
-CLASS z2ui5_cl_core_srv_msg DEFINITION PUBLIC FINAL CREATE PUBLIC.
+"! Everything the backend asks the FRONTEND to do, in one place: it builds
+"! the follow-up action payloads and queues them. z2ui5_cl_core_client keeps
+"! only the public API surface and hands straight through to here.
+"!
+"! The two queues differ in phase, not in format. SYSTEM carries the view
+"! lifecycle and runs first, before the view is rendered; APP carries what an
+"! app asked for and runs last, once the DOM exists.
+CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    "! Build the CONTROL_GLOBAL argument list that displays a message toast:
+    "! The view slots, spelled as the frontend's ViewSlots module knows them.
+    CONSTANTS:
+      BEGIN OF cs_slot,
+        main    TYPE string VALUE `MAIN`,
+        nest    TYPE string VALUE `NEST`,
+        nest2   TYPE string VALUE `NEST2`,
+        popup   TYPE string VALUE `POPUP`,
+        popover TYPE string VALUE `POPOVER`,
+      END OF cs_slot.
+
+    METHODS constructor
+      IMPORTING
+        action TYPE REF TO z2ui5_cl_core_action.
+
+    "! Tear a view slot down. Everything queued for that slot so far is
+    "! dropped: whatever it was, this call decides the slot's state.
+    METHODS slot_destroy
+      IMPORTING
+        slot TYPE clike.
+
+    "! Display a view in a slot - preceded by its own teardown action, so the
+    "! frontend receives the complete sequence and only runs it. Displaying a
+    "! slot twice queues ONE display, with the last XML.
+    METHODS slot_display
+      IMPORTING
+        slot                          TYPE clike
+        xml                           TYPE clike
+        id                            TYPE clike OPTIONAL
+        method_insert                 TYPE clike OPTIONAL
+        method_destroy                TYPE clike OPTIONAL
+        open_by_id                    TYPE clike OPTIONAL
+        switch_default_model_path     TYPE clike OPTIONAL
+        switch_default_model_anno_uri TYPE clike OPTIONAL.
+
+    "! Queue a message toast for the APP phase.
     "! `MESSAGE_TOAST`, `show`, the text, and the options object. Only the
     "! options the app actually set end up in that object, and when it would
     "! be empty it is left off entirely - the control then applies its own
     "! defaults for everything.
-    METHODS get_toast_arg
+    METHODS msg_toast
       IMPORTING
         text                     TYPE clike
         duration                 TYPE clike     OPTIONAL
@@ -22,16 +63,12 @@ CLASS z2ui5_cl_core_srv_msg DEFINITION PUBLIC FINAL CREATE PUBLIC.
         animationtimingfunction  TYPE clike     OPTIONAL
         animationduration        TYPE clike     OPTIONAL
         closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
-        class                    TYPE clike     OPTIONAL
-      RETURNING
-        VALUE(result)            TYPE string_table.
+        class                    TYPE clike     OPTIONAL.
 
-    "! The same for a message box: `MESSAGE_BOX`, the box type - which is the
-    "! MessageBox display method the global call invokes - the text, and the
-    "! options object. text is TYPE any: a message table ( BAPIRET2 and
-    "! friends ) is run through the formatter first. An EMPTY result means
-    "! the formatter found nothing worth showing.
-    METHODS get_box_arg
+    "! The same for a message box. text is TYPE any: a message table (
+    "! BAPIRET2 and friends ) is run through the formatter first, and a
+    "! formatter that finds nothing worth showing queues nothing at all.
+    METHODS msg_box
       IMPORTING
         text              TYPE any
         type              TYPE clike        DEFAULT `information`
@@ -46,12 +83,18 @@ CLASS z2ui5_cl_core_srv_msg DEFINITION PUBLIC FINAL CREATE PUBLIC.
         details           TYPE clike        OPTIONAL
         closeonnavigation TYPE abap_bool    DEFAULT abap_true
         dependenton       TYPE clike        OPTIONAL
-        contentwidth      TYPE clike        OPTIONAL
-      RETURNING
-        VALUE(result)     TYPE string_table.
+        contentwidth      TYPE clike        OPTIONAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    DATA mo_action    TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
+
+    "! Queue one APP-phase action.
+    METHODS queue_app
+      IMPORTING
+        t_arg TYPE string_table.
 
     "! The sap.m.MessageBox display methods, i.e. the box types the
     "! whitelisted global call accepts.
@@ -83,6 +126,11 @@ CLASS z2ui5_cl_core_srv_msg DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
     "! Add an option to the payload, but only when the app set it - an option
     "! that is absent lets the control apply its own default.
+    "! Drop everything queued for a slot so far - see the method body.
+    METHODS slot_reset
+      IMPORTING
+        slot TYPE clike.
+
     METHODS set_opt_string
       IMPORTING
         json TYPE REF TO z2ui5_if_ajson
@@ -102,7 +150,7 @@ CLASS z2ui5_cl_core_srv_msg DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_msg IMPLEMENTATION.
+CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
 
   METHOD class_constructor.
@@ -118,7 +166,102 @@ CLASS z2ui5_cl_core_srv_msg IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_toast_arg.
+  METHOD constructor.
+
+    mo_action = action.
+    mo_srv_event = NEW #( ).
+
+  ENDMETHOD.
+
+
+  METHOD queue_app.
+
+    INSERT mo_srv_event->get_event_client_json(
+               val   = z2ui5_if_client=>cs_event-control_global
+               t_arg = t_arg )
+           INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+
+  ENDMETHOD.
+
+
+  METHOD slot_destroy.
+
+    slot_reset( slot ).
+    INSERT VALUE #( slot   = slot
+                    method = `destroy` )
+           INTO TABLE mo_action->ms_next-t_system.
+
+  ENDMETHOD.
+
+
+  METHOD slot_reset.
+
+    " Everything queued for this slot so far is void: whatever it was, the
+    " call being queued now decides the slot's state. That is what made the
+    " old slot STRUCT behave the way it did - a second popup_display( )
+    " overwrote the first, a destroy after a display wiped it - only here it
+    " is explicit, so the frontend receives one destroy and at most one
+    " display per slot and needs no such rule of its own.
+    DELETE mo_action->ms_next-t_system WHERE slot = slot.
+
+  ENDMETHOD.
+
+
+  METHOD slot_display.
+
+    " A display always tears the slot down first - stated as its own action
+    " rather than left to the frontend, so the list the frontend gets is the
+    " complete sequence and it only has to run it.
+    slot_reset( slot ).
+    INSERT VALUE #( slot   = slot
+                    method = `destroy` )
+           INTO TABLE mo_action->ms_next-t_system.
+
+    TRY.
+        " The options carry what is specific to a slot - the popover's
+        " anchor, a nested view's insert/destroy methods, the MAIN view's
+        " model switch. An option the caller left alone is absent, never
+        " sent as an empty value.
+        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        set_opt_string( json = li_opt
+                        name = `id`
+                        val  = id ).
+        set_opt_string( json = li_opt
+                        name = `methodInsert`
+                        val  = method_insert ).
+        set_opt_string( json = li_opt
+                        name = `methodDestroy`
+                        val  = method_destroy ).
+        set_opt_string( json = li_opt
+                        name = `openById`
+                        val  = open_by_id ).
+        set_opt_string( json = li_opt
+                        name = `switchDefaultModelPath`
+                        val  = switch_default_model_path ).
+        set_opt_string( json = li_opt
+                        name = `switchDefaultModelAnnoUri`
+                        val  = switch_default_model_anno_uri ).
+
+        INSERT VALUE #( slot    = slot
+                        method  = `display`
+                        xml     = xml
+                        options = li_opt->stringify( ) )
+               INTO TABLE mo_action->ms_next-t_system.
+
+      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING
+            val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
+    ENDTRY.
+
+    " new XML in any slot needs the model with it - recorded here rather than
+    " re-derived from the response, see ty_s_next-check_view_shipped
+    mo_action->ms_next-check_view_shipped = abap_true.
+
+  ENDMETHOD.
+
+
+  METHOD msg_toast.
 
     TRY.
         DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
@@ -177,11 +320,12 @@ CLASS z2ui5_cl_core_srv_msg IMPLEMENTATION.
 
         " sap.m.MessageToast is a global object, so the toast rides the
         " generic whitelisted global call
-        result = VALUE #( ( `MESSAGE_TOAST` )
-                          ( `show` )
-                          ( CONV string( text ) ) ).
+        DATA(lt_arg) = VALUE string_table( ( `MESSAGE_TOAST` )
+                                           ( `show` )
+                                           ( CONV string( text ) ) ).
         append_opt( json = li_opt
-                    arg  = REF #( result ) ).
+                    arg  = REF #( lt_arg ) ).
+        queue_app( lt_arg ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
@@ -192,7 +336,7 @@ CLASS z2ui5_cl_core_srv_msg IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_box_arg.
+  METHOD msg_box.
 
     DATA(ls_msg) = box_resolve( text    = text
                                 type    = type
@@ -262,11 +406,12 @@ CLASS z2ui5_cl_core_srv_msg IMPLEMENTATION.
 
         " sap.m.MessageBox is a global too - and its display methods are the
         " box types, so the type IS the method of the global call
-        result = VALUE #( ( `MESSAGE_BOX` )
-                          ( ls_msg-type )
-                          ( ls_msg-text ) ).
+        DATA(lt_arg) = VALUE string_table( ( `MESSAGE_BOX` )
+                                           ( ls_msg-type )
+                                           ( ls_msg-text ) ).
         append_opt( json = li_opt
-                    arg  = REF #( result ) ).
+                    arg  = REF #( lt_arg ) ).
+        queue_app( lt_arg ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error

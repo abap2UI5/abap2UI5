@@ -1897,8 +1897,6 @@ sap.ui.define(
       LOCATION_RELOAD: evLocationReload,
       SYSTEM_LOGOUT: evSystemLogout,
       OPEN_NEW_TAB: evOpenNewTab,
-      POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),
-      POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),
       BIND_ELEMENT: evBindElement,
       URLHELPER: evUrlHelper,
       IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,

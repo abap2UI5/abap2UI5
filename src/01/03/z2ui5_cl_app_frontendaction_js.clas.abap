@@ -1928,8 +1928,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      LOCATION_RELOAD: evLocationReload,` && |\n| &&
              `      SYSTEM_LOGOUT: evSystemLogout,` && |\n| &&
              `      OPEN_NEW_TAB: evOpenNewTab,` && |\n| &&
-             `      POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),` && |\n| &&
-             `      POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),` && |\n| &&
              `      BIND_ELEMENT: evBindElement,` && |\n| &&
              `      URLHELPER: evUrlHelper,` && |\n| &&
              `      IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,` && |\n| &&

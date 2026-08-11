@@ -135,6 +135,21 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
                         ( `to` )
                         ( VALUE #( t_arg[ 2 ] OPTIONAL ) ) ).
       lv_val = z2ui5_if_client=>cs_event-control_by_id.
+    ELSEIF lv_val = z2ui5_if_client=>cs_event-popup_close
+        OR lv_val = z2ui5_if_client=>cs_event-popover_close.
+      " Closing a popup IS tearing its slot down - the same call the framework
+      " itself queues for a popup_destroy( ) or an app switch. The two public
+      " constants stay ( an app closes its dialog with _event_client(
+      " cs_event-popup_close ), round-trip free, and that is the whole point
+      " of them ), but they are formatted as the one VIEW_SLOTS call here, so
+      " the frontend has a single teardown path rather than a second handler
+      " that happens to do the same thing.
+      lt_arg = VALUE #( ( `VIEW_SLOTS` )
+                        ( `destroy` )
+                        ( COND #( WHEN lv_val = z2ui5_if_client=>cs_event-popup_close
+                                  THEN `POPUP`
+                                  ELSE `POPOVER` ) ) ).
+      lv_val = z2ui5_if_client=>cs_event-control_global.
     ELSEIF lv_val = z2ui5_if_client=>cs_event-control_by_id.
       " the view is passed as its own parameter now, not as a positional
       " t_arg slot; inject it at position 2 so the frontend still reads

@@ -11,7 +11,7 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
     DATA mo_srv_bind  TYPE REF TO z2ui5_cl_core_srv_bind.
     DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
-    DATA mo_srv_msg   TYPE REF TO z2ui5_cl_core_srv_msg.
+    DATA mo_action_front   TYPE REF TO z2ui5_cl_core_action_front.
 
     METHODS nav_app_set_id
       IMPORTING
@@ -26,44 +26,6 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    "! The view slots, spelled as the frontend's ViewSlots module knows them.
-    CONSTANTS:
-      BEGIN OF cs_slot,
-        main    TYPE string VALUE `MAIN`,
-        nest    TYPE string VALUE `NEST`,
-        nest2   TYPE string VALUE `NEST2`,
-        popup   TYPE string VALUE `POPUP`,
-        popover TYPE string VALUE `POPOVER`,
-      END OF cs_slot.
-
-    METHODS slot_destroy
-      IMPORTING
-        slot TYPE clike.
-
-    "! Drop everything queued for a slot so far - see the method body.
-    METHODS slot_reset
-      IMPORTING
-        slot TYPE clike.
-
-    METHODS slot_display
-      IMPORTING
-        slot                          TYPE clike
-        xml                           TYPE clike
-        id                            TYPE clike OPTIONAL
-        method_insert                 TYPE clike OPTIONAL
-        method_destroy                TYPE clike OPTIONAL
-        open_by_id                    TYPE clike OPTIONAL
-        switch_default_model_path     TYPE clike OPTIONAL
-        switch_default_model_anno_uri TYPE clike OPTIONAL.
-
-    METHODS set_opt
-      IMPORTING
-        json TYPE REF TO z2ui5_if_ajson
-        name TYPE string
-        val  TYPE clike
-      RAISING
-        z2ui5_cx_ajson_error.
-
 ENDCLASS.
 
 
@@ -75,7 +37,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action = action.
     mo_srv_bind = NEW #( mo_action->mo_app ).
     mo_srv_event = NEW #( ).
-    mo_srv_msg = NEW #( ).
+    mo_action_front = NEW #( mo_action ).
 
   ENDMETHOD.
 
@@ -95,96 +57,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
     INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
-
-  ENDMETHOD.
-
-
-  METHOD slot_destroy.
-
-    " every slot tears down through the one ViewSlots.destroy( key ) the
-    " frontend already had - the five *_destroy( ) methods differ in nothing
-    " but the key they name
-    slot_reset( slot ).
-    INSERT VALUE #( slot   = slot
-                    method = `destroy` )
-           INTO TABLE mo_action->ms_next-t_system.
-
-  ENDMETHOD.
-
-
-  METHOD slot_reset.
-
-    " Everything queued for this slot so far is void: whatever it was, the
-    " call being queued now decides the slot's state. That is what made the
-    " old slot STRUCT behave the way it did - a second popup_display( )
-    " overwrote the first, a destroy after a display wiped it - only here it
-    " is explicit, so the frontend receives one destroy and at most one
-    " display per slot and needs no such rule of its own.
-    DELETE mo_action->ms_next-t_system WHERE slot = slot.
-
-  ENDMETHOD.
-
-
-  METHOD slot_display.
-
-    " A display always tears the slot down first - stated as its own action
-    " rather than left to the frontend, so the list the frontend gets is the
-    " complete sequence and it only has to run it.
-    slot_reset( slot ).
-    INSERT VALUE #( slot   = slot
-                    method = `destroy` )
-           INTO TABLE mo_action->ms_next-t_system.
-
-    TRY.
-        " The options carry what is specific to a slot - the popover's
-        " anchor, a nested view's insert/destroy methods, the MAIN view's
-        " model switch. An option the caller left alone is absent, never
-        " sent as an empty value.
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        set_opt( json = li_opt
-                 name = `id`
-                 val  = id ).
-        set_opt( json = li_opt
-                 name = `methodInsert`
-                 val  = method_insert ).
-        set_opt( json = li_opt
-                 name = `methodDestroy`
-                 val  = method_destroy ).
-        set_opt( json = li_opt
-                 name = `openById`
-                 val  = open_by_id ).
-        set_opt( json = li_opt
-                 name = `switchDefaultModelPath`
-                 val  = switch_default_model_path ).
-        set_opt( json = li_opt
-                 name = `switchDefaultModelAnnoUri`
-                 val  = switch_default_model_anno_uri ).
-
-        INSERT VALUE #( slot    = slot
-                        method  = `display`
-                        xml     = xml
-                        options = li_opt->stringify( ) )
-               INTO TABLE mo_action->ms_next-t_system.
-
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING
-            val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
-    ENDTRY.
-
-    " new XML in any slot needs the model with it - recorded here rather than
-    " re-derived from the response, see ty_s_next-check_view_shipped
-    mo_action->ms_next-check_view_shipped = abap_true.
-
-  ENDMETHOD.
-
-
-  METHOD set_opt.
-
-    IF val IS NOT INITIAL.
-      json->set_string( iv_path = |/{ name }|
-                        iv_val  = val ).
-    ENDIF.
 
   ENDMETHOD.
 
@@ -266,48 +138,40 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
-    DATA(lt_arg) = mo_srv_msg->get_box_arg( text              = text
-                                            type              = type
-                                            title             = title
-                                            styleclass        = styleclass
-                                            onclose           = onclose
-                                            actions           = actions
-                                            emphasizedaction  = emphasizedaction
-                                            initialfocus      = initialfocus
-                                            textdirection     = textdirection
-                                            icon              = icon
-                                            details           = details
-                                            closeonnavigation = closeonnavigation
-                                            dependenton       = dependenton
-                                            contentwidth      = contentwidth ).
-
-    " a message table the formatter found nothing worth showing in
-    IF lt_arg IS NOT INITIAL.
-      z2ui5_if_client~follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                        t_arg = lt_arg ).
-    ENDIF.
+    mo_action_front->msg_box( text              = text
+                              type              = type
+                              title             = title
+                              styleclass        = styleclass
+                              onclose           = onclose
+                              actions           = actions
+                              emphasizedaction  = emphasizedaction
+                              initialfocus      = initialfocus
+                              textdirection     = textdirection
+                              icon              = icon
+                              details           = details
+                              closeonnavigation = closeonnavigation
+                              dependenton       = dependenton
+                              contentwidth      = contentwidth ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~message_toast_display.
 
-    z2ui5_if_client~follow_up_action(
-        val   = z2ui5_if_client=>cs_event-control_global
-        t_arg = mo_srv_msg->get_toast_arg( text                     = text
-                                           duration                 = duration
-                                           width                    = width
-                                           my                       = my
-                                           at                       = at
-                                           of                       = of
-                                           offset                   = offset
-                                           collision                = collision
-                                           onclose                  = onclose
-                                           autoclose                = autoclose
-                                           animationtimingfunction  = animationtimingfunction
-                                           animationduration        = animationduration
-                                           closeonbrowsernavigation = closeonbrowsernavigation
-                                           class                    = class ) ).
+    mo_action_front->msg_toast( text                     = text
+                                duration                 = duration
+                                width                    = width
+                                my                       = my
+                                at                       = at
+                                of                       = of
+                                offset                   = offset
+                                collision                = collision
+                                onclose                  = onclose
+                                autoclose                = autoclose
+                                animationtimingfunction  = animationtimingfunction
+                                animationduration        = animationduration
+                                closeonbrowsernavigation = closeonbrowsernavigation
+                                class                    = class ).
 
   ENDMETHOD.
 
@@ -358,18 +222,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    slot_destroy( cs_slot-nest2 ).
+    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-nest2 ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    slot_display( slot           = cs_slot-nest2
-                  xml            = val
-                  id             = id
-                  method_insert  = method_insert
-                  method_destroy = method_destroy ).
+    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-nest2
+                  xml                   = val
+                  id                    = id
+                  method_insert         = method_insert
+                  method_destroy        = method_destroy ).
 
   ENDMETHOD.
 
@@ -385,18 +249,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    slot_destroy( cs_slot-nest ).
+    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-nest ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    slot_display( slot           = cs_slot-nest
-                  xml            = val
-                  id             = id
-                  method_insert  = method_insert
-                  method_destroy = method_destroy ).
+    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-nest
+                  xml                   = val
+                  id                    = id
+                  method_insert         = method_insert
+                  method_destroy        = method_destroy ).
 
   ENDMETHOD.
 
@@ -410,16 +274,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_destroy.
 
-    slot_destroy( cs_slot-popover ).
+    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-popover ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_display.
 
-    slot_display( slot       = cs_slot-popover
-                  xml        = xml
-                  open_by_id = by_id ).
+    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-popover
+                  xml                   = xml
+                  open_by_id            = by_id ).
 
   ENDMETHOD.
 
@@ -434,15 +298,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    slot_destroy( cs_slot-popup ).
+    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-popup ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_display.
 
-    slot_display( slot = cs_slot-popup
-                  xml  = val ).
+    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-popup
+                  xml                   = val ).
 
   ENDMETHOD.
 
@@ -457,14 +321,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_destroy.
 
-    slot_destroy( cs_slot-main ).
+    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-main ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_display.
 
-    slot_display( slot                          = cs_slot-main
+    mo_action_front->slot_display( slot         = z2ui5_cl_core_action_front=>cs_slot-main
                   xml                           = val
                   switch_default_model_path     = switch_default_model_path
                   switch_default_model_anno_uri = switch_default_model_anno_uri ).
