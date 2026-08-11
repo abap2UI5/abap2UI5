@@ -82,6 +82,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
+
+    IF result IS SUPPLIED.
+
+      result = mo_srv_event->get_event_client( val   = val
+                                               view  = view
+                                               t_arg = t_arg ).
+      RETURN.
+    ENDIF.
+
+
     DATA(lv_js) = val.
 
     IF val IS NOT INITIAL
@@ -550,10 +560,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     result = mo_srv_event->get_event( val   = val
                                       t_arg = t_arg
                                       s_cnt = s_ctrl ).
-
-    IF r_data IS NOT INITIAL.
-      mo_action->ms_next-r_data = z2ui5_cl_a2ui5_context=>conv_copy_ref_data( r_data ).
-    ENDIF.
 
   ENDMETHOD.
 
