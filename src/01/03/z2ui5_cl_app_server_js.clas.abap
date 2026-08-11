@@ -173,22 +173,23 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //       "ID": "<new draft id>",        // sent back with the next request` && |\n| &&
              `    //       "PARAMS": {` && |\n| &&
              `    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },` && |\n| &&
-             `    //         "S_FOLLOW_UP_ACTION": {` && |\n| &&
+             `    //         "S_ACTION": {` && |\n| &&
              `    //           // SYSTEM: the framework's own view-lifecycle calls, run` && |\n| &&
              `    //           // first, in order, before the view is rendered` && |\n| &&
-             `    //           "SYSTEM_JS": [` && |\n| &&
+             `    //           "T_SYSTEM": [` && |\n| &&
              `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",` && |\n| &&
              `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"` && |\n| &&
              `    //           ],` && |\n| &&
              `    //           // APP: what the app queued, run last, once the DOM exists` && |\n| &&
-             `    //           "CUSTOM_JS": ["[\"SET_FOCUS\",\"id1\"]"]` && |\n| &&
+             `    //           "T_CUSTOM": ["[\"SET_FOCUS\",\"id1\"]"]` && |\n| &&
              `    //         },` && |\n| &&
              `    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",` && |\n| &&
              `    //         "SET_NAV_BACK": ""           // browser/history follow-ups` && |\n| &&
              `    //       }` && |\n| &&
              `    //     },` && |\n| &&
              `    //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes` && |\n| &&
-             `    //   }                                  // the view's binding model` && |\n| &&
+             `    //   }                                  // the view's binding model. Absent` && |\n| &&
+             `    //                                      // when nothing bound changed.` && |\n| &&
              `    //` && |\n| &&
              `    // Inspect live payloads via the developer tools (Ctrl+F12): "Previous` && |\n| &&
              `    // Request" and "Response".` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            ViewSlots.getView(slot.key),` && |\n| &&
              `          );` && |\n| &&
              `          out[slot.key] = {` && |\n| &&
-             `            ID: id,` && |\n| &&
-             `            X: entry.dom.scrollLeft || 0,` && |\n|.
+             `            ID: id,` && |\n|.
     result = result &&
+             `            X: entry.dom.scrollLeft || 0,` && |\n| &&
              `            Y: entry.dom.scrollTop || 0,` && |\n| &&
              `          };` && |\n| &&
              `        }` && |\n| &&
@@ -659,7 +660,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            {` && |\n| &&
              `              ID: responseData.S_FRONT.ID,` && |\n| &&
              `              PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
-             `              OVIEWMODEL: responseData.MODEL,` && |\n| &&
+             `              // A response whose model did not change carries no MODEL key` && |\n| &&
+             `              // at all; every consumer downstream sees the empty object it` && |\n| &&
+             `              // used to be sent explicitly.` && |\n| &&
+             `              OVIEWMODEL: responseData.MODEL ?? {},` && |\n| &&
              `              // Class name of the rendered app - used by the hash router to` && |\n| &&
              `              // keep the URL route "#/app/<CLASS>" in sync (View1).` && |\n| &&
              `              APP: responseData.S_FRONT.APP,` && |\n| &&
@@ -687,11 +691,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // them earlier would break render-dependent actions such as` && |\n| &&
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&
-             `          const followUp = params?.S_FOLLOW_UP_ACTION;` && |\n| &&
+             `          const followUp = params?.S_ACTION;` && |\n| &&
              `          // carried on the response record, not on shared state: with` && |\n| &&
              `          // parallel responses a single global would let the older render` && |\n| &&
              `          // consume the newer response's snippets (and lose its own)` && |\n| &&
-             `          response._pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
+             `          response._pendingCustomJs = followUp?.T_CUSTOM || null;` && |\n| &&
              `` && |\n| &&
              `          // Every view-lifecycle call, the MAIN rebuild included, is a system` && |\n| &&
              `          // action now - so there is nothing slot-specific left here. The` && |\n| &&
@@ -821,12 +825,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        BusyIndicator.hide();` && |\n| &&
              `        AppState.state.isBusy = false;` && |\n| &&
              `        ErrorView.show(response, title, oOptions);` && |\n| &&
-             `      },` && |\n| &&
+             `      },` && |\n|.
+    result = result &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
               ``.
 
   ENDMETHOD.

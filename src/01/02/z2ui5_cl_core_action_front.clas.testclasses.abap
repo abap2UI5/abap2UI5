@@ -38,7 +38,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
   METHOD queued.
 
     " the APP-phase action the call queued - there is exactly one per test
-    result = VALUE #( mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] OPTIONAL ).
+    result = VALUE #( mo_action->ms_next-s_set-s_action-t_custom[ 1 ] OPTIONAL ).
 
   ENDMETHOD.
 
@@ -162,7 +162,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_box( lt_msg ).
 
     cl_abap_unit_assert=>assert_initial(
-        mo_action->ms_next-s_set-s_follow_up_action-custom_js ).
+        mo_action->ms_next-s_set-s_action-t_custom ).
 
   ENDMETHOD.
 

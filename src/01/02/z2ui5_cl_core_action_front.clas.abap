@@ -179,7 +179,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     INSERT mo_srv_event->get_event_client_json(
                val   = z2ui5_if_client=>cs_event-control_global
                t_arg = t_arg )
-           INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+           INTO TABLE mo_action->ms_next-s_set-s_action-t_custom.
 
   ENDMETHOD.
 
@@ -189,7 +189,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     slot_reset( slot ).
     INSERT VALUE #( slot   = slot
                     method = `destroy` )
-           INTO TABLE mo_action->ms_next-t_system.
+           INTO TABLE mo_action->ms_next-t_action_front.
 
   ENDMETHOD.
 
@@ -202,7 +202,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     " overwrote the first, a destroy after a display wiped it - only here it
     " is explicit, so the frontend receives one destroy and at most one
     " display per slot and needs no such rule of its own.
-    DELETE mo_action->ms_next-t_system WHERE slot = slot.
+    DELETE mo_action->ms_next-t_action_front WHERE slot = slot.
 
   ENDMETHOD.
 
@@ -215,7 +215,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     slot_reset( slot ).
     INSERT VALUE #( slot   = slot
                     method = `destroy` )
-           INTO TABLE mo_action->ms_next-t_system.
+           INTO TABLE mo_action->ms_next-t_action_front.
 
     TRY.
         " The options carry what is specific to a slot - the popover's
@@ -246,7 +246,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
                         method  = `display`
                         xml     = xml
                         options = li_opt->stringify( ) )
-               INTO TABLE mo_action->ms_next-t_system.
+               INTO TABLE mo_action->ms_next-t_action_front.
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error

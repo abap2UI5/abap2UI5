@@ -193,8 +193,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    // "<slot>","<xml>", {options}?]. Only used as a fallback for the case` && |\n| &&
              `    // where the slot holds no live view to read the content off.` && |\n| &&
              `    function getResponseXml(slotKey) {` && |\n| &&
-             `      const systemJs =` && |\n| &&
-             `        AppState.state.oResponse?.PARAMS?.S_FOLLOW_UP_ACTION?.SYSTEM_JS;` && |\n| &&
+             `      const systemJs = AppState.state.oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `      if (!systemJs) return undefined;` && |\n| &&
              `      for (const item of systemJs) {` && |\n| &&
              `        let args;` && |\n| &&
@@ -424,9 +423,9 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          json(() => jsonSources.PLAIN()),` && |\n| &&
              `        );` && |\n| &&
              `        push(` && |\n| &&
-             `          "PREVIOUS REQUEST",` && |\n|.
+             `          "PREVIOUS REQUEST",` && |\n| &&
+             `          json(() => jsonSources.REQUEST()),` && |\n|.
     result = result &&
-             `          json(() => jsonSources.REQUEST()),` && |\n| &&
              `        );` && |\n| &&
              `        push(` && |\n| &&
              `          "VIEW",` && |\n| &&

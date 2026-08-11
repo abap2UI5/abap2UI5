@@ -66,6 +66,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_slots FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
+    METHODS test_response_no_model    FOR TESTING RAISING cx_static_check.
     METHODS test_system_slot_order    FOR TESTING RAISING cx_static_check.
     METHODS test_system_last_wins     FOR TESTING RAISING cx_static_check.
     METHODS test_system_empty         FOR TESTING RAISING cx_static_check.
@@ -386,6 +387,26 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_response_no_model.
+
+    " a round-trip that changed nothing bound sends no MODEL key at all
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_response TYPE z2ui5_if_core_types=>ty_s_response.
+    lo_handler = NEW #( val = `` ).
+    ls_response-s_front-id = `ID123`.
+
+    DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
+
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `MODEL` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `S_FRONT` ) ).
+
+    " and an explicitly empty one is treated the same
+    ls_response-model = `{}`.
+    lv_json = lo_handler->response_abap_to_json( ls_response ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `MODEL` ) ).
+
+  ENDMETHOD.
+
   METHOD test_system_slot_order.
 
     " The app displays in whatever order suits it - here nested first, main
@@ -431,7 +452,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->system_actions_serialize( ).
 
-    DATA(lt_js) = lo_handler->mo_action->ms_next-s_set-s_follow_up_action-system_js.
+    DATA(lt_js) = lo_handler->mo_action->ms_next-s_set-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_js ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","MAIN"]`
@@ -451,7 +472,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_handler->system_actions_serialize( ).
 
     cl_abap_unit_assert=>assert_initial(
-        lo_handler->mo_action->ms_next-s_set-s_follow_up_action-system_js ).
+        lo_handler->mo_action->ms_next-s_set-s_action-t_system ).
 
   ENDMETHOD.
 
@@ -459,7 +480,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " the slots named by the serialized actions, in order, each one once -
     " so the assertion reads as the sequence and not as a payload dump
-    LOOP AT val->mo_action->ms_next-s_set-s_follow_up_action-system_js INTO DATA(lv_js).
+    LOOP AT val->mo_action->ms_next-s_set-s_action-t_system INTO DATA(lv_js).
       SPLIT lv_js AT `","` INTO TABLE DATA(lt_part).
       DATA(lv_slot) = replace( val  = VALUE string( lt_part[ 4 ] OPTIONAL )
                                sub  = `"]`
@@ -682,7 +703,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_char_cp(
         exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","MAIN"]*`
         act = concat_lines_of(
-                  table = lo_handler->ms_response-s_front-params-s_follow_up_action-system_js
+                  table = lo_handler->ms_response-s_front-params-s_action-t_system
                   sep   = `|` ) ).
     cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
@@ -708,7 +729,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
                                         act = lo_handler->ms_response-model ).
     " an unchanged model asks for no push at all
     cl_abap_unit_assert=>assert_initial(
-        lo_handler->ms_response-s_front-params-s_follow_up_action-system_js ).
+        lo_handler->ms_response-s_front-params-s_action-t_system ).
 
   ENDMETHOD.
 
@@ -735,7 +756,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
               `|["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","POPUP"]` &&
               `|["CONTROL_GLOBAL","VIEW_SLOTS","updateModel","POPOVER"]`
         act = concat_lines_of(
-                  table = lo_handler->ms_response-s_front-params-s_follow_up_action-system_js
+                  table = lo_handler->ms_response-s_front-params-s_action-t_system
                   sep   = `|` ) ).
 
   ENDMETHOD.

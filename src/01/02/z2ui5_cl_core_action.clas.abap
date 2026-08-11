@@ -104,7 +104,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
                                  ( `MESSAGE_TOAST` )
                                  ( `show` )
                                  ( `Bookmarked app state expired or could not be restored - starting with a fresh app` ) ) )
-                     INTO TABLE result->ms_next-s_set-s_follow_up_action-custom_js.
+                     INTO TABLE result->ms_next-s_set-s_action-t_custom.
           ENDTRY.
         ENDIF.
 
@@ -213,7 +213,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " s_set brings no stale request with it - what has to be reset is the
     " backend's own note that this roundtrip shipped a view
     CLEAR ms_next-check_view_shipped.
-    CLEAR ms_next-t_system.
+    CLEAR ms_next-t_action_front.
 
   ENDMETHOD.
 
@@ -253,10 +253,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     IF ms_next-next_event IS NOT INITIAL.
       result->ms_actual-event = ms_next-next_event.
-    ELSEIF lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
+    ELSEIF lines( ms_next-s_set-s_action-t_custom ) > 0.
       " backward compatibility: derive the next event from a legacy
       " follow_up_action( _event( ) ) snippet ( deprecated mechanism )
-      DATA(lv_action) = ms_next-s_set-s_follow_up_action-custom_js[ 1 ].
+      DATA(lv_action) = ms_next-s_set-s_action-t_custom[ 1 ].
       SPLIT lv_action AT `.eB(['` INTO DATA(lv_dummy)
             result->ms_actual-event.
       SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
@@ -267,10 +267,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " start the next app with a clean frontend state - follow-up actions
     " queued by the previous app, messages included, must not leak into the
     " next one.
-    CLEAR result->ms_next-s_set-s_follow_up_action.
+    CLEAR result->ms_next-s_set-s_action.
 
     " Everything the leaving app queued for the frontend goes with it - it
-    " describes a screen that is being replaced. ms_next-t_system is not
+    " describes a screen that is being replaced. ms_next-t_action_front is not
     " carried over by the s_set copy above ( it is backend-only state on
     " ms_next ), so the called app starts with an empty queue by construction.
     "
@@ -281,7 +281,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " before the called app runs its main( ) - so its own popup_display( )
     " replaces this destroy through slot_reset( ). Destroying when nothing is
     " open is a no-op.
-    result->ms_next-t_system = VALUE #(
+    result->ms_next-t_action_front = VALUE #(
         ( slot = `POPUP`   method = `destroy` )
         ( slot = `POPOVER` method = `destroy` ) ).
 

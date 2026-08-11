@@ -116,8 +116,8 @@ test.describe("View tab", () => {
       // the XML rides on the system action that displayed the slot now
       oResponse: {
         PARAMS: {
-          S_FOLLOW_UP_ACTION: {
-            SYSTEM_JS: [
+          S_ACTION: {
+            T_SYSTEM: [
               '["CONTROL_GLOBAL","VIEW_SLOTS","destroy","MAIN"]',
               '["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Page/>"]',
             ],

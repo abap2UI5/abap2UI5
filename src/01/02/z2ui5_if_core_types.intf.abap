@@ -89,7 +89,7 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_next_frontend,
-      BEGIN OF s_follow_up_action,
+      BEGIN OF s_action,
         " SYSTEM actions run FIRST, in the display phase, before the view is
         " rendered - they are the framework's own view-lifecycle calls
         " (destroy a slot, display one, push the model into it), which every
@@ -97,9 +97,9 @@ INTERFACE z2ui5_if_core_types
         " the view is in the DOM, so a render-dependent one like SET_FOCUS
         " finds its target control. Same payload format and same dispatcher
         " for both, only the phase differs.
-        system_js TYPE string_table,
-        custom_js TYPE string_table,
-      END OF s_follow_up_action,
+        t_system TYPE string_table,
+        t_custom TYPE string_table,
+      END OF s_action,
       set_app_state_active  TYPE abap_bool,
       set_push_state        TYPE string,
       set_nav_back          TYPE abap_bool,
@@ -146,7 +146,7 @@ INTERFACE z2ui5_if_core_types
       " BACKEND-ONLY, never serialized: the view-lifecycle calls of this
       " roundtrip, collected while the app runs and turned into the SYSTEM
       " action list by main_end( ).
-      t_system           TYPE ty_t_system_action,
+      t_action_front     TYPE ty_t_system_action,
       " BACKEND-ONLY: did this roundtrip ship a view into any slot? The model
       " has to travel with new XML, and the decision used to be made by
       " reading the response's own s_*-xml fields back.

@@ -146,22 +146,23 @@ sap.ui.define(
     //       "ID": "<new draft id>",        // sent back with the next request
     //       "PARAMS": {
     //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },
-    //         "S_FOLLOW_UP_ACTION": {
+    //         "S_ACTION": {
     //           // SYSTEM: the framework's own view-lifecycle calls, run
     //           // first, in order, before the view is rendered
-    //           "SYSTEM_JS": [
+    //           "T_SYSTEM": [
     //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",
     //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"
     //           ],
     //           // APP: what the app queued, run last, once the DOM exists
-    //           "CUSTOM_JS": ["[\"SET_FOCUS\",\"id1\"]"]
+    //           "T_CUSTOM": ["[\"SET_FOCUS\",\"id1\"]"]
     //         },
     //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",
     //         "SET_NAV_BACK": ""           // browser/history follow-ups
     //       }
     //     },
     //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes
-    //   }                                  // the view's binding model
+    //   }                                  // the view's binding model. Absent
+    //                                      // when nothing bound changed.
     //
     // Inspect live payloads via the developer tools (Ctrl+F12): "Previous
     // Request" and "Response".
@@ -631,7 +632,10 @@ sap.ui.define(
             {
               ID: responseData.S_FRONT.ID,
               PARAMS: responseData.S_FRONT.PARAMS,
-              OVIEWMODEL: responseData.MODEL,
+              // A response whose model did not change carries no MODEL key
+              // at all; every consumer downstream sees the empty object it
+              // used to be sent explicitly.
+              OVIEWMODEL: responseData.MODEL ?? {},
               // Class name of the rendered app - used by the hash router to
               // keep the URL route "#/app/<CLASS>" in sync (View1).
               APP: responseData.S_FRONT.APP,
@@ -659,11 +663,11 @@ sap.ui.define(
           // them earlier would break render-dependent actions such as
           // SET_FOCUS on the initial view, where the target control does not
           // exist in the DOM yet.
-          const followUp = params?.S_FOLLOW_UP_ACTION;
+          const followUp = params?.S_ACTION;
           // carried on the response record, not on shared state: with
           // parallel responses a single global would let the older render
           // consume the newer response's snippets (and lose its own)
-          response._pendingCustomJs = followUp?.CUSTOM_JS || null;
+          response._pendingCustomJs = followUp?.T_CUSTOM || null;
 
           // Every view-lifecycle call, the MAIN rebuild included, is a system
           // action now - so there is nothing slot-specific left here. The

@@ -137,7 +137,7 @@ sap.ui.define(
       // queued, and one at a time: a display is async, and the next action
       // may well be about the slot it is still building.
       async _runSystemActions(oResponse, seq) {
-        const systemJs = oResponse?.PARAMS?.S_FOLLOW_UP_ACTION?.SYSTEM_JS;
+        const systemJs = oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;
         if (!systemJs) return;
         // the slot handlers take the request stamp from here rather than
         // through the generic action signature, which carries only the

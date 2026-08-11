@@ -462,9 +462,13 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ajson_result = ajson_result->filter( z2ui5_cl_a2ui5_json_fltr=>create_no_empty_values( ) ).
         DATA(lv_frontend) = ajson_result->stringify( ).
 
-        DATA(lv_model) = COND string( WHEN val-model IS NOT INITIAL THEN val-model ELSE `{}` ).
-
-        result = |\{"S_FRONT":{ lv_frontend },"MODEL":{ lv_model }\}|.
+        " An unchanged model is not sent at all - the key is left off rather
+        " than carrying an empty object. Most round-trips are events that
+        " change nothing bound, so this is the common case, and the frontend
+        " reads a missing MODEL exactly as it read the empty one.
+        result = COND #( WHEN val-model IS INITIAL OR val-model = `{}`
+                         THEN |\{"S_FRONT":{ lv_frontend }\}|
+                         ELSE |\{"S_FRONT":{ lv_frontend },"MODEL":{ val-model }\}| ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
@@ -617,7 +621,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     LOOP AT VALUE string_table( ( `MAIN` ) ( `NEST` ) ( `NEST2` ) ( `POPUP` ) ( `POPOVER` ) )
          INTO DATA(lv_slot).
-      LOOP AT mo_action->ms_next-t_system INTO DATA(ls_action) WHERE slot = lv_slot.
+      LOOP AT mo_action->ms_next-t_action_front INTO DATA(ls_action) WHERE slot = lv_slot.
         INSERT ls_action INTO TABLE lt_sorted.
       ENDLOOP.
     ENDLOOP.
@@ -636,7 +640,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       INSERT lo_srv_event->get_event_client_json(
                  val   = z2ui5_if_client=>cs_event-control_global
                  t_arg = lt_arg )
-             INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-system_js.
+             INTO TABLE mo_action->ms_next-s_set-s_action-t_system.
     ENDLOOP.
 
   ENDMETHOD.
@@ -681,7 +685,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           INSERT lo_srv_event->get_event_client_json(
                      val   = z2ui5_if_client=>cs_event-control_global
                      t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `updateModel` ) ( lv_slot ) ) )
-                 INTO TABLE ms_response-s_front-params-s_follow_up_action-system_js.
+                 INTO TABLE ms_response-s_front-params-s_action-t_system.
         ENDLOOP.
       ENDIF.
     ELSE.

@@ -164,7 +164,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // queued, and one at a time: a display is async, and the next action` && |\n| &&
              `      // may well be about the slot it is still building.` && |\n| &&
              `      async _runSystemActions(oResponse, seq) {` && |\n| &&
-             `        const systemJs = oResponse?.PARAMS?.S_FOLLOW_UP_ACTION?.SYSTEM_JS;` && |\n| &&
+             `        const systemJs = oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `        if (!systemJs) return;` && |\n| &&
              `        // the slot handlers take the request stamp from here rather than` && |\n| &&
              `        // through the generic action signature, which carries only the` && |\n| &&

@@ -66,7 +66,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                                    t_arg = t_arg ).
     ENDIF.
 
-    INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_action-t_custom.
 
   ENDMETHOD.
 
