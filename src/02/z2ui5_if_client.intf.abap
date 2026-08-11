@@ -97,6 +97,13 @@ INTERFACE z2ui5_if_client
       switch_default_model_anno_uri TYPE clike OPTIONAL
       switch_default_model_path     TYPE clike OPTIONAL.
 
+  "! obsolete - does NOTHING. An event round-trip that changes bound data
+  "! pushes the model AUTOMATICALLY: the framework compares the model state
+  "! before and after main( ) and, when it differs, sends it to every open
+  "! view slot (see z2ui5_cl_core_handler=>main_end). A handler can therefore
+  "! no longer render stale by forgetting a call, and there is nothing left
+  "! for this method to do. It stays in the interface so existing apps keep
+  "! compiling - remove the calls at your leisure.
   METHODS view_model_update.
 
   METHODS set_session_stateful
@@ -156,8 +163,8 @@ INTERFACE z2ui5_if_client
       method_destroy TYPE clike OPTIONAL.
 
   METHODS nest_view_destroy.
-  "! obsolete - a nested view inherits the MAIN view's model, so this just
-  "! delegates to view_model_update( ); call that one directly
+  "! obsolete - does NOTHING, see view_model_update. A nested view inherits
+  "! the MAIN view's model anyway, and that model is pushed automatically
   METHODS nest_view_model_update.
 
   METHODS nest2_view_display
@@ -168,18 +175,22 @@ INTERFACE z2ui5_if_client
       method_destroy TYPE clike OPTIONAL.
 
   METHODS nest2_view_destroy.
-  "! obsolete - a nested view inherits the MAIN view's model, so this just
-  "! delegates to view_model_update( ); call that one directly
+  "! obsolete - does NOTHING, see view_model_update. A nested view inherits
+  "! the MAIN view's model anyway, and that model is pushed automatically
   METHODS nest2_view_model_update.
 
   METHODS popup_display
     IMPORTING
       val TYPE clike.
 
+  "! obsolete - does NOTHING, see view_model_update. The automatic push
+  "! reaches the POPUP slot too, so an open popup refreshes on its own
   METHODS popup_model_update.
 
   METHODS popup_destroy.
 
+  "! obsolete - does NOTHING, see view_model_update. The automatic push
+  "! reaches the POPOVER slot too, so an open popover refreshes on its own
   METHODS popover_model_update.
 
   METHODS popover_display

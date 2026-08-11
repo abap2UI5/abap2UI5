@@ -270,11 +270,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_model_update.
 
-    " a nested view owns no model - it inherits the MAIN view's by UI5 model
-    " propagation, so refreshing "the nest2 model" means refreshing the root
-    " model. Delegating also removes the old trap: the former nest2-only flag
-    " was skipped by the frontend whenever no nested view happened to be open
-    z2ui5_if_client~view_model_update( ).
+    " deliberately EMPTY - see view_model_update. A nested view owns no model
+    " anyway: it inherits the MAIN view's by UI5 model propagation, so the
+    " automatic push of the root model already covers it
 
   ENDMETHOD.
 
@@ -300,8 +298,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_model_update.
 
-    " see nest2_view_model_update - one root model, so this is view_model_update
-    z2ui5_if_client~view_model_update( ).
+    " deliberately EMPTY - see nest2_view_model_update
 
   ENDMETHOD.
 
@@ -327,7 +324,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_model_update.
 
-    mo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
+    " deliberately EMPTY - see view_model_update. The automatic push flags
+    " the POPOVER slot too, so an open popover refreshes without this call
 
   ENDMETHOD.
 
@@ -349,7 +347,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_model_update.
 
-    mo_action->ms_next-s_set-s_popup-check_update_model = abap_true.
+    " deliberately EMPTY - see view_model_update. The automatic push flags
+    " the POPUP slot too, so an open popup refreshes without this call
 
   ENDMETHOD.
 
@@ -375,7 +374,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_model_update.
 
-    mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
+    " deliberately EMPTY - the handler pushes the model by itself whenever
+    " main( ) changed it (z2ui5_cl_core_handler=>main_end compares the model
+    " before and after main( ) and flags every model-owning slot). The method
+    " stays in the interface so existing apps keep compiling and their calls
+    " keep being harmless; there is nothing left for it to do
 
   ENDMETHOD.
 

@@ -205,9 +205,17 @@ ships for existing apps but is **frozen** — new apps and new code use
   authors it), and a string that does not parse raises rather than shipping
   broken JSON. Where the sample keeps one manifest per file, bind its URL
   instead — that path needs no flag.
-- After changing bound data in an event handler, push it to the browser with
-  `client->view_model_update( )` (no full re-render); call `view_display`
-  again only when the view structure itself changes.
+- **Bound data changed in an event handler is pushed automatically** — the
+  framework compares the model before and after `main( )` on every event
+  round-trip and, when it differs, sends it to every open view slot (MAIN,
+  POPUP, POPOVER; the nested views inherit MAIN's model). A handler cannot
+  render stale by forgetting anything: there is nothing to call and nothing
+  to switch on. Call `view_display` again only when the view **structure**
+  itself changes.
+- `view_model_update( )`, `popup_model_update( )`, `popover_model_update( )`
+  and the two nested variants are **obsolete and do nothing**. They stay in
+  the interface so existing apps keep compiling; delete the calls whenever
+  you touch such an app, and never add a new one.
 
 ## 5. Events
 

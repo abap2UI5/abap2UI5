@@ -12,6 +12,23 @@ Legend
 
 unreleased
 ----------
+! the model is now pushed AUTOMATICALLY when an event round-trip changed it,
+  and the manual push methods are obsolete. The framework compares the model
+  state before main( ) - taken after the incoming two-way deltas were applied,
+  so what the client already knows never triggers a push - with the state
+  after main( ) returned, and when they differ sends the model to every open
+  view slot (MAIN, POPUP, POPOVER; the nested views inherit MAIN's model).
+  An event handler that changes bound data can therefore no longer render
+  stale by forgetting a call, and an unchanged model still responds `{}`, so
+  an idle round-trip carries no payload. Always on, nothing to activate
+- view_model_update( ), popup_model_update( ), popover_model_update( ) and
+  the two nested variants now do NOTHING. They stay in the interface so
+  existing apps keep compiling and their calls stay harmless - delete them
+  when you next touch such an app. What is gone with them is the ability to
+  FORCE the unchanged model back onto the client (there was one legitimate
+  use: resetting a control that wrote a bound property on its own without
+  sending it back - rebuild the view with view_display( ) for that now).
+  Cost of the detection: one extra model serialization per event round-trip
 + _bind( json = abap_true ): a bound string that already CONTAINS JSON is
   spliced into the model as a JSON node instead of being sent as a quoted
   string. It exists for a control property that must receive an OBJECT, which
