@@ -335,8 +335,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      MESSAGE_BOX: {` && |\n| &&
              `        get: () => MessageBox,` && |\n| &&
-             `        // the method IS the box type - the availability check below then` && |\n| &&
-             `        // reports a type this UI5 version does not carry` && |\n| &&
+             `        // the method IS the box type - showBox itself falls back to show()` && |\n| &&
+             `        // for a type this UI5 version does not carry` && |\n| &&
              `        methods: {` && |\n| &&
              `          show: ["string"],` && |\n| &&
              `          alert: ["string"],` && |\n| &&
@@ -368,19 +368,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `          updateModel: [],` && |\n| &&
              `        },` && |\n| &&
              `        display: (oController, method, aArgs, mOptions, ctx) =>` && |\n| &&
-             `          Slots.action(` && |\n| &&
-             `            oController,` && |\n| &&
-             `            method,` && |\n| &&
-             `            aArgs[0],` && |\n| &&
-             `            aArgs[1],` && |\n| &&
-             `            mOptions,` && |\n| &&
-             `            ctx?.seq,` && |\n| &&
-             `          ),` && |\n| &&
-             `        // display and updateModel are not ViewSlots methods at all, so the` && |\n| &&
-             `        // "does this UI5 version carry it" check below has nothing to look` && |\n| &&
-             `        // at - and nothing to answer either, since none of the three depends` && |\n| &&
-             `        // on the UI5 version. The whitelist above is the only gate.` && |\n| &&
-             `        virtualMethods: true,` && |\n| &&
+             `          Slots.action(method, aArgs[0], aArgs[1], mOptions, ctx?.seq),` && |\n| &&
              `      },` && |\n| &&
              `      // The browser history / URL. Router computes ONE outcome from the whole` && |\n| &&
              `      // options object - adopt the hash, push a route entry, replace it, or` && |\n| &&
@@ -390,7 +378,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        get: () => Router,` && |\n| &&
              `        methods: { sync: [] },` && |\n| &&
              `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
-             `          Router.sync(mOptions, mOptions.id),` && |\n| &&
+             `          Router.sync(mOptions),` && |\n| &&
              `      },` && |\n| &&
              `      BUSY_INDICATOR: {` && |\n| &&
              `        get: () => BusyIndicator,` && |\n| &&
@@ -424,8 +412,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `          return IM ? IM.getInstance() : undefined;` && |\n| &&
              `        },` && |\n| &&
              `        methods: { announce: ["string", "string"] },` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
+             `      },` && |\n| &&
              `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
              `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
              `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
@@ -437,7 +424,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        methods: {` && |\n| &&
              `          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }` && |\n| &&
              `          addCustomCurrency: ["string", "object"], // code, { digits: n }` && |\n| &&
-             `        },` && |\n| &&
+             `        },` && |\n|.
+    result = result &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
@@ -717,10 +705,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const obj = target.get();` && |\n| &&
-             `      if (` && |\n| &&
-             `        !obj ||` && |\n| &&
-             `        (!target.virtualMethods && typeof obj[method] !== "function")` && |\n| &&
-             `      ) {` && |\n| &&
+             `      if (!obj) {` && |\n| &&
              `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -747,8 +732,15 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {` && |\n| &&
              `        raw = [formatTemplate(String(raw[0]), raw.slice(1))];` && |\n| &&
              `      }` && |\n| &&
+             `      // A display hook is the executor, not obj[method] - so only the plain` && |\n| &&
+             `      // path needs the "does this UI5 version carry it" probe (which is also` && |\n| &&
+             `      // what let VIEW_SLOTS route methods that never exist on the target).` && |\n| &&
              `      if (target.display) {` && |\n| &&
              `        return target.display(oController, method, raw, mOptions || {}, ctx);` && |\n| &&
+             `      }` && |\n| &&
+             `      if (typeof obj[method] !== "function") {` && |\n| &&
+             `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
              `      obj[method](...castArgs(kinds, raw));` && |\n| &&
              `    }` && |\n| &&
@@ -820,16 +812,21 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted` && |\n| &&
              `    // operators and values - never code. An empty groups array clears.` && |\n| &&
              `    function buildFilterGroups(binding, json) {` && |\n| &&
-             `      let groups;` && |\n| &&
-             `      try {` && |\n| &&
-             `        groups = JSON.parse(json);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
-             `        return;` && |\n|.
-    result = result &&
+             `      // the backend embeds a '['-starting argument as real JSON, so on that` && |\n| &&
+             `      // path the groups arrive already parsed; only the XML-bound eF( )` && |\n| &&
+             `      // string form still needs the parse` && |\n| &&
+             `      let groups = json;` && |\n| &&
+             `      if (typeof json === "string") {` && |\n| &&
+             `        try {` && |\n| &&
+             `          groups = JSON.parse(json);` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (!Array.isArray(groups)) {` && |\n| &&
-             `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
+             `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n|.
+    result = result &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      groups = groups.filter((g) => Array.isArray(g) && g.length);` && |\n| &&
@@ -864,11 +861,13 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        const [path, operator, value1, value2] = params;` && |\n| &&
              `        // A single param that starts with '[' is the compound groups JSON -` && |\n| &&
              `        // a model path can never start with '[', so the sniff is` && |\n| &&
-             `        // unambiguous and the positional single-filter form stays as-is.` && |\n| &&
+             `        // unambiguous and the positional single-filter form stays as-is. It` && |\n| &&
+             `        // arrives as a real array when the backend embedded it as JSON, as a` && |\n| &&
+             `        // string from the XML-bound eF( ) form.` && |\n| &&
              `        if (` && |\n| &&
              `          params.length === 1 &&` && |\n| &&
-             `          typeof path === "string" &&` && |\n| &&
-             `          path.trimStart().startsWith("[")` && |\n| &&
+             `          (Array.isArray(path) ||` && |\n| &&
+             `            (typeof path === "string" && path.trimStart().startsWith("[")))` && |\n| &&
              `        ) {` && |\n| &&
              `          buildFilterGroups(binding, path);` && |\n| &&
              `          return;` && |\n| &&

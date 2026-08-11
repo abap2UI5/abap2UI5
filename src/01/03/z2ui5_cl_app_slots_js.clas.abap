@@ -364,7 +364,7 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `    // request the processed response belongs to, threaded through the action` && |\n| &&
              `    // context (FrontendAction.runSystem) - a display superseded by a newer` && |\n| &&
              `    // request discards its build instead of overwriting the newer view.` && |\n| &&
-             `    function action(oController, method, slotKey, xml, mOptions, seq) {` && |\n| &&
+             `    function action(method, slotKey, xml, mOptions, seq) {` && |\n| &&
              `      if (method === "destroy") {` && |\n| &&
              `        ViewSlots.destroy(slotKey);` && |\n| &&
              `        return undefined;` && |\n| &&

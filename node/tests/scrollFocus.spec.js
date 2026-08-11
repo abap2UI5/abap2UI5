@@ -56,9 +56,12 @@ test("normalizes a closestTo miss to null", () => {
 
 test("falls back to the data-sap-ui DOM walk without closestTo", () => {
   const control = { id: "page" };
-  const { module: ScrollFocus, sandbox } = loadScrollFocus();
-  sandbox.sap.ui.getCore = () => ({
-    byId: (id) => (id === "page" ? control : undefined),
+  const { module: ScrollFocus } = loadScrollFocus({
+    deps: {
+      "z2ui5/core/Lib": {
+        getElementById: (id) => (id === "page" ? control : null),
+      },
+    },
   });
 
   const root = fakeDomNode({ id: "page", isControlRoot: true });
@@ -68,8 +71,9 @@ test("falls back to the data-sap-ui DOM walk without closestTo", () => {
 });
 
 test("fallback returns null when no control root is found", () => {
-  const { module: ScrollFocus, sandbox } = loadScrollFocus();
-  sandbox.sap.ui.getCore = () => ({ byId: () => undefined });
+  const { module: ScrollFocus } = loadScrollFocus({
+    deps: { "z2ui5/core/Lib": { getElementById: () => null } },
+  });
 
   const plain = fakeDomNode({ id: "no-control" });
   expect(ScrollFocus.closestUi5Element(plain)).toBe(null);
@@ -78,16 +82,16 @@ test("fallback returns null when no control root is found", () => {
 test("onScrollCapture records the scrolled slot via the fallback", () => {
   const control = { id: "page" };
   const state = { lastScrolled: {} };
-  const { module: ScrollFocus, sandbox } = loadScrollFocus({
+  const { module: ScrollFocus } = loadScrollFocus({
     deps: {
       "z2ui5/core/ViewSlots": {
         containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
       },
       "z2ui5/core/AppState": { state },
+      "z2ui5/core/Lib": {
+        getElementById: (id) => (id === "page" ? control : null),
+      },
     },
-  });
-  sandbox.sap.ui.getCore = () => ({
-    byId: (id) => (id === "page" ? control : undefined),
   });
 
   const root = fakeDomNode({ id: "page", isControlRoot: true });
@@ -106,17 +110,17 @@ test("onScrollCapture records the scrolled slot via the fallback", () => {
 
 function loadScrollFocusWithScrollCache({ connected }) {
   const control = { id: "page" };
-  const { module: ScrollFocus, sandbox } = loadScrollFocus({
+  const { module: ScrollFocus } = loadScrollFocus({
     deps: {
       "z2ui5/core/ViewSlots": {
         containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
         slots: [],
       },
       "z2ui5/core/AppState": { state: { lastScrolled: {} } },
+      "z2ui5/core/Lib": {
+        getElementById: (id) => (id === "page" ? control : null),
+      },
     },
-  });
-  sandbox.sap.ui.getCore = () => ({
-    byId: (id) => (id === "page" ? control : undefined),
   });
 
   const root = fakeDomNode({ id: "page", isControlRoot: true });

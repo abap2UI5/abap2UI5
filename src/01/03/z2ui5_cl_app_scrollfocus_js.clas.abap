@@ -54,8 +54,8 @@ CLASS z2ui5_cl_app_scrollfocus_js IMPLEMENTATION.
              `      let el = dom;` && |\n| &&
              `      while (el && el.getAttribute) {` && |\n| &&
              `        if (el.hasAttribute("data-sap-ui")) {` && |\n| &&
-             `          // ui5lint-disable-next-line no-globals, no-deprecated-api -- only resolution path on UI5 < 1.106` && |\n| &&
-             `          return sap.ui.getCore().byId(el.id) || null;` && |\n| &&
+             `          // Lib.getElementById carries the version fallback for the lookup` && |\n| &&
+             `          return Lib.getElementById(el.id);` && |\n| &&
              `        }` && |\n| &&
              `        el = el.parentElement;` && |\n| &&
              `      }` && |\n| &&

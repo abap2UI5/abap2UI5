@@ -195,17 +195,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        };` && |\n| &&
              `        const sFront = oBody.S_FRONT;` && |\n| &&
              `` && |\n| &&
-             `        // The page location is session-constant, so the backend stores it` && |\n| &&
-             `        // with the draft (session_merge) and event roundtrips omit it. It` && |\n| &&
-             `        // still travels with every app-start-shaped request (no draft id):` && |\n| &&
-             `        // the backend parses ?app_start= from SEARCH only there, and a route` && |\n| &&
-             `        // restore (Back/Forward) is exactly such a request.` && |\n| &&
-             `        if (!oBody.ID || !this._locationSent) {` && |\n| &&
-             `          this._locationSent = true;` && |\n| &&
-             `          sFront.ORIGIN = window.location.origin;` && |\n| &&
-             `          sFront.PATHNAME = window.location.pathname;` && |\n| &&
-             `          sFront.SEARCH = state.search || window.location.search;` && |\n| &&
-             `        }` && |\n| &&
+             `        // The page location travels on its own session cadence - the latch` && |\n| &&
+             `        // lives with the rest of the once-per-page-load state in` && |\n| &&
+             `        // core/Session.js. An event roundtrip gets null, and Object.assign` && |\n| &&
+             `        // with null adds nothing.` && |\n| &&
+             `        Object.assign(sFront, Session.location(oBody.ID, state.search));` && |\n| &&
              `` && |\n| &&
              `        // The first argument was the event name (already stored as EVENT),` && |\n| &&
              `        // the remaining entries are the actual event arguments.` && |\n| &&
@@ -424,14 +418,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
              `        try {` && |\n| &&
              `          AppState.state.oResponse = response;` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `          // The backend can send follow-up actions to run after the response.` && |\n| &&
              `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n| &&
              `          // actions, pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
              `          // expression - see FrontendAction.runCustom. They are stashed` && |\n| &&
              `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&
-             `          // the (possibly freshly built) view is actually rendered. Running` && |\n| &&
+             `          // the (possibly freshly built) view is actually rendered. Running` && |\n|.
+    result = result &&
              `          // them earlier would break render-dependent actions such as` && |\n| &&
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&

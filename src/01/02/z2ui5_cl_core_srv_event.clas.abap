@@ -133,11 +133,11 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     " are remapped to `<container>, <slot>, to, <target>`. The public
     " cs_event-*_nav_container_to constant values stay unchanged.
     DATA(lv_slot) = SWITCH string( lv_val
-                                   WHEN z2ui5_if_client=>cs_event-nav_container_to         THEN z2ui5_if_core_types=>cs_slot-main
-                                   WHEN z2ui5_if_client=>cs_event-nest_nav_container_to    THEN z2ui5_if_core_types=>cs_slot-nest
-                                   WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to   THEN z2ui5_if_core_types=>cs_slot-nest2
-                                   WHEN z2ui5_if_client=>cs_event-popup_nav_container_to   THEN z2ui5_if_core_types=>cs_slot-popup
-                                   WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN z2ui5_if_core_types=>cs_slot-popover
+                                   WHEN z2ui5_if_client=>cs_event-nav_container_to         THEN z2ui5_if_client=>cs_view-main
+                                   WHEN z2ui5_if_client=>cs_event-nest_nav_container_to    THEN z2ui5_if_client=>cs_view-nested
+                                   WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to   THEN z2ui5_if_client=>cs_view-nested2
+                                   WHEN z2ui5_if_client=>cs_event-popup_nav_container_to   THEN z2ui5_if_client=>cs_view-popup
+                                   WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN z2ui5_if_client=>cs_view-popover
                                    ELSE `` ).
     IF lv_slot IS NOT INITIAL.
       " read from t_arg (the unchanged importing parameter), never from lt_arg
@@ -157,11 +157,11 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " of them ), but they are formatted as the one VIEW_SLOTS call here, so
       " the frontend has a single teardown path rather than a second handler
       " that happens to do the same thing.
-      lt_arg = VALUE #( ( `VIEW_SLOTS` )
-                        ( `destroy` )
+      lt_arg = VALUE #( ( z2ui5_if_core_types=>cs_slot_action-target )
+                        ( z2ui5_if_core_types=>cs_slot_action-destroy )
                         ( COND #( WHEN lv_val = z2ui5_if_client=>cs_event-popup_close
-                                  THEN z2ui5_if_core_types=>cs_slot-popup
-                                  ELSE z2ui5_if_core_types=>cs_slot-popover ) ) ).
+                                  THEN z2ui5_if_client=>cs_view-popup
+                                  ELSE z2ui5_if_client=>cs_view-popover ) ) ).
       lv_val = z2ui5_if_client=>cs_event-control_global.
     ELSEIF lv_val = z2ui5_if_client=>cs_event-control_by_id.
       " the view is passed as its own parameter now, not as a positional

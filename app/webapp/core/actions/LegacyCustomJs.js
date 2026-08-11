@@ -15,11 +15,9 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
   //             allows unsafe-eval, otherwise it is a no-op.
   // ------------------------------------------------------------------
 
-  // Quote characters recognised by the eF( ) argument parser below, built
-  // from char codes so both quote kinds are declared symmetrically and
-  // stand out from the surrounding string literals.
-  const CH_SQUOTE = String.fromCharCode(39);
-  const CH_DQUOTE = String.fromCharCode(34);
+  // The two quote characters the eF( ) argument parser below recognises.
+  const CH_SQUOTE = "'";
+  const CH_DQUOTE = '"';
 
   // Undo the escapes the backend applies to a single-quoted argument
   // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the
@@ -93,17 +91,15 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
     return args;
   }
 
-  // Run one legacy snippet (formats B/C above). Returns true when the
-  // snippet was dispatched as an eF( ) call, false when it fell through to
-  // the raw-expression path. Never throws - a malformed app snippet must
-  // not break the response processing it rides on.
+  // Run one legacy snippet (formats B/C above). Never throws - a malformed
+  // app snippet must not break the response processing it rides on.
   function run(item, oController) {
     try {
       const snippet = item.trim();
       const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);
       if (match) {
         oController.eF(...parseEfArgs(match[1]));
-        return true;
+        return;
       }
       // A raw JavaScript expression - only runs when the CSP allows
       // unsafe-eval.
@@ -112,7 +108,6 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
     } catch (e) {
       Lib.logError("customJs: execution failed", e);
     }
-    return false;
   }
 
   return { run };

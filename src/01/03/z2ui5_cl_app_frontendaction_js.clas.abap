@@ -118,12 +118,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // into the fatal overlay instead of leaving the app half-built.` && |\n| &&
              `    function runSystem(item, oController, ctx) {` && |\n| &&
              `      let args = item;` && |\n| &&
-             `      if (!Array.isArray(args)) {` && |\n| &&
+             `      if (typeof item === "string") {` && |\n| &&
              `        try {` && |\n| &&
              `          args = JSON.parse(item);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``systemJs: '${item}' is no action payload``, e);` && |\n| &&
-             `          return undefined;` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          args = null;` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (!Array.isArray(args)) {` && |\n| &&

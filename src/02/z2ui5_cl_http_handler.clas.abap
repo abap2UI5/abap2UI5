@@ -74,11 +74,11 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
     DATA ms_req    TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
     DATA ms_res    TYPE z2ui5_if_core_types=>ty_s_http_res.
 
-    " which stack built mo_server: only the ON-PREM ICF stack carries the
-    " if_http_response set_compression( ) hook (see set_response); the cloud
-    " accessor would ASSERT on an unbound onprem server, so the flag decides
-    " up front instead of probing
-    DATA mv_check_onprem TYPE abap_bool.
+    " the raw if_http_response of the ON-PREM ICF stack, captured dynamically
+    " in factory( ) - only that stack carries the set_compression( ) hook
+    " (see set_response). Stays unbound on the cloud stack, whose response
+    " type does not exist in the cloud language version.
+    DATA mo_response_onprem TYPE REF TO object.
 
     METHODS set_response.
 
@@ -211,7 +211,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     IF server IS BOUND.
       result = NEW #( ).
       result->mo_server = z2ui5_cl_a2ui5_http=>factory( server ).
-      result->mv_check_onprem = abap_true.
+      FIELD-SYMBOLS <lo_response> TYPE REF TO object.
+      ASSIGN server->(`RESPONSE`) TO <lo_response>.
+      IF sy-subrc = 0.
+        result->mo_response_onprem = <lo_response>.
+      ENDIF.
     ELSEIF req IS BOUND AND res IS BOUND.
       result = factory_cloud( req = req
                               res = res ).
@@ -349,15 +353,14 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     " is a 70-85% transfer cut on installations whose ICM profile does not
     " compress already - and a no-op on ones that do. Dynamic on purpose:
     " if_http_response does not exist in the cloud language version (the
-    " platform router compresses there, mv_check_onprem skips it), and the
-    " transpiled test backend's response shim simply lacks the method - both
-    " must keep compiling and running, so a missing method is caught, never
-    " declared. AFTER the content-type header: the default compression mode
-    " decides based on the MIME type set at this point.
-    IF mv_check_onprem = abap_true.
+    " platform router compresses there, mo_response_onprem stays unbound), and
+    " the transpiled test backend's response shim simply lacks the method -
+    " both must keep compiling and running, so a missing method is caught,
+    " never declared. AFTER the content-type header: the default compression
+    " mode decides based on the MIME type set at this point.
+    IF mo_response_onprem IS BOUND.
       TRY.
-          DATA(lo_response) = mo_server->get_response_onprem( ).
-          CALL METHOD lo_response->(`SET_COMPRESSION`).
+          CALL METHOD mo_response_onprem->(`SET_COMPRESSION`).
         CATCH cx_root ##NO_HANDLER.
           " no compression support on this stack - the response stays plain
       ENDTRY.

@@ -165,13 +165,13 @@ CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_cl_a2ui5_context=>ty_s_msg_box.
 
-    "! Add an option to the payload, but only when the app set it - an option
-    "! that is absent lets the control apply its own default.
     "! Drop everything queued for a slot so far - see the method body.
     METHODS slot_reset
       IMPORTING
         slot TYPE clike.
 
+    "! Add an option to the payload, but only when the app set it - an option
+    "! that is absent lets the control apply its own default.
     METHODS set_opt_string
       IMPORTING
         json TYPE REF TO z2ui5_if_ajson
@@ -280,7 +280,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
     slot_reset( slot ).
     INSERT VALUE #( slot   = slot
-                    method = `destroy` )
+                    method = z2ui5_if_core_types=>cs_slot_action-destroy )
            INTO TABLE mo_action->ms_next-t_action_front.
 
   ENDMETHOD.
@@ -304,10 +304,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     " A display always tears the slot down first - stated as its own action
     " rather than left to the frontend, so the list the frontend gets is the
     " complete sequence and it only has to run it.
-    slot_reset( slot ).
-    INSERT VALUE #( slot   = slot
-                    method = `destroy` )
-           INTO TABLE mo_action->ms_next-t_action_front.
+    slot_destroy( slot ).
 
     TRY.
         " The options carry what is specific to a slot - the popover's
@@ -335,7 +332,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
                         val  = switch_default_model_anno_uri ).
 
         INSERT VALUE #( slot    = slot
-                        method  = `display`
+                        method  = z2ui5_if_core_types=>cs_slot_action-display
                         xml     = xml
                         options = li_opt )
                INTO TABLE mo_action->ms_next-t_action_front.
@@ -346,10 +343,6 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
             val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
 
-    " new XML in any slot needs the model with it - recorded here rather than
-    " re-derived from the response, see ty_s_next-check_view_shipped
-    mo_action->ms_next-check_view_shipped = abap_true.
-
   ENDMETHOD.
 
 
@@ -357,17 +350,17 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
     " The view-lifecycle calls leave in SLOT order, never in the order the
     " app happened to make them - see the ABAP Doc.
-    LOOP AT VALUE string_table( ( z2ui5_if_core_types=>cs_slot-main )
-                                ( z2ui5_if_core_types=>cs_slot-nest )
-                                ( z2ui5_if_core_types=>cs_slot-nest2 )
-                                ( z2ui5_if_core_types=>cs_slot-popup )
-                                ( z2ui5_if_core_types=>cs_slot-popover ) )
+    LOOP AT VALUE string_table( ( z2ui5_if_client=>cs_view-main )
+                                ( z2ui5_if_client=>cs_view-nested )
+                                ( z2ui5_if_client=>cs_view-nested2 )
+                                ( z2ui5_if_client=>cs_view-popup )
+                                ( z2ui5_if_client=>cs_view-popover ) )
          INTO DATA(lv_slot).
       LOOP AT mo_action->ms_next-t_action_front INTO DATA(ls_action) WHERE slot = lv_slot.
-        DATA(lt_arg) = VALUE string_table( ( `VIEW_SLOTS` )
+        DATA(lt_arg) = VALUE string_table( ( z2ui5_if_core_types=>cs_slot_action-target )
                                            ( ls_action-method )
                                            ( ls_action-slot ) ).
-        IF ls_action-method = `display`.
+        IF ls_action-method = z2ui5_if_core_types=>cs_slot_action-display.
           INSERT ls_action-xml INTO TABLE lt_arg.
         ENDIF.
         queue_system( t_arg = lt_arg
@@ -380,8 +373,8 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
   METHOD queue_model_update.
 
-    queue_system( VALUE #( ( `VIEW_SLOTS` )
-                           ( `updateModel` ) ) ).
+    queue_system( VALUE #( ( z2ui5_if_core_types=>cs_slot_action-target )
+                           ( z2ui5_if_core_types=>cs_slot_action-update_model ) ) ).
 
   ENDMETHOD.
 
@@ -611,10 +604,6 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
           result-title = `Information`.
         ENDIF.
       ENDIF.
-    ENDIF.
-
-    IF result-type IS INITIAL.
-      result-type = `show`.
     ENDIF.
 
     " MessageBox display methods are lowercase (show, error, warning, ...) but

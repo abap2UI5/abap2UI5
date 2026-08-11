@@ -261,14 +261,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-nest2 ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-nested2 ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    mo_action_front->slot_display( slot = z2ui5_if_core_types=>cs_slot-nest2
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-nested2
                   xml                   = val
                   id                    = id
                   method_insert         = method_insert
@@ -288,14 +288,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-nest ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-nested ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    mo_action_front->slot_display( slot = z2ui5_if_core_types=>cs_slot-nest
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-nested
                   xml                   = val
                   id                    = id
                   method_insert         = method_insert
@@ -313,14 +313,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-popover ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-popover ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_display.
 
-    mo_action_front->slot_display( slot = z2ui5_if_core_types=>cs_slot-popover
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-popover
                   xml                   = xml
                   open_by_id            = by_id ).
 
@@ -337,14 +337,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-popup ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-popup ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_display.
 
-    mo_action_front->slot_display( slot = z2ui5_if_core_types=>cs_slot-popup
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-popup
                   xml                   = val ).
 
   ENDMETHOD.
@@ -360,14 +360,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_if_core_types=>cs_slot-main ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-main ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_display.
 
-    mo_action_front->slot_display( slot         = z2ui5_if_core_types=>cs_slot-main
+    mo_action_front->slot_display( slot         = z2ui5_if_client=>cs_view-main
                   xml                           = val
                   switch_default_model_path     = switch_default_model_path
                   switch_default_model_anno_uri = switch_default_model_anno_uri ).
@@ -468,17 +468,19 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_push_state.
 
-    z2ui5_if_client~follow_up_action( val   = z2ui5_if_client=>cs_event-set_push_state
-                                      t_arg = VALUE #( ( val ) ) ).
+    " same field the cs_event-set_push_state branch of follow_up_action
+    " writes - the typed method just skips the string-argument detour
+    mo_action->ms_next-s_nav-set_push_state = val.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~set_app_state_active.
 
-    z2ui5_if_client~follow_up_action(
-        val   = z2ui5_if_client=>cs_event-set_app_state_active
-        t_arg = VALUE #( ( COND string( WHEN val = abap_true THEN abap_true ELSE ` ` ) ) ) ).
+    " same field the cs_event-set_app_state_active branch of follow_up_action
+    " writes - only that path needs the single-space encoding to squeeze
+    " `false` through a string argument; a typed abap_bool does not
+    mo_action->ms_next-s_nav-set_app_state_active = val.
 
   ENDMETHOD.
 

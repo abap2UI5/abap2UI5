@@ -67,7 +67,6 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     " main_end( ) ran, so reading mo_action->ms_next there would always see
     " the cleared struct and set_session_stateful( ) would never reach
     " z2ui5_cl_http_handler
-    DATA ms_stateful           TYPE z2ui5_if_core_types=>ty_s_http_res-s_stateful.
 
     "! Reconcile what this request says about the browser with what the draft
     "! already knows - see the method body.
@@ -539,9 +538,13 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDTRY.
 
     result = VALUE #( body          = mv_response
-                      s_stateful    = ms_stateful
+                      s_stateful    = mo_action->ms_next-s_stateful
                       status_code   = 200
                       status_reason = `success` ).
+
+    " the handler may be sticky and answer the next request too - nothing of
+    " this roundtrip's queues and intents may leak into it
+    CLEAR mo_action->ms_next.
 
   ENDMETHOD.
 
@@ -663,8 +666,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     IF ms_request-s_front-s_device-system IS NOT INITIAL
         OR ms_request-s_front-s_ui5-version IS NOT INITIAL.
 
+      " keep the location trio: the block above has already merged it into
+      " the request (stored or restored), and the first roundtrip of a page
+      " load carries BOTH blocks - rebuilding without it would wipe what was
+      " just stored
       mo_action->mo_app->ms_session = VALUE #( s_ui5    = ms_request-s_front-s_ui5
-                                               s_device = ms_request-s_front-s_device ).
+                                               s_device = ms_request-s_front-s_device
+                                               origin   = ms_request-s_front-origin
+                                               pathname = ms_request-s_front-pathname
+                                               search   = ms_request-s_front-search ).
       IF ms_request-s_front-o_comp_data IS BOUND.
         TRY.
             mo_action->mo_app->ms_session-comp_data = ms_request-s_front-o_comp_data->stringify( ).
@@ -730,10 +740,13 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     lo_front->slots_serialize( ).
 
     " The model of this roundtrip. A slot that shipped new XML always needs
-    " the model with it - all five slots, the nested ones included; every
-    " display records that (z2ui5_cl_core_action_front=>slot_display).
+    " the model with it - all five slots, the nested ones included. Derived
+    " from the collected view-lifecycle calls themselves: a display that was
+    " later voided by a destroy (slot_reset) counts as no view, exactly as
+    " reading the response back used to decide.
     DATA(lv_model) = `{}`.
-    IF mo_action->ms_next-check_view_shipped = abap_true.
+    IF line_exists( mo_action->ms_next-t_action_front[
+                        method = z2ui5_if_core_types=>cs_slot_action-display ] ).
       lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
@@ -759,10 +772,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                            model            = lv_model ).
 
     mv_response = response_abap_to_json( ms_response ).
-
-    ms_stateful = mo_action->ms_next-s_stateful.
-
-    CLEAR mo_action->ms_next.
 
     IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
       mo_action->mo_app->db_save( ).

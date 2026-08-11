@@ -206,8 +206,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     " a navigation hop answers for the app being navigated to - the leaving
     " app's collected view-lifecycle calls describe a screen that is being
-    " replaced, and so does its note that a view was shipped
-    CLEAR ms_next-check_view_shipped.
+    " replaced
     CLEAR ms_next-t_action_front.
 
   ENDMETHOD.
@@ -265,11 +264,12 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
       " a raw-JS entry can carry one, and it is not necessarily the FIRST
       " queued action - a toast or box queued before it sits in the same
       " table - so take the first entry that looks like the snippet.
-      LOOP AT ms_next-s_action-t_custom INTO DATA(ls_action).
-        IF ls_action-js NS `.eB(['`.
+      LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action)
+           WHERE js IS NOT INITIAL.
+        IF lr_action->js NS `.eB(['`.
           CONTINUE.
         ENDIF.
-        SPLIT ls_action-js AT `.eB(['` INTO DATA(lv_dummy)
+        SPLIT lr_action->js AT `.eB(['` INTO DATA(lv_dummy)
               result->ms_actual-event.
         SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
         EXIT.
@@ -285,8 +285,8 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " replaces this destroy through slot_reset( ). Destroying when nothing is
     " open is a no-op.
     result->ms_next-t_action_front = VALUE #(
-        ( slot = z2ui5_if_core_types=>cs_slot-popup   method = `destroy` )
-        ( slot = z2ui5_if_core_types=>cs_slot-popover method = `destroy` ) ).
+        ( slot = z2ui5_if_client=>cs_view-popup   method = z2ui5_if_core_types=>cs_slot_action-destroy )
+        ( slot = z2ui5_if_client=>cs_view-popover method = z2ui5_if_core_types=>cs_slot_action-destroy ) ).
 
   ENDMETHOD.
 

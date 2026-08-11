@@ -210,7 +210,6 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       [
         "router.sync",
         { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
-        "DRAFT1",
       ],
     ]);
   });
@@ -407,19 +406,12 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "updateModel",
     ]);
     expect(slotCalls).toEqual([
-      [oController, "destroy", "POPUP", undefined, {}, undefined],
+      ["destroy", "POPUP", undefined, {}, undefined],
       // the XML is a positional argument of its own - it must NOT be read as
       // a template value for the slot name
-      [
-        oController,
-        "display",
-        "POPOVER",
-        "<Popover/>",
-        { openById: "btn1" },
-        undefined,
-      ],
+      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }, undefined],
       // no slot: the frontend picks the open ones itself
-      [oController, "updateModel", undefined, undefined, {}, undefined],
+      ["updateModel", undefined, undefined, {}, undefined],
     ]);
   });
 
@@ -432,9 +424,7 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "POPUP", "<Dialog/>"],
       { seq: 7 },
     );
-    expect(slotCalls).toEqual([
-      [null, "display", "POPUP", "<Dialog/>", {}, 7],
-    ]);
+    expect(slotCalls).toEqual([["display", "POPUP", "<Dialog/>", {}, 7]]);
   });
 
   test("an unlisted VIEW_SLOTS method is rejected", () => {
@@ -488,7 +478,7 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
 test.describe("executeSystem (the SYSTEM phase entry point)", () => {
   test("returns the handler result so an async display can be awaited", async () => {
     const { FrontendAction, Slots } = load();
-    Slots.action = (_c, _m, _slot, xml) => Promise.resolve(`built:${xml}`);
+    Slots.action = (_m, _slot, xml) => Promise.resolve(`built:${xml}`);
     const result = FrontendAction.executeSystem(null, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",

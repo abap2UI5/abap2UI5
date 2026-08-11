@@ -337,7 +337,7 @@ sap.ui.define(
     // request the processed response belongs to, threaded through the action
     // context (FrontendAction.runSystem) - a display superseded by a newer
     // request discards its build instead of overwriting the newer view.
-    function action(oController, method, slotKey, xml, mOptions, seq) {
+    function action(method, slotKey, xml, mOptions, seq) {
       if (method === "destroy") {
         ViewSlots.destroy(slotKey);
         return undefined;

@@ -42,11 +42,9 @@ CLASS z2ui5_cl_app_legacycustomjs_js IMPLEMENTATION.
              `  //             allows unsafe-eval, otherwise it is a no-op.` && |\n| &&
              `  // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `  // Quote characters recognised by the eF( ) argument parser below, built` && |\n| &&
-             `  // from char codes so both quote kinds are declared symmetrically and` && |\n| &&
-             `  // stand out from the surrounding string literals.` && |\n| &&
-             `  const CH_SQUOTE = String.fromCharCode(39);` && |\n| &&
-             `  const CH_DQUOTE = String.fromCharCode(34);` && |\n| &&
+             `  // The two quote characters the eF( ) argument parser below recognises.` && |\n| &&
+             `  const CH_SQUOTE = "'";` && |\n| &&
+             `  const CH_DQUOTE = '"';` && |\n| &&
              `` && |\n| &&
              `  // Undo the escapes the backend applies to a single-quoted argument` && |\n| &&
              `  // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the` && |\n| &&
@@ -120,17 +118,15 @@ CLASS z2ui5_cl_app_legacycustomjs_js IMPLEMENTATION.
              `    return args;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Run one legacy snippet (formats B/C above). Returns true when the` && |\n| &&
-             `  // snippet was dispatched as an eF( ) call, false when it fell through to` && |\n| &&
-             `  // the raw-expression path. Never throws - a malformed app snippet must` && |\n| &&
-             `  // not break the response processing it rides on.` && |\n| &&
+             `  // Run one legacy snippet (formats B/C above). Never throws - a malformed` && |\n| &&
+             `  // app snippet must not break the response processing it rides on.` && |\n| &&
              `  function run(item, oController) {` && |\n| &&
              `    try {` && |\n| &&
              `      const snippet = item.trim();` && |\n| &&
              `      const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);` && |\n| &&
              `      if (match) {` && |\n| &&
              `        oController.eF(...parseEfArgs(match[1]));` && |\n| &&
-             `        return true;` && |\n| &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
              `      // A raw JavaScript expression - only runs when the CSP allows` && |\n| &&
              `      // unsafe-eval.` && |\n| &&
@@ -139,7 +135,6 @@ CLASS z2ui5_cl_app_legacycustomjs_js IMPLEMENTATION.
              `    } catch (e) {` && |\n| &&
              `      Lib.logError("customJs: execution failed", e);` && |\n| &&
              `    }` && |\n| &&
-             `    return false;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  return { run };` && |\n| &&

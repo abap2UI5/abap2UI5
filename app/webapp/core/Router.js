@@ -315,9 +315,11 @@ sap.ui.define(
       }
     }
 
-    // Keep the URL in sync with what was just rendered. Called once per
-    // roundtrip from View1's after-render phase.
-    function sync(mOptions, ID) {
+    // Keep the URL in sync with what was just rendered - the ROUTER/sync
+    // system action, run once per roundtrip. The options object is
+    // self-contained: `id` carries the response's draft id.
+    function sync(mOptions) {
+      const ID = mOptions.id;
       try {
         applyMode(mOptions);
 

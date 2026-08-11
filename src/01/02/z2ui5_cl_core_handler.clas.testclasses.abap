@@ -432,6 +432,10 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_handler->ms_request-s_front-origin   = `https://host`.
     lo_handler->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
     lo_handler->ms_request-s_front-search   = `?app_start=Z_MY_APP`.
+    " the real first roundtrip of a page load carries the device/UI5 block
+    " TOO - storing that block must not wipe the location just stored
+    lo_handler->ms_request-s_front-s_device-system = `desktop`.
+    lo_handler->ms_request-s_front-s_ui5-version   = `1.120.0`.
 
     lo_handler->session_merge( ).
 
@@ -441,7 +445,9 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " ...the follow-up event roundtrip carries none of it
     CLEAR: lo_handler->ms_request-s_front-origin,
            lo_handler->ms_request-s_front-pathname,
-           lo_handler->ms_request-s_front-search.
+           lo_handler->ms_request-s_front-search,
+           lo_handler->ms_request-s_front-s_device,
+           lo_handler->ms_request-s_front-s_ui5.
 
     lo_handler->session_merge( ).
 
@@ -656,32 +662,39 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_view_update_flag.
 
-    " every slot displays through a system action, and the display notes that
-    " a view was shipped - the model has to travel with it (main_end reads
-    " the note; no slot of the response is read back for this any more)
+    " every slot displays through a system action, and main_end derives
+    " `did this roundtrip ship a view?` (the model has to travel with new
+    " XML) from exactly those collected calls - no separate flag to keep in
+    " sync, no slot of the response read back
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
     li_client->view_display( `<View/>` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->mo_action->ms_next-check_view_shipped ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
 
   ENDMETHOD.
 
   METHOD test_view_update_popup.
 
-    " the same holds whichever slot was displayed - one note, not one flag
-    " per slot
+    " the same holds whichever slot was displayed...
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
     li_client->popup_display( `<Dialog/>` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->mo_action->ms_next-check_view_shipped ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+
+    " ...and a display a later destroy voided counts as NO view, so the
+    " model is not sent for a dialog that never reaches the browser
+    li_client->popup_destroy( ).
+
+    cl_abap_unit_assert=>assert_false(
+        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
 
   ENDMETHOD.
 
@@ -690,8 +703,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_handler->mo_action->ms_next-check_view_shipped ).
+    cl_abap_unit_assert=>assert_false(
+        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
 
   ENDMETHOD.
 

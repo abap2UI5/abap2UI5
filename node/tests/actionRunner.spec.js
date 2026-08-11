@@ -12,13 +12,14 @@ const { loadModule } = require("./loadModule");
 // (z2ui5_cl_core_srv_event=>escape_js_string), which escapes backslash, the
 // single quote AND the line breaks it rewrites to \n / \r.
 
-function loadFrontendAction() {
+// Load FrontendAction with every domain handler map stubbed empty (override
+// individual maps via `deps`). LegacyCustomJs - a unit under test here -
+// loads for real via autoLoad.
+function loadFrontendAction(deps = {}) {
   const noHandlers = { handlers: {} };
   const { module } = loadModule("core/FrontendAction.js", {
-    autoLoad: true, // LegacyCustomJs (the unit under test) loads for real
+    autoLoad: true,
     deps: {
-      // the domain handler maps are irrelevant here - runCustom dispatches
-      // through the controller's eF, never through the merged table
       "z2ui5/core/actions/ControlCall": noHandlers,
       "z2ui5/core/actions/Browser": noHandlers,
       "z2ui5/core/actions/Launchpad": noHandlers,
@@ -27,6 +28,7 @@ function loadFrontendAction() {
       "z2ui5/core/actions/ViewOps": noHandlers,
       "z2ui5/core/Lib": { logError: () => {}, runCallbacks: () => {} },
       "z2ui5/core/AppState": { state: { onBeforeEventFrontend: [] } },
+      ...deps,
     },
   });
   return module;
@@ -40,21 +42,9 @@ function controllerStub() {
 
 test.describe("runSystem", () => {
   function loadWithHandler(handler) {
-    const noHandlers = { handlers: {} };
-    const { module } = loadModule("core/FrontendAction.js", {
-      autoLoad: true,
-      deps: {
-        "z2ui5/core/actions/ControlCall": noHandlers,
-        "z2ui5/core/actions/Browser": noHandlers,
-        "z2ui5/core/actions/Launchpad": noHandlers,
-        "z2ui5/core/actions/Variants": noHandlers,
-        "z2ui5/core/actions/Shortcuts": noHandlers,
-        "z2ui5/core/actions/ViewOps": { handlers: { TEST_ACTION: handler } },
-        "z2ui5/core/Lib": { logError: () => {}, runCallbacks: () => {} },
-        "z2ui5/core/AppState": { state: { onBeforeEventFrontend: [] } },
-      },
+    return loadFrontendAction({
+      "z2ui5/core/actions/ViewOps": { handlers: { TEST_ACTION: handler } },
     });
-    return module;
   }
 
   test("runs a real-array action and threads the context through", () => {

@@ -70,5 +70,25 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
     };
   }
 
-  return { config };
+  // The page location (origin, pathname, query) is session-constant like
+  // the block above, but travels on its own cadence: with every app-start-
+  // shaped request (no draft id - the backend parses ?app_start= from
+  // SEARCH only there, and a route restore via Back/Forward is exactly
+  // such a request) and on the page load's first roundtrip, so the backend
+  // can store it with the draft (z2ui5_cl_core_handler=>session_merge).
+  // Event roundtrips omit it. The hash is NOT part of this: it carries the
+  // live routing state and stays a per-request field (Server.roundtrip).
+  let locationSent = false;
+
+  function location(draftId, search) {
+    if (draftId && locationSent) return null;
+    locationSent = true;
+    return {
+      ORIGIN: window.location.origin,
+      PATHNAME: window.location.pathname,
+      SEARCH: search || window.location.search,
+    };
+  }
+
+  return { config, location };
 });

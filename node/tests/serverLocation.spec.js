@@ -12,9 +12,33 @@ const { loadModule } = require("./loadModule");
 
 function loadServer() {
   const bodies = [];
+  // the cadence latch lives in core/Session.js - load the real module (a
+  // fresh instance per test, so each test starts with an unsent location)
+  const { module: Session } = loadModule("core/Session.js", {
+    deps: {
+      "sap/ui/Device": {
+        system: {},
+        browser: {},
+        os: {},
+        support: {},
+        orientation: {},
+        resize: {},
+      },
+      "z2ui5/core/Lib": { deriveSystemType: () => "" },
+    },
+    sandbox: {
+      window: {
+        location: {
+          origin: "https://host",
+          pathname: "/sap/bc/z2ui5",
+          search: "?app_start=Z_MY_APP",
+        },
+      },
+    },
+  });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
-      "z2ui5/core/Session": { config: () => ({}) },
+      "z2ui5/core/Session": Session,
       "z2ui5/core/ScrollFocus": {
         getFocusInfo: () => undefined,
         getScrollInfo: () => undefined,

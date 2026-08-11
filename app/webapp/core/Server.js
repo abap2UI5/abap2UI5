@@ -168,17 +168,11 @@ sap.ui.define(
         };
         const sFront = oBody.S_FRONT;
 
-        // The page location is session-constant, so the backend stores it
-        // with the draft (session_merge) and event roundtrips omit it. It
-        // still travels with every app-start-shaped request (no draft id):
-        // the backend parses ?app_start= from SEARCH only there, and a route
-        // restore (Back/Forward) is exactly such a request.
-        if (!oBody.ID || !this._locationSent) {
-          this._locationSent = true;
-          sFront.ORIGIN = window.location.origin;
-          sFront.PATHNAME = window.location.pathname;
-          sFront.SEARCH = state.search || window.location.search;
-        }
+        // The page location travels on its own session cadence - the latch
+        // lives with the rest of the once-per-page-load state in
+        // core/Session.js. An event roundtrip gets null, and Object.assign
+        // with null adds nothing.
+        Object.assign(sFront, Session.location(oBody.ID, state.search));
 
         // The first argument was the event name (already stored as EVENT),
         // the remaining entries are the actual event arguments.

@@ -342,9 +342,11 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Keep the URL in sync with what was just rendered. Called once per` && |\n| &&
-             `    // roundtrip from View1's after-render phase.` && |\n| &&
-             `    function sync(mOptions, ID) {` && |\n| &&
+             `    // Keep the URL in sync with what was just rendered - the ROUTER/sync` && |\n| &&
+             `    // system action, run once per roundtrip. The options object is` && |\n| &&
+             `    // self-contained: ``id`` carries the response's draft id.` && |\n| &&
+             `    function sync(mOptions) {` && |\n| &&
+             `      const ID = mOptions.id;` && |\n| &&
              `      try {` && |\n| &&
              `        applyMode(mOptions);` && |\n| &&
              `` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_app_router_js IMPLEMENTATION.
              `      init,` && |\n| &&
              `      exit,` && |\n| &&
              `      splitHash,` && |\n| &&
-             `      hrefFor,` && |\n| &&
-             `      patternFor,` && |\n| &&
-             `      parse,` && |\n|.
+             `      hrefFor,` && |\n|.
     result = result &&
+             `      patternFor,` && |\n| &&
+             `      parse,` && |\n| &&
              `      appOf,` && |\n| &&
              `      draftOf,` && |\n| &&
              `      navTo,` && |\n| &&

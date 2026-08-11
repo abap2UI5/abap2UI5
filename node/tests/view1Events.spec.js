@@ -80,7 +80,7 @@ test.describe("updateModel (one action, every open model slot)", () => {
   test("pushes into each OPEN slot that owns a model", () => {
     const model = { A: 1 };
     const { Slots, applied } = withSlots(["MAIN", "POPOVER"], model);
-    Slots.action(null, "updateModel", undefined, undefined, {});
+    Slots.action("updateModel", undefined, undefined, {});
     expect(applied).toEqual([
       { key: "MAIN", data: model },
       { key: "POPOVER", data: model },
@@ -89,13 +89,13 @@ test.describe("updateModel (one action, every open model slot)", () => {
 
   test("skips the nested slots - they inherit MAIN's model", () => {
     const { Slots, applied } = withSlots(["MAIN", "NEST", "NEST2"], {});
-    Slots.action(null, "updateModel", undefined, undefined, {});
+    Slots.action("updateModel", undefined, undefined, {});
     expect(applied.map((a) => a.key)).toEqual(["MAIN"]);
   });
 
   test("a closed slot is simply not pushed to", () => {
     const { Slots, applied } = withSlots([], {});
-    Slots.action(null, "updateModel", undefined, undefined, {});
+    Slots.action("updateModel", undefined, undefined, {});
     expect(applied).toEqual([]);
   });
 });

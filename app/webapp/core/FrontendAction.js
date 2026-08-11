@@ -91,12 +91,11 @@ sap.ui.define(
     // into the fatal overlay instead of leaving the app half-built.
     function runSystem(item, oController, ctx) {
       let args = item;
-      if (!Array.isArray(args)) {
+      if (typeof item === "string") {
         try {
           args = JSON.parse(item);
-        } catch (e) {
-          Lib.logError(`systemJs: '${item}' is no action payload`, e);
-          return undefined;
+        } catch {
+          args = null;
         }
       }
       if (!Array.isArray(args)) {

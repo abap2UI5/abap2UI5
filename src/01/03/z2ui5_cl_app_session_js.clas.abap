@@ -97,7 +97,27 @@ CLASS z2ui5_cl_app_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { config };` && |\n| &&
+             `  // The page location (origin, pathname, query) is session-constant like` && |\n| &&
+             `  // the block above, but travels on its own cadence: with every app-start-` && |\n| &&
+             `  // shaped request (no draft id - the backend parses ?app_start= from` && |\n| &&
+             `  // SEARCH only there, and a route restore via Back/Forward is exactly` && |\n| &&
+             `  // such a request) and on the page load's first roundtrip, so the backend` && |\n| &&
+             `  // can store it with the draft (z2ui5_cl_core_handler=>session_merge).` && |\n| &&
+             `  // Event roundtrips omit it. The hash is NOT part of this: it carries the` && |\n| &&
+             `  // live routing state and stays a per-request field (Server.roundtrip).` && |\n| &&
+             `  let locationSent = false;` && |\n| &&
+             `` && |\n| &&
+             `  function location(draftId, search) {` && |\n| &&
+             `    if (draftId && locationSent) return null;` && |\n| &&
+             `    locationSent = true;` && |\n| &&
+             `    return {` && |\n| &&
+             `      ORIGIN: window.location.origin,` && |\n| &&
+             `      PATHNAME: window.location.pathname,` && |\n| &&
+             `      SEARCH: search || window.location.search,` && |\n| &&
+             `    };` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  return { config, location };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

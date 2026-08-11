@@ -308,8 +308,8 @@ sap.ui.define(
       },
       MESSAGE_BOX: {
         get: () => MessageBox,
-        // the method IS the box type - the availability check below then
-        // reports a type this UI5 version does not carry
+        // the method IS the box type - showBox itself falls back to show()
+        // for a type this UI5 version does not carry
         methods: {
           show: ["string"],
           alert: ["string"],
@@ -341,19 +341,7 @@ sap.ui.define(
           updateModel: [],
         },
         display: (oController, method, aArgs, mOptions, ctx) =>
-          Slots.action(
-            oController,
-            method,
-            aArgs[0],
-            aArgs[1],
-            mOptions,
-            ctx?.seq,
-          ),
-        // display and updateModel are not ViewSlots methods at all, so the
-        // "does this UI5 version carry it" check below has nothing to look
-        // at - and nothing to answer either, since none of the three depends
-        // on the UI5 version. The whitelist above is the only gate.
-        virtualMethods: true,
+          Slots.action(method, aArgs[0], aArgs[1], mOptions, ctx?.seq),
       },
       // The browser history / URL. Router computes ONE outcome from the whole
       // options object - adopt the hash, push a route entry, replace it, or
@@ -363,7 +351,7 @@ sap.ui.define(
         get: () => Router,
         methods: { sync: [] },
         display: (oController, method, aArgs, mOptions) =>
-          Router.sync(mOptions, mOptions.id),
+          Router.sync(mOptions),
       },
       BUSY_INDICATOR: {
         get: () => BusyIndicator,
@@ -689,10 +677,7 @@ sap.ui.define(
         return;
       }
       const obj = target.get();
-      if (
-        !obj ||
-        (!target.virtualMethods && typeof obj[method] !== "function")
-      ) {
+      if (!obj) {
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
         return;
       }
@@ -719,8 +704,15 @@ sap.ui.define(
       if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {
         raw = [formatTemplate(String(raw[0]), raw.slice(1))];
       }
+      // A display hook is the executor, not obj[method] - so only the plain
+      // path needs the "does this UI5 version carry it" probe (which is also
+      // what let VIEW_SLOTS route methods that never exist on the target).
       if (target.display) {
         return target.display(oController, method, raw, mOptions || {}, ctx);
+      }
+      if (typeof obj[method] !== "function") {
+        Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
+        return;
       }
       obj[method](...castArgs(kinds, raw));
     }
@@ -792,12 +784,17 @@ sap.ui.define(
     // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted
     // operators and values - never code. An empty groups array clears.
     function buildFilterGroups(binding, json) {
-      let groups;
-      try {
-        groups = JSON.parse(json);
-      } catch {
-        Lib.logError("BINDING_CALL: malformed filter groups JSON");
-        return;
+      // the backend embeds a '['-starting argument as real JSON, so on that
+      // path the groups arrive already parsed; only the XML-bound eF( )
+      // string form still needs the parse
+      let groups = json;
+      if (typeof json === "string") {
+        try {
+          groups = JSON.parse(json);
+        } catch {
+          Lib.logError("BINDING_CALL: malformed filter groups JSON");
+          return;
+        }
       }
       if (!Array.isArray(groups)) {
         Lib.logError("BINDING_CALL: filter groups must be an array");
@@ -835,11 +832,13 @@ sap.ui.define(
         const [path, operator, value1, value2] = params;
         // A single param that starts with '[' is the compound groups JSON -
         // a model path can never start with '[', so the sniff is
-        // unambiguous and the positional single-filter form stays as-is.
+        // unambiguous and the positional single-filter form stays as-is. It
+        // arrives as a real array when the backend embedded it as JSON, as a
+        // string from the XML-bound eF( ) form.
         if (
           params.length === 1 &&
-          typeof path === "string" &&
-          path.trimStart().startsWith("[")
+          (Array.isArray(path) ||
+            (typeof path === "string" && path.trimStart().startsWith("[")))
         ) {
           buildFilterGroups(binding, path);
           return;

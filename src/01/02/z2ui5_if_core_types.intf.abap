@@ -12,17 +12,17 @@ INTERFACE z2ui5_if_core_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
-  " The view slots, spelled as the frontend's ViewSlots module knows them.
-  " Every backend-side slot reference (the system actions, the nav-app
-  " teardown, the NavContainer event mapping) uses these - never a literal.
+  " The VIEW_SLOTS system-action vocabulary, spelled as the frontend's
+  " ViewSlots module dispatches it. Every backend-side call (the system
+  " actions, the nav-app teardown, the popup_close mapping) uses these -
+  " never a literal.
   CONSTANTS:
-    BEGIN OF cs_slot,
-      main    TYPE string VALUE `MAIN`,
-      nest    TYPE string VALUE `NEST`,
-      nest2   TYPE string VALUE `NEST2`,
-      popup   TYPE string VALUE `POPUP`,
-      popover TYPE string VALUE `POPOVER`,
-    END OF cs_slot.
+    BEGIN OF cs_slot_action,
+      target       TYPE string VALUE `VIEW_SLOTS`,
+      display      TYPE string VALUE `display`,
+      destroy      TYPE string VALUE `destroy`,
+      update_model TYPE string VALUE `updateModel`,
+    END OF cs_slot_action.
 
   TYPES:
     BEGIN OF ty_s_http_res,
@@ -154,29 +154,25 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_next,
-      o_app_call         TYPE REF TO z2ui5_if_app,
-      o_app_leave        TYPE REF TO z2ui5_if_app,
-      next_event         TYPE string,
+      o_app_call     TYPE REF TO z2ui5_if_app,
+      o_app_leave    TYPE REF TO z2ui5_if_app,
+      next_event     TYPE string,
       " the two action queues of this roundtrip, as the response ships them
-      s_action           TYPE ty_s_action,
-      r_data             TYPE REF TO data,
+      s_action       TYPE ty_s_action,
+      r_data         TYPE REF TO data,
       " BACKEND-ONLY, never serialized: the view-lifecycle calls of this
       " roundtrip, collected while the app runs and turned into the SYSTEM
       " action list by main_end( ).
-      t_action_front     TYPE ty_t_system_action,
-      " BACKEND-ONLY: did this roundtrip ship a view into any slot? The model
-      " has to travel with new XML, and the decision used to be made by
-      " reading the response's own s_*-xml fields back.
-      check_view_shipped TYPE abap_bool,
+      t_action_front TYPE ty_t_system_action,
       " BACKEND-ONLY: what the browser history / URL has to reflect after this
       " roundtrip. main_end( ) turns it into the ROUTER/sync action - the
       " frontend router reads its inputs from that call's options, not from
       " seven separate response fields.
-      s_nav              TYPE ty_s_nav,
+      s_nav          TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
       " concern - z2ui5_cl_http_handler reads it off the response record to
       " call set_session_stateful, and no frontend module ever looked at it.
-      s_stateful         TYPE ty_s_http_res-s_stateful,
+      s_stateful     TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next.
 
   TYPES:

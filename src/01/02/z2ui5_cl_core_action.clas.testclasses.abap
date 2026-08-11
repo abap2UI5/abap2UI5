@@ -184,14 +184,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lo_action = NEW #( val = lo_http ).
 
-    " the note that this roundtrip shipped a view must not survive into the
-    " next app - the model would then travel without any view asking for it
-    lo_action->ms_next-check_view_shipped = abap_true.
+    " the leaving app's collected view-lifecycle calls must not survive into
+    " the next app - they describe a screen that is being replaced, and the
+    " model decision is derived from them
+    INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-main
+                    method = `display` )
+           INTO TABLE lo_action->ms_next-t_action_front.
 
     lo_action->reset_frontend_queue( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_action->ms_next-check_view_shipped ).
+    cl_abap_unit_assert=>assert_initial( lo_action->ms_next-t_action_front ).
 
   ENDMETHOD.
 
