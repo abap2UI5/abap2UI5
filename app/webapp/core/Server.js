@@ -649,9 +649,6 @@ sap.ui.define(
         try {
           AppState.state.oResponse = response;
           const params = response.PARAMS;
-          const sView = params?.S_VIEW;
-
-          if (sView?.CHECK_DESTROY) ViewSlots.destroy("MAIN");
 
           // The backend can send follow-up actions to run after the response.
           // Each entry is a JSON array ["EVENT", ...args] (framework actions,
@@ -668,33 +665,14 @@ sap.ui.define(
           // consume the newer response's snippets (and lose its own)
           response._pendingCustomJs = followUp?.CUSTOM_JS || null;
 
-          // Full view replacement -> destroy & rebuild, nothing more to do.
-          // Builds are serialized through _viewBuild: XMLView.create claims
-          // the fixed "mainView" id synchronously, so two overlapping builds
-          // (slow library load + a parallel/multi-req response) would throw
-          // "duplicate id". Each queued build re-checks that it has not been
-          // superseded before tearing down the current view.
-          if (sView?.XML) {
-            this._viewBuild = Promise.resolve(this._viewBuild)
-              .catch(() => {})
-              .then(() => {
-                if (reqSeq !== undefined && reqSeq !== this._requestSeq) {
-                  return;
-                }
-                ViewSlots.destroy("MAIN");
-                return oController.displayView(
-                  sView.XML,
-                  response.OVIEWMODEL,
-                  reqSeq,
-                );
-              });
-            await this._viewBuild;
-            return;
-          }
-
-          // Partial response: the model push for the open slots rides in the
-          // system actions like every other view-lifecycle call now, so there
-          // is nothing to do here but run the phases.
+          // Every view-lifecycle call, the MAIN rebuild included, is a system
+          // action now - so there is nothing slot-specific left here. The
+          // phases are started unconditionally: the MAIN view's own
+          // onAfterRendering used to be what triggered them after a rebuild,
+          // and it cannot be, once the rebuild is one of the actions they run.
+          // It stays harmless - _processAfterRendering marks the response as
+          // processed before the first action, so the render it causes finds
+          // nothing left to do.
           oController._processAfterRendering();
         } catch (e) {
           BusyIndicator.hide();

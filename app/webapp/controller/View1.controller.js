@@ -156,7 +156,7 @@ sap.ui.define(
       // The VIEW_SLOTS target of a system action. destroy is ViewSlots' own
       // method; display and updateModel live here, because loading a fragment
       // and owning the model is the controller's job.
-      slotAction(method, slotKey, mOptions) {
+      slotAction(method, slotKey, xml, mOptions) {
         const seq = this._systemSeq;
         if (method === "destroy") {
           ViewSlots.destroy(slotKey);
@@ -166,24 +166,39 @@ sap.ui.define(
           this.updateModelIfRequired(slotKey);
           return undefined;
         }
-        // display: the slot is rebuilt from scratch, so whatever is open in
-        // it goes first - the same destroy-then-open the slot protocol did.
-        ViewSlots.destroy(slotKey);
-        const xml = mOptions.xml;
+        // display. The teardown of whatever the slot held is its own action
+        // and has already run, so there is nothing to decide here either -
+        // only which loader the slot uses.
+        if (slotKey === "MAIN") return this._displayMainView(xml, mOptions);
         if (slotKey === "POPUP") return this.displayFragment(xml, seq);
         if (slotKey === "POPOVER") {
           return this.displayPopover(xml, mOptions.openById, seq);
         }
-        return this.displayNestedView(
-          xml,
-          slotKey,
-          {
-            ID: mOptions.id,
-            METHOD_INSERT: mOptions.methodInsert,
-            METHOD_DESTROY: mOptions.methodDestroy,
-          },
-          seq,
-        );
+        return this.displayNestedView(xml, slotKey, mOptions, seq);
+      },
+
+      // The MAIN rebuild is the one display that cannot simply run: it is
+      // serialized through Server._viewBuild because XMLView.create claims
+      // the fixed "mainView" id synchronously, so two overlapping builds
+      // (a slow library load plus a parallel/multi-req response) would throw
+      // "duplicate id". Each queued build re-checks that it has not been
+      // superseded before it starts.
+      _displayMainView(xml, mOptions) {
+        const seq = this._systemSeq;
+        Server._viewBuild = Promise.resolve(Server._viewBuild)
+          .catch(() => {})
+          .then(() => {
+            if (seq !== undefined && seq !== Server._requestSeq) {
+              return undefined;
+            }
+            return this.displayView(
+              xml,
+              AppState.state.oResponse?.OVIEWMODEL,
+              seq,
+              mOptions,
+            );
+          });
+        return Server._viewBuild;
       },
 
       // eFS = "event frontend, system": the SYSTEM phase counterpart of eF.
@@ -295,8 +310,7 @@ sap.ui.define(
         oFragment.openBy(oControl);
       },
 
-      async displayNestedView(xml, slotKey, nestParamsIn, seq) {
-        const paramKey = ViewSlots.paramByKey(slotKey);
+      async displayNestedView(xml, slotKey, mOptions, seq) {
         // Nested views do NOT create their own model. They are inserted into
         // the MAIN control tree below and inherit its default JSON model via
         // UI5 model propagation, so every view binds against the same data with
@@ -320,19 +334,15 @@ sap.ui.define(
           return;
         }
 
-        // Prefer the params passed by _displayPendingViews: they belong to
-        // the same response as the XML. Re-reading the live global here
-        // would mix this response's view with a newer response's parent id
-        // and insert/destroy methods. The global stays as fallback for
-        // custom-JS callers.
-        const nestParams =
-          nestParamsIn ?? AppState.state.oResponse?.PARAMS?.[paramKey];
-        if (!nestParams) {
-          Lib.logError(`displayNestedView: missing PARAMS.${paramKey}`);
-          oView.destroy();
-          return;
-        }
-        const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;
+        // The options travel with the action that carries the XML, so they
+        // always belong to the same response - there is no live global to
+        // re-read and no way to mix this response's view with a newer
+        // response's parent id and insert/destroy methods.
+        const {
+          id: ID,
+          methodDestroy: METHOD_DESTROY,
+          methodInsert: METHOD_INSERT,
+        } = mOptions;
 
         const oParent = ViewSlots.byId("MAIN", ID);
         if (!oParent) {
@@ -592,11 +602,10 @@ sap.ui.define(
       },
 
       // Replace the main app view with the XML coming from the backend.
-      async displayView(xml, viewModel, reqSeq) {
+      async displayView(xml, viewModel, reqSeq, mOptions = {}) {
         const oViewModel = this._trackChanges(new JSONModel(viewModel));
 
-        const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;
-        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;
+        const switchPath = mOptions.switchDefaultModelPath;
 
         // When the app wants OData as the default model, build it here and
         // keep the JSON model as the named "http" model.
@@ -604,7 +613,7 @@ sap.ui.define(
         if (switchPath) {
           oModel = new ODataModel({
             serviceUrl: switchPath,
-            annotationURI: sView.SWITCHDEFAULTMODELANNOURI || "",
+            annotationURI: mOptions.switchDefaultModelAnnoUri || "",
           });
         } else {
           oModel = oViewModel;

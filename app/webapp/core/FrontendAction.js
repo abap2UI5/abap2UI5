@@ -259,8 +259,8 @@ sap.ui.define(
       MESSAGE_TOAST: {
         get: () => MessageToast,
         methods: { show: ["string"] },
-        display: (oController, method, sText, mOptions) =>
-          Messages.showToast(sText, mOptions, oController),
+        display: (oController, method, aArgs, mOptions) =>
+          Messages.showToast(aArgs[0], mOptions, oController),
       },
       MESSAGE_BOX: {
         get: () => MessageBox,
@@ -275,8 +275,8 @@ sap.ui.define(
           error: ["string"],
           success: ["string"],
         },
-        display: (oController, method, sText, mOptions) =>
-          Messages.showBox(method, sText, mOptions, oController),
+        display: (oController, method, aArgs, mOptions) =>
+          Messages.showBox(method, aArgs[0], mOptions, oController),
       },
       // Not a UI5 global but the framework's own view-slot registry: the
       // slots (MAIN, NEST, NEST2, POPUP, POPOVER) are what a backend response
@@ -286,13 +286,16 @@ sap.ui.define(
       // fragment loading and the model - so the hook below routes them there.
       VIEW_SLOTS: {
         get: () => ViewSlots,
+        // display takes TWO positional arguments, the slot and the view XML.
+        // Declaring both also keeps it off the template path below, which
+        // would otherwise read the XML as a placeholder value for the slot.
         methods: {
           destroy: ["string"],
-          display: ["string"],
+          display: ["string", "string"],
           updateModel: ["string"],
         },
-        display: (oController, method, sSlot, mOptions) =>
-          oController.slotAction(method, sSlot, mOptions),
+        display: (oController, method, aArgs, mOptions) =>
+          oController.slotAction(method, aArgs[0], aArgs[1], mOptions),
         // display and updateModel are not ViewSlots methods at all, so the
         // "does this UI5 version carry it" check below has nothing to look
         // at - and nothing to answer either, since none of the three depends
@@ -652,7 +655,7 @@ sap.ui.define(
         raw = [formatTemplate(String(raw[0]), raw.slice(1))];
       }
       if (target.display) {
-        return target.display(oController, method, raw[0], mOptions || {});
+        return target.display(oController, method, raw, mOptions || {});
       }
       obj[method](...castArgs(kinds, raw));
     }

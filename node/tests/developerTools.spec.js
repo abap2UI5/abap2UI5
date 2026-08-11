@@ -113,7 +113,17 @@ test.describe("View tab", () => {
   test("falls back to the last response XML when the view keeps none", () => {
     const { DeveloperTools } = loadDeveloperTools({
       views: { MAIN: fakeXmlView(undefined) },
-      oResponse: { PARAMS: { S_VIEW: { XML: "<Page/>" } } },
+      // the XML rides on the system action that displayed the slot now
+      oResponse: {
+        PARAMS: {
+          S_FOLLOW_UP_ACTION: {
+            SYSTEM_JS: [
+              '["CONTROL_GLOBAL","VIEW_SLOTS","destroy","MAIN"]',
+              '["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Page/>"]',
+            ],
+          },
+        },
+      },
     });
     const { oEvent, modelData } = fakeSelectEvent("VIEW");
     DeveloperTools.onItemSelect(oEvent);

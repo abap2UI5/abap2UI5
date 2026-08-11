@@ -62,6 +62,10 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     DATA mv_model_before       TYPE string.
     DATA mv_model_before_taken TYPE abap_bool.
 
+    "! Turn the collected view-lifecycle calls into the SYSTEM action list -
+    "! in slot order, so the frontend only has to run what it receives.
+    METHODS system_actions_serialize.
+
     METHODS check_view_update_needed
       RETURNING
         VALUE(result) TYPE abap_bool.
@@ -596,11 +600,44 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD check_view_update_needed.
 
     " a slot that ships new XML always needs the model with it - all five
-    " slots, the nested ones included. Every display records that on the
-    " action (z2ui5_cl_core_client=>slot_display), and the MAIN view still
-    " travels as s_view-xml until it becomes an action too
-    result = xsdbool( mo_action->ms_next-check_view_shipped = abap_true
-                      OR ms_response-s_front-params-s_view-xml IS NOT INITIAL ).
+    " slots, the nested ones included. Every display records that
+    " (z2ui5_cl_core_client=>slot_display)
+    result = mo_action->ms_next-check_view_shipped.
+
+  ENDMETHOD.
+
+  METHOD system_actions_serialize.
+
+    " The view-lifecycle calls leave in SLOT order, never in the order the app
+    " happened to make them: a nested view is inserted into the MAIN control
+    " tree, so MAIN has to be built before NEST and NEST2 whichever way round
+    " the app called them. Within one slot the order is kept - that is the
+    " destroy that always precedes its display.
+    DATA lt_sorted TYPE z2ui5_if_core_types=>ty_t_system_action.
+
+    LOOP AT VALUE string_table( ( `MAIN` ) ( `NEST` ) ( `NEST2` ) ( `POPUP` ) ( `POPOVER` ) )
+         INTO DATA(lv_slot).
+      LOOP AT mo_action->ms_next-t_system INTO DATA(ls_action) WHERE slot = lv_slot.
+        INSERT ls_action INTO TABLE lt_sorted.
+      ENDLOOP.
+    ENDLOOP.
+
+    DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
+    LOOP AT lt_sorted INTO ls_action.
+      DATA(lt_arg) = VALUE string_table( ( `VIEW_SLOTS` )
+                                         ( ls_action-method )
+                                         ( ls_action-slot ) ).
+      IF ls_action-method = `display`.
+        INSERT ls_action-xml INTO TABLE lt_arg.
+        IF ls_action-options IS NOT INITIAL.
+          INSERT ls_action-options INTO TABLE lt_arg.
+        ENDIF.
+      ENDIF.
+      INSERT lo_srv_event->get_event_client_json(
+                 val   = z2ui5_if_client=>cs_event-control_global
+                 t_arg = lt_arg )
+             INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-system_js.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -614,6 +651,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     IF mo_action->ms_next-s_set-set_nav_routing IS INITIAL.
       mo_action->ms_next-s_set-set_nav_routing = mo_action->mo_app->mv_nav_mode.
     ENDIF.
+
+    system_actions_serialize( ).
 
     ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
                            s_front-id     = mo_action->mo_app->ms_draft-id

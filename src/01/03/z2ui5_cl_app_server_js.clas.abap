@@ -677,9 +677,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          AppState.state.oResponse = response;` && |\n| &&
              `          const params = response.PARAMS;` && |\n| &&
-             `          const sView = params?.S_VIEW;` && |\n| &&
-             `` && |\n| &&
-             `          if (sView?.CHECK_DESTROY) ViewSlots.destroy("MAIN");` && |\n| &&
              `` && |\n| &&
              `          // The backend can send follow-up actions to run after the response.` && |\n| &&
              `          // Each entry is a JSON array ["EVENT", ...args] (framework actions,` && |\n| &&
@@ -696,33 +693,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // consume the newer response's snippets (and lose its own)` && |\n| &&
              `          response._pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
              `` && |\n| &&
-             `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
-             `          // Builds are serialized through _viewBuild: XMLView.create claims` && |\n| &&
-             `          // the fixed "mainView" id synchronously, so two overlapping builds` && |\n| &&
-             `          // (slow library load + a parallel/multi-req response) would throw` && |\n| &&
-             `          // "duplicate id". Each queued build re-checks that it has not been` && |\n| &&
-             `          // superseded before tearing down the current view.` && |\n| &&
-             `          if (sView?.XML) {` && |\n| &&
-             `            this._viewBuild = Promise.resolve(this._viewBuild)` && |\n| &&
-             `              .catch(() => {})` && |\n| &&
-             `              .then(() => {` && |\n| &&
-             `                if (reqSeq !== undefined && reqSeq !== this._requestSeq) {` && |\n| &&
-             `                  return;` && |\n| &&
-             `                }` && |\n| &&
-             `                ViewSlots.destroy("MAIN");` && |\n| &&
-             `                return oController.displayView(` && |\n| &&
-             `                  sView.XML,` && |\n| &&
-             `                  response.OVIEWMODEL,` && |\n| &&
-             `                  reqSeq,` && |\n| &&
-             `                );` && |\n| &&
-             `              });` && |\n| &&
-             `            await this._viewBuild;` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          // Partial response: the model push for the open slots rides in the` && |\n| &&
-             `          // system actions like every other view-lifecycle call now, so there` && |\n| &&
-             `          // is nothing to do here but run the phases.` && |\n| &&
+             `          // Every view-lifecycle call, the MAIN rebuild included, is a system` && |\n| &&
+             `          // action now - so there is nothing slot-specific left here. The` && |\n| &&
+             `          // phases are started unconditionally: the MAIN view's own` && |\n| &&
+             `          // onAfterRendering used to be what triggered them after a rebuild,` && |\n| &&
+             `          // and it cannot be, once the rebuild is one of the actions they run.` && |\n| &&
+             `          // It stays harmless - _processAfterRendering marks the response as` && |\n| &&
+             `          // processed before the first action, so the render it causes finds` && |\n| &&
+             `          // nothing left to do.` && |\n| &&
              `          oController._processAfterRendering();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
@@ -825,8 +803,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          } else {` && |\n| &&
              `            // A raw JavaScript expression - only runs when the CSP allows` && |\n| &&
              `            // unsafe-eval.` && |\n| &&
-             `            // eslint-disable-next-line no-new-func` && |\n|.
-    result = result &&
+             `            // eslint-disable-next-line no-new-func` && |\n| &&
              `            Function("return " + item)();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -848,7 +825,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
               ``.
 
   ENDMETHOD.

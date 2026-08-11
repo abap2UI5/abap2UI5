@@ -66,6 +66,16 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_slots FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
+    METHODS test_system_slot_order    FOR TESTING RAISING cx_static_check.
+    METHODS test_system_last_wins     FOR TESTING RAISING cx_static_check.
+    METHODS test_system_empty         FOR TESTING RAISING cx_static_check.
+
+    "! the slots the serialized actions name, in order, deduplicated
+    METHODS slot_sequence
+      IMPORTING
+        val           TYPE REF TO z2ui5_cl_core_handler
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
@@ -376,13 +386,103 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_view_update_flag.
+  METHOD test_system_slot_order.
 
-    " MAIN still ships its XML in the slot, so that one is read off the
-    " response as before
+    " The app displays in whatever order suits it - here nested first, main
+    " last. The list that leaves goes MAIN, NEST, NEST2, POPUP, POPOVER: a
+    " nested view is inserted INTO the main control tree, so it cannot be
+    " built before the page it belongs to exists.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    lo_handler = NEW #( val = `` ).
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+
+    li_client->popover_display( xml   = `<Popover/>`
+                                by_id = `btn` ).
+    li_client->nest2_view_display( val           = `<Nest2/>`
+                                   id            = `n2`
+                                   method_insert = `addEndColumnPage` ).
+    li_client->nest_view_display( val           = `<Nest/>`
+                                  id            = `n1`
+                                  method_insert = `addMidColumnPage` ).
+    li_client->popup_display( `<Dialog/>` ).
+    li_client->view_display( `<View/>` ).
+
+    lo_handler->system_actions_serialize( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `MAIN|NEST|NEST2|POPUP|POPOVER`
+        act = slot_sequence( lo_handler ) ).
+
+  ENDMETHOD.
+
+  METHOD test_system_last_wins.
+
+    " A slot displayed twice is displayed ONCE, with the last XML: the
+    " second call drops everything the first queued. The frontend never sees
+    " a view it would have to tear down again right away.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    lo_handler = NEW #( val = `` ).
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+
+    li_client->view_display( `<First/>` ).
+    li_client->view_display( `<Second/>` ).
+
+    lo_handler->system_actions_serialize( ).
+
+    DATA(lt_js) = lo_handler->mo_action->ms_next-s_set-s_follow_up_action-system_js.
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_js ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","MAIN"]`
+                                        act = lt_js[ 1 ] ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Second/>"]`
+        act = lt_js[ 2 ] ).
+
+  ENDMETHOD.
+
+  METHOD test_system_empty.
+
+    " a roundtrip that touches no slot sends no system action at all
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
-    lo_handler->ms_response-s_front-params-s_view-xml = `<View/>`.
+
+    lo_handler->system_actions_serialize( ).
+
+    cl_abap_unit_assert=>assert_initial(
+        lo_handler->mo_action->ms_next-s_set-s_follow_up_action-system_js ).
+
+  ENDMETHOD.
+
+  METHOD slot_sequence.
+
+    " the slots named by the serialized actions, in order, each one once -
+    " so the assertion reads as the sequence and not as a payload dump
+    LOOP AT val->mo_action->ms_next-s_set-s_follow_up_action-system_js INTO DATA(lv_js).
+      SPLIT lv_js AT `","` INTO TABLE DATA(lt_part).
+      DATA(lv_slot) = replace( val  = VALUE string( lt_part[ 4 ] OPTIONAL )
+                               sub  = `"]`
+                               with = `` ).
+      IF result CS lv_slot.
+        CONTINUE.
+      ENDIF.
+      IF result IS NOT INITIAL.
+        result = result && `|`.
+      ENDIF.
+      result = result && lv_slot.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD test_view_update_flag.
+
+    " every slot displays through a system action, and the display notes that
+    " a view was shipped - the model has to travel with it. No slot of the
+    " response is read back for this any more
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->ms_next-check_view_shipped = abap_true.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lo_handler->check_view_update_needed( ) ).
@@ -391,11 +491,13 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_view_update_popup.
 
-    " every other slot displays through a system action, which notes on the
-    " action that a view was shipped - the model has to travel with it
+    " the same holds whichever slot was displayed - one note, not one flag
+    " per slot
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->ms_next-check_view_shipped = abap_true.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client->popup_display( `<Dialog/>` ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lo_handler->check_view_update_needed( ) ).

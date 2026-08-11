@@ -229,11 +229,14 @@ CLASS ltcl_test IMPLEMENTATION.
     " is queued BEFORE that app runs, so a popup_display( ) of its own lands
     " after it and wins
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action-custom_js ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"]` &&
-              `|["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPOVER"]`
-        act = concat_lines_of( table = lo_result->ms_next-s_set-s_follow_up_action-system_js
-                               sep   = `|` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_result->ms_next-t_system ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `POPUP|destroy`
+                                        act = |{ lo_result->ms_next-t_system[ 1 ]-slot }\|| &&
+                                              |{ lo_result->ms_next-t_system[ 1 ]-method }| ).
+    cl_abap_unit_assert=>assert_equals( exp = `POPOVER|destroy`
+                                        act = |{ lo_result->ms_next-t_system[ 2 ]-slot }\|| &&
+                                              |{ lo_result->ms_next-t_system[ 2 ]-method }| ).
 
     " the frontend is told to push a route entry for the called app, and where
     " the CALLING app was just saved - it repoints the caller's history entry at
@@ -320,11 +323,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " leave behaves like call
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action-custom_js ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"]` &&
-              `|["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPOVER"]`
-        act = concat_lines_of( table = lo_result->ms_next-s_set-s_follow_up_action-system_js
-                               sep   = `|` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_result->ms_next-t_system ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `POPUP|destroy`
+                                        act = |{ lo_result->ms_next-t_system[ 1 ]-slot }\|| &&
+                                              |{ lo_result->ms_next-t_system[ 1 ]-method }| ).
+    cl_abap_unit_assert=>assert_equals( exp = `POPOVER|destroy`
+                                        act = |{ lo_result->ms_next-t_system[ 2 ]-slot }\|| &&
+                                              |{ lo_result->ms_next-t_system[ 2 ]-method }| ).
 
   ENDMETHOD.
 

@@ -183,7 +183,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // The VIEW_SLOTS target of a system action. destroy is ViewSlots' own` && |\n| &&
              `      // method; display and updateModel live here, because loading a fragment` && |\n| &&
              `      // and owning the model is the controller's job.` && |\n| &&
-             `      slotAction(method, slotKey, mOptions) {` && |\n| &&
+             `      slotAction(method, slotKey, xml, mOptions) {` && |\n| &&
              `        const seq = this._systemSeq;` && |\n| &&
              `        if (method === "destroy") {` && |\n| &&
              `          ViewSlots.destroy(slotKey);` && |\n| &&
@@ -193,24 +193,39 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          this.updateModelIfRequired(slotKey);` && |\n| &&
              `          return undefined;` && |\n| &&
              `        }` && |\n| &&
-             `        // display: the slot is rebuilt from scratch, so whatever is open in` && |\n| &&
-             `        // it goes first - the same destroy-then-open the slot protocol did.` && |\n| &&
-             `        ViewSlots.destroy(slotKey);` && |\n| &&
-             `        const xml = mOptions.xml;` && |\n| &&
+             `        // display. The teardown of whatever the slot held is its own action` && |\n| &&
+             `        // and has already run, so there is nothing to decide here either -` && |\n| &&
+             `        // only which loader the slot uses.` && |\n| &&
+             `        if (slotKey === "MAIN") return this._displayMainView(xml, mOptions);` && |\n| &&
              `        if (slotKey === "POPUP") return this.displayFragment(xml, seq);` && |\n| &&
              `        if (slotKey === "POPOVER") {` && |\n| &&
              `          return this.displayPopover(xml, mOptions.openById, seq);` && |\n| &&
              `        }` && |\n| &&
-             `        return this.displayNestedView(` && |\n| &&
-             `          xml,` && |\n| &&
-             `          slotKey,` && |\n| &&
-             `          {` && |\n| &&
-             `            ID: mOptions.id,` && |\n| &&
-             `            METHOD_INSERT: mOptions.methodInsert,` && |\n| &&
-             `            METHOD_DESTROY: mOptions.methodDestroy,` && |\n| &&
-             `          },` && |\n| &&
-             `          seq,` && |\n| &&
-             `        );` && |\n| &&
+             `        return this.displayNestedView(xml, slotKey, mOptions, seq);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // The MAIN rebuild is the one display that cannot simply run: it is` && |\n| &&
+             `      // serialized through Server._viewBuild because XMLView.create claims` && |\n| &&
+             `      // the fixed "mainView" id synchronously, so two overlapping builds` && |\n| &&
+             `      // (a slow library load plus a parallel/multi-req response) would throw` && |\n| &&
+             `      // "duplicate id". Each queued build re-checks that it has not been` && |\n| &&
+             `      // superseded before it starts.` && |\n| &&
+             `      _displayMainView(xml, mOptions) {` && |\n| &&
+             `        const seq = this._systemSeq;` && |\n| &&
+             `        Server._viewBuild = Promise.resolve(Server._viewBuild)` && |\n| &&
+             `          .catch(() => {})` && |\n| &&
+             `          .then(() => {` && |\n| &&
+             `            if (seq !== undefined && seq !== Server._requestSeq) {` && |\n| &&
+             `              return undefined;` && |\n| &&
+             `            }` && |\n| &&
+             `            return this.displayView(` && |\n| &&
+             `              xml,` && |\n| &&
+             `              AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
+             `              seq,` && |\n| &&
+             `              mOptions,` && |\n| &&
+             `            );` && |\n| &&
+             `          });` && |\n| &&
+             `        return Server._viewBuild;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // eFS = "event frontend, system": the SYSTEM phase counterpart of eF.` && |\n| &&
@@ -322,8 +337,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        oFragment.openBy(oControl);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async displayNestedView(xml, slotKey, nestParamsIn, seq) {` && |\n| &&
-             `        const paramKey = ViewSlots.paramByKey(slotKey);` && |\n| &&
+             `      async displayNestedView(xml, slotKey, mOptions, seq) {` && |\n| &&
              `        // Nested views do NOT create their own model. They are inserted into` && |\n| &&
              `        // the MAIN control tree below and inherit its default JSON model via` && |\n| &&
              `        // UI5 model propagation, so every view binds against the same data with` && |\n| &&
@@ -347,19 +361,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // Prefer the params passed by _displayPendingViews: they belong to` && |\n| &&
-             `        // the same response as the XML. Re-reading the live global here` && |\n| &&
-             `        // would mix this response's view with a newer response's parent id` && |\n| &&
-             `        // and insert/destroy methods. The global stays as fallback for` && |\n| &&
-             `        // custom-JS callers.` && |\n| &&
-             `        const nestParams =` && |\n| &&
-             `          nestParamsIn ?? AppState.state.oResponse?.PARAMS?.[paramKey];` && |\n| &&
-             `        if (!nestParams) {` && |\n| &&
-             `          Lib.logError(``displayNestedView: missing PARAMS.${paramKey}``);` && |\n| &&
-             `          oView.destroy();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;` && |\n| &&
+             `        // The options travel with the action that carries the XML, so they` && |\n| &&
+             `        // always belong to the same response - there is no live global to` && |\n| &&
+             `        // re-read and no way to mix this response's view with a newer` && |\n| &&
+             `        // response's parent id and insert/destroy methods.` && |\n| &&
+             `        const {` && |\n| &&
+             `          id: ID,` && |\n| &&
+             `          methodDestroy: METHOD_DESTROY,` && |\n| &&
+             `          methodInsert: METHOD_INSERT,` && |\n| &&
+             `        } = mOptions;` && |\n| &&
              `` && |\n| &&
              `        const oParent = ViewSlots.byId("MAIN", ID);` && |\n| &&
              `        if (!oParent) {` && |\n| &&
@@ -414,7 +424,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eF = "event frontend": handles frontend-only events triggered by` && |\n| &&
              `      // the backend response, without a roundtrip. The name is part of the` && |\n| &&
-             `      // protocol - backend-generated view XML binds events to eB/eF - and` && |\n| &&
+             `      // protocol - backend-generated view XML binds events to eB/eF - and` && |\n|.
+    result = result &&
              `      // must not be renamed. The individual handlers live in` && |\n| &&
              `      // core/FrontendAction.js.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
@@ -424,8 +435,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eBP = "event backend, prevent default": cancels the control's` && |\n| &&
-             `      // built-in default for this event and then round-trips exactly like` && |\n|.
-    result = result &&
+             `      // built-in default for this event and then round-trips exactly like` && |\n| &&
              `      // eB. The backend emits it (instead of eB) for an event registered` && |\n| &&
              `      // with s_ctrl-check_prevent_default, passing $event as the first` && |\n| &&
              `      // argument - preventDefault() only works synchronously inside the` && |\n| &&
@@ -620,11 +630,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Replace the main app view with the XML coming from the backend.` && |\n| &&
-             `      async displayView(xml, viewModel, reqSeq) {` && |\n| &&
+             `      async displayView(xml, viewModel, reqSeq, mOptions = {}) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
-             `        const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
-             `        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;` && |\n| &&
+             `        const switchPath = mOptions.switchDefaultModelPath;` && |\n| &&
              `` && |\n| &&
              `        // When the app wants OData as the default model, build it here and` && |\n| &&
              `        // keep the JSON model as the named "http" model.` && |\n| &&
@@ -632,7 +641,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (switchPath) {` && |\n| &&
              `          oModel = new ODataModel({` && |\n| &&
              `            serviceUrl: switchPath,` && |\n| &&
-             `            annotationURI: sView.SWITCHDEFAULTMODELANNOURI || "",` && |\n| &&
+             `            annotationURI: mOptions.switchDefaultModelAnnoUri || "",` && |\n| &&
              `          });` && |\n| &&
              `        } else {` && |\n| &&
              `          oModel = oViewModel;` && |\n| &&

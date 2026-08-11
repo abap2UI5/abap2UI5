@@ -213,6 +213,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " s_set brings no stale request with it - what has to be reset is the
     " backend's own note that this roundtrip shipped a view
     CLEAR ms_next-check_view_shipped.
+    CLEAR ms_next-t_system.
 
   ENDMETHOD.
 
@@ -268,21 +269,21 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " next one.
     CLEAR result->ms_next-s_set-s_follow_up_action.
 
-    " always destroy an open popup/popover on navigation, so an app never has
-    " to close them explicitly before nav_app_call / nav_app_leave. These are
-    " queued HERE, before the app that is navigated to runs its main( ) - so a
-    " popup_display( ) of that app lands after them in the same system queue
-    " and wins, which is what used to happen through the slot being
-    " overwritten. Destroying when nothing is open is a no-op.
-    DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
-    INSERT lo_srv_event->get_event_client_json(
-               val   = z2ui5_if_client=>cs_event-control_global
-               t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `destroy` ) ( `POPUP` ) ) )
-           INTO TABLE result->ms_next-s_set-s_follow_up_action-system_js.
-    INSERT lo_srv_event->get_event_client_json(
-               val   = z2ui5_if_client=>cs_event-control_global
-               t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `destroy` ) ( `POPOVER` ) ) )
-           INTO TABLE result->ms_next-s_set-s_follow_up_action-system_js.
+    " Everything the leaving app queued for the frontend goes with it - it
+    " describes a screen that is being replaced. ms_next-t_system is not
+    " carried over by the s_set copy above ( it is backend-only state on
+    " ms_next ), so the called app starts with an empty queue by construction.
+    "
+    " On top of that, always tear the two standalone slots down: they live
+    " OUTSIDE the MAIN control tree, so unlike a nested view they do not die
+    " with the page the new app renders, and an app should not have to close
+    " them explicitly before nav_app_call / nav_app_leave. Queued HERE,
+    " before the called app runs its main( ) - so its own popup_display( )
+    " replaces this destroy through slot_reset( ). Destroying when nothing is
+    " open is a no-op.
+    result->ms_next-t_system = VALUE #(
+        ( slot = `POPUP`   method = `destroy` )
+        ( slot = `POPOVER` method = `destroy` ) ).
 
   ENDMETHOD.
 

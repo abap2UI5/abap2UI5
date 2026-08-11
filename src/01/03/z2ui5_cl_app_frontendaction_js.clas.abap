@@ -286,8 +286,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      MESSAGE_TOAST: {` && |\n| &&
              `        get: () => MessageToast,` && |\n| &&
              `        methods: { show: ["string"] },` && |\n| &&
-             `        display: (oController, method, sText, mOptions) =>` && |\n| &&
-             `          Messages.showToast(sText, mOptions, oController),` && |\n| &&
+             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
+             `          Messages.showToast(aArgs[0], mOptions, oController),` && |\n| &&
              `      },` && |\n| &&
              `      MESSAGE_BOX: {` && |\n| &&
              `        get: () => MessageBox,` && |\n| &&
@@ -302,8 +302,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          error: ["string"],` && |\n| &&
              `          success: ["string"],` && |\n| &&
              `        },` && |\n| &&
-             `        display: (oController, method, sText, mOptions) =>` && |\n| &&
-             `          Messages.showBox(method, sText, mOptions, oController),` && |\n| &&
+             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
+             `          Messages.showBox(method, aArgs[0], mOptions, oController),` && |\n| &&
              `      },` && |\n| &&
              `      // Not a UI5 global but the framework's own view-slot registry: the` && |\n| &&
              `      // slots (MAIN, NEST, NEST2, POPUP, POPOVER) are what a backend response` && |\n| &&
@@ -313,13 +313,16 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // fragment loading and the model - so the hook below routes them there.` && |\n| &&
              `      VIEW_SLOTS: {` && |\n| &&
              `        get: () => ViewSlots,` && |\n| &&
+             `        // display takes TWO positional arguments, the slot and the view XML.` && |\n| &&
+             `        // Declaring both also keeps it off the template path below, which` && |\n| &&
+             `        // would otherwise read the XML as a placeholder value for the slot.` && |\n| &&
              `        methods: {` && |\n| &&
              `          destroy: ["string"],` && |\n| &&
-             `          display: ["string"],` && |\n| &&
+             `          display: ["string", "string"],` && |\n| &&
              `          updateModel: ["string"],` && |\n| &&
              `        },` && |\n| &&
-             `        display: (oController, method, sSlot, mOptions) =>` && |\n| &&
-             `          oController.slotAction(method, sSlot, mOptions),` && |\n| &&
+             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
+             `          oController.slotAction(method, aArgs[0], aArgs[1], mOptions),` && |\n| &&
              `        // display and updateModel are not ViewSlots methods at all, so the` && |\n| &&
              `        // "does this UI5 version carry it" check below has nothing to look` && |\n| &&
              `        // at - and nothing to answer either, since none of the three depends` && |\n| &&
@@ -421,11 +424,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          ``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``,` && |\n| &&
              `        );` && |\n| &&
              `        return null;` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `      return item;` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `    function castArg(kind, raw, view) {` && |\n| &&
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
@@ -680,7 +683,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        raw = [formatTemplate(String(raw[0]), raw.slice(1))];` && |\n| &&
              `      }` && |\n| &&
              `      if (target.display) {` && |\n| &&
-             `        return target.display(oController, method, raw[0], mOptions || {});` && |\n| &&
+             `        return target.display(oController, method, raw, mOptions || {});` && |\n| &&
              `      }` && |\n| &&
              `      obj[method](...castArgs(kinds, raw));` && |\n| &&
              `    }` && |\n| &&
@@ -822,11 +825,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      sort(binding, [path, descending, group]) {` && |\n| &&
              `        binding.sort([` && |\n| &&
-             `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
+             `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n|.
+    result = result &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
-             `    };` && |\n|.
-    result = result &&
+             `    };` && |\n| &&
              `` && |\n| &&
              `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
              `    function evBindingCall(oController, args) {` && |\n| &&
@@ -1223,11 +1226,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            ? oSVM.getPersonalizableControls()` && |\n| &&
              `            : [];` && |\n| &&
              `          if (!registered.length) {` && |\n| &&
-             `            if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
+             `            if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n|.
+    result = result &&
              `              setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
              `              return;` && |\n| &&
-             `            }` && |\n|.
-    result = result &&
+             `            }` && |\n| &&
              `            Lib.logError(` && |\n| &&
              `              ``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``,` && |\n| &&
              `            );` && |\n| &&
@@ -1624,11 +1627,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const raw = String(args[3] ?? "");` && |\n| &&
              `      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())` && |\n| &&
              `        ? raw.toUpperCase()` && |\n| &&
-             `        : raw;` && |\n| &&
+             `        : raw;` && |\n|.
+    result = result &&
              `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
              `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
-             `      if (!args[2]) {` && |\n|.
-    result = result &&
+             `      if (!args[2]) {` && |\n| &&
              `        delete scopes[scope];` && |\n| &&
              `        // a combo with no registration left must not keep an empty entry:` && |\n| &&
              `        // shortcutEntry would still find it and fall through to undefined,` && |\n| &&

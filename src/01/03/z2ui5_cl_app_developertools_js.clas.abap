@@ -188,10 +188,30 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      return err.title ? ``${err.title}\n\n${err.text}`` : err.text;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getResponseXml(key) {` && |\n| &&
-             `      const params = AppState.state.oResponse?.PARAMS;` && |\n| &&
-             `      const slot = params?.[key];` && |\n| &&
-             `      return slot?.XML;` && |\n| &&
+             `    // The view XML of the last response, read back out of the system action` && |\n| &&
+             `    // that displayed the slot: ["CONTROL_GLOBAL","VIEW_SLOTS","display",` && |\n| &&
+             `    // "<slot>","<xml>", {options}?]. Only used as a fallback for the case` && |\n| &&
+             `    // where the slot holds no live view to read the content off.` && |\n| &&
+             `    function getResponseXml(slotKey) {` && |\n| &&
+             `      const systemJs =` && |\n| &&
+             `        AppState.state.oResponse?.PARAMS?.S_FOLLOW_UP_ACTION?.SYSTEM_JS;` && |\n| &&
+             `      if (!systemJs) return undefined;` && |\n| &&
+             `      for (const item of systemJs) {` && |\n| &&
+             `        let args;` && |\n| &&
+             `        try {` && |\n| &&
+             `          args = JSON.parse(item);` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          continue;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (` && |\n| &&
+             `          args[1] === "VIEW_SLOTS" &&` && |\n| &&
+             `          args[2] === "display" &&` && |\n| &&
+             `          args[3] === slotKey` && |\n| &&
+             `        ) {` && |\n| &&
+             `          return args[4];` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      return undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Preload the sap.ui.codeeditor modules used by the fragment. On older` && |\n| &&
@@ -236,11 +256,11 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // arrived in the last server response.` && |\n| &&
              `      VIEW: () => ({` && |\n| &&
              `        xml:` && |\n| &&
-             `          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("S_VIEW"),` && |\n| &&
+             `          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("MAIN"),` && |\n| &&
              `        rendered: getRenderedContent(ViewSlots.getView("MAIN")),` && |\n| &&
              `      }),` && |\n| &&
-             `      POPUP: () => ({ xml: getResponseXml("S_POPUP") }),` && |\n| &&
-             `      POPOVER: () => ({ xml: getResponseXml("S_POPOVER") }),` && |\n| &&
+             `      POPUP: () => ({ xml: getResponseXml("POPUP") }),` && |\n| &&
+             `      POPOVER: () => ({ xml: getResponseXml("POPOVER") }),` && |\n| &&
              `      NEST1: () => ({` && |\n| &&
              `        xml: getViewContent(ViewSlots.getView("NEST")),` && |\n| &&
              `        rendered: getRenderedContent(ViewSlots.getView("NEST")),` && |\n| &&
@@ -404,7 +424,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          json(() => jsonSources.PLAIN()),` && |\n| &&
              `        );` && |\n| &&
              `        push(` && |\n| &&
-             `          "PREVIOUS REQUEST",` && |\n| &&
+             `          "PREVIOUS REQUEST",` && |\n|.
+    result = result &&
              `          json(() => jsonSources.REQUEST()),` && |\n| &&
              `        );` && |\n| &&
              `        push(` && |\n| &&
@@ -418,18 +439,17 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        // gate on the live slot too - the response only carries the XML in` && |\n| &&
              `        // the roundtrip that opened the popup/popover, but the live model is` && |\n| &&
              `        // exportable for as long as one is open` && |\n| &&
-             `        if (getResponseXml("S_POPUP") || ViewSlots.getView("POPUP")) {` && |\n| &&
+             `        if (getResponseXml("POPUP") || ViewSlots.getView("POPUP")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPUP",` && |\n| &&
              `            xml(() => xmlSources.POPUP().xml),` && |\n| &&
              `          );` && |\n| &&
              `          push(` && |\n| &&
-             `            "POPUP MODEL",` && |\n|.
-    result = result &&
+             `            "POPUP MODEL",` && |\n| &&
              `            json(() => jsonSources.POPUP_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER")) {` && |\n| &&
+             `        if (getResponseXml("POPOVER") || ViewSlots.getView("POPOVER")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPOVER",` && |\n| &&
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
@@ -726,10 +746,10 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            // that opened the popup/popover - also check the live slot so` && |\n| &&
              `            // the tabs stay usable while one is open after later roundtrips.` && |\n| &&
              `            activePopup: Boolean(` && |\n| &&
-             `              getResponseXml("S_POPUP") || ViewSlots.getView("POPUP"),` && |\n| &&
+             `              getResponseXml("POPUP") || ViewSlots.getView("POPUP"),` && |\n| &&
              `            ),` && |\n| &&
              `            activePopover: Boolean(` && |\n| &&
-             `              getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER"),` && |\n| &&
+             `              getResponseXml("POPOVER") || ViewSlots.getView("POPOVER"),` && |\n| &&
              `            ),` && |\n| &&
              `          };` && |\n| &&
              `` && |\n| &&

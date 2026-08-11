@@ -36,25 +36,33 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
         popover TYPE string VALUE `POPOVER`,
       END OF cs_slot.
 
-    "! Queue a SYSTEM follow-up action - the framework's own view-lifecycle
-    "! calls, which run before everything an app queued. Same payload and
-    "! same dispatcher as follow_up_action( ), only the phase differs.
-    METHODS follow_up_system
-      IMPORTING
-        t_arg TYPE string_table.
-
     METHODS slot_destroy
+      IMPORTING
+        slot TYPE clike.
+
+    "! Drop everything queued for a slot so far - see the method body.
+    METHODS slot_reset
       IMPORTING
         slot TYPE clike.
 
     METHODS slot_display
       IMPORTING
-        slot           TYPE clike
-        xml            TYPE clike
-        id             TYPE clike OPTIONAL
-        method_insert  TYPE clike OPTIONAL
-        method_destroy TYPE clike OPTIONAL
-        open_by_id     TYPE clike OPTIONAL.
+        slot                          TYPE clike
+        xml                           TYPE clike
+        id                            TYPE clike OPTIONAL
+        method_insert                 TYPE clike OPTIONAL
+        method_destroy                TYPE clike OPTIONAL
+        open_by_id                    TYPE clike OPTIONAL
+        switch_default_model_path     TYPE clike OPTIONAL
+        switch_default_model_anno_uri TYPE clike OPTIONAL.
+
+    METHODS set_opt
+      IMPORTING
+        json TYPE REF TO z2ui5_if_ajson
+        name TYPE string
+        val  TYPE clike
+      RAISING
+        z2ui5_cx_ajson_error.
 
 ENDCLASS.
 
@@ -91,62 +99,72 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD follow_up_system.
-
-    INSERT mo_srv_event->get_event_client_json(
-               val   = z2ui5_if_client=>cs_event-control_global
-               t_arg = t_arg )
-           INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-system_js.
-
-  ENDMETHOD.
-
-
   METHOD slot_destroy.
 
     " every slot tears down through the one ViewSlots.destroy( key ) the
     " frontend already had - the five *_destroy( ) methods differ in nothing
     " but the key they name
-    follow_up_system( VALUE #( ( `VIEW_SLOTS` )
-                               ( `destroy` )
-                               ( slot ) ) ).
+    slot_reset( slot ).
+    INSERT VALUE #( slot   = slot
+                    method = `destroy` )
+           INTO TABLE mo_action->ms_next-t_system.
+
+  ENDMETHOD.
+
+
+  METHOD slot_reset.
+
+    " Everything queued for this slot so far is void: whatever it was, the
+    " call being queued now decides the slot's state. That is what made the
+    " old slot STRUCT behave the way it did - a second popup_display( )
+    " overwrote the first, a destroy after a display wiped it - only here it
+    " is explicit, so the frontend receives one destroy and at most one
+    " display per slot and needs no such rule of its own.
+    DELETE mo_action->ms_next-t_system WHERE slot = slot.
 
   ENDMETHOD.
 
 
   METHOD slot_display.
 
-    " The options carry what is specific to a slot - the popover's anchor, a
-    " nested view's insert/destroy methods - so the call itself stays the
-    " same shape for all of them. An option the caller left alone is absent,
-    " never sent as an empty value.
-    DATA(lt_arg) = VALUE string_table( ( `VIEW_SLOTS` )
-                                       ( `display` )
-                                       ( slot )
-                                       ( xml ) ).
+    " A display always tears the slot down first - stated as its own action
+    " rather than left to the frontend, so the list the frontend gets is the
+    " complete sequence and it only has to run it.
+    slot_reset( slot ).
+    INSERT VALUE #( slot   = slot
+                    method = `destroy` )
+           INTO TABLE mo_action->ms_next-t_system.
 
     TRY.
+        " The options carry what is specific to a slot - the popover's
+        " anchor, a nested view's insert/destroy methods, the MAIN view's
+        " model switch. An option the caller left alone is absent, never
+        " sent as an empty value.
         DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        IF id IS NOT INITIAL.
-          li_opt->set_string( iv_path = `/id`
-                              iv_val  = id ).
-        ENDIF.
-        IF method_insert IS NOT INITIAL.
-          li_opt->set_string( iv_path = `/methodInsert`
-                              iv_val  = method_insert ).
-        ENDIF.
-        IF method_destroy IS NOT INITIAL.
-          li_opt->set_string( iv_path = `/methodDestroy`
-                              iv_val  = method_destroy ).
-        ENDIF.
-        IF open_by_id IS NOT INITIAL.
-          li_opt->set_string( iv_path = `/openById`
-                              iv_val  = open_by_id ).
-        ENDIF.
+        set_opt( json = li_opt
+                 name = `id`
+                 val  = id ).
+        set_opt( json = li_opt
+                 name = `methodInsert`
+                 val  = method_insert ).
+        set_opt( json = li_opt
+                 name = `methodDestroy`
+                 val  = method_destroy ).
+        set_opt( json = li_opt
+                 name = `openById`
+                 val  = open_by_id ).
+        set_opt( json = li_opt
+                 name = `switchDefaultModelPath`
+                 val  = switch_default_model_path ).
+        set_opt( json = li_opt
+                 name = `switchDefaultModelAnnoUri`
+                 val  = switch_default_model_anno_uri ).
 
-        DATA(lv_opt) = li_opt->stringify( ).
-        IF lv_opt IS NOT INITIAL.
-          INSERT lv_opt INTO TABLE lt_arg.
-        ENDIF.
+        INSERT VALUE #( slot    = slot
+                        method  = `display`
+                        xml     = xml
+                        options = li_opt->stringify( ) )
+               INTO TABLE mo_action->ms_next-t_system.
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
@@ -154,11 +172,19 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
             val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
 
-    follow_up_system( lt_arg ).
-
     " new XML in any slot needs the model with it - recorded here rather than
     " re-derived from the response, see ty_s_next-check_view_shipped
     mo_action->ms_next-check_view_shipped = abap_true.
+
+  ENDMETHOD.
+
+
+  METHOD set_opt.
+
+    IF val IS NOT INITIAL.
+      json->set_string( iv_path = |/{ name }|
+                        iv_val  = val ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -431,21 +457,17 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_destroy.
 
-    " MAIN stays on the slot protocol together with view_display( ) - see
-    " ty_s_next_frontend-s_view
-    mo_action->ms_next-s_set-s_view-check_destroy = abap_true.
+    slot_destroy( cs_slot-main ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_display.
 
-    " like popup_display/popover_display: displaying cancels a destroy
-    " queued earlier in the same roundtrip
-    mo_action->ms_next-s_set-s_view-check_destroy = abap_false.
-    mo_action->ms_next-s_set-s_view-xml = val.
-    mo_action->ms_next-s_set-s_view-switchdefaultmodelannouri = switch_default_model_anno_uri.
-    mo_action->ms_next-s_set-s_view-switch_default_model_path = switch_default_model_path.
+    slot_display( slot                          = cs_slot-main
+                  xml                           = val
+                  switch_default_model_path     = switch_default_model_path
+                  switch_default_model_anno_uri = switch_default_model_anno_uri ).
 
   ENDMETHOD.
 

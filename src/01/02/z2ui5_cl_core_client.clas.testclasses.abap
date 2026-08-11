@@ -19,9 +19,10 @@ CLASS ltcl_test_client DEFINITION FINAL
 
     METHODS setup.
 
-    "! the queued SYSTEM actions, joined - the whole point of the phase is
-    "! that they run IN ORDER, so the tests assert the sequence
-    METHODS system_js
+    "! The collected view-lifecycle calls, joined as slot|method|xml[|options].
+    "! They are asserted as a SEQUENCE: the order they leave in, and which of
+    "! them survive a second call for the same slot, is the whole contract.
+    METHODS system_actions
       RETURNING
         VALUE(result) TYPE string.
 
@@ -72,10 +73,17 @@ CLASS z2ui5_cl_core_client DEFINITION LOCAL FRIENDS ltcl_test_client.
 
 CLASS ltcl_test_client IMPLEMENTATION.
 
-  METHOD system_js.
+  METHOD system_actions.
 
-    result = concat_lines_of( table = mo_action->ms_next-s_set-s_follow_up_action-system_js
-                              sep   = `|` ).
+    LOOP AT mo_action->ms_next-t_system INTO DATA(ls_action).
+      IF result IS NOT INITIAL.
+        result = result && `|`.
+      ENDIF.
+      result = result && |{ ls_action-slot }\|{ ls_action-method }\|{ ls_action-xml }|.
+      IF ls_action-options IS NOT INITIAL.
+        result = result && |\|{ ls_action-options }|.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -110,8 +118,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp1.
     li_client->view_display( `<View></View>` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<View></View>`
-                                        act = mo_action->ms_next-s_set-s_view-xml ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `MAIN|destroy||MAIN|display|<View></View>`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -124,8 +133,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp2.
     li_client->view_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view-check_destroy ).
+    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy|`
+                                        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -172,8 +181,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->popup_display( `<Dialog/>` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","POPUP","<Dialog/>"]`
-        act = system_js( ) ).
+        exp = `POPUP|destroy||POPUP|display|<Dialog/>`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -187,8 +196,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->popup_destroy( ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"]`
-        act = system_js( ) ).
+        exp = `POPUP|destroy|`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -217,8 +226,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                 by_id = `btn1` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn1"}]`
-        act = system_js( ) ).
+        exp = `POPOVER|destroy||POPOVER|display|<Popover/>|{"openById":"btn1"}`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -233,12 +242,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                 by_id = `btn1` ).
     li_client->popover_destroy( ).
 
-    " both are queued and both run, in order - the destroy comes last and
-    " wins, which is what wiping the slot used to achieve
+    " the destroy replaces the display queued before it - the frontend
+    " receives one teardown and no build at all, never a build it would have
+    " to undo again
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn1"}]` &&
-              `|["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPOVER"]`
-        act = system_js( ) ).
+        exp = `POPOVER|destroy|`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -269,12 +278,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                   method_insert  = `addMidColumnPage`
                                   method_destroy = `removeMidColumnPage` ).
 
-    " display after destroy: both are queued, the display runs last and wins
+    " display after destroy: the display replaces it and brings its own
+    " teardown, so the sequence is the same either way round
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","NEST"]` &&
-              `|["CONTROL_GLOBAL","VIEW_SLOTS","display","NEST","<NestView/>",` &&
-              `{"id":"nest1","methodDestroy":"removeMidColumnPage","methodInsert":"addMidColumnPage"}]`
-        act = system_js( ) ).
+        exp = `NEST|destroy||NEST|display|<NestView/>|` &&
+              `{"id":"nest1","methodDestroy":"removeMidColumnPage","methodInsert":"addMidColumnPage"}`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -290,8 +299,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                   method_insert = `addMidColumnPage` ).
     li_client->nest_view_destroy( ).
 
-    cl_abap_unit_assert=>assert_char_cp( exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","destroy","NEST"]`
-                                         act = system_js( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `NEST|destroy|`
+                                        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -307,9 +316,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                    method_insert = `addEndColumnPage` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","NEST2","<Nest2View/>",` &&
-              `{"id":"nest2","methodInsert":"addEndColumnPage"}]`
-        act = system_js( ) ).
+        exp = `NEST2|destroy||NEST2|display|<Nest2View/>|` &&
+              `{"id":"nest2","methodInsert":"addEndColumnPage"}`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -322,8 +331,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp13.
     li_client->nest2_view_destroy( ).
 
-    cl_abap_unit_assert=>assert_char_cp( exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","destroy","NEST2"]`
-                                         act = system_js( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `NEST2|destroy|`
+                                        act = system_actions( ) ).
 
   ENDMETHOD.
 

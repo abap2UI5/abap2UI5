@@ -389,9 +389,11 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "MAIN",
     ]);
     expect(slotCalls).toEqual([
-      ["destroy", "POPUP", {}],
-      ["display", "POPOVER", { openById: "btn1" }],
-      ["updateModel", "MAIN", {}],
+      ["destroy", "POPUP", undefined, {}],
+      // the XML is a positional argument of its own - it must NOT be read as
+      // a template value for the slot name
+      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }],
+      ["updateModel", "MAIN", undefined, {}],
     ]);
   });
 
@@ -448,7 +450,7 @@ test.describe("executeSystem (the SYSTEM phase entry point)", () => {
   test("returns the handler result so an async display can be awaited", async () => {
     const { FrontendAction } = load();
     const oController = {
-      slotAction: () => Promise.resolve("built"),
+      slotAction: (_m, _slot, xml) => Promise.resolve(`built:${xml}`),
     };
     const result = FrontendAction.executeSystem(oController, [
       "CONTROL_GLOBAL",
@@ -457,7 +459,7 @@ test.describe("executeSystem (the SYSTEM phase entry point)", () => {
       "POPUP",
       "<Dialog/>",
     ]);
-    expect(await result).toBe("built");
+    expect(await result).toBe("built:<Dialog/>");
   });
 
   test("does NOT swallow a failing display", () => {

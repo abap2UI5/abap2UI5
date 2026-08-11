@@ -58,32 +58,37 @@ INTERFACE z2ui5_if_core_types
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
+  " One view-lifecycle call, as the backend collects it. It is kept typed
+  " until main_end( ) rather than serialized on the spot, because two things
+  " can only be decided once the app has run: a slot may be displayed twice
+  " and only the last call counts, and the calls have to leave in slot order,
+  " never in call order (see cs_slot_rank).
+  TYPES:
+    BEGIN OF ty_s_system_action,
+      slot    TYPE string,
+      method  TYPE string,
+      xml     TYPE string,
+      " the slot-specific extras as a JSON object - the popover's anchor, a
+      " nested view's insert/destroy methods, the MAIN view's model switch
+      options TYPE string,
+    END OF ty_s_system_action.
+  TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
+
+  " The order the slots are served in, whatever order the app called them in.
+  " MAIN goes first because a NESTed view is inserted INTO its control tree -
+  " a nested view built before the page it belongs to would find no parent.
+  " The two fragment slots are standalone and come last.
+  CONSTANTS:
+    BEGIN OF cs_slot_rank,
+      main    TYPE i VALUE 1,
+      nest    TYPE i VALUE 2,
+      nest2   TYPE i VALUE 3,
+      popup   TYPE i VALUE 4,
+      popover TYPE i VALUE 5,
+    END OF cs_slot_rank.
+
   TYPES:
     BEGIN OF ty_s_next_frontend,
-      " MAIN is the one slot still on the slot protocol: its XML is built in
-      " Server.responseSuccess behind the _viewBuild serialization (XMLView
-      " .create claims the fixed mainView id synchronously), not in the
-      " display phase the system actions run in. Its destroy stays with it -
-      " as an action it would run AFTER that rebuild and tear it down again.
-      BEGIN OF s_view,
-        xml                       TYPE string,
-        switchdefaultmodelannouri TYPE string,
-        switch_default_model_path TYPE string,
-        check_destroy             TYPE abap_bool,
-      END OF s_view,
-      " VESTIGIAL - nothing writes these any more, the popup travels as a
-      " SYSTEM follow-up action like every other slot. They only stay declared
-      " because the frozen src/99 popup apps still name them in their test
-      " classes, which the standard/cloud lint targets still parse. Being
-      " always initial they are filtered out of the response
-      " (create_no_empty_values), so they cost nothing on the wire. Delete
-      " them together with src/99.
-      BEGIN OF s_popup,
-        xml                TYPE string,
-        id                 TYPE string,
-        check_destroy      TYPE abap_bool,
-        check_update_model TYPE abap_bool,
-      END OF s_popup,
       BEGIN OF s_follow_up_action,
         " SYSTEM actions run FIRST, in the display phase, before the view is
         " rendered - they are the framework's own view-lifecycle calls
@@ -138,11 +143,13 @@ INTERFACE z2ui5_if_core_types
       next_event         TYPE string,
       s_set              TYPE ty_s_next_frontend,
       r_data             TYPE REF TO data,
-      " BACKEND-ONLY, never serialized: did this roundtrip ship a view into
-      " any slot? The model has to travel with new XML, and the decision used
-      " to be made by reading the response's own s_*-xml fields back. Now that
-      " a display is an action, the intent is recorded here instead of being
-      " re-derived from the wire format.
+      " BACKEND-ONLY, never serialized: the view-lifecycle calls of this
+      " roundtrip, collected while the app runs and turned into the SYSTEM
+      " action list by main_end( ).
+      t_system           TYPE ty_t_system_action,
+      " BACKEND-ONLY: did this roundtrip ship a view into any slot? The model
+      " has to travel with new XML, and the decision used to be made by
+      " reading the response's own s_*-xml fields back.
       check_view_shipped TYPE abap_bool,
     END OF ty_s_next.
 

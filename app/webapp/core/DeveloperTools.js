@@ -161,10 +161,30 @@ sap.ui.define(
       return err.title ? `${err.title}\n\n${err.text}` : err.text;
     }
 
-    function getResponseXml(key) {
-      const params = AppState.state.oResponse?.PARAMS;
-      const slot = params?.[key];
-      return slot?.XML;
+    // The view XML of the last response, read back out of the system action
+    // that displayed the slot: ["CONTROL_GLOBAL","VIEW_SLOTS","display",
+    // "<slot>","<xml>", {options}?]. Only used as a fallback for the case
+    // where the slot holds no live view to read the content off.
+    function getResponseXml(slotKey) {
+      const systemJs =
+        AppState.state.oResponse?.PARAMS?.S_FOLLOW_UP_ACTION?.SYSTEM_JS;
+      if (!systemJs) return undefined;
+      for (const item of systemJs) {
+        let args;
+        try {
+          args = JSON.parse(item);
+        } catch {
+          continue;
+        }
+        if (
+          args[1] === "VIEW_SLOTS" &&
+          args[2] === "display" &&
+          args[3] === slotKey
+        ) {
+          return args[4];
+        }
+      }
+      return undefined;
     }
 
     // Preload the sap.ui.codeeditor modules used by the fragment. On older
@@ -209,11 +229,11 @@ sap.ui.define(
       // arrived in the last server response.
       VIEW: () => ({
         xml:
-          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("S_VIEW"),
+          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("MAIN"),
         rendered: getRenderedContent(ViewSlots.getView("MAIN")),
       }),
-      POPUP: () => ({ xml: getResponseXml("S_POPUP") }),
-      POPOVER: () => ({ xml: getResponseXml("S_POPOVER") }),
+      POPUP: () => ({ xml: getResponseXml("POPUP") }),
+      POPOVER: () => ({ xml: getResponseXml("POPOVER") }),
       NEST1: () => ({
         xml: getViewContent(ViewSlots.getView("NEST")),
         rendered: getRenderedContent(ViewSlots.getView("NEST")),
@@ -391,7 +411,7 @@ sap.ui.define(
         // gate on the live slot too - the response only carries the XML in
         // the roundtrip that opened the popup/popover, but the live model is
         // exportable for as long as one is open
-        if (getResponseXml("S_POPUP") || ViewSlots.getView("POPUP")) {
+        if (getResponseXml("POPUP") || ViewSlots.getView("POPUP")) {
           push(
             "POPUP",
             xml(() => xmlSources.POPUP().xml),
@@ -401,7 +421,7 @@ sap.ui.define(
             json(() => jsonSources.POPUP_MODEL()),
           );
         }
-        if (getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER")) {
+        if (getResponseXml("POPOVER") || ViewSlots.getView("POPOVER")) {
           push(
             "POPOVER",
             xml(() => xmlSources.POPOVER().xml),
@@ -698,10 +718,10 @@ sap.ui.define(
             // that opened the popup/popover - also check the live slot so
             // the tabs stay usable while one is open after later roundtrips.
             activePopup: Boolean(
-              getResponseXml("S_POPUP") || ViewSlots.getView("POPUP"),
+              getResponseXml("POPUP") || ViewSlots.getView("POPUP"),
             ),
             activePopover: Boolean(
-              getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER"),
+              getResponseXml("POPOVER") || ViewSlots.getView("POPOVER"),
             ),
           };
 
