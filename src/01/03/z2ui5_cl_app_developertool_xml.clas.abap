@@ -48,11 +48,7 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Log"` &&
              `                    key="LOG"` &&
-             `                />` &&
-             `                <IconTabFilter` &&
-             `                    text="System"` &&
-             `                    key="SYSTEM"` &&
-             `                    enabled="true"` &&
+             `                    enabled="{/hasLog}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Previous Request"` &&

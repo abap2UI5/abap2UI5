@@ -49,37 +49,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    // The System tab shows the whole (deeply nested) z2ui5 global; open only` && |\n| &&
              `    // the first two levels so it is readable - the rest can be unfolded by` && |\n| &&
              `    // hand in the editor.` && |\n| &&
-             `    const SYSTEM_OPEN_LEVELS = 2;` && |\n| &&
-             `` && |\n| &&
-             `    // Leading-space matcher, hoisted so the per-line fold loop below does not` && |\n| &&
-             `    // recompile it on every row of a large JSON dump.` && |\n| &&
-             `    const LEADING_SPACES = /^ */;` && |\n| &&
-             `` && |\n| &&
-             `    // JSON nesting depth of a pretty-printed line, read from its indentation.` && |\n| &&
-             `    function indentLevel(line, unit) {` && |\n| &&
-             `      return Math.floor(LEADING_SPACES.exec(line)[0].length / unit);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Fold every foldable block in the ACE edit session that sits at or below` && |\n| &&
-             `    // ``keepLevels`` nesting levels, leaving the outer levels open. Uses only the` && |\n| &&
-             `    // public EditSession folding API (unfold / getFoldWidget /` && |\n| &&
-             `    // getFoldWidgetRange / addFold), so it works with any CodeEditor build; a` && |\n| &&
-             `    // block's depth is read from its line indentation. Skipping to the folded` && |\n| &&
-             `    // block's end row keeps us from descending into (already hidden) children.` && |\n| &&
-             `    function foldSessionToLevel(session, keepLevels, unit) {` && |\n| &&
-             `      session.unfold();` && |\n| &&
-             `      const rowCount = session.getLength();` && |\n| &&
-             `      for (let row = 0; row < rowCount; row++) {` && |\n| &&
-             `        if (session.getFoldWidget(row) !== "start") continue;` && |\n| &&
-             `        if (indentLevel(session.getLine(row) || "", unit) < keepLevels)` && |\n| &&
-             `          continue;` && |\n| &&
-             `        const range = session.getFoldWidgetRange(row);` && |\n| &&
-             `        if (range && range.isMultiLine()) {` && |\n| &&
-             `          session.addFold("...", range);` && |\n| &&
-             `          row = range.end.row;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
@@ -240,7 +209,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // this is the developer tools inspector, whose job is to surface the live global` && |\n| &&
              `      // as-is - functions drop out under JSON.stringify, which is fine.` && |\n| &&
              `      // ui5lint-disable-next-line no-project-globals -- see reason above` && |\n| &&
-             `      SYSTEM: () => window.z2ui5,` && |\n| &&
              `      MODEL: () => getModelJson(ViewSlots.getView("MAIN")),` && |\n| &&
              `      PLAIN: () => AppState.state.responseData,` && |\n| &&
              `      REQUEST: () => AppState.state.oBody,` && |\n| &&
@@ -311,7 +279,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      renderTab(selItem, oModel) {` && |\n| &&
              `        if (jsonSources[selItem]) {` && |\n| &&
              `          this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");` && |\n| &&
-             `          if (selItem === "SYSTEM") this.foldSystemTab();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -424,8 +391,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        push(` && |\n| &&
              `          "PREVIOUS REQUEST",` && |\n| &&
-             `          json(() => jsonSources.REQUEST()),` && |\n|.
-    result = result &&
+             `          json(() => jsonSources.REQUEST()),` && |\n| &&
              `        );` && |\n| &&
              `        push(` && |\n| &&
              `          "VIEW",` && |\n| &&
@@ -458,7 +424,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n| &&
+             `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n|.
+    result = result &&
              `          push(` && |\n| &&
              `            "NEST1",` && |\n| &&
              `            xml(() => xmlSources.NEST1().xml),` && |\n| &&
@@ -478,13 +445,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            json(() => jsonSources.NEST2_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        // SYSTEM (the whole z2ui5 global) is the largest by far - keep it last` && |\n| &&
-             `        // so the useful sections come first even after truncation.` && |\n| &&
-             `        push(` && |\n| &&
-             `          "SYSTEM",` && |\n| &&
-             `          json(() => jsonSources.SYSTEM()),` && |\n| &&
-             `        );` && |\n| &&
-             `` && |\n| &&
              `        return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -571,45 +531,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            dialog.open();` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // The CodeEditor's underlying ACE editor, or null if it does not exist` && |\n| &&
-             `      // yet (created on the CodeEditor's first render) or the build exposes no` && |\n| &&
-             `      // internal instance.` && |\n| &&
-             `      getEditorInstance() {` && |\n| &&
-             `        const ce = Fragment.byId(FRAGMENT_ID, "developerToolsEditor");` && |\n| &&
-             `        return ce && typeof ce.getInternalEditorInstance === "function"` && |\n| &&
-             `          ? ce.getInternalEditorInstance()` && |\n| &&
-             `          : null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Fold the System tab's JSON down to the first SYSTEM_OPEN_LEVELS levels.` && |\n| &&
-             `      // The ACE editor is created lazily on the CodeEditor's first render, so` && |\n| &&
-             `      // on the very first open we retry briefly until it exists. Best-effort:` && |\n| &&
-             `      // any failure leaves the tab fully expanded rather than breaking the` && |\n| &&
-             `      // developer tools.` && |\n| &&
-             `      foldSystemTab(triesLeft = 10) {` && |\n| &&
-             `        let editor;` && |\n| &&
-             `        try {` && |\n| &&
-             `          editor = this.getEditorInstance();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DeveloperTools System fold failed", e);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (editor) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            const session = editor.getSession && editor.getSession();` && |\n| &&
-             `            if (session && typeof session.getFoldWidget === "function") {` && |\n| &&
-             `              foldSessionToLevel(session, SYSTEM_OPEN_LEVELS, INDENT_UNIT);` && |\n| &&
-             `            }` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            Lib.logError("DeveloperTools System fold failed", e);` && |\n| &&
-             `          }` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (triesLeft > 0) {` && |\n| &&
-             `          setTimeout(() => this.foldSystemTab(triesLeft - 1), 30);` && |\n| &&
-             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // The ADT REST endpoint that renders the running app's ABAP class` && |\n| &&
@@ -733,6 +654,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            source_visible: false,` && |\n| &&
              `            editor_visible: true,` && |\n| &&
              `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
+             `            hasLog: Boolean(AppState.state.errors?.length),` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `            value: value,` && |\n| &&
              `            xContent: "",` && |\n| &&
