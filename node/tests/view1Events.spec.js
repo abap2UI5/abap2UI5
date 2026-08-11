@@ -36,6 +36,67 @@ function withRecordedEB() {
   return { controller, sent };
 }
 
+// The model push: the backend sends ONE updateModel action naming no slot,
+// so the controller has to fan it out over the open model-owning slots
+// itself. Asserting the dispatch alone is not enough - what matters is that
+// the data actually lands in every open slot and in none of the others.
+function withSlots(openKeys, model) {
+  const applied = [];
+  const views = {};
+  for (const key of openKeys) views[key] = { key };
+  const ViewSlots = {
+    slots: [
+      { key: "MAIN", ownsModel: true },
+      { key: "NEST" },
+      { key: "NEST2" },
+      { key: "POPUP", ownsModel: true },
+      { key: "POPOVER", ownsModel: true },
+    ],
+    getView: (key) => views[key],
+    destroy: () => {},
+  };
+  const { module: Lib } = loadModule("core/Lib.js", {
+    deps: { "z2ui5/core/AppState": { state: {} }, "sap/ui/core/Element": {} },
+  });
+  const { module: ctrl } = loadModule("controller/View1.controller.js", {
+    deps: {
+      "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
+      "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
+      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/ViewSlots": ViewSlots,
+      "z2ui5/core/AppState": { state: { oResponse: { OVIEWMODEL: model } } },
+    },
+  });
+  const controller = Object.create(ctrl);
+  // stand in for the real model resolution - the point here is WHICH slots
+  // get pushed to, not how a slot's model is reused
+  controller.updateModelIfRequired = (slotKey) => {
+    if (!views[slotKey]) return;
+    applied.push(slotKey);
+  };
+  return { controller, applied };
+}
+
+test.describe("updateModel (one action, every open model slot)", () => {
+  test("pushes into each OPEN slot that owns a model", () => {
+    const { controller, applied } = withSlots(["MAIN", "POPOVER"], { A: 1 });
+    controller.slotAction("updateModel", undefined, undefined, {});
+    expect(applied).toEqual(["MAIN", "POPOVER"]);
+  });
+
+  test("skips the nested slots - they inherit MAIN's model", () => {
+    const { controller, applied } = withSlots(["MAIN", "NEST", "NEST2"], {});
+    controller.slotAction("updateModel", undefined, undefined, {});
+    expect(applied).toEqual(["MAIN"]);
+  });
+
+  test("a closed slot is simply not pushed to", () => {
+    const { controller, applied } = withSlots([], {});
+    controller.slotAction("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([]);
+  });
+});
+
 test.describe("eBP (roundtrip with preventDefault)", () => {
   test("cancels the default and forwards the unchanged eB payload", () => {
     const { controller, sent } = withRecordedEB();

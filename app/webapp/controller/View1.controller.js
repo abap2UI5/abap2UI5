@@ -163,7 +163,11 @@ sap.ui.define(
           return undefined;
         }
         if (method === "updateModel") {
-          this.updateModelIfRequired(slotKey);
+          // no slot is named - push into every OPEN slot that carries a
+          // model of its own
+          for (const slot of ViewSlots.slots) {
+            if (slot.ownsModel) this.updateModelIfRequired(slot.key);
+          }
           return undefined;
         }
         // display. The teardown of whatever the slot held is its own action
@@ -574,9 +578,7 @@ sap.ui.define(
       // backend has no CHECK_UPDATE_MODEL for them at all and
       // nest_view_model_update( ) refreshes MAIN instead - which is why this
       // can setData unconditionally without refreshing one shared model twice.
-      // Push the response's model into an open slot. The backend decides
-      // WHICH slots by queuing one updateModel system action per model-owning
-      // slot; naming a slot that is not open is free and ends here.
+      // Push the response's model into one slot, if it is open at all.
       updateModelIfRequired(slotKey) {
         const oView = ViewSlots.getView(slotKey);
         if (!oView) return;

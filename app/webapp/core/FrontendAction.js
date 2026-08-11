@@ -292,7 +292,9 @@ sap.ui.define(
         methods: {
           destroy: ["string"],
           display: ["string", "string"],
-          updateModel: ["string"],
+          // takes no slot: which slots are open is the frontend's own
+          // knowledge, so the action only says that the model changed
+          updateModel: [],
         },
         display: (oController, method, aArgs, mOptions) =>
           oController.slotAction(method, aArgs[0], aArgs[1], mOptions),

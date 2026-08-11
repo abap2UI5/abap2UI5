@@ -319,7 +319,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        methods: {` && |\n| &&
              `          destroy: ["string"],` && |\n| &&
              `          display: ["string", "string"],` && |\n| &&
-             `          updateModel: ["string"],` && |\n| &&
+             `          // takes no slot: which slots are open is the frontend's own` && |\n| &&
+             `          // knowledge, so the action only says that the model changed` && |\n| &&
+             `          updateModel: [],` && |\n| &&
              `        },` && |\n| &&
              `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
              `          oController.slotAction(method, aArgs[0], aArgs[1], mOptions),` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        // would silently receive undefined and do nothing` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``aggregation item '${raw}': ${m[2]} has ${items.length} item(s)``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n|.
+             `        );` && |\n|.
     result = result &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
              `      return item;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -823,10 +825,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
-             `      sort(binding, [path, descending, group]) {` && |\n| &&
-             `        binding.sort([` && |\n| &&
-             `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n|.
+             `      sort(binding, [path, descending, group]) {` && |\n|.
     result = result &&
+             `        binding.sort([` && |\n| &&
+             `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
@@ -1224,10 +1226,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // means waiting for that registration (it follows the metadata load)` && |\n| &&
              `          const registered = oSVM.getPersonalizableControls` && |\n| &&
              `            ? oSVM.getPersonalizableControls()` && |\n| &&
-             `            : [];` && |\n| &&
-             `          if (!registered.length) {` && |\n| &&
-             `            if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n|.
+             `            : [];` && |\n|.
     result = result &&
+             `          if (!registered.length) {` && |\n| &&
+             `            if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
              `              setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
@@ -1625,10 +1627,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // a slot key is matched case-insensitively; anything else is taken as a` && |\n| &&
              `      // control id and keeps its case, because that is how it must resolve` && |\n| &&
              `      const raw = String(args[3] ?? "");` && |\n| &&
-             `      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())` && |\n| &&
-             `        ? raw.toUpperCase()` && |\n| &&
-             `        : raw;` && |\n|.
+             `      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())` && |\n|.
     result = result &&
+             `        ? raw.toUpperCase()` && |\n| &&
+             `        : raw;` && |\n| &&
              `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
              `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
              `      if (!args[2]) {` && |\n| &&

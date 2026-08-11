@@ -190,7 +190,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return undefined;` && |\n| &&
              `        }` && |\n| &&
              `        if (method === "updateModel") {` && |\n| &&
-             `          this.updateModelIfRequired(slotKey);` && |\n| &&
+             `          // no slot is named - push into every OPEN slot that carries a` && |\n| &&
+             `          // model of its own` && |\n| &&
+             `          for (const slot of ViewSlots.slots) {` && |\n| &&
+             `            if (slot.ownsModel) this.updateModelIfRequired(slot.key);` && |\n| &&
+             `          }` && |\n| &&
              `          return undefined;` && |\n| &&
              `        }` && |\n| &&
              `        // display. The teardown of whatever the slot held is its own action` && |\n| &&
@@ -420,12 +424,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      destroyView() {` && |\n| &&
              `        ViewSlots.destroy("MAIN");` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eF = "event frontend": handles frontend-only events triggered by` && |\n| &&
              `      // the backend response, without a roundtrip. The name is part of the` && |\n| &&
-             `      // protocol - backend-generated view XML binds events to eB/eF - and` && |\n|.
-    result = result &&
+             `      // protocol - backend-generated view XML binds events to eB/eF - and` && |\n| &&
              `      // must not be renamed. The individual handlers live in` && |\n| &&
              `      // core/FrontendAction.js.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
@@ -602,9 +606,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // backend has no CHECK_UPDATE_MODEL for them at all and` && |\n| &&
              `      // nest_view_model_update( ) refreshes MAIN instead - which is why this` && |\n| &&
              `      // can setData unconditionally without refreshing one shared model twice.` && |\n| &&
-             `      // Push the response's model into an open slot. The backend decides` && |\n| &&
-             `      // WHICH slots by queuing one updateModel system action per model-owning` && |\n| &&
-             `      // slot; naming a slot that is not open is free and ends here.` && |\n| &&
+             `      // Push the response's model into one slot, if it is open at all.` && |\n| &&
              `      updateModelIfRequired(slotKey) {` && |\n| &&
              `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
              `        if (!oView) return;` && |\n| &&
