@@ -44,6 +44,12 @@ unreleased
 - the developer tools dropped the NEST/NEST2 model tabs - nested views
   inherit the MAIN view's model by propagation, it was the same data
   shown twice
+- the developer tools dropped the System tab - everything it showed lives
+  in the remaining tabs or the exported state
+! developer-tools tabs grey out when they have nothing to show (no log
+  lines, no model data for the slot) instead of opening on an empty view
+* an app switch clears the previous app's keyboard shortcuts - they no
+  longer fire the old app's event names into the new one
 ! framework actions travel without the CONTROL_GLOBAL dispatch prefix -
   internal only: a backend-built action is ["VIEW_SLOTS","display",...],
   and the frontend dispatches every whitelisted global target by its own
@@ -106,9 +112,10 @@ unreleased
   after main( ) returned, and when they differ sends the model to every open
   view slot (MAIN, POPUP, POPOVER; the nested views inherit MAIN's model).
   An event handler that changes bound data can therefore no longer render
-  stale by forgetting a call, and an unchanged model still responds `{}`, so
-  an idle round-trip carries no payload. Always on, nothing to activate
-- view_model_update( ), popup_model_update( ), popover_model_update( ) and
+  stale by forgetting a call, and an unchanged model sends no MODEL key at
+  all (see the wire entry above), so an idle round-trip carries no payload.
+  Always on, nothing to activate
+! view_model_update( ), popup_model_update( ), popover_model_update( ) and
   the two nested variants now do NOTHING. They stay in the interface so
   existing apps keep compiling and their calls stay harmless - delete them
   when you next touch such an app. What is gone with them is the ability to
@@ -203,14 +210,15 @@ unreleased
   API snapshot had to be regenerated for it
 ! All framework-owned apps and the sample repository now call _bind( ) instead of
   the obsolete alias _bind_edit( ). _bind_edit itself stays part of the public API
-  and keeps working; only calls that pass custom_mapper_back / custom_filter_back
-  still need it, since _bind has no per-direction mapping parameters
-* nest_view_model_update( ) / nest2_view_model_update( ) delegate to
-  view_model_update( ) instead of setting a nest-only flag. A nested view owns no
-  model - it inherits the MAIN view's by UI5 model propagation - so the old flag
-  was skipped by the frontend whenever no nested view happened to be open, making
-  the call a silent no-op. It now always refreshes the root model. The two slots
-  no longer carry CHECK_UPDATE_MODEL on the wire at all
+  and keeps working as a pure alias; custom_mapper_back / custom_filter_back
+  are still accepted for source compatibility but no longer evaluated -
+  per-direction mapping is gone
+* nest_view_model_update( ) / nest2_view_model_update( ) no longer set a
+  nest-only flag - the frontend skipped it whenever no nested view happened to
+  be open, making the call a silent no-op - and the two slots no longer carry
+  CHECK_UPDATE_MODEL on the wire at all. (The delegation to view_model_update( )
+  this entry once recorded was itself superseded: all *_model_update methods
+  are no-ops now, see the automatic-model-push entry above)
 
 
 2026-07-20 v1.142.0

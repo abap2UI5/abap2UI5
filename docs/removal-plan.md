@@ -31,33 +31,35 @@ Every entry here is a **rule-5 break**: it needs `node .github/scripts/api-snaps
 a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 [Deprecations](https://abap2ui5.github.io/docs/resources/deprecations) page.
 
-- [ ] **`_bind_edit( )`** — `z2ui5_if_client.intf.abap:302`. Alias of `_bind`,
+- [ ] **`_bind_edit( )`** — `z2ui5_if_client.intf.abap:354`. Alias of `_bind`,
       both two-way. AGENTS.md puts removal at ~1 year out (from 2026-07).
-      - **Blocker:** `_bind` has no `custom_mapper_back` / `custom_filter_back`.
-        Either add them to `_bind` first (additive, gate-safe) or accept that
-        per-direction mapping disappears.
-      - Last caller in the ecosystem: `samples z2ui5_cl_demo_app_153` — a
-        round-trip test whose whole point is the asymmetric mapper.
+      - Former blocker resolved: per-direction mapping was dropped —
+        `custom_mapper_back` / `custom_filter_back` are still accepted for
+        source compatibility but no longer evaluated.
+      - Last caller in the ecosystem: `samples z2ui5_cl_demo_app_153` — check
+        it still makes sense without the asymmetric mapper before removal.
 - [ ] **`view` parameter of `_bind( )` and `_bind_edit( )`** —
-      `z2ui5_if_client.intf.abap:291` and `:308`. Inert, not passed on
+      `z2ui5_if_client.intf.abap:339` and `:359`. Inert, not passed on
       internally. Removing it is a signature change, so it rides along with the
       `_bind_edit` removal rather than going separately.
 - [ ] **`nest_view_model_update( )` / `nest2_view_model_update( )`** —
-      `z2ui5_if_client.intf.abap:161`, `:173`. Pure delegation now.
+      `z2ui5_if_client.intf.abap:172`, `:184`. No-ops now (the model push is
+      automatic).
       - Callers in samples: `z2ui5_cl_demo_app_069` (1), `z2ui5_cl_demo_app_085` (6).
-        Migrate those to `view_model_update( )` first.
+        Delete the calls there first - migrating them to another no-op is
+        pointless.
 - [ ] **`cs_event-nav_container_to`** and the `nest_` / `nest2_` / `popup_` /
-      `popover_` variants — `z2ui5_if_client.intf.abap:57-61`.
+      `popover_` variants — `z2ui5_if_client.intf.abap:97-101`.
       - Removing them also deletes the remap block in
         `z2ui5_cl_core_srv_event=>map_client_event` (~20 lines) that rewrites
         them onto `control_by_id` + method `to`.
       - Zero usages in samples and ai-demokit (checked, incl. raw literals).
-- [ ] **`cs_event-image_editor_popup_close`** — `z2ui5_if_client.intf.abap:56`.
+- [ ] **`cs_event-image_editor_popup_close`** — `z2ui5_if_client.intf.abap:96`.
       Belongs to `z2ui5_cl_pop_image_editor`; goes when `src/99/02` goes.
 
 > **Not obsolete, do not remove:** `cs_event-z2ui5` is the supported entry point
-> for app-registered JavaScript (`js_loader`) and is currently sitting in the
-> `"obsolete?"` block by mistake. Move it up to the active actions instead.
+> for app-registered JavaScript (`js_loader`) and currently sits in the
+> "legacy event names" block. Move it up to the active actions instead.
 
 ---
 
@@ -124,14 +126,14 @@ controls a public contract, so these break hand-written view XML. Regenerate
       re-exporting `z2ui5/model/formatter`. Named in AGENTS.md rule 7 as a
       public contract, so it needs the same announcement as the controls.
 - [ ] **`destroyPopup` / `destroyPopover` / `destroyNestView` /
-      `destroyNestView2` / `destroyView`** — `View1.controller.js:344-360`.
+      `destroyNestView2` / `destroyView`** — `View1.controller.js:170-186`.
       Thin wrappers around `ViewSlots.destroy()`, kept because apps may call
       them from custom JS.
-- [ ] **Legacy app-state hash handling in `core/Router.js`** (`:130`, `:321`,
-      `:333`) — only removable if the pre-routing app-state hash is dropped
+- [ ] **Legacy app-state hash handling in `core/Router.js`** (`:131`, `:330`,
+      `:350`) — only removable if the pre-routing app-state hash is dropped
       entirely. Check `clipboard_app_state` and `set_app_state_active` first.
 
-> **Cannot go yet:** the `eF('…')` string parser in `core/Server.js:765ff`. It is
+> **Cannot go yet:** the `eF('…')` string parser in `core/actions/LegacyCustomJs.js`. It is
 > the legacy path only for *framework* follow-up actions (those are JSON since
 > #2501) — `_event_client( )` still emits the code form into view XML, so the
 > parser stays until that is JSON too.
@@ -158,7 +160,7 @@ Not part of any public contract; removable whenever.
 
 ## 5. Documentation debt to clear alongside
 
-- [ ] Move `cs_event-z2ui5` out of the `"obsolete?"` block (see §1)
+- [ ] Move `cs_event-z2ui5` out of the "legacy event names" block (see §1)
 - [ ] Turn the two `"obsolete"` plain comments on the `view` parameter into
       `"! @parameter view | …` ABAP Doc — a `"` comment is invisible in ADT
 - [ ] 26 frozen classes in `src/99` carry **no** obsolescence marker at all;

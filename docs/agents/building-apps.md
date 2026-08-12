@@ -104,9 +104,9 @@ CLASS zcl_my_app IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN `SAVE`.
-        " bound data (name, t_items) already carries the user's input here
+        " bound data (name, t_items) already carries the user's input here,
+        " and the changed model is pushed back automatically
         client->message_toast_display( |Saved, { name }| ).
-        client->view_model_update( ).
     ENDCASE.
 
   ENDMETHOD.
@@ -266,8 +266,8 @@ ships for existing apps but is **frozen** — new apps and new code use
 - `client->message_toast_display( text )` and
   `client->message_box_display( text type title actions … )` for messages —
   never build your own toast/dialog for these.
-- Bind popup data exactly like main-view data; update with
-  `popup_model_update( )`.
+- Bind popup data exactly like main-view data; changed bound data reaches
+  an open popup automatically.
 
 ## 7. Multi-view, navigation, routing
 
