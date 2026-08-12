@@ -12,6 +12,14 @@ Legend
 
 unreleased
 ----------
++ the src/99 test classes are back and run in CI: all 27 deleted
+  testclasses (util, pop, cx) are restored, the two disabled xml_view
+  suites are re-enabled, and the pop tests assert against the
+  t_action_front rows that replaced the removed s_set slot structs (the
+  per-slot check_update_model flag has no successor - the model push is
+  automatic); npm run unit no longer excludes src/99, three tests that
+  need real-system facilities (second-exact timestamps, REPOSRC) are
+  skipped in the NodeJS runtime like the existing AJSON skips
 ! an app switch tears POPUP/POPOVER down implicitly - the response names
   its app, so the frontend destroys the standalone slots whenever the
   class changes and the two destroy actions no longer travel with every
