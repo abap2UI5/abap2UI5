@@ -50,8 +50,8 @@ No system at hand? [**Try abap2UI5 live in your browser**](https://abap2ui5.gith
 
 Three sample repositories, one learning path – from your first app to your full stack:
 
-|      | Repository | What you learn | Where to start |
-|------|------------|----------------|----------------|
+|      | Repository | What you learn |
+|------|------------|----------------|
 | 1️⃣ | [**samples**](https://github.com/abap2UI5/samples) | **the abap2UI5 basics** – bindings, events, popups, navigation, complete apps |
 | 2️⃣ | [**samples-controls**](https://github.com/abap2UI5/samples-controls) | **how to use every UI5 control** – the UI5 Demo Kit rebuilt with abap2UI5 |
 | 3️⃣ | [**samples-stack**](https://github.com/abap2UI5/samples-stack) | **how abap2UI5 plays with your stack** – OData, RAP, WebSockets, the Fiori Launchpad and more |
