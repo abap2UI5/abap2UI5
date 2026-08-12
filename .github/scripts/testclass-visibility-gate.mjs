@@ -14,9 +14,6 @@
 // is explicitly typed as the class under test. Anything reached dynamically or
 // through a helper type is out of scope - the gate must not produce findings a
 // developer cannot act on.
-//
-// src/99 is excluded: it is frozen (see check_frozen_paths.yaml) and no longer
-// linted or transpiled.
 
 import { globSync, readFileSync } from "fs";
 import { basename } from "path";
@@ -101,7 +98,6 @@ function currentLocalClass(lines, upto) {
 const findings = [];
 
 for (const testFile of globSync("src/**/*.clas.testclasses.abap").sort()) {
-  if (testFile.startsWith("src/99/")) continue;
   const globalClass = basename(testFile, ".clas.testclasses.abap");
   let definition;
   try {

@@ -498,7 +498,7 @@ sap.ui.define(
           return resolveControl(raw, view) || null;
         case "object":
           // the backend embeds an argument that starts with { or [ as real
-          // JSON (get_event_client_json), so on that path the value arrives
+          // JSON (get_event_client_ajson), so on that path the value arrives
           // already parsed; only the legacy eF( ) string form needs parsing.
           if (raw && typeof raw === "object") return raw;
           try {
@@ -697,7 +697,7 @@ sap.ui.define(
       // argument (the full set client->message_toast_display( ) sends). It
       // needs no marker to be told apart from the template values below: the
       // backend embeds a JSON object argument as real JSON
-      // (get_event_client_json), so it arrives here already parsed, while
+      // (get_event_client_ajson), so it arrives here already parsed, while
       // every positional and template value is a string.
       let mOptions;
       if (target.display) {

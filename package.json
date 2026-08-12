@@ -10,7 +10,7 @@
     "check:standard": "npx abaplint .github/abaplint/abap_standard.jsonc",
     "check:cloud": "npx abaplint .github/abaplint/abap_cloud.jsonc",
     "check:js": "npx playwright test -c node/playwright-unit.config.js",
-    "check:frozen": "git fetch origin main --quiet && git diff --quiet origin/main...HEAD -- src/99 || { echo 'FAIL: src/99 is frozen (AGENTS.md rule 1) - revert changes under src/99'; exit 1; }",
+    "check:frozen": "git fetch origin main --quiet && git diff --quiet origin/main...HEAD -- src/99 ':(exclude)src/99/*.testclasses.abap' ':(exclude)src/99/*.clas.xml' || { echo 'FAIL: src/99 production code is frozen (AGENTS.md rule 1) - revert changes under src/99 (test classes and .clas.xml sidecars are exempt)'; exit 1; }",
     "check:ui5": "node .github/scripts/ui5lint-gate.mjs",
     "check:app2abap": "node .github/scripts/ensure-app-deps.mjs && npm run app2abap && git diff --exit-code -- src/01/03",
     "check:api": "node .github/scripts/api-snapshot.mjs",

@@ -6,8 +6,10 @@ sap.ui.define(
     // ------------------------------------------------------------------
     // Actions against the SAP Fiori Launchpad shell: cross-app navigation
     // and the shell title. They all resolve the launchpad services captured
-    // at component start (AppState.state.oLaunchpad) and no-op with a log
-    // line outside the FLP.
+    // at component start (AppState.state.oLaunchpad). The cross-app-nav
+    // handlers no-op with a log line outside the FLP; the title handler is
+    // deliberately silent, because ShellUIService resolves asynchronously
+    // and can legitimately still be unset inside the FLP.
     // ------------------------------------------------------------------
 
     const _URLHelper = mobileLibrary.URLHelper;

@@ -33,8 +33,10 @@ CLASS z2ui5_cl_app_launchpad_js IMPLEMENTATION.
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Actions against the SAP Fiori Launchpad shell: cross-app navigation` && |\n| &&
              `    // and the shell title. They all resolve the launchpad services captured` && |\n| &&
-             `    // at component start (AppState.state.oLaunchpad) and no-op with a log` && |\n| &&
-             `    // line outside the FLP.` && |\n| &&
+             `    // at component start (AppState.state.oLaunchpad). The cross-app-nav` && |\n| &&
+             `    // handlers no-op with a log line outside the FLP; the title handler is` && |\n| &&
+             `    // deliberately silent, because ShellUIService resolves asynchronously` && |\n| &&
+             `    // and can legitimately still be unset inside the FLP.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&

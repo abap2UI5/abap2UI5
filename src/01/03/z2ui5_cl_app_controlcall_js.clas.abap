@@ -526,7 +526,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `          return resolveControl(raw, view) || null;` && |\n| &&
              `        case "object":` && |\n| &&
              `          // the backend embeds an argument that starts with { or [ as real` && |\n| &&
-             `          // JSON (get_event_client_json), so on that path the value arrives` && |\n| &&
+             `          // JSON (get_event_client_ajson), so on that path the value arrives` && |\n| &&
              `          // already parsed; only the legacy eF( ) string form needs parsing.` && |\n| &&
              `          if (raw && typeof raw === "object") return raw;` && |\n| &&
              `          try {` && |\n| &&
@@ -725,7 +725,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      // argument (the full set client->message_toast_display( ) sends). It` && |\n| &&
              `      // needs no marker to be told apart from the template values below: the` && |\n| &&
              `      // backend embeds a JSON object argument as real JSON` && |\n| &&
-             `      // (get_event_client_json), so it arrives here already parsed, while` && |\n| &&
+             `      // (get_event_client_ajson), so it arrives here already parsed, while` && |\n| &&
              `      // every positional and template value is a string.` && |\n| &&
              `      let mOptions;` && |\n| &&
              `      if (target.display) {` && |\n| &&

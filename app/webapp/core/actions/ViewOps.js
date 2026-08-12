@@ -116,6 +116,10 @@ sap.ui.define(
       clearTimeout(timers[timerKey]);
       timers[timerKey] = setTimeout(() => {
         delete timers[timerKey];
+        // nothing cancels a pending timer on app teardown - an FLP close or
+        // re-launch leaves it armed, so it must not fire the old app's event
+        // into the new session
+        if (Lib.isDestroyed(oController)) return;
         // dispatch as a background event (args[2] = ignore busy) - a timer
         // firing while an ordinary roundtrip is in flight must not be
         // swallowed by the busy guard, or a self-rescheduling poll chain

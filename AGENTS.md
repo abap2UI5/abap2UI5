@@ -62,14 +62,14 @@ Browser (UI5 SPA)                          ABAP Backend
        │                                        │  4. Call app->main(client)
        │                                        │  5. App builds view / handles events
        │                                        │  6. Save new draft to DB
-       │←─── {S_FRONT, MODEL, VIEW XML} ────────│  7. Return JSON response
+       │←─ {S_FRONT: ID, APP, S_ACTION; MODEL} ─│  7. Return JSON response
        │                                        │
        │  (UI5 renders XML view, binds model)   │
        │──── POST (next event) ────────────────→│  ... repeat
 ```
 
 **Request JSON** contains `S_FRONT` (event name, draft ID, browser state) and `MODEL` (view model changes as deltas).
-**Response JSON** contains a new draft ID, view XML strings (if view changed), the full JSON model, messages, and follow-up actions.
+**Response JSON** contains a new draft ID, the app class name, and two action lists under `S_ACTION`: `T_SYSTEM` view-lifecycle calls (which carry any view XML) and `T_CUSTOM` follow-up actions (including messages). `MODEL` — the full JSON view model — travels only when something bound changed.
 
 #### Launchpad Special Case — Request Body Wrapping
 
@@ -114,18 +114,18 @@ src/
 ├── 00/   Layer 0: Utilities (AJSON, S-RTTI, framework context/HTTP abstractions)
 ├── 01/   Layer 1: Core engine (handler, action, binding, model, events, draft service, embedded frontend)
 ├── 02/   Layer 2: Public API (interfaces, HTTP handler, exit framework, z2ui5_cl_ai_xml view builder)
-└── 99/   HISTORY ONLY - ignore completely. Legacy XML view builder (z2ui5_cl_xml_view / _cc, superseded by z2ui5_cl_ai_xml in src/02/) + retired z2ui5_cl_util* classes (99/01) and popups (99/02). Zero in-repo consumers; ships only for existing downstream installations
+└── 99/   FROZEN legacy code. Legacy XML view builder (z2ui5_cl_xml_view / _cc, superseded by z2ui5_cl_ai_xml in src/02/) + retired z2ui5_cl_util* classes (99/01) and popups (99/02). No in-repo consumers of the production code; ships only for existing downstream installations. Its test classes are the exception: they run in CI and guard the layer
 ```
 
 - **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`), all but `_json_fltr` vendored from abap-util (see "Utilities"). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework and the generic XML view builder `z2ui5_cl_ai_xml` (migrated from [ai-demokit](https://github.com/abap2UI5/ai-demokit), the successor of the frozen `z2ui5_cl_xml_view`).
-- **Package `src/99/` — history only. Ignore it completely.** It has **zero consumers** anywhere in this repository — no framework code, no app, no test, no tooling references it. It is excluded from abaplint and from the transpiled test backend; the repository works identically if the folder is deleted (only the 702 downport still converts it, so the shipped 702 release stays compilable for downstream). It ships solely so **existing downstream installations** keep compiling on upgrade:
+- **Package `src/99/` — frozen legacy code.** Its production code has **zero consumers** anywhere in this repository — no framework code, no app, no tooling references it. It ships solely so **existing downstream installations** keep compiling on upgrade. Its **test classes are live**, though: they lint and run in the transpiled unit suite (`npm run unit`), guarding the layer against regressions — which is why they, unlike the production code, may change (they assert against core internals such as `t_action_front` and follow them when those move):
   - **Package top level** — the legacy XML view builder (`z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`), superseded by the generic builder `z2ui5_cl_ai_xml` (`src/02/`, migrated from [ai-demokit](https://github.com/abap2UI5/ai-demokit)). All builder work happens in `z2ui5_cl_ai_xml`.
   - `src/99/01/` — the retired utility classes (see "Utilities").
   - `src/99/02/` — the obsolete built-in popup/dialog apps (`z2ui5_cl_pop_*`), replaced by the [popups addon](https://github.com/abap2UI5-addons/popups).
 
-  **For AI assistants this means: treat `src/99/` as if it did not exist.** Never read it, change it, reference it, answer questions from it, or add consumers on it. It is out of scope for every task, review and audit; the `check_frozen_paths` workflow enforces the no-change part.
+  **For AI assistants this means: never change the production code under `src/99/` or add consumers on it.** It is out of scope for reviews and audits. The `check_frozen_paths` workflow enforces the freeze; the `*.testclasses.abap` files and the abapGit `.clas.xml` sidecars are exempt from it, because the tests keep running in CI and must follow the core internals they assert on.
 
 ### Utilities — the context class is the only door
 
@@ -632,7 +632,7 @@ The following items may look like gaps but are intentional design choices:
 
 When reviewing, auditing, or proposing improvements to this repository, treat the following as **out of scope** — do not report findings in them, refactor them, or otherwise invest in them:
 
-- **All of `src/99/` — the whole package, without exception.** It is **history only** (see "Layered Design"): zero in-repo consumers, excluded from lint and the test backend, kept solely so existing downstream installations keep compiling. Do **not** report, harden, refactor or extend anything under `src/99/` — treat the folder as if it did not exist. For example, the unescaped single quote in the dynamic `WHERE` builders of `z2ui5_cl_util_ext` is a **non-issue** here, and the ~16K-line size of `z2ui5_cl_xml_view` is not a finding either.
+- **The production code of `src/99/`.** It is **frozen legacy code** (see "Layered Design"): no in-repo consumers, kept solely so existing downstream installations keep compiling. Do **not** report, harden, refactor or extend it. For example, the unescaped single quote in the dynamic `WHERE` builders of `z2ui5_cl_util_ext` is a **non-issue** here, and the ~16K-line size of `z2ui5_cl_xml_view` is not a finding either. Only the `*.testclasses.abap` files under `src/99/` are maintained — they run in CI and may need adapting when core internals they assert on change.
 - **The `_bind` / `_bind_edit` "mass assignment" question** — two-way binding was **intentionally unified** (see "Data Binding" above): `_bind` and `_bind_edit` behave identically and every bound attribute is writable from the client `MODEL`. `_bind_edit` is a **compatibility-only alias of `_bind`** and is slated for **removal (~1 year out)**. A proposal to split them again — a separate "editable" flag so `_bind` becomes display-only while only `_bind_edit` writes back — is explicitly **rejected**: it would reintroduce exactly the distinction that was deliberately removed and break the many apps that rely on `_bind` round-tripping. Treat "an attribute exposed via `_bind` is writable from the client model" as **by design**, not a vulnerability.
 - **A secondary index on `Z2UI5_T_01-TIMESTAMPL`** — see the draft-cleanup entry above: rejected as not worth the per-write index-maintenance cost.
 - **The "no app-start authorization" question** — see the app-start entry under "Design Decisions" above. That any authenticated user reaching the ICF node can instantiate any `z2ui5_if_app` class is **by design**: authorization lives in the app's own `z2ui5_if_app~main` (like a transaction guarding itself), not in a framework `AUTHORITY-CHECK` or a `check_app_start_allowed` exit. Do not report the missing central hook as a vulnerability, and do not add one.

@@ -19,7 +19,14 @@ unreleased
   per-slot check_update_model flag has no successor - the model push is
   automatic); npm run unit no longer excludes src/99, three tests that
   need real-system facilities (second-exact timestamps, REPOSRC) are
-  skipped in the NodeJS runtime like the existing AJSON skips
+  skipped in the NodeJS runtime like the existing AJSON skips; the src/99
+  freeze now covers the production code only - *.testclasses.abap and the
+  .clas.xml sidecars are exempt in both the check_frozen_paths workflow
+  and npm run check:frozen, so the tests can follow the core internals
+  they assert on
+* a pending backend timer (START_TIMER) no longer fires its event into a
+  destroyed controller - an FLP close or re-launch left the timeout armed
+  and it would post the old app's event against the new session
 ! an app switch tears POPUP/POPOVER down implicitly - the response names
   its app, so the frontend destroys the standalone slots whenever the
   class changes and the two destroy actions no longer travel with every

@@ -143,6 +143,10 @@ CLASS z2ui5_cl_app_viewops_js IMPLEMENTATION.
              `      clearTimeout(timers[timerKey]);` && |\n| &&
              `      timers[timerKey] = setTimeout(() => {` && |\n| &&
              `        delete timers[timerKey];` && |\n| &&
+             `        // nothing cancels a pending timer on app teardown - an FLP close or` && |\n| &&
+             `        // re-launch leaves it armed, so it must not fire the old app's event` && |\n| &&
+             `        // into the new session` && |\n| &&
+             `        if (Lib.isDestroyed(oController)) return;` && |\n| &&
              `        // dispatch as a background event (args[2] = ignore busy) - a timer` && |\n| &&
              `        // firing while an ordinary roundtrip is in flight must not be` && |\n| &&
              `        // swallowed by the busy guard, or a self-rescheduling poll chain` && |\n| &&
