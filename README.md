@@ -52,9 +52,9 @@ Three sample repositories, one learning path – from your first app to your ful
 
 |      | Repository | What you learn | Where to start |
 |------|------------|----------------|----------------|
-| 1️⃣ | [**samples**](https://github.com/abap2UI5/samples) | **the abap2UI5 basics** – bindings, events, popups, navigation, complete apps | run `Z2UI5_CL_SMP_APP_000` |
-| 2️⃣ | [**samples-controls**](https://github.com/abap2UI5/samples-controls) | **how to use every UI5 control** – the UI5 Demo Kit rebuilt with abap2UI5 | run `z2ui5_cl_dmo_app_overview` |
-| 3️⃣ | [**samples-stack**](https://github.com/abap2UI5/samples-stack) | **how abap2UI5 plays with your stack** – OData, RAP, WebSockets, the Fiori Launchpad and more | pick your technology in its package table |
+| 1️⃣ | [**samples**](https://github.com/abap2UI5/samples) | **the abap2UI5 basics** – bindings, events, popups, navigation, complete apps |
+| 2️⃣ | [**samples-controls**](https://github.com/abap2UI5/samples-controls) | **how to use every UI5 control** – the UI5 Demo Kit rebuilt with abap2UI5 |
+| 3️⃣ | [**samples-stack**](https://github.com/abap2UI5/samples-stack) | **how abap2UI5 plays with your stack** – OData, RAP, WebSockets, the Fiori Launchpad and more |
 
 Every repository ships ready-to-run apps – install with abapGit, click through, read the source.
 
