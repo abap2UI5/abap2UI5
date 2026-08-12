@@ -93,7 +93,9 @@ breaking change for any downstream app that still references it.
       exist solely because the shipped `src/99` still calls them. Grep the
       marker, delete the marked block.
 - [ ] `npm run check:frozen` + the `check_frozen_paths` workflow
-- [ ] `rm -rf node/downport/99` in the `auto_transpile` script
+- [ ] the three `src/99` test skips in `node/setup/abap_transpile.json`
+      and the `src/99` testclass/sidecar exemptions in `check:frozen` +
+      `check_frozen_paths.yaml`
 - [ ] the `src/99` exclusions in `abaplint.jsonc`
 
 ---

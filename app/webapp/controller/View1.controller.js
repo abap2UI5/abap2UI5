@@ -70,6 +70,9 @@ sap.ui.define(
               ViewSlots.destroy("POPUP");
               ViewSlots.destroy("POPOVER");
             }
+            // the leaving app's keyboard shortcuts die with it - the new app
+            // registers its own (actions/Shortcuts documents this reset)
+            state.shortcuts = {};
             state.renderedApp = oResponse.APP;
           }
           // No early return on an empty action list: a response without any

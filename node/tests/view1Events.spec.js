@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadLib } = require("./loadLibModule");
 
 // Tests the two event-side helpers on View1.controller that the backend binds
 // into a view attribute:
@@ -11,11 +12,12 @@ const { loadModule } = require("./loadModule");
 //  - textPath: the ancestor-text breadcrumb of a control resolved in an event
 //    argument (`$controller.textPath(${$parameters>/item})`), a control-tree
 //    walk that no binding path can express
+// plus the response-side behavior that lives on the same controller:
+//  - the updateModel fan-out over the open model-owning slots
+//  - _processAfterRendering (stale-response guards, implicit teardown)
 
 function loadController() {
-  const { module: Lib } = loadModule("core/Lib.js", {
-    deps: { "z2ui5/core/AppState": { state: {} }, "sap/ui/core/Element": {} },
-  });
+  const Lib = loadLib().Lib;
   const { module: ctrl } = loadModule("controller/View1.controller.js", {
     deps: {
       "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
@@ -36,10 +38,11 @@ function withRecordedEB() {
   return { controller, sent };
 }
 
-// The model push: the backend sends ONE updateModel action naming no slot,
-// so actions/Slots has to fan it out over the open model-owning slots
-// itself. Asserting the dispatch alone is not enough - what matters is that
-// the data actually lands in every open slot and in none of the others.
+// A MODEL key in the response IS the model push: no updateModel action
+// travels on the wire - View1 dispatches ONE updateModel naming no slot, and
+// actions/Slots fans it out over the open model-owning slots itself.
+// Asserting the dispatch alone is not enough - what matters is that the data
+// actually lands in every open slot and in none of the others.
 function withSlots(openKeys, model) {
   const applied = [];
   const views = {};
@@ -76,7 +79,7 @@ function withSlots(openKeys, model) {
   return { Slots, applied };
 }
 
-test.describe("updateModel (one action, every open model slot)", () => {
+test.describe("updateModel (one dispatch, every open model slot)", () => {
   test("pushes into each OPEN slot that owns a model", () => {
     const model = { A: 1 };
     const { Slots, applied } = withSlots(["MAIN", "POPOVER"], model);
@@ -175,6 +178,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const pushes = [];
     const syncs = [];
     const hooks = [];
+    const destroys = [];
     const state = { onAfterRendering: [() => hooks.push("ran")] };
     const { module: ctrl } = loadModule("controller/View1.controller.js", {
       deps: {
@@ -192,12 +196,12 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           runCustom: () => {},
         },
         "z2ui5/core/actions/Slots": { action: (method) => pushes.push(method) },
-        "z2ui5/core/ViewSlots": {},
+        "z2ui5/core/ViewSlots": { destroy: (key) => destroys.push(key) },
         "z2ui5/core/Router": { sync: (o) => syncs.push(o) },
         "z2ui5/core/AppState": { state },
       },
     });
-    return { ctrl, state, pushes, syncs, hooks };
+    return { ctrl, state, pushes, syncs, hooks, destroys };
   }
 
   test("no actions at all: model push, router sync and hooks still run", async () => {
@@ -219,6 +223,26 @@ test.describe("_processAfterRendering (action-free responses)", () => {
 
     expect(pushes).toEqual([]);
     expect(syncs).toEqual([{ id: "D2" }]);
+  });
+
+  test("an APP switch tears the popup/popover down implicitly, once", async () => {
+    const { ctrl, state, destroys } = loadForAfterRendering();
+    // first app ever rendered: nothing of a previous app can be open
+    state.oResponse = { ID: "D1", APP: "Z2UI5_CL_A" };
+    await ctrl._processAfterRendering(1);
+    expect(destroys).toEqual([]);
+
+    // switch to another class: the standalone slots live outside MAIN's
+    // control tree, so no destroy action travels - the switch itself,
+    // visible right here, kills them before the new app's system actions
+    state.oResponse = { ID: "D2", APP: "Z2UI5_CL_B" };
+    await ctrl._processAfterRendering(1);
+    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+
+    // an event roundtrip of the SAME app tears nothing down
+    state.oResponse = { ID: "D3", APP: "Z2UI5_CL_B" };
+    await ctrl._processAfterRendering(1);
+    expect(destroys).toEqual(["POPUP", "POPOVER"]);
   });
 
   test("a travelling ROUTER action's options reach the one per-response sync", async () => {

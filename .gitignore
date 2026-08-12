@@ -1,9 +1,7 @@
-downport
+/node/downport/
 node/deps/
 node_modules
-output
-node/output
-node/open-abap-core
+/node/output/
 .github/out
 .github/abaplint/rename_run.jsonc
 .github/abaplint/downport_run.jsonc

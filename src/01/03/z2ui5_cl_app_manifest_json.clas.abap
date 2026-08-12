@@ -63,14 +63,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `  },` &&
              `  "sap.ui": {` &&
              `    "technology": "UI5",` &&
-             `    "icons": {` &&
-             `      "icon": "",` &&
-             `      "favIcon": "",` &&
-             `      "phone": "",` &&
-             `      "phone@2": "",` &&
-             `      "tablet": "",` &&
-             `      "tablet@2": ""` &&
-             `    },` &&
              `    "deviceTypes": {` &&
              `      "desktop": true,` &&
              `      "tablet": true,` &&

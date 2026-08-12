@@ -54,8 +54,9 @@ INTERFACE z2ui5_if_client
       "!
       "! Queue it ONCE, in check_on_init - the way a UI5 app configures routing
       "! once in its manifest. The mode is remembered on the app (it travels in
-      "! the draft) and re-sent with every response, so it does not have to be
-      "! re-asserted on every render; an app called via nav_app_call inherits
+      "! the draft) and re-sent whenever the frontend may not still hold it -
+      "! page load, Back/Forward restore, a navigation hop, a mode change - so
+      "! it does not have to be re-asserted; an app called via nav_app_call inherits
       "! it, and an app the user navigates back to keeps its own mode even when
       "! the app in between ran with a different one.
       "!
@@ -89,7 +90,9 @@ INTERFACE z2ui5_if_client
       smart_variant_init        TYPE string VALUE `SMART_VARIANT_INIT`,
       filter_bar_variant_init   TYPE string VALUE `FILTER_BAR_VARIANT_INIT`,
 
-      "obsolete?
+      " legacy event names - still supported: the *nav_container_to variants
+      " are remapped to the generic control_by_id call (z2ui5_cl_core_srv_event),
+      " the others have dedicated frontend handlers
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
       nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,

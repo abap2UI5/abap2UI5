@@ -14,6 +14,10 @@ on:
       - '.github/app2abap/**'
       - '.github/workflows/check_app2abap.yaml'
 
+concurrency:
+  group: check_app2abap-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

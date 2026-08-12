@@ -1,7 +1,7 @@
 {
   "global": {
-    // src/99 is deliberately NOT listed: historical only (see AGENTS.md),
-    // never analyzed or fixed
+    // src/99 is deliberately NOT listed: its production code is frozen
+    // (check_frozen_paths.yaml) - an autofix touching it could never merge
     "files": [
       "/../../src/00/**/*.*",
       "/../../src/01/**/*.*",

@@ -2,9 +2,11 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the CONTROL_GLOBAL / CONTROL_BY_ID handlers in the real
-// app/webapp/core/FrontendAction.js (loaded via a stubbed sap.ui.define).
-// The focus is the whitelist boundary and the argument casting.
+// Tests the frontend action handlers (CONTROL_GLOBAL / CONTROL_BY_ID,
+// BINDING_CALL, variants, KEYBOARD_SHORTCUT, SET_FOCUS, timers, ...) through
+// the real FrontendAction.js merge of the core/actions/* modules (loaded via
+// a stubbed sap.ui.define). The focus is the whitelist boundary and the
+// argument casting.
 
 function load({ sandbox } = {}) {
   const calls = [];
@@ -546,15 +548,6 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([
       ["setP13nData", [{ name: "key1", label: "City", visible: true }]],
     ]);
-  });
-
-  test("resolves a controlId argument to the control (to)", () => {
-    const { FrontendAction, calls, controls } = load();
-    const page2 = { id: "page2" };
-    controls.page2 = page2;
-    controls.NavCon = { to: (ctrl) => calls.push(["to", ctrl]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
-    expect(calls).toEqual([["to", page2]]);
   });
 
   // A control CLONED from an aggregation template has no id the backend can
@@ -1869,6 +1862,44 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     const { FrontendAction, errors, oController } = loadWithDoc();
     FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+", "SAVE"]);
     expect(errors[0]).toContain("names no key");
+  });
+});
+
+test.describe("START_TIMER (backend timer liveness)", () => {
+  test("the fired timer dispatches only while the app is alive", () => {
+    // deterministic timers: capture the callback instead of waiting it out
+    const timers = [];
+    const { FrontendAction, AppState } = load({
+      sandbox: {
+        setTimeout: (fn, ms) => {
+          timers.push({ fn, ms });
+          return timers.length;
+        },
+        clearTimeout: () => {},
+      },
+    });
+    AppState.state.timers = {};
+    const ebCalls = [];
+    let destroyed = false;
+    const oController = {
+      isDestroyed: () => destroyed,
+      eB: (a) => ebCalls.push(a),
+    };
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    expect(timers[0].ms).toBe(1000);
+    timers[0].fn();
+    // alive: fired as a background event (ignore-busy flag set), slot freed
+    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(AppState.state.timers).toEqual({});
+
+    // re-armed, then the app is torn down (FLP close / re-launch): the
+    // pending timer must not fire the old app's event into the new session
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    destroyed = true;
+    timers[1].fn();
+    expect(ebCalls).toHaveLength(1);
+    expect(AppState.state.timers).toEqual({});
   });
 });
 

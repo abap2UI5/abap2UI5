@@ -97,6 +97,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              ViewSlots.destroy("POPUP");` && |\n| &&
              `              ViewSlots.destroy("POPOVER");` && |\n| &&
              `            }` && |\n| &&
+             `            // the leaving app's keyboard shortcuts die with it - the new app` && |\n| &&
+             `            // registers its own (actions/Shortcuts documents this reset)` && |\n| &&
+             `            state.shortcuts = {};` && |\n| &&
              `            state.renderedApp = oResponse.APP;` && |\n| &&
              `          }` && |\n| &&
              `          // No early return on an empty action list: a response without any` && |\n| &&

@@ -385,6 +385,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `          copyToClipboard(copyText);` && |\n| &&
              `          copyButton.setText("Copied");` && |\n| &&
              `          setTimeout(() => {` && |\n| &&
+             `            // deliberately the private flag, not Lib.isDestroyed: this module must` && |\n| &&
+             `            // work when the core failed to load, so it imports nothing from it` && |\n| &&
              `            if (!copyButton.bIsDestroyed) copyButton.setText("Copy");` && |\n| &&
              `          }, 1500);` && |\n| &&
              `        },` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      // the footer.` && |\n| &&
              `      const dialog = new Dialog({` && |\n| &&
              `        title: title || "Application Error",` && |\n| &&
-             `        type: "Message",` && |\n| &&
-             `        state: "Error",` && |\n| &&
-             `        icon: "sap-icon://message-error",` && |\n|.
+             `        type: "Message",` && |\n|.
     result = result &&
+             `        state: "Error",` && |\n| &&
+             `        icon: "sap-icon://message-error",` && |\n| &&
              `        // Without a width the message dialog sizes itself to the longest` && |\n| &&
              `        // unbreakable run of the error text - a URL or a class name stretches` && |\n| &&
              `        // it across the screen. A fixed content width keeps the box the same` && |\n| &&

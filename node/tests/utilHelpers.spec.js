@@ -8,6 +8,26 @@ const { loadLib } = require("./loadLibModule");
 
 const ORIGIN = "http://localhost:3000";
 
+test.describe("isDestroyed (async-continuation guard, 1.71 floor)", () => {
+  const { Lib } = loadLib();
+
+  test("prefers the isDestroyed() method where the release has it", () => {
+    expect(Lib.isDestroyed({ isDestroyed: () => true })).toBe(true);
+    // the method (@since 1.93) wins over a stray flag
+    expect(
+      Lib.isDestroyed({ isDestroyed: () => false, bIsDestroyed: true }),
+    ).toBe(false);
+  });
+
+  test("falls back to the bIsDestroyed flag on the 1.71 floor", () => {
+    // ManagedObject#isDestroyed() is absent there - without the fallback a
+    // destroyed control would read "alive" and the guards would misfire
+    expect(Lib.isDestroyed({ bIsDestroyed: true })).toBe(true);
+    expect(Lib.isDestroyed({})).toBe(false);
+    expect(Lib.isDestroyed(null)).toBe(false);
+  });
+});
+
 test.describe("isValidRedirectURL (same-origin http/https only)", () => {
   const { Lib } = loadLib();
 

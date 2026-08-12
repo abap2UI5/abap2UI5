@@ -358,6 +358,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
           copyToClipboard(copyText);
           copyButton.setText("Copied");
           setTimeout(() => {
+            // deliberately the private flag, not Lib.isDestroyed: this module must
+            // work when the core failed to load, so it imports nothing from it
             if (!copyButton.bIsDestroyed) copyButton.setText("Copy");
           }, 1500);
         },

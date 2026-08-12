@@ -89,6 +89,32 @@ test("a dropped request does not latch - the next one re-sends", () => {
   expect(Session.config(CONFIG, "D1")).toEqual({});
 });
 
+test("a retried request confirms what IT carried, not the newest build", () => {
+  const dev = device({ portrait: false, width: 900 });
+  const Session = loadSession(dev);
+  Session.config(CONFIG);
+  Session.confirmSent(Session.takePending());
+
+  // a resize goes out with request 1 ...
+  dev.resize.width = 500;
+  Session.config(CONFIG, "D1");
+  const token1 = Session.takePending();
+
+  // ... and a second resize builds request 2 before request 1 settled
+  dev.resize.width = 700;
+  Session.config(CONFIG, "D1");
+  const token2 = Session.takePending();
+
+  // request 1 (e.g. a retry of its own old body) wins: only ITS width 500
+  // is latched, so the current width 700 still differs and travels again
+  Session.confirmSent(token1);
+  expect(Session.config(CONFIG, "D1").S_DEVICE.RESIZE.WIDTH).toBe(700);
+
+  // once request 2's token confirms, the latch is current
+  Session.confirmSent(token2);
+  expect(Session.config(CONFIG, "D1")).toEqual({});
+});
+
 test("keeps sending until the version info has actually arrived", () => {
   // _initVersionInfo is async, so the first roundtrip can fire before
   // oConfig.S_UI5 exists. Stopping after one send would mean the backend

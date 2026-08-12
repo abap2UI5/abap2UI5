@@ -8,7 +8,7 @@
 // Both tools check a local folder BEFORE falling back to the URL clone, so
 // this script materializes each dependency at its pinned SHA under
 // node/deps/<name>/ (gitignored). It is wired into `npm run check` and
-// `npm run auto_transpile`; a no-op (~50ms) when everything is already at
+// `npm run downport`; a no-op (~50ms) when everything is already at
 // the pinned SHA. Without network and without node/deps the tools fall back
 // to their old floating-clone behavior.
 //

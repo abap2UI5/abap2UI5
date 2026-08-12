@@ -179,7 +179,7 @@ sap.ui.define(
       });
     }
 
-    // What each dropdown entry shows: either a JSON source or an XML source
+    // What each tab shows: either a JSON source or an XML source
     // (the latter optionally with the rendered DOM for the templating
     // toggle). The "SOURCE" entry is handled separately in onItemSelect.
     const jsonSources = {

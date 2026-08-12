@@ -206,7 +206,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // What each dropdown entry shows: either a JSON source or an XML source` && |\n| &&
+             `    // What each tab shows: either a JSON source or an XML source` && |\n| &&
              `    // (the latter optionally with the rendered DOM for the templating` && |\n| &&
              `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
              `    const jsonSources = {` && |\n| &&

@@ -320,7 +320,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                   | </body></html>|.
 
     result-status_code   = 200.
-    result-status_reason = `success`.
+    result-status_reason = `OK`.
 
   ENDMETHOD.
 

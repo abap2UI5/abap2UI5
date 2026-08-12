@@ -53,10 +53,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     CASE val.
       WHEN z2ui5_if_client=>cs_event-set_nav_routing.
-        " the mode is remembered on the app as well, so every later response
-        " of this app carries it again ( z2ui5_cl_core_app=>mv_nav_mode ), an
-        " app called via nav_app_call inherits it, and a draft restored later
-        " still knows how it was routed
+        " the mode is remembered on the app ( z2ui5_cl_core_app=>mv_nav_mode )
+        " and re-sent when the frontend may not still hold it - main_end gates
+        " the re-send on the nav_mode_sent latch; an app called via
+        " nav_app_call inherits it, and a draft restored later still knows how
+        " it was routed
         IF lv_arg IS INITIAL.
           lv_arg = z2ui5_if_client=>cs_nav_mode-keep.
         ENDIF.

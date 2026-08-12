@@ -396,10 +396,10 @@ fail on.)
 ```bash
 npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
 npm run verify       # Gate before every PR: abaplint -> testclass-visibility gate ->
+                     # the sub-second gates first (frozen-path, guide-API,
+                     # curated-formatter scope, src/02 API snapshot) ->
                      # standard/cloud abaplint targets -> downport -> transpile -> unit ->
-                     # JS unit specs -> frozen-path check -> guide-API check ->
-                     # curated-formatter scope gate -> src/02 API-snapshot gate ->
-                     # src/01/03 app2abap drift gate (matches the PR gates in CI)
+                     # JS unit specs -> app2abap drift gate (matches the PR gates in CI)
 npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
                      # installs app/node_modules itself. Run when app/webapp/ changed
 ```

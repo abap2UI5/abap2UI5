@@ -20,6 +20,10 @@ name: check_frozen_paths
 on:
   pull_request:
 
+concurrency:
+  group: check_frozen_paths-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -39,10 +43,6 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-
-          # The base commit is not guaranteed to be present on a shallow or
-          # merge-ref checkout; fetch it before diffing.
-          git fetch --no-tags --depth=1 origin "$BASE_SHA" 2>/dev/null || true
 
           changed=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- src/99 \
             ':(exclude)src/99/*.testclasses.abap' ':(exclude)src/99/*.clas.xml')

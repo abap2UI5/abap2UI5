@@ -27,7 +27,7 @@ function loadLib(overrides = {}) {
       ...rest,
     },
   });
-  return { Lib: module, sandbox, elements };
+  return { Lib: module, sandbox };
 }
 
 module.exports = { loadLib };

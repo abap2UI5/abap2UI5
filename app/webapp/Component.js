@@ -294,6 +294,20 @@ sap.ui.define(
 
         Server.endSession();
 
+        // Global state that would outlive the component (FLP keeps the page
+        // alive): cancel any pending backend timer, empty the shortcut
+        // registry so the module-scoped keydown listener becomes a no-op,
+        // and detach the device model's handlers from the Device singleton.
+        for (const key of Object.keys(AppState.state.timers)) {
+          clearTimeout(AppState.state.timers[key]);
+          delete AppState.state.timers[key];
+        }
+        AppState.state.shortcuts = {};
+        if (AppState.state.oDeviceModel) {
+          AppState.state.oDeviceModel.destroy();
+          AppState.state.oDeviceModel = null;
+        }
+
         // Robust launchpad teardown:
         //  1. Clear the FLP dirty flag so it does not carry over into the
         //     next app the user opens.

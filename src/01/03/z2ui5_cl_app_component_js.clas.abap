@@ -321,6 +321,20 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&
+             `        // Global state that would outlive the component (FLP keeps the page` && |\n| &&
+             `        // alive): cancel any pending backend timer, empty the shortcut` && |\n| &&
+             `        // registry so the module-scoped keydown listener becomes a no-op,` && |\n| &&
+             `        // and detach the device model's handlers from the Device singleton.` && |\n| &&
+             `        for (const key of Object.keys(AppState.state.timers)) {` && |\n| &&
+             `          clearTimeout(AppState.state.timers[key]);` && |\n| &&
+             `          delete AppState.state.timers[key];` && |\n| &&
+             `        }` && |\n| &&
+             `        AppState.state.shortcuts = {};` && |\n| &&
+             `        if (AppState.state.oDeviceModel) {` && |\n| &&
+             `          AppState.state.oDeviceModel.destroy();` && |\n| &&
+             `          AppState.state.oDeviceModel = null;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        // Robust launchpad teardown:` && |\n| &&
              `        //  1. Clear the FLP dirty flag so it does not carry over into the` && |\n| &&
              `        //     next app the user opens.` && |\n| &&
