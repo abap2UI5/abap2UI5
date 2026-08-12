@@ -268,6 +268,12 @@ ships for existing apps but is **frozen** — new apps and new code use
   never build your own toast/dialog for these.
 - Bind popup data exactly like main-view data; changed bound data reaches
   an open popup automatically.
+- A popup or popover is closed automatically by anything that replaces the
+  screen underneath it: a `client->view_display( )` in the same roundtrip
+  and a navigation to another app both take it down. Re-open it in that same
+  roundtrip if it is meant to stay — `view_display( )` first, then
+  `popup_display( )` — and call `popup_destroy( )` only when you close it
+  without rebuilding the view.
 
 ## 7. Multi-view, navigation, routing
 

@@ -806,8 +806,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " the push - the frontend pushes into every open model-owning slot after
     " the system actions ran (View1). That covers the nested re-display
     " (inherits the MAIN model by propagation - three-column samples) and a
-    " popup left open across a MAIN rebuild alike, without spelling a
-    " derivable instruction into every model-carrying response.
+    " popup left open across a roundtrip that rebuilt no view alike, without
+    " spelling a derivable instruction into every model-carrying response.
 
     " last of all, so the route reflects everything this roundtrip did - the
     " slots that were built and the model that was pushed into them. Queued

@@ -335,6 +335,17 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `          // slip past displayView's "a newer view took the slot" guard and` && |\n| &&
              `          // then crash THIS build on a duplicate id.` && |\n| &&
              `          ViewSlots.destroy("MAIN");` && |\n| &&
+             `          // A new MAIN view means a new screen, so the two STANDALONE slots` && |\n| &&
+             `          // go with it. They live outside the MAIN control tree and would` && |\n| &&
+             `          // otherwise float on top of a page they no longer belong to - a` && |\n| &&
+             `          // dialog of the previous screen over the new one. The backend` && |\n| &&
+             `          // relies on this and sends no destroy action for them next to a` && |\n| &&
+             `          // MAIN display (z2ui5_cl_core_action_front=>slots_serialize). A` && |\n| &&
+             `          // popup/popover the SAME response opens still opens: slot actions` && |\n| &&
+             `          // are serialized MAIN first, and each one is awaited before the` && |\n| &&
+             `          // next runs (View1._runSystemActions).` && |\n| &&
+             `          ViewSlots.destroy("POPUP");` && |\n| &&
+             `          ViewSlots.destroy("POPOVER");` && |\n| &&
              `          return displayView(` && |\n| &&
              `            xml,` && |\n| &&
              `            AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
@@ -413,7 +424,8 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `    // resolveTrackedModel is what eB's model pick needs (View1.controller).` && |\n| &&
              `    // Everything else on this file is internal to the display machinery.` && |\n| &&
              `    return {` && |\n| &&
-             `      action,` && |\n| &&
+             `      action,` && |\n|.
+    result = result &&
              `      resolveTrackedModel,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

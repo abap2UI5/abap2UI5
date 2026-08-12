@@ -256,3 +256,80 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(syncs).toEqual([{ setNavRouting: "KEEP", id: "D3" }]);
   });
 });
+
+test.describe("a MAIN display takes the standalone slots with it", () => {
+  // A new main view is a new screen: POPUP and POPOVER live OUTSIDE the MAIN
+  // control tree, so nothing else closes them - a dialog of the previous
+  // screen would float on top of the new one. The backend relies on this and
+  // sends no teardown for them next to a MAIN display.
+  function loadSlots(requestSeq) {
+    const destroyed = [];
+    const pages = [];
+    const oView = { destroy: () => {} };
+    function JSONModel() {
+      this.attachPropertyChange = () => {};
+      this.destroy = () => {};
+      this.setSizeLimit = () => {};
+    }
+    const { module: Slots } = loadModule("core/actions/Slots.js", {
+      deps: {
+        "sap/ui/core/mvc/XMLView": { create: async () => oView },
+        "sap/ui/model/json/JSONModel": JSONModel,
+        "z2ui5/core/Server": { _requestSeq: requestSeq },
+        "z2ui5/core/Lib": {
+          effectiveSizeLimit: () => undefined,
+          isAlive: () => true,
+          logError: () => {},
+        },
+        "z2ui5/core/ViewSlots": {
+          slots: [],
+          getView: () => undefined,
+          getController: () => undefined,
+          setView: () => {},
+          destroy: (key) => destroyed.push(key),
+        },
+        "z2ui5/core/AppState": {
+          state: {
+            viewSizeLimits: {},
+            oApp: {
+              removeAllPages: () => {},
+              insertPage: (v) => pages.push(v),
+            },
+          },
+        },
+      },
+    });
+    return { Slots, destroyed, pages, oView };
+  }
+
+  test("displaying MAIN destroys MAIN, POPUP and POPOVER", async () => {
+    const { Slots, destroyed, pages, oView } = loadSlots(1);
+
+    await Slots.action("display", "MAIN", "<View/>", {}, 1);
+
+    expect(destroyed).toEqual(["MAIN", "POPUP", "POPOVER"]);
+    // the teardown is part of the build, not something that replaced it
+    expect(pages).toEqual([oView]);
+  });
+
+  test("displaying a POPUP leaves the other slots alone", async () => {
+    const { Slots, destroyed } = loadSlots(1);
+
+    // every display tears its OWN slot down first - it replaces it - but
+    // only MAIN stands for a whole new screen
+    await Slots.action("display", "POPUP", "<Dialog/>", {}, 1).catch(() => {});
+
+    expect(destroyed).toEqual(["POPUP"]);
+  });
+
+  test("a superseded MAIN display tears nothing down", async () => {
+    const { Slots, destroyed } = loadSlots(2);
+
+    // a newer parallel request already claimed the screen: this build is
+    // dropped before the teardown, so it cannot close a popup the newer
+    // response opened
+    await Slots.action("display", "MAIN", "<View/>", {}, 1);
+
+    expect(destroyed).toEqual([]);
+  });
+});

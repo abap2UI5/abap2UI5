@@ -108,7 +108,8 @@ sap.ui.define(
           // it is pushed to. This reaches what a fresh build alone does not:
           // a nested view re-displayed without its MAIN view (it inherits the
           // MAIN model by UI5 propagation) and a popup left open across a
-          // MAIN rebuild.
+          // roundtrip that rebuilt no view (one that DOES rebuild MAIN takes
+          // the standalone slots down with it - see actions/Slots).
           if (oResponse.MODELPRESENT) Slots.action("updateModel");
           // Phase 2: ONE history/hash sync per response. A ROUTER action only
           // travels when the roundtrip carries nav intent - its options were

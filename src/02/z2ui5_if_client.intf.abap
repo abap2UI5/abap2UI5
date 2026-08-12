@@ -131,6 +131,9 @@ INTERFACE z2ui5_if_client
 
   METHODS view_destroy.
 
+  "! Display the MAIN view. A new main view is a new screen, so an open
+  "! popup and popover go with it - re-open one in the same roundtrip if it
+  "! is meant to survive ( the frontend builds MAIN first, then the popup ).
   METHODS view_display
     IMPORTING
       val                           TYPE clike
