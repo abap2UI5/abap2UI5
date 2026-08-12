@@ -21,6 +21,9 @@ sap.ui.define(
         // holds its own JSON model - NEST/NEST2 are inserted into
         // the MAIN control tree and inherit theirs by UI5 propagation
         ownsModel: true,
+        // ...and they die with it: destroy() routes these through the same
+        // teardown before MAIN goes down (see there)
+        dependentSlots: ["NEST", "NEST2"],
         prop: "oView",
         controllerProp: "oController",
       },
@@ -169,6 +172,16 @@ sap.ui.define(
     function destroy(key) {
       const slot = byKey(key);
       if (!slot) return;
+      // The nested views live INSIDE the MAIN control tree, so MAIN's
+      // view.destroy() below would cascade to their controls anyway - but
+      // the slot references and the messaging registration would stay
+      // behind, leaving getView("NEST") truthy long after an app switch
+      // (stale shortcut slot scopes, developer tools showing the previous
+      // app's nest XML). Route the dependent slots through this same
+      // teardown first, BEFORE the open-check: it keeps unregisterObject
+      // symmetric to attachSharedModels and clears a stale nest reference
+      // even when MAIN itself is already gone.
+      for (const dep of slot.dependentSlots ?? []) destroy(dep);
       const view = AppState.state[slot.prop];
       if (!view) return;
       if (slot.fragmentId) {

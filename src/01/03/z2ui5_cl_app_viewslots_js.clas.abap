@@ -48,6 +48,9 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `        // holds its own JSON model - NEST/NEST2 are inserted into` && |\n| &&
              `        // the MAIN control tree and inherit theirs by UI5 propagation` && |\n| &&
              `        ownsModel: true,` && |\n| &&
+             `        // ...and they die with it: destroy() routes these through the same` && |\n| &&
+             `        // teardown before MAIN goes down (see there)` && |\n| &&
+             `        dependentSlots: ["NEST", "NEST2"],` && |\n| &&
              `        prop: "oView",` && |\n| &&
              `        controllerProp: "oController",` && |\n| &&
              `      },` && |\n| &&
@@ -196,6 +199,16 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `    function destroy(key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      if (!slot) return;` && |\n| &&
+             `      // The nested views live INSIDE the MAIN control tree, so MAIN's` && |\n| &&
+             `      // view.destroy() below would cascade to their controls anyway - but` && |\n| &&
+             `      // the slot references and the messaging registration would stay` && |\n| &&
+             `      // behind, leaving getView("NEST") truthy long after an app switch` && |\n| &&
+             `      // (stale shortcut slot scopes, developer tools showing the previous` && |\n| &&
+             `      // app's nest XML). Route the dependent slots through this same` && |\n| &&
+             `      // teardown first, BEFORE the open-check: it keeps unregisterObject` && |\n| &&
+             `      // symmetric to attachSharedModels and clears a stale nest reference` && |\n| &&
+             `      // even when MAIN itself is already gone.` && |\n| &&
+             `      for (const dep of slot.dependentSlots ?? []) destroy(dep);` && |\n| &&
              `      const view = AppState.state[slot.prop];` && |\n| &&
              `      if (!view) return;` && |\n| &&
              `      if (slot.fragmentId) {` && |\n| &&
