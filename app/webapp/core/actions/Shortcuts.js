@@ -157,7 +157,7 @@ sap.ui.define(
       installShortcutListener();
     }
 
-    function evSetInputMode(oController, args) {
+    function evKeyboardSetMode(oController, args) {
       try {
         const oElement = ViewSlots.byId("MAIN", args[1]);
         if (!oElement) return;
@@ -180,7 +180,7 @@ sap.ui.define(
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
       KEYBOARD_SHORTCUT: evKeyboardShortcut,
-      KEYBOARD_SET_MODE: evSetInputMode,
+      KEYBOARD_SET_MODE: evKeyboardSetMode,
     };
 
     return { handlers };

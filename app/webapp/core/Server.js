@@ -73,8 +73,10 @@ sap.ui.define(
     //       "APP": "<app class name>",     // rendered app, for the router
     //       "S_ACTION": {
     //           // SYSTEM: the framework's own view-lifecycle calls, run
-    //           // first, in order, before the view is rendered; the
-    //           // ROUTER/sync call is always queued last
+    //           // first, in order, before the view is rendered. A
+    //           // ROUTER/sync call is queued last, and only when the
+    //           // roundtrip carries nav intent - View1 syncs the URL once
+    //           // per response either way
     //           "T_SYSTEM": [
     //             ["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"],
     //             ["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]
@@ -102,9 +104,10 @@ sap.ui.define(
       // letting the backend finish work whose response would be dropped anyway.
       _inflight: new Set(),
 
-      // Chain that serializes full MAIN-view rebuilds (see responseSuccess):
-      // XMLView.create claims the fixed "mainView" id synchronously, so two
-      // overlapping builds would throw "duplicate id".
+      // Chain that serializes full MAIN-view rebuilds (see
+      // actions/Slots.displayMain): XMLView.create claims the fixed
+      // "mainView" id synchronously, so two overlapping builds would throw
+      // "duplicate id".
       _viewBuild: null,
 
       endSession() {

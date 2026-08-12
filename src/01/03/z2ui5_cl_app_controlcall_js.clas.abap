@@ -527,6 +527,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
              `          } catch {` && |\n| &&
+             `            Lib.logError(``CONTROL_CALL: malformed object argument '${raw}'``);` && |\n| &&
              `            return {};` && |\n| &&
              `          }` && |\n| &&
              `        default:` && |\n| &&
@@ -824,9 +825,9 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      if (typeof json === "string") {` && |\n| &&
              `        try {` && |\n| &&
              `          groups = JSON.parse(json);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n|.
+             `        } catch {` && |\n|.
     result = result &&
+             `          Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&

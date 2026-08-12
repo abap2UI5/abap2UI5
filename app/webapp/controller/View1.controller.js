@@ -33,9 +33,9 @@ sap.ui.define(
 
     return Controller.extend("z2ui5.controller.View1", {
       onAfterRendering() {
-        if (AppState.state.oResponse && !AppState.state.oResponse._processed) {
-          this._processAfterRendering();
-        }
+        // _processAfterRendering re-checks _processed itself - only the
+        // null check is load-bearing here
+        if (AppState.state.oResponse) this._processAfterRendering();
       },
 
       // Runs once after each roundtrip's view has been rendered, in two

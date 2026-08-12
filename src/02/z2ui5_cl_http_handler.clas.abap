@@ -211,10 +211,14 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     IF server IS BOUND.
       result = NEW #( ).
       result->mo_server = z2ui5_cl_a2ui5_http=>factory( server ).
-      FIELD-SYMBOLS <lo_response> TYPE REF TO object.
-      ASSIGN server->(`RESPONSE`) TO <lo_response>.
+      " generic field symbol on purpose: a typed one (REF TO object) makes
+      " the dynamic ASSIGN cast, and REF TO if_http_response is not
+      " IDENTICAL to REF TO object - a real stack raises an uncatchable
+      " casting error there, the MOVE below widens legally instead
+      FIELD-SYMBOLS <response> TYPE any.
+      ASSIGN server->(`RESPONSE`) TO <response>.
       IF sy-subrc = 0.
-        result->mo_response_onprem = <lo_response>.
+        result->mo_response_onprem = <response>.
       ENDIF.
     ELSEIF req IS BOUND AND res IS BOUND.
       result = factory_cloud( req = req

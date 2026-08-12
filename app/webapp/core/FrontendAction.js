@@ -99,7 +99,7 @@ sap.ui.define(
         }
       }
       if (!Array.isArray(args)) {
-        Lib.logError(`systemJs: '${item}' is no action payload`);
+        Lib.logError(`FrontendAction: '${item}' is no system action payload`);
         return undefined;
       }
       return executeSystem(oController, args, ctx);

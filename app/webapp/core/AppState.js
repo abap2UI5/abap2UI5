@@ -47,7 +47,7 @@
 //   oApp              sap.m.App hosting the main view (App.controller)
 //   oOwnerComponent, oDeviceModel (Component / App.controller)
 //   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
-//                     the five view slots, see core/ViewSlots.js (View1)
+//                     the five view slots, written by ViewSlots.setView
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
 //   oControllerPopover  controller instance per slot (App.controller)
 //   oLaunchpad        FLP services when running inside the launchpad, else
@@ -59,11 +59,11 @@
 //                     Server.roundtrip/readHttp; this record exists for
 //                     onBeforeRoundtrip hooks and the developer tools
 //                     (View1.eB / Server)
-//   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL }
+//   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL,
+//                     APP }
 //   responseData      raw parsed response JSON (Server.readHttp); kept
-//                     besides oResponse because it carries fields the
-//                     cooked record does not (e.g. S_FRONT.APP, used by
-//                     the developer tools)
+//                     besides oResponse because the developer tools render
+//                     the raw payload
 //   contextId         stateful session id, header transport (Server)
 //   isBusy            roundtrip in flight (View1.eB / Server)
 //   oSentModel        the JSON model whose edited-path set the in-flight
@@ -76,16 +76,15 @@
 //
 // Control / helper state
 //   errors            capped error log, see Lib.logError
-//   timers            single pending backend timer (FrontendAction)
+//   timers            single pending backend timer (actions/ViewOps)
 //   shortcuts         registered keyboard shortcuts, normalized combo ->
 //                     scope -> { event, controller }, the scope being a view
-//                     slot key or "" for unscoped (FrontendAction.
-//                     KEYBOARD_SHORTCUT). Dispatch takes the innermost OPEN
+//                     slot key or "" for unscoped (actions/Shortcuts). Dispatch takes the innermost OPEN
 //                     scope, so a popover-local shortcut shadows the page one
 //                     the way a UI5 CommandExecution in dependents does;
 //                     an app switch resets it, the document listener stays
 //   lastScrolled      last scrolled element per slot (ScrollFocus.onScrollCapture)
-//   viewSizeLimits    per-slot model size limits (FrontendAction)
+//   viewSizeLimits    per-slot model size limits (actions/ViewOps)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
 //   developerTools         DeveloperTools instance (Component, Ctrl+F12)
 //   lastError         the last fatal error shown by ErrorView (title/text/

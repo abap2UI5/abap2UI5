@@ -29,7 +29,6 @@ INTERFACE z2ui5_if_core_types
       body          TYPE string,
       status_code   TYPE i,
       status_reason TYPE string,
-      t_header      TYPE z2ui5_if_types=>ty_t_name_value,
       BEGIN OF s_stateful,
         active   TYPE i,
         switched TYPE abap_bool,
@@ -71,10 +70,9 @@ INTERFACE z2ui5_if_core_types
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
   " One view-lifecycle call, as the backend collects it. It is kept typed
-  " until main_end( ) rather than serialized on the spot, because two things
-  " can only be decided once the app has run: a slot may be displayed twice
-  " and only the last call counts, and the calls have to leave in slot order,
-  " never in call order.
+  " until main_end( ) rather than serialized on the spot: the calls have to
+  " leave in slot order (never in call order), and main_end( ) derives the
+  " model decision from the collected list.
   TYPES:
     BEGIN OF ty_s_system_action,
       slot    TYPE string,

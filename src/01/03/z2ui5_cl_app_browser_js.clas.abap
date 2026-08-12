@@ -205,7 +205,8 @@ CLASS z2ui5_cl_app_browser_js IMPLEMENTATION.
              `        frame.src = bspKill;` && |\n| &&
              `        frame.addEventListener("load", finish);` && |\n| &&
              `        document.body.appendChild(frame);` && |\n| &&
-             `      } catch {` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed", e);` && |\n| &&
              `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -330,8 +331,6 @@ CLASS z2ui5_cl_app_browser_js IMPLEMENTATION.
              `        Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Frontend event dispatch: maps the eF event name to its handler.` && |\n| &&
              `` && |\n| &&
              `    // The events this module owns in the eF dispatch (see` && |\n| &&
              `    // core/FrontendAction.js, which merges the domain modules' handler maps).` && |\n| &&

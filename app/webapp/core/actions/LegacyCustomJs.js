@@ -106,7 +106,7 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
       // eslint-disable-next-line no-new-func
       Function("return " + item)();
     } catch (e) {
-      Lib.logError("customJs: execution failed", e);
+      Lib.logError("LegacyCustomJs: snippet execution failed", e);
     }
   }
 

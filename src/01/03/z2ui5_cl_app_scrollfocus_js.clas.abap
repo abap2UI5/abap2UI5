@@ -116,7 +116,8 @@ CLASS z2ui5_cl_app_scrollfocus_js IMPLEMENTATION.
              `          info.SELECTION_END = caret.end;` && |\n| &&
              `        }` && |\n| &&
              `        return info;` && |\n| &&
-             `      } catch {` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("getFocusInfo: focus capture failed", e);` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&

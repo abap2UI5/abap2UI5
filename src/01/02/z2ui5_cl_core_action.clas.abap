@@ -39,7 +39,6 @@ CLASS z2ui5_cl_core_action DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
   PRIVATE SECTION.
-    METHODS reset_frontend_queue.
 ENDCLASS.
 
 
@@ -202,15 +201,6 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD reset_frontend_queue.
-
-    " a navigation hop answers for the app being navigated to - the leaving
-    " app's collected view-lifecycle calls describe a screen that is being
-    " replaced
-    CLEAR ms_next-t_action_front.
-
-  ENDMETHOD.
-
   METHOD prepare_app_stack.
 
     mo_app->db_save( ).
@@ -253,8 +243,6 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " hold if the earlier hop's value is still here.
     result->ms_next-s_nav      = ms_next-s_nav.
     result->ms_next-s_stateful = ms_next-s_stateful.
-
-    result->reset_frontend_queue( ).
 
     IF ms_next-next_event IS NOT INITIAL.
       result->ms_actual-event = ms_next-next_event.

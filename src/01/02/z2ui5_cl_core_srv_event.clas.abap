@@ -29,8 +29,8 @@ CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ajson.
 
-    "! The same action stringified - for the places that need the action as
-    "! TEXT rather than as part of the response JSON.
+    "! The same action stringified. No production caller any more - kept for
+    "! the unit specs that pin the TEXT form of a client event.
     METHODS get_event_client_json
       IMPORTING
         val           TYPE clike

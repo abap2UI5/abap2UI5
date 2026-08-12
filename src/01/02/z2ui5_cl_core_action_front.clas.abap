@@ -1,11 +1,15 @@
-"! Everything the backend asks the FRONTEND to do, in one place: it builds
-"! the action payloads, queues them, and serializes the collected queues
-"! into the response's action lists. z2ui5_cl_core_client keeps only the
-"! public API surface and hands straight through to here.
-"!
-"! The two queues differ in phase, not in format. SYSTEM carries the view
-"! lifecycle and runs first, before the view is rendered; APP carries what an
-"! app asked for and runs last, once the DOM exists.
+" Everything the backend asks the FRONTEND to do, in one place: it builds
+" the action payloads, queues them, and serializes the collected queues
+" into the response's action lists. z2ui5_cl_core_client keeps only the
+" public API surface and hands straight through to here.
+"
+" The two queues differ in phase, not in format. SYSTEM carries the view
+" lifecycle and runs first, before the view is rendered; APP carries what an
+" app asked for and runs last, once the DOM exists.
+"
+" Plain comments, not ABAP Doc: SE24 regenerates the CLASS statement from
+" the class metadata, which detaches a leading "! block from it and turns
+" it into an "ABAP Doc comment is in the wrong position" warning.
 CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -187,6 +191,17 @@ CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! Add a boolean option only when it differs from the receiver's own
+    "! default - the default value carries no information.
+    METHODS set_opt_bool
+      IMPORTING
+        json        TYPE REF TO z2ui5_if_ajson
+        name        TYPE string
+        val         TYPE abap_bool
+        default_val TYPE abap_bool DEFAULT abap_false
+      RAISING
+        z2ui5_cx_ajson_error.
+
 ENDCLASS.
 
 
@@ -208,9 +223,10 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
         result->touch_array( `/` ).
         result->push( iv_path = `/`
                       iv_val  = z2ui5_if_client=>cs_event-control_global ).
-        LOOP AT t_arg INTO DATA(lv_arg).
+        " REFERENCE INTO - an argument can be a whole view XML
+        LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
           result->push( iv_path = `/`
-                        iv_val  = lv_arg ).
+                        iv_val  = lr_arg->* ).
         ENDLOOP.
         IF opt IS BOUND AND opt->is_empty( ) = abap_false.
           result->push( iv_path = `/`
@@ -278,8 +294,8 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     " call being queued now decides the slot's state. That is what made the
     " old slot STRUCT behave the way it did - a second popup_display( )
     " overwrote the first, a destroy after a display wiped it - only here it
-    " is explicit, so the frontend receives one destroy and at most one
-    " display per slot and needs no such rule of its own.
+    " is explicit, so the frontend receives at most ONE action per slot and
+    " needs no such rule of its own.
     DELETE mo_action->ms_next-t_action_front WHERE slot = slot.
 
   ENDMETHOD.
@@ -343,15 +359,18 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
                                 ( z2ui5_if_client=>cs_view-popup )
                                 ( z2ui5_if_client=>cs_view-popover ) )
          INTO DATA(lv_slot).
-      LOOP AT mo_action->ms_next-t_action_front INTO DATA(ls_action) WHERE slot = lv_slot.
+      " REFERENCE INTO - a row carries the whole view XML, which a copying
+      " LOOP would duplicate once per slot action
+      LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO DATA(lr_action)
+           WHERE slot = lv_slot.
         DATA(lt_arg) = VALUE string_table( ( z2ui5_if_core_types=>cs_slot_action-target )
-                                           ( ls_action-method )
-                                           ( ls_action-slot ) ).
-        IF ls_action-method = z2ui5_if_core_types=>cs_slot_action-display.
-          INSERT ls_action-xml INTO TABLE lt_arg.
+                                           ( lr_action->method )
+                                           ( lr_action->slot ) ).
+        IF lr_action->method = z2ui5_if_core_types=>cs_slot_action-display.
+          INSERT lr_action->xml INTO TABLE lt_arg.
         ENDIF.
         queue_system( t_arg = lt_arg
-                      opt   = ls_action-options ).
+                      opt   = lr_action->options ).
       ENDLOOP.
     ENDLOOP.
 
@@ -374,14 +393,12 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
         " only what is actually set travels - an absent option reads exactly
         " like the empty value it would otherwise carry
         DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        IF ls_nav-set_app_state_active = abap_true.
-          li_opt->set_boolean( iv_path = `/setAppStateActive`
-                               iv_val  = abap_true ).
-        ENDIF.
-        IF ls_nav-check_nav_app_call = abap_true.
-          li_opt->set_boolean( iv_path = `/checkNavAppCall`
-                               iv_val  = abap_true ).
-        ENDIF.
+        set_opt_bool( json = li_opt
+                      name = `setAppStateActive`
+                      val  = ls_nav-set_app_state_active ).
+        set_opt_bool( json = li_opt
+                      name = `checkNavAppCall`
+                      val  = ls_nav-check_nav_app_call ).
         set_opt_string( json = li_opt
                         name = `setPushState`
                         val  = ls_nav-set_push_state ).
@@ -462,14 +479,14 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
         " abap_true is UI5's own default for both, so only the opt-out is
         " worth sending
-        IF autoclose = abap_false.
-          li_opt->set_boolean( iv_path = `/autoClose`
-                               iv_val  = abap_false ).
-        ENDIF.
-        IF closeonbrowsernavigation = abap_false.
-          li_opt->set_boolean( iv_path = `/closeOnBrowserNavigation`
-                               iv_val  = abap_false ).
-        ENDIF.
+        set_opt_bool( json        = li_opt
+                      name        = `autoClose`
+                      val         = autoclose
+                      default_val = abap_true ).
+        set_opt_bool( json        = li_opt
+                      name        = `closeOnBrowserNavigation`
+                      val         = closeonbrowsernavigation
+                      default_val = abap_true ).
 
         " sap.m.MessageToast is a global object, so the toast rides the
         " generic whitelisted global call
@@ -550,10 +567,10 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
         ENDIF.
 
         " abap_true is UI5's own default, so only the opt-out is worth sending
-        IF closeonnavigation = abap_false.
-          li_opt->set_boolean( iv_path = `/closeOnNavigation`
-                               iv_val  = abap_false ).
-        ENDIF.
+        set_opt_bool( json        = li_opt
+                      name        = `closeOnNavigation`
+                      val         = closeonnavigation
+                      default_val = abap_true ).
 
         " sap.m.MessageBox is a global too - and its display methods are the
         " box types, so the type IS the method of the global call
@@ -592,8 +609,10 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
         result-title = title.
       ENDIF.
     ELSE.
+      " lowercased right here, so `Information` gets the same show-mapping
+      " and default title as `information`
       result = VALUE #( text    = text
-                        type    = type
+                        type    = to_lower( type )
                         title   = title
                         details = details ).
 
@@ -641,6 +660,16 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     IF val IS NOT INITIAL AND val CO ` 0123456789`.
       json->set_integer( iv_path = |/{ name }|
                          iv_val  = CONV i( val ) ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD set_opt_bool.
+
+    IF val <> default_val.
+      json->set_boolean( iv_path = |/{ name }|
+                         iv_val  = val ).
     ENDIF.
 
   ENDMETHOD.

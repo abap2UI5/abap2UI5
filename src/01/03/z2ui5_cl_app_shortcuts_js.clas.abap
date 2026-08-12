@@ -184,7 +184,7 @@ CLASS z2ui5_cl_app_shortcuts_js IMPLEMENTATION.
              `      installShortcutListener();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evSetInputMode(oController, args) {` && |\n| &&
+             `    function evKeyboardSetMode(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
              `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
@@ -207,7 +207,7 @@ CLASS z2ui5_cl_app_shortcuts_js IMPLEMENTATION.
              `    // core/FrontendAction.js, which merges the domain modules' handler maps).` && |\n| &&
              `    const handlers = {` && |\n| &&
              `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
-             `      KEYBOARD_SET_MODE: evSetInputMode,` && |\n| &&
+             `      KEYBOARD_SET_MODE: evKeyboardSetMode,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    return { handlers };` && |\n| &&

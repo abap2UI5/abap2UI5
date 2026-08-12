@@ -499,6 +499,7 @@ sap.ui.define(
           try {
             return JSON.parse(raw);
           } catch {
+            Lib.logError(`CONTROL_CALL: malformed object argument '${raw}'`);
             return {};
           }
         default:

@@ -62,12 +62,6 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     DATA mv_model_before       TYPE string.
     DATA mv_model_before_taken TYPE abap_bool.
 
-    " the stateful-session switch of this roundtrip, rescued from ms_next
-    " before main_end( ) clears it - main( ) builds the http result AFTER
-    " main_end( ) ran, so reading mo_action->ms_next there would always see
-    " the cleared struct and set_session_stateful( ) would never reach
-    " z2ui5_cl_http_handler
-
     "! Reconcile what this request says about the browser with what the draft
     "! already knows - see the method body.
     METHODS session_merge.
@@ -472,9 +466,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         " the action queues are serialized explicitly below - the generic
         " conversion would render each queue row as a { O_JSON, JS } object
-        " instead of the bare array/string entry the frontend reads
-        DATA(ls_front) = val-s_front.
-        CLEAR ls_front-s_action.
+        " instead of the bare array/string entry the frontend reads. Only
+        " the two scalar fields are taken over - copying the whole struct
+        " would copy both queues just to clear them again.
+        DATA ls_front LIKE val-s_front.
+        ls_front-id  = val-s_front-id.
+        ls_front-app = val-s_front-app.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = ls_front ).
@@ -711,13 +708,13 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDIF.
 
     ajson->touch_array( path ).
-    LOOP AT t_action INTO DATA(ls_action).
-      IF ls_action-o_json IS BOUND.
+    LOOP AT t_action REFERENCE INTO DATA(lr_action).
+      IF lr_action->o_json IS BOUND.
         ajson->push( iv_path = path
-                     iv_val  = ls_action-o_json ).
+                     iv_val  = lr_action->o_json ).
       ELSE.
         ajson->push( iv_path = path
-                     iv_val  = ls_action-js ).
+                     iv_val  = lr_action->js ).
       ENDIF.
     ENDLOOP.
 
@@ -742,8 +739,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " The model of this roundtrip. A slot that shipped new XML always needs
     " the model with it - all five slots, the nested ones included. Derived
     " from the collected view-lifecycle calls themselves: a display that was
-    " later voided by a destroy (slot_reset) counts as no view, exactly as
-    " reading the response back used to decide.
+    " later voided by a destroy (slot_reset) counts as no view.
     DATA(lv_model) = `{}`.
     IF line_exists( mo_action->ms_next-t_action_front[
                         method = z2ui5_if_core_types=>cs_slot_action-display ] ).

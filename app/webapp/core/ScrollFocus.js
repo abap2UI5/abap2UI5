@@ -89,7 +89,8 @@ sap.ui.define(
           info.SELECTION_END = caret.end;
         }
         return info;
-      } catch {
+      } catch (e) {
+        Lib.logError("getFocusInfo: focus capture failed", e);
         return undefined;
       }
     }

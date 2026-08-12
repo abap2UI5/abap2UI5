@@ -51,9 +51,9 @@ CLASS z2ui5_cl_app_variants_js IMPLEMENTATION.
              `  // the single-control case reaches setPersControler() - which is exactly` && |\n| &&
              `  // why a controller-less app ends up with no anchor and no promise.` && |\n| &&
              `  function anchorPersoControl(oSVM, target) {` && |\n| &&
-             `    if (oSVM._oPersoControl) {` && |\n| &&
-             `      // a runtime that anchors the control itself is left alone` && |\n| &&
-             `    } else if (typeof oSVM.setPersControler === "function") {` && |\n| &&
+             `    // a runtime that anchors the control itself is left alone` && |\n| &&
+             `    if (oSVM._oPersoControl) return;` && |\n| &&
+             `    if (typeof oSVM.setPersControler === "function") {` && |\n| &&
              `      oSVM.setPersControler(target);` && |\n| &&
              `    } else {` && |\n| &&
              `      // older runtimes without the setter: the field alone still carries` && |\n| &&

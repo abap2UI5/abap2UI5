@@ -126,7 +126,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (!Array.isArray(args)) {` && |\n| &&
-             `        Lib.logError(``systemJs: '${item}' is no action payload``);` && |\n| &&
+             `        Lib.logError(``FrontendAction: '${item}' is no system action payload``);` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
              `      return executeSystem(oController, args, ctx);` && |\n| &&

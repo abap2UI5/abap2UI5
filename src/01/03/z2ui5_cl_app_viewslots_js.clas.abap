@@ -36,7 +36,8 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `  (Fragment, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // ``key``    short slot name used in frontend events and S_FRONT.VIEW` && |\n| &&
+             `    // ``key``    short slot name used in frontend event args and as the` && |\n| &&
+             `    //           request's S_SCROLL keys` && |\n| &&
              `    // ``prop`` / ``controllerProp``  AppState fields holding the live instances` && |\n| &&
              `    // ``fragmentId``  only on the fragment-based slots (popup/popover): the` && |\n| &&
              `    //               id their inner controls are registered under, and the` && |\n| &&
@@ -62,8 +63,8 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "POPUP",` && |\n| &&
-             `        // holds its own JSON model - NEST/NEST2 are inserted into` && |\n| &&
-             `        // the MAIN control tree and inherit theirs by UI5 propagation` && |\n| &&
+             `        // holds its own JSON model - opened standalone, outside the MAIN` && |\n| &&
+             `        // control tree` && |\n| &&
              `        ownsModel: true,` && |\n| &&
              `        prop: "oViewPopup",` && |\n| &&
              `        controllerProp: "oControllerPopup",` && |\n| &&
@@ -71,8 +72,8 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "POPOVER",` && |\n| &&
-             `        // holds its own JSON model - NEST/NEST2 are inserted into` && |\n| &&
-             `        // the MAIN control tree and inherit theirs by UI5 propagation` && |\n| &&
+             `        // holds its own JSON model - opened standalone, outside the MAIN` && |\n| &&
+             `        // control tree` && |\n| &&
              `        ownsModel: true,` && |\n| &&
              `        prop: "oViewPopover",` && |\n| &&
              `        controllerProp: "oControllerPopover",` && |\n| &&

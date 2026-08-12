@@ -651,8 +651,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Move focus into the dialog so keyboard and screen-reader users land on` && |\n| &&
              `    // the primary action instead of the broken page behind the overlay.` && |\n| &&
-             `    const firstButton = actionsDiv.querySelector("button");` && |\n| &&
-             `    if (firstButton) firstButton.focus();` && |\n| &&
+             `    // firstTrap is that button - the trap above resolved the complete set.` && |\n| &&
+             `    if (firstTrap) firstTrap.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  return { show, handleLogout, reopenErrorDialog };` && |\n| &&

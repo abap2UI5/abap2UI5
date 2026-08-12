@@ -60,9 +60,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    return Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
-             `        if (AppState.state.oResponse && !AppState.state.oResponse._processed) {` && |\n| &&
-             `          this._processAfterRendering();` && |\n| &&
-             `        }` && |\n| &&
+             `        // _processAfterRendering re-checks _processed itself - only the` && |\n| &&
+             `        // null check is load-bearing here` && |\n| &&
+             `        if (AppState.state.oResponse) this._processAfterRendering();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Runs once after each roundtrip's view has been rendered, in two` && |\n| &&

@@ -133,7 +133,7 @@ CLASS z2ui5_cl_app_legacycustomjs_js IMPLEMENTATION.
              `      // eslint-disable-next-line no-new-func` && |\n| &&
              `      Function("return " + item)();` && |\n| &&
              `    } catch (e) {` && |\n| &&
-             `      Lib.logError("customJs: execution failed", e);` && |\n| &&
+             `      Lib.logError("LegacyCustomJs: snippet execution failed", e);` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&

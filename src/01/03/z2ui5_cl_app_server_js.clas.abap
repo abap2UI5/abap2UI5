@@ -100,8 +100,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //       "APP": "<app class name>",     // rendered app, for the router` && |\n| &&
              `    //       "S_ACTION": {` && |\n| &&
              `    //           // SYSTEM: the framework's own view-lifecycle calls, run` && |\n| &&
-             `    //           // first, in order, before the view is rendered; the` && |\n| &&
-             `    //           // ROUTER/sync call is always queued last` && |\n| &&
+             `    //           // first, in order, before the view is rendered. A` && |\n| &&
+             `    //           // ROUTER/sync call is queued last, and only when the` && |\n| &&
+             `    //           // roundtrip carries nav intent - View1 syncs the URL once` && |\n| &&
+             `    //           // per response either way` && |\n| &&
              `    //           "T_SYSTEM": [` && |\n| &&
              `    //             ["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"],` && |\n| &&
              `    //             ["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]` && |\n| &&
@@ -129,9 +131,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // letting the backend finish work whose response would be dropped anyway.` && |\n| &&
              `      _inflight: new Set(),` && |\n| &&
              `` && |\n| &&
-             `      // Chain that serializes full MAIN-view rebuilds (see responseSuccess):` && |\n| &&
-             `      // XMLView.create claims the fixed "mainView" id synchronously, so two` && |\n| &&
-             `      // overlapping builds would throw "duplicate id".` && |\n| &&
+             `      // Chain that serializes full MAIN-view rebuilds (see` && |\n| &&
+             `      // actions/Slots.displayMain): XMLView.create claims the fixed` && |\n| &&
+             `      // "mainView" id synchronously, so two overlapping builds would throw` && |\n| &&
+             `      // "duplicate id".` && |\n| &&
              `      _viewBuild: null,` && |\n| &&
              `` && |\n| &&
              `      endSession() {` && |\n| &&
@@ -421,11 +424,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          AppState.state.oResponse = response;` && |\n| &&
              `` && |\n| &&
              `          // The backend can send follow-up actions to run after the response.` && |\n| &&
-             `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n| &&
+             `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n|.
+    result = result &&
              `          // actions, pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
              `          // expression - see FrontendAction.runCustom. They are stashed` && |\n| &&
-             `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n|.
-    result = result &&
+             `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&
              `          // the (possibly freshly built) view is actually rendered. Running` && |\n| &&
              `          // them earlier would break render-dependent actions such as` && |\n| &&
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&

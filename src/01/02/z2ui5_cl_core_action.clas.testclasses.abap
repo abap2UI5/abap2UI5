@@ -20,7 +20,6 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_first_start_error  FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_draft_gone FOR TESTING RAISING cx_static_check.
     METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
-    METHODS test_reset_view_flags   FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
@@ -173,27 +172,6 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_result->mo_app->ms_draft-id_prev ).
     cl_abap_unit_assert=>assert_equals( exp = `MY_EVENT`
                                         act = lo_result->ms_actual-event ).
-
-  ENDMETHOD.
-
-  METHOD test_reset_view_flags.
-
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    lo_http = NEW #( val = `` ).
-
-    lo_action = NEW #( val = lo_http ).
-
-    " the leaving app's collected view-lifecycle calls must not survive into
-    " the next app - they describe a screen that is being replaced, and the
-    " model decision is derived from them
-    INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-main
-                    method = `display` )
-           INTO TABLE lo_action->ms_next-t_action_front.
-
-    lo_action->reset_frontend_queue( ).
-
-    cl_abap_unit_assert=>assert_initial( lo_action->ms_next-t_action_front ).
 
   ENDMETHOD.
 

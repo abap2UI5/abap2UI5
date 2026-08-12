@@ -329,8 +329,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_model_update.
 
-    " deliberately EMPTY - see view_model_update. The automatic push flags
-    " the POPOVER slot too, so an open popover refreshes without this call
+    " deliberately EMPTY - see view_model_update. The automatic push reaches
+    " every open slot, so an open popover refreshes without this call
 
   ENDMETHOD.
 
@@ -352,8 +352,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_model_update.
 
-    " deliberately EMPTY - see view_model_update. The automatic push flags
-    " the POPUP slot too, so an open popup refreshes without this call
+    " deliberately EMPTY - see view_model_update. The automatic push reaches
+    " every open slot, so an open popup refreshes without this call
 
   ENDMETHOD.
 
@@ -377,11 +377,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_model_update.
 
-    " deliberately EMPTY - the handler pushes the model by itself whenever
-    " main( ) changed it (z2ui5_cl_core_handler=>main_end compares the model
-    " before and after main( ) and flags every model-owning slot). The method
-    " stays in the interface so existing apps keep compiling and their calls
-    " keep being harmless; there is nothing left for it to do
+    " deliberately EMPTY - the handler queues the model push itself: on
+    " every view roundtrip, and otherwise whenever main( ) changed the model
+    " (z2ui5_cl_core_handler=>main_end). The push names no slot; every open
+    " model-owning slot picks it up. The method stays in the interface so
+    " existing apps keep compiling and their calls keep being harmless
 
   ENDMETHOD.
 

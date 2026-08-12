@@ -24,9 +24,9 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
   // the single-control case reaches setPersControler() - which is exactly
   // why a controller-less app ends up with no anchor and no promise.
   function anchorPersoControl(oSVM, target) {
-    if (oSVM._oPersoControl) {
-      // a runtime that anchors the control itself is left alone
-    } else if (typeof oSVM.setPersControler === "function") {
+    // a runtime that anchors the control itself is left alone
+    if (oSVM._oPersoControl) return;
+    if (typeof oSVM.setPersControler === "function") {
       oSVM.setPersControler(target);
     } else {
       // older runtimes without the setter: the field alone still carries

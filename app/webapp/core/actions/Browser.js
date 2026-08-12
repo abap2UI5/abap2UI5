@@ -178,7 +178,8 @@ sap.ui.define(
         frame.src = bspKill;
         frame.addEventListener("load", finish);
         document.body.appendChild(frame);
-      } catch {
+      } catch (e) {
+        Lib.logError("SYSTEM_LOGOUT: BSP terminate iframe failed", e);
         finish();
         return;
       }
@@ -303,8 +304,6 @@ sap.ui.define(
         Lib.logError(`PLAY_AUDIO: failed for '${args[1]}'`, e);
       }
     }
-
-    // Frontend event dispatch: maps the eF event name to its handler.
 
     // The events this module owns in the eF dispatch (see
     // core/FrontendAction.js, which merges the domain modules' handler maps).
