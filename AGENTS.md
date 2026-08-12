@@ -119,9 +119,9 @@ src/
 
 - **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`), all but `_json_fltr` vendored from abap-util (see "Utilities"). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
-- **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework and the generic XML view builder `z2ui5_cl_ai_xml` (migrated from [ai-demokit](https://github.com/abap2UI5/ai-demokit), the successor of the frozen `z2ui5_cl_xml_view`).
+- **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework and the generic XML view builder `z2ui5_cl_ai_xml` (migrated from [samples-controls](https://github.com/abap2UI5/samples-controls), the successor of the frozen `z2ui5_cl_xml_view`).
 - **Package `src/99/` — frozen legacy code.** Its production code has **zero consumers** anywhere in this repository — no framework code, no app, no tooling references it. It ships solely so **existing downstream installations** keep compiling on upgrade. Its **test classes are live**, though: they lint and run in the transpiled unit suite (`npm run unit`), guarding the layer against regressions — which is why they, unlike the production code, may change (they assert against core internals such as `t_action_front` and follow them when those move):
-  - **Package top level** — the legacy XML view builder (`z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`), superseded by the generic builder `z2ui5_cl_ai_xml` (`src/02/`, migrated from [ai-demokit](https://github.com/abap2UI5/ai-demokit)). All builder work happens in `z2ui5_cl_ai_xml`.
+  - **Package top level** — the legacy XML view builder (`z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`), superseded by the generic builder `z2ui5_cl_ai_xml` (`src/02/`, migrated from [samples-controls](https://github.com/abap2UI5/samples-controls)). All builder work happens in `z2ui5_cl_ai_xml`.
   - `src/99/01/` — the retired utility classes (see "Utilities").
   - `src/99/02/` — the obsolete built-in popup/dialog apps (`z2ui5_cl_pop_*`), replaced by the [popups addon](https://github.com/abap2UI5-addons/popups).
 
@@ -485,7 +485,7 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 |---|---|
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
 | `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
-| `src/02/z2ui5_cl_ai_xml.clas.abap` | Generic XML view builder — the standard for all apps (migrated from ai-demokit) |
+| `src/02/z2ui5_cl_ai_xml.clas.abap` | Generic XML view builder — the standard for all apps (migrated from samples-controls) |
 | `src/01/02/z2ui5_cl_core_handler.clas.abap` | Central request processor + main loop |
 | `src/01/02/z2ui5_cl_core_client.clas.abap` | Implements z2ui5_if_client |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
@@ -601,7 +601,7 @@ The following items may look like gaps but are intentional design choices:
   class, and the dispatcher boilerplate is accepted.** Every app hand-writes
   the same `main( )` lifecycle branching (`check_on_init` / `check_on_event`
   / `check_on_navigated`) plus its `client` member — measured in the
-  ai-demokit corpus as ~4.4k lines of identical ceremony across 366 classes.
+  samples-controls corpus as ~4.4k lines of identical ceremony across 366 classes.
   A proposal for an optional abstract `z2ui5_cl_app` with
   `on_init`/`on_event`/`on_navigated` hooks (plain inheritance, 702-safe,
   purely additive) was made and **declined 2026-08-11**: it is too much
@@ -625,10 +625,10 @@ The following items may look like gaps but are intentional design choices:
   re-introduce per-method wrappers on `z2ui5_if_client`. The reverted
   implementation (interface docs, delegations, byte-identity tests) is
   preserved in git history (`f1a1813`, reverted by `208b7ec`) and in the
-  ai-demokit request `pr/frontend-action-named-api` as the reference for the
+  samples-controls request `pr/frontend-action-named-api` as the reference for the
   future object; usage data there too (corpus 2026-08: 295 control_global
   wires / 137 control_by_id / 25 binding_call / 3 keyboard_shortcut).
-- **The `z2ui5_cl_xml_view` builder (src/99) is large because each method wraps one UI5 control for the fluent API.** It is **not** being extended or refactored here: the builder from [ai-demokit](https://github.com/abap2UI5/ai-demokit) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
+- **The `z2ui5_cl_xml_view` builder (src/99) is large because each method wraps one UI5 control for the fluent API.** It is **not** being extended or refactored here: the builder from [samples-controls](https://github.com/abap2UI5/samples-controls) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
 
 ### Scope Exclusions for Code Reviews, Security Audits & Improvement Work
 

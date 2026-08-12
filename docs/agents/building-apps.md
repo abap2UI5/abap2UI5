@@ -4,7 +4,7 @@ Self-contained, offline reference for AI assistants (and humans) **building
 apps with** abap2UI5. It is derived from the framework sources in this
 repository (`src/02/` public API, `z2ui5_cl_ai_xml`, the hello-world app) and
 the conventions proven over the ~280 ported UI5 demo-kit samples in
-[ai-demokit](https://github.com/abap2UI5/ai-demokit). The rendered
+[samples-controls](https://github.com/abap2UI5/samples-controls). The rendered
 documentation site is <https://abap2ui5.github.io/docs/> — this file exists so
 an agent without web access has the complete picture in-repo. When this guide
 and the code disagree, the code wins (`src/02/z2ui5_if_client.intf.abap` is
@@ -119,7 +119,7 @@ CLASS zcl_my_app IMPLEMENTATION.
 ENDCLASS.
 ```
 
-Conventions that keep apps uniform (proven in the ai-demokit corpus):
+Conventions that keep apps uniform (proven in the samples-controls corpus):
 `main` is a pure dispatcher; methods follow in call order with `model_init`
 last; add `model_init`/`on_event` only when the app has data/events; always
 dispatch events with `CASE client->get( )-event.` even for a single event.
@@ -347,6 +347,6 @@ ships for existing apps but is **frozen** — new apps and new code use
 - **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:
   F9 launches the class in an embedded preview against a real system.
 - **Worked examples**: ~280 gate-verified sample apps in
-  [ai-demokit](https://github.com/abap2UI5/ai-demokit) (`src/`), curated
+  [samples-controls](https://github.com/abap2UI5/samples-controls) (`src/`), curated
   samples in [abap2UI5/samples](https://github.com/abap2UI5/samples), and
-  what-is-expressible answers in ai-demokit's `CAPABILITIES.md`.
+  what-is-expressible answers in samples-controls' `CAPABILITIES.md`.
