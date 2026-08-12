@@ -70,6 +70,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_get_event_arg        FOR TESTING RAISING cx_static_check.
     METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
+    METHODS test_omit_initial_keeps_rows FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_client DEFINITION LOCAL FRIENDS ltcl_test_client.
@@ -809,6 +810,60 @@ CLASS ltcl_test_client IMPLEMENTATION.
         exp = abap_true
         act = li_filter->keep_node( is_node  = VALUE #( name = `MIN` type = `object` )
                                     iv_visit = z2ui5_if_ajson_filter=>visit_type-open ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_omit_initial_keeps_rows.
+
+    " the filter behind _bind( omit_initial = abap_true ): initial FIELDS are
+    " omitted, but a table ROW that is entirely initial must survive as {} -
+    " the vendored empty filter dropped it, so the client array had fewer
+    " entries than the backend table and every row behind the gap was
+    " shifted: whole-table write-back deleted the row from backend state and
+    " a __delta row index (0-based client position, applied against the FULL
+    " backend table) landed the edit one row too early
+    TYPES:
+      BEGIN OF ty_s_row,
+        title TYPE string,
+        count TYPE i,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    " built statement by statement: the downport rewrites a VALUE table
+    " constructor into INSERTs from one shared work area without clearing it
+    " between rows, so an inline `( )` row would arrive as a copy of its
+    " predecessor instead of an all-initial line
+    DATA lt_tab TYPE ty_t_row.
+    APPEND VALUE #( title = `first`
+                    count = 1 ) TO lt_tab.
+    APPEND INITIAL LINE TO lt_tab.
+    APPEND VALUE #( title = `third`
+                    count = 3 ) TO lt_tab.
+
+    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_ajson->set( iv_ignore_empty = abap_false
+                   iv_path         = `/`
+                   iv_val          = lt_tab ).
+    DATA(lo_act) = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) ).
+
+    " THREE entries - the all-initial middle row stays as an empty object,
+    " its initial fields (and only those) are omitted
+    cl_abap_unit_assert=>assert_equals(
+        exp = `[{"count":1,"title":"first"},{},{"count":3,"title":"third"}]`
+        act = lo_act->stringify( ) ).
+
+    " the same shape as a struct MEMBER (not an array element) keeps the old
+    " empty-filter behavior: an all-initial sub-structure vanishes entirely,
+    " taking the then-empty root with it - stringify of the empty tree is ``
+    DATA(ls_nest) = VALUE ty_s_row( ).
+    lo_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_ajson->set( iv_ignore_empty = abap_false
+                   iv_path         = `/sub`
+                   iv_val          = ls_nest ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) )->stringify( ) ).
 
   ENDMETHOD.
 

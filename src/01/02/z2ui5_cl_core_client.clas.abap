@@ -403,7 +403,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
             " boolean that must send abap_false survives
             li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
           ELSE.
-            li_omit = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ).
+            " NOT the vendored create_empty_filter: that one also drops a
+            " table ROW whose fields are all initial, which reindexes the
+            " client array against the backend table and corrupts the
+            " write-back (whole-table and __delta) - see the local class
+            li_omit = NEW lcl_empty_filter_keep_rows( ).
           ENDIF.
           IF li_filter IS BOUND.
             li_filter = z2ui5_cl_ajson_filter_lib=>create_and_filter(
