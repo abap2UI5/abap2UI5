@@ -117,7 +117,12 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `    // True when the object supports isDestroyed() and reports destroyed.` && |\n| &&
              `    function isDestroyed(obj) {` && |\n| &&
-             `      return Boolean(obj?.isDestroyed && obj.isDestroyed());` && |\n| &&
+             `      if (!obj) return false;` && |\n| &&
+             `      // ManagedObject#isDestroyed( ) is @since 1.93 - on the 1.71 floor the` && |\n| &&
+             `      // method is absent and the guard would read "alive" for a destroyed` && |\n| &&
+             `      // control, so fall back to the flag every release carries` && |\n| &&
+             `      if (typeof obj.isDestroyed === "function") return obj.isDestroyed();` && |\n| &&
+             `      return Boolean(obj.bIsDestroyed);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // A companion control (MultiInputExt, UploadSetExt, ...) resolves its` && |\n| &&
@@ -315,7 +320,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Collapse a UI5 Device ``system`` flag object into a single label. The` && |\n| &&
              `    // order matters - phone/tablet/combi are mutually exclusive with the` && |\n| &&
-             `    // desktop fallback. Shared by Server._getDeviceInfo (request payload) and` && |\n| &&
+             `    // desktop fallback. Shared by core/Session.js (request payload) and` && |\n| &&
              `    // the Info control so both report the same value.` && |\n| &&
              `    function deriveSystemType(system) {` && |\n| &&
              `      if (!system) return "desktop";` && |\n| &&
@@ -419,13 +424,13 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Build the delta object sent to the backend. ``paths`` is the set of` && |\n| &&
-             `    // model paths that the user edited; ``model`` is the full view model data.` && |\n| &&
+             `    // model paths that the user edited; ``model`` is the full view model data.` && |\n|.
+    result = result &&
              `    // Table edits become (recursively nested) __delta structures, so a cell` && |\n| &&
              `    // edit in a nested/tree table ships only the changed cell instead of` && |\n| &&
              `    // the whole outer table.` && |\n| &&
              `    function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
-             `      const delta = {};` && |\n|.
-    result = result &&
+             `      const delta = {};` && |\n| &&
              `      for (const path of paths) {` && |\n| &&
              `        // path looks like "/<attr>" or "/<attr>/<row>/<field>" with` && |\n| &&
              `        // arbitrarily deep <row>/<subtable> repetitions for nested tables` && |\n| &&

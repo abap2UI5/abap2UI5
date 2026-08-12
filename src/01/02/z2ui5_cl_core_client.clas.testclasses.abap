@@ -19,6 +19,15 @@ CLASS ltcl_test_client DEFINITION FINAL
 
     METHODS setup.
 
+    "! The collected view-lifecycle calls, joined as slot|method|xml[|options].
+    "! They are asserted as a SEQUENCE: the order they leave in, and which of
+    "! them survive a second call for the same slot, is the whole contract.
+    METHODS system_actions
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
+
     METHODS test_instantiation        FOR TESTING RAISING cx_static_check.
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
     METHODS test_view_destroy         FOR TESTING RAISING cx_static_check.
@@ -38,6 +47,8 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_box_dependent FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_type     FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
+    METHODS test_set_nav_routing      FOR TESTING RAISING cx_static_check.
+    METHODS test_set_nav_routing_default FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_nav FOR TESTING RAISING cx_static_check.
@@ -56,15 +67,29 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_nav_leave_r_data_unbound FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
     METHODS test_set_push_state       FOR TESTING RAISING cx_static_check.
-    METHODS test_set_nav_back         FOR TESTING RAISING cx_static_check.
     METHODS test_get_event_arg        FOR TESTING RAISING cx_static_check.
     METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
+    METHODS test_omit_initial_keeps_rows FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_client DEFINITION LOCAL FRIENDS ltcl_test_client.
 
 CLASS ltcl_test_client IMPLEMENTATION.
+
+  METHOD system_actions.
+
+    LOOP AT mo_action->ms_next-t_action_front INTO DATA(ls_action).
+      IF result IS NOT INITIAL.
+        result = result && `|`.
+      ENDIF.
+      result = result && |{ ls_action-slot }\|{ ls_action-method }\|{ ls_action-xml }|.
+      IF ls_action-options IS BOUND AND ls_action-options->is_empty( ) = abap_false.
+        result = result && |\|{ ls_action-options->stringify( ) }|.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
 
   METHOD setup.
 
@@ -97,8 +122,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp1.
     li_client->view_display( `<View></View>` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<View></View>`
-                                        act = mo_action->ms_next-s_set-s_view-xml ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `MAIN|display|<View></View>`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -111,8 +137,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp2.
     li_client->view_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view-check_destroy ).
+    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy|`
+                                        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -128,7 +154,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp3.
     li_client->view_model_update( ).
 
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -145,7 +171,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->nest_view_model_update( ).
     li_client->nest2_view_model_update( ).
 
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -158,10 +184,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp4.
     li_client->popup_display( `<Dialog/>` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<Dialog/>`
-                                        act = mo_action->ms_next-s_set-s_popup-xml ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = mo_action->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `POPUP|display|<Dialog/>`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -174,8 +199,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp5.
     li_client->popup_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `POPUP|destroy|`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -188,8 +214,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp6.
     li_client->popup_model_update( ).
 
-    " obsolete NO-OP - the automatic push flags the POPUP slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popup-check_update_model ).
+    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -203,10 +229,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->popover_display( xml   = `<Popover/>`
                                 by_id = `btn1` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<Popover/>`
-                                        act = mo_action->ms_next-s_set-s_popover-xml ).
-    cl_abap_unit_assert=>assert_equals( exp = `btn1`
-                                        act = mo_action->ms_next-s_set-s_popover-open_by_id ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `POPOVER|display|<Popover/>|{"openById":"btn1"}`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -221,12 +246,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                 by_id = `btn1` ).
     li_client->popover_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_popover-check_destroy ).
-    " destroy after display in the same roundtrip wipes the slot - otherwise
-    " the frontend would destroy and then re-open the popover
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-xml ).
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-open_by_id ).
+    " the destroy replaces the display queued before it - the frontend
+    " receives one teardown and no build at all, never a build it would have
+    " to undo again
+    cl_abap_unit_assert=>assert_equals(
+        exp = `POPOVER|destroy|`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -239,8 +264,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp9.
     li_client->popover_model_update( ).
 
-    " obsolete NO-OP - the automatic push flags the POPOVER slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_popover-check_update_model ).
+    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -257,15 +282,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                   method_insert  = `addMidColumnPage`
                                   method_destroy = `removeMidColumnPage` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<NestView/>`
-                                        act = mo_action->ms_next-s_set-s_view_nest-xml ).
-    cl_abap_unit_assert=>assert_equals( exp = `nest1`
-                                        act = mo_action->ms_next-s_set-s_view_nest-id ).
-    cl_abap_unit_assert=>assert_equals( exp = `addMidColumnPage`
-                                        act = mo_action->ms_next-s_set-s_view_nest-method_insert ).
-    " display after destroy in the same roundtrip cancels the destroy
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = mo_action->ms_next-s_set-s_view_nest-check_destroy ).
+    " display after destroy: the display replaces it - the frontend tears
+    " the slot down implicitly, so ONE display action is the whole sequence
+    cl_abap_unit_assert=>assert_equals(
+        exp = `NEST|display|<NestView/>|` &&
+              `{"id":"nest1","methodDestroy":"removeMidColumnPage","methodInsert":"addMidColumnPage"}`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -281,10 +303,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                   method_insert = `addMidColumnPage` ).
     li_client->nest_view_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view_nest-check_destroy ).
-    " destroy after display in the same roundtrip wipes the slot
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_set-s_view_nest-xml ).
+    cl_abap_unit_assert=>assert_equals( exp = `NEST|destroy|`
+                                        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -299,10 +319,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                    id            = `nest2`
                                    method_insert = `addEndColumnPage` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `<Nest2View/>`
-                                        act = mo_action->ms_next-s_set-s_view_nest2-xml ).
-    cl_abap_unit_assert=>assert_equals( exp = `nest2`
-                                        act = mo_action->ms_next-s_set-s_view_nest2-id ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `NEST2|display|<Nest2View/>|` &&
+              `{"id":"nest2","methodInsert":"addEndColumnPage"}`
+        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -315,8 +335,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp13.
     li_client->nest2_view_destroy( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view_nest2-check_destroy ).
+    cl_abap_unit_assert=>assert_equals( exp = `NEST2|destroy|`
+                                        act = system_actions( ) ).
 
   ENDMETHOD.
 
@@ -329,10 +349,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp14.
     li_client->message_box_display( `Hello World` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `Hello World`
-                                        act = mo_action->ms_next-s_set-s_msg_box-text ).
-    cl_abap_unit_assert=>assert_equals( exp = `show`
-                                        act = mo_action->ms_next-s_set-s_msg_box-type ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -346,10 +365,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->message_box_display( text = `Error occurred`
                                     type = `error` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `Error occurred`
-                                        act = mo_action->ms_next-s_set-s_msg_box-text ).
-    cl_abap_unit_assert=>assert_equals( exp = `error`
-                                        act = mo_action->ms_next-s_set-s_msg_box-type ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","error","Error occurred"]`
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -365,10 +383,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                     dependenton  = `myPage`
                                     contentwidth = `20rem` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `myPage`
-                                        act = mo_action->ms_next-s_set-s_msg_box-dependenton ).
-    cl_abap_unit_assert=>assert_equals( exp = `20rem`
-                                        act = mo_action->ms_next-s_set-s_msg_box-contentwidth ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
+              `{"contentWidth":"20rem","dependentOn":"myPage"}]`
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -381,8 +399,41 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client = temp16.
     li_client->message_toast_display( `Saved` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `Saved`
-                                        act = mo_action->ms_next-s_set-s_msg_toast-text ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_TOAST","show","Saved"]`
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_set_nav_routing.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " SET_NAV_ROUTING configures the app rather than calling the frontend: it
+    " is remembered on the app ( so a later response of this app, and an app
+    " that inherits from it, carry it again ) and queues no action of its own
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_nav_routing
+                                 t_arg = VALUE #( ( z2ui5_if_client=>cs_nav_mode-fresh ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
+                                        act = mo_action->ms_next-s_nav-set_nav_routing ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
+                                        act = mo_action->mo_app->mv_nav_mode ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
+
+  ENDMETHOD.
+
+  METHOD test_set_nav_routing_default.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " an empty argument list means keep
+    li_client->follow_up_action( z2ui5_if_client=>cs_event-set_nav_routing ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
+                                        act = mo_action->mo_app->mv_nav_mode ).
 
   ENDMETHOD.
 
@@ -396,7 +447,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->follow_up_action( `sap.m.MessageToast.show('test')` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
 
   ENDMETHOD.
 
@@ -410,13 +461,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->follow_up_action( z2ui5_if_client=>cs_event-history_back ).
 
     " framework events travel as pure data - a JSON array serialized in ABAP
-    " (get_event_client_json), not as an executable eF( ) JS snippet
+    " (get_event_client_ajson), not as an executable eF( ) JS snippet
     cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["SET_TITLE","My Title"]`
-                                        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
+                                        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["HISTORY_BACK"]`
-                                        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+                                        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -433,13 +484,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                  t_arg = VALUE #( ( `popContainer` ) ( `popPage` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","popContainer","POPUP","to","popPage"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -461,16 +512,18 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                  t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
+    " the eF( ) form KEEPS its CONTROL_GLOBAL prefix - only the framework's
+    " own build_global_call drops the dispatch constant from the wire
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Hello"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
-        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 3 ] ).
+        act = mo_action->ms_next-s_action-t_custom[ 3 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -601,7 +654,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = mo_action->ms_next-next_event ).
     " the dedicated backend event must not emit any client side JS snippet
     cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
 
   ENDMETHOD.
 
@@ -700,23 +753,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->set_push_state( `mystate` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `mystate`
-                                        act = mo_action->ms_next-s_set-set_push_state ).
+                                        act = mo_action->ms_next-s_nav-set_push_state ).
 
   ENDMETHOD.
 
-  METHOD test_set_nav_back.
-
-    DATA temp27 TYPE REF TO z2ui5_if_client.
-    DATA li_client LIKE temp27.
-    temp27 ?= mo_client.
-
-    li_client = temp27.
-    li_client->set_nav_back( abap_true ).
-
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-set_nav_back ).
-
-  ENDMETHOD.
 
   METHOD test_get_event_arg.
 
@@ -774,6 +814,60 @@ CLASS ltcl_test_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD test_omit_initial_keeps_rows.
+
+    " the filter behind _bind( omit_initial = abap_true ): initial FIELDS are
+    " omitted, but a table ROW that is entirely initial must survive as {} -
+    " the vendored empty filter dropped it, so the client array had fewer
+    " entries than the backend table and every row behind the gap was
+    " shifted: whole-table write-back deleted the row from backend state and
+    " a __delta row index (0-based client position, applied against the FULL
+    " backend table) landed the edit one row too early
+    TYPES:
+      BEGIN OF ty_s_row,
+        title TYPE string,
+        count TYPE i,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    " built statement by statement: the downport rewrites a VALUE table
+    " constructor into INSERTs from one shared work area without clearing it
+    " between rows, so an inline `( )` row would arrive as a copy of its
+    " predecessor instead of an all-initial line
+    DATA lt_tab TYPE ty_t_row.
+    APPEND VALUE #( title = `first`
+                    count = 1 ) TO lt_tab.
+    APPEND INITIAL LINE TO lt_tab.
+    APPEND VALUE #( title = `third`
+                    count = 3 ) TO lt_tab.
+
+    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_ajson->set( iv_ignore_empty = abap_false
+                   iv_path         = `/`
+                   iv_val          = lt_tab ).
+    DATA(lo_act) = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) ).
+
+    " THREE entries - the all-initial middle row stays as an empty object,
+    " its initial fields (and only those) are omitted
+    cl_abap_unit_assert=>assert_equals(
+        exp = `[{"count":1,"title":"first"},{},{"count":3,"title":"third"}]`
+        act = lo_act->stringify( ) ).
+
+    " the same shape as a struct MEMBER (not an array element) keeps the old
+    " empty-filter behavior: an all-initial sub-structure vanishes entirely,
+    " taking the then-empty root with it - stringify of the empty tree is ``
+    DATA(ls_nest) = VALUE ty_s_row( ).
+    lo_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_ajson->set( iv_ignore_empty = abap_false
+                   iv_path         = `/sub`
+                   iv_val          = ls_nest ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) )->stringify( ) ).
+
+  ENDMETHOD.
+
+
   METHOD test_set_app_state_active.
 
     DATA temp31 TYPE REF TO z2ui5_if_client.
@@ -784,7 +878,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->set_app_state_active( abap_true ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-set_app_state_active ).
+                                        act = mo_action->ms_next-s_nav-set_app_state_active ).
 
   ENDMETHOD.
 

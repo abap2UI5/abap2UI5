@@ -28,7 +28,8 @@ sap.ui.define(
       },
       setFocusId(val) {
         try {
-          this.setProperty("focusId", val);
+          // Empty renderer -> suppress the no-op invalidation
+          this.setProperty("focusId", val, true);
           const oElement = ViewSlots.byIdOfOwner(this, val);
           if (oElement) oElement.applyFocusInfo(oElement.getFocusInfo());
         } catch (e) {

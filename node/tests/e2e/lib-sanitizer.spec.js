@@ -2,7 +2,8 @@
 const { test, expect } = require("@playwright/test");
 
 // XSS regression tests for Lib.sanitizeMessageDetails, which turns
-// backend-supplied HTML into safe markup for Messages.showBox. The function
+// backend-supplied HTML into safe markup for the message-box display hook
+// in core/actions/ControlCall.js. The function
 // needs a real DOMParser/document, so it is exercised in the browser against
 // the shipped z2ui5/core/Lib module loaded by the running app.
 //

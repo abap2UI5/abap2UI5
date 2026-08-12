@@ -11,6 +11,7 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
     DATA mo_srv_bind  TYPE REF TO z2ui5_cl_core_srv_bind.
     DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA mo_action_front   TYPE REF TO z2ui5_cl_core_action_front.
 
     METHODS nav_app_set_id
       IMPORTING
@@ -24,6 +25,7 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+
 ENDCLASS.
 
 
@@ -35,11 +37,44 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action = action.
     mo_srv_bind = NEW #( mo_action->mo_app ).
     mo_srv_event = NEW #( ).
+    mo_action_front = NEW #( mo_action ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~follow_up_action.
+
+    " These three configure how the browser URL has to look after this
+    " roundtrip. Router derives ONE outcome from all of them together, so they
+    " are collected here and leave as options of the single ROUTER/sync call
+    " main_end( ) queues - never as actions of their own, which would make the
+    " router run several times and fight over the same hash.
+    DATA(lv_arg) = VALUE string( t_arg[ 1 ] OPTIONAL ).
+
+    CASE val.
+      WHEN z2ui5_if_client=>cs_event-set_nav_routing.
+        " the mode is remembered on the app ( z2ui5_cl_core_app=>mv_nav_mode )
+        " and re-sent when the frontend may not still hold it - main_end gates
+        " the re-send on the nav_mode_sent latch; an app called via
+        " nav_app_call inherits it, and a draft restored later still knows how
+        " it was routed
+        IF lv_arg IS INITIAL.
+          lv_arg = z2ui5_if_client=>cs_nav_mode-keep.
+        ENDIF.
+        mo_action->ms_next-s_nav-set_nav_routing = lv_arg.
+        mo_action->mo_app->mv_nav_mode           = lv_arg.
+        RETURN.
+
+      WHEN z2ui5_if_client=>cs_event-set_push_state.
+        mo_action->ms_next-s_nav-set_push_state = lv_arg.
+        RETURN.
+
+      WHEN z2ui5_if_client=>cs_event-set_app_state_active.
+        " an empty argument list switches it ON - a single space is how an
+        " app switches it off again, since an empty t_arg cannot say `false`
+        mo_action->ms_next-s_nav-set_app_state_active = xsdbool( lv_arg <> ` ` ).
+        RETURN.
+    ENDCASE.
 
 
     IF result IS SUPPLIED.
@@ -51,19 +86,17 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
 
-    DATA(lv_js) = val.
-
     IF val IS NOT INITIAL
         AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      " a framework event travels as pure data - a JSON array serialized and
-      " escaped entirely in ABAP (get_event_client_json); only a raw JS
-      " expression passed by the app keeps the code form
-      lv_js = mo_srv_event->get_event_client_json( val   = val
-                                                   view  = view
-                                                   t_arg = t_arg ).
+      " a framework event travels as pure data - a JSON array built and
+      " escaped entirely in ABAP; only a raw JS expression passed by the app
+      " keeps the code form (the legacy formats, a STRING entry of the list)
+      mo_action_front->queue_app_event( val   = val
+                                        view  = view
+                                        t_arg = t_arg ).
+    ELSE.
+      mo_action_front->queue_app_js( val ).
     ENDIF.
-
-    INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
 
   ENDMETHOD.
 
@@ -145,72 +178,40 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
-    DATA lv_text    TYPE string.
-    DATA lv_type    TYPE string.
-    DATA lv_title   TYPE string.
-    DATA lv_details TYPE string.
-
-    IF z2ui5_cl_a2ui5_context=>rtti_check_clike( text ) = abap_false.
-      DATA(ls_msg_box) = z2ui5_cl_a2ui5_context=>ui5_msg_box_format( text ).
-      IF ls_msg_box-skip = abap_true.
-        RETURN.
-      ENDIF.
-      lv_text    = ls_msg_box-text.
-      lv_type    = ls_msg_box-type.
-      lv_title   = COND #( WHEN title IS NOT INITIAL THEN title ELSE ls_msg_box-title ).
-      lv_details = ls_msg_box-details.
-    ELSE.
-      lv_text = text.
-      lv_type = type.
-      lv_title = title.
-      lv_details = details.
-
-      IF lv_type = `information`.
-        lv_type = `show`.
-        IF lv_title IS INITIAL.
-          lv_title = `Information`.
-        ENDIF.
-      ENDIF.
-    ENDIF.
-
-    IF lv_type IS INITIAL.
-      lv_type = `show`.
-    ENDIF.
-
-    mo_action->ms_next-s_set-s_msg_box = VALUE #( text              = lv_text
-                                                  type              = lv_type
-                                                  title             = lv_title
-                                                  styleclass        = styleclass
-                                                  onclose           = onclose
-                                                  actions           = actions
-                                                  emphasizedaction  = emphasizedaction
-                                                  initialfocus      = initialfocus
-                                                  textdirection     = textdirection
-                                                  icon              = icon
-                                                  details           = lv_details
-                                                  closeonnavigation = closeonnavigation
-                                                  dependenton       = dependenton
-                                                  contentwidth      = contentwidth ).
+    mo_action_front->msg_box( text              = text
+                              type              = type
+                              title             = title
+                              styleclass        = styleclass
+                              onclose           = onclose
+                              actions           = actions
+                              emphasizedaction  = emphasizedaction
+                              initialfocus      = initialfocus
+                              textdirection     = textdirection
+                              icon              = icon
+                              details           = details
+                              closeonnavigation = closeonnavigation
+                              dependenton       = dependenton
+                              contentwidth      = contentwidth ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~message_toast_display.
 
-    mo_action->ms_next-s_set-s_msg_toast = VALUE #( text                     = text
-                                                    duration                 = duration
-                                                    width                    = width
-                                                    my                       = my
-                                                    at                       = at
-                                                    of                       = of
-                                                    offset                   = offset
-                                                    collision                = collision
-                                                    onclose                  = onclose
-                                                    autoclose                = autoclose
-                                                    animationtimingfunction  = animationtimingfunction
-                                                    animationduration        = animationduration
-                                                    closeonbrowsernavigation = closeonbrowsernavigation
-                                                    class                    = class ).
+    mo_action_front->msg_toast( text                     = text
+                                duration                 = duration
+                                width                    = width
+                                my                       = my
+                                at                       = at
+                                of                       = of
+                                offset                   = offset
+                                collision                = collision
+                                onclose                  = onclose
+                                autoclose                = autoclose
+                                animationtimingfunction  = animationtimingfunction
+                                animationduration        = animationduration
+                                closeonbrowsernavigation = closeonbrowsernavigation
+                                class                    = class ).
 
   ENDMETHOD.
 
@@ -261,19 +262,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    " see popover_destroy for why the whole slot is wiped instead of setting a flag
-    mo_action->ms_next-s_set-s_view_nest2 = VALUE #( check_destroy = abap_true ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-nested2 ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    mo_action->ms_next-s_set-s_view_nest2-check_destroy  = abap_false.
-    mo_action->ms_next-s_set-s_view_nest2-xml            = val.
-    mo_action->ms_next-s_set-s_view_nest2-id             = id.
-    mo_action->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
-    mo_action->ms_next-s_set-s_view_nest2-method_insert  = method_insert.
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-nested2
+                  xml                   = val
+                  id                    = id
+                  method_insert         = method_insert
+                  method_destroy        = method_destroy ).
 
   ENDMETHOD.
 
@@ -289,19 +289,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    " see popover_destroy for why the whole slot is wiped instead of setting a flag
-    mo_action->ms_next-s_set-s_view_nest = VALUE #( check_destroy = abap_true ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-nested ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    mo_action->ms_next-s_set-s_view_nest-check_destroy  = abap_false.
-    mo_action->ms_next-s_set-s_view_nest-xml            = val.
-    mo_action->ms_next-s_set-s_view_nest-id             = id.
-    mo_action->ms_next-s_set-s_view_nest-method_destroy = method_destroy.
-    mo_action->ms_next-s_set-s_view_nest-method_insert  = method_insert.
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-nested
+                  xml                   = val
+                  id                    = id
+                  method_insert         = method_insert
+                  method_destroy        = method_destroy ).
 
   ENDMETHOD.
 
@@ -315,80 +314,75 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_destroy.
 
-    " wipe the whole slot (like popup_destroy) - a plain flag would leave the
-    " xml of a popover_display( ) from the same roundtrip in place and the
-    " frontend would destroy and then re-open the popover
-    mo_action->ms_next-s_set-s_popover = VALUE #( check_destroy = abap_true ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-popover ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_display.
 
-    mo_action->ms_next-s_set-s_popover-check_destroy = abap_false.
-    mo_action->ms_next-s_set-s_popover-xml           = xml.
-    mo_action->ms_next-s_set-s_popover-open_by_id    = by_id.
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-popover
+                  xml                   = xml
+                  open_by_id            = by_id ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_model_update.
 
-    " deliberately EMPTY - see view_model_update. The automatic push flags
-    " the POPOVER slot too, so an open popover refreshes without this call
+    " deliberately EMPTY - see view_model_update. The automatic push reaches
+    " every open slot, so an open popover refreshes without this call
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_action->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-popup ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_display.
 
-    mo_action->ms_next-s_set-s_popup-check_destroy = abap_false.
-    mo_action->ms_next-s_set-s_popup-xml           = val.
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-popup
+                  xml                   = val ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_model_update.
 
-    " deliberately EMPTY - see view_model_update. The automatic push flags
-    " the POPUP slot too, so an open popup refreshes without this call
+    " deliberately EMPTY - see view_model_update. The automatic push reaches
+    " every open slot, so an open popup refreshes without this call
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_destroy.
 
-    mo_action->ms_next-s_set-s_view-check_destroy = abap_true.
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-main ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_display.
 
-    " like popup_display/popover_display: displaying cancels a destroy
-    " queued earlier in the same roundtrip
-    mo_action->ms_next-s_set-s_view-check_destroy = abap_false.
-    mo_action->ms_next-s_set-s_view-xml = val.
-    mo_action->ms_next-s_set-s_view-switchdefaultmodelannouri = switch_default_model_anno_uri.
-    mo_action->ms_next-s_set-s_view-switch_default_model_path = switch_default_model_path.
+    mo_action_front->slot_display( slot         = z2ui5_if_client=>cs_view-main
+                  xml                           = val
+                  switch_default_model_path     = switch_default_model_path
+                  switch_default_model_anno_uri = switch_default_model_anno_uri ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_model_update.
 
-    " deliberately EMPTY - the handler pushes the model by itself whenever
-    " main( ) changed it (z2ui5_cl_core_handler=>main_end compares the model
-    " before and after main( ) and flags every model-owning slot). The method
-    " stays in the interface so existing apps keep compiling and their calls
-    " keep being harmless; there is nothing left for it to do
+    " deliberately EMPTY - the handler queues the model push itself: on
+    " every view roundtrip, and otherwise whenever main( ) changed the model
+    " (z2ui5_cl_core_handler=>main_end). The push names no slot; every open
+    " model-owning slot picks it up. The method stays in the interface so
+    " existing apps keep compiling and their calls keep being harmless
 
   ENDMETHOD.
 
@@ -409,7 +403,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
             " boolean that must send abap_false survives
             li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
           ELSE.
-            li_omit = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ).
+            " NOT the vendored create_empty_filter: that one also drops a
+            " table ROW whose fields are all initial, which reindexes the
+            " client array against the backend table and corrupts the
+            " write-back (whole-table and __delta) - see the local class
+            li_omit = NEW lcl_empty_filter_keep_rows( ).
           ENDIF.
           IF li_filter IS BOUND.
             li_filter = z2ui5_cl_ajson_filter_lib=>create_and_filter(
@@ -473,33 +471,21 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_nav_back.
-
-    mo_action->ms_next-s_set-set_nav_back = val.
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~set_push_state.
 
-    mo_action->ms_next-s_set-set_push_state = val.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~set_nav_routing.
-
-    mo_action->ms_next-s_set-set_nav_routing = mode.
-    " remember the mode on the app so every later response of this app carries
-    " it again - see z2ui5_cl_core_app=>mv_nav_mode
-    mo_action->mo_app->mv_nav_mode = mode.
+    " same field the cs_event-set_push_state branch of follow_up_action
+    " writes - the typed method just skips the string-argument detour
+    mo_action->ms_next-s_nav-set_push_state = val.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~set_app_state_active.
 
-    mo_action->ms_next-s_set-set_app_state_active = val.
+    " same field the cs_event-set_app_state_active branch of follow_up_action
+    " writes - only that path needs the single-space encoding to squeeze
+    " `false` through a string argument; a typed abap_bool does not
+    mo_action->ms_next-s_nav-set_app_state_active = val.
 
   ENDMETHOD.
 
@@ -510,10 +496,10 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF li_app->check_sticky = val.
       RETURN.
     ENDIF.
-    mo_action->ms_next-s_set-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
+    mo_action->ms_next-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
     li_app->check_sticky = val.
 
-    mo_action->ms_next-s_set-s_stateful-switched = xsdbool( mo_action->ms_next-s_set-s_stateful-switched = abap_false ).
+    mo_action->ms_next-s_stateful-switched = xsdbool( mo_action->ms_next-s_stateful-switched = abap_false ).
 
   ENDMETHOD.
 

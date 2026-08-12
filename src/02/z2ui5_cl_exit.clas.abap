@@ -95,10 +95,12 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
       |  cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
       |  cdnjs.cloudflare.com *.cdnjs.cloudflare.com; | &&
       |worker-src 'self' blob:; | &&
-      " hardening directives (no runtime cost for a UI5 app): block plugin
-      " content, pin <base> to the app origin, and forbid cross-origin framing
-      " (the modern equivalent of the X-Frame-Options: SAMEORIGIN header set below)
-      |object-src 'none'; base-uri 'self'; frame-ancestors 'self'; "/>|.
+      " Hardening directives (no runtime cost for a UI5 app): block plugin
+      " content and pin <base> to the app origin. NO frame-ancestors here:
+      " browsers IGNORE that directive in a <meta> CSP (and log a console
+      " warning) - cross-origin framing is forbidden by the real
+      " X-Frame-Options: SAMEORIGIN response header set below instead.
+      |object-src 'none'; base-uri 'self'; "/>|.
 
     cs_config-t_security_header = VALUE #(
         ( n = `cache-control`          v = `no-cache, no-store, must-revalidate` )

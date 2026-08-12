@@ -1042,10 +1042,13 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_omit_initial.
-    " what z2ui5_if_client~_bind( omit_initial = abap_true ) wires up: an
+    " the behavior family behind z2ui5_if_client~_bind( omit_initial ): an
     " INITIAL field stays absent from the model, so the control keeps its own
     " default instead of receiving `` (which an enum-typed property rejects).
-    " A filled field of the same bind is untouched.
+    " A filled field of the same bind is untouched. (_bind itself wires a
+    " row-preserving variant of this filter - lcl_empty_filter_keep_rows in
+    " z2ui5_cl_core_client's locals - so table rows are never dropped; the
+    " vendored filter here exercises the same custom_filter slot.)
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->ms_nested-name = `filled`.
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.

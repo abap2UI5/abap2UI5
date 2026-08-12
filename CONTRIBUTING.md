@@ -155,7 +155,7 @@ npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix
 # Fast inner loop: abaplint only (seconds)
 npm run check
 
-# Full gate before every PR: check -> downport -> transpile -> unit
+# Full gate before every PR (lint, gates, downport, transpile, unit + JS specs - see AGENTS.md)
 # (non-destructive - runs in node/downport/, never touches src/)
 npm run verify
 ```

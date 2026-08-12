@@ -96,6 +96,14 @@ CLASS ltcl_test_roundtrip DEFINITION FINAL
     DATA mo_action TYPE REF TO z2ui5_cl_core_action.
     DATA mi_client TYPE REF TO z2ui5_if_client.
 
+    METHODS popup_displayed_xml
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS popup_destroy_queued
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS popup_create
       RETURNING
         VALUE(ro_pop) TYPE REF TO z2ui5_cl_pop_get_range.
@@ -111,6 +119,24 @@ ENDCLASS.
 
 
 CLASS ltcl_test_roundtrip IMPLEMENTATION.
+
+  METHOD popup_displayed_xml.
+
+    result = VALUE #( mo_action->ms_next-t_action_front[
+                          slot   = z2ui5_if_client=>cs_view-popup
+                          method = z2ui5_if_core_types=>cs_slot_action-display ]-xml OPTIONAL ).
+
+  ENDMETHOD.
+
+
+  METHOD popup_destroy_queued.
+
+    result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
+                          slot   = z2ui5_if_client=>cs_view-popup
+                          method = z2ui5_if_core_types=>cs_slot_action-destroy ] ) ).
+
+  ENDMETHOD.
+
 
   METHOD popup_create.
 
@@ -131,7 +157,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lo_pop->mt_filter ) ).
-    cl_abap_unit_assert=>assert_not_initial( mo_action->ms_next-s_set-s_popup-xml ).
+    cl_abap_unit_assert=>assert_not_initial( popup_displayed_xml( ) ).
 
   ENDMETHOD.
 
@@ -154,7 +180,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
                                         act = ls_result-t_range[ 1 ]-option ).
     cl_abap_unit_assert=>assert_equals( exp = `ABC`
                                         act = ls_result-t_range[ 1 ]-low ).
-    cl_abap_unit_assert=>assert_true( mo_action->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_true( popup_destroy_queued( ) ).
 
   ENDMETHOD.
 
@@ -179,7 +205,6 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_pop->mt_filter ) ).
-    cl_abap_unit_assert=>assert_true( mo_action->ms_next-s_set-s_popup-check_update_model ).
 
   ENDMETHOD.
 
@@ -193,7 +218,6 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
     lo_pop->z2ui5_if_app~main( mi_client ).
 
     cl_abap_unit_assert=>assert_initial( lo_pop->mt_filter ).
-    cl_abap_unit_assert=>assert_true( mo_action->ms_next-s_set-s_popup-check_update_model ).
 
   ENDMETHOD.
 
@@ -205,7 +229,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
     lo_pop->z2ui5_if_app~main( mi_client ).
 
     cl_abap_unit_assert=>assert_false( lo_pop->result( )-check_confirmed ).
-    cl_abap_unit_assert=>assert_true( mo_action->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_true( popup_destroy_queued( ) ).
 
   ENDMETHOD.
 

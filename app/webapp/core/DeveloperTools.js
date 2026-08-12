@@ -15,44 +15,8 @@ sap.ui.define(
     // used to resolve controls by their id instead of by content position.
     const FRAGMENT_ID = "z2ui5DeveloperTools";
 
-    // toJson() pretty-prints with this many spaces per nesting level, so a
-    // line's leading-space count divided by it gives that line's JSON depth.
+    // toJson() pretty-prints with this many spaces per nesting level.
     const INDENT_UNIT = 3;
-
-    // The System tab shows the whole (deeply nested) z2ui5 global; open only
-    // the first two levels so it is readable - the rest can be unfolded by
-    // hand in the editor.
-    const SYSTEM_OPEN_LEVELS = 2;
-
-    // Leading-space matcher, hoisted so the per-line fold loop below does not
-    // recompile it on every row of a large JSON dump.
-    const LEADING_SPACES = /^ */;
-
-    // JSON nesting depth of a pretty-printed line, read from its indentation.
-    function indentLevel(line, unit) {
-      return Math.floor(LEADING_SPACES.exec(line)[0].length / unit);
-    }
-
-    // Fold every foldable block in the ACE edit session that sits at or below
-    // `keepLevels` nesting levels, leaving the outer levels open. Uses only the
-    // public EditSession folding API (unfold / getFoldWidget /
-    // getFoldWidgetRange / addFold), so it works with any CodeEditor build; a
-    // block's depth is read from its line indentation. Skipping to the folded
-    // block's end row keeps us from descending into (already hidden) children.
-    function foldSessionToLevel(session, keepLevels, unit) {
-      session.unfold();
-      const rowCount = session.getLength();
-      for (let row = 0; row < rowCount; row++) {
-        if (session.getFoldWidget(row) !== "start") continue;
-        if (indentLevel(session.getLine(row) || "", unit) < keepLevels)
-          continue;
-        const range = session.getFoldWidgetRange(row);
-        if (range && range.isMultiLine()) {
-          session.addFold("...", range);
-          row = range.end.row;
-        }
-      }
-    }
 
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.
@@ -129,6 +93,14 @@ sap.ui.define(
       return model?.getData();
     }
 
+    // A model tab is only worth opening when the slot's model carries DATA -
+    // an app without bound attributes serves an empty object, and a greyed
+    // tab says "nothing here" more clearly than rendering {}.
+    function hasModelData(oView) {
+      const data = getModelJson(oView);
+      return Boolean(data) && Object.keys(data).length > 0;
+    }
+
     function getViewContent(view) {
       // Private member access (developer tools only): XMLView keeps the raw XML
       // string as a pseudo property in mProperties, but does not declare it
@@ -161,10 +133,32 @@ sap.ui.define(
       return err.title ? `${err.title}\n\n${err.text}` : err.text;
     }
 
-    function getResponseXml(key) {
-      const params = AppState.state.oResponse?.PARAMS;
-      const slot = params?.[key];
-      return slot?.XML;
+    // The view XML of the last response, read back out of the system action
+    // that displayed the slot: ["VIEW_SLOTS","display","<slot>","<xml>",
+    // {options}?]. Only used as a fallback for the case where the slot
+    // holds no live view to read the content off.
+    function getResponseXml(slotKey) {
+      const systemJs = AppState.state.oResponse?.S_ACTION?.T_SYSTEM;
+      if (!systemJs) return undefined;
+      for (const item of systemJs) {
+        // a system action arrives as a real JSON array; the stringified
+        // form stays readable for a skewed backend
+        let args = item;
+        if (!Array.isArray(args)) {
+          try {
+            args = JSON.parse(item);
+          } catch {
+            continue;
+          }
+        }
+        if (!Array.isArray(args)) continue;
+        // a skewed backend may still send the CONTROL_GLOBAL-prefixed form
+        const a = args[0] === "CONTROL_GLOBAL" ? args.slice(1) : args;
+        if (a[0] === "VIEW_SLOTS" && a[1] === "display" && a[2] === slotKey) {
+          return a[3];
+        }
+      }
+      return undefined;
     }
 
     // Preload the sap.ui.codeeditor modules used by the fragment. On older
@@ -185,23 +179,18 @@ sap.ui.define(
       });
     }
 
-    // What each dropdown entry shows: either a JSON source or an XML source
+    // What each tab shows: either a JSON source or an XML source
     // (the latter optionally with the rendered DOM for the templating
     // toggle). The "SOURCE" entry is handled separately in onItemSelect.
     const jsonSources = {
-      // The whole public z2ui5 global facade (oConfig, url, checkLocal,
-      // Util, app-registered members, ...). Read directly here on purpose:
-      // this is the developer tools inspector, whose job is to surface the live global
-      // as-is - functions drop out under JSON.stringify, which is fine.
-      // ui5lint-disable-next-line no-project-globals -- see reason above
-      SYSTEM: () => window.z2ui5,
       MODEL: () => getModelJson(ViewSlots.getView("MAIN")),
       PLAIN: () => AppState.state.responseData,
       REQUEST: () => AppState.state.oBody,
       POPUP_MODEL: () => getModelJson(ViewSlots.getView("POPUP")),
       POPOVER_MODEL: () => getModelJson(ViewSlots.getView("POPOVER")),
-      NEST1_MODEL: () => getModelJson(ViewSlots.getView("NEST")),
-      NEST2_MODEL: () => getModelJson(ViewSlots.getView("NEST2")),
+      // no NEST/NEST2 model sources: the nested views inherit the MAIN
+      // view's model by UI5 propagation - it would be the same data as
+      // MODEL, shown twice
     };
 
     const xmlSources = {
@@ -209,11 +198,11 @@ sap.ui.define(
       // arrived in the last server response.
       VIEW: () => ({
         xml:
-          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("S_VIEW"),
+          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("MAIN"),
         rendered: getRenderedContent(ViewSlots.getView("MAIN")),
       }),
-      POPUP: () => ({ xml: getResponseXml("S_POPUP") }),
-      POPOVER: () => ({ xml: getResponseXml("S_POPOVER") }),
+      POPUP: () => ({ xml: getResponseXml("POPUP") }),
+      POPOVER: () => ({ xml: getResponseXml("POPOVER") }),
       NEST1: () => ({
         xml: getViewContent(ViewSlots.getView("NEST")),
         rendered: getRenderedContent(ViewSlots.getView("NEST")),
@@ -265,7 +254,6 @@ sap.ui.define(
       renderTab(selItem, oModel) {
         if (jsonSources[selItem]) {
           this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");
-          if (selItem === "SYSTEM") this.foldSystemTab();
           return;
         }
 
@@ -326,13 +314,13 @@ sap.ui.define(
       // blob so it can be copied elsewhere in one go. XML tabs are
       // pretty-printed, JSON tabs serialized; empty / inactive sections are
       // skipped. Every source is guarded (a throwing one can never blank the
-      // whole export) and each section is capped, because the SYSTEM global can
-      // serialize to several MB - a value that large blanks a sap.m.TextArea.
+      // whole export) and each section is capped - a value that large blanks
+      // a sap.m.TextArea.
       // `abapSource` is the running app's ABAP class source, fetched
       // asynchronously by onExport (empty when it could not be retrieved).
       buildExport(abapSource) {
-        // Max characters per section; long ones (mainly SYSTEM) are truncated
-        // so the popup's TextArea still renders.
+        // Max characters per section; long ones are truncated so the
+        // popup's TextArea still renders.
         const MAX_SECTION = 100000;
         const sections = [];
         const push = (title, content) => {
@@ -391,7 +379,7 @@ sap.ui.define(
         // gate on the live slot too - the response only carries the XML in
         // the roundtrip that opened the popup/popover, but the live model is
         // exportable for as long as one is open
-        if (getResponseXml("S_POPUP") || ViewSlots.getView("POPUP")) {
+        if (getResponseXml("POPUP") || ViewSlots.getView("POPUP")) {
           push(
             "POPUP",
             xml(() => xmlSources.POPUP().xml),
@@ -401,7 +389,7 @@ sap.ui.define(
             json(() => jsonSources.POPUP_MODEL()),
           );
         }
-        if (getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER")) {
+        if (getResponseXml("POPOVER") || ViewSlots.getView("POPOVER")) {
           push(
             "POPOVER",
             xml(() => xmlSources.POPOVER().xml),
@@ -411,14 +399,12 @@ sap.ui.define(
             json(() => jsonSources.POPOVER_MODEL()),
           );
         }
+        // the nested views carry no model tab of their own - they inherit
+        // the MAIN view's model by propagation, so only the XML is shown
         if (getViewContent(ViewSlots.getView("NEST"))) {
           push(
             "NEST1",
             xml(() => xmlSources.NEST1().xml),
-          );
-          push(
-            "NEST1 MODEL",
-            json(() => jsonSources.NEST1_MODEL()),
           );
         }
         if (getViewContent(ViewSlots.getView("NEST2"))) {
@@ -426,18 +412,7 @@ sap.ui.define(
             "NEST2",
             xml(() => xmlSources.NEST2().xml),
           );
-          push(
-            "NEST2 MODEL",
-            json(() => jsonSources.NEST2_MODEL()),
-          );
         }
-        // SYSTEM (the whole z2ui5 global) is the largest by far - keep it last
-        // so the useful sections come first even after truncation.
-        push(
-          "SYSTEM",
-          json(() => jsonSources.SYSTEM()),
-        );
-
         return sections.join("\n\n") || "(nothing to export)";
       },
 
@@ -524,45 +499,6 @@ sap.ui.define(
             dialog.open();
           },
         );
-      },
-
-      // The CodeEditor's underlying ACE editor, or null if it does not exist
-      // yet (created on the CodeEditor's first render) or the build exposes no
-      // internal instance.
-      getEditorInstance() {
-        const ce = Fragment.byId(FRAGMENT_ID, "developerToolsEditor");
-        return ce && typeof ce.getInternalEditorInstance === "function"
-          ? ce.getInternalEditorInstance()
-          : null;
-      },
-
-      // Fold the System tab's JSON down to the first SYSTEM_OPEN_LEVELS levels.
-      // The ACE editor is created lazily on the CodeEditor's first render, so
-      // on the very first open we retry briefly until it exists. Best-effort:
-      // any failure leaves the tab fully expanded rather than breaking the
-      // developer tools.
-      foldSystemTab(triesLeft = 10) {
-        let editor;
-        try {
-          editor = this.getEditorInstance();
-        } catch (e) {
-          Lib.logError("DeveloperTools System fold failed", e);
-          return;
-        }
-        if (editor) {
-          try {
-            const session = editor.getSession && editor.getSession();
-            if (session && typeof session.getFoldWidget === "function") {
-              foldSessionToLevel(session, SYSTEM_OPEN_LEVELS, INDENT_UNIT);
-            }
-          } catch (e) {
-            Lib.logError("DeveloperTools System fold failed", e);
-          }
-          return;
-        }
-        if (triesLeft > 0) {
-          setTimeout(() => this.foldSystemTab(triesLeft - 1), 30);
-        }
       },
 
       // The ADT REST endpoint that renders the running app's ABAP class
@@ -686,6 +622,7 @@ sap.ui.define(
             source_visible: false,
             editor_visible: true,
             hasError: Boolean(AppState.state.lastError),
+            hasLog: Boolean(AppState.state.errors?.length),
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
             value: value,
             xContent: "",
@@ -698,11 +635,15 @@ sap.ui.define(
             // that opened the popup/popover - also check the live slot so
             // the tabs stay usable while one is open after later roundtrips.
             activePopup: Boolean(
-              getResponseXml("S_POPUP") || ViewSlots.getView("POPUP"),
+              getResponseXml("POPUP") || ViewSlots.getView("POPUP"),
             ),
             activePopover: Boolean(
-              getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER"),
+              getResponseXml("POPOVER") || ViewSlots.getView("POPOVER"),
             ),
+            // the model tabs grey out when the slot's model holds no data
+            hasViewModel: hasModelData(ViewSlots.getView("MAIN")),
+            hasPopupModel: hasModelData(ViewSlots.getView("POPUP")),
+            hasPopoverModel: hasModelData(ViewSlots.getView("POPOVER")),
           };
 
           const oModel = new JSONModel(oData);
@@ -711,7 +652,7 @@ sap.ui.define(
           // Render the requested tab's content (the default "PLAIN" already
           // matches the JSON response seeded above, so only re-render when a
           // specific tab was asked for).
-          if (initialTab && selectedTab !== "PLAIN") {
+          if (selectedTab !== "PLAIN") {
             this.renderTab(selectedTab, oModel);
           }
           oDialog.open();

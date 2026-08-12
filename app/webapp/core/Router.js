@@ -23,7 +23,7 @@
 // the <CLASS> segment names the app (human-readable), the <DRAFT> segment is
 // the server draft holding its state, so Back/Forward/reload/bookmark restore
 // the EXACT state. In FRESH mode the draft segment is omitted and the app
-// restarts clean. Routing is opt-in per app (client->set_nav_routing).
+// restarts clean. Routing is opt-in per app (cs_event-set_nav_routing).
 sap.ui.define(
   ["sap/ui/core/routing/HashChanger", "z2ui5/core/AppState", "z2ui5/core/Lib"],
   (HashChanger, AppState, Lib) => {
@@ -190,7 +190,7 @@ sap.ui.define(
     function onHashChanged(sNewHash) {
       const state = AppState.state;
 
-      // Routing is opt-in per app (client->set_nav_routing); until one
+      // Routing is opt-in per app (cs_event-set_nav_routing); until one
       // enabled it, the hash belongs entirely to the app (set_push_state).
       if (!state.navRouting) return;
 
@@ -221,7 +221,7 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     // Point the CALLING app's history entry at the draft the backend saved
-    // for it during this very nav_app_call (PARAMS.NAV_APP_CALL_PREV_*).
+    // for it during this very nav_app_call (the navAppCallPrev* options).
     // That draft carries every client-side change the user made since the
     // caller last rendered - two-way bound switches, checkboxes, input - all
     // of which travelled to the backend with the event that triggered the
@@ -232,10 +232,10 @@ sap.ui.define(
     // replaceHash updates it in place and leaves the history depth alone.
     // KEEP mode only - a FRESH route carries no draft and always restarts
     // the app anyway.
-    function repointCallerEntry(PARAMS, draftForRoute) {
+    function repointCallerEntry(mOptions, draftForRoute) {
       const state = AppState.state;
-      const prevApp = PARAMS.NAV_APP_CALL_PREV_APP;
-      const prevDraft = PARAMS.NAV_APP_CALL_PREV_ID;
+      const prevApp = mOptions.navAppCallPrevApp;
+      const prevDraft = mOptions.navAppCallPrevId;
       if (!draftForRoute || !prevApp || !prevDraft) return;
       const prevRoute = patternFor(prevApp, prevDraft);
       if (getHash() === prevRoute) return;
@@ -259,9 +259,9 @@ sap.ui.define(
     // mode follows the app the user is actually looking at - the way UI5
     // routing is configured once in the manifest rather than re-asserted on
     // every navigation.
-    function applyMode(PARAMS) {
-      if (!PARAMS.SET_NAV_ROUTING) return;
-      const mode = String(PARAMS.SET_NAV_ROUTING).toUpperCase();
+    function applyMode(mOptions) {
+      if (!mOptions.setNavRouting) return;
+      const mode = String(mOptions.setNavRouting).toUpperCase();
       const on = mode === "KEEP" || mode === "FRESH";
       AppState.state.navRouting = on;
       AppState.state.navMode = on ? mode : null;
@@ -269,7 +269,7 @@ sap.ui.define(
 
     // Adopt the rendered app as the current route and write it to the hash.
     // Only called while routing is on and the response named an app.
-    function updateAppRoute(PARAMS, ID, app) {
+    function updateAppRoute(mOptions, ID, app) {
       const state = AppState.state;
 
       // In FRESH mode the route carries the class only, so every history
@@ -294,7 +294,7 @@ sap.ui.define(
         state.navFromHash = false;
         return;
       }
-      if (PARAMS.SET_PUSH_STATE) return;
+      if (mOptions.setPushState) return;
 
       // Reflect the running app in the URL as a bookmarkable route. A forward
       // navigation done in the backend (client->nav_app_call,
@@ -303,10 +303,10 @@ sap.ui.define(
       // only replaces the current (top) entry, advancing it to the app's
       // latest draft so a later Forward restores the newest state.
       const route = patternFor(app, draftForRoute);
-      if (PARAMS.CHECK_NAV_APP_CALL) {
+      if (mOptions.checkNavAppCall) {
         // repoint the caller's entry first - it borrows the echo guard, so
         // restore it to this app before pushing the route
-        repointCallerEntry(PARAMS, draftForRoute);
+        repointCallerEntry(mOptions, draftForRoute);
         state.currentApp = app;
         state.currentDraftId = draftForRoute;
         navTo(route);
@@ -315,26 +315,28 @@ sap.ui.define(
       }
     }
 
-    // Keep the URL in sync with what was just rendered. Called once per
-    // roundtrip from View1's after-render phase.
-    function sync(PARAMS, ID) {
+    // Keep the URL in sync with what was just rendered - the ROUTER/sync
+    // system action, run once per roundtrip. The options object is
+    // self-contained: `id` carries the response's draft id.
+    function sync(mOptions) {
+      const ID = mOptions.id;
       try {
-        applyMode(PARAMS);
+        applyMode(mOptions);
 
         const state = AppState.state;
         if (state.navRouting) {
           const app = state.oResponse?.APP;
-          if (app) updateAppRoute(PARAMS, ID, app);
+          if (app) updateAppRoute(mOptions, ID, app);
           // Routing owns the app-state hash; skip the legacy handling below.
-          if (!PARAMS.SET_PUSH_STATE) return;
+          if (!mOptions.setPushState) return;
         }
 
-        if (PARAMS.SET_PUSH_STATE) {
+        if (mOptions.setPushState) {
           // The app pushes its own hash suffix. Build the new URL on the RAW
           // hash so the FLP shell hash survives - appending to the app hash
           // alone would rewrite "#SO-action&/x" to "#x" and strand the
           // launchpad.
-          const newUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${PARAMS.SET_PUSH_STATE}`;
+          const newUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setPushState}`;
           history.pushState(null, "", newUrl);
           // The pushed hash IS the desired URL - stop here. The cleanup below
           // is a no-op while hasher's cached hash is empty (legacy mode), but
@@ -350,7 +352,7 @@ sap.ui.define(
         // slash and standalone hasher prepends exactly one again; inside the
         // FLP the shell appends the slash-less hash after "&/" - both end up
         // in the canonical single-slash form.
-        const newHash = PARAMS.SET_APP_STATE_ACTIVE
+        const newHash = mOptions.setAppStateActive
           ? `/z2ui5-xapp-state=${ID || ""}`
           : "";
         navTo(newHash, true);
@@ -395,9 +397,6 @@ sap.ui.define(
       init,
       exit,
       splitHash,
-      appHashOf,
-      getHash,
-      getRawHash,
       hrefFor,
       patternFor,
       parse,

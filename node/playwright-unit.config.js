@@ -14,5 +14,7 @@ module.exports = defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  reporter: 'html',
+  // CI: 'list' puts per-test detail in the job log, where the html report
+  // (written but not uploaded) would leave a failure opaque.
+  reporter: process.env.CI ? [['list'], ['html']] : 'html',
 });

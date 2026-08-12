@@ -60,7 +60,7 @@ abap2UI5 is a **single-page app**. The browser loads a UI5 shell once, then talk
        │                                    │  2. Apply two-way bindings
        │                                    │  3. Call your app->main( )
        │                                    │  4. Persist new draft
-       │◀── { view XML, model, actions } ── │
+       │◀─ { actions (incl. view XML), model } │
        │                                    │
        │  (UI5 renders, binds, awaits next event)
 ```

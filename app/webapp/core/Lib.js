@@ -90,7 +90,12 @@ sap.ui.define(
 
     // True when the object supports isDestroyed() and reports destroyed.
     function isDestroyed(obj) {
-      return Boolean(obj?.isDestroyed && obj.isDestroyed());
+      if (!obj) return false;
+      // ManagedObject#isDestroyed( ) is @since 1.93 - on the 1.71 floor the
+      // method is absent and the guard would read "alive" for a destroyed
+      // control, so fall back to the flag every release carries
+      if (typeof obj.isDestroyed === "function") return obj.isDestroyed();
+      return Boolean(obj.bIsDestroyed);
     }
 
     // A companion control (MultiInputExt, UploadSetExt, ...) resolves its
@@ -288,7 +293,7 @@ sap.ui.define(
 
     // Collapse a UI5 Device `system` flag object into a single label. The
     // order matters - phone/tablet/combi are mutually exclusive with the
-    // desktop fallback. Shared by Server._getDeviceInfo (request payload) and
+    // desktop fallback. Shared by core/Session.js (request payload) and
     // the Info control so both report the same value.
     function deriveSystemType(system) {
       if (!system) return "desktop";

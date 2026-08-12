@@ -32,6 +32,29 @@ CLASS ltcl_app_noop IMPLEMENTATION.
 
 ENDCLASS.
 
+CLASS ltcl_app_sticky DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_init_log TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_sticky IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    " record per roundtrip whether the framework treated it as the init
+    " roundtrip - the sticky-latch test asserts the sequence
+    IF mv_init_log IS NOT INITIAL.
+      mv_init_log = mv_init_log && `|`.
+    ENDIF.
+    mv_init_log = mv_init_log && COND string( WHEN client->check_on_init( ) = abap_true
+                                              THEN `INIT`
+                                              ELSE `EVENT` ).
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS ltcl_test_handler_post DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -64,8 +87,39 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_nav_mode_resent   FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_push  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
-    METHODS test_auto_update_slots FOR TESTING RAISING cx_static_check.
+    METHODS test_nested_display_push FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
+    METHODS test_session_stored       FOR TESTING RAISING cx_static_check.
+    METHODS test_session_location     FOR TESTING RAISING cx_static_check.
+    METHODS test_session_launchpad    FOR TESTING RAISING cx_static_check.
+    METHODS test_session_from_draft   FOR TESTING RAISING cx_static_check.
+    METHODS test_session_new_device   FOR TESTING RAISING cx_static_check.
+    METHODS test_response_no_model    FOR TESTING RAISING cx_static_check.
+    METHODS test_response_actions_embedded FOR TESTING RAISING cx_static_check.
+    METHODS test_system_slot_order    FOR TESTING RAISING cx_static_check.
+    METHODS test_system_last_wins     FOR TESTING RAISING cx_static_check.
+    METHODS test_system_empty         FOR TESTING RAISING cx_static_check.
+    METHODS test_system_destroy_only  FOR TESTING RAISING cx_static_check.
+    METHODS test_sticky_init_latch    FOR TESTING RAISING cx_static_check.
+
+    "! the slots the serialized actions name, in order, deduplicated
+    METHODS slot_sequence
+      IMPORTING
+        val           TYPE REF TO z2ui5_cl_core_handler
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! the response's system actions, stringified and pipe-joined - so the
+    "! auto-update/nav tests can assert on the queue like on text
+    METHODS system_actions_of
+      IMPORTING
+        val           TYPE REF TO z2ui5_cl_core_handler
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
@@ -136,17 +190,20 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_request_launchpad.
 
+    " the flag is derived in session_merge from the MERGED location, not in
+    " the raw parse - pathname/search only travel on app-start-shaped
+    " requests (see test_session_launchpad for the restore cadence)
     DATA lv_payload TYPE string.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/ui2/flp","SEARCH":"?scenario=LAUNCHPAD"}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
+    lo_handler->ms_request = lo_handler->request_json_to_abap( lv_payload ).
 
-    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    lo_handler->session_merge( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = ls_request-s_control-check_launchpad ).
+                                        act = lo_handler->ms_request-s_control-check_launchpad ).
 
   ENDMETHOD.
 
@@ -181,8 +238,12 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `https://myhost.com`
                                         act = ls_request-s_front-origin ).
+
+    " the launchpad flag is derived in session_merge from the merged location
+    lo_handler->ms_request = ls_request.
+    lo_handler->session_merge( ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = ls_request-s_control-check_launchpad ).
+                                        act = lo_handler->ms_request-s_control-check_launchpad ).
   ENDMETHOD.
 
   METHOD test_parse_body_model.
@@ -376,25 +437,385 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_view_update_flag.
+  METHOD test_session_stored.
 
+    " the first roundtrip of a page load carries the block - it is stored on
+    " the app, and therefore in its draft
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
-    lo_handler->ms_response-s_front-params-s_view-xml = `<View/>`.
+    lo_handler->ms_request-s_front-s_device-system   = `desktop`.
+    lo_handler->ms_request-s_front-s_device-os-name  = `Windows`.
+    lo_handler->ms_request-s_front-s_ui5-version     = `1.120.0`.
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->check_view_update_needed( ) ).
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `desktop`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `1.120.0`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_ui5-version ).
+
+  ENDMETHOD.
+
+  METHOD test_session_location.
+
+    " the page location travels with app-start-shaped requests and is stored
+    " with the draft; an event roundtrip omits it and reads it back
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_front-origin   = `https://host`.
+    lo_handler->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
+    lo_handler->ms_request-s_front-search   = `?app_start=Z_MY_APP`.
+    " the real first roundtrip of a page load carries the device/UI5 block
+    " TOO - storing that block must not wipe the location just stored
+    lo_handler->ms_request-s_front-s_device-system = `desktop`.
+    lo_handler->ms_request-s_front-s_ui5-version   = `1.120.0`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://host`
+                                        act = lo_handler->mo_action->mo_app->ms_session-origin ).
+
+    " ...the follow-up event roundtrip carries none of it
+    CLEAR: lo_handler->ms_request-s_front-origin,
+           lo_handler->ms_request-s_front-pathname,
+           lo_handler->ms_request-s_front-search,
+           lo_handler->ms_request-s_front-s_device,
+           lo_handler->ms_request-s_front-s_ui5.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://host`
+                                        act = lo_handler->ms_request-s_front-origin ).
+    cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
+                                        act = lo_handler->ms_request-s_front-pathname ).
+    cl_abap_unit_assert=>assert_equals( exp = `?app_start=Z_MY_APP`
+                                        act = lo_handler->ms_request-s_front-search ).
+
+  ENDMETHOD.
+
+  METHOD test_session_launchpad.
+
+    " the launchpad flag is derived from the MERGED location: the FLP start
+    " request carries the pathname once, every later event roundtrip omits
+    " it and must still read check_launchpad from the draft-restored value
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_front-origin   = `https://host`.
+    lo_handler->ms_request-s_front-pathname = `/sap/bc/ui2/flp`.
+    lo_handler->ms_request-s_front-s_device-system = `desktop`.
+    lo_handler->ms_request-s_front-s_ui5-version   = `1.120.0`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_true( lo_handler->ms_request-s_control-check_launchpad ).
+
+    CLEAR: lo_handler->ms_request-s_front-origin,
+           lo_handler->ms_request-s_front-pathname,
+           lo_handler->ms_request-s_front-search,
+           lo_handler->ms_request-s_front-s_device,
+           lo_handler->ms_request-s_front-s_ui5,
+           lo_handler->ms_request-s_control.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_true( lo_handler->ms_request-s_control-check_launchpad ).
+
+  ENDMETHOD.
+
+  METHOD test_session_from_draft.
+
+    " a later roundtrip sends none of it and is answered from the draft - but
+    " orientation and resize are NOT session-constant and win from the request
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->ms_session = VALUE #(
+        s_ui5-version         = `1.120.0`
+        s_device-system       = `phone`
+        s_device-os-name      = `iOS`
+        s_device-orientation  = `portrait`
+        s_device-resize-width = 400 ).
+
+    lo_handler->ms_request-s_front-s_device-orientation  = `landscape`.
+    lo_handler->ms_request-s_front-s_device-resize-width = 900.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `phone`
+                                        act = lo_handler->ms_request-s_front-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `1.120.0`
+                                        act = lo_handler->ms_request-s_front-s_ui5-version ).
+    cl_abap_unit_assert=>assert_equals( exp = `landscape`
+                                        act = lo_handler->ms_request-s_front-s_device-orientation ).
+    cl_abap_unit_assert=>assert_equals( exp = 900
+                                        act = lo_handler->ms_request-s_front-s_device-resize-width ).
+
+  ENDMETHOD.
+
+  METHOD test_session_new_device.
+
+    " the same draft reopened from ANOTHER browser: its first roundtrip
+    " carries a block again, and that block replaces what the draft held
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->ms_session = VALUE #( s_device-system = `phone`
+                                                        s_device-os-name = `iOS` ).
+
+    lo_handler->ms_request-s_front-s_device-system  = `desktop`.
+    lo_handler->ms_request-s_front-s_device-os-name = `Windows`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `desktop`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `Windows`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-os-name ).
+
+  ENDMETHOD.
+
+  METHOD test_response_actions_embedded.
+
+    " the action lists leave as REAL nested JSON arrays, not as escaped
+    " strings - and an empty-string positional placeholder inside an action
+    " survives, because the queues are written AFTER the no-empty-values
+    " filter ran
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_response TYPE z2ui5_if_core_types=>ty_s_response.
+    lo_handler = NEW #( val = `` ).
+    ls_response-s_front-id = `ID123`.
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]` ) )
+           INTO TABLE ls_response-s_front-s_action-t_system.
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SET_FOCUS","id1"]` ) )
+           INTO TABLE ls_response-s_front-s_action-t_custom.
+    " a legacy raw-JS snippet an app queued keeps riding as a string entry
+    INSERT VALUE #( js = `eF('SET_FOCUS','id2')` )
+           INTO TABLE ls_response-s_front-s_action-t_custom.
+
+    DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( lv_json CS `"T_SYSTEM":[["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]]` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( lv_json CS `"T_CUSTOM":[["SET_FOCUS","id1"],"eF('SET_FOCUS','id2')"]` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_response_no_model.
+
+    " a round-trip that changed nothing bound sends no MODEL key at all
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_response TYPE z2ui5_if_core_types=>ty_s_response.
+    lo_handler = NEW #( val = `` ).
+    ls_response-s_front-id = `ID123`.
+
+    DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
+
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `MODEL` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `S_FRONT` ) ).
+
+    " and an explicitly empty one is treated the same
+    ls_response-model = `{}`.
+    lv_json = lo_handler->response_abap_to_json( ls_response ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `MODEL` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_system_slot_order.
+
+    " The app displays in whatever order suits it - here nested first, main
+    " last. The list that leaves goes MAIN, NEST, NEST2, POPUP, POPOVER: a
+    " nested view is inserted INTO the main control tree, so it cannot be
+    " built before the page it belongs to exists.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    lo_handler = NEW #( val = `` ).
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+
+    li_client->popover_display( xml   = `<Popover/>`
+                                by_id = `btn` ).
+    li_client->nest2_view_display( val           = `<Nest2/>`
+                                   id            = `n2`
+                                   method_insert = `addEndColumnPage` ).
+    li_client->nest_view_display( val           = `<Nest/>`
+                                  id            = `n1`
+                                  method_insert = `addMidColumnPage` ).
+    li_client->popup_display( `<Dialog/>` ).
+    li_client->view_display( `<View/>` ).
+
+    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `MAIN|NEST|NEST2|POPUP|POPOVER`
+        act = slot_sequence( lo_handler ) ).
+
+  ENDMETHOD.
+
+  METHOD test_system_last_wins.
+
+    " A slot displayed twice is displayed ONCE, with the last XML: the
+    " second call drops everything the first queued. No destroy action
+    " travels with a display - the frontend tears the slot down implicitly,
+    " a display REPLACES the slot.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    lo_handler = NEW #( val = `` ).
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+
+    li_client->view_display( `<First/>` ).
+    li_client->view_display( `<Second/>` ).
+
+    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+
+    DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_js ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["VIEW_SLOTS","display","MAIN","<Second/>"]`
+        act = lt_js[ 1 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_system_empty.
+
+    " a roundtrip that touches no slot sends no system action at all
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+
+    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+
+    cl_abap_unit_assert=>assert_initial(
+        lo_handler->mo_action->ms_next-s_action-t_system ).
+
+  ENDMETHOD.
+
+  METHOD test_system_destroy_only.
+
+    " A bare destroy - popup_destroy( ) without a follow-up display - leaves
+    " as exactly ["VIEW_SLOTS","destroy","POPUP"]: three entries, no XML
+    " argument and no options object ride along
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    lo_handler = NEW #( val = `` ).
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+
+    li_client->popup_destroy( ).
+
+    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+
+    DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_js ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["VIEW_SLOTS","destroy","POPUP"]`
+        act = lt_js[ 1 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_sticky_init_latch.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_app TYPE REF TO ltcl_app_sticky.
+
+    " a sticky app skips db_save, but not the lifecycle latch: main_end has
+    " to set check_initialized/id_draft on the instance itself, otherwise
+    " every event roundtrip of a sticky session re-runs the init block
+    lo_handler = NEW #( val = `` ).
+    lo_app = NEW #( ).
+    lo_app->z2ui5_if_app~check_sticky = abap_true.
+    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+
+    lo_handler->main_loop( ).
+
+    " the first roundtrip ran as init...
+    cl_abap_unit_assert=>assert_equals( exp = `INIT`
+                                        act = lo_app->mv_init_log ).
+    " ...and latched the lifecycle on the instance...
+    cl_abap_unit_assert=>assert_true( lo_app->z2ui5_if_app~check_initialized ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->ms_draft-id
+                                        act = lo_app->z2ui5_if_app~id_draft ).
+    " ...even though no draft was saved
+    cl_abap_unit_assert=>assert_false(
+        NEW z2ui5_cl_core_srv_draft( )->check_exists( lo_handler->mo_action->mo_app->ms_draft-id ) ).
+
+    " the next roundtrip of the same in-memory session reads
+    " check_on_init( ) = abap_false and runs as a plain event
+    CLEAR lo_handler->mo_action->ms_next.
+    lo_handler->main_loop( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `INIT|EVENT`
+                                        act = lo_app->mv_init_log ).
+
+  ENDMETHOD.
+
+  METHOD system_actions_of.
+
+    LOOP AT val->ms_response-s_front-s_action-t_system INTO DATA(ls_queued).
+      IF result IS NOT INITIAL.
+        result = result && `|`.
+      ENDIF.
+      result = result && COND #( WHEN ls_queued-o_json IS BOUND
+                                 THEN ls_queued-o_json->stringify( )
+                                 ELSE ls_queued-js ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD slot_sequence.
+
+    " the slots named by the serialized actions, in order, each one once -
+    " so the assertion reads as the sequence and not as a payload dump
+    LOOP AT val->mo_action->ms_next-s_action-t_system INTO DATA(ls_queued).
+      DATA(lv_js) = ls_queued-o_json->stringify( ).
+      SPLIT lv_js AT `","` INTO TABLE DATA(lt_part).
+      DATA(lv_slot) = replace( val  = VALUE string( lt_part[ 3 ] OPTIONAL )
+                               sub  = `"]`
+                               with = `` ).
+      IF result CS lv_slot.
+        CONTINUE.
+      ENDIF.
+      IF result IS NOT INITIAL.
+        result = result && `|`.
+      ENDIF.
+      result = result && lv_slot.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD test_view_update_flag.
+
+    " every slot displays through a system action, and main_end derives
+    " `did this roundtrip ship a view?` (the model has to travel with new
+    " XML) from exactly those collected calls - no separate flag to keep in
+    " sync, no slot of the response read back
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client->view_display( `<View/>` ).
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
 
   ENDMETHOD.
 
   METHOD test_view_update_popup.
 
+    " the same holds whichever slot was displayed...
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
-    lo_handler->ms_response-s_front-params-s_popup-check_update_model = abap_true.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client->popup_display( `<Dialog/>` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->check_view_update_needed( ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+
+    " ...and a display a later destroy voided counts as NO view, so the
+    " model is not sent for a dialog that never reaches the browser
+    li_client->popup_destroy( ).
+
+    cl_abap_unit_assert=>assert_false(
+        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
 
   ENDMETHOD.
 
@@ -403,8 +824,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = lo_handler->check_view_update_needed( ) ).
+    cl_abap_unit_assert=>assert_false(
+        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
 
   ENDMETHOD.
 
@@ -573,8 +994,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->ms_response-s_front-params-s_view-check_update_model ).
+    " the MODEL key itself IS the push - no updateModel action travels,
+    " the frontend pushes into every open slot when a model arrived
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
     cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
 
@@ -597,32 +1021,41 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lo_handler->ms_response-model ).
-    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-s_view-check_update_model ).
+    " an unchanged model asks for no push at all
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
 
-  METHOD test_auto_update_slots.
+  METHOD test_nested_display_push.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
 
-    " the app has ONE model but every open slot holds its own frontend
-    " instance of it, and the *_model_update( ) methods that used to pick the
-    " slot are empty now - so a detected change must flag ALL THREE
-    " model-owning slots. Flagging a closed slot is free: the frontend skips
-    " every slot without a view
+    " a roundtrip that re-displays a NESTED view without its MAIN view must
+    " carry the model: the nested view inherits the MAIN model by UI5
+    " propagation, so without the push it would bind against the data of the
+    " previous roundtrip (three-column samples 098/104)
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
-    lo_handler->mv_model_before_taken = abap_true.
-    lo_handler->mv_model_before       = `<other model state>`.
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client->nest_view_display( val           = `<Nest/>`
+                                  id            = `col`
+                                  method_insert = `addMidColumnPage` ).
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->ms_response-s_front-params-s_popup-check_update_model ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->ms_response-s_front-params-s_popover-check_update_model ).
+    " the model travels with the response - its presence IS the push, the
+    " frontend runs it after the displays (View1)
+    cl_abap_unit_assert=>assert_equals(
+        exp = lo_handler->mo_action->mo_app->model_json_stringify( )
+        act = lo_handler->ms_response-model ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
@@ -652,7 +1085,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " An app configures routing ONCE. main_end therefore re-sends the mode the
     " app carries whenever the roundtrip did not set one itself, so a later
-    " render of the same app stays routed without calling set_nav_routing( )
+    " render of the same app stays routed without queueing set_nav_routing
     " again - and an app that never opted in keeps sending nothing.
     lo_handler = NEW #( val = `` ).
     lo_app = NEW #( ).
@@ -662,8 +1095,22 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
-                                        act = lo_handler->ms_response-s_front-params-set_nav_routing ).
+    " the mode reaches the frontend as the ROUTER/sync option, not as a
+    " response field of its own
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `*"setNavRouting":"KEEP"*`
+        act = system_actions_of( lo_handler ) ).
+
+    " a follow-up EVENT roundtrip of the same app repeats no mode - the
+    " frontend keeps it in session state, so re-sending it would re-queue
+    " the ROUTER action for a constant on every roundtrip
+    lo_handler->ms_request-s_front-id = `SOME_DRAFT`.
+    CLEAR lo_handler->mo_action->ms_next.
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
@@ -671,7 +1118,9 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-set_nav_routing ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
   ENDMETHOD.
 

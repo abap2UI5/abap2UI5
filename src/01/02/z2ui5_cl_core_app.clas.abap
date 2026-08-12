@@ -8,13 +8,21 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
     DATA mo_app   TYPE REF TO object.
     DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft.
     " Hash routing mode of THIS app (z2ui5_if_client=>cs_nav_mode), set via
-    " client->set_nav_routing( ). It lives on the app - and therefore in its
+    " follow_up_action( cs_event-set_nav_routing ). It lives on the app - and therefore in its
     " draft - rather than on the session, so it is re-sent with every response
     " of this app: an app configures routing ONCE (in check_on_init, the way a
     " UI5 app configures it once in the manifest) instead of re-asserting it on
     " every render, and an app the user navigates back to keeps its own mode
     " even when the app in between ran with a different one.
     DATA mv_nav_mode TYPE string.
+
+    " What the browser told us about itself. It lives on the app - and
+    " therefore in its draft - so the frontend sends it once per page load
+    " instead of with every roundtrip. A draft reopened from a DIFFERENT
+    " browser overwrites it: that browser's first roundtrip carries its own
+    " block, and z2ui5_cl_core_handler=>session_merge takes whatever a request
+    " brings over whatever the draft held.
+    DATA ms_session TYPE z2ui5_if_core_types=>ty_s_session.
 
     METHODS model_json_stringify
       RETURNING
@@ -81,26 +89,35 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     DATA(lo_model) = create_model( ).
 
+    DATA lv_restored TYPE abap_bool VALUE abap_true.
+    DATA x_first TYPE REF TO cx_root.
+
     TRY.
         lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_a2ui5_context=>xml_stringify( me ).
         lo_model->main_attri_db_load( ).
         RETURN.
-      CATCH cx_root.
+      CATCH cx_root INTO x_first.
         " main_attri_db_save_srtti clears the serialized data references -
         " restore them before the fallback below, otherwise the second
         " attempt would persist the half-cleared app state
         TRY.
             lo_model->main_attri_db_load( ).
-          CATCH cx_root ##NO_HANDLER.
+          CATCH cx_root.
+            lv_restored = abap_false.
         ENDTRY.
     ENDTRY.
 
-    TRY.
-        result = z2ui5_cl_a2ui5_context=>xml_stringify( me ).
-        RETURN.
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
+    " the bare retry is only safe when the restore worked - serializing the
+    " half-cleared state would SUCCEED and persist a draft with the cleared
+    " drefs missing, discovered only on a later restore
+    IF lv_restored = abap_true.
+      TRY.
+          result = z2ui5_cl_a2ui5_context=>xml_stringify( me ).
+          RETURN.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
 
     TRY.
         lo_model->main_attri_refresh( ).
@@ -111,14 +128,15 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       CATCH cx_root INTO DATA(x) ##NO_HANDLER.
     ENDTRY.
 
-    " chain the last serialization failure instead of inlining its text - the
-    " cause names the attribute/type that is not serializable and carries the
-    " source position of the transformation that gave up
+    " chain the FIRST serialization failure - it names the attribute/type
+    " that is not serializable and carries the source position of the
+    " transformation that gave up; the retries fail for the same root cause
+    " or a follow-up one
     RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
       EXPORTING
         val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
                    |Please check if all generic data references are public attributes of your class|
-        previous = x.
+        previous = COND #( WHEN x_first IS BOUND THEN x_first ELSE x ).
 
   ENDMETHOD.
 

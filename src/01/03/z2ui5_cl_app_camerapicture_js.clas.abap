@@ -46,7 +46,6 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `    return Control.extend("z2ui5.cc.CameraPicture", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
-             `          id: { type: "string" },` && |\n| &&
              `          value: { type: "string" },` && |\n| &&
              `          thumbnail: { type: "string" },` && |\n| &&
              `          // Empty default leaves the trigger button auto-sized; a bare` && |\n| &&

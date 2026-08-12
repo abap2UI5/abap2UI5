@@ -90,25 +90,26 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_buffer.
 
+    " there is NO read buffer: a second read after an overwrite must see the
+    " new row, not a stale copy of the first - the property callers rely on
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
     DATA temp4 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
 
-
     CLEAR temp4.
     temp4-id = `TEST_BUF`.
     lo_draft->create( draft     = temp4
                       model_xml = `buffered data` ).
-
-
     ls_first = lo_draft->read_draft( `TEST_BUF` ).
 
+    lo_draft->create( draft     = temp4
+                      model_xml = `overwritten data` ).
     ls_second = lo_draft->read_draft( `TEST_BUF` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = ls_first-data
-                                        act = ls_second-data ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_first-data CS `buffered data` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_second-data CS `overwritten data` ) ).
 
   ENDMETHOD.
 

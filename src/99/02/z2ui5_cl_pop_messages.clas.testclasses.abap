@@ -83,6 +83,14 @@ CLASS ltcl_test_roundtrip DEFINITION FINAL
     DATA mo_action TYPE REF TO z2ui5_cl_core_action.
     DATA mi_client TYPE REF TO z2ui5_if_client.
 
+    METHODS popup_displayed_xml
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS popup_destroy_queued
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS client_create
       IMPORTING
         io_app TYPE REF TO z2ui5_if_app.
@@ -100,6 +108,24 @@ ENDCLASS.
 
 
 CLASS ltcl_test_roundtrip IMPLEMENTATION.
+
+  METHOD popup_displayed_xml.
+
+    result = VALUE #( mo_action->ms_next-t_action_front[
+                          slot   = z2ui5_if_client=>cs_view-popup
+                          method = z2ui5_if_core_types=>cs_slot_action-display ]-xml OPTIONAL ).
+
+  ENDMETHOD.
+
+
+  METHOD popup_destroy_queued.
+
+    result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
+                          slot   = z2ui5_if_client=>cs_view-popup
+                          method = z2ui5_if_core_types=>cs_slot_action-destroy ] ) ).
+
+  ENDMETHOD.
+
 
   METHOD client_create.
 
@@ -139,7 +165,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    DATA(lv_xml) = mo_action->ms_next-s_set-s_popup-xml.
+    DATA(lv_xml) = popup_displayed_xml( ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `MSG Title` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `MessageView` ) ).
 
@@ -151,7 +177,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONTINUE` ).
 
-    cl_abap_unit_assert=>assert_true( mo_action->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_true( popup_destroy_queued( ) ).
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-o_app_leave ).
 
   ENDMETHOD.

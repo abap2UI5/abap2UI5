@@ -113,12 +113,37 @@ test.describe("View tab", () => {
   test("falls back to the last response XML when the view keeps none", () => {
     const { DeveloperTools } = loadDeveloperTools({
       views: { MAIN: fakeXmlView(undefined) },
-      oResponse: { PARAMS: { S_VIEW: { XML: "<Page/>" } } },
+      // the XML rides on the system action that displayed the slot - a real
+      // nested array on the wire
+      oResponse: {
+        S_ACTION: {
+          T_SYSTEM: [
+            ["CONTROL_GLOBAL", "VIEW_SLOTS", "destroy", "MAIN"],
+            ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "MAIN", "<Page/>"],
+          ],
+        },
+      },
     });
     const { oEvent, modelData } = fakeSelectEvent("VIEW");
     DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("<Page/>");
     expect(modelData.type).toBe("xml");
+  });
+
+  test("still reads the stringified action form of a skewed backend", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      views: { MAIN: fakeXmlView(undefined) },
+      oResponse: {
+        S_ACTION: {
+          T_SYSTEM: [
+            '["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Page/>"]',
+          ],
+        },
+      },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("VIEW");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toBe("<Page/>");
   });
 });
 
@@ -210,63 +235,6 @@ test.describe("Error tab", () => {
     DeveloperTools.renderTab("ERROR", oModel);
     expect(modelData.value).toBe("App Terminated\n\nboom");
     expect(modelData.hasRetry).toBe(true);
-  });
-});
-
-test.describe("System tab folding", () => {
-  // Drives foldSystemTab against a fake ACE edit session built from a table of
-  // pretty-printed JSON rows ({ line, start, end }), recording which foldable
-  // blocks get collapsed.
-  function foldHarness(rows) {
-    const foldedStarts = [];
-    const session = {
-      unfold() {},
-      getLength: () => rows.length,
-      getLine: (r) => rows[r].line,
-      getFoldWidget: (r) => (rows[r].start ? "start" : ""),
-      getFoldWidgetRange: (r) => ({
-        start: { row: r },
-        end: { row: rows[r].end },
-        isMultiLine: () => rows[r].end > r,
-      }),
-      addFold: (_placeholder, range) => foldedStarts.push(range.start.row),
-    };
-    const editor = { getSession: () => session };
-    const fragment = {
-      byId: () => ({ getInternalEditorInstance: () => editor }),
-    };
-    return { fragment, foldedStarts };
-  }
-
-  test("folds level-2 blocks and deeper, leaving the first two levels open", () => {
-    // {  "a": { "b": {...}, "d": 2 },  "e": [ {...} ]  } - 3-space indent.
-    const rows = [
-      { line: "{", start: true, end: 12 },
-      { line: '   "a": {', start: true, end: 6 },
-      { line: '      "b": {', start: true, end: 4 },
-      { line: '         "c": 1', start: false },
-      { line: "      },", start: false },
-      { line: '      "d": 2', start: false },
-      { line: "   },", start: false },
-      { line: '   "e": [', start: true, end: 11 },
-      { line: "      {", start: true, end: 10 },
-      { line: '         "f": 3', start: false },
-      { line: "      }", start: false },
-      { line: "   ]", start: false },
-      { line: "}", start: false },
-    ];
-    const { fragment, foldedStarts } = foldHarness(rows);
-    const { DeveloperTools } = loadDeveloperTools({ fragment });
-    DeveloperTools.foldSystemTab();
-    // Root (level 0) and its direct children (level 1) stay open; the
-    // level-2 object and the level-2 array entry are folded.
-    expect(foldedStarts).toEqual([2, 8]);
-  });
-
-  test("is a no-op (no throw) when the editor instance does not exist yet", () => {
-    const fragment = { byId: () => null };
-    const { DeveloperTools } = loadDeveloperTools({ fragment });
-    expect(() => DeveloperTools.foldSystemTab(0)).not.toThrow();
   });
 });
 

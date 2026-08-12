@@ -55,7 +55,8 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      setFocusId(val) {` && |\n| &&
              `        try {` && |\n| &&
-             `          this.setProperty("focusId", val);` && |\n| &&
+             `          // Empty renderer -> suppress the no-op invalidation` && |\n| &&
+             `          this.setProperty("focusId", val, true);` && |\n| &&
              `          const oElement = ViewSlots.byIdOfOwner(this, val);` && |\n| &&
              `          if (oElement) oElement.applyFocusInfo(oElement.getFocusInfo());` && |\n| &&
              `        } catch (e) {` && |\n| &&

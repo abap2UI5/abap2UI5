@@ -74,6 +74,12 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
     DATA ms_req    TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
     DATA ms_res    TYPE z2ui5_if_core_types=>ty_s_http_res.
 
+    " the raw if_http_response of the ON-PREM ICF stack, captured dynamically
+    " in factory( ) - only that stack carries the set_compression( ) hook
+    " (see set_response). Stays unbound on the cloud stack, whose response
+    " type does not exist in the cloud language version.
+    DATA mo_response_onprem TYPE REF TO object.
+
     METHODS set_response.
 
   PRIVATE SECTION.
@@ -205,6 +211,15 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     IF server IS BOUND.
       result = NEW #( ).
       result->mo_server = z2ui5_cl_a2ui5_http=>factory( server ).
+      " generic field symbol on purpose: a typed one (REF TO object) makes
+      " the dynamic ASSIGN cast, and REF TO if_http_response is not
+      " IDENTICAL to REF TO object - a real stack raises an uncatchable
+      " casting error there, the MOVE below widens legally instead
+      FIELD-SYMBOLS <response> TYPE any.
+      ASSIGN server->(`RESPONSE`) TO <response>.
+      IF sy-subrc = 0.
+        result->mo_response_onprem = <response>.
+      ENDIF.
     ELSEIF req IS BOUND AND res IS BOUND.
       result = factory_cloud( req = req
                               res = res ).
@@ -305,7 +320,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                   | </body></html>|.
 
     result-status_code   = 200.
-    result-status_reason = `success`.
+    result-status_reason = `OK`.
 
   ENDMETHOD.
 
@@ -335,6 +350,25 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         ELSE `application/json; charset=UTF-8` ).
     mo_server->set_header_field( n = `content-type`
                                  v = lv_content_type ).
+
+    " Ask the ICF runtime to gzip the response when the client accepts it.
+    " Every body this handler sends is text (the GET shell carries the whole
+    " embedded frontend, ~400KB; the POST roundtrip the model JSON), so this
+    " is a 70-85% transfer cut on installations whose ICM profile does not
+    " compress already - and a no-op on ones that do. Dynamic on purpose:
+    " if_http_response does not exist in the cloud language version (the
+    " platform router compresses there, mo_response_onprem stays unbound), and
+    " the transpiled test backend's response shim simply lacks the method -
+    " both must keep compiling and running, so a missing method is caught,
+    " never declared. AFTER the content-type header: the default compression
+    " mode decides based on the MIME type set at this point.
+    IF mo_response_onprem IS BOUND.
+      TRY.
+          CALL METHOD mo_response_onprem->(`SET_COMPRESSION`).
+        CATCH cx_root ##NO_HANDLER.
+          " no compression support on this stack - the response stays plain
+      ENDTRY.
+    ENDIF.
 
     DATA(ls_config) = config_http_get( ).
 
