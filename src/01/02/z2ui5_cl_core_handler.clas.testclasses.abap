@@ -32,6 +32,29 @@ CLASS ltcl_app_noop IMPLEMENTATION.
 
 ENDCLASS.
 
+CLASS ltcl_app_sticky DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_init_log TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_sticky IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    " record per roundtrip whether the framework treated it as the init
+    " roundtrip - the sticky-latch test asserts the sequence
+    IF mv_init_log IS NOT INITIAL.
+      mv_init_log = mv_init_log && `|`.
+    ENDIF.
+    mv_init_log = mv_init_log && COND string( WHEN client->check_on_init( ) = abap_true
+                                              THEN `INIT`
+                                              ELSE `EVENT` ).
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS ltcl_test_handler_post DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -76,6 +99,8 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_system_slot_order    FOR TESTING RAISING cx_static_check.
     METHODS test_system_last_wins     FOR TESTING RAISING cx_static_check.
     METHODS test_system_empty         FOR TESTING RAISING cx_static_check.
+    METHODS test_system_destroy_only  FOR TESTING RAISING cx_static_check.
+    METHODS test_sticky_init_latch    FOR TESTING RAISING cx_static_check.
 
     "! the slots the serialized actions name, in order, deduplicated
     METHODS slot_sequence
@@ -659,6 +684,66 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial(
         lo_handler->mo_action->ms_next-s_action-t_system ).
+
+  ENDMETHOD.
+
+  METHOD test_system_destroy_only.
+
+    " A bare destroy - popup_destroy( ) without a follow-up display - leaves
+    " as exactly ["VIEW_SLOTS","destroy","POPUP"]: three entries, no XML
+    " argument and no options object ride along
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    lo_handler = NEW #( val = `` ).
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+
+    li_client->popup_destroy( ).
+
+    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+
+    DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_js ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["VIEW_SLOTS","destroy","POPUP"]`
+        act = lt_js[ 1 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_sticky_init_latch.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_app TYPE REF TO ltcl_app_sticky.
+
+    " a sticky app skips db_save, but not the lifecycle latch: main_end has
+    " to set check_initialized/id_draft on the instance itself, otherwise
+    " every event roundtrip of a sticky session re-runs the init block
+    lo_handler = NEW #( val = `` ).
+    lo_app = NEW #( ).
+    lo_app->z2ui5_if_app~check_sticky = abap_true.
+    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+
+    lo_handler->main_loop( ).
+
+    " the first roundtrip ran as init...
+    cl_abap_unit_assert=>assert_equals( exp = `INIT`
+                                        act = lo_app->mv_init_log ).
+    " ...and latched the lifecycle on the instance...
+    cl_abap_unit_assert=>assert_true( lo_app->z2ui5_if_app~check_initialized ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->ms_draft-id
+                                        act = lo_app->z2ui5_if_app~id_draft ).
+    " ...even though no draft was saved
+    cl_abap_unit_assert=>assert_false(
+        NEW z2ui5_cl_core_srv_draft( )->check_exists( lo_handler->mo_action->mo_app->ms_draft-id ) ).
+
+    " the next roundtrip of the same in-memory session reads
+    " check_on_init( ) = abap_false and runs as a plain event
+    CLEAR lo_handler->mo_action->ms_next.
+    lo_handler->main_loop( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `INIT|EVENT`
+                                        act = lo_app->mv_init_log ).
 
   ENDMETHOD.
 

@@ -34,6 +34,8 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
+    METHODS test_stack_leave_fresh_target FOR TESTING RAISING cx_static_check.
+    METHODS test_stack_leave_ancestor_gone FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -365,6 +367,87 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `POPOVER|destroy`
                                         act = |{ lo_result->ms_next-t_action_front[ 2 ]-slot }\|| &&
                                               |{ lo_result->ms_next-t_action_front[ 2 ]-method }| ).
+
+  ENDMETHOD.
+
+  METHOD test_stack_leave_fresh_target.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+
+    lo_http = NEW #( val = `` ).
+
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id                = `LEAVE_FRESH_CURRENT`.
+    lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_FRESH_ANCESTOR`.
+
+    " the leave target was never persisted (a fresh app instance) - no draft
+    " exists for its id, so instead of popping a level it takes over the
+    " current app's position in the stack
+    lo_action->ms_next-o_app_leave = NEW ltcl_test_app( ).
+
+    lo_result = lo_action->factory_stack_leave( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `LEAVE_FRESH_ANCESTOR`
+                                        act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
+    " the ordinary draft chain still points at the app that was left
+    cl_abap_unit_assert=>assert_equals( exp = `LEAVE_FRESH_CURRENT`
+                                        act = lo_result->mo_app->ms_draft-id_prev ).
+
+  ENDMETHOD.
+
+  METHOD test_stack_leave_ancestor_gone.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_target TYPE REF TO ltcl_test_app.
+    DATA lo_target_core TYPE REF TO z2ui5_cl_core_app.
+    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_pop TYPE REF TO z2ui5_cl_core_action.
+
+    " persist the leave target, so the fresh-target takeover is NOT taken
+    " and the stack-pop path runs
+    lo_target = NEW #( ).
+    lo_target_core = NEW #( ).
+    lo_target_core->mo_app = lo_target.
+    lo_target_core->ms_draft-id = `LEAVE_TARGET_DRAFT`.
+    lo_target_core->db_save( ).
+
+    lo_http = NEW #( val = `` ).
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `LEAVE_GONE_CURRENT`.
+    " the ancestor stack draft was purged (cleanup( ) in a long-lived
+    " session) while the leave target still exists - the guard must skip
+    " the pop instead of raising NO_DRAFT_ENTRY in read_info
+    lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_PURGED_ANCESTOR`.
+    lo_action->ms_next-o_app_leave = lo_target.
+
+    lo_result = lo_action->factory_stack_leave( ).
+
+    " back-navigation survived, and the stale ancestor id neither raised
+    " nor took the target's stack position over
+    cl_abap_unit_assert=>assert_initial( lo_result->mo_app->ms_draft-id_prev_app_stack ).
+
+    " counter-check: with the ancestor draft present the same leave pops one
+    " level - the target's stack position becomes the ancestor's ancestor
+    NEW z2ui5_cl_core_srv_draft( )->create(
+        draft     = VALUE #( id                = `LEAVE_ANCESTOR_DRAFT`
+                             id_prev_app_stack = `LEAVE_GRANDPARENT` )
+        model_xml = `<dummy/>` ).
+
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id                = `LEAVE_GONE_CURRENT2`.
+    lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_ANCESTOR_DRAFT`.
+    lo_action->ms_next-o_app_leave = lo_target.
+
+    lo_pop = lo_action->factory_stack_leave( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `LEAVE_GRANDPARENT`
+                                        act = lo_pop->mo_app->ms_draft-id_prev_app_stack ).
 
   ENDMETHOD.
 
