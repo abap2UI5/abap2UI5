@@ -123,7 +123,7 @@ sap.ui.define(
       // The shared device + message models are attached inside
       // ViewSlots.setView (the single funnel), so error paths that
       // destroy a view without reaching setView never register it.
-      ViewSlots.setView("POPUP", oFragment);
+      ViewSlots.setView("POPUP", oFragment, xml);
       oFragment.open();
     }
 
@@ -152,7 +152,7 @@ sap.ui.define(
         oFragment.destroy();
         return;
       }
-      ViewSlots.setView("POPOVER", oFragment);
+      ViewSlots.setView("POPOVER", oFragment, xml);
       // The anchor may not be in the DOM yet: a response can build the MAIN
       // view and open a popover on one of its controls in the SAME
       // roundtrip - the build is awaited, but its rendering happens later.
@@ -224,7 +224,7 @@ sap.ui.define(
         oView.destroy();
         return;
       }
-      ViewSlots.setView(slotKey, oView);
+      ViewSlots.setView(slotKey, oView, xml);
     }
 
     // Replace the main app view with the XML coming from the backend.
@@ -281,7 +281,7 @@ sap.ui.define(
         return;
       }
 
-      ViewSlots.setView("MAIN", oView);
+      ViewSlots.setView("MAIN", oView, xml);
       if (switchPath) oView.setModel(oViewModel, "http");
       AppState.state.oApp.removeAllPages();
       AppState.state.oApp.insertPage(oView);

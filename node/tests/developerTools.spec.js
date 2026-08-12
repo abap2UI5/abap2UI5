@@ -25,6 +25,7 @@ function fakeXmlView(viewContent) {
 
 function loadDeveloperTools({
   views = {},
+  slotXml = {},
   oResponse = null,
   responseData = null,
   errors,
@@ -38,7 +39,12 @@ function loadDeveloperTools({
     state: { oResponse, responseData, oBody: null, errors, lastError },
     getGlobal: () => undefined,
   };
-  const ViewSlots = { getView: (key) => views[key] };
+  // The slot registry is the developer tools' only source for what a slot
+  // holds: the live instance and the XML it was filled with.
+  const ViewSlots = {
+    getView: (key) => views[key],
+    getViewXml: (key) => slotXml[key],
+  };
   const ErrorView = {
     handleLogout: () => logoutCalls?.push(true),
     reopenErrorDialog: () => reopenCalls?.push(true),
@@ -110,40 +116,57 @@ test.describe("View tab", () => {
     expect(modelData.editor_visible).toBe(true);
   });
 
-  test("falls back to the last response XML when the view keeps none", () => {
+  test("falls back to the XML the slot was filled with", () => {
+    // A view built from a `definition` keeps no viewContent - ViewSlots
+    // recorded the source when it filled the slot.
     const { DeveloperTools } = loadDeveloperTools({
       views: { MAIN: fakeXmlView(undefined) },
-      // the XML rides on the system action that displayed the slot - a real
-      // nested array on the wire
-      oResponse: {
-        S_ACTION: {
-          T_SYSTEM: [
-            ["CONTROL_GLOBAL", "VIEW_SLOTS", "destroy", "MAIN"],
-            ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "MAIN", "<Page/>"],
-          ],
-        },
-      },
+      slotXml: { MAIN: "<Page/>" },
     });
     const { oEvent, modelData } = fakeSelectEvent("VIEW");
     DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("<Page/>");
     expect(modelData.type).toBe("xml");
   });
+});
 
-  test("still reads the stringified action form of a skewed backend", () => {
+test.describe("popup / popover tabs", () => {
+  // Regression guard: the tabs used to be derived from the last response's
+  // ["VIEW_SLOTS","display","POPUP",...] action. A frontend close
+  // (cs_event-popup_close) does no roundtrip, so that response stayed the
+  // current one and the developer tools kept showing a popup that was long
+  // destroyed. They read the slot itself now, so both close paths - the
+  // backend's destroy action and the roundtrip-free one - look the same.
+  test("show the fragment XML while the slot is filled", () => {
     const { DeveloperTools } = loadDeveloperTools({
-      views: { MAIN: fakeXmlView(undefined) },
+      views: { POPUP: fakeXmlView(undefined) },
+      slotXml: { POPUP: "<Dialog/>" },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("POPUP");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toBe("<Dialog/>");
+    expect(modelData.type).toBe("xml");
+  });
+
+  test("are empty once the slot was torn down without a roundtrip", () => {
+    // ViewSlots.destroy cleared both the live view and the recorded XML,
+    // while oResponse still carries the display action that opened it
+    const { DeveloperTools } = loadDeveloperTools({
+      views: {},
+      slotXml: {},
       oResponse: {
         S_ACTION: {
           T_SYSTEM: [
-            '["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Page/>"]',
+            ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "POPUP", "<Dialog/>"],
           ],
         },
       },
     });
-    const { oEvent, modelData } = fakeSelectEvent("VIEW");
+    const { oEvent, modelData } = fakeSelectEvent("POPUP");
     DeveloperTools.onItemSelect(oEvent);
-    expect(modelData.value).toBe("<Page/>");
+    expect(modelData.value).toBe("");
+    const exported = DeveloperTools.buildExport("");
+    expect(exported).not.toContain("POPUP");
   });
 });
 

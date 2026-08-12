@@ -133,32 +133,23 @@ sap.ui.define(
       return err.title ? `${err.title}\n\n${err.text}` : err.text;
     }
 
-    // The view XML of the last response, read back out of the system action
-    // that displayed the slot: ["VIEW_SLOTS","display","<slot>","<xml>",
-    // {options}?]. Only used as a fallback for the case where the slot
-    // holds no live view to read the content off.
-    function getResponseXml(slotKey) {
-      const systemJs = AppState.state.oResponse?.S_ACTION?.T_SYSTEM;
-      if (!systemJs) return undefined;
-      for (const item of systemJs) {
-        // a system action arrives as a real JSON array; the stringified
-        // form stays readable for a skewed backend
-        let args = item;
-        if (!Array.isArray(args)) {
-          try {
-            args = JSON.parse(item);
-          } catch {
-            continue;
-          }
-        }
-        if (!Array.isArray(args)) continue;
-        // a skewed backend may still send the CONTROL_GLOBAL-prefixed form
-        const a = args[0] === "CONTROL_GLOBAL" ? args.slice(1) : args;
-        if (a[0] === "VIEW_SLOTS" && a[1] === "display" && a[2] === slotKey) {
-          return a[3];
-        }
-      }
-      return undefined;
+    // The view XML a slot currently holds: the live view's own viewContent
+    // when UI5 kept it, else the source ViewSlots recorded when the slot was
+    // filled (a fragment or a `definition`-built view keeps none).
+    //
+    // Read from the SLOT, never from the last response: a slot lives and dies
+    // by ViewSlots.setView/destroy, and both ways of tearing one down end up
+    // there - the backend's ["VIEW_SLOTS","destroy",...] action and the
+    // roundtrip-free frontend close (cs_event-popup_close / popover_close,
+    // which the backend formats as that very same action). Scraping the last
+    // response's display action instead made the frontend close look like a
+    // popup that was still open: no roundtrip happens, so the response that
+    // opened it stayed the current one.
+    function getSlotXml(slotKey) {
+      return (
+        getViewContent(ViewSlots.getView(slotKey)) ||
+        ViewSlots.getViewXml(slotKey)
+      );
     }
 
     // Preload the sap.ui.codeeditor modules used by the fragment. On older
@@ -194,21 +185,18 @@ sap.ui.define(
     };
 
     const xmlSources = {
-      // Prefer the actual viewContent string; fall back to the XML that
-      // arrived in the last server response.
       VIEW: () => ({
-        xml:
-          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("MAIN"),
+        xml: getSlotXml("MAIN"),
         rendered: getRenderedContent(ViewSlots.getView("MAIN")),
       }),
-      POPUP: () => ({ xml: getResponseXml("POPUP") }),
-      POPOVER: () => ({ xml: getResponseXml("POPOVER") }),
+      POPUP: () => ({ xml: getSlotXml("POPUP") }),
+      POPOVER: () => ({ xml: getSlotXml("POPOVER") }),
       NEST1: () => ({
-        xml: getViewContent(ViewSlots.getView("NEST")),
+        xml: getSlotXml("NEST"),
         rendered: getRenderedContent(ViewSlots.getView("NEST")),
       }),
       NEST2: () => ({
-        xml: getViewContent(ViewSlots.getView("NEST2")),
+        xml: getSlotXml("NEST2"),
         rendered: getRenderedContent(ViewSlots.getView("NEST2")),
       }),
     };
@@ -376,10 +364,9 @@ sap.ui.define(
           "VIEW MODEL",
           json(() => jsonSources.MODEL()),
         );
-        // gate on the live slot too - the response only carries the XML in
-        // the roundtrip that opened the popup/popover, but the live model is
-        // exportable for as long as one is open
-        if (getResponseXml("POPUP") || ViewSlots.getView("POPUP")) {
+        // one gate for both slots and both close paths: the slot holds an
+        // XML for exactly as long as it is filled
+        if (getSlotXml("POPUP")) {
           push(
             "POPUP",
             xml(() => xmlSources.POPUP().xml),
@@ -389,7 +376,7 @@ sap.ui.define(
             json(() => jsonSources.POPUP_MODEL()),
           );
         }
-        if (getResponseXml("POPOVER") || ViewSlots.getView("POPOVER")) {
+        if (getSlotXml("POPOVER")) {
           push(
             "POPOVER",
             xml(() => xmlSources.POPOVER().xml),
@@ -401,13 +388,13 @@ sap.ui.define(
         }
         // the nested views carry no model tab of their own - they inherit
         // the MAIN view's model by propagation, so only the XML is shown
-        if (getViewContent(ViewSlots.getView("NEST"))) {
+        if (getSlotXml("NEST")) {
           push(
             "NEST1",
             xml(() => xmlSources.NEST1().xml),
           );
         }
-        if (getViewContent(ViewSlots.getView("NEST2"))) {
+        if (getSlotXml("NEST2")) {
           push(
             "NEST2",
             xml(() => xmlSources.NEST2().xml),
@@ -629,17 +616,13 @@ sap.ui.define(
             previousValue: value,
             isTemplating: false,
             templatingSource: false,
-            activeNest1: Boolean(getViewContent(ViewSlots.getView("NEST"))),
-            activeNest2: Boolean(getViewContent(ViewSlots.getView("NEST2"))),
-            // The response only carries the fragment XML in the roundtrip
-            // that opened the popup/popover - also check the live slot so
-            // the tabs stay usable while one is open after later roundtrips.
-            activePopup: Boolean(
-              getResponseXml("POPUP") || ViewSlots.getView("POPUP"),
-            ),
-            activePopover: Boolean(
-              getResponseXml("POPOVER") || ViewSlots.getView("POPOVER"),
-            ),
+            activeNest1: Boolean(getSlotXml("NEST")),
+            activeNest2: Boolean(getSlotXml("NEST2")),
+            // Filled for as long as the slot is - the tabs appear with the
+            // popup/popover and go with it, whether the backend tore it down
+            // or the app closed it in the browser without a roundtrip.
+            activePopup: Boolean(getSlotXml("POPUP")),
+            activePopover: Boolean(getSlotXml("POPOVER")),
             // the model tabs grey out when the slot's model holds no data
             hasViewModel: hasModelData(ViewSlots.getView("MAIN")),
             hasPopupModel: hasModelData(ViewSlots.getView("POPUP")),

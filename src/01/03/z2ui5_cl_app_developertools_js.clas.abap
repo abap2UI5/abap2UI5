@@ -160,32 +160,23 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      return err.title ? ``${err.title}\n\n${err.text}`` : err.text;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The view XML of the last response, read back out of the system action` && |\n| &&
-             `    // that displayed the slot: ["VIEW_SLOTS","display","<slot>","<xml>",` && |\n| &&
-             `    // {options}?]. Only used as a fallback for the case where the slot` && |\n| &&
-             `    // holds no live view to read the content off.` && |\n| &&
-             `    function getResponseXml(slotKey) {` && |\n| &&
-             `      const systemJs = AppState.state.oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
-             `      if (!systemJs) return undefined;` && |\n| &&
-             `      for (const item of systemJs) {` && |\n| &&
-             `        // a system action arrives as a real JSON array; the stringified` && |\n| &&
-             `        // form stays readable for a skewed backend` && |\n| &&
-             `        let args = item;` && |\n| &&
-             `        if (!Array.isArray(args)) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            args = JSON.parse(item);` && |\n| &&
-             `          } catch {` && |\n| &&
-             `            continue;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!Array.isArray(args)) continue;` && |\n| &&
-             `        // a skewed backend may still send the CONTROL_GLOBAL-prefixed form` && |\n| &&
-             `        const a = args[0] === "CONTROL_GLOBAL" ? args.slice(1) : args;` && |\n| &&
-             `        if (a[0] === "VIEW_SLOTS" && a[1] === "display" && a[2] === slotKey) {` && |\n| &&
-             `          return a[3];` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return undefined;` && |\n| &&
+             `    // The view XML a slot currently holds: the live view's own viewContent` && |\n| &&
+             `    // when UI5 kept it, else the source ViewSlots recorded when the slot was` && |\n| &&
+             `    // filled (a fragment or a ``definition``-built view keeps none).` && |\n| &&
+             `    //` && |\n| &&
+             `    // Read from the SLOT, never from the last response: a slot lives and dies` && |\n| &&
+             `    // by ViewSlots.setView/destroy, and both ways of tearing one down end up` && |\n| &&
+             `    // there - the backend's ["VIEW_SLOTS","destroy",...] action and the` && |\n| &&
+             `    // roundtrip-free frontend close (cs_event-popup_close / popover_close,` && |\n| &&
+             `    // which the backend formats as that very same action). Scraping the last` && |\n| &&
+             `    // response's display action instead made the frontend close look like a` && |\n| &&
+             `    // popup that was still open: no roundtrip happens, so the response that` && |\n| &&
+             `    // opened it stayed the current one.` && |\n| &&
+             `    function getSlotXml(slotKey) {` && |\n| &&
+             `      return (` && |\n| &&
+             `        getViewContent(ViewSlots.getView(slotKey)) ||` && |\n| &&
+             `        ViewSlots.getViewXml(slotKey)` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Preload the sap.ui.codeeditor modules used by the fragment. On older` && |\n| &&
@@ -221,21 +212,18 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    };` && |\n| &&
              `` && |\n| &&
              `    const xmlSources = {` && |\n| &&
-             `      // Prefer the actual viewContent string; fall back to the XML that` && |\n| &&
-             `      // arrived in the last server response.` && |\n| &&
              `      VIEW: () => ({` && |\n| &&
-             `        xml:` && |\n| &&
-             `          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("MAIN"),` && |\n| &&
+             `        xml: getSlotXml("MAIN"),` && |\n| &&
              `        rendered: getRenderedContent(ViewSlots.getView("MAIN")),` && |\n| &&
              `      }),` && |\n| &&
-             `      POPUP: () => ({ xml: getResponseXml("POPUP") }),` && |\n| &&
-             `      POPOVER: () => ({ xml: getResponseXml("POPOVER") }),` && |\n| &&
+             `      POPUP: () => ({ xml: getSlotXml("POPUP") }),` && |\n| &&
+             `      POPOVER: () => ({ xml: getSlotXml("POPOVER") }),` && |\n| &&
              `      NEST1: () => ({` && |\n| &&
-             `        xml: getViewContent(ViewSlots.getView("NEST")),` && |\n| &&
+             `        xml: getSlotXml("NEST"),` && |\n| &&
              `        rendered: getRenderedContent(ViewSlots.getView("NEST")),` && |\n| &&
              `      }),` && |\n| &&
              `      NEST2: () => ({` && |\n| &&
-             `        xml: getViewContent(ViewSlots.getView("NEST2")),` && |\n| &&
+             `        xml: getSlotXml("NEST2"),` && |\n| &&
              `        rendered: getRenderedContent(ViewSlots.getView("NEST2")),` && |\n| &&
              `      }),` && |\n| &&
              `    };` && |\n| &&
@@ -403,10 +391,9 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          "VIEW MODEL",` && |\n| &&
              `          json(() => jsonSources.MODEL()),` && |\n| &&
              `        );` && |\n| &&
-             `        // gate on the live slot too - the response only carries the XML in` && |\n| &&
-             `        // the roundtrip that opened the popup/popover, but the live model is` && |\n| &&
-             `        // exportable for as long as one is open` && |\n| &&
-             `        if (getResponseXml("POPUP") || ViewSlots.getView("POPUP")) {` && |\n| &&
+             `        // one gate for both slots and both close paths: the slot holds an` && |\n| &&
+             `        // XML for exactly as long as it is filled` && |\n| &&
+             `        if (getSlotXml("POPUP")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPUP",` && |\n| &&
              `            xml(() => xmlSources.POPUP().xml),` && |\n| &&
@@ -416,7 +403,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            json(() => jsonSources.POPUP_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getResponseXml("POPOVER") || ViewSlots.getView("POPOVER")) {` && |\n| &&
+             `        if (getSlotXml("POPOVER")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPOVER",` && |\n| &&
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
@@ -424,21 +411,21 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          push(` && |\n| &&
              `            "POPOVER MODEL",` && |\n| &&
              `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
-             `          );` && |\n|.
-    result = result &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `        // the nested views carry no model tab of their own - they inherit` && |\n| &&
              `        // the MAIN view's model by propagation, so only the XML is shown` && |\n| &&
-             `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n| &&
+             `        if (getSlotXml("NEST")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST1",` && |\n| &&
              `            xml(() => xmlSources.NEST1().xml),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getViewContent(ViewSlots.getView("NEST2"))) {` && |\n| &&
+             `        if (getSlotXml("NEST2")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST2",` && |\n| &&
-             `            xml(() => xmlSources.NEST2().xml),` && |\n| &&
+             `            xml(() => xmlSources.NEST2().xml),` && |\n|.
+    result = result &&
              `          );` && |\n| &&
              `        }` && |\n| &&
              `        return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
@@ -657,17 +644,13 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            previousValue: value,` && |\n| &&
              `            isTemplating: false,` && |\n| &&
              `            templatingSource: false,` && |\n| &&
-             `            activeNest1: Boolean(getViewContent(ViewSlots.getView("NEST"))),` && |\n| &&
-             `            activeNest2: Boolean(getViewContent(ViewSlots.getView("NEST2"))),` && |\n| &&
-             `            // The response only carries the fragment XML in the roundtrip` && |\n| &&
-             `            // that opened the popup/popover - also check the live slot so` && |\n| &&
-             `            // the tabs stay usable while one is open after later roundtrips.` && |\n| &&
-             `            activePopup: Boolean(` && |\n| &&
-             `              getResponseXml("POPUP") || ViewSlots.getView("POPUP"),` && |\n| &&
-             `            ),` && |\n| &&
-             `            activePopover: Boolean(` && |\n| &&
-             `              getResponseXml("POPOVER") || ViewSlots.getView("POPOVER"),` && |\n| &&
-             `            ),` && |\n| &&
+             `            activeNest1: Boolean(getSlotXml("NEST")),` && |\n| &&
+             `            activeNest2: Boolean(getSlotXml("NEST2")),` && |\n| &&
+             `            // Filled for as long as the slot is - the tabs appear with the` && |\n| &&
+             `            // popup/popover and go with it, whether the backend tore it down` && |\n| &&
+             `            // or the app closed it in the browser without a roundtrip.` && |\n| &&
+             `            activePopup: Boolean(getSlotXml("POPUP")),` && |\n| &&
+             `            activePopover: Boolean(getSlotXml("POPOVER")),` && |\n| &&
              `            // the model tabs grey out when the slot's model holds no data` && |\n| &&
              `            hasViewModel: hasModelData(ViewSlots.getView("MAIN")),` && |\n| &&
              `            hasPopupModel: hasModelData(ViewSlots.getView("POPUP")),` && |\n| &&

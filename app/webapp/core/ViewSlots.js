@@ -72,11 +72,31 @@ sap.ui.define(
       return slot ? AppState.state[slot.prop] : undefined;
     }
 
-    function setView(key, view) {
+    // Fill a slot. `xml` is the view XML the slot was built from; it is
+    // recorded next to the live instance because neither a Fragment nor an
+    // XMLView created from a `definition` keeps its source (mProperties.
+    // viewContent stays empty), and the developer tools have no other way
+    // back to it. Recorded HERE and dropped in destroy(), so the record
+    // follows the slot itself - not the response that happened to fill it.
+    function setView(key, view, xml) {
       const slot = byKey(key);
       if (!slot) return;
       AppState.state[slot.prop] = view;
+      slotXmlStore()[key] = xml;
       attachSharedModels(view);
+    }
+
+    // The XML a slot currently holds, undefined once it was torn down.
+    function getViewXml(key) {
+      return slotXmlStore()[key];
+    }
+
+    // The record lives on AppState (so an app restart resets it with
+    // everything else); create it on first use so a state object that
+    // predates the field still works.
+    function slotXmlStore() {
+      if (!AppState.state.slotXml) AppState.state.slotXml = {};
+      return AppState.state.slotXml;
     }
 
     // Attach the models every slot shares: the one device model (created
@@ -182,6 +202,12 @@ sap.ui.define(
       // symmetric to attachSharedModels and clears a stale nest reference
       // even when MAIN itself is already gone.
       for (const dep of slot.dependentSlots ?? []) destroy(dep);
+      // Drop the recorded XML BEFORE the empty-slot exit below: a slot whose
+      // live instance is already gone (an app restart reset AppState, a
+      // fragment load that failed after recording) must not keep a stale
+      // source behind - the developer tools read "is this slot filled" off
+      // this record.
+      delete slotXmlStore()[key];
       const view = AppState.state[slot.prop];
       if (!view) return;
       if (slot.fragmentId) {
@@ -212,6 +238,7 @@ sap.ui.define(
     return {
       slots,
       getView,
+      getViewXml,
       setView,
       getController,
       keyOfController,

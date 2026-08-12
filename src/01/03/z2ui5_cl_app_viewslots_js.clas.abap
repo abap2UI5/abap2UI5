@@ -99,11 +99,31 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      return slot ? AppState.state[slot.prop] : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function setView(key, view) {` && |\n| &&
+             `    // Fill a slot. ``xml`` is the view XML the slot was built from; it is` && |\n| &&
+             `    // recorded next to the live instance because neither a Fragment nor an` && |\n| &&
+             `    // XMLView created from a ``definition`` keeps its source (mProperties.` && |\n| &&
+             `    // viewContent stays empty), and the developer tools have no other way` && |\n| &&
+             `    // back to it. Recorded HERE and dropped in destroy(), so the record` && |\n| &&
+             `    // follows the slot itself - not the response that happened to fill it.` && |\n| &&
+             `    function setView(key, view, xml) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      if (!slot) return;` && |\n| &&
              `      AppState.state[slot.prop] = view;` && |\n| &&
+             `      slotXmlStore()[key] = xml;` && |\n| &&
              `      attachSharedModels(view);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The XML a slot currently holds, undefined once it was torn down.` && |\n| &&
+             `    function getViewXml(key) {` && |\n| &&
+             `      return slotXmlStore()[key];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The record lives on AppState (so an app restart resets it with` && |\n| &&
+             `    // everything else); create it on first use so a state object that` && |\n| &&
+             `    // predates the field still works.` && |\n| &&
+             `    function slotXmlStore() {` && |\n| &&
+             `      if (!AppState.state.slotXml) AppState.state.slotXml = {};` && |\n| &&
+             `      return AppState.state.slotXml;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Attach the models every slot shares: the one device model (created` && |\n| &&
@@ -209,6 +229,12 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      // symmetric to attachSharedModels and clears a stale nest reference` && |\n| &&
              `      // even when MAIN itself is already gone.` && |\n| &&
              `      for (const dep of slot.dependentSlots ?? []) destroy(dep);` && |\n| &&
+             `      // Drop the recorded XML BEFORE the empty-slot exit below: a slot whose` && |\n| &&
+             `      // live instance is already gone (an app restart reset AppState, a` && |\n| &&
+             `      // fragment load that failed after recording) must not keep a stale` && |\n| &&
+             `      // source behind - the developer tools read "is this slot filled" off` && |\n| &&
+             `      // this record.` && |\n| &&
+             `      delete slotXmlStore()[key];` && |\n| &&
              `      const view = AppState.state[slot.prop];` && |\n| &&
              `      if (!view) return;` && |\n| &&
              `      if (slot.fragmentId) {` && |\n| &&
@@ -239,6 +265,7 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `    return {` && |\n| &&
              `      slots,` && |\n| &&
              `      getView,` && |\n| &&
+             `      getViewXml,` && |\n| &&
              `      setView,` && |\n| &&
              `      getController,` && |\n| &&
              `      keyOfController,` && |\n| &&

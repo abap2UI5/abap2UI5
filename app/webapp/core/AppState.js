@@ -48,6 +48,14 @@
 //   oOwnerComponent, oDeviceModel (Component / App.controller)
 //   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
 //                     the five view slots, written by ViewSlots.setView
+//   slotXml           the view XML each slot was filled with, per slot key -
+//                     recorded by ViewSlots.setView and dropped by
+//                     ViewSlots.destroy, so it tracks the slot itself no
+//                     matter who tore it down (backend action or a
+//                     roundtrip-free frontend close). The developer tools
+//                     read a slot's source from here: a fragment or a view
+//                     built from a `definition` keeps no viewContent of its
+//                     own
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
 //   oControllerPopover  controller instance per slot (App.controller)
 //   oLaunchpad        FLP services when running inside the launchpad, else
@@ -115,6 +123,7 @@ sap.ui.define([], () => {
       oControllerNest2: null,
       oControllerPopup: null,
       oControllerPopover: null,
+      slotXml: {},
       oLaunchpad: null,
 
       // Roundtrip state
