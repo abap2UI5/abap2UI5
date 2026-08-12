@@ -102,7 +102,7 @@ CLASS zcl_my_app IMPLEMENTATION.
 
   METHOD on_event.
 
-    CASE client->get( )-event.
+    CASE client->get_event( ).
       WHEN `SAVE`.
         " bound data (name, t_items) already carries the user's input here,
         " and the changed model is pushed back automatically
@@ -122,7 +122,7 @@ ENDCLASS.
 Conventions that keep apps uniform (proven in the samples-controls corpus):
 `main` is a pure dispatcher; methods follow in call order with `model_init`
 last; add `model_init`/`on_event` only when the app has data/events; always
-dispatch events with `CASE client->get( )-event.` even for a single event.
+dispatch events with `CASE client->get_event( ).` even for a single event.
 **The `check_on_navigated( )` branch is part of the canonical dispatcher, not
 an option**: without it the view is only ever built on `check_on_init`, so
 navigating away (`nav_app_call`) and back leaves the app blank — the
@@ -220,7 +220,7 @@ ships for existing apps but is **frozen** — new apps and new code use
 ## 5. Events
 
 - Wire: `)->a( n = `press` v = client->_event( `SAVE` ) )`.
-- Read in `on_event` via `CASE client->get( )-event.`.
+- Read in `on_event` via `CASE client->get_event( ).`.
 - **Pass values into an event** with `t_arg`; read them back with
   `client->get_event_arg( )` (index only for position 2+). A value resolved
   on the client must be `$`-prefixed — `` `${PRODUCT}` `` (row field),

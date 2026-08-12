@@ -67,6 +67,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_nav_leave_r_data_unbound FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
     METHODS test_set_push_state       FOR TESTING RAISING cx_static_check.
+    METHODS test_get_event            FOR TESTING RAISING cx_static_check.
     METHODS test_get_event_arg        FOR TESTING RAISING cx_static_check.
     METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
@@ -754,6 +755,20 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `mystate`
                                         act = mo_action->ms_next-s_nav-set_push_state ).
+
+  ENDMETHOD.
+
+
+  METHOD test_get_event.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    mo_action->ms_actual-event = `BUTTON_PRESS`.
+
+    li_client ?= mo_client.
+
+    cl_abap_unit_assert=>assert_equals( exp = `BUTTON_PRESS`
+                                        act = li_client->get_event( ) ).
 
   ENDMETHOD.
 

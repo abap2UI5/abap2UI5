@@ -211,6 +211,13 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE z2ui5_if_types=>ty_s_get.
 
+  "! The name of the event that triggered this roundtrip - empty when no
+  "! event is being handled (e.g. on the initial call). Shortcut for
+  "! get( )-event, made for the dispatcher idiom CASE client->get_event( ).
+  METHODS get_event
+    RETURNING
+      VALUE(result) TYPE string.
+
   METHODS get_event_arg
     IMPORTING
       v             TYPE i DEFAULT 1

@@ -154,6 +154,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~get_event.
+
+    result = mo_action->ms_actual-event.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~get_event_arg.
 
     TRY.
