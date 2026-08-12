@@ -87,7 +87,10 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     onBeforeRoundtrip hooks and the developer tools` && |\n| &&
              `//                     (View1.eB / Server)` && |\n| &&
              `//   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL,` && |\n| &&
-             `//                     APP }` && |\n| &&
+             `//                     APP, MODELPRESENT }` && |\n| &&
+             `//   renderedApp       class name of the last rendered app - an APP switch in` && |\n| &&
+             `//                     a response tears the standalone slots down implicitly` && |\n| &&
+             `//                     (View1._processAfterRendering)` && |\n| &&
              `//   responseData      raw parsed response JSON (Server.readHttp); kept` && |\n| &&
              `//                     besides oResponse because the developer tools render` && |\n| &&
              `//                     the raw payload` && |\n| &&
