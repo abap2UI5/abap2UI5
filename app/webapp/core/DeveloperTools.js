@@ -15,13 +15,8 @@ sap.ui.define(
     // used to resolve controls by their id instead of by content position.
     const FRAGMENT_ID = "z2ui5DeveloperTools";
 
-    // toJson() pretty-prints with this many spaces per nesting level, so a
-    // line's leading-space count divided by it gives that line's JSON depth.
+    // toJson() pretty-prints with this many spaces per nesting level.
     const INDENT_UNIT = 3;
-
-    // The System tab shows the whole (deeply nested) z2ui5 global; open only
-    // the first two levels so it is readable - the rest can be unfolded by
-    // hand in the editor.
 
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.
@@ -188,11 +183,6 @@ sap.ui.define(
     // (the latter optionally with the rendered DOM for the templating
     // toggle). The "SOURCE" entry is handled separately in onItemSelect.
     const jsonSources = {
-      // The whole public z2ui5 global facade (oConfig, url, checkLocal,
-      // Util, app-registered members, ...). Read directly here on purpose:
-      // this is the developer tools inspector, whose job is to surface the live global
-      // as-is - functions drop out under JSON.stringify, which is fine.
-      // ui5lint-disable-next-line no-project-globals -- see reason above
       MODEL: () => getModelJson(ViewSlots.getView("MAIN")),
       PLAIN: () => AppState.state.responseData,
       REQUEST: () => AppState.state.oBody,
@@ -324,13 +314,13 @@ sap.ui.define(
       // blob so it can be copied elsewhere in one go. XML tabs are
       // pretty-printed, JSON tabs serialized; empty / inactive sections are
       // skipped. Every source is guarded (a throwing one can never blank the
-      // whole export) and each section is capped, because the SYSTEM global can
-      // serialize to several MB - a value that large blanks a sap.m.TextArea.
+      // whole export) and each section is capped - a value that large blanks
+      // a sap.m.TextArea.
       // `abapSource` is the running app's ABAP class source, fetched
       // asynchronously by onExport (empty when it could not be retrieved).
       buildExport(abapSource) {
-        // Max characters per section; long ones (mainly SYSTEM) are truncated
-        // so the popup's TextArea still renders.
+        // Max characters per section; long ones are truncated so the
+        // popup's TextArea still renders.
         const MAX_SECTION = 100000;
         const sections = [];
         const push = (title, content) => {
@@ -662,7 +652,7 @@ sap.ui.define(
           // Render the requested tab's content (the default "PLAIN" already
           // matches the JSON response seeded above, so only re-render when a
           // specific tab was asked for).
-          if (initialTab && selectedTab !== "PLAIN") {
+          if (selectedTab !== "PLAIN") {
             this.renderTab(selectedTab, oModel);
           }
           oDialog.open();

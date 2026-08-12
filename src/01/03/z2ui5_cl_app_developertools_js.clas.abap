@@ -42,13 +42,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    // used to resolve controls by their id instead of by content position.` && |\n| &&
              `    const FRAGMENT_ID = "z2ui5DeveloperTools";` && |\n| &&
              `` && |\n| &&
-             `    // toJson() pretty-prints with this many spaces per nesting level, so a` && |\n| &&
-             `    // line's leading-space count divided by it gives that line's JSON depth.` && |\n| &&
+             `    // toJson() pretty-prints with this many spaces per nesting level.` && |\n| &&
              `    const INDENT_UNIT = 3;` && |\n| &&
-             `` && |\n| &&
-             `    // The System tab shows the whole (deeply nested) z2ui5 global; open only` && |\n| &&
-             `    // the first two levels so it is readable - the rest can be unfolded by` && |\n| &&
-             `    // hand in the editor.` && |\n| &&
              `` && |\n| &&
              `    // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
@@ -215,11 +210,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    // (the latter optionally with the rendered DOM for the templating` && |\n| &&
              `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
              `    const jsonSources = {` && |\n| &&
-             `      // The whole public z2ui5 global facade (oConfig, url, checkLocal,` && |\n| &&
-             `      // Util, app-registered members, ...). Read directly here on purpose:` && |\n| &&
-             `      // this is the developer tools inspector, whose job is to surface the live global` && |\n| &&
-             `      // as-is - functions drop out under JSON.stringify, which is fine.` && |\n| &&
-             `      // ui5lint-disable-next-line no-project-globals -- see reason above` && |\n| &&
              `      MODEL: () => getModelJson(ViewSlots.getView("MAIN")),` && |\n| &&
              `      PLAIN: () => AppState.state.responseData,` && |\n| &&
              `      REQUEST: () => AppState.state.oBody,` && |\n| &&
@@ -351,13 +341,13 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // blob so it can be copied elsewhere in one go. XML tabs are` && |\n| &&
              `      // pretty-printed, JSON tabs serialized; empty / inactive sections are` && |\n| &&
              `      // skipped. Every source is guarded (a throwing one can never blank the` && |\n| &&
-             `      // whole export) and each section is capped, because the SYSTEM global can` && |\n| &&
-             `      // serialize to several MB - a value that large blanks a sap.m.TextArea.` && |\n| &&
+             `      // whole export) and each section is capped - a value that large blanks` && |\n| &&
+             `      // a sap.m.TextArea.` && |\n| &&
              `      // ``abapSource`` is the running app's ABAP class source, fetched` && |\n| &&
              `      // asynchronously by onExport (empty when it could not be retrieved).` && |\n| &&
              `      buildExport(abapSource) {` && |\n| &&
-             `        // Max characters per section; long ones (mainly SYSTEM) are truncated` && |\n| &&
-             `        // so the popup's TextArea still renders.` && |\n| &&
+             `        // Max characters per section; long ones are truncated so the` && |\n| &&
+             `        // popup's TextArea still renders.` && |\n| &&
              `        const MAX_SECTION = 100000;` && |\n| &&
              `        const sections = [];` && |\n| &&
              `        const push = (title, content) => {` && |\n| &&
@@ -424,8 +414,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          push(` && |\n| &&
              `            "POPUP MODEL",` && |\n| &&
              `            json(() => jsonSources.POPUP_MODEL()),` && |\n| &&
-             `          );` && |\n|.
-    result = result &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `        if (getResponseXml("POPOVER") || ViewSlots.getView("POPOVER")) {` && |\n| &&
              `          push(` && |\n| &&
@@ -435,7 +424,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          push(` && |\n| &&
              `            "POPOVER MODEL",` && |\n| &&
              `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
-             `          );` && |\n| &&
+             `          );` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        // the nested views carry no model tab of their own - they inherit` && |\n| &&
              `        // the MAIN view's model by propagation, so only the XML is shown` && |\n| &&
@@ -690,7 +680,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          // Render the requested tab's content (the default "PLAIN" already` && |\n| &&
              `          // matches the JSON response seeded above, so only re-render when a` && |\n| &&
              `          // specific tab was asked for).` && |\n| &&
-             `          if (initialTab && selectedTab !== "PLAIN") {` && |\n| &&
+             `          if (selectedTab !== "PLAIN") {` && |\n| &&
              `            this.renderTab(selectedTab, oModel);` && |\n| &&
              `          }` && |\n| &&
              `          oDialog.open();` && |\n| &&

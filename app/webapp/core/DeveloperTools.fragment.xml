@@ -26,7 +26,6 @@
                 <IconTabFilter
                     text="Previous Request"
                     key="REQUEST"
-                    enabled="true"
                 />
                 <IconTabFilter
                     text="Response"

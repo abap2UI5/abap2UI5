@@ -53,7 +53,6 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Previous Request"` &&
              `                    key="REQUEST"` &&
-             `                    enabled="true"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Response"` &&
