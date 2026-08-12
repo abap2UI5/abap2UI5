@@ -12,6 +12,10 @@ Legend
 
 unreleased
 ----------
+! framework actions travel without the CONTROL_GLOBAL dispatch prefix -
+  internal only: a backend-built action is ["VIEW_SLOTS","display",...],
+  and the frontend dispatches every whitelisted global target by its own
+  name (the prefixed eF( ) form stays accepted for apps and skew)
 ! the wire sheds its derivable bytes - internal only: a MODEL key in the
   response IS the model push (no updateModel action travels; the frontend
   pushes into every open slot when a model arrived), the routing mode is

@@ -54,7 +54,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     " every one of its own defaults
     mo_cut->msg_toast( `Saved` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved"]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -68,7 +68,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
                                              my       = `center center`
                                              class    = `myCls` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved",{"class":"myCls","duration":250,"my":"center center"}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"class":"myCls","duration":250,"my":"center center"}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -80,7 +80,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_toast( text                           = `Saved`
                                              duration = `abc` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved"]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -91,7 +91,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_toast( text                            = `Saved`
                                              autoclose = abap_false ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved",{"autoClose":false}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"autoClose":false}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -102,7 +102,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     " to show( ) with the Information title
     mo_cut->msg_box( `Hello` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","show","Hello",{"title":"Information"}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","show","Hello",{"title":"Information"}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -113,7 +113,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
                                            type    = `Confirm`
                                            onclose = `ANSWERED` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","Delete?",{"onClose":"ANSWERED"}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","confirm","Delete?",{"onClose":"ANSWERED"}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -126,7 +126,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_box( text                       = `Boom`
                                            type = `garbage` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","show","Boom"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","show","Boom"]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -139,7 +139,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
                                            type = `error`
                                            icon = `NONE` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Boom"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","error","Boom"]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -150,7 +150,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
                                            type    = `confirm`
                                            actions = VALUE #( ( `OK` ) ( `CANCEL` ) ) ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","Delete?",{"actions":["OK","CANCEL"]}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","confirm","Delete?",{"actions":["OK","CANCEL"]}]`
                                         act = queued( ) ).
 
   ENDMETHOD.

@@ -607,7 +607,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_js ) ).
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Second/>"]`
+        exp = `["VIEW_SLOTS","display","MAIN","<Second/>"]`
         act = lt_js[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
@@ -645,7 +645,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     LOOP AT val->mo_action->ms_next-s_action-t_system INTO DATA(ls_queued).
       DATA(lv_js) = ls_queued-o_json->stringify( ).
       SPLIT lv_js AT `","` INTO TABLE DATA(lt_part).
-      DATA(lv_slot) = replace( val  = VALUE string( lt_part[ 4 ] OPTIONAL )
+      DATA(lv_slot) = replace( val  = VALUE string( lt_part[ 3 ] OPTIONAL )
                                sub  = `"]`
                                with = `` ).
       IF result CS lv_slot.

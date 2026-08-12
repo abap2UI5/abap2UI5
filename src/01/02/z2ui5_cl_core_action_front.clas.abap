@@ -119,10 +119,13 @@ CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
     DATA mo_action    TYPE REF TO z2ui5_cl_core_action.
     DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
 
-    "! Build one framework action as its JSON array: [ CONTROL_GLOBAL,
-    "! t_arg..., opt? ]. The options ride as the last argument and only when
-    "! one was set at all - an absent object lets the frontend apply the
-    "! control's own defaults for everything.
+    "! Build one framework action as its JSON array: [ t_arg..., opt? ].
+    "! The first argument is the whitelisted global target (VIEW_SLOTS,
+    "! MESSAGE_TOAST, ROUTER, ...), which the frontend dispatches directly -
+    "! the CONTROL_GLOBAL prefix of the eF( ) form is a dispatch constant,
+    "! not information, so it does not travel. The options ride as the last
+    "! argument and only when one was set at all - an absent object lets the
+    "! frontend apply the control's own defaults for everything.
     METHODS build_global_call
       IMPORTING
         t_arg         TYPE string_table
@@ -213,8 +216,6 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     TRY.
         result = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
         result->touch_array( `/` ).
-        result->push( iv_path = `/`
-                      iv_val  = z2ui5_if_client=>cs_event-control_global ).
         " REFERENCE INTO - an argument can be a whole view XML
         LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
           result->push( iv_path = `/`

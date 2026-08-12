@@ -927,6 +927,17 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      BINDING_CALL: evBindingCall,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    // Every whitelisted global target is dispatchable by its own name too:` && |\n| &&
+             `    // a backend-built action travels as ["VIEW_SLOTS","display",...] - the` && |\n| &&
+             `    // CONTROL_GLOBAL prefix of the eF( ) form is a dispatch constant, not` && |\n| &&
+             `    // information, so the wire drops it. The alias re-prepends it, so both` && |\n| &&
+             `    // forms share one execution path (and the prefixed form stays accepted` && |\n| &&
+             `    // for apps and skewed backends).` && |\n| &&
+             `    for (const name of Object.keys(GLOBAL_TARGETS)) {` && |\n| &&
+             `      handlers[name] = (oController, args, ctx) =>` && |\n| &&
+             `        evControlCall(oController, ["CONTROL_GLOBAL", ...args], ctx);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return { handlers };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

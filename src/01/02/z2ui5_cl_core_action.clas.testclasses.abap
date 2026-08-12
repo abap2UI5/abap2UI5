@@ -111,7 +111,7 @@ CLASS ltcl_test IMPLEMENTATION.
         exp = 1
         act = lines( lo_result->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_char_cp(
-        exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Bookmarked app state expired*`
+        exp = `["MESSAGE_TOAST","show","Bookmarked app state expired*`
         act = lo_result->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.

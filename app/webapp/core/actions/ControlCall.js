@@ -898,6 +898,17 @@ sap.ui.define(
       BINDING_CALL: evBindingCall,
     };
 
+    // Every whitelisted global target is dispatchable by its own name too:
+    // a backend-built action travels as ["VIEW_SLOTS","display",...] - the
+    // CONTROL_GLOBAL prefix of the eF( ) form is a dispatch constant, not
+    // information, so the wire drops it. The alias re-prepends it, so both
+    // forms share one execution path (and the prefixed form stays accepted
+    // for apps and skewed backends).
+    for (const name of Object.keys(GLOBAL_TARGETS)) {
+      handlers[name] = (oController, args, ctx) =>
+        evControlCall(oController, ["CONTROL_GLOBAL", ...args], ctx);
+    }
+
     return { handlers };
   },
 );

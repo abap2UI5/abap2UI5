@@ -349,7 +349,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->message_box_display( `Hello World` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
+        exp = `["MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
@@ -365,7 +365,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                     type = `error` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Error occurred"]`
+        exp = `["MESSAGE_BOX","error","Error occurred"]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
@@ -383,7 +383,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                     contentwidth = `20rem` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
+        exp = `["MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
               `{"contentWidth":"20rem","dependentOn":"myPage"}]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
@@ -399,7 +399,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->message_toast_display( `Saved` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved"]`
+        exp = `["MESSAGE_TOAST","show","Saved"]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
@@ -512,6 +512,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
+    " the eF( ) form KEEPS its CONTROL_GLOBAL prefix - only the framework's
+    " own build_global_call drops the dispatch constant from the wire
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Hello"]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
