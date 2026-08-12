@@ -15,12 +15,12 @@
 </p>
 
 <p align="center">
-  <a href="https://abap2UI5.org">📚 Documentation</a> •
-  <a href="#learn-abap2ui5">🎯 Samples (580+ apps)</a> •
-  <a href="https://github.com/abap2UI5/abap2UI5/issues">💬 Issues</a> •
-  <a href="https://www.linkedin.com/company/abap2ui5">🔗 LinkedIn</a> •
-  <a href="https://communityinviter.com/apps/abapgit/abap">👥 Slack</a> •
-  <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">💖 Sponsor</a>
+  <a href="https://abap2UI5.org">Documentation</a> •
+  <a href="#learn-abap2ui5">Samples (580+ apps)</a> •
+  <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
+  <a href="https://www.linkedin.com/company/abap2ui5">LinkedIn</a> •
+  <a href="https://communityinviter.com/apps/abapgit/abap">Slack</a> •
+  <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
 </p>
 
 #### Key Features
@@ -91,15 +91,15 @@ The same protocol also carries popups, navigation, messages, and frontend action
 
 #### Learn abap2UI5
 
-Three sample repositories, one learning path – from your first app to your full stack:
+Three sample repositories accompany the framework. They build on each other – from the first app to full-stack integration:
 
-|      | Repository | What you learn |
-|------|------------|----------------|
-| 1️⃣ | [**samples**](https://github.com/abap2UI5/samples) | **the abap2UI5 basics** – bindings, events, popups, navigation, complete apps |
-| 2️⃣ | [**samples-controls**](https://github.com/abap2UI5/samples-controls) | **how to use every UI5 control** – the UI5 Demo Kit rebuilt with abap2UI5 |
-| 3️⃣ | [**samples-stack**](https://github.com/abap2UI5/samples-stack) | **how abap2UI5 plays with your stack** – OData, RAP, WebSockets, the Fiori Launchpad and more |
+| Repository | Content |
+|------------|---------|
+| [samples](https://github.com/abap2UI5/samples) | Fundamentals – data binding, events, popups, navigation, and complete example apps |
+| [samples-controls](https://github.com/abap2UI5/samples-controls) | The full UI5 control set – the UI5 Demo Kit rebuilt with abap2UI5 |
+| [samples-stack](https://github.com/abap2UI5/samples-stack) | Integration scenarios – OData, RAP, WebSockets, and the Fiori Launchpad |
 
-Every repository ships ready-to-run apps – install with abapGit, click through, read the source.
+All samples are ready to run – install them with abapGit and explore the source code.
 
 #### References
 * Fiori-type Apps built 100% with ABAP [(Logali Group - 23.04.2026)](https://logaligroup.com/magia-en-el-servidor-local-apps-tipo-fiori-creadas-100-con-codigo-abap/)
@@ -126,7 +126,7 @@ Every repository ships ready-to-run apps – install with abapGit, click through
 </details>
 
 #### Credits
-This project thrives thanks to its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and these awesome tools:
+This project thrives thanks to its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and these outstanding open-source projects:
 * Code versioning & distribution via [abapGit](https://abapgit.org/) [(contributors)](https://abapgit.org/sponsor.html)
 * Static Code Checks via [abaplint](https://abaplint.org/) [(contributors)](https://github.com/abaplint/abaplint/graphs/contributors)
 * Unit Testing via [open-abap](https://github.com/open-abap) [(contributors)](https://github.com/open-abap/open-abap-core/graphs/contributors)
@@ -140,17 +140,17 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 * Code cleanup with [ABAP Cleaner](https://github.com/SAP/abap-cleaner) [(contributors)](https://github.com/SAP/abap-cleaner/graphs/contributors)
 * Documentation created with [VitePress](https://vitepress.dev/) [(contributors)](https://github.com/vuejs/vitepress/graphs/contributors)
 
-#### AI assistants
+#### AI Assistants
 * [app-template](https://github.com/abap2UI5/app-template) - Starter repo for **new app projects**: gates, CI and agent setup preconfigured
 * [docs/agents/building-apps.md](docs/agents/building-apps.md) - Self-contained agent guide for **building apps** with abap2UI5
 * [AGENTS.md](AGENTS.md) - The briefing for AI assistants working **on the framework** itself
 * [llms.txt](llms.txt) - Index of both entry points and the surrounding tooling (linter, MCP server, samples)
 
-#### Get involved
+#### Get Involved
 We welcome all contributions! Here's how you can help:
 * [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report issues and provide feedback
 * [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Contribute code and documentation
 * [LinkedIn](https://www.linkedin.com/company/abap2ui5) - Follow abap2UI5 for updates and community highlights
 * [Sponsor](https://abap2ui5.github.io/docs/resources/sponsor.html) - Sponsor our work to support ongoing innovation
 
-_Share your knowledge, hunt for bugs, submit a PR, write a comment, give us a ⭐, or tell your friends about abap2UI5. Every contribution counts!_ 🙏
+_Share your knowledge, hunt for bugs, submit a PR, give us a ⭐, or tell your colleagues about abap2UI5. Every contribution counts!_
