@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://abap2UI5.org">📚 Documentation</a> •
-  <a href="https://github.com/abap2UI5/samples">🎯 Samples (350+ apps)</a> •
+  <a href="#learn-abap2ui5">🎯 Samples (580+ apps)</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">💬 Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">🔗 LinkedIn</a> •
   <a href="https://communityinviter.com/apps/abapgit/abap">👥 Slack</a> •
@@ -45,6 +45,18 @@ ENDCLASS.
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
 No system at hand? [**Try abap2UI5 live in your browser**](https://abap2ui5.github.io/web-abap2UI5-build/) – the whole framework runs client-side (transpiled ABAP + sql.js), rebuilt daily from this repo by [web-abap2UI5](https://github.com/abap2UI5/web-abap2UI5).
+
+#### Learn abap2UI5
+
+Three sample repositories, one learning path – from your first app to your full stack:
+
+|      | Repository | What you learn | Where to start |
+|------|------------|----------------|----------------|
+| 1️⃣ | [**samples**](https://github.com/abap2UI5/samples) | **the abap2UI5 basics** – bindings, events, popups, navigation, complete apps | run `Z2UI5_CL_SMP_APP_000` |
+| 2️⃣ | [**samples-controls**](https://github.com/abap2UI5/samples-controls) | **how to use every UI5 control** – the UI5 Demo Kit rebuilt with abap2UI5 | run `z2ui5_cl_dmo_app_overview` |
+| 3️⃣ | [**samples-stack**](https://github.com/abap2UI5/samples-stack) | **how abap2UI5 plays with your stack** – OData, RAP, WebSockets, the Fiori Launchpad and more | pick your technology in its package table |
+
+Every repository ships ready-to-run apps – install with abapGit, click through, read the source.
 
 #### How It Works
 
