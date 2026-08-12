@@ -78,8 +78,8 @@ sap.ui.define(
     //           // roundtrip carries nav intent - View1 syncs the URL once
     //           // per response either way
     //           "T_SYSTEM": [
-    //             ["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"],
-    //             ["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]
+    //             ["VIEW_SLOTS","destroy","POPUP"],
+    //             ["VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]
     //           ],
     //           // APP: what the app queued, run last, once the DOM exists.
     //           // A legacy app-authored raw-JS snippet stays a string entry.
@@ -367,6 +367,10 @@ sap.ui.define(
 
           // Step 4: hand the parsed response to the success handler.
           AppState.state.responseData = responseData;
+          // This request won, so the session block / live device values it
+          // carried have reached the backend - only now do the send latches
+          // advance (core/Session.js). A dropped request re-sends instead.
+          Session.confirmSent();
           // This request won (it passed the stale guard above), so the edits
           // it carried have reached the backend - clear exactly the model it
           // shipped. A stale response returns before this point and clears

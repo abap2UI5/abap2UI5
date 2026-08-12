@@ -52,6 +52,7 @@ function load() {
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
       "z2ui5/core/Lib": { isValidContextId: () => false },
+      "z2ui5/core/Session": { confirmSent: () => {} },
       "z2ui5/core/AppState": appState,
     },
     sandbox: {

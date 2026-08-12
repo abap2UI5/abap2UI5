@@ -62,23 +62,38 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   // value with the draft and treats an absent field as "unchanged".
   let liveSent = "";
 
+  // What the request being BUILT carries. The latches above only advance in
+  // confirmSent( ), once that request won its stale guard (Server.readHttp)
+  // - a request may be aborted or superseded, and a latch advanced at build
+  // time would mark a value as known to the backend that never arrived
+  // there. Same protocol as the model delta's changed-paths clear.
+  let pending = null;
+
   function config(oConfig) {
     const live = getDeviceLive();
     const liveKey = JSON.stringify(live);
     if (sessionConfigSent) {
-      if (liveKey === liveSent) return {};
-      liveSent = liveKey;
+      if (liveKey === liveSent) {
+        pending = null;
+        return {};
+      }
+      pending = { live: liveKey };
       return { S_DEVICE: live };
     }
-    if (oConfig?.S_UI5) {
-      sessionConfigSent = true;
-      liveSent = liveKey;
-    }
+    pending = { config: Boolean(oConfig?.S_UI5), live: liveKey };
     return {
       S_UI5: oConfig?.S_UI5,
       ComponentData: oConfig?.ComponentData,
       S_DEVICE: { ...getDeviceStatic(), ...live },
     };
+  }
+
+  // The carrying request won - what it carried is now known to the backend.
+  function confirmSent() {
+    if (!pending) return;
+    if (pending.config) sessionConfigSent = true;
+    liveSent = pending.live;
+    pending = null;
   }
 
   // The page location (origin, pathname, query) is session-constant like
@@ -101,5 +116,5 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
     };
   }
 
-  return { config, location };
+  return { config, confirmSent, location };
 });

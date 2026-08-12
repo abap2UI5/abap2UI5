@@ -166,3 +166,69 @@ test.describe("textPath (ancestor-text breadcrumb)", () => {
     );
   });
 });
+
+test.describe("_processAfterRendering (action-free responses)", () => {
+  // With the ROUTER and updateModel actions derived/gated away, a response
+  // without any action is the COMMON case - it must still get its model
+  // push, its hash sync and the after-render hooks.
+  function loadForAfterRendering() {
+    const pushes = [];
+    const syncs = [];
+    const hooks = [];
+    const state = { onAfterRendering: [() => hooks.push("ran")] };
+    const { module: ctrl } = loadModule("controller/View1.controller.js", {
+      deps: {
+        "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
+        "sap/ui/core/BusyIndicator": { hide: () => {} },
+        "sap/m/MessageBox": {},
+        "z2ui5/core/Server": { _requestSeq: 1, responseError: () => {} },
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          runCallbacks: (arr) => (arr || []).forEach((f) => f()),
+          logError: () => {},
+        },
+        "z2ui5/core/FrontendAction": {
+          runSystem: () => {},
+          runCustom: () => {},
+        },
+        "z2ui5/core/actions/Slots": { action: (method) => pushes.push(method) },
+        "z2ui5/core/ViewSlots": {},
+        "z2ui5/core/Router": { sync: (o) => syncs.push(o) },
+        "z2ui5/core/AppState": { state },
+      },
+    });
+    return { ctrl, state, pushes, syncs, hooks };
+  }
+
+  test("no actions at all: model push, router sync and hooks still run", async () => {
+    const { ctrl, state, pushes, syncs, hooks } = loadForAfterRendering();
+    state.oResponse = { ID: "D1", MODELPRESENT: true };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(pushes).toEqual(["updateModel"]);
+    expect(syncs).toEqual([{ id: "D1" }]);
+    expect(hooks).toEqual(["ran"]);
+  });
+
+  test("no MODEL key: nothing is pushed, the sync still runs", async () => {
+    const { ctrl, state, pushes, syncs } = loadForAfterRendering();
+    state.oResponse = { ID: "D2", MODELPRESENT: false };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(pushes).toEqual([]);
+    expect(syncs).toEqual([{ id: "D2" }]);
+  });
+
+  test("a travelling ROUTER action's options reach the one per-response sync", async () => {
+    const { ctrl, state, syncs } = loadForAfterRendering();
+    // the ControlCall hook stashes the options on the response record; the
+    // stash is consumed by the sync, which injects the response id
+    state.oResponse = { ID: "D3", _routerOptions: { setNavRouting: "KEEP" } };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(syncs).toEqual([{ setNavRouting: "KEEP", id: "D3" }]);
+  });
+});

@@ -295,6 +295,14 @@ sap.ui.define(
           if (isSuperseded(seq)) {
             return undefined;
           }
+          // The implicit teardown of the previous MAIN view happens HERE,
+          // in the same synchronous step that claims the fixed "mainView"
+          // id (XMLView.create in displayView) - never earlier at action
+          // time: an early destroy empties the slot while an OLDER queued
+          // build may still be awaiting, which would let that stale build
+          // slip past displayView's "a newer view took the slot" guard and
+          // then crash THIS build on a duplicate id.
+          ViewSlots.destroy("MAIN");
           return displayView(
             xml,
             AppState.state.oResponse?.OVIEWMODEL,
@@ -352,10 +360,11 @@ sap.ui.define(
       }
       // display. A display REPLACES the slot, so tear down whatever it
       // holds first - implicitly, the backend sends no destroy action with
-      // a display (destroying an empty slot is a no-op). Then only the
-      // loader differs per slot.
-      ViewSlots.destroy(slotKey);
+      // a display (destroying an empty slot is a no-op). MAIN tears down
+      // inside its serialized build chain (see displayMain) - its slot may
+      // still be claimed by an older awaiting build.
       if (slotKey === "MAIN") return displayMain(xml, mOptions, seq);
+      ViewSlots.destroy(slotKey);
       if (slotKey === "POPUP") return displayFragment(xml, seq);
       if (slotKey === "POPOVER") {
         return displayPopover(xml, mOptions.openById, seq);

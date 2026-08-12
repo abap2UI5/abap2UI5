@@ -82,14 +82,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (oResponse._processed) return;` && |\n| &&
              `          oResponse._processed = true;` && |\n| &&
              `` && |\n| &&
-             `          if (!oResponse.S_ACTION) return;` && |\n| &&
-             `` && |\n| &&
-             `          // Stamp of the request this response belongs to: every await in` && |\n| &&
-             `          // the display phase re-checks it, so a response superseded by a` && |\n| &&
-             `          // parallel request (check_allow_multi_req, Back/Forward restore)` && |\n| &&
-             `          // never attaches popups/nested views the backend no longer knows.` && |\n| &&
-             `          const seq = reqSeq ?? Server._requestSeq;` && |\n| &&
-             `          await this._runSystemActions(oResponse, seq);` && |\n| &&
+             `          // No early return on an empty action list: a response without any` && |\n| &&
+             `          // action still gets its model push, its hash sync and the` && |\n| &&
+             `          // after-render hooks below - with the ROUTER and updateModel` && |\n| &&
+             `          // actions derived/gated away, an action-free response is the` && |\n| &&
+             `          // COMMON case now, not the exception.` && |\n| &&
+             `          if (oResponse.S_ACTION) {` && |\n| &&
+             `            // Stamp of the request this response belongs to: every await in` && |\n| &&
+             `            // the display phase re-checks it, so a response superseded by a` && |\n| &&
+             `            // parallel request (check_allow_multi_req, Back/Forward restore)` && |\n| &&
+             `            // never attaches popups/nested views the backend no longer knows.` && |\n| &&
+             `            const seq = reqSeq ?? Server._requestSeq;` && |\n| &&
+             `            await this._runSystemActions(oResponse, seq);` && |\n| &&
+             `          }` && |\n| &&
              `          // The app may have been torn down (reset / FLP re-launch) while the` && |\n| &&
              `          // pending views loaded; don't mutate history or fire onAfterRendering` && |\n| &&
              `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&

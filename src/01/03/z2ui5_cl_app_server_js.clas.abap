@@ -105,8 +105,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //           // roundtrip carries nav intent - View1 syncs the URL once` && |\n| &&
              `    //           // per response either way` && |\n| &&
              `    //           "T_SYSTEM": [` && |\n| &&
-             `    //             ["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"],` && |\n| &&
-             `    //             ["CONTROL_GLOBAL","VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]` && |\n| &&
+             `    //             ["VIEW_SLOTS","destroy","POPUP"],` && |\n| &&
+             `    //             ["VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]` && |\n| &&
              `    //           ],` && |\n| &&
              `    //           // APP: what the app queued, run last, once the DOM exists.` && |\n| &&
              `    //           // A legacy app-authored raw-JS snippet stays a string entry.` && |\n| &&
@@ -394,6 +394,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Step 4: hand the parsed response to the success handler.` && |\n| &&
              `          AppState.state.responseData = responseData;` && |\n| &&
+             `          // This request won, so the session block / live device values it` && |\n| &&
+             `          // carried have reached the backend - only now do the send latches` && |\n| &&
+             `          // advance (core/Session.js). A dropped request re-sends instead.` && |\n| &&
+             `          Session.confirmSent();` && |\n| &&
              `          // This request won (it passed the stale guard above), so the edits` && |\n| &&
              `          // it carried have reached the backend - clear exactly the model it` && |\n| &&
              `          // shipped. A stale response returns before this point and clears` && |\n| &&
@@ -420,12 +424,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            },` && |\n| &&
              `            seq,` && |\n| &&
              `          );` && |\n| &&
-             `        } finally {` && |\n| &&
+             `        } finally {` && |\n|.
+    result = result &&
              `          this._inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
              `        }` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
+             `      },` && |\n| &&
              `` && |\n| &&
              `      async responseSuccess(response, reqSeq) {` && |\n| &&
              `        const oController = ViewSlots.getController("MAIN");` && |\n| &&

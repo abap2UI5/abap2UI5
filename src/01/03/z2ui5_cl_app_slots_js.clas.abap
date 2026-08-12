@@ -322,6 +322,14 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `          if (isSuperseded(seq)) {` && |\n| &&
              `            return undefined;` && |\n| &&
              `          }` && |\n| &&
+             `          // The implicit teardown of the previous MAIN view happens HERE,` && |\n| &&
+             `          // in the same synchronous step that claims the fixed "mainView"` && |\n| &&
+             `          // id (XMLView.create in displayView) - never earlier at action` && |\n| &&
+             `          // time: an early destroy empties the slot while an OLDER queued` && |\n| &&
+             `          // build may still be awaiting, which would let that stale build` && |\n| &&
+             `          // slip past displayView's "a newer view took the slot" guard and` && |\n| &&
+             `          // then crash THIS build on a duplicate id.` && |\n| &&
+             `          ViewSlots.destroy("MAIN");` && |\n| &&
              `          return displayView(` && |\n| &&
              `            xml,` && |\n| &&
              `            AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
@@ -379,10 +387,11 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      // display. A display REPLACES the slot, so tear down whatever it` && |\n| &&
              `      // holds first - implicitly, the backend sends no destroy action with` && |\n| &&
-             `      // a display (destroying an empty slot is a no-op). Then only the` && |\n| &&
-             `      // loader differs per slot.` && |\n| &&
-             `      ViewSlots.destroy(slotKey);` && |\n| &&
+             `      // a display (destroying an empty slot is a no-op). MAIN tears down` && |\n| &&
+             `      // inside its serialized build chain (see displayMain) - its slot may` && |\n| &&
+             `      // still be claimed by an older awaiting build.` && |\n| &&
              `      if (slotKey === "MAIN") return displayMain(xml, mOptions, seq);` && |\n| &&
+             `      ViewSlots.destroy(slotKey);` && |\n| &&
              `      if (slotKey === "POPUP") return displayFragment(xml, seq);` && |\n| &&
              `      if (slotKey === "POPOVER") {` && |\n| &&
              `        return displayPopover(xml, mOptions.openById, seq);` && |\n| &&

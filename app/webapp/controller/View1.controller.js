@@ -55,14 +55,19 @@ sap.ui.define(
           if (oResponse._processed) return;
           oResponse._processed = true;
 
-          if (!oResponse.S_ACTION) return;
-
-          // Stamp of the request this response belongs to: every await in
-          // the display phase re-checks it, so a response superseded by a
-          // parallel request (check_allow_multi_req, Back/Forward restore)
-          // never attaches popups/nested views the backend no longer knows.
-          const seq = reqSeq ?? Server._requestSeq;
-          await this._runSystemActions(oResponse, seq);
+          // No early return on an empty action list: a response without any
+          // action still gets its model push, its hash sync and the
+          // after-render hooks below - with the ROUTER and updateModel
+          // actions derived/gated away, an action-free response is the
+          // COMMON case now, not the exception.
+          if (oResponse.S_ACTION) {
+            // Stamp of the request this response belongs to: every await in
+            // the display phase re-checks it, so a response superseded by a
+            // parallel request (check_allow_multi_req, Back/Forward restore)
+            // never attaches popups/nested views the backend no longer knows.
+            const seq = reqSeq ?? Server._requestSeq;
+            await this._runSystemActions(oResponse, seq);
+          }
           // The app may have been torn down (reset / FLP re-launch) while the
           // pending views loaded; don't mutate history or fire onAfterRendering
           // hooks against a dead app (the custom-JS phase below guards the same

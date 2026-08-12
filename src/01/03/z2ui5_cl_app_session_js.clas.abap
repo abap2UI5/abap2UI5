@@ -89,23 +89,38 @@ CLASS z2ui5_cl_app_session_js IMPLEMENTATION.
              `  // value with the draft and treats an absent field as "unchanged".` && |\n| &&
              `  let liveSent = "";` && |\n| &&
              `` && |\n| &&
+             `  // What the request being BUILT carries. The latches above only advance in` && |\n| &&
+             `  // confirmSent( ), once that request won its stale guard (Server.readHttp)` && |\n| &&
+             `  // - a request may be aborted or superseded, and a latch advanced at build` && |\n| &&
+             `  // time would mark a value as known to the backend that never arrived` && |\n| &&
+             `  // there. Same protocol as the model delta's changed-paths clear.` && |\n| &&
+             `  let pending = null;` && |\n| &&
+             `` && |\n| &&
              `  function config(oConfig) {` && |\n| &&
              `    const live = getDeviceLive();` && |\n| &&
              `    const liveKey = JSON.stringify(live);` && |\n| &&
              `    if (sessionConfigSent) {` && |\n| &&
-             `      if (liveKey === liveSent) return {};` && |\n| &&
-             `      liveSent = liveKey;` && |\n| &&
+             `      if (liveKey === liveSent) {` && |\n| &&
+             `        pending = null;` && |\n| &&
+             `        return {};` && |\n| &&
+             `      }` && |\n| &&
+             `      pending = { live: liveKey };` && |\n| &&
              `      return { S_DEVICE: live };` && |\n| &&
              `    }` && |\n| &&
-             `    if (oConfig?.S_UI5) {` && |\n| &&
-             `      sessionConfigSent = true;` && |\n| &&
-             `      liveSent = liveKey;` && |\n| &&
-             `    }` && |\n| &&
+             `    pending = { config: Boolean(oConfig?.S_UI5), live: liveKey };` && |\n| &&
              `    return {` && |\n| &&
              `      S_UI5: oConfig?.S_UI5,` && |\n| &&
              `      ComponentData: oConfig?.ComponentData,` && |\n| &&
              `      S_DEVICE: { ...getDeviceStatic(), ...live },` && |\n| &&
              `    };` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // The carrying request won - what it carried is now known to the backend.` && |\n| &&
+             `  function confirmSent() {` && |\n| &&
+             `    if (!pending) return;` && |\n| &&
+             `    if (pending.config) sessionConfigSent = true;` && |\n| &&
+             `    liveSent = pending.live;` && |\n| &&
+             `    pending = null;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // The page location (origin, pathname, query) is session-constant like` && |\n| &&
@@ -128,7 +143,7 @@ CLASS z2ui5_cl_app_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { config, location };` && |\n| &&
+             `  return { config, confirmSent, location };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

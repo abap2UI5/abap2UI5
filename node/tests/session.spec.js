@@ -6,7 +6,9 @@ const { loadLib } = require("./loadLibModule");
 // Tests Session.config: what a browser tells the backend about ITSELF
 // travels once per page load, not with every roundtrip. The backend stores it
 // with the draft, so a follow-up request omits it - the two device fields
-// that are not session-constant travel again only when they CHANGED.
+// that are not session-constant travel again only when they CHANGED. The
+// send latches advance in confirmSent( ), called by Server.readHttp once
+// the carrying request won its stale guard - a dropped request re-sends.
 
 function loadSession(Device) {
   const { module: Session } = loadModule("core/Session.js", {
@@ -45,6 +47,7 @@ test("a later roundtrip sends the live fields only when they changed", () => {
   const dev = device({ portrait: false, width: 900 });
   const Session = loadSession(dev);
   Session.config(CONFIG);
+  Session.confirmSent();
 
   // nothing changed - the whole block is left off
   expect(Session.config(CONFIG)).toEqual({});
@@ -60,7 +63,24 @@ test("a later roundtrip sends the live fields only when they changed", () => {
   expect(out.S_DEVICE.ORIENTATION).toBe("portrait");
   expect(out.S_DEVICE.RESIZE.WIDTH).toBe(400);
 
-  // ...and is then latched again
+  // ...and is latched again once the carrying request won
+  Session.confirmSent();
+  expect(Session.config(CONFIG)).toEqual({});
+});
+
+test("a dropped request does not latch - the next one re-sends", () => {
+  const dev = device({ portrait: false, width: 900 });
+  const Session = loadSession(dev);
+  Session.config(CONFIG);
+  Session.confirmSent();
+
+  // the rotation's roundtrip is built but never wins (aborted/superseded):
+  // confirmSent is not called, so the value must travel again
+  dev.orientation.portrait = true;
+  expect(Session.config(CONFIG).S_DEVICE.ORIENTATION).toBe("portrait");
+  expect(Session.config(CONFIG).S_DEVICE.ORIENTATION).toBe("portrait");
+
+  Session.confirmSent();
   expect(Session.config(CONFIG)).toEqual({});
 });
 
@@ -70,12 +90,15 @@ test("keeps sending until the version info has actually arrived", () => {
   // never receives it at all.
   const Session = loadSession(device());
   const first = Session.config({});
+  Session.confirmSent();
   expect(first.S_DEVICE.SYSTEM).toBeDefined();
 
   const second = Session.config({});
+  Session.confirmSent();
   expect(second.S_DEVICE.SYSTEM).toBeDefined();
 
   Session.config(CONFIG);
+  Session.confirmSent();
   // stored now - and the unchanged live fields are latched too, so the
   // follow-up roundtrip sends nothing at all
   expect(Session.config(CONFIG)).toEqual({});
