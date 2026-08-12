@@ -12,12 +12,23 @@ INTERFACE z2ui5_if_core_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
+  " The VIEW_SLOTS system-action vocabulary, spelled as the frontend's
+  " ViewSlots module dispatches it. Every backend-side call (the system
+  " actions, the nav-app teardown, the popup_close mapping) uses these -
+  " never a literal.
+  CONSTANTS:
+    BEGIN OF cs_slot_action,
+      target       TYPE string VALUE `VIEW_SLOTS`,
+      display      TYPE string VALUE `display`,
+      destroy      TYPE string VALUE `destroy`,
+      update_model TYPE string VALUE `updateModel`,
+    END OF cs_slot_action.
+
   TYPES:
     BEGIN OF ty_s_http_res,
       body          TYPE string,
       status_code   TYPE i,
       status_reason TYPE string,
-      t_header      TYPE z2ui5_if_types=>ty_t_name_value,
       BEGIN OF s_stateful,
         active   TYPE i,
         switched TYPE abap_bool,
@@ -59,10 +70,9 @@ INTERFACE z2ui5_if_core_types
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
   " One view-lifecycle call, as the backend collects it. It is kept typed
-  " until main_end( ) rather than serialized on the spot, because two things
-  " can only be decided once the app has run: a slot may be displayed twice
-  " and only the last call counts, and the calls have to leave in slot order,
-  " never in call order.
+  " until main_end( ) rather than serialized on the spot: the calls have to
+  " leave in slot order (never in call order), and main_end( ) derives the
+  " model decision from the collected list.
   TYPES:
     BEGIN OF ty_s_system_action,
       slot    TYPE string,
@@ -70,24 +80,34 @@ INTERFACE z2ui5_if_core_types
       xml     TYPE string,
       " the slot-specific extras as a JSON object - the popover's anchor, a
       " nested view's insert/destroy methods, the MAIN view's model switch
-      options TYPE string,
+      options TYPE REF TO z2ui5_if_ajson,
     END OF ty_s_system_action.
   TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
 
+  " One QUEUED frontend action. A framework action is built as JSON right
+  " away (o_json, the ["EVENT",...] array) and embedded into the response
+  " as-is - no string round trip. `js` carries only what an app passed
+  " VERBATIM to follow_up_action: the legacy raw-JS snippet, which travels
+  " as a string entry and which the frontend runs down its legacy path.
   TYPES:
-    BEGIN OF ty_s_next_frontend,
-      BEGIN OF s_action,
-        " SYSTEM actions run FIRST, in the display phase, before the view is
-        " rendered - they are the framework's own view-lifecycle calls
-        " (destroy a slot, display one, push the model into it), which every
-        " later action depends on having happened. APP actions run last, once
-        " the view is in the DOM, so a render-dependent one like SET_FOCUS
-        " finds its target control. Same payload format and same dispatcher
-        " for both, only the phase differs.
-        t_system TYPE string_table,
-        t_custom TYPE string_table,
-      END OF s_action,
-    END OF ty_s_next_frontend.
+    BEGIN OF ty_s_queued_action,
+      o_json TYPE REF TO z2ui5_if_ajson,
+      js     TYPE string,
+    END OF ty_s_queued_action.
+  TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
+
+  " SYSTEM actions run FIRST, in the display phase, before the view is
+  " rendered - they are the framework's own view-lifecycle calls (destroy a
+  " slot, display one, push the model into it), which every later action
+  " depends on having happened. APP actions run last, once the view is in
+  " the DOM, so a render-dependent one like SET_FOCUS finds its target
+  " control. Same payload format and same dispatcher for both, only the
+  " phase differs.
+  TYPES:
+    BEGIN OF ty_s_action,
+      t_system TYPE ty_t_queued_action,
+      t_custom TYPE ty_t_queued_action,
+    END OF ty_s_action.
 
   " The browser-history intent of one roundtrip. Router computes ONE outcome
   " from all of it - adopt the hash, push a route entry, replace it, or write
@@ -101,7 +121,7 @@ INTERFACE z2ui5_if_core_types
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash
       " (see app/webapp/core/Router.js). Opt-in per APP via
-      " client->set_nav_routing( ) - the mode is remembered on the app and
+      " follow_up_action( cs_event-set_nav_routing ) - the mode is remembered on the app and
       " travels in its draft, so it is re-sent with every response of that app
       " (see z2ui5_cl_core_app=>mv_nav_mode). The value carries the MODE (see
       " z2ui5_if_client=>cs_nav_mode): 'KEEP' syncs the class AND its draft id
@@ -132,36 +152,33 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_next,
-      o_app_call         TYPE REF TO z2ui5_if_app,
-      o_app_leave        TYPE REF TO z2ui5_if_app,
-      next_event         TYPE string,
-      s_set              TYPE ty_s_next_frontend,
-      r_data             TYPE REF TO data,
+      o_app_call     TYPE REF TO z2ui5_if_app,
+      o_app_leave    TYPE REF TO z2ui5_if_app,
+      next_event     TYPE string,
+      " the two action queues of this roundtrip, as the response ships them
+      s_action       TYPE ty_s_action,
+      r_data         TYPE REF TO data,
       " BACKEND-ONLY, never serialized: the view-lifecycle calls of this
       " roundtrip, collected while the app runs and turned into the SYSTEM
       " action list by main_end( ).
-      t_action_front     TYPE ty_t_system_action,
-      " BACKEND-ONLY: did this roundtrip ship a view into any slot? The model
-      " has to travel with new XML, and the decision used to be made by
-      " reading the response's own s_*-xml fields back.
-      check_view_shipped TYPE abap_bool,
+      t_action_front TYPE ty_t_system_action,
       " BACKEND-ONLY: what the browser history / URL has to reflect after this
       " roundtrip. main_end( ) turns it into the ROUTER/sync action - the
       " frontend router reads its inputs from that call's options, not from
       " seven separate response fields.
-      s_nav              TYPE ty_s_nav,
+      s_nav          TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
       " concern - z2ui5_cl_http_handler reads it off the response record to
       " call set_session_stateful, and no frontend module ever looked at it.
-      s_stateful         TYPE ty_s_http_res-s_stateful,
+      s_stateful     TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next.
 
   TYPES:
     BEGIN OF ty_s_response,
       BEGIN OF s_front,
-        params TYPE ty_s_next_frontend,
-        id     TYPE string,
-        app    TYPE string,
+        s_action TYPE ty_s_action,
+        id       TYPE string,
+        app      TYPE string,
       END OF s_front,
       model TYPE string,
     END OF ty_s_response.
@@ -234,9 +251,11 @@ INTERFACE z2ui5_if_core_types
     END OF ty_s_request.
 
   " What a browser tells the backend about ITSELF, once per page load instead
-  " of on every roundtrip: the UI5 build, the device it runs on, and the
-  " launchpad's ComponentData. It is stored on the app and therefore travels
-  " in the draft, so a follow-up roundtrip needs to send none of it.
+  " of on every roundtrip: the UI5 build, the device it runs on, the
+  " launchpad's ComponentData, and the page location (origin, pathname and
+  " query - the hash stays live, it carries the routing state). It is stored
+  " on the app and therefore travels in the draft, so a follow-up roundtrip
+  " needs to send none of it.
   "
   " Two parts of s_device are NOT session-constant and keep travelling with
   " every request - orientation and resize change while the app runs. They are
@@ -244,9 +263,15 @@ INTERFACE z2ui5_if_core_types
   " a device record that is current in every field.
   TYPES:
     BEGIN OF ty_s_session,
-      s_ui5     TYPE ty_s_request-s_front-s_ui5,
-      s_device  TYPE ty_s_request-s_front-s_device,
-      comp_data TYPE string,
+      s_ui5         TYPE ty_s_request-s_front-s_ui5,
+      s_device      TYPE ty_s_request-s_front-s_device,
+      comp_data     TYPE string,
+      origin        TYPE string,
+      pathname      TYPE string,
+      search        TYPE string,
+      " the routing mode last SENT to the frontend for this app - a plain
+      " event roundtrip repeats no mode (see z2ui5_cl_core_handler=>main_end)
+      nav_mode_sent TYPE string,
     END OF ty_s_session.
 
   TYPES:

@@ -12,6 +12,61 @@ Legend
 
 unreleased
 ----------
+! framework actions travel without the CONTROL_GLOBAL dispatch prefix -
+  internal only: a backend-built action is ["VIEW_SLOTS","display",...],
+  and the frontend dispatches every whitelisted global target by its own
+  name (the prefixed eF( ) form stays accepted for apps and skew)
+! the wire sheds its derivable bytes - internal only: a MODEL key in the
+  response IS the model push (no updateModel action travels; the frontend
+  pushes into every open slot when a model arrived), the routing mode is
+  only re-sent when the frontend may not hold it (app start, navigation
+  hop, mode change - not on every event roundtrip), and the live device
+  fields (orientation/resize) travel only when they changed since the
+  last send, stored with the draft like the rest of the device block
+! the wire got leaner again - internal only: a display action implies the
+  slot's teardown (the frontend destroys implicitly, no destroy action
+  travels before a display), the ROUTER/sync action only travels when the
+  roundtrip carries nav intent (the frontend syncs the URL once per
+  response on its own, with the response id), and a request omits an empty
+  HASH field
+* a roundtrip that re-displays a NESTED view without its MAIN view pushes
+  the model too - the nested view inherits the MAIN model by UI5
+  propagation and bound against the previous roundtrip's data (broke the
+  three-column FlexibleColumnLayout samples 098/104)
+* the default Content-Security-Policy no longer names frame-ancestors in
+  the <meta> tag - browsers ignore the directive there and warned on every
+  page load; cross-origin framing stays forbidden via the
+  X-Frame-Options: SAMEORIGIN response header
++ the http handler asks the ICF runtime to gzip its responses
+  (if_http_response set_compression) when the client accepts it - the GET
+  shell carries the whole embedded frontend and every POST roundtrip the
+  model JSON, so this cuts 70-85% off the transfer on installations whose
+  ICM profile does not compress already, and is a no-op on ones that do
+  (and on the cloud stack, where the platform router owns compression)
+- BREAKING: removed set_nav_back( ) and set_nav_routing( ) from
+  z2ui5_if_client. Both are follow_up_action events now: history back rides
+  the existing cs_event-history_back, routing is configured with
+  follow_up_action( val = cs_event-set_nav_routing t_arg = ( mode ) ) - the
+  new constants set_nav_routing, set_push_state and set_app_state_active sit
+  in cs_event with full documentation. set_push_state( ) and
+  set_app_state_active( ) stay as methods and delegate to the events
+! message_toast_display( ) / message_box_display( ) queue follow-up actions
+  now: several calls in one roundtrip all show (the last call no longer
+  silently wins), they appear in call order together with the app's other
+  follow-up actions, and they run after the view rendered instead of before
+  the response was processed
+! the response wire got leaner - internal only, no app-facing change: the
+  action lists travel as real nested JSON arrays instead of escaped strings,
+  an unchanged model sends no MODEL key at all, and the session-constant
+  browser data (UI5 build, device profile, ComponentData, page location)
+  travels once per page load instead of with every roundtrip, stored with
+  the draft and merged back for client->get( )
+! the frontend internals were restructured - internal only: the action
+  handlers live in core/actions/ domain modules behind the FrontendAction
+  registry, the slot display machinery in core/actions/Slots.js, the
+  session block in core/Session.js and the focus/scroll capture in
+  core/ScrollFocus.js; the backend serialization moved into
+  z2ui5_cl_core_action_front, the class that owns the frontend queues
 ! the model is now pushed AUTOMATICALLY when an event round-trip changed it,
   and the manual push methods are obsolete. The framework compares the model
   state before main( ) - taken after the incoming two-way deltas were applied,

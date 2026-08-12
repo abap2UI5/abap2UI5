@@ -623,8 +623,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
 
     // Move focus into the dialog so keyboard and screen-reader users land on
     // the primary action instead of the broken page behind the overlay.
-    const firstButton = actionsDiv.querySelector("button");
-    if (firstButton) firstButton.focus();
+    // firstTrap is that button - the trap above resolved the complete set.
+    if (firstTrap) firstTrap.focus();
   }
 
   return { show, handleLogout, reopenErrorDialog };

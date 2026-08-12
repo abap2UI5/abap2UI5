@@ -28,105 +28,25 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
-             `    "sap/ui/Device",` && |\n| &&
-             `    "sap/ui/core/Element",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Session",` && |\n| &&
+             `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BusyIndicator,` && |\n| &&
-             `    Device,` && |\n| &&
-             `    Element,` && |\n| &&
              `    VersionInfo,` && |\n| &&
              `    Lib,` && |\n| &&
+             `    Session,` && |\n| &&
+             `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    ErrorView,` && |\n| &&
              `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    // Quote characters recognised by the eF( ) argument parser below, built` && |\n| &&
-             `    // from char codes so both quote kinds are declared symmetrically and` && |\n| &&
-             `    // stand out from the surrounding string literals.` && |\n| &&
-             `    const CH_SQUOTE = String.fromCharCode(39);` && |\n| &&
-             `    const CH_DQUOTE = String.fromCharCode(34);` && |\n| &&
-             `` && |\n| &&
-             `    // Undo the escapes the backend applies to a single-quoted argument` && |\n| &&
-             `    // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the` && |\n| &&
-             `    // line breaks it rewrites to \n / \r - a raw newline would be a syntax` && |\n| &&
-             `    // error inside a JS string literal, so a multi-line argument only ever` && |\n| &&
-             `    // travels escaped. Decoding them in one pass keeps the order right: a` && |\n| &&
-             `    // literal backslash-n ("\\n" on the wire) stays text instead of turning` && |\n| &&
-             `    // into a line break.` && |\n| &&
-             `    const EF_UNESCAPE = { n: "\n", r: "\r" };` && |\n| &&
-             `    function unescapeEfString(body) {` && |\n| &&
-             `      return body.replace(/\\(.)/g, (match, ch) => EF_UNESCAPE[ch] ?? ch);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Convert a single JS-literal argument (as produced by the backend` && |\n| &&
-             `    // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,` && |\n| &&
-             `    // JSON objects / arrays, numbers, booleans and null.` && |\n| &&
-             `    function parseEfValue(token) {` && |\n| &&
-             `      if (token === "") return undefined;` && |\n| &&
-             `      const first = token[0];` && |\n| &&
-             `      if (first === CH_SQUOTE) {` && |\n| &&
-             `        return unescapeEfString(token.slice(1, -1));` && |\n| &&
-             `      }` && |\n| &&
-             `      if (first === CH_DQUOTE || first === "{" || first === "[") {` && |\n| &&
-             `        try {` && |\n| &&
-             `          return JSON.parse(token);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          return token;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (token === "true") return true;` && |\n| &&
-             `      if (token === "false") return false;` && |\n| &&
-             `      if (token === "null") return null;` && |\n| &&
-             `      if (token === "undefined") return undefined;` && |\n| &&
-             `      const num = Number(token);` && |\n| &&
-             `      return Number.isNaN(num) ? token : num;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Split the argument list of an eF( ) call into its top-level arguments,` && |\n| &&
-             `    // respecting nested (), {}, [] and quoted strings, and convert each one` && |\n| &&
-             `    // to a value. Done manually (no eval / Function) so it works under a` && |\n| &&
-             `    // strict Content-Security-Policy without unsafe-eval, while keeping` && |\n| &&
-             `    // object, array and quoted-string arguments intact.` && |\n| &&
-             `    function parseEfArgs(str) {` && |\n| &&
-             `      const args = [];` && |\n| &&
-             `      let depth = 0;` && |\n| &&
-             `      let quote = null;` && |\n| &&
-             `      let token = "";` && |\n| &&
-             `      for (let i = 0; i < str.length; i++) {` && |\n| &&
-             `        const ch = str[i];` && |\n| &&
-             `        if (quote) {` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `          if (ch === "\\" && i + 1 < str.length) token += str[++i];` && |\n| &&
-             `          else if (ch === quote) quote = null;` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (ch === CH_SQUOTE || ch === CH_DQUOTE) {` && |\n| &&
-             `          quote = ch;` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `        } else if (ch === "{" || ch === "[" || ch === "(") {` && |\n| &&
-             `          depth++;` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `        } else if (ch === "}" || ch === "]" || ch === ")") {` && |\n| &&
-             `          depth--;` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `        } else if (ch === "," && depth === 0) {` && |\n| &&
-             `          args.push(parseEfValue(token.trim()));` && |\n| &&
-             `          token = "";` && |\n| &&
-             `        } else {` && |\n| &&
-             `          token += ch;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (token.trim() !== "") args.push(parseEfValue(token.trim()));` && |\n| &&
-             `      return args;` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    // Last-resort client-side timeout for backend roundtrips. Infrastructure` && |\n| &&
              `    // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and` && |\n| &&
@@ -161,30 +81,36 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //         "ID": "<draft id of the previous response>",` && |\n| &&
              `    //         "EVENT": "SAVE",             // event name` && |\n| &&
              `    //         "T_EVENT_ARG": ["arg1"],     // further event arguments` && |\n| &&
-             `    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",` && |\n| &&
-             `    //         "SEARCH": "?p=1", "HASH": "#...",` && |\n| &&
+             `    //         "HASH": "#...",              // live routing state, every request` && |\n| &&
+             `    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...", "SEARCH": "?p=1",` && |\n| &&
+             `    //                                      // session-constant location: only on` && |\n| &&
+             `    //                                      // app-start-shaped requests and the` && |\n| &&
+             `    //                                      // page load's first roundtrip` && |\n| &&
              `    //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},` && |\n| &&
              `    //                     "S_FOCUS": {...}, "S_SCROLL": {...},` && |\n| &&
              `    //                     "ComponentData": {...} }` && |\n| &&
              `    //   } } }` && |\n| &&
              `    //` && |\n| &&
-             `    // Wire format - response:` && |\n| &&
+             `    // Wire format - response. S_FRONT carries nothing but the id, the app` && |\n| &&
+             `    // and the action lists: every view build, teardown, model push and` && |\n| &&
+             `    // history update is an action, run by View1/FrontendAction in the` && |\n| &&
+             `    // documented order.` && |\n| &&
              `    //   { "S_FRONT": {` && |\n| &&
              `    //       "ID": "<new draft id>",        // sent back with the next request` && |\n| &&
-             `    //       "PARAMS": {` && |\n| &&
-             `    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },` && |\n| &&
-             `    //         "S_ACTION": {` && |\n| &&
+             `    //       "APP": "<app class name>",     // rendered app, for the router` && |\n| &&
+             `    //       "S_ACTION": {` && |\n| &&
              `    //           // SYSTEM: the framework's own view-lifecycle calls, run` && |\n| &&
-             `    //           // first, in order, before the view is rendered` && |\n| &&
+             `    //           // first, in order, before the view is rendered. A` && |\n| &&
+             `    //           // ROUTER/sync call is queued last, and only when the` && |\n| &&
+             `    //           // roundtrip carries nav intent - View1 syncs the URL once` && |\n| &&
+             `    //           // per response either way` && |\n| &&
              `    //           "T_SYSTEM": [` && |\n| &&
-             `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",` && |\n| &&
-             `    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"` && |\n| &&
+             `    //             ["VIEW_SLOTS","destroy","POPUP"],` && |\n| &&
+             `    //             ["VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]` && |\n| &&
              `    //           ],` && |\n| &&
-             `    //           // APP: what the app queued, run last, once the DOM exists` && |\n| &&
-             `    //           "T_CUSTOM": ["[\"SET_FOCUS\",\"id1\"]"]` && |\n| &&
-             `    //         },` && |\n| &&
-             `    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",` && |\n| &&
-             `    //         "SET_NAV_BACK": ""           // browser/history follow-ups` && |\n| &&
+             `    //           // APP: what the app queued, run last, once the DOM exists.` && |\n| &&
+             `    //           // A legacy app-authored raw-JS snippet stays a string entry.` && |\n| &&
+             `    //           "T_CUSTOM": [["SET_FOCUS","id1"]]` && |\n| &&
              `    //       }` && |\n| &&
              `    //     },` && |\n| &&
              `    //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes` && |\n| &&
@@ -205,9 +131,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // letting the backend finish work whose response would be dropped anyway.` && |\n| &&
              `      _inflight: new Set(),` && |\n| &&
              `` && |\n| &&
-             `      // Chain that serializes full MAIN-view rebuilds (see responseSuccess):` && |\n| &&
-             `      // XMLView.create claims the fixed "mainView" id synchronously, so two` && |\n| &&
-             `      // overlapping builds would throw "duplicate id".` && |\n| &&
+             `      // Chain that serializes full MAIN-view rebuilds (see` && |\n| &&
+             `      // actions/Slots.displayMain): XMLView.create claims the fixed` && |\n| &&
+             `      // "mainView" id synchronously, so two overlapping builds would throw` && |\n| &&
+             `      // "duplicate id".` && |\n| &&
              `      _viewBuild: null,` && |\n| &&
              `` && |\n| &&
              `      endSession() {` && |\n| &&
@@ -226,181 +153,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        AppState.state.contextId = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // What the backend only needs ONCE per page load: the UI5 build and the` && |\n| &&
-             `      // launchpad's ComponentData. It stores them with the draft, so every` && |\n| &&
-             `      // later roundtrip omits them - a few hundred bytes off every event.` && |\n| &&
-             `      //` && |\n| &&
-             `      // Sent until it has gone out COMPLETE, not just once: the version info` && |\n| &&
-             `      // is loaded asynchronously during component init, so the first roundtrip` && |\n| &&
-             `      // can fire before it exists. Repeating it costs the same bytes it used` && |\n| &&
-             `      // to cost every time, and stops as soon as there is something to store.` && |\n| &&
-             `      //` && |\n| &&
-             `      // A page load always starts by sending it again, which is what makes a` && |\n| &&
-             `      // draft reopened on a different device pick up THAT device instead of` && |\n| &&
-             `      // the one that created it.` && |\n| &&
-             `      _sessionConfig(oConfig) {` && |\n| &&
-             `        // orientation and resize are the two device fields that are NOT` && |\n| &&
-             `        // session-constant - a window is resized and a phone rotated while` && |\n| &&
-             `        // the app runs - so they travel every time and the backend merges` && |\n| &&
-             `        // them over the block it stored.` && |\n| &&
-             `        const live = this._getDeviceLive();` && |\n| &&
-             `        if (this._sessionConfigSent) return { S_DEVICE: live };` && |\n| &&
-             `        if (oConfig?.S_UI5) this._sessionConfigSent = true;` && |\n| &&
-             `        return {` && |\n| &&
-             `          S_UI5: oConfig?.S_UI5,` && |\n| &&
-             `          ComponentData: oConfig?.ComponentData,` && |\n| &&
-             `          S_DEVICE: { ...this._getDeviceStatic(), ...live },` && |\n| &&
-             `        };` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the` && |\n| &&
-             `      // session, so resolve them once and reuse the cached block.` && |\n| &&
-             `      _getDeviceStatic() {` && |\n| &&
-             `        if (!this._deviceStatic) {` && |\n| &&
-             `          this._deviceStatic = {` && |\n| &&
-             `            SYSTEM: Lib.deriveSystemType(Device.system),` && |\n| &&
-             `            BROWSER: {` && |\n| &&
-             `              NAME: Device.browser.name || "",` && |\n| &&
-             `              VERSION: String(Device.browser.version || ""),` && |\n| &&
-             `            },` && |\n| &&
-             `            OS: {` && |\n| &&
-             `              NAME: Device.os.name || "",` && |\n| &&
-             `              VERSION: String(Device.os.version || ""),` && |\n| &&
-             `            },` && |\n| &&
-             `            SUPPORT: {` && |\n| &&
-             `              TOUCH: Device.support.touch || false,` && |\n| &&
-             `              POINTER: Device.support.pointer || false,` && |\n| &&
-             `              RETINA: Device.support.retina || false,` && |\n| &&
-             `            },` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `        return this._deviceStatic;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _getDeviceLive() {` && |\n| &&
-             `        return {` && |\n| &&
-             `          ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
-             `          RESIZE: {` && |\n| &&
-             `            WIDTH: Device.resize.width || window.innerWidth,` && |\n| &&
-             `            HEIGHT: Device.resize.height || window.innerHeight,` && |\n| &&
-             `          },` && |\n| &&
-             `        };` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Resolve the UI5 element owning a DOM node. Element.closestTo exists` && |\n| &&
-             `      // as of UI5 1.106; on older bootstraps walk up the DOM to the nearest` && |\n| &&
-             `      // rendered control root (marked with the data-sap-ui attribute) and` && |\n| &&
-             `      // resolve it via the core registry, so scroll and focus capture also` && |\n| &&
-             `      // work there.` && |\n| &&
-             `      _closestUi5Element(dom) {` && |\n| &&
-             `        if (Element.closestTo) return Element.closestTo(dom) ?? null;` && |\n| &&
-             `        let el = dom;` && |\n| &&
-             `        while (el && el.getAttribute) {` && |\n| &&
-             `          if (el.hasAttribute("data-sap-ui")) {` && |\n| &&
-             `            // ui5lint-disable-next-line no-globals, no-deprecated-api -- only resolution path on UI5 < 1.106` && |\n| &&
-             `            return sap.ui.getCore().byId(el.id) || null;` && |\n| &&
-             `          }` && |\n| &&
-             `          el = el.parentElement;` && |\n| &&
-             `        }` && |\n| &&
-             `        return null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Strip the owning view's "<viewId>--" prefix from a control id so the` && |\n| &&
-             `      // backend gets the id as the app declared it. Returns the id unchanged` && |\n| &&
-             `      // when it does not belong to that view.` && |\n| &&
-             `      _stripViewPrefix(fullId, view) {` && |\n| &&
-             `        if (!view) return fullId;` && |\n| &&
-             `        const prefix = ``${view.getId()}--``;` && |\n| &&
-             `        return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Returning undefined when no UI5 control owns the focus lets` && |\n| &&
-             `      // JSON.stringify omit S_FOCUS from the request entirely, matching` && |\n| &&
-             `      // _getScrollInfo (the backend treats a missing key like an empty one).` && |\n| &&
-             `      _getFocusInfo() {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const active = document.activeElement;` && |\n| &&
-             `          if (!active) return undefined;` && |\n| &&
-             `          const ui5El = this._closestUi5Element(active);` && |\n| &&
-             `          if (!ui5El) return undefined;` && |\n| &&
-             `          const fullId = ui5El.getId();` && |\n| &&
-             `          let id = fullId;` && |\n| &&
-             `          for (const slot of ViewSlots.slots) {` && |\n| &&
-             `            const local = this._stripViewPrefix(` && |\n| &&
-             `              fullId,` && |\n| &&
-             `              ViewSlots.getView(slot.key),` && |\n| &&
-             `            );` && |\n| &&
-             `            if (local !== fullId) {` && |\n| &&
-             `              id = local;` && |\n| &&
-             `              break;` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `          // Read the caret from the actual text field, not from` && |\n| &&
-             `          // document.activeElement directly. Clicking an inner part of a` && |\n| &&
-             `          // control (e.g. a SearchField's clear "X" button) can leave the` && |\n| &&
-             `          // active element a non-text node. When no text field owns a` && |\n| &&
-             `          // selection, omit SELECTION_* entirely so the backend restores` && |\n| &&
-             `          // focus without forcing a caret position.` && |\n| &&
-             `          const info = { ID: id };` && |\n| &&
-             `          const caret = Lib.readCaret(this._focusTextInput(active, ui5El));` && |\n| &&
-             `          if (caret) {` && |\n| &&
-             `            info.SELECTION_START = caret.start;` && |\n| &&
-             `            info.SELECTION_END = caret.end;` && |\n| &&
-             `          }` && |\n| &&
-             `          return info;` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Resolve the text field that carries the caret for the focused control:` && |\n| &&
-             `      // the active element itself when it is already an <input>/<textarea>,` && |\n| &&
-             `      // otherwise the control's focus DOM ref (or the first inner text field).` && |\n| &&
-             `      // Returns null when the control has no text field (e.g. a button), so the` && |\n| &&
-             `      // caller omits the selection instead of reporting a bogus 0.` && |\n| &&
-             `      _focusTextInput(active, ui5El) {` && |\n| &&
-             `        if (Lib.isTextInput(active)) return active;` && |\n| &&
-             `        const focusRef = ui5El?.getFocusDomRef?.();` && |\n| &&
-             `        if (Lib.isTextInput(focusRef)) return focusRef;` && |\n| &&
-             `        const root = ui5El?.getDomRef?.();` && |\n| &&
-             `        const inner = root?.querySelector?.("input, textarea");` && |\n| &&
-             `        return Lib.isTextInput(inner) ? inner : null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Records which element the user actually scrolled, per view slot.` && |\n| &&
-             `      // Bound to a single document-level capture-phase listener (installed` && |\n| &&
-             `      // in Component.init): scroll events do not bubble, but they do fire` && |\n| &&
-             `      // capture listeners on ancestors, so one listener observes every` && |\n| &&
-             `      // scrollable container - no per-roundtrip walk over the control tree,` && |\n| &&
-             `      // and no guessing which container "looks scrolled".` && |\n| &&
-             `      onScrollCapture(event) {` && |\n| &&
-             `        const target = event.target;` && |\n| &&
-             `        if (!target || target.nodeType !== 1) return;` && |\n| &&
-             `` && |\n| &&
-             `        // Scroll events fire up to once per frame per element while the user` && |\n| &&
-             `        // drags, but the same DOM element keeps firing throughout a gesture.` && |\n| &&
-             `        // Resolving the UI5 control (_closestUi5Element) and walking it up to` && |\n| &&
-             `        // its view slot (ViewSlots.containingSlotKey) is the expensive part,` && |\n| &&
-             `        // so cache that resolution keyed by the element: it runs once per` && |\n| &&
-             `        // scrolled element instead of once per event. Only the cheap` && |\n| &&
-             `        // scroll-position record stays per event.` && |\n| &&
-             `        if (target !== this._lastScrollTarget) {` && |\n| &&
-             `          const ui5El = this._closestUi5Element(target);` && |\n| &&
-             `          this._lastScrollTarget = target;` && |\n| &&
-             `          this._lastScrollUi5El = ui5El;` && |\n| &&
-             `          this._lastScrollSlotKey = ui5El` && |\n| &&
-             `            ? ViewSlots.containingSlotKey(ui5El)` && |\n| &&
-             `            : undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (this._lastScrollSlotKey) {` && |\n| &&
-             `          AppState.state.lastScrolled[this._lastScrollSlotKey] = {` && |\n| &&
-             `            control: this._lastScrollUi5El,` && |\n| &&
-             `            dom: target,` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      // Restore the app state a matched hash route points at. Wired into` && |\n| &&
              `      // core/Router by Component.js and called when the browser Back/Forward` && |\n| &&
              `      // buttons (or a manual URL edit / bookmark) select a different route.` && |\n| &&
@@ -417,52 +169,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        this.roundtrip({});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _getScrollInfo() {` && |\n| &&
-             `        // Release the per-element resolution cache of onScrollCapture once` && |\n| &&
-             `        // its DOM node left the document (view replaced/destroyed) - the` && |\n| &&
-             `        // detached element and its control would otherwise stay referenced` && |\n| &&
-             `        // until the user scrolls the next time.` && |\n| &&
-             `        if (this._lastScrollTarget && !this._lastScrollTarget.isConnected) {` && |\n| &&
-             `          this._lastScrollTarget = undefined;` && |\n| &&
-             `          this._lastScrollUi5El = undefined;` && |\n|.
-    result = result &&
-             `          this._lastScrollSlotKey = undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // Reads scrollLeft/scrollTop straight from the DOM element the user` && |\n| &&
-             `        // last scrolled in each view slot (recorded by onScrollCapture).` && |\n| &&
-             `        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are` && |\n| &&
-             `        // absent from the result - restoring 0/0 would be a no-op anyway.` && |\n| &&
-             `        const store = AppState.state.lastScrolled;` && |\n| &&
-             `        const out = {};` && |\n| &&
-             `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          const entry = store[slot.key];` && |\n| &&
-             `          if (!entry) continue;` && |\n| &&
-             `` && |\n| &&
-             `          // Drop stale references, e.g. after the view was replaced. Also` && |\n| &&
-             `          // drop a destroyed control whose DOM is still transiently` && |\n| &&
-             `          // connected: entry.control.getId() below would throw and abort the` && |\n| &&
-             `          // whole roundtrip (this method, unlike _getFocusInfo, has no outer` && |\n| &&
-             `          // try/catch).` && |\n| &&
-             `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
-             `            delete store[slot.key];` && |\n| &&
-             `            continue;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          const id = this._stripViewPrefix(` && |\n| &&
-             `            entry.control.getId(),` && |\n| &&
-             `            ViewSlots.getView(slot.key),` && |\n| &&
-             `          );` && |\n| &&
-             `          out[slot.key] = {` && |\n| &&
-             `            ID: id,` && |\n| &&
-             `            X: entry.dom.scrollLeft || 0,` && |\n| &&
-             `            Y: entry.dom.scrollTop || 0,` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
-             `        return Object.keys(out).length ? out : undefined;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      roundtrip(oBody = {}) {` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
              `` && |\n| &&
@@ -475,21 +181,32 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const eventName = oBody.ARGUMENTS?.[0]?.[0];` && |\n| &&
              `` && |\n| &&
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
+             `        // the session-constant block travels once per page load and the` && |\n| &&
+             `        // live device fields only when they changed (core/Session.js);` && |\n| &&
+             `        // focus and scroll are per roundtrip by nature (core/ScrollFocus.js)` && |\n| &&
+             `        const config = {` && |\n| &&
+             `          ...Session.config(oConfig, oBody.ID),` && |\n| &&
+             `          S_FOCUS: ScrollFocus.getFocusInfo(),` && |\n| &&
+             `          S_SCROLL: ScrollFocus.getScrollInfo(),` && |\n| &&
+             `        };` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
-             `          CONFIG: {` && |\n| &&
-             `            ...this._sessionConfig(oConfig),` && |\n| &&
-             `            // focus and scroll are per roundtrip by nature` && |\n| &&
-             `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
-             `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
-             `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
-             `          ORIGIN: window.location.origin,` && |\n| &&
-             `          PATHNAME: window.location.pathname,` && |\n| &&
-             `          SEARCH: state.search || window.location.search,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
+             `          // the hash is NOT session-constant - it carries the live routing` && |\n| &&
+             `          // state (route restore, app-state bookmarks) on every request` && |\n| &&
              `          HASH: window.location.hash,` && |\n| &&
              `        };` && |\n| &&
              `        const sFront = oBody.S_FRONT;` && |\n| &&
+             `        // an all-empty CONFIG is left off entirely` && |\n| &&
+             `        if (Object.values(config).some((v) => v !== undefined)) {` && |\n| &&
+             `          sFront.CONFIG = config;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // The page location travels on its own session cadence - the latch` && |\n| &&
+             `        // lives with the rest of the once-per-page-load state in` && |\n| &&
+             `        // core/Session.js. An event roundtrip gets null, and Object.assign` && |\n| &&
+             `        // with null adds nothing.` && |\n| &&
+             `        Object.assign(sFront, Session.location(oBody.ID, state.search));` && |\n| &&
              `` && |\n| &&
              `        // The first argument was the event name (already stored as EVENT),` && |\n| &&
              `        // the remaining entries are the actual event arguments.` && |\n| &&
@@ -503,9 +220,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // and these keys are not present in the JSON sent over the wire.` && |\n| &&
              `        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
+             `        if (!sFront.HASH) delete sFront.HASH;` && |\n| &&
              `        if (!oBody.MODEL) delete oBody.MODEL;` && |\n| &&
              `` && |\n| &&
-             `        this.readHttp(oBody);` && |\n| &&
+             `        // the session block's confirmation token rides with THIS request -` && |\n| &&
+             `        // a retry re-sends the same body and confirms the same token` && |\n| &&
+             `        this.readHttp(oBody, Session.takePending());` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Returns an abort signal that fires after ``ms`` plus a cancel function` && |\n| &&
@@ -553,7 +273,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        return controller.signal;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async readHttp(oBody) {` && |\n| &&
+             `      async readHttp(oBody, sessionCarried) {` && |\n| &&
              `        const timeoutMs =` && |\n| &&
              `          AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;` && |\n| &&
              `        // The signal guards the fetch and the response body reads below; the` && |\n| &&
@@ -569,7 +289,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          onRetry: () => {` && |\n| &&
              `            AppState.state.isBusy = true;` && |\n| &&
              `            BusyIndicator.show(0);` && |\n| &&
-             `            this.readHttp(oBody);` && |\n| &&
+             `            this.readHttp(oBody, sessionCarried);` && |\n| &&
              `          },` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
@@ -676,6 +396,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Step 4: hand the parsed response to the success handler.` && |\n| &&
              `          AppState.state.responseData = responseData;` && |\n| &&
+             `          // This request won, so the session block / live device values it` && |\n| &&
+             `          // carried have reached the backend - only now do the send latches` && |\n| &&
+             `          // advance (core/Session.js). A dropped request re-sends instead.` && |\n| &&
+             `          Session.confirmSent(sessionCarried);` && |\n| &&
              `          // This request won (it passed the stale guard above), so the edits` && |\n| &&
              `          // it carried have reached the backend - clear exactly the model it` && |\n| &&
              `          // shipped. A stale response returns before this point and clears` && |\n| &&
@@ -687,16 +411,21 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          this.responseSuccess(` && |\n| &&
              `            {` && |\n| &&
              `              ID: responseData.S_FRONT.ID,` && |\n| &&
-             `              PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
+             `              S_ACTION: responseData.S_FRONT.S_ACTION,` && |\n| &&
              `              // A response whose model did not change carries no MODEL key` && |\n| &&
              `              // at all; every consumer downstream sees the empty object it` && |\n| &&
              `              // used to be sent explicitly.` && |\n| &&
              `              OVIEWMODEL: responseData.MODEL ?? {},` && |\n| &&
+             `              // A MODEL key in the response IS the model push: View1 pushes` && |\n| &&
+             `              // it into every open model-owning slot after the system` && |\n| &&
+             `              // actions ran - no updateModel action travels for it.` && |\n| &&
+             `              MODELPRESENT: responseData.MODEL !== undefined,` && |\n| &&
              `              // Class name of the rendered app - used by the hash router to` && |\n| &&
              `              // keep the URL route "#/app/<CLASS>" in sync (View1).` && |\n| &&
              `              APP: responseData.S_FRONT.APP,` && |\n| &&
              `            },` && |\n| &&
-             `            seq,` && |\n| &&
+             `            seq,` && |\n|.
+    result = result &&
              `          );` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._inflight.delete(superseder);` && |\n| &&
@@ -708,18 +437,17 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
              `        try {` && |\n| &&
              `          AppState.state.oResponse = response;` && |\n| &&
-             `          const params = response.PARAMS;` && |\n| &&
              `` && |\n| &&
              `          // The backend can send follow-up actions to run after the response.` && |\n| &&
-             `          // Each entry is a JSON array ["EVENT", ...args] (framework actions,` && |\n| &&
-             `          // pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
-             `          // expression - see _runCustomJs. They are stashed` && |\n| &&
+             `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n| &&
+             `          // actions, pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
+             `          // expression - see FrontendAction.runCustom. They are stashed` && |\n| &&
              `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&
              `          // the (possibly freshly built) view is actually rendered. Running` && |\n| &&
              `          // them earlier would break render-dependent actions such as` && |\n| &&
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&
-             `          const followUp = params?.S_ACTION;` && |\n| &&
+             `          const followUp = response.S_ACTION;` && |\n| &&
              `          // carried on the response record, not on shared state: with` && |\n| &&
              `          // parallel responses a single global would let the older render` && |\n| &&
              `          // consume the newer response's snippets (and lose its own)` && |\n| &&
@@ -732,8 +460,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // and it cannot be, once the rebuild is one of the actions they run.` && |\n| &&
              `          // It stays harmless - _processAfterRendering marks the response as` && |\n| &&
              `          // processed before the first action, so the render it causes finds` && |\n| &&
-             `          // nothing left to do.` && |\n| &&
-             `          oController._processAfterRendering();` && |\n| &&
+             `          // nothing left to do. The request stamp rides along so the display` && |\n| &&
+             `          // guards compare against THIS response's request, not whatever is` && |\n| &&
+             `          // newest by the time processing starts.` && |\n| &&
+             `          oController._processAfterRendering(reqSeq);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          AppState.state.isBusy = false;` && |\n| &&
@@ -776,72 +506,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        this.responseError(err);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Executes a single follow-up action / custom-JS snippet from the backend.` && |\n| &&
-             `      // Format A:  a JSON array ["EVENT", ...args] - the structured form the` && |\n| &&
-             `      //            backend (z2ui5_cl_core_srv_event=>get_event_client_json)` && |\n| &&
-             `      //            emits for every framework follow-up action. Pure data,` && |\n| &&
-             `      //            serialized and escaped entirely in ABAP; dispatched via` && |\n| &&
-             `      //            oController.eF( ) after a single JSON.parse - no code is` && |\n| &&
-             `      //            parsed or evaluated on this path.` && |\n| &&
-             `      // Format B:  a structured eF( ) frontend-event call - the legacy wire` && |\n| &&
-             `      //            format, still produced by apps that pass raw "eF(...)"` && |\n| &&
-             `      //            strings to follow_up_action. Its argument list is parsed` && |\n| &&
-             `      //            manually (no eval / Function) so it runs under a strict` && |\n| &&
-             `      //            CSP while keeping object / array / string arguments intact.` && |\n| &&
-             `      // Format C:  a raw expression such as alert(123) - needs a CSP that` && |\n| &&
-             `      //            allows unsafe-eval, otherwise it is a no-op.` && |\n| &&
-             `      // Run one SYSTEM action. Unlike _runCustomJs there are no legacy` && |\n| &&
-             `      // formats to support - a system action is always framework-generated` && |\n| &&
-             `      // and therefore always a JSON array - and no catch: a failing view` && |\n| &&
-             `      // display has to reach _processAfterRendering, which turns it into the` && |\n| &&
-             `      // fatal overlay instead of leaving the app half-built.` && |\n| &&
-             `      _runSystemJs(item, oController) {` && |\n| &&
-             `        let args;` && |\n| &&
-             `        try {` && |\n| &&
-             `          args = JSON.parse(item);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``systemJs: '${item}' is no action payload``, e);` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!Array.isArray(args)) {` && |\n| &&
-             `          Lib.logError(``systemJs: '${item}' is no action payload``);` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `        return oController.eFS(...args);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _runCustomJs(item, oController) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const snippet = item.trim();` && |\n| &&
-             `          if (snippet.startsWith("[")) {` && |\n| &&
-             `            // JSON array -> structured follow-up action. A raw-JS expression` && |\n| &&
-             `            // that merely starts with "[" is no JSON array, so it fails the` && |\n| &&
-             `            // parse and falls through to the legacy formats below.` && |\n| &&
-             `            try {` && |\n| &&
-             `              const args = JSON.parse(snippet);` && |\n| &&
-             `              if (Array.isArray(args)) {` && |\n| &&
-             `                oController.eF(...args);` && |\n| &&
-             `                return;` && |\n| &&
-             `              }` && |\n| &&
-             `            } catch {` && |\n|.
-    result = result &&
-             `              // not JSON - keep going with the legacy formats` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `          const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);` && |\n| &&
-             `          if (match) {` && |\n| &&
-             `            oController.eF(...parseEfArgs(match[1]));` && |\n| &&
-             `          } else {` && |\n| &&
-             `            // A raw JavaScript expression - only runs when the CSP allows` && |\n| &&
-             `            // unsafe-eval.` && |\n| &&
-             `            // eslint-disable-next-line no-new-func` && |\n| &&
-             `            Function("return " + item)();` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("customJs: execution failed", e);` && |\n| &&
-             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Terminate the roundtrip in an unrecoverable state: clear the busy` && |\n| &&

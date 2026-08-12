@@ -20,7 +20,9 @@ CLASS ltcl_test_action_front DEFINITION FINAL
 
     METHODS queued
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
 ENDCLASS.
 
 
@@ -37,8 +39,12 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
 
   METHOD queued.
 
-    " the APP-phase action the call queued - there is exactly one per test
-    result = VALUE #( mo_action->ms_next-s_set-s_action-t_custom[ 1 ] OPTIONAL ).
+    " the APP-phase action the call queued - there is exactly one per test,
+    " built as its JSON array and stringified here only to assert on it
+    DATA(ls_action) = VALUE #( mo_action->ms_next-s_action-t_custom[ 1 ] OPTIONAL ).
+    IF ls_action-o_json IS BOUND.
+      result = ls_action-o_json->stringify( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -48,7 +54,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     " every one of its own defaults
     mo_cut->msg_toast( `Saved` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved"]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -62,7 +68,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
                                              my       = `center center`
                                              class    = `myCls` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved",{"class":"myCls","duration":250,"my":"center center"}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"class":"myCls","duration":250,"my":"center center"}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -74,7 +80,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_toast( text                           = `Saved`
                                              duration = `abc` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved"]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -85,7 +91,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_toast( text                            = `Saved`
                                              autoclose = abap_false ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved",{"autoClose":false}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"autoClose":false}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -96,7 +102,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     " to show( ) with the Information title
     mo_cut->msg_box( `Hello` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","show","Hello",{"title":"Information"}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","show","Hello",{"title":"Information"}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -107,7 +113,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
                                            type    = `Confirm`
                                            onclose = `ANSWERED` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","Delete?",{"onClose":"ANSWERED"}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","confirm","Delete?",{"onClose":"ANSWERED"}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -120,7 +126,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_box( text                       = `Boom`
                                            type = `garbage` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","show","Boom"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","show","Boom"]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -133,7 +139,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
                                            type = `error`
                                            icon = `NONE` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Boom"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","error","Boom"]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -144,7 +150,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
                                            type    = `confirm`
                                            actions = VALUE #( ( `OK` ) ( `CANCEL` ) ) ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","Delete?",{"actions":["OK","CANCEL"]}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","confirm","Delete?",{"actions":["OK","CANCEL"]}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -162,7 +168,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
     mo_cut->msg_box( lt_msg ).
 
     cl_abap_unit_assert=>assert_initial(
-        mo_action->ms_next-s_set-s_action-t_custom ).
+        mo_action->ms_next-s_action-t_custom ).
 
   ENDMETHOD.
 

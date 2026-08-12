@@ -158,25 +158,28 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // The view XML of the last response, read back out of the system action` && |\n| &&
-             `    // that displayed the slot: ["CONTROL_GLOBAL","VIEW_SLOTS","display",` && |\n| &&
-             `    // "<slot>","<xml>", {options}?]. Only used as a fallback for the case` && |\n| &&
-             `    // where the slot holds no live view to read the content off.` && |\n| &&
+             `    // that displayed the slot: ["VIEW_SLOTS","display","<slot>","<xml>",` && |\n| &&
+             `    // {options}?]. Only used as a fallback for the case where the slot` && |\n| &&
+             `    // holds no live view to read the content off.` && |\n| &&
              `    function getResponseXml(slotKey) {` && |\n| &&
-             `      const systemJs = AppState.state.oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;` && |\n| &&
+             `      const systemJs = AppState.state.oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `      if (!systemJs) return undefined;` && |\n| &&
              `      for (const item of systemJs) {` && |\n| &&
-             `        let args;` && |\n| &&
-             `        try {` && |\n| &&
-             `          args = JSON.parse(item);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          continue;` && |\n| &&
+             `        // a system action arrives as a real JSON array; the stringified` && |\n| &&
+             `        // form stays readable for a skewed backend` && |\n| &&
+             `        let args = item;` && |\n| &&
+             `        if (!Array.isArray(args)) {` && |\n| &&
+             `          try {` && |\n| &&
+             `            args = JSON.parse(item);` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            continue;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
-             `        if (` && |\n| &&
-             `          args[1] === "VIEW_SLOTS" &&` && |\n| &&
-             `          args[2] === "display" &&` && |\n| &&
-             `          args[3] === slotKey` && |\n| &&
-             `        ) {` && |\n| &&
-             `          return args[4];` && |\n| &&
+             `        if (!Array.isArray(args)) continue;` && |\n| &&
+             `        // a skewed backend may still send the CONTROL_GLOBAL-prefixed form` && |\n| &&
+             `        const a = args[0] === "CONTROL_GLOBAL" ? args.slice(1) : args;` && |\n| &&
+             `        if (a[0] === "VIEW_SLOTS" && a[1] === "display" && a[2] === slotKey) {` && |\n| &&
+             `          return a[3];` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      return undefined;` && |\n| &&
@@ -421,11 +424,11 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          );` && |\n| &&
              `          push(` && |\n| &&
              `            "POPOVER MODEL",` && |\n| &&
-             `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
+             `            json(() => jsonSources.POPOVER_MODEL()),` && |\n|.
+    result = result &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n|.
-    result = result &&
+             `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST1",` && |\n| &&
              `            xml(() => xmlSources.NEST1().xml),` && |\n| &&

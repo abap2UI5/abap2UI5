@@ -23,7 +23,7 @@
 // the <CLASS> segment names the app (human-readable), the <DRAFT> segment is
 // the server draft holding its state, so Back/Forward/reload/bookmark restore
 // the EXACT state. In FRESH mode the draft segment is omitted and the app
-// restarts clean. Routing is opt-in per app (client->set_nav_routing).
+// restarts clean. Routing is opt-in per app (cs_event-set_nav_routing).
 sap.ui.define(
   ["sap/ui/core/routing/HashChanger", "z2ui5/core/AppState", "z2ui5/core/Lib"],
   (HashChanger, AppState, Lib) => {
@@ -190,7 +190,7 @@ sap.ui.define(
     function onHashChanged(sNewHash) {
       const state = AppState.state;
 
-      // Routing is opt-in per app (client->set_nav_routing); until one
+      // Routing is opt-in per app (cs_event-set_nav_routing); until one
       // enabled it, the hash belongs entirely to the app (set_push_state).
       if (!state.navRouting) return;
 
@@ -315,9 +315,11 @@ sap.ui.define(
       }
     }
 
-    // Keep the URL in sync with what was just rendered. Called once per
-    // roundtrip from View1's after-render phase.
-    function sync(mOptions, ID) {
+    // Keep the URL in sync with what was just rendered - the ROUTER/sync
+    // system action, run once per roundtrip. The options object is
+    // self-contained: `id` carries the response's draft id.
+    function sync(mOptions) {
+      const ID = mOptions.id;
       try {
         applyMode(mOptions);
 
@@ -395,9 +397,6 @@ sap.ui.define(
       init,
       exit,
       splitHash,
-      appHashOf,
-      getHash,
-      getRawHash,
       hrefFor,
       patternFor,
       parse,

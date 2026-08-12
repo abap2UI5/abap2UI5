@@ -113,15 +113,14 @@ test.describe("View tab", () => {
   test("falls back to the last response XML when the view keeps none", () => {
     const { DeveloperTools } = loadDeveloperTools({
       views: { MAIN: fakeXmlView(undefined) },
-      // the XML rides on the system action that displayed the slot now
+      // the XML rides on the system action that displayed the slot - a real
+      // nested array on the wire
       oResponse: {
-        PARAMS: {
-          S_ACTION: {
-            T_SYSTEM: [
-              '["CONTROL_GLOBAL","VIEW_SLOTS","destroy","MAIN"]',
-              '["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Page/>"]',
-            ],
-          },
+        S_ACTION: {
+          T_SYSTEM: [
+            ["CONTROL_GLOBAL", "VIEW_SLOTS", "destroy", "MAIN"],
+            ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "MAIN", "<Page/>"],
+          ],
         },
       },
     });
@@ -129,6 +128,22 @@ test.describe("View tab", () => {
     DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("<Page/>");
     expect(modelData.type).toBe("xml");
+  });
+
+  test("still reads the stringified action form of a skewed backend", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      views: { MAIN: fakeXmlView(undefined) },
+      oResponse: {
+        S_ACTION: {
+          T_SYSTEM: [
+            '["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Page/>"]',
+          ],
+        },
+      },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("VIEW");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toBe("<Page/>");
   });
 });
 

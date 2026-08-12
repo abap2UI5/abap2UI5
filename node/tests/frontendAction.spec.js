@@ -23,23 +23,6 @@ function load({ sandbox } = {}) {
     error: rec("box.error"),
     success: rec("box.success"),
   };
-  // MESSAGE_TOAST / MESSAGE_BOX are routed through Messages by their display
-  // hook. The stub records the same shape the globals would have, plus the
-  // options object whenever one rode along.
-  const Messages = {
-    showToast: (text, opts) =>
-      calls.push(
-        Object.keys(opts || {}).length
-          ? ["toast.show", text, opts]
-          : ["toast.show", text],
-      ),
-    showBox: (type, text, opts) =>
-      calls.push(
-        Object.keys(opts || {}).length
-          ? [`box.${type}`, text, opts]
-          : [`box.${type}`, text],
-      ),
-  };
   const BusyIndicator = { show: rec("busy.show"), hide: rec("busy.hide") };
   const Theming = { setTheme: rec("theme.set") };
   const Popup = { setWithinArea: rec("popup.setWithinArea") };
@@ -63,6 +46,12 @@ function load({ sandbox } = {}) {
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
   };
   const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
+  // the VIEW_SLOTS display/updateModel hook routes into actions/Slots; the
+  // stub records the routed calls and lets a test swap the behavior
+  const slotCalls = [];
+  const Slots = {
+    action: (...a) => slotCalls.push(a),
+  };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
   }
@@ -71,6 +60,9 @@ function load({ sandbox } = {}) {
   }
   const FilterOperator = new Proxy({}, { get: (_t, op) => op });
   const { module, sandbox: ctx } = loadModule("core/FrontendAction.js", {
+    // the domain modules under core/actions/ load for real - this spec
+    // exercises the composed dispatch exactly as it ships
+    autoLoad: true,
     deps: {
       "sap/m/MessageBox": MessageBox,
       "sap/m/MessageToast": MessageToast,
@@ -84,9 +76,9 @@ function load({ sandbox } = {}) {
       "sap/ui/util/Storage": function () {},
       "z2ui5/core/Router": Router,
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/Messages": Messages,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
+      "z2ui5/core/actions/Slots": Slots,
     },
     sandbox,
   });
@@ -99,6 +91,8 @@ function load({ sandbox } = {}) {
     AppState,
     Popup,
     ctx,
+    slotCalls,
+    Slots,
   };
 }
 
@@ -163,9 +157,9 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "Saved!",
       { duration: 250, class: "myCls" },
     ]);
-    expect(calls).toEqual([
-      ["toast.show", "Saved!", { duration: 250, class: "myCls" }],
-    ]);
+    // `class` is no MessageToast option - it is stripped here and applied to
+    // the toast's DOM node instead (see actions/ControlCall showToast)
+    expect(calls).toEqual([["toast.show", "Saved!", { duration: 250 }]]);
   });
 
   test("a template and an options object survive each other", () => {
@@ -183,16 +177,23 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
 
   test("the box type is the method, and it takes options too", () => {
     const { FrontendAction, calls } = load();
-    FrontendAction.execute(null, [
+    const ebCalls = [];
+    const oController = { eB: (...a) => ebCalls.push(a) };
+    FrontendAction.execute(oController, [
       "CONTROL_GLOBAL",
       "MESSAGE_BOX",
       "confirm",
       "Delete?",
       { onClose: "ANSWERED" },
     ]);
-    expect(calls).toEqual([
-      ["box.confirm", "Delete?", { onClose: "ANSWERED" }],
-    ]);
+    expect(calls).toHaveLength(1);
+    const [name, text, opts] = calls[0];
+    expect([name, text]).toEqual(["box.confirm", "Delete?"]);
+    // the ONCLOSE event name was turned into the callback that round-trips
+    // the pressed action through eB (outside the event array - see
+    // actions/ControlCall showBox)
+    opts.onClose("OK");
+    expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
 
   test("ROUTER/sync hands the whole options object to the router", () => {
@@ -209,7 +210,6 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       [
         "router.sync",
         { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
-        "DRAFT1",
       ],
     ]);
   });
@@ -380,15 +380,12 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
-  test("VIEW_SLOTS routes destroy/display/updateModel to the controller", () => {
+  test("VIEW_SLOTS routes destroy/display/updateModel to actions/Slots", () => {
     // the view slots are the framework's own registry, not a UI5 global -
-    // destroy is ViewSlots' own method, display and updateModel live on the
-    // controller, and the hook sends all three to slotAction
-    const { FrontendAction } = load();
-    const slotCalls = [];
-    const oController = {
-      slotAction: (...a) => slotCalls.push(a),
-    };
+    // destroy is ViewSlots' own method, display and updateModel live in
+    // actions/Slots, and the hook sends all three to Slots.action
+    const { FrontendAction, slotCalls } = load();
+    const oController = {};
     FrontendAction.execute(oController, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
@@ -409,19 +406,30 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "updateModel",
     ]);
     expect(slotCalls).toEqual([
-      ["destroy", "POPUP", undefined, {}],
+      ["destroy", "POPUP", undefined, {}, undefined],
       // the XML is a positional argument of its own - it must NOT be read as
       // a template value for the slot name
-      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }],
+      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }, undefined],
       // no slot: the frontend picks the open ones itself
-      ["updateModel", undefined, undefined, {}],
+      ["updateModel", undefined, undefined, {}, undefined],
     ]);
+  });
+
+  test("the system phase threads the request stamp into the display", () => {
+    // the seq travels as the action CONTEXT (never shared state), so the
+    // slot display can discard a build a newer parallel request superseded
+    const { FrontendAction, slotCalls } = load();
+    FrontendAction.executeSystem(
+      null,
+      ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "POPUP", "<Dialog/>"],
+      { seq: 7 },
+    );
+    expect(slotCalls).toEqual([["display", "POPUP", "<Dialog/>", {}, 7]]);
   });
 
   test("an unlisted VIEW_SLOTS method is rejected", () => {
     const { FrontendAction, errors } = load();
-    const oController = { slotAction: () => {} };
-    FrontendAction.execute(oController, [
+    FrontendAction.execute({}, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
       "wipe",
@@ -469,11 +477,9 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
 
 test.describe("executeSystem (the SYSTEM phase entry point)", () => {
   test("returns the handler result so an async display can be awaited", async () => {
-    const { FrontendAction } = load();
-    const oController = {
-      slotAction: (_m, _slot, xml) => Promise.resolve(`built:${xml}`),
-    };
-    const result = FrontendAction.executeSystem(oController, [
+    const { FrontendAction, Slots } = load();
+    Slots.action = (_m, _slot, xml) => Promise.resolve(`built:${xml}`);
+    const result = FrontendAction.executeSystem(null, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
       "display",
@@ -486,14 +492,12 @@ test.describe("executeSystem (the SYSTEM phase entry point)", () => {
   test("does NOT swallow a failing display", () => {
     // execute( ) logs and moves on; a broken view build has to reach
     // _processAfterRendering and surface the fatal overlay instead
-    const { FrontendAction } = load();
-    const oController = {
-      slotAction: () => {
-        throw new Error("malformed XML");
-      },
+    const { FrontendAction, Slots } = load();
+    Slots.action = () => {
+      throw new Error("malformed XML");
     };
     expect(() =>
-      FrontendAction.executeSystem(oController, [
+      FrontendAction.executeSystem(null, [
         "CONTROL_GLOBAL",
         "VIEW_SLOTS",
         "display",

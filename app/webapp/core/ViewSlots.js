@@ -9,7 +9,8 @@ sap.ui.define(
   (Fragment, Lib, AppState) => {
     "use strict";
 
-    // `key`    short slot name used in frontend events and S_FRONT.VIEW
+    // `key`    short slot name used in frontend event args and as the
+    //           request's S_SCROLL keys
     // `prop` / `controllerProp`  AppState fields holding the live instances
     // `fragmentId`  only on the fragment-based slots (popup/popover): the
     //               id their inner controls are registered under, and the
@@ -35,8 +36,8 @@ sap.ui.define(
       },
       {
         key: "POPUP",
-        // holds its own JSON model - NEST/NEST2 are inserted into
-        // the MAIN control tree and inherit theirs by UI5 propagation
+        // holds its own JSON model - opened standalone, outside the MAIN
+        // control tree
         ownsModel: true,
         prop: "oViewPopup",
         controllerProp: "oControllerPopup",
@@ -44,8 +45,8 @@ sap.ui.define(
       },
       {
         key: "POPOVER",
-        // holds its own JSON model - NEST/NEST2 are inserted into
-        // the MAIN control tree and inherit theirs by UI5 propagation
+        // holds its own JSON model - opened standalone, outside the MAIN
+        // control tree
         ownsModel: true,
         prop: "oViewPopover",
         controllerProp: "oControllerPopover",

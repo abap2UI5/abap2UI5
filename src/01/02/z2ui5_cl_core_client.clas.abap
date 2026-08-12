@@ -85,19 +85,17 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
 
-    DATA(lv_js) = val.
-
     IF val IS NOT INITIAL
         AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      " a framework event travels as pure data - a JSON array serialized and
-      " escaped entirely in ABAP (get_event_client_json); only a raw JS
-      " expression passed by the app keeps the code form
-      lv_js = mo_srv_event->get_event_client_json( val   = val
-                                                   view  = view
-                                                   t_arg = t_arg ).
+      " a framework event travels as pure data - a JSON array built and
+      " escaped entirely in ABAP; only a raw JS expression passed by the app
+      " keeps the code form (the legacy formats, a STRING entry of the list)
+      mo_action_front->queue_app_event( val   = val
+                                        view  = view
+                                        t_arg = t_arg ).
+    ELSE.
+      mo_action_front->queue_app_js( val ).
     ENDIF.
-
-    INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_action-t_custom.
 
   ENDMETHOD.
 
@@ -263,14 +261,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-nest2 ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-nested2 ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-nest2
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-nested2
                   xml                   = val
                   id                    = id
                   method_insert         = method_insert
@@ -290,14 +288,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-nest ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-nested ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-nest
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-nested
                   xml                   = val
                   id                    = id
                   method_insert         = method_insert
@@ -315,14 +313,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-popover ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-popover ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_display.
 
-    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-popover
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-popover
                   xml                   = xml
                   open_by_id            = by_id ).
 
@@ -331,22 +329,22 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_model_update.
 
-    " deliberately EMPTY - see view_model_update. The automatic push flags
-    " the POPOVER slot too, so an open popover refreshes without this call
+    " deliberately EMPTY - see view_model_update. The automatic push reaches
+    " every open slot, so an open popover refreshes without this call
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-popup ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-popup ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_display.
 
-    mo_action_front->slot_display( slot = z2ui5_cl_core_action_front=>cs_slot-popup
+    mo_action_front->slot_display( slot = z2ui5_if_client=>cs_view-popup
                   xml                   = val ).
 
   ENDMETHOD.
@@ -354,22 +352,22 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_model_update.
 
-    " deliberately EMPTY - see view_model_update. The automatic push flags
-    " the POPUP slot too, so an open popup refreshes without this call
+    " deliberately EMPTY - see view_model_update. The automatic push reaches
+    " every open slot, so an open popup refreshes without this call
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_destroy.
 
-    mo_action_front->slot_destroy( z2ui5_cl_core_action_front=>cs_slot-main ).
+    mo_action_front->slot_destroy( z2ui5_if_client=>cs_view-main ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_display.
 
-    mo_action_front->slot_display( slot         = z2ui5_cl_core_action_front=>cs_slot-main
+    mo_action_front->slot_display( slot         = z2ui5_if_client=>cs_view-main
                   xml                           = val
                   switch_default_model_path     = switch_default_model_path
                   switch_default_model_anno_uri = switch_default_model_anno_uri ).
@@ -379,11 +377,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_model_update.
 
-    " deliberately EMPTY - the handler pushes the model by itself whenever
-    " main( ) changed it (z2ui5_cl_core_handler=>main_end compares the model
-    " before and after main( ) and flags every model-owning slot). The method
-    " stays in the interface so existing apps keep compiling and their calls
-    " keep being harmless; there is nothing left for it to do
+    " deliberately EMPTY - the handler queues the model push itself: on
+    " every view roundtrip, and otherwise whenever main( ) changed the model
+    " (z2ui5_cl_core_handler=>main_end). The push names no slot; every open
+    " model-owning slot picks it up. The method stays in the interface so
+    " existing apps keep compiling and their calls keep being harmless
 
   ENDMETHOD.
 
@@ -470,17 +468,19 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_push_state.
 
-    z2ui5_if_client~follow_up_action( val   = z2ui5_if_client=>cs_event-set_push_state
-                                      t_arg = VALUE #( ( val ) ) ).
+    " same field the cs_event-set_push_state branch of follow_up_action
+    " writes - the typed method just skips the string-argument detour
+    mo_action->ms_next-s_nav-set_push_state = val.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~set_app_state_active.
 
-    z2ui5_if_client~follow_up_action(
-        val   = z2ui5_if_client=>cs_event-set_app_state_active
-        t_arg = VALUE #( ( COND string( WHEN val = abap_true THEN abap_true ELSE ` ` ) ) ) ).
+    " same field the cs_event-set_app_state_active branch of follow_up_action
+    " writes - only that path needs the single-space encoding to squeeze
+    " `false` through a string argument; a typed abap_bool does not
+    mo_action->ms_next-s_nav-set_app_state_active = val.
 
   ENDMETHOD.
 

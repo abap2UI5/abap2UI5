@@ -131,25 +131,28 @@ sap.ui.define(
     }
 
     // The view XML of the last response, read back out of the system action
-    // that displayed the slot: ["CONTROL_GLOBAL","VIEW_SLOTS","display",
-    // "<slot>","<xml>", {options}?]. Only used as a fallback for the case
-    // where the slot holds no live view to read the content off.
+    // that displayed the slot: ["VIEW_SLOTS","display","<slot>","<xml>",
+    // {options}?]. Only used as a fallback for the case where the slot
+    // holds no live view to read the content off.
     function getResponseXml(slotKey) {
-      const systemJs = AppState.state.oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;
+      const systemJs = AppState.state.oResponse?.S_ACTION?.T_SYSTEM;
       if (!systemJs) return undefined;
       for (const item of systemJs) {
-        let args;
-        try {
-          args = JSON.parse(item);
-        } catch {
-          continue;
+        // a system action arrives as a real JSON array; the stringified
+        // form stays readable for a skewed backend
+        let args = item;
+        if (!Array.isArray(args)) {
+          try {
+            args = JSON.parse(item);
+          } catch {
+            continue;
+          }
         }
-        if (
-          args[1] === "VIEW_SLOTS" &&
-          args[2] === "display" &&
-          args[3] === slotKey
-        ) {
-          return args[4];
+        if (!Array.isArray(args)) continue;
+        // a skewed backend may still send the CONTROL_GLOBAL-prefixed form
+        const a = args[0] === "CONTROL_GLOBAL" ? args.slice(1) : args;
+        if (a[0] === "VIEW_SLOTS" && a[1] === "display" && a[2] === slotKey) {
+          return a[3];
         }
       }
       return undefined;

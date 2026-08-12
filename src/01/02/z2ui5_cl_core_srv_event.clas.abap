@@ -18,6 +18,19 @@ CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! The JSON-array form of a frontend action, as the ajson it is built
+    "! in - the response embeds it as a real nested array, so no string
+    "! round trip happens on the way out.
+    METHODS get_event_client_ajson
+      IMPORTING
+        val           TYPE clike
+        view          TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
+        t_arg         TYPE string_table OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ajson.
+
+    "! The same action stringified. No production caller any more - kept for
+    "! the unit specs that pin the TEXT form of a client event.
     METHODS get_event_client_json
       IMPORTING
         val           TYPE clike
@@ -120,11 +133,11 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     " are remapped to `<container>, <slot>, to, <target>`. The public
     " cs_event-*_nav_container_to constant values stay unchanged.
     DATA(lv_slot) = SWITCH string( lv_val
-                                   WHEN z2ui5_if_client=>cs_event-nav_container_to         THEN `MAIN`
-                                   WHEN z2ui5_if_client=>cs_event-nest_nav_container_to    THEN `NEST`
-                                   WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to   THEN `NEST2`
-                                   WHEN z2ui5_if_client=>cs_event-popup_nav_container_to   THEN `POPUP`
-                                   WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN `POPOVER`
+                                   WHEN z2ui5_if_client=>cs_event-nav_container_to         THEN z2ui5_if_client=>cs_view-main
+                                   WHEN z2ui5_if_client=>cs_event-nest_nav_container_to    THEN z2ui5_if_client=>cs_view-nested
+                                   WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to   THEN z2ui5_if_client=>cs_view-nested2
+                                   WHEN z2ui5_if_client=>cs_event-popup_nav_container_to   THEN z2ui5_if_client=>cs_view-popup
+                                   WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN z2ui5_if_client=>cs_view-popover
                                    ELSE `` ).
     IF lv_slot IS NOT INITIAL.
       " read from t_arg (the unchanged importing parameter), never from lt_arg
@@ -144,11 +157,11 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " of them ), but they are formatted as the one VIEW_SLOTS call here, so
       " the frontend has a single teardown path rather than a second handler
       " that happens to do the same thing.
-      lt_arg = VALUE #( ( `VIEW_SLOTS` )
-                        ( `destroy` )
+      lt_arg = VALUE #( ( z2ui5_if_core_types=>cs_slot_action-target )
+                        ( z2ui5_if_core_types=>cs_slot_action-destroy )
                         ( COND #( WHEN lv_val = z2ui5_if_client=>cs_event-popup_close
-                                  THEN `POPUP`
-                                  ELSE `POPOVER` ) ) ).
+                                  THEN z2ui5_if_client=>cs_view-popup
+                                  ELSE z2ui5_if_client=>cs_view-popover ) ) ).
       lv_val = z2ui5_if_client=>cs_event-control_global.
     ELSEIF lv_val = z2ui5_if_client=>cs_event-control_by_id.
       " the view is passed as its own parameter now, not as a positional
@@ -180,14 +193,28 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   METHOD get_event_client_json.
 
+    TRY.
+        result = get_event_client_ajson( val   = val
+                                         view  = view
+                                         t_arg = t_arg )->stringify( ).
+      CATCH z2ui5_cx_ajson_error INTO DATA(lx_error).
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING
+            val = lx_error.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD get_event_client_ajson.
+
     " Serialize a framework follow-up action as DATA - a JSON array
     " ["EVENT", arg1, ...] - instead of an executable eF( ) JS snippet. The
     " backend owns the whole serialization including the escaping (via AJSON);
-    " the frontend only JSON-parses the array and dispatches it
-    " (Server._runCustomJs), so no JS string literal is built here or
-    " re-parsed there on this path. The XML-bound handler strings
-    " (get_event_client) keep the JS form - they live inside view XML, where
-    " UI5 itself parses the handler expression.
+    " the frontend only dispatches the array (FrontendAction.runCustom /
+    " runSystem), so no code is built here or parsed there on this path. The
+    " XML-bound handler strings (get_event_client) keep the JS form - they
+    " live inside view XML, where UI5 itself parses the handler expression.
     DATA(ls_event) = map_client_event( val   = val
                                        view  = view
                                        t_arg = t_arg ).
@@ -233,7 +260,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
           ENDIF.
         ENDLOOP.
 
-        result = li_json->stringify( ).
+        result = li_json.
       CATCH cx_root INTO DATA(lx_error).
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING

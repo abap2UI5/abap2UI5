@@ -37,13 +37,21 @@ function withRecordedEB() {
 }
 
 // The model push: the backend sends ONE updateModel action naming no slot,
-// so the controller has to fan it out over the open model-owning slots
+// so actions/Slots has to fan it out over the open model-owning slots
 // itself. Asserting the dispatch alone is not enough - what matters is that
 // the data actually lands in every open slot and in none of the others.
 function withSlots(openKeys, model) {
   const applied = [];
   const views = {};
-  for (const key of openKeys) views[key] = { key };
+  for (const key of openKeys) {
+    // each open slot carries its own framework-owned (tracked) model; a
+    // push must land as setData on exactly that model
+    const tracked = {
+      _z2ui5Tracked: true,
+      setData: (data) => applied.push({ key, data }),
+    };
+    views[key] = { getModel: (name) => (name ? undefined : tracked) };
+  }
   const ViewSlots = {
     slots: [
       { key: "MAIN", ownsModel: true },
@@ -55,44 +63,39 @@ function withSlots(openKeys, model) {
     getView: (key) => views[key],
     destroy: () => {},
   };
-  const { module: Lib } = loadModule("core/Lib.js", {
-    deps: { "z2ui5/core/AppState": { state: {} }, "sap/ui/core/Element": {} },
-  });
-  const { module: ctrl } = loadModule("controller/View1.controller.js", {
+  const { module: Slots } = loadModule("core/actions/Slots.js", {
     deps: {
-      "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
-      "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
-      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/Server": {},
+      "z2ui5/core/Lib": { effectiveSizeLimit: () => undefined },
       "z2ui5/core/ViewSlots": ViewSlots,
-      "z2ui5/core/AppState": { state: { oResponse: { OVIEWMODEL: model } } },
+      "z2ui5/core/AppState": {
+        state: { oResponse: { OVIEWMODEL: model }, viewSizeLimits: {} },
+      },
     },
   });
-  const controller = Object.create(ctrl);
-  // stand in for the real model resolution - the point here is WHICH slots
-  // get pushed to, not how a slot's model is reused
-  controller.updateModelIfRequired = (slotKey) => {
-    if (!views[slotKey]) return;
-    applied.push(slotKey);
-  };
-  return { controller, applied };
+  return { Slots, applied };
 }
 
 test.describe("updateModel (one action, every open model slot)", () => {
   test("pushes into each OPEN slot that owns a model", () => {
-    const { controller, applied } = withSlots(["MAIN", "POPOVER"], { A: 1 });
-    controller.slotAction("updateModel", undefined, undefined, {});
-    expect(applied).toEqual(["MAIN", "POPOVER"]);
+    const model = { A: 1 };
+    const { Slots, applied } = withSlots(["MAIN", "POPOVER"], model);
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([
+      { key: "MAIN", data: model },
+      { key: "POPOVER", data: model },
+    ]);
   });
 
   test("skips the nested slots - they inherit MAIN's model", () => {
-    const { controller, applied } = withSlots(["MAIN", "NEST", "NEST2"], {});
-    controller.slotAction("updateModel", undefined, undefined, {});
-    expect(applied).toEqual(["MAIN"]);
+    const { Slots, applied } = withSlots(["MAIN", "NEST", "NEST2"], {});
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied.map((a) => a.key)).toEqual(["MAIN"]);
   });
 
   test("a closed slot is simply not pushed to", () => {
-    const { controller, applied } = withSlots([], {});
-    controller.slotAction("updateModel", undefined, undefined, {});
+    const { Slots, applied } = withSlots([], {});
+    Slots.action("updateModel", undefined, undefined, {});
     expect(applied).toEqual([]);
   });
 });
@@ -161,5 +164,71 @@ test.describe("textPath (ancestor-text breadcrumb)", () => {
     expect(controller.textPath(item, " | ")).toBe(
       "Create New Site | Official Store",
     );
+  });
+});
+
+test.describe("_processAfterRendering (action-free responses)", () => {
+  // With the ROUTER and updateModel actions derived/gated away, a response
+  // without any action is the COMMON case - it must still get its model
+  // push, its hash sync and the after-render hooks.
+  function loadForAfterRendering() {
+    const pushes = [];
+    const syncs = [];
+    const hooks = [];
+    const state = { onAfterRendering: [() => hooks.push("ran")] };
+    const { module: ctrl } = loadModule("controller/View1.controller.js", {
+      deps: {
+        "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
+        "sap/ui/core/BusyIndicator": { hide: () => {} },
+        "sap/m/MessageBox": {},
+        "z2ui5/core/Server": { _requestSeq: 1, responseError: () => {} },
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          runCallbacks: (arr) => (arr || []).forEach((f) => f()),
+          logError: () => {},
+        },
+        "z2ui5/core/FrontendAction": {
+          runSystem: () => {},
+          runCustom: () => {},
+        },
+        "z2ui5/core/actions/Slots": { action: (method) => pushes.push(method) },
+        "z2ui5/core/ViewSlots": {},
+        "z2ui5/core/Router": { sync: (o) => syncs.push(o) },
+        "z2ui5/core/AppState": { state },
+      },
+    });
+    return { ctrl, state, pushes, syncs, hooks };
+  }
+
+  test("no actions at all: model push, router sync and hooks still run", async () => {
+    const { ctrl, state, pushes, syncs, hooks } = loadForAfterRendering();
+    state.oResponse = { ID: "D1", MODELPRESENT: true };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(pushes).toEqual(["updateModel"]);
+    expect(syncs).toEqual([{ id: "D1" }]);
+    expect(hooks).toEqual(["ran"]);
+  });
+
+  test("no MODEL key: nothing is pushed, the sync still runs", async () => {
+    const { ctrl, state, pushes, syncs } = loadForAfterRendering();
+    state.oResponse = { ID: "D2", MODELPRESENT: false };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(pushes).toEqual([]);
+    expect(syncs).toEqual([{ id: "D2" }]);
+  });
+
+  test("a travelling ROUTER action's options reach the one per-response sync", async () => {
+    const { ctrl, state, syncs } = loadForAfterRendering();
+    // the ControlCall hook stashes the options on the response record; the
+    // stash is consumed by the sync, which injects the response id
+    state.oResponse = { ID: "D3", _routerOptions: { setNavRouting: "KEEP" } };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(syncs).toEqual([{ setNavRouting: "KEEP", id: "D3" }]);
   });
 });

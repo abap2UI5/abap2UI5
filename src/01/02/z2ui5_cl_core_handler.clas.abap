@@ -62,30 +62,25 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     DATA mv_model_before       TYPE string.
     DATA mv_model_before_taken TYPE abap_bool.
 
-    "! Turn the collected view-lifecycle calls into the SYSTEM action list -
-    "! in slot order, so the frontend only has to run what it receives.
-    METHODS system_actions_serialize.
-
-    "! Turn the roundtrip's browser-history intent into the ROUTER/sync call,
-    "! and a requested back-navigation into the history event that already
-    "! exists for it.
-    METHODS nav_action_serialize.
-
     "! Reconcile what this request says about the browser with what the draft
     "! already knows - see the method body.
     METHODS session_merge.
 
-    METHODS set_nav_opt
+    "! Derive the launchpad flag from the request's CURRENT location fields -
+    "! called from session_merge, after the draft-stored location was merged
+    "! back (pathname/search only travel on app-start-shaped requests).
+    METHODS launchpad_derive.
+
+    "! Write one action queue into the response JSON - each framework action
+    "! as the real nested array it was built as, each legacy raw-JS snippet
+    "! as the string entry the frontend's legacy path keys on.
+    METHODS actions_serialize
       IMPORTING
-        json TYPE REF TO z2ui5_if_ajson
-        name TYPE string
-        val  TYPE clike
+        ajson    TYPE REF TO z2ui5_if_ajson
+        path     TYPE string
+        t_action TYPE z2ui5_if_core_types=>ty_t_queued_action
       RAISING
         z2ui5_cx_ajson_error.
-
-    METHODS check_view_update_needed
-      RETURNING
-        VALUE(result) TYPE abap_bool.
 
     METHODS request_parse_body
       IMPORTING
@@ -259,10 +254,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     ENDIF.
 
-    result-s_control-check_launchpad = xsdbool(
-        result-s_front-search CS `scenario=LAUNCHPAD`
-        OR result-s_front-pathname CS `/ui2/flp`
-        OR result-s_front-pathname CS `test/flpSandbox` ).
+    " check_launchpad is NOT derived here: pathname/search only travel on
+    " app-start-shaped requests - an event roundtrip restores them from the
+    " draft, so the flag is computed in session_merge, from the MERGED values
   ENDMETHOD.
 
   METHOD slice_to_abap.
@@ -474,9 +468,29 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                                       ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
+        " the action queues are serialized explicitly below - the generic
+        " conversion would render each queue row as a { O_JSON, JS } object
+        " instead of the bare array/string entry the frontend reads. Only
+        " the two scalar fields are taken over - copying the whole struct
+        " would copy both queues just to clear them again.
+        DATA ls_front LIKE val-s_front.
+        ls_front-id  = val-s_front-id.
+        ls_front-app = val-s_front-app.
+
         ajson_result->set( iv_path = `/`
-                           iv_val  = val-s_front ).
+                           iv_val  = ls_front ).
         ajson_result = ajson_result->filter( z2ui5_cl_a2ui5_json_fltr=>create_no_empty_values( ) ).
+
+        " AFTER the filter, never before: an action array carries empty
+        " strings as positional placeholders, which the no-empty-values
+        " filter would silently drop
+        actions_serialize( ajson    = ajson_result
+                           path     = `/S_ACTION/T_SYSTEM`
+                           t_action = val-s_front-s_action-t_system ).
+        actions_serialize( ajson    = ajson_result
+                           path     = `/S_ACTION/T_CUSTOM`
+                           t_action = val-s_front-s_action-t_custom ).
+
         DATA(lv_frontend) = ajson_result->stringify( ).
 
         " An unchanged model is not sent at all - the key is left off rather
@@ -528,6 +542,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                       s_stateful    = mo_action->ms_next-s_stateful
                       status_code   = 200
                       status_reason = `success` ).
+
+    " the handler may be sticky and answer the next request too - nothing of
+    " this roundtrip's queues and intents may leak into it
+    CLEAR mo_action->ms_next.
 
   ENDMETHOD.
 
@@ -620,11 +638,43 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD launchpad_derive.
+
+    ms_request-s_control-check_launchpad = xsdbool(
+        ms_request-s_front-search CS `scenario=LAUNCHPAD`
+        OR ms_request-s_front-pathname CS `/ui2/flp`
+        OR ms_request-s_front-pathname CS `test/flpSandbox` ).
+
+  ENDMETHOD.
+
   METHOD session_merge.
 
     IF mo_action->mo_app IS NOT BOUND.
+      launchpad_derive( ).
       RETURN.
     ENDIF.
+
+    " The page location (origin, pathname, query) is session-constant too,
+    " but travels on its own cadence: with every app-start-shaped request
+    " (no draft id - the backend parses ?app_start= from SEARCH there) and
+    " on the first roundtrip of a page load. Event roundtrips omit it and
+    " are answered from the draft. The hash is NOT part of this: it carries
+    " the live routing state and stays a per-request field.
+    IF ms_request-s_front-origin IS NOT INITIAL.
+      mo_action->mo_app->ms_session-origin   = ms_request-s_front-origin.
+      mo_action->mo_app->ms_session-pathname = ms_request-s_front-pathname.
+      mo_action->mo_app->ms_session-search   = ms_request-s_front-search.
+    ELSE.
+      ms_request-s_front-origin   = mo_action->mo_app->ms_session-origin.
+      ms_request-s_front-pathname = mo_action->mo_app->ms_session-pathname.
+      ms_request-s_front-search   = mo_action->mo_app->ms_session-search.
+    ENDIF.
+
+    " the launchpad flag comes from the MERGED location - the raw request
+    " carries pathname/search only on app-start-shaped requests, and a flag
+    " frozen from the raw fields would read abap_false on every event
+    " roundtrip inside the FLP
+    launchpad_derive( ).
 
     " A request that CARRIES the block wins: that is the first roundtrip of a
     " page load, and it is also how a draft reopened on a different device
@@ -633,8 +683,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     IF ms_request-s_front-s_device-system IS NOT INITIAL
         OR ms_request-s_front-s_ui5-version IS NOT INITIAL.
 
+      " keep the location trio: the block above has already merged it into
+      " the request (stored or restored), and the first roundtrip of a page
+      " load carries BOTH blocks - rebuilding without it would wipe what was
+      " just stored
       mo_action->mo_app->ms_session = VALUE #( s_ui5    = ms_request-s_front-s_ui5
-                                               s_device = ms_request-s_front-s_device ).
+                                               s_device = ms_request-s_front-s_device
+                                               origin   = ms_request-s_front-origin
+                                               pathname = ms_request-s_front-pathname
+                                               search   = ms_request-s_front-search ).
       IF ms_request-s_front-o_comp_data IS BOUND.
         TRY.
             mo_action->mo_app->ms_session-comp_data = ms_request-s_front-o_comp_data->stringify( ).
@@ -644,13 +701,24 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " Answer this roundtrip from the draft - but keep the two device fields
-    " that are NOT session-constant: the window can be resized and a phone
-    " rotated while the app runs, so orientation and resize travel with every
-    " request and win over the stored ones.
+    " Answer this roundtrip from the draft - but let the two device fields
+    " that are NOT session-constant win from the request WHEN IT CARRIES
+    " them: the window can be resized and a phone rotated while the app
+    " runs. The frontend only sends them when they changed since the last
+    " send (core/Session.js), so an absent field means "unchanged" - the
+    " stored value stays, it is never wiped.
     DATA(ls_device) = mo_action->mo_app->ms_session-s_device.
-    ls_device-orientation = ms_request-s_front-s_device-orientation.
-    ls_device-resize      = ms_request-s_front-s_device-resize.
+    IF ms_request-s_front-s_device-orientation IS NOT INITIAL.
+      ls_device-orientation = ms_request-s_front-s_device-orientation.
+    ENDIF.
+    IF ms_request-s_front-s_device-resize-width > 0.
+      ls_device-resize = ms_request-s_front-s_device-resize.
+    ENDIF.
+
+    " a value that DID arrive is stored back with the draft: the frontend
+    " will not repeat it while it stays unchanged, so the merged record is
+    " the only place that remembers the rotation/resize
+    mo_action->mo_app->ms_session-s_device = ls_device.
 
     ms_request-s_front-s_device = ls_device.
     ms_request-s_front-s_ui5    = mo_action->mo_app->ms_session-s_ui5.
@@ -664,114 +732,21 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD nav_action_serialize.
+  METHOD actions_serialize.
 
-    DATA(ls_nav) = mo_action->ms_next-s_nav.
-    DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
-
-    TRY.
-        " Router computes ONE outcome from all of these - adopt the hash, push
-        " a route entry, replace it, or write the app-state hash - so they
-        " travel as one call with one options object. Queued LAST in the
-        " system phase, after the slots were built, so the route reflects what
-        " was actually rendered.
-        " only what is actually set travels - an absent option reads exactly
-        " like the empty value it would otherwise carry, and the common
-        " roundtrip sets none of them
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        IF ls_nav-set_app_state_active = abap_true.
-          li_opt->set_boolean( iv_path = `/setAppStateActive`
-                               iv_val  = abap_true ).
-        ENDIF.
-        IF ls_nav-check_nav_app_call = abap_true.
-          li_opt->set_boolean( iv_path = `/checkNavAppCall`
-                               iv_val  = abap_true ).
-        ENDIF.
-        set_nav_opt( json = li_opt
-                     name = `setPushState`
-                     val  = ls_nav-set_push_state ).
-        set_nav_opt( json = li_opt
-                     name = `setNavRouting`
-                     val  = ls_nav-set_nav_routing ).
-        set_nav_opt( json = li_opt
-                     name = `navAppCallPrevApp`
-                     val  = ls_nav-nav_app_call_prev_app ).
-        set_nav_opt( json = li_opt
-                     name = `navAppCallPrevId`
-                     val  = ls_nav-nav_app_call_prev_id ).
-        set_nav_opt( json = li_opt
-                     name = `id`
-                     val  = mo_action->mo_app->ms_draft-id ).
-
-        INSERT lo_srv_event->get_event_client_json(
-                   val   = z2ui5_if_client=>cs_event-control_global
-                   t_arg = VALUE #( ( `ROUTER` )
-                                    ( `sync` )
-                                    ( li_opt->stringify( ) ) ) )
-               INTO TABLE ms_response-s_front-params-s_action-t_system.
-
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING
-            val = |NAV_OPTIONS_INVALID - { lx_json->get_text( ) }|.
-    ENDTRY.
-
-
-  ENDMETHOD.
-
-  METHOD set_nav_opt.
-
-    IF val IS NOT INITIAL.
-      json->set_string( iv_path = |/{ name }|
-                        iv_val  = val ).
+    IF t_action IS INITIAL.
+      RETURN.
     ENDIF.
 
-  ENDMETHOD.
-
-  METHOD check_view_update_needed.
-
-    " a slot that ships new XML always needs the model with it - all five
-    " slots, the nested ones included. Every display records that
-    " (z2ui5_cl_core_client=>slot_display)
-    result = mo_action->ms_next-check_view_shipped.
-
-  ENDMETHOD.
-
-  METHOD system_actions_serialize.
-
-    " The view-lifecycle calls leave in SLOT order, never in the order the app
-    " happened to make them: a nested view is inserted into the MAIN control
-    " tree, so MAIN has to be built before NEST and NEST2 whichever way round
-    " the app called them. Within one slot the order is kept - that is the
-    " destroy that always precedes its display.
-    DATA lt_sorted TYPE z2ui5_if_core_types=>ty_t_system_action.
-
-    LOOP AT VALUE string_table( ( z2ui5_cl_core_action_front=>cs_slot-main )
-                                ( z2ui5_cl_core_action_front=>cs_slot-nest )
-                                ( z2ui5_cl_core_action_front=>cs_slot-nest2 )
-                                ( z2ui5_cl_core_action_front=>cs_slot-popup )
-                                ( z2ui5_cl_core_action_front=>cs_slot-popover ) )
-         INTO DATA(lv_slot).
-      LOOP AT mo_action->ms_next-t_action_front INTO DATA(ls_action) WHERE slot = lv_slot.
-        INSERT ls_action INTO TABLE lt_sorted.
-      ENDLOOP.
-    ENDLOOP.
-
-    DATA(lo_srv_event) = NEW z2ui5_cl_core_srv_event( ).
-    LOOP AT lt_sorted INTO ls_action.
-      DATA(lt_arg) = VALUE string_table( ( `VIEW_SLOTS` )
-                                         ( ls_action-method )
-                                         ( ls_action-slot ) ).
-      IF ls_action-method = `display`.
-        INSERT ls_action-xml INTO TABLE lt_arg.
-        IF ls_action-options IS NOT INITIAL.
-          INSERT ls_action-options INTO TABLE lt_arg.
-        ENDIF.
+    ajson->touch_array( path ).
+    LOOP AT t_action REFERENCE INTO DATA(lr_action).
+      IF lr_action->o_json IS BOUND.
+        ajson->push( iv_path = path
+                     iv_val  = lr_action->o_json ).
+      ELSE.
+        ajson->push( iv_path = path
+                     iv_val  = lr_action->js ).
       ENDIF.
-      INSERT lo_srv_event->get_event_client_json(
-                 val   = z2ui5_if_client=>cs_event-control_global
-                 t_arg = lt_arg )
-             INTO TABLE mo_action->ms_next-s_set-s_action-t_system.
     ENDLOOP.
 
   ENDMETHOD.
@@ -780,53 +755,68 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     " Hash routing is configured once and then belongs to the app, not to the
     " session: re-send the app's own mode whenever this roundtrip did not set
-    " one itself, so an app that called set_nav_routing( ) in check_on_init
+    " one itself, so an app that queued cs_event-set_nav_routing in check_on_init
     " stays routed in its chosen mode - even after the user visited another
     " app that runs with a different one (see z2ui5_cl_core_app=>mv_nav_mode).
-    IF mo_action->ms_next-s_nav-set_nav_routing IS INITIAL.
+    " NOT on every roundtrip though: the frontend keeps the mode in session
+    " state, so a plain event roundtrip of the SAME app repeats no mode (it
+    " would re-queue the ROUTER action for a constant). It has to travel
+    " again whenever the frontend may not hold it: an app-start-shaped
+    " request (page load, Back/Forward route restore), a navigation hop
+    " (check_on_navigated - the previous app may have run another mode), or
+    " a mode that differs from what this app last sent.
+    IF mo_action->ms_next-s_nav-set_nav_routing IS INITIAL
+        AND ( ms_request-s_front-id IS INITIAL
+           OR mo_action->ms_actual-check_on_navigated = abap_true
+           OR mo_action->mo_app->mv_nav_mode <> mo_action->mo_app->ms_session-nav_mode_sent ).
       mo_action->ms_next-s_nav-set_nav_routing = mo_action->mo_app->mv_nav_mode.
     ENDIF.
+    IF mo_action->ms_next-s_nav-set_nav_routing IS NOT INITIAL.
+      mo_action->mo_app->ms_session-nav_mode_sent = mo_action->ms_next-s_nav-set_nav_routing.
+    ENDIF.
 
-    system_actions_serialize( ).
+    DATA(lo_front) = NEW z2ui5_cl_core_action_front( mo_action ).
 
-    ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
-                           s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
+    " the view-lifecycle calls leave first, in slot order
+    lo_front->slots_serialize( ).
 
-    IF check_view_update_needed( ).
-      ms_response-model = mo_action->mo_app->model_json_stringify( ).
+    " The model of this roundtrip. A slot that shipped new XML always needs
+    " the model with it - all five slots, the nested ones included. Derived
+    " from the collected view-lifecycle calls themselves: a display that was
+    " later voided by a destroy (slot_reset) counts as no view.
+    DATA(lv_model) = `{}`.
+    IF line_exists( mo_action->ms_next-t_action_front[
+                        method = z2ui5_if_core_types=>cs_slot_action-display ] ).
+      lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
       " push - send the model only when main( ) itself changed it, exactly as
-      " an explicit view_model_update( ) would (same payload, same frontend
-      " flag); an unchanged model still responds `{}` as before
-      DATA(lv_model) = mo_action->mo_app->model_json_stringify( ).
-      IF lv_model = mv_model_before.
-        ms_response-model = `{}`.
-      ELSE.
-        ms_response-model = lv_model.
-        " The app has ONE model, but each OPEN slot holds its own frontend
-        " instance of it - and which slots are open is the one thing only the
-        " frontend knows. So the action names no slot at all: it says the
-        " model changed, and every slot carrying a model of its own picks it
-        " up. Appended AFTER the display actions, so a slot built in this same
-        " roundtrip is filled before it is pushed to.
-        INSERT NEW z2ui5_cl_core_srv_event( )->get_event_client_json(
-                   val   = z2ui5_if_client=>cs_event-control_global
-                   t_arg = VALUE #( ( `VIEW_SLOTS` ) ( `updateModel` ) ) )
-               INTO TABLE ms_response-s_front-params-s_action-t_system.
+      " an explicit view_model_update( ) would; an unchanged model still
+      " responds `{}` as before
+      DATA(lv_model_now) = mo_action->mo_app->model_json_stringify( ).
+      IF lv_model_now <> mv_model_before.
+        lv_model = lv_model_now.
       ENDIF.
-    ELSE.
-      ms_response-model = `{}`.
     ENDIF.
+    " No updateModel action travels with it: a MODEL key in the response IS
+    " the push - the frontend pushes into every open model-owning slot after
+    " the system actions ran (View1). That covers the nested re-display
+    " (inherits the MAIN model by propagation - three-column samples) and a
+    " popup left open across a MAIN rebuild alike, without spelling a
+    " derivable instruction into every model-carrying response.
 
     " last of all, so the route reflects everything this roundtrip did - the
-    " slots that were built and the model that was pushed into them
-    nav_action_serialize( ).
+    " slots that were built and the model that was pushed into them. Queued
+    " only when the roundtrip carries nav intent; the frontend syncs the URL
+    " once per response either way (View1 injects the response id).
+    lo_front->nav_serialize( ).
+
+    ms_response = VALUE #( s_front-s_action = mo_action->ms_next-s_action
+                           s_front-id       = mo_action->mo_app->ms_draft-id
+                           s_front-app      = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
+                           model            = lv_model ).
 
     mv_response = response_abap_to_json( ms_response ).
-
-    CLEAR mo_action->ms_next.
 
     IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
       mo_action->mo_app->db_save( ).

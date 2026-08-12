@@ -262,7 +262,7 @@ test("a plain roundtrip replaces the current entry with the newest draft", () =>
   const { Router, state, writes } = loadRouter();
   state.oResponse = { APP: CALLER };
 
-  Router.sync({}, "D2");
+  Router.sync({ id: "D2" });
 
   expect(writes).toEqual([
     { op: "replace", hash: `app/${CALLER}/D2`, guard: "D2" },
@@ -274,7 +274,7 @@ test("a nav_app_call repoints the caller's entry, then pushes the called app", (
   setHash(`/app/${CALLER}/D1`); // the entry the browser is standing on
   state.oResponse = { APP: CALLEE };
 
-  Router.sync(navCallParams(), "D9");
+  Router.sync({ ...navCallParams(), id: "D9" });
 
   expect(writes).toEqual([
     // the caller's entry now points at the draft that carries the user's
@@ -293,7 +293,7 @@ test("the repoint is skipped when the caller's entry is already current", () => 
   setHash(`/app/${CALLER}/D2`);
   state.oResponse = { APP: CALLEE };
 
-  Router.sync(navCallParams(), "D9");
+  Router.sync({ ...navCallParams(), id: "D9" });
 
   expect(writes).toEqual([
     { op: "set", hash: `app/${CALLEE}/D9`, guard: "D9" },
@@ -304,7 +304,7 @@ test("a nav_app_call without the caller info only pushes (older backend)", () =>
   const { Router, state, writes } = loadRouter();
   state.oResponse = { APP: CALLEE };
 
-  Router.sync({ checkNavAppCall: true }, "D9");
+  Router.sync({ checkNavAppCall: true, id: "D9" });
 
   expect(writes).toEqual([
     { op: "set", hash: `app/${CALLEE}/D9`, guard: "D9" },
@@ -317,7 +317,7 @@ test("FRESH mode routes by class only and never repoints", () => {
   });
   state.oResponse = { APP: CALLEE };
 
-  Router.sync(navCallParams(), "D9");
+  Router.sync({ ...navCallParams(), id: "D9" });
 
   expect(writes).toEqual([{ op: "set", hash: `app/${CALLEE}`, guard: null }]);
 });
@@ -328,7 +328,7 @@ test("a render caused by browser Back/Forward writes no hash at all", () => {
   });
   state.oResponse = { APP: CALLER };
 
-  Router.sync({}, "D2");
+  Router.sync({ id: "D2" });
 
   expect(writes).toEqual([]);
   expect(state.navFromHash).toBe(false);
@@ -340,7 +340,7 @@ test("the routing mode arrives with every response and switches modes live", () 
   });
   state.oResponse = { APP: CALLER };
 
-  Router.sync({ setNavRouting: "KEEP" }, "D2");
+  Router.sync({ setNavRouting: "KEEP", id: "D2" });
   expect(state.navRouting).toBe(true);
   expect(state.navMode).toBe("KEEP");
   expect(writes).toEqual([
@@ -348,7 +348,7 @@ test("the routing mode arrives with every response and switches modes live", () 
   ]);
 
   // DEFAULT turns routing off again and hands the hash back to the app
-  Router.sync({ setNavRouting: "DEFAULT" }, "D3");
+  Router.sync({ setNavRouting: "DEFAULT", id: "D3" });
   expect(state.navRouting).toBe(false);
   expect(state.navMode).toBe(null);
 });
@@ -358,7 +358,7 @@ test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
     state: { navRouting: false },
     href: `https://host/flp#${FLP_SHELL}&/app/X/D1`,
   });
-  flp.Router.sync({ setPushState: "?pos=42" }, "D2");
+  flp.Router.sync({ setPushState: "?pos=42", id: "D2" });
   expect(flp.pushes).toEqual([
     `/sap/z2ui5#${FLP_SHELL}&/app/X/D1?pos=42`,
   ]);
@@ -367,7 +367,7 @@ test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
     state: { navRouting: false },
     href: "https://host/sap/z2ui5#/app/X/D1",
   });
-  standalone.Router.sync({ setPushState: "?pos=42" }, "D2");
+  standalone.Router.sync({ setPushState: "?pos=42", id: "D2" });
   expect(standalone.pushes).toEqual(["/sap/z2ui5#/app/X/D1?pos=42"]);
 });
 
@@ -381,10 +381,12 @@ test("set_push_state survives the app-state cleanup when routing is on", () => {
     hash: `app/${CALLER}/D1`,
     href: `https://host/sap/z2ui5#/app/${CALLER}/D1`,
   });
-  Router.sync(
-    { setPushState: "?pos=42", APP: CALLER, setNavRouting: "KEEP" },
-    "D1",
-  );
+  Router.sync({
+    setPushState: "?pos=42",
+    APP: CALLER,
+    setNavRouting: "KEEP",
+    id: "D1",
+  });
   expect(pushes).toEqual([`/sap/z2ui5#/app/${CALLER}/D1?pos=42`]);
   expect(writes.filter((w) => w.hash === "")).toEqual([]);
 });
@@ -393,7 +395,7 @@ test("the app-state hash reaches the HashChanger slash-less too", () => {
   // hasher prepends the one canonical "/" - the live URL becomes
   // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes
   const { Router, writes } = loadRouter({ state: { navRouting: false } });
-  Router.sync({ setAppStateActive: true }, "ABC");
+  Router.sync({ setAppStateActive: true, id: "ABC" });
   expect(writes).toEqual([
     { op: "replace", hash: "z2ui5-xapp-state=ABC", guard: "D1" },
   ]);
@@ -422,8 +424,8 @@ test("routes with stacked leading slashes still parse (old history entries)", ()
   expect(Router.appOf(`//app/${CALLEE}`)).toBe(CALLEE);
 });
 
-// The option names are a contract with the backend: z2ui5_cl_core_handler=>
-// nav_action_serialize writes exactly these keys into the ROUTER/sync call.
+// The option names are a contract with the backend: z2ui5_cl_core_action_front=>
+// nav_serialize writes exactly these keys into the ROUTER/sync call.
 // A rename on either side silently disables routing - the router would read
 // undefined everywhere and simply do nothing - so pin the set here.
 test("reads exactly the option names the backend writes", () => {
@@ -434,6 +436,7 @@ test("reads exactly the option names the backend writes", () => {
   const read = [...src.matchAll(/mOptions\.([a-zA-Z]+)/g)].map((m) => m[1]);
   expect([...new Set(read)].sort()).toEqual([
     "checkNavAppCall",
+    "id",
     "navAppCallPrevApp",
     "navAppCallPrevId",
     "setAppStateActive",

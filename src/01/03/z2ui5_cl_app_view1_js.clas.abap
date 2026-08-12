@@ -27,117 +27,101 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
 
     result = `// The central view controller. One instance serves each of the five view` && |\n| &&
              `// slots (main view, two nested views, popup, popover - see` && |\n| &&
-             `// core/ViewSlots.js). It builds the request for backend events (eB),` && |\n| &&
-             `// dispatches frontend-only events (eF), renders the views and fragments a` && |\n| &&
-             `// response asks for, and runs the post-render follow-ups.` && |\n| &&
+             `// core/ViewSlots.js). It carries the protocol entry points the backend binds` && |\n| &&
+             `// events to (eB, eBP, eF), builds the request for backend events and runs` && |\n| &&
+             `// the response's two action phases. The display machinery behind those` && |\n| &&
+             `// actions lives in core/actions/Slots.js.` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
-             `    "sap/ui/core/mvc/XMLView",` && |\n| &&
-             `    "sap/ui/model/json/JSONModel",` && |\n| &&
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/m/MessageBox",` && |\n| &&
-             `    "sap/ui/core/Fragment",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
-             `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/FrontendAction",` && |\n| &&
+             `    "z2ui5/core/actions/Slots",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
-             `    XMLView,` && |\n| &&
-             `    JSONModel,` && |\n| &&
              `    BusyIndicator,` && |\n| &&
              `    MessageBox,` && |\n| &&
-             `    Fragment,` && |\n| &&
              `    Server,` && |\n| &&
-             `    ODataModel,` && |\n| &&
              `    Lib,` && |\n| &&
              `    FrontendAction,` && |\n| &&
+             `    Slots,` && |\n| &&
              `    ViewSlots,` && |\n| &&
+             `    Router,` && |\n| &&
              `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
-             `      if (!oModel) return;` && |\n| &&
-             `      // For the root slots (MAIN/NEST/NEST2) this is the max limit across them,` && |\n| &&
-             `      // since they share this one model; popup/popover get their own limit.` && |\n| &&
-             `      const limit = Lib.effectiveSizeLimit(` && |\n| &&
-             `        AppState.state.viewSizeLimits,` && |\n| &&
-             `        viewKey,` && |\n| &&
-             `      );` && |\n| &&
-             `      if (limit !== undefined) oModel.setSizeLimit(limit);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    return Controller.extend("z2ui5.controller.View1", {` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `      // Model change tracking - remembers which model paths the user edited` && |\n| &&
-             `      // so the next roundtrip only ships the delta.` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `      _trackChanges(oModel) {` && |\n| &&
-             `        // Mark the model as framework-owned: updateModelIfRequired may only` && |\n| &&
-             `        // reuse models that carry this change tracker.` && |\n| &&
-             `        oModel._z2ui5Tracked = true;` && |\n| &&
-             `        // Edited paths are tracked PER MODEL, not in one shared set: the main` && |\n| &&
-             `        // view and a popup/popover each have their own JSON model, and a` && |\n| &&
-             `        // roundtrip ships only the picked model's own edits. A single shared` && |\n| &&
-             `        // set would build the delta of one model against another's data (a` && |\n| &&
-             `        // path missing there serializes as ``undefined`` and clears the field` && |\n| &&
-             `        // on the backend) and would drop the other model's still-unsent edits.` && |\n| &&
-             `        oModel._z2ui5ChangedPaths = new Set();` && |\n| &&
-             `        oModel.attachPropertyChange((e) => {` && |\n| &&
-             `          const params = e.getParameters();` && |\n| &&
-             `          const raw = params.path;` && |\n| &&
-             `          const ctx = params.context;` && |\n| &&
-             `          if (!raw) return;` && |\n| &&
-             `          // Resolve relative paths against the binding context.` && |\n| &&
-             `          const changedPath =` && |\n| &&
-             `            ctx && !raw.startsWith("/") ? ``${ctx.getPath()}/${raw}`` : raw;` && |\n| &&
-             `          if (changedPath.startsWith("/")) {` && |\n| &&
-             `            oModel._z2ui5ChangedPaths.add(changedPath);` && |\n| &&
-             `          }` && |\n| &&
-             `        });` && |\n| &&
-             `        return oModel;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
-             `        if (AppState.state.oResponse && !AppState.state.oResponse._processed) {` && |\n| &&
-             `          this._processAfterRendering();` && |\n| &&
-             `        }` && |\n| &&
+             `        // _processAfterRendering re-checks _processed itself - only the` && |\n| &&
+             `        // null check is load-bearing here` && |\n| &&
+             `        if (AppState.state.oResponse) this._processAfterRendering();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Runs once after each roundtrip's view has been rendered, in two` && |\n| &&
              `      // named phases: display pending fragments/views, then update the` && |\n| &&
-             `      // browser history/hash.` && |\n| &&
-             `      async _processAfterRendering() {` && |\n| &&
-             `        // Hoisted out of the try block: the finally below must run the` && |\n| &&
-             `        // follow-up JS of exactly THIS response. Re-reading the shared` && |\n| &&
-             `        // AppState.state.oResponse there would - after a parallel request` && |\n| &&
-             `        // replaced it during the awaits - consume (and clear) the newer` && |\n| &&
-             `        // response's snippets before its own render.` && |\n| &&
-             `        let oResponse;` && |\n| &&
+             `      // browser history/hash. ``reqSeq`` is the stamp of the request the` && |\n| &&
+             `      // response being processed belongs to (Server.responseSuccess); the` && |\n| &&
+             `      // onAfterRendering entry above has none and falls back to the newest.` && |\n| &&
+             `      async _processAfterRendering(reqSeq) {` && |\n| &&
+             `        // The claim happens BEFORE the try: the MAIN rebuild is a system` && |\n| &&
+             `        // action now, so slots render (and re-enter here via their own` && |\n| &&
+             `        // onAfterRendering - possibly with a NESTED controller as ``this``)` && |\n| &&
+             `        // while phase 1 is still awaiting. A losing entry must return here` && |\n| &&
+             `        // and never reach the finally, which would hide the busy state and` && |\n| &&
+             `        // consume the pending custom JS mid-phase, on the wrong controller.` && |\n| &&
+             `        // The record is also pinned for the finally: the shared` && |\n| &&
+             `        // AppState.state.oResponse may point at a newer response by then.` && |\n| &&
+             `        const oResponse = AppState.state.oResponse;` && |\n| &&
+             `        if (!oResponse || oResponse._processed) return;` && |\n| &&
+             `        oResponse._processed = true;` && |\n| &&
              `        try {` && |\n| &&
-             `          oResponse = AppState.state.oResponse;` && |\n| &&
-             `          if (oResponse._processed) return;` && |\n| &&
-             `          oResponse._processed = true;` && |\n| &&
-             `` && |\n| &&
-             `          const PARAMS = oResponse.PARAMS;` && |\n| &&
-             `          if (!PARAMS) return;` && |\n| &&
-             `` && |\n| &&
-             `          // Stamp of the request this response belongs to: every await in` && |\n| &&
-             `          // the display phase re-checks it, so a response superseded by a` && |\n| &&
-             `          // parallel request (check_allow_multi_req, Back/Forward restore)` && |\n| &&
-             `          // never attaches popups/nested views the backend no longer knows.` && |\n| &&
-             `          const seq = Server._requestSeq;` && |\n| &&
-             `          await this._runSystemActions(oResponse, seq);` && |\n| &&
+             `          // No early return on an empty action list: a response without any` && |\n| &&
+             `          // action still gets its model push, its hash sync and the` && |\n| &&
+             `          // after-render hooks below - with the ROUTER and updateModel` && |\n| &&
+             `          // actions derived/gated away, an action-free response is the` && |\n| &&
+             `          // COMMON case now, not the exception.` && |\n| &&
+             `          if (oResponse.S_ACTION) {` && |\n| &&
+             `            // Stamp of the request this response belongs to: every await in` && |\n| &&
+             `            // the display phase re-checks it, so a response superseded by a` && |\n| &&
+             `            // parallel request (check_allow_multi_req, Back/Forward restore)` && |\n| &&
+             `            // never attaches popups/nested views the backend no longer knows.` && |\n| &&
+             `            const seq = reqSeq ?? Server._requestSeq;` && |\n| &&
+             `            await this._runSystemActions(oResponse, seq);` && |\n| &&
+             `          }` && |\n| &&
              `          // The app may have been torn down (reset / FLP re-launch) while the` && |\n| &&
              `          // pending views loaded; don't mutate history or fire onAfterRendering` && |\n| &&
              `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
-             `          // way via isDestroyed).` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          // way via isDestroyed). And a response a PARALLEL request replaced` && |\n| &&
+             `          // mid-phase must not push its model or write its ids into the URL -` && |\n| &&
+             `          // the push would read the NEWER response's data into this stale` && |\n| &&
+             `          // render, and the sync would mix this draft id with the newer app.` && |\n| &&
+             `          // The newer response runs its own push and sync.` && |\n| &&
+             `          if (Lib.isDestroyed(this) || oResponse !== AppState.state.oResponse) {` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          // A MODEL key in the response IS the model push - run it after the` && |\n| &&
+             `          // displays, so a slot built in this same roundtrip is filled before` && |\n| &&
+             `          // it is pushed to. This reaches what a fresh build alone does not:` && |\n| &&
+             `          // a nested view re-displayed without its MAIN view (it inherits the` && |\n| &&
+             `          // MAIN model by UI5 propagation) and a popup left open across a` && |\n| &&
+             `          // MAIN rebuild.` && |\n| &&
+             `          if (oResponse.MODELPRESENT) Slots.action("updateModel");` && |\n| &&
+             `          // Phase 2: ONE history/hash sync per response. A ROUTER action only` && |\n| &&
+             `          // travels when the roundtrip carries nav intent - its options were` && |\n| &&
+             `          // stashed by the ControlCall hook. The plain response still syncs,` && |\n| &&
+             `          // so hash routing and app-state tracking follow every new draft id.` && |\n| &&
+             `          Router.sync({` && |\n| &&
+             `            ...(oResponse._routerOptions || {}),` && |\n| &&
+             `            id: oResponse.ID,` && |\n| &&
+             `          });` && |\n| &&
              `          Lib.runCallbacks(AppState.state.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
@@ -157,81 +141,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // calls (destroy a slot, display one, push the model into it), in the` && |\n| &&
              `      // order the backend queued them. They run BEFORE anything an app` && |\n| &&
              `      // queued, and one at a time: a display is async, and the next action` && |\n| &&
-             `      // may well be about the slot it is still building.` && |\n| &&
+             `      // may well be about the slot it is still building. The action context` && |\n| &&
+             `      // carries the request stamp (so the slot displays can discard a build` && |\n| &&
+             `      // a newer parallel request superseded) and the response record (so the` && |\n| &&
+             `      // ROUTER action stashes its options on the response they belong to).` && |\n| &&
              `      async _runSystemActions(oResponse, seq) {` && |\n| &&
-             `        const systemJs = oResponse?.PARAMS?.S_ACTION?.T_SYSTEM;` && |\n| &&
+             `        const systemJs = oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `        if (!systemJs) return;` && |\n| &&
-             `        // the slot handlers take the request stamp from here rather than` && |\n| &&
-             `        // through the generic action signature, which carries only the` && |\n| &&
-             `        // payload the backend sent` && |\n| &&
-             `        this._systemSeq = seq;` && |\n| &&
-             `        try {` && |\n| &&
-             `          for (const item of systemJs) {` && |\n| &&
-             `            if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `            await Server._runSystemJs(item, this);` && |\n| &&
-             `          }` && |\n| &&
-             `        } finally {` && |\n| &&
-             `          this._systemSeq = undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // The VIEW_SLOTS target of a system action. destroy is ViewSlots' own` && |\n| &&
-             `      // method; display and updateModel live here, because loading a fragment` && |\n| &&
-             `      // and owning the model is the controller's job.` && |\n| &&
-             `      slotAction(method, slotKey, xml, mOptions) {` && |\n| &&
-             `        const seq = this._systemSeq;` && |\n| &&
-             `        if (method === "destroy") {` && |\n| &&
-             `          ViewSlots.destroy(slotKey);` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (method === "updateModel") {` && |\n| &&
-             `          // no slot is named - push into every OPEN slot that carries a` && |\n| &&
-             `          // model of its own` && |\n| &&
-             `          for (const slot of ViewSlots.slots) {` && |\n| &&
-             `            if (slot.ownsModel) this.updateModelIfRequired(slot.key);` && |\n| &&
-             `          }` && |\n| &&
-             `          return undefined;` && |\n| &&
-             `        }` && |\n| &&
-             `        // display. The teardown of whatever the slot held is its own action` && |\n| &&
-             `        // and has already run, so there is nothing to decide here either -` && |\n| &&
-             `        // only which loader the slot uses.` && |\n| &&
-             `        if (slotKey === "MAIN") return this._displayMainView(xml, mOptions);` && |\n| &&
-             `        if (slotKey === "POPUP") return this.displayFragment(xml, seq);` && |\n| &&
-             `        if (slotKey === "POPOVER") {` && |\n| &&
-             `          return this.displayPopover(xml, mOptions.openById, seq);` && |\n| &&
-             `        }` && |\n| &&
-             `        return this.displayNestedView(xml, slotKey, mOptions, seq);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // The MAIN rebuild is the one display that cannot simply run: it is` && |\n| &&
-             `      // serialized through Server._viewBuild because XMLView.create claims` && |\n| &&
-             `      // the fixed "mainView" id synchronously, so two overlapping builds` && |\n| &&
-             `      // (a slow library load plus a parallel/multi-req response) would throw` && |\n| &&
-             `      // "duplicate id". Each queued build re-checks that it has not been` && |\n| &&
-             `      // superseded before it starts.` && |\n| &&
-             `      _displayMainView(xml, mOptions) {` && |\n| &&
-             `        const seq = this._systemSeq;` && |\n| &&
-             `        Server._viewBuild = Promise.resolve(Server._viewBuild)` && |\n| &&
-             `          .catch(() => {})` && |\n| &&
-             `          .then(() => {` && |\n| &&
-             `            if (seq !== undefined && seq !== Server._requestSeq) {` && |\n| &&
-             `              return undefined;` && |\n| &&
-             `            }` && |\n| &&
-             `            return this.displayView(` && |\n| &&
-             `              xml,` && |\n| &&
-             `              AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
-             `              seq,` && |\n| &&
-             `              mOptions,` && |\n| &&
-             `            );` && |\n| &&
+             `        for (const item of systemJs) {` && |\n| &&
+             `          // Stop the whole phase once a newer request superseded this` && |\n| &&
+             `          // response - the remaining actions would tear down or overwrite` && |\n| &&
+             `          // what the newer response builds (the per-display guards check` && |\n| &&
+             `          // the same stamp, but the synchronous teardowns do not).` && |\n| &&
+             `          if (Lib.isDestroyed(this) || seq !== Server._requestSeq) return;` && |\n| &&
+             `          await FrontendAction.runSystem(item, this, {` && |\n| &&
+             `            seq,` && |\n| &&
+             `            response: oResponse,` && |\n| &&
              `          });` && |\n| &&
-             `        return Server._viewBuild;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // eFS = "event frontend, system": the SYSTEM phase counterpart of eF.` && |\n| &&
-             `      // It returns the handler's result so an async display can be awaited,` && |\n| &&
-             `      // and lets errors propagate - see FrontendAction.executeSystem.` && |\n| &&
-             `      eFS(...args) {` && |\n| &&
-             `        return FrontendAction.executeSystem(this, args);` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
@@ -242,157 +169,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!customJs) return;` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        for (const item of customJs) {` && |\n| &&
-             `          Server._runCustomJs(item, this);` && |\n| &&
+             `          FrontendAction.runCustom(item, this);` && |\n| &&
              `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _createViewModel() {` && |\n| &&
-             `        const data = AppState.state.oResponse?.OVIEWMODEL;` && |\n| &&
-             `        return this._trackChanges(new JSONModel(data));` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `      // Display: popups, popovers, nested views, main view` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `      // Shared load path of the two fragment slots (popup, popover): create` && |\n| &&
-             `      // the slot's own JSON model, load the fragment and attach the model.` && |\n| &&
-             `      // Returns null when the app was torn down while the fragment loaded or a` && |\n| &&
-             `      // newer request superseded this response - we must not open a dialog the` && |\n| &&
-             `      // backend no longer knows about.` && |\n| &&
-             `      async _loadSlotFragment(slotKey, fragmentId, xml, seq) {` && |\n| &&
-             `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
-             `        const oFragment = await Fragment.load({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          controller: ViewSlots.getController(slotKey),` && |\n| &&
-             `          id: fragmentId,` && |\n| &&
-             `        });` && |\n| &&
-             `        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {` && |\n| &&
-             `          oFragment.destroy();` && |\n| &&
-             `          return null;` && |\n| &&
-             `        }` && |\n| &&
-             `        oFragment.setModel(oModel);` && |\n| &&
-             `        return oFragment;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async displayFragment(xml, seq) {` && |\n| &&
-             `        const oFragment = await this._loadSlotFragment(` && |\n| &&
-             `          "POPUP",` && |\n| &&
-             `          "popupId",` && |\n| &&
-             `          xml,` && |\n| &&
-             `          seq,` && |\n| &&
-             `        );` && |\n| &&
-             `        if (!oFragment) return;` && |\n| &&
-             `        // The shared device + message models are attached inside` && |\n| &&
-             `        // ViewSlots.setView (the single funnel), so error paths that` && |\n| &&
-             `        // destroy a view without reaching setView never register it.` && |\n| &&
-             `        ViewSlots.setView("POPUP", oFragment);` && |\n| &&
-             `        oFragment.open();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // True when this response was superseded by a newer request while an` && |\n| &&
-             `      // async view build was awaiting (undefined seq = no check, for` && |\n| &&
-             `      // custom-JS callers of the display helpers).` && |\n| &&
-             `      _isSuperseded(seq) {` && |\n| &&
-             `        return seq !== undefined && seq !== Server._requestSeq;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async displayPopover(xml, openById, seq) {` && |\n| &&
-             `        // No catch-all here on purpose: a malformed-XML load or render` && |\n| &&
-             `        // failure must propagate to _processAfterRendering and surface the` && |\n| &&
-             `        // fatal "App Terminated" overlay, exactly like displayFragment and` && |\n| &&
-             `        // displayNestedView. The explicit returns below stay graceful - they` && |\n| &&
-             `        // handle expected, non-error conditions (app torn down mid-load, or` && |\n| &&
-             `        // the openBy anchor not being present), matching the parent-not-found` && |\n| &&
-             `        // guard in displayNestedView.` && |\n| &&
-             `        const oFragment = await this._loadSlotFragment(` && |\n| &&
-             `          "POPOVER",` && |\n| &&
-             `          "popoverId",` && |\n| &&
-             `          xml,` && |\n| &&
-             `          seq,` && |\n| &&
-             `        );` && |\n| &&
-             `        if (!oFragment) return;` && |\n| &&
-             `` && |\n| &&
-             `        // Find the control to attach the popover to: any open slot first,` && |\n| &&
-             `        // then the global UI5 control registry as a last resort.` && |\n| &&
-             `        const oControl = ViewSlots.resolveById(openById);` && |\n| &&
-             `` && |\n| &&
-             `        if (!oControl) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``displayPopover: openBy control '${openById}' not found``,` && |\n| &&
-             `          );` && |\n| &&
-             `          oFragment.destroy();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        ViewSlots.setView("POPOVER", oFragment);` && |\n| &&
-             `        oFragment.openBy(oControl);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async displayNestedView(xml, slotKey, mOptions, seq) {` && |\n| &&
-             `        // Nested views do NOT create their own model. They are inserted into` && |\n| &&
-             `        // the MAIN control tree below and inherit its default JSON model via` && |\n| &&
-             `        // UI5 model propagation, so every view binds against the same data with` && |\n| &&
-             `        // one change tracker and one refresh per roundtrip - no duplicate` && |\n| &&
-             `        // models pointing at the same data. The model passed to the XML` && |\n| &&
-             `        // preprocessor here only feeds {template>...} bindings at build time;` && |\n| &&
-             `        // it is the MAIN view's JSON model (the named "http" model when` && |\n| &&
-             `        // SWITCH_DEFAULT_MODEL_PATH moved OData into the default slot, otherwise` && |\n| &&
-             `        // the default model), mirroring displayView's template model.` && |\n| &&
-             `        const oMainView = ViewSlots.getView("MAIN");` && |\n| &&
-             `        const oTemplateModel =` && |\n| &&
-             `          oMainView?.getModel("http") ?? oMainView?.getModel();` && |\n| &&
-             `        const oView = await XMLView.create({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          controller: ViewSlots.getController(slotKey),` && |\n| &&
-             `          preprocessors: { xml: { models: { template: oTemplateModel } } },` && |\n| &&
-             `        });` && |\n| &&
-             `` && |\n| &&
-             `        if (!Lib.isAlive(AppState.state.oApp) || this._isSuperseded(seq)) {` && |\n| &&
-             `          oView.destroy();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // The options travel with the action that carries the XML, so they` && |\n| &&
-             `        // always belong to the same response - there is no live global to` && |\n| &&
-             `        // re-read and no way to mix this response's view with a newer` && |\n| &&
-             `        // response's parent id and insert/destroy methods.` && |\n| &&
-             `        const {` && |\n| &&
-             `          id: ID,` && |\n| &&
-             `          methodDestroy: METHOD_DESTROY,` && |\n| &&
-             `          methodInsert: METHOD_INSERT,` && |\n| &&
-             `        } = mOptions;` && |\n| &&
-             `` && |\n| &&
-             `        const oParent = ViewSlots.byId("MAIN", ID);` && |\n| &&
-             `        if (!oParent) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
-             `          );` && |\n| &&
-             `          oView.destroy();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // METHOD_DESTROY is optional: only call it when the app asked for a` && |\n| &&
-             `        // parent teardown method. An empty value used to reach oParent[""]()` && |\n| &&
-             `        // and throw on every render (e.g. app 065 passes only method_insert).` && |\n| &&
-             `        if (METHOD_DESTROY) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            oParent[METHOD_DESTROY]();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              ``displayNestedView: parent destroy method '${METHOD_DESTROY}' failed``,` && |\n| &&
-             `              e,` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `        try {` && |\n| &&
-             `          oParent[METHOD_INSERT](oView);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("displayNestedView: parent insert method failed", e);` && |\n| &&
-             `          oView.destroy();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        ViewSlots.setView(slotKey, oView);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Thin wrappers around the shared slot teardown in ViewSlots, kept` && |\n| &&
@@ -417,15 +195,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // eF = "event frontend": handles frontend-only events triggered by` && |\n| &&
              `      // the backend response, without a roundtrip. The name is part of the` && |\n| &&
              `      // protocol - backend-generated view XML binds events to eB/eF - and` && |\n| &&
-             `      // must not be renamed. The individual handlers live in` && |\n| &&
-             `      // core/FrontendAction.js.` && |\n| &&
+             `      // must not be renamed. The individual handlers live in the domain` && |\n| &&
+             `      // modules under core/actions/ (merged in core/FrontendAction.js).` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eF(...args) {` && |\n| &&
              `        FrontendAction.execute(this, args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n|.
-    result = result &&
+             `      // ------------------------------------------------------------------` && |\n| &&
              `      // eBP = "event backend, prevent default": cancels the control's` && |\n| &&
              `      // built-in default for this event and then round-trips exactly like` && |\n| &&
              `      // eB. The backend emits it (instead of eB) for an event registered` && |\n| &&
@@ -521,8 +298,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // If the user edited model paths, send only the delta to keep the` && |\n| &&
              `        // payload small. The edited paths live on the picked model itself` && |\n| &&
-             `        // (set in _trackChanges), so onBeforeRoundtrip hooks that mark paths` && |\n| &&
-             `        // dirty (e.g. the Scrolling control) must have run above first.` && |\n| &&
+             `        // (set in Slots.trackChanges), so onBeforeRoundtrip hooks that mark` && |\n| &&
+             `        // paths dirty (e.g. the Scrolling control) must have run above first.` && |\n| &&
              `        const changedPaths = oModel?._z2ui5ChangedPaths;` && |\n| &&
              `        if (oModel && changedPaths?.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
@@ -554,15 +331,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        Lib.runCallbacks(AppState.state.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // The framework-owned JSON model on a slot's view: the DEFAULT model` && |\n| &&
-             `      // normally, but the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH put` && |\n| &&
-             `      // an OData model in the default slot. Returns undefined when neither model` && |\n| &&
-             `      // is ours (marked by _z2ui5Tracked).` && |\n| &&
-             `      _resolveTrackedModel(oView) {` && |\n| &&
-             `        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
-             `        return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
              `        // useMainModel forces use of the main view's model even when called` && |\n| &&
              `        // from a popup/popover controller.` && |\n| &&
@@ -578,109 +346,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // edit is silently dropped. The data and changedPaths delta are shared` && |\n| &&
              `        // across the root slots, so any of them yields the same model.` && |\n| &&
              `        if (Lib.isRootModelSlot(slotKey)) {` && |\n| &&
-             `          return this._resolveTrackedModel(oView);` && |\n| &&
+             `          return Slots.resolveTrackedModel(oView);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        // Popup/popover are standalone and return their own (default) model.` && |\n| &&
              `        return oView.getModel();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Refresh a slot's model when the response signals an update for it` && |\n| &&
-             `      // (CHECK_UPDATE_MODEL - the data-only roundtrip every app triggers` && |\n| &&
-             `      // via client->view_model_update( )).` && |\n| &&
-             `      // Only the three model-owning slots ever carry the flag: MAIN owns the` && |\n| &&
-             `      // root model, POPUP/POPOVER own their own. NEST/NEST2 are inserted into` && |\n| &&
-             `      // the MAIN control tree and inherit its model by propagation, so the` && |\n| &&
-             `      // backend has no CHECK_UPDATE_MODEL for them at all and` && |\n| &&
-             `      // nest_view_model_update( ) refreshes MAIN instead - which is why this` && |\n| &&
-             `      // can setData unconditionally without refreshing one shared model twice.` && |\n| &&
-             `      // Push the response's model into one slot, if it is open at all.` && |\n| &&
-             `      updateModelIfRequired(slotKey) {` && |\n| &&
-             `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
-             `        if (!oView) return;` && |\n| &&
-             `` && |\n| &&
-             `        // Reuse the existing model whenever it is ours: setData() keeps the` && |\n| &&
-             `        // view's bindings alive and only refreshes what changed, while a new` && |\n| &&
-             `        // model + setModel() destroys and recreates every binding - measured` && |\n| &&
-             `        // ~3x slower with all values changed and ~150x slower when little` && |\n| &&
-             `        // changed (see node/tests-examples/modelUpdate.bench.spec.js).` && |\n| &&
-             `        // Never overwrite an OData default (switch mode) with a fresh JSON model.` && |\n| &&
-             `        const tracked = this._resolveTrackedModel(oView);` && |\n| &&
-             `        if (tracked) {` && |\n| &&
-             `          applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
-             `          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // No framework-owned model on this slot at all: bind a fresh default` && |\n| &&
-             `        // JSON model (keeps the previous behavior for that edge case).` && |\n| &&
-             `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
-             `        oView.setModel(oModel);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Replace the main app view with the XML coming from the backend.` && |\n| &&
-             `      async displayView(xml, viewModel, reqSeq, mOptions = {}) {` && |\n| &&
-             `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
-             `` && |\n| &&
-             `        const switchPath = mOptions.switchDefaultModelPath;` && |\n| &&
-             `` && |\n| &&
-             `        // When the app wants OData as the default model, build it here and` && |\n| &&
-             `        // keep the JSON model as the named "http" model.` && |\n| &&
-             `        let oModel;` && |\n| &&
-             `        if (switchPath) {` && |\n| &&
-             `          oModel = new ODataModel({` && |\n| &&
-             `            serviceUrl: switchPath,` && |\n| &&
-             `            annotationURI: mOptions.switchDefaultModelAnnoUri || "",` && |\n| &&
-             `          });` && |\n| &&
-             `        } else {` && |\n| &&
-             `          oModel = oViewModel;` && |\n| &&
-             `        }` && |\n| &&
-             `        applyStoredSizeLimit("MAIN", oModel);` && |\n| &&
-             `` && |\n| &&
-             `        const oView = await XMLView.create({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          models: oModel,` && |\n| &&
-             `          controller: ViewSlots.getController("MAIN"),` && |\n| &&
-             `          id: "mainView",` && |\n| &&
-             `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
-             `        });` && |\n| &&
-             `` && |\n| &&
-             `        // oModel covers oViewModel too when they are the same object (no` && |\n| &&
-             `        // switchPath); with an OData default model both must go.` && |\n| &&
-             `        const discardBuild = () => {` && |\n| &&
-             `          oView.destroy();` && |\n| &&
-             `          oModel.destroy();` && |\n| &&
-             `          if (switchPath) oViewModel.destroy();` && |\n| &&
-             `        };` && |\n| &&
-             `` && |\n| &&
-             `        // Guard against the app being destroyed during the await above.` && |\n| &&
-             `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
-             `          discardBuild();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // A newer parallel request (check_allow_multi_req) superseded this one` && |\n| &&
-             `        // while XMLView.create was awaiting - discard this rebuild instead of` && |\n| &&
-             `        // letting an out-of-order resolve overwrite the newer view. Last-write` && |\n| &&
-             `        // wins by request order, not by which create() happened to resolve last.` && |\n| &&
-             `        // Only discard when a newer view actually took the slot: if the` && |\n| &&
-             `        // superseding response was data-only, dropping this build too would` && |\n| &&
-             `        // leave the app permanently blank - a slightly stale view is the` && |\n| &&
-             `        // better outcome then.` && |\n| &&
-             `        if (` && |\n| &&
-             `          reqSeq !== undefined &&` && |\n| &&
-             `          reqSeq !== Server._requestSeq &&` && |\n| &&
-             `          ViewSlots.getView("MAIN")` && |\n| &&
-             `        ) {` && |\n| &&
-             `          discardBuild();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        ViewSlots.setView("MAIN", oView);` && |\n| &&
-             `        if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
-             `        AppState.state.oApp.removeAllPages();` && |\n| &&
-             `        AppState.state.oApp.insertPage(oView);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

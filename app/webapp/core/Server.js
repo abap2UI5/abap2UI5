@@ -1,105 +1,25 @@
 sap.ui.define(
   [
     "sap/ui/core/BusyIndicator",
-    "sap/ui/Device",
-    "sap/ui/core/Element",
     "sap/ui/VersionInfo",
     "z2ui5/core/Lib",
+    "z2ui5/core/Session",
+    "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
     "z2ui5/core/AppState",
   ],
   (
     BusyIndicator,
-    Device,
-    Element,
     VersionInfo,
     Lib,
+    Session,
+    ScrollFocus,
     ViewSlots,
     ErrorView,
     AppState,
   ) => {
     "use strict";
-
-    // Quote characters recognised by the eF( ) argument parser below, built
-    // from char codes so both quote kinds are declared symmetrically and
-    // stand out from the surrounding string literals.
-    const CH_SQUOTE = String.fromCharCode(39);
-    const CH_DQUOTE = String.fromCharCode(34);
-
-    // Undo the escapes the backend applies to a single-quoted argument
-    // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the
-    // line breaks it rewrites to \n / \r - a raw newline would be a syntax
-    // error inside a JS string literal, so a multi-line argument only ever
-    // travels escaped. Decoding them in one pass keeps the order right: a
-    // literal backslash-n ("\\n" on the wire) stays text instead of turning
-    // into a line break.
-    const EF_UNESCAPE = { n: "\n", r: "\r" };
-    function unescapeEfString(body) {
-      return body.replace(/\\(.)/g, (match, ch) => EF_UNESCAPE[ch] ?? ch);
-    }
-
-    // Convert a single JS-literal argument (as produced by the backend
-    // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,
-    // JSON objects / arrays, numbers, booleans and null.
-    function parseEfValue(token) {
-      if (token === "") return undefined;
-      const first = token[0];
-      if (first === CH_SQUOTE) {
-        return unescapeEfString(token.slice(1, -1));
-      }
-      if (first === CH_DQUOTE || first === "{" || first === "[") {
-        try {
-          return JSON.parse(token);
-        } catch {
-          return token;
-        }
-      }
-      if (token === "true") return true;
-      if (token === "false") return false;
-      if (token === "null") return null;
-      if (token === "undefined") return undefined;
-      const num = Number(token);
-      return Number.isNaN(num) ? token : num;
-    }
-
-    // Split the argument list of an eF( ) call into its top-level arguments,
-    // respecting nested (), {}, [] and quoted strings, and convert each one
-    // to a value. Done manually (no eval / Function) so it works under a
-    // strict Content-Security-Policy without unsafe-eval, while keeping
-    // object, array and quoted-string arguments intact.
-    function parseEfArgs(str) {
-      const args = [];
-      let depth = 0;
-      let quote = null;
-      let token = "";
-      for (let i = 0; i < str.length; i++) {
-        const ch = str[i];
-        if (quote) {
-          token += ch;
-          if (ch === "\\" && i + 1 < str.length) token += str[++i];
-          else if (ch === quote) quote = null;
-          continue;
-        }
-        if (ch === CH_SQUOTE || ch === CH_DQUOTE) {
-          quote = ch;
-          token += ch;
-        } else if (ch === "{" || ch === "[" || ch === "(") {
-          depth++;
-          token += ch;
-        } else if (ch === "}" || ch === "]" || ch === ")") {
-          depth--;
-          token += ch;
-        } else if (ch === "," && depth === 0) {
-          args.push(parseEfValue(token.trim()));
-          token = "";
-        } else {
-          token += ch;
-        }
-      }
-      if (token.trim() !== "") args.push(parseEfValue(token.trim()));
-      return args;
-    }
 
     // Last-resort client-side timeout for backend roundtrips. Infrastructure
     // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and
@@ -134,30 +54,36 @@ sap.ui.define(
     //         "ID": "<draft id of the previous response>",
     //         "EVENT": "SAVE",             // event name
     //         "T_EVENT_ARG": ["arg1"],     // further event arguments
-    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",
-    //         "SEARCH": "?p=1", "HASH": "#...",
+    //         "HASH": "#...",              // live routing state, every request
+    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...", "SEARCH": "?p=1",
+    //                                      // session-constant location: only on
+    //                                      // app-start-shaped requests and the
+    //                                      // page load's first roundtrip
     //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},
     //                     "S_FOCUS": {...}, "S_SCROLL": {...},
     //                     "ComponentData": {...} }
     //   } } }
     //
-    // Wire format - response:
+    // Wire format - response. S_FRONT carries nothing but the id, the app
+    // and the action lists: every view build, teardown, model push and
+    // history update is an action, run by View1/FrontendAction in the
+    // documented order.
     //   { "S_FRONT": {
     //       "ID": "<new draft id>",        // sent back with the next request
-    //       "PARAMS": {
-    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },
-    //         "S_ACTION": {
+    //       "APP": "<app class name>",     // rendered app, for the router
+    //       "S_ACTION": {
     //           // SYSTEM: the framework's own view-lifecycle calls, run
-    //           // first, in order, before the view is rendered
+    //           // first, in order, before the view is rendered. A
+    //           // ROUTER/sync call is queued last, and only when the
+    //           // roundtrip carries nav intent - View1 syncs the URL once
+    //           // per response either way
     //           "T_SYSTEM": [
-    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"destroy\",\"POPUP\"]",
-    //             "[\"CONTROL_GLOBAL\",\"VIEW_SLOTS\",\"display\",\"POPOVER\",\"<Popover/>\",{\"openById\":\"btn\"}]"
+    //             ["VIEW_SLOTS","destroy","POPUP"],
+    //             ["VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]
     //           ],
-    //           // APP: what the app queued, run last, once the DOM exists
-    //           "T_CUSTOM": ["[\"SET_FOCUS\",\"id1\"]"]
-    //         },
-    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",
-    //         "SET_NAV_BACK": ""           // browser/history follow-ups
+    //           // APP: what the app queued, run last, once the DOM exists.
+    //           // A legacy app-authored raw-JS snippet stays a string entry.
+    //           "T_CUSTOM": [["SET_FOCUS","id1"]]
     //       }
     //     },
     //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes
@@ -178,9 +104,10 @@ sap.ui.define(
       // letting the backend finish work whose response would be dropped anyway.
       _inflight: new Set(),
 
-      // Chain that serializes full MAIN-view rebuilds (see responseSuccess):
-      // XMLView.create claims the fixed "mainView" id synchronously, so two
-      // overlapping builds would throw "duplicate id".
+      // Chain that serializes full MAIN-view rebuilds (see
+      // actions/Slots.displayMain): XMLView.create claims the fixed
+      // "mainView" id synchronously, so two overlapping builds would throw
+      // "duplicate id".
       _viewBuild: null,
 
       endSession() {
@@ -199,181 +126,6 @@ sap.ui.define(
         AppState.state.contextId = null;
       },
 
-      // What the backend only needs ONCE per page load: the UI5 build and the
-      // launchpad's ComponentData. It stores them with the draft, so every
-      // later roundtrip omits them - a few hundred bytes off every event.
-      //
-      // Sent until it has gone out COMPLETE, not just once: the version info
-      // is loaded asynchronously during component init, so the first roundtrip
-      // can fire before it exists. Repeating it costs the same bytes it used
-      // to cost every time, and stops as soon as there is something to store.
-      //
-      // A page load always starts by sending it again, which is what makes a
-      // draft reopened on a different device pick up THAT device instead of
-      // the one that created it.
-      _sessionConfig(oConfig) {
-        // orientation and resize are the two device fields that are NOT
-        // session-constant - a window is resized and a phone rotated while
-        // the app runs - so they travel every time and the backend merges
-        // them over the block it stored.
-        const live = this._getDeviceLive();
-        if (this._sessionConfigSent) return { S_DEVICE: live };
-        if (oConfig?.S_UI5) this._sessionConfigSent = true;
-        return {
-          S_UI5: oConfig?.S_UI5,
-          ComponentData: oConfig?.ComponentData,
-          S_DEVICE: { ...this._getDeviceStatic(), ...live },
-        };
-      },
-
-      // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the
-      // session, so resolve them once and reuse the cached block.
-      _getDeviceStatic() {
-        if (!this._deviceStatic) {
-          this._deviceStatic = {
-            SYSTEM: Lib.deriveSystemType(Device.system),
-            BROWSER: {
-              NAME: Device.browser.name || "",
-              VERSION: String(Device.browser.version || ""),
-            },
-            OS: {
-              NAME: Device.os.name || "",
-              VERSION: String(Device.os.version || ""),
-            },
-            SUPPORT: {
-              TOUCH: Device.support.touch || false,
-              POINTER: Device.support.pointer || false,
-              RETINA: Device.support.retina || false,
-            },
-          };
-        }
-        return this._deviceStatic;
-      },
-
-      _getDeviceLive() {
-        return {
-          ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",
-          RESIZE: {
-            WIDTH: Device.resize.width || window.innerWidth,
-            HEIGHT: Device.resize.height || window.innerHeight,
-          },
-        };
-      },
-
-      // Resolve the UI5 element owning a DOM node. Element.closestTo exists
-      // as of UI5 1.106; on older bootstraps walk up the DOM to the nearest
-      // rendered control root (marked with the data-sap-ui attribute) and
-      // resolve it via the core registry, so scroll and focus capture also
-      // work there.
-      _closestUi5Element(dom) {
-        if (Element.closestTo) return Element.closestTo(dom) ?? null;
-        let el = dom;
-        while (el && el.getAttribute) {
-          if (el.hasAttribute("data-sap-ui")) {
-            // ui5lint-disable-next-line no-globals, no-deprecated-api -- only resolution path on UI5 < 1.106
-            return sap.ui.getCore().byId(el.id) || null;
-          }
-          el = el.parentElement;
-        }
-        return null;
-      },
-
-      // Strip the owning view's "<viewId>--" prefix from a control id so the
-      // backend gets the id as the app declared it. Returns the id unchanged
-      // when it does not belong to that view.
-      _stripViewPrefix(fullId, view) {
-        if (!view) return fullId;
-        const prefix = `${view.getId()}--`;
-        return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;
-      },
-
-      // Returning undefined when no UI5 control owns the focus lets
-      // JSON.stringify omit S_FOCUS from the request entirely, matching
-      // _getScrollInfo (the backend treats a missing key like an empty one).
-      _getFocusInfo() {
-        try {
-          const active = document.activeElement;
-          if (!active) return undefined;
-          const ui5El = this._closestUi5Element(active);
-          if (!ui5El) return undefined;
-          const fullId = ui5El.getId();
-          let id = fullId;
-          for (const slot of ViewSlots.slots) {
-            const local = this._stripViewPrefix(
-              fullId,
-              ViewSlots.getView(slot.key),
-            );
-            if (local !== fullId) {
-              id = local;
-              break;
-            }
-          }
-          // Read the caret from the actual text field, not from
-          // document.activeElement directly. Clicking an inner part of a
-          // control (e.g. a SearchField's clear "X" button) can leave the
-          // active element a non-text node. When no text field owns a
-          // selection, omit SELECTION_* entirely so the backend restores
-          // focus without forcing a caret position.
-          const info = { ID: id };
-          const caret = Lib.readCaret(this._focusTextInput(active, ui5El));
-          if (caret) {
-            info.SELECTION_START = caret.start;
-            info.SELECTION_END = caret.end;
-          }
-          return info;
-        } catch {
-          return undefined;
-        }
-      },
-
-      // Resolve the text field that carries the caret for the focused control:
-      // the active element itself when it is already an <input>/<textarea>,
-      // otherwise the control's focus DOM ref (or the first inner text field).
-      // Returns null when the control has no text field (e.g. a button), so the
-      // caller omits the selection instead of reporting a bogus 0.
-      _focusTextInput(active, ui5El) {
-        if (Lib.isTextInput(active)) return active;
-        const focusRef = ui5El?.getFocusDomRef?.();
-        if (Lib.isTextInput(focusRef)) return focusRef;
-        const root = ui5El?.getDomRef?.();
-        const inner = root?.querySelector?.("input, textarea");
-        return Lib.isTextInput(inner) ? inner : null;
-      },
-
-      // Records which element the user actually scrolled, per view slot.
-      // Bound to a single document-level capture-phase listener (installed
-      // in Component.init): scroll events do not bubble, but they do fire
-      // capture listeners on ancestors, so one listener observes every
-      // scrollable container - no per-roundtrip walk over the control tree,
-      // and no guessing which container "looks scrolled".
-      onScrollCapture(event) {
-        const target = event.target;
-        if (!target || target.nodeType !== 1) return;
-
-        // Scroll events fire up to once per frame per element while the user
-        // drags, but the same DOM element keeps firing throughout a gesture.
-        // Resolving the UI5 control (_closestUi5Element) and walking it up to
-        // its view slot (ViewSlots.containingSlotKey) is the expensive part,
-        // so cache that resolution keyed by the element: it runs once per
-        // scrolled element instead of once per event. Only the cheap
-        // scroll-position record stays per event.
-        if (target !== this._lastScrollTarget) {
-          const ui5El = this._closestUi5Element(target);
-          this._lastScrollTarget = target;
-          this._lastScrollUi5El = ui5El;
-          this._lastScrollSlotKey = ui5El
-            ? ViewSlots.containingSlotKey(ui5El)
-            : undefined;
-        }
-
-        if (this._lastScrollSlotKey) {
-          AppState.state.lastScrolled[this._lastScrollSlotKey] = {
-            control: this._lastScrollUi5El,
-            dom: target,
-          };
-        }
-      },
-
       // Restore the app state a matched hash route points at. Wired into
       // core/Router by Component.js and called when the browser Back/Forward
       // buttons (or a manual URL edit / bookmark) select a different route.
@@ -390,51 +142,6 @@ sap.ui.define(
         this.roundtrip({});
       },
 
-      _getScrollInfo() {
-        // Release the per-element resolution cache of onScrollCapture once
-        // its DOM node left the document (view replaced/destroyed) - the
-        // detached element and its control would otherwise stay referenced
-        // until the user scrolls the next time.
-        if (this._lastScrollTarget && !this._lastScrollTarget.isConnected) {
-          this._lastScrollTarget = undefined;
-          this._lastScrollUi5El = undefined;
-          this._lastScrollSlotKey = undefined;
-        }
-
-        // Reads scrollLeft/scrollTop straight from the DOM element the user
-        // last scrolled in each view slot (recorded by onScrollCapture).
-        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are
-        // absent from the result - restoring 0/0 would be a no-op anyway.
-        const store = AppState.state.lastScrolled;
-        const out = {};
-        for (const slot of ViewSlots.slots) {
-          const entry = store[slot.key];
-          if (!entry) continue;
-
-          // Drop stale references, e.g. after the view was replaced. Also
-          // drop a destroyed control whose DOM is still transiently
-          // connected: entry.control.getId() below would throw and abort the
-          // whole roundtrip (this method, unlike _getFocusInfo, has no outer
-          // try/catch).
-          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {
-            delete store[slot.key];
-            continue;
-          }
-
-          const id = this._stripViewPrefix(
-            entry.control.getId(),
-            ViewSlots.getView(slot.key),
-          );
-          out[slot.key] = {
-            ID: id,
-            X: entry.dom.scrollLeft || 0,
-            Y: entry.dom.scrollTop || 0,
-          };
-        }
-        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.
-        return Object.keys(out).length ? out : undefined;
-      },
-
       roundtrip(oBody = {}) {
         const state = AppState.state;
 
@@ -447,21 +154,32 @@ sap.ui.define(
         const eventName = oBody.ARGUMENTS?.[0]?.[0];
 
         const oConfig = AppState.getGlobal("oConfig");
+        // the session-constant block travels once per page load and the
+        // live device fields only when they changed (core/Session.js);
+        // focus and scroll are per roundtrip by nature (core/ScrollFocus.js)
+        const config = {
+          ...Session.config(oConfig, oBody.ID),
+          S_FOCUS: ScrollFocus.getFocusInfo(),
+          S_SCROLL: ScrollFocus.getScrollInfo(),
+        };
         oBody.S_FRONT = {
-          CONFIG: {
-            ...this._sessionConfig(oConfig),
-            // focus and scroll are per roundtrip by nature
-            S_FOCUS: this._getFocusInfo(),
-            S_SCROLL: this._getScrollInfo(),
-          },
           ID: oBody.ID,
-          ORIGIN: window.location.origin,
-          PATHNAME: window.location.pathname,
-          SEARCH: state.search || window.location.search,
           EVENT: eventName,
+          // the hash is NOT session-constant - it carries the live routing
+          // state (route restore, app-state bookmarks) on every request
           HASH: window.location.hash,
         };
         const sFront = oBody.S_FRONT;
+        // an all-empty CONFIG is left off entirely
+        if (Object.values(config).some((v) => v !== undefined)) {
+          sFront.CONFIG = config;
+        }
+
+        // The page location travels on its own session cadence - the latch
+        // lives with the rest of the once-per-page-load state in
+        // core/Session.js. An event roundtrip gets null, and Object.assign
+        // with null adds nothing.
+        Object.assign(sFront, Session.location(oBody.ID, state.search));
 
         // The first argument was the event name (already stored as EVENT),
         // the remaining entries are the actual event arguments.
@@ -475,9 +193,12 @@ sap.ui.define(
         // and these keys are not present in the JSON sent over the wire.
         if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;
         if (sFront.SEARCH === "") delete sFront.SEARCH;
+        if (!sFront.HASH) delete sFront.HASH;
         if (!oBody.MODEL) delete oBody.MODEL;
 
-        this.readHttp(oBody);
+        // the session block's confirmation token rides with THIS request -
+        // a retry re-sends the same body and confirms the same token
+        this.readHttp(oBody, Session.takePending());
       },
 
       // Returns an abort signal that fires after `ms` plus a cancel function
@@ -525,7 +246,7 @@ sap.ui.define(
         return controller.signal;
       },
 
-      async readHttp(oBody) {
+      async readHttp(oBody, sessionCarried) {
         const timeoutMs =
           AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;
         // The signal guards the fetch and the response body reads below; the
@@ -541,7 +262,7 @@ sap.ui.define(
           onRetry: () => {
             AppState.state.isBusy = true;
             BusyIndicator.show(0);
-            this.readHttp(oBody);
+            this.readHttp(oBody, sessionCarried);
           },
         };
 
@@ -648,6 +369,10 @@ sap.ui.define(
 
           // Step 4: hand the parsed response to the success handler.
           AppState.state.responseData = responseData;
+          // This request won, so the session block / live device values it
+          // carried have reached the backend - only now do the send latches
+          // advance (core/Session.js). A dropped request re-sends instead.
+          Session.confirmSent(sessionCarried);
           // This request won (it passed the stale guard above), so the edits
           // it carried have reached the backend - clear exactly the model it
           // shipped. A stale response returns before this point and clears
@@ -659,11 +384,15 @@ sap.ui.define(
           this.responseSuccess(
             {
               ID: responseData.S_FRONT.ID,
-              PARAMS: responseData.S_FRONT.PARAMS,
+              S_ACTION: responseData.S_FRONT.S_ACTION,
               // A response whose model did not change carries no MODEL key
               // at all; every consumer downstream sees the empty object it
               // used to be sent explicitly.
               OVIEWMODEL: responseData.MODEL ?? {},
+              // A MODEL key in the response IS the model push: View1 pushes
+              // it into every open model-owning slot after the system
+              // actions ran - no updateModel action travels for it.
+              MODELPRESENT: responseData.MODEL !== undefined,
               // Class name of the rendered app - used by the hash router to
               // keep the URL route "#/app/<CLASS>" in sync (View1).
               APP: responseData.S_FRONT.APP,
@@ -680,18 +409,17 @@ sap.ui.define(
         const oController = ViewSlots.getController("MAIN");
         try {
           AppState.state.oResponse = response;
-          const params = response.PARAMS;
 
           // The backend can send follow-up actions to run after the response.
-          // Each entry is a JSON array ["EVENT", ...args] (framework actions,
-          // pure data), a legacy "eF(...)" call string, or a raw JS
-          // expression - see _runCustomJs. They are stashed
+          // Each entry is a real JSON array ["EVENT", ...args] (framework
+          // actions, pure data), a legacy "eF(...)" call string, or a raw JS
+          // expression - see FrontendAction.runCustom. They are stashed
           // here and executed at the end of _processAfterRendering, i.e. once
           // the (possibly freshly built) view is actually rendered. Running
           // them earlier would break render-dependent actions such as
           // SET_FOCUS on the initial view, where the target control does not
           // exist in the DOM yet.
-          const followUp = params?.S_ACTION;
+          const followUp = response.S_ACTION;
           // carried on the response record, not on shared state: with
           // parallel responses a single global would let the older render
           // consume the newer response's snippets (and lose its own)
@@ -704,8 +432,10 @@ sap.ui.define(
           // and it cannot be, once the rebuild is one of the actions they run.
           // It stays harmless - _processAfterRendering marks the response as
           // processed before the first action, so the render it causes finds
-          // nothing left to do.
-          oController._processAfterRendering();
+          // nothing left to do. The request stamp rides along so the display
+          // guards compare against THIS response's request, not whatever is
+          // newest by the time processing starts.
+          oController._processAfterRendering(reqSeq);
         } catch (e) {
           BusyIndicator.hide();
           AppState.state.isBusy = false;
@@ -748,71 +478,6 @@ sap.ui.define(
           return;
         }
         this.responseError(err);
-      },
-
-      // Executes a single follow-up action / custom-JS snippet from the backend.
-      // Format A:  a JSON array ["EVENT", ...args] - the structured form the
-      //            backend (z2ui5_cl_core_srv_event=>get_event_client_json)
-      //            emits for every framework follow-up action. Pure data,
-      //            serialized and escaped entirely in ABAP; dispatched via
-      //            oController.eF( ) after a single JSON.parse - no code is
-      //            parsed or evaluated on this path.
-      // Format B:  a structured eF( ) frontend-event call - the legacy wire
-      //            format, still produced by apps that pass raw "eF(...)"
-      //            strings to follow_up_action. Its argument list is parsed
-      //            manually (no eval / Function) so it runs under a strict
-      //            CSP while keeping object / array / string arguments intact.
-      // Format C:  a raw expression such as alert(123) - needs a CSP that
-      //            allows unsafe-eval, otherwise it is a no-op.
-      // Run one SYSTEM action. Unlike _runCustomJs there are no legacy
-      // formats to support - a system action is always framework-generated
-      // and therefore always a JSON array - and no catch: a failing view
-      // display has to reach _processAfterRendering, which turns it into the
-      // fatal overlay instead of leaving the app half-built.
-      _runSystemJs(item, oController) {
-        let args;
-        try {
-          args = JSON.parse(item);
-        } catch (e) {
-          Lib.logError(`systemJs: '${item}' is no action payload`, e);
-          return undefined;
-        }
-        if (!Array.isArray(args)) {
-          Lib.logError(`systemJs: '${item}' is no action payload`);
-          return undefined;
-        }
-        return oController.eFS(...args);
-      },
-
-      _runCustomJs(item, oController) {
-        try {
-          const snippet = item.trim();
-          if (snippet.startsWith("[")) {
-            // JSON array -> structured follow-up action. A raw-JS expression
-            // that merely starts with "[" is no JSON array, so it fails the
-            // parse and falls through to the legacy formats below.
-            try {
-              const args = JSON.parse(snippet);
-              if (Array.isArray(args)) {
-                oController.eF(...args);
-                return;
-              }
-            } catch {
-              // not JSON - keep going with the legacy formats
-            }
-          }
-          const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);
-          if (match) {
-            oController.eF(...parseEfArgs(match[1]));
-          } else {
-            // A raw JavaScript expression - only runs when the CSP allows
-            // unsafe-eval.
-            // eslint-disable-next-line no-new-func
-            Function("return " + item)();
-          }
-        } catch (e) {
-          Lib.logError("customJs: execution failed", e);
-        }
       },
 
       // Terminate the roundtrip in an unrecoverable state: clear the busy

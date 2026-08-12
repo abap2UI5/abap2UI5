@@ -8,7 +8,7 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
     DATA mo_app   TYPE REF TO object.
     DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft.
     " Hash routing mode of THIS app (z2ui5_if_client=>cs_nav_mode), set via
-    " client->set_nav_routing( ). It lives on the app - and therefore in its
+    " follow_up_action( cs_event-set_nav_routing ). It lives on the app - and therefore in its
     " draft - rather than on the session, so it is re-sent with every response
     " of this app: an app configures routing ONCE (in check_on_init, the way a
     " UI5 app configures it once in the manifest) instead of re-asserting it on
