@@ -237,4 +237,50 @@ test.describe("destroy", () => {
     ViewSlots.destroy("MAIN");
     expect(unregisterCalls).toEqual([view]);
   });
+
+  test("MAIN teardown also destroys, unregisters and clears the nests", () => {
+    // The nested views sit inside the MAIN control tree - UI5 would destroy
+    // their controls with MAIN either way, but the slot references and the
+    // messaging registrations must not stay behind (an app switch replaces
+    // MAIN without an explicit nest destroy from the backend).
+    const { ViewSlots, z2ui5, unregisterCalls } = load();
+    const calls = [];
+    const mainView = { destroy: () => calls.push("MAIN") };
+    const nestView = { destroy: () => calls.push("NEST") };
+    const nest2View = { destroy: () => calls.push("NEST2") };
+    z2ui5.oView = mainView;
+    z2ui5.oViewNest = nestView;
+    z2ui5.oViewNest2 = nest2View;
+    ViewSlots.destroy("MAIN");
+    // nests leave first - their unregister needs the live view
+    expect(calls).toEqual(["NEST", "NEST2", "MAIN"]);
+    expect(z2ui5.oViewNest).toBeNull();
+    expect(z2ui5.oViewNest2).toBeNull();
+    expect(z2ui5.oView).toBeNull();
+    expect(unregisterCalls).toEqual([nestView, nest2View, mainView]);
+  });
+
+  test("clears a stale nest reference even when MAIN is already gone", () => {
+    const { ViewSlots, z2ui5 } = load();
+    const calls = [];
+    z2ui5.oViewNest = { destroy: () => calls.push("NEST") };
+    ViewSlots.destroy("MAIN");
+    expect(calls).toEqual(["NEST"]);
+    expect(z2ui5.oViewNest).toBeNull();
+  });
+
+  test("destroying a nest directly leaves MAIN and the other nest alone", () => {
+    const { ViewSlots, z2ui5 } = load();
+    const calls = [];
+    const mainView = { destroy: () => calls.push("MAIN") };
+    const nest2View = { destroy: () => calls.push("NEST2") };
+    z2ui5.oView = mainView;
+    z2ui5.oViewNest = { destroy: () => calls.push("NEST") };
+    z2ui5.oViewNest2 = nest2View;
+    ViewSlots.destroy("NEST");
+    expect(calls).toEqual(["NEST"]);
+    expect(z2ui5.oViewNest).toBeNull();
+    expect(z2ui5.oView).toBe(mainView);
+    expect(z2ui5.oViewNest2).toBe(nest2View);
+  });
 });
