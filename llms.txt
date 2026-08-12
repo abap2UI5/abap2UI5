@@ -20,10 +20,14 @@ Two audiences, two entry points:
 - [View builder](src/02/z2ui5_cl_ai_xml.clas.abap): generic 1:1 UI5 XML builder
 - [Hello world](src/02/z2ui5_cl_app_hello_world.clas.abap): smallest complete app
 - [Rendered documentation](https://abap2ui5.github.io/docs/): the human docs site
-- [Samples](https://github.com/abap2UI5/samples): curated example apps
-- [ai-demokit](https://github.com/abap2UI5/ai-demokit): ~280 gate-verified
-  ports of the official UI5 demo kit samples, plus CAPABILITIES.md (what
-  abap2UI5 can express)
+- [samples](https://github.com/abap2UI5/samples): curated example apps —
+  the framework basics
+- [samples-controls](https://github.com/abap2UI5/samples-controls) (formerly
+  ai-demokit): ~400 gate-verified ports of the official UI5 demo kit samples,
+  plus CAPABILITIES.md (what abap2UI5 can express)
+- [samples-stack](https://github.com/abap2UI5/samples-stack) (formerly
+  samples-ext): abap2UI5 combined with OData, RAP, WebSockets, the Fiori
+  Launchpad and more
 - [abap2UI5-linter](https://github.com/abap2UI5/linter): static +
   headless-render checks for app view code (CLI, GitHub Action, VS Code)
 - [ai-mcp](https://github.com/abap2UI5/ai-mcp): MCP server with the

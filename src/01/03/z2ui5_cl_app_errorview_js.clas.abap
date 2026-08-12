@@ -385,6 +385,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `          copyToClipboard(copyText);` && |\n| &&
              `          copyButton.setText("Copied");` && |\n| &&
              `          setTimeout(() => {` && |\n| &&
+             `            // deliberately the private flag, not Lib.isDestroyed: this module must` && |\n| &&
+             `            // work when the core failed to load, so it imports nothing from it` && |\n| &&
              `            if (!copyButton.bIsDestroyed) copyButton.setText("Copy");` && |\n| &&
              `          }, 1500);` && |\n| &&
              `        },` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      // the footer.` && |\n| &&
              `      const dialog = new Dialog({` && |\n| &&
              `        title: title || "Application Error",` && |\n| &&
-             `        type: "Message",` && |\n| &&
-             `        state: "Error",` && |\n| &&
-             `        icon: "sap-icon://message-error",` && |\n|.
+             `        type: "Message",` && |\n|.
     result = result &&
+             `        state: "Error",` && |\n| &&
+             `        icon: "sap-icon://message-error",` && |\n| &&
              `        // Without a width the message dialog sizes itself to the longest` && |\n| &&
              `        // unbreakable run of the error text - a URL or a class name stretches` && |\n| &&
              `        // it across the screen. A fixed content width keeps the box the same` && |\n| &&
@@ -651,8 +653,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Move focus into the dialog so keyboard and screen-reader users land on` && |\n| &&
              `    // the primary action instead of the broken page behind the overlay.` && |\n| &&
-             `    const firstButton = actionsDiv.querySelector("button");` && |\n| &&
-             `    if (firstButton) firstButton.focus();` && |\n| &&
+             `    // firstTrap is that button - the trap above resolved the complete set.` && |\n| &&
+             `    if (firstTrap) firstTrap.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  return { show, handleLogout, reopenErrorDialog };` && |\n| &&

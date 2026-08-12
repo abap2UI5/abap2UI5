@@ -17,6 +17,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_prevent_default_expr FOR TESTING.
     METHODS event_client_args FOR TESTING.
     METHODS event_nav_container FOR TESTING.
+    METHODS event_popup_close   FOR TESTING.
     METHODS event_quote_escaped FOR TESTING.
     METHODS event_backslash_escaped FOR TESTING.
     METHODS event_lone_cr_escaped FOR TESTING.
@@ -56,9 +57,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_event TYPE string.
     lo_event = NEW #( ).
 
-    lv_event = lo_event->get_event_client( z2ui5_if_client=>cs_event-popover_close ).
+    lv_event = lo_event->get_event_client( z2ui5_if_client=>cs_event-set_focus ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `.eF('POPOVER_CLOSE')`
+    cl_abap_unit_assert=>assert_equals( exp = `.eF('SET_FOCUS')`
                                         act = lv_event ).
 
   ENDMETHOD.
@@ -81,6 +82,29 @@ CLASS ltcl_test IMPLEMENTATION.
         exp = `.eF('CONTROL_BY_ID', 'nestCon', 'NEST', 'to', 'nestPage')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-nest_nav_container_to
                                           t_arg = VALUE #( ( `nestCon` ) ( `nestPage` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD event_popup_close.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    lo_event = NEW #( ).
+
+    " closing a popup IS tearing its slot down, so the two close events are
+    " formatted as the same VIEW_SLOTS call the framework queues for a
+    " popup_destroy( ) - one teardown path, not a second handler beside it
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_GLOBAL', 'VIEW_SLOTS', 'destroy', 'POPUP')`
+        act = lo_event->get_event_client( z2ui5_if_client=>cs_event-popup_close ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_GLOBAL', 'VIEW_SLOTS', 'destroy', 'POPOVER')`
+        act = lo_event->get_event_client( z2ui5_if_client=>cs_event-popover_close ) ).
+
+    " the follow-up action path formats the same call as pure data
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"]`
+        act = lo_event->get_event_client_json( z2ui5_if_client=>cs_event-popup_close ) ).
 
   ENDMETHOD.
 

@@ -43,7 +43,8 @@ CLASS zcl_tst_nav_hub IMPLEMENTATION.
     DATA view TYPE REF TO z2ui5_cl_ai_xml.
     DATA page TYPE REF TO z2ui5_cl_ai_xml.
 
-    client->set_nav_routing( client->cs_nav_mode-fresh ).
+    client->follow_up_action( val   = client->cs_event-set_nav_routing
+                              t_arg = VALUE #( ( client->cs_nav_mode-fresh ) ) ).
 
     view = z2ui5_cl_ai_xml=>factory( ).
     page = view->open( n = `View` ns = `mvc`

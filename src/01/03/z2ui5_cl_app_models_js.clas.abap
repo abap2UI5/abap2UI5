@@ -67,6 +67,17 @@ CLASS z2ui5_cl_app_models_js IMPLEMENTATION.
              `        Device.media.attachHandler(refresh, null, RANGE_SET);` && |\n| &&
              `        refresh(); // seed /media/range before the first render` && |\n| &&
              `` && |\n| &&
+             `        // Device is a global singleton, so the handlers above outlive the` && |\n| &&
+             `        // model unless destroy() detaches them - without this, every FLP` && |\n| &&
+             `        // re-launch would stack three more handlers, each retaining its` && |\n| &&
+             `        // model forever. Component.exit() calls destroy().` && |\n| &&
+             `        oModel.destroy = function () {` && |\n| &&
+             `          Device.resize.detachHandler(refresh);` && |\n| &&
+             `          Device.orientation.detachHandler(refresh);` && |\n| &&
+             `          Device.media.detachHandler(refresh, null, RANGE_SET);` && |\n| &&
+             `          JSONModel.prototype.destroy.apply(this, arguments);` && |\n| &&
+             `        };` && |\n| &&
+             `` && |\n| &&
              `        return oModel;` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&

@@ -39,7 +39,6 @@ CLASS z2ui5_cl_core_action DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
   PRIVATE SECTION.
-    METHODS reset_view_update_flags.
 ENDCLASS.
 
 
@@ -84,7 +83,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
               result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
               result->ms_actual-check_on_navigated = abap_true.
-              result->ms_next-s_set-set_app_state_active = abap_true.
+              result->ms_next-s_nav-set_app_state_active = abap_true.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
               " normalize the chain like factory_by_frontend: id_prev must
               " point at the draft this restore was loaded from, not at
@@ -94,9 +93,12 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               RETURN.
             CATCH cx_root.
               " expired or invalid bookmark draft - fall through to a fresh
-              " app start, but tell the user why the saved state is gone
-              result->ms_next-s_set-s_msg_toast-text =
-                `Bookmarked app state expired or could not be restored - starting with a fresh app`.
+              " app start, but tell the user why the saved state is gone.
+              " There is no client object yet at this point in the factory,
+              " so the toast is queued directly through the action builder
+              " message_toast_display( ) delegates to.
+              NEW z2ui5_cl_core_action_front( result )->msg_toast(
+                  `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
           ENDTRY.
         ENDIF.
 
@@ -133,24 +135,32 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result = prepare_app_stack( ms_next-o_app_call ).
     result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id.
 
-    " forward app navigation - when hash routing is active the frontend pushes a
-    " new route history entry for the called app, so the browser Back button
-    " returns to the calling app (see View1._updateBrowserHistory)
-    result->ms_next-s_set-check_nav_app_call = abap_true.
+    " Forward app navigation is ROUTER intent only when hash routing is
+    " active for the app being navigated to (its own mode, or the caller's
+    " inherited one - see prepare_app_stack). Without routing the frontend
+    " router reads none of these fields, so a plain nav_app_call sends no
+    " ROUTER action at all.
+    IF result->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep
+        OR result->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-fresh.
+      " the frontend pushes a new route history entry for the called app, so
+      " the browser Back button returns to the calling app (Router.sync)
+      result->ms_next-s_nav-check_nav_app_call = abap_true.
 
-    " prepare_app_stack( ) just saved the calling app under a NEW draft id -
-    " one that includes everything the user changed on the client since the
-    " caller last rendered (two-way bound switches, checkboxes, input; they
-    " arrive with the event that triggered this navigation). The caller's
-    " history entry, however, still carries the draft of that last render, so
-    " Back would restore it WITHOUT those changes. Hand the fresh draft to the
-    " frontend, which repoints the caller's entry at it before pushing the
-    " called app's route. Only the first hop of a request sets this: in a chain
-    " A -> B -> C the entry to repoint is A's, the app the user came from.
-    IF result->ms_next-s_set-nav_app_call_prev_id IS INITIAL.
-      result->ms_next-s_set-nav_app_call_prev_app =
-          z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
-      result->ms_next-s_set-nav_app_call_prev_id  = mo_app->ms_draft-id.
+      " prepare_app_stack( ) just saved the calling app under a NEW draft id -
+      " one that includes everything the user changed on the client since the
+      " caller last rendered (two-way bound switches, checkboxes, input; they
+      " arrive with the event that triggered this navigation). The caller's
+      " history entry, however, still carries the draft of that last render,
+      " so Back would restore it WITHOUT those changes. Hand the fresh draft
+      " to the frontend, which repoints the caller's entry at it before
+      " pushing the called app's route. Only the first hop of a request sets
+      " this: in a chain A -> B -> C the entry to repoint is A's, the app the
+      " user came from.
+      IF result->ms_next-s_nav-nav_app_call_prev_id IS INITIAL.
+        result->ms_next-s_nav-nav_app_call_prev_app =
+            z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
+        result->ms_next-s_nav-nav_app_call_prev_id  = mo_app->ms_draft-id.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -162,9 +172,9 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " a leave is a back-navigation - never inherit a call-hop's route push
     " from the same request ( A -> nav_app_call B -> B leaves again ), else
     " the frontend pushes a new history entry for what is a step back
-    CLEAR: result->ms_next-s_set-check_nav_app_call,
-           result->ms_next-s_set-nav_app_call_prev_app,
-           result->ms_next-s_set-nav_app_call_prev_id.
+    CLEAR: result->ms_next-s_nav-check_nav_app_call,
+           result->ms_next-s_nav-nav_app_call_prev_app,
+           result->ms_next-s_nav-nav_app_call_prev_id.
 
     DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
 
@@ -199,17 +209,6 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD reset_view_update_flags.
-
-    " these three are every slot that owns a model: MAIN holds the root model,
-    " popup and popover their own. The nested slots are inserted into the MAIN
-    " control tree and inherit its model, so they have no flag to reset
-    CLEAR ms_next-s_set-s_view-check_update_model.
-    CLEAR ms_next-s_set-s_popup-check_update_model.
-    CLEAR ms_next-s_set-s_popover-check_update_model.
-
-  ENDMETHOD.
-
   METHOD prepare_app_stack.
 
     mo_app->db_save( ).
@@ -228,6 +227,15 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         result->mo_app->mo_app = val.
     ENDTRY.
 
+    " The browser told us about itself once, for this PAGE session - the
+    " freshest copy always sits on the app running right now, so it is
+    " copied UNCONDITIONALLY: a loaded draft's own session may predate a
+    " rotation/resize the current app already absorbed (the frontend will
+    " not re-send an unchanged value). nav_mode_sent rides along harmlessly
+    " - the hop sets check_on_navigated, so main_end re-sends the mode and
+    " overwrites it anyway.
+    result->mo_app->ms_session = mo_app->ms_session.
+
     " routing is inherited by the app being navigated to, unless it already
     " chose a mode of its own - so enabling it once in the entry app is enough
     " for the whole app stack (see z2ui5_cl_core_app=>mv_nav_mode)
@@ -240,37 +248,76 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->mo_app->ms_draft-id_prev     = mo_app->ms_draft-id.
     result->mo_app->ms_draft-id_prev_app = mo_app->ms_draft-id.
     result->ms_actual-check_on_navigated = abap_true.
-    result->ms_next-s_set                = ms_next-s_set.
-
-    result->reset_view_update_flags( ).
+    " Everything the leaving app queued for the frontend goes with it - it
+    " describes a screen that is being replaced, so NONE of ms_next-s_action
+    " and ms_next-t_action_front carries over; the called app starts with an
+    " empty queue by construction (a fresh action instance). What DOES carry
+    " over is the navigation intent and the stateful switch: the routing mode
+    " belongs to the app being navigated to, and the nav_app_call_prev_*
+    " guard ( only the FIRST hop of a request records the caller ) can only
+    " hold if the earlier hop's value is still here.
+    result->ms_next-s_nav      = ms_next-s_nav.
+    " ... except the explicit routing-mode request: that one belongs to the
+    " app that queued it. main_end recomputes the mode to send from the
+    " CALLED app's mv_nav_mode (check_on_navigated forces the re-send), so a
+    " caller that set its own mode in the same roundtrip as the hop must not
+    " leak it into the called app's response
+    CLEAR result->ms_next-s_nav-set_nav_routing.
+    result->ms_next-s_stateful = ms_next-s_stateful.
 
     IF ms_next-next_event IS NOT INITIAL.
       result->ms_actual-event = ms_next-next_event.
-    ELSEIF lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
+    ELSE.
       " backward compatibility: derive the next event from a legacy
-      " follow_up_action( _event( ) ) snippet ( deprecated mechanism )
-      DATA(lv_action) = ms_next-s_set-s_follow_up_action-custom_js[ 1 ].
-      SPLIT lv_action AT `.eB(['` INTO DATA(lv_dummy)
-            result->ms_actual-event.
-      SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
+      " follow_up_action( _event( ) ) snippet ( deprecated mechanism ). Only
+      " a raw-JS entry can carry one, and it is not necessarily the FIRST
+      " queued action - a toast or box queued before it sits in the same
+      " table - so take the first entry that looks like the snippet.
+      LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action)
+           WHERE js IS NOT INITIAL.
+        IF lr_action->js NS `.eB(['`.
+          CONTINUE.
+        ENDIF.
+        SPLIT lr_action->js AT `.eB(['` INTO DATA(lv_dummy)
+              result->ms_actual-event.
+        SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
+        EXIT.
+      ENDLOOP.
     ENDIF.
     result->ms_actual-r_data = ms_next-r_data.
 
-    " when navigating between apps ( both nav_app_call and nav_app_leave ),
-    " start the next app with a clean frontend state - messages and follow-up
-    " actions queued by the previous app must not leak into the next one.
-    CLEAR result->ms_next-s_set-s_msg_box.
-    CLEAR result->ms_next-s_set-s_msg_toast.
-    CLEAR result->ms_next-s_set-s_follow_up_action.
+    " The leaving app's DESTROYS carry over: a view_destroy( ) before a
+    " nav_app_call states an intent about the NEXT screen too - without it
+    " the old view would survive a switch to an app that renders no MAIN
+    " view of its own (a popup-as-app). Its DISPLAYS do not: they describe
+    " the screen being replaced. The called app's own displays still win
+    " over a carried destroy through slot_reset( ).
+    result->ms_next-t_action_front = VALUE #(
+        FOR ls_front IN ms_next-t_action_front
+        WHERE ( method = z2ui5_if_core_types=>cs_slot_action-destroy )
+        ( ls_front ) ).
 
-    " always destroy an open popup/popover on navigation, so an app never has
-    " to close them explicitly before nav_app_call / nav_app_leave. If the app
-    " that is navigated to renders one itself, its popup_display( ) /
-    " popover_display( ) overwrites this destroy request again ( the frontend
-    " processes CHECK_DESTROY before the new XML ). Destroying when nothing is
-    " open is a no-op.
-    result->ms_next-s_set-s_popup   = VALUE #( check_destroy = abap_true ).
-    result->ms_next-s_set-s_popover = VALUE #( check_destroy = abap_true ).
+    " The two standalone slots (POPUP/POPOVER) die on every app switch - they
+    " live OUTSIDE the MAIN control tree, so they do not fall with the page
+    " the new app renders. The FRONTEND does that implicitly whenever the
+    " response's APP differs from the one before (View1), so no action has
+    " to travel for it. The one switch the frontend cannot see is a hop to
+    " ANOTHER INSTANCE OF THE SAME CLASS - only then the teardown is queued
+    " here, before the called app runs its main( ), so its own
+    " popup_display( ) still replaces the destroy through slot_reset( ).
+    IF mo_app->mo_app IS BOUND
+        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( val )
+          = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
+      DELETE result->ms_next-t_action_front
+             WHERE slot = z2ui5_if_client=>cs_view-popup
+                OR slot = z2ui5_if_client=>cs_view-popover.
+      INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-popup
+                      method = z2ui5_if_core_types=>cs_slot_action-destroy )
+             INTO TABLE result->ms_next-t_action_front.
+      INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-popover
+                      method = z2ui5_if_core_types=>cs_slot_action-destroy )
+             INTO TABLE result->ms_next-t_action_front.
+    ENDIF.
 
   ENDMETHOD.
 

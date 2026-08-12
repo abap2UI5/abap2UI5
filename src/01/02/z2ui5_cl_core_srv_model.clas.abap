@@ -845,6 +845,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         CATCH cx_root.
           CONTINUE.
       ENDTRY.
+      " a negative index converts fine but READ TABLE INDEX -1 is an
+      " uncatchable runtime error - same skip-the-row treatment
+      IF lv_tabix < 1.
+        CONTINUE.
+      ENDIF.
       FIELD-SYMBOLS <delta_row> TYPE any.
       READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
       IF sy-subrc <> 0.

@@ -7,7 +7,7 @@ const { test, expect } = require("@playwright/test");
 // synchronously after the model update while UI5 re-renders the invalidated
 // control only asynchronously, so the first focus attempt hits the OLD,
 // still-disabled DOM - which the browser silently ignores. evSetFocus
-// (app/webapp/core/FrontendAction.js) therefore re-applies the focus once
+// (app/webapp/core/actions/ViewOps.js) therefore re-applies the focus once
 // after the control's pending re-render; this spec pins that down in a real
 // browser, including the caret selection travelling with it.
 //

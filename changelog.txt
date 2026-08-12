@@ -12,6 +12,108 @@ Legend
 
 unreleased
 ----------
++ the src/99 test classes are back and run in CI: all 27 deleted
+  testclasses (util, pop, cx) are restored, the two disabled xml_view
+  suites are re-enabled, and the pop tests assert against the
+  t_action_front rows that replaced the removed s_set slot structs (the
+  per-slot check_update_model flag has no successor - the model push is
+  automatic); npm run unit no longer excludes src/99, three tests that
+  need real-system facilities (second-exact timestamps, REPOSRC) are
+  skipped in the NodeJS runtime like the existing AJSON skips; the src/99
+  freeze now covers the production code only - *.testclasses.abap and the
+  .clas.xml sidecars are exempt in both the check_frozen_paths workflow
+  and npm run check:frozen, so the tests can follow the core internals
+  they assert on
+* a pending backend timer (START_TIMER) no longer fires its event into a
+  destroyed controller - an FLP close or re-launch left the timeout armed
+  and it would post the old app's event against the new session
+! an app switch tears POPUP/POPOVER down implicitly - the response names
+  its app, so the frontend destroys the standalone slots whenever the
+  class changes and the two destroy actions no longer travel with every
+  navigation (a hop to another instance of the SAME class still queues
+  them backend-side); the leaving app's explicit destroys now survive the
+  hop, so a view_destroy( ) before nav_app_call takes effect even when
+  the called app renders no MAIN view of its own
+! a plain nav_app_call sends no ROUTER action - the route-push intent
+  only travels when hash routing is active for the target app
+* the MessageToast Dock warning is really gone now: sap/m/MessageToast
+  captures the Popup.Dock DataType in a module closure at load time, and
+  sibling define-dependencies carry no execution-order guarantee - on
+  loaders that ran the toast factory before Popup's, the captured type
+  stayed broken for the whole session and every toast (even with valid
+  positions, e.g. the MessageToast configurator sample) logged
+  '"center bottom" is not of type "sap.ui.core.Popup.Dock"'. The control
+  is now required lazily AFTER Popup is guaranteed loaded, so the capture
+  always works
+* a popover opened in the SAME roundtrip that builds its anchor view
+  waits for the anchor to render before openBy - and loading
+  sap/ui/core/Popup eagerly registers the Popup.Dock enum, which stops
+  MessageToast from logging '"center bottom" is not of type
+  "sap.ui.core.Popup.Dock"' for its own default position
+- the developer tools dropped the NEST/NEST2 model tabs - nested views
+  inherit the MAIN view's model by propagation, it was the same data
+  shown twice
+- the developer tools dropped the System tab - everything it showed lives
+  in the remaining tabs or the exported state
+! developer-tools tabs grey out when they have nothing to show (no log
+  lines, no model data for the slot) instead of opening on an empty view
+* an app switch clears the previous app's keyboard shortcuts - they no
+  longer fire the old app's event names into the new one
+! framework actions travel without the CONTROL_GLOBAL dispatch prefix -
+  internal only: a backend-built action is ["VIEW_SLOTS","display",...],
+  and the frontend dispatches every whitelisted global target by its own
+  name (the prefixed eF( ) form stays accepted for apps and skew)
+! the wire sheds its derivable bytes - internal only: a MODEL key in the
+  response IS the model push (no updateModel action travels; the frontend
+  pushes into every open slot when a model arrived), the routing mode is
+  only re-sent when the frontend may not hold it (app start, navigation
+  hop, mode change - not on every event roundtrip), and the live device
+  fields (orientation/resize) travel only when they changed since the
+  last send, stored with the draft like the rest of the device block
+! the wire got leaner again - internal only: a display action implies the
+  slot's teardown (the frontend destroys implicitly, no destroy action
+  travels before a display), the ROUTER/sync action only travels when the
+  roundtrip carries nav intent (the frontend syncs the URL once per
+  response on its own, with the response id), and a request omits an empty
+  HASH field
+* a roundtrip that re-displays a NESTED view without its MAIN view pushes
+  the model too - the nested view inherits the MAIN model by UI5
+  propagation and bound against the previous roundtrip's data (broke the
+  three-column FlexibleColumnLayout samples 098/104)
+* the default Content-Security-Policy no longer names frame-ancestors in
+  the <meta> tag - browsers ignore the directive there and warned on every
+  page load; cross-origin framing stays forbidden via the
+  X-Frame-Options: SAMEORIGIN response header
++ the http handler asks the ICF runtime to gzip its responses
+  (if_http_response set_compression) when the client accepts it - the GET
+  shell carries the whole embedded frontend and every POST roundtrip the
+  model JSON, so this cuts 70-85% off the transfer on installations whose
+  ICM profile does not compress already, and is a no-op on ones that do
+  (and on the cloud stack, where the platform router owns compression)
+- BREAKING: removed set_nav_back( ) and set_nav_routing( ) from
+  z2ui5_if_client. Both are follow_up_action events now: history back rides
+  the existing cs_event-history_back, routing is configured with
+  follow_up_action( val = cs_event-set_nav_routing t_arg = ( mode ) ) - the
+  new constants set_nav_routing, set_push_state and set_app_state_active sit
+  in cs_event with full documentation. set_push_state( ) and
+  set_app_state_active( ) stay as methods and delegate to the events
+! message_toast_display( ) / message_box_display( ) queue follow-up actions
+  now: several calls in one roundtrip all show (the last call no longer
+  silently wins), they appear in call order together with the app's other
+  follow-up actions, and they run after the view rendered instead of before
+  the response was processed
+! the response wire got leaner - internal only, no app-facing change: the
+  action lists travel as real nested JSON arrays instead of escaped strings,
+  an unchanged model sends no MODEL key at all, and the session-constant
+  browser data (UI5 build, device profile, ComponentData, page location)
+  travels once per page load instead of with every roundtrip, stored with
+  the draft and merged back for client->get( )
+! the frontend internals were restructured - internal only: the action
+  handlers live in core/actions/ domain modules behind the FrontendAction
+  registry, the slot display machinery in core/actions/Slots.js, the
+  session block in core/Session.js and the focus/scroll capture in
+  core/ScrollFocus.js; the backend serialization moved into
+  z2ui5_cl_core_action_front, the class that owns the frontend queues
 ! the model is now pushed AUTOMATICALLY when an event round-trip changed it,
   and the manual push methods are obsolete. The framework compares the model
   state before main( ) - taken after the incoming two-way deltas were applied,
@@ -19,9 +121,10 @@ unreleased
   after main( ) returned, and when they differ sends the model to every open
   view slot (MAIN, POPUP, POPOVER; the nested views inherit MAIN's model).
   An event handler that changes bound data can therefore no longer render
-  stale by forgetting a call, and an unchanged model still responds `{}`, so
-  an idle round-trip carries no payload. Always on, nothing to activate
-- view_model_update( ), popup_model_update( ), popover_model_update( ) and
+  stale by forgetting a call, and an unchanged model sends no MODEL key at
+  all (see the wire entry above), so an idle round-trip carries no payload.
+  Always on, nothing to activate
+! view_model_update( ), popup_model_update( ), popover_model_update( ) and
   the two nested variants now do NOTHING. They stay in the interface so
   existing apps keep compiling and their calls stay harmless - delete them
   when you next touch such an app. What is gone with them is the ability to
@@ -116,14 +219,15 @@ unreleased
   API snapshot had to be regenerated for it
 ! All framework-owned apps and the sample repository now call _bind( ) instead of
   the obsolete alias _bind_edit( ). _bind_edit itself stays part of the public API
-  and keeps working; only calls that pass custom_mapper_back / custom_filter_back
-  still need it, since _bind has no per-direction mapping parameters
-* nest_view_model_update( ) / nest2_view_model_update( ) delegate to
-  view_model_update( ) instead of setting a nest-only flag. A nested view owns no
-  model - it inherits the MAIN view's by UI5 model propagation - so the old flag
-  was skipped by the frontend whenever no nested view happened to be open, making
-  the call a silent no-op. It now always refreshes the root model. The two slots
-  no longer carry CHECK_UPDATE_MODEL on the wire at all
+  and keeps working as a pure alias; custom_mapper_back / custom_filter_back
+  are still accepted for source compatibility but no longer evaluated -
+  per-direction mapping is gone
+* nest_view_model_update( ) / nest2_view_model_update( ) no longer set a
+  nest-only flag - the frontend skipped it whenever no nested view happened to
+  be open, making the call a silent no-op - and the two slots no longer carry
+  CHECK_UPDATE_MODEL on the wire at all. (The delegation to view_model_update( )
+  this entry once recorded was itself superseded: all *_model_update methods
+  are no-ops now, see the automatic-model-push entry above)
 
 
 2026-07-20 v1.142.0

@@ -14,7 +14,7 @@
 // data shapes are measured: every value changed, and a single cell changed
 // (the common case - the backend resends a mostly identical model).
 // It also times sap/ui/core/Element.closestTo on a deep table cell, the
-// per-scroll-event cost driver of Server.onScrollCapture.
+// per-scroll-event cost driver of ScrollFocus.onScrollCapture.
 //
 // Setup (not run in CI - reference material):
 //   mkdir -p /tmp/ui5bench && cd /tmp/ui5bench && npm init -y && \
@@ -179,7 +179,7 @@ test("model update: new JSONModel + setModel vs setData on existing model", asyn
       };
     }
 
-    // Mirrors View1._createViewModel + updateModelIfRequired today.
+    // Mirrors createViewModel in core/actions/Slots.js + updateModelIfRequired today.
     function runSetModel(datasets) {
       const times = [];
       for (let i = 0; i < COUNT; i++) {
@@ -217,7 +217,7 @@ test("model update: new JSONModel + setModel vs setData on existing model", asyn
     results.setModel_oneCell = runSetModel(oneCell);
     results.setData_oneCell = runSetData(oneCell);
 
-    // Per-scroll-event cost of Server.onScrollCapture: Element.closestTo
+    // Per-scroll-event cost of ScrollFocus.onScrollCapture: Element.closestTo
     // on a deep DOM node inside the table.
     const Element = await new Promise((resolve) =>
       sap.ui.require(["sap/ui/core/Element"], resolve),

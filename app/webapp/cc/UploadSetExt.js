@@ -93,7 +93,17 @@ sap.ui.define(
         if (!Lib.claimOnce(this, uploadSet)) return;
         try {
           uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));
-          uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));
+          // afterItemRemoved is @since 1.83; below that, adds keep working
+          // and the gap is reported instead of failing the whole setup
+          // (beforeItemRemoved is no substitute - it fires before the
+          // confirm dialog and would report cancelled removals)
+          if (uploadSet.attachAfterItemRemoved) {
+            uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));
+          } else {
+            Lib.logError(
+              "UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported",
+            );
+          }
         } catch (e) {
           Lib.logError("UploadSetExt.setControl: setup failed", e);
         }

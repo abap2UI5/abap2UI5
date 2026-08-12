@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadLib } = require("./loadLibModule");
 
 // Tests the two event-side helpers on View1.controller that the backend binds
 // into a view attribute:
@@ -11,11 +12,12 @@ const { loadModule } = require("./loadModule");
 //  - textPath: the ancestor-text breadcrumb of a control resolved in an event
 //    argument (`$controller.textPath(${$parameters>/item})`), a control-tree
 //    walk that no binding path can express
+// plus the response-side behavior that lives on the same controller:
+//  - the updateModel fan-out over the open model-owning slots
+//  - _processAfterRendering (stale-response guards, implicit teardown)
 
 function loadController() {
-  const { module: Lib } = loadModule("core/Lib.js", {
-    deps: { "z2ui5/core/AppState": { state: {} }, "sap/ui/core/Element": {} },
-  });
+  const Lib = loadLib().Lib;
   const { module: ctrl } = loadModule("controller/View1.controller.js", {
     deps: {
       "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
@@ -35,6 +37,71 @@ function withRecordedEB() {
   controller.eB = (...args) => sent.push(args);
   return { controller, sent };
 }
+
+// A MODEL key in the response IS the model push: no updateModel action
+// travels on the wire - View1 dispatches ONE updateModel naming no slot, and
+// actions/Slots fans it out over the open model-owning slots itself.
+// Asserting the dispatch alone is not enough - what matters is that the data
+// actually lands in every open slot and in none of the others.
+function withSlots(openKeys, model) {
+  const applied = [];
+  const views = {};
+  for (const key of openKeys) {
+    // each open slot carries its own framework-owned (tracked) model; a
+    // push must land as setData on exactly that model
+    const tracked = {
+      _z2ui5Tracked: true,
+      setData: (data) => applied.push({ key, data }),
+    };
+    views[key] = { getModel: (name) => (name ? undefined : tracked) };
+  }
+  const ViewSlots = {
+    slots: [
+      { key: "MAIN", ownsModel: true },
+      { key: "NEST" },
+      { key: "NEST2" },
+      { key: "POPUP", ownsModel: true },
+      { key: "POPOVER", ownsModel: true },
+    ],
+    getView: (key) => views[key],
+    destroy: () => {},
+  };
+  const { module: Slots } = loadModule("core/actions/Slots.js", {
+    deps: {
+      "z2ui5/core/Server": {},
+      "z2ui5/core/Lib": { effectiveSizeLimit: () => undefined },
+      "z2ui5/core/ViewSlots": ViewSlots,
+      "z2ui5/core/AppState": {
+        state: { oResponse: { OVIEWMODEL: model }, viewSizeLimits: {} },
+      },
+    },
+  });
+  return { Slots, applied };
+}
+
+test.describe("updateModel (one dispatch, every open model slot)", () => {
+  test("pushes into each OPEN slot that owns a model", () => {
+    const model = { A: 1 };
+    const { Slots, applied } = withSlots(["MAIN", "POPOVER"], model);
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([
+      { key: "MAIN", data: model },
+      { key: "POPOVER", data: model },
+    ]);
+  });
+
+  test("skips the nested slots - they inherit MAIN's model", () => {
+    const { Slots, applied } = withSlots(["MAIN", "NEST", "NEST2"], {});
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied.map((a) => a.key)).toEqual(["MAIN"]);
+  });
+
+  test("a closed slot is simply not pushed to", () => {
+    const { Slots, applied } = withSlots([], {});
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([]);
+  });
+});
 
 test.describe("eBP (roundtrip with preventDefault)", () => {
   test("cancels the default and forwards the unchanged eB payload", () => {
@@ -100,5 +167,92 @@ test.describe("textPath (ancestor-text breadcrumb)", () => {
     expect(controller.textPath(item, " | ")).toBe(
       "Create New Site | Official Store",
     );
+  });
+});
+
+test.describe("_processAfterRendering (action-free responses)", () => {
+  // With the ROUTER and updateModel actions derived/gated away, a response
+  // without any action is the COMMON case - it must still get its model
+  // push, its hash sync and the after-render hooks.
+  function loadForAfterRendering() {
+    const pushes = [];
+    const syncs = [];
+    const hooks = [];
+    const destroys = [];
+    const state = { onAfterRendering: [() => hooks.push("ran")] };
+    const { module: ctrl } = loadModule("controller/View1.controller.js", {
+      deps: {
+        "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
+        "sap/ui/core/BusyIndicator": { hide: () => {} },
+        "sap/m/MessageBox": {},
+        "z2ui5/core/Server": { _requestSeq: 1, responseError: () => {} },
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          runCallbacks: (arr) => (arr || []).forEach((f) => f()),
+          logError: () => {},
+        },
+        "z2ui5/core/FrontendAction": {
+          runSystem: () => {},
+          runCustom: () => {},
+        },
+        "z2ui5/core/actions/Slots": { action: (method) => pushes.push(method) },
+        "z2ui5/core/ViewSlots": { destroy: (key) => destroys.push(key) },
+        "z2ui5/core/Router": { sync: (o) => syncs.push(o) },
+        "z2ui5/core/AppState": { state },
+      },
+    });
+    return { ctrl, state, pushes, syncs, hooks, destroys };
+  }
+
+  test("no actions at all: model push, router sync and hooks still run", async () => {
+    const { ctrl, state, pushes, syncs, hooks } = loadForAfterRendering();
+    state.oResponse = { ID: "D1", MODELPRESENT: true };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(pushes).toEqual(["updateModel"]);
+    expect(syncs).toEqual([{ id: "D1" }]);
+    expect(hooks).toEqual(["ran"]);
+  });
+
+  test("no MODEL key: nothing is pushed, the sync still runs", async () => {
+    const { ctrl, state, pushes, syncs } = loadForAfterRendering();
+    state.oResponse = { ID: "D2", MODELPRESENT: false };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(pushes).toEqual([]);
+    expect(syncs).toEqual([{ id: "D2" }]);
+  });
+
+  test("an APP switch tears the popup/popover down implicitly, once", async () => {
+    const { ctrl, state, destroys } = loadForAfterRendering();
+    // first app ever rendered: nothing of a previous app can be open
+    state.oResponse = { ID: "D1", APP: "Z2UI5_CL_A" };
+    await ctrl._processAfterRendering(1);
+    expect(destroys).toEqual([]);
+
+    // switch to another class: the standalone slots live outside MAIN's
+    // control tree, so no destroy action travels - the switch itself,
+    // visible right here, kills them before the new app's system actions
+    state.oResponse = { ID: "D2", APP: "Z2UI5_CL_B" };
+    await ctrl._processAfterRendering(1);
+    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+
+    // an event roundtrip of the SAME app tears nothing down
+    state.oResponse = { ID: "D3", APP: "Z2UI5_CL_B" };
+    await ctrl._processAfterRendering(1);
+    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+  });
+
+  test("a travelling ROUTER action's options reach the one per-response sync", async () => {
+    const { ctrl, state, syncs } = loadForAfterRendering();
+    // the ControlCall hook stashes the options on the response record; the
+    // stash is consumed by the sync, which injects the response id
+    state.oResponse = { ID: "D3", _routerOptions: { setNavRouting: "KEEP" } };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(syncs).toEqual([{ setNavRouting: "KEEP", id: "D3" }]);
   });
 });

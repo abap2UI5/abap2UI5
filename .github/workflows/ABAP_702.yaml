@@ -8,7 +8,8 @@ on:
     types: [completed]
 
 concurrency:
-  group: ABAP_702-${{ github.ref }}
+  # the job always checks out the 702 branch, so all triggers coalesce
+  group: ABAP_702
   cancel-in-progress: true
 
 permissions:

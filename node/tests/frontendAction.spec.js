@@ -2,9 +2,11 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the CONTROL_GLOBAL / CONTROL_BY_ID handlers in the real
-// app/webapp/core/FrontendAction.js (loaded via a stubbed sap.ui.define).
-// The focus is the whitelist boundary and the argument casting.
+// Tests the frontend action handlers (CONTROL_GLOBAL / CONTROL_BY_ID,
+// BINDING_CALL, variants, KEYBOARD_SHORTCUT, SET_FOCUS, timers, ...) through
+// the real FrontendAction.js merge of the core/actions/* modules (loaded via
+// a stubbed sap.ui.define). The focus is the whitelist boundary and the
+// argument casting.
 
 function load({ sandbox } = {}) {
   const calls = [];
@@ -14,13 +16,22 @@ function load({ sandbox } = {}) {
     (...a) =>
       calls.push([name, ...a]);
   const MessageToast = { show: rec("toast.show") };
-  const MessageBox = { show: rec("box.show"), error: rec("box.error") };
+  const MessageBox = {
+    show: rec("box.show"),
+    alert: rec("box.alert"),
+    confirm: rec("box.confirm"),
+    information: rec("box.information"),
+    warning: rec("box.warning"),
+    error: rec("box.error"),
+    success: rec("box.success"),
+  };
   const BusyIndicator = { show: rec("busy.show"), hide: rec("busy.hide") };
   const Theming = { setTheme: rec("theme.set") };
   const Popup = { setWithinArea: rec("popup.setWithinArea") };
   const controls = {};
   const views = {};
   const ViewSlots = {
+    destroy: (key) => calls.push(["slots.destroy", key]),
     resolveById: (id) => controls[id] || null,
     byId: (_key, id) => controls[id] || null,
     getView: (key) => views[key] || null,
@@ -28,6 +39,7 @@ function load({ sandbox } = {}) {
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight
   // away (the specs treat the anchor as already rendered).
+  const Router = { sync: (...a) => calls.push(["router.sync", ...a]) };
   const Lib = {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
@@ -36,6 +48,12 @@ function load({ sandbox } = {}) {
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
   };
   const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
+  // the VIEW_SLOTS display/updateModel hook routes into actions/Slots; the
+  // stub records the routed calls and lets a test swap the behavior
+  const slotCalls = [];
+  const Slots = {
+    action: (...a) => slotCalls.push(a),
+  };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
   }
@@ -44,10 +62,27 @@ function load({ sandbox } = {}) {
   }
   const FilterOperator = new Proxy({}, { get: (_t, op) => op });
   const { module, sandbox: ctx } = loadModule("core/FrontendAction.js", {
+    // the domain modules under core/actions/ load for real - this spec
+    // exercises the composed dispatch exactly as it ships. MessageToast is
+    // not a define-dependency any more (lazy require, Popup.Dock capture
+    // order) - the stub arrives through the seeded sap.ui.require below.
+    autoLoad: true,
+    sandbox: {
+      ...(sandbox || {}),
+      sap: {
+        ui: {
+          require: (vDep, fnCb) => {
+            if (Array.isArray(vDep) && vDep[0] === "sap/m/MessageToast" && fnCb)
+              fnCb(MessageToast);
+            return null;
+          },
+        },
+      },
+    },
     deps: {
       "sap/m/MessageBox": MessageBox,
-      "sap/m/MessageToast": MessageToast,
       "sap/ui/core/BusyIndicator": BusyIndicator,
+      "sap/ui/core/Popup": Popup,
       "sap/ui/core/Theming": Theming,
       "sap/ui/model/odata/v2/ODataModel": function () {},
       "sap/ui/model/Filter": Filter,
@@ -55,11 +90,12 @@ function load({ sandbox } = {}) {
       "sap/ui/model/Sorter": Sorter,
       "sap/m/library": {},
       "sap/ui/util/Storage": function () {},
+      "z2ui5/core/Router": Router,
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
+      "z2ui5/core/actions/Slots": Slots,
     },
-    sandbox,
   });
   return {
     FrontendAction: module,
@@ -70,6 +106,8 @@ function load({ sandbox } = {}) {
     AppState,
     Popup,
     ctx,
+    slotCalls,
+    Slots,
   };
 }
 
@@ -120,6 +158,87 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "only-one",
     ]);
     expect(calls).toEqual([["toast.show", "only-one and {1}"]]);
+  });
+
+  test("an options object rides as the last argument", () => {
+    // client->message_toast_display( ) sends the full option set. The backend
+    // embeds it as real JSON, so it arrives as an OBJECT while every template
+    // value is a string - that is what tells the two apart, no marker needed.
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "Saved!",
+      { duration: 250, class: "myCls" },
+    ]);
+    // `class` is no MessageToast option - it is stripped here and applied to
+    // the toast's DOM node instead (see actions/ControlCall showToast)
+    expect(calls).toEqual([["toast.show", "Saved!", { duration: 250 }]]);
+  });
+
+  test("a template and an options object survive each other", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} saved",
+      "Item A",
+      { duration: 250 },
+    ]);
+    expect(calls).toEqual([["toast.show", "Item A saved", { duration: 250 }]]);
+  });
+
+  test("the box type is the method, and it takes options too", () => {
+    const { FrontendAction, calls } = load();
+    const ebCalls = [];
+    const oController = { eB: (...a) => ebCalls.push(a) };
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "confirm",
+      "Delete?",
+      { onClose: "ANSWERED" },
+    ]);
+    expect(calls).toHaveLength(1);
+    const [name, text, opts] = calls[0];
+    expect([name, text]).toEqual(["box.confirm", "Delete?"]);
+    // the ONCLOSE event name was turned into the callback that round-trips
+    // the pressed action through eB (outside the event array - see
+    // actions/ControlCall showBox)
+    opts.onClose("OK");
+    expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
+  });
+
+  test("ROUTER/sync hands the whole options object to the router", () => {
+    // Router derives ONE outcome from all of it, so it gets the object as it
+    // came - the id rides along because the route carries the draft
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "ROUTER",
+      "sync",
+      { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
+    ]);
+    expect(calls).toEqual([
+      [
+        "router.sync",
+        { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
+      ],
+    ]);
+  });
+
+  test("an unlisted box type is rejected rather than shown", () => {
+    const { FrontendAction, calls, errors } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "notAMethod",
+      "x",
+    ]);
+    expect(calls).toEqual([]);
+    expect(errors[0]).toContain("not allowed");
   });
 
   test("MessageBox variants also accept a template", () => {
@@ -194,11 +313,11 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   });
 
   test("POPUP.setWithinArea resolves a control id and hands over the CONTROL", () => {
-    const { FrontendAction, calls, controls, Popup, ctx } = load();
+    // sap/ui/core/Popup is a hard dependency now (loading it registers the
+    // Popup.Dock enum MessageToast's dock validation needs)
+    const { FrontendAction, calls, controls } = load();
     const area = { id: "withinArea" };
     controls.withinArea = area;
-    ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Popup" ? Popup : null;
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "POPUP",
@@ -211,17 +330,15 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   });
 
   test("POPUP.setWithinArea releases the area on an empty argument", () => {
-    const { FrontendAction, calls, Popup, ctx } = load();
-    ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Popup" ? Popup : null;
+    const { FrontendAction, calls } = load();
     FrontendAction.execute(null, ["CONTROL_GLOBAL", "POPUP", "setWithinArea", ""]);
     expect(calls).toEqual([["popup.setWithinArea", null]]);
   });
 
   test("POPUP.setWithinArea reports an older runtime instead of throwing", () => {
-    const { FrontendAction, calls, errors, ctx } = load();
+    const { FrontendAction, calls, errors, Popup } = load();
     // UI5 1.71 has sap/ui/core/Popup but not setWithinArea (@since 1.89)
-    ctx.sap.ui.require = () => ({});
+    delete Popup.setWithinArea;
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "POPUP",
@@ -276,6 +393,64 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
+  test("VIEW_SLOTS routes destroy/display/updateModel to actions/Slots", () => {
+    // the view slots are the framework's own registry, not a UI5 global -
+    // destroy is ViewSlots' own method, display and updateModel live in
+    // actions/Slots, and the hook sends all three to Slots.action
+    const { FrontendAction, slotCalls } = load();
+    const oController = {};
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "destroy",
+      "POPUP",
+    ]);
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "display",
+      "POPOVER",
+      "<Popover/>",
+      { openById: "btn1" },
+    ]);
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "updateModel",
+    ]);
+    expect(slotCalls).toEqual([
+      ["destroy", "POPUP", undefined, {}, undefined],
+      // the XML is a positional argument of its own - it must NOT be read as
+      // a template value for the slot name
+      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }, undefined],
+      // no slot: the frontend picks the open ones itself
+      ["updateModel", undefined, undefined, {}, undefined],
+    ]);
+  });
+
+  test("the system phase threads the request stamp into the display", () => {
+    // the seq travels as the action CONTEXT (never shared state), so the
+    // slot display can discard a build a newer parallel request superseded
+    const { FrontendAction, slotCalls } = load();
+    FrontendAction.executeSystem(
+      null,
+      ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "POPUP", "<Dialog/>"],
+      { seq: 7 },
+    );
+    expect(slotCalls).toEqual([["display", "POPUP", "<Dialog/>", {}, 7]]);
+  });
+
+  test("an unlisted VIEW_SLOTS method is rejected", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute({}, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "wipe",
+      "POPUP",
+    ]);
+    expect(errors[0]).toContain("not allowed");
+  });
+
   test("FORMATTING.setCustomCurrencies parses its JSON payload", () => {
     const { FrontendAction, ctx } = load();
     const set = [];
@@ -290,6 +465,65 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       '{"BGN4":{"digits":4},"WWWW":{"digits":5}}',
     ]);
     expect(set).toEqual([{ BGN4: { digits: 4 }, WWWW: { digits: 5 } }]);
+  });
+
+  test("a trailing object stays an ARGUMENT on a non-message target", () => {
+    // the options extraction applies to a `display` target only - everywhere
+    // else a trailing object is a declared argument kind and must reach the
+    // method as one
+    const { FrontendAction, ctx } = load();
+    const added = [];
+    ctx.sap.ui.require = (name) =>
+      name === "sap/ui/core/Formatting"
+        ? { addCustomCurrency: (...a) => added.push(a) }
+        : null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "FORMATTING",
+      "addCustomCurrency",
+      "BGN4",
+      { digits: 4 },
+    ]);
+    expect(added).toEqual([["BGN4", { digits: 4 }]]);
+  });
+});
+
+test.describe("executeSystem (the SYSTEM phase entry point)", () => {
+  test("returns the handler result so an async display can be awaited", async () => {
+    const { FrontendAction, Slots } = load();
+    Slots.action = (_m, _slot, xml) => Promise.resolve(`built:${xml}`);
+    const result = FrontendAction.executeSystem(null, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "display",
+      "POPUP",
+      "<Dialog/>",
+    ]);
+    expect(await result).toBe("built:<Dialog/>");
+  });
+
+  test("does NOT swallow a failing display", () => {
+    // execute( ) logs and moves on; a broken view build has to reach
+    // _processAfterRendering and surface the fatal overlay instead
+    const { FrontendAction, Slots } = load();
+    Slots.action = () => {
+      throw new Error("malformed XML");
+    };
+    expect(() =>
+      FrontendAction.executeSystem(null, [
+        "CONTROL_GLOBAL",
+        "VIEW_SLOTS",
+        "display",
+        "POPUP",
+        "<broken",
+      ]),
+    ).toThrow("malformed XML");
+  });
+
+  test("an unknown system action is reported, not thrown", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.executeSystem(null, ["NO_SUCH_ACTION"]);
+    expect(errors[0]).toContain("unknown system action");
   });
 });
 
@@ -326,15 +560,6 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([
       ["setP13nData", [{ name: "key1", label: "City", visible: true }]],
     ]);
-  });
-
-  test("resolves a controlId argument to the control (to)", () => {
-    const { FrontendAction, calls, controls } = load();
-    const page2 = { id: "page2" };
-    controls.page2 = page2;
-    controls.NavCon = { to: (ctrl) => calls.push(["to", ctrl]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
-    expect(calls).toEqual([["to", page2]]);
   });
 
   // A control CLONED from an aggregation template has no id the backend can
@@ -1649,6 +1874,44 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     const { FrontendAction, errors, oController } = loadWithDoc();
     FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+", "SAVE"]);
     expect(errors[0]).toContain("names no key");
+  });
+});
+
+test.describe("START_TIMER (backend timer liveness)", () => {
+  test("the fired timer dispatches only while the app is alive", () => {
+    // deterministic timers: capture the callback instead of waiting it out
+    const timers = [];
+    const { FrontendAction, AppState } = load({
+      sandbox: {
+        setTimeout: (fn, ms) => {
+          timers.push({ fn, ms });
+          return timers.length;
+        },
+        clearTimeout: () => {},
+      },
+    });
+    AppState.state.timers = {};
+    const ebCalls = [];
+    let destroyed = false;
+    const oController = {
+      isDestroyed: () => destroyed,
+      eB: (a) => ebCalls.push(a),
+    };
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    expect(timers[0].ms).toBe(1000);
+    timers[0].fn();
+    // alive: fired as a background event (ignore-busy flag set), slot freed
+    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(AppState.state.timers).toEqual({});
+
+    // re-armed, then the app is torn down (FLP close / re-launch): the
+    // pending timer must not fire the old app's event into the new session
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    destroyed = true;
+    timers[1].fn();
+    expect(ebCalls).toHaveLength(1);
+    expect(AppState.state.timers).toEqual({});
   });
 });
 

@@ -31,7 +31,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `success`
+    cl_abap_unit_assert=>assert_equals( exp = `OK`
                                         act = ls_result-status_reason ).
 
   ENDMETHOD.

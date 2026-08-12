@@ -42,44 +42,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    // used to resolve controls by their id instead of by content position.` && |\n| &&
              `    const FRAGMENT_ID = "z2ui5DeveloperTools";` && |\n| &&
              `` && |\n| &&
-             `    // toJson() pretty-prints with this many spaces per nesting level, so a` && |\n| &&
-             `    // line's leading-space count divided by it gives that line's JSON depth.` && |\n| &&
+             `    // toJson() pretty-prints with this many spaces per nesting level.` && |\n| &&
              `    const INDENT_UNIT = 3;` && |\n| &&
-             `` && |\n| &&
-             `    // The System tab shows the whole (deeply nested) z2ui5 global; open only` && |\n| &&
-             `    // the first two levels so it is readable - the rest can be unfolded by` && |\n| &&
-             `    // hand in the editor.` && |\n| &&
-             `    const SYSTEM_OPEN_LEVELS = 2;` && |\n| &&
-             `` && |\n| &&
-             `    // Leading-space matcher, hoisted so the per-line fold loop below does not` && |\n| &&
-             `    // recompile it on every row of a large JSON dump.` && |\n| &&
-             `    const LEADING_SPACES = /^ */;` && |\n| &&
-             `` && |\n| &&
-             `    // JSON nesting depth of a pretty-printed line, read from its indentation.` && |\n| &&
-             `    function indentLevel(line, unit) {` && |\n| &&
-             `      return Math.floor(LEADING_SPACES.exec(line)[0].length / unit);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Fold every foldable block in the ACE edit session that sits at or below` && |\n| &&
-             `    // ``keepLevels`` nesting levels, leaving the outer levels open. Uses only the` && |\n| &&
-             `    // public EditSession folding API (unfold / getFoldWidget /` && |\n| &&
-             `    // getFoldWidgetRange / addFold), so it works with any CodeEditor build; a` && |\n| &&
-             `    // block's depth is read from its line indentation. Skipping to the folded` && |\n| &&
-             `    // block's end row keeps us from descending into (already hidden) children.` && |\n| &&
-             `    function foldSessionToLevel(session, keepLevels, unit) {` && |\n| &&
-             `      session.unfold();` && |\n| &&
-             `      const rowCount = session.getLength();` && |\n| &&
-             `      for (let row = 0; row < rowCount; row++) {` && |\n| &&
-             `        if (session.getFoldWidget(row) !== "start") continue;` && |\n| &&
-             `        if (indentLevel(session.getLine(row) || "", unit) < keepLevels)` && |\n| &&
-             `          continue;` && |\n| &&
-             `        const range = session.getFoldWidgetRange(row);` && |\n| &&
-             `        if (range && range.isMultiLine()) {` && |\n| &&
-             `          session.addFold("...", range);` && |\n| &&
-             `          row = range.end.row;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
@@ -156,6 +120,14 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      return model?.getData();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // A model tab is only worth opening when the slot's model carries DATA -` && |\n| &&
+             `    // an app without bound attributes serves an empty object, and a greyed` && |\n| &&
+             `    // tab says "nothing here" more clearly than rendering {}.` && |\n| &&
+             `    function hasModelData(oView) {` && |\n| &&
+             `      const data = getModelJson(oView);` && |\n| &&
+             `      return Boolean(data) && Object.keys(data).length > 0;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function getViewContent(view) {` && |\n| &&
              `      // Private member access (developer tools only): XMLView keeps the raw XML` && |\n| &&
              `      // string as a pseudo property in mProperties, but does not declare it` && |\n| &&
@@ -188,10 +160,32 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      return err.title ? ``${err.title}\n\n${err.text}`` : err.text;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getResponseXml(key) {` && |\n| &&
-             `      const params = AppState.state.oResponse?.PARAMS;` && |\n| &&
-             `      const slot = params?.[key];` && |\n| &&
-             `      return slot?.XML;` && |\n| &&
+             `    // The view XML of the last response, read back out of the system action` && |\n| &&
+             `    // that displayed the slot: ["VIEW_SLOTS","display","<slot>","<xml>",` && |\n| &&
+             `    // {options}?]. Only used as a fallback for the case where the slot` && |\n| &&
+             `    // holds no live view to read the content off.` && |\n| &&
+             `    function getResponseXml(slotKey) {` && |\n| &&
+             `      const systemJs = AppState.state.oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
+             `      if (!systemJs) return undefined;` && |\n| &&
+             `      for (const item of systemJs) {` && |\n| &&
+             `        // a system action arrives as a real JSON array; the stringified` && |\n| &&
+             `        // form stays readable for a skewed backend` && |\n| &&
+             `        let args = item;` && |\n| &&
+             `        if (!Array.isArray(args)) {` && |\n| &&
+             `          try {` && |\n| &&
+             `            args = JSON.parse(item);` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            continue;` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `        if (!Array.isArray(args)) continue;` && |\n| &&
+             `        // a skewed backend may still send the CONTROL_GLOBAL-prefixed form` && |\n| &&
+             `        const a = args[0] === "CONTROL_GLOBAL" ? args.slice(1) : args;` && |\n| &&
+             `        if (a[0] === "VIEW_SLOTS" && a[1] === "display" && a[2] === slotKey) {` && |\n| &&
+             `          return a[3];` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      return undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Preload the sap.ui.codeeditor modules used by the fragment. On older` && |\n| &&
@@ -212,23 +206,18 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // What each dropdown entry shows: either a JSON source or an XML source` && |\n| &&
+             `    // What each tab shows: either a JSON source or an XML source` && |\n| &&
              `    // (the latter optionally with the rendered DOM for the templating` && |\n| &&
              `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
              `    const jsonSources = {` && |\n| &&
-             `      // The whole public z2ui5 global facade (oConfig, url, checkLocal,` && |\n| &&
-             `      // Util, app-registered members, ...). Read directly here on purpose:` && |\n| &&
-             `      // this is the developer tools inspector, whose job is to surface the live global` && |\n| &&
-             `      // as-is - functions drop out under JSON.stringify, which is fine.` && |\n| &&
-             `      // ui5lint-disable-next-line no-project-globals -- see reason above` && |\n| &&
-             `      SYSTEM: () => window.z2ui5,` && |\n| &&
              `      MODEL: () => getModelJson(ViewSlots.getView("MAIN")),` && |\n| &&
              `      PLAIN: () => AppState.state.responseData,` && |\n| &&
              `      REQUEST: () => AppState.state.oBody,` && |\n| &&
              `      POPUP_MODEL: () => getModelJson(ViewSlots.getView("POPUP")),` && |\n| &&
              `      POPOVER_MODEL: () => getModelJson(ViewSlots.getView("POPOVER")),` && |\n| &&
-             `      NEST1_MODEL: () => getModelJson(ViewSlots.getView("NEST")),` && |\n| &&
-             `      NEST2_MODEL: () => getModelJson(ViewSlots.getView("NEST2")),` && |\n| &&
+             `      // no NEST/NEST2 model sources: the nested views inherit the MAIN` && |\n| &&
+             `      // view's model by UI5 propagation - it would be the same data as` && |\n| &&
+             `      // MODEL, shown twice` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const xmlSources = {` && |\n| &&
@@ -236,11 +225,11 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // arrived in the last server response.` && |\n| &&
              `      VIEW: () => ({` && |\n| &&
              `        xml:` && |\n| &&
-             `          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("S_VIEW"),` && |\n| &&
+             `          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("MAIN"),` && |\n| &&
              `        rendered: getRenderedContent(ViewSlots.getView("MAIN")),` && |\n| &&
              `      }),` && |\n| &&
-             `      POPUP: () => ({ xml: getResponseXml("S_POPUP") }),` && |\n| &&
-             `      POPOVER: () => ({ xml: getResponseXml("S_POPOVER") }),` && |\n| &&
+             `      POPUP: () => ({ xml: getResponseXml("POPUP") }),` && |\n| &&
+             `      POPOVER: () => ({ xml: getResponseXml("POPOVER") }),` && |\n| &&
              `      NEST1: () => ({` && |\n| &&
              `        xml: getViewContent(ViewSlots.getView("NEST")),` && |\n| &&
              `        rendered: getRenderedContent(ViewSlots.getView("NEST")),` && |\n| &&
@@ -292,7 +281,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      renderTab(selItem, oModel) {` && |\n| &&
              `        if (jsonSources[selItem]) {` && |\n| &&
              `          this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");` && |\n| &&
-             `          if (selItem === "SYSTEM") this.foldSystemTab();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -353,13 +341,13 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // blob so it can be copied elsewhere in one go. XML tabs are` && |\n| &&
              `      // pretty-printed, JSON tabs serialized; empty / inactive sections are` && |\n| &&
              `      // skipped. Every source is guarded (a throwing one can never blank the` && |\n| &&
-             `      // whole export) and each section is capped, because the SYSTEM global can` && |\n| &&
-             `      // serialize to several MB - a value that large blanks a sap.m.TextArea.` && |\n| &&
+             `      // whole export) and each section is capped - a value that large blanks` && |\n| &&
+             `      // a sap.m.TextArea.` && |\n| &&
              `      // ``abapSource`` is the running app's ABAP class source, fetched` && |\n| &&
              `      // asynchronously by onExport (empty when it could not be retrieved).` && |\n| &&
              `      buildExport(abapSource) {` && |\n| &&
-             `        // Max characters per section; long ones (mainly SYSTEM) are truncated` && |\n| &&
-             `        // so the popup's TextArea still renders.` && |\n| &&
+             `        // Max characters per section; long ones are truncated so the` && |\n| &&
+             `        // popup's TextArea still renders.` && |\n| &&
              `        const MAX_SECTION = 100000;` && |\n| &&
              `        const sections = [];` && |\n| &&
              `        const push = (title, content) => {` && |\n| &&
@@ -418,18 +406,17 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        // gate on the live slot too - the response only carries the XML in` && |\n| &&
              `        // the roundtrip that opened the popup/popover, but the live model is` && |\n| &&
              `        // exportable for as long as one is open` && |\n| &&
-             `        if (getResponseXml("S_POPUP") || ViewSlots.getView("POPUP")) {` && |\n| &&
+             `        if (getResponseXml("POPUP") || ViewSlots.getView("POPUP")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPUP",` && |\n| &&
              `            xml(() => xmlSources.POPUP().xml),` && |\n| &&
              `          );` && |\n| &&
              `          push(` && |\n| &&
-             `            "POPUP MODEL",` && |\n|.
-    result = result &&
+             `            "POPUP MODEL",` && |\n| &&
              `            json(() => jsonSources.POPUP_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER")) {` && |\n| &&
+             `        if (getResponseXml("POPOVER") || ViewSlots.getView("POPOVER")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPOVER",` && |\n| &&
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
@@ -437,16 +424,15 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          push(` && |\n| &&
              `            "POPOVER MODEL",` && |\n| &&
              `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
-             `          );` && |\n| &&
+             `          );` && |\n|.
+    result = result &&
              `        }` && |\n| &&
+             `        // the nested views carry no model tab of their own - they inherit` && |\n| &&
+             `        // the MAIN view's model by propagation, so only the XML is shown` && |\n| &&
              `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST1",` && |\n| &&
              `            xml(() => xmlSources.NEST1().xml),` && |\n| &&
-             `          );` && |\n| &&
-             `          push(` && |\n| &&
-             `            "NEST1 MODEL",` && |\n| &&
-             `            json(() => jsonSources.NEST1_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
              `        if (getViewContent(ViewSlots.getView("NEST2"))) {` && |\n| &&
@@ -454,18 +440,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            "NEST2",` && |\n| &&
              `            xml(() => xmlSources.NEST2().xml),` && |\n| &&
              `          );` && |\n| &&
-             `          push(` && |\n| &&
-             `            "NEST2 MODEL",` && |\n| &&
-             `            json(() => jsonSources.NEST2_MODEL()),` && |\n| &&
-             `          );` && |\n| &&
              `        }` && |\n| &&
-             `        // SYSTEM (the whole z2ui5 global) is the largest by far - keep it last` && |\n| &&
-             `        // so the useful sections come first even after truncation.` && |\n| &&
-             `        push(` && |\n| &&
-             `          "SYSTEM",` && |\n| &&
-             `          json(() => jsonSources.SYSTEM()),` && |\n| &&
-             `        );` && |\n| &&
-             `` && |\n| &&
              `        return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -552,45 +527,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            dialog.open();` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // The CodeEditor's underlying ACE editor, or null if it does not exist` && |\n| &&
-             `      // yet (created on the CodeEditor's first render) or the build exposes no` && |\n| &&
-             `      // internal instance.` && |\n| &&
-             `      getEditorInstance() {` && |\n| &&
-             `        const ce = Fragment.byId(FRAGMENT_ID, "developerToolsEditor");` && |\n| &&
-             `        return ce && typeof ce.getInternalEditorInstance === "function"` && |\n| &&
-             `          ? ce.getInternalEditorInstance()` && |\n| &&
-             `          : null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Fold the System tab's JSON down to the first SYSTEM_OPEN_LEVELS levels.` && |\n| &&
-             `      // The ACE editor is created lazily on the CodeEditor's first render, so` && |\n| &&
-             `      // on the very first open we retry briefly until it exists. Best-effort:` && |\n| &&
-             `      // any failure leaves the tab fully expanded rather than breaking the` && |\n| &&
-             `      // developer tools.` && |\n| &&
-             `      foldSystemTab(triesLeft = 10) {` && |\n| &&
-             `        let editor;` && |\n| &&
-             `        try {` && |\n| &&
-             `          editor = this.getEditorInstance();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DeveloperTools System fold failed", e);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (editor) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            const session = editor.getSession && editor.getSession();` && |\n| &&
-             `            if (session && typeof session.getFoldWidget === "function") {` && |\n| &&
-             `              foldSessionToLevel(session, SYSTEM_OPEN_LEVELS, INDENT_UNIT);` && |\n| &&
-             `            }` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            Lib.logError("DeveloperTools System fold failed", e);` && |\n| &&
-             `          }` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (triesLeft > 0) {` && |\n| &&
-             `          setTimeout(() => this.foldSystemTab(triesLeft - 1), 30);` && |\n| &&
-             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // The ADT REST endpoint that renders the running app's ABAP class` && |\n| &&
@@ -714,6 +650,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            source_visible: false,` && |\n| &&
              `            editor_visible: true,` && |\n| &&
              `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
+             `            hasLog: Boolean(AppState.state.errors?.length),` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `            value: value,` && |\n| &&
              `            xContent: "",` && |\n| &&
@@ -726,11 +663,15 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            // that opened the popup/popover - also check the live slot so` && |\n| &&
              `            // the tabs stay usable while one is open after later roundtrips.` && |\n| &&
              `            activePopup: Boolean(` && |\n| &&
-             `              getResponseXml("S_POPUP") || ViewSlots.getView("POPUP"),` && |\n| &&
+             `              getResponseXml("POPUP") || ViewSlots.getView("POPUP"),` && |\n| &&
              `            ),` && |\n| &&
              `            activePopover: Boolean(` && |\n| &&
-             `              getResponseXml("S_POPOVER") || ViewSlots.getView("POPOVER"),` && |\n| &&
+             `              getResponseXml("POPOVER") || ViewSlots.getView("POPOVER"),` && |\n| &&
              `            ),` && |\n| &&
+             `            // the model tabs grey out when the slot's model holds no data` && |\n| &&
+             `            hasViewModel: hasModelData(ViewSlots.getView("MAIN")),` && |\n| &&
+             `            hasPopupModel: hasModelData(ViewSlots.getView("POPUP")),` && |\n| &&
+             `            hasPopoverModel: hasModelData(ViewSlots.getView("POPOVER")),` && |\n| &&
              `          };` && |\n| &&
              `` && |\n| &&
              `          const oModel = new JSONModel(oData);` && |\n| &&
@@ -739,7 +680,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          // Render the requested tab's content (the default "PLAIN" already` && |\n| &&
              `          // matches the JSON response seeded above, so only re-render when a` && |\n| &&
              `          // specific tab was asked for).` && |\n| &&
-             `          if (initialTab && selectedTab !== "PLAIN") {` && |\n| &&
+             `          if (selectedTab !== "PLAIN") {` && |\n| &&
              `            this.renderTab(selectedTab, oModel);` && |\n| &&
              `          }` && |\n| &&
              `          oDialog.open();` && |\n| &&

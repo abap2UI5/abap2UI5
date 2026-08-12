@@ -1,8 +1,9 @@
 {
   "global": {
-    // src/99 is deliberately NOT listed: the package is historical only (see
-    // AGENTS.md) - never analyzed, the repository must work identically with
-    // or without the folder
+    // src/99 is deliberately NOT listed in THIS strict ruleset: its frozen
+    // production code may not be changed to satisfy new rules (see AGENTS.md).
+    // The CI target configs (.github/abaplint/*) do syntax-lint it, and its
+    // test classes run in the transpiled unit suite
     "files": [
       "/src/00/**/*.*",
       "/src/01/**/*.*",

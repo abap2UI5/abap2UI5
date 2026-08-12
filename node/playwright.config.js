@@ -34,7 +34,9 @@ module.exports = defineConfig(
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  // CI: 'list' puts per-test detail in the job log, where the html report
+  // (written but not uploaded) would leave a failure opaque.
+  reporter: process.env.CI ? [['list'], ['html']] : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */

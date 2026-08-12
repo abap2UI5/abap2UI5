@@ -22,7 +22,7 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run deps
-    - run: npx abaplint .github/abaplint/abap_standard.jsonc
+    - run: npm run check:standard
     # visibility of the class under test - abaplint does not check it and the
     # transpiler ignores it, so a missing LOCAL FRIENDS only shows up when the
     # class pool is activated in a real system

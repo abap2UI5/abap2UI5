@@ -47,8 +47,9 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `            type: "object",` && |\n| &&
              `          },` && |\n| &&
              `          rangeData: {` && |\n| &&
+             `            // no defaultValue: an object default in the metadata is shared` && |\n| &&
+             `            // by reference across every instance of the control` && |\n| &&
              `            type: "object",` && |\n| &&
-             `            defaultValue: [],` && |\n| &&
              `          },` && |\n| &&
              `          checkInit: {` && |\n| &&
              `            type: "boolean",` && |\n| &&
