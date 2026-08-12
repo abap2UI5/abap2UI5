@@ -79,6 +79,7 @@
   "z2ui5_if_client.intf.abap#methods:popover_display": "methods popover_display importing xml type clike by_id type clike",
   "z2ui5_if_client.intf.abap#methods:popover_destroy": "methods popover_destroy",
   "z2ui5_if_client.intf.abap#methods:get": "methods get returning value(result) type z2ui5_if_types=>ty_s_get",
+  "z2ui5_if_client.intf.abap#methods:get_event": "methods get_event returning value(result) type string",
   "z2ui5_if_client.intf.abap#methods:get_event_arg": "methods get_event_arg importing v type i default 1 returning value(result) type string",
   "z2ui5_if_client.intf.abap#methods:get_app": "methods get_app importing id type clike optional returning value(result) type ref to z2ui5_if_app",
   "z2ui5_if_client.intf.abap#methods:_event_nav_app_leave": "methods _event_nav_app_leave returning value(result) type string",

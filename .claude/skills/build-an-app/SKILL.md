@@ -22,7 +22,7 @@ Quick orientation while it loads:
   `_bind_edit` is obsolete). Row-template fields bind as `` `{UPPERCASE}` ``.
   Never write a model path as a text literal.
 - Events: `client->_event( `NAME` )`, dispatch via
-  `CASE client->get( )-event.`; client-resolved args are `$`-prefixed.
+  `CASE client->get_event( ).`; client-resolved args are `$`-prefixed.
   Push data changes with `client->view_model_update( )`.
 - Business logic is computed in ABAP, never in frontend formatters (thin
   frontend). UI5 1.71 is the compatibility floor — check "available since".

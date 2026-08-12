@@ -131,7 +131,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA li_app_config TYPE REF TO z2ui5_if_app.
 
-    CASE client->get( )-event.
+    CASE client->get_event( ).
 
       WHEN cs_event-set_config.
         CREATE OBJECT li_app_config TYPE (`Z2UI5_CL_APP_ICF_CONFIG`).

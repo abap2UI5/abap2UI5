@@ -26,7 +26,7 @@ CLASS zcl_tst_nav_hub_keep IMPLEMENTATION.
       view_display( ).
 
     ELSEIF client->check_on_event( ) IS NOT INITIAL.
-      CASE client->get( )-event.
+      CASE client->get_event( ).
         WHEN `INC`.
           counter = counter + 1.
           view_display( ).
