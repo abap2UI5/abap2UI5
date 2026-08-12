@@ -243,11 +243,13 @@ ships for existing apps but is **frozen** — new apps and new code use
   (`Path not found @/1/wrapping`). Chain
   `parse( … )->to_abap_corresponding_only( )->to_abap( … )` and declare only
   the fields you actually use.
-- Roundtrip-free client actions: `client->_event_client( val = … t_arg = … )`
-  runs a whitelisted frontend action without a server call (toast from a row
-  value, client-side sort/filter via `binding_call`, …).
-- After the response, `client->follow_up_action( val = … t_arg = … )`
-  schedules a frontend action: focus (`cs_event-set_focus`), scroll, title,
+- Roundtrip-free client actions: `client->follow_up_action( val = … t_arg = … )`
+  written where its RESULT is consumed — in a view attribute — runs a
+  whitelisted frontend action without a server call (toast from a row value,
+  client-side sort/filter via `binding_call`, …). `client->_event_client( )`
+  is the obsolete name for exactly this and emits the identical wire.
+- After the response, `client->follow_up_action( val = … t_arg = … )` as a
+  STATEMENT schedules a frontend action: focus (`cs_event-set_focus`), scroll, title,
   clipboard, timers, keyboard shortcuts, `control_by_id` (call a public
   method on a control), `binding_call` (filter/sort an aggregation binding).
   The full catalog with per-action `t_arg` documentation sits on

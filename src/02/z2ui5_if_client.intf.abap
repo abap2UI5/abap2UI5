@@ -305,6 +305,23 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
+  "! obsolete - use follow_up_action( ), which is the same call in the same
+  "! position now. Since follow_up_action( ) has a RETURNING parameter, a call
+  "! whose result is CONSUMED - the view-attribute form
+  "! `v = client->follow_up_action( val = ... t_arg = ... )` - takes its
+  "! IF result IS SUPPLIED branch straight to get_event_client( ), which is
+  "! this method's entire body: the identical roundtrip-free wire, byte for
+  "! byte. One method therefore both schedules a frontend action and wires
+  "! one, and this one is a second name for half of it.
+  "!
+  "! The one difference is follow_up_action( )'s leading CASE, which claims
+  "! cs_event-set_nav_routing / set_push_state / set_app_state_active before
+  "! that branch. Those three are backend-side navigation options rather than
+  "! frontend handlers, so wiring one into a view attribute never dispatched
+  "! anything here either.
+  "!
+  "! It stays in the interface so existing apps keep compiling - rename the
+  "! calls at your leisure.
   METHODS _event_client
     IMPORTING
       val           TYPE clike
@@ -472,8 +489,11 @@ INTERFACE z2ui5_if_client
   "! t_arg = id, aggregation, method, params. method `filter`: params = path,
   "! operator, value1, value2 (empty values clear the filter); method `sort`:
   "! params = path, descending, group (abap_bool as `X`/``).
-  "! Each of these events also works roundtrip-free when wired in the view via
-  "! _event_client with the same t_arg (and view).
+  "! Each of these events also works roundtrip-free when WIRED IN THE VIEW:
+  "! write the same call where its result is consumed
+  "! (`)->a( n = `press` v = client->follow_up_action( val = ... t_arg = ... ) )`)
+  "! and the action runs in the browser without a server call. That is what
+  "! the obsolete _event_client( ) did, and the only thing it did.
   METHODS follow_up_action
     IMPORTING
       val           TYPE string
