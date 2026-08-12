@@ -257,6 +257,12 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " guard ( only the FIRST hop of a request records the caller ) can only
     " hold if the earlier hop's value is still here.
     result->ms_next-s_nav      = ms_next-s_nav.
+    " ... except the explicit routing-mode request: that one belongs to the
+    " app that queued it. main_end recomputes the mode to send from the
+    " CALLED app's mv_nav_mode (check_on_navigated forces the re-send), so a
+    " caller that set its own mode in the same roundtrip as the hop must not
+    " leak it into the called app's response
+    CLEAR result->ms_next-s_nav-set_nav_routing.
     result->ms_next-s_stateful = ms_next-s_stateful.
 
     IF ms_next-next_event IS NOT INITIAL.

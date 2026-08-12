@@ -687,11 +687,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       " the request (stored or restored), and the first roundtrip of a page
       " load carries BOTH blocks - rebuilding without it would wipe what was
       " just stored
-      mo_action->mo_app->ms_session = VALUE #( s_ui5    = ms_request-s_front-s_ui5
-                                               s_device = ms_request-s_front-s_device
-                                               origin   = ms_request-s_front-origin
-                                               pathname = ms_request-s_front-pathname
-                                               search   = ms_request-s_front-search ).
+      " ... and keep the nav_mode_sent latch: block-carrying requests are
+      " app-start-shaped today (main_end re-sends the mode anyway), but a
+      " wiped latch would cost a redundant ROUTER/sync if that ever changes
+      mo_action->mo_app->ms_session = VALUE #( s_ui5         = ms_request-s_front-s_ui5
+                                               s_device      = ms_request-s_front-s_device
+                                               origin        = ms_request-s_front-origin
+                                               pathname      = ms_request-s_front-pathname
+                                               search        = ms_request-s_front-search
+                                               nav_mode_sent = mo_action->mo_app->ms_session-nav_mode_sent ).
       IF ms_request-s_front-o_comp_data IS BOUND.
         TRY.
             mo_action->mo_app->ms_session-comp_data = ms_request-s_front-o_comp_data->stringify( ).
@@ -818,8 +822,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     mv_response = response_abap_to_json( ms_response ).
 
-    IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
+    DATA(li_app_done) = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+    IF li_app_done->check_sticky = abap_false.
       mo_action->mo_app->db_save( ).
+    ELSE.
+      " a sticky session skips the draft save, but the lifecycle latch must
+      " not be skipped with it - db_save is otherwise the only place that
+      " sets these, and without them every event roundtrip of a sticky app
+      " reads check_on_init( ) = true and re-runs its init block
+      li_app_done->id_draft          = mo_action->mo_app->ms_draft-id.
+      li_app_done->check_initialized = abap_true.
     ENDIF.
 
   ENDMETHOD.

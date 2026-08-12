@@ -120,7 +120,17 @@ CLASS z2ui5_cl_app_uploadsetext_js IMPLEMENTATION.
              `        if (!Lib.claimOnce(this, uploadSet)) return;` && |\n| &&
              `        try {` && |\n| &&
              `          uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));` && |\n| &&
-             `          uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));` && |\n| &&
+             `          // afterItemRemoved is @since 1.83; below that, adds keep working` && |\n| &&
+             `          // and the gap is reported instead of failing the whole setup` && |\n| &&
+             `          // (beforeItemRemoved is no substitute - it fires before the` && |\n| &&
+             `          // confirm dialog and would report cancelled removals)` && |\n| &&
+             `          if (uploadSet.attachAfterItemRemoved) {` && |\n| &&
+             `            uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));` && |\n| &&
+             `          } else {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              "UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported",` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("UploadSetExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&

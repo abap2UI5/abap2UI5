@@ -71,8 +71,12 @@ sap.ui.define(
               ViewSlots.destroy("POPOVER");
             }
             // the leaving app's keyboard shortcuts die with it - the new app
-            // registers its own (actions/Shortcuts documents this reset)
+            // registers its own (actions/Shortcuts documents this reset) -
+            // and so do its tree-expansion snapshots, which are keyed by the
+            // LOCAL tree_id and would otherwise leak into a same-named tree
+            // of the next app
             state.shortcuts = {};
+            state.treeStates = {};
             state.renderedApp = oResponse.APP;
           }
           // No early return on an empty action list: a response without any

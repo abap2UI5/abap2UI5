@@ -20,8 +20,9 @@ sap.ui.define(
             type: "object",
           },
           rangeData: {
+            // no defaultValue: an object default in the metadata is shared
+            // by reference across every instance of the control
             type: "object",
-            defaultValue: [],
           },
           checkInit: {
             type: "boolean",

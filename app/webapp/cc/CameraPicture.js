@@ -19,7 +19,6 @@ sap.ui.define(
     return Control.extend("z2ui5.cc.CameraPicture", {
       metadata: {
         properties: {
-          id: { type: "string" },
           value: { type: "string" },
           thumbnail: { type: "string" },
           // Empty default leaves the trigger button auto-sized; a bare

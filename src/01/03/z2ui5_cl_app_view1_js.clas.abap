@@ -98,8 +98,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              ViewSlots.destroy("POPOVER");` && |\n| &&
              `            }` && |\n| &&
              `            // the leaving app's keyboard shortcuts die with it - the new app` && |\n| &&
-             `            // registers its own (actions/Shortcuts documents this reset)` && |\n| &&
+             `            // registers its own (actions/Shortcuts documents this reset) -` && |\n| &&
+             `            // and so do its tree-expansion snapshots, which are keyed by the` && |\n| &&
+             `            // LOCAL tree_id and would otherwise leak into a same-named tree` && |\n| &&
+             `            // of the next app` && |\n| &&
              `            state.shortcuts = {};` && |\n| &&
+             `            state.treeStates = {};` && |\n| &&
              `            state.renderedApp = oResponse.APP;` && |\n| &&
              `          }` && |\n| &&
              `          // No early return on an empty action list: a response without any` && |\n| &&

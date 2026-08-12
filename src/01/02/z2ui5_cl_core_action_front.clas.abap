@@ -642,9 +642,12 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
     " a duration the app left alone must not appear in the payload - UI5's
     " own default has to win. A non-numeric value is dropped rather than
     " converted, so a stray string can never reach MessageToast as NaN.
-    IF val IS NOT INITIAL AND val CO ` 0123456789`.
+    " Condense first: `1 000` would pass a check that allows blanks and then
+    " dump in CONV, and a blanks-only value must count as left-alone.
+    DATA(lv_val) = condense( CONV string( val ) ).
+    IF lv_val IS NOT INITIAL AND lv_val CO `0123456789`.
       json->set_integer( iv_path = |/{ name }|
-                         iv_val  = CONV i( val ) ).
+                         iv_val  = CONV i( lv_val ) ).
     ENDIF.
 
   ENDMETHOD.
