@@ -216,10 +216,14 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
 
   METHOD render.
 
-    DATA(inner) = ``.
+    " collect the children in a table and concatenate once - the string
+    " template accumulator would re-copy everything rendered so far on every
+    " sibling, which grows quadratic on wide views
+    DATA lt_inner TYPE string_table.
     LOOP AT t_child INTO DATA(child).
-      inner = |{ inner }{ child->render( ) }|.
+      INSERT child->render( ) INTO TABLE lt_inner.
     ENDLOOP.
+    DATA(inner) = concat_lines_of( lt_inner ).
 
     " empty builder root - render only the children
     IF name IS INITIAL.
@@ -250,23 +254,37 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
     " turn a literal LF/CR/TAB into a plain space and silently drop the line
     " breaks of e.g. a two-line noDataText. The char constants come from the
     " context class - the one place allowed to reference cl_abap_char_utilities
-    " (see "Utilities" in AGENTS.md).
-    DATA(lt_escape) = VALUE ty_t_pair(
-        ( n = `&`                                                v = `&amp;` )
-        ( n = `<`                                                v = `&lt;` )
-        ( n = `>`                                                v = `&gt;` )
-        ( n = `"`                                                v = `&quot;` )
-        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_newline        v = `&#xA;` )
-        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)       v = `&#xD;` )
-        ( n = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab v = `&#x9;` ) ).
-
-    result = val.
-    LOOP AT lt_escape INTO DATA(escape).
-      result = replace( val  = result
-                        sub  = escape-n
-                        with = escape-v
-                        occ  = 0 ).
-    ENDLOOP.
+    " (see "Utilities" in AGENTS.md). Chained replaces, no per-call escape
+    " table: this method runs once per attribute of every rendered view
+    " (same implementation as z2ui5_cl_ui5_view_builder=>xml_escape).
+    result = replace( val  = val
+                      sub  = `&`
+                      with = `&amp;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `<`
+                      with = `&lt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `>`
+                      with = `&gt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `&quot;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_newline
+                      with = `&#xA;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)
+                      with = `&#xD;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab
+                      with = `&#x9;`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
