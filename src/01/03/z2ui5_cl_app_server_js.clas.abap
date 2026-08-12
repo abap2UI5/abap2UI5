@@ -213,6 +213,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // and these keys are not present in the JSON sent over the wire.` && |\n| &&
              `        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
+             `        if (!sFront.HASH) delete sFront.HASH;` && |\n| &&
              `        if (!oBody.MODEL) delete oBody.MODEL;` && |\n| &&
              `` && |\n| &&
              `        this.readHttp(oBody);` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n| &&
              `          // actions, pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
              `          // expression - see FrontendAction.runCustom. They are stashed` && |\n| &&
-             `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&
-             `          // the (possibly freshly built) view is actually rendered. Running` && |\n|.
+             `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n|.
     result = result &&
+             `          // the (possibly freshly built) view is actually rendered. Running` && |\n| &&
              `          // them earlier would break render-dependent actions such as` && |\n| &&
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&

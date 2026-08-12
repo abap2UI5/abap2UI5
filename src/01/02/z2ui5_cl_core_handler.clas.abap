@@ -748,6 +748,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     IF line_exists( mo_action->ms_next-t_action_front[
                         method = z2ui5_if_core_types=>cs_slot_action-display ] ).
       lv_model = mo_action->mo_app->model_json_stringify( ).
+      " a view roundtrip pushes the model into the OPEN slots too - queued
+      " AFTER the display actions, so a slot built in this same roundtrip is
+      " filled before it is pushed to. This covers what the fresh build
+      " alone does not: a NESTED view re-displayed without its MAIN view
+      " inherits the MAIN model by UI5 propagation and would otherwise bind
+      " against the previous roundtrip's data (three-column samples), and a
+      " popup left open across a MAIN rebuild holds a model instance of its
+      " own.
+      lo_front->queue_model_update( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
       " push - send the model only when main( ) itself changed it, exactly as
@@ -756,15 +765,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       DATA(lv_model_now) = mo_action->mo_app->model_json_stringify( ).
       IF lv_model_now <> mv_model_before.
         lv_model = lv_model_now.
-        " queued AFTER the display actions, so a slot built in this same
-        " roundtrip is filled before it is pushed to
         lo_front->queue_model_update( ).
       ENDIF.
     ENDIF.
 
     " last of all, so the route reflects everything this roundtrip did - the
-    " slots that were built and the model that was pushed into them
-    lo_front->nav_serialize( mo_action->mo_app->ms_draft-id ).
+    " slots that were built and the model that was pushed into them. Queued
+    " only when the roundtrip carries nav intent; the frontend syncs the URL
+    " once per response either way (View1 injects the response id).
+    lo_front->nav_serialize( ).
 
     ms_response = VALUE #( s_front-s_action = mo_action->ms_next-s_action
                            s_front-id       = mo_action->mo_app->ms_draft-id

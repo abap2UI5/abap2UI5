@@ -14,6 +14,7 @@ sap.ui.define(
     "z2ui5/core/FrontendAction",
     "z2ui5/core/actions/Slots",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/Router",
     "z2ui5/core/AppState",
   ],
   (
@@ -25,6 +26,7 @@ sap.ui.define(
     FrontendAction,
     Slots,
     ViewSlots,
+    Router,
     AppState,
   ) => {
     "use strict";
@@ -66,6 +68,14 @@ sap.ui.define(
           // hooks against a dead app (the custom-JS phase below guards the same
           // way via isDestroyed).
           if (Lib.isDestroyed(this)) return;
+          // Phase 2: ONE history/hash sync per response. A ROUTER action only
+          // travels when the roundtrip carries nav intent - its options were
+          // stashed by the ControlCall hook. The plain response still syncs,
+          // so hash routing and app-state tracking follow every new draft id.
+          Router.sync({
+            ...(oResponse._routerOptions || {}),
+            id: oResponse.ID,
+          });
           Lib.runCallbacks(AppState.state.onAfterRendering);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
@@ -85,15 +95,19 @@ sap.ui.define(
       // calls (destroy a slot, display one, push the model into it), in the
       // order the backend queued them. They run BEFORE anything an app
       // queued, and one at a time: a display is async, and the next action
-      // may well be about the slot it is still building. The request stamp
-      // travels as the action context, so the slot displays can discard a
-      // build a newer parallel request superseded.
+      // may well be about the slot it is still building. The action context
+      // carries the request stamp (so the slot displays can discard a build
+      // a newer parallel request superseded) and the response record (so the
+      // ROUTER action stashes its options on the response they belong to).
       async _runSystemActions(oResponse, seq) {
         const systemJs = oResponse?.S_ACTION?.T_SYSTEM;
         if (!systemJs) return;
         for (const item of systemJs) {
           if (Lib.isDestroyed(this)) return;
-          await FrontendAction.runSystem(item, this, { seq });
+          await FrontendAction.runSystem(item, this, {
+            seq,
+            response: oResponse,
+          });
         }
       },
 

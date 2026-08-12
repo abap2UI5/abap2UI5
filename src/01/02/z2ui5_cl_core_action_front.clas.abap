@@ -36,9 +36,10 @@ CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
       IMPORTING
         slot TYPE clike.
 
-    "! Display a view in a slot - preceded by its own teardown action, so the
-    "! frontend receives the complete sequence and only runs it. Displaying a
-    "! slot twice queues ONE display, with the last XML.
+    "! Display a view in a slot. The frontend tears the slot down implicitly
+    "! before it builds (actions/Slots) - a display REPLACES the slot, so no
+    "! separate destroy action travels with it. Displaying a slot twice
+    "! queues ONE display, with the last XML.
     METHODS slot_display
       IMPORTING
         slot                          TYPE clike
@@ -53,9 +54,7 @@ CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! Turn the collected view-lifecycle calls into SYSTEM actions - in slot
     "! order, so the frontend only has to run what it receives: a nested view
     "! is inserted into the MAIN control tree, so MAIN has to be built before
-    "! NEST and NEST2 whichever way round the app called them. Within one
-    "! slot the order is kept - that is the destroy that always precedes its
-    "! display.
+    "! NEST and NEST2 whichever way round the app called them.
     METHODS slots_serialize.
 
     "! Queue the model push. The app has ONE model, but each OPEN slot holds
@@ -71,10 +70,10 @@ CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! object - adopt the hash, push a route entry, replace it, or write the
     "! app-state hash - so it travels as one call with one options object.
     "! Queue it LAST, after the slots and the model push, so the route
-    "! reflects what was actually rendered.
-    METHODS nav_serialize
-      IMPORTING
-        id TYPE clike.
+    "! reflects what was actually rendered. The COMMON roundtrip carries no
+    "! nav intent at all - then nothing is queued: the frontend syncs the
+    "! URL once per response anyway (View1), with the response's own id.
+    METHODS nav_serialize.
 
     "! Queue a message toast for the APP phase.
     "! `MESSAGE_TOAST`, `show`, the text, and the options object. Only the
@@ -148,10 +147,10 @@ CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
         opt   TYPE REF TO z2ui5_if_ajson OPTIONAL.
 
     "! The sap.m.MessageBox display methods, i.e. the box types the
-    "! whitelisted global call accepts.
+    "! whitelisted global call accepts. Filled lazily in box_resolve - a
+    "! class_constructor would have to be PUBLIC, widening the API for an
+    "! internal list.
     CLASS-DATA ct_box_type TYPE string_table.
-
-    CLASS-METHODS class_constructor.
 
     "! Resolve what the message box actually shows. The result carries the
     "! MessageBox display method in `type`, lowercased and guaranteed to be
@@ -192,19 +191,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
-
-
-  METHOD class_constructor.
-
-    ct_box_type = VALUE #( ( `show` )
-                           ( `alert` )
-                           ( `confirm` )
-                           ( `information` )
-                           ( `warning` )
-                           ( `error` )
-                           ( `success` ) ).
-
-  ENDMETHOD.
 
 
   METHOD constructor.
@@ -301,10 +287,11 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
   METHOD slot_display.
 
-    " A display always tears the slot down first - stated as its own action
-    " rather than left to the frontend, so the list the frontend gets is the
-    " complete sequence and it only has to run it.
-    slot_destroy( slot ).
+    " Whatever was queued for this slot so far is void - the last call
+    " decides the slot's state. The teardown of what the slot currently
+    " HOLDS is implicit on the frontend (a display replaces the slot), so
+    " no destroy action is queued here.
+    slot_reset( slot ).
 
     TRY.
         " The options carry what is specific to a slot - the popover's
@@ -385,8 +372,7 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
     TRY.
         " only what is actually set travels - an absent option reads exactly
-        " like the empty value it would otherwise carry, and the common
-        " roundtrip sets none of them (the draft id always does)
+        " like the empty value it would otherwise carry
         DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
         IF ls_nav-set_app_state_active = abap_true.
           li_opt->set_boolean( iv_path = `/setAppStateActive`
@@ -408,9 +394,12 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
         set_opt_string( json = li_opt
                         name = `navAppCallPrevId`
                         val  = ls_nav-nav_app_call_prev_id ).
-        set_opt_string( json = li_opt
-                        name = `id`
-                        val  = id ).
+
+        " no nav intent this roundtrip - queue nothing, the frontend's own
+        " per-response sync covers the plain case (it injects the id itself)
+        IF li_opt->is_empty( ) = abap_true.
+          RETURN.
+        ENDIF.
 
         queue_system( t_arg = VALUE #( ( `ROUTER` )
                                        ( `sync` ) )
@@ -583,6 +572,16 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
 
   METHOD box_resolve.
+
+    IF ct_box_type IS INITIAL.
+      ct_box_type = VALUE #( ( `show` )
+                             ( `alert` )
+                             ( `confirm` )
+                             ( `information` )
+                             ( `warning` )
+                             ( `error` )
+                             ( `success` ) ).
+    ENDIF.
 
     IF z2ui5_cl_a2ui5_context=>rtti_check_clike( text ) = abap_false.
       result = z2ui5_cl_a2ui5_context=>ui5_msg_box_format( text ).

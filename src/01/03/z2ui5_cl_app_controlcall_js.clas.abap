@@ -373,12 +373,17 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      // The browser history / URL. Router computes ONE outcome from the whole` && |\n| &&
              `      // options object - adopt the hash, push a route entry, replace it, or` && |\n| &&
              `      // write the app-state hash - which is why it is one call and not a` && |\n| &&
-             `      // field per decision input.` && |\n| &&
+             `      // field per decision input. In the SYSTEM phase the options are only` && |\n| &&
+             `      // STASHED on the response: View1 runs the one per-response sync after` && |\n| &&
+             `      // the displays, whether or not a ROUTER action travelled (the common` && |\n| &&
+             `      // roundtrip carries none), and injects the response's draft id there.` && |\n| &&
              `      ROUTER: {` && |\n| &&
              `        get: () => Router,` && |\n| &&
              `        methods: { sync: [] },` && |\n| &&
-             `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
-             `          Router.sync(mOptions),` && |\n| &&
+             `        display: (oController, method, aArgs, mOptions, ctx) => {` && |\n| &&
+             `          if (ctx?.response) ctx.response._routerOptions = mOptions;` && |\n| &&
+             `          else Router.sync(mOptions);` && |\n| &&
+             `        },` && |\n| &&
              `      },` && |\n| &&
              `      BUSY_INDICATOR: {` && |\n| &&
              `        get: () => BusyIndicator,` && |\n| &&
@@ -419,13 +424,13 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      // property nor something a per-binding formatter can register for the` && |\n| &&
              `      // standard sap.ui.model.type.Currency. The payload is a JSON object -` && |\n| &&
              `      // data the backend owns anyway. Lazy-require like THEMING.` && |\n| &&
-             `      FORMATTING: {` && |\n| &&
+             `      FORMATTING: {` && |\n|.
+    result = result &&
              `        get: () => sap.ui.require("sap/ui/core/Formatting"),` && |\n| &&
              `        methods: {` && |\n| &&
              `          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }` && |\n| &&
              `          addCustomCurrency: ["string", "object"], // code, { digits: n }` && |\n| &&
-             `        },` && |\n|.
-    result = result &&
+             `        },` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
@@ -820,13 +825,13 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          groups = JSON.parse(json);` && |\n| &&
              `        } catch {` && |\n| &&
-             `          Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
+             `          Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n|.
+    result = result &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (!Array.isArray(groups)) {` && |\n| &&
-             `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n|.
-    result = result &&
+             `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      groups = groups.filter((g) => Array.isArray(g) && g.length);` && |\n| &&

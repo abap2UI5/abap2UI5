@@ -12,6 +12,20 @@ Legend
 
 unreleased
 ----------
+! the wire got leaner again - internal only: a display action implies the
+  slot's teardown (the frontend destroys implicitly, no destroy action
+  travels before a display), the ROUTER/sync action only travels when the
+  roundtrip carries nav intent (the frontend syncs the URL once per
+  response on its own, with the response id), and a request omits an empty
+  HASH field
+* a roundtrip that re-displays a NESTED view without its MAIN view pushes
+  the model too - the nested view inherits the MAIN model by UI5
+  propagation and bound against the previous roundtrip's data (broke the
+  three-column FlexibleColumnLayout samples 098/104)
+* the default Content-Security-Policy no longer names frame-ancestors in
+  the <meta> tag - browsers ignore the directive there and warned on every
+  page load; cross-origin framing stays forbidden via the
+  X-Frame-Options: SAMEORIGIN response header
 + the http handler asks the ICF runtime to gzip its responses
   (if_http_response set_compression) when the client accepts it - the GET
   shell carries the whole embedded frontend and every POST roundtrip the

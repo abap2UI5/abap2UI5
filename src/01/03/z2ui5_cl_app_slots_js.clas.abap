@@ -377,9 +377,11 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
-             `      // display. The teardown of whatever the slot held is its own action` && |\n| &&
-             `      // and has already run, so there is nothing to decide here either -` && |\n| &&
-             `      // only which loader the slot uses.` && |\n| &&
+             `      // display. A display REPLACES the slot, so tear down whatever it` && |\n| &&
+             `      // holds first - implicitly, the backend sends no destroy action with` && |\n| &&
+             `      // a display (destroying an empty slot is a no-op). Then only the` && |\n| &&
+             `      // loader differs per slot.` && |\n| &&
+             `      ViewSlots.destroy(slotKey);` && |\n| &&
              `      if (slotKey === "MAIN") return displayMain(xml, mOptions, seq);` && |\n| &&
              `      if (slotKey === "POPUP") return displayFragment(xml, seq);` && |\n| &&
              `      if (slotKey === "POPOVER") {` && |\n| &&

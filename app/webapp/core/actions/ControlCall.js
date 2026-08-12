@@ -346,12 +346,17 @@ sap.ui.define(
       // The browser history / URL. Router computes ONE outcome from the whole
       // options object - adopt the hash, push a route entry, replace it, or
       // write the app-state hash - which is why it is one call and not a
-      // field per decision input.
+      // field per decision input. In the SYSTEM phase the options are only
+      // STASHED on the response: View1 runs the one per-response sync after
+      // the displays, whether or not a ROUTER action travelled (the common
+      // roundtrip carries none), and injects the response's draft id there.
       ROUTER: {
         get: () => Router,
         methods: { sync: [] },
-        display: (oController, method, aArgs, mOptions) =>
-          Router.sync(mOptions),
+        display: (oController, method, aArgs, mOptions, ctx) => {
+          if (ctx?.response) ctx.response._routerOptions = mOptions;
+          else Router.sync(mOptions);
+        },
       },
       BUSY_INDICATOR: {
         get: () => BusyIndicator,

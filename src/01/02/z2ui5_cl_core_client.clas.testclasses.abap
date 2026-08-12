@@ -122,7 +122,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->view_display( `<View></View>` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `MAIN|destroy||MAIN|display|<View></View>`
+        exp = `MAIN|display|<View></View>`
         act = system_actions( ) ).
 
   ENDMETHOD.
@@ -184,7 +184,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->popup_display( `<Dialog/>` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `POPUP|destroy||POPUP|display|<Dialog/>`
+        exp = `POPUP|display|<Dialog/>`
         act = system_actions( ) ).
 
   ENDMETHOD.
@@ -229,7 +229,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                 by_id = `btn1` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `POPOVER|destroy||POPOVER|display|<Popover/>|{"openById":"btn1"}`
+        exp = `POPOVER|display|<Popover/>|{"openById":"btn1"}`
         act = system_actions( ) ).
 
   ENDMETHOD.
@@ -281,10 +281,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                   method_insert  = `addMidColumnPage`
                                   method_destroy = `removeMidColumnPage` ).
 
-    " display after destroy: the display replaces it and brings its own
-    " teardown, so the sequence is the same either way round
+    " display after destroy: the display replaces it - the frontend tears
+    " the slot down implicitly, so ONE display action is the whole sequence
     cl_abap_unit_assert=>assert_equals(
-        exp = `NEST|destroy||NEST|display|<NestView/>|` &&
+        exp = `NEST|display|<NestView/>|` &&
               `{"id":"nest1","methodDestroy":"removeMidColumnPage","methodInsert":"addMidColumnPage"}`
         act = system_actions( ) ).
 
@@ -319,7 +319,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                    method_insert = `addEndColumnPage` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `NEST2|destroy||NEST2|display|<Nest2View/>|` &&
+        exp = `NEST2|display|<Nest2View/>|` &&
               `{"id":"nest2","methodInsert":"addEndColumnPage"}`
         act = system_actions( ) ).
 

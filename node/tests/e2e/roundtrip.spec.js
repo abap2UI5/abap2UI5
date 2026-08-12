@@ -187,19 +187,19 @@ test("does not append a dangling '#' to the URL after app start", async ({
 }) => {
   // Regression: with the manifest routing gone, nothing initialized the
   // HashChanger's hasher singleton anymore, so the app-state cleanup in
-  // Router.sync (replaceHash(""), dispatched as the ROUTER/sync system
-  // action) rewrote every started app's URL to ".../path#". Component.init
-  // now initializes the HashChanger explicitly.
+  // Router.sync (replaceHash(""), run once per response by View1's
+  // after-render phase) rewrote every started app's URL to ".../path#".
+  // Component.init now initializes the HashChanger explicitly.
   const responsePromise = page.waitForResponse(
     (r) => r.request().method() === "POST",
   );
   await page.goto("/?app_start=z2ui5_cl_app_hello_world");
   await responsePromise;
 
-  // Router.sync runs as the last system action of _processAfterRendering,
-  // which flags the response as processed right before that phase - wait
-  // for the flag plus a settle tick so the (synchronous) hash rewrite, if
-  // any, has happened before asserting.
+  // Router.sync runs right after the system actions of
+  // _processAfterRendering, which flags the response as processed right
+  // before that phase - wait for the flag plus a settle tick so the
+  // (synchronous) hash rewrite, if any, has happened before asserting.
   await page.waitForFunction(
     () => window.z2ui5?.oResponse?._processed === true,
   );

@@ -65,6 +65,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_auto_update_push  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_slots FOR TESTING RAISING cx_static_check.
+    METHODS test_nested_display_push FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
     METHODS test_session_stored       FOR TESTING RAISING cx_static_check.
     METHODS test_session_location     FOR TESTING RAISING cx_static_check.
@@ -590,8 +591,9 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_system_last_wins.
 
     " A slot displayed twice is displayed ONCE, with the last XML: the
-    " second call drops everything the first queued. The frontend never sees
-    " a view it would have to tear down again right away.
+    " second call drops everything the first queued. No destroy action
+    " travels with a display - the frontend tears the slot down implicitly,
+    " a display REPLACES the slot.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
     lo_handler = NEW #( val = `` ).
@@ -603,13 +605,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
 
     DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
-    cl_abap_unit_assert=>assert_equals( exp = 2
+    cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_js ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","MAIN"]`
-                                        act = lt_js[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","VIEW_SLOTS","display","MAIN","<Second/>"]`
-        act = lt_js[ 2 ]-o_json->stringify( ) ).
+        act = lt_js[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -898,11 +898,41 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lo_handler->ms_response-model ).
-    " an unchanged model asks for no push at all - the router call is queued
-    " on every roundtrip and is not one
+    " an unchanged model asks for no push at all
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
         act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_nested_display_push.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    " a roundtrip that re-displays a NESTED view without its MAIN view must
+    " push the model too: the nested view inherits the MAIN model by UI5
+    " propagation, so without the push it would bind against the data of the
+    " previous roundtrip (three-column samples 098/104)
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client->nest_view_display( val           = `<Nest/>`
+                                  id            = `col`
+                                  method_insert = `addMidColumnPage` ).
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]*`
+        act = system_actions_of( lo_handler ) ).
+    " ...queued AFTER the display, so the freshly built slot is filled
+    " before it is pushed to
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `*"display"*updateModel*`
+        act = system_actions_of( lo_handler ) ).
 
   ENDMETHOD.
 

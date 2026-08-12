@@ -350,9 +350,11 @@ sap.ui.define(
         }
         return undefined;
       }
-      // display. The teardown of whatever the slot held is its own action
-      // and has already run, so there is nothing to decide here either -
-      // only which loader the slot uses.
+      // display. A display REPLACES the slot, so tear down whatever it
+      // holds first - implicitly, the backend sends no destroy action with
+      // a display (destroying an empty slot is a no-op). Then only the
+      // loader differs per slot.
+      ViewSlots.destroy(slotKey);
       if (slotKey === "MAIN") return displayMain(xml, mOptions, seq);
       if (slotKey === "POPUP") return displayFragment(xml, seq);
       if (slotKey === "POPOVER") {

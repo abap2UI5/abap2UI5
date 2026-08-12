@@ -41,6 +41,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "z2ui5/core/FrontendAction",` && |\n| &&
              `    "z2ui5/core/actions/Slots",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
@@ -52,6 +53,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    FrontendAction,` && |\n| &&
              `    Slots,` && |\n| &&
              `    ViewSlots,` && |\n| &&
+             `    Router,` && |\n| &&
              `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
@@ -93,6 +95,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
              `          // way via isDestroyed).` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          // Phase 2: ONE history/hash sync per response. A ROUTER action only` && |\n| &&
+             `          // travels when the roundtrip carries nav intent - its options were` && |\n| &&
+             `          // stashed by the ControlCall hook. The plain response still syncs,` && |\n| &&
+             `          // so hash routing and app-state tracking follow every new draft id.` && |\n| &&
+             `          Router.sync({` && |\n| &&
+             `            ...(oResponse._routerOptions || {}),` && |\n| &&
+             `            id: oResponse.ID,` && |\n| &&
+             `          });` && |\n| &&
              `          Lib.runCallbacks(AppState.state.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
@@ -112,15 +122,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // calls (destroy a slot, display one, push the model into it), in the` && |\n| &&
              `      // order the backend queued them. They run BEFORE anything an app` && |\n| &&
              `      // queued, and one at a time: a display is async, and the next action` && |\n| &&
-             `      // may well be about the slot it is still building. The request stamp` && |\n| &&
-             `      // travels as the action context, so the slot displays can discard a` && |\n| &&
-             `      // build a newer parallel request superseded.` && |\n| &&
+             `      // may well be about the slot it is still building. The action context` && |\n| &&
+             `      // carries the request stamp (so the slot displays can discard a build` && |\n| &&
+             `      // a newer parallel request superseded) and the response record (so the` && |\n| &&
+             `      // ROUTER action stashes its options on the response they belong to).` && |\n| &&
              `      async _runSystemActions(oResponse, seq) {` && |\n| &&
              `        const systemJs = oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `        if (!systemJs) return;` && |\n| &&
              `        for (const item of systemJs) {` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          await FrontendAction.runSystem(item, this, { seq });` && |\n| &&
+             `          await FrontendAction.runSystem(item, this, {` && |\n| &&
+             `            seq,` && |\n| &&
+             `            response: oResponse,` && |\n| &&
+             `          });` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

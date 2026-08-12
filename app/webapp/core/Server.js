@@ -186,6 +186,7 @@ sap.ui.define(
         // and these keys are not present in the JSON sent over the wire.
         if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;
         if (sFront.SEARCH === "") delete sFront.SEARCH;
+        if (!sFront.HASH) delete sFront.HASH;
         if (!oBody.MODEL) delete oBody.MODEL;
 
         this.readHttp(oBody);
