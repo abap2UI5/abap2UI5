@@ -857,10 +857,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " to the single top-level catch in z2ui5_cl_http_handler=>_main( ), which
     " turns them into a 500 response carrying the exception text
     IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
-      li_client->popup_destroy( ).
-      " a popover floats next to the MAIN view exactly like a popup and
-      " survives the view replacement the same way - close it too
-      li_client->popover_destroy( ).
+      " no popup/popover teardown is queued here: the standalone slots die on
+      " every app switch anyway - implicitly on the frontend whenever the
+      " response names another app (View1), and through prepare_app_stack for
+      " the one hop the frontend cannot see, to another instance of the SAME
+      " class. Queuing it here on top only made the back-navigation response
+      " carry two destroy actions the frontend had already done itself
       li_client->nav_app_leave( ).
     ELSE.
       li_app->main( li_client ).

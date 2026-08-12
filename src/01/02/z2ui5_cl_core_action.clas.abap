@@ -305,6 +305,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " ANOTHER INSTANCE OF THE SAME CLASS - only then the teardown is queued
     " here, before the called app runs its main( ), so its own
     " popup_display( ) still replaces the destroy through slot_reset( ).
+    " Both directions pass through here (call and leave alike), so this is
+    " the ONE place that decides it - a back-navigation must not queue a
+    " teardown of its own on top, or every cross-class Back would carry two
+    " destroy actions for slots the frontend had already torn down.
     IF mo_app->mo_app IS BOUND
         AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( val )
           = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
