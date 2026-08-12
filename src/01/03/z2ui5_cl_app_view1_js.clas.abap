@@ -95,6 +95,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
              `          // way via isDestroyed).` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          // A MODEL key in the response IS the model push - run it after the` && |\n| &&
+             `          // displays, so a slot built in this same roundtrip is filled before` && |\n| &&
+             `          // it is pushed to. This reaches what a fresh build alone does not:` && |\n| &&
+             `          // a nested view re-displayed without its MAIN view (it inherits the` && |\n| &&
+             `          // MAIN model by UI5 propagation) and a popup left open across a` && |\n| &&
+             `          // MAIN rebuild.` && |\n| &&
+             `          if (oResponse.MODELPRESENT) Slots.action("updateModel");` && |\n| &&
              `          // Phase 2: ONE history/hash sync per response. A ROUTER action only` && |\n| &&
              `          // travels when the roundtrip carries nav intent - its options were` && |\n| &&
              `          // stashed by the ControlCall hook. The plain response still syncs,` && |\n| &&

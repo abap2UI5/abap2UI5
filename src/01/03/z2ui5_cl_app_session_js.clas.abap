@@ -82,14 +82,25 @@ CLASS z2ui5_cl_app_session_js IMPLEMENTATION.
              `  // the one that created it.` && |\n| &&
              `  let sessionConfigSent = false;` && |\n| &&
              `` && |\n| &&
+             `  // The last-sent live device values. Orientation and resize are the two` && |\n| &&
+             `  // device fields that are NOT session-constant - but they change on a` && |\n| &&
+             `  // rotation or window resize, not per click, so they only travel when` && |\n| &&
+             `  // they differ from what was last sent. The backend stores every arrived` && |\n| &&
+             `  // value with the draft and treats an absent field as "unchanged".` && |\n| &&
+             `  let liveSent = "";` && |\n| &&
+             `` && |\n| &&
              `  function config(oConfig) {` && |\n| &&
-             `    // orientation and resize are the two device fields that are NOT` && |\n| &&
-             `    // session-constant - a window is resized and a phone rotated while` && |\n| &&
-             `    // the app runs - so they travel every time and the backend merges` && |\n| &&
-             `    // them over the block it stored.` && |\n| &&
              `    const live = getDeviceLive();` && |\n| &&
-             `    if (sessionConfigSent) return { S_DEVICE: live };` && |\n| &&
-             `    if (oConfig?.S_UI5) sessionConfigSent = true;` && |\n| &&
+             `    const liveKey = JSON.stringify(live);` && |\n| &&
+             `    if (sessionConfigSent) {` && |\n| &&
+             `      if (liveKey === liveSent) return {};` && |\n| &&
+             `      liveSent = liveKey;` && |\n| &&
+             `      return { S_DEVICE: live };` && |\n| &&
+             `    }` && |\n| &&
+             `    if (oConfig?.S_UI5) {` && |\n| &&
+             `      sessionConfigSent = true;` && |\n| &&
+             `      liveSent = liveKey;` && |\n| &&
+             `    }` && |\n| &&
              `    return {` && |\n| &&
              `      S_UI5: oConfig?.S_UI5,` && |\n| &&
              `      ComponentData: oConfig?.ComponentData,` && |\n| &&

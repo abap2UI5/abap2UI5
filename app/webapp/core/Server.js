@@ -154,15 +154,15 @@ sap.ui.define(
         const eventName = oBody.ARGUMENTS?.[0]?.[0];
 
         const oConfig = AppState.getGlobal("oConfig");
+        // the session-constant block travels once per page load and the
+        // live device fields only when they changed (core/Session.js);
+        // focus and scroll are per roundtrip by nature (core/ScrollFocus.js)
+        const config = {
+          ...Session.config(oConfig),
+          S_FOCUS: ScrollFocus.getFocusInfo(),
+          S_SCROLL: ScrollFocus.getScrollInfo(),
+        };
         oBody.S_FRONT = {
-          CONFIG: {
-            // the session-constant block travels once per page load
-            // (core/Session.js); focus and scroll are per roundtrip by nature
-            // (core/ScrollFocus.js)
-            ...Session.config(oConfig),
-            S_FOCUS: ScrollFocus.getFocusInfo(),
-            S_SCROLL: ScrollFocus.getScrollInfo(),
-          },
           ID: oBody.ID,
           EVENT: eventName,
           // the hash is NOT session-constant - it carries the live routing
@@ -170,6 +170,10 @@ sap.ui.define(
           HASH: window.location.hash,
         };
         const sFront = oBody.S_FRONT;
+        // an all-empty CONFIG is left off entirely
+        if (Object.values(config).some((v) => v !== undefined)) {
+          sFront.CONFIG = config;
+        }
 
         // The page location travels on its own session cadence - the latch
         // lives with the rest of the once-per-page-load state in
@@ -379,6 +383,10 @@ sap.ui.define(
               // at all; every consumer downstream sees the empty object it
               // used to be sent explicitly.
               OVIEWMODEL: responseData.MODEL ?? {},
+              // A MODEL key in the response IS the model push: View1 pushes
+              // it into every open model-owning slot after the system
+              // actions ran - no updateModel action travels for it.
+              MODELPRESENT: responseData.MODEL !== undefined,
               // Class name of the rendered app - used by the hash router to
               // keep the URL route "#/app/<CLASS>" in sync (View1).
               APP: responseData.S_FRONT.APP,

@@ -68,6 +68,13 @@ sap.ui.define(
           // hooks against a dead app (the custom-JS phase below guards the same
           // way via isDestroyed).
           if (Lib.isDestroyed(this)) return;
+          // A MODEL key in the response IS the model push - run it after the
+          // displays, so a slot built in this same roundtrip is filled before
+          // it is pushed to. This reaches what a fresh build alone does not:
+          // a nested view re-displayed without its MAIN view (it inherits the
+          // MAIN model by UI5 propagation) and a popup left open across a
+          // MAIN rebuild.
+          if (oResponse.MODELPRESENT) Slots.action("updateModel");
           // Phase 2: ONE history/hash sync per response. A ROUTER action only
           // travels when the roundtrip carries nav intent - its options were
           // stashed by the ControlCall hook. The plain response still syncs,

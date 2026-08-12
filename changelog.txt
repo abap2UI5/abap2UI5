@@ -12,6 +12,13 @@ Legend
 
 unreleased
 ----------
+! the wire sheds its derivable bytes - internal only: a MODEL key in the
+  response IS the model push (no updateModel action travels; the frontend
+  pushes into every open slot when a model arrived), the routing mode is
+  only re-sent when the frontend may not hold it (app start, navigation
+  hop, mode change - not on every event roundtrip), and the live device
+  fields (orientation/resize) travel only when they changed since the
+  last send, stored with the draft like the rest of the device block
 ! the wire got leaner again - internal only: a display action implies the
   slot's teardown (the frontend destroys implicitly, no destroy action
   travels before a display), the ROUTER/sync action only travels when the

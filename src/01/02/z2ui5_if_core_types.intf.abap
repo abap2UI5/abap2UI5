@@ -263,12 +263,15 @@ INTERFACE z2ui5_if_core_types
   " a device record that is current in every field.
   TYPES:
     BEGIN OF ty_s_session,
-      s_ui5     TYPE ty_s_request-s_front-s_ui5,
-      s_device  TYPE ty_s_request-s_front-s_device,
-      comp_data TYPE string,
-      origin    TYPE string,
-      pathname  TYPE string,
-      search    TYPE string,
+      s_ui5         TYPE ty_s_request-s_front-s_ui5,
+      s_device      TYPE ty_s_request-s_front-s_device,
+      comp_data     TYPE string,
+      origin        TYPE string,
+      pathname      TYPE string,
+      search        TYPE string,
+      " the routing mode last SENT to the frontend for this app - a plain
+      " event roundtrip repeats no mode (see z2ui5_cl_core_handler=>main_end)
+      nav_mode_sent TYPE string,
     END OF ty_s_session.
 
   TYPES:

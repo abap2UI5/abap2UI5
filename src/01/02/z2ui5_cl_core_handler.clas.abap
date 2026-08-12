@@ -681,13 +681,24 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " Answer this roundtrip from the draft - but keep the two device fields
-    " that are NOT session-constant: the window can be resized and a phone
-    " rotated while the app runs, so orientation and resize travel with every
-    " request and win over the stored ones.
+    " Answer this roundtrip from the draft - but let the two device fields
+    " that are NOT session-constant win from the request WHEN IT CARRIES
+    " them: the window can be resized and a phone rotated while the app
+    " runs. The frontend only sends them when they changed since the last
+    " send (core/Session.js), so an absent field means "unchanged" - the
+    " stored value stays, it is never wiped.
     DATA(ls_device) = mo_action->mo_app->ms_session-s_device.
-    ls_device-orientation = ms_request-s_front-s_device-orientation.
-    ls_device-resize      = ms_request-s_front-s_device-resize.
+    IF ms_request-s_front-s_device-orientation IS NOT INITIAL.
+      ls_device-orientation = ms_request-s_front-s_device-orientation.
+    ENDIF.
+    IF ms_request-s_front-s_device-resize-width > 0.
+      ls_device-resize = ms_request-s_front-s_device-resize.
+    ENDIF.
+
+    " a value that DID arrive is stored back with the draft: the frontend
+    " will not repeat it while it stays unchanged, so the merged record is
+    " the only place that remembers the rotation/resize
+    mo_action->mo_app->ms_session-s_device = ls_device.
 
     ms_request-s_front-s_device = ls_device.
     ms_request-s_front-s_ui5    = mo_action->mo_app->ms_session-s_ui5.
@@ -727,8 +738,21 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " one itself, so an app that queued cs_event-set_nav_routing in check_on_init
     " stays routed in its chosen mode - even after the user visited another
     " app that runs with a different one (see z2ui5_cl_core_app=>mv_nav_mode).
-    IF mo_action->ms_next-s_nav-set_nav_routing IS INITIAL.
+    " NOT on every roundtrip though: the frontend keeps the mode in session
+    " state, so a plain event roundtrip of the SAME app repeats no mode (it
+    " would re-queue the ROUTER action for a constant). It has to travel
+    " again whenever the frontend may not hold it: an app-start-shaped
+    " request (page load, Back/Forward route restore), a navigation hop
+    " (check_on_navigated - the previous app may have run another mode), or
+    " a mode that differs from what this app last sent.
+    IF mo_action->ms_next-s_nav-set_nav_routing IS INITIAL
+        AND ( ms_request-s_front-id IS INITIAL
+           OR mo_action->ms_actual-check_on_navigated = abap_true
+           OR mo_action->mo_app->mv_nav_mode <> mo_action->mo_app->ms_session-nav_mode_sent ).
       mo_action->ms_next-s_nav-set_nav_routing = mo_action->mo_app->mv_nav_mode.
+    ENDIF.
+    IF mo_action->ms_next-s_nav-set_nav_routing IS NOT INITIAL.
+      mo_action->mo_app->ms_session-nav_mode_sent = mo_action->ms_next-s_nav-set_nav_routing.
     ENDIF.
 
     DATA(lo_front) = NEW z2ui5_cl_core_action_front( mo_action ).
@@ -744,15 +768,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     IF line_exists( mo_action->ms_next-t_action_front[
                         method = z2ui5_if_core_types=>cs_slot_action-display ] ).
       lv_model = mo_action->mo_app->model_json_stringify( ).
-      " a view roundtrip pushes the model into the OPEN slots too - queued
-      " AFTER the display actions, so a slot built in this same roundtrip is
-      " filled before it is pushed to. This covers what the fresh build
-      " alone does not: a NESTED view re-displayed without its MAIN view
-      " inherits the MAIN model by UI5 propagation and would otherwise bind
-      " against the previous roundtrip's data (three-column samples), and a
-      " popup left open across a MAIN rebuild holds a model instance of its
-      " own.
-      lo_front->queue_model_update( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
       " push - send the model only when main( ) itself changed it, exactly as
@@ -761,9 +776,14 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       DATA(lv_model_now) = mo_action->mo_app->model_json_stringify( ).
       IF lv_model_now <> mv_model_before.
         lv_model = lv_model_now.
-        lo_front->queue_model_update( ).
       ENDIF.
     ENDIF.
+    " No updateModel action travels with it: a MODEL key in the response IS
+    " the push - the frontend pushes into every open model-owning slot after
+    " the system actions ran (View1). That covers the nested re-display
+    " (inherits the MAIN model by propagation - three-column samples) and a
+    " popup left open across a MAIN rebuild alike, without spelling a
+    " derivable instruction into every model-carrying response.
 
     " last of all, so the route reflects everything this roundtrip did - the
     " slots that were built and the model that was pushed into them. Queued

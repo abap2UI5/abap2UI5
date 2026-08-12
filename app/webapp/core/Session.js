@@ -55,14 +55,25 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   // the one that created it.
   let sessionConfigSent = false;
 
+  // The last-sent live device values. Orientation and resize are the two
+  // device fields that are NOT session-constant - but they change on a
+  // rotation or window resize, not per click, so they only travel when
+  // they differ from what was last sent. The backend stores every arrived
+  // value with the draft and treats an absent field as "unchanged".
+  let liveSent = "";
+
   function config(oConfig) {
-    // orientation and resize are the two device fields that are NOT
-    // session-constant - a window is resized and a phone rotated while
-    // the app runs - so they travel every time and the backend merges
-    // them over the block it stored.
     const live = getDeviceLive();
-    if (sessionConfigSent) return { S_DEVICE: live };
-    if (oConfig?.S_UI5) sessionConfigSent = true;
+    const liveKey = JSON.stringify(live);
+    if (sessionConfigSent) {
+      if (liveKey === liveSent) return {};
+      liveSent = liveKey;
+      return { S_DEVICE: live };
+    }
+    if (oConfig?.S_UI5) {
+      sessionConfigSent = true;
+      liveSent = liveKey;
+    }
     return {
       S_UI5: oConfig?.S_UI5,
       ComponentData: oConfig?.ComponentData,

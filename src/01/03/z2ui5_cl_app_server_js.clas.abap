@@ -181,15 +181,15 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const eventName = oBody.ARGUMENTS?.[0]?.[0];` && |\n| &&
              `` && |\n| &&
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
+             `        // the session-constant block travels once per page load and the` && |\n| &&
+             `        // live device fields only when they changed (core/Session.js);` && |\n| &&
+             `        // focus and scroll are per roundtrip by nature (core/ScrollFocus.js)` && |\n| &&
+             `        const config = {` && |\n| &&
+             `          ...Session.config(oConfig),` && |\n| &&
+             `          S_FOCUS: ScrollFocus.getFocusInfo(),` && |\n| &&
+             `          S_SCROLL: ScrollFocus.getScrollInfo(),` && |\n| &&
+             `        };` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
-             `          CONFIG: {` && |\n| &&
-             `            // the session-constant block travels once per page load` && |\n| &&
-             `            // (core/Session.js); focus and scroll are per roundtrip by nature` && |\n| &&
-             `            // (core/ScrollFocus.js)` && |\n| &&
-             `            ...Session.config(oConfig),` && |\n| &&
-             `            S_FOCUS: ScrollFocus.getFocusInfo(),` && |\n| &&
-             `            S_SCROLL: ScrollFocus.getScrollInfo(),` && |\n| &&
-             `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
              `          // the hash is NOT session-constant - it carries the live routing` && |\n| &&
@@ -197,6 +197,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          HASH: window.location.hash,` && |\n| &&
              `        };` && |\n| &&
              `        const sFront = oBody.S_FRONT;` && |\n| &&
+             `        // an all-empty CONFIG is left off entirely` && |\n| &&
+             `        if (Object.values(config).some((v) => v !== undefined)) {` && |\n| &&
+             `          sFront.CONFIG = config;` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
              `        // The page location travels on its own session cadence - the latch` && |\n| &&
              `        // lives with the rest of the once-per-page-load state in` && |\n| &&
@@ -406,6 +410,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              // at all; every consumer downstream sees the empty object it` && |\n| &&
              `              // used to be sent explicitly.` && |\n| &&
              `              OVIEWMODEL: responseData.MODEL ?? {},` && |\n| &&
+             `              // A MODEL key in the response IS the model push: View1 pushes` && |\n| &&
+             `              // it into every open model-owning slot after the system` && |\n| &&
+             `              // actions ran - no updateModel action travels for it.` && |\n| &&
+             `              MODELPRESENT: responseData.MODEL !== undefined,` && |\n| &&
              `              // Class name of the rendered app - used by the hash router to` && |\n| &&
              `              // keep the URL route "#/app/<CLASS>" in sync (View1).` && |\n| &&
              `              APP: responseData.S_FRONT.APP,` && |\n| &&
@@ -416,7 +424,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          this._inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
              `        }` && |\n| &&
-             `      },` && |\n| &&
+             `      },` && |\n|.
+    result = result &&
              `` && |\n| &&
              `      async responseSuccess(response, reqSeq) {` && |\n| &&
              `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
@@ -424,8 +433,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          AppState.state.oResponse = response;` && |\n| &&
              `` && |\n| &&
              `          // The backend can send follow-up actions to run after the response.` && |\n| &&
-             `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n|.
-    result = result &&
+             `          // Each entry is a real JSON array ["EVENT", ...args] (framework` && |\n| &&
              `          // actions, pure data), a legacy "eF(...)" call string, or a raw JS` && |\n| &&
              `          // expression - see FrontendAction.runCustom. They are stashed` && |\n| &&
              `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&

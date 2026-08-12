@@ -61,14 +61,6 @@ CLASS z2ui5_cl_core_action_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! NEST and NEST2 whichever way round the app called them.
     METHODS slots_serialize.
 
-    "! Queue the model push. The app has ONE model, but each OPEN slot holds
-    "! its own frontend instance of it - and which slots are open is the one
-    "! thing only the frontend knows. So the action names no slot at all: it
-    "! says the model changed, and every slot carrying a model of its own
-    "! picks it up. Queue it AFTER slots_serialize( ), so a slot built in
-    "! this same roundtrip is filled before it is pushed to.
-    METHODS queue_model_update.
-
     "! Turn the roundtrip's browser-history intent into the ROUTER/sync
     "! SYSTEM action. Router computes ONE outcome from the whole options
     "! object - adopt the hash, push a route entry, replace it, or write the
@@ -373,14 +365,6 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
                       opt   = lr_action->options ).
       ENDLOOP.
     ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD queue_model_update.
-
-    queue_system( VALUE #( ( z2ui5_if_core_types=>cs_slot_action-target )
-                           ( z2ui5_if_core_types=>cs_slot_action-update_model ) ) ).
 
   ENDMETHOD.
 

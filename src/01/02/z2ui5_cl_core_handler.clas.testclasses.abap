@@ -64,7 +64,6 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_nav_mode_resent   FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_push  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
-    METHODS test_auto_update_slots FOR TESTING RAISING cx_static_check.
     METHODS test_nested_display_push FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
     METHODS test_session_stored       FOR TESTING RAISING cx_static_check.
@@ -873,9 +872,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_char_cp(
-        exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]*`
-        act = system_actions_of( lo_handler ) ).
+    " the MODEL key itself IS the push - no updateModel action travels,
+    " the frontend pushes into every open slot when a model arrived
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
     cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
 
@@ -912,7 +913,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
 
     " a roundtrip that re-displays a NESTED view without its MAIN view must
-    " push the model too: the nested view inherits the MAIN model by UI5
+    " carry the model: the nested view inherits the MAIN model by UI5
     " propagation, so without the push it would bind against the data of the
     " previous roundtrip (three-column samples 098/104)
     lo_handler = NEW #( val = `` ).
@@ -925,37 +926,14 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_char_cp(
-        exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]*`
-        act = system_actions_of( lo_handler ) ).
-    " ...queued AFTER the display, so the freshly built slot is filled
-    " before it is pushed to
-    cl_abap_unit_assert=>assert_char_cp(
-        exp = `*"display"*updateModel*`
-        act = system_actions_of( lo_handler ) ).
-
-  ENDMETHOD.
-
-
-  METHOD test_auto_update_slots.
-
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-
-    " the app has ONE model but every open slot holds its own frontend
-    " instance of it - and which of them are open is the one thing only the
-    " frontend knows. So a detected change queues ONE action naming no slot,
-    " not one per slot the backend guesses at
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
-    lo_handler->mv_model_before_taken = abap_true.
-    lo_handler->mv_model_before       = `<other model state>`.
-
-    lo_handler->main_end( ).
-
-    cl_abap_unit_assert=>assert_char_cp(
-        exp = `*["CONTROL_GLOBAL","VIEW_SLOTS","updateModel"]*`
-        act = system_actions_of( lo_handler ) ).
+    " the model travels with the response - its presence IS the push, the
+    " frontend runs it after the displays (View1)
+    cl_abap_unit_assert=>assert_equals(
+        exp = lo_handler->mo_action->mo_app->model_json_stringify( )
+        act = lo_handler->ms_response-model ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
@@ -1000,6 +978,17 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_char_cp(
         exp = `*"setNavRouting":"KEEP"*`
         act = system_actions_of( lo_handler ) ).
+
+    " a follow-up EVENT roundtrip of the same app repeats no mode - the
+    " frontend keeps it in session state, so re-sending it would re-queue
+    " the ROUTER action for a constant on every roundtrip
+    lo_handler->ms_request-s_front-id = `SOME_DRAFT`.
+    CLEAR lo_handler->mo_action->ms_next.
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
