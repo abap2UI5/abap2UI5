@@ -17,8 +17,18 @@ CLASS ltcl_test_action_front DEFINITION FINAL
     METHODS test_box_icon_none        FOR TESTING RAISING cx_static_check.
     METHODS test_box_actions          FOR TESTING RAISING cx_static_check.
     METHODS test_box_msg_table_empty  FOR TESTING RAISING cx_static_check.
+    METHODS test_main_drops_teardowns FOR TESTING RAISING cx_static_check.
+    METHODS test_main_keeps_displays  FOR TESTING RAISING cx_static_check.
+    METHODS test_teardowns_no_main    FOR TESTING RAISING cx_static_check.
 
     METHODS queued
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! the SYSTEM actions the serialization produced, pipe-joined
+    METHODS serialized
       RETURNING
         VALUE(result) TYPE string
       RAISING
@@ -169,6 +179,64 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial(
         mo_action->ms_next-s_action-t_custom ).
+
+  ENDMETHOD.
+
+  METHOD serialized.
+
+    mo_cut->slots_serialize( ).
+
+    LOOP AT mo_action->ms_next-s_action-t_system INTO DATA(ls_action).
+      IF result IS NOT INITIAL.
+        result = result && `|`.
+      ENDIF.
+      result = result && ls_action-o_json->stringify( ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD test_main_drops_teardowns.
+
+    " a new MAIN view takes the standalone slots down on the frontend
+    " (actions/Slots), so their teardown is not sent next to it - whoever
+    " queued it: the app itself here, prepare_app_stack on an app switch
+    mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popup ).
+    mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popover ).
+    mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-main
+                          xml  = `<View/>` ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["VIEW_SLOTS","display","MAIN","<View/>"]`
+        act = serialized( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_main_keeps_displays.
+
+    " only the TEARDOWNS are derivable from the MAIN display - a popup this
+    " roundtrip opens still travels, and behind MAIN, so it opens on the new
+    " view instead of being torn down with the old one
+    mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-popup
+                          xml  = `<Dialog/>` ).
+    mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-main
+                          xml  = `<View/>` ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["VIEW_SLOTS","display","MAIN","<View/>"]|["VIEW_SLOTS","display","POPUP","<Dialog/>"]`
+        act = serialized( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_teardowns_no_main.
+
+    " without a MAIN display nothing tears the standalone slots down on the
+    " frontend, so the teardown has to travel
+    mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popup ).
+    mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popover ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["VIEW_SLOTS","destroy","POPUP"]|["VIEW_SLOTS","destroy","POPOVER"]`
+        act = serialized( ) ).
 
   ENDMETHOD.
 

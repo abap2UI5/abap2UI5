@@ -135,7 +135,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // it is pushed to. This reaches what a fresh build alone does not:` && |\n| &&
              `          // a nested view re-displayed without its MAIN view (it inherits the` && |\n| &&
              `          // MAIN model by UI5 propagation) and a popup left open across a` && |\n| &&
-             `          // MAIN rebuild.` && |\n| &&
+             `          // roundtrip that rebuilt no view (one that DOES rebuild MAIN takes` && |\n| &&
+             `          // the standalone slots down with it - see actions/Slots).` && |\n| &&
              `          if (oResponse.MODELPRESENT) Slots.action("updateModel");` && |\n| &&
              `          // Phase 2: ONE history/hash sync per response. A ROUTER action only` && |\n| &&
              `          // travels when the roundtrip carries nav intent - its options were` && |\n| &&

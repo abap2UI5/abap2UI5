@@ -308,6 +308,17 @@ sap.ui.define(
           // slip past displayView's "a newer view took the slot" guard and
           // then crash THIS build on a duplicate id.
           ViewSlots.destroy("MAIN");
+          // A new MAIN view means a new screen, so the two STANDALONE slots
+          // go with it. They live outside the MAIN control tree and would
+          // otherwise float on top of a page they no longer belong to - a
+          // dialog of the previous screen over the new one. The backend
+          // relies on this and sends no destroy action for them next to a
+          // MAIN display (z2ui5_cl_core_action_front=>slots_serialize). A
+          // popup/popover the SAME response opens still opens: slot actions
+          // are serialized MAIN first, and each one is awaited before the
+          // next runs (View1._runSystemActions).
+          ViewSlots.destroy("POPUP");
+          ViewSlots.destroy("POPOVER");
           return displayView(
             xml,
             AppState.state.oResponse?.OVIEWMODEL,

@@ -34,6 +34,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
+    METHODS test_stack_leave_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_fresh_target FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_ancestor_gone FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
@@ -367,6 +368,32 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `POPOVER|destroy`
                                         act = |{ lo_result->ms_next-t_action_front[ 2 ]-slot }\|| &&
                                               |{ lo_result->ms_next-t_action_front[ 2 ]-method }| ).
+
+  ENDMETHOD.
+
+  METHOD test_stack_leave_cross_class.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+
+    lo_http = NEW #( val = `` ).
+
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
+
+    " back-navigation to a DIFFERENT class - the response names another app,
+    " so the frontend tears the standalone slots down by itself (View1) and
+    " nothing about them travels. The back-navigation event does not queue a
+    " teardown of its own either (z2ui5_cl_core_handler=>main_process): every
+    " app switch ends up here, and this is the only place that knows whether
+    " the frontend can see it
+    lo_action->ms_next-o_app_leave = NEW ltcl_test_app2( ).
+
+    lo_result = lo_action->factory_stack_leave( ).
+
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-t_action_front ).
 
   ENDMETHOD.
 

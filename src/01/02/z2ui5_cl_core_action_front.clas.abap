@@ -344,6 +344,25 @@ CLASS z2ui5_cl_core_action_front IMPLEMENTATION.
 
   METHOD slots_serialize.
 
+    " A new MAIN view is a new screen, and the frontend takes the two
+    " STANDALONE slots down with it (actions/Slots displayMain) - they live
+    " outside the MAIN control tree and would otherwise float on top of a
+    " page they no longer belong to. So a destroy for them next to a MAIN
+    " display describes something that has already happened by the time it
+    " would run: it is dropped here instead of travelling with every
+    " roundtrip that rebuilds the view. Their DISPLAYS are untouched - the
+    " slot order below puts them behind MAIN, and each action is awaited
+    " before the next runs, so a popup this roundtrip opens still opens.
+    DATA(lv_main_displayed) = xsdbool( line_exists(
+        mo_action->ms_next-t_action_front[ slot   = z2ui5_if_client=>cs_view-main
+                                           method = z2ui5_if_core_types=>cs_slot_action-display ] ) ).
+    IF lv_main_displayed = abap_true.
+      DELETE mo_action->ms_next-t_action_front
+             WHERE method = z2ui5_if_core_types=>cs_slot_action-destroy
+               AND ( slot = z2ui5_if_client=>cs_view-popup
+                  OR slot = z2ui5_if_client=>cs_view-popover ).
+    ENDIF.
+
     " The view-lifecycle calls leave in SLOT order, never in the order the
     " app happened to make them - see the ABAP Doc.
     LOOP AT VALUE string_table( ( z2ui5_if_client=>cs_view-main )
