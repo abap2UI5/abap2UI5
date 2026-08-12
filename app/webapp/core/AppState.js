@@ -120,6 +120,7 @@ sap.ui.define([], () => {
       // Roundtrip state
       oBody: null,
       oResponse: null,
+      renderedApp: null,
       responseData: null,
       contextId: null,
       isBusy: false,

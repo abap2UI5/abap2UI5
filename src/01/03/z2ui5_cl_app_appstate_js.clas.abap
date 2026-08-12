@@ -147,6 +147,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      // Roundtrip state` && |\n| &&
              `      oBody: null,` && |\n| &&
              `      oResponse: null,` && |\n| &&
+             `      renderedApp: null,` && |\n| &&
              `      responseData: null,` && |\n| &&
              `      contextId: null,` && |\n| &&
              `      isBusy: false,` && |\n| &&
