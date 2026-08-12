@@ -3,6 +3,7 @@ sap.ui.define(
     "sap/m/MessageBox",
     "sap/m/MessageToast",
     "sap/ui/core/BusyIndicator",
+    "sap/ui/core/Popup",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
     "sap/ui/model/Sorter",
@@ -15,6 +16,7 @@ sap.ui.define(
     MessageBox,
     MessageToast,
     BusyIndicator,
+    CorePopup,
     Filter,
     FilterOperator,
     Sorter,
@@ -370,12 +372,15 @@ sap.ui.define(
         get: () => sap.ui.require("sap/ui/core/Theming"),
         methods: { setTheme: ["string"] },
       },
-      // sap/ui/core/Popup exists on every supported release, but
-      // setWithinArea is @since 1.89 - so resolve the module lazily like
-      // THEMING and let the "not available" guard below report the older
-      // runtime instead of failing the component load.
+      // sap/ui/core/Popup is a HARD dependency of this module on purpose:
+      // loading it registers the Popup.Dock enum with the DataType registry,
+      // which MessageToast's dock validation needs - without it a toast on
+      // some UI5 versions logs '"center bottom" is not of type
+      // "sap.ui.core.Popup.Dock"' for the enum's own default value. The
+      // module exists on every supported release; only setWithinArea is
+      // @since 1.89, and the "not available" guard below covers that.
       POPUP: {
-        get: () => sap.ui.require("sap/ui/core/Popup"),
+        get: () => CorePopup,
         methods: { setWithinArea: ["within"] },
       },
       // sap/ui/core/InvisibleMessage is @since 1.78 and is a SINGLETON: it

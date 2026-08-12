@@ -56,6 +56,22 @@ sap.ui.define(
         if (!oResponse || oResponse._processed) return;
         oResponse._processed = true;
         try {
+          // An APP SWITCH kills the two standalone slots implicitly: they
+          // live outside the MAIN control tree, so they do not fall with
+          // the page the new app renders - and the switch is visible right
+          // here (the response names its app), so no destroy action travels
+          // for it. BEFORE the system actions, so the new app's own
+          // popup_display still opens afterwards. (A hop to another
+          // instance of the SAME class is invisible here - the backend
+          // queues the teardown for exactly that case.)
+          const state = AppState.state;
+          if (oResponse.APP && state.renderedApp !== oResponse.APP) {
+            if (state.renderedApp) {
+              ViewSlots.destroy("POPUP");
+              ViewSlots.destroy("POPOVER");
+            }
+            state.renderedApp = oResponse.APP;
+          }
           // No early return on an empty action list: a response without any
           // action still gets its model push, its hash sync and the
           // after-render hooks below - with the ROUTER and updateModel

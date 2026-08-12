@@ -153,7 +153,12 @@ sap.ui.define(
         return;
       }
       ViewSlots.setView("POPOVER", oFragment);
-      oFragment.openBy(oControl);
+      // The anchor may not be in the DOM yet: a response can build the MAIN
+      // view and open a popover on one of its controls in the SAME
+      // roundtrip - the build is awaited, but its rendering happens later.
+      // whenRendered opens immediately for an already-rendered anchor and
+      // defers to the anchor's onAfterRendering otherwise.
+      Lib.whenRendered(oControl, oFragment, () => oFragment.openBy(oControl));
     }
 
     async function displayNestedView(xml, slotKey, mOptions, seq) {

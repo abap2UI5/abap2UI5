@@ -180,7 +180,12 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      ViewSlots.setView("POPOVER", oFragment);` && |\n| &&
-             `      oFragment.openBy(oControl);` && |\n| &&
+             `      // The anchor may not be in the DOM yet: a response can build the MAIN` && |\n| &&
+             `      // view and open a popover on one of its controls in the SAME` && |\n| &&
+             `      // roundtrip - the build is awaited, but its rendering happens later.` && |\n| &&
+             `      // whenRendered opens immediately for an already-rendered anchor and` && |\n| &&
+             `      // defers to the anchor's onAfterRendering otherwise.` && |\n| &&
+             `      Lib.whenRendered(oControl, oFragment, () => oFragment.openBy(oControl));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    async function displayNestedView(xml, slotKey, mOptions, seq) {` && |\n| &&

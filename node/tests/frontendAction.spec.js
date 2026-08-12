@@ -67,6 +67,7 @@ function load({ sandbox } = {}) {
       "sap/m/MessageBox": MessageBox,
       "sap/m/MessageToast": MessageToast,
       "sap/ui/core/BusyIndicator": BusyIndicator,
+      "sap/ui/core/Popup": Popup,
       "sap/ui/core/Theming": Theming,
       "sap/ui/model/odata/v2/ODataModel": function () {},
       "sap/ui/model/Filter": Filter,
@@ -298,11 +299,11 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   });
 
   test("POPUP.setWithinArea resolves a control id and hands over the CONTROL", () => {
-    const { FrontendAction, calls, controls, Popup, ctx } = load();
+    // sap/ui/core/Popup is a hard dependency now (loading it registers the
+    // Popup.Dock enum MessageToast's dock validation needs)
+    const { FrontendAction, calls, controls } = load();
     const area = { id: "withinArea" };
     controls.withinArea = area;
-    ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Popup" ? Popup : null;
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "POPUP",
@@ -315,17 +316,15 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   });
 
   test("POPUP.setWithinArea releases the area on an empty argument", () => {
-    const { FrontendAction, calls, Popup, ctx } = load();
-    ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Popup" ? Popup : null;
+    const { FrontendAction, calls } = load();
     FrontendAction.execute(null, ["CONTROL_GLOBAL", "POPUP", "setWithinArea", ""]);
     expect(calls).toEqual([["popup.setWithinArea", null]]);
   });
 
   test("POPUP.setWithinArea reports an older runtime instead of throwing", () => {
-    const { FrontendAction, calls, errors, ctx } = load();
+    const { FrontendAction, calls, errors, Popup } = load();
     // UI5 1.71 has sap/ui/core/Popup but not setWithinArea (@since 1.89)
-    ctx.sap.ui.require = () => ({});
+    delete Popup.setWithinArea;
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "POPUP",

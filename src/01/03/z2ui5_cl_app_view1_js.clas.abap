@@ -83,6 +83,22 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!oResponse || oResponse._processed) return;` && |\n| &&
              `        oResponse._processed = true;` && |\n| &&
              `        try {` && |\n| &&
+             `          // An APP SWITCH kills the two standalone slots implicitly: they` && |\n| &&
+             `          // live outside the MAIN control tree, so they do not fall with` && |\n| &&
+             `          // the page the new app renders - and the switch is visible right` && |\n| &&
+             `          // here (the response names its app), so no destroy action travels` && |\n| &&
+             `          // for it. BEFORE the system actions, so the new app's own` && |\n| &&
+             `          // popup_display still opens afterwards. (A hop to another` && |\n| &&
+             `          // instance of the SAME class is invisible here - the backend` && |\n| &&
+             `          // queues the teardown for exactly that case.)` && |\n| &&
+             `          const state = AppState.state;` && |\n| &&
+             `          if (oResponse.APP && state.renderedApp !== oResponse.APP) {` && |\n| &&
+             `            if (state.renderedApp) {` && |\n| &&
+             `              ViewSlots.destroy("POPUP");` && |\n| &&
+             `              ViewSlots.destroy("POPOVER");` && |\n| &&
+             `            }` && |\n| &&
+             `            state.renderedApp = oResponse.APP;` && |\n| &&
+             `          }` && |\n| &&
              `          // No early return on an empty action list: a response without any` && |\n| &&
              `          // action still gets its model push, its hash sync and the` && |\n| &&
              `          // after-render hooks below - with the ROUTER and updateModel` && |\n| &&

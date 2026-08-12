@@ -30,6 +30,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    "sap/m/MessageBox",` && |\n| &&
              `    "sap/m/MessageToast",` && |\n| &&
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
+             `    "sap/ui/core/Popup",` && |\n| &&
              `    "sap/ui/model/Filter",` && |\n| &&
              `    "sap/ui/model/FilterOperator",` && |\n| &&
              `    "sap/ui/model/Sorter",` && |\n| &&
@@ -42,6 +43,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    MessageBox,` && |\n| &&
              `    MessageToast,` && |\n| &&
              `    BusyIndicator,` && |\n| &&
+             `    CorePopup,` && |\n| &&
              `    Filter,` && |\n| &&
              `    FilterOperator,` && |\n| &&
              `    Sorter,` && |\n| &&
@@ -397,12 +399,15 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        get: () => sap.ui.require("sap/ui/core/Theming"),` && |\n| &&
              `        methods: { setTheme: ["string"] },` && |\n| &&
              `      },` && |\n| &&
-             `      // sap/ui/core/Popup exists on every supported release, but` && |\n| &&
-             `      // setWithinArea is @since 1.89 - so resolve the module lazily like` && |\n| &&
-             `      // THEMING and let the "not available" guard below report the older` && |\n| &&
-             `      // runtime instead of failing the component load.` && |\n| &&
+             `      // sap/ui/core/Popup is a HARD dependency of this module on purpose:` && |\n| &&
+             `      // loading it registers the Popup.Dock enum with the DataType registry,` && |\n| &&
+             `      // which MessageToast's dock validation needs - without it a toast on` && |\n| &&
+             `      // some UI5 versions logs '"center bottom" is not of type` && |\n| &&
+             `      // "sap.ui.core.Popup.Dock"' for the enum's own default value. The` && |\n| &&
+             `      // module exists on every supported release; only setWithinArea is` && |\n| &&
+             `      // @since 1.89, and the "not available" guard below covers that.` && |\n| &&
              `      POPUP: {` && |\n| &&
-             `        get: () => sap.ui.require("sap/ui/core/Popup"),` && |\n| &&
+             `        get: () => CorePopup,` && |\n| &&
              `        methods: { setWithinArea: ["within"] },` && |\n| &&
              `      },` && |\n| &&
              `      // sap/ui/core/InvisibleMessage is @since 1.78 and is a SINGLETON: it` && |\n| &&
@@ -419,13 +424,13 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        methods: { announce: ["string", "string"] },` && |\n| &&
              `      },` && |\n| &&
              `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
-             `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
+             `      // configuration. Custom currencies are the case an app cannot express` && |\n|.
+    result = result &&
              `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
              `      // property nor something a per-binding formatter can register for the` && |\n| &&
              `      // standard sap.ui.model.type.Currency. The payload is a JSON object -` && |\n| &&
              `      // data the backend owns anyway. Lazy-require like THEMING.` && |\n| &&
-             `      FORMATTING: {` && |\n|.
-    result = result &&
+             `      FORMATTING: {` && |\n| &&
              `        get: () => sap.ui.require("sap/ui/core/Formatting"),` && |\n| &&
              `        methods: {` && |\n| &&
              `          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }` && |\n| &&
@@ -820,13 +825,13 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    function buildFilterGroups(binding, json) {` && |\n| &&
              `      // the backend embeds a '['-starting argument as real JSON, so on that` && |\n| &&
              `      // path the groups arrive already parsed; only the XML-bound eF( )` && |\n| &&
-             `      // string form still needs the parse` && |\n| &&
+             `      // string form still needs the parse` && |\n|.
+    result = result &&
              `      let groups = json;` && |\n| &&
              `      if (typeof json === "string") {` && |\n| &&
              `        try {` && |\n| &&
              `          groups = JSON.parse(json);` && |\n| &&
-             `        } catch {` && |\n|.
-    result = result &&
+             `        } catch {` && |\n| &&
              `          Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

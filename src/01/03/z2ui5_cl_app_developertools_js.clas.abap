@@ -217,8 +217,9 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      REQUEST: () => AppState.state.oBody,` && |\n| &&
              `      POPUP_MODEL: () => getModelJson(ViewSlots.getView("POPUP")),` && |\n| &&
              `      POPOVER_MODEL: () => getModelJson(ViewSlots.getView("POPOVER")),` && |\n| &&
-             `      NEST1_MODEL: () => getModelJson(ViewSlots.getView("NEST")),` && |\n| &&
-             `      NEST2_MODEL: () => getModelJson(ViewSlots.getView("NEST2")),` && |\n| &&
+             `      // no NEST/NEST2 model sources: the nested views inherit the MAIN` && |\n| &&
+             `      // view's model by UI5 propagation - it would be the same data as` && |\n| &&
+             `      // MODEL, shown twice` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const xmlSources = {` && |\n| &&
@@ -423,29 +424,23 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
              `          );` && |\n| &&
              `          push(` && |\n| &&
-             `            "POPOVER MODEL",` && |\n| &&
-             `            json(() => jsonSources.POPOVER_MODEL()),` && |\n|.
+             `            "POPOVER MODEL",` && |\n|.
     result = result &&
+             `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
+             `        // the nested views carry no model tab of their own - they inherit` && |\n| &&
+             `        // the MAIN view's model by propagation, so only the XML is shown` && |\n| &&
              `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST1",` && |\n| &&
              `            xml(() => xmlSources.NEST1().xml),` && |\n| &&
-             `          );` && |\n| &&
-             `          push(` && |\n| &&
-             `            "NEST1 MODEL",` && |\n| &&
-             `            json(() => jsonSources.NEST1_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
              `        if (getViewContent(ViewSlots.getView("NEST2"))) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST2",` && |\n| &&
              `            xml(() => xmlSources.NEST2().xml),` && |\n| &&
-             `          );` && |\n| &&
-             `          push(` && |\n| &&
-             `            "NEST2 MODEL",` && |\n| &&
-             `            json(() => jsonSources.NEST2_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
              `        return sections.join("\n\n") || "(nothing to export)";` && |\n| &&

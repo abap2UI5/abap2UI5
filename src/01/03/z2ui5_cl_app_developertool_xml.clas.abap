@@ -97,18 +97,8 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                    enabled="{/activeNest1}"` &&
              `                />` &&
              `                <IconTabFilter` &&
-             `                    text="Nest1 Model"` &&
-             `                    key="NEST1_MODEL"` &&
-             `                    enabled="{/activeNest1}"` &&
-             `                />` &&
-             `                <IconTabFilter` &&
              `                    text="Nest2"` &&
              `                    key="NEST2"` &&
-             `                    enabled="{/activeNest2}"` &&
-             `                />` &&
-             `                <IconTabFilter` &&
-             `                    text="Nest2 Model"` &&
-             `                    key="NEST2_MODEL"` &&
              `                    enabled="{/activeNest2}"` &&
              `                />` &&
              `            </items>` &&

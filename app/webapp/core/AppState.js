@@ -60,7 +60,10 @@
 //                     onBeforeRoundtrip hooks and the developer tools
 //                     (View1.eB / Server)
 //   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL,
-//                     APP }
+//                     APP, MODELPRESENT }
+//   renderedApp       class name of the last rendered app - an APP switch in
+//                     a response tears the standalone slots down implicitly
+//                     (View1._processAfterRendering)
 //   responseData      raw parsed response JSON (Server.readHttp); kept
 //                     besides oResponse because the developer tools render
 //                     the raw payload

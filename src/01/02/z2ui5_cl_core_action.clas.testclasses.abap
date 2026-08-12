@@ -10,6 +10,17 @@ CLASS ltcl_test_app IMPLEMENTATION.
 ENDCLASS.
 
 
+CLASS ltcl_test_app2 DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+ENDCLASS.
+
+CLASS ltcl_test_app2 IMPLEMENTATION.
+  METHOD z2ui5_if_app~main.
+  ENDMETHOD.
+ENDCLASS.
+
+
 CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -21,6 +32,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_first_start_draft_gone FOR TESTING RAISING cx_static_check.
     METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
+    METHODS test_stack_call_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
 ENDCLASS.
@@ -189,6 +201,10 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
 
 
+    " routing active for the caller - the called app inherits the mode, and
+    " only then does the ROUTER intent travel at all
+    lo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
+
     lo_new_app = NEW #( ).
     lo_action->ms_next-o_app_call = lo_new_app.
 
@@ -204,10 +220,11 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
                                         act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
 
-    " everything the calling app queued is gone, and the only thing left in
-    " the system queue is the popup/popover teardown for the called app - it
-    " is queued BEFORE that app runs, so a popup_display( ) of its own lands
-    " after it and wins
+    " everything the calling app queued is gone. The popup/popover teardown
+    " is queued ONLY for this hop to ANOTHER INSTANCE OF THE SAME CLASS -
+    " the frontend cannot see that switch, every cross-class switch tears
+    " the standalone slots down implicitly (View1). Queued BEFORE the app
+    " runs, so a popup_display( ) of its own lands after it and wins
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_action-t_custom ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_result->ms_next-t_action_front ) ).
@@ -271,6 +288,43 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_called = lo_own->factory_stack_call( ).
 
     cl_abap_unit_assert=>assert_initial( lo_called->mo_app->mv_nav_mode ).
+
+  ENDMETHOD.
+
+  METHOD test_stack_call_cross_class.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+
+    lo_http = NEW #( val = `` ).
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
+
+    " the leaving app tears its own view down and navigates to a DIFFERENT
+    " class - the destroy must survive the hop (the called app may render
+    " no MAIN view of its own), the display must not, and no popup/popover
+    " teardown is queued (the frontend sees the class switch and tears the
+    " standalone slots down implicitly)
+    lo_action->ms_next-t_action_front = VALUE #(
+        ( slot = z2ui5_if_client=>cs_view-main method = z2ui5_if_core_types=>cs_slot_action-destroy )
+        ( slot   = z2ui5_if_client=>cs_view-nested
+          method = z2ui5_if_core_types=>cs_slot_action-display
+          xml    = `<Nest/>` ) ).
+    lo_action->ms_next-o_app_call = NEW ltcl_test_app2( ).
+
+    lo_result = lo_action->factory_stack_call( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_result->ms_next-t_action_front ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy`
+                                        act = |{ lo_result->ms_next-t_action_front[ 1 ]-slot }\|| &&
+                                              |{ lo_result->ms_next-t_action_front[ 1 ]-method }| ).
+
+    " no routing mode anywhere - a plain nav carries no ROUTER intent
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = lo_result->ms_next-s_nav-check_nav_app_call ).
 
   ENDMETHOD.
 

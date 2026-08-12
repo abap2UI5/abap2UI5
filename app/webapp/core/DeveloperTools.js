@@ -190,8 +190,9 @@ sap.ui.define(
       REQUEST: () => AppState.state.oBody,
       POPUP_MODEL: () => getModelJson(ViewSlots.getView("POPUP")),
       POPOVER_MODEL: () => getModelJson(ViewSlots.getView("POPOVER")),
-      NEST1_MODEL: () => getModelJson(ViewSlots.getView("NEST")),
-      NEST2_MODEL: () => getModelJson(ViewSlots.getView("NEST2")),
+      // no NEST/NEST2 model sources: the nested views inherit the MAIN
+      // view's model by UI5 propagation - it would be the same data as
+      // MODEL, shown twice
     };
 
     const xmlSources = {
@@ -400,24 +401,18 @@ sap.ui.define(
             json(() => jsonSources.POPOVER_MODEL()),
           );
         }
+        // the nested views carry no model tab of their own - they inherit
+        // the MAIN view's model by propagation, so only the XML is shown
         if (getViewContent(ViewSlots.getView("NEST"))) {
           push(
             "NEST1",
             xml(() => xmlSources.NEST1().xml),
-          );
-          push(
-            "NEST1 MODEL",
-            json(() => jsonSources.NEST1_MODEL()),
           );
         }
         if (getViewContent(ViewSlots.getView("NEST2"))) {
           push(
             "NEST2",
             xml(() => xmlSources.NEST2().xml),
-          );
-          push(
-            "NEST2 MODEL",
-            json(() => jsonSources.NEST2_MODEL()),
           );
         }
         return sections.join("\n\n") || "(nothing to export)";
