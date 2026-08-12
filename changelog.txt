@@ -12,6 +12,23 @@ Legend
 
 unreleased
 ----------
+! an app switch tears POPUP/POPOVER down implicitly - the response names
+  its app, so the frontend destroys the standalone slots whenever the
+  class changes and the two destroy actions no longer travel with every
+  navigation (a hop to another instance of the SAME class still queues
+  them backend-side); the leaving app's explicit destroys now survive the
+  hop, so a view_destroy( ) before nav_app_call takes effect even when
+  the called app renders no MAIN view of its own
+! a plain nav_app_call sends no ROUTER action - the route-push intent
+  only travels when hash routing is active for the target app
+* a popover opened in the SAME roundtrip that builds its anchor view
+  waits for the anchor to render before openBy - and loading
+  sap/ui/core/Popup eagerly registers the Popup.Dock enum, which stops
+  MessageToast from logging '"center bottom" is not of type
+  "sap.ui.core.Popup.Dock"' for its own default position
+- the developer tools dropped the NEST/NEST2 model tabs - nested views
+  inherit the MAIN view's model by propagation, it was the same data
+  shown twice
 ! framework actions travel without the CONTROL_GLOBAL dispatch prefix -
   internal only: a backend-built action is ["VIEW_SLOTS","display",...],
   and the frontend dispatches every whitelisted global target by its own
