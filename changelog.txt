@@ -36,6 +36,15 @@ unreleased
   the called app renders no MAIN view of its own
 ! a plain nav_app_call sends no ROUTER action - the route-push intent
   only travels when hash routing is active for the target app
+* the MessageToast Dock warning is really gone now: sap/m/MessageToast
+  captures the Popup.Dock DataType in a module closure at load time, and
+  sibling define-dependencies carry no execution-order guarantee - on
+  loaders that ran the toast factory before Popup's, the captured type
+  stayed broken for the whole session and every toast (even with valid
+  positions, e.g. the MessageToast configurator sample) logged
+  '"center bottom" is not of type "sap.ui.core.Popup.Dock"'. The control
+  is now required lazily AFTER Popup is guaranteed loaded, so the capture
+  always works
 * a popover opened in the SAME roundtrip that builds its anchor view
   waits for the anchor to render before openBy - and loading
   sap/ui/core/Popup eagerly registers the Popup.Dock enum, which stops

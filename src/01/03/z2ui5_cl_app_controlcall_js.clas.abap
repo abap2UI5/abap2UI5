@@ -28,7 +28,6 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/m/MessageBox",` && |\n| &&
-             `    "sap/m/MessageToast",` && |\n| &&
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/ui/core/Popup",` && |\n| &&
              `    "sap/ui/model/Filter",` && |\n| &&
@@ -41,7 +40,6 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    MessageBox,` && |\n| &&
-             `    MessageToast,` && |\n| &&
              `    BusyIndicator,` && |\n| &&
              `    CorePopup,` && |\n| &&
              `    Filter,` && |\n| &&
@@ -53,6 +51,20 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    Slots,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    // sap/m/MessageToast is required LAZILY instead of being listed as a` && |\n| &&
+             `    // dependency: its module factory captures` && |\n| &&
+             `    // DataType.getType("sap.ui.core.Popup.Dock") in a closure at load time,` && |\n| &&
+             `    // and sibling dependencies carry no execution-order guarantee - when the` && |\n| &&
+             `    // toast factory ran before Popup's, the captured type stayed broken for` && |\n| &&
+             `    // the whole session and every toast logged '"center bottom" is not of` && |\n| &&
+             `    // type "sap.ui.core.Popup.Dock"' (even for valid values). This require` && |\n| &&
+             `    // runs while THIS factory executes, i.e. strictly after sap/ui/core/Popup` && |\n| &&
+             `    // (a hard dependency above) has loaded, so the capture always works.` && |\n| &&
+             `    let MessageToast;` && |\n| &&
+             `    sap.ui.require(["sap/m/MessageToast"], (MT) => {` && |\n| &&
+             `      MessageToast = MT;` && |\n| &&
+             `    });` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // The generic, whitelisted call surface of the action protocol:` && |\n| &&
@@ -98,10 +110,14 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        const sEvent = o.onClose;` && |\n| &&
              `        o.onClose = () => oController.eB([sEvent]);` && |\n| &&
              `      }` && |\n| &&
-             `      // no option set -> a plain show(), so UI5 owns every default` && |\n| &&
-             `      if (Object.keys(o).length) MessageToast.show(sText, o);` && |\n| &&
-             `      else MessageToast.show(sText);` && |\n| &&
-             `      if (sClass) applyToastClass(sClass);` && |\n| &&
+             `      const doShow = (MT) => {` && |\n| &&
+             `        // no option set -> a plain show(), so UI5 owns every default` && |\n| &&
+             `        if (Object.keys(o).length) MT.show(sText, o);` && |\n| &&
+             `        else MT.show(sText);` && |\n| &&
+             `        if (sClass) applyToastClass(sClass);` && |\n| &&
+             `      };` && |\n| &&
+             `      if (MessageToast) doShow(MessageToast);` && |\n| &&
+             `      else sap.ui.require(["sap/m/MessageToast"], doShow);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showBox(sType, sText, mOptions, oController) {` && |\n| &&
@@ -401,14 +417,15 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      // sap/ui/core/Popup is a HARD dependency of this module on purpose:` && |\n| &&
              `      // loading it registers the Popup.Dock enum with the DataType registry,` && |\n| &&
-             `      // which MessageToast's dock validation needs - without it a toast on` && |\n| &&
-             `      // some UI5 versions logs '"center bottom" is not of type` && |\n| &&
-             `      // "sap.ui.core.Popup.Dock"' for the enum's own default value. The` && |\n| &&
-             `      // module exists on every supported release; only setWithinArea is` && |\n| &&
-             `      // @since 1.89, and the "not available" guard below covers that.` && |\n| &&
+             `      // which MessageToast's dock validation needs - and MessageToast itself` && |\n| &&
+             `      // is required lazily (see the module top) so its factory can only run` && |\n| &&
+             `      // AFTER Popup's, capturing a working Dock type. The module exists on` && |\n| &&
+             `      // every supported release; only setWithinArea is @since 1.89, and the` && |\n| &&
+             `      // "not available" guard below covers that.` && |\n| &&
              `      POPUP: {` && |\n| &&
              `        get: () => CorePopup,` && |\n| &&
-             `        methods: { setWithinArea: ["within"] },` && |\n| &&
+             `        methods: { setWithinArea: ["within"] },` && |\n|.
+    result = result &&
              `      },` && |\n| &&
              `      // sap/ui/core/InvisibleMessage is @since 1.78 and is a SINGLETON: it` && |\n| &&
              `      // renders nothing, so it has no id CONTROL_BY_ID could resolve - a` && |\n| &&
@@ -424,8 +441,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `        methods: { announce: ["string", "string"] },` && |\n| &&
              `      },` && |\n| &&
              `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
-             `      // configuration. Custom currencies are the case an app cannot express` && |\n|.
-    result = result &&
+             `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
              `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
              `      // property nor something a per-binding formatter can register for the` && |\n| &&
              `      // standard sap.ui.model.type.Currency. The payload is a JSON object -` && |\n| &&
@@ -809,7 +825,8 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    const isEmpty = (v) => v == null || v === "";` && |\n| &&
              `` && |\n| &&
              `    // binding method -> builder that turns the trailing params into the` && |\n| &&
-             `    // aggregation-update call. A strict whitelist (unlike CONTROL_METHODS,` && |\n| &&
+             `    // aggregation-update call. A strict whitelist (unlike CONTROL_METHODS,` && |\n|.
+    result = result &&
              `    // which now allows any non-denied public control method): an unlisted` && |\n| &&
              `    // binding method fails closed at the lookup.` && |\n| &&
              `    //   filter: params = [path, operator, value1, value2?]` && |\n| &&
@@ -825,8 +842,7 @@ CLASS z2ui5_cl_app_controlcall_js IMPLEMENTATION.
              `    function buildFilterGroups(binding, json) {` && |\n| &&
              `      // the backend embeds a '['-starting argument as real JSON, so on that` && |\n| &&
              `      // path the groups arrive already parsed; only the XML-bound eF( )` && |\n| &&
-             `      // string form still needs the parse` && |\n|.
-    result = result &&
+             `      // string form still needs the parse` && |\n| &&
              `      let groups = json;` && |\n| &&
              `      if (typeof json === "string") {` && |\n| &&
              `        try {` && |\n| &&

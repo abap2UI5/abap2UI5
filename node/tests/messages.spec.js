@@ -45,10 +45,23 @@ function loadControlCall(sandbox) {
     getView: () => null,
   };
   const { module } = loadModule("core/actions/ControlCall.js", {
-    sandbox,
+    // MessageToast is no longer a define-dependency: the module requires it
+    // lazily at factory time (Popup.Dock capture order), so the stub arrives
+    // through a seeded sap.ui.require instead of the deps map
+    sandbox: {
+      ...(sandbox || {}),
+      sap: {
+        ui: {
+          require: (vDep, fnCb) => {
+            if (Array.isArray(vDep) && vDep[0] === "sap/m/MessageToast" && fnCb)
+              fnCb(MessageToast);
+            return null;
+          },
+        },
+      },
+    },
     deps: {
       "sap/m/MessageBox": MessageBox,
-      "sap/m/MessageToast": MessageToast,
       "sap/ui/core/BusyIndicator": {},
       "sap/ui/model/Filter": function () {},
       "sap/ui/model/FilterOperator": {},

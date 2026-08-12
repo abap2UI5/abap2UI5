@@ -1,7 +1,6 @@
 sap.ui.define(
   [
     "sap/m/MessageBox",
-    "sap/m/MessageToast",
     "sap/ui/core/BusyIndicator",
     "sap/ui/core/Popup",
     "sap/ui/model/Filter",
@@ -14,7 +13,6 @@ sap.ui.define(
   ],
   (
     MessageBox,
-    MessageToast,
     BusyIndicator,
     CorePopup,
     Filter,
@@ -26,6 +24,20 @@ sap.ui.define(
     Slots,
   ) => {
     "use strict";
+
+    // sap/m/MessageToast is required LAZILY instead of being listed as a
+    // dependency: its module factory captures
+    // DataType.getType("sap.ui.core.Popup.Dock") in a closure at load time,
+    // and sibling dependencies carry no execution-order guarantee - when the
+    // toast factory ran before Popup's, the captured type stayed broken for
+    // the whole session and every toast logged '"center bottom" is not of
+    // type "sap.ui.core.Popup.Dock"' (even for valid values). This require
+    // runs while THIS factory executes, i.e. strictly after sap/ui/core/Popup
+    // (a hard dependency above) has loaded, so the capture always works.
+    let MessageToast;
+    sap.ui.require(["sap/m/MessageToast"], (MT) => {
+      MessageToast = MT;
+    });
 
     // ------------------------------------------------------------------
     // The generic, whitelisted call surface of the action protocol:
@@ -71,10 +83,14 @@ sap.ui.define(
         const sEvent = o.onClose;
         o.onClose = () => oController.eB([sEvent]);
       }
-      // no option set -> a plain show(), so UI5 owns every default
-      if (Object.keys(o).length) MessageToast.show(sText, o);
-      else MessageToast.show(sText);
-      if (sClass) applyToastClass(sClass);
+      const doShow = (MT) => {
+        // no option set -> a plain show(), so UI5 owns every default
+        if (Object.keys(o).length) MT.show(sText, o);
+        else MT.show(sText);
+        if (sClass) applyToastClass(sClass);
+      };
+      if (MessageToast) doShow(MessageToast);
+      else sap.ui.require(["sap/m/MessageToast"], doShow);
     }
 
     function showBox(sType, sText, mOptions, oController) {
@@ -374,11 +390,11 @@ sap.ui.define(
       },
       // sap/ui/core/Popup is a HARD dependency of this module on purpose:
       // loading it registers the Popup.Dock enum with the DataType registry,
-      // which MessageToast's dock validation needs - without it a toast on
-      // some UI5 versions logs '"center bottom" is not of type
-      // "sap.ui.core.Popup.Dock"' for the enum's own default value. The
-      // module exists on every supported release; only setWithinArea is
-      // @since 1.89, and the "not available" guard below covers that.
+      // which MessageToast's dock validation needs - and MessageToast itself
+      // is required lazily (see the module top) so its factory can only run
+      // AFTER Popup's, capturing a working Dock type. The module exists on
+      // every supported release; only setWithinArea is @since 1.89, and the
+      // "not available" guard below covers that.
       POPUP: {
         get: () => CorePopup,
         methods: { setWithinArea: ["within"] },

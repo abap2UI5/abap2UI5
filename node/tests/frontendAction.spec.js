@@ -63,11 +63,24 @@ function load({ sandbox } = {}) {
   const FilterOperator = new Proxy({}, { get: (_t, op) => op });
   const { module, sandbox: ctx } = loadModule("core/FrontendAction.js", {
     // the domain modules under core/actions/ load for real - this spec
-    // exercises the composed dispatch exactly as it ships
+    // exercises the composed dispatch exactly as it ships. MessageToast is
+    // not a define-dependency any more (lazy require, Popup.Dock capture
+    // order) - the stub arrives through the seeded sap.ui.require below.
     autoLoad: true,
+    sandbox: {
+      ...(sandbox || {}),
+      sap: {
+        ui: {
+          require: (vDep, fnCb) => {
+            if (Array.isArray(vDep) && vDep[0] === "sap/m/MessageToast" && fnCb)
+              fnCb(MessageToast);
+            return null;
+          },
+        },
+      },
+    },
     deps: {
       "sap/m/MessageBox": MessageBox,
-      "sap/m/MessageToast": MessageToast,
       "sap/ui/core/BusyIndicator": BusyIndicator,
       "sap/ui/core/Popup": Popup,
       "sap/ui/core/Theming": Theming,
@@ -83,7 +96,6 @@ function load({ sandbox } = {}) {
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/actions/Slots": Slots,
     },
-    sandbox,
   });
   return {
     FrontendAction: module,
