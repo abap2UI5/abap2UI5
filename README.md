@@ -50,8 +50,6 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
-No system at hand? [**Try abap2UI5 live in your browser**](https://abap2ui5.github.io/web-abap2UI5-build/) – the whole framework runs client-side (transpiled ABAP + sql.js), rebuilt daily from this repo by [web-abap2UI5](https://github.com/abap2UI5/web-abap2UI5).
-
 #### How It Works
 
 Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip – once at startup and once per user interaction – and your app decides what happens:
