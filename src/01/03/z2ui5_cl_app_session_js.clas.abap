@@ -93,13 +93,22 @@ CLASS z2ui5_cl_app_session_js IMPLEMENTATION.
              `  // confirmSent( ), once that request won its stale guard (Server.readHttp)` && |\n| &&
              `  // - a request may be aborted or superseded, and a latch advanced at build` && |\n| &&
              `  // time would mark a value as known to the backend that never arrived` && |\n| &&
-             `  // there. Same protocol as the model delta's changed-paths clear.` && |\n| &&
+             `  // there. Same protocol as the model delta's changed-paths clear. The` && |\n| &&
+             `  // token is PER REQUEST (takePending hands it to the roundtrip that` && |\n| &&
+             `  // carries the block): a retried request re-sends its own old body, so it` && |\n| &&
+             `  // must confirm what IT carried - not whatever was built last.` && |\n| &&
              `  let pending = null;` && |\n| &&
              `` && |\n| &&
-             `  function config(oConfig) {` && |\n| &&
+             `  // ``draftId`` mirrors Session.location's cadence: an app-start-shaped` && |\n| &&
+             `  // request (no draft id - page load, Back/Forward route restore, launchpad` && |\n| &&
+             `  // start) always re-sends the WHOLE block. Such a request may start a` && |\n| &&
+             `  // FRESH app whose backend session record is empty and has no draft to` && |\n| &&
+             `  // inherit from - without the block it would stay empty for good, since` && |\n| &&
+             `  // event roundtrips only send changes.` && |\n| &&
+             `  function config(oConfig, draftId) {` && |\n| &&
              `    const live = getDeviceLive();` && |\n| &&
              `    const liveKey = JSON.stringify(live);` && |\n| &&
-             `    if (sessionConfigSent) {` && |\n| &&
+             `    if (sessionConfigSent && draftId) {` && |\n| &&
              `      if (liveKey === liveSent) {` && |\n| &&
              `        pending = null;` && |\n| &&
              `        return {};` && |\n| &&
@@ -115,12 +124,19 @@ CLASS z2ui5_cl_app_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // The carrying request won - what it carried is now known to the backend.` && |\n| &&
-             `  function confirmSent() {` && |\n| &&
-             `    if (!pending) return;` && |\n| &&
-             `    if (pending.config) sessionConfigSent = true;` && |\n| &&
-             `    liveSent = pending.live;` && |\n| &&
+             `  // Claim the just-built block's confirmation token for the request that` && |\n| &&
+             `  // carries it.` && |\n| &&
+             `  function takePending() {` && |\n| &&
+             `    const p = pending;` && |\n| &&
              `    pending = null;` && |\n| &&
+             `    return p;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // The carrying request won - what IT carried is now known to the backend.` && |\n| &&
+             `  function confirmSent(p) {` && |\n| &&
+             `    if (!p) return;` && |\n| &&
+             `    if (p.config) sessionConfigSent = true;` && |\n| &&
+             `    liveSent = p.live;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // The page location (origin, pathname, query) is session-constant like` && |\n| &&
@@ -143,7 +159,7 @@ CLASS z2ui5_cl_app_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { config, confirmSent, location };` && |\n| &&
+             `  return { config, takePending, confirmSent, location };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

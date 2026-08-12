@@ -158,7 +158,7 @@ sap.ui.define(
         // live device fields only when they changed (core/Session.js);
         // focus and scroll are per roundtrip by nature (core/ScrollFocus.js)
         const config = {
-          ...Session.config(oConfig),
+          ...Session.config(oConfig, oBody.ID),
           S_FOCUS: ScrollFocus.getFocusInfo(),
           S_SCROLL: ScrollFocus.getScrollInfo(),
         };
@@ -196,7 +196,9 @@ sap.ui.define(
         if (!sFront.HASH) delete sFront.HASH;
         if (!oBody.MODEL) delete oBody.MODEL;
 
-        this.readHttp(oBody);
+        // the session block's confirmation token rides with THIS request -
+        // a retry re-sends the same body and confirms the same token
+        this.readHttp(oBody, Session.takePending());
       },
 
       // Returns an abort signal that fires after `ms` plus a cancel function
@@ -244,7 +246,7 @@ sap.ui.define(
         return controller.signal;
       },
 
-      async readHttp(oBody) {
+      async readHttp(oBody, sessionCarried) {
         const timeoutMs =
           AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;
         // The signal guards the fetch and the response body reads below; the
@@ -260,7 +262,7 @@ sap.ui.define(
           onRetry: () => {
             AppState.state.isBusy = true;
             BusyIndicator.show(0);
-            this.readHttp(oBody);
+            this.readHttp(oBody, sessionCarried);
           },
         };
 
@@ -370,7 +372,7 @@ sap.ui.define(
           // This request won, so the session block / live device values it
           // carried have reached the backend - only now do the send latches
           // advance (core/Session.js). A dropped request re-sends instead.
-          Session.confirmSent();
+          Session.confirmSent(sessionCarried);
           // This request won (it passed the stale guard above), so the edits
           // it carried have reached the backend - clear exactly the model it
           // shipped. A stale response returns before this point and clears

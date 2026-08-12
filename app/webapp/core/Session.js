@@ -66,13 +66,22 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   // confirmSent( ), once that request won its stale guard (Server.readHttp)
   // - a request may be aborted or superseded, and a latch advanced at build
   // time would mark a value as known to the backend that never arrived
-  // there. Same protocol as the model delta's changed-paths clear.
+  // there. Same protocol as the model delta's changed-paths clear. The
+  // token is PER REQUEST (takePending hands it to the roundtrip that
+  // carries the block): a retried request re-sends its own old body, so it
+  // must confirm what IT carried - not whatever was built last.
   let pending = null;
 
-  function config(oConfig) {
+  // `draftId` mirrors Session.location's cadence: an app-start-shaped
+  // request (no draft id - page load, Back/Forward route restore, launchpad
+  // start) always re-sends the WHOLE block. Such a request may start a
+  // FRESH app whose backend session record is empty and has no draft to
+  // inherit from - without the block it would stay empty for good, since
+  // event roundtrips only send changes.
+  function config(oConfig, draftId) {
     const live = getDeviceLive();
     const liveKey = JSON.stringify(live);
-    if (sessionConfigSent) {
+    if (sessionConfigSent && draftId) {
       if (liveKey === liveSent) {
         pending = null;
         return {};
@@ -88,12 +97,19 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
     };
   }
 
-  // The carrying request won - what it carried is now known to the backend.
-  function confirmSent() {
-    if (!pending) return;
-    if (pending.config) sessionConfigSent = true;
-    liveSent = pending.live;
+  // Claim the just-built block's confirmation token for the request that
+  // carries it.
+  function takePending() {
+    const p = pending;
     pending = null;
+    return p;
+  }
+
+  // The carrying request won - what IT carried is now known to the backend.
+  function confirmSent(p) {
+    if (!p) return;
+    if (p.config) sessionConfigSent = true;
+    liveSent = p.live;
   }
 
   // The page location (origin, pathname, query) is session-constant like
@@ -116,5 +132,5 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
     };
   }
 
-  return { config, confirmSent, location };
+  return { config, takePending, confirmSent, location };
 });

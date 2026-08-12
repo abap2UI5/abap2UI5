@@ -219,13 +219,20 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         result->mo_app->mo_app = val.
     ENDTRY.
 
+    " The browser told us about itself once, for this PAGE session - the
+    " freshest copy always sits on the app running right now, so it is
+    " copied UNCONDITIONALLY: a loaded draft's own session may predate a
+    " rotation/resize the current app already absorbed (the frontend will
+    " not re-send an unchanged value). nav_mode_sent rides along harmlessly
+    " - the hop sets check_on_navigated, so main_end re-sends the mode and
+    " overwrites it anyway.
+    result->mo_app->ms_session = mo_app->ms_session.
+
     " routing is inherited by the app being navigated to, unless it already
     " chose a mode of its own - so enabling it once in the entry app is enough
     " for the whole app stack (see z2ui5_cl_core_app=>mv_nav_mode)
     IF result->mo_app->mv_nav_mode IS INITIAL.
       result->mo_app->mv_nav_mode = mo_app->mv_nav_mode.
-      " the browser told us about itself once, for this session - not per app
-      result->mo_app->ms_session = mo_app->ms_session.
     ENDIF.
 
     result->mo_app->ms_draft-id          = val->id_draft.

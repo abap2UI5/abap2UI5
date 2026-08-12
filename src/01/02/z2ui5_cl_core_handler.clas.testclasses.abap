@@ -68,6 +68,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
     METHODS test_session_stored       FOR TESTING RAISING cx_static_check.
     METHODS test_session_location     FOR TESTING RAISING cx_static_check.
+    METHODS test_session_launchpad    FOR TESTING RAISING cx_static_check.
     METHODS test_session_from_draft   FOR TESTING RAISING cx_static_check.
     METHODS test_session_new_device   FOR TESTING RAISING cx_static_check.
     METHODS test_response_no_model    FOR TESTING RAISING cx_static_check.
@@ -164,17 +165,20 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_request_launchpad.
 
+    " the flag is derived in session_merge from the MERGED location, not in
+    " the raw parse - pathname/search only travel on app-start-shaped
+    " requests (see test_session_launchpad for the restore cadence)
     DATA lv_payload TYPE string.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/ui2/flp","SEARCH":"?scenario=LAUNCHPAD"}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
+    lo_handler->ms_request = lo_handler->request_json_to_abap( lv_payload ).
 
-    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    lo_handler->session_merge( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = ls_request-s_control-check_launchpad ).
+                                        act = lo_handler->ms_request-s_control-check_launchpad ).
 
   ENDMETHOD.
 
@@ -209,8 +213,12 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `https://myhost.com`
                                         act = ls_request-s_front-origin ).
+
+    " the launchpad flag is derived in session_merge from the merged location
+    lo_handler->ms_request = ls_request.
+    lo_handler->session_merge( ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = ls_request-s_control-check_launchpad ).
+                                        act = lo_handler->ms_request-s_control-check_launchpad ).
   ENDMETHOD.
 
   METHOD test_parse_body_model.
@@ -457,6 +465,35 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
                                         act = lo_handler->ms_request-s_front-pathname ).
     cl_abap_unit_assert=>assert_equals( exp = `?app_start=Z_MY_APP`
                                         act = lo_handler->ms_request-s_front-search ).
+
+  ENDMETHOD.
+
+  METHOD test_session_launchpad.
+
+    " the launchpad flag is derived from the MERGED location: the FLP start
+    " request carries the pathname once, every later event roundtrip omits
+    " it and must still read check_launchpad from the draft-restored value
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_front-origin   = `https://host`.
+    lo_handler->ms_request-s_front-pathname = `/sap/bc/ui2/flp`.
+    lo_handler->ms_request-s_front-s_device-system = `desktop`.
+    lo_handler->ms_request-s_front-s_ui5-version   = `1.120.0`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_true( lo_handler->ms_request-s_control-check_launchpad ).
+
+    CLEAR: lo_handler->ms_request-s_front-origin,
+           lo_handler->ms_request-s_front-pathname,
+           lo_handler->ms_request-s_front-search,
+           lo_handler->ms_request-s_front-s_device,
+           lo_handler->ms_request-s_front-s_ui5,
+           lo_handler->ms_request-s_control.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_true( lo_handler->ms_request-s_control-check_launchpad ).
 
   ENDMETHOD.
 

@@ -47,15 +47,16 @@ test("a later roundtrip sends the live fields only when they changed", () => {
   const dev = device({ portrait: false, width: 900 });
   const Session = loadSession(dev);
   Session.config(CONFIG);
-  Session.confirmSent();
+  Session.confirmSent(Session.takePending());
 
-  // nothing changed - the whole block is left off
-  expect(Session.config(CONFIG)).toEqual({});
+  // nothing changed - the whole block is left off (event roundtrips carry
+  // a draft id)
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
 
   // a rotation/resize travels once...
   dev.orientation.portrait = true;
   dev.resize.width = 400;
-  const out = Session.config(CONFIG);
+  const out = Session.config(CONFIG, "DRAFT1");
   expect(out.S_UI5).toBeUndefined();
   expect(out.ComponentData).toBeUndefined();
   // no OS/BROWSER/SUPPORT/SYSTEM - the backend answers those from the draft
@@ -64,24 +65,28 @@ test("a later roundtrip sends the live fields only when they changed", () => {
   expect(out.S_DEVICE.RESIZE.WIDTH).toBe(400);
 
   // ...and is latched again once the carrying request won
-  Session.confirmSent();
-  expect(Session.config(CONFIG)).toEqual({});
+  Session.confirmSent(Session.takePending());
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
+
+  // an app-start-shaped request (no draft id) re-sends the WHOLE block: it
+  // may start a fresh app whose backend session record is empty
+  expect(Session.config(CONFIG, undefined).S_DEVICE.SYSTEM).toBeDefined();
 });
 
 test("a dropped request does not latch - the next one re-sends", () => {
   const dev = device({ portrait: false, width: 900 });
   const Session = loadSession(dev);
   Session.config(CONFIG);
-  Session.confirmSent();
+  Session.confirmSent(Session.takePending());
 
   // the rotation's roundtrip is built but never wins (aborted/superseded):
   // confirmSent is not called, so the value must travel again
   dev.orientation.portrait = true;
-  expect(Session.config(CONFIG).S_DEVICE.ORIENTATION).toBe("portrait");
-  expect(Session.config(CONFIG).S_DEVICE.ORIENTATION).toBe("portrait");
+  expect(Session.config(CONFIG, "D1").S_DEVICE.ORIENTATION).toBe("portrait");
+  expect(Session.config(CONFIG, "D1").S_DEVICE.ORIENTATION).toBe("portrait");
 
-  Session.confirmSent();
-  expect(Session.config(CONFIG)).toEqual({});
+  Session.confirmSent(Session.takePending());
+  expect(Session.config(CONFIG, "D1")).toEqual({});
 });
 
 test("keeps sending until the version info has actually arrived", () => {
@@ -90,16 +95,16 @@ test("keeps sending until the version info has actually arrived", () => {
   // never receives it at all.
   const Session = loadSession(device());
   const first = Session.config({});
-  Session.confirmSent();
+  Session.confirmSent(Session.takePending());
   expect(first.S_DEVICE.SYSTEM).toBeDefined();
 
   const second = Session.config({});
-  Session.confirmSent();
+  Session.confirmSent(Session.takePending());
   expect(second.S_DEVICE.SYSTEM).toBeDefined();
 
   Session.config(CONFIG);
-  Session.confirmSent();
+  Session.confirmSent(Session.takePending());
   // stored now - and the unchanged live fields are latched too, so the
-  // follow-up roundtrip sends nothing at all
-  expect(Session.config(CONFIG)).toEqual({});
+  // follow-up event roundtrip sends nothing at all
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
 });

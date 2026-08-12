@@ -185,7 +185,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // live device fields only when they changed (core/Session.js);` && |\n| &&
              `        // focus and scroll are per roundtrip by nature (core/ScrollFocus.js)` && |\n| &&
              `        const config = {` && |\n| &&
-             `          ...Session.config(oConfig),` && |\n| &&
+             `          ...Session.config(oConfig, oBody.ID),` && |\n| &&
              `          S_FOCUS: ScrollFocus.getFocusInfo(),` && |\n| &&
              `          S_SCROLL: ScrollFocus.getScrollInfo(),` && |\n| &&
              `        };` && |\n| &&
@@ -223,7 +223,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        if (!sFront.HASH) delete sFront.HASH;` && |\n| &&
              `        if (!oBody.MODEL) delete oBody.MODEL;` && |\n| &&
              `` && |\n| &&
-             `        this.readHttp(oBody);` && |\n| &&
+             `        // the session block's confirmation token rides with THIS request -` && |\n| &&
+             `        // a retry re-sends the same body and confirms the same token` && |\n| &&
+             `        this.readHttp(oBody, Session.takePending());` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Returns an abort signal that fires after ``ms`` plus a cancel function` && |\n| &&
@@ -271,7 +273,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        return controller.signal;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async readHttp(oBody) {` && |\n| &&
+             `      async readHttp(oBody, sessionCarried) {` && |\n| &&
              `        const timeoutMs =` && |\n| &&
              `          AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;` && |\n| &&
              `        // The signal guards the fetch and the response body reads below; the` && |\n| &&
@@ -287,7 +289,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          onRetry: () => {` && |\n| &&
              `            AppState.state.isBusy = true;` && |\n| &&
              `            BusyIndicator.show(0);` && |\n| &&
-             `            this.readHttp(oBody);` && |\n| &&
+             `            this.readHttp(oBody, sessionCarried);` && |\n| &&
              `          },` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
@@ -397,7 +399,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // This request won, so the session block / live device values it` && |\n| &&
              `          // carried have reached the backend - only now do the send latches` && |\n| &&
              `          // advance (core/Session.js). A dropped request re-sends instead.` && |\n| &&
-             `          Session.confirmSent();` && |\n| &&
+             `          Session.confirmSent(sessionCarried);` && |\n| &&
              `          // This request won (it passed the stale guard above), so the edits` && |\n| &&
              `          // it carried have reached the backend - clear exactly the model it` && |\n| &&
              `          // shipped. A stale response returns before this point and clears` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              // keep the URL route "#/app/<CLASS>" in sync (View1).` && |\n| &&
              `              APP: responseData.S_FRONT.APP,` && |\n| &&
              `            },` && |\n| &&
-             `            seq,` && |\n| &&
-             `          );` && |\n| &&
-             `        } finally {` && |\n|.
+             `            seq,` && |\n|.
     result = result &&
+             `          );` && |\n| &&
+             `        } finally {` && |\n| &&
              `          this._inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
              `        }` && |\n| &&

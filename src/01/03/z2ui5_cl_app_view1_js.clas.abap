@@ -71,17 +71,18 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // response being processed belongs to (Server.responseSuccess); the` && |\n| &&
              `      // onAfterRendering entry above has none and falls back to the newest.` && |\n| &&
              `      async _processAfterRendering(reqSeq) {` && |\n| &&
-             `        // Hoisted out of the try block: the finally below must run the` && |\n| &&
-             `        // follow-up JS of exactly THIS response. Re-reading the shared` && |\n| &&
-             `        // AppState.state.oResponse there would - after a parallel request` && |\n| &&
-             `        // replaced it during the awaits - consume (and clear) the newer` && |\n| &&
-             `        // response's snippets before its own render.` && |\n| &&
-             `        let oResponse;` && |\n| &&
+             `        // The claim happens BEFORE the try: the MAIN rebuild is a system` && |\n| &&
+             `        // action now, so slots render (and re-enter here via their own` && |\n| &&
+             `        // onAfterRendering - possibly with a NESTED controller as ``this``)` && |\n| &&
+             `        // while phase 1 is still awaiting. A losing entry must return here` && |\n| &&
+             `        // and never reach the finally, which would hide the busy state and` && |\n| &&
+             `        // consume the pending custom JS mid-phase, on the wrong controller.` && |\n| &&
+             `        // The record is also pinned for the finally: the shared` && |\n| &&
+             `        // AppState.state.oResponse may point at a newer response by then.` && |\n| &&
+             `        const oResponse = AppState.state.oResponse;` && |\n| &&
+             `        if (!oResponse || oResponse._processed) return;` && |\n| &&
+             `        oResponse._processed = true;` && |\n| &&
              `        try {` && |\n| &&
-             `          oResponse = AppState.state.oResponse;` && |\n| &&
-             `          if (oResponse._processed) return;` && |\n| &&
-             `          oResponse._processed = true;` && |\n| &&
-             `` && |\n| &&
              `          // No early return on an empty action list: a response without any` && |\n| &&
              `          // action still gets its model push, its hash sync and the` && |\n| &&
              `          // after-render hooks below - with the ROUTER and updateModel` && |\n| &&
@@ -98,8 +99,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // The app may have been torn down (reset / FLP re-launch) while the` && |\n| &&
              `          // pending views loaded; don't mutate history or fire onAfterRendering` && |\n| &&
              `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
-             `          // way via isDestroyed).` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          // way via isDestroyed). And a response a PARALLEL request replaced` && |\n| &&
+             `          // mid-phase must not push its model or write its ids into the URL -` && |\n| &&
+             `          // the push would read the NEWER response's data into this stale` && |\n| &&
+             `          // render, and the sync would mix this draft id with the newer app.` && |\n| &&
+             `          // The newer response runs its own push and sync.` && |\n| &&
+             `          if (Lib.isDestroyed(this) || oResponse !== AppState.state.oResponse) {` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
              `          // A MODEL key in the response IS the model push - run it after the` && |\n| &&
              `          // displays, so a slot built in this same roundtrip is filled before` && |\n| &&
              `          // it is pushed to. This reaches what a fresh build alone does not:` && |\n| &&
@@ -142,7 +149,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const systemJs = oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `        if (!systemJs) return;` && |\n| &&
              `        for (const item of systemJs) {` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          // Stop the whole phase once a newer request superseded this` && |\n| &&
+             `          // response - the remaining actions would tear down or overwrite` && |\n| &&
+             `          // what the newer response builds (the per-display guards check` && |\n| &&
+             `          // the same stamp, but the synchronous teardowns do not).` && |\n| &&
+             `          if (Lib.isDestroyed(this) || seq !== Server._requestSeq) return;` && |\n| &&
              `          await FrontendAction.runSystem(item, this, {` && |\n| &&
              `            seq,` && |\n| &&
              `            response: oResponse,` && |\n| &&

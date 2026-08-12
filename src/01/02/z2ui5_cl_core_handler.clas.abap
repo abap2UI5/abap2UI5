@@ -66,6 +66,11 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     "! already knows - see the method body.
     METHODS session_merge.
 
+    "! Derive the launchpad flag from the request's CURRENT location fields -
+    "! called from session_merge, after the draft-stored location was merged
+    "! back (pathname/search only travel on app-start-shaped requests).
+    METHODS launchpad_derive.
+
     "! Write one action queue into the response JSON - each framework action
     "! as the real nested array it was built as, each legacy raw-JS snippet
     "! as the string entry the frontend's legacy path keys on.
@@ -249,10 +254,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     ENDIF.
 
-    result-s_control-check_launchpad = xsdbool(
-        result-s_front-search CS `scenario=LAUNCHPAD`
-        OR result-s_front-pathname CS `/ui2/flp`
-        OR result-s_front-pathname CS `test/flpSandbox` ).
+    " check_launchpad is NOT derived here: pathname/search only travel on
+    " app-start-shaped requests - an event roundtrip restores them from the
+    " draft, so the flag is computed in session_merge, from the MERGED values
   ENDMETHOD.
 
   METHOD slice_to_abap.
@@ -634,9 +638,19 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD launchpad_derive.
+
+    ms_request-s_control-check_launchpad = xsdbool(
+        ms_request-s_front-search CS `scenario=LAUNCHPAD`
+        OR ms_request-s_front-pathname CS `/ui2/flp`
+        OR ms_request-s_front-pathname CS `test/flpSandbox` ).
+
+  ENDMETHOD.
+
   METHOD session_merge.
 
     IF mo_action->mo_app IS NOT BOUND.
+      launchpad_derive( ).
       RETURN.
     ENDIF.
 
@@ -655,6 +669,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ms_request-s_front-pathname = mo_action->mo_app->ms_session-pathname.
       ms_request-s_front-search   = mo_action->mo_app->ms_session-search.
     ENDIF.
+
+    " the launchpad flag comes from the MERGED location - the raw request
+    " carries pathname/search only on app-start-shaped requests, and a flag
+    " frozen from the raw fields would read abap_false on every event
+    " roundtrip inside the FLP
+    launchpad_derive( ).
 
     " A request that CARRIES the block wins: that is the first roundtrip of a
     " page load, and it is also how a draft reopened on a different device

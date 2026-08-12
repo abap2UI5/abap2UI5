@@ -385,11 +385,16 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
-             `      // display. A display REPLACES the slot, so tear down whatever it` && |\n| &&
-             `      // holds first - implicitly, the backend sends no destroy action with` && |\n| &&
-             `      // a display (destroying an empty slot is a no-op). MAIN tears down` && |\n| &&
-             `      // inside its serialized build chain (see displayMain) - its slot may` && |\n| &&
-             `      // still be claimed by an older awaiting build.` && |\n| &&
+             `      // display. A superseded response must not even START: its teardown` && |\n| &&
+             `      // would destroy what the newer response has already built (and the` && |\n| &&
+             `      // fragment slots load under FIXED ids - a stale Fragment.load next to` && |\n| &&
+             `      // the newer response's live fragment would die on a duplicate id).` && |\n| &&
+             `      if (isSuperseded(seq)) return undefined;` && |\n| &&
+             `      // A display REPLACES the slot, so tear down whatever it holds first -` && |\n| &&
+             `      // implicitly, the backend sends no destroy action with a display` && |\n| &&
+             `      // (destroying an empty slot is a no-op). MAIN tears down inside its` && |\n| &&
+             `      // serialized build chain (see displayMain) - its slot may still be` && |\n| &&
+             `      // claimed by an older awaiting build.` && |\n| &&
              `      if (slotKey === "MAIN") return displayMain(xml, mOptions, seq);` && |\n| &&
              `      ViewSlots.destroy(slotKey);` && |\n| &&
              `      if (slotKey === "POPUP") return displayFragment(xml, seq);` && |\n| &&

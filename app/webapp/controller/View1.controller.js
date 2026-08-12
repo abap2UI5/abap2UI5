@@ -44,17 +44,18 @@ sap.ui.define(
       // response being processed belongs to (Server.responseSuccess); the
       // onAfterRendering entry above has none and falls back to the newest.
       async _processAfterRendering(reqSeq) {
-        // Hoisted out of the try block: the finally below must run the
-        // follow-up JS of exactly THIS response. Re-reading the shared
-        // AppState.state.oResponse there would - after a parallel request
-        // replaced it during the awaits - consume (and clear) the newer
-        // response's snippets before its own render.
-        let oResponse;
+        // The claim happens BEFORE the try: the MAIN rebuild is a system
+        // action now, so slots render (and re-enter here via their own
+        // onAfterRendering - possibly with a NESTED controller as `this`)
+        // while phase 1 is still awaiting. A losing entry must return here
+        // and never reach the finally, which would hide the busy state and
+        // consume the pending custom JS mid-phase, on the wrong controller.
+        // The record is also pinned for the finally: the shared
+        // AppState.state.oResponse may point at a newer response by then.
+        const oResponse = AppState.state.oResponse;
+        if (!oResponse || oResponse._processed) return;
+        oResponse._processed = true;
         try {
-          oResponse = AppState.state.oResponse;
-          if (oResponse._processed) return;
-          oResponse._processed = true;
-
           // No early return on an empty action list: a response without any
           // action still gets its model push, its hash sync and the
           // after-render hooks below - with the ROUTER and updateModel
@@ -71,8 +72,14 @@ sap.ui.define(
           // The app may have been torn down (reset / FLP re-launch) while the
           // pending views loaded; don't mutate history or fire onAfterRendering
           // hooks against a dead app (the custom-JS phase below guards the same
-          // way via isDestroyed).
-          if (Lib.isDestroyed(this)) return;
+          // way via isDestroyed). And a response a PARALLEL request replaced
+          // mid-phase must not push its model or write its ids into the URL -
+          // the push would read the NEWER response's data into this stale
+          // render, and the sync would mix this draft id with the newer app.
+          // The newer response runs its own push and sync.
+          if (Lib.isDestroyed(this) || oResponse !== AppState.state.oResponse) {
+            return;
+          }
           // A MODEL key in the response IS the model push - run it after the
           // displays, so a slot built in this same roundtrip is filled before
           // it is pushed to. This reaches what a fresh build alone does not:
@@ -115,7 +122,11 @@ sap.ui.define(
         const systemJs = oResponse?.S_ACTION?.T_SYSTEM;
         if (!systemJs) return;
         for (const item of systemJs) {
-          if (Lib.isDestroyed(this)) return;
+          // Stop the whole phase once a newer request superseded this
+          // response - the remaining actions would tear down or overwrite
+          // what the newer response builds (the per-display guards check
+          // the same stamp, but the synchronous teardowns do not).
+          if (Lib.isDestroyed(this) || seq !== Server._requestSeq) return;
           await FrontendAction.runSystem(item, this, {
             seq,
             response: oResponse,

@@ -358,11 +358,16 @@ sap.ui.define(
         }
         return undefined;
       }
-      // display. A display REPLACES the slot, so tear down whatever it
-      // holds first - implicitly, the backend sends no destroy action with
-      // a display (destroying an empty slot is a no-op). MAIN tears down
-      // inside its serialized build chain (see displayMain) - its slot may
-      // still be claimed by an older awaiting build.
+      // display. A superseded response must not even START: its teardown
+      // would destroy what the newer response has already built (and the
+      // fragment slots load under FIXED ids - a stale Fragment.load next to
+      // the newer response's live fragment would die on a duplicate id).
+      if (isSuperseded(seq)) return undefined;
+      // A display REPLACES the slot, so tear down whatever it holds first -
+      // implicitly, the backend sends no destroy action with a display
+      // (destroying an empty slot is a no-op). MAIN tears down inside its
+      // serialized build chain (see displayMain) - its slot may still be
+      // claimed by an older awaiting build.
       if (slotKey === "MAIN") return displayMain(xml, mOptions, seq);
       ViewSlots.destroy(slotKey);
       if (slotKey === "POPUP") return displayFragment(xml, seq);
