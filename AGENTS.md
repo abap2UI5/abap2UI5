@@ -285,6 +285,8 @@ Grouped by purpose:
 | **Mirroring** | `mirror_ajson.yaml`, `mirror_srtti.yaml`, `mirror.yaml` | Sync `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI) from upstream repos; both are thin callers of the reusable `mirror.yaml` |
 | **Downstream sync** | `trigger_local.yaml`, `create_frontend.yaml` | On every push to `main`: `trigger_local.yaml` refreshes the `input/` copy in [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) and pushes it to its `main` via deploy key (secret `ACTION_KEY_LOCAL`), which rebuilds its artifact branches; `create_frontend.yaml` covers [frontend](https://github.com/abap2UI5/frontend) the same way |
 
+Both downstream repositories are **generated, never edited**: the sync force-pushes over their content, so a change made there survives only until the next push to this `main` and then disappears without a trace. `app/webapp/` is edited here and nowhere else. [frontend](https://github.com/abap2UI5/frontend) enforces this with its `guard_mirrored` workflow, which fails every manual pull request by default and only lets through changes to the parts it genuinely owns (`abap/`, `.github/`, docs) after a maintainer applies the `maintenance` label.
+
 ## Language & Code Rules
 
 **Primary language:** ABAP (v750 syntax target, downported to v702 via CI)
