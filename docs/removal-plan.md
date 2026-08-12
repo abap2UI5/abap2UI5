@@ -135,8 +135,10 @@ controls a public contract, so these break hand-written view XML. Regenerate
 
 > **Cannot go yet:** the `eF('…')` string parser in `core/actions/LegacyCustomJs.js`. It is
 > the legacy path only for *framework* follow-up actions (those are JSON since
-> #2501) — `_event_client( )` still emits the code form into view XML, so the
-> parser stays until that is JSON too.
+> #2501) — a WIRED action still emits the code form into view XML
+> (`get_event_client( )`, reached through `follow_up_action( )`'s
+> `IF result IS SUPPLIED` branch or through its obsolete second name
+> `_event_client( )`), so the parser stays until that is JSON too.
 >
 > **Cannot go yet:** the `z2ui5.*` global facade in `core/AppState.js`. It is a
 > documented public contract for apps reaching internals via `js_loader`.

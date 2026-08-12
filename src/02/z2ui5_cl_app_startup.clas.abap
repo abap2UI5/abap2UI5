@@ -358,8 +358,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `text`
                 v = `Explore Code Samples`
           )->a( n = `press`
-                v = client->_event_client( val   = client->cs_event-open_new_tab
-                                           t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
+                v = client->follow_up_action( val   = client->cs_event-open_new_tab
+                                              t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
           )->a( n = `width`
                 v = `70%` ).
     ELSE.

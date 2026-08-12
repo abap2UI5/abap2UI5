@@ -12,6 +12,22 @@ Legend
 
 unreleased
 ----------
+! _event_client( ) is obsolete - follow_up_action( ) is the same call in the
+  same position now, and the interface says so. Since follow_up_action( ) has
+  a RETURNING parameter, a call whose result is CONSUMED (the view-attribute
+  form v = client->follow_up_action( val = ... t_arg = ... )) takes its
+  IF result IS SUPPLIED branch straight to get_event_client( ) - the entire
+  body of _event_client( ), so the roundtrip-free wire it emits is identical.
+  One method both schedules a frontend action and wires one; the second name
+  was half of it. The one difference is follow_up_action( )'s leading CASE,
+  which claims cs_event-set_nav_routing / set_push_state /
+  set_app_state_active before that branch - those three are backend-side
+  navigation options rather than frontend handlers, so wiring one into a view
+  attribute never dispatched anything under either name. _event_client( )
+  stays in the public API and keeps working; the framework's own startup app
+  was renamed, the frozen src/99 image-editor popup keeps its call. The
+  abap2UI5-linter reports the leftovers as obsolete-frontend-event and
+  rewrites them with --fix
 ! small performance cleanups in the rendering/serialization hot paths, no
   behavior change: both view builders concatenate child elements through a
   string table instead of re-copying the accumulated XML per sibling,

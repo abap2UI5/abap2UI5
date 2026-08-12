@@ -623,7 +623,9 @@ The following items may look like gaps but are intentional design choices:
   action object** with a clean, designed surface (e.g. reachable from the
   client, grouping toast/control/binding/keyboard actions). The idea is being
   observed against real usage first; the design comes later. Until then the
-  generic `follow_up_action` / `_event_client` remain the only API — do not
+  generic `follow_up_action` — as a statement to schedule an action, written
+  where its result is consumed to wire one — remains the only API (its
+  obsolete second name for the wired half is `_event_client`); do not
   re-introduce per-method wrappers on `z2ui5_if_client`. The reverted
   implementation (interface docs, delegations, byte-identity tests) is
   preserved in git history (`f1a1813`, reverted by `208b7ec`) and in the
