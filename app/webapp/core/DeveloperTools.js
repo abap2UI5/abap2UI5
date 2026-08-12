@@ -98,6 +98,14 @@ sap.ui.define(
       return model?.getData();
     }
 
+    // A model tab is only worth opening when the slot's model carries DATA -
+    // an app without bound attributes serves an empty object, and a greyed
+    // tab says "nothing here" more clearly than rendering {}.
+    function hasModelData(oView) {
+      const data = getModelJson(oView);
+      return Boolean(data) && Object.keys(data).length > 0;
+    }
+
     function getViewContent(view) {
       // Private member access (developer tools only): XMLView keeps the raw XML
       // string as a pseudo property in mProperties, but does not declare it
@@ -642,6 +650,10 @@ sap.ui.define(
             activePopover: Boolean(
               getResponseXml("POPOVER") || ViewSlots.getView("POPOVER"),
             ),
+            // the model tabs grey out when the slot's model holds no data
+            hasViewModel: hasModelData(ViewSlots.getView("MAIN")),
+            hasPopupModel: hasModelData(ViewSlots.getView("POPUP")),
+            hasPopoverModel: hasModelData(ViewSlots.getView("POPOVER")),
           };
 
           const oModel = new JSONModel(oData);

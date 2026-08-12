@@ -43,6 +43,7 @@
                 <IconTabFilter
                     text="View Model"
                     key="MODEL"
+                    enabled="{/hasViewModel}"
                 />
                 <IconTabFilter
                     text="Popup"
@@ -52,7 +53,7 @@
                 <IconTabFilter
                     text="Popup Model"
                     key="POPUP_MODEL"
-                    enabled="{/activePopup}"
+                    enabled="{/hasPopupModel}"
                 />
                 <IconTabFilter
                     text="Popover"
@@ -62,7 +63,7 @@
                 <IconTabFilter
                     text="Popover Model"
                     key="POPOVER_MODEL"
-                    enabled="{/activePopover}"
+                    enabled="{/hasPopoverModel}"
                 />
                 <IconTabFilter
                     text="Nest1"

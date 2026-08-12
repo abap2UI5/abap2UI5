@@ -70,6 +70,7 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="View Model"` &&
              `                    key="MODEL"` &&
+             `                    enabled="{/hasViewModel}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Popup"` &&
@@ -79,7 +80,7 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Popup Model"` &&
              `                    key="POPUP_MODEL"` &&
-             `                    enabled="{/activePopup}"` &&
+             `                    enabled="{/hasPopupModel}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Popover"` &&
@@ -89,7 +90,7 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Popover Model"` &&
              `                    key="POPOVER_MODEL"` &&
-             `                    enabled="{/activePopover}"` &&
+             `                    enabled="{/hasPopoverModel}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Nest1"` &&

@@ -125,6 +125,14 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      return model?.getData();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // A model tab is only worth opening when the slot's model carries DATA -` && |\n| &&
+             `    // an app without bound attributes serves an empty object, and a greyed` && |\n| &&
+             `    // tab says "nothing here" more clearly than rendering {}.` && |\n| &&
+             `    function hasModelData(oView) {` && |\n| &&
+             `      const data = getModelJson(oView);` && |\n| &&
+             `      return Boolean(data) && Object.keys(data).length > 0;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function getViewContent(view) {` && |\n| &&
              `      // Private member access (developer tools only): XMLView keeps the raw XML` && |\n| &&
              `      // string as a pseudo property in mProperties, but does not declare it` && |\n| &&
@@ -416,7 +424,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          push(` && |\n| &&
              `            "POPUP MODEL",` && |\n| &&
              `            json(() => jsonSources.POPUP_MODEL()),` && |\n| &&
-             `          );` && |\n| &&
+             `          );` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        if (getResponseXml("POPOVER") || ViewSlots.getView("POPOVER")) {` && |\n| &&
              `          push(` && |\n| &&
@@ -424,8 +433,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
              `          );` && |\n| &&
              `          push(` && |\n| &&
-             `            "POPOVER MODEL",` && |\n|.
-    result = result &&
+             `            "POPOVER MODEL",` && |\n| &&
              `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
@@ -670,6 +678,10 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            activePopover: Boolean(` && |\n| &&
              `              getResponseXml("POPOVER") || ViewSlots.getView("POPOVER"),` && |\n| &&
              `            ),` && |\n| &&
+             `            // the model tabs grey out when the slot's model holds no data` && |\n| &&
+             `            hasViewModel: hasModelData(ViewSlots.getView("MAIN")),` && |\n| &&
+             `            hasPopupModel: hasModelData(ViewSlots.getView("POPUP")),` && |\n| &&
+             `            hasPopoverModel: hasModelData(ViewSlots.getView("POPOVER")),` && |\n| &&
              `          };` && |\n| &&
              `` && |\n| &&
              `          const oModel = new JSONModel(oData);` && |\n| &&
