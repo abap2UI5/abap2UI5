@@ -12,6 +12,13 @@ Legend
 
 unreleased
 ----------
+! small performance cleanups in the rendering/serialization hot paths, no
+  behavior change: both view builders concatenate child elements through a
+  string table instead of re-copying the accumulated XML per sibling,
+  z2ui5_cl_ai_xml=>xml_escape no longer builds its escape table on every
+  attribute (chained replaces, same as z2ui5_cl_ui5_view_builder), and the
+  event serializer runs its positional-placeholder regex only for arguments
+  that start with a brace instead of on every argument
 + the src/99 test classes are back and run in CI: all 27 deleted
   testclasses (util, pop, cx) are restored, the two disabled xml_view
   suites are re-enabled, and the pop tests assert against the

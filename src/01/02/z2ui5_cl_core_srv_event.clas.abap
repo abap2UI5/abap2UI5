@@ -281,10 +281,8 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_newline IN result WITH `\n`.
     " a standalone CR (not part of CR+LF, already collapsed above) is a JS
     " line terminator too and would break the '...' literal
-    DATA(lv_cr) = substring( val = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf
-                             off = 0
-                             len = 1 ).
-    REPLACE ALL OCCURRENCES OF lv_cr IN result WITH `\r`.
+    REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)
+            IN result WITH `\r`.
 
   ENDMETHOD.
 
@@ -310,9 +308,14 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " still be quoted - the `{`-raw exception below is only for real
       " bindings/object literals like {/PATH} or {..}. {0/field} (relative
       " binding) keeps a `/` after the digits and is therefore not matched, so
-      " it stays raw as before.
-      FIND REGEX `^\{[0-9]+[?}]` IN lv_new ##REGEX_POSIX.
-      DATA(lv_is_placeholder) = xsdbool( sy-subrc = 0 ).
+      " it stays raw as before. The regex only matters for values starting
+      " with `{` (any other value is quoted by the first condition group
+      " below anyway), so it only runs for those instead of on every argument.
+      DATA(lv_is_placeholder) = abap_false.
+      IF lv_new(1) = `{`.
+        FIND REGEX `^\{[0-9]+[?}]` IN lv_new ##REGEX_POSIX.
+        lv_is_placeholder = xsdbool( sy-subrc = 0 ).
+      ENDIF.
       IF (     lv_new(1) <> `$`
            AND lv_new(1) <> `{`
            AND lv_new NP `.eB(*`

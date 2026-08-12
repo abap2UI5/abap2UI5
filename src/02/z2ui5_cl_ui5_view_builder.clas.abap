@@ -206,10 +206,14 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD render.
 
-    DATA(inner) = ``.
+    " collect the children in a table and concatenate once - the string
+    " template accumulator would re-copy everything rendered so far on every
+    " sibling, which grows quadratic on wide views
+    DATA lt_inner TYPE string_table.
     LOOP AT t_child INTO DATA(child).
-      inner = |{ inner }{ child->render( ) }|.
+      INSERT child->render( ) INTO TABLE lt_inner.
     ENDLOOP.
+    DATA(inner) = concat_lines_of( lt_inner ).
 
     " empty builder root - render only the children
     IF name IS INITIAL.
