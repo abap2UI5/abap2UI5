@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_app DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
 
@@ -57,12 +57,12 @@ CLASS z2ui5_cl_ui5_app DEFINITION PUBLIC FINAL.
       IMPORTING
         !xml          TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 
     TYPES:
       BEGIN OF ty_s_buffer,
         id  TYPE string,
-        app TYPE REF TO z2ui5_cl_ui5_app,
+        app TYPE REF TO z2ui5_cl_ui5_app_cont,
       END OF ty_s_buffer.
 
     CLASS-DATA mt_buffer TYPE SORTED TABLE OF ty_s_buffer WITH UNIQUE KEY id.
@@ -71,13 +71,13 @@ CLASS z2ui5_cl_ui5_app DEFINITION PUBLIC FINAL.
       IMPORTING
         !id           TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 
     CLASS-METHODS db_load_by_app
       IMPORTING
         app           TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 
     CLASS-METHODS db_load_buffer_clear.
 
@@ -93,7 +93,7 @@ CLASS z2ui5_cl_ui5_app DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD all_xml_parse.
 

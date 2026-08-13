@@ -11,7 +11,7 @@ CLASS z2ui5_cl_ui5_client DEFINITION PUBLIC FINAL.
 
     DATA mo_srv_bind  TYPE REF TO z2ui5_cl_ui5_srv_bind.
     DATA mo_srv_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA mo_action_front   TYPE REF TO z2ui5_cl_ui5_act_front.
+    DATA mo_action_front   TYPE REF TO z2ui5_cl_ui5_frontend.
 
     METHODS nav_app_set_id
       IMPORTING
@@ -174,7 +174,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app.
 
     IF id IS NOT INITIAL.
-      DATA(lo_app) = z2ui5_cl_ui5_app=>db_load( id ).
+      DATA(lo_app) = z2ui5_cl_ui5_app_cont=>db_load( id ).
       result = CAST #( lo_app->mo_app ).
     ELSE.
       result = get_if_app( ).

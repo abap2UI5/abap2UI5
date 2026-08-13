@@ -429,7 +429,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_target TYPE REF TO ltcl_test_app.
-    DATA lo_target_core TYPE REF TO z2ui5_cl_ui5_app.
+    DATA lo_target_core TYPE REF TO z2ui5_cl_ui5_app_cont.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_pop TYPE REF TO z2ui5_cl_ui5_action.

@@ -10,7 +10,7 @@
 " Plain comments, not ABAP Doc: SE24 regenerates the CLASS statement from
 " the class metadata, which detaches a leading "! block from it and turns
 " it into an "ABAP Doc comment is in the wrong position" warning.
-CLASS z2ui5_cl_ui5_act_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -200,7 +200,7 @@ CLASS z2ui5_cl_ui5_act_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_act_front IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
 
   METHOD constructor.

@@ -2,7 +2,7 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     DATA mo_http_post TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA mo_app       TYPE REF TO z2ui5_cl_ui5_app.
+    DATA mo_app       TYPE REF TO z2ui5_cl_ui5_app_cont.
 
     DATA ms_actual    TYPE z2ui5_if_ui5_types=>ty_s_actual.
     DATA ms_next      TYPE z2ui5_if_ui5_types=>ty_s_next.
@@ -58,7 +58,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     IF mo_http_post->mo_action->mo_app->mo_app IS BOUND.
       result->mo_app = mo_http_post->mo_action->mo_app.
     ELSE.
-      result->mo_app = z2ui5_cl_ui5_app=>db_load( mo_http_post->ms_request-s_front-id ).
+      result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_http_post->ms_request-s_front-id ).
     ENDIF.
 
     result->mo_app->ms_draft-id      = z2ui5_cl_ui5_context=>uuid_get_c32( ).
@@ -81,7 +81,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         IF mo_http_post->ms_request-s_control-app_start_draft IS NOT INITIAL.
           TRY.
 
-              result->mo_app = z2ui5_cl_ui5_app=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
+              result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_nav-set_app_state_active = abap_true.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
@@ -97,7 +97,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
               " There is no client object yet at this point in the factory,
               " so the toast is queued directly through the action builder
               " message_toast_display( ) delegates to.
-              NEW z2ui5_cl_ui5_act_front( result )->msg_toast(
+              NEW z2ui5_cl_ui5_frontend( result )->msg_toast(
                   `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
           ENDTRY.
         ENDIF.
@@ -222,7 +222,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     result = NEW #( mo_http_post ).
     TRY.
-        result->mo_app = z2ui5_cl_ui5_app=>db_load_by_app( val ).
+        result->mo_app = z2ui5_cl_ui5_app_cont=>db_load_by_app( val ).
       CATCH cx_root.
         result->mo_app->mo_app = val.
     ENDTRY.

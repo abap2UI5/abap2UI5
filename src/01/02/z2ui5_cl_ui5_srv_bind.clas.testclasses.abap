@@ -58,7 +58,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     " XX used to be a reserved model-node name; now that the two-way data
     " lives directly on the root, an attribute named XX binds like any other
     DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_app_client.
 
     DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
@@ -73,7 +73,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
   METHOD test_bind_path.
 
     DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_app_client.
 
     DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
@@ -88,7 +88,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
   METHOD test_bind_idempotent.
 
     DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_app_client.
 
     DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
@@ -142,7 +142,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_bind_lev1.
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
@@ -162,7 +162,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_bind_lev2.
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
@@ -176,7 +176,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_bind_lev3.
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
@@ -190,7 +190,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_bind_lev4_long_name.
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
@@ -242,7 +242,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
     DATA(lo_test_app) = NEW ltcl_test_main_object( ).
     lo_test_app->mo_obj = NEW #( ).
     lo_test_app->mo_obj->mv_value = `test`.
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
@@ -257,7 +257,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
 
     DATA(lo_test_app) = NEW ltcl_test_main_object( ).
     lo_test_app->mo_obj = NEW #( ).
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).

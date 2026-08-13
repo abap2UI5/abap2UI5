@@ -1,13 +1,13 @@
 CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
-    DATA mo_app    TYPE REF TO z2ui5_cl_ui5_app.
+    DATA mo_app    TYPE REF TO z2ui5_cl_ui5_app_cont.
     DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
 
     METHODS constructor
       IMPORTING
-        app TYPE REF TO z2ui5_cl_ui5_app.
+        app TYPE REF TO z2ui5_cl_ui5_app_cont.
 
     METHODS main
       IMPORTING

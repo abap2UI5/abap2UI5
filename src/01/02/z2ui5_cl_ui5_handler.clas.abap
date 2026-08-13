@@ -619,7 +619,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " accumulate one dead entry per roundtrip (each roundtrip mints a new draft
     " id, so earlier entries are never read again). Clearing here keeps the
     " intra-request cache while preventing cross-request growth.
-    z2ui5_cl_ui5_app=>db_load_buffer_clear( ).
+    z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
 
     ms_request = request_json_to_abap( mv_request_json ).
 
@@ -779,7 +779,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       mo_action->mo_app->ms_session-nav_mode_sent = mo_action->ms_next-s_nav-set_nav_routing.
     ENDIF.
 
-    DATA(lo_front) = NEW z2ui5_cl_ui5_act_front( mo_action ).
+    DATA(lo_front) = NEW z2ui5_cl_ui5_frontend( mo_action ).
 
     " the view-lifecycle calls leave first, in slot order
     lo_front->slots_serialize( ).
