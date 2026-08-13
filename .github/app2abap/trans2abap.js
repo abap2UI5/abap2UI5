@@ -78,28 +78,75 @@ function formatAsAbapClass(content, className, isSpecialFile) {
     return abapClassTemplate(className, formattedLines.join('\n'));
 }
 
+// Embedded frontend artefacts carry the `ui5f` segment (UI5 frontend); plain
+// ABAP artefacts use `ui5` (z2ui5_cl_ui5_view_builder).
+const CLASS_NAME_PREFIX = 'z2ui5_cl_ui5f_';
+
+// ABAP object names are capped at 30 characters, but a generated name must
+// survive the rename workflow (.github/workflows/build_rename.yaml), which
+// swaps the 5-character `z2ui5` for a namespace of up to 10 characters. So the
+// budget here is 25, not 30 - that is what keeps
+// .github/abaplint/rename.jsonc down to a single catch-all pattern with no
+// per-class truncation entries.
+const MAX_CLASS_NAME_LENGTH = 25;
+
+// Short stems for the frontend files whose basename does not fit into
+// MAX_CLASS_NAME_LENGTH, keyed by path relative to app/webapp. Curated instead
+// of truncated: mechanical shortening is what produced stems like
+// `developertool_xml` (a DeveloperTools fragment that lost its plural) and
+// `smartmultiinpu_js`. Names not listed here keep their basename.
+const CLASS_NAME_STEMS = {
+    'Component.js': 'comp_js',
+    'cc/CameraPicture.js': 'campic_js',
+    'cc/CameraSelector.js': 'camsel_js',
+    'cc/FileUploader.js': 'uploader_js',
+    'cc/Geolocation.js': 'geoloc_js',
+    'cc/MessageManager.js': 'msgmgr_js',
+    'cc/MultiInputExt.js': 'multiinp_js',
+    'cc/Scrolling.js': 'scroll_js',
+    'cc/SmartMultiInputExt.js': 'smartinp_js',
+    'cc/UITableExt.js': 'uitable_js',
+    'cc/UploadSetExt.js': 'upldset_js',
+    'cc/Websocket.js': 'websock_js',
+    'core/DeveloperTools.fragment.xml': 'dtools_xml',
+    'core/DeveloperTools.js': 'dtools_js',
+    'core/ErrorView.js': 'errview_js',
+    'core/FrontendAction.js': 'frontact_js',
+    'core/ScrollFocus.js': 'scrfocus_js',
+    'core/ViewSlots.js': 'viewslot_js',
+    'core/actions/ControlCall.js': 'ctrlcall_js',
+    'core/actions/Launchpad.js': 'launchpd_js',
+    'core/actions/LegacyCustomJs.js': 'legacy_js',
+    'core/actions/Shortcuts.js': 'shortcut_js',
+    'manifest.json': 'manifest',
+    'model/formatter.js': 'format_js',
+};
+
 // Function to generate a class name from a file path
 function generateClassName(filePath) {
     const relativePath = path.relative(sourceDir, filePath);
+    const relPath = relativePath.split(path.sep).join('/');
     const parts = relativePath.split(path.sep);
     const fileName = parts.pop().split('.');
     if (fileName.length > 2) {
         fileName.splice(1, 1); // Remove the middle part
     }
-    let className = `z2ui5_cl_app_${fileName.join('_').toLowerCase()}`;
-    // ABAP object names are limited to 30 characters. Shorten the stem but
-    // keep the extension suffix so the kind of file stays recognizable
-    // (e.g. SmartMultiInputExt.js -> z2ui5_cl_app_smartmultiinpu_js).
-    // The collision check in main() catches any ambiguity this introduces.
-    if (className.length > 30) {
-        const suffix = `_${fileName[fileName.length - 1].toLowerCase()}`;
-        const stem = `z2ui5_cl_app_${fileName.slice(0, -1).join('_').toLowerCase()}`;
-        className = stem.substring(0, 30 - suffix.length) + suffix;
+    const stem = CLASS_NAME_STEMS[relPath] || fileName.join('_').toLowerCase();
+    const className = `${CLASS_NAME_PREFIX}${stem}`;
+    // Guard 3: fail instead of truncating. A silently shortened name stays
+    // valid ABAP and only surfaces much later, as an opaque "Name not allowed"
+    // out of the rename run - the exact failure mode this cap removes.
+    if (className.length > MAX_CLASS_NAME_LENGTH) {
+        throw new Error(
+            `${relPath}: generated class name '${className}' is ${className.length} chars ` +
+            `(max ${MAX_CLASS_NAME_LENGTH}) - add a short stem for this file to ` +
+            `CLASS_NAME_STEMS in .github/app2abap/trans2abap.js`,
+        );
     }
     return className;
 }
 
-// Builds the generated z2ui5_cl_app_preload class. It returns the
+// Builds the generated z2ui5_cl_ui5f_preload class. It returns the
 // sap.ui.require.preload entries for every embedded frontend file, so the
 // preload list used by z2ui5_cl_http_handler can never run out of sync with
 // the files in app/webapp. style.css and Component.js take their content /
@@ -123,7 +170,7 @@ function buildPreloadClass(entries) {
 * and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
 * fails any manual edit here.
 * =====================================================================
-CLASS z2ui5_cl_app_preload DEFINITION
+CLASS z2ui5_cl_ui5f_preload DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -142,7 +189,7 @@ CLASS z2ui5_cl_app_preload DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_preload IMPLEMENTATION.
+CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
   METHOD get.
 
@@ -192,7 +239,7 @@ async function main() {
         const preloadEntries = [];
 
         // Class names ignore folders (cc/Foo.js and Foo.js would both map to
-        // z2ui5_cl_app_foo_js), so duplicate basenames silently overwrite
+        // z2ui5_cl_ui5f_foo_js), so duplicate basenames silently overwrite
         // each other. Fail fast instead.
         const seenClassNames = new Map();
         const classNameByFile = new Map();
@@ -240,11 +287,11 @@ async function main() {
 
         // Generate the preload mapping class (sorted for a stable output).
         preloadEntries.sort((a, b) => a.urlPath.localeCompare(b.urlPath));
-        const preloadFilePath = path.join(targetDir, 'z2ui5_cl_app_preload.clas.abap');
+        const preloadFilePath = path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap');
         await createFileInTargetDir(preloadFilePath, buildPreloadClass(preloadEntries));
         console.log(`Preload class created successfully at: ${preloadFilePath}`);
-        const preloadXmlPath = path.join(targetDir, 'z2ui5_cl_app_preload.clas.xml');
-        await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_app_preload', 'abap2UI5 - preload mapping')}`);
+        const preloadXmlPath = path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml');
+        await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`);
         console.log(`Preload XML created successfully at: ${preloadXmlPath}`);
     } catch (error) {
         // Signal failure so CI (create_app2abap.yaml) does not treat a broken

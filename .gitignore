@@ -26,3 +26,6 @@ Thumbs.db
 *.log
 playwright-report/
 test-results/
+
+# abaplint --rename output (npm run rename / build_rename)
+.github/abaplint/output/

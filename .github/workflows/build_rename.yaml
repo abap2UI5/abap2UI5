@@ -6,7 +6,7 @@ name: build_rename
 # https://abap2ui5.github.io/docs/advanced/renaming.html). The renaming
 # itself is the plain abaplint rename with the checked-in config
 # .github/abaplint/rename.jsonc; this workflow only sets the chosen name
-# in the config (placeholder "zabap2ui5") and stores the result.
+# in the config (placeholder "znamespace") and stores the result.
 # Re-running with the same name updates the branch to the current main
 # state; without content changes nothing is pushed. The main commit is
 # carried as second parent so GitHub shows the branch as "ahead" instead
@@ -16,10 +16,10 @@ on:
   workflow_dispatch:
     inputs:
       namespace:
-        description: "New namespace (max. 9 characters), e.g. ZMYUI5"
+        description: "New namespace (max. 10 characters), e.g. ZMYUI5"
         required: true
         type: string
-        default: zabap2ui5
+        default: znamespace
 
 permissions:
   contents: write
@@ -38,8 +38,8 @@ jobs:
     # validate the input and derive the branch name before building
     - name: Derive branch name
       run: |
-        if ! printf '%s' "$NAMESPACE" | grep -Eq '^[A-Za-z][A-Za-z0-9_]{0,8}$'; then
-          echo "::error::Invalid namespace '$NAMESPACE' (letter + letters/digits/underscore, max. 9 characters)"
+        if ! printf '%s' "$NAMESPACE" | grep -Eq '^[A-Za-z][A-Za-z0-9_]{0,9}$'; then
+          echo "::error::Invalid namespace '$NAMESPACE' (letter + letters/digits/underscore, max. 10 characters)"
           exit 1
         fi
         ns=$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')
@@ -63,7 +63,7 @@ jobs:
     # .github/abaplint/output/<workspace path>/src
     - name: Rename to ${{ inputs.namespace }}
       run: |
-        sed "s/zabap2ui5/$NS/g" .github/abaplint/rename.jsonc > .github/abaplint/rename_run.jsonc
+        sed "s/znamespace/$NS/g" .github/abaplint/rename.jsonc > .github/abaplint/rename_run.jsonc
         npx abaplint .github/abaplint/rename_run.jsonc --rename
 
     # branch content: the renamed src tree plus the abapGit descriptor

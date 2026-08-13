@@ -11,7 +11,7 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
     DATA mo_srv_bind  TYPE REF TO z2ui5_cl_core_srv_bind.
     DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
-    DATA mo_action_front   TYPE REF TO z2ui5_cl_core_action_front.
+    DATA mo_action_front   TYPE REF TO z2ui5_cl_core_act_front.
 
     METHODS nav_app_set_id
       IMPORTING

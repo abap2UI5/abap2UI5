@@ -1,0 +1,183 @@
+* =====================================================================
+* GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
+* Embedded frontend resource, generated from app/webapp/ by
+* .github/app2abap/trans2abap.js. Change the source under app/webapp/
+* and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
+* fails any manual edit here.
+* =====================================================================
+CLASS z2ui5_cl_ui5f_smartinp_js DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    CLASS-METHODS get
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
+
+  METHOD get.
+
+    result = `sap.ui.define(` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
+             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    // Invisible companion control for a SmartMultiInput (referenced via` && |\n| &&
+             `    // multiInputId): mirrors token updates and the select-option style` && |\n| &&
+             `    // range data into bindable properties so the backend can read and` && |\n| &&
+             `    // restore the input's state across roundtrips.` && |\n| &&
+             `    return Control.extend("z2ui5.cc.SmartMultiInputExt", {` && |\n| &&
+             `      metadata: {` && |\n| &&
+             `        properties: {` && |\n| &&
+             `          multiInputId: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `          },` && |\n| &&
+             `          addedTokens: {` && |\n| &&
+             `            type: "object",` && |\n| &&
+             `          },` && |\n| &&
+             `          removedTokens: {` && |\n| &&
+             `            type: "object",` && |\n| &&
+             `          },` && |\n| &&
+             `          rangeData: {` && |\n| &&
+             `            // no defaultValue: an object default in the metadata is shared` && |\n| &&
+             `            // by reference across every instance of the control` && |\n| &&
+             `            type: "object",` && |\n| &&
+             `          },` && |\n| &&
+             `          checkInit: {` && |\n| &&
+             `            type: "boolean",` && |\n| &&
+             `            defaultValue: false,` && |\n| &&
+             `          },` && |\n| &&
+             `        },` && |\n| &&
+             `        events: {` && |\n| &&
+             `          change: {` && |\n| &&
+             `            allowPreventDefault: true,` && |\n| &&
+             `            parameters: {},` && |\n| &&
+             `          },` && |\n| &&
+             `        },` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      init() {` && |\n| &&
+             `        this._setControlBound = this.setControl.bind(this);` && |\n| &&
+             `        this._oInput = null;` && |\n| &&
+             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
+             `        this._bInnerControlsCreated = false;` && |\n| &&
+             `        Lib.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `      },` && |\n| &&
+             `      exit() {` && |\n| &&
+             `        Lib.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        // Resolve any still-pending promises so awaiters don't hang.` && |\n| &&
+             `        this._aPendingInnerControlsCreated.forEach((resolve) => resolve(null));` && |\n| &&
+             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      onTokenUpdate(oEvent) {` && |\n| &&
+             `        Lib.applyTokenUpdate(this, oEvent);` && |\n| &&
+             `` && |\n| &&
+             `        // Mirror each range entry with the visible token text + long key` && |\n| &&
+             `        // so the backend has enough info to re-render the input later.` && |\n| &&
+             `        // NOTE: this pairs the i-th range entry with the i-th token by` && |\n| &&
+             `        // position, which assumes getRangeData() and getTokens() are index` && |\n| &&
+             `        // aligned. That holds only while every token is a range token; a` && |\n| &&
+             `        // mix of plain value tokens and range tokens would misalign the` && |\n| &&
+             `        // captions. The wrapped control is the SAPUI5-only sap.ui.comp` && |\n| &&
+             `        // SmartMultiInput, so a token-identity pairing needs verification` && |\n| &&
+             `        // against that control before it can replace the index pairing.` && |\n| &&
+             `        const source = oEvent.getSource();` && |\n| &&
+             `        const tokens = source.getTokens();` && |\n| &&
+             `        const rangeData = source.getRangeData() || [];` && |\n| &&
+             `        const enrichedRanges = rangeData.map((oRangeData, index) => {` && |\n| &&
+             `          const token = tokens[index];` && |\n| &&
+             `          oRangeData.tokenText = token?.getText() ?? "";` && |\n| &&
+             `          oRangeData.tokenLongKey = token?.data("longKey");` && |\n| &&
+             `          return oRangeData;` && |\n| &&
+             `        });` && |\n| &&
+             `        this.setProperty("rangeData", enrichedRanges);` && |\n| &&
+             `        this.fireChange();` && |\n| &&
+             `      },` && |\n| &&
+             `      async setRangeData(aRangeData) {` && |\n| &&
+             `        this.setProperty("rangeData", aRangeData);` && |\n| &&
+             `        try {` && |\n| &&
+             `          const input = await this.inputInitialized();` && |\n| &&
+             `          if (Lib.isDestroyed(this) || !input) return;` && |\n| &&
+             `` && |\n| &&
+             `          // Convert the ABAP-style uppercase keys to the camelCase property` && |\n| &&
+             `          // names the smart multi input expects. "keyField" needs its capital` && |\n| &&
+             `          // F preserved.` && |\n| &&
+             `          const normalizedRangeData = aRangeData.map((oRangeData) => {` && |\n| &&
+             `            const out = {};` && |\n| &&
+             `            for (const [key, value] of Object.entries(oRangeData)) {` && |\n| &&
+             `              const lower = key.toLowerCase();` && |\n| &&
+             `              const finalKey = lower === "keyfield" ? "keyField" : lower;` && |\n| &&
+             `              out[finalKey] = value;` && |\n| &&
+             `            }` && |\n| &&
+             `            return out;` && |\n| &&
+             `          });` && |\n| &&
+             `          input.setRangeData(normalizedRangeData);` && |\n| &&
+             `` && |\n| &&
+             `          // We need to set token text explicitly, as setRangeData does no` && |\n| &&
+             `          // recalculation.` && |\n| &&
+             `          const inputTokens = input.getTokens() || [];` && |\n| &&
+             `          for (const [index, token] of inputTokens.entries()) {` && |\n| &&
+             `            const rangeItem = aRangeData[index];` && |\n| &&
+             `            if (!rangeItem) continue;` && |\n| &&
+             `            const { TOKENLONGKEY, TOKENTEXT } = rangeItem;` && |\n| &&
+             `            token.data("longKey", TOKENLONGKEY);` && |\n| &&
+             `            token.data("range", null);` && |\n| &&
+             `            if (TOKENTEXT) token.setText(TOKENTEXT);` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("SmartMultiInputExt.setRangeData failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      setControl() {` && |\n| &&
+             `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
+             `          this,` && |\n| &&
+             `          this.getProperty("multiInputId"),` && |\n| &&
+             `        );` && |\n| &&
+             `        if (!Lib.claimOnce(this, input)) return;` && |\n| &&
+             `        try {` && |\n| &&
+             `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
+             `          input.attachInnerControlsCreated(` && |\n| &&
+             `            this.onInnerControlsCreated.bind(this),` && |\n| &&
+             `          );` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("SmartMultiInputExt.setControl: setup failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `      // Returns a Promise that resolves once the smart multi input's inner` && |\n| &&
+             `      // controls exist - they are created lazily on first interaction.` && |\n| &&
+             `      inputInitialized() {` && |\n| &&
+             `        return new Promise((resolve) => {` && |\n| &&
+             `          if (this._bInnerControlsCreated) {` && |\n| &&
+             `            resolve(this._oInput);` && |\n| &&
+             `          } else {` && |\n| &&
+             `            this._aPendingInnerControlsCreated.push(resolve);` && |\n| &&
+             `          }` && |\n| &&
+             `        });` && |\n| &&
+             `      },` && |\n| &&
+             `      onInnerControlsCreated(oEvent) {` && |\n| &&
+             `        this._oInput = oEvent.getSource();` && |\n| &&
+             `        this._bInnerControlsCreated = true;` && |\n| &&
+             `        this._aPendingInnerControlsCreated.forEach((resolve) =>` && |\n| &&
+             `          resolve(this._oInput),` && |\n| &&
+             `        );` && |\n| &&
+             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
+             `      },` && |\n| &&
+             `    });` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
+             `` && |\n| &&
+              ``.
+
+  ENDMETHOD.
+
+ENDCLASS.

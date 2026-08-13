@@ -253,14 +253,14 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DATA(ls_config) = config_http_get( ).
 
     DATA(lv_style_css) = COND string( WHEN ls_config-styles_css IS INITIAL
-                                      THEN z2ui5_cl_app_style_css=>get( )
+                                      THEN z2ui5_cl_ui5f_style_css=>get( )
                                       ELSE ls_config-styles_css ).
 
     " The entries for all embedded frontend files come from the generated
     " preload mapping (see .github/app2abap/trans2abap.js), so the list can
     " never run out of sync with app/webapp.
-    DATA(lv_preload) = z2ui5_cl_app_preload=>get( styles_css = lv_style_css
-                                                  custom_js  = ls_config-custom_js ).
+    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_style_css
+                                                   custom_js  = ls_config-custom_js ).
 
     " Custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
     " customer's own frontend artefacts (z2ui5_ccc,

@@ -97,7 +97,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               " There is no client object yet at this point in the factory,
               " so the toast is queued directly through the action builder
               " message_toast_display( ) delegates to.
-              NEW z2ui5_cl_core_action_front( result )->msg_toast(
+              NEW z2ui5_cl_core_act_front( result )->msg_toast(
                   `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
           ENDTRY.
         ENDIF.

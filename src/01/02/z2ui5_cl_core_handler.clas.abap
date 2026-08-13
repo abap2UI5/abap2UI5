@@ -779,7 +779,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       mo_action->mo_app->ms_session-nav_mode_sent = mo_action->ms_next-s_nav-set_nav_routing.
     ENDIF.
 
-    DATA(lo_front) = NEW z2ui5_cl_core_action_front( mo_action ).
+    DATA(lo_front) = NEW z2ui5_cl_core_act_front( mo_action ).
 
     " the view-lifecycle calls leave first, in slot order
     lo_front->slots_serialize( ).

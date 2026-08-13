@@ -641,7 +641,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     li_client->popup_display( `<Dialog/>` ).
     li_client->view_display( `<View/>` ).
 
-    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+    NEW z2ui5_cl_core_act_front( lo_handler->mo_action )->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `MAIN|NEST|NEST2|POPUP|POPOVER`
@@ -663,7 +663,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     li_client->view_display( `<First/>` ).
     li_client->view_display( `<Second/>` ).
 
-    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+    NEW z2ui5_cl_core_act_front( lo_handler->mo_action )->slots_serialize( ).
 
     DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 1
@@ -680,7 +680,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     lo_handler = NEW #( val = `` ).
 
-    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+    NEW z2ui5_cl_core_act_front( lo_handler->mo_action )->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_initial(
         lo_handler->mo_action->ms_next-s_action-t_system ).
@@ -699,7 +699,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     li_client->popup_destroy( ).
 
-    NEW z2ui5_cl_core_action_front( lo_handler->mo_action )->slots_serialize( ).
+    NEW z2ui5_cl_core_act_front( lo_handler->mo_action )->slots_serialize( ).
 
     DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 1
