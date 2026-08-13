@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_a2ui5_context DEFINITION
+CLASS z2ui5_cl_ui5_context DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -31,7 +31,7 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
       END OF cs_ui5_msg_type.
 
     " Environment-abstracted character/format constants. Callers must read
-    " these from z2ui5_cl_a2ui5_context instead of referencing cl_abap_char_utilities /
+    " these from z2ui5_cl_ui5_context instead of referencing cl_abap_char_utilities /
     " cl_abap_format directly, so the dependency on those SAP standard classes
     " lives in exactly one place (this class' class_constructor) and can be
     " ported once for non-ABAP runtimes (e.g. transpiled JS).
@@ -600,8 +600,8 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
 
     CLASS-DATA gv_check_cloud_cached TYPE abap_bool.
 
-    " Guards the cycle z2ui5_cx_a2ui5_error=>constructor -> uuid_get_c32 ->
-    " RAISE z2ui5_cx_a2ui5_error -> ... see uuid_get_c32.
+    " Guards the cycle z2ui5_cx_ui5_error=>constructor -> uuid_get_c32 ->
+    " RAISE z2ui5_cx_ui5_error -> ... see uuid_get_c32.
     CLASS-DATA gv_uuid_failed TYPE abap_bool.
 
     CLASS-METHODS rtti_get_classes_intf_cloud
@@ -745,7 +745,7 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_context IMPLEMENTATION.
 
   METHOD class_constructor.
 
@@ -1079,7 +1079,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     " ref unbound instead of raising - check it, or get_components below
     " dumps with CX_SY_REF_IS_INITIAL
     IF sy-subrc <> 0 OR type_desc IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
         EXPORTING
           val = |Include type '{ type->absolute_name }' not found|.
     ENDIF.
@@ -1326,7 +1326,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
           " keep the root cause - a transformation error on the app's own
           " data must not be masked behind a bare UNSUPPORTED_FEATURE
           DATA(lv_text) = `UNSUPPORTED_FEATURE`.
-          RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
             EXPORTING
               val      = lv_text
               previous = lx_srtti.
@@ -1960,7 +1960,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
           error_message = 1
           OTHERS        = 2.
       IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error.
       ENDIF.
 
       ASSIGN
@@ -2144,7 +2144,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
         " single top-level catch in the HTTP handler turns it into a 500.
         " ASSERT would raise the uncatchable ASSERTION_FAILED and bypass that
         " catch (short dump instead of a handled error response).
-        " z2ui5_cx_a2ui5_error=>constructor itself calls uuid_get_c32, so the
+        " z2ui5_cx_ui5_error=>constructor itself calls uuid_get_c32, so the
         " raise below re-enters this method. gv_uuid_failed makes that nested
         " call return an empty UUID instead of raising again (endless recursion
         " until the stack overflows, which would defeat the handled 500 above).
@@ -2153,7 +2153,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
         ENDIF.
         gv_uuid_failed = abap_true.
         TRY.
-            RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+            RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
               EXPORTING
                 val = lx_uuid.
           CLEANUP.

@@ -143,7 +143,7 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     view->ele( `Text`
         )->att( n = `text`
-                v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
+                v = |line1{ z2ui5_cl_ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_ui5_context=>cv_char_util_horizontal_tab }end| ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )

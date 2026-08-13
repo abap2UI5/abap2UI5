@@ -80,7 +80,7 @@ CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
 
   METHOD all_xml_parse.
 
-    z2ui5_cl_a2ui5_context=>xml_parse( EXPORTING xml = xml
+    z2ui5_cl_ui5_context=>xml_parse( EXPORTING xml   = xml
                                        IMPORTING any = result ).
 
   ENDMETHOD.
@@ -94,7 +94,7 @@ CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).
-        result = z2ui5_cl_a2ui5_context=>xml_stringify( me ).
+        result = z2ui5_cl_ui5_context=>xml_stringify( me ).
         lo_model->main_attri_db_load( ).
         RETURN.
       CATCH cx_root INTO x_first.
@@ -113,7 +113,7 @@ CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
     " drefs missing, discovered only on a later restore
     IF lv_restored = abap_true.
       TRY.
-          result = z2ui5_cl_a2ui5_context=>xml_stringify( me ).
+          result = z2ui5_cl_ui5_context=>xml_stringify( me ).
           RETURN.
         CATCH cx_root ##NO_HANDLER.
       ENDTRY.
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
     TRY.
         lo_model->main_attri_refresh( ).
         lo_model->main_attri_db_save_srtti( ).
-        result = z2ui5_cl_a2ui5_context=>xml_stringify( me ).
+        result = z2ui5_cl_ui5_context=>xml_stringify( me ).
         lo_model->main_attri_db_load( ).
         RETURN.
       CATCH cx_root INTO DATA(x) ##NO_HANDLER.
@@ -132,7 +132,7 @@ CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
     " that is not serializable and carries the source position of the
     " transformation that gave up; the retries fail for the same root cause
     " or a follow-up one
-    RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
       EXPORTING
         val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
                    |Please check if all generic data references are public attributes of your class|

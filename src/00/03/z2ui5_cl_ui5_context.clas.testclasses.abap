@@ -25,7 +25,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `true`
-        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_true ) ).
+        act = z2ui5_cl_ui5_context=>boolean_abap_2_json( abap_true ) ).
 
   ENDMETHOD.
 
@@ -35,7 +35,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " it must not be confused with an initial string (see below)
     cl_abap_unit_assert=>assert_equals(
         exp = `false`
-        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_false ) ).
+        act = z2ui5_cl_ui5_context=>boolean_abap_2_json( abap_false ) ).
 
   ENDMETHOD.
 
@@ -47,7 +47,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `X`
-        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( lv_char ) ).
+        act = z2ui5_cl_ui5_context=>boolean_abap_2_json( lv_char ) ).
 
   ENDMETHOD.
 
@@ -59,7 +59,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = ``
-        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( lv_string ) ).
+        act = z2ui5_cl_ui5_context=>boolean_abap_2_json( lv_string ) ).
 
   ENDMETHOD.
 
@@ -67,7 +67,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `true`
-        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( `true` ) ).
+        act = z2ui5_cl_ui5_context=>boolean_abap_2_json( `true` ) ).
 
   ENDMETHOD.
 
@@ -75,7 +75,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `{path}`
-        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( `{path}` ) ).
+        act = z2ui5_cl_ui5_context=>boolean_abap_2_json( `{path}` ) ).
 
   ENDMETHOD.
 
@@ -84,11 +84,11 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_char TYPE c LENGTH 1 VALUE 'X'.
     DATA lv_int  TYPE i VALUE 5.
 
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>boolean_check_by_data( abap_true ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>boolean_check_by_data( abap_false ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_data( lv_char ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_data( `X` ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_data( lv_int ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>boolean_check_by_data( abap_true ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>boolean_check_by_data( abap_false ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>boolean_check_by_data( lv_char ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>boolean_check_by_data( `X` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>boolean_check_by_data( lv_int ) ).
 
   ENDMETHOD.
 
@@ -96,15 +96,15 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " second call for the same type is answered from the
     " descriptor-keyed cache and has to return the same result
-    z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_true ).
+    z2ui5_cl_ui5_context=>boolean_abap_2_json( abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `true`
-        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_true ) ).
+        act = z2ui5_cl_ui5_context=>boolean_abap_2_json( abap_true ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `false`
-        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_false ) ).
+        act = z2ui5_cl_ui5_context=>boolean_abap_2_json( abap_false ) ).
 
   ENDMETHOD.
 
@@ -114,13 +114,13 @@ CLASS ltcl_test IMPLEMENTATION.
     " with a full URL and with a bare query string; the value keeps its case
     cl_abap_unit_assert=>assert_equals(
         exp = `MixedCase`
-        act = z2ui5_cl_a2ui5_context=>url_param_get(
+        act = z2ui5_cl_ui5_context=>url_param_get(
                   val = `app_start`
                   url = `https://h/p?APP_START=MixedCase` ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `MixedCase`
-        act = z2ui5_cl_a2ui5_context=>url_param_get(
+        act = z2ui5_cl_ui5_context=>url_param_get(
                   val = `app_start`
                   url = `?APP_START=MixedCase` ) ).
 
@@ -131,11 +131,11 @@ CLASS ltcl_test IMPLEMENTATION.
     " an empty search string yields no parameters at all - the former
     " phantom nameless row leaked back out of url_param_create_url as `=&`
     cl_abap_unit_assert=>assert_initial(
-        z2ui5_cl_a2ui5_context=>url_param_get_tab( `` ) ).
+        z2ui5_cl_ui5_context=>url_param_get_tab( `` ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = 1
-        act = lines( z2ui5_cl_a2ui5_context=>url_param_get_tab( `?a=1&` ) ) ).
+        act = lines( z2ui5_cl_ui5_context=>url_param_get_tab( `?a=1&` ) ) ).
 
   ENDMETHOD.
 
@@ -146,19 +146,19 @@ CLASS ltcl_test IMPLEMENTATION.
     " mapping), and with lowercase percent-encoding
     cl_abap_unit_assert=>assert_equals(
         exp = `foo`
-        act = z2ui5_cl_a2ui5_context=>url_param_get(
+        act = z2ui5_cl_ui5_context=>url_param_get(
                   val = `app_start`
                   url = `?x=1&sap-startup-params=app_start%3Dfoo` ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `foo`
-        act = z2ui5_cl_a2ui5_context=>url_param_get(
+        act = z2ui5_cl_ui5_context=>url_param_get(
                   val = `app_start`
                   url = `?sap-startup-params=app_start%3Dfoo` ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `foo`
-        act = z2ui5_cl_a2ui5_context=>url_param_get(
+        act = z2ui5_cl_ui5_context=>url_param_get(
                   val = `app_start`
                   url = `?sap-startup-params=app_start%3dfoo` ) ).
 
@@ -171,7 +171,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " current app instead of the requested one
     cl_abap_unit_assert=>assert_equals(
         exp = `https://h/p?app_start=zcl_new`
-        act = z2ui5_cl_a2ui5_context=>app_get_url(
+        act = z2ui5_cl_ui5_context=>app_get_url(
                   classname = `ZCL_NEW`
                   origin    = `https://h`
                   pathname  = `/p`
@@ -186,7 +186,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " after `&/` is cut
     cl_abap_unit_assert=>assert_equals(
         exp = `https://h/p?app_start=zcl_new#Shell-home`
-        act = z2ui5_cl_a2ui5_context=>app_get_url(
+        act = z2ui5_cl_ui5_context=>app_get_url(
                   classname = `ZCL_NEW`
                   origin    = `https://h`
                   pathname  = `/p`
@@ -219,7 +219,7 @@ CLASS ltcl_string IMPLEMENTATION.
   METHOD test_trim_spaces.
 
     cl_abap_unit_assert=>assert_equals( exp = `abc`
-                                        act = z2ui5_cl_a2ui5_context=>c_trim( `   abc   ` ) ).
+                                        act = z2ui5_cl_ui5_context=>c_trim( `   abc   ` ) ).
 
   ENDMETHOD.
 
@@ -229,12 +229,12 @@ CLASS ltcl_string IMPLEMENTATION.
     " spreadsheet arrives tab-padded and must not keep the padding
     DATA lv_val TYPE string.
 
-    lv_val = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab
+    lv_val = z2ui5_cl_ui5_context=>cv_char_util_horizontal_tab
              && `abc`
-             && z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab.
+             && z2ui5_cl_ui5_context=>cv_char_util_horizontal_tab.
 
     cl_abap_unit_assert=>assert_equals( exp = `abc`
-                                        act = z2ui5_cl_a2ui5_context=>c_trim( lv_val ) ).
+                                        act = z2ui5_cl_ui5_context=>c_trim( lv_val ) ).
 
   ENDMETHOD.
 
@@ -242,17 +242,17 @@ CLASS ltcl_string IMPLEMENTATION.
 
     " only the edges are trimmed, inner whitespace is data
     cl_abap_unit_assert=>assert_equals( exp = `a b`
-                                        act = z2ui5_cl_a2ui5_context=>c_trim( ` a b ` ) ).
+                                        act = z2ui5_cl_ui5_context=>c_trim( ` a b ` ) ).
 
   ENDMETHOD.
 
   METHOD test_trim_case.
 
     cl_abap_unit_assert=>assert_equals( exp = `ABC`
-                                        act = z2ui5_cl_a2ui5_context=>c_trim_upper( ` aBc ` ) ).
+                                        act = z2ui5_cl_ui5_context=>c_trim_upper( ` aBc ` ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `abc`
-                                        act = z2ui5_cl_a2ui5_context=>c_trim_lower( ` aBc ` ) ).
+                                        act = z2ui5_cl_ui5_context=>c_trim_lower( ` aBc ` ) ).
 
   ENDMETHOD.
 
@@ -260,37 +260,37 @@ CLASS ltcl_string IMPLEMENTATION.
 
     " the name check drives whether an attribute is serialised as a JSON
     " boolean, so both the hit list and the rejection of look-alikes matter
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>boolean_check_by_name( `ABAP_BOOL` ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>boolean_check_by_name( `XFELD` ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>boolean_check_by_name( `BOOLE_D` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>boolean_check_by_name( `ABAP_BOOL` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>boolean_check_by_name( `XFELD` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>boolean_check_by_name( `BOOLE_D` ) ).
 
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_name( `abap_bool` ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_name( `STRING` ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_name( `` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>boolean_check_by_name( `abap_bool` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>boolean_check_by_name( `STRING` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>boolean_check_by_name( `` ) ).
 
   ENDMETHOD.
 
   METHOD test_url_create.
 
-    DATA lt_params TYPE z2ui5_cl_a2ui5_context=>ty_t_name_value.
+    DATA lt_params TYPE z2ui5_cl_ui5_context=>ty_t_name_value.
 
     lt_params = VALUE #( ( n = `a` v = `1` )
                          ( n = `b` v = `2` ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `a=1&b=2`
-        act = z2ui5_cl_a2ui5_context=>url_param_create_url( lt_params ) ).
+        act = z2ui5_cl_ui5_context=>url_param_create_url( lt_params ) ).
 
   ENDMETHOD.
 
   METHOD test_url_create_empty.
 
     " no parameters must produce an empty string, not a stray separator
-    DATA lt_params TYPE z2ui5_cl_a2ui5_context=>ty_t_name_value.
+    DATA lt_params TYPE z2ui5_cl_ui5_context=>ty_t_name_value.
 
     cl_abap_unit_assert=>assert_equals(
         exp = ``
-        act = z2ui5_cl_a2ui5_context=>url_param_create_url( lt_params ) ).
+        act = z2ui5_cl_ui5_context=>url_param_create_url( lt_params ) ).
 
   ENDMETHOD.
 
@@ -298,11 +298,11 @@ CLASS ltcl_string IMPLEMENTATION.
 
     " parsing a query string and rebuilding it has to be stable - the phantom
     " nameless row that once leaked out as `=&` broke exactly this
-    DATA(lt_params) = z2ui5_cl_a2ui5_context=>url_param_get_tab( `?a=1&b=2` ).
+    DATA(lt_params) = z2ui5_cl_ui5_context=>url_param_get_tab( `?a=1&b=2` ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `a=1&b=2`
-        act = z2ui5_cl_a2ui5_context=>url_param_create_url( lt_params ) ).
+        act = z2ui5_cl_ui5_context=>url_param_create_url( lt_params ) ).
 
   ENDMETHOD.
 
@@ -331,7 +331,7 @@ CLASS ltcl_rtti DEFINITION FINAL
 ENDCLASS.
 
 
-CLASS z2ui5_cl_a2ui5_context DEFINITION LOCAL FRIENDS ltcl_rtti.
+CLASS z2ui5_cl_ui5_context DEFINITION LOCAL FRIENDS ltcl_rtti.
 
 
 CLASS ltcl_rtti IMPLEMENTATION.
@@ -344,14 +344,14 @@ CLASS ltcl_rtti IMPLEMENTATION.
     DATA lv_date TYPE d.
     DATA ls_row  TYPE ty_s_row.
 
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_clike( `abc` ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_clike( lv_char ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>rtti_check_clike( `abc` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>rtti_check_clike( lv_char ) ).
     " n, d and t are character-like too and must be accepted
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_clike( lv_numc ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_clike( lv_date ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>rtti_check_clike( lv_numc ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>rtti_check_clike( lv_date ) ).
 
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_clike( lv_int ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_clike( ls_row ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>rtti_check_clike( lv_int ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>rtti_check_clike( ls_row ) ).
 
   ENDMETHOD.
 
@@ -360,10 +360,10 @@ CLASS ltcl_rtti IMPLEMENTATION.
     DATA lt_row TYPE ty_t_row.
     DATA ls_row TYPE ty_s_row.
 
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_table( lt_row ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>rtti_check_table( lt_row ) ).
 
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_table( ls_row ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_table( `abc` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>rtti_check_table( ls_row ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>rtti_check_table( `abc` ) ).
 
   ENDMETHOD.
 
@@ -372,10 +372,10 @@ CLASS ltcl_rtti IMPLEMENTATION.
     DATA ls_row TYPE ty_s_row.
     DATA lt_row TYPE ty_t_row.
 
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_structure( ls_row ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>rtti_check_structure( ls_row ) ).
 
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_structure( `abc` ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_structure( lt_row ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>rtti_check_structure( `abc` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>rtti_check_structure( lt_row ) ).
 
   ENDMETHOD.
 
@@ -385,9 +385,9 @@ CLASS ltcl_rtti IMPLEMENTATION.
 
     CREATE DATA lr_data TYPE string.
 
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>rtti_check_ref_data( lr_data ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>rtti_check_ref_data( lr_data ) ).
 
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>rtti_check_ref_data( `abc` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>rtti_check_ref_data( `abc` ) ).
 
   ENDMETHOD.
 
@@ -406,9 +406,9 @@ CLASS ltcl_rtti IMPLEMENTATION.
     ASSIGN lr_filled->* TO <val>.
     <val> = `x`.
 
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>check_bound_a_not_initial( lr_unbound ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>check_bound_a_not_initial( lr_initial ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>check_bound_a_not_initial( lr_filled ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>check_bound_a_not_initial( lr_unbound ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_context=>check_bound_a_not_initial( lr_initial ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_context=>check_bound_a_not_initial( lr_filled ) ).
 
   ENDMETHOD.
 
@@ -419,7 +419,7 @@ CLASS ltcl_rtti IMPLEMENTATION.
     ls_row-name = `Ada`.
     ls_row-city = `London`.
 
-    DATA(lt_pair) = z2ui5_cl_a2ui5_context=>itab_get_by_struc( ls_row ).
+    DATA(lt_pair) = z2ui5_cl_ui5_context=>itab_get_by_struc( ls_row ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_pair ) ).
@@ -449,7 +449,7 @@ CLASS ltcl_rtti IMPLEMENTATION.
     ls_flags-flag_b = abap_false.
     ls_flags-other  = abap_true.
 
-    DATA(lt_found) = z2ui5_cl_a2ui5_context=>scan_flag_prefix( val    = ls_flags
+    DATA(lt_found) = z2ui5_cl_ui5_context=>scan_flag_prefix( val    = ls_flags
                                                                prefix = `FLAG_` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
@@ -501,7 +501,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     " keeps the row even though `name` does not match
     DATA(lt_row) = get_rows( ).
 
-    z2ui5_cl_a2ui5_context=>itab_filter_by_val( EXPORTING val = `London`
+    z2ui5_cl_ui5_context=>itab_filter_by_val( EXPORTING val = `London`
                                                 CHANGING  tab = lt_row ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
@@ -515,7 +515,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     DATA(lt_row) = get_rows( ).
 
-    z2ui5_cl_a2ui5_context=>itab_filter_by_val( EXPORTING val         = `ada`
+    z2ui5_cl_ui5_context=>itab_filter_by_val( EXPORTING val         = `ada`
                                                           ignore_case = abap_true
                                                 CHANGING  tab         = lt_row ).
 
@@ -535,7 +535,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     APPEND `NAME` TO lt_fields.
 
-    z2ui5_cl_a2ui5_context=>itab_filter_by_val( EXPORTING val    = `London`
+    z2ui5_cl_ui5_context=>itab_filter_by_val( EXPORTING val    = `London`
                                                           fields = lt_fields
                                                 CHANGING  tab    = lt_row ).
 
@@ -547,7 +547,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     DATA(lt_row) = get_rows( ).
 
-    z2ui5_cl_a2ui5_context=>itab_filter_by_val( EXPORTING val = `Nobody`
+    z2ui5_cl_ui5_context=>itab_filter_by_val( EXPORTING val = `Nobody`
                                                 CHANGING  tab = lt_row ).
 
     cl_abap_unit_assert=>assert_initial( lt_row ).
@@ -562,7 +562,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     lt_str = VALUE #( ( `London` ) ( `Wilmslow` ) ( `New York` ) ).
 
-    z2ui5_cl_a2ui5_context=>itab_filter_by_val( EXPORTING val = `London`
+    z2ui5_cl_ui5_context=>itab_filter_by_val( EXPORTING val = `London`
                                                 CHANGING  tab = lt_str ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
@@ -586,7 +586,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     DATA(lt_row) = get_rows( ).
 
-    z2ui5_cl_a2ui5_context=>itab_corresponding( EXPORTING val = lt_row
+    z2ui5_cl_ui5_context=>itab_corresponding( EXPORTING val = lt_row
                                                 CHANGING  tab = lt_target ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
@@ -620,26 +620,26 @@ CLASS ltcl_msg IMPLEMENTATION.
     " anything that is not E/S/W falls back to Information - the UI5
     " MessageBox has no other state to render
     cl_abap_unit_assert=>assert_equals( exp = `Error`
-                                        act = z2ui5_cl_a2ui5_context=>ui5_get_msg_type( `E` ) ).
+                                        act = z2ui5_cl_ui5_context=>ui5_get_msg_type( `E` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Success`
-                                        act = z2ui5_cl_a2ui5_context=>ui5_get_msg_type( `S` ) ).
+                                        act = z2ui5_cl_ui5_context=>ui5_get_msg_type( `S` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Warning`
-                                        act = z2ui5_cl_a2ui5_context=>ui5_get_msg_type( `W` ) ).
+                                        act = z2ui5_cl_ui5_context=>ui5_get_msg_type( `W` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Information`
-                                        act = z2ui5_cl_a2ui5_context=>ui5_get_msg_type( `I` ) ).
+                                        act = z2ui5_cl_ui5_context=>ui5_get_msg_type( `I` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Information`
-                                        act = z2ui5_cl_a2ui5_context=>ui5_get_msg_type( `X` ) ).
+                                        act = z2ui5_cl_ui5_context=>ui5_get_msg_type( `X` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Information`
-                                        act = z2ui5_cl_a2ui5_context=>ui5_get_msg_type( `` ) ).
+                                        act = z2ui5_cl_ui5_context=>ui5_get_msg_type( `` ) ).
 
   ENDMETHOD.
 
   METHOD test_box_empty_skips.
 
     " no messages means no popup at all, signalled by `skip`
-    DATA lt_msg TYPE z2ui5_cl_a2ui5_context=>ty_t_msg.
+    DATA lt_msg TYPE z2ui5_cl_ui5_context=>ty_t_msg.
 
-    DATA(ls_box) = z2ui5_cl_a2ui5_context=>ui5_msg_box_format( lt_msg ).
+    DATA(ls_box) = z2ui5_cl_ui5_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
@@ -648,11 +648,11 @@ CLASS ltcl_msg IMPLEMENTATION.
   METHOD test_box_single.
 
     " a single message renders as plain text without a details list
-    DATA lt_msg TYPE z2ui5_cl_a2ui5_context=>ty_t_msg.
+    DATA lt_msg TYPE z2ui5_cl_ui5_context=>ty_t_msg.
 
     lt_msg = VALUE #( ( text = `boom` type = `E` ) ).
 
-    DATA(ls_box) = z2ui5_cl_a2ui5_context=>ui5_msg_box_format( lt_msg ).
+    DATA(ls_box) = z2ui5_cl_ui5_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `boom`  act = ls_box-text ).
@@ -666,12 +666,12 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     " several messages collapse into a count plus an HTML list, and the box
     " takes its severity from the first message
-    DATA lt_msg TYPE z2ui5_cl_a2ui5_context=>ty_t_msg.
+    DATA lt_msg TYPE z2ui5_cl_ui5_context=>ty_t_msg.
 
     lt_msg = VALUE #( ( text = `first`  type = `W` )
                       ( text = `second` type = `E` ) ).
 
-    DATA(ls_box) = z2ui5_cl_a2ui5_context=>ui5_msg_box_format( lt_msg ).
+    DATA(ls_box) = z2ui5_cl_ui5_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `Warning` act = ls_box-title ).
@@ -685,14 +685,14 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     " every range option maps to its own token text; the placeholders
     " {LOW}/{HIGH} are substituted from the range row
-    DATA lt_range TYPE z2ui5_cl_a2ui5_context=>ty_t_range.
+    DATA lt_range TYPE z2ui5_cl_ui5_context=>ty_t_range.
 
     lt_range = VALUE #( ( sign = `I` option = `EQ` low = `X` )
                         ( sign = `I` option = `BT` low = `1` high = `9` )
                         ( sign = `I` option = `CP` low = `A` )
                         ( sign = `E` option = `EQ` low = `Y` ) ).
 
-    DATA(lt_token) = z2ui5_cl_a2ui5_context=>filter_get_token_t_by_range_t( lt_range ).
+    DATA(lt_token) = z2ui5_cl_ui5_context=>filter_get_token_t_by_range_t( lt_range ).
 
     cl_abap_unit_assert=>assert_equals( exp = 4 act = lines( lt_token ) ).
     cl_abap_unit_assert=>assert_equals( exp = `=X`    act = lt_token[ 1 ]-key ).

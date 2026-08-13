@@ -442,7 +442,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " a standalone CR (not part of CR+LF) is a JS line terminator like LF -
     " it must be escaped too, or the emitted '...' literal is a syntax error
     DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
-    DATA(lv_cr) = substring( val = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf
+    DATA(lv_cr) = substring( val = z2ui5_cl_ui5_context=>cv_char_util_cr_lf
                              off = 0
                              len = 1 ).
     DATA(lt_arg) = VALUE string_table( ( |before{ lv_cr }after| ) ).

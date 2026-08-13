@@ -161,7 +161,7 @@ CLASS z2ui5_cl_ui5_act_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
         title         TYPE clike
         details       TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_a2ui5_context=>ty_s_msg_box.
+        VALUE(result) TYPE z2ui5_cl_ui5_context=>ty_s_msg_box.
 
     "! Drop everything queued for a slot so far - see the method body.
     METHODS slot_reset
@@ -226,7 +226,7 @@ CLASS z2ui5_cl_ui5_act_front IMPLEMENTATION.
                         iv_val  = opt ).
         ENDIF.
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = |ACTION_BUILD_FAILED - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -334,7 +334,7 @@ CLASS z2ui5_cl_ui5_act_front IMPLEMENTATION.
                INTO TABLE mo_action->ms_next-t_action_front.
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -427,7 +427,7 @@ CLASS z2ui5_cl_ui5_act_front IMPLEMENTATION.
                       opt   = li_opt ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = |NAV_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -500,7 +500,7 @@ CLASS z2ui5_cl_ui5_act_front IMPLEMENTATION.
                    opt   = li_opt ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = |MESSAGE_TOAST_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -584,7 +584,7 @@ CLASS z2ui5_cl_ui5_act_front IMPLEMENTATION.
                    opt   = li_opt ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = |MESSAGE_BOX_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -604,8 +604,8 @@ CLASS z2ui5_cl_ui5_act_front IMPLEMENTATION.
                              ( `success` ) ).
     ENDIF.
 
-    IF z2ui5_cl_a2ui5_context=>rtti_check_clike( text ) = abap_false.
-      result = z2ui5_cl_a2ui5_context=>ui5_msg_box_format( text ).
+    IF z2ui5_cl_ui5_context=>rtti_check_clike( text ) = abap_false.
+      result = z2ui5_cl_ui5_context=>ui5_msg_box_format( text ).
       IF result-skip = abap_true.
         RETURN.
       ENDIF.

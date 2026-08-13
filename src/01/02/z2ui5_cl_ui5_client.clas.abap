@@ -226,13 +226,13 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD nav_app_set_id.
 
     IF app IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
         EXPORTING
           val = `NAV_APP_TARGET_NOT_BOUND - the app passed to nav_app_call/nav_app_leave is not bound`.
     ENDIF.
 
     IF app->id_app IS INITIAL.
-      app->id_app = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+      app->id_app = z2ui5_cl_ui5_context=>uuid_get_c32( ).
     ENDIF.
     result = app->id_app.
 
@@ -259,7 +259,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " IS SUPPLIED (not IS NOT INITIAL) so an intentionally empty return
     " value still reaches the previous app (https://github.com/abap2UI5/abap2UI5/issues/2404)
     IF r_data IS SUPPLIED.
-      mo_action->ms_next-r_data = z2ui5_cl_a2ui5_context=>conv_copy_ref_data( r_data ).
+      mo_action->ms_next-r_data = z2ui5_cl_ui5_context=>conv_copy_ref_data( r_data ).
     ENDIF.
 
     result = nav_app_set_id( app ).
@@ -429,12 +429,12 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    result = mo_srv_bind->main( val    = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
+    result = mo_srv_bind->main( val    = z2ui5_cl_ui5_context=>conv_get_as_data_ref( val )
                                 config = VALUE #(
                                     path_only            = path
                                     custom_filter        = li_filter
                                     custom_mapper        = custom_mapper
-                                    tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
+                                    tab                  = z2ui5_cl_ui5_context=>conv_get_as_data_ref( tab )
                                     tab_index            = tab_index
                                     switch_default_model = switch_default_model
                                     check_json           = json ) ).

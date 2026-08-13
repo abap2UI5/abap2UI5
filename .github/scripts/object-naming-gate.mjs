@@ -35,13 +35,10 @@ const EXEMPT = [
   ["src/00/02", "mirrored from abap2UI5/srtti_mirror by mirror_srtti.yaml"],
 ];
 
-// NOT an exemption - work that is scheduled. src/00/03 still holds
-// z2ui5_cl_a2ui5_* because z2ui5_cl_a2ui5_http=>ty_s_http_req sits in four
-// public signatures (z2ui5_cl_exit=>init_context, z2ui5_cl_http_handler's
-// _http_post / _main / get_request); the rename waits until z2ui5_if_types
-// carries that type itself. Delete this line with the rename - do not add
-// directories here to silence a finding.
-const PENDING = [["src/00/03", "rename blocked on ty_s_http_req moving into z2ui5_if_types"]];
+// Nothing is pending: every layer outside EXEMPT is on the ui5 segment. If a
+// rename ever has to wait on something, list it here with the blocker rather
+// than adding the directory to EXEMPT - an exemption is permanent, this is not.
+const PENDING = [];
 
 // DDIC tables carry no layer segment (z2ui5_t_01, z2ui5_t_91): renaming one is a
 // data migration in every installed system, not a rename. Judged by prefix only.

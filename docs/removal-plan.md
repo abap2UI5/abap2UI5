@@ -77,7 +77,7 @@ breaking change for any downstream app that still references it.
 - [ ] **`src/99/01/` — 9 utility classes (11,925 lines) + `z2ui5_cx_util_error`
       + table `Z2UI5_T_91`**
       - **Blocker:** there is no successor API for *app* code. The internal
-        replacement (`z2ui5_cl_a2ui5_context`) is framework-only. Decide first
+        replacement (`z2ui5_cl_ui5_context`) is framework-only. Decide first
         whether apps get a public utility API, get pointed at
         [abap-util](https://github.com/abap-util/abap-util), or get nothing.
       - docs still uses them on 3 pages (logon language, lock, spreadsheet).
@@ -91,7 +91,7 @@ breaking change for any downstream app that still references it.
 
 **Falls out automatically when `src/99` goes:**
 
-- [ ] 23 `FROZEN-ONLY` methods in `z2ui5_cl_a2ui5_context` (`src/00/03/`) — they
+- [ ] 23 `FROZEN-ONLY` methods in `z2ui5_cl_ui5_context` (`src/00/03/`) — they
       exist solely because the shipped `src/99` still calls them. Grep the
       marker, delete the marked block.
 - [ ] `npm run check:frozen` + the `check_frozen_paths` workflow

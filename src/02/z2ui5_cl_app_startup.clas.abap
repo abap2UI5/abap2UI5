@@ -123,7 +123,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD on_init.
 
     reset_button_state( ).
-    ms_home-classname = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
+    ms_home-classname = z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
 
   ENDMETHOD.
 
@@ -163,7 +163,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     DATA li_app_test TYPE REF TO z2ui5_if_app.
 
     TRY.
-        ms_home-classname = z2ui5_cl_a2ui5_context=>c_trim_upper( ms_home-classname ).
+        ms_home-classname = z2ui5_cl_ui5_context=>c_trim_upper( ms_home-classname ).
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
         client->message_toast_display( `App is ready to start!` ).
@@ -254,7 +254,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `press`
                 v = client->_event( cs_event-open_info ) ).
 
-    IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+    IF z2ui5_cl_ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->leaf( `Button`
           )->a( n = `text`
                 v = `Config`
@@ -348,8 +348,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     " to z2ui5_cl_smp_app_000 - check the current name first, keep the old one as
     " a fallback so an older samples installation still gets the button
     DATA(lv_class_samples) = COND string(
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_smp_app_000` ) THEN `z2ui5_cl_smp_app_000`
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
+      WHEN z2ui5_cl_ui5_context=>rtti_check_class_exists( `z2ui5_cl_smp_app_000` ) THEN `z2ui5_cl_smp_app_000`
+      WHEN z2ui5_cl_ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
 
     IF lv_class_samples IS NOT INITIAL.
       form->leaf( `Label` )->a( n = `text`
@@ -439,7 +439,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                               v = `ABAP for Cloud` ).
     form->leaf( `CheckBox`
         )->a( n = `selected`
-              v = z2ui5_cl_ai_xml=>as_bool( z2ui5_cl_a2ui5_context=>check_abap_cloud( ) )
+              v = z2ui5_cl_ai_xml=>as_bool( z2ui5_cl_ui5_context=>check_abap_cloud( ) )
         )->a( n = `enabled`
               v = `false` ).
     render_text( form  = form
@@ -546,11 +546,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD get_app_url.
 
     DATA(ls_config) = client->get( )-s_config.
-    result = z2ui5_cl_a2ui5_context=>app_get_url( classname = classname
-                                                  origin    = ls_config-origin
-                                                  pathname  = ls_config-pathname
-                                                  search    = ls_config-search
-                                                  hash      = ls_config-hash ).
+    result = z2ui5_cl_ui5_context=>app_get_url( classname  = classname
+                                                  origin   = ls_config-origin
+                                                  pathname = ls_config-pathname
+                                                  search   = ls_config-search
+                                                  hash     = ls_config-hash ).
 
   ENDMETHOD.
 

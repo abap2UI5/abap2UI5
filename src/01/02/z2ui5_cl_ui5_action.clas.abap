@@ -61,7 +61,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       result->mo_app = z2ui5_cl_ui5_app=>db_load( mo_http_post->ms_request-s_front-id ).
     ENDIF.
 
-    result->mo_app->ms_draft-id      = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    result->mo_app->ms_draft-id      = z2ui5_cl_ui5_context=>uuid_get_c32( ).
     result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_front-id.
 
     IF mo_http_post->ms_request-o_model->is_empty( ) = abap_false.
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
               " point at the draft this restore was loaded from, not at
               " whatever id was serialized in a previous session
               result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_control-app_start_draft.
-              result->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+              result->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
               RETURN.
             CATCH cx_root.
               " expired or invalid bookmark draft - fall through to a fresh
@@ -102,7 +102,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
           ENDTRY.
         ENDIF.
 
-        result->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+        result->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
 
         DATA li_app TYPE REF TO z2ui5_if_app.
         CREATE OBJECT li_app TYPE (mo_http_post->ms_request-s_control-app_start).
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         " markup/script into the response body.
         DATA(lv_app_name) = mo_http_post->ms_request-s_control-app_start.
         REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH `` ##REGEX_POSIX.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val      = |The app '{ lv_app_name }' does not exist in the system.|
             previous = x.
@@ -158,7 +158,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       " user came from.
       IF result->ms_next-s_nav-nav_app_call_prev_id IS INITIAL.
         result->ms_next-s_nav-nav_app_call_prev_app =
-            z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
+            z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
         result->ms_next-s_nav-nav_app_call_prev_id  = mo_app->ms_draft-id.
       ENDIF.
     ENDIF.
@@ -201,7 +201,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     result = NEW #( mo_http_post ).
 
-    result->mo_app->ms_draft-id          = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    result->mo_app->ms_draft-id          = z2ui5_cl_ui5_context=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
     result->mo_app->mo_app               = z2ui5_cl_app_startup=>factory( ).
 
@@ -217,7 +217,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " itself (see factory_stack_leave / factory_stack_call), so an already
     " assigned draft id is kept as is
     IF val->id_draft IS INITIAL.
-      val->id_draft = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+      val->id_draft = z2ui5_cl_ui5_context=>uuid_get_c32( ).
     ENDIF.
 
     result = NEW #( mo_http_post ).
@@ -310,8 +310,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " teardown of its own on top, or every cross-class Back would carry two
     " destroy actions for slots the frontend had already torn down.
     IF mo_app->mo_app IS BOUND
-        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( val )
-          = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
+        AND z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( val )
+          = z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
       DELETE result->ms_next-t_action_front
              WHERE slot = z2ui5_if_client=>cs_view-popup
                 OR slot = z2ui5_if_client=>cs_view-popover.

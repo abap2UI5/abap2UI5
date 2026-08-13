@@ -43,7 +43,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
 
     CLASS-METHODS _http_post
       IMPORTING
-        is_req        TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req
+        is_req        TYPE z2ui5_if_types=>ty_s_http_req
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
@@ -55,7 +55,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
 
     CLASS-METHODS _main
       IMPORTING
-        is_req        TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req
+        is_req        TYPE z2ui5_if_types=>ty_s_http_req
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
@@ -66,7 +66,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
         res           TYPE REF TO object OPTIONAL
           PREFERRED PARAMETER server
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
+        VALUE(result) TYPE z2ui5_if_types=>ty_s_http_req.
 
     " CSRF defense (on by default; an app can opt out via z2ui5_if_exit~
     " set_config_http_post -> check_csrf_active = abap_false). Pure and
@@ -87,8 +87,8 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
   PROTECTED SECTION.
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
-    DATA mo_server TYPE REF TO z2ui5_cl_a2ui5_http.
-    DATA ms_req    TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
+    DATA mo_server TYPE REF TO z2ui5_cl_ui5_http.
+    DATA ms_req    TYPE z2ui5_if_types=>ty_s_http_req.
     DATA ms_res    TYPE ty_s_http_res.
 
     " the raw if_http_response of the ON-PREM ICF stack, captured dynamically
@@ -113,7 +113,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
-    " (see z2ui5_cx_a2ui5_error=>get_text_full). Only reached when the exit
+    " (see z2ui5_cx_ui5_error=>get_text_full). Only reached when the exit
     " did not ask for hidden error details.
     CLASS-METHODS _error_body
       IMPORTING
@@ -138,7 +138,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main.
 
-    ms_req = mo_server->get_req_info( ).
+    " the one place the Layer 0 request type meets the public one - both are
+    " structurally identical, and the public signature stays free of
+    " z2ui5_cl_ui5_http (see z2ui5_if_types=>ty_s_http_req)
+    MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
 
     " initialize the exit context and reset the per-request GET-config cache
     " up front: the CSRF gate below already calls the user exit, and a
@@ -227,7 +230,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     IF server IS BOUND.
       result = NEW #( ).
-      result->mo_server = z2ui5_cl_a2ui5_http=>factory( server ).
+      result->mo_server = z2ui5_cl_ui5_http=>factory( server ).
       " generic field symbol on purpose: a typed one (REF TO object) makes
       " the dynamic ASSIGN cast, and REF TO if_http_response is not
       " IDENTICAL to REF TO object - a real stack raises an uncatchable
@@ -241,7 +244,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       result = factory_cloud( req = req
                               res = res ).
     ELSE.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
         EXPORTING val = `EMPTY_HTTP_HANDLER_CALL_ERROR`.
     ENDIF.
 
@@ -250,7 +253,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD factory_cloud.
 
     result = NEW #( ).
-    result->mo_server = z2ui5_cl_a2ui5_http=>factory_cloud( req = req
+    result->mo_server = z2ui5_cl_ui5_http=>factory_cloud( req   = req
                                                             res = res ).
 
   ENDMETHOD.
@@ -502,10 +505,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD _error_body.
 
-    DATA(lv_nl) = z2ui5_cl_a2ui5_context=>cv_char_util_newline.
+    DATA(lv_nl) = z2ui5_cl_ui5_context=>cv_char_util_newline.
 
     result = |abap2UI5 { z2ui5_if_app=>version } - unhandled exception in a { method } request| &&
-             lv_nl && lv_nl && z2ui5_cx_a2ui5_error=>get_text_full( val ).
+             lv_nl && lv_nl && z2ui5_cx_ui5_error=>get_text_full( val ).
 
   ENDMETHOD.
 

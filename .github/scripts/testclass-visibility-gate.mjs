@@ -6,7 +6,7 @@
 // transpiler enforces visibility. The transpiler ignores it altogether (every
 // member becomes a plain JS property), so `npm run unit` stays green on a class
 // pool that a real system rejects with a syntax error. That is exactly how
-// `ltcl_rtti` in z2ui5_cl_a2ui5_context reached main - it called the PRIVATE
+// `ltcl_rtti` in z2ui5_cl_ui5_context reached main - it called the PRIVATE
 // scan_flag_prefix( ) and had to be repaired after the fact.
 //
 // Deliberately limited to what can be decided from the source text alone:

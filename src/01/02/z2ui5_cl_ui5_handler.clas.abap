@@ -188,7 +188,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -307,7 +307,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
   METHOD request_app_start.
     TRY.
         IF io_comp_data IS BOUND.
-          result = z2ui5_cl_a2ui5_context=>c_trim_upper(
+          result = z2ui5_cl_ui5_context=>c_trim_upper(
               io_comp_data->get( `/startupParameters/app_start/1` ) ).
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
@@ -321,8 +321,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result = z2ui5_cl_a2ui5_context=>c_trim_upper(
-        z2ui5_cl_a2ui5_context=>url_param_get( val = `app_start`
+    result = z2ui5_cl_ui5_context=>c_trim_upper(
+        z2ui5_cl_ui5_context=>url_param_get( val   = `app_start`
                                                url = iv_search ) ).
   ENDMETHOD.
 
@@ -371,8 +371,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         " strip the leading slashes (see parse_app_route_rest for why they
         " stack); url_param_get matches parameter names verbatim
         SHIFT lv_hash LEFT DELETING LEADING `/`.
-        result = z2ui5_cl_a2ui5_context=>c_trim_upper(
-            z2ui5_cl_a2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
+        result = z2ui5_cl_ui5_context=>c_trim_upper(
+            z2ui5_cl_ui5_context=>url_param_get( val   = `z2ui5-xapp-state`
                                                    url = lv_hash ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -428,7 +428,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                           iv_sub = `&` ).
         lv_rest = cut_at( iv_val = lv_rest
                           iv_sub = `?` ).
-        result = z2ui5_cl_a2ui5_context=>c_trim_upper( lv_rest ).
+        result = z2ui5_cl_ui5_context=>c_trim_upper( lv_rest ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
@@ -454,7 +454,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         IF lv_off < 0.
           RETURN.
         ENDIF.
-        result = z2ui5_cl_a2ui5_context=>c_trim_upper(
+        result = z2ui5_cl_ui5_context=>c_trim_upper(
             cut_at( iv_val = substring( val = lv_rest
                                         off = lv_off + 1 )
                     iv_sub = `/` ) ).
@@ -479,7 +479,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = ls_front ).
-        ajson_result = ajson_result->filter( z2ui5_cl_a2ui5_json_fltr=>create_no_empty_values( ) ).
+        ajson_result = ajson_result->filter( z2ui5_cl_ui5_json_fltr=>create_no_empty_values( ) ).
 
         " AFTER the filter, never before: an action array carries empty
         " strings as positional placeholders, which the no-empty-values
@@ -502,7 +502,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                          ELSE |\{"S_FRONT":{ lv_frontend },"MODEL":{ val-model }\}| ).
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -532,7 +532,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
             lv_context = request_context_info( ).
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val      = lv_context
             previous = x.
@@ -568,7 +568,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         lv_draft = mo_action->mo_app->ms_draft-id_prev.
 
         IF mo_action->mo_app->mo_app IS BOUND.
-          lv_app = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
+          lv_app = z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
         ENDIF.
       ENDIF.
     ENDIF.
@@ -602,7 +602,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       ENDIF.
       lv_dispatch_count = lv_dispatch_count + 1.
       IF lv_dispatch_count >= mv_dispatch_limit.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = |Dispatch limit of { mv_dispatch_limit } app navigations in one request reached - check for an endless nav_app_call/nav_app_leave loop in main( )|.
       ENDIF.
@@ -817,7 +817,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     ms_response = VALUE #( s_front-s_action = mo_action->ms_next-s_action
                            s_front-id       = mo_action->mo_app->ms_draft-id
-                           s_front-app      = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
+                           s_front-app      = z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
                            model            = lv_model ).
 
     mv_response = response_abap_to_json( ms_response ).
@@ -850,7 +850,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     mv_model_before_taken = abap_true.
 
     IF li_app->check_sticky = abap_false.
-      z2ui5_cl_a2ui5_context=>db_rollback( ).
+      z2ui5_cl_ui5_context=>db_rollback( ).
     ENDIF.
 
     " exceptions from main( ) are intentionally not caught here - they bubble up
@@ -869,7 +869,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ENDIF.
 
     IF li_app->check_sticky = abap_false.
-      z2ui5_cl_a2ui5_context=>db_rollback( ).
+      z2ui5_cl_ui5_context=>db_rollback( ).
     ENDIF.
 
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL.

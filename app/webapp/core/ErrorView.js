@@ -80,7 +80,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   }
 
   // A framework 500 body is a sectioned plain-text dump built by
-  // z2ui5_cx_a2ui5_error=>get_text_full: a version header line, then
+  // z2ui5_cx_ui5_error=>get_text_full: a version header line, then
   // `--- error ---` with the message chain (one message per line), then
   // `--- exception chain ---` (a block per cause with class, source position,
   // kernel id, attributes) and `--- context ---`. The popup shows only the

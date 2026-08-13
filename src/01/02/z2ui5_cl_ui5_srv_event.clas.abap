@@ -198,7 +198,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
                                          view  = view
                                          t_arg = t_arg )->stringify( ).
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_error).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = lx_error.
     ENDTRY.
@@ -262,7 +262,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
         result = li_json.
       CATCH cx_root INTO DATA(lx_error).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = lx_error.
     ENDTRY.
@@ -276,12 +276,12 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
     " read the newline constants from the context class, not cl_abap_char_
     " utilities directly (the SAP-standard dependency is abstracted there for
-    " non-ABAP runtimes - see z2ui5_cl_a2ui5_context)
-    REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf IN result WITH `\n`.
-    REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_newline IN result WITH `\n`.
+    " non-ABAP runtimes - see z2ui5_cl_ui5_context)
+    REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_context=>cv_char_util_cr_lf IN result WITH `\n`.
+    REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_context=>cv_char_util_newline IN result WITH `\n`.
     " a standalone CR (not part of CR+LF, already collapsed above) is a JS
     " line terminator too and would break the '...' literal
-    REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)
+    REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_context=>cv_char_util_cr_lf(1)
             IN result WITH `\r`.
 
   ENDMETHOD.

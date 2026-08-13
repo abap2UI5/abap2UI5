@@ -107,7 +107,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  // A framework 500 body is a sectioned plain-text dump built by` && |\n| &&
-             `  // z2ui5_cx_a2ui5_error=>get_text_full: a version header line, then` && |\n| &&
+             `  // z2ui5_cx_ui5_error=>get_text_full: a version header line, then` && |\n| &&
              `  // ``--- error ---`` with the message chain (one message per line), then` && |\n| &&
              `  // ``--- exception chain ---`` (a block per cause with class, source position,` && |\n| &&
              `  // kernel id, attributes) and ``--- context ---``. The popup shows only the` && |\n| &&

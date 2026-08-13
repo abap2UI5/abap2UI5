@@ -82,17 +82,17 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " binding error instead of dumping GETWA_NOT_ASSIGNED on the ASSIGN
     " COMPONENT below
     IF <row> IS NOT ASSIGNED.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
         EXPORTING
           val = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range`.
     ENDIF.
 
-    DATA(lt_attri) = z2ui5_cl_a2ui5_context=>rtti_get_t_attri_by_any( ms_config-tab ).
+    DATA(lt_attri) = z2ui5_cl_ui5_context=>rtti_get_t_attri_by_any( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
       IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING val = |Binding Error - component '{ <comp>-name }' not found in the bound row|.
       ENDIF.
       lr_ref_in = REF #( <ele> ).
@@ -104,7 +104,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     ENDLOOP.
 
-    RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
       EXPORTING
         val = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
 
@@ -113,9 +113,9 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD check_same_impl.
 
     IF ir_existing IS BOUND AND ir_new IS BOUND
-        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ir_existing )
-         <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ir_new ).
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        AND z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( ir_existing )
+         <> z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( ir_new ).
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
         EXPORTING val = |<p>Binding Error - Two different { iv_label } used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
 
@@ -143,8 +143,8 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD check_serializable.
 
-    IF z2ui5_cl_a2ui5_context=>rtti_check_serializable( ir_ref ) = abap_false.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+    IF z2ui5_cl_ui5_context=>rtti_check_serializable( ir_ref ) = abap_false.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
         EXPORTING val = |<p>{ iv_label } used but it is not serializable - please use if_serializable_object|.
     ENDIF.
 
@@ -183,7 +183,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD main.
 
-    IF z2ui5_cl_a2ui5_context=>check_bound_a_not_initial( config-tab ).
+    IF z2ui5_cl_ui5_context=>check_bound_a_not_initial( config-tab ).
 
       result = main_cell( val    = val
                           config = config ).
@@ -204,7 +204,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field
       DATA(lr_ref_attri) = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] OPTIONAL ).
       IF lr_ref_attri IS NOT BOUND.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING
             val = |Binding Error - referenced attribute '{ mr_attri->name_ref }' not found|.
       ENDIF.
