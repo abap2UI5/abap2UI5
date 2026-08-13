@@ -286,7 +286,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     lv_css = `.a::after { content: 'x'; }` && |\n| && `.b { background: url("i\c.png"); }`.
 
     DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_css
-                                                  custom_js  = `` ).
+                                                  custom_js   = `` ).
 
     temp30 = xsdbool( lv_preload CS `content: \'x\';` ).
     cl_abap_unit_assert=>assert_true( temp30 ).
@@ -320,7 +320,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA lv_checked TYPE i.
 
     DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = `.a { content: 'x'; }`
-                                                  custom_js  = `` ).
+                                                  custom_js   = `` ).
 
     SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
 
