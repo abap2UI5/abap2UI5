@@ -113,10 +113,6 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     " the same place in every row - the alignment the samples app has
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
-    " the same for the icon in front of it: a fixed slot, so the width the icon
-    " font happens to render cannot move the column
-    CONSTANTS c_icon_width TYPE string VALUE `3rem`.
-
     " the two icons the page names twice - once in the title row, once in the
     " Documentation section - so the header and the section cannot drift apart
     CONSTANTS c_icon_docs TYPE string VALUE `sap-icon://learning-assistant`.
@@ -501,17 +497,15 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         )->a( n = `wrap`
               v = `Wrap` ).
 
-    " the icon gets a fixed slot of its own, so every row's link starts in the
-    " same column no matter how wide the icon renders
-    result->open( `HBox`
-        )->a( n = `alignItems`
-              v = `Center`
-        )->a( n = `width`
-              v = c_icon_width
-        )->leaf( n  = `Icon`
-                 ns = `core`
+    " no slot of its own for the icon: every glyph of the icon font renders the
+    " same width, so the links line up on the icon alone - a fixed slot only
+    " tore a hole between the icon and the name it belongs to
+    result->leaf( n  = `Icon`
+                  ns = `core`
         )->a( n = `src`
-              v = icon ).
+              v = icon
+        )->a( n = `class`
+              v = `sapUiTinyMarginEnd` ).
 
     result->leaf( `Link`
         )->a( n = `text`
