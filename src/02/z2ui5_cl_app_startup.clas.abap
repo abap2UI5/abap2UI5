@@ -134,6 +134,13 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     CONSTANTS c_icon_docs TYPE string VALUE `sap-icon://learning-assistant`.
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
+    " the icon of a row belongs to the link behind it, so it carries the link's
+    " colour rather than the near-black an Icon renders in by default. A literal
+    " CSSColor, because the property takes a colour or one of the semantic
+    " IconColor values - and none of those is "like a link"; this is the Fiori
+    " link blue of the light themes
+    CONSTANTS c_icon_color TYPE string VALUE `#0a6ed1`.
+
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
     " whatever else its own row has to say behind the link
@@ -531,6 +538,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                   ns = `core`
         )->a( n = `src`
               v = icon
+        )->a( n = `color`
+              v = c_icon_color
         )->a( n = `class`
               v = `sapUiTinyMarginEnd` ).
 
