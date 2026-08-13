@@ -26,9 +26,9 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_get_status.
 
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
-    ls_result = z2ui5_cl_http_handler=>_http_get( ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
@@ -40,12 +40,12 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_get_html.
 
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp1 TYPE xsdboolean.
     DATA temp2 TYPE xsdboolean.
     DATA temp3 TYPE xsdboolean.
 
-    ls_result = z2ui5_cl_http_handler=>_http_get( ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_result-body ).
 
@@ -62,11 +62,11 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_get_ui5_boot.
 
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp4 TYPE xsdboolean.
     DATA temp5 TYPE xsdboolean.
 
-    ls_result = z2ui5_cl_http_handler=>_http_get( ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     temp4 = xsdbool( ls_result-body CS `sap-ui-bootstrap` ).
     cl_abap_unit_assert=>assert_true( temp4 ).
@@ -79,13 +79,13 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_http_post_ok.
 
     DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp6 TYPE xsdboolean.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
-    ls_result = z2ui5_cl_http_handler=>_http_post( ls_req ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_http_post( ls_req ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
@@ -106,7 +106,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " _http_post itself does not catch - the exception propagates to the caller
     " (the single catch lives one level up in _main, see test_main_post_no_app)
     TRY.
-        z2ui5_cl_http_handler=>_http_post( ls_req ).
+        z2ui5_cl_ui5_http_handler=>_http_post( ls_req ).
       CATCH cx_root.
         lv_raised = abap_true.
     ENDTRY.
@@ -120,12 +120,12 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " a wrong/mistyped app name in the URL raises in the framework; the single
     " top-level catch in _main turns it into a 500 whose body states the reason
     DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_DOES_NOT_EXIST"}}}`.
 
-    ls_result = z2ui5_cl_http_handler=>_main( ls_req ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
 
     cl_abap_unit_assert=>assert_equals( exp = 500
                                         act = ls_result-status_code ).
@@ -138,11 +138,11 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     " OPTIONS/PUT/... must answer 405, not fall through with status code 0
     DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
     ls_req-method = `OPTIONS`.
 
-    ls_result = z2ui5_cl_http_handler=>_main( ls_req ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
 
     cl_abap_unit_assert=>assert_equals( exp = 405
                                         act = ls_result-status_code ).
@@ -156,12 +156,12 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " valid JSON without an S_FRONT container (health-check POST, rewrapping
     " proxy) must take the system-startup path, not answer 500
     DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{}}`.
 
-    ls_result = z2ui5_cl_http_handler=>_main( ls_req ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
@@ -171,12 +171,12 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_main_get_routing.
 
     DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp8 TYPE xsdboolean.
 
     ls_req-method = `GET`.
 
-    ls_result = z2ui5_cl_http_handler=>_main( ls_req ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
@@ -189,12 +189,12 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_main_post_routing.
 
     DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
-    ls_result = z2ui5_cl_http_handler=>_main( ls_req ).
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
@@ -204,7 +204,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_inactive.
 
     " opt-out: with csrf disabled even a cross-origin request is allowed
-    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_false
                             origin  = `https://evil.example.com`
                             referer = ``
@@ -217,7 +217,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_same_origin.
 
     " same host authority (scheme/case ignored) -> allowed
-    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = `https://App.Corp:44300`
                             referer = ``
@@ -230,7 +230,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_cross_origin.
 
     " different host authority -> rejected
-    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = `https://evil.example.com`
                             referer = ``
@@ -243,7 +243,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_no_headers.
 
     " lenient: no Origin and no Referer -> allowed (proxies / old clients)
-    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = ``
                             referer = ``
@@ -256,7 +256,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_referer.
 
     " Origin absent -> fall back to Referer (with a path), cross-site -> rejected
-    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = ``
                             referer = `https://evil.example.com/attack?x=1`
