@@ -87,6 +87,13 @@ test.describe("view and controller access", () => {
     expect(registerCalls).toEqual([[view, true]]);
   });
 
+  test("setView records the XML the slot was filled with", () => {
+    const { ViewSlots } = load();
+    ViewSlots.setView("POPUP", { setModel() {} }, "<Dialog/>");
+    expect(ViewSlots.getViewXml("POPUP")).toBe("<Dialog/>");
+    expect(ViewSlots.getViewXml("POPOVER")).toBeUndefined();
+  });
+
   test("keyOfController finds the slot a controller serves", () => {
     const { ViewSlots, z2ui5 } = load();
     const controller = {};
@@ -228,6 +235,36 @@ test.describe("destroy", () => {
     ViewSlots.destroy("POPUP");
     ViewSlots.destroy("UNKNOWN");
     expect(z2ui5.oViewPopup).toBeUndefined();
+  });
+
+  test("drops the recorded XML, whoever triggered the teardown", () => {
+    // The backend's ["VIEW_SLOTS","destroy","POPUP"] action and the
+    // roundtrip-free frontend close (cs_event-popup_close, which the backend
+    // formats as that same action) both land here - so the record cannot
+    // survive one of them and not the other.
+    const { ViewSlots } = load();
+    ViewSlots.setView("POPUP", { setModel() {}, destroy() {} }, "<Dialog/>");
+    ViewSlots.destroy("POPUP");
+    expect(ViewSlots.getViewXml("POPUP")).toBeUndefined();
+  });
+
+  test("drops the recorded XML of a slot whose view is already gone", () => {
+    // A fragment load that failed after recording, or a state reset that
+    // nulled the live instances: the record must not outlive the slot.
+    const { ViewSlots, z2ui5 } = load();
+    ViewSlots.setView("POPOVER", { setModel() {} }, "<Popover/>");
+    z2ui5.oViewPopover = null;
+    ViewSlots.destroy("POPOVER");
+    expect(ViewSlots.getViewXml("POPOVER")).toBeUndefined();
+  });
+
+  test("MAIN teardown drops the nests' recorded XML too", () => {
+    const { ViewSlots } = load();
+    ViewSlots.setView("MAIN", { setModel() {}, destroy() {} }, "<Page/>");
+    ViewSlots.setView("NEST", { setModel() {}, destroy() {} }, "<Nest/>");
+    ViewSlots.destroy("MAIN");
+    expect(ViewSlots.getViewXml("MAIN")).toBeUndefined();
+    expect(ViewSlots.getViewXml("NEST")).toBeUndefined();
   });
 
   test("unregisters the view from the messaging facade before destroy", () => {

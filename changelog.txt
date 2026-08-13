@@ -12,6 +12,17 @@ Legend
 
 unreleased
 ----------
+* the developer tools kept showing the POPUP/POPOVER tabs of a dialog an app
+  had closed in the browser without a roundtrip
+  (follow_up_action( cs_event-popup_close / popover_close )). Both close
+  paths always ran the same code - the backend formats either close as the
+  ["VIEW_SLOTS","destroy","<slot>"] action that popup_destroy( ) queues, and
+  it lands in ViewSlots.destroy either way - but the developer tools did not
+  read the slot: they scraped the last response for the display action that
+  had opened it, and a roundtrip-free close leaves that response current.
+  ViewSlots now records the XML a slot was filled with next to the live
+  instance (setView) and drops it in destroy( ), so the tools read the slot
+  itself for all five slots and both close paths look the same
 ! _event_client( ) is obsolete - follow_up_action( ) is the same call in the
   same position now, and the interface says so. Since follow_up_action( ) has
   a RETURNING parameter, a call whose result is CONSUMED (the view-attribute
