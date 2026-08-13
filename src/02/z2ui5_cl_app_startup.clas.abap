@@ -390,10 +390,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     " one row per sample repository. Each one is installed separately with
     " abapGit, so every row answers the same question on its own: is the
     " overview app of that repository on THIS system? Then start it - otherwise
-    " point to the repository that carries it. The samples repository renamed
-    " its overview app from z2ui5_cl_demo_app_g00 to z2ui5_cl_smp_app_000, so
-    " it passes the old name as a fallback and an older installation of it
-    " still gets the button.
+    " point to the repository that carries it. Two of them renamed their
+    " overview app (z2ui5_cl_demo_app_g00 -> z2ui5_cl_smp_app_000 and
+    " z2ui5_cl_dmo_app_overview -> z2ui5_cl_smpc_app_overview), so they pass
+    " the old name as a fallback: an installation that predates the rename
+    " still gets its button.
     render_samples(
         form      = form
         label     = `Samples`
@@ -413,7 +414,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         tooltip   = `The UI5 Demo Kit rebuilt with abap2UI5 - one app per control`
         link_text = `Install abap2UI5/samples-controls - the UI5 Demo Kit, rebuilt in ABAP`
         href      = `https://github.com/abap2UI5/samples-controls`
-        class     = `z2ui5_cl_dmo_app_overview` ).
+        class     = `z2ui5_cl_smpc_app_overview`
+        class_old = `z2ui5_cl_dmo_app_overview` ).
 
     render_samples(
         form      = form
