@@ -13,17 +13,16 @@ Legend
 unreleased
 ----------
 ! the startup page reads top to bottom now instead of hiding parts behind
-  buttons. A strip carrying the documentation icon and a link named
-  "Documentation" sits above everything else, so the first thing on the page
-  is the answer to the first question; each of the three sample repositories
-  is one row of icon, repository name and what is in it, where the name links
-  to that repository's overview app when it is installed on this system and
-  to GitHub - marked "not installed" - when it is not; the "Keep learning"
-  section is gone, its links live in the strip and in the header; and the
-  system information the System dialog used to show is a collapsed panel at
-  the end of the page, one click instead of a popup - with the draft entries
-  now given as own/total (z2ui5_cl_core_srv_draft=>count_entries_total( )),
-  which is what says whether the cleanup is keeping up on this system
+  buttons. Each of the three sample repositories is one row of icon,
+  repository name and what is in it - the description word for word the one
+  the repository carries on GitHub - where the name opens that repository's
+  overview app when it is installed on this system, and GitHub, marked "not
+  installed", when it is not. A Documentation section follows right behind
+  them, which is also where the "Keep learning" section went. The system
+  information the System dialog used to show is a panel of its own at the end
+  of the page, open, with the draft entries now given as own/total
+  (z2ui5_cl_core_srv_draft=>count_entries_total( )) - the figure that says
+  whether the cleanup is keeping up on this system
 - BREAKING: removed render_documentation( ) and render_system_popup( ) from
   z2ui5_cl_app_startup, together with cs_event-open_info and cs_event-close.
   They rendered the deleted "Keep learning" section and the System dialog the
