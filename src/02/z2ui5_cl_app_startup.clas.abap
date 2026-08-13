@@ -106,6 +106,11 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     " the same place in every row - the alignment the samples app has
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
+    " the two icons the page names twice - once in the title row, once in the
+    " Documentation section - so the header and the section cannot drift apart
+    CONSTANTS c_icon_docs TYPE string VALUE `sap-icon://learning-assistant`.
+    CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
+
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
     " whatever else its own row has to say behind the link
@@ -286,40 +291,38 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_header_toolbar.
 
+    " icons only, the way the samples app carries them - the title row is not
+    " the place for four labels, and what each one does is in its tooltip
     DATA(toolbar) = page->open( `headerContent` ).
     toolbar->leaf( `ToolbarSpacer`
       )->leaf( `Button`
-          )->a( n = `text`
-                v = `Documentation`
           )->a( n = `icon`
-                v = `sap-icon://learning-assistant`
+                v = c_icon_docs
           )->a( n = `tooltip`
-                v = `Guides, tutorials and the API reference on abap2UI5.org`
+                v = `Documentation - guides, tutorials and the API reference on abap2UI5.org`
           )->a( n = `press`
                 v = open_url( `https://abap2UI5.org` )
       )->leaf( `Button`
-          )->a( n = `text`
-                v = `GitHub`
           )->a( n = `icon`
-                v = `sap-icon://source-code`
+                v = c_icon_repo
           )->a( n = `tooltip`
-                v = `The abap2UI5 repository - source code, issues and releases`
+                v = `The abap2UI5 repository on GitHub - source code, issues, releases and the abapGit installation`
           )->a( n = `press`
                 v = open_url( `https://github.com/abap2UI5/abap2UI5` )
       )->leaf( `Button`
-          )->a( n = `text`
-                v = `Developer Tools`
           )->a( n = `icon`
                 v = `sap-icon://enablement`
+          )->a( n = `tooltip`
+                v = `Developer Tools`
           )->a( n = `press`
                 v = client->_event( cs_event-open_debug ) ).
 
     IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->leaf( `Button`
-          )->a( n = `text`
-                v = `Config`
           )->a( n = `icon`
                 v = `sap-icon://settings`
+          )->a( n = `tooltip`
+                v = `Configuration`
           )->a( n = `press`
                 v = client->_event( cs_event-set_config ) ).
     ENDIF.
@@ -330,19 +333,31 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     " its own section, so the samples above get their separator back and the
     " documentation is what the page says right after them - same row shape as
-    " a sample repository, the icon of the header button in front
+    " a sample repository, and the same two icons the title row carries
     render_section( form  = form
                     title = `Documentation` ).
 
     render_icon_row( form    = form
                      label   = `Docs`
-                     icon    = `sap-icon://learning-assistant`
+                     icon    = c_icon_docs
                      text    = `abap2UI5.org`
                      href    = `https://abap2UI5.org`
                      new_tab = abap_true
       )->leaf( `Text`
           )->a( n = `text`
                 v = `Guides, tutorials and the API reference - from your first app to the full client API`
+          )->a( n = `class`
+                v = `sapUiSmallMarginBegin` ).
+
+    render_icon_row( form    = form
+                     label   = `GitHub`
+                     icon    = c_icon_repo
+                     text    = `abap2UI5/abap2UI5`
+                     href    = `https://github.com/abap2UI5/abap2UI5`
+                     new_tab = abap_true
+      )->leaf( `Text`
+          )->a( n = `text`
+                v = `The repository itself - source code, issues, releases, and what abapGit installs from`
           )->a( n = `class`
                 v = `sapUiSmallMarginBegin` ).
 
@@ -519,9 +534,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     ENDIF.
 
     IF lv_class IS NOT INITIAL.
-      " the overview app is on this system: open it in THIS tab, like any other
-      " navigation on the page - a plain same-origin href, no target and no
-      " frontend action. GitHub, the other case, is external and does get one
+      " the overview app is on this system: a plain same-origin href, no
+      " frontend action needed - and target="_blank", so this start page stays
+      " where it is and several sample repositories can run side by side
       lv_href = get_app_url( lv_class ).
     ELSE.
       lv_href = href.
@@ -532,7 +547,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                                  icon    = icon
                                  text    = name
                                  href    = lv_href
-                                 new_tab = xsdbool( lv_class IS INITIAL ) ).
+                                 new_tab = abap_true ).
 
     " the description comes before the state, so it starts in the same column
     " in all three rows - the marker would push it out of line otherwise
@@ -558,44 +573,63 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                 v = `sapUiSmallMarginBegin` ).
     ENDIF.
 
-    " the repository itself stays one click away even when the name no longer
-    " points there - installed, it opens the app in this very tab
-    row->leaf( `Button`
-        )->a( n = `icon`
-              v = `sap-icon://information`
-        )->a( n = `type`
-              v = `Transparent`
-        )->a( n = `tooltip`
-              v = `Readme, issues and releases - opens the repository on GitHub`
-        )->a( n = `press`
-              v = open_url( href ) ).
-
   ENDMETHOD.
 
   METHOD render_contribution.
 
+    " the last thing to do on the page, so it is the last section - and in the
+    " same row shape as the samples and the documentation above: every way in
+    " gets its own icon, which is what makes four links four invitations
     render_section( form  = form
                     title = `Join in` ).
 
-    render_link( form  = form
-                 label = `Open an issue`
-                 text  = `Found a bug or missing a feature? Tell us - every report helps`
-                 href  = `https://github.com/abap2UI5/abap2UI5/issues` ).
+    render_icon_row( form    = form
+                     label   = `Issues`
+                     icon    = `sap-icon://alert`
+                     text    = `report a bug`
+                     href    = `https://github.com/abap2UI5/abap2UI5/issues`
+                     new_tab = abap_true
+      )->leaf( `Text`
+          )->a( n = `text`
+                v = `Found a bug or missing a feature? Tell us - every report helps`
+          )->a( n = `class`
+                v = `sapUiSmallMarginBegin` ).
 
-    render_link( form  = form
-                 label = `Open a Pull Request`
-                 text  = `Built something great? Contributions of any size are welcome`
-                 href  = `https://github.com/abap2UI5/abap2UI5/pulls` ).
+    render_icon_row( form    = form
+                     label   = `Pull Requests`
+                     icon    = `sap-icon://source-code`
+                     text    = `send a change`
+                     href    = `https://github.com/abap2UI5/abap2UI5/pulls`
+                     new_tab = abap_true
+      )->leaf( `Text`
+          )->a( n = `text`
+                v = `Built something great? Contributions of any size are welcome`
+          )->a( n = `class`
+                v = `sapUiSmallMarginBegin` ).
 
-    render_link( form  = form
-                 label = `Talk to us`
-                 text  = `Meet the community in the #abap2UI5 Slack channel`
-                 href  = `https://communityinviter.com/apps/abapgit/abap` ).
+    render_icon_row( form    = form
+                     label   = `Community`
+                     icon    = `sap-icon://discussion`
+                     text    = `join #abap2UI5`
+                     href    = `https://communityinviter.com/apps/abapgit/abap`
+                     new_tab = abap_true
+      )->leaf( `Text`
+          )->a( n = `text`
+                v = `Meet the community in the Slack channel - questions welcome`
+          )->a( n = `class`
+                v = `sapUiSmallMarginBegin` ).
 
-    render_link( form  = form
-                 label = `Support the project`
-                 text  = `abap2UI5 is free and open source - become a sponsor`
-                 href  = `https://abap2ui5.github.io/docs/resources/sponsor.html` ).
+    render_icon_row( form    = form
+                     label   = `Sponsor`
+                     icon    = `sap-icon://favorite`
+                     text    = `support us`
+                     href    = `https://abap2ui5.github.io/docs/resources/sponsor.html`
+                     new_tab = abap_true
+      )->leaf( `Text`
+          )->a( n = `text`
+                v = `abap2UI5 is free and open source - and stays that way through its sponsors`
+          )->a( n = `class`
+                v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
 

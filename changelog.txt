@@ -17,9 +17,12 @@ unreleased
   repository name and what is in it - the description word for word the one
   the repository carries on GitHub - where the name opens that repository's
   overview app when it is installed on this system, and GitHub, marked "not
-  installed", when it is not; an info button at the end of the row opens the
-  repository either way. A Documentation section follows right behind
-  them, which is also where the "Keep learning" section went. The system
+  installed", when it is not - in a new tab either way. A Documentation
+  section follows right behind them, carrying the docs and the repository
+  itself, which is also where the "Keep learning" section went, and Join in
+  closes the page in the same row shape, one icon per way in. The title row
+  is icons only now: the documentation, the repository (globe), the developer
+  tools and, where the class exists, the configuration. The system
   information the System dialog used to show is a panel of its own at the end
   of the page, open, with the draft entries now given as own/total
   (z2ui5_cl_core_srv_draft=>count_entries_total( )) - the figure that says
