@@ -21,11 +21,14 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    view->ele( n = `View` ns = `mvc`
-        )->att( n = `xmlns` v = `sap.m`
+    view->ele( n  = `View`
+               ns = `mvc`
+        )->att( n = `xmlns`
+                v = `sap.m`
 
         )->tag( `Text`
-            )->att( n = `text` v = `Hello`
+            )->att( n = `text`
+                    v = `Hello`
 
         )->ele( `Panel`
             )->tag( `Title` ).
@@ -44,9 +47,11 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
-        )->att( n = `title` v = `Home`
+        )->att( n = `title`
+                v = `Home`
         )->ele( `Panel`
-            )->att( n = `width` v = `100%` ).
+            )->att( n = `width`
+                    v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -64,7 +69,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     view->ele( `Panel`
         )->tag( `Title`
-            )->att( n = `width` v = `100%` ).
+            )->att( n = `width`
+                    v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -85,7 +91,8 @@ CLASS ltcl_builder IMPLEMENTATION.
         )->ele( `Panel`
             )->tag( `Title`
         )->end(
-        )->att( n = `width` v = `100%` ).
+        )->att( n = `width`
+                v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -102,9 +109,12 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     view->ele( `Page`
         )->tag( `Text`
-            )->att( n = `text` v = `first`
-        )->tag( n = `Text` ns = `m`
-            )->att( n = `text` v = `second`
+            )->att( n = `text`
+                    v = `first`
+        )->tag( n  = `Text`
+                ns = `m`
+            )->att( n = `text`
+                    v = `second`
         )->tag( `ToolbarSpacer` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -135,7 +145,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
-        )->att( n = `text` v = `a<b>&"c` ).
+        )->att( n = `text`
+                v = `a<b>&"c` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -151,7 +162,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
-        )->att( n = `text` v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
+        )->att( n = `text`
+                v = |line1{ z2ui5_cl_a2ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab }end| ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -167,8 +179,10 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
-        )->att( n = `visible`  b = abap_true
-        )->att( n = `expanded` b = abap_false ).
+        )->att( n = `visible`
+                b = abap_true
+        )->att( n = `expanded`
+                b = abap_false ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
