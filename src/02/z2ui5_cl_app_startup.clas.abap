@@ -313,8 +313,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     render_whats_next( form ).
     render_docs_link( form ).
 
-    " outside the form: a full-width line, which is what lets its last icon
-    " sit at the right edge of the page
+    " the page's footer, so the line stays where the page ends no matter how
+    " far the content above it scrolls
     render_link_bar( page ).
 
     client->view_display( view->stringify( ) ).
@@ -612,14 +612,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD render_link_bar.
 
     " the Join in section as one line: four ways to take part, each one icon
-    " with its word, and the system information at the far right. The margins
-    " are what keeps it off the edges - it sits in the same white as the form
-    " above it, so it must keep the same distance from the border
-    DATA(bar) = page->open( `Toolbar`
-        )->a( n = `design`
-              v = `Transparent`
-        )->a( n = `class`
-              v = `sapUiSmallMarginTop sapUiSmallMarginBottom sapUiMediumMarginBegin sapUiMediumMarginEnd` ).
+    " with its word, and the system information at the far right. It is the
+    " footer of the Page - an aggregation 1.71 has (rule 15) - so it needs no
+    " margins of its own: the footer bar brings its padding, and the line stays
+    " at the bottom of the page instead of scrolling away with the content
+    DATA(bar) = page->open( `footer`
+        )->open( `Toolbar` ).
 
     render_bar_button( bar     = bar
                        icon    = `sap-icon://alert`

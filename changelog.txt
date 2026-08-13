@@ -19,10 +19,10 @@ unreleased
   installed on this system, and GitHub when it is not, in a new tab either
   way, with a "not installed" status behind the name of the rows that are
   not. A Documentation section follows, carrying the repository and the docs,
-  which is where the "Keep learning" section went. One line of icons closes
-  the page: issues, pull requests, the Slack channel and sponsoring, and at
-  its right end the system information, which stays a popup - it answers a
-  question that is asked once. The draft entries there are given as own/total
+  which is where the "Keep learning" section went. The page's footer carries
+  one line of icons: issues, pull requests, the Slack channel and sponsoring,
+  and at its right end the system information, which stays a popup - it
+  answers a question that is asked once. The draft entries there are given as own/total
   now (z2ui5_cl_core_srv_draft=>count_entries_total( )), the figure that says
   whether the cleanup is keeping up on this system. The title row is icons
   only: the documentation, the repository (globe) and, where the class
