@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_json_fltr DEFINITION
+CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -14,11 +14,11 @@ CLASS z2ui5_cl_ui5_json_fltr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_json_fltr IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
 
   METHOD create_no_empty_values.
 
-    result = NEW z2ui5_cl_ui5_json_fltr( ).
+    result = NEW z2ui5_cl_ui5_util_json_fl( ).
 
   ENDMETHOD.
 

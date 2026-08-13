@@ -90,7 +90,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
   PROTECTED SECTION.
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
-    DATA mo_server TYPE REF TO z2ui5_cl_ui5_http.
+    DATA mo_server TYPE REF TO z2ui5_cl_ui5_util_http.
     DATA ms_req    TYPE ty_s_http_req.
     DATA ms_res    TYPE ty_s_http_res.
 
@@ -152,7 +152,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the previous request's context and set_response( ) would emit the
     " previous request's cached security headers ( _main( ) repeats both,
     " harmlessly - they are idempotent )
-    z2ui5_cl_ui5_exit=>init_context( ms_req ).
+    z2ui5_cl_ui5_user_exit=>init_context( ms_req ).
     CLEAR: ss_config_http_get, sv_config_http_get_set.
 
     CASE ms_req-method.
@@ -166,7 +166,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " set_config_http_post), so a cross-origin POST is rejected unless an
         " app opts out via its own exit.
         DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
-        z2ui5_cl_ui5_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
                                  origin  = mo_server->get_header_field( `origin` )
@@ -233,7 +233,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     IF server IS BOUND.
       result = NEW #( ).
-      result->mo_server = z2ui5_cl_ui5_http=>factory( server ).
+      result->mo_server = z2ui5_cl_ui5_util_http=>factory( server ).
       " generic field symbol on purpose: a typed one (REF TO object) makes
       " the dynamic ASSIGN cast, and REF TO if_http_response is not
       " IDENTICAL to REF TO object - a real stack raises an uncatchable
@@ -257,7 +257,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD factory_cloud.
 
     result = NEW #( ).
-    result->mo_server = z2ui5_cl_ui5_http=>factory_cloud( req   = req
+    result->mo_server = z2ui5_cl_ui5_util_http=>factory_cloud( req   = req
                                                             res = res ).
 
   ENDMETHOD.
@@ -265,7 +265,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD config_http_get.
 
     IF sv_config_http_get_set = abap_false.
-      z2ui5_cl_ui5_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
+      z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
       sv_config_http_get_set = abap_true.
     ENDIF.
     result = ss_config_http_get.
@@ -465,7 +465,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " 500 whose body carries the exception text, so the frontend shows the real
     " reason instead of the SAP ICF 500 page, which suppresses that text.
     TRY.
-        z2ui5_cl_ui5_exit=>init_context( is_req ).
+        z2ui5_cl_ui5_user_exit=>init_context( is_req ).
         CLEAR: ss_config_http_get, sv_config_http_get_set.
 
         CASE is_req-method.
@@ -488,7 +488,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " generic message instead of leaking to the client.
         " Default is abap_false -> the real reason is returned as before.
         DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
-        z2ui5_cl_ui5_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         " the body is the only diagnostic the developer gets - the browser
         " shows it in the fatal-error overlay and nothing of it survives the
@@ -508,7 +508,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _error_body.
 
-    DATA(lv_nl) = z2ui5_cl_ui5_context=>cv_char_util_newline.
+    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     result = |abap2UI5 { z2ui5_if_app=>version } - unhandled exception in a { method } request| &&
              lv_nl && lv_nl && z2ui5_cx_ui5_error=>get_text_full( val ).

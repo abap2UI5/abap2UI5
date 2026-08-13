@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_exit DEFINITION PUBLIC.
+CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_exit.
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_ui5_exit DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_exit IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
   METHOD get_instance.
 
@@ -42,7 +42,7 @@ CLASS z2ui5_cl_ui5_exit IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    gi_me = NEW z2ui5_cl_ui5_exit( ).
+    gi_me = NEW z2ui5_cl_ui5_user_exit( ).
     ri_exit = gi_me.
 
   ENDMETHOD.
@@ -50,8 +50,8 @@ CLASS z2ui5_cl_ui5_exit IMPLEMENTATION.
   METHOD get_user_exit_class.
 
     TRY.
-        DATA(exit_classes) = z2ui5_cl_ui5_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
-        DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_EXIT`.
+        DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_USER_EXIT` ).
+        DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
 
         " only one user exit can be active, so the pick must not depend on the
         " order the class lookup happens to return (SEOCLASS select order on

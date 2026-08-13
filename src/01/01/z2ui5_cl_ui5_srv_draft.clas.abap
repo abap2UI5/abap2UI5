@@ -55,12 +55,12 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
   METHOD cleanup.
 
     DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
-    z2ui5_cl_ui5_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
     " z2ui5_cl_exit=>set_config_http_post already guarantees a positive
     " expiry ( <= 0 falls back to its default ), so no second clamp here
-    DATA(lv_n_hours_ago) = z2ui5_cl_ui5_context=>time_subtract_seconds(
-                               time    = z2ui5_cl_ui5_context=>time_get_timestampl( )
+    DATA(lv_n_hours_ago) = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
+                               time    = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
                                seconds = c_seconds_per_hour * ls_config-draft_exp_time_in_hours ).
 
     DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago ##SUBRC_OK.
@@ -80,7 +80,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
                                  id_prev_app       = draft-id_prev_app
                                  id_prev_app_stack = draft-id_prev_app_stack
                                  uname             = sy-uname
-                                 timestampl        = z2ui5_cl_ui5_context=>time_get_timestampl( )
+                                 timestampl        = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
                                  data              = model_xml ).
 
     MODIFY z2ui5_t_01 FROM @ls_db.

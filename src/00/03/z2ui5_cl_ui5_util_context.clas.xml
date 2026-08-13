@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_UI5_HTTP</CLSNAME>
+    <CLSNAME>Z2UI5_CL_UI5_UTIL_CONTEXT</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - http handling</DESCRIPT>
+    <DESCRIPT>utility context for the abap2UI5 framework</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

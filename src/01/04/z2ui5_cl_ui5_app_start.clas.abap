@@ -215,7 +215,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD on_init.
 
     reset_button_state( ).
-    ms_home-classname = z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_ui5_app_hi_world( ) ).
+    ms_home-classname = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_ui5_app_hi_world( ) ).
 
   ENDMETHOD.
 
@@ -252,7 +252,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     DATA li_app_test TYPE REF TO z2ui5_if_app.
 
     TRY.
-        ms_home-classname = z2ui5_cl_ui5_context=>c_trim_upper( ms_home-classname ).
+        ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
         client->message_toast_display( `Your app is ready - open it with the link in step 5!` ).
@@ -366,7 +366,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
           )->a( n = `press`
                 v = open_url( `https://github.com/abap2UI5/abap2UI5` ) ).
 
-    IF z2ui5_cl_ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->leaf( `Button`
           )->a( n = `icon`
                 v = `sap-icon://settings`
@@ -590,9 +590,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     DATA lv_class TYPE string.
     DATA lv_href  TYPE string.
 
-    IF z2ui5_cl_ui5_context=>rtti_check_class_exists( class ).
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( class ).
       lv_class = class.
-    ELSEIF class_old IS NOT INITIAL AND z2ui5_cl_ui5_context=>rtti_check_class_exists( class_old ).
+    ELSEIF class_old IS NOT INITIAL AND z2ui5_cl_ui5_util_context=>rtti_check_class_exists( class_old ).
       lv_class = class_old.
     ENDIF.
 
@@ -742,12 +742,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                               v = `ABAP for Cloud` ).
     form->leaf( `CheckBox`
         )->a( n = `selected`
-              v = z2ui5_cl_ai_xml=>as_bool( z2ui5_cl_ui5_context=>check_abap_cloud( ) )
+              v = z2ui5_cl_ai_xml=>as_bool( z2ui5_cl_ui5_util_context=>check_abap_cloud( ) )
         )->a( n = `enabled`
               v = `false` ).
     render_text( form  = form
                  label = `User Exit`
-                 text  = z2ui5_cl_ui5_exit=>get_user_exit_class( ) ).
+                 text  = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
 
     render_text( form  = form
                  label = `abap2UI5 Version`
@@ -854,7 +854,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD get_app_url.
 
     DATA(ls_config) = client->get( )-s_config.
-    result = z2ui5_cl_ui5_context=>app_get_url( classname  = classname
+    result = z2ui5_cl_ui5_util_context=>app_get_url( classname  = classname
                                                   origin   = ls_config-origin
                                                   pathname = ls_config-pathname
                                                   search   = ls_config-search

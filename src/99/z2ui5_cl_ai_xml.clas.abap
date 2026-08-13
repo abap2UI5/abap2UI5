@@ -274,15 +274,15 @@ CLASS z2ui5_cl_ai_xml IMPLEMENTATION.
                       with = `&quot;`
                       occ  = 0 ).
     result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_context=>cv_char_util_newline
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_newline
                       with = `&#xA;`
                       occ  = 0 ).
     result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_context=>cv_char_util_cr_lf(1)
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
                       with = `&#xD;`
                       occ  = 0 ).
     result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_context=>cv_char_util_horizontal_tab
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
                       with = `&#x9;`
                       occ  = 0 ).
 

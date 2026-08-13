@@ -35,7 +35,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
 
-    mi_filter = z2ui5_cl_ui5_json_fltr=>create_no_empty_values( ).
+    mi_filter = z2ui5_cl_ui5_util_json_fl=>create_no_empty_values( ).
 
   ENDMETHOD.
 

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_http DEFINITION PUBLIC.
+CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -7,7 +7,7 @@ CLASS z2ui5_cl_ui5_http DEFINITION PUBLIC.
         method   TYPE string,
         body     TYPE string,
         path     TYPE string,
-        t_params TYPE z2ui5_cl_ui5_context=>ty_t_name_value,
+        t_params TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value,
       END OF ty_s_http_req.
 
     TYPES:
@@ -37,14 +37,14 @@ CLASS z2ui5_cl_ui5_http DEFINITION PUBLIC.
       IMPORTING
         server        TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_http.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_util_http.
 
     CLASS-METHODS factory_cloud
       IMPORTING
         req           TYPE REF TO object
         res           TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_http.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_util_http.
 
     METHODS get_req_info
       RETURNING
@@ -116,7 +116,7 @@ CLASS z2ui5_cl_ui5_http DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_http IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD client_create.
 
@@ -480,7 +480,7 @@ CLASS z2ui5_cl_ui5_http IMPLEMENTATION.
     result-body     = get_cdata( ).
     result-method   = get_method( ).
     result-path     = get_header_field( `~path` ).
-    result-t_params = z2ui5_cl_ui5_context=>url_param_get_tab( get_header_field( `~request_uri` ) ).
+    result-t_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( get_header_field( `~request_uri` ) ).
 
   ENDMETHOD.
 

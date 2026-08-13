@@ -805,7 +805,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_loop_app = NEW #( ).
     lo_handler->mo_action->mo_app->mo_app = lo_loop_app.
     " db_save asserts a draft id, normally set by the action factories
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
     TRY.
         lo_handler->main_loop( ).
@@ -951,7 +951,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " opt-in of any kind: automatic model update is always on
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mv_model_before_taken = abap_true.
     lo_handler->mv_model_before       = `<other model state>`.
 
@@ -976,7 +976,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " set, so an idle event round-trip carries no model payload as before
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mv_model_before_taken = abap_true.
     lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
 
@@ -1003,7 +1003,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " previous roundtrip (three-column samples 098/104)
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
     li_client->nest_view_display( val           = `<Nest/>`
                                   id            = `col`
@@ -1031,7 +1031,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " flag to consult any more
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
     lo_handler->main_process( ).
 
@@ -1053,7 +1053,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_handler = NEW #( val = `` ).
     lo_app = NEW #( ).
     lo_handler->mo_action->mo_app->mo_app      = lo_app.
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
 
     lo_handler->main_end( ).
@@ -1077,7 +1077,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
     lo_handler->main_end( ).
 

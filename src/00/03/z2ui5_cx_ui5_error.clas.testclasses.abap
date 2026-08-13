@@ -103,7 +103,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                                previous = lx_middle ).
 
     DATA(lv_text) = lx_outer->get_text( ).
-    DATA(lv_nl) = z2ui5_cl_ui5_context=>cv_char_util_newline.
+    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
     " exact match - each cause exactly once, no duplicated deeper causes
     cl_abap_unit_assert=>assert_equals( exp = |outer{ lv_nl }middle{ lv_nl }inner|
                                         act = lv_text ).
@@ -123,7 +123,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
           EXPORTING val = lx_middle.
       CATCH z2ui5_cx_ui5_error INTO DATA(lx).
-        DATA(lv_nl) = z2ui5_cl_ui5_context=>cv_char_util_newline.
+        DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
         cl_abap_unit_assert=>assert_equals( exp = |middle layer{ lv_nl }root cause|
                                             act = lx->get_text( ) ).
         cl_abap_unit_assert=>assert_bound( lx->previous ).

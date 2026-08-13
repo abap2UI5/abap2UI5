@@ -87,7 +87,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
           val = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range`.
     ENDIF.
 
-    DATA(lt_attri) = z2ui5_cl_ui5_context=>rtti_get_t_attri_by_any( ms_config-tab ).
+    DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
@@ -113,8 +113,8 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD check_same_impl.
 
     IF ir_existing IS BOUND AND ir_new IS BOUND
-        AND z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( ir_existing )
-         <> z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( ir_new ).
+        AND z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( ir_existing )
+         <> z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( ir_new ).
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
         EXPORTING val = |<p>Binding Error - Two different { iv_label } used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
@@ -143,7 +143,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD check_serializable.
 
-    IF z2ui5_cl_ui5_context=>rtti_check_serializable( ir_ref ) = abap_false.
+    IF z2ui5_cl_ui5_util_context=>rtti_check_serializable( ir_ref ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
         EXPORTING val = |<p>{ iv_label } used but it is not serializable - please use if_serializable_object|.
     ENDIF.
@@ -183,7 +183,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD main.
 
-    IF z2ui5_cl_ui5_context=>check_bound_a_not_initial( config-tab ).
+    IF z2ui5_cl_ui5_util_context=>check_bound_a_not_initial( config-tab ).
 
       result = main_cell( val    = val
                           config = config ).

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_context DEFINITION
+CLASS z2ui5_cl_ui5_util_context DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -745,7 +745,7 @@ CLASS z2ui5_cl_ui5_context DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_context IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD class_constructor.
 

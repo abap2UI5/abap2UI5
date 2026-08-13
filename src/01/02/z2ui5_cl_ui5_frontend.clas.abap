@@ -161,7 +161,7 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
         title         TYPE clike
         details       TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_ui5_context=>ty_s_msg_box.
+        VALUE(result) TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
 
     "! Drop everything queued for a slot so far - see the method body.
     METHODS slot_reset
@@ -604,8 +604,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                              ( `success` ) ).
     ENDIF.
 
-    IF z2ui5_cl_ui5_context=>rtti_check_clike( text ) = abap_false.
-      result = z2ui5_cl_ui5_context=>ui5_msg_box_format( text ).
+    IF z2ui5_cl_ui5_util_context=>rtti_check_clike( text ) = abap_false.
+      result = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( text ).
       IF result-skip = abap_true.
         RETURN.
       ENDIF.
