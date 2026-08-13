@@ -99,8 +99,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     lo_http = NEW #( val = `` ).
     mo_action = NEW #( val = lo_http ).
     lo_test_app = NEW #( ).
-    lo_test_app->z2ui5_if_app~check_initialized = abap_false.
     mo_action->mo_app->mo_app = lo_test_app.
+    mo_action->mo_app->mv_check_initialized = abap_false.
     mo_client = NEW #( action = mo_action ).
 
   ENDMETHOD.
@@ -530,9 +530,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_check_on_init.
 
-    DATA li_app TYPE REF TO z2ui5_if_app.
-    li_app ?= mo_action->mo_app->mo_app.
-    li_app->check_initialized = abap_false.
+    mo_action->mo_app->mv_check_initialized = abap_false.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_client->z2ui5_if_client~check_on_init( ) ).
@@ -541,9 +539,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_check_on_init_done.
 
-    DATA li_app TYPE REF TO z2ui5_if_app.
-    li_app ?= mo_action->mo_app->mo_app.
-    li_app->check_initialized = abap_true.
+    mo_action->mo_app->mv_check_initialized = abap_true.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = mo_client->z2ui5_if_client~check_on_init( ) ).

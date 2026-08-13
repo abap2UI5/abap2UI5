@@ -90,6 +90,27 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
         before cutting, there is no declarative equivalent for a *custom*
         transformation (only `omit_initial` / `omit_initial_paths` / `json`).
 
+- [ ] **`check_sticky` / `check_initialized` of `z2ui5_if_app`** —
+      `z2ui5_if_app.intf.abap:29`, `:34`. The state moved to
+      `z2ui5_cl_core_app=>mv_check_sticky` / `mv_check_initialized`; what is
+      left are mirrors `app_compat_mirror( )` keeps in sync for readers.
+      - Removing them is a rule-5 break like any other, but a cheap one: they
+        are `DATA`, not a signature, and the framework no longer reads them.
+      - Zero usages in samples, samples-controls and samples-stack. The
+        remaining in-repo readers are two assertions that exist to test the
+        mirror itself (`core_handler` / `core_app` test classes) — delete them
+        with the attributes.
+      - Cut them together with the `_bind_edit` batch so downstream apps get
+        one breaking release, not two.
+
+> **Not obsolete, do not remove:** `id_draft` and `id_app` of `z2ui5_if_app`
+> look like the two above and are not. `id_draft` is the handle
+> `z2ui5_cl_core_app=>db_load_by_app( )` resolves an app reference by
+> (`read_draft( app->id_draft )`), and both are written at moments when no
+> wrapper exists yet — an app handed to `nav_app_call( )`, a draft looked up
+> before it is parsed. They are public only because an ABAP interface has no
+> protected section. The reasoning sits at the declaration.
+
 > **Not obsolete, do not remove:** `cs_event-z2ui5` is the supported entry point
 > for app-registered JavaScript (`js_loader`) and currently sits in the
 > "legacy event names" block. Move it up to the active actions instead.

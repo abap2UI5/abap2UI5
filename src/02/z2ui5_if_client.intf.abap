@@ -455,8 +455,12 @@ INTERFACE z2ui5_if_client
   "! FORMATTING-setCustomCurrencies registers currency codes the standard
   "! sap.ui.model.type.Currency does not know, or overrides their digit count
   "! (sap.ui.core.Formatting, needs UI5 &gt;= 1.120):
-  "! t_arg = JSON object, e.g. \{"BGN4":\{"digits":4\}\}. addCustomCurrency
-  "! adds a single one: t_arg = code, JSON object.
+  "! t_arg = JSON object, e.g. \{"BGN4":\{"digits":4\}\}. It REPLACES the whole
+  "! registration - addCustomCurrency ADDS a single code to it instead
+  "! (t_arg = code, JSON object). Reaching for the wrong one is silent: an
+  "! app that registers currencies as it loads more data and calls
+  "! setCustomCurrencies drops what it registered before, and the symptom is
+  "! a wrong digit count in a table, never an error.
   "! cs_event-smart_variant_init - run the initialise( ) handshake sap.ui.comp
   "! variant management needs (a controller would call
   "! oSmartVariantManagement.initialise( fnCallback, oPersonalizableControl )).

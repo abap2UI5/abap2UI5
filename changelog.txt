@@ -12,6 +12,20 @@ Legend
 
 unreleased
 ----------
+! check_sticky and check_initialized moved off z2ui5_if_app into the
+  framework's own app wrapper (z2ui5_cl_core_app=>mv_check_sticky /
+  mv_check_initialized), where mv_nav_mode and ms_session already live. They
+  are framework bookkeeping, not something an app implements, and every
+  reader already held that wrapper - the http handler even reached through
+  it to CAST the app back out. Both interface attributes stay and are kept in
+  sync by z2ui5_cl_core_app=>app_compat_mirror( ), so an app that READS them
+  still sees the truth; a direct WRITE is no longer honored -
+  client->set_session_stateful( ) switches sticky on and
+  client->check_on_init( ) answers the lifecycle question. id_draft and
+  id_app stay on the interface and are NOT obsolete: id_draft is the handle
+  db_load_by_app( ) resolves an app reference by, and both are needed at
+  moments when no wrapper exists yet - the interface now says so at the
+  declaration
 - BREAKING: removed cs_event-nav_to_route from z2ui5_if_client, together with
   its frontend handler and Router.navToApp( ). It navigated to another app by
   writing the hash and letting the router's hashChanged handler start the
