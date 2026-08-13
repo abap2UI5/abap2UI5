@@ -569,9 +569,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     " the system facts stand at the end of the start page rather than in a
     " dialog: they are read, not operated. Collapsed, so they cost nothing on
     " the way in and are one click - not a popup - away. The one part that is
-    " not free is the draft count at the bottom: an owner-scoped COUNT( * )
-    " that now runs per render instead of per dialog open, which this page can
-    " afford - it renders on start and on the Check / Edit events, nowhere else
+    " not free is the draft count at the bottom: two COUNT( * ) - the own rows
+    " and the whole table, which together say whether cleanup( ) is keeping up
+    " - and they now run per render instead of per dialog open, which this page
+    " can afford: it renders on start and on the Check / Edit events, nowhere
+    " else
     DATA(panel) = page->open( `Panel`
         )->a( n = `headerText`
               v = `System Information`
@@ -616,9 +618,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     render_text( form  = form
                  label = `Version`
                  text  = z2ui5_if_app=>version ).
+    DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
     render_text( form  = form
-                 label = `Draft Entries (own)`
-                 text  = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
+                 label = `Draft Entries (own/total)`
+                 text  = |{ lo_draft->count_entries( ) } / { lo_draft->count_entries_total( ) }| ).
 
   ENDMETHOD.
 

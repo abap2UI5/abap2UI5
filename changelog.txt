@@ -21,7 +21,9 @@ unreleased
   to GitHub - marked "not installed" - when it is not; the "Keep learning"
   section is gone, its links live in the strip and in the header; and the
   system information the System dialog used to show is a collapsed panel at
-  the end of the page, one click instead of a popup
+  the end of the page, one click instead of a popup - with the draft entries
+  now given as own/total (z2ui5_cl_core_srv_draft=>count_entries_total( )),
+  which is what says whether the cleanup is keeping up on this system
 - BREAKING: removed render_documentation( ) and render_system_popup( ) from
   z2ui5_cl_app_startup, together with cs_event-open_info and cs_event-close.
   They rendered the deleted "Keep learning" section and the System dialog the

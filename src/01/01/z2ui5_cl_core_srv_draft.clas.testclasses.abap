@@ -9,6 +9,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_buffer           FOR TESTING.
     METHODS test_overwrite        FOR TESTING.
     METHODS test_owner_binding    FOR TESTING.
+    METHODS test_count_total      FOR TESTING.
 
   PROTECTED SECTION.
 
@@ -166,6 +167,42 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( lv_raised ).
 
     cl_abap_unit_assert=>assert_false( lo_draft->check_exists( `TEST_OWNER` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_count_total.
+
+    " count_entries_total( ) counts the table, count_entries( ) counts the
+    " current user's share of it - a row owned by somebody else must move
+    " exactly one of the two. The start page shows them as own/total
+    DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
+    DATA ls_db TYPE z2ui5_t_01.
+    DATA lv_own TYPE i.
+    DATA lv_total TYPE i.
+    DATA lv_total_exp TYPE i.
+
+    " start from a known state, so a second run of the test counts the same
+    DELETE FROM z2ui5_t_01 WHERE id = `TEST_COUNT_FOREIGN` ##SUBRC_OK.
+    COMMIT WORK.
+
+    lo_draft = NEW #( ).
+    lv_own   = lo_draft->count_entries( ).
+    lv_total = lo_draft->count_entries_total( ).
+
+    ls_db-id    = `TEST_COUNT_FOREIGN`.
+    ls_db-uname = |{ sy-uname }_OTHER_COUNT|.
+    ls_db-data  = `foreign row`.
+    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    COMMIT WORK.
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_own
+                                        act = lo_draft->count_entries( )
+                                        msg = `a row of another user must not raise the own count` ).
+
+    lv_total_exp = lv_total + 1.
+    cl_abap_unit_assert=>assert_equals( exp = lv_total_exp
+                                        act = lo_draft->count_entries_total( )
+                                        msg = `the total count must include every owner` ).
 
   ENDMETHOD.
 
