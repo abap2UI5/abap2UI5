@@ -140,7 +140,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
   METHOD test_init_displays_popup.
 
     " any object without a GET method works - the HTML extraction is guarded
-    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( i_output = NEW z2ui5_cx_ui5_error( `x` )
+    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( i_output = NEW z2ui5_cx_ui5_util_error( `x` )
                                                       i_title  = `Demo Title` ).
     client_create( lo_pop ).
 
@@ -152,7 +152,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_toggle_fullscreen.
 
-    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( NEW z2ui5_cx_ui5_error( `x` ) ).
+    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( NEW z2ui5_cx_ui5_util_error( `x` ) ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `TOGGLE_FULLSCREEN` ).
 
@@ -167,7 +167,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_confirm_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( NEW z2ui5_cx_ui5_error( `x` ) ).
+    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( NEW z2ui5_cx_ui5_util_error( `x` ) ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONFIRM` ).
 

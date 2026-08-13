@@ -116,7 +116,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
-    " (see z2ui5_cx_ui5_error=>get_text_full). Only reached when the exit
+    " (see z2ui5_cx_ui5_util_error=>get_text_full). Only reached when the exit
     " did not ask for hidden error details.
     CLASS-METHODS _error_body
       IMPORTING
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       result = factory_cloud( req = req
                               res = res ).
     ELSE.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
           val = `EMPTY_HTTP_HANDLER_CALL_ERROR`.
     ENDIF.
@@ -511,7 +511,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     result = |abap2UI5 { z2ui5_if_app=>version } - unhandled exception in a { method } request| &&
-             lv_nl && lv_nl && z2ui5_cx_ui5_error=>get_text_full( val ).
+             lv_nl && lv_nl && z2ui5_cx_ui5_util_error=>get_text_full( val ).
 
   ENDMETHOD.
 

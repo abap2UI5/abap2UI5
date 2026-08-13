@@ -1127,7 +1127,7 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
     TRY.
         lo_model->main_json_stringify( ).
         cl_abap_unit_assert=>fail( `an unparseable json bind must raise` ).
-      CATCH z2ui5_cx_ui5_error ##NO_HANDLER.
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
 

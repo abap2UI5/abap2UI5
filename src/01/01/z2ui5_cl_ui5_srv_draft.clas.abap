@@ -71,7 +71,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
   METHOD create.
 
     IF draft-id IS INITIAL.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `Internal error - cannot persist a draft without an id`.
     ENDIF.
 
@@ -85,7 +85,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
     MODIFY z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
     ENDIF.
     COMMIT WORK AND WAIT.
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     ENDIF.
 
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 
@@ -123,7 +123,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " Legacy rows written before the UNAME column existed carry a blank owner
     " and stay readable during the upgrade transition (they expire in hours).
     IF result-uname IS NOT INITIAL AND result-uname <> sy-uname.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 

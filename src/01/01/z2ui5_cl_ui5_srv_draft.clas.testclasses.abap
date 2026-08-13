@@ -160,7 +160,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_raised TYPE abap_bool.
     TRY.
         lo_draft->read_draft( `TEST_OWNER` ).
-      CATCH z2ui5_cx_ui5_error.
+      CATCH z2ui5_cx_ui5_util_error.
         lv_raised = abap_true.
     ENDTRY.
 

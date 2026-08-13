@@ -122,7 +122,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         " markup/script into the response body.
         DATA(lv_app_name) = mo_http_post->ms_request-s_control-app_start.
         REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH `` ##REGEX_POSIX.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val      = |The app '{ lv_app_name }' does not exist in the system.|
             previous = x.

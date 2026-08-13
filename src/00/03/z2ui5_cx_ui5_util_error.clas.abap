@@ -1,4 +1,4 @@
-CLASS z2ui5_cx_ui5_error DEFINITION
+CLASS z2ui5_cx_ui5_util_error DEFINITION
   PUBLIC
   INHERITING FROM cx_no_check FINAL
   CREATE PUBLIC.
@@ -75,7 +75,7 @@ CLASS z2ui5_cx_ui5_error DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cx_ui5_error IMPLEMENTATION.
+CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
 
     DATA lo_root TYPE REF TO cx_root.
@@ -126,7 +126,7 @@ CLASS z2ui5_cx_ui5_error IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        result = CAST z2ui5_cx_ui5_error( val )->get_text_own( ).
+        result = CAST z2ui5_cx_ui5_util_error( val )->get_text_own( ).
       CATCH cx_sy_move_cast_error.
         result = val->get_text( ).
     ENDTRY.
@@ -225,7 +225,7 @@ CLASS z2ui5_cx_ui5_error IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(lx_own) = CAST z2ui5_cx_ui5_error( val ).
+        DATA(lx_own) = CAST z2ui5_cx_ui5_util_error( val ).
         result = result && lv_nl && |    id       : { lx_own->ms_error-uuid }|.
       CATCH cx_sy_move_cast_error ##NO_HANDLER.
     ENDTRY.

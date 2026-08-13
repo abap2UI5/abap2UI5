@@ -164,12 +164,12 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
 
     IF result IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `HTTP_CLIENT_CREATE_ERROR - check the destination/url configuration`.
     ENDIF.
 
@@ -225,7 +225,7 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
           CALL METHOD lo_client->(`CLOSE`)
             EXCEPTIONS
               OTHERS = 1.
-          RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
             EXPORTING val = |HTTP_COMMUNICATION_ERROR - { lv_message }|.
         ENDIF.
 
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
             OTHERS = 1.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
 

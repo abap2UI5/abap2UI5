@@ -226,7 +226,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD nav_app_set_id.
 
     IF app IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
           val = `NAV_APP_TARGET_NOT_BOUND - the app passed to nav_app_call/nav_app_leave is not bound`.
     ENDIF.

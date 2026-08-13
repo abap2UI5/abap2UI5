@@ -198,7 +198,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
                                          view  = view
                                          t_arg = t_arg )->stringify( ).
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_error).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = lx_error.
     ENDTRY.
@@ -262,7 +262,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
         result = li_json.
       CATCH cx_root INTO DATA(lx_error).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = lx_error.
     ENDTRY.

@@ -188,7 +188,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -502,7 +502,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                          ELSE |\{"S_FRONT":{ lv_frontend },"MODEL":{ val-model }\}| ).
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -532,7 +532,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
             lv_context = request_context_info( ).
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val      = lv_context
             previous = x.
@@ -602,7 +602,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       ENDIF.
       lv_dispatch_count = lv_dispatch_count + 1.
       IF lv_dispatch_count >= mv_dispatch_limit.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |Dispatch limit of { mv_dispatch_limit } app navigations in one request reached - check for an endless nav_app_call/nav_app_leave loop in main( )|.
       ENDIF.

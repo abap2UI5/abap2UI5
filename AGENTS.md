@@ -117,7 +117,7 @@ src/
 └── 99/   FROZEN legacy code. Legacy XML view builder (z2ui5_cl_xml_view / _cc, superseded by z2ui5_cl_ai_xml in src/02/) + retired z2ui5_cl_util* classes (99/01) and popups (99/02). No in-repo consumers of the production code; ships only for existing downstream installations. Its test classes are the exception: they run in CI and guard the layer
 ```
 
-- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_ui5_context`, `z2ui5_cl_ui5_http`, `z2ui5_cl_ui5_json_fltr`, `z2ui5_cx_ui5_error`), all but `_json_fltr` vendored from abap-util (see "Utilities"). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
+- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_ui5_context`, `z2ui5_cl_ui5_http`, `z2ui5_cl_ui5_json_fltr`, `z2ui5_cx_ui5_util_error`), all but `_json_fltr` vendored from abap-util (see "Utilities"). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit). Those carry the `z2ui5_cl_ui5f_*` prefix (UI5 **f**rontend); the bare `z2ui5_cl_ui5_*` segment covers everything else the framework owns — hand-written ABAP-side helpers (`z2ui5_cl_ui5_view_builder`), the engine (`z2ui5_cl_ui5_handler`), and the shipped apps (`z2ui5_cl_ui5_app_start`, `z2ui5_cl_ui5_app_hi_world`). No `z2ui5_cl_app_*` object exists any more; that segment used to mean both a generated frontend artefact and a real ABAP app, which is what made it worth retiring.
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework and the generic XML view builder `z2ui5_cl_ai_xml` (migrated from [samples-controls](https://github.com/abap2UI5/samples-controls), the successor of the frozen `z2ui5_cl_xml_view`).
 - **Package `src/99/` — frozen legacy code.** Its production code has **zero consumers** anywhere in this repository — no framework code, no app, no tooling references it. It ships solely so **existing downstream installations** keep compiling on upgrade. Its **test classes are live**, though: they lint and run in the transpiled unit suite (`npm run unit`), guarding the layer against regressions — which is why they, unlike the production code, may change (they assert against core internals such as `t_action_front` and follow them when those move):
@@ -151,7 +151,7 @@ src/
 |---|---|
 | `src/00/03/z2ui5_cl_ui5_context` | Vendored from `zabaputil_cl_util_context`, trimmed to the methods used here. **The one class to use and to extend** |
 | `src/00/03/z2ui5_cl_ui5_http` | Vendored from `zabaputil_cl_util_http`, copied as-is — leave it alone unless a fix is genuinely needed |
-| `src/00/03/z2ui5_cx_ui5_error` | Vendored from `zabaputil_cx_error`, copied as-is — same |
+| `src/00/03/z2ui5_cx_ui5_util_error` | Vendored from `zabaputil_cx_error`, copied as-is — same |
 | `src/00/03/z2ui5_cl_ui5_json_fltr` | Framework-owned, no abap-util master |
 | `src/99/01/z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` | **Legacy.** Superseded by the classes above. They must stay so downstream apps keep compiling, but must never be used, called from new code, or changed |
 
@@ -207,7 +207,7 @@ src/
 ├── 00/                        # Layer 0: Utilities
 │   ├── 01/                    #   AJSON — JSON serialization (mirrored, DO NOT MODIFY)
 │   ├── 02/                    #   S-RTTI — Runtime type information (mirrored, DO NOT MODIFY)
-│   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_ui5_context, _http, _json_fltr, z2ui5_cx_ui5_error) — vendored copies from abap-util (except _json_fltr)
+│   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_ui5_context, _http, _json_fltr, z2ui5_cx_ui5_util_error) — vendored copies from abap-util (except _json_fltr)
 ├── 01/                        # Layer 1: Core Engine
 │   ├── 01/                    #   Draft service (z2ui5_cl_ui5_srv_draft + z2ui5_t_01)
 │   ├── 02/                    #   Core classes (handler, client, action, action_front, app, srv_bind, srv_event, srv_model + z2ui5_if_ui5_types)
@@ -318,14 +318,14 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
     PRIVATE SECTION.
   ENDCLASS.
   ```
-- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_ui5_error`; use `##NO_HANDLER` when intentionally ignoring
+- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_ui5_util_error`; use `##NO_HANDLER` when intentionally ignoring
   ```abap
   CATCH cx_root INTO DATA(x).
-    RAISE EXCEPTION TYPE z2ui5_cx_ui5_error EXPORTING val = x.
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error EXPORTING val = x.
 
   CATCH cx_root ##NO_HANDLER.
   ```
-  The exception handed over as `val` is chained as `previous` automatically, so the whole cause chain survives up to the single top-level catch, which renders it into the 500 body via `z2ui5_cx_ui5_error=>get_text_full` (chain entries with class, source position, kernel id and exception attributes). **Never inline a cause into a message** (`val = |MY_ERROR: { x->get_text( ) }|`) — that flattens it to one line and drops everything below; pass the message as `val` and the cause as `previous`. Reasoning at `z2ui5_cx_ui5_error`.
+  The exception handed over as `val` is chained as `previous` automatically, so the whole cause chain survives up to the single top-level catch, which renders it into the 500 body via `z2ui5_cx_ui5_util_error=>get_text_full` (chain entries with class, source position, kernel id and exception attributes). **Never inline a cause into a message** (`val = |MY_ERROR: { x->get_text( ) }|`) — that flattens it to one line and drops everything below; pass the message as `val` and the cause as `previous`. Reasoning at `z2ui5_cx_ui5_util_error`.
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
 - **Utility access:** every system- and environment-specific call goes through `z2ui5_cl_ui5_context` — never directly to `cl_abap_*` or a function module. Full rules in "Utilities — the context class is the only door"
   ```abap

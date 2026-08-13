@@ -149,7 +149,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " that is not serializable and carries the source position of the
     " transformation that gave up; the retries fail for the same root cause
     " or a follow-up one
-    RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
         val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
                    |Please check if all generic data references are public attributes of your class|

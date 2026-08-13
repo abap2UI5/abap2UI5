@@ -226,7 +226,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                         iv_val  = opt ).
         ENDIF.
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |ACTION_BUILD_FAILED - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -334,7 +334,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                INTO TABLE mo_action->ms_next-t_action_front.
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -427,7 +427,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                       opt   = li_opt ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |NAV_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -500,7 +500,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                    opt   = li_opt ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |MESSAGE_TOAST_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
@@ -584,7 +584,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                    opt   = li_opt ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |MESSAGE_BOX_OPTIONS_INVALID - { lx_json->get_text( ) }|.
     ENDTRY.
