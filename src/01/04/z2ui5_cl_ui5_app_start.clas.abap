@@ -93,24 +93,9 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     METHODS render_docs_link
       IMPORTING form TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    " the line that closes the page: every way to join in as one icon, and the
-    " system information at its right end
-    METHODS render_link_bar
-      IMPORTING page TYPE REF TO z2ui5_cl_ui5_view_builder.
-
     " what this system runs on - a popup, because it answers a question that is
     " asked once and then not again
     METHODS render_system_popup.
-
-    " one entry of the closing line: icon and word, with the sentence behind
-    " both in the tooltip
-    METHODS render_bar_button
-      IMPORTING
-        bar     TYPE REF TO z2ui5_cl_ui5_view_builder
-        icon    TYPE string
-        text    TYPE string
-        tooltip TYPE string
-        press   TYPE string.
 
     " the section headline every render_* method opens with
     METHODS render_section
@@ -158,6 +143,9 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " the samples overview renders its header icons at this size; a stock
     " core:Icon is 1rem and looks undersized next to the page title
     CONSTANTS c_icon_size_header TYPE string VALUE `1.125rem`.
+
+    " the gap that sets the system icon apart from the outbound ones next to it
+    CONSTANTS c_spacer_width TYPE string VALUE `1.5rem`.
 
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
@@ -348,10 +336,6 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     render_whats_next( form ).
     render_docs_link( form ).
 
-    " the page's footer, so the line stays where the page ends no matter how
-    " far the content above it scrolls
-    render_link_bar( page ).
-
     client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
@@ -379,6 +363,19 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                    tooltip = `Configuration`
                    press   = client->_event( cs_event-set_config ) ).
     ENDIF.
+
+    " a spacer of its own before the last one: the three above lead OUT of the
+    " app - documentation, repository, configuration - while this one answers a
+    " question about the system you are on. The gap is what says they are not
+    " the same kind of entry
+    toolbar->tag( `ToolbarSpacer`
+        )->att( n = `width`
+              v   = c_spacer_width ).
+
+    header_icon( toolbar = toolbar
+                 icon    = `sap-icon://sys-monitor`
+                 tooltip = `System information - UI5 and ABAP release, user exit, drafts`
+                 press   = client->_event( c_event_system ) ).
 
   ENDMETHOD.
 
@@ -671,60 +668,6 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
               v   = descr
         )->att( n = `class`
               v   = `sapUiSmallMarginBegin` ).
-
-  ENDMETHOD.
-
-  METHOD render_link_bar.
-
-    " the Join in section as one line: four ways to take part, each one icon
-    " with its word, and the system information at the far right. It is the
-    " footer of the Page - an aggregation 1.71 has (rule 15) - so it needs no
-    " margins of its own: the footer bar brings its padding, and the line stays
-    " at the bottom of the page instead of scrolling away with the content
-    DATA(bar) = page->ele( `footer`
-        )->ele( `Toolbar` ).
-
-    render_bar_button( bar     = bar
-                       icon    = `sap-icon://discussion`
-                       text    = `Support`
-                       tooltip = `Meet the community in abapGit Slack and join the #abap2UI5 channel - questions welcome`
-                       press   = open_url( `https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg` ) ).
-
-    render_bar_button( bar     = bar
-                       icon    = `sap-icon://alert`
-                       text    = `Issues`
-                       tooltip = `Report a bug or request a feature - the abap2UI5 issues on GitHub`
-                       press   = open_url( `https://github.com/abap2UI5/abap2UI5/issues` ) ).
-
-    render_bar_button( bar     = bar
-                       icon    = `sap-icon://favorite`
-                       text    = `Sponsor`
-                       tooltip = `abap2UI5 is free and open source - and stays that way through its sponsors`
-                       press   = open_url( `https://abap2ui5.github.io/docs/resources/sponsor.html` ) ).
-
-    bar->tag( `ToolbarSpacer` ).
-
-    render_bar_button( bar     = bar
-                       icon    = `sap-icon://sys-monitor`
-                       text    = `System`
-                       tooltip = `System information - UI5 and ABAP release, user exit, drafts`
-                       press   = client->_event( c_event_system ) ).
-
-  ENDMETHOD.
-
-  METHOD render_bar_button.
-
-    bar->tag( `Button`
-        )->att( n = `icon`
-              v   = icon
-        )->att( n = `text`
-              v   = text
-        )->att( n = `type`
-              v   = `Transparent`
-        )->att( n = `tooltip`
-              v   = tooltip
-        )->att( n = `press`
-              v   = press ).
 
   ENDMETHOD.
 
