@@ -30,17 +30,16 @@ CLASS z2ui5_cl_ui5_app DEFINITION PUBLIC FINAL.
     " the app - and therefore in its draft - exactly like mv_nav_mode above,
     " so a restored draft knows whether its app already ran its init block and
     " whether the session is sticky.
-    " The two z2ui5_if_app attributes still exist and are kept in sync by
-    " app_compat_mirror( ) so an app that READS them sees the truth; a direct
-    " WRITE on them is no longer honored - client->set_session_stateful( ) is
-    " the way to switch sticky on.
+    " The z2ui5_if_app attributes they replaced are gone: an app asks
+    " client->check_on_init( ) whether this is the first render, and
+    " client->set_session_stateful( ) to switch sticky on.
     DATA mv_check_sticky      TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
 
-    "! Write the obsolete z2ui5_if_app attributes from the state above.
-    "! id_draft is NOT obsolete - it is the handle db_load_by_app( ) resolves
-    "! an app reference by - so it is refreshed here too.
-    METHODS app_compat_mirror.
+    "! Refresh z2ui5_if_app~id_draft on the wrapped app. Not a courtesy: it is
+    "! the handle db_load_by_app( ) resolves an app reference by, so it has to
+    "! follow ms_draft-id whenever that changes.
+    METHODS app_refresh_draft_id.
 
     METHODS model_json_stringify
       RETURNING
@@ -201,16 +200,13 @@ CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD app_compat_mirror.
+  METHOD app_refresh_draft_id.
 
     IF mo_app IS NOT BOUND.
       RETURN.
     ENDIF.
 
-    DATA(li_app) = CAST z2ui5_if_app( mo_app ).
-    li_app->id_draft          = ms_draft-id.
-    li_app->check_initialized = mv_check_initialized.
-    li_app->check_sticky      = mv_check_sticky.
+    CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
 
   ENDMETHOD.
 
@@ -218,7 +214,7 @@ CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
 
     IF mo_app IS BOUND.
       mv_check_initialized = abap_true.
-      app_compat_mirror( ).
+      app_refresh_draft_id( ).
     ENDIF.
 
     DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).

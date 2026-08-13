@@ -830,7 +830,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " sets it, and without it every event roundtrip of a sticky app reads
       " check_on_init( ) = true and re-runs its init block
       mo_action->mo_app->mv_check_initialized = abap_true.
-      mo_action->mo_app->app_compat_mirror( ).
     ENDIF.
 
   ENDMETHOD.

@@ -504,7 +504,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     ENDIF.
     mo_action->ms_next-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
     mo_action->mo_app->mv_check_sticky = val.
-    mo_action->mo_app->app_compat_mirror( ).
 
     mo_action->ms_next-s_stateful-switched = xsdbool( mo_action->ms_next-s_stateful-switched = abap_false ).
 

@@ -149,9 +149,15 @@ CLASS ltcl_test_db IMPLEMENTATION.
     lo_app->db_save( ).
 
 
-    temp3 ?= lo_app->mo_app.
+    " the lifecycle latch lives on the wrapper, not on z2ui5_if_app
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = temp3->check_initialized ).
+                                        act = lo_app->mv_check_initialized ).
+
+    " and db_save refreshes the draft handle on the app before serializing it,
+    " which is what db_load_by_app( ) resolves an app reference by
+    temp3 ?= lo_app->mo_app.
+    cl_abap_unit_assert=>assert_equals( exp = `TEST_COMPLEX`
+                                        act = temp3->id_draft ).
 
   ENDMETHOD.
 
