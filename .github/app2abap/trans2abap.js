@@ -13,7 +13,7 @@ const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DEVC>
-    <CTEXT>abap2UI5 - app (generated)</CTEXT>
+    <CTEXT>abap2UI5 - ui5 frontend (generated)</CTEXT>
    </DEVC>
   </asx:values>
  </asx:abap>
