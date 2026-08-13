@@ -11,7 +11,7 @@
   "z2ui5_cl_app_hello_world.clas.abap#data:name": "data name type string",
   "z2ui5_cl_app_startup.clas.abap#interfaces:z2ui5_if_app": "interfaces z2ui5_if_app",
   "z2ui5_cl_app_startup.clas.abap#class-methods:factory": "class-methods factory returning value(result) type ref to z2ui5_cl_app_startup",
-  "z2ui5_cl_app_startup.clas.abap#constants:cs_event": "constants begin of cs_event . constants button_check type string value `button_check` . constants button_change type string value `button_change` . constants open_debug type string value `open_debug` . constants set_config type string value `set_config` . constants end of cs_event",
+  "z2ui5_cl_app_startup.clas.abap#constants:cs_event": "constants begin of cs_event . constants button_check type string value `button_check` . constants button_change type string value `button_change` . constants set_config type string value `set_config` . constants end of cs_event",
   "z2ui5_cl_app_startup.clas.abap#data:client": "data client type ref to z2ui5_if_client",
   "z2ui5_cl_app_startup.clas.abap#data:ms_home": "data begin of ms_home . data url type string . data btn_text type string . data btn_event_id type string . data btn_icon type string . data classname type string . data class_value_state type string . data class_value_state_text type string . data class_editable type abap_bool value abap_true . data link_enabled type abap_bool . data end of ms_home",
   "z2ui5_cl_app_startup.clas.abap#methods:on_init": "methods on_init",

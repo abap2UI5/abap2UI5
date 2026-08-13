@@ -11,7 +11,6 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
       BEGIN OF cs_event,
         button_check  TYPE string VALUE `BUTTON_CHECK`,
         button_change TYPE string VALUE `BUTTON_CHANGE`,
-        open_debug    TYPE string VALUE `OPEN_DEBUG`,
         set_config    TYPE string VALUE `SET_CONFIG`,
       END OF cs_event.
 
@@ -114,14 +113,20 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     " the same place in every row - the alignment the samples app has
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
+    " the same for the icons in front of it: a fixed slot, so a row that shows
+    " a second icon there does not push its link out of the column
+    CONSTANTS c_icon_width TYPE string VALUE `3rem`.
+
     " the two icons the page names twice - once in the title row, once in the
     " Documentation section - so the header and the section cannot drift apart
     CONSTANTS c_icon_docs TYPE string VALUE `sap-icon://learning-assistant`.
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
-    " documentation row share. Returns the HBox, so the caller can append
-    " whatever else its own row has to say behind the link
+    " documentation row share. badge_icon puts a second, coloured icon next to
+    " the first one, which is how a row says something about itself before it
+    " is read. Returns the HBox, so the caller can append whatever else its own
+    " row has to say behind the link
     METHODS render_icon_row
       IMPORTING
         form          TYPE REF TO z2ui5_cl_ai_xml
@@ -130,6 +135,8 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         text          TYPE string
         href          TYPE string
         new_tab       TYPE abap_bool DEFAULT abap_false
+        badge_icon    TYPE string OPTIONAL
+        badge_tooltip TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ai_xml.
 
@@ -198,9 +205,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       WHEN cs_event-set_config.
         CREATE OBJECT li_app_config TYPE (`Z2UI5_CL_APP_ICF_CONFIG`).
         client->nav_app_call( li_app_config ).
-
-      WHEN cs_event-open_debug.
-        client->message_box_display( `Press CTRL+F12 to open the developer tools` ).
 
       WHEN cs_event-button_check.
         on_event_check( ).
@@ -297,7 +301,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD render_header_toolbar.
 
     " icons only, the way the samples app carries them - the title row is not
-    " the place for four labels, and what each one does is in its tooltip
+    " the place for labels, and what each one does is in its tooltip
     DATA(toolbar) = page->open( `headerContent` ).
     toolbar->leaf( `ToolbarSpacer`
       )->leaf( `Button`
@@ -313,14 +317,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `tooltip`
                 v = `The abap2UI5 repository on GitHub - source code, issues, releases and the abapGit installation`
           )->a( n = `press`
-                v = open_url( `https://github.com/abap2UI5/abap2UI5` )
-      )->leaf( `Button`
-          )->a( n = `icon`
-                v = `sap-icon://enablement`
-          )->a( n = `tooltip`
-                v = `Developer Tools`
-          )->a( n = `press`
-                v = client->_event( cs_event-open_debug ) ).
+                v = open_url( `https://github.com/abap2UI5/abap2UI5` ) ).
 
     IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->leaf( `Button`
@@ -343,6 +340,18 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                     title = `Documentation` ).
 
     render_icon_row( form    = form
+                     label   = `GitHub`
+                     icon    = c_icon_repo
+                     text    = `abap2UI5`
+                     href    = `https://github.com/abap2UI5/abap2UI5`
+                     new_tab = abap_true
+      )->leaf( `Text`
+          )->a( n = `text`
+                v = `The repository itself - source code, issues, releases, and what abapGit installs from`
+          )->a( n = `class`
+                v = `sapUiSmallMarginBegin` ).
+
+    render_icon_row( form    = form
                      label   = `Docs`
                      icon    = c_icon_docs
                      text    = `abap2UI5.org`
@@ -351,18 +360,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       )->leaf( `Text`
           )->a( n = `text`
                 v = `Guides, tutorials and the API reference - from your first app to the full client API`
-          )->a( n = `class`
-                v = `sapUiSmallMarginBegin` ).
-
-    render_icon_row( form    = form
-                     label   = `GitHub`
-                     icon    = c_icon_repo
-                     text    = `abap2UI5/abap2UI5`
-                     href    = `https://github.com/abap2UI5/abap2UI5`
-                     new_tab = abap_true
-      )->leaf( `Text`
-          )->a( n = `text`
-                v = `The repository itself - source code, issues, releases, and what abapGit installs from`
           )->a( n = `class`
                 v = `sapUiSmallMarginBegin` ).
 
@@ -508,13 +505,33 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         )->a( n = `wrap`
               v = `Wrap` ).
 
-    result->leaf( n  = `Icon`
-                  ns = `core`
+    " the icons get a fixed slot of their own, so a badge cannot push the link
+    " of that one row out of the column the others keep
+    DATA(icons) = result->open( `HBox`
+        )->a( n = `alignItems`
+              v = `Center`
+        )->a( n = `width`
+              v = c_icon_width ).
+
+    icons->leaf( n  = `Icon`
+                 ns = `core`
         )->a( n = `src`
-              v = icon
-        )->a( n = `class`
-              v = `sapUiTinyMarginEnd`
-      )->leaf( `Link`
+              v = icon ).
+
+    IF badge_icon IS NOT INITIAL.
+      icons->leaf( n  = `Icon`
+                   ns = `core`
+          )->a( n = `src`
+                v = badge_icon
+          )->a( n = `color`
+                v = `Critical`
+          )->a( n = `tooltip`
+                v = badge_tooltip
+          )->a( n = `class`
+                v = `sapUiTinyMarginBegin` ).
+    ENDIF.
+
+    result->leaf( `Link`
         )->a( n = `text`
               v = text
         )->a( n = `href`
@@ -550,36 +567,29 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       lv_href = href.
     ENDIF.
 
-    DATA(row) = render_icon_row( form    = form
-                                 label   = label
-                                 icon    = icon
-                                 text    = name
-                                 href    = lv_href
-                                 new_tab = abap_true ).
-
-    " the description comes before the state, so it starts in the same column
-    " in all three rows - the marker would push it out of line otherwise
-    row->leaf( `Text`
-        )->a( n = `text`
-              v = descr
-        )->a( n = `class`
-              v = `sapUiSmallMarginBegin` ).
-
-    " not installed: say so in the row, so it is readable without following the
-    " link - that one leads to GitHub then, not into an app
+    " not installed: a second icon next to the repository's own, so the row
+    " says where its link goes before it is followed - to GitHub, not into an
+    " app. The tooltip carries the sentence the icon stands for
+    DATA lv_badge         TYPE string.
+    DATA lv_badge_tooltip TYPE string.
     IF lv_class IS INITIAL.
-      row->leaf( `ObjectStatus`
+      lv_badge         = `sap-icon://download`.
+      lv_badge_tooltip = `Not installed on this system - the link opens the repository on GitHub, ready to pull with abapGit`.
+    ENDIF.
+
+    render_icon_row( form          = form
+                     label         = label
+                     icon          = icon
+                     text          = name
+                     href          = lv_href
+                     new_tab       = abap_true
+                     badge_icon    = lv_badge
+                     badge_tooltip = lv_badge_tooltip
+      )->leaf( `Text`
           )->a( n = `text`
-                v = `not installed`
-          )->a( n = `state`
-                v = `Warning`
-          )->a( n = `icon`
-                v = `sap-icon://download`
-          )->a( n = `tooltip`
-                v = `Not on this system yet - the link opens the repository on GitHub, ready to pull with abapGit`
+                v = descr
           )->a( n = `class`
                 v = `sapUiSmallMarginBegin` ).
-    ENDIF.
 
   ENDMETHOD.
 
