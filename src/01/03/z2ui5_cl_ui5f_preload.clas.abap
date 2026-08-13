@@ -113,11 +113,11 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     " char constants come from the context class - the one place allowed to
     " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
     result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
+                      sub  = z2ui5_cl_ui5_context=>cv_char_util_cr_lf(1)
                       with = `\r`
                       occ  = 0 ).
     result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_newline
+                      sub  = z2ui5_cl_ui5_context=>cv_char_util_newline
                       with = `\n`
                       occ  = 0 ).
 

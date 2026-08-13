@@ -97,8 +97,8 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD all_xml_parse.
 
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml   = xml
-                                       IMPORTING any = result ).
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = xml
+                                       IMPORTING any    = result ).
 
   ENDMETHOD.
 

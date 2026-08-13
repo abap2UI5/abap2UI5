@@ -322,8 +322,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ENDIF.
 
     result = z2ui5_cl_ui5_util_context=>c_trim_upper(
-        z2ui5_cl_ui5_util_context=>url_param_get( val   = `app_start`
-                                               url = iv_search ) ).
+        z2ui5_cl_ui5_util_context=>url_param_get( val = `app_start`
+                                               url    = iv_search ) ).
   ENDMETHOD.
 
   METHOD hash_get_app_part.
@@ -372,8 +372,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         " stack); url_param_get matches parameter names verbatim
         SHIFT lv_hash LEFT DELETING LEADING `/`.
         result = z2ui5_cl_ui5_util_context=>c_trim_upper(
-            z2ui5_cl_ui5_util_context=>url_param_get( val   = `z2ui5-xapp-state`
-                                                   url = lv_hash ) ).
+            z2ui5_cl_ui5_util_context=>url_param_get( val = `z2ui5-xapp-state`
+                                                   url    = lv_hash ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
