@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
 
@@ -10,14 +10,14 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
 
     METHODS constructor
       IMPORTING
-        attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
+        attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri
         app   TYPE REF TO object.
 
     METHODS main_attri_search
       IMPORTING
         val           TYPE REF TO data
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     METHODS main_attri_db_save_srtti.
     METHODS main_attri_db_load.
@@ -25,11 +25,11 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
 
     METHODS main_attri_db_load_table
       IMPORTING
-        ir_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+        ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     METHODS main_attri_db_load_dref
       IMPORTING
-        ir_attri     TYPE REF TO z2ui5_if_core_types=>ty_s_attri
+        ir_attri     TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
         ir_child_idx TYPE REF TO ty_t_child_idx.
     METHODS main_attri_refresh.
 
@@ -43,13 +43,13 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
 
     CONSTANTS max_dissolve_depth TYPE i VALUE 5.
 
-    DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
+    DATA mt_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
     METHODS attri_update_entry_refs.
     METHODS attri_update_refs_children
       IMPORTING
-        ir_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+        ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     METHODS attri_get_val_ref
       IMPORTING
@@ -61,34 +61,34 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
       IMPORTING
         val           TYPE REF TO data
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     METHODS dissolve.
     METHODS dissolve_run.
 
     METHODS diss_struc
       IMPORTING
-        ir_attri      TYPE REF TO z2ui5_if_core_types=>ty_s_attri
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_attri.
 
     METHODS diss_dref
       IMPORTING
-        ir_attri      TYPE REF TO z2ui5_if_core_types=>ty_s_attri
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_attri.
 
     METHODS diss_oref
       IMPORTING
-        ir_attri      TYPE REF TO z2ui5_if_core_types=>ty_s_attri
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_attri.
 
     METHODS attri_create_new
       IMPORTING
         name          TYPE string
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_attri.
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_attri.
 
     METHODS delta_apply_to_table
       IMPORTING
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
@@ -525,7 +525,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD attri_create_new.
 
     DATA(lo_descr) = z2ui5_cl_a2ui5_context=>rtti_get_typedescr_by_data_ref( attri_get_val_ref( name ) ).
-    result = VALUE z2ui5_if_core_types=>ty_s_attri( name        = name
+    result = VALUE z2ui5_if_ui5_types=>ty_s_attri( name         = name
                                                     o_typedescr = lo_descr
                                                     type_kind   = lo_descr->type_kind
                                                     kind        = lo_descr->kind ).
@@ -545,7 +545,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
+    DATA(ls_attri2) = VALUE z2ui5_if_ui5_types=>ty_s_attri( ).
     ls_attri2-o_typedescr = z2ui5_cl_a2ui5_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
 
     CASE ls_attri2-o_typedescr->kind.
@@ -655,7 +655,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     " Declared once at method level: both CASE branches below fill and read
     " these, so an inline DATA(...) in only the first branch would read as if
     " they belonged to that branch alone.
-    DATA lr_attri_ref     TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+    DATA lr_attri_ref     TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA lr_attri_ref_ref TYPE REF TO data.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
@@ -740,12 +740,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD dissolve_run.
 
     IF mt_attri->* IS INITIAL.
-      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
+      DATA(ls_attri) = VALUE z2ui5_if_ui5_types=>ty_s_attri( ).
       DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
       INSERT LINES OF lt_init INTO TABLE mt_attri->*.
     ENDIF.
 
-    DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+    DATA(lt_attri_new) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_false.

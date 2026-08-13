@@ -340,7 +340,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          // otherwise float on top of a page they no longer belong to - a` && |\n| &&
              `          // dialog of the previous screen over the new one. The backend` && |\n| &&
              `          // relies on this and sends no destroy action for them next to a` && |\n| &&
-             `          // MAIN display (z2ui5_cl_core_act_front=>slots_serialize). A` && |\n| &&
+             `          // MAIN display (z2ui5_cl_ui5_act_front=>slots_serialize). A` && |\n| &&
              `          // popup/popover the SAME response opens still opens: slot actions` && |\n| &&
              `          // are serialized MAIN first, and each one is awaited before the` && |\n| &&
              `          // next runs (View1._runSystemActions).` && |\n| &&

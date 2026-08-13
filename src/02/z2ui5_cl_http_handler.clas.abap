@@ -1,6 +1,23 @@
 CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
 
   PUBLIC SECTION.
+    " The HTTP response this handler hands back to the ICF/cloud stack. It is
+    " declared HERE, on the public boundary, and not taken from a core
+    " interface: the core types are Layer 1 internals and must not appear in a
+    " public signature, or renaming an internal would break the contract of
+    " src/02. The core carries its own structurally identical type; the two
+    " meet once, in _http_post( ), via MOVE-CORRESPONDING.
+    TYPES:
+      BEGIN OF ty_s_http_res,
+        body          TYPE string,
+        status_code   TYPE i,
+        status_reason TYPE string,
+        BEGIN OF s_stateful,
+          active   TYPE i,
+          switched TYPE abap_bool,
+        END OF s_stateful,
+      END OF ty_s_http_res.
+
     CLASS-METHODS run
       IMPORTING
         server TYPE REF TO object                    OPTIONAL
@@ -28,11 +45,11 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
       IMPORTING
         is_req        TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
+        VALUE(result) TYPE ty_s_http_res.
 
     CLASS-METHODS _http_get
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
+        VALUE(result) TYPE ty_s_http_res.
 
     METHODS main.
 
@@ -40,7 +57,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
       IMPORTING
         is_req        TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
+        VALUE(result) TYPE ty_s_http_res.
 
     CLASS-METHODS get_request
       IMPORTING
@@ -68,11 +85,11 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
         VALUE(result) TYPE abap_bool.
 
   PROTECTED SECTION.
-    CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_handler.
+    CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
     DATA mo_server TYPE REF TO z2ui5_cl_a2ui5_http.
     DATA ms_req    TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
-    DATA ms_res    TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ms_res    TYPE ty_s_http_res.
 
     " the raw if_http_response of the ON-PREM ICF stack, captured dynamically
     " in factory( ) - only that stack carries the set_compression( ) hook
@@ -409,13 +426,17 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     " Only the sticky-handler bookkeeping at the end has its own catch, which
     " must never turn an already successful response into a 500
     IF so_sticky_handler IS NOT BOUND.
-      DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
+      DATA(lo_post) = NEW z2ui5_cl_ui5_handler( is_req-body ).
     ELSE.
       lo_post = so_sticky_handler.
       lo_post->mv_request_json = is_req-body.
     ENDIF.
 
-    result = lo_post->main( ).
+    " the only place the core's own response type meets the public one. Both
+    " are structurally identical, so MOVE-CORRESPONDING carries every field
+    " including s_stateful - and the public signature stays free of a Layer 1
+    " type (see ty_s_http_res above).
+    MOVE-CORRESPONDING lo_post->main( ) TO result.
 
     TRY.
         DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).

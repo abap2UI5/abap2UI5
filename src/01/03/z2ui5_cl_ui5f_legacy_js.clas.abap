@@ -47,7 +47,7 @@ CLASS z2ui5_cl_ui5f_legacy_js IMPLEMENTATION.
              `  const CH_DQUOTE = '"';` && |\n| &&
              `` && |\n| &&
              `  // Undo the escapes the backend applies to a single-quoted argument` && |\n| &&
-             `  // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the` && |\n| &&
+             `  // (z2ui5_cl_ui5_srv_event=>escape_js_string): backslash, quote AND the` && |\n| &&
              `  // line breaks it rewrites to \n / \r - a raw newline would be a syntax` && |\n| &&
              `  // error inside a JS string literal, so a multi-line argument only ever` && |\n| &&
              `  // travels escaped. Decoding them in one pass keeps the order right: a` && |\n| &&

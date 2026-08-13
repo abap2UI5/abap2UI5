@@ -1,17 +1,17 @@
-CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_client DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_client.
 
-    DATA mo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
 
     METHODS constructor
       IMPORTING
-        action TYPE REF TO z2ui5_cl_core_action.
+        action TYPE REF TO z2ui5_cl_ui5_action.
 
-    DATA mo_srv_bind  TYPE REF TO z2ui5_cl_core_srv_bind.
-    DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
-    DATA mo_action_front   TYPE REF TO z2ui5_cl_core_act_front.
+    DATA mo_srv_bind  TYPE REF TO z2ui5_cl_ui5_srv_bind.
+    DATA mo_srv_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA mo_action_front   TYPE REF TO z2ui5_cl_ui5_act_front.
 
     METHODS nav_app_set_id
       IMPORTING
@@ -29,7 +29,7 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_client IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     CASE val.
       WHEN z2ui5_if_client=>cs_event-set_nav_routing.
-        " the mode is remembered on the app ( z2ui5_cl_core_app=>mv_nav_mode )
+        " the mode is remembered on the app ( z2ui5_cl_ui5_app=>mv_nav_mode )
         " and re-sent when the frontend may not still hold it - main_end gates
         " the re-send on the nav_mode_sent latch; an app called via
         " nav_app_call inherits it, and a draft restored later still knows how
@@ -174,7 +174,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app.
 
     IF id IS NOT INITIAL.
-      DATA(lo_app) = z2ui5_cl_core_app=>db_load( id ).
+      DATA(lo_app) = z2ui5_cl_ui5_app=>db_load( id ).
       result = CAST #( lo_app->mo_app ).
     ELSE.
       result = get_if_app( ).
@@ -387,7 +387,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     " deliberately EMPTY - the handler queues the model push itself: on
     " every view roundtrip, and otherwise whenever main( ) changed the model
-    " (z2ui5_cl_core_handler=>main_end). The push names no slot; every open
+    " (z2ui5_cl_ui5_handler=>main_end). The push names no slot; every open
     " model-owning slot picks it up. The method stays in the interface so
     " existing apps keep compiling and their calls keep being harmless
 
@@ -399,7 +399,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     DATA(li_filter) = custom_filter.
 
     " omit_initial wires ajson's empty filter into the slot the serializer
-    " already evaluates (z2ui5_cl_core_srv_model->main_json_stringify), so an
+    " already evaluates (z2ui5_cl_ui5_srv_model->main_json_stringify), so an
     " initial field stays ABSENT from the model and the control keeps its own
     " default. A caller-supplied filter is kept: both have to pass.
     IF omit_initial = abap_true OR omit_initial_paths IS NOT INITIAL.
@@ -545,7 +545,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_nav_app_leave.
 
-    result = z2ui5_if_client~_event( z2ui5_if_core_types=>cs_event_nav_app_leave ).
+    result = z2ui5_if_client~_event( z2ui5_if_ui5_types=>cs_event_nav_app_leave ).
 
   ENDMETHOD.
 

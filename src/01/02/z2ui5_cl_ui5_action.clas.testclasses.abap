@@ -40,14 +40,14 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
-CLASS z2ui5_cl_core_action DEFINITION LOCAL FRIENDS ltcl_test.
+CLASS z2ui5_cl_ui5_action DEFINITION LOCAL FRIENDS ltcl_test.
 
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_instantiation.
 
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     lo_http = NEW #( val = `` ).
 
     lo_action = NEW #( val = lo_http ).
@@ -59,9 +59,9 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_system_startup.
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lo_http = NEW #( val = `` ).
 
@@ -80,9 +80,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_first_start.
     DATA lv_payload TYPE string.
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
 
@@ -104,9 +104,9 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_first_start_draft_gone.
 
     DATA lv_payload TYPE string.
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
 
@@ -134,8 +134,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_first_start_error.
 
     DATA lv_payload TYPE string.
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
     DATA temp1 TYPE xsdboolean.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=NONEXISTENT_CLASS"}}}`.
@@ -160,9 +160,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_by_frontend.
     DATA lv_payload TYPE string.
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
@@ -191,11 +191,11 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_stack_call.
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_new_app TYPE REF TO ltcl_test_app.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_chained TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_chained TYPE REF TO z2ui5_cl_ui5_action.
 
     lo_http = NEW #( val = `` ).
 
@@ -261,10 +261,10 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_nav_mode_inherited.
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_called TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_own TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_called TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_own TYPE REF TO z2ui5_cl_ui5_action.
 
     " an app enables routing once ( check_on_init ); every app it navigates to
     " inherits the mode, so a whole app stack is routed after a single opt-in
@@ -296,9 +296,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_stack_call_cross_class.
 
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lo_http = NEW #( val = `` ).
     lo_action = NEW #( val = lo_http ).
@@ -311,9 +311,9 @@ CLASS ltcl_test IMPLEMENTATION.
     " teardown is queued (the frontend sees the class switch and tears the
     " standalone slots down implicitly)
     lo_action->ms_next-t_action_front = VALUE #(
-        ( slot = z2ui5_if_client=>cs_view-main method = z2ui5_if_core_types=>cs_slot_action-destroy )
+        ( slot = z2ui5_if_client=>cs_view-main method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
         ( slot   = z2ui5_if_client=>cs_view-nested
-          method = z2ui5_if_core_types=>cs_slot_action-display
+          method = z2ui5_if_ui5_types=>cs_slot_action-display
           xml    = `<Nest/>` ) ).
     lo_action->ms_next-o_app_call = NEW ltcl_test_app2( ).
 
@@ -332,10 +332,10 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_stack_leave.
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_prev_app TYPE REF TO ltcl_test_app.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lo_http = NEW #( val = `` ).
 
@@ -373,9 +373,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_stack_leave_cross_class.
 
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lo_http = NEW #( val = `` ).
 
@@ -386,7 +386,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " back-navigation to a DIFFERENT class - the response names another app,
     " so the frontend tears the standalone slots down by itself (View1) and
     " nothing about them travels. The back-navigation event does not queue a
-    " teardown of its own either (z2ui5_cl_core_handler=>main_process): every
+    " teardown of its own either (z2ui5_cl_ui5_handler=>main_process): every
     " app switch ends up here, and this is the only place that knows whether
     " the frontend can see it
     lo_action->ms_next-o_app_leave = NEW ltcl_test_app2( ).
@@ -399,9 +399,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_stack_leave_fresh_target.
 
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lo_http = NEW #( val = `` ).
 
@@ -427,12 +427,12 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_stack_leave_ancestor_gone.
 
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_target TYPE REF TO ltcl_test_app.
-    DATA lo_target_core TYPE REF TO z2ui5_cl_core_app.
-    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
-    DATA lo_pop TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_target_core TYPE REF TO z2ui5_cl_ui5_app.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_pop TYPE REF TO z2ui5_cl_ui5_action.
 
     " persist the leave target, so the fresh-target takeover is NOT taken
     " and the stack-pop path runs
@@ -460,7 +460,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " counter-check: with the ancestor draft present the same leave pops one
     " level - the target's stack position becomes the ancestor's ancestor
-    NEW z2ui5_cl_core_srv_draft( )->create(
+    NEW z2ui5_cl_ui5_srv_draft( )->create(
         draft     = VALUE #( id                = `LEAVE_ANCESTOR_DRAFT`
                              id_prev_app_stack = `LEAVE_GRANDPARENT` )
         model_xml = `<dummy/>` ).

@@ -51,7 +51,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 - [ ] **`cs_event-nav_container_to`** and the `nest_` / `nest2_` / `popup_` /
       `popover_` variants — `z2ui5_if_client.intf.abap:97-101`.
       - Removing them also deletes the remap block in
-        `z2ui5_cl_core_srv_event=>map_client_event` (~20 lines) that rewrites
+        `z2ui5_cl_ui5_srv_event=>map_client_event` (~20 lines) that rewrites
         them onto `control_by_id` + method `to`.
       - Zero usages in samples and samples-controls (checked, incl. raw literals).
 - [ ] **`cs_event-image_editor_popup_close`** — `z2ui5_if_client.intf.abap:96`.
@@ -150,7 +150,7 @@ controls a public contract, so these break hand-written view XML. Regenerate
 Not part of any public contract; removable whenever.
 
 - [ ] **`follow_up_action( _event( ) )` snippet parsing** —
-      `z2ui5_cl_core_action.clas.abap:256-262`. A `SPLIT` on `.eB(['` that
+      `z2ui5_cl_ui5_action.clas.abap:256-262`. A `SPLIT` on `.eB(['` that
       reverse-engineers the next event out of a legacy JS string.
 - [x] **The dynamic slot loops** — `reset_view_update_flags` 20 → 10 lines,
       `check_view_update_needed` 43 → 22. Plain `CLEAR` / `IF` on the statically

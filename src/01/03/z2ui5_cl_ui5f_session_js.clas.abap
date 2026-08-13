@@ -33,7 +33,7 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `  // per page load (the UI5 build, the static device profile, the` && |\n| &&
              `  // launchpad's ComponentData) plus the two device fields that stay live.` && |\n| &&
              `  // The backend stores the full block with the draft` && |\n| &&
-             `  // (z2ui5_cl_core_handler=>session_merge), so every later roundtrip` && |\n| &&
+             `  // (z2ui5_cl_ui5_handler=>session_merge), so every later roundtrip` && |\n| &&
              `  // sends only the live fields - a few hundred bytes off every event.` && |\n| &&
              `  // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
@@ -144,7 +144,7 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `  // shaped request (no draft id - the backend parses ?app_start= from` && |\n| &&
              `  // SEARCH only there, and a route restore via Back/Forward is exactly` && |\n| &&
              `  // such a request) and on the page load's first roundtrip, so the backend` && |\n| &&
-             `  // can store it with the draft (z2ui5_cl_core_handler=>session_merge).` && |\n| &&
+             `  // can store it with the draft (z2ui5_cl_ui5_handler=>session_merge).` && |\n| &&
              `  // Event roundtrips omit it. The hash is NOT part of this: it carries the` && |\n| &&
              `  // live routing state and stays a per-request field (Server.roundtrip).` && |\n| &&
              `  let locationSent = false;` && |\n| &&

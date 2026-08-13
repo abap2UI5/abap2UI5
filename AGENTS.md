@@ -94,7 +94,7 @@ result-s_control-check_launchpad = xsdbool(
     OR result-s_front-pathname CS `test/flpSandbox` ).
 ```
 
-Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclasses.abap` (`test_parse_body_with_wrapper` / `test_parse_body_no_wrapper`).
+Both scenarios are covered by unit tests in `z2ui5_cl_ui5_handler.clas.testclasses.abap` (`test_parse_body_with_wrapper` / `test_parse_body_no_wrapper`).
 
 #### Launchpad Special Case — The URL Hash
 
@@ -103,7 +103,7 @@ Inside the FLP the shell owns the front of the hash and only the remainder is th
 | Side | Owner |
 |---|---|
 | Frontend | `app/webapp/core/Router.js` — `splitHash()`; the **only** module allowed to touch the hash |
-| Backend | `z2ui5_cl_core_handler=>hash_get_app_part` — used by the route parser and the app-state parser |
+| Backend | `z2ui5_cl_ui5_handler=>hash_get_app_part` — used by the route parser and the app-state parser |
 
 Both modules carry the full explanation (hash layout, why the split keys off the leading `/` rather than the first `&/`, what breaks otherwise) in their header comments. Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
 
@@ -142,7 +142,7 @@ src/
 
 **Consequences of that process:**
 - **`z2ui5_cl_a2ui5_context` is not a read-only mirror — edit it freely.** Add methods, change existing ones, extract helpers, refactor. (Only the AJSON/S-RTTI mirrors in `src/00/01` and `src/00/02` are off-limits.)
-- **Keep what you add generic.** Framework-specific logic belongs in the core `z2ui5_cl_core_*` classes; the sync harvests this class into a catalog other projects consume.
+- **Keep what you add generic.** Framework-specific logic belongs in the core `z2ui5_cl_ui5_*` classes; the sync harvests this class into a catalog other projects consume.
 - **Symbols marked `FROZEN-ONLY`** in the class have no caller anywhere in `src/00`–`src/02`. They exist only because the shipped `src/99` package still calls them on real systems, and they go when `src/99` goes — do not add new callers on them.
 
 **What is vendored, and what is legacy:**
@@ -180,7 +180,7 @@ The framework provides **transparent two-way data binding** between ABAP variabl
 
 ### Session Persistence (Draft Service)
 
-App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_srv_draft`):
+App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_srv_draft`):
 - **Table `Z2UI5_T_01`** stores serialized app state (XML) keyed by UUID
 - Each roundtrip: load draft → restore app → call `main()` → save new draft with new UUID
 - Draft IDs chain via `id_prev` for back-navigation through the app stack
@@ -209,8 +209,8 @@ src/
 │   ├── 02/                    #   S-RTTI — Runtime type information (mirrored, DO NOT MODIFY)
 │   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_a2ui5_context, _http, _json_fltr, z2ui5_cx_a2ui5_error) — vendored copies from abap-util (except _json_fltr)
 ├── 01/                        # Layer 1: Core Engine
-│   ├── 01/                    #   Draft service (z2ui5_cl_core_srv_draft + z2ui5_t_01)
-│   ├── 02/                    #   Core classes (handler, client, action, action_front, app, srv_bind, srv_event, srv_model + z2ui5_if_core_types)
+│   ├── 01/                    #   Draft service (z2ui5_cl_ui5_srv_draft + z2ui5_t_01)
+│   ├── 02/                    #   Core classes (handler, client, action, action_front, app, srv_bind, srv_event, srv_model + z2ui5_if_ui5_types)
 │   └── 03/                    #   Embedded UI5 frontend (auto-generated, DO NOT EDIT)
 ├── 02/                        # Layer 2: Public API
 │   ├── z2ui5_if_app.intf.abap          # Main app interface (version constant)
@@ -363,7 +363,7 @@ front, a green abaplint does not prove their absence:
   statement (the established convention — the vendored AJSON code does the same).
 - **No redundant conversions.** Do not wrap a value in `CONV string( ... )`
   (or `CONV #( ... )`) when the source already has the target type — assign it
-  directly (bit us in `z2ui5_cl_core_action=>factory_first_start`, where
+  directly (bit us in `z2ui5_cl_ui5_action=>factory_first_start`, where
   `s_control-app_start` is already a `string`).
 - **ABAP Doc (`"!`) position:** a doc comment must sit directly before the one
   declaration it documents. In a chained statement (`CONSTANTS: BEGIN OF ...`)
@@ -472,7 +472,7 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 ### Testing
 
 - **Unit tests:** Embedded in source files as `.testclasses.abap`, run via abaplint transpiler in Node.js
-- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile), plus the pinned `ui5-1.71` project (Chromium, smoke + roundtrip specs against pinned OpenUI5 1.71 via the bootstrap rewrite in `node/tests/e2e/fixtures.js` — the executable part of the 1.71 rules, see the enforcement-status note). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_core_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
+- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile), plus the pinned `ui5-1.71` project (Chromium, smoke + roundtrip specs against pinned OpenUI5 1.71 via the bootstrap rewrite in `node/tests/e2e/fixtures.js` — the executable part of the 1.71 rules, see the enforcement-status note). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_ui5_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
 - **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `core/Router.js` (`router.spec.js`), `Component.js` unload wiring (`componentUnload.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `cc/Focus.js` (`focus.spec.js`), `cc/Dirty.js` (`dirty.spec.js`), `cc/MessageManager.js` (`messageManager.spec.js`), `cc/Websocket.js` (`websocket.spec.js`), `cc/Geolocation.js` (`geolocation.spec.js`), `cc/CameraSelector.js` (`cameraSelector.spec.js`), `cc/CameraPicture.js` (`cameraPicture.spec.js`), `cc/FileUploader.js` (`fileUploader.spec.js`), `cc/UploadSetExt.js` (`uploadSetExt.spec.js`), `cc/MultiInputExt.js` (`multiInputExt.spec.js`), `cc/SmartMultiInputExt.js` (`smartMultiInputExt.spec.js`), `cc/Scrolling.js` (`scrolling.spec.js`), `cc/LPTitle.js` (`lpTitle.spec.js`), `controller/App.controller.js` startup wiring (`appController.spec.js`), the message toast/box display hooks in `core/actions/ControlCall.js` (`messages.spec.js`), `core/DeveloperTools.js` (`developerTools.spec.js`), `core/ErrorView.js` (`errorView.spec.js`), `core/FrontendAction.js` incl. the composed `core/actions/` dispatch (`frontendAction.spec.js`), the action runners and the legacy `eF()`-string parsing in `core/actions/LegacyCustomJs.js` (`actionRunner.spec.js`), `controller/View1.controller.js` event handling, the after-render phase (model push by MODEL presence, per-response router sync) and the `core/actions/Slots.js` model fan-out (`view1Events.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`), request sequencing (`serverRequestSeq.spec.js`) and the session-constant location cadence (`serverLocation.spec.js`), `core/Session.js` (`session.spec.js`), `core/ScrollFocus.js` focus-info capture (`focusInfo.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`scrollFocus.spec.js`), `model/formatter.js` (`formatter.spec.js`), `model/models.js` device-model wiring (`deviceModel.spec.js`), `core/Lib.js` event-argument normalization (`eventArgs.spec.js`), `cc/Storage.js` (`storage.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
 - **Never skip a test with `IF sy-sysid = ` + backtick-`ABC`.** `ABC` is the system ID of the Node runtime, so such a guard makes the method a silent no-op in `npm run unit` while it still runs in a real system — CI stays green over assertions nobody executes. A test that genuinely cannot run under the transpiler belongs in the `skip` list of `node/setup/abap_transpile.json` **with a note naming the missing runtime capability**; the runner then prints it as skipped instead of pretending it passed.
@@ -488,8 +488,8 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
 | `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
 | `src/02/z2ui5_cl_ai_xml.clas.abap` | Generic XML view builder — the standard for all apps (migrated from samples-controls) |
-| `src/01/02/z2ui5_cl_core_handler.clas.abap` | Central request processor + main loop |
-| `src/01/02/z2ui5_cl_core_client.clas.abap` | Implements z2ui5_if_client |
+| `src/01/02/z2ui5_cl_ui5_handler.clas.abap` | Central request processor + main loop |
+| `src/01/02/z2ui5_cl_ui5_client.clas.abap` | Implements z2ui5_if_client |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
 
 **Reference files (consult as needed):**
@@ -499,13 +499,13 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 | `src/02/z2ui5_if_types.intf.abap` | Shared type definitions |
 | `src/02/z2ui5_if_exit.intf.abap` | Customization exit points |
 | `src/02/z2ui5_cl_exit.clas.abap` | Default exit + user-exit class support |
-| `src/01/02/z2ui5_cl_core_action.clas.abap` | Event/action dispatcher |
-| `src/01/02/z2ui5_cl_core_act_front.clas.abap` | Frontend action queues + response serialization (T_SYSTEM/T_CUSTOM, ROUTER/nav intent) |
-| `src/01/02/z2ui5_cl_core_app.clas.abap` | App lifecycle (create, load, serialize) |
-| `src/01/02/z2ui5_cl_core_srv_bind.clas.abap` | Data binding engine |
-| `src/01/02/z2ui5_cl_core_srv_model.clas.abap` | JSON model management |
-| `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
-| `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
+| `src/01/02/z2ui5_cl_ui5_action.clas.abap` | Event/action dispatcher |
+| `src/01/02/z2ui5_cl_ui5_act_front.clas.abap` | Frontend action queues + response serialization (T_SYSTEM/T_CUSTOM, ROUTER/nav intent) |
+| `src/01/02/z2ui5_cl_ui5_app.clas.abap` | App lifecycle (create, load, serialize) |
+| `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap` | Data binding engine |
+| `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` | JSON model management |
+| `src/01/02/z2ui5_cl_ui5_srv_event.clas.abap` | Event registration and payload assembly |
+| `src/01/01/z2ui5_cl_ui5_srv_draft.clas.abap` | Draft/session persistence |
 | `src/00/03/z2ui5_cl_a2ui5_context.clas.abap` | The single door to system/platform functionality — see "Utilities" |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
 | `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
@@ -553,7 +553,9 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
    - Do not change the type or default value of existing parameters in any public method
    - Additive changes are allowed (new methods, new optional parameters, new constants)
    - When in doubt, add rather than change
+   - **No public signature may name a Layer 1 type.** A `z2ui5_if_ui5_types=>…` in a `src/02` signature makes an internal a de-facto public contract and blocks renaming it. The public class declares its own type instead — see `z2ui5_cl_http_handler=>ty_s_http_res`, which is structurally identical to the core's and meets it once, in `_http_post( )`, via `MOVE-CORRESPONDING`
    - **Machine-enforced** by `check_api_contract.yaml`: every public `src/02` signature is recorded in `.github/api-snapshot.json`; a removed/changed signature fails the PR (revert it — never edit the snapshot to silence the gate), and an addition fails until you record it with `node .github/scripts/api-snapshot.mjs --write` and commit the snapshot alongside
+   - The one recorded exception: `_http_post`/`_http_get`/`_main` changed from `z2ui5_if_core_types=>ty_s_http_res` to the handler's own `ty_s_http_res` when the core types were renamed to `z2ui5_if_ui5_types`. Deliberate and owner-approved — the underscore methods had no caller outside the class's own test class, and the point was to stop an internal interface from appearing in the public surface. Not a precedent for editing the snapshot on any other `CHANGED` finding
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/cc/<Name>` of the custom controls (file location under `webapp/cc/` defines the ID), their properties and events (bound by existing app views), the controller methods `eB`/`eF`, the `z2ui5/Util` module and the `z2ui5.Util` global (public date helpers — **deprecated**, kept as a backward-compatible alias; new code and new helpers go through `z2ui5/model/formatter` / the `z2ui5.Formatter` global, which re-exports them). Additive changes only. View XML using the custom controls must declare `xmlns:z2ui5="z2ui5.cc"` (changed from `"z2ui5"` when the controls moved into `cc/`).
 8. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Shared frontend state is owned by `app/webapp/core/AppState.js`** — it documents the complete inventory of the `z2ui5.*` globals (public contract vs. internal fields) and provides the defaults for all internal fields. Framework modules must not reference the `z2ui5` global directly (ui5lint `no-project-globals`): internal fields are accessed via the `AppState.state` module export, public-contract fields via `AppState.getGlobal()/setGlobal()`. AppState itself is the only module that touches the global — it exposes the internal fields there via accessors so external consumers (apps via the js_loader popup, backend-generated HTML) keep working. Do not add new lazy `if (!z2ui5.x)` bootstrapping; add the field with its default to `AppState.createState()` instead.
@@ -595,9 +597,9 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
-- **Draft cleanup (`z2ui5_cl_core_srv_draft=>cleanup`) is deliberately not throttled or debounced** — it runs a single `DELETE ... WHERE timestampl < ...` on each app cold-start (`factory_first_start`). A per-work-process throttle (a `CLASS-DATA` "last run" timestamp that skips a sweep if the previous one ran seconds ago) was considered and **rejected**: deployments are overwhelmingly **stateless ICF**, where such a static resets between requests and never takes effect — it would only help the rare long-lived / stateful work process, a too-narrow edge case not worth the state. A **secondary index on `TIMESTAMPL`** to make each sweep cheaper was also considered and **rejected**: the `DELETE` runs only **once per app cold-start**, never per roundtrip, so a rarely-executed scan does not justify the index-maintenance overhead paid on **every** draft write (`Z2UI5_T_01` is `MODIFY`-ed on every roundtrip). Do not add a secondary index on `TIMESTAMPL`, and do not (re-)introduce a cleanup throttle.
+- **Draft cleanup (`z2ui5_cl_ui5_srv_draft=>cleanup`) is deliberately not throttled or debounced** — it runs a single `DELETE ... WHERE timestampl < ...` on each app cold-start (`factory_first_start`). A per-work-process throttle (a `CLASS-DATA` "last run" timestamp that skips a sweep if the previous one ran seconds ago) was considered and **rejected**: deployments are overwhelmingly **stateless ICF**, where such a static resets between requests and never takes effect — it would only help the rare long-lived / stateful work process, a too-narrow edge case not worth the state. A **secondary index on `TIMESTAMPL`** to make each sweep cheaper was also considered and **rejected**: the `DELETE` runs only **once per app cold-start**, never per roundtrip, so a rarely-executed scan does not justify the index-maintenance overhead paid on **every** draft write (`Z2UI5_T_01` is `MODIFY`-ed on every roundtrip). Do not add a secondary index on `TIMESTAMPL`, and do not (re-)introduce a cleanup throttle.
 - **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_ui5f_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
-- **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_core_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here.
+- **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_ui5_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
 - **An app implements `z2ui5_if_app` — there is deliberately NO app base
   class, and the dispatcher boilerplate is accepted.** Every app hand-writes

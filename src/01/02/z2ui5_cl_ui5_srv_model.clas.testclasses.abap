@@ -1,5 +1,5 @@
 CLASS ltcl_test_dissolve DEFINITION DEFERRED.
-CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_dissolve.
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_dissolve.
 
 
 
@@ -55,9 +55,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_test_dissolve( ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -76,9 +76,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mr_struc.
     CREATE DATA lo_app->mr_value TYPE string.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -97,9 +97,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mo_app->mr_struc.
     CREATE DATA lo_app->mo_app->mr_value TYPE string.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app2 ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app2 ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -115,9 +115,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
   METHOD test_struc.
 
     DATA(lo_app) = NEW ltcl_test_dissolve( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -140,9 +140,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
     CREATE DATA lo_app->mr_struc.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -162,9 +162,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
     CREATE DATA lo_app2->mr_value TYPE string.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -182,9 +182,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
     CREATE DATA lo_app->mo_app->mr_struc.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -203,9 +203,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     lo_app->mo_app = NEW #( ).
     CREATE DATA lo_app->mo_app->ms_struc2-r_ref TYPE string.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -264,7 +264,7 @@ CLASS ltcl_test_get_attri DEFINITION FINAL
 
 ENDCLASS.
 
-CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_get_attri.
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_get_attri.
 
 
 CLASS ltcl_test_get_attri IMPLEMENTATION.
@@ -276,10 +276,10 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     DATA lr_value TYPE REF TO data.
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MV_VALUE` ).
 
@@ -294,9 +294,9 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
     CREATE DATA lo_app_client->mr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
 
@@ -310,9 +310,9 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
 
@@ -327,9 +327,9 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
     CREATE DATA lo_app_client->mo_app->mr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
 
@@ -388,9 +388,9 @@ CLASS ltcl_test_app_root_attri IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_test_app_root( ).
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
 
@@ -464,9 +464,9 @@ CLASS ltcl_test_app_root_attri2 IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_test_app_root2( ).
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
 
@@ -529,9 +529,9 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
 
     "test find binding
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mr_tab ).
 
@@ -545,8 +545,8 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
     lo_model->main_attri_db_save_srtti( ).
 
     lo_app = NEW ltcl_test_app_root4( ).
-    lo_model = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                            app   = lo_app ).
+    lo_model = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                            app  = lo_app ).
     lo_model->main_attri_db_load( ).
 
     IF lo_app->mr_tab IS NOT BOUND.
@@ -559,7 +559,7 @@ ENDCLASS.
 
 
 CLASS ltcl_test_diss_complex DEFINITION DEFERRED.
-CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_diss_complex.
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_diss_complex.
 
 
 CLASS ltcl_app_inner DEFINITION FINAL
@@ -721,9 +721,9 @@ CLASS ltcl_test_sample335 IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_app_root_335( ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -750,9 +750,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` )
                                ( col1 = `B` col2 = `2` ) ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     lo_model->dissolve( ).
 
@@ -770,9 +770,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     lo_app->ms_nested = VALUE #( name = `test` value = `123`
                                   inner = VALUE #( deep1 = `d1` deep2 = `d2` ) ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -791,9 +791,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     lo_app->mo_mid = NEW #( ).
     lo_app->mo_mid->mo_inner = NEW #( ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -817,9 +817,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     ls_row-col2 = `Y`.
     INSERT ls_row INTO TABLE <tab>.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -841,9 +841,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     lo_app->mo_mid = NEW #( ).
     CREATE DATA lo_app->mr_tab LIKE lo_app->mt_tab.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -864,9 +864,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     lo_app->ms_nested-name = `test`.
     lo_app->mo_mid = NEW #( ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -886,9 +886,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` ) ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
 
@@ -902,9 +902,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->ms_nested-inner-deep1 = `found`.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( REF #( lo_app->ms_nested-inner-deep1 ) ).
 
@@ -919,9 +919,9 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     lo_app->mo_mid = NEW #( ).
     lo_app->mo_mid->mo_inner = NEW #( ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app  = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                   app = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -953,9 +953,9 @@ CLASS ltcl_test_attri_create IMPLEMENTATION.
 
   METHOD test_string_type_kind.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     DATA(ls_result) = lo_model->attri_create_new( `MV_SIMPLE` ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_string
                                         act = ls_result-type_kind ).
@@ -963,9 +963,9 @@ CLASS ltcl_test_attri_create IMPLEMENTATION.
 
   METHOD test_table_type_kind.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     DATA(ls_result) = lo_model->attri_create_new( `MT_TAB` ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_table
                                         act = ls_result-type_kind ).
@@ -974,9 +974,9 @@ CLASS ltcl_test_attri_create IMPLEMENTATION.
   METHOD test_oref_type_kind.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mo_mid = NEW #( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     DATA(ls_result) = lo_model->attri_create_new( `MO_MID` ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_oref
                                         act = ls_result-type_kind ).
@@ -984,9 +984,9 @@ CLASS ltcl_test_attri_create IMPLEMENTATION.
 
   METHOD test_int_kind.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     DATA(ls_result) = lo_model->attri_create_new( `MV_INT` ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>kind_elem
                                         act = ls_result-kind ).
@@ -1010,9 +1010,9 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
   METHOD test_simple_string.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mv_simple = `hello`.
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr_simple) WITH KEY name = `MV_SIMPLE`.
@@ -1030,9 +1030,9 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
 
   METHOD test_empty_no_bind.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     " No binding set on any attribute - stringify produces empty JSON object
@@ -1047,13 +1047,13 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
     " default instead of receiving `` (which an enum-typed property rejects).
     " A filled field of the same bind is untouched. (_bind itself wires a
     " row-preserving variant of this filter - lcl_empty_filter_keep_rows in
-    " z2ui5_cl_core_client's locals - so table rows are never dropped; the
+    " z2ui5_cl_ui5_client's locals - so table rows are never dropped; the
     " vendored filter here exercises the same custom_filter slot.)
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->ms_nested-name = `filled`.
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr_nested) WITH KEY name = `MS_NESTED`.
@@ -1081,9 +1081,9 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
     " survive verbatim - that is the whole point for a card manifest
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mv_simple = `{"_version":"1.0","sap.app":{"type":"card"},"sap.card":{"type":"List"}}`.
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr_simple) WITH KEY name = `MV_SIMPLE`.
@@ -1111,9 +1111,9 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
     " emitting it raw would produce a broken model the frontend cannot parse
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mv_simple = `not json at all`.
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr_simple) WITH KEY name = `MV_SIMPLE`.
@@ -1146,9 +1146,9 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
 
   METHOD test_updates_bound.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
@@ -1175,9 +1175,9 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
     " object into a string field. The ABAP value must stay untouched
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mv_simple = `{"sap.app":{"type":"card"}}`.
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr_json) WITH KEY name = `MV_SIMPLE`.
@@ -1203,9 +1203,9 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
 
   METHOD test_skips_unbound.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
@@ -1240,9 +1240,9 @@ CLASS ltcl_test_attri_refresh IMPLEMENTATION.
 
   METHOD test_bindings_preserved.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     " Simulate an active binding on MV_SIMPLE
@@ -1278,9 +1278,9 @@ CLASS ltcl_test_entry_refs_children IMPLEMENTATION.
   METHOD test_dref_children_name_ref.
 
     DATA(lo_app) = NEW ltcl_app_root_335( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -1299,9 +1299,9 @@ CLASS ltcl_test_entry_refs_children IMPLEMENTATION.
   METHOD test_second_dref_children.
 
     DATA(lo_app) = NEW ltcl_app_root_335( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -1386,9 +1386,9 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` )
                                ( col1 = `B` col2 = `2` ) ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     DATA lo_delta TYPE REF TO z2ui5_if_ajson.
     lo_delta = z2ui5_cl_ajson=>create_empty( ).
@@ -1411,9 +1411,9 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` )
                                ( col1 = `B` col2 = `2` ) ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     DATA lo_delta TYPE REF TO z2ui5_if_ajson.
     lo_delta = z2ui5_cl_ajson=>create_empty( ).
@@ -1435,9 +1435,9 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
   METHOD test_out_of_range.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` ) ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     DATA lo_delta TYPE REF TO z2ui5_if_ajson.
     lo_delta = z2ui5_cl_ajson=>create_empty( ).
@@ -1468,9 +1468,9 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
 
   METHOD test_nested_cell.
     DATA(lo_app) = tree_app_create( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     " a cell edit inside the nested table arrives as a nested __delta
     DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
@@ -1491,9 +1491,9 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
 
   METHOD test_nested_mixed.
     DATA(lo_app) = tree_app_create( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     " a root-level cell and a nested cell change in the same delta
     DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
@@ -1512,9 +1512,9 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
 
   METHOD test_struct_component.
     DATA(lo_app) = tree_app_create( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     " a struct member edit ships the whole struct value (no __delta marker)
     DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
@@ -1533,9 +1533,9 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
 
   METHOD test_subtable_replace.
     DATA(lo_app) = tree_app_create( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
 
     " a whole sub-table value (array leaf) replaces the nested table
     DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
@@ -1607,9 +1607,9 @@ CLASS ltcl_test_two_tab_refs IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_app_two_tab_drefs( ).
     lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` ) ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -1628,9 +1628,9 @@ CLASS ltcl_test_two_tab_refs IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_app_two_tab_drefs( ).
     lo_app->mt_tab = VALUE #( ( col1 = `X` col2 = `Y` ) ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -1658,9 +1658,9 @@ CLASS ltcl_test_deep_nesting IMPLEMENTATION.
     " MS_NESTED-INNER-DEEP1 is three levels deep inside a nested struct.
     " main_json_to_attri must write through all levels.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
@@ -1689,9 +1689,9 @@ CLASS ltcl_test_deep_nesting IMPLEMENTATION.
     lo_app->mo_mid = NEW #( ).
     lo_app->mo_mid->mo_inner = NEW #( ).
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -1730,9 +1730,9 @@ CLASS ltcl_test_refresh_ext IMPLEMENTATION.
     " After instantiating MO_MID and calling main_attri_refresh, the child
     " MO_MID->MV_MID must appear while the existing MV_SIMPLE binding is preserved.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     " Set an active binding on MV_SIMPLE before refresh
@@ -1774,9 +1774,9 @@ CLASS ltcl_test_json_types IMPLEMENTATION.
   METHOD test_updates_integer.
     " MV_INT is TYPE i - main_json_to_attri must write numeric JSON back correctly.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_INT`.
@@ -1802,9 +1802,9 @@ CLASS ltcl_test_json_types IMPLEMENTATION.
     " only the canonical path is present in the JSON, so its value is written
     " to the shared variable while the alias entry is skipped.
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
     lo_model->dissolve( ).
 
     " First entry: bind MV_SIMPLE as /MV_SIMPLE
@@ -1816,7 +1816,7 @@ CLASS ltcl_test_json_types IMPLEMENTATION.
     lr1->name_client = `/MV_SIMPLE`.
 
     " Second entry: a copy with a different name_client path, also two-way
-    DATA ls_extra TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA ls_extra TYPE z2ui5_if_ui5_types=>ty_s_attri.
     ls_extra = lr1->*.
     ls_extra-name        = `MV_SIMPLE_ALIAS`.
     ls_extra-name_client = `/ALIAS`.

@@ -103,8 +103,8 @@
       "skip": [
         "Z2UI5_IF_APP",
         "Z2UI5_IF_CLIENT",
-        "Z2UI5_CL_CORE_ACTION",
-        "Z2UI5_CL_CORE_HANDLER"
+        "Z2UI5_CL_UI5_ACTION",
+        "Z2UI5_CL_UI5_HANDLER"
       ],
       "skipSharedMemory": true,
       "skipTestclasses": true

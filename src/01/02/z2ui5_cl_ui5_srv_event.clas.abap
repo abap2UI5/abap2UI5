@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     METHODS get_event
@@ -75,7 +75,7 @@ CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
   METHOD get_event.
 
@@ -92,13 +92,13 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     DATA lv_func TYPE string.
     DATA lv_event_arg TYPE string.
     IF s_cnt-prevent_default_expr IS NOT INITIAL.
-      lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_prevent.
+      lv_func = z2ui5_if_ui5_types=>cs_ui5-event_backend_prevent.
       lv_event_arg = |$event,{ s_cnt-prevent_default_expr },|.
     ELSEIF s_cnt-check_prevent_default = abap_true.
-      lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_prevent.
+      lv_func = z2ui5_if_ui5_types=>cs_ui5-event_backend_prevent.
       lv_event_arg = `$event,true,`.
     ELSE.
-      lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_function.
+      lv_func = z2ui5_if_ui5_types=>cs_ui5-event_backend_function.
     ENDIF.
 
     result = |{ lv_func }({ lv_event_arg }['{ escape_js_string( CONV string( val ) ) }'|.
@@ -117,7 +117,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
                                        view  = view
                                        t_arg = t_arg ).
 
-    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ escape_js_string( ls_event-val ) }'{ get_t_arg( ls_event-t_arg ) }|.
+    result = |{ z2ui5_if_ui5_types=>cs_ui5-event_frontend_function }('{ escape_js_string( ls_event-val ) }'{ get_t_arg( ls_event-t_arg ) }|.
 
   ENDMETHOD.
 
@@ -157,8 +157,8 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " of them ), but they are formatted as the one VIEW_SLOTS call here, so
       " the frontend has a single teardown path rather than a second handler
       " that happens to do the same thing.
-      lt_arg = VALUE #( ( z2ui5_if_core_types=>cs_slot_action-target )
-                        ( z2ui5_if_core_types=>cs_slot_action-destroy )
+      lt_arg = VALUE #( ( z2ui5_if_ui5_types=>cs_slot_action-target )
+                        ( z2ui5_if_ui5_types=>cs_slot_action-destroy )
                         ( COND #( WHEN lv_val = z2ui5_if_client=>cs_event-popup_close
                                   THEN z2ui5_if_client=>cs_view-popup
                                   ELSE z2ui5_if_client=>cs_view-popover ) ) ).

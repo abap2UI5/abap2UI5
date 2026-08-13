@@ -453,7 +453,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                  text  = z2ui5_if_app=>version ).
     render_text( form  = form
                  label = `Draft Entries (own)`
-                 text  = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
+                 text  = CONV string( NEW z2ui5_cl_ui5_srv_draft( )->count_entries( ) ) ).
 
     dialog->open( `endButton`
         )->leaf( `Button`

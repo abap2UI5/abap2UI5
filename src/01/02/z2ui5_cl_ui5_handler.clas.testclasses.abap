@@ -105,7 +105,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     "! the slots the serialized actions name, in order, deduplicated
     METHODS slot_sequence
       IMPORTING
-        val           TYPE REF TO z2ui5_cl_core_handler
+        val           TYPE REF TO z2ui5_cl_ui5_handler
       RETURNING
         VALUE(result) TYPE string
       RAISING
@@ -115,20 +115,20 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     "! auto-update/nav tests can assert on the queue like on text
     METHODS system_actions_of
       IMPORTING
-        val           TYPE REF TO z2ui5_cl_core_handler
+        val           TYPE REF TO z2ui5_cl_ui5_handler
       RETURNING
         VALUE(result) TYPE string
       RAISING
         z2ui5_cx_ajson_error.
 ENDCLASS.
 
-CLASS z2ui5_cl_core_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
+CLASS z2ui5_cl_ui5_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
 
 CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD load_startup_app.
     DATA lv_payload TYPE string.
-    DATA lo_post TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_post TYPE REF TO z2ui5_cl_ui5_handler.
     DATA temp1 TYPE REF TO z2ui5_cl_app_startup.
     DATA lo_startup LIKE temp1.
 
@@ -155,8 +155,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_request_parse.
 
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/sap/test","SEARCH":"?param=1"}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -175,8 +175,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_request_origin.
 
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://example.org","PATHNAME":"/app","SEARCH":""}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -194,7 +194,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " the raw parse - pathname/search only travel on app-start-shaped
     " requests (see test_session_launchpad for the restore cadence)
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/ui2/flp","SEARCH":"?scenario=LAUNCHPAD"}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -211,8 +211,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " Standalone scenario: frontend wraps body in {"value": ...}
     " This is the standard case when the app runs outside the Fiori Launchpad.
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/sap/bc/z2ui5","SEARCH":""}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -229,8 +229,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " before the request reaches the ABAP ICF handler, so the body arrives
     " as a plain object without the value key.
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/ui2/flp","SEARCH":"?scenario=LAUNCHPAD"}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -250,8 +250,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " the view model is extracted from the request MODEL container and has to
     " stay reachable under /... for main_json_to_attri
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"MODEL":{"NAME":"test-value"}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -266,8 +266,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " launchpad/gateway scenario: the model extraction also has to work
     " when the value envelope was stripped by the infrastructure
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"MODEL":{"NAME":"test-value"}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -281,8 +281,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_parse_body_config.
 
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
                  `"CONFIG":{"ComponentData":{"startupParameters":{}},` &&
                  `"S_DEVICE":{"SYSTEM":"desktop"},` &&
@@ -313,8 +313,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " a request without CONFIG section has to parse without errors and
     " leave the config fields initial
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -329,8 +329,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_parse_body_arg_string.
     " plain string arguments take the unchanged to_abap path
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
                  `"EVENT":"MY_EVENT","T_EVENT_ARG":["first","second"]}}}`.
 
@@ -350,8 +350,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " have to reach the app as JSON strings, scalar arguments in the same
     " event keep their previous string form
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
                  `"EVENT":"MY_EVENT","T_EVENT_ARG":["plain",5,true,{"KEY":"val"},[1,2]]}}}`.
 
@@ -375,8 +375,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_request_app_start.
 
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -391,8 +391,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_request_with_id.
 
     DATA lv_payload TYPE string.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
@@ -406,8 +406,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_response_json.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA temp2 TYPE z2ui5_if_core_types=>ty_s_response.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp2 TYPE z2ui5_if_ui5_types=>ty_s_response.
     DATA ls_response LIKE temp2.
     DATA lv_json TYPE string.
     DATA temp1 TYPE xsdboolean.
@@ -441,7 +441,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " the first roundtrip of a page load carries the block - it is stored on
     " the app, and therefore in its draft
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
     lo_handler->ms_request-s_front-s_device-system   = `desktop`.
     lo_handler->ms_request-s_front-s_device-os-name  = `Windows`.
@@ -460,7 +460,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " the page location travels with app-start-shaped requests and is stored
     " with the draft; an event roundtrip omits it and reads it back
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
     lo_handler->ms_request-s_front-origin   = `https://host`.
     lo_handler->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
@@ -498,7 +498,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " the launchpad flag is derived from the MERGED location: the FLP start
     " request carries the pathname once, every later event roundtrip omits
     " it and must still read check_launchpad from the draft-restored value
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
     lo_handler->ms_request-s_front-origin   = `https://host`.
     lo_handler->ms_request-s_front-pathname = `/sap/bc/ui2/flp`.
@@ -526,7 +526,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " a later roundtrip sends none of it and is answered from the draft - but
     " orientation and resize are NOT session-constant and win from the request
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->ms_session = VALUE #(
         s_ui5-version         = `1.120.0`
@@ -555,7 +555,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     " the same draft reopened from ANOTHER browser: its first roundtrip
     " carries a block again, and that block replaces what the draft held
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->ms_session = VALUE #( s_device-system = `phone`
                                                         s_device-os-name = `iOS` ).
@@ -578,8 +578,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " strings - and an empty-string positional placeholder inside an action
     " survives, because the queues are written AFTER the no-empty-values
     " filter ran
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_response TYPE z2ui5_if_core_types=>ty_s_response.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
     lo_handler = NEW #( val = `` ).
     ls_response-s_front-id = `ID123`.
     INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]` ) )
@@ -602,8 +602,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_response_no_model.
 
     " a round-trip that changed nothing bound sends no MODEL key at all
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    DATA ls_response TYPE z2ui5_if_core_types=>ty_s_response.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
     lo_handler = NEW #( val = `` ).
     ls_response-s_front-id = `ID123`.
 
@@ -625,10 +625,10 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " last. The list that leaves goes MAIN, NEST, NEST2, POPUP, POPOVER: a
     " nested view is inserted INTO the main control tree, so it cannot be
     " built before the page it belongs to exists.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
     lo_handler = NEW #( val = `` ).
-    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
 
     li_client->popover_display( xml   = `<Popover/>`
                                 by_id = `btn` ).
@@ -641,7 +641,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     li_client->popup_display( `<Dialog/>` ).
     li_client->view_display( `<View/>` ).
 
-    NEW z2ui5_cl_core_act_front( lo_handler->mo_action )->slots_serialize( ).
+    NEW z2ui5_cl_ui5_act_front( lo_handler->mo_action )->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `MAIN|NEST|NEST2|POPUP|POPOVER`
@@ -655,15 +655,15 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " second call drops everything the first queued. No destroy action
     " travels with a display - the frontend tears the slot down implicitly,
     " a display REPLACES the slot.
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
     lo_handler = NEW #( val = `` ).
-    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
 
     li_client->view_display( `<First/>` ).
     li_client->view_display( `<Second/>` ).
 
-    NEW z2ui5_cl_core_act_front( lo_handler->mo_action )->slots_serialize( ).
+    NEW z2ui5_cl_ui5_act_front( lo_handler->mo_action )->slots_serialize( ).
 
     DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 1
@@ -677,10 +677,10 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_system_empty.
 
     " a roundtrip that touches no slot sends no system action at all
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
-    NEW z2ui5_cl_core_act_front( lo_handler->mo_action )->slots_serialize( ).
+    NEW z2ui5_cl_ui5_act_front( lo_handler->mo_action )->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_initial(
         lo_handler->mo_action->ms_next-s_action-t_system ).
@@ -692,14 +692,14 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " A bare destroy - popup_destroy( ) without a follow-up display - leaves
     " as exactly ["VIEW_SLOTS","destroy","POPUP"]: three entries, no XML
     " argument and no options object ride along
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
     lo_handler = NEW #( val = `` ).
-    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
 
     li_client->popup_destroy( ).
 
-    NEW z2ui5_cl_core_act_front( lo_handler->mo_action )->slots_serialize( ).
+    NEW z2ui5_cl_ui5_act_front( lo_handler->mo_action )->slots_serialize( ).
 
     DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 1
@@ -712,7 +712,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_sticky_init_latch.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_app TYPE REF TO ltcl_app_sticky.
 
     " a sticky app skips db_save, but not the lifecycle latch: main_end has
@@ -735,7 +735,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
                                         act = lo_app->z2ui5_if_app~id_draft ).
     " ...even though no draft was saved
     cl_abap_unit_assert=>assert_false(
-        NEW z2ui5_cl_core_srv_draft( )->check_exists( lo_handler->mo_action->mo_app->ms_draft-id ) ).
+        NEW z2ui5_cl_ui5_srv_draft( )->check_exists( lo_handler->mo_action->mo_app->ms_draft-id ) ).
 
     " the next roundtrip of the same in-memory session reads
     " check_on_init( ) = abap_false and runs as a plain event
@@ -787,10 +787,10 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " `did this roundtrip ship a view?` (the model has to travel with new
     " XML) from exactly those collected calls - no separate flag to keep in
     " sync, no slot of the response read back
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
     DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
     li_client->view_display( `<View/>` ).
 
     cl_abap_unit_assert=>assert_true(
@@ -801,10 +801,10 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_view_update_popup.
 
     " the same holds whichever slot was displayed...
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
     DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
     li_client->popup_display( `<Dialog/>` ).
 
     cl_abap_unit_assert=>assert_true(
@@ -821,7 +821,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_view_update_none.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
     cl_abap_unit_assert=>assert_false(
@@ -831,7 +831,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_dispatch_loop_guard.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_loop_app TYPE REF TO ltcl_app_nav_loop.
     DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
 
@@ -856,7 +856,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_constructor.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `test payload` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `test payload`
@@ -867,7 +867,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_hash_app_part.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
     " standalone - the whole hash belongs to the app
@@ -893,7 +893,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_route_standalone.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
@@ -921,7 +921,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_route_launchpad.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
     " the same routes, but reached through the launchpad shell hash - the
@@ -942,7 +942,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_route_no_route.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
     " no hash at all (normal boot), an app-owned hash, a bare shell hash and
@@ -961,7 +961,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_app_state_hash.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
     " the app-state link format, standalone and inside the launchpad
@@ -981,7 +981,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_auto_update_push.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
     " the snapshot differs from the model after main( ) - the model is sent
     " exactly as an explicit view_model_update( ) would send it, with no app
@@ -1007,7 +1007,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_auto_update_same.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
     " main( ) changed nothing - the response stays `{}` and no update flag is
     " set, so an idle event round-trip carries no model payload as before
@@ -1031,7 +1031,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_nested_display_push.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
 
     " a roundtrip that re-displays a NESTED view without its MAIN view must
@@ -1041,7 +1041,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
-    li_client = NEW z2ui5_cl_core_client( lo_handler->mo_action ).
+    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
     li_client->nest_view_display( val           = `<Nest/>`
                                   id            = `col`
                                   method_insert = `addMidColumnPage` ).
@@ -1062,7 +1062,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_auto_update_snapshot.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
     " main_process always takes the before-main snapshot - there is no app
     " flag to consult any more
@@ -1080,7 +1080,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_nav_mode_resent.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_app TYPE REF TO ltcl_app_nav_loop.
 
     " An app configures routing ONCE. main_end therefore re-sends the mode the

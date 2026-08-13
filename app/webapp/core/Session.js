@@ -6,7 +6,7 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   // per page load (the UI5 build, the static device profile, the
   // launchpad's ComponentData) plus the two device fields that stay live.
   // The backend stores the full block with the draft
-  // (z2ui5_cl_core_handler=>session_merge), so every later roundtrip
+  // (z2ui5_cl_ui5_handler=>session_merge), so every later roundtrip
   // sends only the live fields - a few hundred bytes off every event.
   // ------------------------------------------------------------------
 
@@ -117,7 +117,7 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   // shaped request (no draft id - the backend parses ?app_start= from
   // SEARCH only there, and a route restore via Back/Forward is exactly
   // such a request) and on the page load's first roundtrip, so the backend
-  // can store it with the draft (z2ui5_cl_core_handler=>session_merge).
+  // can store it with the draft (z2ui5_cl_ui5_handler=>session_merge).
   // Event roundtrips omit it. The hash is NOT part of this: it carries the
   // live routing state and stays a per-request field (Server.roundtrip).
   let locationSent = false;

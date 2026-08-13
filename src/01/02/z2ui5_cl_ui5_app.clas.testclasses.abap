@@ -7,12 +7,12 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_buffer_clear      FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
-CLASS z2ui5_cl_core_app DEFINITION LOCAL FRIENDS ltcl_test.
+CLASS z2ui5_cl_ui5_app DEFINITION LOCAL FRIENDS ltcl_test.
 
 CLASS ltcl_test IMPLEMENTATION.
   METHOD test_instantiation.
 
-    DATA lo_app TYPE REF TO z2ui5_cl_core_app.
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app.
     lo_app = NEW #( ).
 
     cl_abap_unit_assert=>assert_bound( lo_app ).
@@ -22,7 +22,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_attri_initialized.
 
-    DATA lo_app TYPE REF TO z2ui5_cl_core_app.
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app.
     lo_app = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 0
@@ -32,10 +32,10 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_buffer_clear.
 
-    z2ui5_cl_core_app=>db_load_buffer_clear( ).
+    z2ui5_cl_ui5_app=>db_load_buffer_clear( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = lines( z2ui5_cl_core_app=>mt_buffer ) ).
+                                        act = lines( z2ui5_cl_ui5_app=>mt_buffer ) ).
 
   ENDMETHOD.
 
@@ -67,8 +67,8 @@ ENDCLASS.
 CLASS ltcl_test_db IMPLEMENTATION.
   METHOD test_db_save.
     DATA lo_app_user TYPE REF TO ltcl_test_db.
-    DATA lo_app TYPE REF TO z2ui5_cl_core_app.
-    DATA lo_app_db TYPE REF TO z2ui5_cl_core_app.
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app.
+    DATA lo_app_db TYPE REF TO z2ui5_cl_ui5_app.
     DATA temp1 TYPE REF TO ltcl_test_db.
     DATA lo_app_user_db LIKE temp1.
 
@@ -82,9 +82,9 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
     lo_app->db_save( ).
 
-    z2ui5_cl_core_app=>db_load_buffer_clear( ).
+    z2ui5_cl_ui5_app=>db_load_buffer_clear( ).
 
-    lo_app_db = z2ui5_cl_core_app=>db_load( `TEST_ID` ).
+    lo_app_db = z2ui5_cl_ui5_app=>db_load( `TEST_ID` ).
 
     temp1 ?= lo_app_db->mo_app.
 
@@ -97,8 +97,8 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
   METHOD test_db_roundtrip.
     DATA lo_app_user TYPE REF TO ltcl_test_db.
-    DATA lo_app TYPE REF TO z2ui5_cl_core_app.
-    DATA lo_loaded TYPE REF TO z2ui5_cl_core_app.
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app.
+    DATA lo_loaded TYPE REF TO z2ui5_cl_ui5_app.
     DATA temp2 TYPE REF TO ltcl_test_db.
     DATA lo_restored LIKE temp2.
 
@@ -114,9 +114,9 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
     lo_app->db_save( ).
 
-    z2ui5_cl_core_app=>db_load_buffer_clear( ).
+    z2ui5_cl_ui5_app=>db_load_buffer_clear( ).
 
-    lo_loaded = z2ui5_cl_core_app=>db_load( `TEST_ROUNDTRIP` ).
+    lo_loaded = z2ui5_cl_ui5_app=>db_load( `TEST_ROUNDTRIP` ).
 
     temp2 ?= lo_loaded->mo_app.
 
@@ -133,7 +133,7 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
   METHOD test_db_save_complex.
     DATA lo_app_user TYPE REF TO ltcl_test_db.
-    DATA lo_app TYPE REF TO z2ui5_cl_core_app.
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app.
     DATA temp3 TYPE REF TO z2ui5_if_app.
 
     lo_app_user = NEW #( ).
@@ -158,7 +158,7 @@ CLASS ltcl_test_db IMPLEMENTATION.
   METHOD test_model_stringify.
 
     DATA lo_app_user TYPE REF TO ltcl_test_db.
-    DATA lo_app TYPE REF TO z2ui5_cl_core_app.
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app.
     DATA lv_json TYPE string.
     lo_app_user = NEW #( ).
     lo_app_user->mv_value = `json test`.

@@ -1,4 +1,4 @@
-INTERFACE z2ui5_if_core_types
+INTERFACE z2ui5_if_ui5_types
   PUBLIC.
 
   CONSTANTS:
@@ -123,7 +123,7 @@ INTERFACE z2ui5_if_core_types
       " (see app/webapp/core/Router.js). Opt-in per APP via
       " follow_up_action( cs_event-set_nav_routing ) - the mode is remembered on the app,
       " travels in its draft and is re-sent whenever the frontend may not
-      " still hold it (see z2ui5_cl_core_app=>mv_nav_mode and the
+      " still hold it (see z2ui5_cl_ui5_app=>mv_nav_mode and the
       " nav_mode_sent latch in main_end). The value carries the MODE (see
       " z2ui5_if_client=>cs_nav_mode): 'KEEP' syncs the class AND its draft id
       " '#/app/<CLASS>/<DRAFT>' so Back/Forward restore the exact preserved
@@ -271,7 +271,7 @@ INTERFACE z2ui5_if_core_types
       pathname      TYPE string,
       search        TYPE string,
       " the routing mode last SENT to the frontend for this app - a plain
-      " event roundtrip repeats no mode (see z2ui5_cl_core_handler=>main_end)
+      " event roundtrip repeats no mode (see z2ui5_cl_ui5_handler=>main_end)
       nav_mode_sent TYPE string,
     END OF ty_s_session.
 

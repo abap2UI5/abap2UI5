@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 
 // Tests the location cadence of Server.roundtrip: ORIGIN/PATHNAME/SEARCH are
 // session-constant, so the backend stores them with the draft
-// (z2ui5_cl_core_handler=>session_merge) and event roundtrips omit them. They
+// (z2ui5_cl_ui5_handler=>session_merge) and event roundtrips omit them. They
 // still travel with every app-start-shaped request (no draft id) - the
 // backend parses ?app_start= from SEARCH only there, and a route restore
 // (Back/Forward) is exactly such a request. HASH carries the live routing

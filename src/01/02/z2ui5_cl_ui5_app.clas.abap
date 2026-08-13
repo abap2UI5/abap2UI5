@@ -1,10 +1,10 @@
-CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_app DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
 
     INTERFACES if_serializable_object.
 
-    DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
+    DATA mt_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
     DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft.
     " Hash routing mode of THIS app (z2ui5_if_client=>cs_nav_mode), set via
@@ -20,9 +20,9 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
     " therefore in its draft - so the frontend sends it once per page load
     " instead of with every roundtrip. A draft reopened from a DIFFERENT
     " browser overwrites it: that browser's first roundtrip carries its own
-    " block, and z2ui5_cl_core_handler=>session_merge takes whatever a request
+    " block, and z2ui5_cl_ui5_handler=>session_merge takes whatever a request
     " brings over whatever the draft held.
-    DATA ms_session TYPE z2ui5_if_core_types=>ty_s_session.
+    DATA ms_session TYPE z2ui5_if_ui5_types=>ty_s_session.
 
     METHODS model_json_stringify
       RETURNING
@@ -40,12 +40,12 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
       IMPORTING
         !xml          TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app.
 
     TYPES:
       BEGIN OF ty_s_buffer,
         id  TYPE string,
-        app TYPE REF TO z2ui5_cl_core_app,
+        app TYPE REF TO z2ui5_cl_ui5_app,
       END OF ty_s_buffer.
 
     CLASS-DATA mt_buffer TYPE SORTED TABLE OF ty_s_buffer WITH UNIQUE KEY id.
@@ -54,13 +54,13 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
       IMPORTING
         !id           TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app.
 
     CLASS-METHODS db_load_by_app
       IMPORTING
         app           TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app.
 
     CLASS-METHODS db_load_buffer_clear.
 
@@ -72,11 +72,11 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
   PRIVATE SECTION.
     METHODS create_model
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_srv_model.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_app IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_app IMPLEMENTATION.
 
   METHOD all_xml_parse.
 
@@ -156,7 +156,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
+    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
@@ -174,7 +174,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
+    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
     DATA(ls_db) = lo_db->read_draft( app->id_draft ).
     result = all_xml_parse( ls_db-data ).
 
@@ -191,7 +191,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       li_app->check_initialized = abap_true.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
+    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
     lo_db->create( draft     = ms_draft
                    model_xml = all_xml_stringify( ) ).
 
@@ -211,8 +211,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD create_model.
 
-    result = NEW z2ui5_cl_core_srv_model( attri = mt_attri
-                                          app   = mo_app ).
+    result = NEW z2ui5_cl_ui5_srv_model( attri = mt_attri
+                                          app  = mo_app ).
 
   ENDMETHOD.
 ENDCLASS.

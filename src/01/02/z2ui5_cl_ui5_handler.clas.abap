@@ -1,10 +1,10 @@
-CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
-    DATA mo_action       TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_action       TYPE REF TO z2ui5_cl_ui5_action.
     DATA mv_request_json TYPE string.
-    DATA ms_request      TYPE z2ui5_if_core_types=>ty_s_request.
-    DATA ms_response     TYPE z2ui5_if_core_types=>ty_s_response.
+    DATA ms_request      TYPE z2ui5_if_ui5_types=>ty_s_request.
+    DATA ms_response     TYPE z2ui5_if_ui5_types=>ty_s_response.
     DATA mv_response     TYPE string.
 
     METHODS constructor
@@ -13,13 +13,13 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
 
     METHODS main
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_http_res.
 
     METHODS request_json_to_abap
       IMPORTING
         val           TYPE string
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_request.
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_request.
 
   PROTECTED SECTION.
 
@@ -43,7 +43,7 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
 
     METHODS response_abap_to_json
       IMPORTING
-        val           TYPE z2ui5_if_core_types=>ty_s_response
+        val           TYPE z2ui5_if_ui5_types=>ty_s_response
       RETURNING
         VALUE(result) TYPE string.
 
@@ -78,7 +78,7 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
       IMPORTING
         ajson    TYPE REF TO z2ui5_if_ajson
         path     TYPE string
-        t_action TYPE z2ui5_if_core_types=>ty_t_queued_action
+        t_action TYPE z2ui5_if_ui5_types=>ty_t_queued_action
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -86,7 +86,7 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
       IMPORTING
         val           TYPE string
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_request
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_request
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -158,7 +158,7 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_handler IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   METHOD request_json_to_abap.
     TRY.
@@ -510,7 +510,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD constructor.
 
     mv_request_json = val.
-    mo_action = NEW z2ui5_cl_core_action( me ).
+    mo_action = NEW z2ui5_cl_ui5_action( me ).
 
   ENDMETHOD.
 
@@ -619,7 +619,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " accumulate one dead entry per roundtrip (each roundtrip mints a new draft
     " id, so earlier entries are never read again). Clearing here keeps the
     " intra-request cache while preventing cross-request growth.
-    z2ui5_cl_core_app=>db_load_buffer_clear( ).
+    z2ui5_cl_ui5_app=>db_load_buffer_clear( ).
 
     ms_request = request_json_to_abap( mv_request_json ).
 
@@ -627,7 +627,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       mo_action = mo_action->factory_by_frontend( ).
 
     ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
-      NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
+      NEW z2ui5_cl_ui5_srv_draft( )->cleanup( ).
       mo_action = mo_action->factory_first_start( ).
 
     ELSE.
@@ -761,7 +761,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " session: re-send the app's own mode whenever this roundtrip did not set
     " one itself, so an app that queued cs_event-set_nav_routing in check_on_init
     " stays routed in its chosen mode - even after the user visited another
-    " app that runs with a different one (see z2ui5_cl_core_app=>mv_nav_mode).
+    " app that runs with a different one (see z2ui5_cl_ui5_app=>mv_nav_mode).
     " NOT on every roundtrip though: the frontend keeps the mode in session
     " state, so a plain event roundtrip of the SAME app repeats no mode (it
     " would re-queue the ROUTER action for a constant). It has to travel
@@ -779,7 +779,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       mo_action->mo_app->ms_session-nav_mode_sent = mo_action->ms_next-s_nav-set_nav_routing.
     ENDIF.
 
-    DATA(lo_front) = NEW z2ui5_cl_core_act_front( mo_action ).
+    DATA(lo_front) = NEW z2ui5_cl_ui5_act_front( mo_action ).
 
     " the view-lifecycle calls leave first, in slot order
     lo_front->slots_serialize( ).
@@ -790,7 +790,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " later voided by a destroy (slot_reset) counts as no view.
     DATA(lv_model) = `{}`.
     IF line_exists( mo_action->ms_next-t_action_front[
-                        method = z2ui5_if_core_types=>cs_slot_action-display ] ).
+                        method = z2ui5_if_ui5_types=>cs_slot_action-display ] ).
       lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
@@ -838,7 +838,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main_process.
 
-    DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_core_client( mo_action ) ).
+    DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_ui5_client( mo_action ) ).
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
     " automatic model update: snapshot the model AFTER the incoming two-way
@@ -856,7 +856,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " exceptions from main( ) are intentionally not caught here - they bubble up
     " to the single top-level catch in z2ui5_cl_http_handler=>_main( ), which
     " turns them into a 500 response carrying the exception text
-    IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
+    IF mo_action->ms_actual-event = z2ui5_if_ui5_types=>cs_event_nav_app_leave.
       " no popup/popover teardown is queued here: the standalone slots die on
       " every app switch anyway - implicitly on the frontend whenever the
       " response names another app (View1), and through prepare_app_stack for

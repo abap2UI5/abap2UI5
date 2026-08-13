@@ -14,8 +14,8 @@ CLASS ltcl_test_client DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION LONG.
 
   PRIVATE SECTION.
-    DATA mo_client TYPE REF TO z2ui5_cl_core_client.
-    DATA mo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_client TYPE REF TO z2ui5_cl_ui5_client.
+    DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
 
     METHODS setup.
 
@@ -74,7 +74,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_omit_initial_keeps_rows FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
-CLASS z2ui5_cl_core_client DEFINITION LOCAL FRIENDS ltcl_test_client.
+CLASS z2ui5_cl_ui5_client DEFINITION LOCAL FRIENDS ltcl_test_client.
 
 CLASS ltcl_test_client IMPLEMENTATION.
 
@@ -94,7 +94,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD setup.
 
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_test_app TYPE REF TO ltcl_test_app.
     lo_http = NEW #( val = `` ).
     mo_action = NEW #( val = lo_http ).
@@ -145,7 +145,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_view_model_update.
 
-    " the model is pushed automatically now (z2ui5_cl_core_handler=>main_end),
+    " the model is pushed automatically now (z2ui5_cl_ui5_handler=>main_end),
     " so this method is an obsolete NO-OP kept for source compatibility - it
     " must not raise and must not set any slot flag
     DATA temp3 TYPE REF TO z2ui5_if_client.

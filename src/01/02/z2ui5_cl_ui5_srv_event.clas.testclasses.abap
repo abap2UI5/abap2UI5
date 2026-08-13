@@ -40,7 +40,7 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
   METHOD event.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA lv_event TYPE string.
     lo_event = NEW #( ).
 
@@ -53,7 +53,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_client.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA lv_event TYPE string.
     lo_event = NEW #( ).
 
@@ -66,7 +66,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_nav_container.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     lo_event = NEW #( ).
 
     " a *_nav_container_to client event is remapped to the generic
@@ -87,7 +87,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_popup_close.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     lo_event = NEW #( ).
 
     " closing a popup IS tearing its slot down, so the two close events are
@@ -110,7 +110,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_with_args.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA temp1 TYPE string_table.
     DATA lv_event TYPE string.
     DATA temp2 TYPE xsdboolean.
@@ -134,7 +134,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_multi_args.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA temp3 TYPE string_table.
     DATA lv_event TYPE string.
     DATA temp4 TYPE xsdboolean.
@@ -164,7 +164,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_dollar_arg.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA temp5 TYPE string_table.
     DATA lv_event TYPE string.
     DATA temp7 TYPE xsdboolean.
@@ -188,7 +188,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_binding_arg.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA temp7 TYPE string_table.
     DATA lv_event TYPE string.
     DATA temp9 TYPE xsdboolean.
@@ -212,7 +212,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_empty_arg.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA temp9 TYPE string_table.
     DATA lv_event TYPE string.
     DATA temp11 TYPE xsdboolean.
@@ -233,7 +233,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_empty_middle_arg.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     lo_event = NEW #( ).
 
     " for control_by_id the view is injected as the empty slot at position 2
@@ -250,7 +250,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_trailing_empty_arg.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     lo_event = NEW #( ).
 
     " trailing empties still disappear - an ABAP false boolean param
@@ -265,7 +265,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_view_param.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     lo_event = NEW #( ).
 
     " a concrete view is injected as the (filled) slot at position 2, scoping
@@ -288,7 +288,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_multi_req.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA temp11 TYPE z2ui5_if_types=>ty_s_event_control.
     DATA lv_event TYPE string.
     DATA temp12 TYPE xsdboolean.
@@ -308,7 +308,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_prevent_default.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA ls_ctrl TYPE z2ui5_if_types=>ty_s_event_control.
     lo_event = NEW #( ).
 
@@ -347,7 +347,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_prevent_default_expr.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA ls_ctrl TYPE z2ui5_if_types=>ty_s_event_control.
     lo_event = NEW #( ).
 
@@ -383,7 +383,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_client_args.
 
-    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA temp12 TYPE string_table.
     DATA lv_event TYPE string.
     DATA temp13 TYPE xsdboolean.
@@ -408,7 +408,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_quote_escaped.
 
     " an embedded ' must be escaped to \' so it cannot close the '...' wrapper
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
     DATA(lt_arg) = VALUE string_table( ( `Value changed to '{0}'` ) ).
 
     DATA(lv_event) = lo_event->get_event( val   = `EVT`
@@ -424,7 +424,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " containing "\'" cannot break out of the '...' wrapper and inject JS.
     " Regression for: arg `\',alert(1),'` used to emit `'\\',alert(1),\''`,
     " closing the string early and evaluating alert(1) as an argument.
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
     DATA(lt_arg) = VALUE string_table( ( `\',alert(1),'` ) ).
 
     DATA(lv_event) = lo_event->get_event( val   = `EVT`
@@ -441,7 +441,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a standalone CR (not part of CR+LF) is a JS line terminator like LF -
     " it must be escaped too, or the emitted '...' literal is a syntax error
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
     DATA(lv_cr) = substring( val = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf
                              off = 0
                              len = 1 ).
@@ -459,7 +459,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a value-first placeholder ({0}...) and a conditional placeholder
     " ({0?a:b}...) are plain strings, so both are quoted (not emitted raw)
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     DATA(lv_plain) = lo_event->get_event( val   = `EVT`
                                           t_arg = VALUE #( ( `{0} Pressed` ) ) ).
@@ -475,7 +475,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " the structured follow-up form: a JSON array ["EVENT", ...args] built
     " and escaped entirely in ABAP - data, not an executable eF( ) snippet
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["SET_TITLE","My Title"]`
@@ -486,7 +486,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD json_no_args.
 
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["HISTORY_BACK"]`
@@ -498,7 +498,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " the *_nav_container_to remap to the generic CONTROL_BY_ID call is shared
     " with the JS path via map_client_event
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
@@ -509,7 +509,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD json_view_param.
 
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     " a concrete view fills the slot at position 2, the default main view
     " keeps it empty (cross-view resolveById on the frontend)
@@ -528,7 +528,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD json_empty_args.
 
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     " an empty argument between filled ones keeps its position, trailing
     " empties are dropped - same contract as the JS form (get_t_arg)
@@ -541,7 +541,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD json_object_arg.
 
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     " a JSON object argument (e.g. the STORE_DATA payload) is embedded as
     " real JSON, so the frontend receives a ready-to-use object after one
@@ -555,7 +555,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD json_placeholder_stays_string.
 
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     " a message-template placeholder only looks like JSON - it fails the
     " parse and stays a plain string, like the frontend fallback produced
@@ -568,7 +568,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD json_escaping.
 
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     " quotes and backslashes in an argument are JSON-escaped by the ABAP
     " serializer - no hand-written escaping, no JS string literal to break

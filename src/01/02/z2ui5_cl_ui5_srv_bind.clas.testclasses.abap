@@ -1,6 +1,6 @@
 
 CLASS ltcl_test_bind DEFINITION DEFERRED.
-CLASS z2ui5_cl_core_srv_bind DEFINITION LOCAL FRIENDS ltcl_test_bind.
+CLASS z2ui5_cl_ui5_srv_bind DEFINITION LOCAL FRIENDS ltcl_test_bind.
 
 CLASS ltcl_test_app DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
@@ -58,10 +58,10 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     " XX used to be a reserved model-node name; now that the two-way data
     " lives directly on the root, an attribute named XX binds like any other
     DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
 
     DATA(lv_bind) = lo_bind->main( REF #( lo_app_client->xx ) ).
 
@@ -73,10 +73,10 @@ CLASS ltcl_test_bind IMPLEMENTATION.
   METHOD test_bind_path.
 
     DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
 
     DATA(lv_bind) = lo_bind->main( REF #( lo_app_client->mv_value ) ).
 
@@ -88,10 +88,10 @@ CLASS ltcl_test_bind IMPLEMENTATION.
   METHOD test_bind_idempotent.
 
     DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
 
     DATA(lv_bind) = lo_bind->main( REF #( lo_app_client->mv_value ) ).
 
@@ -142,10 +142,10 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_bind_lev1.
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main( REF #( lo_test_app->ms_struc-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/INPUT}`
@@ -162,10 +162,10 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_bind_lev2.
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main( REF #( lo_test_app->ms_struc-s_02-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/S_02/INPUT}`
@@ -176,10 +176,10 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_bind_lev3.
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main( REF #( lo_test_app->ms_struc-s_02-s_03-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/S_02/S_03/INPUT}`
@@ -190,10 +190,10 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_bind_lev4_long_name.
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main( REF #( lo_test_app->ms_struc-s_02-s_03-s_04-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/S_02/S_03/S_04/INPUT}`
@@ -242,10 +242,10 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
     DATA(lo_test_app) = NEW ltcl_test_main_object( ).
     lo_test_app->mo_obj = NEW #( ).
     lo_test_app->mo_obj->mv_value = `test`.
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main( REF #( lo_test_app->mo_obj->mv_value ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MO_OBJ/MV_VALUE}`
@@ -257,10 +257,10 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
 
     DATA(lo_test_app) = NEW ltcl_test_main_object( ).
     lo_test_app->mo_obj = NEW #( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main( REF #( lo_test_app->mo_obj->ms_struc-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MO_OBJ/MS_STRUC/INPUT}`

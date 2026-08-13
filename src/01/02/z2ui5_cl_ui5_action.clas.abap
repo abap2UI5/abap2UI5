@@ -1,48 +1,48 @@
-CLASS z2ui5_cl_core_action DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
-    DATA mo_http_post TYPE REF TO z2ui5_cl_core_handler.
-    DATA mo_app       TYPE REF TO z2ui5_cl_core_app.
+    DATA mo_http_post TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA mo_app       TYPE REF TO z2ui5_cl_ui5_app.
 
-    DATA ms_actual    TYPE z2ui5_if_core_types=>ty_s_actual.
-    DATA ms_next      TYPE z2ui5_if_core_types=>ty_s_next.
+    DATA ms_actual    TYPE z2ui5_if_ui5_types=>ty_s_actual.
+    DATA ms_next      TYPE z2ui5_if_ui5_types=>ty_s_next.
 
     METHODS factory_system_startup
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
     METHODS factory_first_start
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
     METHODS factory_by_frontend
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
     METHODS factory_stack_leave
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
     METHODS factory_stack_call
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
     METHODS constructor
       IMPORTING
-        val TYPE REF TO z2ui5_cl_core_handler.
+        val TYPE REF TO z2ui5_cl_ui5_handler.
 
   PROTECTED SECTION.
     METHODS prepare_app_stack
       IMPORTING
-        val           TYPE z2ui5_if_core_types=>ty_s_next-o_app_leave
+        val           TYPE z2ui5_if_ui5_types=>ty_s_next-o_app_leave
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
   PRIVATE SECTION.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_action IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -58,7 +58,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     IF mo_http_post->mo_action->mo_app->mo_app IS BOUND.
       result->mo_app = mo_http_post->mo_action->mo_app.
     ELSE.
-      result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_front-id ).
+      result->mo_app = z2ui5_cl_ui5_app=>db_load( mo_http_post->ms_request-s_front-id ).
     ENDIF.
 
     result->mo_app->ms_draft-id      = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
@@ -81,7 +81,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         IF mo_http_post->ms_request-s_control-app_start_draft IS NOT INITIAL.
           TRY.
 
-              result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
+              result->mo_app = z2ui5_cl_ui5_app=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_nav-set_app_state_active = abap_true.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
@@ -97,7 +97,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               " There is no client object yet at this point in the factory,
               " so the toast is queued directly through the action builder
               " message_toast_display( ) delegates to.
-              NEW z2ui5_cl_core_act_front( result )->msg_toast(
+              NEW z2ui5_cl_ui5_act_front( result )->msg_toast(
                   `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
           ENDTRY.
         ENDIF.
@@ -176,7 +176,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
            result->ms_next-s_nav-nav_app_call_prev_app,
            result->ms_next-s_nav-nav_app_call_prev_id.
 
-    DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
+    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
 
     " the leave target was never persisted (a fresh app instance) - it takes
     " over the current app's position in the stack
@@ -222,7 +222,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result = NEW #( mo_http_post ).
     TRY.
-        result->mo_app = z2ui5_cl_core_app=>db_load_by_app( val ).
+        result->mo_app = z2ui5_cl_ui5_app=>db_load_by_app( val ).
       CATCH cx_root.
         result->mo_app->mo_app = val.
     ENDTRY.
@@ -238,7 +238,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     " routing is inherited by the app being navigated to, unless it already
     " chose a mode of its own - so enabling it once in the entry app is enough
-    " for the whole app stack (see z2ui5_cl_core_app=>mv_nav_mode)
+    " for the whole app stack (see z2ui5_cl_ui5_app=>mv_nav_mode)
     IF result->mo_app->mv_nav_mode IS INITIAL.
       result->mo_app->mv_nav_mode = mo_app->mv_nav_mode.
     ENDIF.
@@ -294,7 +294,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " over a carried destroy through slot_reset( ).
     result->ms_next-t_action_front = VALUE #(
         FOR ls_front IN ms_next-t_action_front
-        WHERE ( method = z2ui5_if_core_types=>cs_slot_action-destroy )
+        WHERE ( method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
         ( ls_front ) ).
 
     " The two standalone slots (POPUP/POPOVER) die on every app switch - they
@@ -316,10 +316,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
              WHERE slot = z2ui5_if_client=>cs_view-popup
                 OR slot = z2ui5_if_client=>cs_view-popover.
       INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-popup
-                      method = z2ui5_if_core_types=>cs_slot_action-destroy )
+                      method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
              INTO TABLE result->ms_next-t_action_front.
       INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-popover
-                      method = z2ui5_if_core_types=>cs_slot_action-destroy )
+                      method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
              INTO TABLE result->ms_next-t_action_front.
     ENDIF.
 

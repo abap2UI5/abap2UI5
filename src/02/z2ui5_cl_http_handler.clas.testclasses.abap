@@ -24,7 +24,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_get_status.
 
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
 
     ls_result = z2ui5_cl_http_handler=>_http_get( ).
 
@@ -38,7 +38,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_get_html.
 
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
     DATA temp1 TYPE xsdboolean.
     DATA temp2 TYPE xsdboolean.
     DATA temp3 TYPE xsdboolean.
@@ -60,7 +60,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_get_ui5_boot.
 
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
     DATA temp4 TYPE xsdboolean.
     DATA temp5 TYPE xsdboolean.
 
@@ -77,7 +77,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_http_post_ok.
 
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
     DATA temp6 TYPE xsdboolean.
 
     ls_req-method = `POST`.
@@ -118,7 +118,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " a wrong/mistyped app name in the URL raises in the framework; the single
     " top-level catch in _main turns it into a 500 whose body states the reason
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_DOES_NOT_EXIST"}}}`.
@@ -136,7 +136,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     " OPTIONS/PUT/... must answer 405, not fall through with status code 0
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
 
     ls_req-method = `OPTIONS`.
 
@@ -154,7 +154,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " valid JSON without an S_FRONT container (health-check POST, rewrapping
     " proxy) must take the system-startup path, not answer 500
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{}}`.
@@ -169,7 +169,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_main_get_routing.
 
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
     DATA temp8 TYPE xsdboolean.
 
     ls_req-method = `GET`.
@@ -187,7 +187,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_main_post_routing.
 
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+    DATA ls_result TYPE z2ui5_cl_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.

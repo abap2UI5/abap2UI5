@@ -2,8 +2,8 @@ CLASS ltcl_test_action_front DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    DATA mo_cut    TYPE REF TO z2ui5_cl_core_act_front.
-    DATA mo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_cut    TYPE REF TO z2ui5_cl_ui5_act_front.
+    DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
 
     METHODS setup.
 
@@ -40,7 +40,7 @@ CLASS ltcl_test_action_front IMPLEMENTATION.
 
   METHOD setup.
 
-    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     lo_http = NEW #( val = `` ).
     mo_action = NEW #( val = lo_http ).
     mo_cut = NEW #( mo_action ).

@@ -5,11 +5,11 @@ const { loadModule } = require("./loadModule");
 // Tests FrontendAction.runCustom - the follow-up-action path. A backend
 // snippet is a JSON array ["EVENT", ...args] (the structured form every
 // framework follow-up action travels in - serialized and escaped entirely in
-// ABAP by z2ui5_cl_core_srv_event=>get_event_client_ajson), a legacy eF( )
+// ABAP by z2ui5_cl_ui5_srv_event=>get_event_client_ajson), a legacy eF( )
 // call whose argument list is parsed WITHOUT eval so it runs under a strict
 // CSP (core/actions/LegacyCustomJs.js), or a raw expression. The legacy
 // argument parser has to be the exact counterpart of the backend's escaping
-// (z2ui5_cl_core_srv_event=>escape_js_string), which escapes backslash, the
+// (z2ui5_cl_ui5_srv_event=>escape_js_string), which escapes backslash, the
 // single quote AND the line breaks it rewrites to \n / \r.
 
 // Load FrontendAction with every domain handler map stubbed empty (override
@@ -68,7 +68,7 @@ test.describe("runSystem", () => {
 test.describe("runCustom structured JSON actions", () => {
   test("dispatches a REAL array as an eF event (the wire form)", () => {
     // the backend embeds framework actions into the response as real nested
-    // arrays (z2ui5_cl_core_handler=>actions_serialize) - no parse, no escaping
+    // arrays (z2ui5_cl_ui5_handler=>actions_serialize) - no parse, no escaping
     const FrontendAction = loadFrontendAction();
     const oController = controllerStub();
 
@@ -96,7 +96,7 @@ test.describe("runCustom structured JSON actions", () => {
     const oController = controllerStub();
 
     // the structured form the backend emits for framework follow-up actions
-    // (z2ui5_cl_core_srv_event=>get_event_client_ajson): pure data, one
+    // (z2ui5_cl_ui5_srv_event=>get_event_client_ajson): pure data, one
     // JSON.parse, no code parsing
     FrontendAction.runCustom('["SET_FOCUS","myInput"]', oController);
 

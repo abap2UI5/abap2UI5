@@ -1,6 +1,6 @@
 " Everything the backend asks the FRONTEND to do, in one place: it builds
 " the action payloads, queues them, and serializes the collected queues
-" into the response's action lists. z2ui5_cl_core_client keeps only the
+" into the response's action lists. z2ui5_cl_ui5_client keeps only the
 " public API surface and hands straight through to here.
 "
 " The two queues differ in phase, not in format. SYSTEM carries the view
@@ -10,17 +10,17 @@
 " Plain comments, not ABAP Doc: SE24 regenerates the CLASS statement from
 " the class metadata, which detaches a leading "! block from it and turns
 " it into an "ABAP Doc comment is in the wrong position" warning.
-CLASS z2ui5_cl_core_act_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS z2ui5_cl_ui5_act_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
 
     METHODS constructor
       IMPORTING
-        action TYPE REF TO z2ui5_cl_core_action.
+        action TYPE REF TO z2ui5_cl_ui5_action.
 
     "! Queue an APP-phase action for a client event, exactly as
     "! follow_up_action ships it: mapped and argument-embedded by
-    "! z2ui5_cl_core_srv_event.
+    "! z2ui5_cl_ui5_srv_event.
     METHODS queue_app_event
       IMPORTING
         val   TYPE clike
@@ -116,8 +116,8 @@ CLASS z2ui5_cl_core_act_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    DATA mo_action    TYPE REF TO z2ui5_cl_core_action.
-    DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA mo_action    TYPE REF TO z2ui5_cl_ui5_action.
+    DATA mo_srv_event TYPE REF TO z2ui5_cl_ui5_srv_event.
 
     "! Build one framework action as its JSON array: [ t_arg..., opt? ].
     "! The first argument is the whitelisted global target (VIEW_SLOTS,
@@ -200,7 +200,7 @@ CLASS z2ui5_cl_core_act_front DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_act_front IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_act_front IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -275,7 +275,7 @@ CLASS z2ui5_cl_core_act_front IMPLEMENTATION.
 
     slot_reset( slot ).
     INSERT VALUE #( slot   = slot
-                    method = z2ui5_if_core_types=>cs_slot_action-destroy )
+                    method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
            INTO TABLE mo_action->ms_next-t_action_front.
 
   ENDMETHOD.
@@ -328,7 +328,7 @@ CLASS z2ui5_cl_core_act_front IMPLEMENTATION.
                         val  = switch_default_model_anno_uri ).
 
         INSERT VALUE #( slot    = slot
-                        method  = z2ui5_if_core_types=>cs_slot_action-display
+                        method  = z2ui5_if_ui5_types=>cs_slot_action-display
                         xml     = xml
                         options = li_opt )
                INTO TABLE mo_action->ms_next-t_action_front.
@@ -355,10 +355,10 @@ CLASS z2ui5_cl_core_act_front IMPLEMENTATION.
     " before the next runs, so a popup this roundtrip opens still opens.
     DATA(lv_main_displayed) = xsdbool( line_exists(
         mo_action->ms_next-t_action_front[ slot   = z2ui5_if_client=>cs_view-main
-                                           method = z2ui5_if_core_types=>cs_slot_action-display ] ) ).
+                                           method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ).
     IF lv_main_displayed = abap_true.
       DELETE mo_action->ms_next-t_action_front
-             WHERE method = z2ui5_if_core_types=>cs_slot_action-destroy
+             WHERE method = z2ui5_if_ui5_types=>cs_slot_action-destroy
                AND ( slot = z2ui5_if_client=>cs_view-popup
                   OR slot = z2ui5_if_client=>cs_view-popover ).
     ENDIF.
@@ -375,10 +375,10 @@ CLASS z2ui5_cl_core_act_front IMPLEMENTATION.
       " LOOP would duplicate once per slot action
       LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO DATA(lr_action)
            WHERE slot = lv_slot.
-        DATA(lt_arg) = VALUE string_table( ( z2ui5_if_core_types=>cs_slot_action-target )
+        DATA(lt_arg) = VALUE string_table( ( z2ui5_if_ui5_types=>cs_slot_action-target )
                                            ( lr_action->method )
                                            ( lr_action->slot ) ).
-        IF lr_action->method = z2ui5_if_core_types=>cs_slot_action-display.
+        IF lr_action->method = z2ui5_if_ui5_types=>cs_slot_action-display.
           INSERT lr_action->xml INTO TABLE lt_arg.
         ENDIF.
         queue_system( t_arg = lt_arg

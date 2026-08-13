@@ -1,25 +1,25 @@
-CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
-    DATA mo_app    TYPE REF TO z2ui5_cl_core_app.
-    DATA mr_attri  TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
-    DATA ms_config TYPE z2ui5_if_core_types=>ty_s_bind_config.
+    DATA mo_app    TYPE REF TO z2ui5_cl_ui5_app.
+    DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
 
     METHODS constructor
       IMPORTING
-        app TYPE REF TO z2ui5_cl_core_app.
+        app TYPE REF TO z2ui5_cl_ui5_app.
 
     METHODS main
       IMPORTING
         val           TYPE REF TO data
-        config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
+        config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
     METHODS main_cell
       IMPORTING
         val           TYPE data
-        config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
+        config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
@@ -66,7 +66,7 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD bind_tab_cell.
 
@@ -193,8 +193,8 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     ms_config = config.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = mo_app->mt_attri
-                                                  app   = mo_app->mo_app ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = mo_app->mt_attri
+                                                  app  = mo_app->mo_app ).
 
     mr_attri = lo_model->main_attri_search( val ).
 
@@ -225,7 +225,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     ms_config = config.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( mo_app ).
     result = lo_bind->main( val    = config-tab
                             config = VALUE #( path_only = abap_true ) ).
 

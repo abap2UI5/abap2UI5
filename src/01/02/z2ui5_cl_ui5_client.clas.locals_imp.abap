@@ -11,7 +11,7 @@
 " backend table, and every row behind the gap is shifted: a whole-table
 " write-back deletes the omitted row from backend state, and a `__delta` row
 " index (0-based client position, applied against the FULL backend table in
-" z2ui5_cl_core_srv_model=>delta_apply_nodes) lands the edit in the wrong
+" z2ui5_cl_ui5_srv_model=>delta_apply_nodes) lands the edit in the wrong
 " row. src/00/01 is mirrored and must not change, so the correction lives
 " here: identical to the empty filter EXCEPT that a direct element of an
 " array always survives - initial FIELDS still vanish, but the row itself

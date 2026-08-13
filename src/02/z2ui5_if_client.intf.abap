@@ -91,7 +91,7 @@ INTERFACE z2ui5_if_client
       filter_bar_variant_init   TYPE string VALUE `FILTER_BAR_VARIANT_INIT`,
 
       " legacy event names - still supported: the *nav_container_to variants
-      " are remapped to the generic control_by_id call (z2ui5_cl_core_srv_event),
+      " are remapped to the generic control_by_id call (z2ui5_cl_ui5_srv_event),
       " the others have dedicated frontend handlers
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
@@ -143,7 +143,7 @@ INTERFACE z2ui5_if_client
   "! obsolete - does NOTHING. An event round-trip that changes bound data
   "! pushes the model AUTOMATICALLY: the framework compares the model state
   "! before and after main( ) and, when it differs, sends it to every open
-  "! view slot (see z2ui5_cl_core_handler=>main_end). A handler can therefore
+  "! view slot (see z2ui5_cl_ui5_handler=>main_end). A handler can therefore
   "! no longer render stale by forgetting a call, and there is nothing left
   "! for this method to do. It stays in the interface so existing apps keep
   "! compiling - remove the calls at your leisure.
@@ -357,7 +357,7 @@ INTERFACE z2ui5_if_client
   "!                                keys `sap.app`/`sap.card` are not valid ABAP
   "!                                field names, and a string is read as a
   "!                                manifest URL). Outbound only - see
-  "!                                z2ui5_cl_core_srv_model.
+  "!                                z2ui5_cl_ui5_srv_model.
   METHODS _bind
     IMPORTING
       val                  TYPE data

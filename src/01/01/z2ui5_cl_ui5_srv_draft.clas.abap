@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
@@ -46,7 +46,7 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   METHOD cleanup.
 
