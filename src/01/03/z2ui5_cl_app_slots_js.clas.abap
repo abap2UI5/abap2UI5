@@ -150,7 +150,7 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `      // The shared device + message models are attached inside` && |\n| &&
              `      // ViewSlots.setView (the single funnel), so error paths that` && |\n| &&
              `      // destroy a view without reaching setView never register it.` && |\n| &&
-             `      ViewSlots.setView("POPUP", oFragment);` && |\n| &&
+             `      ViewSlots.setView("POPUP", oFragment, xml);` && |\n| &&
              `      oFragment.open();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -179,7 +179,7 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `        oFragment.destroy();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      ViewSlots.setView("POPOVER", oFragment);` && |\n| &&
+             `      ViewSlots.setView("POPOVER", oFragment, xml);` && |\n| &&
              `      // The anchor may not be in the DOM yet: a response can build the MAIN` && |\n| &&
              `      // view and open a popover on one of its controls in the SAME` && |\n| &&
              `      // roundtrip - the build is awaited, but its rendering happens later.` && |\n| &&
@@ -251,7 +251,7 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `        oView.destroy();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      ViewSlots.setView(slotKey, oView);` && |\n| &&
+             `      ViewSlots.setView(slotKey, oView, xml);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Replace the main app view with the XML coming from the backend.` && |\n| &&
@@ -308,7 +308,7 @@ CLASS z2ui5_cl_app_slots_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      ViewSlots.setView("MAIN", oView);` && |\n| &&
+             `      ViewSlots.setView("MAIN", oView, xml);` && |\n| &&
              `      if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
              `      AppState.state.oApp.removeAllPages();` && |\n| &&
              `      AppState.state.oApp.insertPage(oView);` && |\n| &&

@@ -75,6 +75,14 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   oOwnerComponent, oDeviceModel (Component / App.controller)` && |\n| &&
              `//   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover` && |\n| &&
              `//                     the five view slots, written by ViewSlots.setView` && |\n| &&
+             `//   slotXml           the view XML each slot was filled with, per slot key -` && |\n| &&
+             `//                     recorded by ViewSlots.setView and dropped by` && |\n| &&
+             `//                     ViewSlots.destroy, so it tracks the slot itself no` && |\n| &&
+             `//                     matter who tore it down (backend action or a` && |\n| &&
+             `//                     roundtrip-free frontend close). The developer tools` && |\n| &&
+             `//                     read a slot's source from here: a fragment or a view` && |\n| &&
+             `//                     built from a ``definition`` keeps no viewContent of its` && |\n| &&
+             `//                     own` && |\n| &&
              `//   oController, oControllerNest, oControllerNest2, oControllerPopup,` && |\n| &&
              `//   oControllerPopover  controller instance per slot (App.controller)` && |\n| &&
              `//   oLaunchpad        FLP services when running inside the launchpad, else` && |\n| &&
@@ -142,6 +150,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      oControllerNest2: null,` && |\n| &&
              `      oControllerPopup: null,` && |\n| &&
              `      oControllerPopover: null,` && |\n| &&
+             `      slotXml: {},` && |\n| &&
              `      oLaunchpad: null,` && |\n| &&
              `` && |\n| &&
              `      // Roundtrip state` && |\n| &&
