@@ -23,8 +23,9 @@ unreleased
   closes the page in the same row shape, one icon per way in. The title row
   is icons only now: the documentation, the repository (globe), the developer
   tools and, where the class exists, the configuration. The system
-  information the System dialog used to show is a panel of its own at the end
-  of the page, open, with the draft entries now given as own/total
+  information the System dialog used to show closes the page as an ordinary
+  part of the form, set apart by an empty row and a smaller headline, with
+  the draft entries now given as own/total
   (z2ui5_cl_core_srv_draft=>count_entries_total( )) - the figure that says
   whether the cleanup is keeping up on this system
 - BREAKING: removed render_documentation( ) and render_system_popup( ) from

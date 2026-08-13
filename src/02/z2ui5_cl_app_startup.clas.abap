@@ -76,15 +76,23 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     METHODS render_docs_link
       IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
 
-    " the closing block of the page: what this system runs on, in its own box
+    " the closing block of the page: what this system runs on
     METHODS render_system_info
-      IMPORTING page TYPE REF TO z2ui5_cl_ai_xml.
+      IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
 
-    " the section headline every render_* method opens with
+    " the section headline every render_* method opens with. small = a level
+    " below the others, for a block that closes the page rather than asking
+    " for something
     METHODS render_section
       IMPORTING
         form  TYPE REF TO z2ui5_cl_ai_xml
-        title TYPE string.
+        title TYPE string
+        small TYPE abap_bool DEFAULT abap_false.
+
+    " an empty row - a Label with nothing after it is how a SimpleForm gets
+    " one, and the only way to put air between two blocks of the same form
+    METHODS render_spacer
+      IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
 
     " a form row of Label + external Link; an empty label renders a blank one,
     " which is how the SimpleForm keeps the link in the value column
@@ -280,10 +288,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     render_whats_next( form ).
     render_docs_link( form ).
     render_contribution( form ).
-
-    " its own Panel, not a section of the form above: it is about the system,
-    " not about what to do next, and a box says that better than a headline
-    render_system_info( page ).
+    render_system_info( form ).
 
     client->view_display( view->stringify( ) ).
 
@@ -433,6 +438,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                 v = client->_bind( ms_home-url )
           )->a( n = `enabled`
                 v = client->_bind( ms_home-link_enabled ) ).
+
+    " the five steps are one thought - let it end before the next headline
+    render_spacer( form ).
 
   ENDMETHOD.
 
@@ -611,7 +619,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                      label   = `Community`
                      icon    = `sap-icon://discussion`
                      text    = `join #abap2UI5`
-                     href    = `https://communityinviter.com/apps/abapgit/abap`
+                     href    = `https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg`
                      new_tab = abap_true
       )->leaf( `Text`
           )->a( n = `text`
@@ -646,29 +654,20 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_system_info.
 
-    " the system facts stand at the end of the start page rather than in a
-    " dialog: they are read, not operated. Its own Panel - open, not
-    " collapsible: the block is short, and a box that has to be unfolded first
-    " is the popup again in a different shape. The one part that is not free is
-    " the draft count at the bottom: two COUNT( * ) - the own rows and the
-    " whole table, which together say whether cleanup( ) is keeping up - and
-    " they now run per render instead of per dialog open, which this page can
-    " afford: it renders on start and on the Check / Edit events, nowhere else
-    DATA(panel) = page->open( `Panel`
-        )->a( n = `headerText`
-              v = `System Information`
-        )->a( n = `expandable`
-              v = `false`
-        )->a( n = `backgroundDesign`
-              v = `Solid`
-        )->a( n = `class`
-              v = `sapUiSmallMargin` ).
-
-    DATA(form) = create_layout_form( panel ).
-    DATA(ls_client) = client->get( ).
-
+    " the system facts close the page: they are read, not operated, so they
+    " belong after everything that asks the reader for something - part of the
+    " same form, not a box of their own, just held apart by an empty row and a
+    " headline one level down. The one part that is not free is the draft count
+    " at the bottom: two COUNT( * ) - the own rows and the whole table, which
+    " together say whether cleanup( ) is keeping up - and they run per render
+    " instead of per dialog open, which this page can afford: it renders on
+    " start and on the Check / Edit events, nowhere else
+    render_spacer( form ).
     render_section( form  = form
-                    title = `Frontend` ).
+                    title = `System Information`
+                    small = abap_true ).
+
+    DATA(ls_client) = client->get( ).
     render_text( form  = form
                  label = `UI5 Version`
                  text  = ls_client-s_ui5-version ).
@@ -680,8 +679,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         )->a( n = `enabled`
               v = `false` ).
 
-    render_section( form  = form
-                    title = `Backend` ).
     form->leaf( `Label` )->a( n = `text`
                               v = `ABAP for Cloud` ).
     form->leaf( `CheckBox`
@@ -693,10 +690,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                  label = `User Exit`
                  text  = z2ui5_cl_exit=>get_user_exit_class( ) ).
 
-    render_section( form  = form
-                    title = `abap2UI5` ).
     render_text( form  = form
-                 label = `Version`
+                 label = `abap2UI5 Version`
                  text  = z2ui5_if_app=>version ).
     DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
     render_text( form  = form
@@ -707,10 +702,20 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_section.
 
-    form->open( `Toolbar`
-        )->leaf( `Title` )->a( n = `text`
-                               v = title
-      )->shut( ).
+    DATA(toolbar) = form->open( `Toolbar` ).
+    toolbar->leaf( `Title` )->a( n = `text`
+                                 v = title ).
+    IF small = abap_true.
+      toolbar->a( n = `titleStyle`
+                  v = `H5` ).
+    ENDIF.
+    toolbar->shut( ).
+
+  ENDMETHOD.
+
+  METHOD render_spacer.
+
+    form->leaf( `Label` ).
 
   ENDMETHOD.
 
