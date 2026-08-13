@@ -11,7 +11,7 @@ ENDCLASS.
 CLASS ltcl_app_startup_test IMPLEMENTATION.
   METHOD test_first.
 
-    DATA(lo_app) = z2ui5_cl_app_startup=>factory( ) ##NEEDED.
+    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ) ##NEEDED.
 
   ENDMETHOD.
 
@@ -21,7 +21,7 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " replaced a UI5 expression binding, which would be eval-compiled and
     " therefore break under a strict CSP. It must stay the exact inverse of
     " class_editable, so the link is only clickable after a successful check.
-    DATA(lo_app) = z2ui5_cl_app_startup=>factory( ).
+    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
 
     lo_app->ms_home-link_enabled = abap_true.
     lo_app->reset_button_state( ).

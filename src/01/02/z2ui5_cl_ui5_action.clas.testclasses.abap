@@ -84,7 +84,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
-    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_HI_WORLD"}}}`.
 
     lo_http = NEW #( val = lv_payload ).
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
@@ -108,7 +108,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
-    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_HI_WORLD"}}}`.
 
     lo_http = NEW #( val = lv_payload ).
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).

@@ -1,11 +1,11 @@
-CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
+CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
     CLASS-METHODS factory
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_app_startup.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_start.
 
     CONSTANTS:
       BEGIN OF cs_event,
@@ -189,7 +189,7 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_startup IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
   METHOD factory.
 
@@ -215,7 +215,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD on_init.
 
     reset_button_state( ).
-    ms_home-classname = z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
+    ms_home-classname = z2ui5_cl_ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_ui5_app_hi_world( ) ).
 
   ENDMETHOD.
 
@@ -432,7 +432,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     render_link( form = form
                  text = `See a complete example: Hello World`
-                 href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_app_hello_world.clas.abap` ).
+                 href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_ui5_app_hi_world.clas.abap` ).
 
     form->leaf( `Label` )->a( n = `text`
                               v = `Step 4` ).

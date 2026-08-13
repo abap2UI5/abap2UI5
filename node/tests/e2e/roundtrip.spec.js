@@ -16,7 +16,7 @@ const { test, expect } = require("./fixtures");
 // initial view XML, then an event roundtrip whose two-way model delta is
 // applied before on_event and answered with the message box.
 
-const HELLO_WORLD = "Z2UI5_CL_APP_HELLO_WORLD";
+const HELLO_WORLD = "Z2UI5_CL_UI5_APP_HI_WORLD";
 
 function frontBody(sFront) {
   return {
@@ -35,7 +35,7 @@ test("starts an app via app_start and answers with a draft id", async ({
   request,
 }) => {
   const res = await request.post("/", {
-    data: frontBody({ SEARCH: "?app_start=z2ui5_cl_app_hello_world" }),
+    data: frontBody({ SEARCH: "?app_start=z2ui5_cl_ui5_app_hi_world" }),
   });
 
   expect(res.ok()).toBeTruthy();
@@ -48,7 +48,7 @@ test("starts an app via app_start and answers with a draft id", async ({
 test("chains the session draft across roundtrips", async ({ request }) => {
   const first = await (
     await request.post("/", {
-      data: frontBody({ SEARCH: "?app_start=z2ui5_cl_app_hello_world" }),
+      data: frontBody({ SEARCH: "?app_start=z2ui5_cl_ui5_app_hi_world" }),
     })
   ).json();
 
@@ -89,7 +89,7 @@ function messageBoxText(body) {
 test("returns the backend-built view XML on app start", async ({ request }) => {
   const body = await (
     await request.post("/", {
-      data: frontBody({ SEARCH: "?app_start=z2ui5_cl_app_hello_world" }),
+      data: frontBody({ SEARCH: "?app_start=z2ui5_cl_ui5_app_hi_world" }),
     })
   ).json();
 
@@ -106,7 +106,7 @@ test("applies the model delta before on_event and answers the event", async ({
 }) => {
   const first = await (
     await request.post("/", {
-      data: frontBody({ SEARCH: "?app_start=z2ui5_cl_app_hello_world" }),
+      data: frontBody({ SEARCH: "?app_start=z2ui5_cl_ui5_app_hi_world" }),
     })
   ).json();
 
@@ -158,7 +158,7 @@ test("boots the UI5 shell in the browser and issues the initial roundtrip", asyn
   const responsePromise = page.waitForResponse(
     (r) => r.request().method() === "POST",
   );
-  await page.goto("/?app_start=z2ui5_cl_app_hello_world");
+  await page.goto("/?app_start=z2ui5_cl_ui5_app_hi_world");
 
   const response = await responsePromise;
   expect(response.status()).toBe(200);
@@ -170,7 +170,7 @@ test("boots the UI5 shell in the browser and issues the initial roundtrip", asyn
 test("renders the view, posts the input value and shows the message box", async ({
   page,
 }) => {
-  await page.goto("/?app_start=z2ui5_cl_app_hello_world");
+  await page.goto("/?app_start=z2ui5_cl_ui5_app_hi_world");
 
   // the backend-built view really renders in the shell
   const input = page.locator("input").first();
@@ -193,7 +193,7 @@ test("does not append a dangling '#' to the URL after app start", async ({
   const responsePromise = page.waitForResponse(
     (r) => r.request().method() === "POST",
   );
-  await page.goto("/?app_start=z2ui5_cl_app_hello_world");
+  await page.goto("/?app_start=z2ui5_cl_ui5_app_hi_world");
   await responsePromise;
 
   // Router.sync runs right after the system actions of

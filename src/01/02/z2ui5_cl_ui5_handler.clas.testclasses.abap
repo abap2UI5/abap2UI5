@@ -129,7 +129,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD load_startup_app.
     DATA lv_payload TYPE string.
     DATA lo_post TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA temp1 TYPE REF TO z2ui5_cl_app_startup.
+    DATA temp1 TYPE REF TO z2ui5_cl_ui5_app_start.
     DATA lo_startup LIKE temp1.
 
     lv_payload = `{"value" : { "S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}}`.
@@ -377,13 +377,13 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA lv_payload TYPE string.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
-    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_HI_WORLD"}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_APP_HELLO_WORLD`
+    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_UI5_APP_HI_WORLD`
                                         act = ls_request-s_control-app_start ).
 
   ENDMETHOD.
@@ -417,7 +417,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     CLEAR temp2.
     temp2-s_front-id = `ID123`.
-    temp2-s_front-app = `Z2UI5_CL_APP_HELLO_WORLD`.
+    temp2-s_front-app = `Z2UI5_CL_UI5_APP_HI_WORLD`.
     temp2-model = `{"name":"test"}`.
 
     ls_response = temp2.

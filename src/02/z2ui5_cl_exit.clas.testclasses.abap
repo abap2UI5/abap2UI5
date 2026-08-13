@@ -81,7 +81,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
     ls_req-path = `/sap/test`.
-    ls_req-t_params = VALUE #( ( n = `app_start` v = `z2ui5_cl_app_hello_world` )
+    ls_req-t_params = VALUE #( ( n = `app_start` v = `z2ui5_cl_ui5_app_hi_world` )
                                 ( n = `sap-client` v = `100` ) ).
 
     z2ui5_cl_exit=>init_context( ls_req ).

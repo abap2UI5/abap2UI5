@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
+CLASS z2ui5_cl_ui5_app_hi_world DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -9,7 +9,7 @@ CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_app_hi_world IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 

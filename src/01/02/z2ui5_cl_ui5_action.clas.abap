@@ -203,7 +203,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     result->mo_app->ms_draft-id          = z2ui5_cl_ui5_context=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
-    result->mo_app->mo_app               = z2ui5_cl_app_startup=>factory( ).
+    result->mo_app->mo_app               = z2ui5_cl_ui5_app_start=>factory( ).
 
     CAST z2ui5_if_app( result->mo_app->mo_app )->id_draft = result->mo_app->ms_draft-id.
 
