@@ -88,11 +88,13 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     " asked once and then not again
     METHODS render_system_popup.
 
-    " one icon of the closing line: no text, the tooltip says what it is
+    " one entry of the closing line: icon and word, with the sentence behind
+    " both in the tooltip
     METHODS render_bar_button
       IMPORTING
         bar     TYPE REF TO z2ui5_cl_ai_xml
         icon    TYPE string
+        text    TYPE string
         tooltip TYPE string
         press   TYPE string.
 
@@ -450,7 +452,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `enabled`
                 v = client->_bind( ms_home-link_enabled ) ).
 
-    " the five steps are one thought - let it end before the next headline
+    " the five steps are one thought - let it end before the next headline.
+    " Two rows, not one: this is the break between doing something and reading
+    " on, the widest the page has
+    render_spacer( form ).
     render_spacer( form ).
 
   ENDMETHOD.
@@ -597,32 +602,37 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_link_bar.
 
-    " the Join in section as one line: four ways to take part, each one icon,
-    " and the system information at the far right - what the page is about is
-    " above, this is what is around it
+    " the Join in section as one line: four ways to take part, each one icon
+    " with its word, and the system information at the far right. The margins
+    " are what keeps it off the edges - it sits in the same white as the form
+    " above it, so it must keep the same distance from the border
     DATA(bar) = page->open( `Toolbar`
         )->a( n = `design`
               v = `Transparent`
         )->a( n = `class`
-              v = `sapUiSmallMarginTop` ).
+              v = `sapUiSmallMarginTop sapUiSmallMarginBottom sapUiMediumMarginBegin sapUiMediumMarginEnd` ).
 
     render_bar_button( bar     = bar
                        icon    = `sap-icon://alert`
+                       text    = `Issues`
                        tooltip = `Report a bug or request a feature - the abap2UI5 issues on GitHub`
                        press   = open_url( `https://github.com/abap2UI5/abap2UI5/issues` ) ).
 
     render_bar_button( bar     = bar
                        icon    = `sap-icon://source-code`
+                       text    = `Pull Requests`
                        tooltip = `Send a change - contributions of any size are welcome`
                        press   = open_url( `https://github.com/abap2UI5/abap2UI5/pulls` ) ).
 
     render_bar_button( bar     = bar
                        icon    = `sap-icon://discussion`
+                       text    = `Slack`
                        tooltip = `Meet the community in the #abap2UI5 Slack channel - questions welcome`
                        press   = open_url( `https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg` ) ).
 
     render_bar_button( bar     = bar
                        icon    = `sap-icon://favorite`
+                       text    = `Sponsor`
                        tooltip = `abap2UI5 is free and open source - and stays that way through its sponsors`
                        press   = open_url( `https://abap2ui5.github.io/docs/resources/sponsor.html` ) ).
 
@@ -630,6 +640,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     render_bar_button( bar     = bar
                        icon    = `sap-icon://sys-monitor`
+                       text    = `System`
                        tooltip = `System information - UI5 and ABAP release, user exit, drafts`
                        press   = client->_event( c_event_system ) ).
 
@@ -640,6 +651,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     bar->leaf( `Button`
         )->a( n = `icon`
               v = icon
+        )->a( n = `text`
+              v = text
         )->a( n = `type`
               v = `Transparent`
         )->a( n = `tooltip`
