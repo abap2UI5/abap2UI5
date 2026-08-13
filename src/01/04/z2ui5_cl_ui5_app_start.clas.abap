@@ -747,7 +747,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
               v = `false` ).
     render_text( form  = form
                  label = `User Exit`
-                 text  = z2ui5_cl_exit=>get_user_exit_class( ) ).
+                 text  = z2ui5_cl_ui5_exit=>get_user_exit_class( ) ).
 
     render_text( form  = form
                  label = `abap2UI5 Version`

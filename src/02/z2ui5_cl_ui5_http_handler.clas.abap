@@ -149,7 +149,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the previous request's context and set_response( ) would emit the
     " previous request's cached security headers ( _main( ) repeats both,
     " harmlessly - they are idempotent )
-    z2ui5_cl_exit=>init_context( ms_req ).
+    z2ui5_cl_ui5_exit=>init_context( ms_req ).
     CLEAR: ss_config_http_get, sv_config_http_get_set.
 
     CASE ms_req-method.
@@ -163,7 +163,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " set_config_http_post), so a cross-origin POST is rejected unless an
         " app opts out via its own exit.
         DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
-        z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        z2ui5_cl_ui5_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
                                  origin  = mo_server->get_header_field( `origin` )
@@ -261,7 +261,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD config_http_get.
 
     IF sv_config_http_get_set = abap_false.
-      z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
+      z2ui5_cl_ui5_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
       sv_config_http_get_set = abap_true.
     ENDIF.
     result = ss_config_http_get.
@@ -461,7 +461,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " 500 whose body carries the exception text, so the frontend shows the real
     " reason instead of the SAP ICF 500 page, which suppresses that text.
     TRY.
-        z2ui5_cl_exit=>init_context( is_req ).
+        z2ui5_cl_ui5_exit=>init_context( is_req ).
         CLEAR: ss_config_http_get, sv_config_http_get_set.
 
         CASE is_req-method.
@@ -484,7 +484,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " generic message instead of leaking to the client.
         " Default is abap_false -> the real reason is returned as before.
         DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
-        z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        z2ui5_cl_ui5_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         " the body is the only diagnostic the developer gets - the browser
         " shows it in the fatal-error overlay and nothing of it survives the
