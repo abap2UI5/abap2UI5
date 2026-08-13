@@ -17,6 +17,8 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_csrf_cross_origin FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_no_headers   FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_referer      FOR TESTING RAISING cx_static_check.
+    METHODS test_preload_escaping  FOR TESTING RAISING cx_static_check.
+    METHODS test_preload_literals  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -261,6 +263,92 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
                             host    = `app.corp:44300` ).
 
     cl_abap_unit_assert=>assert_true( lv_rejected ).
+
+  ENDMETHOD.
+
+  " The next two tests exercise z2ui5_cl_app_preload rather than this class.
+  " That class is generated (see .github/app2abap/trans2abap.js) and its
+  " package is wiped on every regeneration, so it cannot carry a test include
+  " of its own - and _http_get( ) above is the consumer that breaks: it drops
+  " the preload into the one <script> block that defines onInitComponent.
+
+  METHOD test_preload_escaping.
+
+    " styles_css comes from the exit unfiltered and lands inside a JS
+    " single-quoted string literal, so an apostrophe, a backslash or a line
+    " break in a customer's own CSS has to arrive escaped.
+    DATA lv_css TYPE string.
+    DATA temp30 TYPE xsdboolean.
+    DATA temp31 TYPE xsdboolean.
+    DATA temp32 TYPE xsdboolean.
+    DATA temp33 TYPE xsdboolean.
+
+    lv_css = `.a::after { content: 'x'; }` && |\n| && `.b { background: url("i\c.png"); }`.
+
+    DATA(lv_preload) = z2ui5_cl_app_preload=>get( styles_css = lv_css
+                                                  custom_js  = `` ).
+
+    temp30 = xsdbool( lv_preload CS `content: \'x\';` ).
+    cl_abap_unit_assert=>assert_true( temp30 ).
+
+    temp31 = xsdbool( lv_preload CS `}\n.b` ).
+    cl_abap_unit_assert=>assert_true( temp31 ).
+
+    temp32 = xsdbool( lv_preload CS `url("i\\c.png")` ).
+    cl_abap_unit_assert=>assert_true( temp32 ).
+
+    " and nothing raw survives next to the escaped copies
+    temp33 = xsdbool( lv_preload CS `content: 'x';` ).
+    cl_abap_unit_assert=>assert_false( temp33 ).
+
+  ENDMETHOD.
+
+  METHOD test_preload_literals.
+
+    " Every non-.js resource is embedded as a JS single-quoted string literal.
+    " On such a line, once the escaped apostrophes are taken out, the only ones
+    " left must be the two delimiters - one extra ends its literal early, and
+    " that is a syntax error for the whole <script> block, so onInitComponent
+    " is never defined and the page stays blank. A UI5 expression binding is
+    " the everyday source of such an apostrophe:
+    "   title="{= ${/appName} ? 'a' : 'b' }"
+    " The .js entries are skipped on purpose: their content is the function
+    " body, JavaScript rather than a string, and its apostrophes are its own.
+    DATA lt_lines  TYPE string_table.
+    DATA lt_quotes TYPE string_table.
+    DATA lv_rest   TYPE string.
+    DATA lv_checked TYPE i.
+
+    DATA(lv_preload) = z2ui5_cl_app_preload=>get( styles_css = `.a { content: 'x'; }`
+                                                  custom_js  = `` ).
+
+    SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
+
+    LOOP AT lt_lines INTO DATA(lv_line).
+
+      IF lv_line NP `      "z2ui5/*": '*',`.
+        CONTINUE.
+      ENDIF.
+
+      lv_rest = replace( val  = lv_line
+                         sub  = `\'`
+                         with = ``
+                         occ  = 0 ).
+
+      " n separators produce n + 1 parts, so two delimiters leave three parts
+      SPLIT lv_rest AT `'` INTO TABLE lt_quotes.
+      cl_abap_unit_assert=>assert_equals(
+          exp = 3
+          act = lines( lt_quotes )
+          msg = `a preload text resource carries an unescaped apostrophe` ).
+
+      lv_checked = lv_checked + 1.
+
+    ENDLOOP.
+
+    " guard the guard: the entries have to be there at all
+    cl_abap_unit_assert=>assert_differs( exp = 0
+                                         act = lv_checked ).
 
   ENDMETHOD.
 
