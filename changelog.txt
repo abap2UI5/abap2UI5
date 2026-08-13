@@ -13,9 +13,11 @@ Legend
 unreleased
 ----------
 ! the startup page was rebuilt. It reads top to bottom: the five quickstart
-  steps, then one row per sample repository - icon, repository name and what
-  is in it, the description word for word the one the repository carries on
-  GitHub - where the name opens that repository's overview app when it is
+  steps - with the cursor already in the class name field of step 4, behind
+  the proposal, so the first keystroke lands where the page expects it - then
+  one row per sample repository - icon, repository name and what is in it,
+  the description word for word the one the repository carries on GitHub -
+  where the name opens that repository's overview app when it is
   installed on this system, and GitHub when it is not, in a new tab either
   way, with a "not installed" status behind the name of the rows that are
   not. A Documentation section follows, carrying the repository and the docs,

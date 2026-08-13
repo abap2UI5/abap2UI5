@@ -74,6 +74,13 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     CONSTANTS c_event_system TYPE string VALUE `OPEN_SYSTEM`.
     CONSTANTS c_event_close  TYPE string VALUE `CLOSE_POPUP`.
 
+    " the class name input of step 4 - the only control on the page that is
+    " addressed from the outside, because the cursor is put into it on start
+    CONSTANTS c_id_input TYPE string VALUE `INPUT_CLASSNAME`.
+
+    " put the cursor where the page expects the first keystroke
+    METHODS set_focus_input.
+
     " the documentation, one section below the samples: whoever came for the
     " apps is exactly who wants the guides next
     METHODS render_docs_link
@@ -197,6 +204,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     IF client->check_on_init( ).
       on_init( ).
       render_start( ).
+      set_focus_input( ).
       RETURN.
     ENDIF.
 
@@ -278,6 +286,22 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     ms_home-class_value_state = `None`.
     CLEAR: ms_home-url,
            ms_home-class_value_state_text.
+
+  ENDMETHOD.
+
+  METHOD set_focus_input.
+
+    " SET_FOCUS as a statement, not in a view attribute: it is scheduled for
+    " after the response, which is when the freshly built view is rendered and
+    " the input exists in the DOM. Its arguments are the control id and the
+    " selection, and both ends of the selection are the length of what stands
+    " in the field - a caret behind the last character, nothing selected, so
+    " the proposal can be typed over or completed
+    DATA(lv_end) = |{ strlen( ms_home-classname ) }|.
+    client->follow_up_action( val   = client->cs_event-set_focus
+                              t_arg = VALUE #( ( c_id_input )
+                                               ( lv_end )
+                                               ( lv_end ) ) ).
 
   ENDMETHOD.
 
@@ -415,6 +439,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     IF ms_home-class_editable = abap_true.
       form->leaf( `Input`
+          )->a( n = `id`
+                v = c_id_input
           )->a( n = `placeholder`
                 v = `Enter your class name and press 'Check'`
           )->a( n = `enabled`
@@ -620,6 +646,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         )->open( `Toolbar` ).
 
     render_bar_button( bar     = bar
+                       icon    = `sap-icon://favorite`
+                       text    = `Sponsor`
+                       tooltip = `abap2UI5 is free and open source - and stays that way through its sponsors`
+                       press   = open_url( `https://abap2ui5.github.io/docs/resources/sponsor.html` ) ).
+
+    render_bar_button( bar     = bar
                        icon    = `sap-icon://alert`
                        text    = `Issues`
                        tooltip = `Report a bug or request a feature - the abap2UI5 issues on GitHub`
@@ -636,12 +668,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                        text    = `Slack`
                        tooltip = `Meet the community in the #abap2UI5 Slack channel - questions welcome`
                        press   = open_url( `https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg` ) ).
-
-    render_bar_button( bar     = bar
-                       icon    = `sap-icon://favorite`
-                       text    = `Sponsor`
-                       tooltip = `abap2UI5 is free and open source - and stays that way through its sponsors`
-                       press   = open_url( `https://abap2ui5.github.io/docs/resources/sponsor.html` ) ).
 
     bar->leaf( `ToolbarSpacer` ).
 
