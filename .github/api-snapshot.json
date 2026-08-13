@@ -22,7 +22,6 @@
   "z2ui5_cl_app_startup.clas.abap#methods:render_header_toolbar": "methods render_header_toolbar importing page type ref to z2ui5_cl_ai_xml",
   "z2ui5_cl_app_startup.clas.abap#methods:render_quickstart": "methods render_quickstart importing form type ref to z2ui5_cl_ai_xml",
   "z2ui5_cl_app_startup.clas.abap#methods:render_whats_next": "methods render_whats_next importing form type ref to z2ui5_cl_ai_xml",
-  "z2ui5_cl_app_startup.clas.abap#methods:render_contribution": "methods render_contribution importing form type ref to z2ui5_cl_ai_xml",
   "z2ui5_cl_app_startup.clas.abap#methods:create_layout_form": "methods create_layout_form importing view type ref to z2ui5_cl_ai_xml returning value(result) type ref to z2ui5_cl_ai_xml",
   "z2ui5_cl_app_startup.clas.abap#methods:get_app_url": "methods get_app_url importing classname type clike returning value(result) type string",
   "z2ui5_cl_exit.clas.abap#interfaces:z2ui5_if_exit": "interfaces z2ui5_if_exit",

@@ -49,8 +49,6 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
       IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
     METHODS render_whats_next
       IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
-    METHODS render_contribution
-      IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
 
     " helpers
     METHODS create_layout_form
@@ -70,23 +68,39 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     " class lives in the public src/02 package, so everything added to its
     " public section joins the framework's stable API contract (rule 5).
 
+    " the events of this class that no app has ever been given a name for.
+    " They stay private on purpose: cs_event is part of the public contract
+    " (rule 5), and what a start page does with its own popup is not
+    CONSTANTS c_event_system TYPE string VALUE `OPEN_SYSTEM`.
+    CONSTANTS c_event_close  TYPE string VALUE `CLOSE_POPUP`.
+
     " the documentation, one section below the samples: whoever came for the
     " apps is exactly who wants the guides next
     METHODS render_docs_link
       IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
 
-    " the closing block of the page: what this system runs on
-    METHODS render_system_info
-      IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
+    " the line that closes the page: every way to join in as one icon, and the
+    " system information at its right end
+    METHODS render_link_bar
+      IMPORTING page TYPE REF TO z2ui5_cl_ai_xml.
 
-    " the section headline every render_* method opens with. small = a level
-    " below the others, for a block that closes the page rather than asking
-    " for something
+    " what this system runs on - a popup, because it answers a question that is
+    " asked once and then not again
+    METHODS render_system_popup.
+
+    " one icon of the closing line: no text, the tooltip says what it is
+    METHODS render_bar_button
+      IMPORTING
+        bar     TYPE REF TO z2ui5_cl_ai_xml
+        icon    TYPE string
+        tooltip TYPE string
+        press   TYPE string.
+
+    " the section headline every render_* method opens with
     METHODS render_section
       IMPORTING
         form  TYPE REF TO z2ui5_cl_ai_xml
-        title TYPE string
-        small TYPE abap_bool DEFAULT abap_false.
+        title TYPE string.
 
     " an empty row - a Label with nothing after it is how a SimpleForm gets
     " one, and the only way to put air between two blocks of the same form
@@ -198,6 +212,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         CREATE OBJECT li_app_config TYPE (`Z2UI5_CL_APP_ICF_CONFIG`).
         client->nav_app_call( li_app_config ).
 
+      WHEN c_event_system.
+        render_system_popup( ).
+
+      WHEN c_event_close.
+        client->popup_destroy( ).
+
       WHEN cs_event-button_check.
         on_event_check( ).
         render_start( ).
@@ -283,8 +303,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     render_quickstart( form ).
     render_whats_next( form ).
     render_docs_link( form ).
-    render_contribution( form ).
-    render_system_info( form ).
+
+    " outside the form: a full-width line, which is what lets its last icon
+    " sit at the right edge of the page
+    render_link_bar( page ).
 
     client->view_display( view->stringify( ) ).
 
@@ -573,61 +595,57 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD render_contribution.
+  METHOD render_link_bar.
 
-    " the last thing to do on the page, so it is the last section - and in the
-    " same row shape as the samples and the documentation above: every way in
-    " gets its own icon, which is what makes four links four invitations
-    render_section( form  = form
-                    title = `Join in` ).
+    " the Join in section as one line: four ways to take part, each one icon,
+    " and the system information at the far right - what the page is about is
+    " above, this is what is around it
+    DATA(bar) = page->open( `Toolbar`
+        )->a( n = `design`
+              v = `Transparent`
+        )->a( n = `class`
+              v = `sapUiSmallMarginTop` ).
 
-    render_icon_row( form    = form
-                     label   = `Issues`
-                     icon    = `sap-icon://alert`
-                     text    = `report a bug`
-                     href    = `https://github.com/abap2UI5/abap2UI5/issues`
-                     new_tab = abap_true
-      )->leaf( `Text`
-          )->a( n = `text`
-                v = `Found a bug or missing a feature? Tell us - every report helps`
-          )->a( n = `class`
-                v = `sapUiSmallMarginBegin` ).
+    render_bar_button( bar     = bar
+                       icon    = `sap-icon://alert`
+                       tooltip = `Report a bug or request a feature - the abap2UI5 issues on GitHub`
+                       press   = open_url( `https://github.com/abap2UI5/abap2UI5/issues` ) ).
 
-    render_icon_row( form    = form
-                     label   = `Pull Requests`
-                     icon    = `sap-icon://source-code`
-                     text    = `send a change`
-                     href    = `https://github.com/abap2UI5/abap2UI5/pulls`
-                     new_tab = abap_true
-      )->leaf( `Text`
-          )->a( n = `text`
-                v = `Built something great? Contributions of any size are welcome`
-          )->a( n = `class`
-                v = `sapUiSmallMarginBegin` ).
+    render_bar_button( bar     = bar
+                       icon    = `sap-icon://source-code`
+                       tooltip = `Send a change - contributions of any size are welcome`
+                       press   = open_url( `https://github.com/abap2UI5/abap2UI5/pulls` ) ).
 
-    render_icon_row( form    = form
-                     label   = `Community`
-                     icon    = `sap-icon://discussion`
-                     text    = `join #abap2UI5`
-                     href    = `https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg`
-                     new_tab = abap_true
-      )->leaf( `Text`
-          )->a( n = `text`
-                v = `Meet the community in the Slack channel - questions welcome`
-          )->a( n = `class`
-                v = `sapUiSmallMarginBegin` ).
+    render_bar_button( bar     = bar
+                       icon    = `sap-icon://discussion`
+                       tooltip = `Meet the community in the #abap2UI5 Slack channel - questions welcome`
+                       press   = open_url( `https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg` ) ).
 
-    render_icon_row( form    = form
-                     label   = `Sponsor`
-                     icon    = `sap-icon://favorite`
-                     text    = `support us`
-                     href    = `https://abap2ui5.github.io/docs/resources/sponsor.html`
-                     new_tab = abap_true
-      )->leaf( `Text`
-          )->a( n = `text`
-                v = `abap2UI5 is free and open source - and stays that way through its sponsors`
-          )->a( n = `class`
-                v = `sapUiSmallMarginBegin` ).
+    render_bar_button( bar     = bar
+                       icon    = `sap-icon://favorite`
+                       tooltip = `abap2UI5 is free and open source - and stays that way through its sponsors`
+                       press   = open_url( `https://abap2ui5.github.io/docs/resources/sponsor.html` ) ).
+
+    bar->leaf( `ToolbarSpacer` ).
+
+    render_bar_button( bar     = bar
+                       icon    = `sap-icon://sys-monitor`
+                       tooltip = `System information - UI5 and ABAP release, user exit, drafts`
+                       press   = client->_event( c_event_system ) ).
+
+  ENDMETHOD.
+
+  METHOD render_bar_button.
+
+    bar->leaf( `Button`
+        )->a( n = `icon`
+              v = icon
+        )->a( n = `type`
+              v = `Transparent`
+        )->a( n = `tooltip`
+              v = tooltip
+        )->a( n = `press`
+              v = press ).
 
   ENDMETHOD.
 
@@ -642,22 +660,33 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD render_system_info.
+  METHOD render_system_popup.
 
-    " the system facts close the page: they are read, not operated, so they
-    " belong after everything that asks the reader for something - part of the
-    " same form, not a box of their own, just held apart by an empty row and a
-    " headline one level down. The one part that is not free is the draft count
-    " at the bottom: two COUNT( * ) - the own rows and the whole table, which
-    " together say whether cleanup( ) is keeping up - and they run per render
-    " instead of per dialog open, which this page can afford: it renders on
-    " start and on the Check / Edit events, nowhere else
-    render_spacer( form ).
-    render_section( form  = form
-                    title = `System Information`
-                    small = abap_true ).
+    " the system facts are read once and then not again, so they are a popup
+    " rather than a block of the page - reached from the icon at the right end
+    " of the closing line. The one part that is not free is the draft count at
+    " the bottom: two COUNT( * ), the own rows and the whole table, which
+    " together say whether cleanup( ) is keeping up. In a popup they run when
+    " the popup is opened, which is exactly when somebody asks
+    DATA(popup) = z2ui5_cl_ai_xml=>factory( ).
 
+    DATA(dialog) = popup->open( n  = `FragmentDefinition`
+                                ns = `core`
+        )->a( n = `xmlns`
+              v = `sap.m`
+        )->a( n = `xmlns:core`
+              v = `sap.ui.core`
+        )->a( n = `xmlns:form`
+              v = `sap.ui.layout.form`
+        )->open( `Dialog`
+            )->a( n = `title`
+                  v = `abap2UI5 - System Information`
+            )->a( n = `afterClose`
+                  v = client->_event( c_event_close ) ).
+
+    DATA(form) = create_layout_form( dialog->open( `content` ) ).
     DATA(ls_client) = client->get( ).
+
     render_text( form  = form
                  label = `UI5 Version`
                  text  = ls_client-s_ui5-version ).
@@ -688,18 +717,25 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                  label = `Draft Entries (own/total)`
                  text  = |{ lo_draft->count_entries( ) } / { lo_draft->count_entries_total( ) }| ).
 
+    dialog->open( `endButton`
+        )->leaf( `Button`
+            )->a( n = `text`
+                  v = `Close`
+            )->a( n = `press`
+                  v = client->_event( c_event_close )
+            )->a( n = `type`
+                  v = `Emphasized` ).
+
+    client->popup_display( popup->stringify( ) ).
+
   ENDMETHOD.
 
   METHOD render_section.
 
-    DATA(toolbar) = form->open( `Toolbar` ).
-    toolbar->leaf( `Title` )->a( n = `text`
-                                 v = title ).
-    IF small = abap_true.
-      toolbar->a( n = `titleStyle`
-                  v = `H5` ).
-    ENDIF.
-    toolbar->shut( ).
+    form->open( `Toolbar`
+        )->leaf( `Title` )->a( n = `text`
+                               v = title
+      )->shut( ).
 
   ENDMETHOD.
 
