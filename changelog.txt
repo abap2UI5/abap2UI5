@@ -46,6 +46,24 @@ unreleased
   attribute (chained replaces, same as z2ui5_cl_ui5_view_builder), and the
   event serializer runs its positional-placeholder regex only for arguments
   that start with a brace instead of on every argument
+! z2ui5_cl_ui5_view_builder=>new( ) is now factory( ) - the same name the
+  predecessor z2ui5_cl_ai_xml uses, so both builders start a view the same
+  way and the method no longer shares its name with the NEW operator
+! z2ui5_cl_ui5_view_builder sets every attribute through att( ), and att( )
+  now lands on the element it FOLLOWS: the child just added by ele( ) or
+  tag( ), or the node itself while it has no children yet. tag( ) is
+  therefore the form for any leaf, whatever its attributes are - it used to
+  be that an att( ) after a tag( ) attached to the parent, so a leaf could
+  carry literals only, and only through the t_att table. That table is gone,
+  with it the public type ty_t_attr that existed to type it and the
+  protected parse_attr( ) that split its `key=value` strings on the first
+  `=`; a bind or an event now works on a tag( ) like any other value. What
+  the rule costs is its flip side: once an element has a child, att( ) can
+  no longer reach it, so an element gets its attributes before its first
+  child - the test that pinned the opposite (att_after_children) is gone
+  with the behavior. The two removals are recorded in the API snapshot; the
+  class was added after v1.142.0 and has never been part of a release, so no
+  downstream app can hold a =>new( ) or a t_att call
 + the src/99 test classes are back and run in CI: all 27 deleted
   testclasses (util, pop, cx) are restored, the two disabled xml_view
   suites are re-enabled, and the pop tests assert against the
