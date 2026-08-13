@@ -12,9 +12,7 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         button_check  TYPE string VALUE `BUTTON_CHECK`,
         button_change TYPE string VALUE `BUTTON_CHANGE`,
         open_debug    TYPE string VALUE `OPEN_DEBUG`,
-        open_info     TYPE string VALUE `OPEN_INFO`,
         set_config    TYPE string VALUE `SET_CONFIG`,
-        close         TYPE string VALUE `CLOSE`,
       END OF cs_event.
 
     DATA client TYPE REF TO z2ui5_if_client.
@@ -42,7 +40,9 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     METHODS on_event_check.
     METHODS reset_button_state.
 
-    " home page - one method per section
+    " home page - one method per section. These are public because they were
+    " shipped that way; new sections go into the private section below, which
+    " is where a page internal belongs (rule 5).
     METHODS render_start.
     METHODS render_header_toolbar
       IMPORTING page TYPE REF TO z2ui5_cl_ai_xml.
@@ -52,9 +52,6 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
       IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
     METHODS render_contribution
       IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
-    METHODS render_documentation
-      IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
-    METHODS render_system_popup.
 
     " helpers
     METHODS create_layout_form
@@ -73,6 +70,14 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     " Building blocks of the SimpleForm rows above. Private on purpose: this
     " class lives in the public src/02 package, so everything added to its
     " public section joins the framework's stable API contract (rule 5).
+
+    " the documentation strip above the form - the first thing on the page
+    METHODS render_documentation_hint
+      IMPORTING page TYPE REF TO z2ui5_cl_ai_xml.
+
+    " the closing section of the page: what this system runs on
+    METHODS render_system_info
+      IMPORTING form TYPE REF TO z2ui5_cl_ai_xml.
 
     " the section headline every render_* method opens with
     METHODS render_section
@@ -96,20 +101,20 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         label TYPE string
         text  TYPE string.
 
-    " one form row per sample repository: a button that jumps straight into the
-    " overview app when the repository is installed on this system, and a link
-    " to its GitHub repository when it is not
+    " one form row per sample repository - always a button: it jumps straight
+    " into the overview app when the repository is installed on this system,
+    " and to its GitHub repository when it is not
     METHODS render_samples
       IMPORTING
-        form      TYPE REF TO z2ui5_cl_ai_xml
-        label     TYPE string
-        btn_text  TYPE string
-        btn_icon  TYPE string
-        tooltip   TYPE string
-        link_text TYPE string
-        href      TYPE string
-        class     TYPE string
-        class_old TYPE string OPTIONAL.
+        form            TYPE REF TO z2ui5_cl_ai_xml
+        label           TYPE string
+        btn_text        TYPE string
+        btn_icon        TYPE string
+        tooltip         TYPE string
+        install_tooltip TYPE string
+        href            TYPE string
+        class           TYPE string
+        class_old       TYPE string OPTIONAL.
 
     " the press wire of a button whose target is EXTERNAL: a Button carries no
     " href, and cs_event-open_new_tab is same-origin only (isValidRedirectURL),
@@ -164,12 +169,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
       WHEN cs_event-open_debug.
         client->message_box_display( `Press CTRL+F12 to open the developer tools` ).
-
-      WHEN cs_event-open_info.
-        render_system_popup( ).
-
-      WHEN cs_event-close.
-        client->popup_destroy( ).
 
       WHEN cs_event-button_check.
         on_event_check( ).
@@ -249,12 +248,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                   v = `false` ).
 
     render_header_toolbar( page ).
+    render_documentation_hint( page ).
 
     DATA(form) = create_layout_form( page ).
     render_quickstart( form ).
     render_whats_next( form ).
     render_contribution( form ).
-    render_documentation( form ).
+    render_system_info( form ).
 
     client->view_display( view->stringify( ) ).
 
@@ -288,14 +288,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `icon`
                 v = `sap-icon://enablement`
           )->a( n = `press`
-                v = client->_event( cs_event-open_debug )
-      )->leaf( `Button`
-          )->a( n = `text`
-                v = `System`
-          )->a( n = `icon`
-                v = `sap-icon://information`
-          )->a( n = `press`
-                v = client->_event( cs_event-open_info ) ).
+                v = client->_event( cs_event-open_debug ) ).
 
     IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->leaf( `Button`
@@ -306,6 +299,31 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `press`
                 v = client->_event( cs_event-set_config ) ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD render_documentation_hint.
+
+    " the fastest way into abap2UI5 sits above everything else on the page: an
+    " information strip - its own icon comes with showIcon - carrying the link
+    " to the documentation, so it is found before the first step is read
+    page->open( `MessageStrip`
+        )->a( n = `text`
+              v = `New here? The documentation takes you from an empty class to a running UI - guides, tutorials and the full API reference.`
+        )->a( n = `type`
+              v = `Information`
+        )->a( n = `showIcon`
+              v = `true`
+        )->a( n = `class`
+              v = `sapUiSmallMargin`
+        )->open( `link`
+            )->leaf( `Link`
+                )->a( n = `text`
+                      v = `Open the documentation - abap2UI5.org`
+                )->a( n = `target`
+                      v = `_blank`
+                )->a( n = `href`
+                      v = `https://abap2UI5.org` ).
 
   ENDMETHOD.
 
@@ -387,53 +405,56 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     render_section( form  = form
                     title = `What's next? - 580+ Apps to Explore` ).
 
-    " one row per sample repository. Each one is installed separately with
-    " abapGit, so every row answers the same question on its own: is the
-    " overview app of that repository on THIS system? Then start it - otherwise
-    " point to the repository that carries it. All three of them renamed their
-    " overview app (z2ui5_cl_demo_app_g00 -> z2ui5_cl_smp_app_000,
+    " one row per sample repository, every row a button. Each repository is
+    " installed separately with abapGit, so every row answers the same question
+    " on its own: is the overview app of that repository on THIS system? Then
+    " the button starts it - otherwise it jumps to the repository on GitHub,
+    " where the installation starts. All three of them renamed their overview
+    " app (z2ui5_cl_demo_app_g00 -> z2ui5_cl_smp_app_000,
     " z2ui5_cl_dmo_app_overview -> z2ui5_cl_smpc_app_overview and
     " z2ui5_cl_smpe_app_00 -> z2ui5_cl_smps_app_00), so they pass the old name
-    " as a fallback: an installation that predates the rename still gets its
-    " button.
+    " as a fallback: an installation that predates the rename still starts.
     render_samples(
-        form      = form
-        label     = `Samples`
-        btn_text  = `Explore 250+ Sample Apps`
-        btn_icon  = `sap-icon://lightbulb`
-        tooltip   = `Data binding, events, popups, navigation and complete example apps`
-        link_text = `Install abap2UI5/samples - binding, events, popups, tables and much more`
-        href      = `https://github.com/abap2UI5/samples`
-        class     = `z2ui5_cl_smp_app_000`
-        class_old = `z2ui5_cl_demo_app_g00` ).
+        form            = form
+        label           = `Samples`
+        btn_text        = `Explore 250+ Sample Apps`
+        btn_icon        = `sap-icon://lightbulb`
+        tooltip         = `Data binding, events, popups, navigation and complete example apps`
+        install_tooltip = `Not installed yet - opens abap2UI5/samples on GitHub, ready to pull with abapGit`
+        href            = `https://github.com/abap2UI5/samples`
+        class           = `z2ui5_cl_smp_app_000`
+        class_old       = `z2ui5_cl_demo_app_g00` ).
 
     render_samples(
-        form      = form
-        label     = `Controls`
-        btn_text  = `Browse the Full UI5 Control Set`
-        btn_icon  = `sap-icon://palette`
-        tooltip   = `The UI5 Demo Kit rebuilt with abap2UI5 - one app per control`
-        link_text = `Install abap2UI5/samples-controls - the UI5 Demo Kit, rebuilt in ABAP`
-        href      = `https://github.com/abap2UI5/samples-controls`
-        class     = `z2ui5_cl_smpc_app_overview`
-        class_old = `z2ui5_cl_dmo_app_overview` ).
+        form            = form
+        label           = `Controls`
+        btn_text        = `Browse the Full UI5 Control Set`
+        btn_icon        = `sap-icon://palette`
+        tooltip         = `The UI5 Demo Kit rebuilt with abap2UI5 - one app per control`
+        install_tooltip = `Not installed yet - opens abap2UI5/samples-controls on GitHub, ready to pull with abapGit`
+        href            = `https://github.com/abap2UI5/samples-controls`
+        class           = `z2ui5_cl_smpc_app_overview`
+        class_old       = `z2ui5_cl_dmo_app_overview` ).
 
     render_samples(
-        form      = form
-        label     = `Stack`
-        btn_text  = `Run the Integration Scenarios`
-        btn_icon  = `sap-icon://database`
-        tooltip   = `OData, Smart Controls, RAP, WebSockets and the Fiori Launchpad`
-        link_text = `Install abap2UI5/samples-stack - OData, RAP, WebSockets, Launchpad`
-        href      = `https://github.com/abap2UI5/samples-stack`
-        class     = `z2ui5_cl_smps_app_00`
-        class_old = `z2ui5_cl_smpe_app_00` ).
+        form            = form
+        label           = `Stack`
+        btn_text        = `Run the Integration Scenarios`
+        btn_icon        = `sap-icon://database`
+        tooltip         = `OData, Smart Controls, RAP, WebSockets and the Fiori Launchpad`
+        install_tooltip = `Not installed yet - opens abap2UI5/samples-stack on GitHub, ready to pull with abapGit`
+        href            = `https://github.com/abap2UI5/samples-stack`
+        class           = `z2ui5_cl_smps_app_00`
+        class_old       = `z2ui5_cl_smpe_app_00` ).
 
   ENDMETHOD.
 
   METHOD render_samples.
 
-    DATA lv_class TYPE string.
+    DATA lv_class   TYPE string.
+    DATA lv_icon    TYPE string.
+    DATA lv_tooltip TYPE string.
+    DATA lv_press   TYPE string.
 
     IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( class ).
       lv_class = class.
@@ -441,29 +462,33 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       lv_class = class_old.
     ENDIF.
 
-    IF lv_class IS INITIAL.
-      render_link( form  = form
-                   label = label
-                   text  = link_text
-                   href  = href ).
-      RETURN.
+    IF lv_class IS NOT INITIAL.
+      " the overview app is on this system: start it in a NEW TAB, so this start
+      " page stays where it is and several sample repositories can run side by
+      " side. The url is same-origin, which is what open_new_tab accepts.
+      lv_icon    = btn_icon.
+      lv_tooltip = tooltip.
+      lv_press   = client->follow_up_action( val   = client->cs_event-open_new_tab
+                                             t_arg = VALUE #( ( get_app_url( lv_class ) ) ) ).
+    ELSE.
+      " not installed here: the button leads to the repository on GitHub
+      " instead - an external target, which is what open_url is for
+      lv_icon    = `sap-icon://source-code`.
+      lv_tooltip = install_tooltip.
+      lv_press   = open_url( href ).
     ENDIF.
 
-    " the overview app is on this system: start it in a NEW TAB, so this start
-    " page stays where it is and several sample repositories can run side by
-    " side. The url is same-origin, which is what open_new_tab accepts.
     form->leaf( `Label` )->a( n = `text`
                               v = label ).
     form->leaf( `Button`
         )->a( n = `text`
               v = btn_text
         )->a( n = `icon`
-              v = btn_icon
+              v = lv_icon
         )->a( n = `tooltip`
-              v = tooltip
+              v = lv_tooltip
         )->a( n = `press`
-              v = client->follow_up_action( val   = client->cs_event-open_new_tab
-                                            t_arg = VALUE #( ( get_app_url( lv_class ) ) ) )
+              v = lv_press
         )->a( n = `width`
               v = `70%` ).
 
@@ -496,28 +521,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD render_documentation.
-
-    render_section( form  = form
-                    title = `Keep learning` ).
-
-    render_link( form  = form
-                 label = `Read the docs`
-                 text  = `abap2UI5.org - guides, tutorials and the API reference`
-                 href  = `https://abap2UI5.org` ).
-
-    render_link( form  = form
-                 label = `Your first app`
-                 text  = `The Quickstart guide - from empty class to running UI in minutes`
-                 href  = `https://abap2ui5.github.io/docs/get_started/quickstart.html` ).
-
-    render_link( form  = form
-                 label = `Start a new project`
-                 text  = `app-template - a ready-made repository with CI and agent setup`
-                 href  = `https://github.com/abap2UI5/app-template` ).
-
-  ENDMETHOD.
-
   METHOD open_url.
 
     " REDIRECT takes a { URL, NEW_WINDOW } object literal - NEW_WINDOW true is
@@ -529,29 +532,18 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD render_system_popup.
+  METHOD render_system_info.
 
-    DATA(popup) = z2ui5_cl_ai_xml=>factory( ).
-
-    DATA(dialog) = popup->open( n  = `FragmentDefinition`
-                                ns = `core`
-        )->a( n = `xmlns`
-              v = `sap.m`
-        )->a( n = `xmlns:core`
-              v = `sap.ui.core`
-        )->a( n = `xmlns:form`
-              v = `sap.ui.layout.form`
-        )->open( `Dialog`
-            )->a( n = `title`
-                  v = `abap2UI5 - System Information`
-            )->a( n = `afterClose`
-                  v = client->_event( cs_event-close ) ).
-
-    DATA(form) = create_layout_form( dialog->open( `content` ) ).
+    " the system facts stand at the very end of the start page rather than
+    " behind a button: they are read, not operated, so they cost nothing but
+    " the last screenful and are always just a scroll away. The one part that
+    " is not free is the draft count at the bottom - an owner-scoped COUNT( * )
+    " that now runs per render instead of per dialog open, which this page can
+    " afford: it renders on start and on the Check / Edit events, nowhere else
     DATA(ls_client) = client->get( ).
 
     render_section( form  = form
-                    title = `Frontend` ).
+                    title = `System - Frontend` ).
     render_text( form  = form
                  label = `UI5 Version`
                  text  = ls_client-s_ui5-version ).
@@ -564,7 +556,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
               v = `false` ).
 
     render_section( form  = form
-                    title = `Backend` ).
+                    title = `System - Backend` ).
     form->leaf( `Label` )->a( n = `text`
                               v = `ABAP for Cloud` ).
     form->leaf( `CheckBox`
@@ -577,24 +569,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                  text  = z2ui5_cl_exit=>get_user_exit_class( ) ).
 
     render_section( form  = form
-                    title = `abap2UI5` ).
+                    title = `System - abap2UI5` ).
     render_text( form  = form
                  label = `Version`
                  text  = z2ui5_if_app=>version ).
     render_text( form  = form
                  label = `Draft Entries (own)`
                  text  = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
-
-    dialog->open( `endButton`
-        )->leaf( `Button`
-            )->a( n = `text`
-                  v = `Close`
-            )->a( n = `press`
-                  v = client->_event( cs_event-close )
-            )->a( n = `type`
-                  v = `Emphasized` ).
-
-    client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
 
