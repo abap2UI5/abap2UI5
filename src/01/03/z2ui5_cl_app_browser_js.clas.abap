@@ -52,21 +52,6 @@ CLASS z2ui5_cl_app_browser_js IMPLEMENTATION.
              `    // stays trivial; handlers that don't need the controller ignore it.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `    function evHistoryBack() {` && |\n| &&
-             `      history.back();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evNavToRoute(oController, args) {` && |\n| &&
-             `      // Navigate to another app by setting the hash route - the UI5 navTo` && |\n| &&
-             `      // equivalent. args[1] is the target app class (or a full "app/<CLASS>"` && |\n| &&
-             `      // route). The push adds a browser history entry, so Back returns to the` && |\n| &&
-             `      // current app; the router's hashChanged handler then starts the target` && |\n| &&
-             `      // app. No-op unless the app enabled routing.` && |\n| &&
-             `      const raw = Lib.toText(args[1]);` && |\n| &&
-             `      if (!raw) return;` && |\n| &&
-             `      Router.navToApp(raw);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function evClipboardCopy(oController, args) {` && |\n| &&
              `      Lib.copyToClipboard(args[1]);` && |\n| &&
              `    }` && |\n| &&
@@ -335,8 +320,6 @@ CLASS z2ui5_cl_app_browser_js IMPLEMENTATION.
              `    // The events this module owns in the eF dispatch (see` && |\n| &&
              `    // core/FrontendAction.js, which merges the domain modules' handler maps).` && |\n| &&
              `    const handlers = {` && |\n| &&
-             `      HISTORY_BACK: evHistoryBack,` && |\n| &&
-             `      NAV_TO_ROUTE: evNavToRoute,` && |\n| &&
              `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
              `      CLIPBOARD_APP_STATE: evClipboardAppState,` && |\n| &&
              `      DOWNLOAD_B64_FILE: evDownloadB64File,` && |\n| &&

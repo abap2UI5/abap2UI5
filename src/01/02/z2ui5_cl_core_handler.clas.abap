@@ -822,16 +822,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     mv_response = response_abap_to_json( ms_response ).
 
-    DATA(li_app_done) = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
-    IF li_app_done->check_sticky = abap_false.
+    IF mo_action->mo_app->mv_check_sticky = abap_false.
       mo_action->mo_app->db_save( ).
     ELSE.
       " a sticky session skips the draft save, but the lifecycle latch must
       " not be skipped with it - db_save is otherwise the only place that
-      " sets these, and without them every event roundtrip of a sticky app
-      " reads check_on_init( ) = true and re-runs its init block
-      li_app_done->id_draft          = mo_action->mo_app->ms_draft-id.
-      li_app_done->check_initialized = abap_true.
+      " sets it, and without it every event roundtrip of a sticky app reads
+      " check_on_init( ) = true and re-runs its init block
+      mo_action->mo_app->mv_check_initialized = abap_true.
+      mo_action->mo_app->app_compat_mirror( ).
     ENDIF.
 
   ENDMETHOD.
@@ -849,7 +848,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     mv_model_before       = mo_action->mo_app->model_json_stringify( ).
     mv_model_before_taken = abap_true.
 
-    IF li_app->check_sticky = abap_false.
+    IF mo_action->mo_app->mv_check_sticky = abap_false.
       z2ui5_cl_a2ui5_context=>db_rollback( ).
     ENDIF.
 
@@ -868,7 +867,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       li_app->main( li_client ).
     ENDIF.
 
-    IF li_app->check_sticky = abap_false.
+    IF mo_action->mo_app->mv_check_sticky = abap_false.
       z2ui5_cl_a2ui5_context=>db_rollback( ).
     ENDIF.
 

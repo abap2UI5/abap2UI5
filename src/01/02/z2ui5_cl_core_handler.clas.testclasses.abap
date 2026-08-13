@@ -716,13 +716,14 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA lo_app TYPE REF TO ltcl_app_sticky.
 
     " a sticky app skips db_save, but not the lifecycle latch: main_end has
-    " to set check_initialized/id_draft on the instance itself, otherwise
-    " every event roundtrip of a sticky session re-runs the init block
+    " to latch it on the wrapper itself (and mirror it onto the instance),
+    " otherwise every event roundtrip of a sticky session re-runs the init
+    " block
     lo_handler = NEW #( val = `` ).
     lo_app = NEW #( ).
-    lo_app->z2ui5_if_app~check_sticky = abap_true.
-    lo_handler->mo_action->mo_app->mo_app      = lo_app.
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mo_app          = lo_app.
+    lo_handler->mo_action->mo_app->mv_check_sticky = abap_true.
+    lo_handler->mo_action->mo_app->ms_draft-id     = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
 
     lo_handler->main_loop( ).
 

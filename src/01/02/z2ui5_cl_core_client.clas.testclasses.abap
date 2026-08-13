@@ -99,8 +99,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     lo_http = NEW #( val = `` ).
     mo_action = NEW #( val = lo_http ).
     lo_test_app = NEW #( ).
-    lo_test_app->z2ui5_if_app~check_initialized = abap_false.
     mo_action->mo_app->mo_app = lo_test_app.
+    mo_action->mo_app->mv_check_initialized = abap_false.
     mo_client = NEW #( action = mo_action ).
 
   ENDMETHOD.
@@ -459,7 +459,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_title
                                  t_arg = VALUE #( ( `My Title` ) ) ).
-    li_client->follow_up_action( z2ui5_if_client=>cs_event-history_back ).
+    li_client->follow_up_action( z2ui5_if_client=>cs_event-location_reload ).
 
     " framework events travel as pure data - a JSON array serialized in ABAP
     " (get_event_client_ajson), not as an executable eF( ) JS snippet
@@ -467,7 +467,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["SET_TITLE","My Title"]`
                                         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `["HISTORY_BACK"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["LOCATION_RELOAD"]`
                                         act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
@@ -530,9 +530,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_check_on_init.
 
-    DATA li_app TYPE REF TO z2ui5_if_app.
-    li_app ?= mo_action->mo_app->mo_app.
-    li_app->check_initialized = abap_false.
+    mo_action->mo_app->mv_check_initialized = abap_false.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_client->z2ui5_if_client~check_on_init( ) ).
@@ -541,9 +539,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_check_on_init_done.
 
-    DATA li_app TYPE REF TO z2ui5_if_app.
-    li_app ?= mo_action->mo_app->mo_app.
-    li_app->check_initialized = abap_true.
+    mo_action->mo_app->mv_check_initialized = abap_true.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = mo_client->z2ui5_if_client~check_on_init( ) ).
