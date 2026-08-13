@@ -17,10 +17,9 @@ unreleased
   repository name and what is in it - the description word for word the one
   the repository carries on GitHub - where the name opens that repository's
   overview app when it is installed on this system, and GitHub when it is not
-  - in a new tab either way; a coloured icon next to the repository's own and
-  a "not installed" status behind the name mark the rows that are not
-  installed. A Documentation section follows right
-  behind them, carrying the repository and the docs, which is also where the
+  - in a new tab either way, with a "not installed" status behind the name of
+  the rows that are not. A Documentation section follows right behind them,
+  carrying the repository and the docs, which is also where the
   "Keep learning" section went, and Join in closes the page in the same row
   shape, one icon per way in. The title row is icons only now: the
   documentation, the repository (globe) and, where the class exists, the

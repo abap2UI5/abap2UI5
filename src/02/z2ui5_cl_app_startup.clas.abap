@@ -113,8 +113,8 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     " the same place in every row - the alignment the samples app has
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
-    " the same for the icons in front of it: a fixed slot, so a row that shows
-    " a second icon there does not push its link out of the column
+    " the same for the icon in front of it: a fixed slot, so the width the icon
+    " font happens to render cannot move the column
     CONSTANTS c_icon_width TYPE string VALUE `3rem`.
 
     " the two icons the page names twice - once in the title row, once in the
@@ -123,10 +123,8 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
-    " documentation row share. badge_icon puts a second, coloured icon next to
-    " the first one, which is how a row says something about itself before it
-    " is read. Returns the HBox, so the caller can append whatever else its own
-    " row has to say behind the link
+    " documentation row share. Returns the HBox, so the caller can append
+    " whatever else its own row has to say behind the link
     METHODS render_icon_row
       IMPORTING
         form          TYPE REF TO z2ui5_cl_ai_xml
@@ -135,8 +133,6 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         text          TYPE string
         href          TYPE string
         new_tab       TYPE abap_bool DEFAULT abap_false
-        badge_icon    TYPE string OPTIONAL
-        badge_tooltip TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ai_xml.
 
@@ -505,31 +501,17 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         )->a( n = `wrap`
               v = `Wrap` ).
 
-    " the icons get a fixed slot of their own, so a badge cannot push the link
-    " of that one row out of the column the others keep
-    DATA(icons) = result->open( `HBox`
+    " the icon gets a fixed slot of its own, so every row's link starts in the
+    " same column no matter how wide the icon renders
+    result->open( `HBox`
         )->a( n = `alignItems`
               v = `Center`
         )->a( n = `width`
-              v = c_icon_width ).
-
-    icons->leaf( n  = `Icon`
+              v = c_icon_width
+        )->leaf( n  = `Icon`
                  ns = `core`
         )->a( n = `src`
               v = icon ).
-
-    IF badge_icon IS NOT INITIAL.
-      icons->leaf( n  = `Icon`
-                   ns = `core`
-          )->a( n = `src`
-                v = badge_icon
-          )->a( n = `color`
-                v = `Critical`
-          )->a( n = `tooltip`
-                v = badge_tooltip
-          )->a( n = `class`
-                v = `sapUiTinyMarginBegin` ).
-    ENDIF.
 
     result->leaf( `Link`
         )->a( n = `text`
@@ -567,37 +549,26 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       lv_href = href.
     ENDIF.
 
-    " not installed: a second icon next to the repository's own, so the row
-    " says where its link goes before it is followed - to GitHub, not into an
-    " app. The full sentence is the tooltip of both the icon and the status
-    " behind the name
-    DATA lv_badge         TYPE string.
-    DATA lv_badge_tooltip TYPE string.
-    IF lv_class IS INITIAL.
-      lv_badge         = `sap-icon://download`.
-      lv_badge_tooltip = `Not installed on this system - the link opens the repository on GitHub, ready to pull with abapGit`.
-    ENDIF.
+    DATA(row) = render_icon_row( form    = form
+                                 label   = label
+                                 icon    = icon
+                                 text    = name
+                                 href    = lv_href
+                                 new_tab = abap_true ).
 
-    DATA(row) = render_icon_row( form          = form
-                                 label         = label
-                                 icon          = icon
-                                 text          = name
-                                 href          = lv_href
-                                 new_tab       = abap_true
-                                 badge_icon    = lv_badge
-                                 badge_tooltip = lv_badge_tooltip ).
-
-    " and in words behind the name - the icon alone is a hint, this is the
-    " statement. It carries no icon of its own: that one is up front, next to
-    " the repository's
+    " not installed: icon and words as one control right behind the name, so
+    " the row says where its link goes before it is followed - to GitHub, not
+    " into an app. state Warning is what colours the icon with it
     IF lv_class IS INITIAL.
       row->leaf( `ObjectStatus`
           )->a( n = `text`
                 v = `not installed`
+          )->a( n = `icon`
+                v = `sap-icon://download`
           )->a( n = `state`
                 v = `Warning`
           )->a( n = `tooltip`
-                v = lv_badge_tooltip ).
+                v = `Not installed on this system - the link opens the repository on GitHub, ready to pull with abapGit` ).
     ENDIF.
 
     row->leaf( `Text`
