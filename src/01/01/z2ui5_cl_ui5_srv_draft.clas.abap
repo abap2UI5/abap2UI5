@@ -9,6 +9,10 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE i.
 
+    METHODS count_entries_total
+      RETURNING
+        VALUE(result) TYPE i.
+
     METHODS create
       IMPORTING
         draft     TYPE z2ui5_if_types=>ty_s_draft
@@ -160,6 +164,17 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " before the UNAME column existed, tolerated during upgrade )
     SELECT COUNT( * ) FROM z2ui5_t_01
       WHERE uname = @sy-uname OR uname = @space
+      INTO @result.
+
+  ENDMETHOD.
+
+  METHOD count_entries_total.
+
+    " the size of the draft table itself, every owner included - what the start
+    " page shows next to the own count, and what says whether cleanup( ) is
+    " keeping up. Deliberately NOT owner-scoped, and deliberately only a count:
+    " everything that reads draft CONTENT stays owner-bound ( see read( ) )
+    SELECT COUNT( * ) FROM z2ui5_t_01
       INTO @result.
 
   ENDMETHOD.

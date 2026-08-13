@@ -19,7 +19,7 @@
   <a href="#learn-abap2ui5">Samples (580+ apps)</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">LinkedIn</a> •
-  <a href="https://communityinviter.com/apps/abapgit/abap">Slack</a> •
+  <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
 </p>
 
@@ -83,7 +83,7 @@ sequenceDiagram
 Between roundtrips the framework does all the plumbing you would otherwise write yourself:
 
 * **Data Binding** – `client->_bind( var )` connects an ABAP variable to a UI5 control; user input is written back into the variable before `main` runs, and changes travel as deltas
-* **Events** – `client->_event( 'SAVE' )` wires any UI5 event to a name you check in ABAP with `client->get_event( )`
+* **Events** – `client->_event( |SAVE| )` wires any UI5 event to a name you check in ABAP with `client->get_event( )`
 * **Rendering** – views are plain UI5 XML built in ABAP with the view builder `z2ui5_cl_ui5_view_builder`; every UI5 control, property, and aggregation is available 1:1
 * **State** – your app object is serialized to a draft table and restored on the next request, so attributes simply keep their values between interactions
 

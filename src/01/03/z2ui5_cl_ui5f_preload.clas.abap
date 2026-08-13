@@ -21,6 +21,13 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    CLASS-METHODS escape_js_literal
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -61,7 +68,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/Variants.js": function()\{{ z2ui5_cl_ui5f_variants_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ViewOps.js": function()\{{ z2ui5_cl_ui5f_viewops_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/AppState.js": function()\{{ z2ui5_cl_ui5f_appstate_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/core/DeveloperTools.fragment.xml": '{ z2ui5_cl_ui5f_dtools_xml=>get( ) }',| && |\n| &&
+             |      "z2ui5/core/DeveloperTools.fragment.xml": '{ escape_js_literal( z2ui5_cl_ui5f_dtools_xml=>get( ) ) }',| && |\n| &&
              |      "z2ui5/core/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ErrorView.js": function()\{{ z2ui5_cl_ui5f_errview_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_ui5f_frontact_js=>get( ) }\},| && |\n| &&
@@ -71,12 +78,48 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/Server.js": function()\{{ z2ui5_cl_ui5f_server_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Session.js": function()\{{ z2ui5_cl_ui5f_session_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ViewSlots.js": function()\{{ z2ui5_cl_ui5f_viewslot_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/css/style.css": '{ styles_css }',| && |\n| &&
-             |      "z2ui5/manifest.json": '{ z2ui5_cl_ui5f_manifest=>get( ) }',| && |\n| &&
+             |      "z2ui5/css/style.css": '{ escape_js_literal( styles_css ) }',| && |\n| &&
+             |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_ui5f_models_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/Util.js": function()\{{ z2ui5_cl_ui5f_util_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/view/App.view.xml": '{ z2ui5_cl_ui5f_app_xml=>get( ) }',| && |\n|.
+             |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n|.
+
+  ENDMETHOD.
+
+  METHOD escape_js_literal.
+
+    " Every non-.js resource in get( ) is embedded as a JavaScript
+    " single-quoted string literal, inside the single <script> block that
+    " defines onInitComponent (z2ui5_cl_http_handler=>_http_get). Its content
+    " is arbitrary text and does carry apostrophes - a UI5 expression binding
+    " in a fragment (title="{= ${/appName} ? 'a' : 'b' }") writes them, and so
+    " does a customer's own styles_css from the exit. An unescaped one ends the
+    " literal early, which is a syntax error for the whole block: the browser
+    " then never defines onInitComponent, the bootstrap call fails and the page
+    " stays blank. Escape for the literal here instead of banning the
+    " characters in the frontend sources.
+    " Backslash goes first so it cannot escape the backslashes added below it.
+    result = replace( val  = val
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `\'`
+                      occ  = 0 ).
+    " a raw line break ends a JS string literal just like an apostrophe does -
+    " only styles_css can carry one, the generated resources are single-line.
+    " char constants come from the context class - the one place allowed to
+    " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
+    result = replace( val  = result
+                      sub  = z2ui5_cl_ui5_context=>cv_char_util_cr_lf(1)
+                      with = `\r`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_ui5_context=>cv_char_util_newline
+                      with = `\n`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
