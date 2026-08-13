@@ -83,7 +83,7 @@ sequenceDiagram
 Between roundtrips the framework does all the plumbing you would otherwise write yourself:
 
 * **Data Binding** – `client->_bind( var )` connects an ABAP variable to a UI5 control; user input is written back into the variable before `main` runs, and changes travel as deltas
-* **Events** – `client->_event( 'SAVE' )` wires any UI5 event to a name you check in ABAP with `client->get_event( )`
+* **Events** – `client->_event( |SAVE| )` wires any UI5 event to a name you check in ABAP with `client->get_event( )`
 * **Rendering** – views are plain UI5 XML built in ABAP with the view builder `z2ui5_cl_ui5_xml_builder`; every UI5 control, property, and aggregation is available 1:1
 * **State** – your app object is serialized to a draft table and restored on the next request, so attributes simply keep their values between interactions
 
