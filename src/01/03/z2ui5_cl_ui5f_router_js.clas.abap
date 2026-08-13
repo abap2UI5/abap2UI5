@@ -199,12 +199,6 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Navigate to an app class by route (the NAV_TO_ROUTE frontend action).` && |\n| &&
-             `    function navToApp(sClassOrRoute) {` && |\n| &&
-             `      const cls = appOf(sClassOrRoute) || sClassOrRoute;` && |\n| &&
-             `      navTo(patternFor(cls));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Route matched - the read side` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -424,15 +418,14 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      init,` && |\n| &&
              `      exit,` && |\n| &&
              `      splitHash,` && |\n| &&
-             `      hrefFor,` && |\n|.
-    result = result &&
+             `      hrefFor,` && |\n| &&
              `      patternFor,` && |\n| &&
              `      parse,` && |\n| &&
              `      appOf,` && |\n| &&
              `      draftOf,` && |\n| &&
              `      navTo,` && |\n| &&
-             `      navToApp,` && |\n| &&
-             `      onHashChanged,` && |\n| &&
+             `      onHashChanged,` && |\n|.
+    result = result &&
              `      sync,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

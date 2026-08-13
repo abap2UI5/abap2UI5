@@ -499,12 +499,12 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_session_stateful.
 
-    DATA(li_app) = get_if_app( ).
-    IF li_app->check_sticky = val.
+    IF mo_action->mo_app->mv_check_sticky = val.
       RETURN.
     ENDIF.
     mo_action->ms_next-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
-    li_app->check_sticky = val.
+    mo_action->mo_app->mv_check_sticky = val.
+    mo_action->mo_app->app_compat_mirror( ).
 
     mo_action->ms_next-s_stateful-switched = xsdbool( mo_action->ms_next-s_stateful-switched = abap_false ).
 
@@ -520,11 +520,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~check_on_init.
 
-    " keep the interface access on a typed variable - reading the attribute
-    " directly on the method-call chain breaks in the abaplint transpiler
-    " runtime (plain property access misses the interface attribute alias)
-    DATA(li_app) = get_if_app( ).
-    result = xsdbool( li_app->check_initialized = abap_false ).
+    result = xsdbool( mo_action->mo_app->mv_check_initialized = abap_false ).
 
   ENDMETHOD.
 

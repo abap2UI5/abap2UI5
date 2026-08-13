@@ -446,11 +446,16 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      // property nor something a per-binding formatter can register for the` && |\n| &&
              `      // standard sap.ui.model.type.Currency. The payload is a JSON object -` && |\n| &&
              `      // data the backend owns anyway. Lazy-require like THEMING.` && |\n| &&
+             `      // The two are NOT interchangeable and the difference is silent: set` && |\n| &&
+             `      // REPLACES the whole registration, add ADDS one code to it. An app` && |\n| &&
+             `      // that registers currencies as it loads more data and reaches for` && |\n| &&
+             `      // ``set`` drops the ones it registered before - and the symptom is a` && |\n| &&
+             `      // wrong digit count in a table, never an error.` && |\n| &&
              `      FORMATTING: {` && |\n| &&
              `        get: () => sap.ui.require("sap/ui/core/Formatting"),` && |\n| &&
              `        methods: {` && |\n| &&
-             `          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }` && |\n| &&
-             `          addCustomCurrency: ["string", "object"], // code, { digits: n }` && |\n| &&
+             `          setCustomCurrencies: ["object"], // REPLACES: { CODE: { digits: n }, ... }` && |\n| &&
+             `          addCustomCurrency: ["string", "object"], // ADDS one: code, { digits: n }` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
@@ -820,13 +825,13 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      "NotEndsWith",` && |\n| &&
              `      "NotStartsWith",` && |\n| &&
              `      "StartsWith",` && |\n| &&
-             `    ]);` && |\n| &&
+             `    ]);` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    const isEmpty = (v) => v == null || v === "";` && |\n| &&
              `` && |\n| &&
              `    // binding method -> builder that turns the trailing params into the` && |\n| &&
-             `    // aggregation-update call. A strict whitelist (unlike CONTROL_METHODS,` && |\n|.
-    result = result &&
+             `    // aggregation-update call. A strict whitelist (unlike CONTROL_METHODS,` && |\n| &&
              `    // which now allows any non-denied public control method): an unlisted` && |\n| &&
              `    // binding method fails closed at the lookup.` && |\n| &&
              `    //   filter: params = [path, operator, value1, value2?]` && |\n| &&

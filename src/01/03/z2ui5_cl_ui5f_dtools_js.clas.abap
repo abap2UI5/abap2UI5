@@ -516,10 +516,16 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // The class name of the running app, as the backend reported it in the` && |\n| &&
+             `      // last response. Empty before the first response arrived.` && |\n| &&
+             `      getAppName() {` && |\n| &&
+             `        return AppState.state.responseData?.S_FRONT?.APP || "";` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      // The ADT REST endpoint that renders the running app's ABAP class` && |\n| &&
              `      // source. Empty when the app class name is unknown (no response yet).` && |\n| &&
              `      getAbapSourceUrl() {` && |\n| &&
-             `        const appName = AppState.state.responseData?.S_FRONT?.APP || "";` && |\n| &&
+             `        const appName = this.getAppName();` && |\n| &&
              `        if (!appName) return "";` && |\n| &&
              `        const appId = encodeURIComponent(appName);` && |\n| &&
              `        return ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
@@ -633,6 +639,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          const value = toJson(AppState.state.responseData);` && |\n| &&
              `          const oData = {` && |\n| &&
              `            selectedTab: selectedTab,` && |\n| &&
+             `            // the dialog title always names the app the tools are looking at -` && |\n| &&
+             `            // every tab below shows that app's data, and after a navigation` && |\n| &&
+             `            // the previous app's name is the first thing that would mislead` && |\n| &&
+             `            appName: this.getAppName(),` && |\n| &&
              `            type: "json",` && |\n| &&
              `            source_visible: false,` && |\n| &&
              `            editor_visible: true,` && |\n| &&

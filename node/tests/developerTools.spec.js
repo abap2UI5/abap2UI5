@@ -34,6 +34,10 @@ function loadDeveloperTools({
   reopenCalls,
   fragment,
   windowStub,
+  // extra sap.ui.define dependencies / sandbox globals - only show() needs
+  // them (JSONModel, Lib, sap.ui.require), every other test runs without
+  extraDeps = {},
+  extraSandbox = {},
 } = {}) {
   const AppState = {
     state: { oResponse, responseData, oBody: null, errors, lastError },
@@ -60,6 +64,7 @@ function loadDeveloperTools({
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/ErrorView": ErrorView,
+      ...extraDeps,
     },
     sandbox: {
       XMLSerializer: class {
@@ -84,6 +89,7 @@ function loadDeveloperTools({
         location: { origin: "https://sap.example.com" },
         open() {},
       },
+      ...extraSandbox,
     },
   });
   return { DeveloperTools: module };
@@ -368,6 +374,43 @@ test.describe("Close / Escape returns to the error popup", () => {
     expect(destroyed).toBe(true);
     expect(DeveloperTools.oDialog).toBe(null);
     expect(reopenCalls).toEqual([]);
+  });
+});
+
+test.describe("Dialog title names the running app", () => {
+  const APP = "Z2UI5_CL_MY_APP";
+
+  // The fragment binds the title to /appName, so show() must seed it - the
+  // tools are opened over whatever app is running, and every tab shows that
+  // app's data.
+  const openTools = async (responseData) => {
+    const models = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData,
+      fragment: { load: async () => ({ setModel: (m) => models.push(m), open() {} }) },
+      extraDeps: {
+        "z2ui5/core/Lib": { isDestroyed: () => false, logError() {} },
+        "sap/ui/model/json/JSONModel": class {
+          constructor(data) {
+            this.data = data;
+          }
+          getData() {
+            return this.data;
+          }
+        },
+      },
+      extraSandbox: { sap: { ui: { require: (_mods, resolve) => resolve() } } },
+    });
+    await DeveloperTools.show();
+    return models[0]?.getData();
+  };
+
+  test("show() seeds the app class name into the model", async () => {
+    expect((await openTools({ S_FRONT: { APP: APP } })).appName).toBe(APP);
+  });
+
+  test("show() leaves it empty before the first response", async () => {
+    expect((await openTools({ S_FRONT: {} })).appName).toBe("");
   });
 });
 

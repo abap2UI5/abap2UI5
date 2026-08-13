@@ -4,16 +4,14 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
     METHODS render_nested_view FOR TESTING.
-    METHODS att_hits_current_element FOR TESTING.
-    METHODS att_after_end_hits_parent FOR TESTING.
-    METHODS att_after_children FOR TESTING.
+    METHODS att_after_ele_hits_the_element FOR TESTING.
+    METHODS att_after_tag_hits_the_tag FOR TESTING.
+    METHODS att_after_end_hits_closed_ele FOR TESTING.
+    METHODS tag_stays_and_siblings FOR TESTING.
     METHODS trailing_end_is_optional FOR TESTING.
     METHODS escape_attribute_value FOR TESTING.
     METHODS escape_whitespace_chars FOR TESTING.
     METHODS bool_parameter FOR TESTING.
-    METHODS tag_stays_and_siblings FOR TESTING.
-    METHODS tag_attr_splits_first_equals FOR TESTING.
-    METHODS att_after_tag_hits_parent FOR TESTING.
 ENDCLASS.
 
 
@@ -21,20 +19,19 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD render_nested_view.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( n  = `View`
                ns = `mvc`
         )->att( n = `xmlns`
                 v = `sap.m`
 
-        )->ele( `Text`
+        )->tag( `Text`
             )->att( n = `text`
                     v = `Hello`
-        )->end(
 
         )->ele( `Panel`
-            )->ele( `Title` ).
+            )->tag( `Title` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
@@ -43,63 +40,86 @@ CLASS ltcl_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD att_hits_current_element.
+  METHOD att_after_ele_hits_the_element.
 
-    " the one rule: att( ) lands on the element the chain is standing on, so
-    " repeated ele( )/end( ) pairs produce siblings each carrying their own
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    " ele( ) descends into a node that has no children yet, so att( ) sets the
+    " attribute on that node itself
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
-        )->ele( `Text`
+        )->att( n = `title`
+                v = `Home`
+        )->ele( `Panel`
+            )->att( n = `width`
+                    v = `100%` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Page title="Home"><Panel width="100%"/></Page>` ).
+
+  ENDMETHOD.
+
+
+  METHOD att_after_tag_hits_the_tag.
+
+    " tag( ) does not move, but the tag is now this node's last child, so the
+    " att( ) still reaches it - this is what makes tag( ) usable for a leaf
+    " that carries attributes
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->tag( `Title`
+            )->att( n = `width`
+                    v = `100%` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel><Title width="100%"/></Panel>` ).
+
+  ENDMETHOD.
+
+
+  METHOD att_after_end_hits_closed_ele.
+
+    " after end( ) the chain stands on the parent, whose last child is the
+    " container just closed - so att( ) attaches to that container, not to the
+    " parent. The flip side of the rule: an element that already has children
+    " can no longer be given an attribute
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Page`
+        )->ele( `Panel`
+            )->tag( `Title`
+        )->end(
+        )->att( n = `width`
+                v = `100%` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Page><Panel width="100%"><Title/></Panel></Page>` ).
+
+  ENDMETHOD.
+
+
+  METHOD tag_stays_and_siblings.
+
+    " tag( ) does not move, so siblings follow directly and no end( ) is
+    " needed - each att( ) block travels with the tag it follows
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Page`
+        )->tag( `Text`
             )->att( n = `text`
                     v = `first`
-        )->end(
-        )->ele( `Text`
+        )->tag( n  = `Text`
+                ns = `m`
             )->att( n = `text`
-                    v = `second` ).
+                    v = `second`
+        )->tag( `ToolbarSpacer` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
-      exp = `<Page><Text text="first"/><Text text="second"/></Page>` ).
-
-  ENDMETHOD.
-
-
-  METHOD att_after_end_hits_parent.
-
-    " after end( ) the chain stands on the parent - att( ) attaches there,
-    " which is what the indentation suggests and what the old builder could
-    " not do
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
-
-    view->ele( `Panel`
-            )->ele( `Title`
-        )->end(
-        )->att( n = `width`
-                v = `100%` ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = view->stringify( )
-      exp = `<Panel width="100%"><Title/></Panel>` ).
-
-  ENDMETHOD.
-
-
-  METHOD att_after_children.
-
-    " an attribute may follow the children of its own element - impossible in
-    " the predecessor, where it silently went to the last child
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
-
-    view->ele( `Panel`
-            )->ele( `Title`
-            )->end(
-        )->att( n = `width`
-                v = `100%` ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = view->stringify( )
-      exp = `<Panel width="100%"><Title/></Panel>` ).
+      exp = `<Page><Text text="first"/><m:Text text="second"/><ToolbarSpacer/></Page>` ).
 
   ENDMETHOD.
 
@@ -107,10 +127,10 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD trailing_end_is_optional.
 
     " stringify( ) renders from the root, so the chain may simply stop
-    DATA(closed) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA(closed) = z2ui5_cl_ui5_view_builder=>factory( ).
     closed->ele( `Page` )->ele( `Panel` )->ele( `Title` )->end( )->end( ).
 
-    DATA(open) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA(open) = z2ui5_cl_ui5_view_builder=>factory( ).
     open->ele( `Page` )->ele( `Panel` )->ele( `Title` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -122,9 +142,9 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD escape_attribute_value.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    view->ele( `Text`
+    view->tag( `Text`
         )->att( n = `text`
                 v = `a<b>&"c` ).
 
@@ -139,9 +159,9 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " a literal LF/TAB in an attribute value must survive XML attribute-value
     " normalization as a character reference (e.g. a two-line noDataText)
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    view->ele( `Text`
+    view->tag( `Text`
         )->att( n = `text`
                 v = |line1{ z2ui5_cl_ui5_context=>cv_char_util_newline }line2{ z2ui5_cl_ui5_context=>cv_char_util_horizontal_tab }end| ).
 
@@ -154,9 +174,9 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD bool_parameter.
 
-    " b replaces the predecessor's as_bool( ) helper - abap_false must render
-    " as `false`, not vanish, which is why it is read with IS SUPPLIED
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+    " b is the only way to render a boolean - abap_false must come out as
+    " `false`, not vanish, which is why it is read with IS SUPPLIED
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->att( n = `visible`
@@ -167,60 +187,6 @@ CLASS ltcl_builder IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
       exp = `<Panel visible="true" expanded="false"/>` ).
-
-  ENDMETHOD.
-
-
-  METHOD tag_stays_and_siblings.
-
-    " tag( ) does not move, so siblings follow directly and no end( ) is needed
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
-
-    view->ele( `Page`
-        )->tag( n     = `Text`
-                t_att = VALUE #( ( `text=first` ) )
-        )->tag( n     = `Text`
-                t_att = VALUE #( ( `text=second` ) )
-        )->tag( `ToolbarSpacer` ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = view->stringify( )
-      exp = `<Page><Text text="first"/><Text text="second"/><ToolbarSpacer/></Page>` ).
-
-  ENDMETHOD.
-
-
-  METHOD tag_attr_splits_first_equals.
-
-    " attributes split on the FIRST equals sign, so the value may contain more
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
-
-    view->tag( n     = `Text`
-               ns    = `m`
-               t_att = VALUE #( ( `text=a=b` ) ( `width=100%` ) ) ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = view->stringify( )
-      exp = `<m:Text text="a=b" width="100%"/>` ).
-
-  ENDMETHOD.
-
-
-  METHOD att_after_tag_hits_parent.
-
-    " pinned on purpose: tag( ) does not move, so a following att( ) attaches
-    " to the element the chain stands on - the PARENT, not the tag just added.
-    " That is the one rule holding; attributes of a tag belong in t_att.
-    DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
-
-    view->ele( `Panel`
-        )->tag( `Title`
-        )->att( n = `width`
-                v = `100%` ).
-
-    cl_abap_unit_assert=>assert_equals(
-      act = view->stringify( )
-      exp = `<Panel width="100%"><Title/></Panel>` ).
 
   ENDMETHOD.
 

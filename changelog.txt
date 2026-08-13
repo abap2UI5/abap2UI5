@@ -12,6 +12,51 @@ Legend
 
 unreleased
 ----------
+! check_sticky and check_initialized moved off z2ui5_if_app into the
+  framework's own app wrapper (z2ui5_cl_core_app=>mv_check_sticky /
+  mv_check_initialized), where mv_nav_mode and ms_session already live. They
+  are framework bookkeeping, not something an app implements, and every
+  reader already held that wrapper - the http handler even reached through
+  it to CAST the app back out. Both interface attributes stay and are kept in
+  sync by z2ui5_cl_core_app=>app_compat_mirror( ), so an app that READS them
+  still sees the truth; a direct WRITE is no longer honored -
+  client->set_session_stateful( ) switches sticky on and
+  client->check_on_init( ) answers the lifecycle question. id_draft and
+  id_app stay on the interface and are NOT obsolete: id_draft is the handle
+  db_load_by_app( ) resolves an app reference by, and both are needed at
+  moments when no wrapper exists yet - the interface now says so at the
+  declaration
+- BREAKING: removed cs_event-nav_to_route from z2ui5_if_client, together with
+  its frontend handler and Router.navToApp( ). It navigated to another app by
+  writing the hash and letting the router's hashChanged handler start the
+  target - a second, frontend-side way into a navigation the backend already
+  owns. Use nav_app_call( ) instead: it is the real navigation (the target app
+  is instantiated on the server, the calling app is preserved on the stack),
+  and with routing switched on (follow_up_action( cs_event-set_nav_routing ))
+  it pushes the very same route history entry, so Back keeps working exactly
+  as before. No sample or framework app used the event
+- BREAKING: removed cs_event-history_back from z2ui5_if_client, together with
+  its frontend handler. It was a one-line wrapper around history.back( ) from
+  the era before follow_up_action( ) took raw JavaScript: pass the expression
+  directly - follow_up_action( |history.back()| ) - or, for navigation inside
+  the app, use nav_app_leave( ), which returns to the calling app through the
+  app stack instead of stepping the browser history. The only caller in the
+  ecosystem was an experimental sample, removed alongside
+! cs_event-wizard_set_next_step is obsolete, and the interface says so. It
+  bundles the two calls a UI5 controller makes on a Wizard
+  (discardProgress( oStep ) + oStep.setNextStep( oNext )) into one fixed pair;
+  both are on the CONTROL_METHODS whitelist, so the same flow is two
+  follow_up_action( cs_event-control_by_id ) calls - which additionally reach
+  goToStep, a step the bundled event cannot express. The constant and its
+  handler stay and keep working
+! custom_mapper / custom_filter of _bind( ) are obsolete, and the interface
+  says so. Both hand an app a reference into the bundled AJSON library
+  (src/00/01), a mirrored copy of an external project rather than a contract
+  this framework owns. The declarative parameters cover what they were
+  reached for - omit_initial / omit_initial_paths for initial fields, json for
+  a JSON node - and anything else is better shaped in ABAP before binding.
+  Both are still evaluated and keep working; zero usages across samples,
+  samples-controls and samples-stack
 * the developer tools kept showing the POPUP/POPOVER tabs of a dialog an app
   had closed in the browser without a roundtrip
   (follow_up_action( cs_event-popup_close / popover_close )). Both close
@@ -46,6 +91,24 @@ unreleased
   attribute (chained replaces, same as z2ui5_cl_ui5_view_builder), and the
   event serializer runs its positional-placeholder regex only for arguments
   that start with a brace instead of on every argument
+! z2ui5_cl_ui5_view_builder=>new( ) is now factory( ) - the same name the
+  predecessor z2ui5_cl_ai_xml uses, so both builders start a view the same
+  way and the method no longer shares its name with the NEW operator
+! z2ui5_cl_ui5_view_builder sets every attribute through att( ), and att( )
+  now lands on the element it FOLLOWS: the child just added by ele( ) or
+  tag( ), or the node itself while it has no children yet. tag( ) is
+  therefore the form for any leaf, whatever its attributes are - it used to
+  be that an att( ) after a tag( ) attached to the parent, so a leaf could
+  carry literals only, and only through the t_att table. That table is gone,
+  with it the public type ty_t_attr that existed to type it and the
+  protected parse_attr( ) that split its `key=value` strings on the first
+  `=`; a bind or an event now works on a tag( ) like any other value. What
+  the rule costs is its flip side: once an element has a child, att( ) can
+  no longer reach it, so an element gets its attributes before its first
+  child - the test that pinned the opposite (att_after_children) is gone
+  with the behavior. The two removals are recorded in the API snapshot; the
+  class was added after v1.142.0 and has never been part of a release, so no
+  downstream app can hold a =>new( ) or a t_att call
 + the src/99 test classes are back and run in CI: all 27 deleted
   testclasses (util, pop, cx) are restored, the two disabled xml_view
   suites are re-enabled, and the pop tests assert against the
@@ -125,8 +188,9 @@ unreleased
   ICM profile does not compress already, and is a no-op on ones that do
   (and on the cloud stack, where the platform router owns compression)
 - BREAKING: removed set_nav_back( ) and set_nav_routing( ) from
-  z2ui5_if_client. Both are follow_up_action events now: history back rides
-  the existing cs_event-history_back, routing is configured with
+  z2ui5_if_client. Both are follow_up_action events now: history back rode
+  cs_event-history_back (itself removed later in this release, see above),
+  routing is configured with
   follow_up_action( val = cs_event-set_nav_routing t_arg = ( mode ) ) - the
   new constants set_nav_routing, set_push_state and set_app_state_active sit
   in cs_event with full documentation. set_push_state( ) and

@@ -489,8 +489,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["HISTORY_BACK"]`
-        act = lo_event->get_event_client_json( z2ui5_if_client=>cs_event-history_back ) ).
+        exp = `["LOCATION_RELOAD"]`
+        act = lo_event->get_event_client_json( z2ui5_if_client=>cs_event-location_reload ) ).
 
   ENDMETHOD.
 

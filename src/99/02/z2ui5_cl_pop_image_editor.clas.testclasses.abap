@@ -109,7 +109,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     DATA(lo_pop) = z2ui5_cl_pop_image_editor=>factory( `data:image/png;base64,OLD` ).
     client_create( lo_pop ).
-    lo_pop->z2ui5_if_app~check_initialized = abap_true.
+    mo_action->mo_app->mv_check_initialized = abap_true.
     mo_action->ms_actual-event = `SAVE`.
     mo_action->ms_actual-t_event_arg = VALUE #( ( `data:image/png;base64,NEW` ) ).
 
@@ -126,7 +126,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     DATA(lo_pop) = z2ui5_cl_pop_image_editor=>factory( `data:image/png;base64,OLD` ).
     client_create( lo_pop ).
-    lo_pop->z2ui5_if_app~check_initialized = abap_true.
+    mo_action->mo_app->mv_check_initialized = abap_true.
     mo_action->ms_actual-event = `CANCEL`.
 
     lo_pop->z2ui5_if_app~main( mi_client ).

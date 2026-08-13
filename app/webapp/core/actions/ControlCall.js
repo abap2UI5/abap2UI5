@@ -418,11 +418,16 @@ sap.ui.define(
       // property nor something a per-binding formatter can register for the
       // standard sap.ui.model.type.Currency. The payload is a JSON object -
       // data the backend owns anyway. Lazy-require like THEMING.
+      // The two are NOT interchangeable and the difference is silent: set
+      // REPLACES the whole registration, add ADDS one code to it. An app
+      // that registers currencies as it loads more data and reaches for
+      // `set` drops the ones it registered before - and the symptom is a
+      // wrong digit count in a table, never an error.
       FORMATTING: {
         get: () => sap.ui.require("sap/ui/core/Formatting"),
         methods: {
-          setCustomCurrencies: ["object"], // { CODE: { digits: n }, ... }
-          addCustomCurrency: ["string", "object"], // code, { digits: n }
+          setCustomCurrencies: ["object"], // REPLACES: { CODE: { digits: n }, ... }
+          addCustomCurrency: ["string", "object"], // ADDS one: code, { digits: n }
         },
       },
     };

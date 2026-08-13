@@ -226,7 +226,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     " first roundtrip builds the internal popup table and renders the dialog
     ro_pop->z2ui5_if_app~main( mi_client ).
-    ro_pop->z2ui5_if_app~check_initialized = abap_true.
+    mo_action->mo_app->mv_check_initialized = abap_true.
 
   ENDMETHOD.
 

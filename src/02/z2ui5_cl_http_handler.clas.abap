@@ -442,8 +442,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     MOVE-CORRESPONDING lo_post->main( ) TO result.
 
     TRY.
-        DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
-        IF li_app->check_sticky = abap_true.
+        IF lo_post->mo_action->mo_app->mv_check_sticky = abap_true.
           so_sticky_handler = lo_post.
         ELSE.
           CLEAR so_sticky_handler.

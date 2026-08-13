@@ -1,40 +1,42 @@
 "! Generic UI5 XML view builder - translate a UI5 XML view 1:1 by method
-"! chaining. Every letter of the API is the initial of the term it stands for:
-"!   new - factory   a new empty builder root
+"! chaining. The four navigating methods are three-letter abbreviations of the
+"! term they stand for:
+"!   factory         a new empty builder root
 "!   ele - element   add a child element and DESCEND into it (returns the child)
 "!   tag - tag       add a child element and STAY here (returns the same node)
-"!   att - attribute set an attribute on the element you are standing on
+"!   att - attribute set an attribute on the element it follows
 "!   end - end       ascend to the parent element (returns the parent)
-"!   stringify      render the whole view, always from the root
+"!   stringify       render the whole view, always from the root
 "! Element = n (name), namespace prefix = ns (e.g. `f`, `core`, `l`).
-"! There is exactly one rule: att( ) always applies to the CURRENT element, the
-"! one the last ele( ) descended into. tag( ) does not move, so its attributes
-"! travel with it in t_att - after a tag( ) the chain still stands on the
-"! parent, and an att( ) there would attach to the parent. Reach for tag( ) on
-"! a leaf whose attributes are literals, and for ele( )/end( ) everywhere else.
+"! There is exactly one rule: att( ) applies to the element the chain is
+"! POINTING AT - the child just added by ele( )/tag( ), or the node itself
+"! while it has no children yet. So an att( ) always follows the control it
+"! belongs to, no matter whether that control was opened with ele( ) or added
+"! with tag( ), and every attribute is set by its own att( ).
+"! Reach for tag( ) on a leaf and for ele( )/end( ) on a container. The flip
+"! side of the rule: once an element has a child, att( ) can no longer reach
+"! it - give an element its attributes before its first child.
 "! Every ele( ) may be closed by an end( );
 "! a trailing end( ) at the end of the chain can be omitted, because stringify( )
 "! renders from the root no matter where the chain stopped.
 "! The root mvc:View element and its xmlns declarations are written by hand,
 "! exactly like a real UI5 view:
-"!   DATA(view) = z2ui5_cl_ui5_view_builder=>new( ).
+"!   DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 "!   view->ele( n = `View` ns = `mvc`
 "!       )->att( n = `xmlns`     v = `sap.m`
 "!       )->att( n = `xmlns:mvc` v = `sap.ui.core.mvc` ) ...
 "! `v` may be any string expression (literal, a client bind/event, || template).
-"! For a boolean from an ABAP variable pass b instead of v.
+"! For a boolean pass b instead of v - it renders `true` / `false`, so an ABAP
+"! flag reaches the view without a conversion of its own:
+"!   )->att( n = `editable` b = mv_edit_mode
+"!   )->att( n = `visible`  b = xsdbool( lines( mt_item ) > 0 ) )
 CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
 
   PUBLIC SECTION.
 
-    "! attribute list for tag( ) - one `key=value` string per attribute, e.g.
-    "! t_att = VALUE #( ( `text=Hello` ) ( `width=100%` ) ). Split on the FIRST
-    "! `=`, so the value may contain further ones.
-    TYPES ty_t_attr TYPE STANDARD TABLE OF string WITH EMPTY KEY.
-
     "! returns an empty builder root; open the mvc:View element and declare the
     "! xmlns namespaces yourself, exactly like any other control
-    CLASS-METHODS new
+    CLASS-METHODS factory
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
@@ -48,21 +50,21 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
     "! add a child element and STAY on the current one, so the next tag( ) or
-    "! ele( ) becomes its sibling and no end( ) is needed. Its attributes must
-    "! travel with it in t_att - a following att( ) would land on the element
-    "! the chain is standing on, which is the PARENT, not the tag just added.
-    "! Use ele( )/end( ) whenever an attribute needs a computed value.
+    "! ele( ) becomes its sibling and no end( ) is needed. A following att( )
+    "! still lands on the tag, because it is now this node's last child - the
+    "! form for a leaf, whatever its attributes are.
     METHODS tag
       IMPORTING
         n             TYPE string
         ns            TYPE string OPTIONAL
-        t_att         TYPE ty_t_attr OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    "! set an attribute on the current element. Pass either v (any string
-    "! expression) or b (an ABAP boolean, rendered as `true` / `false`) -
-    "! exactly one of the two, never both and never neither.
+    "! set an attribute on the element the chain is pointing at - the child
+    "! just added by ele( )/tag( ), or this node itself while it has none.
+    "! Pass either v (any string expression) or b (an ABAP boolean, rendered
+    "! as `true` / `false`) - exactly one of the two, never both and never
+    "! neither.
     METHODS att
       IMPORTING
         n             TYPE string
@@ -98,13 +100,6 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
     DATA parent  TYPE REF TO z2ui5_cl_ui5_view_builder.
     DATA root    TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    "! split one `key=value` attribute string on its first `=`
-    METHODS parse_attr
-      IMPORTING
-        kv            TYPE string
-      RETURNING
-        VALUE(result) TYPE ty_s_pair.
-
     METHODS render
       RETURNING
         VALUE(result) TYPE string.
@@ -121,7 +116,7 @@ ENDCLASS.
 
 CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
-  METHOD new.
+  METHOD factory.
 
     result = NEW #( ).
     result->root = result.
@@ -141,31 +136,10 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD parse_attr.
-
-    DATA(off) = find( val = kv
-                      sub = `=` ).
-    IF off < 0.
-      result-n = condense( kv ).
-    ELSE.
-      result-n = condense( substring( val = kv
-                                      len = off ) ).
-      result-v = substring( val = kv
-                            off = off + 1 ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD tag.
 
-    DATA(child) = ele( n  = n
-                       ns = ns ).
-    LOOP AT t_att INTO DATA(kv).
-      DATA(pair) = parse_attr( kv ).
-      ASSERT NOT line_exists( child->t_pair[ n = pair-n ] ).
-      APPEND pair TO child->t_pair.
-    ENDLOOP.
+    ele( n  = n
+         ns = ns ).
     " stay where we are - the tag is complete, its siblings follow directly
     result = me.
 
@@ -174,20 +148,30 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD att.
 
-    " one rule: the attribute lands on the element the chain is standing on.
+    " one rule: the attribute lands on the element the chain is pointing at -
+    " the child just added by ele( )/tag( ), or this node itself while it has
+    " no children yet. That way att( ) follows the control it belongs to
+    " whether that control was opened with ele( ) or added with tag( ).
     " fail fast instead of dropping silently: on the empty builder root there
     " is no element to attach to, and a duplicate name renders invalid XML
-    ASSERT name IS NOT INITIAL.
-    ASSERT NOT line_exists( t_pair[ n = n ] ).
+    ASSERT name IS NOT INITIAL OR t_child IS NOT INITIAL.
     " b and v are mutually exclusive - b is checked with IS SUPPLIED because
     " abap_false and "not passed" are the same character
+    DATA(val) = v.
     IF b IS SUPPLIED.
       ASSERT v IS INITIAL.
+      val = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
+    ENDIF.
+
+    IF t_child IS INITIAL.
+      ASSERT NOT line_exists( t_pair[ n = n ] ).
       APPEND VALUE #( n = n
-                      v = COND #( WHEN b = abap_true THEN `true` ELSE `false` ) ) TO t_pair.
+                      v = val ) TO t_pair.
     ELSE.
+      DATA(target) = t_child[ lines( t_child ) ].
+      ASSERT NOT line_exists( target->t_pair[ n = n ] ).
       APPEND VALUE #( n = n
-                      v = v ) TO t_pair.
+                      v = val ) TO target->t_pair.
     ENDIF.
     result = me.
 

@@ -138,7 +138,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
   METHOD roundtrip_event.
 
     client_create( io_app ).
-    io_app->check_initialized = abap_true.
+    mo_action->mo_app->mv_check_initialized = abap_true.
     mo_action->ms_actual-event = iv_event.
     io_app->main( mi_client ).
 

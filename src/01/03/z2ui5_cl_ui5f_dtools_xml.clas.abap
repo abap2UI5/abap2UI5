@@ -31,7 +31,7 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
              `    <Dialog` &&
-             `        title="abap2UI5 - Developer Tools"` &&
+             `        title="{= ${/appName} ? 'abap2UI5 - Developer Tools - ' + ${/appName} : 'abap2UI5 - Developer Tools' }"` &&
              `        stretch="true"` &&
              `        escapeHandler=".onEscape"` &&
              `    >` &&
