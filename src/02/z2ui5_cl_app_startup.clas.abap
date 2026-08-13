@@ -390,11 +390,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     " one row per sample repository. Each one is installed separately with
     " abapGit, so every row answers the same question on its own: is the
     " overview app of that repository on THIS system? Then start it - otherwise
-    " point to the repository that carries it. Two of them renamed their
-    " overview app (z2ui5_cl_demo_app_g00 -> z2ui5_cl_smp_app_000 and
-    " z2ui5_cl_dmo_app_overview -> z2ui5_cl_smpc_app_overview), so they pass
-    " the old name as a fallback: an installation that predates the rename
-    " still gets its button.
+    " point to the repository that carries it. All three of them renamed their
+    " overview app (z2ui5_cl_demo_app_g00 -> z2ui5_cl_smp_app_000,
+    " z2ui5_cl_dmo_app_overview -> z2ui5_cl_smpc_app_overview and
+    " z2ui5_cl_smpe_app_00 -> z2ui5_cl_smps_app_00), so they pass the old name
+    " as a fallback: an installation that predates the rename still gets its
+    " button.
     render_samples(
         form      = form
         label     = `Samples`
@@ -425,7 +426,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         tooltip   = `OData, Smart Controls, RAP, WebSockets and the Fiori Launchpad`
         link_text = `Install abap2UI5/samples-stack - OData, RAP, WebSockets, Launchpad`
         href      = `https://github.com/abap2UI5/samples-stack`
-        class     = `z2ui5_cl_smpe_app_00` ).
+        class     = `z2ui5_cl_smps_app_00`
+        class_old = `z2ui5_cl_smpe_app_00` ).
 
   ENDMETHOD.
 
