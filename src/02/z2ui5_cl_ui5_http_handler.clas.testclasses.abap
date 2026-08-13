@@ -78,7 +78,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_post_ok.
 
-    DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp6 TYPE xsdboolean.
 
@@ -97,7 +97,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_post_error.
 
-    DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA lv_raised TYPE abap_bool.
 
     ls_req-method = `POST`.
@@ -119,7 +119,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     " a wrong/mistyped app name in the URL raises in the framework; the single
     " top-level catch in _main turns it into a 500 whose body states the reason
-    DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.
@@ -137,7 +137,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_main_unsupported.
 
     " OPTIONS/PUT/... must answer 405, not fall through with status code 0
-    DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
     ls_req-method = `OPTIONS`.
@@ -155,7 +155,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     " valid JSON without an S_FRONT container (health-check POST, rewrapping
     " proxy) must take the system-startup path, not answer 500
-    DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.
@@ -170,7 +170,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_main_get_routing.
 
-    DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp8 TYPE xsdboolean.
 
@@ -188,7 +188,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_main_post_routing.
 
-    DATA ls_req TYPE z2ui5_if_types=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
 
     ls_req-method = `POST`.

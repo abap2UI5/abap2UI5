@@ -1,12 +1,7 @@
 CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
   PUBLIC SECTION.
-    " The HTTP response this handler hands back to the ICF/cloud stack. It is
-    " declared HERE, on the public boundary, and not taken from a core
-    " interface: the core types are Layer 1 internals and must not appear in a
-    " public signature, or renaming an internal would break the contract of
-    " src/02. The core carries its own structurally identical type; the two
-    " meet once, in _http_post( ), via MOVE-CORRESPONDING.
+
     TYPES:
       BEGIN OF ty_s_http_res,
         body          TYPE string,
@@ -17,6 +12,14 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
           switched TYPE abap_bool,
         END OF s_stateful,
       END OF ty_s_http_res.
+
+    TYPES:
+      BEGIN OF ty_s_http_req,
+        method   TYPE string,
+        body     TYPE string,
+        path     TYPE string,
+        t_params TYPE z2ui5_if_client=>ty_t_name_value,
+      END OF ty_s_http_req.
 
     CLASS-METHODS run
       IMPORTING
@@ -43,7 +46,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
     CLASS-METHODS _http_post
       IMPORTING
-        is_req        TYPE z2ui5_if_types=>ty_s_http_req
+        is_req        TYPE ty_s_http_req
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
@@ -55,7 +58,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
     CLASS-METHODS _main
       IMPORTING
-        is_req        TYPE z2ui5_if_types=>ty_s_http_req
+        is_req        TYPE ty_s_http_req
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
@@ -66,7 +69,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         res           TYPE REF TO object OPTIONAL
           PREFERRED PARAMETER server
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_s_http_req.
+        VALUE(result) TYPE ty_s_http_req.
 
     " CSRF defense (on by default; an app can opt out via z2ui5_if_exit~
     " set_config_http_post -> check_csrf_active = abap_false). Pure and
@@ -88,7 +91,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
     DATA mo_server TYPE REF TO z2ui5_cl_ui5_http.
-    DATA ms_req    TYPE z2ui5_if_types=>ty_s_http_req.
+    DATA ms_req    TYPE ty_s_http_req.
     DATA ms_res    TYPE ty_s_http_res.
 
     " the raw if_http_response of the ON-PREM ICF stack, captured dynamically
@@ -245,7 +248,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                               res = res ).
     ELSE.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_error
-        EXPORTING val = `EMPTY_HTTP_HANDLER_CALL_ERROR`.
+        EXPORTING
+          val = `EMPTY_HTTP_HANDLER_CALL_ERROR`.
     ENDIF.
 
   ENDMETHOD.

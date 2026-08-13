@@ -33,5 +33,6 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
                                         exp = abap_true
                                         msg = `reset must make the class name editable again` ).
 
+
   ENDMETHOD.
 ENDCLASS.

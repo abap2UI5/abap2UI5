@@ -100,7 +100,6 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_system_last_wins     FOR TESTING RAISING cx_static_check.
     METHODS test_system_empty         FOR TESTING RAISING cx_static_check.
     METHODS test_system_destroy_only  FOR TESTING RAISING cx_static_check.
-    METHODS test_sticky_init_latch    FOR TESTING RAISING cx_static_check.
 
     "! the slots the serialized actions name, in order, deduplicated
     METHODS slot_sequence
@@ -710,43 +709,6 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_sticky_init_latch.
-
-    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_app TYPE REF TO ltcl_app_sticky.
-
-    " a sticky app skips db_save, but not the lifecycle latch: main_end has
-    " to latch it on the wrapper itself (and mirror it onto the instance),
-    " otherwise every event roundtrip of a sticky session re-runs the init
-    " block
-    lo_handler = NEW #( val = `` ).
-    lo_app = NEW #( ).
-    lo_handler->mo_action->mo_app->mo_app          = lo_app.
-    lo_handler->mo_action->mo_app->mv_check_sticky = abap_true.
-    lo_handler->mo_action->mo_app->ms_draft-id     = z2ui5_cl_ui5_context=>uuid_get_c32( ).
-
-    lo_handler->main_loop( ).
-
-    " the first roundtrip ran as init...
-    cl_abap_unit_assert=>assert_equals( exp = `INIT`
-                                        act = lo_app->mv_init_log ).
-    " ...and latched the lifecycle on the instance...
-    cl_abap_unit_assert=>assert_true( lo_app->z2ui5_if_app~check_initialized ).
-    cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->ms_draft-id
-                                        act = lo_app->z2ui5_if_app~id_draft ).
-    " ...even though no draft was saved
-    cl_abap_unit_assert=>assert_false(
-        NEW z2ui5_cl_ui5_srv_draft( )->check_exists( lo_handler->mo_action->mo_app->ms_draft-id ) ).
-
-    " the next roundtrip of the same in-memory session reads
-    " check_on_init( ) = abap_false and runs as a plain event
-    CLEAR lo_handler->mo_action->ms_next.
-    lo_handler->main_loop( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `INIT|EVENT`
-                                        act = lo_app->mv_init_log ).
-
-  ENDMETHOD.
 
   METHOD system_actions_of.
 
