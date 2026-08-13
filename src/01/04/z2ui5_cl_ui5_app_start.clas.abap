@@ -71,6 +71,10 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
         tooltip TYPE string
         press   TYPE string.
 
+    " the rule that separates the system entries from the outbound ones
+    METHODS header_separator
+      IMPORTING toolbar TYPE REF TO z2ui5_cl_ui5_view_builder.
+
     " Building blocks of the SimpleForm rows above. Private on purpose: this
     " class lives in the public src/02 package, so everything added to its
     " public section joins the framework's stable API contract (rule 5).
@@ -144,8 +148,8 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " core:Icon is 1rem and looks undersized next to the page title
     CONSTANTS c_icon_size_header TYPE string VALUE `1.125rem`.
 
-    " the gap that sets the system icon apart from the outbound ones next to it
-    CONSTANTS c_spacer_width TYPE string VALUE `1.5rem`.
+    " the margins the samples overview gives its header separator
+    CONSTANTS c_separator_class TYPE string VALUE `sapUiSmallMarginBegin sapUiSmallMarginEnd`.
 
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
@@ -310,24 +314,16 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     DATA(page) = view->ele( n   = `View`
                              ns = `mvc`
-        )->att( n = `xmlns`
-              v   = `sap.m`
-        )->att( n = `xmlns:mvc`
-              v   = `sap.ui.core.mvc`
-        )->att( n = `xmlns:form`
-              v   = `sap.ui.layout.form`
-        )->att( n = `xmlns:core`
-              v   = `sap.ui.core`
-        )->att( n = `displayBlock`
-              v   = `true`
-        )->att( n = `height`
-              v   = `100%`
+        )->att( n = `xmlns`         v = `sap.m`
+        )->att( n = `xmlns:mvc`     v = `sap.ui.core.mvc`
+        )->att( n = `xmlns:form`    v = `sap.ui.layout.form`
+        )->att( n = `xmlns:core`    v = `sap.ui.core`
+        )->att( n = `displayBlock`  v = `true`
+        )->att( n = `height`        v = `100%`
         )->ele( `Shell`
         )->ele( `Page`
-            )->att( n = `title`
-                  v   = `abap2UI5 - Building UI5 Apps Purely in ABAP`
-            )->att( n = `showNavButton`
-                  v   = `false` ).
+            )->att( n = `title`          v = `abap2UI5 - Building UI5 Apps Purely in ABAP`
+            )->att( n = `showNavButton`  v = `false` ).
 
     render_header_toolbar( page ).
 
@@ -347,6 +343,26 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     DATA(toolbar) = page->ele( `headerContent` ).
     toolbar->tag( `ToolbarSpacer` ).
 
+    " first what this system is: the information popup, and the configuration
+    " when it is installed
+    header_icon( toolbar = toolbar
+                 icon    = `sap-icon://sys-monitor`
+                 tooltip = `System information - UI5 and ABAP release, user exit, drafts`
+                 press   = client->_event( c_event_system ) ).
+
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+      header_icon( toolbar = toolbar
+                   icon    = `sap-icon://settings`
+                   tooltip = `Configuration`
+                   press   = client->_event( cs_event-set_config ) ).
+    ENDIF.
+
+    " ... then, set apart by a separator line, the entries that leave the
+    " system. Same device the samples overview uses (z2ui5_cl_smp_app_000=>
+    " header_separator): a ToolbarSeparator draws a rule between the groups,
+    " where a ToolbarSpacer would only leave a gap and say nothing
+    header_separator( toolbar ).
+
     header_icon( toolbar = toolbar
                  icon    = c_icon_docs
                  tooltip = `Documentation - guides, tutorials and the API reference on abap2UI5.org`
@@ -356,26 +372,6 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                  icon    = c_icon_repo
                  tooltip = `The abap2UI5 repository on GitHub - source code, issues, releases and the abapGit installation`
                  press   = open_url( `https://github.com/abap2UI5/abap2UI5` ) ).
-
-    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
-      header_icon( toolbar = toolbar
-                   icon    = `sap-icon://settings`
-                   tooltip = `Configuration`
-                   press   = client->_event( cs_event-set_config ) ).
-    ENDIF.
-
-    " a spacer of its own before the last one: the three above lead OUT of the
-    " app - documentation, repository, configuration - while this one answers a
-    " question about the system you are on. The gap is what says they are not
-    " the same kind of entry
-    toolbar->tag( `ToolbarSpacer`
-        )->att( n = `width`
-              v   = c_spacer_width ).
-
-    header_icon( toolbar = toolbar
-                 icon    = `sap-icon://sys-monitor`
-                 tooltip = `System information - UI5 and ABAP release, user exit, drafts`
-                 press   = client->_event( c_event_system ) ).
 
   ENDMETHOD.
 
@@ -387,18 +383,19 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " title row read as icons rather than as shrunken buttons.
     toolbar->tag( n  = `Icon`
                   ns = `core`
-        )->att( n = `src`
-              v   = icon
-        )->att( n = `size`
-              v   = c_icon_size_header
-        )->att( n = `class`
-              v   = `sapUiTinyMarginBeginEnd`
-        )->att( n = `color`
-              v   = c_icon_color
-        )->att( n = `tooltip`
-              v   = tooltip
-        )->att( n = `press`
-              v   = press ).
+        )->att( n = `src`      v = icon
+        )->att( n = `size`     v = c_icon_size_header
+        )->att( n = `class`    v = `sapUiTinyMarginBeginEnd`
+        )->att( n = `color`    v = c_icon_color
+        )->att( n = `tooltip`  v = tooltip
+        )->att( n = `press`    v = press ).
+
+  ENDMETHOD.
+
+  METHOD header_separator.
+
+    toolbar->tag( `ToolbarSeparator`
+        )->att( n = `class`  v = c_separator_class ).
 
   ENDMETHOD.
 
@@ -417,10 +414,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                      href    = `https://github.com/abap2UI5/abap2UI5`
                      new_tab = abap_true
       )->tag( `Text`
-          )->att( n = `text`
-                v   = `The repository itself - source code, issues, releases, and what abapGit installs from`
-          )->att( n = `class`
-                v   = `sapUiSmallMarginBegin` ).
+          )->att( n = `text`   v = `The repository itself - source code, issues, releases, and what abapGit installs from`
+          )->att( n = `class`  v = `sapUiSmallMarginBegin` ).
 
     render_icon_row( form    = form
                      label   = `Docs`
@@ -429,10 +424,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                      href    = `https://abap2UI5.org`
                      new_tab = abap_true
       )->tag( `Text`
-          )->att( n = `text`
-                v   = `Guides, tutorials and the API reference - from your first app to the full client API`
-          )->att( n = `class`
-                v   = `sapUiSmallMarginBegin` ).
+          )->att( n = `text`   v = `Guides, tutorials and the API reference - from your first app to the full client API`
+          )->att( n = `class`  v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
 
@@ -441,73 +434,48 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     render_section( form  = form
                     title = `Quickstart - your first app in 5 steps` ).
 
-    form->tag( `Label` )->att( n = `text`
-                              v  = `Step 1`
-      )->tag( `Text` )->att( n = `text`
-                            v  = `Create a new class in your ABAP system`
-      )->tag( `Label` )->att( n = `text`
-                             v  = `Step 2`
-      )->tag( `Text` )->att( n = `text`
-                            v  = `Add the interface Z2UI5_IF_APP - that is all it takes`
-      )->tag( `Label` )->att( n = `text`
-                             v  = `Step 3`
-      )->tag( `Text` )->att( n = `text`
-                            v  = `Define the view and implement the behavior - in pure ABAP` ).
+    form->tag( `Label` )->att( n = `text`  v = `Step 1`
+      )->tag( `Text` )->att( n = `text`   v = `Create a new class in your ABAP system`
+      )->tag( `Label` )->att( n = `text`  v = `Step 2`
+      )->tag( `Text` )->att( n = `text`   v = `Add the interface Z2UI5_IF_APP - that is all it takes`
+      )->tag( `Label` )->att( n = `text`  v = `Step 3`
+      )->tag( `Text` )->att( n = `text`   v = `Define the view and implement the behavior - in pure ABAP` ).
 
     render_link( form = form
                  text = `See a complete example: Hello World`
                  href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_ui5_app_hi_world.clas.abap` ).
 
-    form->tag( `Label` )->att( n = `text`
-                              v  = `Step 4` ).
+    form->tag( `Label` )->att( n = `text`  v = `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
       form->tag( `Input`
-          )->att( n = `id`
-                v   = c_id_input
-          )->att( n = `placeholder`
-                v   = `Enter your class name and press 'Check'`
-          )->att( n = `enabled`
-                v   = client->_bind( ms_home-class_editable )
-          )->att( n = `value`
-                v   = client->_bind( ms_home-classname )
-          )->att( n = `valueState`
-                v   = client->_bind( ms_home-class_value_state )
-          )->att( n = `valueStateText`
-                v   = client->_bind( ms_home-class_value_state_text )
-          )->att( n = `submit`
-                v   = client->_event( ms_home-btn_event_id )
-          )->att( n = `width`
-                v   = `70%` ).
+          )->att( n = `id`              v = c_id_input
+          )->att( n = `placeholder`     v = `Enter your class name and press 'Check'`
+          )->att( n = `enabled`         v = client->_bind( ms_home-class_editable )
+          )->att( n = `value`           v = client->_bind( ms_home-classname )
+          )->att( n = `valueState`      v = client->_bind( ms_home-class_value_state )
+          )->att( n = `valueStateText`  v = client->_bind( ms_home-class_value_state_text )
+          )->att( n = `submit`          v = client->_event( ms_home-btn_event_id )
+          )->att( n = `width`           v = `70%` ).
     ELSE.
-      form->tag( `Text` )->att( n = `text`
-                               v  = ms_home-classname ).
+      form->tag( `Text` )->att( n = `text`  v = ms_home-classname ).
     ENDIF.
 
     form->tag( `Label` ).
     form->tag( `Button`
-        )->att( n = `press`
-              v   = client->_event( ms_home-btn_event_id )
-        )->att( n = `text`
-              v   = client->_bind( ms_home-btn_text )
-        )->att( n = `icon`
-              v   = client->_bind( ms_home-btn_icon )
-        )->att( n = `width`
-              v   = `70%` ).
+        )->att( n = `press`  v = client->_event( ms_home-btn_event_id )
+        )->att( n = `text`   v = client->_bind( ms_home-btn_text )
+        )->att( n = `icon`   v = client->_bind( ms_home-btn_icon )
+        )->att( n = `width`  v = `70%` ).
 
     " not render_link: this one is bound and additionally disabled until the
     " class name was checked
-    form->tag( `Label` )->att( n = `text`
-                              v  = `Step 5`
+    form->tag( `Label` )->att( n = `text`  v = `Step 5`
       )->tag( `Link`
-          )->att( n = `text`
-                v   = `Open your application in a new tab`
-          )->att( n = `target`
-                v   = `_blank`
-          )->att( n = `href`
-                v   = client->_bind( ms_home-url )
-          )->att( n = `enabled`
-                v   = client->_bind( ms_home-link_enabled ) ).
+          )->att( n = `text`     v = `Open your application in a new tab`
+          )->att( n = `target`   v = `_blank`
+          )->att( n = `href`     v = client->_bind( ms_home-url )
+          )->att( n = `enabled`  v = client->_bind( ms_home-link_enabled ) ).
 
     " the five steps are one thought - let it end before the next headline.
     " Two rows, not one: this is the break between doing something and reading
@@ -571,40 +539,30 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     form->tag( `Label` ).
     IF label IS NOT INITIAL.
-      form->att( n = `text`
-               v   = label ).
+      form->att( n = `text`  v = label ).
     ENDIF.
 
     result = form->ele( `HBox`
-        )->att( n = `alignItems`
-              v   = `Center`
-        )->att( n = `wrap`
-              v   = `Wrap` ).
+        )->att( n = `alignItems`  v = `Center`
+        )->att( n = `wrap`        v = `Wrap` ).
 
     " no slot of its own for the icon: every glyph of the icon font renders the
     " same width, so the links line up on the icon alone - a fixed slot only
     " tore a hole between the icon and the name it belongs to
     result->tag( n   = `Icon`
                   ns = `core`
-        )->att( n = `src`
-              v   = icon
-        )->att( n = `color`
-              v   = c_icon_color
-        )->att( n = `class`
-              v   = `sapUiTinyMarginEnd` ).
+        )->att( n = `src`    v = icon
+        )->att( n = `color`  v = c_icon_color
+        )->att( n = `class`  v = `sapUiTinyMarginEnd` ).
 
     result->tag( `Link`
-        )->att( n = `text`
-              v   = text
-        )->att( n = `href`
-              v   = href
-        )->att( n = `width`
-              v   = c_link_width ).
+        )->att( n = `text`   v = text
+        )->att( n = `href`   v = href
+        )->att( n = `width`  v = c_link_width ).
 
     " the Link is still the last child, so this attribute lands on it
     IF new_tab = abap_true.
-      result->att( n = `target`
-                 v   = `_blank` ).
+      result->att( n = `target`  v = `_blank` ).
     ENDIF.
 
   ENDMETHOD.
@@ -643,31 +601,21 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " what colours icon and text with it - Success green, Warning orange.
     IF lv_class IS INITIAL.
       row->tag( `ObjectStatus`
-          )->att( n = `text`
-                v   = `not installed`
-          )->att( n = `icon`
-                v   = `sap-icon://download`
-          )->att( n = `state`
-                v   = `Warning`
-          )->att( n = `tooltip`
-                v   = `Not installed on this system - the link opens the repository on GitHub, ready to pull with abapGit` ).
+          )->att( n = `text`     v = `not installed`
+          )->att( n = `icon`     v = `sap-icon://download`
+          )->att( n = `state`    v = `Warning`
+          )->att( n = `tooltip`  v = `Not installed on this system - the link opens the repository on GitHub, ready to pull with abapGit` ).
     ELSE.
       row->tag( `ObjectStatus`
-          )->att( n = `text`
-                v   = `installed`
-          )->att( n = `icon`
-                v   = `sap-icon://accept`
-          )->att( n = `state`
-                v   = `Success`
-          )->att( n = `tooltip`
-                v   = `Installed on this system - the link opens its overview app in a new tab` ).
+          )->att( n = `text`     v = `installed`
+          )->att( n = `icon`     v = `sap-icon://accept`
+          )->att( n = `state`    v = `Success`
+          )->att( n = `tooltip`  v = `Installed on this system - the link opens its overview app in a new tab` ).
     ENDIF.
 
     row->tag( `Text`
-        )->att( n = `text`
-              v   = descr
-        )->att( n = `class`
-              v   = `sapUiSmallMarginBegin` ).
+        )->att( n = `text`   v = descr
+        )->att( n = `class`  v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
 
@@ -694,17 +642,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     DATA(dialog) = popup->ele( n   = `FragmentDefinition`
                                 ns = `core`
-        )->att( n = `xmlns`
-              v   = `sap.m`
-        )->att( n = `xmlns:core`
-              v   = `sap.ui.core`
-        )->att( n = `xmlns:form`
-              v   = `sap.ui.layout.form`
+        )->att( n = `xmlns`       v = `sap.m`
+        )->att( n = `xmlns:core`  v = `sap.ui.core`
+        )->att( n = `xmlns:form`  v = `sap.ui.layout.form`
         )->ele( `Dialog`
-            )->att( n = `title`
-                  v   = `abap2UI5 - System Information`
-            )->att( n = `afterClose`
-                  v   = client->_event( c_event_close ) ).
+            )->att( n = `title`       v = `abap2UI5 - System Information`
+            )->att( n = `afterClose`  v = client->_event( c_event_close ) ).
 
     DATA(form) = create_layout_form( dialog->ele( `content` ) ).
     DATA(ls_client) = client->get( ).
@@ -712,21 +655,15 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     render_text( form  = form
                  label = `UI5 Version`
                  text  = ls_client-s_ui5-version ).
-    form->tag( `Label` )->att( n = `text`
-                              v  = `Launchpad active` ).
+    form->tag( `Label` )->att( n = `text`  v = `Launchpad active` ).
     form->tag( `CheckBox`
-        )->att( n = `selected`
-              b   = ls_client-check_launchpad_active
-        )->att( n = `enabled`
-              v   = `false` ).
+        )->att( n = `selected`  b = ls_client-check_launchpad_active
+        )->att( n = `enabled`   v = `false` ).
 
-    form->tag( `Label` )->att( n = `text`
-                              v  = `ABAP for Cloud` ).
+    form->tag( `Label` )->att( n = `text`  v = `ABAP for Cloud` ).
     form->tag( `CheckBox`
-        )->att( n = `selected`
-              b   = z2ui5_cl_ui5_util_context=>check_abap_cloud( )
-        )->att( n = `enabled`
-              v   = `false` ).
+        )->att( n = `selected`  b = z2ui5_cl_ui5_util_context=>check_abap_cloud( )
+        )->att( n = `enabled`   v = `false` ).
     render_text( form  = form
                  label = `User Exit`
                  text  = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
@@ -741,12 +678,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     dialog->ele( `endButton`
         )->tag( `Button`
-            )->att( n = `text`
-                  v   = `Close`
-            )->att( n = `press`
-                  v   = client->_event( c_event_close )
-            )->att( n = `type`
-                  v   = `Emphasized` ).
+            )->att( n = `text`   v = `Close`
+            )->att( n = `press`  v = client->_event( c_event_close )
+            )->att( n = `type`   v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -762,12 +696,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " section apart from the one above without a separator line.
     form->ele( `Toolbar`
         )->tag( `Title`
-            )->att( n = `text`
-                  v   = title
-            )->att( n = `level`
-                  v   = `H3`
-            )->att( n = `class`
-                  v   = `sapUiSmallMarginBegin sapUiSmallMarginTop sapUiTinyMarginBottom`
+            )->att( n = `text`   v = title
+            )->att( n = `level`  v = `H3`
+            )->att( n = `class`  v = `sapUiSmallMarginBegin sapUiSmallMarginTop sapUiTinyMarginBottom`
       )->end( ).
 
   ENDMETHOD.
@@ -782,26 +713,20 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     form->tag( `Label` ).
     IF label IS NOT INITIAL.
-      form->att( n = `text`
-               v   = label ).
+      form->att( n = `text`  v = label ).
     ENDIF.
 
     form->tag( `Link`
-        )->att( n = `text`
-              v   = text
-        )->att( n = `target`
-              v   = `_blank`
-        )->att( n = `href`
-              v   = href ).
+        )->att( n = `text`    v = text
+        )->att( n = `target`  v = `_blank`
+        )->att( n = `href`    v = href ).
 
   ENDMETHOD.
 
   METHOD render_text.
 
-    form->tag( `Label` )->att( n = `text`
-                              v  = label
-      )->tag( `Text` )->att( n = `text`
-                            v  = text ).
+    form->tag( `Label` )->att( n = `text`  v = label
+      )->tag( `Text` )->att( n = `text`  v = text ).
 
   ENDMETHOD.
 
@@ -809,36 +734,21 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     result = view->ele( n   = `SimpleForm`
                          ns = `form`
-        )->att( n = `editable`
-              v   = `true`
-        )->att( n = `layout`
-              v   = `ResponsiveGridLayout`
-        )->att( n = `labelSpanXL`
-              v   = `4`
-        )->att( n = `labelSpanL`
-              v   = `3`
-        )->att( n = `labelSpanM`
-              v   = `4`
-        )->att( n = `labelSpanS`
-              v   = `12`
-        )->att( n = `adjustLabelSpan`
-              v   = `false`
-        )->att( n = `emptySpanXL`
-              v   = `0`
-        )->att( n = `emptySpanL`
-              v   = `4`
-        )->att( n = `emptySpanM`
-              v   = `0`
-        )->att( n = `emptySpanS`
-              v   = `0`
-        )->att( n = `columnsXL`
-              v   = `1`
-        )->att( n = `columnsL`
-              v   = `1`
-        )->att( n = `columnsM`
-              v   = `1`
-        )->att( n = `singleContainerFullSize`
-              v   = `false`
+        )->att( n = `editable`                 v = `true`
+        )->att( n = `layout`                   v = `ResponsiveGridLayout`
+        )->att( n = `labelSpanXL`              v = `4`
+        )->att( n = `labelSpanL`               v = `3`
+        )->att( n = `labelSpanM`               v = `4`
+        )->att( n = `labelSpanS`               v = `12`
+        )->att( n = `adjustLabelSpan`          v = `false`
+        )->att( n = `emptySpanXL`              v = `0`
+        )->att( n = `emptySpanL`               v = `4`
+        )->att( n = `emptySpanM`               v = `0`
+        )->att( n = `emptySpanS`               v = `0`
+        )->att( n = `columnsXL`                v = `1`
+        )->att( n = `columnsL`                 v = `1`
+        )->att( n = `columnsM`                 v = `1`
+        )->att( n = `singleContainerFullSize`  v = `false`
         )->ele( n   = `content`
                  ns = `form` ).
 

@@ -26,13 +26,23 @@
     "in_statement_indentation": true,
     "indentation": true,
     "double_space": true,
-    "align_parameters": true,
+    // The two shipped apps write the view builder's att( ) as one line per
+    // attribute - `n` and its value side by side, value column aligned. Both
+    // rules below undo that: line_break_multiple_parameters splits any call
+    // with more than one parameter, align_parameters then re-indents the
+    // pieces. Excluded for these two files only, so the rest of the repo keeps
+    // being formatted as before.
+    "align_parameters": {
+      "exclude": ["z2ui5_cl_ui5_app_start\\.clas\\.abap$", "z2ui5_cl_ui5_app_hi_world\\.clas\\.abap$"]
+    },
     "align_pseudo_comments": false,
     "align_type_expressions": true,
     "keyword_case": true,
     "contains_tab": true,
     "colon_missing_space": true,
-    "line_break_multiple_parameters": true,
+    "line_break_multiple_parameters": {
+      "exclude": ["z2ui5_cl_ui5_app_start\\.clas\\.abap$", "z2ui5_cl_ui5_app_hi_world\\.clas\\.abap$"]
+    },
     "line_only_punc": true,
     "max_one_method_parameter_per_line": true,
     "sequential_blank": true,
