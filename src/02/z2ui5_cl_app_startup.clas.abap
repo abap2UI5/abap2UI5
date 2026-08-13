@@ -102,6 +102,10 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         label TYPE string
         text  TYPE string.
 
+    " the column the link occupies in an icon row, so what follows it starts at
+    " the same place in every row - the alignment the samples app has
+    CONSTANTS c_link_width TYPE string VALUE `12rem`.
+
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
     " whatever else its own row has to say behind the link
@@ -439,7 +443,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         form      = form
         label     = `Samples`
         icon      = `sap-icon://lightbulb`
-        name      = `abap2UI5/samples`
+        name      = `samples`
         descr     = `Learn the abap2UI5 basics - 340+ ready-to-run apps, from a two-line Hello World to complete applications`
         href      = `https://github.com/abap2UI5/samples`
         class     = `z2ui5_cl_smp_app_000`
@@ -449,7 +453,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         form      = form
         label     = `Controls`
         icon      = `sap-icon://palette`
-        name      = `abap2UI5/samples-controls`
+        name      = `samples-controls`
         descr     = `Learn how to use every UI5 control in ABAP - the UI5 Demo Kit rebuilt with abap2UI5`
         href      = `https://github.com/abap2UI5/samples-controls`
         class     = `z2ui5_cl_smpc_app_overview`
@@ -459,7 +463,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         form      = form
         label     = `Stack`
         icon      = `sap-icon://database`
-        name      = `abap2UI5/samples-stack`
+        name      = `samples-stack`
         descr     = `Learn how abap2UI5 plays with your stack - OData, RAP, WebSockets, the Fiori Launchpad and more`
         href      = `https://github.com/abap2UI5/samples-stack`
         class     = `z2ui5_cl_smps_app_00`
@@ -491,7 +495,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         )->a( n = `text`
               v = text
         )->a( n = `href`
-              v = href ).
+              v = href
+        )->a( n = `width`
+              v = c_link_width ).
 
     " the Link is still the last child, so this attribute lands on it
     IF new_tab = abap_true.
@@ -528,8 +534,16 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                                  href    = lv_href
                                  new_tab = xsdbool( lv_class IS INITIAL ) ).
 
-    " not installed: say so right next to the name, so the row is readable
-    " without following the link - it leads to GitHub, not into an app
+    " the description comes before the state, so it starts in the same column
+    " in all three rows - the marker would push it out of line otherwise
+    row->leaf( `Text`
+        )->a( n = `text`
+              v = descr
+        )->a( n = `class`
+              v = `sapUiSmallMarginBegin` ).
+
+    " not installed: say so in the row, so it is readable without following the
+    " link - that one leads to GitHub then, not into an app
     IF lv_class IS INITIAL.
       row->leaf( `ObjectStatus`
           )->a( n = `text`
@@ -541,14 +555,20 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           )->a( n = `tooltip`
                 v = `Not on this system yet - the link opens the repository on GitHub, ready to pull with abapGit`
           )->a( n = `class`
-                v = `sapUiTinyMarginBegin` ).
+                v = `sapUiSmallMarginBegin` ).
     ENDIF.
 
-    row->leaf( `Text`
-        )->a( n = `text`
-              v = descr
-        )->a( n = `class`
-              v = `sapUiSmallMarginBegin` ).
+    " the repository itself stays one click away even when the name no longer
+    " points there - installed, it opens the app in this very tab
+    row->leaf( `Button`
+        )->a( n = `icon`
+              v = `sap-icon://information`
+        )->a( n = `type`
+              v = `Transparent`
+        )->a( n = `tooltip`
+              v = `Readme, issues and releases - opens the repository on GitHub`
+        )->a( n = `press`
+              v = open_url( href ) ).
 
   ENDMETHOD.
 
