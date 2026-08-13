@@ -28,17 +28,23 @@ INTERFACE z2ui5_if_client
       keyboard_shortcut         TYPE string VALUE `KEYBOARD_SHORTCUT`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
-      nav_to_route              TYPE string VALUE `NAV_TO_ROUTE`,
 
       "Actions more
       set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
 
       "Control Action
+      "! obsolete - a Wizard is a control like any other, so drive it through
+      "! the generic control call instead. This event bundles the two calls
+      "! a UI5 controller makes (oWizard.discardProgress( oStep ) and
+      "! oStep.setNextStep( oNext )) into one fixed pair; the same flow is
+      "! two follow_up_action( cs_event-control_by_id ) calls, which the
+      "! CONTROL_METHODS whitelist already carries - together with
+      "! goToStep, which this event cannot reach at all. The constant stays
+      "! in the public API and keeps working
       wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
 
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
-      history_back              TYPE string VALUE `HISTORY_BACK`,
       clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
 
       store_data                TYPE string VALUE `STORE_DATA`,
@@ -364,6 +370,14 @@ INTERFACE z2ui5_if_client
       path                 TYPE abap_bool                     DEFAULT abap_false
       "obsolete - inactive, not passed on internally
       view                 TYPE clike                         DEFAULT cs_view-main
+      "obsolete - still evaluated, but do not use in new code. Both hand an
+      "app a reference to the bundled AJSON library (src/00/01), which is a
+      "MIRRORED copy of an external project, not a contract this framework
+      "owns: an app implementing z2ui5_if_ajson_mapping / _filter binds
+      "itself to whatever that mirror looks like today. Everything they were
+      "reached for has a declarative counterpart on this method now -
+      "omit_initial / omit_initial_paths drop initial fields, json splices a
+      "JSON node - and the ABAP side can shape the value before it is bound
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
       tab                  TYPE data                          OPTIONAL

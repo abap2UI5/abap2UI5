@@ -25,21 +25,6 @@ sap.ui.define(
     // stays trivial; handlers that don't need the controller ignore it.
     // ------------------------------------------------------------------
 
-    function evHistoryBack() {
-      history.back();
-    }
-
-    function evNavToRoute(oController, args) {
-      // Navigate to another app by setting the hash route - the UI5 navTo
-      // equivalent. args[1] is the target app class (or a full "app/<CLASS>"
-      // route). The push adds a browser history entry, so Back returns to the
-      // current app; the router's hashChanged handler then starts the target
-      // app. No-op unless the app enabled routing.
-      const raw = Lib.toText(args[1]);
-      if (!raw) return;
-      Router.navToApp(raw);
-    }
-
     function evClipboardCopy(oController, args) {
       Lib.copyToClipboard(args[1]);
     }
@@ -308,8 +293,6 @@ sap.ui.define(
     // The events this module owns in the eF dispatch (see
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
-      HISTORY_BACK: evHistoryBack,
-      NAV_TO_ROUTE: evNavToRoute,
       CLIPBOARD_COPY: evClipboardCopy,
       CLIPBOARD_APP_STATE: evClipboardAppState,
       DOWNLOAD_B64_FILE: evDownloadB64File,

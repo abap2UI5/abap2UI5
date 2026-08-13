@@ -172,12 +172,6 @@ sap.ui.define(
       }
     }
 
-    // Navigate to an app class by route (the NAV_TO_ROUTE frontend action).
-    function navToApp(sClassOrRoute) {
-      const cls = appOf(sClassOrRoute) || sClassOrRoute;
-      navTo(patternFor(cls));
-    }
-
     // ------------------------------------------------------------------
     // Route matched - the read side
     // ------------------------------------------------------------------
@@ -403,7 +397,6 @@ sap.ui.define(
       appOf,
       draftOf,
       navTo,
-      navToApp,
       onHashChanged,
       sync,
     };

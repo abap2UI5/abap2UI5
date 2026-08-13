@@ -12,6 +12,37 @@ Legend
 
 unreleased
 ----------
+- BREAKING: removed cs_event-nav_to_route from z2ui5_if_client, together with
+  its frontend handler and Router.navToApp( ). It navigated to another app by
+  writing the hash and letting the router's hashChanged handler start the
+  target - a second, frontend-side way into a navigation the backend already
+  owns. Use nav_app_call( ) instead: it is the real navigation (the target app
+  is instantiated on the server, the calling app is preserved on the stack),
+  and with routing switched on (follow_up_action( cs_event-set_nav_routing ))
+  it pushes the very same route history entry, so Back keeps working exactly
+  as before. No sample or framework app used the event
+- BREAKING: removed cs_event-history_back from z2ui5_if_client, together with
+  its frontend handler. It was a one-line wrapper around history.back( ) from
+  the era before follow_up_action( ) took raw JavaScript: pass the expression
+  directly - follow_up_action( |history.back()| ) - or, for navigation inside
+  the app, use nav_app_leave( ), which returns to the calling app through the
+  app stack instead of stepping the browser history. The only caller in the
+  ecosystem was an experimental sample, removed alongside
+! cs_event-wizard_set_next_step is obsolete, and the interface says so. It
+  bundles the two calls a UI5 controller makes on a Wizard
+  (discardProgress( oStep ) + oStep.setNextStep( oNext )) into one fixed pair;
+  both are on the CONTROL_METHODS whitelist, so the same flow is two
+  follow_up_action( cs_event-control_by_id ) calls - which additionally reach
+  goToStep, a step the bundled event cannot express. The constant and its
+  handler stay and keep working
+! custom_mapper / custom_filter of _bind( ) are obsolete, and the interface
+  says so. Both hand an app a reference into the bundled AJSON library
+  (src/00/01), a mirrored copy of an external project rather than a contract
+  this framework owns. The declarative parameters cover what they were
+  reached for - omit_initial / omit_initial_paths for initial fields, json for
+  a JSON node - and anything else is better shaped in ABAP before binding.
+  Both are still evaluated and keep working; zero usages across samples,
+  samples-controls and samples-stack
 ! _event_client( ) is obsolete - follow_up_action( ) is the same call in the
   same position now, and the interface says so. Since follow_up_action( ) has
   a RETURNING parameter, a call whose result is CONSUMED (the view-attribute
@@ -114,8 +145,9 @@ unreleased
   ICM profile does not compress already, and is a no-op on ones that do
   (and on the cloud stack, where the platform router owns compression)
 - BREAKING: removed set_nav_back( ) and set_nav_routing( ) from
-  z2ui5_if_client. Both are follow_up_action events now: history back rides
-  the existing cs_event-history_back, routing is configured with
+  z2ui5_if_client. Both are follow_up_action events now: history back rode
+  cs_event-history_back (itself removed later in this release, see above),
+  routing is configured with
   follow_up_action( val = cs_event-set_nav_routing t_arg = ( mode ) ) - the
   new constants set_nav_routing, set_push_state and set_app_state_active sit
   in cs_event with full documentation. set_push_state( ) and
