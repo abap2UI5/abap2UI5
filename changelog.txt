@@ -13,18 +13,19 @@ Legend
 unreleased
 ----------
 ! the startup page reads top to bottom now instead of hiding parts behind
-  buttons. A documentation strip sits above everything else, so the first
-  thing on the page is the link that answers the first question; the three
-  sample repositories each get a button whether or not they are installed
-  (installed: start the overview app in a new tab, not installed: jump to the
-  repository on GitHub, which is where the abapGit installation starts); the
-  "Keep learning" section is gone - its links live in the strip and in the
-  header; and the system information the System dialog used to show is written
-  out as the last section of the page, where it can be read without a click
+  buttons. A strip carrying the documentation icon and a link named
+  "Documentation" sits above everything else, so the first thing on the page
+  is the answer to the first question; each of the three sample repositories
+  is one row of icon, repository name and what is in it, where the name links
+  to that repository's overview app when it is installed on this system and
+  to GitHub - marked "not installed" - when it is not; the "Keep learning"
+  section is gone, its links live in the strip and in the header; and the
+  system information the System dialog used to show is a collapsed panel at
+  the end of the page, one click instead of a popup
 - BREAKING: removed render_documentation( ) and render_system_popup( ) from
   z2ui5_cl_app_startup, together with cs_event-open_info and cs_event-close.
   They rendered the deleted "Keep learning" section and the System dialog the
-  page now carries inline. The class is the framework's own start page - its
+  page now carries as a panel. The class is the framework's own start page - its
   render_* methods are the page's own internals, not something an app calls -
   but they sit in src/02, so the removal is recorded here and in the API
   snapshot. The two sections that replace them (render_documentation_hint( )
