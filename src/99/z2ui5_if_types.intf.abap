@@ -35,21 +35,6 @@ INTERFACE z2ui5_if_types
     END OF ty_s_name_value.
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
-  " The incoming HTTP request as the public API hands it around - the parameter
-  " of z2ui5_cl_exit=>init_context and of the handler's _http_post / _main, and
-  " the result of get_request. It lives HERE and not in the Layer 0 HTTP
-  " abstraction that produces it: a public signature must not name an internal
-  " class, or renaming that internal breaks the src/02 contract (AGENTS.md rule
-  " 5). The abstraction keeps its own structurally identical type; the two meet
-  " once, in z2ui5_cl_http_handler=>main( ), via MOVE-CORRESPONDING.
-  TYPES:
-    BEGIN OF ty_s_http_req,
-      method   TYPE string,
-      body     TYPE string,
-      path     TYPE string,
-      t_params TYPE ty_t_name_value,
-    END OF ty_s_http_req.
-
   TYPES:
     BEGIN OF ty_s_http_context,
       path      TYPE string,
