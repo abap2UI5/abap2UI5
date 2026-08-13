@@ -488,10 +488,16 @@ sap.ui.define(
         );
       },
 
+      // The class name of the running app, as the backend reported it in the
+      // last response. Empty before the first response arrived.
+      getAppName() {
+        return AppState.state.responseData?.S_FRONT?.APP || "";
+      },
+
       // The ADT REST endpoint that renders the running app's ABAP class
       // source. Empty when the app class name is unknown (no response yet).
       getAbapSourceUrl() {
-        const appName = AppState.state.responseData?.S_FRONT?.APP || "";
+        const appName = this.getAppName();
         if (!appName) return "";
         const appId = encodeURIComponent(appName);
         return `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
@@ -605,6 +611,10 @@ sap.ui.define(
           const value = toJson(AppState.state.responseData);
           const oData = {
             selectedTab: selectedTab,
+            // the dialog title always names the app the tools are looking at -
+            // every tab below shows that app's data, and after a navigation
+            // the previous app's name is the first thing that would mislead
+            appName: this.getAppName(),
             type: "json",
             source_visible: false,
             editor_visible: true,
