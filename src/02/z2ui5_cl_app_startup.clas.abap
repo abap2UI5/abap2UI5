@@ -569,7 +569,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     " not installed: a second icon next to the repository's own, so the row
     " says where its link goes before it is followed - to GitHub, not into an
-    " app. The tooltip carries the sentence the icon stands for
+    " app. The full sentence is the tooltip of both the icon and the status
+    " behind the name
     DATA lv_badge         TYPE string.
     DATA lv_badge_tooltip TYPE string.
     IF lv_class IS INITIAL.
@@ -577,19 +578,33 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       lv_badge_tooltip = `Not installed on this system - the link opens the repository on GitHub, ready to pull with abapGit`.
     ENDIF.
 
-    render_icon_row( form          = form
-                     label         = label
-                     icon          = icon
-                     text          = name
-                     href          = lv_href
-                     new_tab       = abap_true
-                     badge_icon    = lv_badge
-                     badge_tooltip = lv_badge_tooltip
-      )->leaf( `Text`
+    DATA(row) = render_icon_row( form          = form
+                                 label         = label
+                                 icon          = icon
+                                 text          = name
+                                 href          = lv_href
+                                 new_tab       = abap_true
+                                 badge_icon    = lv_badge
+                                 badge_tooltip = lv_badge_tooltip ).
+
+    " and in words behind the name - the icon alone is a hint, this is the
+    " statement. It carries no icon of its own: that one is up front, next to
+    " the repository's
+    IF lv_class IS INITIAL.
+      row->leaf( `ObjectStatus`
           )->a( n = `text`
-                v = descr
-          )->a( n = `class`
-                v = `sapUiSmallMarginBegin` ).
+                v = `not installed`
+          )->a( n = `state`
+                v = `Warning`
+          )->a( n = `tooltip`
+                v = lv_badge_tooltip ).
+    ENDIF.
+
+    row->leaf( `Text`
+        )->a( n = `text`
+              v = descr
+        )->a( n = `class`
+              v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
 
