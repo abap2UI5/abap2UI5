@@ -53,7 +53,7 @@ CLASS z2ui5_cl_ui5f_build_js IMPLEMENTATION.
              `    // Fingerprint over app/webapp/** (this file excluded). Two copies with` && |\n| &&
              `    // the same hash ARE the same frontend; a different hash under the same` && |\n| &&
              `    // VERSION is the signature of a stale cache or an un-redeployed BSP.` && |\n| &&
-             `    HASH: "b30d16ebf456",` && |\n| &&
+             `    HASH: "022710d7ce46",` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

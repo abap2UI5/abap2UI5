@@ -19,7 +19,7 @@ CLASS z2ui5_cl_ui5f_build DEFINITION
     " Fingerprint over app/webapp/** (core/Build.js excluded). The release
     " these artefacts belong to is z2ui5_if_app=>version - same repository,
     " same commit, so it is not repeated here.
-    CONSTANTS hash TYPE string VALUE `b30d16ebf456`.
+    CONSTANTS hash TYPE string VALUE `022710d7ce46`.
 
   PROTECTED SECTION.
   PRIVATE SECTION.

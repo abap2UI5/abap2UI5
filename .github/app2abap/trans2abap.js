@@ -1,8 +1,8 @@
-const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const abapClassTemplate = require('./abapClassTemplate');
 const xmlTemplate = require('./abapXMLTemplate');
+const { computeFingerprint } = require('./fingerprint');
 
 // Define source and target directories
 const sourceDir = path.join(__dirname, '../../app/webapp');
@@ -295,29 +295,17 @@ function readVersion() {
     return match[1];
 }
 
-// Content fingerprint over the frontend sources. Path and content both go in,
-// so a pure rename is a change too. The generated build module is excluded -
-// it is an OUTPUT of this hash, and including it would leave the generation
-// without a fixpoint (every run would produce a new hash from the previous
-// run's hash). Files are read as buffers so the digest is over the bytes on
-// disk, not over a decoded string.
+// Content fingerprint over the frontend sources. The generated build module is
+// excluded - it is an OUTPUT of this hash, and including it would leave the
+// generation without a fixpoint (every run would produce a new hash from the
+// previous run's hash). How the digest itself is built, and why it normalizes
+// rather than hashing raw bytes, is documented in ./fingerprint.js.
 function computeFrontendHash(files) {
-    const digest = crypto.createHash('sha256');
     const entries = files
         .map(file => ({ relPath: path.relative(sourceDir, file).split(path.sep).join('/'), file }))
         .filter(({ relPath }) => relPath !== BUILD_MODULE_REL_PATH)
-        // readdir order is not part of the identity - sort so the same tree
-        // always produces the same fingerprint.
-        .sort((a, b) => a.relPath.localeCompare(b.relPath));
-    for (const { relPath, file } of entries) {
-        const content = fs.readFileSync(file);
-        // The length between path and content keeps the stream unambiguous:
-        // without it, moving bytes from one file's tail into the next file's
-        // name would hash the same.
-        digest.update(`${relPath}\n${content.length}\n`);
-        digest.update(content);
-    }
-    return digest.digest('hex').slice(0, BUILD_HASH_LENGTH);
+        .map(({ relPath, file }) => ({ relPath, content: fs.readFileSync(file, 'utf-8') }));
+    return computeFingerprint(entries, BUILD_HASH_LENGTH);
 }
 
 // The browser-side half of the build identity. Written into app/webapp so it
