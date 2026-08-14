@@ -1,0 +1,90 @@
+name: frontend_deploy
+
+# Builds a generated deploy branch and pushes it into abap2UI5/frontend, which
+# is a pure delivery repository - every branch there is written by this
+# workflow, nothing in it is edited by hand.
+#
+# DISPATCH ONLY for now. The push trigger is deliberately not wired up yet: it
+# is turned on in a follow-up, once a manual run has been compared against what
+# is published today (npm run frontend:verify does that comparison). Until
+# then abap2UI5/frontend keeps building the branches itself, and running this
+# workflow would race with it.
+#
+# The branches are an installation source - people's abapGit repositories point
+# at them - so the tree a branch carries may not change just because the build
+# moved. frontend_check.yaml guards the content on every pull request.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "cloud | cloud_v2 | standard | standard_v2 | standard_<name> | standard_v2_<name>"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend_deploy-${{ inputs.branch }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BRANCH: ${{ inputs.branch }}
+      TARGET: git@github.com:abap2UI5/frontend.git
+    steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      with:
+        node-version: '22'
+        cache: 'npm'
+    - run: npm ci
+
+    - name: Build ${{ inputs.branch }}
+      run: node frontend/build-branches.mjs "$BRANCH"
+
+    - name: Check the BSP page invariants
+      run: node frontend/check-pages.mjs "$BRANCH"
+
+    - name: Lint the generated standard src
+      if: startsWith(inputs.branch, 'standard') && !startsWith(inputs.branch, 'standard_v2')
+      run: cd "frontend/out/$BRANCH" && npx abaplint
+
+    - name: Push ${{ inputs.branch }}
+      env:
+        DEPLOY_KEY: ${{ secrets.ACTION_KEY_FRONTEND }}
+      run: |
+        set -euo pipefail
+        b="$BRANCH"
+
+        mkdir -p ~/.ssh
+        printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_deploy
+        chmod 600 ~/.ssh/id_deploy
+        ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+        export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes"
+
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+        # The published branch, if it exists, becomes the parent - so the
+        # delivery repository keeps a history instead of an orphan per run.
+        # Only that one parent: the core commit is not an object over there.
+        parent=$(git fetch --depth 1 "$TARGET" "$b" 2>/dev/null && git rev-parse FETCH_HEAD || true)
+
+        index="$RUNNER_TEMP/index-$b"
+        rm -f "$index"
+        (cd "frontend/out/$b" && GIT_DIR="$GITHUB_WORKSPACE/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index" git add -A)
+        tree=$(GIT_INDEX_FILE="$index" git write-tree)
+
+        if [ -n "$parent" ] && [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
+          echo "$b: unchanged, nothing to push"
+          exit 0
+        fi
+
+        commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -m "build: $b from $GITHUB_SHA")
+        git push "$TARGET" "$commit:refs/heads/$b"
+        echo "$b: pushed $commit"
