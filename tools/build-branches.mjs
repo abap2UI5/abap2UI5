@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // build-branches.mjs
-// Baut aus dem main-Branch (einzige Quelle: app/webapp + abap/ + Tooling)
-// die generierten Output-Branches:
+// Baut aus diesem Repository (app/ + frontend/ + tools/) die generierten
+// Output-Branches von abap2UI5/frontend:
 //
-//   cloud        app/ (Webapp) + abap/cloud (ABAP-Artefakte), klassischer Bootstrap
+//   cloud        app/ (Webapp) + frontend/abap/cloud (ABAP-Artefakte), klassischer Bootstrap
 //   cloud_v2     wie cloud, Webapp auf legacy-free (UI5 2.0) gepatcht
 //   standard     BSP Z2UI5 (app2bsp) + ICF-Handler, klassischer Bootstrap
 //   standard_v2  BSP Z2UI5 legacy-free (build-legacy-free.mjs)
@@ -27,7 +27,7 @@
 //
 // Aufruf:  node tools/build-branches.mjs [branch ...]
 // Ohne Argumente werden die vier festen Branches gebaut; mit Argumenten nur
-// die genannten (so baut jeder build_<branch>-Workflow genau seinen Branch).
+// die genannten (so baut ein frontend_deploy-Lauf genau seinen Branch).
 // Output je Branch: tools/out/<branch>/
 //
 // Die Webapp kommt aus app/webapp DIESES Repositories - die einzige Quelle.
@@ -42,7 +42,7 @@
 
 import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { patchIndexHtml, patchManifest } from "./app2app_v2/patch-v2.mjs";
 
@@ -84,20 +84,20 @@ const ABAPGIT_STANDARD = `﻿<?xml version="1.0" encoding="utf-8"?>
 `;
 
 function banner(branch) {
-  const workflow = BUILDERS[branch] ? `build_${branch}` : "build_rename";
   const origin = CORE_SHA
     ? ` Frontend state: \`abap2UI5/abap2UI5@${CORE_SHA.slice(0, 12)}\`${CORE_VERSION ? ` (framework ${CORE_VERSION})` : ""} — see \`VERSION\`.`
     : "";
-  return `> ⚙️ **Generated branch \`${branch}\`** — built from [\`main\`](../../tree/main) by the ` +
-    "`" + workflow + "` workflow. Do not commit here, changes belong into `main`." + origin + "\n\n";
+  return `> ⚙️ **Generated branch \`${branch}\`** — built in ` +
+    "[abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5) by its `frontend_deploy` workflow " +
+    "and pushed here. Do not commit in this repository; changes belong into abap2UI5." + origin + "\n\n";
 }
 
 // Provenance: which framework state this branch was built from. Both the
 // commit and the framework version constant come from THIS repository, and are
 // stamped into each generated branch so a pulled branch can be matched to a
 // backend release. Deliberately no timestamp: identical sources must produce
-// identical trees, or build_branch.yaml would push an empty rebuild on every
-// run.
+// identical trees, or frontend_deploy.yaml would push an empty rebuild on
+// every run.
 //
 // The stamp still names the commit as "webapp mirror commit" and the branch
 // banner still calls it the frontend state, because that is what a pulled
@@ -157,6 +157,16 @@ function initBranch(branch, abapgitXml) {
 const skipBuildArtifacts = (src) =>
   !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(src);
 
+// The cloud branches ship the Fiori project from app/ - the same one this
+// repository is developed with, so the two cannot drift apart. What they do
+// NOT ship is the tooling that project is developed WITH: the linter and
+// formatter configs run here, on a pull request, and a delivery branch is an
+// installation source, not a development checkout. They are named rather than
+// pattern-matched so a new project file has to be decided on, not silently
+// delivered or silently dropped.
+const DEV_ONLY = new Set([".editorconfig", ".prettierrc", "eslint.config.mjs", "ui5lint.config.mjs"]);
+const skipDevProjectFiles = (src) => !DEV_ONLY.has(relative(join(core, "app"), src));
+
 // abap/cloud carries the abaplint config that lints it in place. It belongs to
 // this repository, not to the delivered package - the output branch gets its
 // own copy at the root (see initBranch), with the glob turned to /src/.
@@ -166,7 +176,10 @@ const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
 // Webapp-Bootstrap zusaetzlich auf legacy-free gepatcht.
 function buildCloudVariant(branch) {
   const dir = initBranch(branch, ABAPGIT_CLOUD);
-  cpSync(join(core, "app"), join(dir, "app"), { recursive: true, filter: skipBuildArtifacts });
+  cpSync(join(core, "app"), join(dir, "app"), {
+    recursive: true,
+    filter: (src) => skipBuildArtifacts(src) && skipDevProjectFiles(src),
+  });
   cpSync(join(data, "abap/cloud"), join(dir, "src"), { recursive: true, filter: skipLintConfig });
   if (branch === "cloud_v2") {
     const wa = join(dir, "app/webapp");

@@ -10,7 +10,7 @@
  * available legacy-free version, so the monthly run surfaces both as an
  * issue (report-scheduled-failure) instead of nobody noticing.
  */
-import { SDK } from "../app2app_v2/patch-v2.mjs";
+import { SDK } from "./app2app_v2/patch-v2.mjs";
 
 const pinned = /(\d+\.\d+\.\d+)-legacy-free/.exec(SDK)?.[1];
 if (!pinned) {
