@@ -8,6 +8,7 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
     "z2ui5/core/AppState",
+    "z2ui5/core/Build",
   ],
   (
     BusyIndicator,
@@ -18,6 +19,7 @@ sap.ui.define(
     ViewSlots,
     ErrorView,
     AppState,
+    Build,
   ) => {
     "use strict";
 
@@ -84,7 +86,14 @@ sap.ui.define(
     //           // APP: what the app queued, run last, once the DOM exists.
     //           // A legacy app-authored raw-JS snippet stays a string entry.
     //           "T_CUSTOM": [["SET_FOCUS","id1"]]
-    //       }
+    //       },
+    //       // Build identity of the backend and of the frontend it embeds,
+    //       // sent on the first roundtrip of a page load and left off every
+    //       // other response. Compared against core/Build.js by
+    //       // _checkBuildDrift, which logs a stale BSP / cached preload.
+    //       "S_BUILD": { "BACKEND_VERSION": "1.142.0",
+    //                    "FRONTEND_VERSION": "1.142.0",
+    //                    "FRONTEND_HASH": "32f666bbfca4" }
     //     },
     //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes
     //   }                                  // the view's binding model. Absent
@@ -381,6 +390,9 @@ sap.ui.define(
           // roundtrip.
           AppState.state.oSentModel?._z2ui5ChangedPaths?.clear();
           AppState.state.oSentModel = null;
+          // Present on the first roundtrip of a page load only; every other
+          // response leaves the key off and this is a no-op.
+          this._checkBuildDrift(responseData.S_FRONT.S_BUILD);
           this.responseSuccess(
             {
               ID: responseData.S_FRONT.ID,
@@ -446,6 +458,74 @@ sap.ui.define(
           } else {
             this.responseError(e);
           }
+        }
+      },
+
+      // Report a frontend that is not the one this backend ships.
+      //
+      // Three copies of the same artefacts are installed independently: the
+      // backend (abapGit), the frontend it embeds (src/01/03, generated from
+      // app/webapp), and the BSP frontend (abap2UI5/frontend, deployed to the
+      // BSP branches) - with the browser's cache of Component-preload.js on
+      // top of the last one. Until now nothing compared them, so a stale copy
+      // announced itself as a view that behaved like a release nobody was
+      // running, and the usual first guess ("the backend is broken") was the
+      // wrong one.
+      //
+      // `Build` is what THIS copy is - whichever way it was delivered, the
+      // module was generated together with the rest of it. `oBuild` is what
+      // the backend embeds. Two axes, because they fail differently:
+      //
+      //   HASH differs, VERSION agrees   the interesting case. Same release,
+      //                                  different bytes: a browser serving a
+      //                                  cached preload, or a BSP that was
+      //                                  never redeployed.
+      //   VERSION differs                the BSP frontend was not upgraded
+      //                                  with the backend (or the other way
+      //                                  round).
+      //
+      // Logged, never enforced: a drifted frontend is usually still a working
+      // one, and refusing to run would turn a hint into an outage. Lib.logError
+      // puts it in the framework error log AND on the console, so it reaches
+      // the Log tab of the developer tools (Ctrl+F12) by both routes - which is
+      // where someone diagnosing "it works on the other system" will look.
+      _checkBuildDrift(oBuild) {
+        if (!oBuild) return;
+
+        const sLoaded = `${Build.VERSION} / ${Build.HASH}`;
+        const sBackend = `${oBuild.FRONTEND_VERSION} / ${oBuild.FRONTEND_HASH}`;
+
+        if (oBuild.FRONTEND_HASH && oBuild.FRONTEND_HASH !== Build.HASH) {
+          const sCause =
+            oBuild.FRONTEND_VERSION === Build.VERSION
+              ? "same release, different build - most likely a cached " +
+                "Component-preload.js in the browser, otherwise a BSP that " +
+                "was not redeployed"
+              : "different release - the BSP frontend was not upgraded " +
+                "together with the backend";
+          Lib.logError(
+            `Build: frontend mismatch (${sCause}). Loaded frontend: ` +
+              `${sLoaded}, frontend embedded in the backend: ${sBackend}. ` +
+              `Reload without cache (Ctrl+Shift+R); if the mismatch stays, ` +
+              `redeploy the BSP from abap2UI5/frontend.`,
+          );
+        }
+
+        // Both come out of one abapGit pull, so they can only disagree when
+        // that pull was partial (or src/01/03 was regenerated against another
+        // release). Cheap to check and it names the cause outright, which
+        // beats letting it surface as the mismatch above with a misleading
+        // "redeploy the BSP" hint.
+        if (
+          oBuild.BACKEND_VERSION &&
+          oBuild.FRONTEND_VERSION &&
+          oBuild.BACKEND_VERSION !== oBuild.FRONTEND_VERSION
+        ) {
+          Lib.logError(
+            `Build: the backend (${oBuild.BACKEND_VERSION}) and the frontend ` +
+              `it embeds (${oBuild.FRONTEND_VERSION}) are from different ` +
+              `releases - the abap2UI5 abapGit pull looks incomplete.`,
+          );
         }
       },
 

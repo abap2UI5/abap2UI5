@@ -35,6 +35,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Build",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BusyIndicator,` && |\n| &&
@@ -45,6 +46,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    ViewSlots,` && |\n| &&
              `    ErrorView,` && |\n| &&
              `    AppState,` && |\n| &&
+             `    Build,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -111,7 +113,14 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    //           // APP: what the app queued, run last, once the DOM exists.` && |\n| &&
              `    //           // A legacy app-authored raw-JS snippet stays a string entry.` && |\n| &&
              `    //           "T_CUSTOM": [["SET_FOCUS","id1"]]` && |\n| &&
-             `    //       }` && |\n| &&
+             `    //       },` && |\n| &&
+             `    //       // Build identity of the backend and of the frontend it embeds,` && |\n| &&
+             `    //       // sent on the first roundtrip of a page load and left off every` && |\n| &&
+             `    //       // other response. Compared against core/Build.js by` && |\n| &&
+             `    //       // _checkBuildDrift, which logs a stale BSP / cached preload.` && |\n| &&
+             `    //       "S_BUILD": { "BACKEND_VERSION": "1.142.0",` && |\n| &&
+             `    //                    "FRONTEND_VERSION": "1.142.0",` && |\n| &&
+             `    //                    "FRONTEND_HASH": "32f666bbfca4" }` && |\n| &&
              `    //     },` && |\n| &&
              `    //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes` && |\n| &&
              `    //   }                                  // the view's binding model. Absent` && |\n| &&
@@ -408,11 +417,15 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          // roundtrip.` && |\n| &&
              `          AppState.state.oSentModel?._z2ui5ChangedPaths?.clear();` && |\n| &&
              `          AppState.state.oSentModel = null;` && |\n| &&
+             `          // Present on the first roundtrip of a page load only; every other` && |\n| &&
+             `          // response leaves the key off and this is a no-op.` && |\n| &&
+             `          this._checkBuildDrift(responseData.S_FRONT.S_BUILD);` && |\n| &&
              `          this.responseSuccess(` && |\n| &&
              `            {` && |\n| &&
              `              ID: responseData.S_FRONT.ID,` && |\n| &&
              `              S_ACTION: responseData.S_FRONT.S_ACTION,` && |\n| &&
-             `              // A response whose model did not change carries no MODEL key` && |\n| &&
+             `              // A response whose model did not change carries no MODEL key` && |\n|.
+    result = result &&
              `              // at all; every consumer downstream sees the empty object it` && |\n| &&
              `              // used to be sent explicitly.` && |\n| &&
              `              OVIEWMODEL: responseData.MODEL ?? {},` && |\n| &&
@@ -424,8 +437,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `              // keep the URL route "#/app/<CLASS>" in sync (View1).` && |\n| &&
              `              APP: responseData.S_FRONT.APP,` && |\n| &&
              `            },` && |\n| &&
-             `            seq,` && |\n|.
-    result = result &&
+             `            seq,` && |\n| &&
              `          );` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._inflight.delete(superseder);` && |\n| &&
@@ -474,6 +486,74 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          } else {` && |\n| &&
              `            this.responseError(e);` && |\n| &&
              `          }` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Report a frontend that is not the one this backend ships.` && |\n| &&
+             `      //` && |\n| &&
+             `      // Three copies of the same artefacts are installed independently: the` && |\n| &&
+             `      // backend (abapGit), the frontend it embeds (src/01/03, generated from` && |\n| &&
+             `      // app/webapp), and the BSP frontend (abap2UI5/frontend, deployed to the` && |\n| &&
+             `      // BSP branches) - with the browser's cache of Component-preload.js on` && |\n| &&
+             `      // top of the last one. Until now nothing compared them, so a stale copy` && |\n| &&
+             `      // announced itself as a view that behaved like a release nobody was` && |\n| &&
+             `      // running, and the usual first guess ("the backend is broken") was the` && |\n| &&
+             `      // wrong one.` && |\n| &&
+             `      //` && |\n| &&
+             `      // ``Build`` is what THIS copy is - whichever way it was delivered, the` && |\n| &&
+             `      // module was generated together with the rest of it. ``oBuild`` is what` && |\n| &&
+             `      // the backend embeds. Two axes, because they fail differently:` && |\n| &&
+             `      //` && |\n| &&
+             `      //   HASH differs, VERSION agrees   the interesting case. Same release,` && |\n| &&
+             `      //                                  different bytes: a browser serving a` && |\n| &&
+             `      //                                  cached preload, or a BSP that was` && |\n| &&
+             `      //                                  never redeployed.` && |\n| &&
+             `      //   VERSION differs                the BSP frontend was not upgraded` && |\n| &&
+             `      //                                  with the backend (or the other way` && |\n| &&
+             `      //                                  round).` && |\n| &&
+             `      //` && |\n| &&
+             `      // Logged, never enforced: a drifted frontend is usually still a working` && |\n| &&
+             `      // one, and refusing to run would turn a hint into an outage. Lib.logError` && |\n| &&
+             `      // puts it in the framework error log AND on the console, so it reaches` && |\n| &&
+             `      // the Log tab of the developer tools (Ctrl+F12) by both routes - which is` && |\n| &&
+             `      // where someone diagnosing "it works on the other system" will look.` && |\n| &&
+             `      _checkBuildDrift(oBuild) {` && |\n| &&
+             `        if (!oBuild) return;` && |\n| &&
+             `` && |\n| &&
+             `        const sLoaded = ``${Build.VERSION} / ${Build.HASH}``;` && |\n| &&
+             `        const sBackend = ``${oBuild.FRONTEND_VERSION} / ${oBuild.FRONTEND_HASH}``;` && |\n| &&
+             `` && |\n| &&
+             `        if (oBuild.FRONTEND_HASH && oBuild.FRONTEND_HASH !== Build.HASH) {` && |\n| &&
+             `          const sCause =` && |\n| &&
+             `            oBuild.FRONTEND_VERSION === Build.VERSION` && |\n| &&
+             `              ? "same release, different build - most likely a cached " +` && |\n| &&
+             `                "Component-preload.js in the browser, otherwise a BSP that " +` && |\n| &&
+             `                "was not redeployed"` && |\n| &&
+             `              : "different release - the BSP frontend was not upgraded " +` && |\n| &&
+             `                "together with the backend";` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``Build: frontend mismatch (${sCause}). Loaded frontend: `` +` && |\n| &&
+             `              ``${sLoaded}, frontend embedded in the backend: ${sBackend}. `` +` && |\n| &&
+             `              ``Reload without cache (Ctrl+Shift+R); if the mismatch stays, `` +` && |\n| &&
+             `              ``redeploy the BSP from abap2UI5/frontend.``,` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // Both come out of one abapGit pull, so they can only disagree when` && |\n| &&
+             `        // that pull was partial (or src/01/03 was regenerated against another` && |\n| &&
+             `        // release). Cheap to check and it names the cause outright, which` && |\n| &&
+             `        // beats letting it surface as the mismatch above with a misleading` && |\n| &&
+             `        // "redeploy the BSP" hint.` && |\n| &&
+             `        if (` && |\n| &&
+             `          oBuild.BACKEND_VERSION &&` && |\n| &&
+             `          oBuild.FRONTEND_VERSION &&` && |\n| &&
+             `          oBuild.BACKEND_VERSION !== oBuild.FRONTEND_VERSION` && |\n| &&
+             `        ) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``Build: the backend (${oBuild.BACKEND_VERSION}) and the frontend `` +` && |\n| &&
+             `              ``it embeds (${oBuild.FRONTEND_VERSION}) are from different `` +` && |\n| &&
+             `              ``releases - the abap2UI5 abapGit pull looks incomplete.``,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

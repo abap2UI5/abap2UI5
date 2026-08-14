@@ -476,6 +476,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         DATA ls_front LIKE val-s_front.
         ls_front-id  = val-s_front-id.
         ls_front-app = val-s_front-app.
+        " a plain struct like the two above, so the generic conversion renders
+        " it correctly. It is empty on every roundtrip but the first of a page
+        " load, and the no-empty-values filter below then drops the whole
+        " S_BUILD node rather than sending three empty strings.
+        ls_front-s_build = val-s_front-s_build.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = ls_front ).
@@ -819,6 +824,20 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                            s_front-id       = mo_action->mo_app->ms_draft-id
                            s_front-app      = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
                            model            = lv_model ).
+
+    " Build identity, on the app-start-shaped roundtrip only - the same shape
+    " test the routing mode uses above. It answers a question the frontend can
+    " only ask once per page load ("am I the frontend this backend ships?"),
+    " and the answer cannot change while the page is open, so re-sending it per
+    " event would be three constants on every roundtrip. The frontend compares
+    " it against its own app/webapp/core/Build.js and logs the drift; nothing
+    " here decides anything, which is why a mismatch never blocks the response.
+    IF ms_request-s_front-id IS INITIAL.
+      ms_response-s_front-s_build = VALUE #(
+          backend_version  = z2ui5_if_app=>version
+          frontend_version = z2ui5_cl_ui5f_build=>version
+          frontend_hash    = z2ui5_cl_ui5f_build=>hash ).
+    ENDIF.
 
     mv_response = response_abap_to_json( ms_response ).
 

@@ -174,12 +174,36 @@ INTERFACE z2ui5_if_ui5_types
       s_stateful     TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next.
 
+  " Who is talking to whom, sent once per page load so the frontend can tell
+  " whether it is the frontend this backend ships. Three copies of the same
+  " artefacts are installed independently - the backend (abapGit), the frontend
+  " it embeds (src/01/03, generated from app/webapp), and the BSP frontend
+  " (abap2UI5/frontend) - and the browser caches the BSP one on top. Nothing
+  " kept them in step and nothing reported when they fell out of it; the first
+  " symptom was a view that behaved like a version nobody was running.
+  "
+  " backend_version and frontend_version come from the same abapGit pull and
+  " therefore agree unless that pull was partial. frontend_hash is the one that
+  " catches the common case: the same release, but the browser is running other
+  " bytes than the backend embeds - a stale cache, or a BSP that was never
+  " redeployed.
+  TYPES:
+    BEGIN OF ty_s_build,
+      backend_version  TYPE string,
+      frontend_version TYPE string,
+      frontend_hash    TYPE string,
+    END OF ty_s_build.
+
   TYPES:
     BEGIN OF ty_s_response,
       BEGIN OF s_front,
         s_action TYPE ty_s_action,
         id       TYPE string,
         app      TYPE string,
+        " only filled on an app-start-shaped roundtrip - the frontend keeps no
+        " state that could go stale between them, so repeating it on every
+        " event roundtrip would be bytes for nothing (see main_end)
+        s_build  TYPE ty_s_build,
       END OF s_front,
       model TYPE string,
     END OF ty_s_response.

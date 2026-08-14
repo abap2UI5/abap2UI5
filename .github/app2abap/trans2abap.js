@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const abapClassTemplate = require('./abapClassTemplate');
@@ -6,6 +7,36 @@ const xmlTemplate = require('./abapXMLTemplate');
 // Define source and target directories
 const sourceDir = path.join(__dirname, '../../app/webapp');
 const targetDir = path.join(__dirname, '../../src/01/03');
+
+// The interface that defines the release. Its version constant is stamped into
+// the generated build identity so a frontend artefact can name the abap2UI5
+// release it came from.
+const versionSourceFile = path.join(__dirname, '../../src/02/z2ui5_if_app.intf.abap');
+
+// The generated build identity, in its two forms: a UI5 module that ships to
+// the browser with the rest of app/webapp, and an ABAP class the backend reads
+// to learn what the frontend it EMBEDS says about itself. Both carry the same
+// two values.
+//
+// Why this exists: the backend arrives via abapGit, the BSP frontend is
+// installed separately (abap2UI5/frontend -> build_* -> BSP branches), and the
+// browser caches Component-preload.js on top of that. Three copies that can
+// drift, with no symptom until a view breaks. The pair below gives each copy a
+// name, which is what makes the drift observable - see z2ui5_cl_ui5_handler
+// (fills the response) and app/webapp/core/Server.js (compares and warns).
+//
+// The stamp is a content fingerprint, deliberately not a build timestamp: the
+// check_app2abap gate re-runs this generation and fails on any diff, so
+// anything time-based here would fail the gate on every run. A hash over the
+// sources is stable for the same content, which is also the question actually
+// being asked ("is the same frontend running?").
+const BUILD_MODULE_REL_PATH = 'core/Build.js';
+const BUILD_CLASS_NAME = 'z2ui5_cl_ui5f_build';
+
+// Length of the fingerprint kept from the sha256 digest. 12 hex chars = 48
+// bits: far past any accidental collision between two builds of one repository,
+// and short enough to read out of a console message or a popup field.
+const BUILD_HASH_LENGTH = 12;
 
 // Initial XML content with BOM
 const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
@@ -248,6 +279,127 @@ ENDCLASS.
 `;
 }
 
+// Reads the release from the version constant of z2ui5_if_app. Parsed rather
+// than taken from package.json: AGENTS.md names the interface as the place the
+// version is defined, and a frontend artefact that claims a different release
+// than the backend interface would defeat the very comparison it feeds.
+function readVersion() {
+    const source = fs.readFileSync(versionSourceFile, 'utf-8');
+    const match = /CONSTANTS\s+version\s+TYPE\s+string\s+VALUE\s+`([^`]*)`/i.exec(source);
+    if (!match) {
+        throw new Error(
+            `could not read the version constant from ${path.relative(path.join(__dirname, '../..'), versionSourceFile)} - ` +
+            `expected a line like "CONSTANTS version TYPE string VALUE \`1.2.3\`."`,
+        );
+    }
+    return match[1];
+}
+
+// Content fingerprint over the frontend sources. Path and content both go in,
+// so a pure rename is a change too. The generated build module is excluded -
+// it is an OUTPUT of this hash, and including it would leave the generation
+// without a fixpoint (every run would produce a new hash from the previous
+// run's hash). Files are read as buffers so the digest is over the bytes on
+// disk, not over a decoded string.
+function computeFrontendHash(files) {
+    const digest = crypto.createHash('sha256');
+    const entries = files
+        .map(file => ({ relPath: path.relative(sourceDir, file).split(path.sep).join('/'), file }))
+        .filter(({ relPath }) => relPath !== BUILD_MODULE_REL_PATH)
+        // readdir order is not part of the identity - sort so the same tree
+        // always produces the same fingerprint.
+        .sort((a, b) => a.relPath.localeCompare(b.relPath));
+    for (const { relPath, file } of entries) {
+        const content = fs.readFileSync(file);
+        // The length between path and content keeps the stream unambiguous:
+        // without it, moving bytes from one file's tail into the next file's
+        // name would hash the same.
+        digest.update(`${relPath}\n${content.length}\n`);
+        digest.update(content);
+    }
+    return digest.digest('hex').slice(0, BUILD_HASH_LENGTH);
+}
+
+// The browser-side half of the build identity. Written into app/webapp so it
+// travels with every delivery path the frontend has: embedded into src/01/03
+// by this script, and mirrored to abap2UI5/frontend (and from there into the
+// BSP branches) by create_frontend.yaml.
+//
+// Formatted the way prettier would (app/.prettierrc: 2 spaces, double quotes,
+// semicolons, trailing commas) because `npm run app2abap` runs the formatter
+// BEFORE this generation - a file that prettier would rewrite is a diff the
+// next run produces out of nowhere, and the check_app2abap gate fails on it.
+function buildIdentityModule(version, hash) {
+    return `// =====================================================================
+// GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
+// Build identity of the frontend artefacts, generated from app/webapp/ by
+// .github/app2abap/trans2abap.js. Run 'npm run app2abap' to regenerate;
+// the check_app2abap CI gate fails any manual edit here.
+// =====================================================================
+//
+// What this is for: a running abap2UI5 app is assembled from copies that are
+// installed separately and can drift apart - the backend (abapGit), the
+// frontend the backend embeds (src/01/03, generated from these same sources),
+// and the BSP frontend (abap2UI5/frontend), with the browser's cache on top.
+// This module is what the copy in the browser answers with when core/Server.js
+// asks which build it is; the backend sends the same two values for its own
+// copy on the first roundtrip of a page load.
+sap.ui.define([], () => {
+  "use strict";
+
+  return {
+    // abap2UI5 release these artefacts were generated from - the version
+    // constant of z2ui5_if_app at generation time.
+    VERSION: "${version}",
+
+    // Fingerprint over app/webapp/** (this file excluded). Two copies with
+    // the same hash ARE the same frontend; a different hash under the same
+    // VERSION is the signature of a stale cache or an un-redeployed BSP.
+    HASH: "${hash}",
+  };
+});
+`;
+}
+
+// The ABAP-side half: what the EMBEDDED frontend (src/01/03) says about itself,
+// as constants the backend can read without parsing JavaScript. Consumed by
+// z2ui5_cl_ui5_handler to fill the response and by z2ui5_cl_ui5_app_start to
+// show the build in the system-information popup.
+function buildIdentityClass(version, hash) {
+    return `* =====================================================================
+* GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
+* Build identity of the embedded frontend, generated from app/webapp/ by
+* .github/app2abap/trans2abap.js. Change the source under app/webapp/
+* and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
+* fails any manual edit here.
+*
+* The same two values ship to the browser in app/webapp/core/Build.js, so
+* the frontend that is actually RUNNING can be compared against the one
+* this backend embeds - see z2ui5_cl_ui5_handler=>main_end.
+* =====================================================================
+CLASS ${BUILD_CLASS_NAME} DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    " abap2UI5 release these frontend artefacts were generated from.
+    CONSTANTS version TYPE string VALUE \`${version}\`.
+
+    " Fingerprint over app/webapp/** (core/Build.js excluded).
+    CONSTANTS hash TYPE string VALUE \`${hash}\`.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ${BUILD_CLASS_NAME} IMPLEMENTATION.
+ENDCLASS.
+`;
+}
+
 // Function to recursively get all files in a directory
 function getAllFiles(dirPath, arrayOfFiles) {
     const files = fs.readdirSync(dirPath);
@@ -279,6 +431,17 @@ async function main() {
         const initialXMLFilePath = path.join(targetDir, 'package.devc.xml');
         await createFileInTargetDir(initialXMLFilePath, initialXMLContent);
         console.log(`Initial XML file created successfully at: ${initialXMLFilePath}`);
+
+        // The build identity is written into app/webapp BEFORE the walk below,
+        // so the generated module is picked up like any other frontend file:
+        // it gets its own embedded class and its own preload entry, and needs
+        // no special case anywhere downstream. Its own content is excluded
+        // from the fingerprint (see computeFrontendHash).
+        const version = readVersion();
+        const frontendHash = computeFrontendHash(getAllFiles(sourceDir));
+        const buildModulePath = path.join(sourceDir, ...BUILD_MODULE_REL_PATH.split('/'));
+        await createFileInTargetDir(buildModulePath, buildIdentityModule(version, frontendHash));
+        console.log(`Build identity module created successfully at: ${buildModulePath} (${version} / ${frontendHash})`);
 
         // Sort so the generation order (and console log) is deterministic
         // regardless of the filesystem's readdir order.
@@ -340,6 +503,15 @@ async function main() {
         const preloadXmlPath = path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml');
         await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`);
         console.log(`Preload XML created successfully at: ${preloadXmlPath}`);
+
+        // The ABAP-side build identity. Not a resource the browser loads, so
+        // it carries no preload entry - the backend reads its constants.
+        const buildClassPath = path.join(targetDir, `${BUILD_CLASS_NAME}.clas.abap`);
+        await createFileInTargetDir(buildClassPath, buildIdentityClass(version, frontendHash));
+        console.log(`Build identity class created successfully at: ${buildClassPath}`);
+        const buildClassXmlPath = path.join(targetDir, `${BUILD_CLASS_NAME}.clas.xml`);
+        await createFileInTargetDir(buildClassXmlPath, `\uFEFF${xmlTemplate(BUILD_CLASS_NAME, 'abap2UI5 - build identity')}`);
+        console.log(`Build identity XML created successfully at: ${buildClassXmlPath}`);
     } catch (error) {
         // Signal failure so CI (create_app2abap.yaml) does not treat a broken
         // generation run as success and commit a partial src/01/03.

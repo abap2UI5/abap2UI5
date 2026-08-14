@@ -100,6 +100,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_system_last_wins     FOR TESTING RAISING cx_static_check.
     METHODS test_system_empty         FOR TESTING RAISING cx_static_check.
     METHODS test_system_destroy_only  FOR TESTING RAISING cx_static_check.
+    METHODS test_build_identity       FOR TESTING RAISING cx_static_check.
 
     "! the slots the serialized actions name, in order, deduplicated
     METHODS slot_sequence
@@ -1084,6 +1085,51 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
         act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_build_identity.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " The build identity lets the frontend tell whether it is the frontend
+    " this backend ships (core/Server.js, _checkBuildDrift). It travels on the
+    " app-start-shaped roundtrip only - the same shape test the routing mode
+    " uses - because it cannot change while the page is open.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = z2ui5_if_app=>version
+        act = lo_handler->ms_response-s_front-s_build-backend_version ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = z2ui5_cl_ui5f_build=>version
+        act = lo_handler->ms_response-s_front-s_build-frontend_version ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = z2ui5_cl_ui5f_build=>hash
+        act = lo_handler->ms_response-s_front-s_build-frontend_hash ).
+
+    " and it reaches the wire under S_BUILD, not just the response struct -
+    " the JSON conversion copies the scalar fields of s_front one by one
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = |*"S_BUILD"*"FRONTEND_HASH":"{ z2ui5_cl_ui5f_build=>hash }"*|
+        act = lo_handler->mv_response ).
+
+    " A follow-up EVENT roundtrip carries a draft id and repeats nothing: the
+    " three values are constants for the life of the page, so re-sending them
+    " would be dead weight on every roundtrip. The no-empty-values filter is
+    " what drops the container once the struct is empty.
+    lo_handler->ms_request-s_front-id = `SOME_DRAFT`.
+    CLEAR lo_handler->mo_action->ms_next.
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-s_build ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = xsdbool( lo_handler->mv_response CS `S_BUILD` ) ).
 
   ENDMETHOD.
 
