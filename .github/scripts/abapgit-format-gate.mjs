@@ -31,7 +31,7 @@
 // (frozen) are excluded from lint on purpose - flagging their historical
 // trailing blanks would produce ~100 findings nobody is allowed to fix.
 
-import { readdirSync, readFileSync, statSync } from "fs";
+import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
@@ -220,7 +220,7 @@ if (findings.length > 0) {
     for (const f of group) console.log(`    ${f.file}\n      ${f.message}`);
     console.log("");
   }
-  console.log("Background and the fix for each rule: .claude/skills/abapgit-check/SKILL.md");
+  console.log("Background and the fix for each rule: .claude/skills/abap-check/SKILL.md");
   process.exit(1);
 }
 

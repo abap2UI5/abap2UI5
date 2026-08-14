@@ -17,7 +17,7 @@
 #
 # .github/scripts/abapgit-format-gate.mjs holds the rules; the background for
 # each one, and the checks that need a reader rather than a gate, are in
-# .claude/skills/abapgit-check/SKILL.md.
+# .claude/skills/abap-check/SKILL.md.
 name: check_abapgit_format
 
 on:

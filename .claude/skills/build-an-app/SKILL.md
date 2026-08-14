@@ -30,6 +30,11 @@ Quick orientation while it loads:
 - Validate with the abap2UI5-linter
   (`npx --yes github:abap2UI5/linter <file>`); iterate without a SAP
   system via the ai-mcp server (`deploy_app` → `build_backend` → `run_app`).
+- Before you finish, run the `abap-check` skill over what you wrote — it is the
+  companion to this one and catches what a green lint does not: abapGit
+  round-trip diffs, activation errors (`class_constructor` visibility,
+  `LOCAL FRIENDS`), SLIN/ATC traps and runtime breakage that only shows on a
+  real system.
 - The API contract is `src/02/z2ui5_if_client.intf.abap` — when unsure about
   a method or a `cs_event` action, read it there; the `follow_up_action`
   abapdoc documents the full frontend-action catalog.
