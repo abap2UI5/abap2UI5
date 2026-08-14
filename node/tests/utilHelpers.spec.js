@@ -264,6 +264,37 @@ test.describe("getMessaging (version-independent messaging facade)", () => {
   });
 });
 
+test.describe("hasMessagingModule (warm-load gate for sap/ui/core/Messaging)", () => {
+  test("true from 1.118 on", () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.version = "1.142.0";
+    expect(Lib.hasMessagingModule()).toBe(true);
+  });
+
+  test("false below 1.118, where the module would 404", () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.version = "1.71.0";
+    expect(Lib.hasMessagingModule()).toBe(false);
+  });
+
+  // The legacy-free (UI5 2.x) build drops the sap.ui.version global, so the
+  // probe reads undefined on a 1.142 runtime. Answering "false" there would
+  // switch off the warm-load on the one build whose ONLY messaging API is
+  // sap/ui/core/Messaging - message> model and handleValidation would go
+  // silently dead. An unreadable version therefore means "modern".
+  test("true when the version global is absent (legacy-free build)", () => {
+    const { Lib, sandbox } = loadLib();
+    delete sandbox.sap.ui.version;
+    expect(Lib.hasMessagingModule()).toBe(true);
+  });
+
+  test("true when the version is unparsable", () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.version = "not-a-version";
+    expect(Lib.hasMessagingModule()).toBe(true);
+  });
+});
+
 test.describe("getTextPath (ancestor-text breadcrumb of a control)", () => {
   const { Lib } = loadLib();
 
