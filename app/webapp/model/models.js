@@ -23,7 +23,14 @@ sap.ui.define(
         const oModel = new JSONModel(Device);
         oModel.setDefaultBindingMode("OneWay");
 
-        Device.media.initRangeSet(RANGE_SET);
+        // "Std" is predefined, so whoever touched Device.media first has
+        // usually initialised it already - and initialising it twice makes
+        // UI5 log "Range set Std has already been initialized" into every
+        // app start. Ask first; the call is still needed for the runtime
+        // that has not set it up yet.
+        if (!Device.media.hasRangeSet(RANGE_SET)) {
+          Device.media.initRangeSet(RANGE_SET);
+        }
 
         const refresh = () => {
           // Device.media exposes methods only - there is no property a binding
