@@ -345,6 +345,42 @@ test.describe("Bindings", () => {
   });
 });
 
+test.describe("Help", () => {
+  test("documents the entry points that are not guessable", () => {
+    const out = loadInspect().formatHelp();
+    expect(out).toContain("Ctrl+F12");
+    expect(out).toContain("?z2ui5-devtools=1");
+    expect(out).toContain("?z2ui5-devtools=HISTORY");
+  });
+
+  test("explains the two footer actions that change app state", () => {
+    const out = loadInspect().formatHelp();
+    // both are easy to misread as harmless, so the help has to be explicit
+    expect(out).toContain("Record Payloads");
+    expect(out).toContain("Apply to App");
+    expect(out).toContain("NO roundtrip");
+  });
+
+  test("names every tab the dialog offers", () => {
+    const out = loadInspect().formatHelp();
+    for (const tab of [
+      "Error",
+      "Log",
+      "History",
+      "Model Diff",
+      "Messages",
+      "Actions",
+      "Bindings",
+      "Picked",
+      "Registry",
+      "Environment",
+      "Source Code",
+    ]) {
+      expect(out).toContain(tab);
+    }
+  });
+});
+
 test.describe("findEventLine", () => {
   const source = [
     "CLASS zcl_demo IMPLEMENTATION.",

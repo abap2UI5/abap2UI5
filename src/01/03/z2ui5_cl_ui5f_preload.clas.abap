@@ -68,8 +68,9 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/Variants.js": function()\{{ z2ui5_cl_ui5f_variants_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ViewOps.js": function()\{{ z2ui5_cl_ui5f_viewops_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/AppState.js": function()\{{ z2ui5_cl_ui5f_appstate_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/core/DeveloperTools.fragment.xml": '{ escape_js_literal( z2ui5_cl_ui5f_dtools_xml=>get( ) ) }',| && |\n| &&
-             |      "z2ui5/core/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/devtools/DeveloperTools.fragment.xml": '{ escape_js_literal( z2ui5_cl_ui5f_dtools_xml=>get( ) ) }',| && |\n| &&
+             |      "z2ui5/core/devtools/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/devtools/DevTools.js": function()\{{ z2ui5_cl_ui5f_devtools_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/devtools/Inspect.js": function()\{{ z2ui5_cl_ui5f_inspect_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/devtools/LiveEdit.js": function()\{{ z2ui5_cl_ui5f_liveedit_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/devtools/Picker.js": function()\{{ z2ui5_cl_ui5f_picker_js=>get( ) }\},| && |\n| &&

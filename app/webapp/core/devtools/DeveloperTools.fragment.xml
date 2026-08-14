@@ -56,6 +56,10 @@
                     text="Environment"
                     key="ENV"
                 />
+                <IconTabFilter
+                    text="Help"
+                    key="HELP"
+                />
                 <IconTabSeparator />
                 <IconTabFilter
                     text="Previous Request"
@@ -175,6 +179,10 @@
             <Button
                 text="Restart"
                 press=".onErrorRestart"
+            />
+            <Button
+                text="Copy Tab"
+                press=".onCopyTab"
             />
             <Button
                 text="ADT"

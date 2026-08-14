@@ -39,12 +39,12 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `` && |\n| &&
              `  // The friendly dialog shows only a short preview of the error text (the` && |\n| &&
-             `  // full text stays on the Developer Tools Error tab); longer previews are cut.` && |\n| &&
+             `  // full text stays behind Details and in Copy); longer previews are cut.` && |\n| &&
              `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
              `` && |\n| &&
              `  // The default headline of the fatal-error overlay. Also the first line of` && |\n| &&
-             `  // what Copy puts on the clipboard, so it must match what the Developer` && |\n| &&
-             `  // Tools Error tab renders (formatLastError in DeveloperTools.js).` && |\n| &&
+             `  // what Copy puts on the clipboard, so it must match what a registered` && |\n| &&
+             `  // details provider renders from AppState.state.lastError.` && |\n| &&
              `  const DEFAULT_TITLE = "Application Error - Please Restart The App";` && |\n| &&
              `` && |\n| &&
              `  // The stylesheet that squares off the fatal-error dialog and lays out its` && |\n| &&
@@ -56,14 +56,14 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `  const MESSAGE_CLASS = "z2ui5ErrorMessage";` && |\n| &&
              `  const HINT_CLASS = "z2ui5ErrorHint";` && |\n| &&
              `` && |\n| &&
-             `  // Remember the last dialog's inputs so the DeveloperTools can re-show the popup` && |\n| &&
-             `  // after the user closes the developer tools they opened via its Details action.` && |\n| &&
+             `  // Remember the last dialog's inputs so reopenErrorDialog can re-show the` && |\n| &&
+             `  // popup after a details provider hands control back (see openErrorDetails).` && |\n| &&
              `  let lastDialogTitle = "";` && |\n| &&
              `  let lastDialogDetails = "";` && |\n| &&
              `  let lastDialogOptions = {};` && |\n| &&
              `` && |\n| &&
              `  // The currently open friendly error dialog, so a second fatal error (or a` && |\n| &&
-             `  // reopen from the Developer Tools) never stacks two of them.` && |\n| &&
+             `  // reopenErrorDialog call) never stacks two of them.` && |\n| &&
              `  let friendlyDialog = null;` && |\n| &&
              `` && |\n| &&
              `  // Decode the HTML entities that turn up in backend error pages. Non-ASCII` && |\n| &&
@@ -277,37 +277,35 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    return container;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Open the DeveloperTools directly on its Error tab so the developer sees the` && |\n| &&
-             `  // full error text plus the Retry/Refresh/Logout actions. The DeveloperTools is` && |\n| &&
-             `  // normally created lazily on first Ctrl+F12, so it may not exist yet when` && |\n| &&
-             `  // the error popup's Details is clicked - create it on demand (requiring the` && |\n| &&
-             `  // module at runtime avoids a circular dependency, since DeveloperTools imports` && |\n| &&
-             `  // ErrorView). Without this, Details was a no-op and left a blank screen.` && |\n| &&
-             `  function openDeveloperTools() {` && |\n| &&
-             `    try {` && |\n| &&
-             `      let dbg = AppState.state.developerTools;` && |\n| &&
-             `      if (!dbg) {` && |\n| &&
-             `        const DeveloperTools = sap.ui.require("z2ui5/core/DeveloperTools");` && |\n| &&
-             `        if (DeveloperTools) {` && |\n| &&
-             `          dbg = new DeveloperTools();` && |\n| &&
-             `          AppState.state.developerTools = dbg;` && |\n| &&
-             `        }` && |\n| &&
+             `  // Whether anything can show a detailed view of this error. The overlay` && |\n| &&
+             `  // knows nothing about WHAT that is: ``onErrorDetails`` is a plain callback` && |\n| &&
+             `  // array (core/AppState.js) that a details provider registers into - in a` && |\n| &&
+             `  // standard install that is the in-app developer tools` && |\n| &&
+             `  // (core/devtools/DevTools.js). With nothing registered the Details button` && |\n| &&
+             `  // is left out entirely rather than being a no-op.` && |\n| &&
+             `  function hasErrorDetails() {` && |\n| &&
+             `    return (AppState.state.onErrorDetails || []).length > 0;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Run the registered details providers. Each is isolated: a provider that` && |\n| &&
+             `  // throws must not take the error overlay down with it - the fatal error is` && |\n| &&
+             `  // still recorded in AppState.state.lastError either way. Deliberately not` && |\n| &&
+             `  // via Lib.runCallbacks: this module imports nothing from core/Lib.js so it` && |\n| &&
+             `  // still works when the core failed to load.` && |\n| &&
+             `  function openErrorDetails() {` && |\n| &&
+             `    for (const fn of AppState.state.onErrorDetails || []) {` && |\n| &&
+             `      if (!fn) continue;` && |\n| &&
+             `      try {` && |\n| &&
+             `        fn();` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        // provider failed - nothing more we can do here` && |\n| &&
              `      }` && |\n| &&
-             `      if (dbg) {` && |\n| &&
-             `        // Closing the DeveloperTools (Close or Escape) should land the user back on` && |\n| &&
-             `        // the error popup, not on the dismissed, broken app.` && |\n| &&
-             `        dbg.reopenErrorOnClose = true;` && |\n| &&
-             `        dbg.show("ERROR");` && |\n| &&
-             `      }` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      // The developer tools itself failed to open - nothing more we can do here;` && |\n| &&
-             `      // the fatal error is still recorded in AppState.state.lastError.` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // The friendly UI5 error dialog shown first: the extracted error text so the` && |\n| &&
-             `  // cause is visible at a glance, with a Details action (jump into the` && |\n| &&
-             `  // DeveloperTools for the full text) and a Restart action (reload). Returns` && |\n| &&
+             `  // cause is visible at a glance, with a Details action (handed to whatever` && |\n| &&
+             `  // registered as a details provider) and a Restart action (reload). Returns` && |\n| &&
              `  // true when it was shown, false when UI5 could not render it so the caller` && |\n| &&
              `  // falls back to the raw-DOM overlay. sap.m.Dialog/Button/Text are required` && |\n| &&
              `  // lazily so ErrorView never hard-depends on a renderable core.` && |\n| &&
@@ -397,16 +395,20 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      // offered it all along; the friendly dialog is what users actually` && |\n| &&
              `      // see, so without this the retry was effectively unreachable and a` && |\n| &&
              `      // dropped connection forced a full restart.` && |\n| &&
-             `      const buttons = [` && |\n| &&
-             `        new Button({` && |\n| &&
-             `          text: "Details",` && |\n| &&
-             `          press: () => {` && |\n| &&
-             `            dialog.close();` && |\n| &&
-             `            openDeveloperTools();` && |\n| &&
-             `          },` && |\n| &&
-             `        }),` && |\n| &&
-             `        copyButton,` && |\n| &&
-             `      ];` && |\n| &&
+             `      const buttons = [];` && |\n| &&
+             `      // Only offered when a details provider registered - see hasErrorDetails.` && |\n| &&
+             `      if (hasErrorDetails()) {` && |\n| &&
+             `        buttons.push(` && |\n| &&
+             `          new Button({` && |\n| &&
+             `            text: "Details",` && |\n| &&
+             `            press: () => {` && |\n| &&
+             `              dialog.close();` && |\n| &&
+             `              openErrorDetails();` && |\n| &&
+             `            },` && |\n| &&
+             `          }),` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      buttons.push(copyButton);` && |\n| &&
              `      if (typeof options.onRetry === "function") {` && |\n| &&
              `        buttons.push(` && |\n| &&
              `          new Button({` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      // sap.m.Dialog does not allow more than one begin/end button, so use the` && |\n| &&
              `      // ``buttons`` aggregation to line up Details / Copy / Retry / Restart in` && |\n| &&
              `      // the footer.` && |\n| &&
-             `      const dialog = new Dialog({` && |\n| &&
-             `        title: title || "Application Error",` && |\n| &&
-             `        type: "Message",` && |\n|.
+             `      const dialog = new Dialog({` && |\n|.
     result = result &&
+             `        title: title || "Application Error",` && |\n| &&
+             `        type: "Message",` && |\n| &&
              `        state: "Error",` && |\n| &&
              `        icon: "sap-icon://message-error",` && |\n| &&
              `        // Without a width the message dialog sizes itself to the longest` && |\n| &&
@@ -454,9 +456,9 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Re-show the friendly error dialog with the last error's content - used when` && |\n| &&
-             `  // the user closes the DeveloperTools they opened via the popup's Details action so` && |\n| &&
-             `  // they land back on the error popup. No-op if UI5 cannot render it.` && |\n| &&
+             `  // Re-show the friendly error dialog with the last error's content - called` && |\n| &&
+             `  // by a details provider when the user closes it, so they land back on the` && |\n| &&
+             `  // error popup instead of the broken app. No-op if UI5 cannot render it.` && |\n| &&
              `  function reopenErrorDialog() {` && |\n| &&
              `    return showFriendlyDialog(` && |\n| &&
              `      lastDialogTitle,` && |\n| &&

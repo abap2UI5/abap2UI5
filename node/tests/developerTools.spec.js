@@ -71,6 +71,7 @@ function loadDeveloperTools({
   // The inspectors, the control picker and the live view editing each own
   // their behaviour (and their own specs); the dialog only routes to them.
   const Inspect = inspect || {
+    formatHelp: () => "(help)",
     formatEnvironment: () => "(environment)",
     formatRegistry: () => "(registry)",
     formatActions: () => "(actions)",
@@ -90,7 +91,7 @@ function loadDeveloperTools({
   // then invoked with the spec as `this`, close enough to the UI5 runtime
   // for these prototype methods.
   const Control = { extend: (_name, spec) => spec };
-  const { module } = loadModule("core/DeveloperTools.js", {
+  const { module } = loadModule("core/devtools/DeveloperTools.js", {
     deps: {
       "sap/ui/core/Control": Control,
       "sap/ui/core/Fragment": fragment,
@@ -452,6 +453,7 @@ test.describe("Log tab keeps the stack trace", () => {
 
 test.describe("Inspector tabs", () => {
   const inspect = {
+    formatHelp: () => "HELP REPORT",
     formatEnvironment: () => "ENV REPORT",
     formatRegistry: () => "REGISTRY REPORT",
     formatActions: () => "ACTIONS REPORT",
@@ -461,6 +463,7 @@ test.describe("Inspector tabs", () => {
   };
 
   for (const [key, expected] of [
+    ["HELP", "HELP REPORT"],
     ["ENV", "ENV REPORT"],
     ["REGISTRY", "REGISTRY REPORT"],
     ["ACTIONS", "ACTIONS REPORT"],
@@ -567,30 +570,50 @@ test.describe("Live view editing", () => {
   });
 });
 
-test.describe("Auto-open via URL parameter", () => {
-  const withSearch = (search) =>
-    loadDeveloperTools({
-      windowStub: { location: { origin: "https://x", search }, open() {} },
-    }).DeveloperTools;
-
-  test("is off without the parameter", () => {
-    expect(withSearch("").isAutoOpenRequested()).toBe(false);
+test.describe("Copy Tab", () => {
+  test("copies the current tab's content and confirms on the button", () => {
+    const copied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      extraDeps: {
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          logError() {},
+          copyToClipboard: (text) => copied.push(text),
+        },
+      },
+    });
+    let label = "Copy Tab";
+    const oSource = {
+      getModel: () => ({ getData: () => ({ value: "REPORT BODY" }) }),
+      getText: () => label,
+      setText: (t) => {
+        label = t;
+      },
+    };
+    DeveloperTools.onCopyTab({ getSource: () => oSource });
+    expect(copied).toEqual(["REPORT BODY"]);
+    expect(label).toBe("Copied");
   });
 
-  test("=1 opens the default tab", () => {
-    const DT = withSearch("?z2ui5-devtools=1");
-    expect(DT.isAutoOpenRequested()).toBe(true);
-    expect(DT.autoOpenTab()).toBe("");
-  });
-
-  test("a tab key opens that tab", () => {
-    expect(withSearch("?z2ui5-devtools=history").autoOpenTab()).toBe("HISTORY");
-  });
-
-  test("survives alongside other query parameters", () => {
-    const DT = withSearch("?app_start=ZCL_X&z2ui5-devtools=ENV");
-    expect(DT.isAutoOpenRequested()).toBe(true);
-    expect(DT.autoOpenTab()).toBe("ENV");
+  test("an empty tab copies an empty string rather than undefined", () => {
+    const copied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      extraDeps: {
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          logError() {},
+          copyToClipboard: (text) => copied.push(text),
+        },
+      },
+    });
+    DeveloperTools.onCopyTab({
+      getSource: () => ({
+        getModel: () => ({ getData: () => ({}) }),
+        getText: () => "Copy Tab",
+        setText() {},
+      }),
+    });
+    expect(copied).toEqual([""]);
   });
 });
 

@@ -83,6 +83,10 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                    text="Environment"` &&
              `                    key="ENV"` &&
              `                />` &&
+             `                <IconTabFilter` &&
+             `                    text="Help"` &&
+             `                    key="HELP"` &&
+             `                />` &&
              `                <IconTabSeparator />` &&
              `                <IconTabFilter` &&
              `                    text="Previous Request"` &&
@@ -202,6 +206,10 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `            <Button` &&
              `                text="Restart"` &&
              `                press=".onErrorRestart"` &&
+             `            />` &&
+             `            <Button` &&
+             `                text="Copy Tab"` &&
+             `                press=".onCopyTab"` &&
              `            />` &&
              `            <Button` &&
              `                text="ADT"` &&

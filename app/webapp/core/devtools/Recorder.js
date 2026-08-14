@@ -6,8 +6,9 @@
 // the browser's Resource Timing API - and never asks the framework to
 // carry anything for it. Server.js, View1.controller.js, AppState.js and
 // Lib.js contain no recorder code and no recorder-shaped hooks; the whole
-// feature can be deleted by removing this file, its tab in
-// core/DeveloperTools.js and the install() call in Component.js.
+// feature can be deleted by removing this file and its tabs in
+// core/devtools/DeveloperTools.js - core/devtools/DevTools.js is what
+// installs it, and that is the framework's only entry point here.
 //
 // Two tiers, because they cost very different amounts:
 //
@@ -453,6 +454,41 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     return id.length > 8 ? `..${id.slice(-6)}` : id;
   }
 
+  // Aggregate the recorded roundtrips into the handful of numbers that
+  // answer "is this app slow, and where". A per-row table alone does not:
+  // spotting that the average backend time is fine but ONE event is a
+  // second means reading 50 rows by eye.
+  function summaryLines(list) {
+    const timed = list.filter((r) => r.backendMs !== null);
+    if (!timed.length) return [];
+    const out = ["Summary"];
+    const backend = timed.map((r) => r.backendMs);
+    const avg = Math.round(backend.reduce((a, b) => a + b, 0) / backend.length);
+    const slowest = timed.reduce((a, b) => (b.backendMs > a.backendMs ? b : a));
+    out.push(
+      `  Backend: avg ${avg} ms over ${timed.length} roundtrip(s),` +
+        ` slowest #${slowest.seq} ${slowest.event || "(start)"}` +
+        ` at ${slowest.backendMs} ms`,
+    );
+    const sized = list.filter((r) => r.respBytes !== null);
+    if (sized.length) {
+      const biggest = sized.reduce((a, b) =>
+        b.respBytes > a.respBytes ? b : a,
+      );
+      const total = sized.reduce((sum, r) => sum + r.respBytes, 0);
+      out.push(
+        `  Response: ${formatBytes(total)} total,` +
+          ` largest #${biggest.seq} ${biggest.event || "(start)"}` +
+          ` at ${formatBytes(biggest.respBytes)}`,
+      );
+    }
+    const failed = list.filter((r) => !r.rendered).length;
+    if (failed) {
+      out.push(`  ${failed} roundtrip(s) never reached the render phase.`);
+    }
+    return out;
+  }
+
   function formatHistory() {
     const list = getRecords();
     const lines = [];
@@ -516,6 +552,8 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
       );
     }
 
+    lines.push("");
+    lines.push(...summaryLines(list));
     lines.push("");
     lines.push(
       "TOTAL = request start to rendered, BACKEND = network + ABAP," +

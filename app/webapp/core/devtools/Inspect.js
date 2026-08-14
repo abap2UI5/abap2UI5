@@ -464,8 +464,78 @@ sap.ui.define(
       return 0;
     }
 
+    // ------------------------------------------------------------------
+    // Help - what each tab answers, and the entry points
+    // ------------------------------------------------------------------
+
+    // Discoverability is the real barrier here: a tab that nobody knows
+    // exists helps nobody, and Ctrl+F12 is not guessable. Kept as text
+    // next to the tabs it describes so it cannot drift into a wiki.
+    const HELP = [
+      "abap2UI5 Developer Tools",
+      "",
+      "Opening",
+      "-------",
+      "  Ctrl+F12                    open / close these tools",
+      "  ?z2ui5-devtools=1           open them on page load (for problems",
+      "                              that happen during startup)",
+      "  ?z2ui5-devtools=HISTORY     open them directly on a tab, by its key",
+      "",
+      "Tabs - what each one answers",
+      "----------------------------",
+      "  Error         the last fatal error, with Retry / Restart / Logout",
+      "  Log           the frontend error log, INCLUDING stack traces",
+      "  History       every roundtrip: backend vs. render time, payload",
+      "                sizes, draft ids - and the ones that never rendered",
+      "  Model Diff    what the backend changed between two responses",
+      "                (needs Record Payloads)",
+      "  Messages      every toast / message box of the session, also the",
+      "                ones that already faded",
+      "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",
+      "  Bindings      the model attributes, and '*' on the paths that will",
+      "                travel as the next delta",
+      "  Picked        the last control picked with 'Pick Control'",
+      "  Registry      shortcuts, timers, callbacks, bound backend events",
+      "  Environment   versions, SAPUI5 vs OpenUI5, session, device, slots",
+      "  Source Code   the running app's ABAP class (ADT opens it in a tab)",
+      "  Request /     the raw JSON on the wire",
+      "  Response",
+      "  View / Popup / Popover / Nest   the view XML each slot holds",
+      "",
+      "Footer actions",
+      "--------------",
+      "  Pick Control     click any control in the app and see which ABAP",
+      "                   attribute feeds it, with its current value",
+      "  Record Payloads  keep request/response bodies in the history. OFF",
+      "                   by default - it is the only part that costs real",
+      "                   memory (2 MB budget, oldest dropped first)",
+      "  Copy Tab         put the current tab's content on the clipboard",
+      "  ADT              open the ABAP class, at the line of the last",
+      "                   event when the source has been loaded",
+      "  Export           one report over everything, with downloads",
+      "",
+      "On the view tabs",
+      "----------------",
+      "  Apply to App     render the edited XML into the running app with",
+      "                   NO roundtrip and no activation - a local preview",
+      "                   the next response replaces again",
+      "  Reset            put the backend's original XML back",
+      "",
+      "Reporting a bug",
+      "---------------",
+      "  Export -> Download Report gives a text file with the environment,",
+      "  the error, the log and the roundtrip history. With Record Payloads",
+      "  on, Download History (JSON) additionally carries the actual",
+      "  request/response bodies.",
+    ].join("\n");
+
+    function formatHelp() {
+      return HELP;
+    }
+
     return {
       formatEnvironment,
+      formatHelp,
       formatRegistry,
       formatActions,
       formatMessages,

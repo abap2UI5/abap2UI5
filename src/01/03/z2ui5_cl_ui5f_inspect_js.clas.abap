@@ -492,8 +492,78 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return 0;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `    // Help - what each tab answers, and the entry points` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `    // Discoverability is the real barrier here: a tab that nobody knows` && |\n| &&
+             `    // exists helps nobody, and Ctrl+F12 is not guessable. Kept as text` && |\n| &&
+             `    // next to the tabs it describes so it cannot drift into a wiki.` && |\n| &&
+             `    const HELP = [` && |\n| &&
+             `      "abap2UI5 Developer Tools",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "Opening",` && |\n| &&
+             `      "-------",` && |\n| &&
+             `      "  Ctrl+F12                    open / close these tools",` && |\n| &&
+             `      "  ?z2ui5-devtools=1           open them on page load (for problems",` && |\n| &&
+             `      "                              that happen during startup)",` && |\n| &&
+             `      "  ?z2ui5-devtools=HISTORY     open them directly on a tab, by its key",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "Tabs - what each one answers",` && |\n| &&
+             `      "----------------------------",` && |\n| &&
+             `      "  Error         the last fatal error, with Retry / Restart / Logout",` && |\n| &&
+             `      "  Log           the frontend error log, INCLUDING stack traces",` && |\n| &&
+             `      "  History       every roundtrip: backend vs. render time, payload",` && |\n| &&
+             `      "                sizes, draft ids - and the ones that never rendered",` && |\n| &&
+             `      "  Model Diff    what the backend changed between two responses",` && |\n| &&
+             `      "                (needs Record Payloads)",` && |\n| &&
+             `      "  Messages      every toast / message box of the session, also the",` && |\n| &&
+             `      "                ones that already faded",` && |\n| &&
+             `      "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",` && |\n| &&
+             `      "  Bindings      the model attributes, and '*' on the paths that will",` && |\n| &&
+             `      "                travel as the next delta",` && |\n| &&
+             `      "  Picked        the last control picked with 'Pick Control'",` && |\n| &&
+             `      "  Registry      shortcuts, timers, callbacks, bound backend events",` && |\n| &&
+             `      "  Environment   versions, SAPUI5 vs OpenUI5, session, device, slots",` && |\n| &&
+             `      "  Source Code   the running app's ABAP class (ADT opens it in a tab)",` && |\n| &&
+             `      "  Request /     the raw JSON on the wire",` && |\n| &&
+             `      "  Response",` && |\n| &&
+             `      "  View / Popup / Popover / Nest   the view XML each slot holds",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "Footer actions",` && |\n| &&
+             `      "--------------",` && |\n| &&
+             `      "  Pick Control     click any control in the app and see which ABAP",` && |\n| &&
+             `      "                   attribute feeds it, with its current value",` && |\n| &&
+             `      "  Record Payloads  keep request/response bodies in the history. OFF",` && |\n| &&
+             `      "                   by default - it is the only part that costs real",` && |\n| &&
+             `      "                   memory (2 MB budget, oldest dropped first)",` && |\n| &&
+             `      "  Copy Tab         put the current tab's content on the clipboard",` && |\n| &&
+             `      "  ADT              open the ABAP class, at the line of the last",` && |\n| &&
+             `      "                   event when the source has been loaded",` && |\n| &&
+             `      "  Export           one report over everything, with downloads",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "On the view tabs",` && |\n| &&
+             `      "----------------",` && |\n| &&
+             `      "  Apply to App     render the edited XML into the running app with",` && |\n| &&
+             `      "                   NO roundtrip and no activation - a local preview",` && |\n| &&
+             `      "                   the next response replaces again",` && |\n| &&
+             `      "  Reset            put the backend's original XML back",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "Reporting a bug",` && |\n| &&
+             `      "---------------",` && |\n| &&
+             `      "  Export -> Download Report gives a text file with the environment,",` && |\n| &&
+             `      "  the error, the log and the roundtrip history. With Record Payloads",` && |\n| &&
+             `      "  on, Download History (JSON) additionally carries the actual",` && |\n| &&
+             `      "  request/response bodies.",` && |\n| &&
+             `    ].join("\n");` && |\n| &&
+             `` && |\n| &&
+             `    function formatHelp() {` && |\n| &&
+             `      return HELP;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return {` && |\n| &&
              `      formatEnvironment,` && |\n| &&
+             `      formatHelp,` && |\n| &&
              `      formatRegistry,` && |\n| &&
              `      formatActions,` && |\n| &&
              `      formatMessages,` && |\n| &&

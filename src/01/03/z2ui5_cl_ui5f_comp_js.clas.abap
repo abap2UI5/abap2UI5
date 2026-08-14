@@ -31,8 +31,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "z2ui5/model/models",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
-             `    "z2ui5/core/DeveloperTools",` && |\n| &&
-             `    "z2ui5/core/devtools/Recorder",` && |\n| &&
+             `    "z2ui5/core/devtools/DevTools",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
@@ -45,8 +44,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    Models,` && |\n| &&
              `    Server,` && |\n| &&
              `    VersionInfo,` && |\n| &&
-             `    DeveloperTools,` && |\n| &&
-             `    DevToolsRecorder,` && |\n| &&
+             `    DevTools,` && |\n| &&
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
@@ -143,7 +141,12 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        this._initVersionInfo();` && |\n| &&
              `` && |\n| &&
              `        this._installUnloadListener();` && |\n| &&
-             `        this._installDeveloperToolsShortcut();` && |\n| &&
+             `        // The developer tools own everything of their own: the Ctrl+F12` && |\n| &&
+             `        // shortcut, the dialog instance, the roundtrip recorder and the` && |\n| &&
+             `        // "?z2ui5-devtools=" auto open. This call and the exit() below are` && |\n| &&
+             `        // the framework's ENTIRE coupling to core/devtools/ - keep it that` && |\n| &&
+             `        // way (see the module header there).` && |\n| &&
+             `        DevTools.install();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `        this._installRouterListener();` && |\n| &&
              `      },` && |\n| &&
@@ -164,31 +167,6 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        // fired beforeunload dependably.` && |\n| &&
              `        this._unloadEvent = "pagehide";` && |\n| &&
              `        window.addEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _installDeveloperToolsShortcut() {` && |\n| &&
-             `        // Start recording roundtrips right away - a history is only worth` && |\n| &&
-             `        // anything if it was collected BEFORE the problem happened, so it` && |\n| &&
-             `        // cannot wait for the first Ctrl+F12. The recorder keeps metadata` && |\n| &&
-             `        // only (kilobytes) unless the developer opts into payloads; it` && |\n| &&
-             `        // owns all of that itself in core/devtools/Recorder.js.` && |\n| &&
-             `        DevToolsRecorder.install();` && |\n| &&
-             `` && |\n| &&
-             `        // Ctrl + F12 opens / closes the in-app developer tools.` && |\n| &&
-             `        this._boundKeydown = (event) => {` && |\n| &&
-             `          if (event.ctrlKey && event.key === "F12") {` && |\n| &&
-             `            const state = AppState.state;` && |\n| &&
-             `            if (!state.developerTools)` && |\n| &&
-             `              state.developerTools = new DeveloperTools();` && |\n| &&
-             `            state.developerTools.toggle();` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
-             `        document.addEventListener("keydown", this._boundKeydown);` && |\n| &&
-             `` && |\n| &&
-             `        // "?z2ui5-devtools=1" (optionally naming a tab) opens the tools` && |\n| &&
-             `        // right away - a startup problem is over before Ctrl+F12 can be` && |\n| &&
-             `        // pressed. A no-op without the parameter; the control decides.` && |\n| &&
-             `        DeveloperTools.autoOpenIfRequested();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installScrollListener() {` && |\n| &&
@@ -319,23 +297,15 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `` && |\n| &&
              `      exit() {` && |\n| &&
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
-             `        document.removeEventListener("keydown", this._boundKeydown);` && |\n| &&
              `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
              `        Router.exit();` && |\n| &&
              `` && |\n| &&
-             `        // The developer tools control is created lazily by the Ctrl+F12` && |\n| &&
-             `        // shortcut - destroy it (which also closes its dialog) so a re-launch` && |\n| &&
-             `        // (FLP) does not leak the control instance.` && |\n| &&
-             `        if (AppState.state.developerTools) {` && |\n| &&
-             `          AppState.state.developerTools.destroy();` && |\n| &&
-             `          AppState.state.developerTools = null;` && |\n| &&
-             `        }` && |\n| &&
-             `        // Module-scoped like the shortcut registry, so it would outlive the` && |\n| &&
-             `        // component on an FLP re-launch: drop the recorded history and` && |\n| &&
-             `        // disconnect the PerformanceObserver.` && |\n| &&
-             `        DevToolsRecorder.uninstall();` && |\n| &&
+             `        // Drops the shortcut, the dialog instance and the recorded history -` && |\n| &&
+             `        // all of which are module-scoped and would otherwise outlive the` && |\n| &&
+             `        // component on an FLP re-launch.` && |\n| &&
+             `        DevTools.exit();` && |\n| &&
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&

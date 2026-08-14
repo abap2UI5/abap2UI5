@@ -97,11 +97,15 @@
 //   lastScrolled      last scrolled element per slot (ScrollFocus.onScrollCapture)
 //   viewSizeLimits    per-slot model size limits (actions/ViewOps)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
-//   developerTools         DeveloperTools instance (Component, Ctrl+F12)
 //   lastError         the last fatal error shown by ErrorView (title/text/
-//                     onRetry), so the DeveloperTools Error tab can re-show it
+//                     onRetry), so a details view can re-show it
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
-//   onBeforeEventFrontend  callback arrays, see Lib.registerCallback
+//   onBeforeEventFrontend, onErrorDetails  callback arrays, see
+//                     Lib.registerCallback. onErrorDetails is the extension
+//                     point behind the fatal-error overlay's Details action:
+//                     ErrorView runs whatever registered and hides the button
+//                     when nothing did (core/devtools/DevTools.js registers
+//                     the in-app developer tools there)
 sap.ui.define([], () => {
   "use strict";
 
@@ -170,7 +174,6 @@ sap.ui.define([], () => {
       lastScrolled: {},
       viewSizeLimits: {},
       treeStates: {},
-      developerTools: null,
       lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)
@@ -178,6 +181,7 @@ sap.ui.define([], () => {
       onAfterRoundtrip: [],
       onAfterRendering: [],
       onBeforeEventFrontend: [],
+      onErrorDetails: [],
     };
   }
 

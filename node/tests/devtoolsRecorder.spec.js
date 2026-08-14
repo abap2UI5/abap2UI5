@@ -474,6 +474,46 @@ test.describe("history rendering", () => {
     expect(text).toContain("TOTAL");
   });
 
+  test("summarises the timings so one slow event stands out", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    const rt = (event, start, end, bytes) => {
+      h.state.oBody = fakeRequest({ event });
+      h.state.responseData = fakeResponse();
+      h.addEntry({ start, end, bytes });
+      h.clock.value = end + 5;
+      h.fireAfterRendering();
+    };
+    rt("FAST_A", 0, 20, 100);
+    rt("SLOW", 100, 1100, 900000);
+    rt("FAST_B", 2000, 2020, 100);
+
+    const text = h.Recorder.formatHistory();
+    expect(text).toContain("Summary");
+    // avg over 20/1000/20 ms
+    expect(text).toContain("avg 347 ms over 3 roundtrip(s)");
+    expect(text).toContain("slowest #2 SLOW at 1000 ms");
+    expect(text).toContain("largest #2 SLOW");
+  });
+
+  test("the summary counts the roundtrips that never rendered", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    h.state.oBody = fakeRequest({ event: "OK" });
+    h.state.responseData = fakeResponse();
+    h.addEntry({ start: 0, end: 10, bytes: 10 });
+    h.clock.value = 20;
+    h.fireAfterRendering();
+    // a roundtrip observed on the wire that never rendered
+    h.addEntry({ start: 100, end: 110, bytes: 10 });
+    h.deliverToObserver();
+    h.clock.value = 20000;
+
+    expect(h.Recorder.formatHistory()).toContain(
+      "1 roundtrip(s) never reached the render phase",
+    );
+  });
+
   test("labels the app start roundtrip, which carries no event", () => {
     const h = loadRecorder();
     h.Recorder.install();

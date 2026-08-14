@@ -33,8 +33,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `// the browser's Resource Timing API - and never asks the framework to` && |\n| &&
              `// carry anything for it. Server.js, View1.controller.js, AppState.js and` && |\n| &&
              `// Lib.js contain no recorder code and no recorder-shaped hooks; the whole` && |\n| &&
-             `// feature can be deleted by removing this file, its tab in` && |\n| &&
-             `// core/DeveloperTools.js and the install() call in Component.js.` && |\n| &&
+             `// feature can be deleted by removing this file and its tabs in` && |\n| &&
+             `// core/devtools/DeveloperTools.js - core/devtools/DevTools.js is what` && |\n| &&
+             `// installs it, and that is the framework's only entry point here.` && |\n| &&
              `//` && |\n| &&
              `// Two tiers, because they cost very different amounts:` && |\n| &&
              `//` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      observer = null;` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
-             `` && |\n| &&
-             `  function uninstall() {` && |\n|.
+             `` && |\n|.
     result = result &&
+             `  function uninstall() {` && |\n| &&
              `    if (!installed) return;` && |\n| &&
              `    installed = false;` && |\n| &&
              `    Lib.unregisterCallback("onAfterRendering", afterRenderingHook);` && |\n| &&
@@ -479,6 +480,41 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `  function shortId(id) {` && |\n| &&
              `    if (!id) return "-";` && |\n| &&
              `    return id.length > 8 ? ``..${id.slice(-6)}`` : id;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Aggregate the recorded roundtrips into the handful of numbers that` && |\n| &&
+             `  // answer "is this app slow, and where". A per-row table alone does not:` && |\n| &&
+             `  // spotting that the average backend time is fine but ONE event is a` && |\n| &&
+             `  // second means reading 50 rows by eye.` && |\n| &&
+             `  function summaryLines(list) {` && |\n| &&
+             `    const timed = list.filter((r) => r.backendMs !== null);` && |\n| &&
+             `    if (!timed.length) return [];` && |\n| &&
+             `    const out = ["Summary"];` && |\n| &&
+             `    const backend = timed.map((r) => r.backendMs);` && |\n| &&
+             `    const avg = Math.round(backend.reduce((a, b) => a + b, 0) / backend.length);` && |\n| &&
+             `    const slowest = timed.reduce((a, b) => (b.backendMs > a.backendMs ? b : a));` && |\n| &&
+             `    out.push(` && |\n| &&
+             `      ``  Backend: avg ${avg} ms over ${timed.length} roundtrip(s),`` +` && |\n| &&
+             `        `` slowest #${slowest.seq} ${slowest.event || "(start)"}`` +` && |\n| &&
+             `        `` at ${slowest.backendMs} ms``,` && |\n| &&
+             `    );` && |\n| &&
+             `    const sized = list.filter((r) => r.respBytes !== null);` && |\n| &&
+             `    if (sized.length) {` && |\n| &&
+             `      const biggest = sized.reduce((a, b) =>` && |\n| &&
+             `        b.respBytes > a.respBytes ? b : a,` && |\n| &&
+             `      );` && |\n| &&
+             `      const total = sized.reduce((sum, r) => sum + r.respBytes, 0);` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        ``  Response: ${formatBytes(total)} total,`` +` && |\n| &&
+             `          `` largest #${biggest.seq} ${biggest.event || "(start)"}`` +` && |\n| &&
+             `          `` at ${formatBytes(biggest.respBytes)}``,` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `    const failed = list.filter((r) => !r.rendered).length;` && |\n| &&
+             `    if (failed) {` && |\n| &&
+             `      out.push(``  ${failed} roundtrip(s) never reached the render phase.``);` && |\n| &&
+             `    }` && |\n| &&
+             `    return out;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function formatHistory() {` && |\n| &&
@@ -544,6 +580,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    lines.push("");` && |\n| &&
+             `    lines.push(...summaryLines(list));` && |\n| &&
              `    lines.push("");` && |\n| &&
              `    lines.push(` && |\n| &&
              `      "TOTAL = request start to rendered, BACKEND = network + ABAP," +` && |\n| &&
