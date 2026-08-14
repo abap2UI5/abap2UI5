@@ -273,7 +273,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       " a raw-JS entry can carry one, and it is not necessarily the FIRST
       " queued action - a toast or box queued before it sits in the same
       " table - so take the first entry that looks like the snippet.
-      LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action)
+      LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action) "#EC CI_SORTSEQ
            WHERE js IS NOT INITIAL.
         IF lr_action->js NS `.eB(['`.
           CONTINUE.
