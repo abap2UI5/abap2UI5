@@ -19,6 +19,9 @@ Quick orientation while it loads:
 - Build views with `z2ui5_cl_ui5_view_builder`
   (`ele`/`tag`/`a`/`end`/`stringify`). The legacy `z2ui5_cl_xml_view` is
   frozen — never use it in new code.
+- **A boolean from an ABAP variable goes through `a( )`'s `b` parameter**:
+  `` )->a( n = `editable` b = mv_edit_mode ) `` renders `true`/`false`.
+  Never feed `abap_true` into `v` raw — it serializes as `X`.
 - **The chain hangs off the `factory( )` — always one statement:**
   `` DATA(view) = z2ui5_cl_ui5_view_builder=>factory( )->ele( n = `View` … ) ``,
   never a `factory( ).` of its own followed by `view->ele( … )`.
@@ -36,7 +39,8 @@ Quick orientation while it loads:
   Never write a model path as a text literal.
 - Events: `client->_event( `NAME` )`, dispatch via
   `CASE client->get_event( ).`; client-resolved args are `$`-prefixed.
-  Push data changes with `client->view_model_update( )`.
+  Changed bound data is pushed automatically — `view_model_update( )` is
+  obsolete, does nothing, and gets deleted whenever you touch an app.
 - Business logic is computed in ABAP, never in frontend formatters (thin
   frontend). UI5 1.71 is the compatibility floor — check "available since".
 - The app checks its own authorizations at the top of `main`.
