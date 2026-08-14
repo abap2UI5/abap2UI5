@@ -7,8 +7,18 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
     "z2ui5/core/ErrorView",
+    "z2ui5/core/devtools/Recorder",
   ],
-  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState, ErrorView) => {
+  (
+    Control,
+    Fragment,
+    JSONModel,
+    Lib,
+    ViewSlots,
+    AppState,
+    ErrorView,
+    Recorder,
+  ) => {
     "use strict";
 
     // Fragment id under which the developer tools dialog's controls are registered;
@@ -261,6 +271,19 @@ sap.ui.define(
           return;
         }
 
+        // The roundtrip history and the model diff are owned end to end by
+        // core/devtools/Recorder.js - this dialog only renders the text it
+        // hands over.
+        if (selItem === "HISTORY") {
+          this.displayEditor(oModel, Recorder.formatHistory(), "text");
+          return;
+        }
+
+        if (selItem === "DIFF") {
+          this.displayEditor(oModel, Recorder.formatModelDiff(), "text");
+          return;
+        }
+
         if (selItem === "ERROR") {
           this.showError(oModel);
           return;
@@ -344,6 +367,19 @@ sap.ui.define(
 
         if (AppState.state.lastError) push("ERROR", text(formatLastError));
         push("LOG", text(formatErrorLog));
+        // The roundtrip history is the timeline an error happened on, so it
+        // travels with the export - it is the context a reader of a shared
+        // bug report otherwise has to ask for.
+        push(
+          "ROUNDTRIP HISTORY",
+          text(() => Recorder.formatHistory()),
+        );
+        if (Recorder.isRecordingPayloads()) {
+          push(
+            "MODEL DIFF",
+            text(() => Recorder.formatModelDiff()),
+          );
+        }
         // The running app's ABAP class source (fetched by onExport). Placed
         // high up because it is usually the most useful context when sharing
         // an error - a reader can see the class that produced it.
@@ -570,6 +606,22 @@ sap.ui.define(
         oModel.refresh();
       },
 
+      // Tier 2 of the recorder: keeping request/response bodies is the
+      // expensive half of the history, so it is opt-in and switched here.
+      // Switching it OFF also drops what was already retained, so a
+      // developer can free the memory again without reloading the app.
+      // The current tab is re-rendered because both recorder tabs report
+      // the flag's state.
+      onToggleRecordPayloads(oEvent) {
+        const oSource = oEvent.getSource();
+        Recorder.setRecordingPayloads(oSource.getPressed());
+        const oModel = oSource.getModel();
+        const modelData = oModel.getData();
+        modelData.recordPayloads = Recorder.isRecordingPayloads();
+        oModel.refresh();
+        this.renderTab(modelData.selectedTab, oModel);
+      },
+
       onClose() {
         this.close();
       },
@@ -620,6 +672,9 @@ sap.ui.define(
             editor_visible: true,
             hasError: Boolean(AppState.state.lastError),
             hasLog: Boolean(AppState.state.errors?.length),
+            // Tier 2 opt-in of the roundtrip recorder; drives both the
+            // footer toggle and what the two recorder tabs report.
+            recordPayloads: Recorder.isRecordingPayloads(),
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
             value: value,
             xContent: "",

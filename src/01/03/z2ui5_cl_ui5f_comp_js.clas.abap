@@ -32,6 +32,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/core/DeveloperTools",` && |\n| &&
+             `    "z2ui5/core/devtools/Recorder",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
@@ -45,6 +46,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    Server,` && |\n| &&
              `    VersionInfo,` && |\n| &&
              `    DeveloperTools,` && |\n| &&
+             `    DevToolsRecorder,` && |\n| &&
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
@@ -165,6 +167,13 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installDeveloperToolsShortcut() {` && |\n| &&
+             `        // Start recording roundtrips right away - a history is only worth` && |\n| &&
+             `        // anything if it was collected BEFORE the problem happened, so it` && |\n| &&
+             `        // cannot wait for the first Ctrl+F12. The recorder keeps metadata` && |\n| &&
+             `        // only (kilobytes) unless the developer opts into payloads; it` && |\n| &&
+             `        // owns all of that itself in core/devtools/Recorder.js.` && |\n| &&
+             `        DevToolsRecorder.install();` && |\n| &&
+             `` && |\n| &&
              `        // Ctrl + F12 opens / closes the in-app developer tools.` && |\n| &&
              `        this._boundKeydown = (event) => {` && |\n| &&
              `          if (event.ctrlKey && event.key === "F12") {` && |\n| &&
@@ -318,6 +327,10 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          AppState.state.developerTools.destroy();` && |\n| &&
              `          AppState.state.developerTools = null;` && |\n| &&
              `        }` && |\n| &&
+             `        // Module-scoped like the shortcut registry, so it would outlive the` && |\n| &&
+             `        // component on an FLP re-launch: drop the recorded history and` && |\n| &&
+             `        // disconnect the PerformanceObserver.` && |\n| &&
+             `        DevToolsRecorder.uninstall();` && |\n| &&
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&

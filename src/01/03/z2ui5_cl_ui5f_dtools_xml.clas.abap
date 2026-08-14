@@ -51,6 +51,14 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                    enabled="{/hasLog}"` &&
              `                />` &&
              `                <IconTabFilter` &&
+             `                    text="History"` &&
+             `                    key="HISTORY"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
+             `                    text="Model Diff"` &&
+             `                    key="DIFF"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
              `                    text="Previous Request"` &&
              `                    key="REQUEST"` &&
              `                />` &&
@@ -131,6 +139,15 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `             The ``buttons`` aggregation (since 1.21.1) is the cross-version` &&
              `             footer; UI5 lays the buttons out in an overflow toolbar. -->` &&
              `        <buttons>` &&
+             `            <!-- Tier 2 of the roundtrip recorder. Off by default: keeping` &&
+             `                 request/response bodies is the only part of the history` &&
+             `                 that costs real memory, so a production session must not` &&
+             `                 pay for it unnoticed (core/devtools/Recorder.js). -->` &&
+             `            <ToggleButton` &&
+             `                text="Record Payloads"` &&
+             `                pressed="{/recordPayloads}"` &&
+             `                press=".onToggleRecordPayloads"` &&
+             `            />` &&
              `            <Button` &&
              `                text="Retry"` &&
              `                visible="{/hasRetry}"` &&

@@ -34,6 +34,7 @@ function loadDeveloperTools({
   reopenCalls,
   fragment,
   windowStub,
+  recorder,
   // extra sap.ui.define dependencies / sandbox globals - only show() needs
   // them (JSONModel, Lib, sap.ui.require), every other test runs without
   extraDeps = {},
@@ -53,6 +54,15 @@ function loadDeveloperTools({
     handleLogout: () => logoutCalls?.push(true),
     reopenErrorDialog: () => reopenCalls?.push(true),
   };
+  // The roundtrip recorder owns the History / Model Diff tabs; the dialog
+  // only renders the text it returns. Its own behaviour is covered by
+  // devtoolsRecorder.spec.js, so a flat stub is enough here.
+  const Recorder = recorder || {
+    isRecordingPayloads: () => false,
+    setRecordingPayloads() {},
+    formatHistory: () => "(no roundtrip recorded yet)",
+    formatModelDiff: () => "(diff needs payload recording)",
+  };
   // Control.extend returns the class spec itself; the spec's methods are
   // then invoked with the spec as `this`, close enough to the UI5 runtime
   // for these prototype methods.
@@ -64,6 +74,7 @@ function loadDeveloperTools({
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/ErrorView": ErrorView,
+      "z2ui5/core/devtools/Recorder": Recorder,
       ...extraDeps,
     },
     sandbox: {
@@ -299,6 +310,80 @@ test.describe("Export", () => {
     const { DeveloperTools } = loadDeveloperTools();
     const out = DeveloperTools.buildExport("");
     expect(out).not.toContain("===== ABAP SOURCE =====");
+  });
+});
+
+test.describe("Recorder tabs", () => {
+  test("the History tab renders what the recorder hands over", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      recorder: {
+        isRecordingPayloads: () => false,
+        setRecordingPayloads() {},
+        formatHistory: () => "ROUNDTRIP TABLE",
+        formatModelDiff: () => "",
+      },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("HISTORY");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toBe("ROUNDTRIP TABLE");
+    expect(modelData.type).toBe("text");
+    expect(modelData.editor_visible).toBe(true);
+  });
+
+  test("the Model Diff tab renders what the recorder hands over", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      recorder: {
+        isRecordingPayloads: () => true,
+        setRecordingPayloads() {},
+        formatHistory: () => "",
+        formatModelDiff: () => "~ /NAME",
+      },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("DIFF");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toBe("~ /NAME");
+    expect(modelData.type).toBe("text");
+  });
+
+  test("the export carries the roundtrip history", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      recorder: {
+        isRecordingPayloads: () => false,
+        setRecordingPayloads() {},
+        formatHistory: () => "ROUNDTRIP TABLE",
+        formatModelDiff: () => "",
+      },
+    });
+    const out = DeveloperTools.buildExport("");
+    expect(out).toContain("===== ROUNDTRIP HISTORY =====");
+    expect(out).toContain("ROUNDTRIP TABLE");
+    // the diff only travels when payloads were actually recorded
+    expect(out).not.toContain("===== MODEL DIFF =====");
+  });
+
+  test("the payload toggle forwards to the recorder and re-renders", () => {
+    const calls = [];
+    let recording = false;
+    const { DeveloperTools } = loadDeveloperTools({
+      recorder: {
+        isRecordingPayloads: () => recording,
+        setRecordingPayloads(on) {
+          calls.push(on);
+          recording = on;
+        },
+        formatHistory: () => (recording ? "ON" : "OFF"),
+        formatModelDiff: () => "",
+      },
+    });
+    const modelData = { selectedTab: "HISTORY" };
+    const oModel = { getData: () => modelData, refresh() {} };
+    DeveloperTools.onToggleRecordPayloads({
+      getSource: () => ({ getPressed: () => true, getModel: () => oModel }),
+    });
+    expect(calls).toEqual([true]);
+    expect(modelData.recordPayloads).toBe(true);
+    // the open tab reports the flag, so it is re-rendered after the switch
+    expect(modelData.value).toBe("ON");
   });
 });
 

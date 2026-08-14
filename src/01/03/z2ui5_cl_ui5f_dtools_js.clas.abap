@@ -34,8 +34,18 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
+             `    "z2ui5/core/devtools/Recorder",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState, ErrorView) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    Control,` && |\n| &&
+             `    Fragment,` && |\n| &&
+             `    JSONModel,` && |\n| &&
+             `    Lib,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
+             `    AppState,` && |\n| &&
+             `    ErrorView,` && |\n| &&
+             `    Recorder,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Fragment id under which the developer tools dialog's controls are registered;` && |\n| &&
@@ -288,6 +298,19 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
+             `        // The roundtrip history and the model diff are owned end to end by` && |\n| &&
+             `        // core/devtools/Recorder.js - this dialog only renders the text it` && |\n| &&
+             `        // hands over.` && |\n| &&
+             `        if (selItem === "HISTORY") {` && |\n| &&
+             `          this.displayEditor(oModel, Recorder.formatHistory(), "text");` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (selItem === "DIFF") {` && |\n| &&
+             `          this.displayEditor(oModel, Recorder.formatModelDiff(), "text");` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        if (selItem === "ERROR") {` && |\n| &&
              `          this.showError(oModel);` && |\n| &&
              `          return;` && |\n| &&
@@ -371,6 +394,19 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (AppState.state.lastError) push("ERROR", text(formatLastError));` && |\n| &&
              `        push("LOG", text(formatErrorLog));` && |\n| &&
+             `        // The roundtrip history is the timeline an error happened on, so it` && |\n| &&
+             `        // travels with the export - it is the context a reader of a shared` && |\n| &&
+             `        // bug report otherwise has to ask for.` && |\n| &&
+             `        push(` && |\n| &&
+             `          "ROUNDTRIP HISTORY",` && |\n| &&
+             `          text(() => Recorder.formatHistory()),` && |\n| &&
+             `        );` && |\n| &&
+             `        if (Recorder.isRecordingPayloads()) {` && |\n| &&
+             `          push(` && |\n| &&
+             `            "MODEL DIFF",` && |\n| &&
+             `            text(() => Recorder.formatModelDiff()),` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
              `        // The running app's ABAP class source (fetched by onExport). Placed` && |\n| &&
              `        // high up because it is usually the most useful context when sharing` && |\n| &&
              `        // an error - a reader can see the class that produced it.` && |\n| &&
@@ -388,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          xml(() => xmlSources.VIEW().xml),` && |\n| &&
              `        );` && |\n| &&
              `        push(` && |\n| &&
-             `          "VIEW MODEL",` && |\n| &&
+             `          "VIEW MODEL",` && |\n|.
+    result = result &&
              `          json(() => jsonSources.MODEL()),` && |\n| &&
              `        );` && |\n| &&
              `        // one gate for both slots and both close paths: the slot holds an` && |\n| &&
@@ -424,8 +461,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        if (getSlotXml("NEST2")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST2",` && |\n| &&
-             `            xml(() => xmlSources.NEST2().xml),` && |\n|.
-    result = result &&
+             `            xml(() => xmlSources.NEST2().xml),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
              `        return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
@@ -598,6 +634,22 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Tier 2 of the recorder: keeping request/response bodies is the` && |\n| &&
+             `      // expensive half of the history, so it is opt-in and switched here.` && |\n| &&
+             `      // Switching it OFF also drops what was already retained, so a` && |\n| &&
+             `      // developer can free the memory again without reloading the app.` && |\n| &&
+             `      // The current tab is re-rendered because both recorder tabs report` && |\n| &&
+             `      // the flag's state.` && |\n| &&
+             `      onToggleRecordPayloads(oEvent) {` && |\n| &&
+             `        const oSource = oEvent.getSource();` && |\n| &&
+             `        Recorder.setRecordingPayloads(oSource.getPressed());` && |\n| &&
+             `        const oModel = oSource.getModel();` && |\n| &&
+             `        const modelData = oModel.getData();` && |\n| &&
+             `        modelData.recordPayloads = Recorder.isRecordingPayloads();` && |\n| &&
+             `        oModel.refresh();` && |\n| &&
+             `        this.renderTab(modelData.selectedTab, oModel);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      onClose() {` && |\n| &&
              `        this.close();` && |\n| &&
              `      },` && |\n| &&
@@ -648,6 +700,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            editor_visible: true,` && |\n| &&
              `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
              `            hasLog: Boolean(AppState.state.errors?.length),` && |\n| &&
+             `            // Tier 2 opt-in of the roundtrip recorder; drives both the` && |\n| &&
+             `            // footer toggle and what the two recorder tabs report.` && |\n| &&
+             `            recordPayloads: Recorder.isRecordingPayloads(),` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `            value: value,` && |\n| &&
              `            xContent: "",` && |\n| &&

@@ -5,6 +5,7 @@ sap.ui.define(
     "z2ui5/core/Server",
     "sap/ui/VersionInfo",
     "z2ui5/core/DeveloperTools",
+    "z2ui5/core/devtools/Recorder",
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
@@ -18,6 +19,7 @@ sap.ui.define(
     Server,
     VersionInfo,
     DeveloperTools,
+    DevToolsRecorder,
     Lib,
     AppState,
     DateUtil,
@@ -138,6 +140,13 @@ sap.ui.define(
       },
 
       _installDeveloperToolsShortcut() {
+        // Start recording roundtrips right away - a history is only worth
+        // anything if it was collected BEFORE the problem happened, so it
+        // cannot wait for the first Ctrl+F12. The recorder keeps metadata
+        // only (kilobytes) unless the developer opts into payloads; it
+        // owns all of that itself in core/devtools/Recorder.js.
+        DevToolsRecorder.install();
+
         // Ctrl + F12 opens / closes the in-app developer tools.
         this._boundKeydown = (event) => {
           if (event.ctrlKey && event.key === "F12") {
@@ -291,6 +300,10 @@ sap.ui.define(
           AppState.state.developerTools.destroy();
           AppState.state.developerTools = null;
         }
+        // Module-scoped like the shortcut registry, so it would outlive the
+        // component on an FLP re-launch: drop the recorded history and
+        // disconnect the PerformanceObserver.
+        DevToolsRecorder.uninstall();
 
         Server.endSession();
 
