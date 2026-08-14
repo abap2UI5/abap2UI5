@@ -1,6 +1,6 @@
 "! Generic UI5 XML view builder - translate a UI5 XML view 1:1 by method
 "! chaining. The navigating methods are abbreviations of the term they stand
-"! for - the attribute verb is the single `a`, exactly as in z2ui5_cl_ai_xml:
+"! for, and the attribute verb is the single `a`:
 "!   factory         a new empty builder root
 "!   ele - element   add a child element and DESCEND into it (returns the child)
 "!   tag - tag       add a child element and STAY here (returns the same node)
