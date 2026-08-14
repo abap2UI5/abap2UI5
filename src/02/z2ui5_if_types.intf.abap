@@ -71,7 +71,7 @@ INTERFACE z2ui5_if_types
       check_hide_error_details TYPE abap_bool,
       " a state-changing POST whose Origin/Referer header names a different
       " site than the app's own host is rejected with 403 (CSRF defense).
-      " On by default: z2ui5_cl_exit=>set_config_http_post seeds abap_true
+      " On by default: z2ui5_cl_ui5_user_exit=>set_config_http_post seeds abap_true
       " before the user exit runs, so an app that must accept cross-origin
       " POSTs opts out by setting it back to abap_false in its own exit.
       " Lenient: a request without an Origin/Referer header (older clients,

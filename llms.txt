@@ -18,7 +18,7 @@ Two audiences, two entry points:
   can call, with inline documentation
 - [App interface](src/02/z2ui5_if_app.intf.abap): the one interface an app implements
 - [View builder](src/02/z2ui5_cl_ui5_view_builder.clas.abap): generic 1:1 UI5 XML builder
-- [Hello world](src/02/z2ui5_cl_app_hello_world.clas.abap): smallest complete app
+- [Hello world](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap): smallest complete app
 - [Rendered documentation](https://abap2ui5.github.io/docs/): the human docs site
 - [samples](https://github.com/abap2UI5/samples): curated example apps —
   the framework basics
