@@ -199,7 +199,7 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `          entry.fieldName,` && |\n| &&
              `          entry.groupName,` && |\n| &&
              `        );` && |\n| &&
-             `        // setValue, not a model write: the two-way binding abap2UI5 put on` && |\n| &&
+             `        // setValue, not a model write: the binding abap2UI5 put on` && |\n| &&
              `        // the property carries the restored value back to the backend on the` && |\n| &&
              `        // next roundtrip, so selecting a variant needs none of its own` && |\n| &&
              `        if (control && typeof control.setValue === "function") {` && |\n| &&

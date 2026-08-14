@@ -49,7 +49,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `      );` && |\n| &&
              `` && |\n| &&
              `    // Invisible companion control that bridges the UI5 message manager to a` && |\n| &&
-             `    // two-way bound ABAP table (``items``). The table is the app's OWN messages:` && |\n| &&
+             `    // bound ABAP table (``items``). The table is the app's OWN messages:` && |\n| &&
              `    // on every backend update the control reconciles the message manager to` && |\n| &&
              `    // match it - adding new rows as sap.ui.core.message.Message objects (with` && |\n| &&
              `    // a target + the view's model as processor, so they set the bound field's` && |\n| &&
@@ -102,7 +102,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `        this.reconcile();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // property setter override: the two-way binding calls this when the` && |\n| &&
+             `      // property setter override: the binding calls this when the` && |\n| &&
              `      // backend ships a new message table (base setProperty is used for the` && |\n| &&
              `      // internal store, so it never re-enters here)` && |\n| &&
              `      setItems(aItems) {` && |\n| &&
@@ -118,7 +118,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `        const wanted = new Map(rows.map((r) => [keyOf(r), r]));` && |\n| &&
              `        // ``change`` reports an actual message update, so it only fires when` && |\n| &&
              `        // this pass added or removed something. Firing unconditionally made` && |\n| &&
-             `        // every model update (the table is two-way bound, so it arrives on` && |\n| &&
+             `        // every model update (the table is bound, so it arrives on` && |\n| &&
              `        // each roundtrip) look like a change - and an app that binds the` && |\n| &&
              `        // event to a backend roundtrip would answer with the next model` && |\n| &&
              `        // update, i.e. loop.` && |\n| &&

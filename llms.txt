@@ -2,7 +2,7 @@
 
 > Framework for building SAP UI5 applications purely in ABAP - no JavaScript,
 > OData or RAP required. One ABAP class per app; the framework renders UI5 XML
-> views, binds ABAP data two-way and dispatches events over stateless HTTP
+> views, binds ABAP data and dispatches events over stateless HTTP
 > roundtrips. Supports NW 7.02 to ABAP Cloud, on-premise and cloud.
 
 Two audiences, two entry points:

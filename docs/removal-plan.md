@@ -41,7 +41,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 [Deprecations](https://abap2ui5.github.io/docs/resources/deprecations) page.
 
 - [ ] **`_bind_edit( )`** — `z2ui5_if_client.intf.abap:354`. Alias of `_bind`,
-      both two-way. AGENTS.md puts removal at ~1 year out (from 2026-07).
+      identical behaviour. AGENTS.md puts removal at ~1 year out (from 2026-07).
       - Former blocker resolved: per-direction mapping was dropped —
         `custom_mapper_back` / `custom_filter_back` are still accepted for
         source compatibility but no longer evaluated.

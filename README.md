@@ -74,7 +74,7 @@ sequenceDiagram
     ABAP-->>Browser: HTML + UI5 shell (loaded once)
     loop every user interaction
         Browser->>ABAP: POST { event, model changes }
-        Note over ABAP: restore app state<br/>apply two-way bindings<br/>call your app's main( )<br/>persist new state
+        Note over ABAP: restore app state<br/>apply model changes<br/>call your app's main( )<br/>persist new state
         ABAP-->>Browser: { view XML, view model, actions }
         Note over Browser: UI5 renders the view, binds the model,<br/>waits for the next event
     end

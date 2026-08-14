@@ -22,7 +22,7 @@ sap.ui.define(
       );
 
     // Invisible companion control that bridges the UI5 message manager to a
-    // two-way bound ABAP table (`items`). The table is the app's OWN messages:
+    // bound ABAP table (`items`). The table is the app's OWN messages:
     // on every backend update the control reconciles the message manager to
     // match it - adding new rows as sap.ui.core.message.Message objects (with
     // a target + the view's model as processor, so they set the bound field's
@@ -75,7 +75,7 @@ sap.ui.define(
         this.reconcile();
       },
 
-      // property setter override: the two-way binding calls this when the
+      // property setter override: the binding calls this when the
       // backend ships a new message table (base setProperty is used for the
       // internal store, so it never re-enters here)
       setItems(aItems) {
@@ -91,7 +91,7 @@ sap.ui.define(
         const wanted = new Map(rows.map((r) => [keyOf(r), r]));
         // `change` reports an actual message update, so it only fires when
         // this pass added or removed something. Firing unconditionally made
-        // every model update (the table is two-way bound, so it arrives on
+        // every model update (the table is bound, so it arrives on
         // each roundtrip) look like a change - and an app that binds the
         // event to a backend roundtrip would answer with the next model
         // update, i.e. loop.
