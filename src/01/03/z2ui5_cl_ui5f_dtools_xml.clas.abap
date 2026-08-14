@@ -223,8 +223,13 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                 button group. The help used to be a tab of its own, which` &&
              `                 put a page of prose in the same row as the twenty tabs` &&
              `                 that show live state. -->` &&
+             `            <!-- message-information, not information: the plain ``information``` &&
+             `                 glyph was added to the SAP icon font after 1.71, so on the` &&
+             `                 oldest release abap2UI5 supports the button renders with no` &&
+             `                 icon at all. message-information is the same circled "i" and` &&
+             `                 exists in every release from 1.71 on. -->` &&
              `            <Button` &&
-             `                icon="sap-icon://information"` &&
+             `                icon="sap-icon://message-information"` &&
              `                tooltip="Help - what every tab answers and how to report a bug"` &&
              `                press=".onShowHelp"` &&
              `            />` &&

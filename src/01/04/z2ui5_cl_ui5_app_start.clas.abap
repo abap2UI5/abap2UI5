@@ -69,11 +69,8 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
         toolbar TYPE REF TO z2ui5_cl_ui5_view_builder
         icon    TYPE string
         tooltip TYPE string
-        press   TYPE string.
-
-    " the rule that separates the system entries from the outbound ones
-    METHODS header_separator
-      IMPORTING toolbar TYPE REF TO z2ui5_cl_ui5_view_builder.
+        press   TYPE string
+        class   TYPE string DEFAULT `sapUiTinyMarginBeginEnd`.
 
     " Building blocks of the SimpleForm rows above. Private on purpose: this
     " class lives in the public src/02 package, so everything added to its
@@ -149,8 +146,11 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " core:Icon is 1rem and looks undersized next to the page title
     CONSTANTS c_icon_size_header TYPE string VALUE `1.125rem`.
 
-    " the margins the samples overview gives its header separator
-    CONSTANTS c_separator_class TYPE string VALUE `sapUiSmallMarginBegin sapUiSmallMarginEnd`.
+    " What sets the outbound icons apart from the system ones: a gap, not a
+    " rule. A sap.m.ToolbarSeparator would draw the rule, but it renders a
+    " <div> and only lays out as expected inside a flex container - see
+    " render_header_toolbar( ), which is where that matters.
+    CONSTANTS c_icon_class_group TYPE string VALUE `sapUiMediumMarginBegin sapUiTinyMarginEnd`.
 
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
@@ -339,9 +339,20 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD render_header_toolbar.
 
     " icons only, the way the samples app carries them - the title row is not
-    " the place for labels, and what each one does is in its tooltip
+    " the place for labels, and what each one does is in its tooltip.
+    "
+    " ONLY INLINE CONTROLS BELONG IN HERE. sap.m.Page forwards headerContent
+    " into the contentRight aggregation of its internal sap.m.Bar, and that
+    " container became a flex box only after 1.71: on the oldest release
+    " abap2UI5 supports, .sapMBarRight is a plain absolutely positioned block
+    " that lays its children out in normal flow. A block-level child - and
+    " both ToolbarSpacer and ToolbarSeparator render a <div> - therefore
+    " starts a new line, and everything from that line on is cut away by the
+    " overflow:hidden the container carries at the bar's height of 3rem. On
+    " 1.71 that silently swallowed the documentation and repository icons,
+    " while newer releases showed all of them.
+    " No ToolbarSpacer either: contentRight is right-aligned on its own.
     DATA(toolbar) = page->ele( `headerContent` ).
-    toolbar->tag( `ToolbarSpacer` ).
 
     " first what this system is: the information popup, and the configuration
     " when it is installed. Sliders rather than a monitor on the first one -
@@ -360,16 +371,16 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                    press   = client->_event( cs_event-set_config ) ).
     ENDIF.
 
-    " ... then, set apart by a separator line, the entries that leave the
-    " system. Same device the samples overview uses (z2ui5_cl_smp_app_000=>
-    " header_separator): a ToolbarSeparator draws a rule between the groups,
-    " where a ToolbarSpacer would only leave a gap and say nothing
-    header_separator( toolbar ).
-
+    " ... then, set apart by a wider gap, the entries that leave the system:
+    " the icons above open something in this system, these two open a site.
+    " The gap rides on the first of them (c_icon_class_group) instead of on a
+    " separator control of its own - see the note above on what a block-level
+    " child does to this bar on 1.71
     header_icon( toolbar = toolbar
                  icon    = c_icon_docs
                  tooltip = `Documentation - guides, tutorials and the API reference on abap2UI5.org`
-                 press   = open_url( `https://abap2UI5.org` ) ).
+                 press   = open_url( `https://abap2UI5.org` )
+                 class   = c_icon_class_group ).
 
     header_icon( toolbar = toolbar
                  icon    = c_icon_repo
@@ -387,17 +398,10 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     toolbar->tag( n = `Icon` ns = `core`
         )->att( n = `src`      v = icon
         )->att( n = `size`     v = c_icon_size_header
-        )->att( n = `class`    v = `sapUiTinyMarginBeginEnd`
+        )->att( n = `class`    v = class
         )->att( n = `color`    v = c_icon_color
         )->att( n = `tooltip`  v = tooltip
         )->att( n = `press`    v = press ).
-
-  ENDMETHOD.
-
-  METHOD header_separator.
-
-    toolbar->tag( `ToolbarSeparator`
-        )->att( n = `class`  v = c_separator_class ).
 
   ENDMETHOD.
 
