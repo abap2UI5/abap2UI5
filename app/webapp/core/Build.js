@@ -26,6 +26,6 @@ sap.ui.define([], () => {
     // Fingerprint over app/webapp/** (this file excluded). Two copies with
     // the same hash ARE the same frontend; a different hash under the same
     // VERSION is the signature of a stale cache or an un-redeployed BSP.
-    HASH: "b30d16ebf456",
+    HASH: "32e15cb2601d",
   };
 });
