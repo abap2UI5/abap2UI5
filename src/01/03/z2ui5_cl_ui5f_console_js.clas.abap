@@ -53,7 +53,10 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `// Like the rest of core/devtools/ this module is outside the framework: no` && |\n| &&
              `// framework module knows it exists, and core/devtools/DevTools.js is what` && |\n| &&
              `// installs it. It depends on nothing at all - not even on the rest of` && |\n| &&
-             `// core/devtools/ - it observes the browser and UI5 and hands back a string.` && |\n| &&
+             `// core/devtools/: it observes the browser and UI5 and hands the captured` && |\n| &&
+             `// entries over as DATA. Rendering them is core/devtools/Inspect.js's job,` && |\n| &&
+             `// which merges them with the framework's error log and the backend` && |\n| &&
+             `// messages into one timeline (the Log tab).` && |\n| &&
              `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
@@ -388,80 +391,14 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    dropped = 0;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // ------------------------------------------------------------------` && |\n| &&
-             `  // Rendering` && |\n| &&
-             `  // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `  // Column width of the source marker ("console", "ui5", "uncaught",` && |\n| &&
-             `  // "rejection"). Not 9: "rejection" is exactly nine characters and ran` && |\n| &&
-             `  // straight into the message text with no separating space.` && |\n| &&
-             `  const SOURCE_WIDTH = 10;` && |\n| &&
-             `` && |\n| &&
-             `  // Indent of a wrapped line (a stack trace) so it lines up under the` && |\n| &&
-             `  // message instead of under the timestamp.` && |\n| &&
-             `  const CONTINUATION_INDENT = " ".repeat(23 + SOURCE_WIDTH);` && |\n| &&
-             `` && |\n| &&
-             `  const LEVEL_LABEL = {` && |\n| &&
-             `    error: "ERROR",` && |\n| &&
-             `    warn: "WARN ",` && |\n| &&
-             `    info: "INFO ",` && |\n| &&
-             `    log: "LOG  ",` && |\n| &&
-             `    debug: "DEBUG",` && |\n| &&
-             `  };` && |\n| &&
-             `` && |\n| &&
-             `  function counts() {` && |\n| &&
-             `    const out = { error: 0, warn: 0, info: 0, log: 0, debug: 0 };` && |\n| &&
-             `    for (const entry of entries) {` && |\n| &&
-             `      if (out[entry.level] !== undefined) out[entry.level] += 1;` && |\n| &&
-             `    }` && |\n| &&
-             `    return out;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function format() {` && |\n| &&
-             `    const lines = ["abap2UI5 Developer Tools - Console"];` && |\n| &&
-             `    lines.push("");` && |\n| &&
-             `    lines.push(` && |\n| &&
-             `      "  Captured in the app, so the browser's own devtools do not have to be",` && |\n| &&
-             `    );` && |\n| &&
-             `    lines.push(` && |\n| &&
-             `      "  open: UI5's log (binding and control problems), uncaught errors and",` && |\n|.
-    result = result &&
-             `    );` && |\n| &&
-             `    lines.push("  unhandled rejections, plus every console.* call.");` && |\n| &&
-             `    lines.push("");` && |\n| &&
-             `    const c = counts();` && |\n| &&
-             `    lines.push(` && |\n| &&
-             `      ``  ${entries.length} entr(ies) - ${c.error} error, ${c.warn} warn,`` +` && |\n| &&
-             `        `` ${c.info} info, ${c.log} log, ${c.debug} debug`` +` && |\n| &&
-             `        (dropped ? `` (${dropped} older dropped)`` : ""),` && |\n| &&
-             `    );` && |\n| &&
-             `    lines.push("");` && |\n| &&
-             `    if (!entries.length) {` && |\n| &&
-             `      lines.push("  (nothing logged yet)");` && |\n| &&
-             `      return lines.join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `    for (const entry of entries) {` && |\n| &&
-             `      const label = LEVEL_LABEL[entry.level] || entry.level.toUpperCase();` && |\n| &&
-             `      const head =` && |\n| &&
-             `        ``  ${entry.ts.slice(11, 23)}${entry.previousLoad ? "*" : " "} ${label}  `` +` && |\n| &&
-             `        ``${entry.source.padEnd(SOURCE_WIDTH)}``;` && |\n| &&
-             `      const [first, ...rest] = entry.text.split("\n");` && |\n| &&
-             `      lines.push(``${head}${first}``);` && |\n| &&
-             `      // a stack trace keeps its own lines, indented under its message` && |\n| &&
-             `      for (const line of rest)` && |\n| &&
-             `        lines.push(``${CONTINUATION_INDENT}${line.trim()}``);` && |\n| &&
-             `    }` && |\n| &&
-             `    return lines.join("\n");` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
              `  function getEntries() {` && |\n| &&
              `    return entries;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // True when anything was captured at error level - lets the dialog point` && |\n| &&
-             `  // at this tab rather than making the developer go looking.` && |\n| &&
-             `  function hasErrors() {` && |\n| &&
-             `    return entries.some((entry) => entry.level === "error");` && |\n| &&
+             `  // How many entries the ring had to drop, so the log can say so rather` && |\n| &&
+             `  // than silently looking complete.` && |\n| &&
+             `  function getDropped() {` && |\n| &&
+             `    return dropped;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  return {` && |\n| &&
@@ -470,9 +407,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    setOnError,` && |\n| &&
              `    isAlertOnError,` && |\n| &&
              `    setAlertOnError,` && |\n| &&
-             `    format,` && |\n| &&
              `    getEntries,` && |\n| &&
-             `    hasErrors,` && |\n| &&
+             `    getDropped,` && |\n| &&
              `    // exposed for the unit specs` && |\n| &&
              `    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS },` && |\n| &&
              `  };` && |\n| &&

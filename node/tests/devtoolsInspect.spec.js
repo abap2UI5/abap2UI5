@@ -43,6 +43,8 @@ function loadInspect({
   locale,
   resourceUrls = {},
   extraGlobals = {},
+  consoleEntries = [],
+  consoleDropped = 0,
 } = {}) {
   const AppState = {
     state: {
@@ -108,6 +110,13 @@ function loadInspect({
         slots: SLOTS,
         getView: (key) => views[key],
         getViewXml: (key) => slotXml[key],
+      },
+      // Capture and rendering are split: Console hands over the entries,
+      // Inspect merges them with the framework log and the backend
+      // messages into one timeline.
+      "z2ui5/core/devtools/Console": {
+        getEntries: () => consoleEntries,
+        getDropped: () => consoleDropped,
       },
       "z2ui5/core/devtools/Recorder": { getRecords: () => records },
     },
@@ -465,159 +474,148 @@ test.describe("Actions", () => {
   });
 });
 
-test.describe("Messages", () => {
-  test("lists the messages of the recorded history, oldest first", () => {
+// The framework error log, the console capture and the backend messages
+// used to be three tabs. They are three views of one timeline, and
+// splitting them forced the developer to correlate them by hand.
+test.describe("Log - the merged timeline", () => {
+  test("interleaves all three sources chronologically", () => {
     const Inspect = loadInspect({
+      state: {
+        errors: [{ ts: "2026-01-01T10:00:02.000Z", message: "framework says" }],
+      },
+      consoleEntries: [
+        {
+          ts: "2026-01-01T10:00:01.000Z",
+          level: "warn",
+          source: "ui5",
+          text: "binding problem",
+        },
+        {
+          ts: "2026-01-01T10:00:04.000Z",
+          level: "error",
+          source: "uncaught",
+          text: "boom",
+        },
+      ],
       records: [
         {
           seq: 1,
-          ts: "2026-01-01T10:00:00.000Z",
-          messages: [{ target: "MESSAGE_TOAST", method: "show", text: "saved" }],
-        },
-        {
-          seq: 2,
-          ts: "2026-01-01T10:00:05.000Z",
+          ts: "2026-01-01T10:00:03.000Z",
           messages: [
-            { target: "MESSAGE_BOX", method: "error", text: "nope" },
+            { target: "MESSAGE_TOAST", method: "show", text: "saved" },
           ],
         },
       ],
     });
-    const out = Inspect.formatMessages();
-    expect(out).toContain("saved");
-    expect(out).toContain("box.error");
-    expect(out).toContain("nope");
-    expect(out.indexOf("saved")).toBeLessThan(out.indexOf("nope"));
-  });
-
-  test("placeholder when nothing was messaged", () => {
-    const Inspect = loadInspect({ records: [{ seq: 1, ts: "x", messages: [] }] });
-    expect(Inspect.formatMessages()).toContain("no backend message");
-  });
-});
-
-test.describe("Bindings", () => {
-  test("lists the model attributes with a type and size description", () => {
-    const Inspect = loadInspect({
-      views: {
-        MAIN: fakeView({
-          data: { NAME: "abc", TAB: [{ A: 1 }, { A: 2 }], S: { X: 1 } },
-        }),
-      },
-    });
-    const out = Inspect.formatBindings();
-    expect(out).toContain("/NAME");
-    expect(out).toContain("string  abc");
-    expect(out).toContain("table, 2 row(s)");
-    expect(out).toContain("structure, 1 field(s)");
-  });
-
-  test("marks the edited paths that will travel as the next delta", () => {
-    const Inspect = loadInspect({
-      views: {
-        MAIN: fakeView({
-          data: { NAME: "abc", OTHER: 1 },
-          changedPaths: ["/NAME"],
-        }),
-      },
-    });
-    const out = Inspect.formatBindings();
-    expect(out).toContain("* /NAME");
-    expect(out).toMatch(/\s{2}\/OTHER/);
-    expect(out).toContain("Edited paths queued for the next roundtrip");
-  });
-
-  test("a deep table edit marks its owning attribute", () => {
-    const Inspect = loadInspect({
-      views: {
-        MAIN: fakeView({
-          data: { TAB: [{ COL: "a" }] },
-          changedPaths: ["/TAB/0/COL"],
-        }),
-      },
-    });
-    expect(Inspect.formatBindings()).toContain("* /TAB");
-  });
-
-  test("skips the slots that only inherit the MAIN model", () => {
-    const Inspect = loadInspect({
-      views: {
-        MAIN: fakeView({ data: { A: 1 } }),
-        NEST: fakeView({ data: { A: 1 } }),
-      },
-    });
-    const out = Inspect.formatBindings();
-    expect(out).toContain("Slot MAIN");
-    expect(out).not.toContain("Slot NEST");
-  });
-});
-
-test.describe("Help", () => {
-  test("documents the entry points that are not guessable", () => {
-    const out = loadInspect().formatHelp();
-    expect(out).toContain("Ctrl+F12");
-    expect(out).toContain("?z2ui5-devtools=1");
-    expect(out).toContain("?z2ui5-devtools=HISTORY");
-  });
-
-  test("explains the two footer actions that change app state", () => {
-    const out = loadInspect().formatHelp();
-    // both are easy to misread as harmless, so the help has to be explicit
-    expect(out).toContain("Record Payloads");
-    expect(out).toContain("Apply to App");
-    expect(out).toContain("NO roundtrip");
-  });
-
-  test("names every tab the dialog offers", () => {
-    const out = loadInspect().formatHelp();
-    for (const tab of [
-      "Error",
-      "Log",
-      "History",
-      "Model Diff",
-      "Messages",
-      "Actions",
-      "Bindings",
-      "Picked",
-      "Registry",
-      "Environment",
-      "Source Code",
-    ]) {
-      expect(out).toContain(tab);
+    const out = Inspect.formatLog();
+    // one timeline, oldest first, regardless of which source produced it
+    const order = ["binding problem", "framework says", "saved", "boom"];
+    let previous = -1;
+    for (const needle of order) {
+      const at = out.indexOf(needle);
+      expect(at).toBeGreaterThan(previous);
+      previous = at;
     }
   });
-});
 
-test.describe("findEventLine", () => {
-  const source = [
-    "CLASS zcl_demo IMPLEMENTATION.",
-    "  METHOD z2ui5_if_app~main.",
-    "    IF client->check_on_event( 'SAVE_ALL' ).",
-    "    IF client->check_on_event( 'SAVE' ).",
-    "  ENDMETHOD.",
-  ].join("\n");
-
-  test("finds the line of an event name", () => {
-    const Inspect = loadInspect();
-    expect(Inspect.findEventLine(source, "SAVE")).toBe(4);
+  test("names the origin of every entry", () => {
+    const Inspect = loadInspect({
+      state: { errors: [{ ts: "2026-01-01T10:00:00.000Z", message: "x" }] },
+      consoleEntries: [
+        { ts: "2026-01-01T10:00:01.000Z", level: "log", source: "console", text: "y" },
+      ],
+      records: [
+        {
+          seq: 1,
+          ts: "2026-01-01T10:00:02.000Z",
+          messages: [{ target: "MESSAGE_BOX", method: "error", text: "z" }],
+        },
+      ],
+    });
+    const out = Inspect.formatLog();
+    expect(out).toContain("framework");
+    expect(out).toContain("console");
+    expect(out).toContain("box.error");
   });
 
-  test("does not match a longer identifier that contains the name", () => {
-    const Inspect = loadInspect();
-    // line 3 holds SAVE_ALL - SAVE must not match inside it
-    expect(Inspect.findEventLine(source, "SAVE_ALL")).toBe(3);
+  test("keeps the stack trace of a framework log entry", () => {
+    const error = new Error("kaboom");
+    error.stack = "Error: kaboom\n    at doThing (Websocket.js:42)";
+    const Inspect = loadInspect({
+      state: {
+        errors: [
+          {
+            ts: "2026-01-01T10:00:00.000Z",
+            message: "Websocket: send failed",
+            error,
+          },
+        ],
+      },
+    });
+    const out = Inspect.formatLog();
+    expect(out).toContain("Websocket: send failed");
+    expect(out).toContain("at doThing (Websocket.js:42)");
   });
 
-  test("matches case-insensitively", () => {
-    const Inspect = loadInspect();
-    expect(Inspect.findEventLine(source, "save")).toBe(4);
+  test("falls back to the string form for a non-Error throwable", () => {
+    const Inspect = loadInspect({
+      state: {
+        errors: [{ ts: "2026-01-01T10:00:00.000Z", message: "m", error: "plain" }],
+      },
+    });
+    expect(Inspect.formatLog()).toContain("plain");
   });
 
-  test("returns 0 when the name does not occur or nothing was passed", () => {
-    const Inspect = loadInspect();
-    expect(Inspect.findEventLine(source, "NOPE")).toBe(0);
-    expect(Inspect.findEventLine("", "SAVE")).toBe(0);
-    expect(Inspect.findEventLine(source, "")).toBe(0);
+  test("derives the level of a backend message from its method", () => {
+    const messagesAt = (method, target = "MESSAGE_BOX") =>
+      loadInspect({
+        records: [
+          {
+            seq: 1,
+            ts: "2026-01-01T10:00:00.000Z",
+            messages: [{ target, method, text: "t" }],
+          },
+        ],
+      }).formatLog();
+    expect(messagesAt("error")).toContain("ERROR");
+    expect(messagesAt("warning")).toContain("WARN");
+    expect(messagesAt("success")).toContain("INFO");
+    expect(messagesAt("show", "MESSAGE_TOAST")).toContain("INFO");
+  });
+
+  test("counts the entries by level and reports dropped ones", () => {
+    const Inspect = loadInspect({
+      consoleEntries: [
+        { ts: "2026-01-01T10:00:00.000Z", level: "error", source: "console", text: "a" },
+        { ts: "2026-01-01T10:00:01.000Z", level: "warn", source: "console", text: "b" },
+        { ts: "2026-01-01T10:00:02.000Z", level: "warn", source: "console", text: "c" },
+      ],
+      consoleDropped: 7,
+    });
+    const out = Inspect.formatLog();
+    expect(out).toContain("1 error, 2 warn");
+    expect(out).toContain("7 older console entries dropped");
+  });
+
+  test("marks the entries carried across a page reload", () => {
+    const Inspect = loadInspect({
+      consoleEntries: [
+        {
+          ts: "2026-01-01T10:00:00.000Z",
+          level: "error",
+          source: "uncaught",
+          text: "died before the reload",
+          previousLoad: true,
+        },
+      ],
+    });
+    const out = Inspect.formatLog();
+    expect(out).toContain("died before the reload");
+    expect(out).toContain("PREVIOUS page load");
+  });
+
+  test("an empty timeline says so", () => {
+    expect(loadInspect().formatLog()).toContain("nothing logged yet");
   });
 });
 

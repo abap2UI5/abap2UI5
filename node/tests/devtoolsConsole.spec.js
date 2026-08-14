@@ -142,7 +142,8 @@ test.describe("console capture", () => {
     expect(h.Console.getEntries().length).toBe(max);
     // the oldest are gone, the newest survive
     expect(h.Console.getEntries()[0].text).toBe("m10");
-    expect(h.Console.format()).toContain("10 older dropped");
+    // the count is exposed so the log can say entries were dropped
+    expect(h.Console.getDropped()).toBe(10);
   });
 });
 
@@ -250,43 +251,6 @@ test.describe("lifecycle", () => {
     expect(h.Console.getEntries().length).toBe(0);
   });
 
-  test("hasErrors reports whether anything failed", () => {
-    const h = loadConsole();
-    h.Console.install();
-    h.consoleStub.log("fine");
-    expect(h.Console.hasErrors()).toBe(false);
-    h.consoleStub.error("broken");
-    expect(h.Console.hasErrors()).toBe(true);
-  });
-});
-
-test.describe("rendering", () => {
-  test("an empty console says so", () => {
-    const h = loadConsole();
-    h.Console.install();
-    expect(h.Console.format()).toContain("nothing logged yet");
-  });
-
-  test("counts the entries by level", () => {
-    const h = loadConsole();
-    h.Console.install();
-    h.consoleStub.error("a");
-    h.consoleStub.warn("b");
-    h.consoleStub.warn("c");
-    expect(h.Console.format()).toContain("1 error, 2 warn");
-  });
-
-  test("indents a stack trace under its message", () => {
-    const h = loadConsole();
-    h.Console.install();
-    const err = new Error("boom");
-    err.stack = "Error: boom\n    at a (X.js:1)\n    at b (Y.js:2)";
-    h.consoleStub.error(err);
-    const lines = h.Console.format().split("\n");
-    const first = lines.findIndex((l) => l.includes("Error: boom"));
-    expect(lines[first + 1]).toContain("at a (X.js:1)");
-    expect(lines[first + 2]).toContain("at b (Y.js:2)");
-  });
 });
 
 test.describe("open on error", () => {
@@ -342,7 +306,6 @@ test.describe("surviving a page reload", () => {
     expect(entries.length).toBe(1);
     expect(entries[0].text).toBe("died here");
     expect(entries[0].previousLoad).toBe(true);
-    expect(second.Console.format()).toContain("died here");
   });
 
   test("the stored entries are consumed, not replayed forever", () => {

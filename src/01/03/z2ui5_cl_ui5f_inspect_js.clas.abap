@@ -43,9 +43,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/devtools/Console",` && |\n| &&
              `    "z2ui5/core/devtools/Recorder",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Device, AppState, Lib, ScrollFocus, ViewSlots, Recorder) => {` && |\n| &&
+             `  (Device, AppState, Lib, ScrollFocus, ViewSlots, Console, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Longest argument rendered inline in the action list; a view XML` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      const out = [];` && |\n| &&
              `      for (const combo of combos) {` && |\n| &&
              `        const scopes = shortcuts[combo];` && |\n| &&
-             `        for (const scope of Object.keys(scopes)) {` && |\n| &&
-             `          const entry = scopes[scope];` && |\n|.
+             `        for (const scope of Object.keys(scopes)) {` && |\n|.
     result = result &&
+             `          const entry = scopes[scope];` && |\n| &&
              `          out.push(` && |\n| &&
              `            ``  ${combo.padEnd(22)}${(scope || "(global)").padEnd(12)}`` +` && |\n| &&
              `              ``-> ${entry?.event || "?"}``,` && |\n| &&
@@ -536,34 +537,170 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Messages - every backend message of the recorded session` && |\n| &&
+             `    // Log - ONE timeline of everything the app logged` && |\n| &&
+             `    //` && |\n| &&
+             `    // These used to be three tabs: the framework's own error log, the` && |\n| &&
+             `    // console capture, and the backend messages. They are three views of` && |\n| &&
+             `    // the same timeline, and splitting them forced the developer to` && |\n| &&
+             `    // correlate three tabs by timestamp by hand - which is exactly the` && |\n| &&
+             `    // work a log is supposed to save. Merged and sorted by time, with the` && |\n| &&
+             `    // origin in a column, the sequence reads itself: a UI5 binding warning,` && |\n| &&
+             `    // then the toast the user saw, then the uncaught error that followed.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `    function formatMessages() {` && |\n| &&
-             `      const records = Recorder.getRecords();` && |\n| &&
-             `      const out = ["abap2UI5 Developer Tools - Backend messages"];` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        "  Collected across the recorded roundtrip history, newest last -" +` && |\n| &&
-             `          " a toast that has already faded is still here.",` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push("");` && |\n| &&
-             `      let any = false;` && |\n| &&
-             `      for (const record of records) {` && |\n| &&
-             `        for (const message of record.messages || []) {` && |\n| &&
-             `          any = true;` && |\n| &&
-             `          const kind =` && |\n| &&
-             `            message.target === "MESSAGE_BOX"` && |\n| &&
-             `              ? ``box.${message.method}``` && |\n| &&
-             `              : "toast";` && |\n| &&
-             `          out.push(` && |\n| &&
-             `            ``  #${String(record.seq).padEnd(4)}${record.ts.slice(11, 19)}  `` +` && |\n| &&
-             `              ``${kind.padEnd(14)}${message.text}``,` && |\n| &&
-             `          );` && |\n| &&
+             `    const LEVEL_LABEL = {` && |\n| &&
+             `      error: "ERROR",` && |\n| &&
+             `      warn: "WARN ",` && |\n| &&
+             `      info: "INFO ",` && |\n| &&
+             `      log: "LOG  ",` && |\n| &&
+             `      debug: "DEBUG",` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    // Column width of the origin marker. The longest is "rejection" at` && |\n| &&
+             `    // nine characters, so nine would leave no separating space.` && |\n| &&
+             `    const SOURCE_WIDTH = 10;` && |\n| &&
+             `` && |\n| &&
+             `    // Indent of a wrapped line (a stack trace) so it lines up under the` && |\n| &&
+             `    // message rather than under the timestamp.` && |\n| &&
+             `    const CONTINUATION_INDENT = " ".repeat(23 + SOURCE_WIDTH);` && |\n| &&
+             `` && |\n| &&
+             `    // The framework's own error log (Lib.logError) stores the caught error` && |\n| &&
+             `    // alongside the message, and that is where the STACK TRACE is - the one` && |\n| &&
+             `    // thing that says which line actually threw. Render it under its` && |\n| &&
+             `    // message rather than dropping it.` && |\n| &&
+             `    function frameworkEntryText(entry) {` && |\n| &&
+             `      if (entry.error === undefined) return entry.message;` && |\n| &&
+             `      let detail;` && |\n| &&
+             `      if (entry.error && typeof entry.error === "object") {` && |\n| &&
+             `        detail = entry.error.stack || entry.error.message;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!detail) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          detail = String(entry.error);` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          detail = "(error could not be rendered)";` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
-             `      if (!any) out.push("  (no backend message in the recorded history)");` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
+             `      return ``${entry.message}\n${detail}``;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // A message box carries its severity in the method name` && |\n| &&
+             `    // (MessageBox.error / .warning / .success); a toast has none.` && |\n| &&
+             `    function messageLevel(message) {` && |\n| &&
+             `      const method = String(message.method || "").toLowerCase();` && |\n| &&
+             `      if (method === "error" || method === "alert") return "error";` && |\n| &&
+             `      if (method === "warning") return "warn";` && |\n| &&
+             `      return "info";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function messageSource(message) {` && |\n| &&
+             `      return message.target === "MESSAGE_BOX"` && |\n| &&
+             `        ? ``box.${message.method || "show"}``` && |\n| &&
+             `        : "toast";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Everything, in one array, oldest first. Sorted by the ISO timestamp` && |\n| &&
+             `    // every source already carries - lexicographic order is chronological` && |\n| &&
+             `    // for ISO strings, so no date parsing is needed.` && |\n| &&
+             `    function collectLog() {` && |\n| &&
+             `      const out = [];` && |\n| &&
+             `      for (const entry of AppState.state.errors || []) {` && |\n| &&
+             `        out.push({` && |\n| &&
+             `          ts: entry.ts,` && |\n| &&
+             `          level: "error",` && |\n| &&
+             `          source: "framework",` && |\n| &&
+             `          text: frameworkEntryText(entry),` && |\n| &&
+             `        });` && |\n| &&
+             `      }` && |\n| &&
+             `      for (const entry of Console.getEntries()) {` && |\n| &&
+             `        out.push({` && |\n| &&
+             `          ts: entry.ts,` && |\n| &&
+             `          level: entry.level,` && |\n| &&
+             `          source: entry.source,` && |\n| &&
+             `          text: entry.text,` && |\n| &&
+             `          previousLoad: entry.previousLoad,` && |\n| &&
+             `        });` && |\n| &&
+             `      }` && |\n| &&
+             `      for (const record of Recorder.getRecords()) {` && |\n| &&
+             `        for (const message of record.messages || []) {` && |\n| &&
+             `          out.push({` && |\n| &&
+             `            ts: record.ts,` && |\n| &&
+             `            level: messageLevel(message),` && |\n| &&
+             `            source: messageSource(message),` && |\n| &&
+             `            text: message.text,` && |\n| &&
+             `            previousLoad: record.previousLoad,` && |\n| &&
+             `          });` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      out.sort((a, b) => {` && |\n| &&
+             `        if (a.ts === b.ts) return 0;` && |\n| &&
+             `        return a.ts < b.ts ? -1 : 1;` && |\n| &&
+             `      });` && |\n| &&
+             `      return out;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function countLevels(entries) {` && |\n| &&
+             `      const out = { error: 0, warn: 0, info: 0, log: 0, debug: 0 };` && |\n| &&
+             `      for (const entry of entries) {` && |\n| &&
+             `        if (out[entry.level] !== undefined) out[entry.level] += 1;` && |\n| &&
+             `      }` && |\n| &&
+             `      return out;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function formatLog() {` && |\n| &&
+             `      const entries = collectLog();` && |\n| &&
+             `      const lines = ["abap2UI5 Developer Tools - Log"];` && |\n| &&
+             `      lines.push("");` && |\n| &&
+             `      lines.push(` && |\n| &&
+             `        "  One timeline of everything the app logged, so the browser's own",` && |\n| &&
+             `      );` && |\n| &&
+             `      lines.push(` && |\n| &&
+             `        "  devtools do not have to be open. The origin is in the third",` && |\n| &&
+             `      );` && |\n| &&
+             `      lines.push("  column:");` && |\n| &&
+             `      lines.push("");` && |\n| &&
+             `      lines.push(` && |\n| &&
+             `        "    framework   the framework's own error log (Lib.logError)",` && |\n| &&
+             `      );` && |\n| &&
+             `      lines.push("    ui5         UI5's log - binding and control problems");` && |\n| &&
+             `      lines.push("    console     a console.* call from the app or a library");` && |\n| &&
+             `      lines.push("    uncaught    an uncaught error");` && |\n| &&
+             `      lines.push("    rejection   an unhandled promise rejection");` && |\n| &&
+             `      lines.push("    toast/box   a backend message the user was shown");` && |\n| &&
+             `      lines.push("");` && |\n| &&
+             `      const counts = countLevels(entries);` && |\n| &&
+             `      const dropped = Console.getDropped();` && |\n| &&
+             `      lines.push(` && |\n| &&
+             `        ``  ${entries.length} entr(ies) - ${counts.error} error,`` +` && |\n| &&
+             `          `` ${counts.warn} warn, ${counts.info} info, ${counts.log} log,`` +` && |\n| &&
+             `          `` ${counts.debug} debug`` +` && |\n| &&
+             `          (dropped ? `` (${dropped} older console entries dropped)`` : ""),` && |\n| &&
+             `      );` && |\n| &&
+             `      lines.push("");` && |\n| &&
+             `      if (!entries.length) {` && |\n| &&
+             `        lines.push("  (nothing logged yet)");` && |\n| &&
+             `        return lines.join("\n");` && |\n| &&
+             `      }` && |\n| &&
+             `      for (const entry of entries) {` && |\n| &&
+             `        const label = LEVEL_LABEL[entry.level] || entry.level.toUpperCase();` && |\n| &&
+             `        const head =` && |\n| &&
+             `          ``  ${entry.ts.slice(11, 23)}${entry.previousLoad ? "*" : " "} `` +` && |\n| &&
+             `          ``${label}  ${entry.source.padEnd(SOURCE_WIDTH)}``;` && |\n| &&
+             `        const [first, ...rest] = String(entry.text).split("\n");` && |\n| &&
+             `        lines.push(``${head}${first}``);` && |\n| &&
+             `        // a stack trace keeps its own lines, indented under its message` && |\n| &&
+             `        for (const line of rest) {` && |\n| &&
+             `          lines.push(``${CONTINUATION_INDENT}${line.trim()}``);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      if (entries.some((entry) => entry.previousLoad)) {` && |\n| &&
+             `        lines.push("");` && |\n| &&
+             `        lines.push(` && |\n| &&
+             `          "  A '*' after the time marks an entry of the PREVIOUS page load," +` && |\n| &&
+             `            " carried across the reload.",` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      return lines.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -688,7 +825,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        return json === undefined ? 0 : json.length;` && |\n| &&
              `      } catch {` && |\n| &&
              `        return 0;` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function formatBytes(bytes) {` && |\n| &&
@@ -813,10 +951,12 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "Tabs - what each one answers",` && |\n| &&
              `      "----------------------------",` && |\n| &&
              `      "  Error         the last fatal error, with Retry / Restart / Logout",` && |\n| &&
-             `      "  Log           the frontend error log, INCLUDING stack traces",` && |\n| &&
-             `      "  Console       what you would open the browser devtools for: UI5's",` && |\n| &&
-             `      "                own log (binding / control problems), uncaught errors,",` && |\n| &&
-             `      "                unhandled rejections and every console.* call",` && |\n| &&
+             `      "  Log           ONE timeline of everything logged: the framework's",` && |\n| &&
+             `      "                own error log (with stack traces), UI5's log (binding",` && |\n| &&
+             `      "                and control problems), uncaught errors, unhandled",` && |\n| &&
+             `      "                rejections, every console.* call, and the backend",` && |\n| &&
+             `      "                messages the user was shown - so the browser's own",` && |\n| &&
+             `      "                devtools do not have to be open",` && |\n| &&
              `      "  History       every roundtrip: backend vs. render time, payload",` && |\n| &&
              `      "                sizes, draft ids - and the ones that never rendered",` && |\n| &&
              `      "  Model Diff    what the backend changed between two responses",` && |\n| &&
@@ -825,9 +965,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "                (needs Record Payloads)",` && |\n| &&
              `      "  Search        one term across EVERY tab at once - answers 'where",` && |\n| &&
              `      "                does /CUSTOMER appear?' without opening each tab",` && |\n| &&
-             `      "  Messages      every toast / message box of the session, also the",` && |\n|.
-    result = result &&
-             `      "                ones that already faded",` && |\n| &&
              `      "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",` && |\n| &&
              `      "  Bindings      the model attributes, '*' on the paths that will",` && |\n| &&
              `      "                travel as the next delta, the delta itself, the paths",` && |\n| &&
@@ -853,8 +990,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "                   by default - it is the only part that costs real",` && |\n| &&
              `      "                   memory (2 MB budget, oldest dropped first)",` && |\n| &&
              `      "  Copy Tab         put the current tab's content on the clipboard",` && |\n| &&
-             `      "  Open on Error    pop these tools open on the Console tab as soon",` && |\n| &&
-             `      "                   as anything logs at error level. Off by default",` && |\n| &&
+             `      "  Open on Error    pop these tools open on the Log tab as soon as",` && |\n| &&
+             `      "                   anything logs at error level. Off by default",` && |\n| &&
              `      "  ADT              open the ABAP class, at the line of the last",` && |\n| &&
              `      "                   event when the source has been loaded",` && |\n| &&
              `      "  Export           one report over everything, with downloads",` && |\n| &&
@@ -888,7 +1025,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      formatHelp,` && |\n| &&
              `      formatRegistry,` && |\n| &&
              `      formatActions,` && |\n| &&
-             `      formatMessages,` && |\n| &&
+             `      formatLog,` && |\n| &&
              `      formatBindings,` && |\n| &&
              `      findEventLine,` && |\n| &&
              `      // exposed for the unit specs` && |\n| &&

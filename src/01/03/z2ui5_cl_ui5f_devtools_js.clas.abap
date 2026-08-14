@@ -157,7 +157,7 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      // the dialog when it is already open.` && |\n| &&
              `      Console.setOnError(() => {` && |\n| &&
              `        if (instance?.oDialog?.isOpen?.()) return;` && |\n| &&
-             `        show("CONSOLE");` && |\n| &&
+             `        show("LOG");` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&
              `      errorDetailsHook = onErrorDetails;` && |\n| &&

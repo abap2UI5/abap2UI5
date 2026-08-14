@@ -130,7 +130,7 @@ sap.ui.define(
       // the dialog when it is already open.
       Console.setOnError(() => {
         if (instance?.oDialog?.isOpen?.()) return;
-        show("CONSOLE");
+        show("LOG");
       });
 
       errorDetailsHook = onErrorDetails;

@@ -45,14 +45,13 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                    key="ERROR"` &&
              `                    enabled="{/hasError}"` &&
              `                />` &&
+             `                <!-- One timeline: the framework error log, UI5's log,` &&
+             `                     uncaught errors and rejections, every console.* call` &&
+             `                     and the backend messages the user was shown. These` &&
+             `                     were three tabs and had to be correlated by hand. -->` &&
              `                <IconTabFilter` &&
              `                    text="Log"` &&
              `                    key="LOG"` &&
-             `                    enabled="{/hasLog}"` &&
-             `                />` &&
-             `                <IconTabFilter` &&
-             `                    text="Console"` &&
-             `                    key="CONSOLE"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="History"` &&
@@ -65,10 +64,6 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="View Diff"` &&
              `                    key="VIEWDIFF"` &&
-             `                />` &&
-             `                <IconTabFilter` &&
-             `                    text="Messages"` &&
-             `                    key="MESSAGES"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Actions"` &&

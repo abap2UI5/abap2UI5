@@ -202,12 +202,12 @@ test.describe("open on error", () => {
   // Console only announces an error when its own "open on error" setting
   // is on, so the facade's job is just to open - and to stay out of the
   // way when the dialog is already there.
-  test("opens on the Console tab when the capture announces an error", () => {
+  test("opens on the merged Log tab when the capture announces an error", () => {
     const h = loadDevTools();
     h.DevTools.install();
     h.raiseError();
     expect(h.instances.length).toBe(1);
-    expect(h.instances[0].shown).toEqual(["CONSOLE"]);
+    expect(h.instances[0].shown).toEqual(["LOG"]);
   });
 
   test("does not fight the user for an already open dialog", () => {

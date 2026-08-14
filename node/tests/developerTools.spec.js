@@ -77,12 +77,11 @@ function loadDeveloperTools({
     formatEnvironment: () => "(environment)",
     formatRegistry: () => "(registry)",
     formatActions: () => "(actions)",
-    formatMessages: () => "(messages)",
+    formatLog: () => "(log)",
     formatBindings: () => "(bindings)",
     findEventLine: () => 0,
   };
   const Console = consoleCapture || {
-    format: () => "(console)",
     isAlertOnError: () => false,
     setAlertOnError() {},
   };
@@ -227,32 +226,6 @@ test.describe("popup / popover tabs", () => {
   });
 });
 
-test.describe("Log tab", () => {
-  test("dumps the error log as minimal ts + message lines", () => {
-    const { DeveloperTools } = loadDeveloperTools({
-      errors: [
-        { message: "boom", ts: "2026-01-01T00:00:00.000Z" },
-        { message: "bang", ts: "2026-01-01T00:00:01.000Z" },
-      ],
-    });
-    const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DeveloperTools.onItemSelect(oEvent);
-    expect(modelData.value).toBe(
-      "2026-01-01T00:00:00.000Z  boom\n2026-01-01T00:00:01.000Z  bang",
-    );
-    expect(modelData.type).toBe("text");
-    expect(modelData.editor_visible).toBe(true);
-  });
-
-  test("shows a placeholder when the log is empty", () => {
-    const { DeveloperTools } = loadDeveloperTools();
-    const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DeveloperTools.onItemSelect(oEvent);
-    expect(modelData.value).toBe("(log is empty)");
-    expect(modelData.type).toBe("text");
-  });
-});
-
 test.describe("Error tab", () => {
   test("shows the captured fatal error title + text and the action bar", () => {
     const { DeveloperTools } = loadDeveloperTools({
@@ -328,8 +301,9 @@ test.describe("Export", () => {
     expect(out).toContain("===== ERROR =====");
     expect(out).toContain("App Terminated");
     expect(out).toContain("backend dump");
+    // the LOG section now carries the merged timeline the inspector
+    // renders; its content is covered by devtoolsInspect.spec.js
     expect(out).toContain("===== LOG =====");
-    expect(out).toContain("2026-01-01T00:00:00.000Z  boom");
   });
 
   test("omits the ERROR section when no fatal error was captured", () => {
@@ -427,45 +401,13 @@ test.describe("Recorder tabs", () => {
   });
 });
 
-test.describe("Log tab keeps the stack trace", () => {
-  test("renders the stack of a logged error under its message", () => {
-    const error = new Error("kaboom");
-    error.stack = "Error: kaboom\n    at doThing (Websocket.js:42)";
-    const { DeveloperTools } = loadDeveloperTools({
-      errors: [{ message: "Websocket: send failed", ts: "2026-01-01T00:00:00.000Z", error }],
-    });
-    const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DeveloperTools.onItemSelect(oEvent);
-    expect(modelData.value).toContain("Websocket: send failed");
-    expect(modelData.value).toContain("at doThing (Websocket.js:42)");
-  });
-
-  test("falls back to the string form for a non-Error throwable", () => {
-    const { DeveloperTools } = loadDeveloperTools({
-      errors: [{ message: "boom", ts: "2026-01-01T00:00:00.000Z", error: "plain" }],
-    });
-    const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DeveloperTools.onItemSelect(oEvent);
-    expect(modelData.value).toContain("plain");
-  });
-
-  test("an entry without an error stays a single line (unchanged)", () => {
-    const { DeveloperTools } = loadDeveloperTools({
-      errors: [{ message: "boom", ts: "2026-01-01T00:00:00.000Z" }],
-    });
-    const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DeveloperTools.onItemSelect(oEvent);
-    expect(modelData.value).toBe("2026-01-01T00:00:00.000Z  boom");
-  });
-});
-
 test.describe("Inspector tabs", () => {
   const inspect = {
     formatHelp: () => "HELP REPORT",
     formatEnvironment: () => "ENV REPORT",
     formatRegistry: () => "REGISTRY REPORT",
     formatActions: () => "ACTIONS REPORT",
-    formatMessages: () => "MESSAGES REPORT",
+    formatLog: () => "LOG REPORT",
     formatBindings: () => "BINDINGS REPORT",
     findEventLine: () => 0,
   };
@@ -475,7 +417,7 @@ test.describe("Inspector tabs", () => {
     ["ENV", "ENV REPORT"],
     ["REGISTRY", "REGISTRY REPORT"],
     ["ACTIONS", "ACTIONS REPORT"],
-    ["MESSAGES", "MESSAGES REPORT"],
+    ["LOG", "LOG REPORT"],
     ["BINDINGS", "BINDINGS REPORT"],
   ]) {
     test(`the ${key} tab renders its inspector`, () => {
@@ -644,7 +586,7 @@ test.describe("ADT deep link", () => {
     formatEnvironment: () => "",
     formatRegistry: () => "",
     formatActions: () => "",
-    formatMessages: () => "",
+    formatLog: () => "",
     formatBindings: () => "",
     findEventLine: () => lineNumber,
   });
@@ -887,7 +829,7 @@ test.describe("Search across all tabs", () => {
         formatEnvironment: () => "(environment)",
         formatRegistry: () => "(registry)",
         formatActions: () => "(actions)",
-        formatMessages: () => "(messages)",
+        formatLog: () => "(log)",
         formatBindings: () => "/CUSTOMER  string  Miller AG",
         findEventLine: () => 0,
       },
@@ -928,7 +870,7 @@ test.describe("Search across all tabs", () => {
         },
         formatRegistry: () => "(registry)",
         formatActions: () => "(actions)",
-        formatMessages: () => "(messages)",
+        formatLog: () => "(log)",
         formatBindings: () => "(bindings)",
         findEventLine: () => 0,
       },

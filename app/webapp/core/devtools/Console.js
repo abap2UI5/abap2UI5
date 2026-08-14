@@ -26,7 +26,10 @@
 // Like the rest of core/devtools/ this module is outside the framework: no
 // framework module knows it exists, and core/devtools/DevTools.js is what
 // installs it. It depends on nothing at all - not even on the rest of
-// core/devtools/ - it observes the browser and UI5 and hands back a string.
+// core/devtools/: it observes the browser and UI5 and hands the captured
+// entries over as DATA. Rendering them is core/devtools/Inspect.js's job,
+// which merges them with the framework's error log and the backend
+// messages into one timeline (the Log tab).
 sap.ui.define([], () => {
   "use strict";
 
@@ -361,79 +364,14 @@ sap.ui.define([], () => {
     dropped = 0;
   }
 
-  // ------------------------------------------------------------------
-  // Rendering
-  // ------------------------------------------------------------------
-
-  // Column width of the source marker ("console", "ui5", "uncaught",
-  // "rejection"). Not 9: "rejection" is exactly nine characters and ran
-  // straight into the message text with no separating space.
-  const SOURCE_WIDTH = 10;
-
-  // Indent of a wrapped line (a stack trace) so it lines up under the
-  // message instead of under the timestamp.
-  const CONTINUATION_INDENT = " ".repeat(23 + SOURCE_WIDTH);
-
-  const LEVEL_LABEL = {
-    error: "ERROR",
-    warn: "WARN ",
-    info: "INFO ",
-    log: "LOG  ",
-    debug: "DEBUG",
-  };
-
-  function counts() {
-    const out = { error: 0, warn: 0, info: 0, log: 0, debug: 0 };
-    for (const entry of entries) {
-      if (out[entry.level] !== undefined) out[entry.level] += 1;
-    }
-    return out;
-  }
-
-  function format() {
-    const lines = ["abap2UI5 Developer Tools - Console"];
-    lines.push("");
-    lines.push(
-      "  Captured in the app, so the browser's own devtools do not have to be",
-    );
-    lines.push(
-      "  open: UI5's log (binding and control problems), uncaught errors and",
-    );
-    lines.push("  unhandled rejections, plus every console.* call.");
-    lines.push("");
-    const c = counts();
-    lines.push(
-      `  ${entries.length} entr(ies) - ${c.error} error, ${c.warn} warn,` +
-        ` ${c.info} info, ${c.log} log, ${c.debug} debug` +
-        (dropped ? ` (${dropped} older dropped)` : ""),
-    );
-    lines.push("");
-    if (!entries.length) {
-      lines.push("  (nothing logged yet)");
-      return lines.join("\n");
-    }
-    for (const entry of entries) {
-      const label = LEVEL_LABEL[entry.level] || entry.level.toUpperCase();
-      const head =
-        `  ${entry.ts.slice(11, 23)}${entry.previousLoad ? "*" : " "} ${label}  ` +
-        `${entry.source.padEnd(SOURCE_WIDTH)}`;
-      const [first, ...rest] = entry.text.split("\n");
-      lines.push(`${head}${first}`);
-      // a stack trace keeps its own lines, indented under its message
-      for (const line of rest)
-        lines.push(`${CONTINUATION_INDENT}${line.trim()}`);
-    }
-    return lines.join("\n");
-  }
-
   function getEntries() {
     return entries;
   }
 
-  // True when anything was captured at error level - lets the dialog point
-  // at this tab rather than making the developer go looking.
-  function hasErrors() {
-    return entries.some((entry) => entry.level === "error");
+  // How many entries the ring had to drop, so the log can say so rather
+  // than silently looking complete.
+  function getDropped() {
+    return dropped;
   }
 
   return {
@@ -442,9 +380,8 @@ sap.ui.define([], () => {
     setOnError,
     isAlertOnError,
     setAlertOnError,
-    format,
     getEntries,
-    hasErrors,
+    getDropped,
     // exposed for the unit specs
     _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS },
   };

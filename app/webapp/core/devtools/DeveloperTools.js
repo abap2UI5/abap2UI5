@@ -137,43 +137,6 @@ sap.ui.define(
       return view?._xContent?.outerHTML;
     }
 
-    // Text dump of the shared error log (the entries Lib.logError pushes to
-    // AppState.state.errors), oldest first. Empty log yields a short
-    // placeholder.
-    //
-    // Lib.logError stores the caught error itself alongside the message, and
-    // that is where the STACK TRACE is - the one thing that says which line
-    // actually threw. It used to be dropped here, so the tab showed
-    // "Websocket: send failed" and nothing else. Render it indented under
-    // its message, preferring the stack and falling back to the error's own
-    // string form for non-Error throwables.
-    function formatErrorEntry(entry) {
-      const head = `${entry.ts}  ${entry.message}`;
-      if (entry.error === undefined) return head;
-      let detail;
-      if (entry.error && typeof entry.error === "object") {
-        detail = entry.error.stack || entry.error.message;
-      }
-      if (!detail) {
-        try {
-          detail = String(entry.error);
-        } catch {
-          detail = "(error could not be rendered)";
-        }
-      }
-      const indented = String(detail)
-        .split("\n")
-        .map((l) => `        ${l.trim()}`)
-        .join("\n");
-      return `${head}\n${indented}`;
-    }
-
-    function formatErrorLog() {
-      const errors = AppState.state.errors || [];
-      if (!errors.length) return "(log is empty)";
-      return errors.map(formatErrorEntry).join("\n");
-    }
-
     // The last fatal error the ErrorView overlay showed (title + full text),
     // so the Error tab reproduces the overlay's content. Empty when the app
     // has not hit a fatal error this session.
@@ -239,13 +202,15 @@ sap.ui.define(
     // jsonSources / xmlSources are: adding a tab is one entry plus one
     // IconTabFilter, never a new branch in renderTab.
     const textSources = {
-      CONSOLE: () => Console.format(),
+      // The framework error log, the console capture and the backend
+      // messages used to be three tabs; Inspect.formatLog merges them into
+      // one timeline (see there).
+      LOG: () => Inspect.formatLog(),
       VIEWDIFF: () => Recorder.formatViewDiff(),
       HELP: () => Inspect.formatHelp(),
       ENV: () => Inspect.formatEnvironment(),
       REGISTRY: () => Inspect.formatRegistry(),
       ACTIONS: () => Inspect.formatActions(),
-      MESSAGES: () => Inspect.formatMessages(),
       BINDINGS: () => Inspect.formatBindings(),
     };
 
@@ -338,7 +303,6 @@ sap.ui.define(
           for (const key of Object.keys(textSources)) {
             scan(key, () => textSources[key]());
           }
-          scan("LOG", formatErrorLog);
           scan("ERROR", formatLastError);
           scan("HISTORY", () => Recorder.formatHistory());
 
@@ -400,11 +364,6 @@ sap.ui.define(
             const modelData = oModel.getData();
             modelData.canApply = LiveEdit.canApply(selItem);
             oModel.refresh();
-            return;
-          }
-
-          if (selItem === "LOG") {
-            this.displayEditor(oModel, formatErrorLog(), "text");
             return;
           }
 
@@ -540,7 +499,10 @@ sap.ui.define(
             text(() => Inspect.formatEnvironment()),
           );
           if (AppState.state.lastError) push("ERROR", text(formatLastError));
-          push("LOG", text(formatErrorLog));
+          push(
+            "LOG",
+            text(() => Inspect.formatLog()),
+          );
           // The roundtrip history is the timeline an error happened on, so it
           // travels with the export - it is the context a reader of a shared
           // bug report otherwise has to ask for.
@@ -561,10 +523,6 @@ sap.ui.define(
           push(
             "ACTIONS",
             text(() => Inspect.formatActions()),
-          );
-          push(
-            "MESSAGES",
-            text(() => Inspect.formatMessages()),
           );
           push(
             "REGISTRY",
@@ -1090,7 +1048,6 @@ sap.ui.define(
               source_visible: false,
               editor_visible: true,
               hasError: Boolean(AppState.state.lastError),
-              hasLog: Boolean(AppState.state.errors?.length),
               // Tier 2 opt-in of the roundtrip recorder; drives both the
               // footer toggle and what the two recorder tabs report.
               recordPayloads: Recorder.isRecordingPayloads(),

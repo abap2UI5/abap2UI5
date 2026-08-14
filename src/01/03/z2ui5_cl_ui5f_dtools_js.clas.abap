@@ -164,43 +164,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      return view?._xContent?.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Text dump of the shared error log (the entries Lib.logError pushes to` && |\n| &&
-             `    // AppState.state.errors), oldest first. Empty log yields a short` && |\n| &&
-             `    // placeholder.` && |\n| &&
-             `    //` && |\n| &&
-             `    // Lib.logError stores the caught error itself alongside the message, and` && |\n| &&
-             `    // that is where the STACK TRACE is - the one thing that says which line` && |\n| &&
-             `    // actually threw. It used to be dropped here, so the tab showed` && |\n| &&
-             `    // "Websocket: send failed" and nothing else. Render it indented under` && |\n| &&
-             `    // its message, preferring the stack and falling back to the error's own` && |\n| &&
-             `    // string form for non-Error throwables.` && |\n| &&
-             `    function formatErrorEntry(entry) {` && |\n| &&
-             `      const head = ``${entry.ts}  ${entry.message}``;` && |\n| &&
-             `      if (entry.error === undefined) return head;` && |\n| &&
-             `      let detail;` && |\n| &&
-             `      if (entry.error && typeof entry.error === "object") {` && |\n| &&
-             `        detail = entry.error.stack || entry.error.message;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!detail) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          detail = String(entry.error);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          detail = "(error could not be rendered)";` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      const indented = String(detail)` && |\n| &&
-             `        .split("\n")` && |\n| &&
-             `        .map((l) => ``        ${l.trim()}``)` && |\n| &&
-             `        .join("\n");` && |\n| &&
-             `      return ``${head}\n${indented}``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatErrorLog() {` && |\n| &&
-             `      const errors = AppState.state.errors || [];` && |\n| &&
-             `      if (!errors.length) return "(log is empty)";` && |\n| &&
-             `      return errors.map(formatErrorEntry).join("\n");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    // The last fatal error the ErrorView overlay showed (title + full text),` && |\n| &&
              `    // so the Error tab reproduces the overlay's content. Empty when the app` && |\n| &&
              `    // has not hit a fatal error this session.` && |\n| &&
@@ -266,13 +229,15 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    // jsonSources / xmlSources are: adding a tab is one entry plus one` && |\n| &&
              `    // IconTabFilter, never a new branch in renderTab.` && |\n| &&
              `    const textSources = {` && |\n| &&
-             `      CONSOLE: () => Console.format(),` && |\n| &&
+             `      // The framework error log, the console capture and the backend` && |\n| &&
+             `      // messages used to be three tabs; Inspect.formatLog merges them into` && |\n| &&
+             `      // one timeline (see there).` && |\n| &&
+             `      LOG: () => Inspect.formatLog(),` && |\n| &&
              `      VIEWDIFF: () => Recorder.formatViewDiff(),` && |\n| &&
              `      HELP: () => Inspect.formatHelp(),` && |\n| &&
              `      ENV: () => Inspect.formatEnvironment(),` && |\n| &&
              `      REGISTRY: () => Inspect.formatRegistry(),` && |\n| &&
              `      ACTIONS: () => Inspect.formatActions(),` && |\n| &&
-             `      MESSAGES: () => Inspect.formatMessages(),` && |\n| &&
              `      BINDINGS: () => Inspect.formatBindings(),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
@@ -365,7 +330,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          for (const key of Object.keys(textSources)) {` && |\n| &&
              `            scan(key, () => textSources[key]());` && |\n| &&
              `          }` && |\n| &&
-             `          scan("LOG", formatErrorLog);` && |\n| &&
              `          scan("ERROR", formatLastError);` && |\n| &&
              `          scan("HISTORY", () => Recorder.formatHistory());` && |\n| &&
              `` && |\n| &&
@@ -424,15 +388,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            // A view tab is editable: its XML can be rendered back into the` && |\n| &&
              `            // slot without a roundtrip (core/devtools/LiveEdit.js), so the` && |\n| &&
              `            // Apply / Reset footer buttons appear for exactly these tabs.` && |\n| &&
-             `            const modelData = oModel.getData();` && |\n|.
-    result = result &&
+             `            const modelData = oModel.getData();` && |\n| &&
              `            modelData.canApply = LiveEdit.canApply(selItem);` && |\n| &&
              `            oModel.refresh();` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (selItem === "LOG") {` && |\n| &&
-             `            this.displayEditor(oModel, formatErrorLog(), "text");` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -466,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `          if (selItem === "PICK") {` && |\n| &&
              `            this.displayEditor(` && |\n| &&
              `              oModel,` && |\n| &&
@@ -568,7 +527,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            text(() => Inspect.formatEnvironment()),` && |\n| &&
              `          );` && |\n| &&
              `          if (AppState.state.lastError) push("ERROR", text(formatLastError));` && |\n| &&
-             `          push("LOG", text(formatErrorLog));` && |\n| &&
+             `          push(` && |\n| &&
+             `            "LOG",` && |\n| &&
+             `            text(() => Inspect.formatLog()),` && |\n| &&
+             `          );` && |\n| &&
              `          // The roundtrip history is the timeline an error happened on, so it` && |\n| &&
              `          // travels with the export - it is the context a reader of a shared` && |\n| &&
              `          // bug report otherwise has to ask for.` && |\n| &&
@@ -589,10 +551,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          push(` && |\n| &&
              `            "ACTIONS",` && |\n| &&
              `            text(() => Inspect.formatActions()),` && |\n| &&
-             `          );` && |\n| &&
-             `          push(` && |\n| &&
-             `            "MESSAGES",` && |\n| &&
-             `            text(() => Inspect.formatMessages()),` && |\n| &&
              `          );` && |\n| &&
              `          push(` && |\n| &&
              `            "REGISTRY",` && |\n| &&
@@ -825,8 +783,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        },` && |\n| &&
              `` && |\n| &&
              `        // The class name of the running app, as the backend reported it in the` && |\n| &&
-             `        // last response. Empty before the first response arrived.` && |\n|.
-    result = result &&
+             `        // last response. Empty before the first response arrived.` && |\n| &&
              `        getAppName() {` && |\n| &&
              `          return AppState.state.responseData?.S_FRONT?.APP || "";` && |\n| &&
              `        },` && |\n| &&
@@ -868,7 +825,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          return lineNumber ? ``${url}#start=${lineNumber},1`` : url;` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
-             `        onOpenAbapInAdt() {` && |\n| &&
+             `        onOpenAbapInAdt() {` && |\n|.
+    result = result &&
              `          // Stays synchronous: a window.open after an await is treated as an` && |\n| &&
              `          // unrequested popup and blocked.` && |\n| &&
              `          const url = this.getAbapAdtUrl();` && |\n| &&
@@ -1119,7 +1077,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `              source_visible: false,` && |\n| &&
              `              editor_visible: true,` && |\n| &&
              `              hasError: Boolean(AppState.state.lastError),` && |\n| &&
-             `              hasLog: Boolean(AppState.state.errors?.length),` && |\n| &&
              `              // Tier 2 opt-in of the roundtrip recorder; drives both the` && |\n| &&
              `              // footer toggle and what the two recorder tabs report.` && |\n| &&
              `              recordPayloads: Recorder.isRecordingPayloads(),` && |\n| &&
