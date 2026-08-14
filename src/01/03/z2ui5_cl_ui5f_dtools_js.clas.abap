@@ -67,6 +67,52 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    // model would otherwise bury the tabs that matched it once.` && |\n| &&
              `    const MAX_HITS_PER_TAB = 20;` && |\n| &&
              `` && |\n| &&
+             `    // The tab the tools were last on. Reopening on the tab you were` && |\n| &&
+             `    // working in is what makes them usable across a debugging session -` && |\n| &&
+             `    // landing on the response JSON every time means re-navigating after` && |\n| &&
+             `    // every close. In sessionStorage, so it survives a reload too.` && |\n| &&
+             `    const LAST_TAB_KEY = "z2ui5.devtools.lastTab";` && |\n| &&
+             `` && |\n| &&
+             `    // The tab opened when nothing else is known.` && |\n| &&
+             `    const DEFAULT_TAB = "PLAIN";` && |\n| &&
+             `` && |\n| &&
+             `    function readLastTab() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        return window.sessionStorage?.getItem(LAST_TAB_KEY) || "";` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return "";` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The tabs that are not table-driven have their own branch in` && |\n| &&
+             `    // renderTab, so they have to be listed for the validity check. Keep` && |\n| &&
+             `    // this in step with those branches - a tab missing here is silently` && |\n| &&
+             `    // rejected as "unknown" and reopens on the default instead.` && |\n| &&
+             `    const STANDALONE_TABS = [` && |\n| &&
+             `      "HISTORY",` && |\n| &&
+             `      "DIFF",` && |\n| &&
+             `      "SEARCH",` && |\n| &&
+             `      "PICK",` && |\n| &&
+             `      "ERROR",` && |\n| &&
+             `      "SOURCE",` && |\n| &&
+             `    ];` && |\n| &&
+             `` && |\n| &&
+             `    function isKnownTab(tabKey) {` && |\n| &&
+             `      if (!tabKey) return false;` && |\n| &&
+             `      if (STANDALONE_TABS.includes(tabKey)) return true;` && |\n| &&
+             `      return Boolean(` && |\n| &&
+             `        jsonSources[tabKey] || xmlSources[tabKey] || textSources[tabKey],` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function writeLastTab(tabKey) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        window.sessionStorage?.setItem(LAST_TAB_KEY, tabKey);` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        // storage unavailable - the memory is then per dialog instance` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
              `    // A replacer drops circular references (the z2ui5 global can hold them,` && |\n| &&
@@ -234,7 +280,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      // one timeline (see there).` && |\n| &&
              `      LOG: () => Inspect.formatLog(),` && |\n| &&
              `      VIEWDIFF: () => Recorder.formatViewDiff(),` && |\n| &&
-             `      HELP: () => Inspect.formatHelp(),` && |\n| &&
              `      ENV: () => Inspect.formatEnvironment(),` && |\n| &&
              `      REGISTRY: () => Inspect.formatRegistry(),` && |\n| &&
              `      ACTIONS: () => Inspect.formatActions(),` && |\n| &&
@@ -372,6 +417,16 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        // to "ERROR"). The content per entry is defined declaratively in` && |\n| &&
              `        // jsonSources / xmlSources above.` && |\n| &&
              `        renderTab(selItem, oModel) {` && |\n| &&
+             `          // The controls that belong to ONE tab live in the content area` && |\n| &&
+             `          // rather than the footer, so they appear with their tab instead` && |\n| &&
+             `          // of sitting there greyed out on the other twenty.` && |\n| &&
+             `          const flags = oModel.getData();` && |\n| &&
+             `          flags.isPickTab = selItem === "PICK";` && |\n| &&
+             `          flags.isHistoryTab = selItem === "HISTORY";` && |\n| &&
+             `          flags.isSearchTab = selItem === "SEARCH";` && |\n| &&
+             `          writeLastTab(selItem);` && |\n|.
+    result = result &&
+             `` && |\n| &&
              `          if (jsonSources[selItem]) {` && |\n| &&
              `            this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");` && |\n| &&
              `            return;` && |\n| &&
@@ -424,8 +479,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `          if (selItem === "PICK") {` && |\n| &&
              `            this.displayEditor(` && |\n| &&
              `              oModel,` && |\n| &&
@@ -771,7 +825,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `                      ),` && |\n| &&
              `                  }),` && |\n| &&
              `                  new Button({` && |\n| &&
-             `                    text: "Close",` && |\n| &&
+             `                    text: "Close",` && |\n|.
+    result = result &&
              `                    press: () => dialog.close(),` && |\n| &&
              `                  }),` && |\n| &&
              `                ],` && |\n| &&
@@ -825,8 +880,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          return lineNumber ? ``${url}#start=${lineNumber},1`` : url;` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
-             `        onOpenAbapInAdt() {` && |\n|.
-    result = result &&
+             `        onOpenAbapInAdt() {` && |\n| &&
              `          // Stays synchronous: a window.open after an await is treated as an` && |\n| &&
              `          // unrequested popup and blocked.` && |\n| &&
              `          const url = this.getAbapAdtUrl();` && |\n| &&
@@ -1028,6 +1082,39 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          oModel.refresh();` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
+             `        // The help used to be a tab of its own, which put a page of prose` && |\n| &&
+             `        // in the same row as the twenty tabs that show live state. It is` && |\n| &&
+             `        // reached from the info icon in the footer now and opens in its` && |\n| &&
+             `        // own dialog, so it does not take the current tab away.` && |\n| &&
+             `        onShowHelp() {` && |\n| &&
+             `          sap.ui.require(` && |\n| &&
+             `            ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
+             `            (Dialog, TextArea, Button) => {` && |\n| &&
+             `              const area = new TextArea({` && |\n| &&
+             `                editable: false,` && |\n| &&
+             `                width: "100%",` && |\n| &&
+             `                rows: 25,` && |\n| &&
+             `                growing: false,` && |\n| &&
+             `              });` && |\n| &&
+             `              area.setValue(Inspect.formatHelp());` && |\n| &&
+             `              const dialog = new Dialog({` && |\n| &&
+             `                title: "abap2UI5 - Developer Tools Help",` && |\n| &&
+             `                stretch: true,` && |\n| &&
+             `                content: [area],` && |\n| &&
+             `                buttons: [` && |\n| &&
+             `                  new Button({` && |\n| &&
+             `                    text: "Close",` && |\n| &&
+             `                    type: "Emphasized",` && |\n| &&
+             `                    press: () => dialog.close(),` && |\n| &&
+             `                  }),` && |\n| &&
+             `                ],` && |\n| &&
+             `                afterClose: () => dialog.destroy(),` && |\n| &&
+             `              });` && |\n| &&
+             `              dialog.open();` && |\n| &&
+             `            },` && |\n| &&
+             `          );` && |\n| &&
+             `        },` && |\n| &&
+             `` && |\n| &&
              `        onClose() {` && |\n| &&
              `          this.close();` && |\n| &&
              `        },` && |\n| &&
@@ -1064,8 +1151,18 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `              return;` && |\n| &&
              `            }` && |\n| &&
              `` && |\n| &&
+             `            // A caller-named tab wins (the error popup's Details jumps to` && |\n| &&
+             `            // ERROR); otherwise reopen where the developer left off. The` && |\n| &&
+             `            // remembered key is validated: a tab that no longer exists -` && |\n| &&
+             `            // one stored by an older version, or a typo in the URL` && |\n| &&
+             `            // parameter - would otherwise select nothing at all.` && |\n| &&
+             `            const remembered = readLastTab();` && |\n| &&
              `            const selectedTab =` && |\n| &&
-             `              typeof initialTab === "string" ? initialTab : "PLAIN";` && |\n| &&
+             `              typeof initialTab === "string" && initialTab` && |\n| &&
+             `                ? initialTab` && |\n| &&
+             `                : isKnownTab(remembered)` && |\n| &&
+             `                  ? remembered` && |\n| &&
+             `                  : DEFAULT_TAB;` && |\n| &&
              `            const value = toJson(AppState.state.responseData);` && |\n| &&
              `            const oData = {` && |\n| &&
              `              selectedTab: selectedTab,` && |\n| &&
@@ -1084,6 +1181,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `              // back into their slot (core/devtools/LiveEdit.js).` && |\n| &&
              `              canApply: false,` && |\n| &&
              `              applyResult: "",` && |\n| &&
+             `              // set per tab by renderTab - the controls that belong to one` && |\n| &&
+             `              // tab live in the content area, not in the footer` && |\n| &&
+             `              isPickTab: false,` && |\n| &&
+             `              isHistoryTab: false,` && |\n| &&
+             `              isSearchTab: false,` && |\n| &&
              `              hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `              value: value,` && |\n| &&
              `              xContent: "",` && |\n| &&
@@ -1103,6 +1205,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `              hasPopoverModel: hasModelData(ViewSlots.getView("POPOVER")),` && |\n| &&
              `            };` && |\n| &&
              `` && |\n| &&
+             `            writeLastTab(selectedTab);` && |\n| &&
              `            const oModel = new JSONModel(oData);` && |\n| &&
              `            const oDialog = this.oDialog;` && |\n| &&
              `            oDialog.setModel(oModel);` && |\n| &&
@@ -1123,7 +1226,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        close() {` && |\n| &&
              `          if (!this.oDialog || !this.oDialog.isOpen()) return;` && |\n| &&
              `          // When the dialog was opened from the error popup's Details action,` && |\n| &&
-             `          // closing it (Close or Escape) re-shows that popup so the user never` && |\n| &&
+             `          // closing it (Close or Escape) re-shows that popup so the user never` && |\n|.
+    result = result &&
              `          // ends up on the dismissed, broken app.` && |\n| &&
              `          const reopenError = this.reopenErrorOnClose;` && |\n| &&
              `          this.reopenErrorOnClose = false;` && |\n| &&

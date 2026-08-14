@@ -948,6 +948,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "                              that happen during startup)",` && |\n| &&
              `      "  ?z2ui5-devtools=HISTORY     open them directly on a tab, by its key",` && |\n| &&
              `      "",` && |\n| &&
+             `      "  Without a tab named, they reopen on the tab you were last on.",` && |\n| &&
+             `      "",` && |\n| &&
              `      "Tabs - what each one answers",` && |\n| &&
              `      "----------------------------",` && |\n| &&
              `      "  Error         the last fatal error, with Retry / Restart / Logout",` && |\n| &&
@@ -982,13 +984,20 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "  Response",` && |\n| &&
              `      "  View / Popup / Popover / Nest   the view XML each slot holds",` && |\n| &&
              `      "",` && |\n| &&
+             `      "In the tabs themselves",` && |\n| &&
+             `      "----------------------",` && |\n| &&
+             `      "  Search tab       the search field",` && |\n| &&
+             `      "  Picked tab       'Pick Control' - click any control in the app and",` && |\n| &&
+             `      "                   see which ABAP attribute feeds it, with its",` && |\n| &&
+             `      "                   current value",` && |\n| &&
+             `      "  History tab      'Record Payloads' - keep request/response bodies.",` && |\n| &&
+             `      "                   OFF by default: it is the only part that costs",` && |\n| &&
+             `      "                   real memory (2 MB budget, oldest dropped first).",` && |\n| &&
+             `      "                   The Model Diff and View Diff need it",` && |\n| &&
+             `      "",` && |\n| &&
              `      "Footer actions",` && |\n| &&
              `      "--------------",` && |\n| &&
-             `      "  Pick Control     click any control in the app and see which ABAP",` && |\n| &&
-             `      "                   attribute feeds it, with its current value",` && |\n| &&
-             `      "  Record Payloads  keep request/response bodies in the history. OFF",` && |\n| &&
-             `      "                   by default - it is the only part that costs real",` && |\n| &&
-             `      "                   memory (2 MB budget, oldest dropped first)",` && |\n| &&
+             `      "  (i)              this help",` && |\n| &&
              `      "  Copy Tab         put the current tab's content on the clipboard",` && |\n| &&
              `      "  Open on Error    pop these tools open on the Log tab as soon as",` && |\n| &&
              `      "                   anything logs at error level. Off by default",` && |\n| &&

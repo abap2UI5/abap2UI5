@@ -40,6 +40,52 @@ sap.ui.define(
     // model would otherwise bury the tabs that matched it once.
     const MAX_HITS_PER_TAB = 20;
 
+    // The tab the tools were last on. Reopening on the tab you were
+    // working in is what makes them usable across a debugging session -
+    // landing on the response JSON every time means re-navigating after
+    // every close. In sessionStorage, so it survives a reload too.
+    const LAST_TAB_KEY = "z2ui5.devtools.lastTab";
+
+    // The tab opened when nothing else is known.
+    const DEFAULT_TAB = "PLAIN";
+
+    function readLastTab() {
+      try {
+        return window.sessionStorage?.getItem(LAST_TAB_KEY) || "";
+      } catch {
+        return "";
+      }
+    }
+
+    // The tabs that are not table-driven have their own branch in
+    // renderTab, so they have to be listed for the validity check. Keep
+    // this in step with those branches - a tab missing here is silently
+    // rejected as "unknown" and reopens on the default instead.
+    const STANDALONE_TABS = [
+      "HISTORY",
+      "DIFF",
+      "SEARCH",
+      "PICK",
+      "ERROR",
+      "SOURCE",
+    ];
+
+    function isKnownTab(tabKey) {
+      if (!tabKey) return false;
+      if (STANDALONE_TABS.includes(tabKey)) return true;
+      return Boolean(
+        jsonSources[tabKey] || xmlSources[tabKey] || textSources[tabKey],
+      );
+    }
+
+    function writeLastTab(tabKey) {
+      try {
+        window.sessionStorage?.setItem(LAST_TAB_KEY, tabKey);
+      } catch {
+        // storage unavailable - the memory is then per dialog instance
+      }
+    }
+
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.
     // A replacer drops circular references (the z2ui5 global can hold them,
@@ -207,7 +253,6 @@ sap.ui.define(
       // one timeline (see there).
       LOG: () => Inspect.formatLog(),
       VIEWDIFF: () => Recorder.formatViewDiff(),
-      HELP: () => Inspect.formatHelp(),
       ENV: () => Inspect.formatEnvironment(),
       REGISTRY: () => Inspect.formatRegistry(),
       ACTIONS: () => Inspect.formatActions(),
@@ -345,6 +390,15 @@ sap.ui.define(
         // to "ERROR"). The content per entry is defined declaratively in
         // jsonSources / xmlSources above.
         renderTab(selItem, oModel) {
+          // The controls that belong to ONE tab live in the content area
+          // rather than the footer, so they appear with their tab instead
+          // of sitting there greyed out on the other twenty.
+          const flags = oModel.getData();
+          flags.isPickTab = selItem === "PICK";
+          flags.isHistoryTab = selItem === "HISTORY";
+          flags.isSearchTab = selItem === "SEARCH";
+          writeLastTab(selItem);
+
           if (jsonSources[selItem]) {
             this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");
             return;
@@ -999,6 +1053,39 @@ sap.ui.define(
           oModel.refresh();
         },
 
+        // The help used to be a tab of its own, which put a page of prose
+        // in the same row as the twenty tabs that show live state. It is
+        // reached from the info icon in the footer now and opens in its
+        // own dialog, so it does not take the current tab away.
+        onShowHelp() {
+          sap.ui.require(
+            ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
+            (Dialog, TextArea, Button) => {
+              const area = new TextArea({
+                editable: false,
+                width: "100%",
+                rows: 25,
+                growing: false,
+              });
+              area.setValue(Inspect.formatHelp());
+              const dialog = new Dialog({
+                title: "abap2UI5 - Developer Tools Help",
+                stretch: true,
+                content: [area],
+                buttons: [
+                  new Button({
+                    text: "Close",
+                    type: "Emphasized",
+                    press: () => dialog.close(),
+                  }),
+                ],
+                afterClose: () => dialog.destroy(),
+              });
+              dialog.open();
+            },
+          );
+        },
+
         onClose() {
           this.close();
         },
@@ -1035,8 +1122,18 @@ sap.ui.define(
               return;
             }
 
+            // A caller-named tab wins (the error popup's Details jumps to
+            // ERROR); otherwise reopen where the developer left off. The
+            // remembered key is validated: a tab that no longer exists -
+            // one stored by an older version, or a typo in the URL
+            // parameter - would otherwise select nothing at all.
+            const remembered = readLastTab();
             const selectedTab =
-              typeof initialTab === "string" ? initialTab : "PLAIN";
+              typeof initialTab === "string" && initialTab
+                ? initialTab
+                : isKnownTab(remembered)
+                  ? remembered
+                  : DEFAULT_TAB;
             const value = toJson(AppState.state.responseData);
             const oData = {
               selectedTab: selectedTab,
@@ -1055,6 +1152,11 @@ sap.ui.define(
               // back into their slot (core/devtools/LiveEdit.js).
               canApply: false,
               applyResult: "",
+              // set per tab by renderTab - the controls that belong to one
+              // tab live in the content area, not in the footer
+              isPickTab: false,
+              isHistoryTab: false,
+              isSearchTab: false,
               hasRetry: typeof AppState.state.lastError?.onRetry === "function",
               value: value,
               xContent: "",
@@ -1074,6 +1176,7 @@ sap.ui.define(
               hasPopoverModel: hasModelData(ViewSlots.getView("POPOVER")),
             };
 
+            writeLastTab(selectedTab);
             const oModel = new JSONModel(oData);
             const oDialog = this.oDialog;
             oDialog.setModel(oModel);

@@ -44,6 +44,7 @@ function loadDeveloperTools({
   // them (JSONModel, Lib, sap.ui.require), every other test runs without
   extraDeps = {},
   extraSandbox = {},
+  storage = {},
 } = {}) {
   const AppState = {
     state: { oResponse, responseData, oBody, errors, lastError },
@@ -138,11 +139,21 @@ function loadDeveloperTools({
       window: windowStub || {
         location: { origin: "https://sap.example.com", search: "" },
         open() {},
+        // the last-opened tab is remembered here
+        sessionStorage: {
+          getItem: (k) => (k in storage ? storage[k] : null),
+          setItem: (k, v) => {
+            storage[k] = v;
+          },
+          removeItem: (k) => {
+            delete storage[k];
+          },
+        },
       },
       ...extraSandbox,
     },
   });
-  return { DeveloperTools: module };
+  return { DeveloperTools: module, storage };
 }
 
 // Fake IconTabHeader select event carrying the dialog's JSON model.
@@ -413,7 +424,6 @@ test.describe("Inspector tabs", () => {
   };
 
   for (const [key, expected] of [
-    ["HELP", "HELP REPORT"],
     ["ENV", "ENV REPORT"],
     ["REGISTRY", "REGISTRY REPORT"],
     ["ACTIONS", "ACTIONS REPORT"],
@@ -517,6 +527,85 @@ test.describe("Live view editing", () => {
     DeveloperTools.onResetXml({ getSource: () => ({ getModel: () => oModel }) });
     expect(modelData.value).toBe('<mvc:View original="1"/>');
     expect(modelData.applyResult).toBe("");
+  });
+});
+
+test.describe("Per-tab controls", () => {
+  // These used to sit in the footer, greyed out or misleading on the other
+  // twenty tabs; renderTab flags which tab is showing so each control
+  // appears with the tab it belongs to.
+  test("flags the tab that owns the search field", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const search = fakeSelectEvent("SEARCH");
+    DeveloperTools.onItemSelect(search.oEvent);
+    expect(search.modelData.isSearchTab).toBe(true);
+    expect(search.modelData.isPickTab).toBe(false);
+    expect(search.modelData.isHistoryTab).toBe(false);
+  });
+
+  test("flags the tab that owns Pick Control", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const pick = fakeSelectEvent("PICK");
+    DeveloperTools.onItemSelect(pick.oEvent);
+    expect(pick.modelData.isPickTab).toBe(true);
+    expect(pick.modelData.isSearchTab).toBe(false);
+  });
+
+  test("flags the tab that owns Record Payloads", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const history = fakeSelectEvent("HISTORY");
+    DeveloperTools.onItemSelect(history.oEvent);
+    expect(history.modelData.isHistoryTab).toBe(true);
+    expect(history.modelData.isPickTab).toBe(false);
+  });
+
+  test("every other tab shows none of them", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const plain = fakeSelectEvent("PLAIN");
+    DeveloperTools.onItemSelect(plain.oEvent);
+    expect(plain.modelData.isSearchTab).toBe(false);
+    expect(plain.modelData.isPickTab).toBe(false);
+    expect(plain.modelData.isHistoryTab).toBe(false);
+  });
+});
+
+test.describe("Help", () => {
+  test("opens the inspector's help in a dialog of its own", () => {
+    const opened = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      inspect: {
+        formatHelp: () => "HELP TEXT",
+        formatEnvironment: () => "",
+        formatRegistry: () => "",
+        formatActions: () => "",
+        formatLog: () => "",
+        formatBindings: () => "",
+        findEventLine: () => 0,
+      },
+      extraSandbox: {
+        sap: {
+          ui: {
+            require: (_names, cb) =>
+              cb(
+                class {
+                  constructor(settings) {
+                    opened.push(settings);
+                  }
+                  open() {}
+                },
+                class {
+                  setValue(v) {
+                    opened.push(v);
+                  }
+                },
+                class {},
+              ),
+          },
+        },
+      },
+    });
+    DeveloperTools.onShowHelp();
+    expect(opened).toContain("HELP TEXT");
   });
 });
 
@@ -940,5 +1029,101 @@ test.describe("Open on error toggle", () => {
     });
     expect(calls).toEqual([true]);
     expect(modelData.openOnError).toBe(true);
+  });
+});
+
+test.describe("Reopening on the last tab", () => {
+  // Landing on the response JSON after every close means re-navigating on
+  // every open; the tools are meant to be lived in during a debugging
+  // session.
+  const openTools = async ({ storage = {}, initialTab } = {}) => {
+    const models = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      storage,
+      fragment: {
+        load: async () => ({ setModel: (m) => models.push(m), open() {} }),
+      },
+      extraDeps: {
+        "z2ui5/core/Lib": { isDestroyed: () => false, logError() {} },
+        "sap/ui/model/json/JSONModel": class {
+          constructor(data) {
+            this.data = data;
+          }
+          getData() {
+            return this.data;
+          }
+          refresh() {}
+        },
+      },
+      extraSandbox: { sap: { ui: { require: (_mods, resolve) => resolve() } } },
+    });
+    await DeveloperTools.show(initialTab);
+    return { data: models[0]?.getData(), storage };
+  };
+
+  test("remembers the tab the user selected", () => {
+    const { DeveloperTools, storage } = loadDeveloperTools();
+    const { oEvent } = fakeSelectEvent("BINDINGS");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(storage["z2ui5.devtools.lastTab"]).toBe("BINDINGS");
+  });
+
+  test("reopens on it", async () => {
+    const { data } = await openTools({
+      storage: { "z2ui5.devtools.lastTab": "HISTORY" },
+    });
+    expect(data.selectedTab).toBe("HISTORY");
+  });
+
+  test("falls back to the default tab when nothing is remembered", async () => {
+    const { data } = await openTools();
+    expect(data.selectedTab).toBe("PLAIN");
+  });
+
+  test("ignores a remembered tab that no longer exists", async () => {
+    // e.g. "HELP" or "MESSAGES", stored before those tabs were removed -
+    // selecting them would leave the header with nothing selected
+    const { data } = await openTools({
+      storage: { "z2ui5.devtools.lastTab": "HELP" },
+    });
+    expect(data.selectedTab).toBe("PLAIN");
+  });
+
+  // STANDALONE_TABS has to stay in step with the branches in renderTab -
+  // a tab missing from it is silently rejected and reopens on the default.
+  for (const tab of [
+    "HISTORY",
+    "DIFF",
+    "SEARCH",
+    "PICK",
+    "ERROR",
+    "SOURCE",
+    "LOG",
+    "BINDINGS",
+    "VIEW",
+    "MODEL",
+  ]) {
+    test(`reopens on the ${tab} tab`, async () => {
+      const { data } = await openTools({
+        storage: { "z2ui5.devtools.lastTab": tab },
+      });
+      expect(data.selectedTab).toBe(tab);
+    });
+  }
+
+  test("a caller-named tab wins over the remembered one", async () => {
+    // the error popup's Details action jumps to ERROR regardless
+    const { data } = await openTools({
+      storage: { "z2ui5.devtools.lastTab": "HISTORY" },
+      initialTab: "ERROR",
+    });
+    expect(data.selectedTab).toBe("ERROR");
+  });
+
+  test("opening also records the tab, so a close/open pair stays put", async () => {
+    const { storage } = await openTools({
+      storage: { "z2ui5.devtools.lastTab": "REGISTRY" },
+    });
+    expect(storage["z2ui5.devtools.lastTab"]).toBe("REGISTRY");
   });
 });
