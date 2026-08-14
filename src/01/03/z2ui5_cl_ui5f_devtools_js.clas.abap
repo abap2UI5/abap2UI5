@@ -49,13 +49,12 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
-             `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/devtools/Console",` && |\n| &&
              `    "z2ui5/core/devtools/DeveloperTools",` && |\n| &&
              `    "z2ui5/core/devtools/Recorder",` && |\n| &&
              `  ],` && |\n| &&
-             `  (AppState, ErrorView, Lib, Console, DeveloperTools, Recorder) => {` && |\n| &&
+             `  (AppState, Lib, Console, DeveloperTools, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Query parameter that opens the developer tools on page load, so a` && |\n| &&

@@ -22,13 +22,12 @@
 sap.ui.define(
   [
     "z2ui5/core/AppState",
-    "z2ui5/core/ErrorView",
     "z2ui5/core/Lib",
     "z2ui5/core/devtools/Console",
     "z2ui5/core/devtools/DeveloperTools",
     "z2ui5/core/devtools/Recorder",
   ],
-  (AppState, ErrorView, Lib, Console, DeveloperTools, Recorder) => {
+  (AppState, Lib, Console, DeveloperTools, Recorder) => {
     "use strict";
 
     // Query parameter that opens the developer tools on page load, so a

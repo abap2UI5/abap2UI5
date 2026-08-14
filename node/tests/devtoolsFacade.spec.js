@@ -46,7 +46,6 @@ function loadDevTools({ search = "" } = {}) {
         },
         getGlobal: (name) => globals[name],
       },
-      "z2ui5/core/ErrorView": {},
       "z2ui5/core/Lib": {
         registerCallback(name, fn) {
           if (!callbacks[name]) callbacks[name] = [];
