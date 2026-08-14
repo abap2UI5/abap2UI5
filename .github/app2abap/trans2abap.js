@@ -31,7 +31,7 @@ function createFileInTargetDir(targetFilePath, content) {
 }
 
 // Function to format the content into an ABAP class method
-function formatAsAbapClass(content, className, isSpecialFile) {
+function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
     const lines = content.split('\n');
     const formattedLines = lines.map((line, index) => {
         line = line.replace(/\s+$/, ''); // Remove trailing spaces
@@ -75,7 +75,7 @@ function formatAsAbapClass(content, className, isSpecialFile) {
         }
         return formattedLine;
     });
-    return abapClassTemplate(className, formattedLines.join('\n'));
+    return abapClassTemplate(className, formattedLines.join('\n'), sourcePath);
 }
 
 // Embedded frontend artefacts carry the `ui5f` segment (UI5 frontend); plain
@@ -306,8 +306,9 @@ async function main() {
             console.log(`Source file content fetched successfully for ${file}.`);
 
             const className = classNameByFile.get(file);
+            const relPath = path.relative(sourceDir, file).split(path.sep).join('/');
             const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html') || file.endsWith('.css');
-            const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile);
+            const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile, relPath);
 
             const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);
             await createFileInTargetDir(targetFilePath, abapClassContent);
@@ -320,7 +321,6 @@ async function main() {
 
             // Collect the preload entry. index.html is the standalone dev
             // page and is not preloaded by the generated GET response.
-            const relPath = path.relative(sourceDir, file).split(path.sep).join('/');
             if (relPath !== 'index.html') {
                 preloadEntries.push({
                     urlPath: `z2ui5/${relPath}`,
