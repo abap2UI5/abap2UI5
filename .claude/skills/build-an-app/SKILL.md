@@ -19,6 +19,9 @@ Quick orientation while it loads:
 - Build views with `z2ui5_cl_ui5_view_builder`
   (`ele`/`tag`/`a`/`end`/`stringify`). The legacy `z2ui5_cl_xml_view` is
   frozen — never use it in new code.
+- **The chain hangs off the `factory( )` — always one statement:**
+  `` DATA(view) = z2ui5_cl_ui5_view_builder=>factory( )->ele( n = `View` … ) ``,
+  never a `factory( ).` of its own followed by `view->ele( … )`.
 - The chain's layout is strict, not taste: the `)` rides with the arrow
   (`)->`), every `ele` indents its children one level (4 spaces) and `end`
   closes at the `ele`'s column, a control's `a( )`s sit one level in with
