@@ -159,6 +159,42 @@ The legacy fluent builder `z2ui5_cl_xml_view` (one method per control) still
 ships for existing apps but is **frozen** — new apps and new code use
 `z2ui5_cl_ai_xml`.
 
+### Formatting the chain (strict — reviewers check these)
+
+A chain is read far more often than it is written, and its layout is the only
+thing that still makes it legible as the XML tree it stands for. The rules
+below are the ones the sample repositories are ported and reviewed against;
+`.github/abaplint/auto_abaplint_fix.jsonc` excludes the shipped apps from
+`align_parameters` / `line_break_multiple_parameters` so the auto-formatter
+does not undo them.
+
+- **The closing paren rides with the arrow.** Never leave a `)` alone at the
+  end of a line — carry it to the **start of the next segment**, so every
+  continuation reads `)->`. With the `a( )` chain there is no nested `VALUE`,
+  so the whole view ends in a single `` ).`` (not `) ).`).
+- **Indent after every `open`.** Each `open( )` shifts its children's `)->`
+  one level (4 spaces) to the right, `shut( )` shifts back left, and the `)->`
+  of a `shut` sits in the same column as the `open` it closes.
+- **A control's `a( )` lines sit one level (4 spaces) in from the control's
+  own `)->` line** — one attribute per line, `v =` column aligned across the
+  block.
+- **Blank lines** (a control's own `a( )`s never count — they belong to it):
+  - **never** between consecutive `leaf`s, and **never** after a one-liner
+    `open` (an aggregation or container with no attributes) before its first
+    child;
+  - a blank **does** separate an `open` that *has* attributes from its first
+    child, and separates a new `open`/`leaf` block from the previous sibling;
+  - a blank **before** every `shut`; **none** after a `shut` or between two
+    `shut`s;
+  - **none** between a control and its own `a( )`s.
+- Long text or binding values split with `&&` — an `.abap` line is capped at
+  255 characters.
+
+The framework's own generic builder `z2ui5_cl_ui5_view_builder`
+(`ele`/`tag`/`a`/`end`) is laid out by exactly the same rules: `ele` indents
+like `open`, `tag` behaves like `leaf`, `end` closes like `shut`, and the
+attribute verb is the same `a( )`.
+
 ## 4. Data binding
 
 - `client->_bind( var )` binds a PUBLIC attribute: the value renders into

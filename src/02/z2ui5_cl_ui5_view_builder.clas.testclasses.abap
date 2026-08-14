@@ -4,9 +4,9 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
     METHODS render_nested_view FOR TESTING.
-    METHODS att_after_ele_hits_the_element FOR TESTING.
-    METHODS att_after_tag_hits_the_tag FOR TESTING.
-    METHODS att_after_end_hits_closed_ele FOR TESTING.
+    METHODS a_after_ele_hits_the_element FOR TESTING.
+    METHODS a_after_tag_hits_the_tag FOR TESTING.
+    METHODS a_after_end_hits_closed_ele FOR TESTING.
     METHODS tag_stays_and_siblings FOR TESTING.
     METHODS trailing_end_is_optional FOR TESTING.
     METHODS escape_attribute_value FOR TESTING.
@@ -23,11 +23,11 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     view->ele( n  = `View`
                ns = `mvc`
-        )->att( n = `xmlns`
+        )->a( n = `xmlns`
                 v = `sap.m`
 
         )->tag( `Text`
-            )->att( n = `text`
+            )->a( n = `text`
                     v = `Hello`
 
         )->ele( `Panel`
@@ -40,17 +40,17 @@ CLASS ltcl_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD att_after_ele_hits_the_element.
+  METHOD a_after_ele_hits_the_element.
 
-    " ele( ) descends into a node that has no children yet, so att( ) sets the
+    " ele( ) descends into a node that has no children yet, so a( ) sets the
     " attribute on that node itself
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
-        )->att( n = `title`
+        )->a( n = `title`
                 v = `Home`
         )->ele( `Panel`
-            )->att( n = `width`
+            )->a( n = `width`
                     v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -60,16 +60,16 @@ CLASS ltcl_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD att_after_tag_hits_the_tag.
+  METHOD a_after_tag_hits_the_tag.
 
     " tag( ) does not move, but the tag is now this node's last child, so the
-    " att( ) still reaches it - this is what makes tag( ) usable for a leaf
+    " a( ) still reaches it - this is what makes tag( ) usable for a leaf
     " that carries attributes
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->tag( `Title`
-            )->att( n = `width`
+            )->a( n = `width`
                     v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -79,10 +79,10 @@ CLASS ltcl_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD att_after_end_hits_closed_ele.
+  METHOD a_after_end_hits_closed_ele.
 
     " after end( ) the chain stands on the parent, whose last child is the
-    " container just closed - so att( ) attaches to that container, not to the
+    " container just closed - so a( ) attaches to that container, not to the
     " parent. The flip side of the rule: an element that already has children
     " can no longer be given an attribute
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
@@ -91,7 +91,7 @@ CLASS ltcl_builder IMPLEMENTATION.
         )->ele( `Panel`
             )->tag( `Title`
         )->end(
-        )->att( n = `width`
+        )->a( n = `width`
                 v = `100%` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -104,16 +104,16 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD tag_stays_and_siblings.
 
     " tag( ) does not move, so siblings follow directly and no end( ) is
-    " needed - each att( ) block travels with the tag it follows
+    " needed - each a( ) block travels with the tag it follows
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
         )->tag( `Text`
-            )->att( n = `text`
+            )->a( n = `text`
                     v = `first`
         )->tag( n  = `Text`
                 ns = `m`
-            )->att( n = `text`
+            )->a( n = `text`
                     v = `second`
         )->tag( `ToolbarSpacer` ).
 
@@ -145,7 +145,7 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
-        )->att( n = `text`
+        )->a( n = `text`
                 v = `a<b>&"c` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -162,7 +162,7 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
-        )->att( n = `text`
+        )->a( n = `text`
                 v = |line1{ z2ui5_cl_ui5_util_context=>cv_char_util_newline }line2{ z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab }end| ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -179,9 +179,9 @@ CLASS ltcl_builder IMPLEMENTATION.
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
-        )->att( n = `visible`
+        )->a( n = `visible`
                 b = abap_true
-        )->att( n = `expanded`
+        )->a( n = `expanded`
                 b = abap_false ).
 
     cl_abap_unit_assert=>assert_equals(
