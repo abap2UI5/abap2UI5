@@ -29,7 +29,7 @@
 // Why payloads can be kept as plain REFERENCES (no structuredClone):
 // actions/Slots.js hands the response's MODEL object straight to
 // JSONModel.setData(), so the live model data IS response.MODEL and the
-// two-way binding mutates it in place. That only lasts until the NEXT
+// binding mutates it in place. That only lasts until the NEXT
 // roundtrip calls setData() with the new response's MODEL - from that
 // moment the old object is unbound and frozen. So every record except the
 // newest is stable, and the newest one is the current state the existing

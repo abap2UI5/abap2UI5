@@ -217,7 +217,7 @@ sap.ui.define(
     // Point the CALLING app's history entry at the draft the backend saved
     // for it during this very nav_app_call (the navAppCallPrev* options).
     // That draft carries every client-side change the user made since the
-    // caller last rendered - two-way bound switches, checkboxes, input - all
+    // caller last rendered - bound switches, checkboxes, input - all
     // of which travelled to the backend with the event that triggered the
     // navigation. The entry itself still carries the older draft of that
     // last render, so without this Back restores the caller as it was

@@ -13,7 +13,7 @@ const { test, expect } = require("./fixtures");
 // interface-attribute access in check_on_init went through a typed
 // variable (see the comment there) - the historical "never returns view
 // XML" limitation is gone, and the tests below assert the full cycle:
-// initial view XML, then an event roundtrip whose two-way model delta is
+// initial view XML, then an event roundtrip whose model delta is
 // applied before on_event and answered with the message box.
 
 const HELLO_WORLD = "Z2UI5_CL_UI5_APP_HI_WORLD";
@@ -97,7 +97,7 @@ test("returns the backend-built view XML on app start", async ({ request }) => {
   expect(xml).toContain("<mvc:View");
   expect(xml).toContain('value="{/NAME}"');
   expect(xml).toContain("BUTTON_POST");
-  // the two-way bound attribute is seeded in the model
+  // the bound attribute is seeded in the model
   expect(body.MODEL).toHaveProperty("NAME");
 });
 
@@ -111,7 +111,7 @@ test("applies the model delta before on_event and answers the event", async ({
   ).json();
 
   // fire the hello-world button event, shipping the edited input value as
-  // the two-way model delta - the backend must apply it to the app object
+  // the model delta - the backend must apply it to the app object
   // BEFORE on_event runs and answer with the message box
   const second = await (
     await request.post("/", {

@@ -372,7 +372,7 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
-  "! obsolete - delegates to _bind (both two-way), please use _bind.
+  "! obsolete - alias of _bind with identical behaviour, please use _bind.
   "! custom_mapper_back / custom_filter_back are still accepted for source
   "! compatibility but are no longer evaluated.
   METHODS _bind_edit
@@ -463,7 +463,7 @@ INTERFACE z2ui5_if_client
   "! PersonalizableInfo, and a change handler per filter field that marks the
   "! variant as modified. This action does all of it, so saving, selecting and
   "! restoring a variant works without a single line of JavaScript. The
-  "! restored values reach the backend through the two-way binding of the
+  "! restored values reach the backend through the binding of the
   "! filter fields, no extra roundtrip needed.
   "! cs_event-keyboard_shortcut - bind a key combination to a named backend
   "! event, the declarative equivalent of a sap.ui.core.CommandExecution
