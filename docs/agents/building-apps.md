@@ -178,17 +178,43 @@ does not undo them.
 - **A control's `a( )` lines sit one level (4 spaces) in from the control's
   own `)->` line** — one attribute per line, `v =` column aligned across the
   block.
-- **Blank lines** (a control's own `a( )`s never count — they belong to it):
-  - **never** between consecutive `leaf`s, and **never** after a one-liner
-    `open` (an aggregation or container with no attributes) before its first
-    child;
-  - a blank **does** separate an `open` that *has* attributes from its first
-    child, and separates a new `open`/`leaf` block from the previous sibling;
-  - a blank **before** every `shut`; **none** after a `shut` or between two
-    `shut`s;
-  - **none** between a control and its own `a( )`s.
+- **A blank line marks a descent, and nothing else** — it separates a
+  control's attribute block from the **child** that follows it. Everything
+  else in the chain runs without blanks. In detail:
+  - **blank** after the last `a( )` of a control, before its first child
+    (`open` or `leaf`) — the attributes belong to the parent, the next line
+    starts its content;
+  - **none** after a one-liner `open` (an aggregation or container with no
+    attributes) before its first child — there is no attribute block to close;
+  - **none** between a control and its own `a( )`s;
+  - **none between consecutive `leaf`s** — a row of leafs is one block,
+    whether or not they carry attributes. This is the rule that overrules
+    "separate a sibling": only a *container* block (an `open` … `shut`) is
+    separated from the sibling before it;
+  - **blank before every `shut`**; none after a `shut` or between two `shut`s.
 - Long text or binding values split with `&&` — an `.abap` line is capped at
   255 characters.
+
+The two spots the blank-line rule is most often gotten wrong — an
+attribute-less container, and a row of leafs:
+
+```abap
+    )->open( n = `SimpleForm` ns = `form`
+        )->a( n = `editable` v = `true`
+                                       " <- blank: SimpleForm's attrs end here
+        )->open( n = `content` ns = `form`
+            )->leaf( n = `Title` ns = `core`
+                )->a( n = `text`  v = `Your data`
+            )->leaf( `Label`
+                )->a( n = `text`  v = `Name`
+            )->leaf( `Input`
+                )->a( n = `value` v = client->_bind( name ) ).
+```
+
+`content` carries no attributes, so nothing separates it from `Title`; the
+three leafs are one block, so nothing separates them from each other either.
+The same view with a blank line after `content` and between the leafs reads
+as four unrelated fragments instead of one form.
 
 The framework's own generic builder `z2ui5_cl_ui5_view_builder`
 (`ele`/`tag`/`a`/`end`) is laid out by exactly the same rules: `ele` indents

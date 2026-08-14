@@ -320,6 +320,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `xmlns:core`    v = `sap.ui.core`
         )->a( n = `displayBlock`  v = `true`
         )->a( n = `height`        v = `100%`
+
         )->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = `abap2UI5 - Build UI5 Apps Purely in ABAP`
@@ -652,6 +653,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `xmlns`       v = `sap.m`
         )->a( n = `xmlns:core`  v = `sap.ui.core`
         )->a( n = `xmlns:form`  v = `sap.ui.layout.form`
+
         )->ele( `Dialog`
             )->a( n = `title`       v = `abap2UI5 - System Information`
             )->a( n = `afterClose`  v = client->_event( c_event_close ) ).

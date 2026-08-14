@@ -30,17 +30,14 @@ CLASS z2ui5_cl_ui5_app_hi_world IMPLEMENTATION.
 
                   )->ele( n = `SimpleForm` ns = `form`
                       )->a( n = `editable`  v = `true`
-                      )->ele( n = `content` ns = `form`
 
+                      )->ele( n = `content` ns = `form`
                           )->tag( n = `Title` ns = `core`
                               )->a( n = `text`  v = `Enter a value and send it to the server...`
-
                           )->tag( `Label`
                               )->a( n = `text`  v = `Name`
-
                           )->tag( `Input`
                               )->a( n = `value`  v = client->_bind( name )
-
                           )->tag( `Button`
                               )->a( n = `text`   v = `Post`
                               )->a( n = `press`  v = client->_event( `BUTTON_POST` ) ).
