@@ -312,8 +312,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    DATA(page) = view->ele( n   = `View`
-                             ns = `mvc`
+    DATA(page) = view->ele( n = `View` ns = `mvc`
         )->att( n = `xmlns`         v = `sap.m`
         )->att( n = `xmlns:mvc`     v = `sap.ui.core.mvc`
         )->att( n = `xmlns:form`    v = `sap.ui.layout.form`
@@ -381,8 +380,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " A Button wraps its icon in button chrome that caps how large it renders;
     " a bare icon takes the size it is given, and 1.125rem is what makes the
     " title row read as icons rather than as shrunken buttons.
-    toolbar->tag( n  = `Icon`
-                  ns = `core`
+    toolbar->tag( n = `Icon` ns = `core`
         )->att( n = `src`      v = icon
         )->att( n = `size`     v = c_icon_size_header
         )->att( n = `class`    v = `sapUiTinyMarginBeginEnd`
@@ -549,8 +547,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " no slot of its own for the icon: every glyph of the icon font renders the
     " same width, so the links line up on the icon alone - a fixed slot only
     " tore a hole between the icon and the name it belongs to
-    result->tag( n   = `Icon`
-                  ns = `core`
+    result->tag( n = `Icon` ns = `core`
         )->att( n = `src`    v = icon
         )->att( n = `color`  v = c_icon_color
         )->att( n = `class`  v = `sapUiTinyMarginEnd` ).
@@ -640,8 +637,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " the popup is opened, which is exactly when somebody asks
     DATA(popup) = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    DATA(dialog) = popup->ele( n   = `FragmentDefinition`
-                                ns = `core`
+    DATA(dialog) = popup->ele( n = `FragmentDefinition` ns = `core`
         )->att( n = `xmlns`       v = `sap.m`
         )->att( n = `xmlns:core`  v = `sap.ui.core`
         )->att( n = `xmlns:form`  v = `sap.ui.layout.form`
@@ -732,8 +728,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
   METHOD create_layout_form.
 
-    result = view->ele( n   = `SimpleForm`
-                         ns = `form`
+    result = view->ele( n = `SimpleForm` ns = `form`
         )->att( n = `editable`                 v = `true`
         )->att( n = `layout`                   v = `ResponsiveGridLayout`
         )->att( n = `labelSpanXL`              v = `4`
@@ -749,8 +744,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->att( n = `columnsL`                 v = `1`
         )->att( n = `columnsM`                 v = `1`
         )->att( n = `singleContainerFullSize`  v = `false`
-        )->ele( n   = `content`
-                 ns = `form` ).
+        )->ele( n = `content` ns = `form` ).
 
   ENDMETHOD.
 
