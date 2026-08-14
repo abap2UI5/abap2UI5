@@ -105,7 +105,7 @@ const DEFAULT_NS_LEAF = "UI5";
 // BSP pages (the z2ui5.wapa.<page> files under src/02 of the generated
 // standard branches) are stored in the abapGit WAPA page format: every line
 // space-padded to exactly 255 characters, longer lines wrapped into 255-char
-// chunks, no trailing newline (see .github/app2bsp/run.js). A content edit
+// chunks, no trailing newline (see tools/app2bsp/run.js). A content edit
 // changes line lengths, so edited page files must be re-padded afterwards.
 const BSP_LINE_WIDTH = 255;
 

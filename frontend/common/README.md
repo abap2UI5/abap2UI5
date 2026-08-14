@@ -12,16 +12,16 @@ This repository contains an abap2UI5 frontend artefacts service. For more inform
 > ```
 > abap2UI5/abap2UI5                                   abap2UI5/frontend
 >                                    frontend_deploy
->   app/webapp/  ──▶  frontend/  ───────────────────────▶  cloud
->   (the webapp)      (everything                          cloud_v2
->                      else a branch                       standard
->                      is built from)                      standard_v2
->                                                          standard_<name>
+>   app/webapp/  ──▶  build/  ──────────────────────────▶  cloud
+>   (the webapp)      (each branch                         cloud_v2
+>    + frontend/       as a committed                      standard
+>                      tree, pushed                        standard_v2
+>                      as it stands)                       standard_<name>
 > ```
 
 #### Branch
 
-Every branch is generated in [abap2UI5](https://github.com/abap2UI5/abap2UI5) — the webapp lives in `app/webapp` there, everything else a branch is built from in [`frontend/`](https://github.com/abap2UI5/abap2UI5/tree/main/frontend) — and pushed here by its `frontend_deploy` workflow. Pull the one that matches your system:
+Every branch is generated in [abap2UI5](https://github.com/abap2UI5/abap2UI5) — the webapp lives in `app/webapp` there, everything else a branch is built from in [`frontend/`](https://github.com/abap2UI5/abap2UI5/tree/main/frontend) — and committed there as a finished tree under [`build/`](https://github.com/abap2UI5/abap2UI5/tree/main/build), which its `frontend_deploy` workflow pushes here unchanged. What arrives here is what a pull request over there reviewed. Pull the one that matches your system:
 
 | Name        | System                                                | UI5     | Built by |
 |-------------|-------------------------------------------------------|---------|-------|
@@ -41,7 +41,7 @@ Nothing in this repository is written by hand any more. A change made to a gener
 | every branch (`cloud`, `cloud_v2`, `standard`, `standard_v2`, `standard_<name>`) | [abap2UI5](https://github.com/abap2UI5/abap2UI5) — `app/webapp/` plus [`frontend/`](https://github.com/abap2UI5/abap2UI5/tree/main/frontend), pushed by its `frontend_deploy` workflow |
 | this repository's docs (`main`) | here, as a maintenance pull request |
 
-So a frontend change belongs in abap2UI5: edit `app/webapp` there, run `npm run app2abap` to regenerate the embedded ABAP resources under `src/01/03`, and let the build deliver it here. The BSP packaging is checked in the same pull request, against the webapp being changed (`frontend_check`).
+So a frontend change belongs in abap2UI5: edit `app/webapp` there, run `npm run app2abap` to regenerate the embedded ABAP resources under `src/01/03` and `npm run frontend:build` to regenerate the delivery trees under `build/`, and commit both with the change. The BSP packaging is checked in the same pull request, against the webapp being changed (`frontend_check`), and `frontend_deploy` delivers the committed trees here.
 
 Because the overwrite is not loud — the change is merged, works, and vanishes on some later unrelated run — the convention is enforced rather than trusted: the `guard_mirrored` workflow fails **every** pull request opened here, and a change to this repository's own docs is unlocked by a maintainer applying the `maintenance` label.
 
