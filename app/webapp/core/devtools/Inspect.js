@@ -71,6 +71,80 @@ sap.ui.define(
       return "";
     }
 
+    // The bootstrap <script> of the page. Both pages abap2UI5 can run on
+    // give it the id "sap-ui-bootstrap": the standalone app/webapp/index.html
+    // and the HTML the backend generates (z2ui5_cl_ui5_http_handler), whose
+    // `src` comes from the exit configuration. Which SDK URL a system is
+    // actually configured with is the first question when a view fails to
+    // load a control, and it is nowhere else to be seen.
+    function bootstrapElement() {
+      try {
+        return document.getElementById("sap-ui-bootstrap");
+      } catch {
+        return null;
+      }
+    }
+
+    function bootstrapAttr(el, name) {
+      // The bootstrap attributes are written camelCase in the page
+      // (data-sap-ui-compatVersion); getAttribute is case-insensitive for
+      // HTML elements, so the lower-case form finds them either way.
+      return el?.getAttribute?.(`data-sap-ui-${name}`) || "";
+    }
+
+    // Where the UI5 loader resolves a module namespace to. Answers "is this
+    // app loading its own resources from the BSP, the standalone service or
+    // a sibling add-on BSP", which a wrong resourceroot silently breaks.
+    function resourceUrl(namespace) {
+      try {
+        return sap.ui.require?.toUrl ? sap.ui.require.toUrl(namespace) : "";
+      } catch {
+        return "";
+      }
+    }
+
+    // Language and text direction, version-independently.
+    // sap/base/i18n/Localization arrived in 1.118 and is the only API left
+    // in UI5 2.x; older releases expose both through the Configuration.
+    function getLocale() {
+      const Localization = sap.ui.require("sap/base/i18n/Localization");
+      if (Localization?.getLanguage) {
+        return {
+          language: Localization.getLanguage(),
+          rtl: Boolean(Localization.getRTL?.()),
+        };
+      }
+      /* ui5lint-disable no-globals, no-deprecated-api --
+       deliberate fallback for UI5 releases without
+       sap/base/i18n/Localization (added in 1.118); the modern API is used
+       in the branch above. */
+      if (sap.ui.getCore) {
+        const config = sap.ui.getCore().getConfiguration?.();
+        if (config?.getLanguage) {
+          return {
+            language: config.getLanguage(),
+            rtl: Boolean(config.getRTL?.()),
+          };
+        }
+      }
+      /* ui5lint-enable no-globals, no-deprecated-api */
+      return { language: "", rtl: false };
+    }
+
+    // Compact vs cozy decides control heights and is set on the body by the
+    // page (or by an app) - a layout that looks wrong in one density and
+    // right in the other is a classic, and invisible without this.
+    function getContentDensity() {
+      try {
+        const classes = document.body?.classList;
+        if (classes?.contains("sapUiSizeCompact")) return "Compact";
+        if (classes?.contains("sapUiSizeCozy")) return "Cozy";
+      } catch {
+        return "";
+      }
+      return "(neither class set)";
+    }
+
     // SAPUI5 and OpenUI5 ship different control libraries, and a view that
     // works on one can fail to load a module on the other - so which one is
     // running is a first-order fact when a view refuses to build. The
@@ -151,6 +225,12 @@ sap.ui.define(
       out.push(line("Distribution", getDistribution(sUi5)));
       out.push(line("Build timestamp", sUi5?.BUILDTIMESTAMP));
       out.push(line("Theme", getTheme()));
+      const locale = getLocale();
+      out.push(line("Language", locale.language));
+      out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));
+      out.push(line("Content density", getContentDensity()));
+
+      out.push(...formatBootstrap());
 
       out.push(section("Device"));
       out.push(line("System", Lib.deriveSystemType(Device.system)));
@@ -189,6 +269,50 @@ sap.ui.define(
       out.push(...formatSlots());
 
       return out.join("\n");
+    }
+
+    // How this page loaded UI5 and where it resolves resources from. Every
+    // value is read from the LIVE page, not from what the backend says it
+    // configured - which is the point: a proxy, a launchpad or a stale
+    // cached page can all make these differ from the configuration.
+    function formatBootstrap() {
+      const out = [section("UI5 bootstrap")];
+      const el = bootstrapElement();
+      if (!el) {
+        out.push('  (no <script id="sap-ui-bootstrap"> on this page -');
+        out.push("  UI5 was started some other way, e.g. by a launchpad)");
+      } else {
+        // .src resolves relative to the page, so this is the absolute URL
+        // the browser actually fetched the SDK from.
+        out.push(line("SDK source", el.src || bootstrapAttr(el, "src")));
+        for (const [label, attr] of [
+          ["Bootstrap theme", "theme"],
+          ["Resource roots", "resourceroots"],
+          ["On init", "oninit"],
+          ["Compat version", "compatversion"],
+          ["Async", "async"],
+          ["Frame options", "frameoptions"],
+          ["Binding syntax", "bindingsyntax"],
+          ["Libs", "libs"],
+        ]) {
+          const value = bootstrapAttr(el, attr);
+          if (value) out.push(line(label, truncate(value, MAX_ARG_CHARS)));
+        }
+      }
+
+      out.push("");
+      // The resolved roots matter more than the declared ones: this is
+      // where a module request actually goes.
+      out.push(line("Resource base", resourceUrl("")));
+      out.push(line("z2ui5 root", resourceUrl("z2ui5")));
+      // The two sibling BSPs for community controls and the customer's own
+      // frontend extension. Reported only when the app set them up, since
+      // a system that has neither installed should not look misconfigured.
+      const cci = AppState.getGlobal("ccResourceRoot");
+      const ccc = AppState.getGlobal("cccResourceRoot");
+      if (cci) out.push(line("z2ui5_cci root", cci));
+      if (ccc) out.push(line("z2ui5_ccc root", ccc));
+      return out;
     }
 
     // The frontend block the framework puts on the wire - what an app reads
@@ -554,7 +678,10 @@ sap.ui.define(
       "                travel as the next delta",
       "  Picked        the last control picked with 'Pick Control'",
       "  Registry      shortcuts, timers, callbacks, bound backend events",
-      "  Environment   versions, SAPUI5 vs OpenUI5, session, device, slots",
+      "  Environment   versions, SAPUI5 vs OpenUI5, the SDK url the page",
+      "                bootstrapped from and its resource roots, theme,",
+      "                language, content density, session, device, the",
+      "                focus/scroll block sent on every roundtrip, slots",
       "  Source Code   the running app's ABAP class (ADT opens it in a tab)",
       "  Request /     the raw JSON on the wire",
       "  Response",

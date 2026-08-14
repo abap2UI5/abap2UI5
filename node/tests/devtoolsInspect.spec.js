@@ -38,6 +38,11 @@ function loadInspect({
   hash = "",
   focusInfo,
   scrollInfo,
+  bootstrap,
+  bodyClasses = [],
+  locale,
+  resourceUrls = {},
+  extraGlobals = {},
 } = {}) {
   const AppState = {
     state: {
@@ -63,6 +68,7 @@ function loadInspect({
     getGlobal: (name) => {
       if (name === "oConfig") return oConfig;
       if (name === "url") return "/sap/z2ui5";
+      if (name in extraGlobals) return extraGlobals[name];
       return undefined;
     },
   };
@@ -102,7 +108,21 @@ function loadInspect({
         innerWidth: 1920,
         innerHeight: 1080,
       },
-      sap: { ui: { version: "1.120.5", require: () => undefined } },
+      document: {
+        getElementById: (id) =>
+          id === "sap-ui-bootstrap" ? bootstrap || null : null,
+        body: { classList: { contains: (c) => bodyClasses.includes(c) } },
+      },
+      sap: {
+        ui: {
+          version: "1.120.5",
+          require: Object.assign(
+            (name) =>
+              name === "sap/base/i18n/Localization" ? locale : undefined,
+            { toUrl: (ns) => resourceUrls[ns] ?? `/resources/${ns}` },
+          ),
+        },
+      },
     },
   });
   return module;
@@ -148,6 +168,112 @@ test.describe("Environment", () => {
     const out = Inspect.formatEnvironment();
     expect(out).toContain("2 model attributes");
     expect(out).toMatch(/POPUP\s+empty/);
+  });
+});
+
+// A bootstrap <script> double. Both pages abap2UI5 runs on give it the id
+// "sap-ui-bootstrap"; getAttribute is case-insensitive on a real HTML
+// element, which is why the module looks the attributes up lower-cased.
+function fakeBootstrap(attrs = {}, src = "https://sdk.example.com/1.120.5/resources/sap-ui-core.js") {
+  const lower = {};
+  for (const key of Object.keys(attrs)) lower[key.toLowerCase()] = attrs[key];
+  return {
+    src,
+    getAttribute: (name) => {
+      const key = name.replace(/^data-sap-ui-/, "").toLowerCase();
+      return lower[key] ?? null;
+    },
+  };
+}
+
+test.describe("UI5 bootstrap", () => {
+  test("reports the SDK url the browser actually fetched", () => {
+    const Inspect = loadInspect({ bootstrap: fakeBootstrap() });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("UI5 bootstrap");
+    expect(out).toContain("https://sdk.example.com/1.120.5/resources/sap-ui-core.js");
+  });
+
+  test("reports the bootstrap attributes that are set", () => {
+    const Inspect = loadInspect({
+      bootstrap: fakeBootstrap({
+        theme: "sap_horizon_dark",
+        resourceroots: '{ "z2ui5": "./" }',
+        compatVersion: "edge",
+        async: "true",
+        frameOptions: "trusted",
+        bindingSyntax: "complex",
+      }),
+    });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("sap_horizon_dark");
+    expect(out).toContain('{ "z2ui5": "./" }');
+    expect(out).toContain("edge");
+    expect(out).toContain("trusted");
+    expect(out).toContain("complex");
+  });
+
+  test("omits an attribute the page did not set", () => {
+    const Inspect = loadInspect({ bootstrap: fakeBootstrap({ theme: "x" }) });
+    expect(Inspect.formatEnvironment()).not.toContain("Frame options");
+  });
+
+  test("says so when the page has no bootstrap script", () => {
+    const Inspect = loadInspect({ bootstrap: null });
+    expect(Inspect.formatEnvironment()).toContain("no <script");
+  });
+
+  test("resolves the roots a module request actually goes to", () => {
+    const Inspect = loadInspect({
+      bootstrap: fakeBootstrap(),
+      resourceUrls: { "": "/sap/bc/ui5_ui5/sap/z2ui5/", z2ui5: "/sap/bc/z2ui5/" },
+    });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("/sap/bc/ui5_ui5/sap/z2ui5/");
+    expect(out).toContain("/sap/bc/z2ui5/");
+  });
+
+  test("reports the sibling BSP roots only when the app set them up", () => {
+    const without = loadInspect({ bootstrap: fakeBootstrap() });
+    expect(without.formatEnvironment()).not.toContain("z2ui5_cci root");
+
+    const with_ = loadInspect({
+      bootstrap: fakeBootstrap(),
+      extraGlobals: {
+        ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci/",
+        cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc/",
+      },
+    });
+    const out = with_.formatEnvironment();
+    expect(out).toContain("z2ui5_cci root");
+    expect(out).toContain("/sap/bc/ui5_ui5/sap/z2ui5_ccc/");
+  });
+});
+
+test.describe("locale and density", () => {
+  test("reads language and text direction from the modern API", () => {
+    const Inspect = loadInspect({
+      locale: { getLanguage: () => "de-DE", getRTL: () => false },
+    });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("de-DE");
+    expect(out).toContain("LTR");
+  });
+
+  test("reports RTL when the page runs right-to-left", () => {
+    const Inspect = loadInspect({
+      locale: { getLanguage: () => "ar", getRTL: () => true },
+    });
+    expect(Inspect.formatEnvironment()).toContain("RTL");
+  });
+
+  test("reports the content density set on the body", () => {
+    const compact = loadInspect({ bodyClasses: ["sapUiSizeCompact"] });
+    expect(compact.formatEnvironment()).toContain("Compact");
+    const cozy = loadInspect({ bodyClasses: ["sapUiSizeCozy"] });
+    expect(cozy.formatEnvironment()).toContain("Cozy");
+    const neither = loadInspect({ bodyClasses: [] });
+    expect(neither.formatEnvironment()).toContain("neither class set");
   });
 });
 

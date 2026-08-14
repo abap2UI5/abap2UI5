@@ -98,6 +98,80 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // The bootstrap <script> of the page. Both pages abap2UI5 can run on` && |\n| &&
+             `    // give it the id "sap-ui-bootstrap": the standalone app/webapp/index.html` && |\n| &&
+             `    // and the HTML the backend generates (z2ui5_cl_ui5_http_handler), whose` && |\n| &&
+             `    // ``src`` comes from the exit configuration. Which SDK URL a system is` && |\n| &&
+             `    // actually configured with is the first question when a view fails to` && |\n| &&
+             `    // load a control, and it is nowhere else to be seen.` && |\n| &&
+             `    function bootstrapElement() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        return document.getElementById("sap-ui-bootstrap");` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function bootstrapAttr(el, name) {` && |\n| &&
+             `      // The bootstrap attributes are written camelCase in the page` && |\n| &&
+             `      // (data-sap-ui-compatVersion); getAttribute is case-insensitive for` && |\n| &&
+             `      // HTML elements, so the lower-case form finds them either way.` && |\n| &&
+             `      return el?.getAttribute?.(``data-sap-ui-${name}``) || "";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Where the UI5 loader resolves a module namespace to. Answers "is this` && |\n| &&
+             `    // app loading its own resources from the BSP, the standalone service or` && |\n| &&
+             `    // a sibling add-on BSP", which a wrong resourceroot silently breaks.` && |\n| &&
+             `    function resourceUrl(namespace) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        return sap.ui.require?.toUrl ? sap.ui.require.toUrl(namespace) : "";` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return "";` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Language and text direction, version-independently.` && |\n| &&
+             `    // sap/base/i18n/Localization arrived in 1.118 and is the only API left` && |\n| &&
+             `    // in UI5 2.x; older releases expose both through the Configuration.` && |\n| &&
+             `    function getLocale() {` && |\n| &&
+             `      const Localization = sap.ui.require("sap/base/i18n/Localization");` && |\n| &&
+             `      if (Localization?.getLanguage) {` && |\n| &&
+             `        return {` && |\n| &&
+             `          language: Localization.getLanguage(),` && |\n| &&
+             `          rtl: Boolean(Localization.getRTL?.()),` && |\n| &&
+             `        };` && |\n| &&
+             `      }` && |\n| &&
+             `      /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
+             `       deliberate fallback for UI5 releases without` && |\n| &&
+             `       sap/base/i18n/Localization (added in 1.118); the modern API is used` && |\n| &&
+             `       in the branch above. */` && |\n| &&
+             `      if (sap.ui.getCore) {` && |\n| &&
+             `        const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
+             `        if (config?.getLanguage) {` && |\n| &&
+             `          return {` && |\n| &&
+             `            language: config.getLanguage(),` && |\n| &&
+             `            rtl: Boolean(config.getRTL?.()),` && |\n| &&
+             `          };` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `      return { language: "", rtl: false };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Compact vs cozy decides control heights and is set on the body by the` && |\n| &&
+             `    // page (or by an app) - a layout that looks wrong in one density and` && |\n| &&
+             `    // right in the other is a classic, and invisible without this.` && |\n| &&
+             `    function getContentDensity() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const classes = document.body?.classList;` && |\n| &&
+             `        if (classes?.contains("sapUiSizeCompact")) return "Compact";` && |\n| &&
+             `        if (classes?.contains("sapUiSizeCozy")) return "Cozy";` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return "";` && |\n| &&
+             `      }` && |\n| &&
+             `      return "(neither class set)";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // SAPUI5 and OpenUI5 ship different control libraries, and a view that` && |\n| &&
              `    // works on one can fail to load a module on the other - so which one is` && |\n| &&
              `    // running is a first-order fact when a view refuses to build. The` && |\n| &&
@@ -178,6 +252,12 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(line("Distribution", getDistribution(sUi5)));` && |\n| &&
              `      out.push(line("Build timestamp", sUi5?.BUILDTIMESTAMP));` && |\n| &&
              `      out.push(line("Theme", getTheme()));` && |\n| &&
+             `      const locale = getLocale();` && |\n| &&
+             `      out.push(line("Language", locale.language));` && |\n| &&
+             `      out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));` && |\n| &&
+             `      out.push(line("Content density", getContentDensity()));` && |\n| &&
+             `` && |\n| &&
+             `      out.push(...formatBootstrap());` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Device"));` && |\n| &&
              `      out.push(line("System", Lib.deriveSystemType(Device.system)));` && |\n| &&
@@ -216,6 +296,50 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(...formatSlots());` && |\n| &&
              `` && |\n| &&
              `      return out.join("\n");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // How this page loaded UI5 and where it resolves resources from. Every` && |\n| &&
+             `    // value is read from the LIVE page, not from what the backend says it` && |\n| &&
+             `    // configured - which is the point: a proxy, a launchpad or a stale` && |\n| &&
+             `    // cached page can all make these differ from the configuration.` && |\n| &&
+             `    function formatBootstrap() {` && |\n| &&
+             `      const out = [section("UI5 bootstrap")];` && |\n| &&
+             `      const el = bootstrapElement();` && |\n| &&
+             `      if (!el) {` && |\n| &&
+             `        out.push('  (no <script id="sap-ui-bootstrap"> on this page -');` && |\n| &&
+             `        out.push("  UI5 was started some other way, e.g. by a launchpad)");` && |\n| &&
+             `      } else {` && |\n| &&
+             `        // .src resolves relative to the page, so this is the absolute URL` && |\n| &&
+             `        // the browser actually fetched the SDK from.` && |\n| &&
+             `        out.push(line("SDK source", el.src || bootstrapAttr(el, "src")));` && |\n| &&
+             `        for (const [label, attr] of [` && |\n| &&
+             `          ["Bootstrap theme", "theme"],` && |\n| &&
+             `          ["Resource roots", "resourceroots"],` && |\n| &&
+             `          ["On init", "oninit"],` && |\n| &&
+             `          ["Compat version", "compatversion"],` && |\n| &&
+             `          ["Async", "async"],` && |\n| &&
+             `          ["Frame options", "frameoptions"],` && |\n| &&
+             `          ["Binding syntax", "bindingsyntax"],` && |\n| &&
+             `          ["Libs", "libs"],` && |\n| &&
+             `        ]) {` && |\n| &&
+             `          const value = bootstrapAttr(el, attr);` && |\n| &&
+             `          if (value) out.push(line(label, truncate(value, MAX_ARG_CHARS)));` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      out.push("");` && |\n| &&
+             `      // The resolved roots matter more than the declared ones: this is` && |\n| &&
+             `      // where a module request actually goes.` && |\n| &&
+             `      out.push(line("Resource base", resourceUrl("")));` && |\n| &&
+             `      out.push(line("z2ui5 root", resourceUrl("z2ui5")));` && |\n| &&
+             `      // The two sibling BSPs for community controls and the customer's own` && |\n| &&
+             `      // frontend extension. Reported only when the app set them up, since` && |\n| &&
+             `      // a system that has neither installed should not look misconfigured.` && |\n| &&
+             `      const cci = AppState.getGlobal("ccResourceRoot");` && |\n| &&
+             `      const ccc = AppState.getGlobal("cccResourceRoot");` && |\n| &&
+             `      if (cci) out.push(line("z2ui5_cci root", cci));` && |\n| &&
+             `      if (ccc) out.push(line("z2ui5_ccc root", ccc));` && |\n| &&
+             `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // The frontend block the framework puts on the wire - what an app reads` && |\n| &&
@@ -300,7 +424,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      for (const combo of combos) {` && |\n| &&
              `        const scopes = shortcuts[combo];` && |\n| &&
              `        for (const scope of Object.keys(scopes)) {` && |\n| &&
-             `          const entry = scopes[scope];` && |\n| &&
+             `          const entry = scopes[scope];` && |\n|.
+    result = result &&
              `          out.push(` && |\n| &&
              `            ``  ${combo.padEnd(22)}${(scope || "(global)").padEnd(12)}`` +` && |\n| &&
              `              ``-> ${entry?.event || "?"}``,` && |\n| &&
@@ -424,8 +549,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      );` && |\n| &&
              `      out.push("");` && |\n| &&
              `      let any = false;` && |\n| &&
-             `      for (const record of records) {` && |\n|.
-    result = result &&
+             `      for (const record of records) {` && |\n| &&
              `        for (const message of record.messages || []) {` && |\n| &&
              `          any = true;` && |\n| &&
              `          const kind =` && |\n| &&
@@ -582,7 +706,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "                travel as the next delta",` && |\n| &&
              `      "  Picked        the last control picked with 'Pick Control'",` && |\n| &&
              `      "  Registry      shortcuts, timers, callbacks, bound backend events",` && |\n| &&
-             `      "  Environment   versions, SAPUI5 vs OpenUI5, session, device, slots",` && |\n| &&
+             `      "  Environment   versions, SAPUI5 vs OpenUI5, the SDK url the page",` && |\n| &&
+             `      "                bootstrapped from and its resource roots, theme,",` && |\n| &&
+             `      "                language, content density, session, device, the",` && |\n| &&
+             `      "                focus/scroll block sent on every roundtrip, slots",` && |\n| &&
              `      "  Source Code   the running app's ABAP class (ADT opens it in a tab)",` && |\n| &&
              `      "  Request /     the raw JSON on the wire",` && |\n| &&
              `      "  Response",` && |\n| &&
