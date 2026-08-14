@@ -143,7 +143,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " the one place the Layer 0 request type meets the public one - both are
     " structurally identical, and the public signature stays free of
-    " z2ui5_cl_ui5_http (see z2ui5_if_types=>ty_s_http_req)
+    " z2ui5_cl_ui5_util_http (see z2ui5_if_types=>ty_s_http_req)
     MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
 
     " initialize the exit context and reset the per-request GET-config cache
@@ -162,7 +162,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       WHEN `POST`.
         " CSRF gate: only a POST can change state, so the check lives here.
         " Reading the config every POST is cheap (get_instance is cached);
-        " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_exit=>
+        " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_ui5_user_exit=>
         " set_config_http_post), so a cross-origin POST is rejected unless an
         " app opts out via its own exit.
         DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).

@@ -307,7 +307,7 @@ break one of those four.
   `CAST cl_abap_elemdescr( … )->get_ddic_field( )` is not, and
   `z2ui5_cl_pop_table` had to derive the label from `absolute_name` plus a
   context helper instead (`bc230abe`). Framework code reaches system
-  functionality only through `z2ui5_cl_ui5_context` for exactly this reason.
+  functionality only through `z2ui5_cl_ui5_util_context` for exactly this reason.
 
 ## 5. Runtime — green here, wrong there
 
@@ -343,7 +343,7 @@ break one of those four.
   incompatible one makes `CALL FUNCTION` fail at runtime, silently when it sits
   inside a `TRY … CATCH` / `EXCEPTIONS` guard. Concrete case and the reason it
   must stay: the comment above `lt_impl` in
-  `z2ui5_cl_ui5_context=>rtti_get_classes_intf_std`, which passes the table to
+  `z2ui5_cl_ui5_util_context=>rtti_get_classes_intf_std`, which passes the table to
   `SEO_INTERFACE_IMPLEM_GET_ALL` — with `EMPTY KEY` it returns no implementers
   and user-exit discovery breaks without an error.
 - **An unevaluated EML failure poisons the whole LUW.** In RAP, a failed EML
