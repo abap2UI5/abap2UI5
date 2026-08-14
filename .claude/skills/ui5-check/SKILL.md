@@ -75,7 +75,7 @@ Five separate holes, worth knowing precisely:
   builds, which is where nearly every abap2UI5 view comes from.
 - **The abap2UI5 linter has a 1.71 property gate but no icon and no layout
   gate**, and — as of the pin in `abap2UI5/samples` — it recognizes only app
-  classes that call `z2ui5_cl_ai_xml=>factory`. The samples repository builds
+  classes that call `z2ui5_cl_ui5_view_builder=>factory`. The samples repository builds
   with `z2ui5_cl_xml_view`, so `npx abap2ui5lint` there reports
   *"no checkable files"* and its CI job is green without checking anything.
   **Check what it actually scanned before trusting it.**

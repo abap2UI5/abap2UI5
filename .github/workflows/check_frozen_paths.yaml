@@ -25,7 +25,16 @@ name: check_frozen_paths
 # src/ afterwards, and refused when it does not. Anything edited in place is
 # refused either way.
 #
-# AGENTS.md says so in prose, which is a request. This is the guarantee.
+# The same reasoning covers an object that was never delivered at all. What
+# the freeze protects is the installation that upgrades from the last
+# release; an object added after that release has never reached one, so
+# dropping it cannot stop anything from compiling. A deletion is therefore
+# also allowed when the object is absent from the latest release tag - which
+# is a fact about the tag, not a list of names this gate has to maintain.
+#
+# AGENTS.md says so in prose, which is a request. The gate itself lives in
+# .github/scripts/frozen-paths-gate.mjs, so `npm run check:frozen` and this
+# workflow decide the same way. This is the guarantee.
 
 on:
   pull_request:
@@ -51,39 +60,4 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          set -euo pipefail
-
-          # Touched in place - added, modified, or renamed within the package.
-          # Never allowed. (-d, lowercase, excludes deletions.)
-          edited=$(git diff --name-only --diff-filter=d "$BASE_SHA" "$HEAD_SHA" -- src/99 \
-            ':(exclude)src/99/*.testclasses.abap' ':(exclude)src/99/*.clas.xml')
-
-          # Gone from src/99. Allowed only as a relocation - see the header.
-          deleted=$(git diff --name-only --diff-filter=D "$BASE_SHA" "$HEAD_SHA" -- src/99 \
-            ':(exclude)src/99/*.testclasses.abap' ':(exclude)src/99/*.clas.xml')
-
-          # One listing of the post-merge tree; the object name IS the file name.
-          tree=$(git ls-tree -r --name-only "$HEAD_SHA" -- src)
-
-          dropped=""
-          for f in $deleted; do
-            if printf '%s\n' "$tree" | grep -qx "src/.*/$(basename "$f")"; then
-              echo "relocated, still ships: $f -> $(printf '%s\n' "$tree" | grep -m1 -x "src/.*/$(basename "$f")")"
-            else
-              dropped="${dropped}${f}"$'\n'
-            fi
-          done
-
-          if [ -n "$edited" ] || [ -n "$dropped" ]; then
-            echo "::error::src/99 production code is frozen:"
-            [ -n "$edited" ] && { echo "  changed in place - revert:"; echo "$edited" | sed 's/^/    /'; }
-            [ -n "$dropped" ] && { echo "  deleted, and the object ships nowhere else - downstream stops compiling:"; printf '%s' "$dropped" | sed 's/^/    /'; }
-            echo ""
-            echo "src/99 is kept only so downstream apps keep compiling."
-            echo "Moving an object to another package is fine; dropping it is not."
-            echo "See AGENTS.md, 'Layered Design'."
-            exit 1
-          fi
-
-          echo "src/99 frozen code intact."
+        run: node .github/scripts/frozen-paths-gate.mjs
