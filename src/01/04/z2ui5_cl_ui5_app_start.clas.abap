@@ -69,11 +69,8 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
         toolbar TYPE REF TO z2ui5_cl_ui5_view_builder
         icon    TYPE string
         tooltip TYPE string
-        press   TYPE string.
-
-    " the rule that separates the system entries from the outbound ones
-    METHODS header_separator
-      IMPORTING toolbar TYPE REF TO z2ui5_cl_ui5_view_builder.
+        press   TYPE string
+        class   TYPE string DEFAULT `sapUiTinyMarginBeginEnd`.
 
     " Building blocks of the SimpleForm rows above. Private on purpose: this
     " class lives in the public src/02 package, so everything added to its
@@ -97,8 +94,9 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     METHODS render_docs_link
       IMPORTING form TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    " what this system runs on - a popup, because it answers a question that is
-    " asked once and then not again
+    " what this backend runs on - a popup, because it answers a question that is
+    " asked once and then not again. Backend facts only; everything the
+    " frontend knows about itself lives in the developer tools (Ctrl+F12)
     METHODS render_system_popup.
 
     " the section headline every render_* method opens with
@@ -133,7 +131,7 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
     " the two icons the page names twice - once in the title row, once in the
-    " Documentation section - so the header and the section cannot drift apart
+    " "Learn more" section - so the header and the section cannot drift apart
     CONSTANTS c_icon_docs TYPE string VALUE `sap-icon://learning-assistant`.
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
@@ -148,8 +146,11 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " core:Icon is 1rem and looks undersized next to the page title
     CONSTANTS c_icon_size_header TYPE string VALUE `1.125rem`.
 
-    " the margins the samples overview gives its header separator
-    CONSTANTS c_separator_class TYPE string VALUE `sapUiSmallMarginBegin sapUiSmallMarginEnd`.
+    " What sets the outbound icons apart from the system ones: a gap, not a
+    " rule. A sap.m.ToolbarSeparator would draw the rule, but it renders a
+    " <div> and only lays out as expected inside a flex container - see
+    " render_header_toolbar( ), which is where that matters.
+    CONSTANTS c_icon_class_group TYPE string VALUE `sapUiMediumMarginBegin sapUiTinyMarginEnd`.
 
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
@@ -321,7 +322,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->att( n = `height`        v = `100%`
         )->ele( `Shell`
         )->ele( `Page`
-            )->att( n = `title`          v = `abap2UI5 - Building UI5 Apps Purely in ABAP`
+            )->att( n = `title`          v = `abap2UI5 - Build UI5 Apps Purely in ABAP`
             )->att( n = `showNavButton`  v = `false` ).
 
     render_header_toolbar( page ).
@@ -338,15 +339,29 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD render_header_toolbar.
 
     " icons only, the way the samples app carries them - the title row is not
-    " the place for labels, and what each one does is in its tooltip
+    " the place for labels, and what each one does is in its tooltip.
+    "
+    " ONLY INLINE CONTROLS BELONG IN HERE. sap.m.Page forwards headerContent
+    " into the contentRight aggregation of its internal sap.m.Bar, and that
+    " container became a flex box only after 1.71: on the oldest release
+    " abap2UI5 supports, .sapMBarRight is a plain absolutely positioned block
+    " that lays its children out in normal flow. A block-level child - and
+    " both ToolbarSpacer and ToolbarSeparator render a <div> - therefore
+    " starts a new line, and everything from that line on is cut away by the
+    " overflow:hidden the container carries at the bar's height of 3rem. On
+    " 1.71 that silently swallowed the documentation and repository icons,
+    " while newer releases showed all of them.
+    " No ToolbarSpacer either: contentRight is right-aligned on its own.
     DATA(toolbar) = page->ele( `headerContent` ).
-    toolbar->tag( `ToolbarSpacer` ).
 
     " first what this system is: the information popup, and the configuration
-    " when it is installed
+    " when it is installed. Sliders rather than a monitor on the first one -
+    " what opens there is the backend side of the installation, user exit and
+    " drafts included, and that reads as settings. The gear next to it stays
+    " with the ICF configuration, so the two are still told apart at a glance
     header_icon( toolbar = toolbar
-                 icon    = `sap-icon://sys-monitor`
-                 tooltip = `System information - UI5 and ABAP release, user exit, drafts`
+                 icon    = `sap-icon://action-settings`
+                 tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
                  press   = client->_event( c_event_system ) ).
 
     IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
@@ -356,16 +371,16 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                    press   = client->_event( cs_event-set_config ) ).
     ENDIF.
 
-    " ... then, set apart by a separator line, the entries that leave the
-    " system. Same device the samples overview uses (z2ui5_cl_smp_app_000=>
-    " header_separator): a ToolbarSeparator draws a rule between the groups,
-    " where a ToolbarSpacer would only leave a gap and say nothing
-    header_separator( toolbar ).
-
+    " ... then, set apart by a wider gap, the entries that leave the system:
+    " the icons above open something in this system, these two open a site.
+    " The gap rides on the first of them (c_icon_class_group) instead of on a
+    " separator control of its own - see the note above on what a block-level
+    " child does to this bar on 1.71
     header_icon( toolbar = toolbar
                  icon    = c_icon_docs
                  tooltip = `Documentation - guides, tutorials and the API reference on abap2UI5.org`
-                 press   = open_url( `https://abap2UI5.org` ) ).
+                 press   = open_url( `https://abap2UI5.org` )
+                 class   = c_icon_class_group ).
 
     header_icon( toolbar = toolbar
                  icon    = c_icon_repo
@@ -383,27 +398,20 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     toolbar->tag( n = `Icon` ns = `core`
         )->att( n = `src`      v = icon
         )->att( n = `size`     v = c_icon_size_header
-        )->att( n = `class`    v = `sapUiTinyMarginBeginEnd`
+        )->att( n = `class`    v = class
         )->att( n = `color`    v = c_icon_color
         )->att( n = `tooltip`  v = tooltip
         )->att( n = `press`    v = press ).
 
   ENDMETHOD.
 
-  METHOD header_separator.
-
-    toolbar->tag( `ToolbarSeparator`
-        )->att( n = `class`  v = c_separator_class ).
-
-  ENDMETHOD.
-
   METHOD render_docs_link.
 
-    " its own section, so the samples above get their separator back and the
-    " documentation is what the page says right after them - same row shape as
-    " a sample repository, and the same two icons the title row carries
+    " its own section, so the samples above get their separator back and where
+    " to read on is what the page says right after them - same row shape as a
+    " sample repository, and the same two icons the title row carries
     render_section( form  = form
-                    title = `Documentation` ).
+                    title = `Learn more` ).
 
     render_icon_row( form    = form
                      label   = `GitHub`
@@ -476,8 +484,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
           )->att( n = `enabled`  v = client->_bind( ms_home-link_enabled ) ).
 
     " the five steps are one thought - let it end before the next headline.
-    " Two rows, not one: this is the break between doing something and reading
-    " on, the widest the page has
+    " Four rows, not one: this is the break between doing something and reading
+    " on, the widest the page has, and two rows were not enough to read as a
+    " break next to the row spacing the steps themselves already have
+    render_spacer( form ).
+    render_spacer( form ).
     render_spacer( form ).
     render_spacer( form ).
 
@@ -645,12 +656,23 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
             )->att( n = `title`       v = `abap2UI5 - System Information`
             )->att( n = `afterClose`  v = client->_event( c_event_close ) ).
 
-    DATA(form) = create_layout_form( dialog->ele( `content` ) ).
+    DATA(content) = dialog->ele( `content` ).
+
+    " the popup answers what the backend is, and nothing else - the UI5
+    " version, the theme, the device and the requests are the frontend's
+    " answer to the same question, and the developer tools already show all of
+    " it. Naming the shortcut here is what makes that split usable: Ctrl+F12
+    " is not guessable, and a popup that stayed silent about it would read as
+    " if the frontend facts were simply gone
+    content->tag( `MessageStrip`
+        )->att( n = `text`      v = `Frontend information - UI5 version, theme, device, requests and logs - is in the developer tools: Ctrl+F12`
+        )->att( n = `type`      v = `Information`
+        )->att( n = `showIcon`  v = `true`
+        )->att( n = `class`     v = `sapUiSmallMarginBeginEnd sapUiTinyMarginTop` ).
+
+    DATA(form) = create_layout_form( content ).
     DATA(ls_client) = client->get( ).
 
-    render_text( form  = form
-                 label = `UI5 Version`
-                 text  = ls_client-s_ui5-version ).
     form->tag( `Label` )->att( n = `text`  v = `Launchpad active` ).
     form->tag( `CheckBox`
         )->att( n = `selected`  b = ls_client-check_launchpad_active

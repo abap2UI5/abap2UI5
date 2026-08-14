@@ -68,7 +68,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     TRY.
         DATA(lv_val) = 1 / 0 ##NEEDED.
-      CATCH cx_root INTO DATA(lx_root).
+      CATCH cx_root INTO DATA(lx_root) ##NO_HANDLER.
     ENDTRY.
 
     TRY.
@@ -172,7 +172,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     " must be rendered as fully as a framework one
     TRY.
         DATA(lv_val) = 1 / 0 ##NEEDED.
-      CATCH cx_root INTO DATA(lx_root).
+      CATCH cx_root INTO DATA(lx_root) ##NO_HANDLER.
     ENDTRY.
 
     DATA(lv_text) = z2ui5_cx_ui5_util_error=>get_text_full( lx_root ).

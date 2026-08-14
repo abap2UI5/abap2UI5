@@ -55,7 +55,7 @@ ENDCLASS.
 CLASS ltcl_test_bind IMPLEMENTATION.
   METHOD test_attri_named_xx.
 
-    " XX used to be a reserved model-node name; now that the two-way data
+    " XX used to be a reserved model-node name; now that the bound data
     " lives directly on the root, an attribute named XX binds like any other
     DATA(lo_app_client) = NEW ltcl_test_app( ).
     DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).

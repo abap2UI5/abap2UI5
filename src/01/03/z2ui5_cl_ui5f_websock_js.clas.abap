@@ -27,7 +27,7 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
 
     result = `// Invisible control that keeps a WebSocket connection to an ABAP Push` && |\n| &&
              `// Channel (APC) open and hands every inbound message to the backend: the` && |\n| &&
-             `// message text lands in the two-way bound ``value`` property and the` && |\n| &&
+             `// message text lands in the bound ``value`` property and the` && |\n| &&
              `// ``received`` event triggers the roundtrip that lets the app process it.` && |\n| &&
              `// Sending is deliberately NOT part of the control - an app publishes to the` && |\n| &&
              `// AMC channel from ABAP, so consuming a push channel needs no app JavaScript.` && |\n| &&

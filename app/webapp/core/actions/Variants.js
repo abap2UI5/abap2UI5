@@ -172,7 +172,7 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
           entry.fieldName,
           entry.groupName,
         );
-        // setValue, not a model write: the two-way binding abap2UI5 put on
+        // setValue, not a model write: the binding abap2UI5 put on
         // the property carries the restored value back to the backend on the
         // next roundtrip, so selecting a variant needs none of its own
         if (control && typeof control.setValue === "function") {

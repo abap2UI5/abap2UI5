@@ -1496,7 +1496,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE visibility  = cv_objectdescr_public
            AND is_constant = abap_false
            AND is_class    = abap_false.
@@ -2267,7 +2267,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         DATA(lx) = CAST cx_root( val ).
         DATA(ls_result) = VALUE ty_s_msg( type = `E` text = lx->get_text( ) ).
         DATA(lt_attri_o) = rtti_get_t_attri_by_oref( val ).
-        LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
+        LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o) "#EC CI_SORTSEQ
              WHERE visibility = cv_objectdescr_public.
           DATA(lv_name) = ls_attri_o->name.
           ASSIGN lx->(lv_name) TO <comp>.
@@ -2314,7 +2314,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
               CATCH cx_root.
 
                 lt_attri_o = rtti_get_t_attri_by_oref( val ).
-                LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
+                LOOP AT lt_attri_o REFERENCE INTO ls_attri_o "#EC CI_SORTSEQ
                      WHERE visibility = cv_objectdescr_public.
                   lv_name = ls_attri_o->name.
                   ASSIGN obj->(lv_name) TO <comp>.

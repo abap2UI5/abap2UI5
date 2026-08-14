@@ -1,6 +1,6 @@
 // Invisible control that keeps a WebSocket connection to an ABAP Push
 // Channel (APC) open and hands every inbound message to the backend: the
-// message text lands in the two-way bound `value` property and the
+// message text lands in the bound `value` property and the
 // `received` event triggers the roundtrip that lets the app process it.
 // Sending is deliberately NOT part of the control - an app publishes to the
 // AMC channel from ABAP, so consuming a push channel needs no app JavaScript.
