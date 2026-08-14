@@ -35,6 +35,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/devtools/Recorder",` && |\n| &&
+             `    "z2ui5/core/devtools/Inspect",` && |\n| &&
+             `    "z2ui5/core/devtools/Picker",` && |\n| &&
+             `    "z2ui5/core/devtools/LiveEdit",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Control,` && |\n| &&
@@ -45,6 +48,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    AppState,` && |\n| &&
              `    ErrorView,` && |\n| &&
              `    Recorder,` && |\n| &&
+             `    Inspect,` && |\n| &&
+             `    Picker,` && |\n| &&
+             `    LiveEdit,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -152,13 +158,41 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      return view?._xContent?.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Minimal text dump of the shared error log (the entries Lib.logError` && |\n| &&
-             `    // pushes to AppState.state.errors): one "<ts>  <message>" line per entry,` && |\n| &&
-             `    // oldest first. Empty log yields a short placeholder.` && |\n| &&
+             `    // Text dump of the shared error log (the entries Lib.logError pushes to` && |\n| &&
+             `    // AppState.state.errors), oldest first. Empty log yields a short` && |\n| &&
+             `    // placeholder.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Lib.logError stores the caught error itself alongside the message, and` && |\n| &&
+             `    // that is where the STACK TRACE is - the one thing that says which line` && |\n| &&
+             `    // actually threw. It used to be dropped here, so the tab showed` && |\n| &&
+             `    // "Websocket: send failed" and nothing else. Render it indented under` && |\n| &&
+             `    // its message, preferring the stack and falling back to the error's own` && |\n| &&
+             `    // string form for non-Error throwables.` && |\n| &&
+             `    function formatErrorEntry(entry) {` && |\n| &&
+             `      const head = ``${entry.ts}  ${entry.message}``;` && |\n| &&
+             `      if (entry.error === undefined) return head;` && |\n| &&
+             `      let detail;` && |\n| &&
+             `      if (entry.error && typeof entry.error === "object") {` && |\n| &&
+             `        detail = entry.error.stack || entry.error.message;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!detail) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          detail = String(entry.error);` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          detail = "(error could not be rendered)";` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      const indented = String(detail)` && |\n| &&
+             `        .split("\n")` && |\n| &&
+             `        .map((l) => ``        ${l.trim()}``)` && |\n| &&
+             `        .join("\n");` && |\n| &&
+             `      return ``${head}\n${indented}``;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function formatErrorLog() {` && |\n| &&
              `      const errors = AppState.state.errors || [];` && |\n| &&
              `      if (!errors.length) return "(log is empty)";` && |\n| &&
-             `      return errors.map((e) => ``${e.ts}  ${e.message}``).join("\n");` && |\n| &&
+             `      return errors.map(formatErrorEntry).join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // The last fatal error the ErrorView overlay showed (title + full text),` && |\n| &&
@@ -221,6 +255,18 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      // MODEL, shown twice` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    // Tabs whose content is a plain-text report built by one of the` && |\n| &&
+             `    // devtools inspectors. Kept as a table for the same reason` && |\n| &&
+             `    // jsonSources / xmlSources are: adding a tab is one entry plus one` && |\n| &&
+             `    // IconTabFilter, never a new branch in renderTab.` && |\n| &&
+             `    const textSources = {` && |\n| &&
+             `      ENV: () => Inspect.formatEnvironment(),` && |\n| &&
+             `      REGISTRY: () => Inspect.formatRegistry(),` && |\n| &&
+             `      ACTIONS: () => Inspect.formatActions(),` && |\n| &&
+             `      MESSAGES: () => Inspect.formatMessages(),` && |\n| &&
+             `      BINDINGS: () => Inspect.formatBindings(),` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    const xmlSources = {` && |\n| &&
              `      VIEW: () => ({` && |\n| &&
              `        xml: getSlotXml("MAIN"),` && |\n| &&
@@ -238,7 +284,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      }),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.core.DeveloperTools", {` && |\n| &&
+             `    const DeveloperTools = Control.extend("z2ui5.core.DeveloperTools", {` && |\n| &&
              `      // Reformat an XML string with indentation. If anything goes wrong the` && |\n| &&
              `      // original input is returned unchanged - the developer tools must never` && |\n| &&
              `      // crash the host app.` && |\n| &&
@@ -290,6 +336,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            "xml",` && |\n| &&
              `            this.prettifyXml(rendered),` && |\n| &&
              `          );` && |\n| &&
+             `          // A view tab is editable: its XML can be rendered back into the` && |\n| &&
+             `          // slot without a roundtrip (core/devtools/LiveEdit.js), so the` && |\n| &&
+             `          // Apply / Reset footer buttons appear for exactly these tabs.` && |\n| &&
+             `          const modelData = oModel.getData();` && |\n| &&
+             `          modelData.canApply = LiveEdit.canApply(selItem);` && |\n| &&
+             `          oModel.refresh();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -308,6 +360,26 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (selItem === "DIFF") {` && |\n| &&
              `          this.displayEditor(oModel, Recorder.formatModelDiff(), "text");` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // The read-only inspectors live in core/devtools/Inspect.js; the` && |\n| &&
+             `        // dialog only decides which one to show. The picked-control report` && |\n| &&
+             `        // is the one entry that is not derived from live state - it is the` && |\n| &&
+             `        // result of the last pick and therefore held on the control.` && |\n| &&
+             `        if (textSources[selItem]) {` && |\n| &&
+             `          this.displayEditor(oModel, textSources[selItem](), "text");` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (selItem === "PICK") {` && |\n| &&
+             `          this.displayEditor(` && |\n| &&
+             `            oModel,` && |\n| &&
+             `            this.pickedControlReport ||` && |\n| &&
+             `              'No control picked yet - press "Pick Control" in the footer,' +` && |\n| &&
+             `                " then click any control in the app.",` && |\n| &&
+             `            "text",` && |\n| &&
+             `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -352,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      // blob so it can be copied elsewhere in one go. XML tabs are` && |\n| &&
              `      // pretty-printed, JSON tabs serialized; empty / inactive sections are` && |\n| &&
              `      // skipped. Every source is guarded (a throwing one can never blank the` && |\n| &&
-             `      // whole export) and each section is capped - a value that large blanks` && |\n| &&
+             `      // whole export) and each section is capped - a value that large blanks` && |\n|.
+    result = result &&
              `      // a sap.m.TextArea.` && |\n| &&
              `      // ``abapSource`` is the running app's ABAP class source, fetched` && |\n| &&
              `      // asynchronously by onExport (empty when it could not be retrieved).` && |\n| &&
@@ -392,6 +465,14 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
+             `        // First section on purpose: versions, UI5 distribution, launchpad` && |\n| &&
+             `        // and device are what a reader of a shared report needs before` && |\n| &&
+             `        // anything else, and asking for them is the standard first reply` && |\n| &&
+             `        // to a bug report.` && |\n| &&
+             `        push(` && |\n| &&
+             `          "ENVIRONMENT",` && |\n| &&
+             `          text(() => Inspect.formatEnvironment()),` && |\n| &&
+             `        );` && |\n| &&
              `        if (AppState.state.lastError) push("ERROR", text(formatLastError));` && |\n| &&
              `        push("LOG", text(formatErrorLog));` && |\n| &&
              `        // The roundtrip history is the timeline an error happened on, so it` && |\n| &&
@@ -412,6 +493,22 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        // an error - a reader can see the class that produced it.` && |\n| &&
              `        push("ABAP SOURCE", abapSource);` && |\n| &&
              `        push(` && |\n| &&
+             `          "ACTIONS",` && |\n| &&
+             `          text(() => Inspect.formatActions()),` && |\n| &&
+             `        );` && |\n| &&
+             `        push(` && |\n| &&
+             `          "MESSAGES",` && |\n| &&
+             `          text(() => Inspect.formatMessages()),` && |\n| &&
+             `        );` && |\n| &&
+             `        push(` && |\n| &&
+             `          "REGISTRY",` && |\n| &&
+             `          text(() => Inspect.formatRegistry()),` && |\n| &&
+             `        );` && |\n| &&
+             `        push(` && |\n| &&
+             `          "BINDINGS",` && |\n| &&
+             `          text(() => Inspect.formatBindings()),` && |\n| &&
+             `        );` && |\n| &&
+             `        push(` && |\n| &&
              `          "RESPONSE",` && |\n| &&
              `          json(() => jsonSources.PLAIN()),` && |\n| &&
              `        );` && |\n| &&
@@ -424,8 +521,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          xml(() => xmlSources.VIEW().xml),` && |\n| &&
              `        );` && |\n| &&
              `        push(` && |\n| &&
-             `          "VIEW MODEL",` && |\n|.
-    result = result &&
+             `          "VIEW MODEL",` && |\n| &&
              `          json(() => jsonSources.MODEL()),` && |\n| &&
              `        );` && |\n| &&
              `        // one gate for both slots and both close paths: the slot holds an` && |\n| &&
@@ -476,16 +572,25 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      async fetchAbapSource() {` && |\n| &&
              `        const url = this.getAbapSourceUrl();` && |\n| &&
              `        if (!url) return "";` && |\n| &&
+             `        const appName = this.getAppName();` && |\n| &&
+             `        // Cached per app class: the Source Code tab warms it, and the ADT` && |\n| &&
+             `        // jump reads it to find the line of the current event. A second` && |\n| &&
+             `        // fetch of the same class would be a wasted request on every open.` && |\n| &&
+             `        if (this._abapSourceCache?.app === appName) {` && |\n| &&
+             `          return this._abapSourceCache.source;` && |\n| &&
+             `        }` && |\n| &&
+             `        let source = "";` && |\n| &&
              `        try {` && |\n| &&
              `          const response = await fetch(url, {` && |\n| &&
              `            headers: { Accept: "text/plain" },` && |\n| &&
              `            credentials: "same-origin",` && |\n| &&
              `          });` && |\n| &&
-             `          if (!response.ok) return "";` && |\n| &&
-             `          return await response.text();` && |\n| &&
+             `          if (response.ok) source = await response.text();` && |\n| &&
              `        } catch {` && |\n| &&
-             `          return "";` && |\n| &&
+             `          source = "";` && |\n| &&
              `        }` && |\n| &&
+             `        this._abapSourceCache = { app: appName, source };` && |\n| &&
+             `        return source;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Show the whole export in a stretched popup with a read-through TextArea` && |\n| &&
@@ -516,35 +621,58 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `              title: "abap2UI5 - Developer Tools Export",` && |\n| &&
              `              stretch: true,` && |\n| &&
              `              content: [area],` && |\n| &&
-             `              beginButton: new Button({` && |\n| &&
-             `                text: "Copy to Clipboard",` && |\n| &&
-             `                type: "Emphasized",` && |\n| &&
-             `                press: () => {` && |\n| &&
-             `                  // navigator.clipboard needs a secure (HTTPS) context, which` && |\n| &&
-             `                  // an on-premise ABAP system often is not. Select the` && |\n| &&
-             `                  // TextArea and use the classic execCommand("copy") first` && |\n| &&
-             `                  // (works over plain HTTP), then fall back to the async API.` && |\n| &&
-             `                  const ta = area.getFocusDomRef();` && |\n| &&
-             `                  let copied = false;` && |\n| &&
-             `                  if (ta) {` && |\n| &&
-             `                    ta.focus();` && |\n| &&
-             `                    ta.select();` && |\n| &&
-             `                    ta.setSelectionRange(0, (ta.value || "").length);` && |\n| &&
-             `                    try {` && |\n| &&
-             `                      copied = document.execCommand("copy");` && |\n| &&
-             `                    } catch {` && |\n| &&
-             `                      copied = false;` && |\n| &&
+             `              // The ``buttons`` aggregation, not beginButton/endButton: UI5` && |\n| &&
+             `              // ignores those two as soon as ``buttons`` is filled, and the` && |\n| &&
+             `              // download actions below make this a four-button footer.` && |\n| &&
+             `              buttons: [` && |\n| &&
+             `                new Button({` && |\n| &&
+             `                  text: "Copy to Clipboard",` && |\n| &&
+             `                  type: "Emphasized",` && |\n| &&
+             `                  press: () => {` && |\n| &&
+             `                    // navigator.clipboard needs a secure (HTTPS) context, which` && |\n| &&
+             `                    // an on-premise ABAP system often is not. Select the` && |\n| &&
+             `                    // TextArea and use the classic execCommand("copy") first` && |\n| &&
+             `                    // (works over plain HTTP), then fall back to the async API.` && |\n| &&
+             `                    const ta = area.getFocusDomRef();` && |\n| &&
+             `                    let copied = false;` && |\n| &&
+             `                    if (ta) {` && |\n| &&
+             `                      ta.focus();` && |\n| &&
+             `                      ta.select();` && |\n| &&
+             `                      ta.setSelectionRange(0, (ta.value || "").length);` && |\n| &&
+             `                      try {` && |\n| &&
+             `                        copied = document.execCommand("copy");` && |\n| &&
+             `                      } catch {` && |\n| &&
+             `                        copied = false;` && |\n| &&
+             `                      }` && |\n| &&
              `                    }` && |\n| &&
-             `                  }` && |\n| &&
-             `                  if (!copied && navigator.clipboard?.writeText) {` && |\n| &&
-             `                    navigator.clipboard.writeText(text).catch(() => {});` && |\n| &&
-             `                  }` && |\n| &&
-             `                },` && |\n| &&
-             `              }),` && |\n| &&
-             `              endButton: new Button({` && |\n| &&
-             `                text: "Close",` && |\n| &&
-             `                press: () => dialog.close(),` && |\n| &&
-             `              }),` && |\n| &&
+             `                    if (!copied && navigator.clipboard?.writeText) {` && |\n| &&
+             `                      navigator.clipboard.writeText(text).catch(() => {});` && |\n| &&
+             `                    }` && |\n| &&
+             `                  },` && |\n| &&
+             `                }),` && |\n| &&
+             `                // Two files, because they answer different questions: the` && |\n| &&
+             `                // report is what a human reads, the history JSON is what` && |\n| &&
+             `                // makes a bug reproducible (it carries the recorded` && |\n| &&
+             `                // request/response bodies when payload recording was on).` && |\n| &&
+             `                new Button({` && |\n| &&
+             `                  text: "Download Report",` && |\n| &&
+             `                  press: () =>` && |\n| &&
+             `                    this.downloadText(this.exportFileName("txt"), text),` && |\n| &&
+             `                }),` && |\n| &&
+             `                new Button({` && |\n| &&
+             `                  text: "Download History (JSON)",` && |\n| &&
+             `                  press: () =>` && |\n| &&
+             `                    this.downloadText(` && |\n| &&
+             `                      this.exportFileName("json"),` && |\n| &&
+             `                      Recorder.exportJson(),` && |\n| &&
+             `                      "application/json",` && |\n| &&
+             `                    ),` && |\n| &&
+             `                }),` && |\n| &&
+             `                new Button({` && |\n| &&
+             `                  text: "Close",` && |\n| &&
+             `                  press: () => dialog.close(),` && |\n| &&
+             `                }),` && |\n| &&
+             `              ],` && |\n| &&
              `              afterClose: () => dialog.destroy(),` && |\n| &&
              `            });` && |\n| &&
              `            dialog.open();` && |\n| &&
@@ -576,10 +704,61 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      // framing the ADT endpoint entirely (X-Frame-Options), so the preview is` && |\n| &&
              `      // just blank there. noopener keeps the new tab from reaching back into` && |\n| &&
              `      // window.opener.` && |\n| &&
-             `      onOpenAbapInAdt() {` && |\n| &&
+             `      // The ADT url, deep-linked at the handler of the event the last` && |\n| &&
+             `      // roundtrip carried when that is possible: the ADT source endpoint` && |\n| &&
+             `      // honours a "#start=<line>,<col>" anchor, and the event name is a` && |\n| &&
+             `      // literal in the class that handles it. Needs the source in the cache` && |\n| &&
+             `      // (the Source Code tab warms it); without it, or when the name is not` && |\n| &&
+             `      // found, the plain class url is returned - the jump is a shortcut,` && |\n| &&
+             `      // never a precondition.` && |\n| &&
+             `      getAbapAdtUrl() {` && |\n| &&
              `        const url = this.getAbapSourceUrl();` && |\n| &&
+             `        if (!url) return "";` && |\n| &&
+             `        const event = AppState.state.oBody?.S_FRONT?.EVENT;` && |\n| &&
+             `        const cache = this._abapSourceCache;` && |\n| &&
+             `        if (!event || cache?.app !== this.getAppName() || !cache?.source) {` && |\n| &&
+             `          return url;` && |\n| &&
+             `        }` && |\n| &&
+             `        const lineNumber = Inspect.findEventLine(cache.source, event);` && |\n| &&
+             `        return lineNumber ? ``${url}#start=${lineNumber},1`` : url;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      onOpenAbapInAdt() {` && |\n| &&
+             `        // Stays synchronous: a window.open after an await is treated as an` && |\n| &&
+             `        // unrequested popup and blocked.` && |\n| &&
+             `        const url = this.getAbapAdtUrl();` && |\n| &&
              `        if (!url) return;` && |\n| &&
              `        window.open(url, "_blank", "noopener,noreferrer");` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Hand a generated text file to the browser. Used by the export` && |\n| &&
+             `      // dialog: a copy to the clipboard is fine for a short report, but a` && |\n| &&
+             `      // full export with payloads belongs in a file that can be attached` && |\n| &&
+             `      // to an issue.` && |\n| &&
+             `      downloadText(fileName, content, mimeType) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const blob = new Blob([content], {` && |\n| &&
+             `            type: ``${mimeType || "text/plain"};charset=utf-8``,` && |\n| &&
+             `          });` && |\n| &&
+             `          const url = URL.createObjectURL(blob);` && |\n| &&
+             `          const anchor = document.createElement("a");` && |\n| &&
+             `          anchor.href = url;` && |\n| &&
+             `          anchor.download = fileName;` && |\n| &&
+             `          document.body.appendChild(anchor);` && |\n| &&
+             `          anchor.click();` && |\n| &&
+             `          document.body.removeChild(anchor);` && |\n| &&
+             `          // Release the object url once the download has been handed over.` && |\n| &&
+             `          setTimeout(() => URL.revokeObjectURL(url), 0);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("DeveloperTools: download failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Stable, sortable file name stem for the generated downloads.` && |\n| &&
+             `      exportFileName(extension) {` && |\n| &&
+             `        const stamp = new Date().toISOString().replace(/[:.]/g, "-");` && |\n| &&
+             `        const app = this.getAppName() || "abap2ui5";` && |\n| &&
+             `        return ``${app}_${stamp}.${extension}``;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Show the ABAP source of the running app inside an iframe.` && |\n| &&
@@ -598,6 +777,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            : "",` && |\n| &&
              `        );` && |\n| &&
              `` && |\n| &&
+             `        // Warm the source cache in the background so the ADT button can` && |\n| &&
+             `        // deep-link at the current event's line (getAbapAdtUrl). Opening` && |\n| &&
+             `        // this tab is the moment a developer is heading for the source, and` && |\n| &&
+             `        // the fetch must not block the tab switch - failures are swallowed` && |\n| &&
+             `        // by fetchAbapSource itself.` && |\n| &&
+             `        this.fetchAbapSource();` && |\n| &&
+             `` && |\n| &&
              `        if (!oModel) return;` && |\n| &&
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = false;` && |\n| &&
@@ -612,6 +798,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
+             `        // Only the view tabs re-enable this (see renderTab) - every other` && |\n| &&
+             `        // tab shows content that has no slot to be applied to.` && |\n| &&
+             `        modelData.canApply = false;` && |\n| &&
              `        modelData.isTemplating = Boolean(content?.includes("xmlns:template"));` && |\n| &&
              `        // the toggle always starts on the original source for this tab` && |\n| &&
              `        modelData.templatingSource = false;` && |\n| &&
@@ -636,7 +825,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      // Tier 2 of the recorder: keeping request/response bodies is the` && |\n| &&
              `      // expensive half of the history, so it is opt-in and switched here.` && |\n| &&
-             `      // Switching it OFF also drops what was already retained, so a` && |\n| &&
+             `      // Switching it OFF also drops what was already retained, so a` && |\n|.
+    result = result &&
              `      // developer can free the memory again without reloading the app.` && |\n| &&
              `      // The current tab is re-rendered because both recorder tabs report` && |\n| &&
              `      // the flag's state.` && |\n| &&
@@ -648,6 +838,60 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        modelData.recordPayloads = Recorder.isRecordingPayloads();` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `        this.renderTab(modelData.selectedTab, oModel);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Pick a control on the screen and report what feeds it. The dialog` && |\n| &&
+             `      // has to get out of the way first (it is modal and covers the app),` && |\n| &&
+             `      // so it closes for the duration of the pick and reopens on the` && |\n| &&
+             `      // picked-control tab with the result. Escape cancels and reopens on` && |\n| &&
+             `      // the tab the user came from.` && |\n| &&
+             `      onPickControl() {` && |\n| &&
+             `        const previousTab = this.oDialog?.getModel()?.getData()?.selectedTab;` && |\n| &&
+             `        this.reopenErrorOnClose = false;` && |\n| &&
+             `        this.close();` && |\n| &&
+             `        Picker.start((report) => {` && |\n| &&
+             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          if (report) this.pickedControlReport = report;` && |\n| &&
+             `          this.show(report ? "PICK" : previousTab);` && |\n| &&
+             `        });` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Render the edited XML back into its view slot. Local preview only -` && |\n| &&
+             `      // LiveEdit's result message says so, and it is shown in place of the` && |\n| &&
+             `      // editor content's usual silence so the developer knows it landed.` && |\n| &&
+             `      async onApplyXml(oEvent) {` && |\n| &&
+             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
+             `        const modelData = oModel.getData();` && |\n| &&
+             `        if (LiveEdit.isBusy()) {` && |\n| &&
+             `          this.showApplyResult(oModel, "A roundtrip is running - try again.");` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const result = await LiveEdit.apply(` && |\n| &&
+             `          modelData.selectedTab,` && |\n| &&
+             `          modelData.value,` && |\n| &&
+             `        );` && |\n| &&
+             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        this.showApplyResult(oModel, result);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Put the backend's original XML back into the editor. Does not` && |\n| &&
+             `      // re-render - press Apply for that.` && |\n| &&
+             `      onResetXml(oEvent) {` && |\n| &&
+             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
+             `        const modelData = oModel.getData();` && |\n| &&
+             `        const xml = this.prettifyXml(` && |\n| &&
+             `          LiveEdit.originalXml(modelData.selectedTab),` && |\n| &&
+             `        );` && |\n| &&
+             `        modelData.value = xml;` && |\n| &&
+             `        modelData.previousValue = xml;` && |\n| &&
+             `        modelData.applyResult = "";` && |\n| &&
+             `        oModel.refresh();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      showApplyResult(oModel, text) {` && |\n| &&
+             `        const modelData = oModel.getData();` && |\n| &&
+             `        modelData.applyResult = text;` && |\n| &&
+             `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onClose() {` && |\n| &&
@@ -703,6 +947,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            // Tier 2 opt-in of the roundtrip recorder; drives both the` && |\n| &&
              `            // footer toggle and what the two recorder tabs report.` && |\n| &&
              `            recordPayloads: Recorder.isRecordingPayloads(),` && |\n| &&
+             `            // Set per tab by renderTab: only the view tabs can be applied` && |\n| &&
+             `            // back into their slot (core/devtools/LiveEdit.js).` && |\n| &&
+             `            canApply: false,` && |\n| &&
+             `            applyResult: "",` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `            value: value,` && |\n| &&
              `            xContent: "",` && |\n| &&
@@ -781,6 +1029,50 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      // The control itself renders nothing - it just provides the dialog API.` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `    });` && |\n| &&
+             `` && |\n| &&
+             `    // Query parameter that opens the developer tools on page load, so a` && |\n| &&
+             `    // problem that happens during startup can be looked at at all - by then` && |\n| &&
+             `    // Ctrl+F12 is too late. "?z2ui5-devtools=1" opens the default tab,` && |\n| &&
+             `    // "?z2ui5-devtools=HISTORY" (any tab key) opens that one.` && |\n| &&
+             `    const AUTO_OPEN_PARAM = "z2ui5-devtools";` && |\n| &&
+             `` && |\n| &&
+             `    // The requested tab key, or "" when the parameter is absent. Exposed` && |\n| &&
+             `    // for the specs; the parsing is deliberately tolerant - an unknown tab` && |\n| &&
+             `    // key simply falls back to the default tab in show().` && |\n| &&
+             `    DeveloperTools.autoOpenTab = function () {` && |\n| &&
+             `      let value;` && |\n| &&
+             `      try {` && |\n| &&
+             `        value = new URLSearchParams(window.location.search).get(` && |\n| &&
+             `          AUTO_OPEN_PARAM,` && |\n| &&
+             `        );` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return "";` && |\n| &&
+             `      }` && |\n| &&
+             `      if (value === null || value === undefined) return "";` && |\n| &&
+             `      const key = value.toUpperCase();` && |\n| &&
+             `      // "1" / "X" / "" mean "just open it"` && |\n| &&
+             `      return key === "1" || key === "X" ? "" : key;` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    DeveloperTools.isAutoOpenRequested = function () {` && |\n| &&
+             `      try {` && |\n| &&
+             `        return new URLSearchParams(window.location.search).has(AUTO_OPEN_PARAM);` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return false;` && |\n| &&
+             `      }` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    // One call for Component.js: create the control, park it where Ctrl+F12` && |\n| &&
+             `    // expects it and open it on the requested tab. Does nothing when the` && |\n| &&
+             `    // parameter is absent, so the normal startup path pays one string check.` && |\n| &&
+             `    DeveloperTools.autoOpenIfRequested = function () {` && |\n| &&
+             `      if (!DeveloperTools.isAutoOpenRequested()) return;` && |\n| &&
+             `      const state = AppState.state;` && |\n| &&
+             `      if (!state.developerTools) state.developerTools = new DeveloperTools();` && |\n| &&
+             `      state.developerTools.show(DeveloperTools.autoOpenTab() || undefined);` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    return DeveloperTools;` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

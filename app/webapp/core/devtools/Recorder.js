@@ -56,6 +56,13 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
   // an error response, an abort, or a superseded parallel request.
   const UNPAIRED_FLUSH_MS = 5000;
 
+  // Backend messages are kept as TIER 1 metadata, not as payloads: the
+  // text of a toast or message box is a short string, and "what did the
+  // app tell the user three roundtrips ago" is exactly the kind of
+  // question the history exists for. Capped so a pathological message
+  // cannot grow a record without bound.
+  const MAX_MESSAGE_CHARS = 500;
+
   // Rendering caps for the history / diff text output.
   const MAX_DIFF_ENTRIES = 200;
   const MAX_DIFF_DEPTH = 12;
@@ -212,10 +219,33 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
       totalMs: null,
       systemActions: 0,
       customActions: 0,
+      messages: [],
       rendered: false,
       request: null,
       response: null,
     });
+  }
+
+  // Pull the user-visible backend messages out of a response's app action
+  // list. A message travels as a whitelisted global call
+  // ["CONTROL_GLOBAL", "MESSAGE_TOAST"|"MESSAGE_BOX", <method>, <text>, ...]
+  // (see core/actions/ControlCall.js); the legacy raw-string entries in
+  // T_CUSTOM carry no structured message and are skipped.
+  function extractMessages(response) {
+    const custom = response?.S_FRONT?.S_ACTION?.T_CUSTOM;
+    if (!Array.isArray(custom)) return [];
+    const out = [];
+    for (const item of custom) {
+      if (!Array.isArray(item) || item[0] !== "CONTROL_GLOBAL") continue;
+      const target = item[1];
+      if (target !== "MESSAGE_TOAST" && target !== "MESSAGE_BOX") continue;
+      let text = typeof item[3] === "string" ? item[3] : "";
+      if (text.length > MAX_MESSAGE_CHARS) {
+        text = `${text.slice(0, MAX_MESSAGE_CHARS)}...`;
+      }
+      out.push({ target, method: item[2] || "", text });
+    }
+    return out;
   }
 
   // Measured weight of a record's retained payloads. Sizes that were not
@@ -327,6 +357,8 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
         totalMs: net ? Math.round(tRendered - net.start) : null,
         systemActions: sFront?.S_ACTION?.T_SYSTEM?.length || 0,
         customActions: sFront?.S_ACTION?.T_CUSTOM?.length || 0,
+        // Tier 1 on purpose - see MAX_MESSAGE_CHARS.
+        messages: extractMessages(response),
         rendered: true,
         // Plain references, never clones - see the module header for why
         // that is safe and why it costs nothing but retention.
@@ -631,10 +663,39 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     return header.join("\n");
   }
 
+  // The recorded history as JSON, for download. With payload recording on
+  // this carries the actual request/response bodies, which is what makes a
+  // bug reproducible for someone who cannot click through the app - the
+  // shareable half of "record and replay". Replaying it back INTO a system
+  // is deliberately not offered: the recorded requests reference draft ids
+  // that only exist in the session that produced them, and re-sending them
+  // would drive real backend state.
+  function exportJson() {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      payloadsRecorded: isRecordingPayloads(),
+      records: getRecords(),
+    };
+    try {
+      return JSON.stringify(payload, null, 2);
+    } catch {
+      // A payload that cannot be serialized must not lose the whole
+      // export - fall back to the metadata, which is always plain data.
+      const metaOnly = records.map((record) => {
+        const copy = { ...record };
+        delete copy.request;
+        delete copy.response;
+        return copy;
+      });
+      return JSON.stringify({ ...payload, records: metaOnly }, null, 2);
+    }
+  }
+
   return {
     install,
     uninstall,
     getRecords,
+    exportJson,
     isRecordingPayloads,
     setRecordingPayloads,
     formatHistory,

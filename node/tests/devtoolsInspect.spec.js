@@ -1,0 +1,379 @@
+// @ts-check
+const { test, expect } = require("@playwright/test");
+const { loadModule } = require("./loadModule");
+
+// Tests the real implementation shipped in
+// app/webapp/core/devtools/Inspect.js. Every inspector is a pure renderer
+// over state other modules own, so the harness seeds that state and
+// asserts on the rendered report.
+
+const SLOTS = [
+  { key: "MAIN", ownsModel: true },
+  { key: "NEST", ownsModel: false },
+  { key: "NEST2", ownsModel: false },
+  { key: "POPUP", ownsModel: true },
+  { key: "POPOVER", ownsModel: true },
+];
+
+function fakeView({ xml, data, changedPaths } = {}) {
+  const model = data
+    ? {
+        getData: () => data,
+        _z2ui5ChangedPaths: changedPaths ? new Set(changedPaths) : undefined,
+      }
+    : undefined;
+  return {
+    mProperties: xml === undefined ? {} : { viewContent: xml },
+    getModel: () => model,
+  };
+}
+
+function loadInspect({
+  state = {},
+  oConfig = {},
+  views = {},
+  slotXml = {},
+  records = [],
+  search = "",
+  hash = "",
+} = {}) {
+  const AppState = {
+    state: {
+      responseData: null,
+      oBody: null,
+      renderedApp: null,
+      contextId: null,
+      isBusy: false,
+      shortcuts: {},
+      timers: {},
+      viewSizeLimits: {},
+      onBeforeRoundtrip: [],
+      onAfterRoundtrip: [],
+      onAfterRendering: [],
+      onBeforeEventFrontend: [],
+      navRouting: false,
+      navMode: null,
+      currentApp: null,
+      currentDraftId: null,
+      oLaunchpad: null,
+      ...state,
+    },
+    getGlobal: (name) => {
+      if (name === "oConfig") return oConfig;
+      if (name === "url") return "/sap/z2ui5";
+      return undefined;
+    },
+  };
+  const { module } = loadModule("core/devtools/Inspect.js", {
+    deps: {
+      "sap/ui/Device": {
+        system: { desktop: true },
+        browser: { name: "cr", version: 120 },
+        os: { name: "win", version: 10 },
+        support: { touch: false },
+        orientation: { portrait: false },
+        resize: { width: 1920, height: 1080 },
+      },
+      "z2ui5/core/AppState": AppState,
+      "z2ui5/core/Lib": { deriveSystemType: () => "desktop" },
+      "z2ui5/core/ViewSlots": {
+        slots: SLOTS,
+        getView: (key) => views[key],
+        getViewXml: (key) => slotXml[key],
+      },
+      "z2ui5/core/devtools/Recorder": { getRecords: () => records },
+    },
+    sandbox: {
+      window: {
+        location: {
+          origin: "https://sap.example.com",
+          pathname: "/sap/bc/z2ui5",
+          search,
+          hash,
+        },
+        innerWidth: 1920,
+        innerHeight: 1080,
+      },
+      sap: { ui: { version: "1.120.5", require: () => undefined } },
+    },
+  });
+  return module;
+}
+
+test.describe("Environment", () => {
+  test("reports app, session and routing state", () => {
+    const Inspect = loadInspect({
+      state: {
+        responseData: { S_FRONT: { APP: "ZCL_DEMO", ID: "draft-42" } },
+        oBody: { S_FRONT: { EVENT: "SAVE", ID: "draft-41" } },
+        renderedApp: "ZCL_DEMO",
+        contextId: "ctx-1",
+        navRouting: true,
+        navMode: "KEEP",
+      },
+      hash: "#/app/ZCL_DEMO",
+    });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("ZCL_DEMO");
+    expect(out).toContain("draft-42");
+    expect(out).toContain("draft-41");
+    expect(out).toContain("SAVE");
+    expect(out).toContain("ctx-1");
+    expect(out).toContain("KEEP");
+    expect(out).toContain("#/app/ZCL_DEMO");
+    expect(out).toContain("1.120.5");
+  });
+
+  test("tells SAPUI5 and OpenUI5 apart by the version info gav", () => {
+    const Inspect = loadInspect();
+    const { getDistribution } = Inspect._internals;
+    expect(getDistribution({ GAV: "com.sap.ui5:something" })).toBe("SAPUI5");
+    expect(getDistribution({ GAV: "org.openui5:something" })).toBe("OpenUI5");
+    expect(getDistribution({})).toBe("");
+  });
+
+  test("lists each view slot with what it holds", () => {
+    const Inspect = loadInspect({
+      views: { MAIN: fakeView({ xml: "<mvc:View/>", data: { A: 1, B: 2 } }) },
+      slotXml: { MAIN: "<mvc:View/>" },
+    });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("2 model attributes");
+    expect(out).toMatch(/POPUP\s+empty/);
+  });
+});
+
+test.describe("Registry", () => {
+  test("lists shortcuts with their scope and backend event", () => {
+    const Inspect = loadInspect({
+      state: {
+        shortcuts: {
+          "CTRL+S": { MAIN: { event: "SAVE" }, "": { event: "SAVE_GLOBAL" } },
+        },
+      },
+    });
+    const out = Inspect.formatRegistry();
+    expect(out).toContain("CTRL+S");
+    expect(out).toContain("SAVE");
+    expect(out).toContain("(global)");
+  });
+
+  test("reports pending timers and callback counts", () => {
+    const Inspect = loadInspect({
+      state: {
+        timers: { t1: 1 },
+        onAfterRendering: [() => {}, () => {}],
+      },
+    });
+    const out = Inspect.formatRegistry();
+    expect(out).toContain("t1");
+    expect(out).toMatch(/onAfterRendering\s+2/);
+  });
+
+  test("scrapes the backend event names out of the view XML", () => {
+    const Inspect = loadInspect();
+    const { scrapeEvents } = Inspect._internals;
+    const xml =
+      `<Button press="$controller.eB(['POST'])"/>` +
+      `<Button press="$controller.eF(['NAV_BACK'])"/>` +
+      `<Input change="$controller.eB(['POST'])"/>`;
+    // deduplicated, sorted, and the entry point is kept
+    expect(scrapeEvents(xml)).toEqual(["eB  POST", "eF  NAV_BACK"]);
+  });
+
+  test("scraping handles the XML-escaped apostrophe", () => {
+    const Inspect = loadInspect();
+    const { scrapeEvents } = Inspect._internals;
+    expect(scrapeEvents(`press="eB([&apos;SAVE&apos;])"`)).toEqual([
+      "eB  SAVE",
+    ]);
+  });
+
+  test("lists the events of the filled slots", () => {
+    const Inspect = loadInspect({
+      views: { MAIN: fakeView({ xml: `<Button press="eB(['GO'])"/>` }) },
+    });
+    const out = Inspect.formatRegistry();
+    expect(out).toContain("[MAIN]");
+    expect(out).toContain("eB  GO");
+  });
+});
+
+test.describe("Actions", () => {
+  test("renders both action lists with their arguments", () => {
+    const Inspect = loadInspect({
+      state: {
+        responseData: {
+          S_FRONT: {
+            S_ACTION: {
+              T_SYSTEM: [["VIEW_SLOTS", "destroy", "POPUP"]],
+              T_CUSTOM: [["SET_FOCUS", "id1"]],
+            },
+          },
+        },
+      },
+    });
+    const out = Inspect.formatActions();
+    expect(out).toContain("VIEW_SLOTS");
+    expect(out).toContain("destroy");
+    expect(out).toContain("POPUP");
+    expect(out).toContain("SET_FOCUS");
+    expect(out).toContain("id1");
+  });
+
+  test("truncates a long argument instead of burying the structure", () => {
+    const Inspect = loadInspect({
+      state: {
+        responseData: {
+          S_FRONT: {
+            S_ACTION: {
+              T_SYSTEM: [["VIEW_SLOTS", "display", "MAIN", "x".repeat(5000)]],
+            },
+          },
+        },
+      },
+    });
+    const out = Inspect.formatActions();
+    expect(out).toContain("(5000 chars)");
+    expect(out.length).toBeLessThan(2000);
+  });
+
+  test("marks a legacy raw-JS entry as such", () => {
+    const Inspect = loadInspect({
+      state: {
+        responseData: {
+          S_FRONT: { S_ACTION: { T_CUSTOM: ["alert('hi')"] } },
+        },
+      },
+    });
+    expect(Inspect.formatActions()).toContain("[legacy JS]");
+  });
+
+  test("says so when a response carried no action at all", () => {
+    const Inspect = loadInspect({
+      state: { responseData: { S_FRONT: {} } },
+    });
+    const out = Inspect.formatActions();
+    expect(out).toContain("(none)");
+  });
+});
+
+test.describe("Messages", () => {
+  test("lists the messages of the recorded history, oldest first", () => {
+    const Inspect = loadInspect({
+      records: [
+        {
+          seq: 1,
+          ts: "2026-01-01T10:00:00.000Z",
+          messages: [{ target: "MESSAGE_TOAST", method: "show", text: "saved" }],
+        },
+        {
+          seq: 2,
+          ts: "2026-01-01T10:00:05.000Z",
+          messages: [
+            { target: "MESSAGE_BOX", method: "error", text: "nope" },
+          ],
+        },
+      ],
+    });
+    const out = Inspect.formatMessages();
+    expect(out).toContain("saved");
+    expect(out).toContain("box.error");
+    expect(out).toContain("nope");
+    expect(out.indexOf("saved")).toBeLessThan(out.indexOf("nope"));
+  });
+
+  test("placeholder when nothing was messaged", () => {
+    const Inspect = loadInspect({ records: [{ seq: 1, ts: "x", messages: [] }] });
+    expect(Inspect.formatMessages()).toContain("no backend message");
+  });
+});
+
+test.describe("Bindings", () => {
+  test("lists the model attributes with a type and size description", () => {
+    const Inspect = loadInspect({
+      views: {
+        MAIN: fakeView({
+          data: { NAME: "abc", TAB: [{ A: 1 }, { A: 2 }], S: { X: 1 } },
+        }),
+      },
+    });
+    const out = Inspect.formatBindings();
+    expect(out).toContain("/NAME");
+    expect(out).toContain("string  abc");
+    expect(out).toContain("table, 2 row(s)");
+    expect(out).toContain("structure, 1 field(s)");
+  });
+
+  test("marks the edited paths that will travel as the next delta", () => {
+    const Inspect = loadInspect({
+      views: {
+        MAIN: fakeView({
+          data: { NAME: "abc", OTHER: 1 },
+          changedPaths: ["/NAME"],
+        }),
+      },
+    });
+    const out = Inspect.formatBindings();
+    expect(out).toContain("* /NAME");
+    expect(out).toMatch(/\s{2}\/OTHER/);
+    expect(out).toContain("Edited paths queued for the next roundtrip");
+  });
+
+  test("a deep table edit marks its owning attribute", () => {
+    const Inspect = loadInspect({
+      views: {
+        MAIN: fakeView({
+          data: { TAB: [{ COL: "a" }] },
+          changedPaths: ["/TAB/0/COL"],
+        }),
+      },
+    });
+    expect(Inspect.formatBindings()).toContain("* /TAB");
+  });
+
+  test("skips the slots that only inherit the MAIN model", () => {
+    const Inspect = loadInspect({
+      views: {
+        MAIN: fakeView({ data: { A: 1 } }),
+        NEST: fakeView({ data: { A: 1 } }),
+      },
+    });
+    const out = Inspect.formatBindings();
+    expect(out).toContain("Slot MAIN");
+    expect(out).not.toContain("Slot NEST");
+  });
+});
+
+test.describe("findEventLine", () => {
+  const source = [
+    "CLASS zcl_demo IMPLEMENTATION.",
+    "  METHOD z2ui5_if_app~main.",
+    "    IF client->check_on_event( 'SAVE_ALL' ).",
+    "    IF client->check_on_event( 'SAVE' ).",
+    "  ENDMETHOD.",
+  ].join("\n");
+
+  test("finds the line of an event name", () => {
+    const Inspect = loadInspect();
+    expect(Inspect.findEventLine(source, "SAVE")).toBe(4);
+  });
+
+  test("does not match a longer identifier that contains the name", () => {
+    const Inspect = loadInspect();
+    // line 3 holds SAVE_ALL - SAVE must not match inside it
+    expect(Inspect.findEventLine(source, "SAVE_ALL")).toBe(3);
+  });
+
+  test("matches case-insensitively", () => {
+    const Inspect = loadInspect();
+    expect(Inspect.findEventLine(source, "save")).toBe(4);
+  });
+
+  test("returns 0 when the name does not occur or nothing was passed", () => {
+    const Inspect = loadInspect();
+    expect(Inspect.findEventLine(source, "NOPE")).toBe(0);
+    expect(Inspect.findEventLine("", "SAVE")).toBe(0);
+    expect(Inspect.findEventLine(source, "")).toBe(0);
+  });
+});

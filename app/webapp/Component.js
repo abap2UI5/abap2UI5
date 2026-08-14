@@ -157,6 +157,11 @@ sap.ui.define(
           }
         };
         document.addEventListener("keydown", this._boundKeydown);
+
+        // "?z2ui5-devtools=1" (optionally naming a tab) opens the tools
+        // right away - a startup problem is over before Ctrl+F12 can be
+        // pressed. A no-op without the parameter; the control decides.
+        DeveloperTools.autoOpenIfRequested();
       },
 
       _installScrollListener() {

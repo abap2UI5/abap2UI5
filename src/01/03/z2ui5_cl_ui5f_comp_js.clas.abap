@@ -184,6 +184,11 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        };` && |\n| &&
              `        document.addEventListener("keydown", this._boundKeydown);` && |\n| &&
+             `` && |\n| &&
+             `        // "?z2ui5-devtools=1" (optionally naming a tab) opens the tools` && |\n| &&
+             `        // right away - a startup problem is over before Ctrl+F12 can be` && |\n| &&
+             `        // pressed. A no-op without the parameter; the control decides.` && |\n| &&
+             `        DeveloperTools.autoOpenIfRequested();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installScrollListener() {` && |\n| &&

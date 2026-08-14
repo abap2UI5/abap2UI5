@@ -28,6 +28,7 @@ function loadDeveloperTools({
   slotXml = {},
   oResponse = null,
   responseData = null,
+  oBody = null,
   errors,
   lastError = null,
   logoutCalls,
@@ -35,13 +36,16 @@ function loadDeveloperTools({
   fragment,
   windowStub,
   recorder,
+  inspect,
+  picker,
+  liveEdit,
   // extra sap.ui.define dependencies / sandbox globals - only show() needs
   // them (JSONModel, Lib, sap.ui.require), every other test runs without
   extraDeps = {},
   extraSandbox = {},
 } = {}) {
   const AppState = {
-    state: { oResponse, responseData, oBody: null, errors, lastError },
+    state: { oResponse, responseData, oBody, errors, lastError },
     getGlobal: () => undefined,
   };
   // The slot registry is the developer tools' only source for what a slot
@@ -62,6 +66,25 @@ function loadDeveloperTools({
     setRecordingPayloads() {},
     formatHistory: () => "(no roundtrip recorded yet)",
     formatModelDiff: () => "(diff needs payload recording)",
+    exportJson: () => "{}",
+  };
+  // The inspectors, the control picker and the live view editing each own
+  // their behaviour (and their own specs); the dialog only routes to them.
+  const Inspect = inspect || {
+    formatEnvironment: () => "(environment)",
+    formatRegistry: () => "(registry)",
+    formatActions: () => "(actions)",
+    formatMessages: () => "(messages)",
+    formatBindings: () => "(bindings)",
+    findEventLine: () => 0,
+  };
+  const Picker = picker || { start() {}, stop() {} };
+  const LiveEdit = liveEdit || {
+    apply: () => Promise.resolve("applied"),
+    canApply: () => false,
+    slotOfTab: () => undefined,
+    originalXml: () => "",
+    isBusy: () => false,
   };
   // Control.extend returns the class spec itself; the spec's methods are
   // then invoked with the spec as `this`, close enough to the UI5 runtime
@@ -71,10 +94,17 @@ function loadDeveloperTools({
     deps: {
       "sap/ui/core/Control": Control,
       "sap/ui/core/Fragment": fragment,
+      // Default Lib stub: the async paths (Apply, Pick, show) guard their
+      // continuations with Lib.isDestroyed. The show() tests override it
+      // via extraDeps, which is spread after this.
+      "z2ui5/core/Lib": { isDestroyed: () => false, logError() {} },
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/ErrorView": ErrorView,
       "z2ui5/core/devtools/Recorder": Recorder,
+      "z2ui5/core/devtools/Inspect": Inspect,
+      "z2ui5/core/devtools/Picker": Picker,
+      "z2ui5/core/devtools/LiveEdit": LiveEdit,
       ...extraDeps,
     },
     sandbox: {
@@ -96,8 +126,9 @@ function loadDeveloperTools({
           return null;
         }
       },
+      URLSearchParams,
       window: windowStub || {
-        location: { origin: "https://sap.example.com" },
+        location: { origin: "https://sap.example.com", search: "" },
         open() {},
       },
       ...extraSandbox,
@@ -384,6 +415,240 @@ test.describe("Recorder tabs", () => {
     expect(modelData.recordPayloads).toBe(true);
     // the open tab reports the flag, so it is re-rendered after the switch
     expect(modelData.value).toBe("ON");
+  });
+});
+
+test.describe("Log tab keeps the stack trace", () => {
+  test("renders the stack of a logged error under its message", () => {
+    const error = new Error("kaboom");
+    error.stack = "Error: kaboom\n    at doThing (Websocket.js:42)";
+    const { DeveloperTools } = loadDeveloperTools({
+      errors: [{ message: "Websocket: send failed", ts: "2026-01-01T00:00:00.000Z", error }],
+    });
+    const { oEvent, modelData } = fakeSelectEvent("LOG");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toContain("Websocket: send failed");
+    expect(modelData.value).toContain("at doThing (Websocket.js:42)");
+  });
+
+  test("falls back to the string form for a non-Error throwable", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      errors: [{ message: "boom", ts: "2026-01-01T00:00:00.000Z", error: "plain" }],
+    });
+    const { oEvent, modelData } = fakeSelectEvent("LOG");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toContain("plain");
+  });
+
+  test("an entry without an error stays a single line (unchanged)", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      errors: [{ message: "boom", ts: "2026-01-01T00:00:00.000Z" }],
+    });
+    const { oEvent, modelData } = fakeSelectEvent("LOG");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toBe("2026-01-01T00:00:00.000Z  boom");
+  });
+});
+
+test.describe("Inspector tabs", () => {
+  const inspect = {
+    formatEnvironment: () => "ENV REPORT",
+    formatRegistry: () => "REGISTRY REPORT",
+    formatActions: () => "ACTIONS REPORT",
+    formatMessages: () => "MESSAGES REPORT",
+    formatBindings: () => "BINDINGS REPORT",
+    findEventLine: () => 0,
+  };
+
+  for (const [key, expected] of [
+    ["ENV", "ENV REPORT"],
+    ["REGISTRY", "REGISTRY REPORT"],
+    ["ACTIONS", "ACTIONS REPORT"],
+    ["MESSAGES", "MESSAGES REPORT"],
+    ["BINDINGS", "BINDINGS REPORT"],
+  ]) {
+    test(`the ${key} tab renders its inspector`, () => {
+      const { DeveloperTools } = loadDeveloperTools({ inspect });
+      const { oEvent, modelData } = fakeSelectEvent(key);
+      DeveloperTools.onItemSelect(oEvent);
+      expect(modelData.value).toBe(expected);
+      expect(modelData.type).toBe("text");
+    });
+  }
+
+  test("the picked-control tab explains itself before the first pick", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const { oEvent, modelData } = fakeSelectEvent("PICK");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toContain("No control picked yet");
+  });
+});
+
+test.describe("Live view editing", () => {
+  test("a view tab offers Apply, other tabs do not", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      views: { MAIN: fakeXmlView("<mvc:View/>") },
+      liveEdit: {
+        apply: () => Promise.resolve("ok"),
+        canApply: (tab) => tab === "VIEW",
+        slotOfTab: () => "MAIN",
+        originalXml: () => "<mvc:View/>",
+        isBusy: () => false,
+      },
+    });
+    const view = fakeSelectEvent("VIEW");
+    DeveloperTools.onItemSelect(view.oEvent);
+    expect(view.modelData.canApply).toBe(true);
+
+    const log = fakeSelectEvent("LOG");
+    DeveloperTools.onItemSelect(log.oEvent);
+    expect(log.modelData.canApply).toBe(false);
+  });
+
+  test("Apply forwards the edited XML and reports the result", async () => {
+    const applied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      liveEdit: {
+        apply: (tab, xml) => {
+          applied.push({ tab, xml });
+          return Promise.resolve("Applied to slot MAIN.");
+        },
+        canApply: () => true,
+        slotOfTab: () => "MAIN",
+        originalXml: () => "",
+        isBusy: () => false,
+      },
+    });
+    const modelData = { selectedTab: "VIEW", value: "<mvc:View edited=\"1\"/>" };
+    const oModel = { getData: () => modelData, refresh() {} };
+    await DeveloperTools.onApplyXml({ getSource: () => ({ getModel: () => oModel }) });
+    expect(applied).toEqual([
+      { tab: "VIEW", xml: '<mvc:View edited="1"/>' },
+    ]);
+    expect(modelData.applyResult).toContain("Applied to slot MAIN");
+  });
+
+  test("Apply is refused while a roundtrip is running", async () => {
+    const applied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      liveEdit: {
+        apply: () => {
+          applied.push(1);
+          return Promise.resolve("ok");
+        },
+        canApply: () => true,
+        slotOfTab: () => "MAIN",
+        originalXml: () => "",
+        isBusy: () => true,
+      },
+    });
+    const modelData = { selectedTab: "VIEW", value: "<x/>" };
+    const oModel = { getData: () => modelData, refresh() {} };
+    await DeveloperTools.onApplyXml({ getSource: () => ({ getModel: () => oModel }) });
+    expect(applied.length).toBe(0);
+    expect(modelData.applyResult).toContain("roundtrip is running");
+  });
+
+  test("Reset puts the backend's original XML back", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      liveEdit: {
+        apply: () => Promise.resolve("ok"),
+        canApply: () => true,
+        slotOfTab: () => "MAIN",
+        originalXml: () => "<mvc:View original=\"1\"/>",
+        isBusy: () => false,
+      },
+    });
+    const modelData = { selectedTab: "VIEW", value: "<edited/>", applyResult: "x" };
+    const oModel = { getData: () => modelData, refresh() {} };
+    DeveloperTools.onResetXml({ getSource: () => ({ getModel: () => oModel }) });
+    expect(modelData.value).toBe('<mvc:View original="1"/>');
+    expect(modelData.applyResult).toBe("");
+  });
+});
+
+test.describe("Auto-open via URL parameter", () => {
+  const withSearch = (search) =>
+    loadDeveloperTools({
+      windowStub: { location: { origin: "https://x", search }, open() {} },
+    }).DeveloperTools;
+
+  test("is off without the parameter", () => {
+    expect(withSearch("").isAutoOpenRequested()).toBe(false);
+  });
+
+  test("=1 opens the default tab", () => {
+    const DT = withSearch("?z2ui5-devtools=1");
+    expect(DT.isAutoOpenRequested()).toBe(true);
+    expect(DT.autoOpenTab()).toBe("");
+  });
+
+  test("a tab key opens that tab", () => {
+    expect(withSearch("?z2ui5-devtools=history").autoOpenTab()).toBe("HISTORY");
+  });
+
+  test("survives alongside other query parameters", () => {
+    const DT = withSearch("?app_start=ZCL_X&z2ui5-devtools=ENV");
+    expect(DT.isAutoOpenRequested()).toBe(true);
+    expect(DT.autoOpenTab()).toBe("ENV");
+  });
+});
+
+test.describe("ADT deep link", () => {
+  const appResponse = { S_FRONT: { APP: "ZCL_DEMO" } };
+
+  test("plain class url without a cached source", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: appResponse,
+    });
+    DeveloperTools._abapSourceCache = null;
+    expect(DeveloperTools.getAbapAdtUrl()).toBe(
+      "https://sap.example.com/sap/bc/adt/oo/classes/ZCL_DEMO/source/main",
+    );
+  });
+
+  // The inspector resolves the line; the dialog only has to turn it into
+  // the anchor the ADT source endpoint understands.
+  const inspectAtLine = (lineNumber) => ({
+    formatEnvironment: () => "",
+    formatRegistry: () => "",
+    formatActions: () => "",
+    formatMessages: () => "",
+    formatBindings: () => "",
+    findEventLine: () => lineNumber,
+  });
+
+  test("deep links at the event's line once the source is cached", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: appResponse,
+      oBody: { S_FRONT: { EVENT: "SAVE" } },
+      inspect: inspectAtLine(17),
+    });
+    DeveloperTools._abapSourceCache = { app: "ZCL_DEMO", source: "..." };
+    expect(DeveloperTools.getAbapAdtUrl()).toBe(
+      "https://sap.example.com/sap/bc/adt/oo/classes/ZCL_DEMO/source/main" +
+        "#start=17,1",
+    );
+  });
+
+  test("stays on the plain url when the event name is not found", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: appResponse,
+      oBody: { S_FRONT: { EVENT: "SAVE" } },
+      inspect: inspectAtLine(0),
+    });
+    DeveloperTools._abapSourceCache = { app: "ZCL_DEMO", source: "..." };
+    expect(DeveloperTools.getAbapAdtUrl()).not.toContain("#start=");
+  });
+
+  test("ignores a source cached for a different app class", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: appResponse,
+      oBody: { S_FRONT: { EVENT: "SAVE" } },
+      inspect: inspectAtLine(17),
+    });
+    DeveloperTools._abapSourceCache = { app: "ZCL_OTHER", source: "..." };
+    expect(DeveloperTools.getAbapAdtUrl()).not.toContain("#start=");
   });
 });
 

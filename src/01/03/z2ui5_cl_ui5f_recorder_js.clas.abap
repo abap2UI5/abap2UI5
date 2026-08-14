@@ -83,6 +83,13 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `  // an error response, an abort, or a superseded parallel request.` && |\n| &&
              `  const UNPAIRED_FLUSH_MS = 5000;` && |\n| &&
              `` && |\n| &&
+             `  // Backend messages are kept as TIER 1 metadata, not as payloads: the` && |\n| &&
+             `  // text of a toast or message box is a short string, and "what did the` && |\n| &&
+             `  // app tell the user three roundtrips ago" is exactly the kind of` && |\n| &&
+             `  // question the history exists for. Capped so a pathological message` && |\n| &&
+             `  // cannot grow a record without bound.` && |\n| &&
+             `  const MAX_MESSAGE_CHARS = 500;` && |\n| &&
+             `` && |\n| &&
              `  // Rendering caps for the history / diff text output.` && |\n| &&
              `  const MAX_DIFF_ENTRIES = 200;` && |\n| &&
              `  const MAX_DIFF_DEPTH = 12;` && |\n| &&
@@ -239,10 +246,33 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      totalMs: null,` && |\n| &&
              `      systemActions: 0,` && |\n| &&
              `      customActions: 0,` && |\n| &&
+             `      messages: [],` && |\n| &&
              `      rendered: false,` && |\n| &&
              `      request: null,` && |\n| &&
              `      response: null,` && |\n| &&
              `    });` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Pull the user-visible backend messages out of a response's app action` && |\n| &&
+             `  // list. A message travels as a whitelisted global call` && |\n| &&
+             `  // ["CONTROL_GLOBAL", "MESSAGE_TOAST"|"MESSAGE_BOX", <method>, <text>, ...]` && |\n| &&
+             `  // (see core/actions/ControlCall.js); the legacy raw-string entries in` && |\n| &&
+             `  // T_CUSTOM carry no structured message and are skipped.` && |\n| &&
+             `  function extractMessages(response) {` && |\n| &&
+             `    const custom = response?.S_FRONT?.S_ACTION?.T_CUSTOM;` && |\n| &&
+             `    if (!Array.isArray(custom)) return [];` && |\n| &&
+             `    const out = [];` && |\n| &&
+             `    for (const item of custom) {` && |\n| &&
+             `      if (!Array.isArray(item) || item[0] !== "CONTROL_GLOBAL") continue;` && |\n| &&
+             `      const target = item[1];` && |\n| &&
+             `      if (target !== "MESSAGE_TOAST" && target !== "MESSAGE_BOX") continue;` && |\n| &&
+             `      let text = typeof item[3] === "string" ? item[3] : "";` && |\n| &&
+             `      if (text.length > MAX_MESSAGE_CHARS) {` && |\n| &&
+             `        text = ``${text.slice(0, MAX_MESSAGE_CHARS)}...``;` && |\n| &&
+             `      }` && |\n| &&
+             `      out.push({ target, method: item[2] || "", text });` && |\n| &&
+             `    }` && |\n| &&
+             `    return out;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Measured weight of a record's retained payloads. Sizes that were not` && |\n| &&
@@ -354,6 +384,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        totalMs: net ? Math.round(tRendered - net.start) : null,` && |\n| &&
              `        systemActions: sFront?.S_ACTION?.T_SYSTEM?.length || 0,` && |\n| &&
              `        customActions: sFront?.S_ACTION?.T_CUSTOM?.length || 0,` && |\n| &&
+             `        // Tier 1 on purpose - see MAX_MESSAGE_CHARS.` && |\n| &&
+             `        messages: extractMessages(response),` && |\n| &&
              `        rendered: true,` && |\n| &&
              `        // Plain references, never clones - see the module header for why` && |\n| &&
              `        // that is safe and why it costs nothing but retention.` && |\n| &&
@@ -392,7 +424,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function uninstall() {` && |\n| &&
+             `  function uninstall() {` && |\n|.
+    result = result &&
              `    if (!installed) return;` && |\n| &&
              `    installed = false;` && |\n| &&
              `    Lib.unregisterCallback("onAfterRendering", afterRenderingHook);` && |\n| &&
@@ -424,8 +457,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `  // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `  function pad(value, width, right) {` && |\n| &&
-             `    const text = value === null || value === undefined ? "-" : String(value);` && |\n|.
-    result = result &&
+             `    const text = value === null || value === undefined ? "-" : String(value);` && |\n| &&
              `    if (text.length >= width) return text;` && |\n| &&
              `    const fill = " ".repeat(width - text.length);` && |\n| &&
              `    return right ? fill + text : text + fill;` && |\n| &&
@@ -659,10 +691,39 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    return header.join("\n");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // The recorded history as JSON, for download. With payload recording on` && |\n| &&
+             `  // this carries the actual request/response bodies, which is what makes a` && |\n| &&
+             `  // bug reproducible for someone who cannot click through the app - the` && |\n| &&
+             `  // shareable half of "record and replay". Replaying it back INTO a system` && |\n| &&
+             `  // is deliberately not offered: the recorded requests reference draft ids` && |\n| &&
+             `  // that only exist in the session that produced them, and re-sending them` && |\n| &&
+             `  // would drive real backend state.` && |\n| &&
+             `  function exportJson() {` && |\n| &&
+             `    const payload = {` && |\n| &&
+             `      exportedAt: new Date().toISOString(),` && |\n| &&
+             `      payloadsRecorded: isRecordingPayloads(),` && |\n| &&
+             `      records: getRecords(),` && |\n| &&
+             `    };` && |\n| &&
+             `    try {` && |\n| &&
+             `      return JSON.stringify(payload, null, 2);` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      // A payload that cannot be serialized must not lose the whole` && |\n| &&
+             `      // export - fall back to the metadata, which is always plain data.` && |\n| &&
+             `      const metaOnly = records.map((record) => {` && |\n| &&
+             `        const copy = { ...record };` && |\n| &&
+             `        delete copy.request;` && |\n| &&
+             `        delete copy.response;` && |\n| &&
+             `        return copy;` && |\n| &&
+             `      });` && |\n| &&
+             `      return JSON.stringify({ ...payload, records: metaOnly }, null, 2);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  return {` && |\n| &&
              `    install,` && |\n| &&
              `    uninstall,` && |\n| &&
              `    getRecords,` && |\n| &&
+             `    exportJson,` && |\n| &&
              `    isRecordingPayloads,` && |\n| &&
              `    setRecordingPayloads,` && |\n| &&
              `    formatHistory,` && |\n| &&

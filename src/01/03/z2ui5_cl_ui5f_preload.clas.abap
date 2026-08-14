@@ -70,6 +70,9 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/AppState.js": function()\{{ z2ui5_cl_ui5f_appstate_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/DeveloperTools.fragment.xml": '{ escape_js_literal( z2ui5_cl_ui5f_dtools_xml=>get( ) ) }',| && |\n| &&
              |      "z2ui5/core/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/devtools/Inspect.js": function()\{{ z2ui5_cl_ui5f_inspect_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/devtools/LiveEdit.js": function()\{{ z2ui5_cl_ui5f_liveedit_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/devtools/Picker.js": function()\{{ z2ui5_cl_ui5f_picker_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/devtools/Recorder.js": function()\{{ z2ui5_cl_ui5f_recorder_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ErrorView.js": function()\{{ z2ui5_cl_ui5f_errview_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_ui5f_frontact_js=>get( ) }\},| && |\n| &&

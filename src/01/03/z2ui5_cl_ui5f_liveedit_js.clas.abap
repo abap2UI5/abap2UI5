@@ -1,0 +1,147 @@
+* =====================================================================
+* GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
+* Embedded frontend resource, generated from app/webapp/ by
+* .github/app2abap/trans2abap.js. Change the source under app/webapp/
+* and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
+* fails any manual edit here.
+* =====================================================================
+CLASS z2ui5_cl_ui5f_liveedit_js DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    CLASS-METHODS get
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS z2ui5_cl_ui5f_liveedit_js IMPLEMENTATION.
+
+  METHOD get.
+
+    result = `// Live view-XML editing of the developer tools.` && |\n| &&
+             `//` && |\n| &&
+             `// Takes the XML currently shown in a developer-tools view tab, re-renders` && |\n| &&
+             `// the slot with it and keeps the slot's model - so a layout change can be` && |\n| &&
+             `// tried out in the running app WITHOUT an ABAP roundtrip and without` && |\n| &&
+             `// activating anything. The next real roundtrip overwrites it again, which` && |\n| &&
+             `// is the intended lifetime: this is an experiment surface, not a way to` && |\n| &&
+             `// patch an app.` && |\n| &&
+             `//` && |\n| &&
+             `// Outside the framework like the rest of core/devtools/: it drives the` && |\n| &&
+             `// same public slot-display entry point (core/actions/Slots.action) the` && |\n| &&
+             `// backend's VIEW_SLOTS action uses, and adds nothing to it.` && |\n| &&
+             `sap.ui.define(` && |\n| &&
+             `  [` && |\n| &&
+             `    "z2ui5/core/actions/Slots",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Slots, AppState, Lib, ViewSlots) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    // Which developer-tools tab edits which view slot. Only the tabs that` && |\n| &&
+             `    // show a slot's own XML can be applied; the model / response / history` && |\n| &&
+             `    // tabs have no slot to render into.` && |\n| &&
+             `    const TAB_TO_SLOT = {` && |\n| &&
+             `      VIEW: "MAIN",` && |\n| &&
+             `      POPUP: "POPUP",` && |\n| &&
+             `      POPOVER: "POPOVER",` && |\n| &&
+             `      NEST1: "NEST",` && |\n| &&
+             `      NEST2: "NEST2",` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    function slotOfTab(tabKey) {` && |\n| &&
+             `      return TAB_TO_SLOT[tabKey];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // True when the given tab can be applied right now: it maps to a slot` && |\n| &&
+             `    // and that slot actually holds something to replace.` && |\n| &&
+             `    function canApply(tabKey) {` && |\n| &&
+             `      const slotKey = slotOfTab(tabKey);` && |\n| &&
+             `      if (!slotKey) return false;` && |\n| &&
+             `      return Boolean(ViewSlots.getView(slotKey));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Re-render ``tabKey``'s slot with ``xml``. Returns a short result message` && |\n| &&
+             `    // for the dialog to show. Never throws: a typo in the edited XML is the` && |\n| &&
+             `    // expected case, and it must leave the app alive.` && |\n| &&
+             `    //` && |\n| &&
+             `    // The model is carried over explicitly for the standalone slots: a` && |\n| &&
+             `    // display builds a FRESH JSONModel from the response's model data, so` && |\n| &&
+             `    // without this a popup re-rendered from the editor would come back` && |\n| &&
+             `    // bound to whatever the last response carried rather than to what the` && |\n| &&
+             `    // user currently sees.` && |\n| &&
+             `    async function apply(tabKey, xml) {` && |\n| &&
+             `      const slotKey = slotOfTab(tabKey);` && |\n| &&
+             `      if (!slotKey) return "This tab shows no view slot - nothing to apply.";` && |\n| &&
+             `      if (!xml || !xml.trim()) return "The editor is empty - nothing to apply.";` && |\n| &&
+             `` && |\n| &&
+             `      const oldView = ViewSlots.getView(slotKey);` && |\n| &&
+             `      if (!oldView) return ``Slot ${slotKey} is not filled - nothing to apply.``;` && |\n| &&
+             `      const oldModel = oldView.getModel?.();` && |\n| &&
+             `      const modelData = oldModel?.getData?.();` && |\n| &&
+             `` && |\n| &&
+             `      try {` && |\n| &&
+             `        // seq undefined: this display belongs to no roundtrip, so the` && |\n| &&
+             `        // superseded-request guard must not discard it (Slots.isSuperseded` && |\n| &&
+             `        // treats undefined as "not superseded").` && |\n| &&
+             `        await Slots.action("display", slotKey, xml, {}, undefined);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("DevTools LiveEdit: applying the edited XML failed", e);` && |\n| &&
+             `        return ``Could not build the view: ${e?.message || e}``;` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      // Restore what the user was looking at. Only for the slots that own` && |\n| &&
+             `      // their model - MAIN's rebuild already reads the current model data,` && |\n| &&
+             `      // and the nested slots inherit MAIN's by propagation.` && |\n| &&
+             `      try {` && |\n| &&
+             `        const newView = ViewSlots.getView(slotKey);` && |\n| &&
+             `        const newModel = newView?.getModel?.();` && |\n| &&
+             `        if (modelData && newModel?.setData && slotKey !== "MAIN") {` && |\n| &&
+             `          newModel.setData(modelData);` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("DevTools LiveEdit: restoring the model failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      return (` && |\n| &&
+             `        ``Applied to slot ${slotKey}. This is a LOCAL preview - the backend `` +` && |\n| &&
+             `        ``knows nothing about it, and the next roundtrip replaces it.``` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The XML the slot currently holds, so the editor can be reset to the` && |\n| &&
+             `    // version the backend actually sent.` && |\n| &&
+             `    function originalXml(tabKey) {` && |\n| &&
+             `      const slotKey = slotOfTab(tabKey);` && |\n| &&
+             `      if (!slotKey) return "";` && |\n| &&
+             `      return (` && |\n| &&
+             `        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||` && |\n| &&
+             `        ViewSlots.getViewXml(slotKey) ||` && |\n| &&
+             `        ""` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // True while a roundtrip is running - applying then would race the` && |\n| &&
+             `    // response's own display of the same slot.` && |\n| &&
+             `    function isBusy() {` && |\n| &&
+             `      return Boolean(AppState.state.isBusy);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    return { apply, canApply, slotOfTab, originalXml, isBusy };` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
+             `` && |\n| &&
+              ``.
+
+  ENDMETHOD.
+
+ENDCLASS.

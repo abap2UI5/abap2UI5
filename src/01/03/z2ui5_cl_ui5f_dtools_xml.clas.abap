@@ -59,6 +59,32 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                    key="DIFF"` &&
              `                />` &&
              `                <IconTabFilter` &&
+             `                    text="Messages"` &&
+             `                    key="MESSAGES"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
+             `                    text="Actions"` &&
+             `                    key="ACTIONS"` &&
+             `                />` &&
+             `                <IconTabSeparator />` &&
+             `                <IconTabFilter` &&
+             `                    text="Bindings"` &&
+             `                    key="BINDINGS"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
+             `                    text="Picked Control"` &&
+             `                    key="PICK"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
+             `                    text="Registry"` &&
+             `                    key="REGISTRY"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
+             `                    text="Environment"` &&
+             `                    key="ENV"` &&
+             `                />` &&
+             `                <IconTabSeparator />` &&
+             `                <IconTabFilter` &&
              `                    text="Previous Request"` &&
              `                    key="REQUEST"` &&
              `                />` &&
@@ -113,6 +139,15 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `        </IconTabHeader>` &&
              `        <VBox>` &&
              `            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
+             `            <!-- Live view editing: only shown on the tabs that map to a view` &&
+             `                 slot (core/devtools/LiveEdit.js sets canApply). Apply renders` &&
+             `                 the edited XML into the running app WITHOUT a roundtrip - a` &&
+             `                 local preview the next response replaces again. -->` &&
+             `            <HBox visible="{/canApply}" alignItems="Center">` &&
+             `                <Button text="Apply to App" type="Emphasized" press=".onApplyXml" />` &&
+             `                <Button text="Reset" press=".onResetXml" class="sapUiTinyMarginBegin" />` &&
+             `                <Text text="{/applyResult}" class="sapUiTinyMarginBegin" />` &&
+             `            </HBox>` &&
              `            <ce:CodeEditor` &&
              `                id="developerToolsEditor"` &&
              `                type="{/type}"` &&
@@ -143,6 +178,13 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                 request/response bodies is the only part of the history` &&
              `                 that costs real memory, so a production session must not` &&
              `                 pay for it unnoticed (core/devtools/Recorder.js). -->` &&
+             `            <!-- Closes the dialog, lets the user click any control in the` &&
+             `                 app and reopens on the "Picked Control" tab with its` &&
+             `                 bindings and current values (core/devtools/Picker.js). -->` &&
+             `            <Button` &&
+             `                text="Pick Control"` &&
+             `                press=".onPickControl"` &&
+             `            />` &&
              `            <ToggleButton` &&
              `                text="Record Payloads"` &&
              `                pressed="{/recordPayloads}"` &&
