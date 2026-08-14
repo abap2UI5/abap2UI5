@@ -1,6 +1,6 @@
 ---
 name: build-an-app
-description: How to build an application WITH abap2UI5 (as opposed to changing the framework) - app class template, lifecycle, view building via z2ui5_cl_ai_xml, two-way binding, events, popups, navigation, validation tooling. Use when writing or reviewing a z2ui5_if_app class, demo app, sample or any consumer application code.
+description: How to build an application WITH abap2UI5 (as opposed to changing the framework) - app class template, lifecycle, view building via z2ui5_cl_ai_xml, data binding, events, popups, navigation, validation tooling. Use when writing or reviewing a z2ui5_if_app class, demo app, sample or any consumer application code.
 ---
 
 # Building an abap2UI5 app
@@ -18,7 +18,7 @@ Quick orientation while it loads:
   everything else PROTECTED.
 - Build views with `z2ui5_cl_ai_xml` (`open`/`leaf`/`a`/`shut`/`stringify`).
   The legacy `z2ui5_cl_xml_view` is frozen — never use it in new code.
-- Bind with `client->_bind( var )` (two-way, also for display-only;
+- Bind with `client->_bind( var )` (also for display-only;
   `_bind_edit` is obsolete). Row-template fields bind as `` `{UPPERCASE}` ``.
   Never write a model path as a text literal.
 - Events: `client->_event( `NAME` )`, dispatch via

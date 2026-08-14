@@ -56,7 +56,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `// Why payloads can be kept as plain REFERENCES (no structuredClone):` && |\n| &&
              `// actions/Slots.js hands the response's MODEL object straight to` && |\n| &&
              `// JSONModel.setData(), so the live model data IS response.MODEL and the` && |\n| &&
-             `// two-way binding mutates it in place. That only lasts until the NEXT` && |\n| &&
+             `// binding mutates it in place. That only lasts until the NEXT` && |\n| &&
              `// roundtrip calls setData() with the new response's MODEL - from that` && |\n| &&
              `// moment the old object is unbound and frozen. So every record except the` && |\n| &&
              `// newest is stable, and the newest one is the current state the existing` && |\n| &&

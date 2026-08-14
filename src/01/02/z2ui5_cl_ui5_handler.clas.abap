@@ -839,7 +839,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_ui5_client( mo_action ) ).
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
-    " automatic model update: snapshot the model AFTER the incoming two-way
+    " automatic model update: snapshot the model AFTER the incoming client
     " deltas were applied (factory_by_frontend) and BEFORE main( ) runs -
     " what the client already knows must never trigger a push. Taken per
     " dispatch iteration, so after a nav_app_call/leave the snapshot belongs

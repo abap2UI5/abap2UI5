@@ -1815,7 +1815,7 @@ CLASS ltcl_test_json_types IMPLEMENTATION.
     lr1->bind        = abap_true.
     lr1->name_client = `/MV_SIMPLE`.
 
-    " Second entry: a copy with a different name_client path, also two-way
+    " Second entry: a copy with a different name_client path, also bound
     DATA ls_extra TYPE z2ui5_if_ui5_types=>ty_s_attri.
     ls_extra = lr1->*.
     ls_extra-name        = `MV_SIMPLE_ALIAS`.

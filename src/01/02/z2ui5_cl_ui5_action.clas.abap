@@ -148,7 +148,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
       " prepare_app_stack( ) just saved the calling app under a NEW draft id -
       " one that includes everything the user changed on the client since the
-      " caller last rendered (two-way bound switches, checkboxes, input; they
+      " caller last rendered (bound switches, checkboxes, input; they
       " arrive with the event that triggered this navigation). The caller's
       " history entry, however, still carries the draft of that last render,
       " so Back would restore it WITHOUT those changes. Hand the fresh draft

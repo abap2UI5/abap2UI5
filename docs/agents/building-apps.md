@@ -17,8 +17,8 @@ For working **on the framework itself**, read `AGENTS.md` instead.
 An abap2UI5 app is **one ABAP class** implementing `z2ui5_if_app`. The
 framework calls its `main( client )` method on every HTTP roundtrip: once at
 startup (`check_on_init`) and once per user interaction (`check_on_event`).
-The app builds a UI5 XML view as a string, binds ABAP attributes into it
-two-way, and registers named events. Between roundtrips the framework
+The app builds a UI5 XML view as a string, binds ABAP attributes into it,
+and registers named events. Between roundtrips the framework
 serializes the app object into a draft table and restores it — **every PUBLIC
 attribute is persisted state and travels to the browser with the model**, so
 bound data goes in `PUBLIC SECTION`, everything else in `PROTECTED SECTION`.
@@ -161,8 +161,8 @@ ships for existing apps but is **frozen** — new apps and new code use
 
 ## 4. Data binding
 
-- `client->_bind( var )` binds a PUBLIC attribute **two-way**: the value
-  renders into the view, and user input is written back into the attribute
+- `client->_bind( var )` binds a PUBLIC attribute: the value renders into
+  the view, and user input is written back into the attribute
   before your event handler runs. Use it for everything, display-only
   included (`_bind_edit` is an obsolete alias — do not use it in new code).
 - Inside a bound aggregation (a table/list template), child properties bind
