@@ -1,6 +1,6 @@
 ---
 name: abap-check
-description: The catalogue of ABAP problems a green CI does not catch - abapGit round-trip and import failures (BOM, line endings, EOF newline, 255-character lines, metadata sidecars for CLAS and for DDLS/BDEF/TABL), activation errors abaplint does not model (class_constructor visibility, LOCAL FRIENDS, generic types on older releases, RAP and CDS), extended-check (SLIN/ATC) traps, downport and transpiler traps, and runtime breakage that only shows on a real system. Use before finishing any change under src/, after editing a .clas.xml or any other metadata sidecar, when a pull into a system produced unexpected diffs, an import error or an activation error - and add the case here whenever a new one is found.
+description: The catalogue of ABAP problems a green CI does not catch - abapGit round-trip and import failures (BOM, line endings, EOF newline, 255-character lines, metadata sidecars for CLAS and for DDLS/BDEF/TABL, a pulled branch without .abapgit.xml), activation errors abaplint does not model (class_constructor visibility, LOCAL FRIENDS, generic types on older releases, RAP and CDS), extended-check (SLIN/ATC) traps, downport and transpiler traps, and runtime breakage that only shows on a real system. Use before finishing any change under src/, after editing a .clas.xml or any other metadata sidecar, when a pull into a system produced unexpected diffs, an import error, an activation error or a repository that does not install at all - and add the case here whenever a new one is found.
 ---
 
 # What a green CI does not prove
@@ -77,6 +77,56 @@ everyone.
 | `clsname` | `<CLSNAME>` equals the file name, upper-cased | — |
 | `langu` | `<LANGU>` equals `<MASTER_LANGUAGE>` from `.abapgit.xml` (`E`). An object created while logged on in another language serializes with that language and diffs against every other developer | — |
 | `unit-tests` | `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>` exactly when a `.testclasses.abap` exists | `d5eaaa79` "fix unit test metadata" — `z2ui5_cl_util_range` had the test include and not the flag |
+
+### Before any file matters — the branch being pulled needs `.abapgit.xml`
+
+abapGit reads the descriptor from the **root of the branch it was pointed at**:
+`find_remote_dot_abapgit` looks up `.abapgit.xml` in the remote's root
+directory and nowhere else. Not there, and the repository cannot even be
+created — no object is touched, and the message names a missing file rather
+than the actual mistake, so it reads as "this repository is broken":
+
+```
+Cannot find .abapgit.xml - Is this an abapGit repository?
+```
+
+**Every branch a user may pull needs its own descriptor — the default branch
+first.** `abap2UI5/frontend` is the case (found by a user, 2026-08): its `main`
+is a *source* branch — webapp under `app/webapp`, ABAP artefacts under
+`abap/cloud` and `abap/standard`, no `/src/`, no `.abapgit.xml` — and the
+installable trees are the generated branches `cloud`, `cloud_v2`, `standard`,
+`standard_v2`, into which `.github/build-branches.mjs` writes the descriptor.
+All four carry it. `main` — the branch preselected when someone pastes the
+repository URL — does not, so the shortest install path is the one that fails.
+
+Two rules follow, and no script in this repository can decide either of them:
+the branch that fails lives in another repository and is written by another
+workflow.
+
+- **The descriptor belongs to the generated output, not to the source tree.**
+  Whatever builds a branch has to write `.abapgit.xml`, a `package.devc.xml`
+  at the starting folder, and keep `STARTING_FOLDER` pointing at the folder it
+  actually filled. Verify per branch, never per repository — for every branch
+  the docs tell people to pull:
+  ```
+  git ls-tree <branch> .abapgit.xml     # descriptor present at the root
+  git ls-tree <branch>:src              # starting folder actually filled
+  ```
+- **A default branch that is deliberately not installable has to say so where
+  the user is standing** — the first screen of the README and the install
+  guide, with the branch table. The error message cannot say it, and the user
+  who hits it has no reason to suspect the branch.
+
+Finding the descriptor only gets you to the next install-time failure of the
+same shape: `STARTING_FOLDER` and `FOLDER_LOGIC` decide the package names, and
+with `PREFIX` those come from the folder names below the starting folder.
+Getting that pair wrong fails just as early and again names the wrong thing —
+users report *"Package 01 has a subpackage with the same name"* when linking
+this repository to a top package called `ZUI5` or `Z2UI5` (#1803, #1077), and
+#1828 is the same class of error installing the cloud frontend. Neither the
+descriptor nor the folder logic is visible to abaplint or the transpiler: both
+are repository metadata, and every check here runs on a working tree that
+already has them.
 
 ### The size limits — where the *import* fails, not the diff
 
@@ -409,6 +459,12 @@ When an **import** fails rather than diffs, read the message twice: the object
 named in it is often not the broken one. A missing BDEF reports as a DDLS
 problem and as a where-used-list error on unrelated classes; an over-length
 line reports as a literal problem and leaves an empty class behind.
+
+When **nothing** imports, look at the branch before you look at any file:
+`.abapgit.xml` at its root, `STARTING_FOLDER` pointing at a folder that exists
+there, `package.devc.xml` in it. Those three decide whether abapGit ever gets
+as far as an object, and a repository can be perfectly serialized on the branch
+nobody is pulling.
 
 ## Adding a new case
 
