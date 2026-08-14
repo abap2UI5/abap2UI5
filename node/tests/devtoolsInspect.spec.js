@@ -83,7 +83,21 @@ function loadInspect({
         resize: { width: 1920, height: 1080 },
       },
       "z2ui5/core/AppState": AppState,
-      "z2ui5/core/Lib": { deriveSystemType: () => "desktop", logError() {} },
+      "z2ui5/core/Lib": {
+        deriveSystemType: () => "desktop",
+        logError() {},
+        // the real framework function the delta preview calls - a stub
+        // that mirrors its scalar behaviour is enough here, the function
+        // itself is covered by buildDeltaFromPaths.spec.js
+        buildDeltaFromPaths: (paths, data) => {
+          const delta = {};
+          for (const path of paths) {
+            const attr = path.slice(1).split("/")[0];
+            delta[attr] = data[attr];
+          }
+          return delta;
+        },
+      },
       // The live producers of the frontend block that travels on every
       // roundtrip (client->get( )-s_focus / -s_scroll).
       "z2ui5/core/ScrollFocus": {
@@ -604,5 +618,105 @@ test.describe("findEventLine", () => {
     expect(Inspect.findEventLine(source, "NOPE")).toBe(0);
     expect(Inspect.findEventLine("", "SAVE")).toBe(0);
     expect(Inspect.findEventLine(source, "")).toBe(0);
+  });
+});
+
+// The three checks that answer the most common developer questions:
+// empty field, huge response, change does not arrive.
+test.describe("Bindings diagnostics", () => {
+  test("lists the paths bound in the view that the model does not have", () => {
+    const Inspect = loadInspect({
+      views: {
+        MAIN: fakeView({
+          xml:
+            `<Input value="{/CUSTOMER}"/>` +
+            `<Text text="{/CUSTOMR}"/>` +
+            `<Table items="{/T_ITEMS}"/>`,
+          data: { CUSTOMER: "x", T_ITEMS: [] },
+        }),
+      },
+    });
+    const out = Inspect.formatBindings();
+    expect(out).toContain("BOUND IN THE VIEW BUT NOT IN THE MODEL");
+    expect(out).toContain("/CUSTOMR");
+    // the ones that DO exist are not reported as missing
+    const missingBlock = out.slice(out.indexOf("BOUND IN THE VIEW"));
+    expect(missingBlock).not.toContain("/CUSTOMER\n");
+  });
+
+  test("collects the path forms the view builder produces", () => {
+    const Inspect = loadInspect();
+    const { scrapeBindingAttributes } = Inspect._internals;
+    const xml =
+      `<Input value="{/A}"/>` +
+      `<Text text="{path: '/B', formatter: 'x'}"/>` +
+      `<Text text="{= \${/C} > 1 }"/>` +
+      `<List items="{/D}"><Text text="{REL}"/></List>`;
+    const found = scrapeBindingAttributes(xml);
+    expect(found).toContain("A");
+    expect(found).toContain("B");
+    expect(found).toContain("C");
+    expect(found).toContain("D");
+    // a relative binding resolves against the row context and says nothing
+    expect(found).not.toContain("REL");
+  });
+
+  test("mentions the model attributes the view does not bind", () => {
+    const Inspect = loadInspect({
+      views: {
+        MAIN: fakeView({
+          xml: `<Input value="{/USED}"/>`,
+          data: { USED: 1, UNUSED_A: 2, UNUSED_B: 3 },
+        }),
+      },
+    });
+    const out = Inspect.formatBindings();
+    expect(out).toContain("2 model attribute(s) not bound");
+    expect(out).toContain("UNUSED_A");
+  });
+
+  test("ranks the attributes by serialized size with their share", () => {
+    const Inspect = loadInspect({
+      views: {
+        MAIN: fakeView({
+          data: {
+            SMALL: "x",
+            BIG: Array.from({ length: 200 }, (_, i) => ({ COL: `row${i}` })),
+          },
+        }),
+      },
+    });
+    const out = Inspect.formatBindings();
+    expect(out).toContain("Model size:");
+    expect(out).toContain("/BIG");
+    expect(out).toContain("row(s)");
+    // the heavy one is listed before the small one
+    expect(out.indexOf("/BIG")).toBeLessThan(out.indexOf("/SMALL"));
+  });
+
+  test("previews the delta the next roundtrip will send", () => {
+    const Inspect = loadInspect({
+      views: {
+        MAIN: fakeView({
+          data: { NAME: "changed", OTHER: "untouched" },
+          changedPaths: ["/NAME"],
+        }),
+      },
+    });
+    const out = Inspect.formatBindings();
+    const marker = "Delta the next roundtrip will send";
+    expect(out).toContain(marker);
+    // scope the assertion to the delta block: the untouched attribute is
+    // listed above it, in the attribute inventory, and belongs there
+    const deltaBlock = out.slice(out.indexOf(marker));
+    expect(deltaBlock).toContain('"NAME": "changed"');
+    expect(deltaBlock).not.toContain("untouched");
+  });
+
+  test("no delta preview when nothing was edited", () => {
+    const Inspect = loadInspect({
+      views: { MAIN: fakeView({ data: { A: 1 } }) },
+    });
+    expect(Inspect.formatBindings()).not.toContain("Delta the next roundtrip");
   });
 });

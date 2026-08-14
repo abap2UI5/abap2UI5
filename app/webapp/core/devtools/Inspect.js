@@ -587,6 +587,128 @@ sap.ui.define(
         out.push("  Edited paths queued for the next roundtrip:");
         for (const path of Array.from(dirty).sort()) out.push(`    ${path}`);
       }
+      out.push(...formatPendingDelta(dirty, data));
+      out.push(...formatBindingCheck(slotKey, data));
+      out.push(...formatSizeRanking(data));
+      return out;
+    }
+
+    // Absolute model paths bound in a view's XML. Only the ABSOLUTE ones
+    // ("{/NAME}", "{path: '/NAME'}", "${/NAME}" inside an expression) can be
+    // checked against the model - a relative binding inside an aggregation
+    // template ("{COL}") resolves against the row context and says nothing
+    // on its own, so it is deliberately not collected.
+    //
+    // Returns the top-level ATTRIBUTE of each path ("/TAB/0/COL" -> "TAB"),
+    // because that is what client->_bind( ) creates and what the model has
+    // as a key.
+    function scrapeBindingAttributes(xml) {
+      if (!xml) return [];
+      const found = new Set();
+      // a "/" directly after {, ${, a quote or a comma-separated path:
+      // covers {/A}, {path:'/A'}, {parts:['/A','/B']}, {= ${/A} > 1 }
+      const pattern = /[{$'",:[\s]\/([A-Za-z_][A-Za-z0-9_]*)/g;
+      let match = pattern.exec(xml);
+      while (match !== null) {
+        found.add(match[1]);
+        match = pattern.exec(xml);
+      }
+      return Array.from(found).sort();
+    }
+
+    // The check that answers "why is my field empty": every absolute path
+    // the view binds, against the attributes the model actually carries. A
+    // renamed ABAP attribute, a typo, or a forgotten client->_bind( ) all
+    // land here, and nothing else in the tools makes them visible.
+    function formatBindingCheck(slotKey, data) {
+      const xml =
+        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||
+        ViewSlots.getViewXml(slotKey);
+      const bound = scrapeBindingAttributes(xml);
+      if (!bound.length) return [];
+      const missing = bound.filter((name) => !(name in data));
+      const out = [];
+      if (missing.length) {
+        out.push("");
+        out.push("  BOUND IN THE VIEW BUT NOT IN THE MODEL:");
+        for (const name of missing) out.push(`    /${name}`);
+        out.push(
+          "    -> a typo, a renamed ABAP attribute, or a missing" +
+            " client->_bind( ).",
+        );
+      }
+      // The other direction is worth one line, not a list: an unbound
+      // attribute is wasted payload, not a defect.
+      const unused = Object.keys(data).filter((name) => !bound.includes(name));
+      if (unused.length) {
+        out.push("");
+        out.push(
+          `  ${unused.length} model attribute(s) not bound in this view:` +
+            ` ${unused.slice(0, 12).join(", ")}` +
+            `${unused.length > 12 ? ", ..." : ""}`,
+        );
+      }
+      return out;
+    }
+
+    // Serialized size of one model attribute. This is the number that
+    // explains a large response - and the ranking below turns "the response
+    // is 800 KB" into "/T_ITEMS is 92 % of it".
+    function attributeSize(value) {
+      try {
+        const json = JSON.stringify(value);
+        return json === undefined ? 0 : json.length;
+      } catch {
+        return 0;
+      }
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function formatSizeRanking(data) {
+      const sizes = Object.keys(data)
+        .map((name) => ({ name, size: attributeSize(data[name]) }))
+        .sort((a, b) => b.size - a.size);
+      const total = sizes.reduce((sum, entry) => sum + entry.size, 0);
+      if (!total) return [];
+      const out = ["", `  Model size: ${formatBytes(total)} serialized`];
+      // Only the heavy end is interesting; a long tail of small scalars
+      // would bury it.
+      for (const entry of sizes.slice(0, 8)) {
+        if (!entry.size) continue;
+        const share = Math.round((entry.size * 100) / total);
+        const rows = Array.isArray(data[entry.name])
+          ? `, ${data[entry.name].length} row(s)`
+          : "";
+        out.push(
+          `    ${`/${entry.name}`.padEnd(30)}${formatBytes(entry.size).padStart(8)}` +
+            `  ${String(share).padStart(3)}%${rows}`,
+        );
+      }
+      return out;
+    }
+
+    // The delta the NEXT roundtrip will actually put on the wire, built
+    // with the very function the framework uses for it
+    // (Lib.buildDeltaFromPaths). Answers "why does my change not arrive in
+    // the backend" BEFORE the roundtrip instead of after it.
+    function formatPendingDelta(dirty, data) {
+      if (!dirty.size) return [];
+      const out = ["", "  Delta the next roundtrip will send:"];
+      try {
+        const delta = Lib.buildDeltaFromPaths(dirty, data);
+        const json = JSON.stringify(delta, null, 2);
+        for (const line of truncate(json, 1200).split("\n")) {
+          out.push(`    ${line}`);
+        }
+      } catch (e) {
+        Lib.logError("DevTools Inspect: building the delta preview failed", e);
+        out.push("    (could not be built)");
+      }
       return out;
     }
 
@@ -671,11 +793,18 @@ sap.ui.define(
       "                sizes, draft ids - and the ones that never rendered",
       "  Model Diff    what the backend changed between two responses",
       "                (needs Record Payloads)",
+      "  View Diff     what changed in the view XML between two rebuilds",
+      "                (needs Record Payloads)",
+      "  Search        one term across EVERY tab at once - answers 'where",
+      "                does /CUSTOMER appear?' without opening each tab",
       "  Messages      every toast / message box of the session, also the",
       "                ones that already faded",
       "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",
-      "  Bindings      the model attributes, and '*' on the paths that will",
-      "                travel as the next delta",
+      "  Bindings      the model attributes, '*' on the paths that will",
+      "                travel as the next delta, the delta itself, the paths",
+      "                bound in the view that the model does NOT have (the",
+      "                usual cause of an empty field), and the attributes",
+      "                ranked by size (the usual cause of a huge response)",
       "  Picked        the last control picked with 'Pick Control'",
       "  Registry      shortcuts, timers, callbacks, bound backend events",
       "  Environment   versions, SAPUI5 vs OpenUI5, the SDK url the page",
@@ -695,6 +824,8 @@ sap.ui.define(
       "                   by default - it is the only part that costs real",
       "                   memory (2 MB budget, oldest dropped first)",
       "  Copy Tab         put the current tab's content on the clipboard",
+      "  Open on Error    pop these tools open on the Console tab as soon",
+      "                   as anything logs at error level. Off by default",
       "  ADT              open the ABAP class, at the line of the last",
       "                   event when the source has been loaded",
       "  Export           one report over everything, with downloads",
@@ -709,9 +840,14 @@ sap.ui.define(
       "Reporting a bug",
       "---------------",
       "  Export -> Download Report gives a text file with the environment,",
-      "  the error, the log and the roundtrip history. With Record Payloads",
-      "  on, Download History (JSON) additionally carries the actual",
-      "  request/response bodies.",
+      "  the error, the log and the roundtrip history. Copy as Markdown puts",
+      "  the same content on the clipboard as a GitHub-ready issue body.",
+      "  With Record Payloads on, Download History (JSON) additionally",
+      "  carries the actual request/response bodies.",
+      "",
+      "  The console errors and the roundtrip history survive a page reload",
+      "  (sessionStorage), so an app that died and was reloaded keeps its",
+      "  evidence - those rows are marked with a '*'.",
     ].join("\n");
 
     function formatHelp() {
@@ -727,7 +863,12 @@ sap.ui.define(
       formatBindings,
       findEventLine,
       // exposed for the unit specs
-      _internals: { scrapeEvents, describeValue, getDistribution },
+      _internals: {
+        scrapeEvents,
+        scrapeBindingAttributes,
+        describeValue,
+        getDistribution,
+      },
     };
   },
 );

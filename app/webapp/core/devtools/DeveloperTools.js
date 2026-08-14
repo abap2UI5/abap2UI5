@@ -36,6 +36,10 @@ sap.ui.define(
     // toJson() pretty-prints with this many spaces per nesting level.
     const INDENT_UNIT = 3;
 
+    // Hits reported per tab by searchAllTabs. A term that matches a whole
+    // model would otherwise bury the tabs that matched it once.
+    const MAX_HITS_PER_TAB = 20;
+
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.
     // A replacer drops circular references (the z2ui5 global can hold them,
@@ -236,6 +240,7 @@ sap.ui.define(
     // IconTabFilter, never a new branch in renderTab.
     const textSources = {
       CONSOLE: () => Console.format(),
+      VIEWDIFF: () => Recorder.formatViewDiff(),
       HELP: () => Inspect.formatHelp(),
       ENV: () => Inspect.formatEnvironment(),
       REGISTRY: () => Inspect.formatRegistry(),
@@ -285,6 +290,80 @@ sap.ui.define(
           } catch {
             return sourceXml;
           }
+        },
+
+        // Search every tab at once and report which of them contain the term.
+        // With more than twenty tabs, "where does CUSTOMER appear?" is a
+        // question the dialog could not answer at all - the developer had to
+        // open each tab and use the editor's own find.
+        //
+        // Sources are evaluated the same way the tabs render them, each
+        // guarded: one throwing source may not blank the whole result.
+        searchAllTabs(term) {
+          const needle = String(term || "").toLowerCase();
+          if (!needle) return "(enter a search term)";
+          const sections = [];
+          let totalHits = 0;
+
+          const scan = (tabKey, produce) => {
+            let text;
+            try {
+              text = produce();
+            } catch {
+              return;
+            }
+            if (text === undefined || text === null || text === "") return;
+            const lines = String(text).split("\n");
+            const hits = [];
+            for (let i = 0; i < lines.length; i += 1) {
+              if (!lines[i].toLowerCase().includes(needle)) continue;
+              hits.push(`    ${String(i + 1).padStart(5)}: ${lines[i].trim()}`);
+              if (hits.length >= MAX_HITS_PER_TAB) break;
+            }
+            if (!hits.length) return;
+            totalHits += hits.length;
+            sections.push(
+              `  [${tabKey}]  ${hits.length}${hits.length >= MAX_HITS_PER_TAB ? "+" : ""} hit(s)`,
+            );
+            sections.push(...hits);
+            sections.push("");
+          };
+
+          for (const key of Object.keys(jsonSources)) {
+            scan(key, () => toJson(jsonSources[key]()));
+          }
+          for (const key of Object.keys(xmlSources)) {
+            scan(key, () => this.prettifyXml(xmlSources[key]().xml));
+          }
+          for (const key of Object.keys(textSources)) {
+            scan(key, () => textSources[key]());
+          }
+          scan("LOG", formatErrorLog);
+          scan("ERROR", formatLastError);
+          scan("HISTORY", () => Recorder.formatHistory());
+
+          const head = [
+            `Search for "${term}" across every tab`,
+            "",
+            totalHits
+              ? `${totalHits} hit(s) - the tab key is in brackets.`
+              : "(no hit in any tab)",
+            "",
+          ];
+          return head.concat(sections).join("\n");
+        },
+
+        onSearch(oEvent) {
+          const oSource = oEvent.getSource();
+          const oModel = oSource.getModel();
+          const modelData = oModel.getData();
+          modelData.searchTerm = oSource.getValue();
+          modelData.selectedTab = "SEARCH";
+          this.displayEditor(
+            oModel,
+            this.searchAllTabs(modelData.searchTerm),
+            "text",
+          );
         },
 
         // Called when the user picks an entry in the dropdown of the developer
@@ -348,6 +427,15 @@ sap.ui.define(
           // result of the last pick and therefore held on the control.
           if (textSources[selItem]) {
             this.displayEditor(oModel, textSources[selItem](), "text");
+            return;
+          }
+
+          if (selItem === "SEARCH") {
+            this.displayEditor(
+              oModel,
+              this.searchAllTabs(oModel.getData().searchTerm),
+              "text",
+            );
             return;
           }
 
@@ -541,6 +629,38 @@ sap.ui.define(
           return sections.join("\n\n") || "(nothing to export)";
         },
 
+        // The same content as buildExport, but as a GitHub-ready issue body:
+        // each section becomes a collapsed <details> block so a long report
+        // stays readable in a comment, and the code fences keep XML and JSON
+        // from being eaten by the markdown renderer. Pasting a report into an
+        // issue is the last step of most bug reports, and doing it by hand
+        // means either an unreadable wall of text or manual reformatting.
+        buildMarkdown(abapSource) {
+          const plain = this.buildExport(abapSource);
+          const blocks = plain.split(/^===== (.+) =====$/m);
+          // split() yields [preamble, title, body, title, body, ...]
+          const out = ["## abap2UI5 - Developer Tools export", ""];
+          for (let i = 1; i < blocks.length; i += 2) {
+            const title = blocks[i];
+            const body = (blocks[i + 1] || "").trim();
+            if (!body) continue;
+            // The environment block is what a reader needs first, so it is
+            // the one section that is not collapsed.
+            const open = title === "ENVIRONMENT" ? " open" : "";
+            const fence = title.includes("SOURCE") ? "abap" : "text";
+            out.push(`<details${open}>`);
+            out.push(`<summary>${title}</summary>`);
+            out.push("");
+            out.push(`\`\`\`${fence}`);
+            out.push(body);
+            out.push("```");
+            out.push("");
+            out.push("</details>");
+            out.push("");
+          }
+          return out.join("\n");
+        },
+
         // Fetch the running app's ABAP class source via the ADT REST endpoint,
         // so the export can include the class that produced the current state.
         // Returns the raw source text, or "" when the class name is unknown or
@@ -579,6 +699,9 @@ sap.ui.define(
           let text;
           try {
             const abapSource = await this.fetchAbapSource();
+            // kept for the Markdown button, which rebuilds from the same
+            // content instead of fetching the class source a second time
+            this._lastExportSource = abapSource;
             text = this.buildExport(abapSource);
           } catch (e) {
             text = `(export failed: ${e?.message || e})`;
@@ -632,6 +755,21 @@ sap.ui.define(
                   // report is what a human reads, the history JSON is what
                   // makes a bug reproducible (it carries the recorded
                   // request/response bodies when payload recording was on).
+                  new Button({
+                    text: "Copy as Markdown",
+                    press: () => {
+                      try {
+                        Lib.copyToClipboard(
+                          this.buildMarkdown(this._lastExportSource),
+                        );
+                      } catch (e) {
+                        Lib.logError(
+                          "DeveloperTools: markdown export failed",
+                          e,
+                        );
+                      }
+                    },
+                  }),
                   new Button({
                     text: "Download Report",
                     press: () =>
@@ -886,6 +1024,21 @@ sap.ui.define(
           setTimeout(() => {
             if (!Lib.isDestroyed(oSource)) oSource.setText(original);
           }, 1500);
+        },
+
+        // Pop the tools open on the Console tab as soon as anything logs at
+        // error level. Off by default - a modal dialog jumping up is the
+        // last thing a productive user needs - but in a test system it is
+        // the difference between noticing a broken roundtrip and not. The
+        // setting lives in core/devtools/Console.js, which is where the
+        // errors are and which both this dialog and the lifecycle facade
+        // can reach without importing each other.
+        onToggleOpenOnError(oEvent) {
+          const oSource = oEvent.getSource();
+          Console.setAlertOnError(oSource.getPressed());
+          const oModel = oSource.getModel();
+          oModel.getData().openOnError = Console.isAlertOnError();
+          oModel.refresh();
         },
 
         onClose() {

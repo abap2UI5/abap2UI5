@@ -67,6 +67,7 @@ function loadDeveloperTools({
     setRecordingPayloads() {},
     formatHistory: () => "(no roundtrip recorded yet)",
     formatModelDiff: () => "(diff needs payload recording)",
+    formatViewDiff: () => "(view diff needs payload recording)",
     exportJson: () => "{}",
   };
   // The inspectors, the control picker and the live view editing each own
@@ -80,7 +81,11 @@ function loadDeveloperTools({
     formatBindings: () => "(bindings)",
     findEventLine: () => 0,
   };
-  const Console = consoleCapture || { format: () => "(console)" };
+  const Console = consoleCapture || {
+    format: () => "(console)",
+    isAlertOnError: () => false,
+    setAlertOnError() {},
+  };
   const Picker = picker || { start() {}, stop() {} };
   const LiveEdit = liveEdit || {
     apply: () => Promise.resolve("applied"),
@@ -869,5 +874,129 @@ test.describe("Nest tabs", () => {
     DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("<core:View/>");
     expect(modelData.type).toBe("xml");
+  });
+});
+
+test.describe("Search across all tabs", () => {
+  const searchable = () =>
+    loadDeveloperTools({
+      views: { MAIN: fakeXmlView('<Input value="{/CUSTOMER}"/>') },
+      responseData: { S_FRONT: { ID: "x" }, MODEL: { CUSTOMER: "Miller AG" } },
+      inspect: {
+        formatHelp: () => "(help)",
+        formatEnvironment: () => "(environment)",
+        formatRegistry: () => "(registry)",
+        formatActions: () => "(actions)",
+        formatMessages: () => "(messages)",
+        formatBindings: () => "/CUSTOMER  string  Miller AG",
+        findEventLine: () => 0,
+      },
+    });
+
+  test("reports every tab that contains the term", () => {
+    const { DeveloperTools } = searchable();
+    const out = DeveloperTools.searchAllTabs("CUSTOMER");
+    expect(out).toContain("[VIEW]");
+    expect(out).toContain("[BINDINGS]");
+    expect(out).toContain("hit(s)");
+  });
+
+  test("is case-insensitive and shows the line number", () => {
+    const { DeveloperTools } = searchable();
+    const out = DeveloperTools.searchAllTabs("customer");
+    expect(out).toContain("[VIEW]");
+    expect(out).toMatch(/\d+: /);
+  });
+
+  test("says so when nothing matches", () => {
+    const { DeveloperTools } = searchable();
+    expect(DeveloperTools.searchAllTabs("zzz-nothing")).toContain("no hit");
+  });
+
+  test("an empty term asks for one instead of listing everything", () => {
+    const { DeveloperTools } = searchable();
+    expect(DeveloperTools.searchAllTabs("")).toContain("enter a search term");
+  });
+
+  test("a throwing source does not blank the whole result", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      views: { MAIN: fakeXmlView("<Input value='{/NEEDLE}'/>") },
+      inspect: {
+        formatHelp: () => "(help)",
+        formatEnvironment: () => {
+          throw new Error("inspector broke");
+        },
+        formatRegistry: () => "(registry)",
+        formatActions: () => "(actions)",
+        formatMessages: () => "(messages)",
+        formatBindings: () => "(bindings)",
+        findEventLine: () => 0,
+      },
+    });
+    const out = DeveloperTools.searchAllTabs("NEEDLE");
+    expect(out).toContain("[VIEW]");
+  });
+
+  test("onSearch renders the result and selects the Search tab", () => {
+    const { DeveloperTools } = searchable();
+    const modelData = {};
+    const oModel = { getData: () => modelData, refresh() {} };
+    DeveloperTools.onSearch({
+      getSource: () => ({ getValue: () => "CUSTOMER", getModel: () => oModel }),
+    });
+    expect(modelData.selectedTab).toBe("SEARCH");
+    expect(modelData.searchTerm).toBe("CUSTOMER");
+    expect(modelData.value).toContain("[VIEW]");
+  });
+});
+
+test.describe("Markdown export", () => {
+  test("wraps each section in a collapsed details block", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      errors: [{ message: "boom", ts: "2026-01-01T00:00:00.000Z" }],
+    });
+    const md = DeveloperTools.buildMarkdown("");
+    expect(md).toContain("## abap2UI5 - Developer Tools export");
+    expect(md).toContain("<summary>LOG</summary>");
+    expect(md).toContain("```text");
+    expect(md).toContain("</details>");
+  });
+
+  test("leaves the environment section open - it is read first", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const md = DeveloperTools.buildMarkdown("");
+    expect(md).toContain("<details open>");
+    expect(md).toContain("<summary>ENVIRONMENT</summary>");
+  });
+
+  test("fences the ABAP source as abap", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const md = DeveloperTools.buildMarkdown("CLASS zcl_demo DEFINITION.");
+    expect(md).toContain("<summary>ABAP SOURCE</summary>");
+    expect(md).toContain("```abap");
+  });
+});
+
+test.describe("Open on error toggle", () => {
+  test("forwards to the console capture, which owns the setting", () => {
+    const calls = [];
+    let on = false;
+    const { DeveloperTools } = loadDeveloperTools({
+      consoleCapture: {
+        format: () => "(console)",
+        isAlertOnError: () => on,
+        setAlertOnError: (value) => {
+          calls.push(value);
+          on = value;
+        },
+      },
+    });
+    const modelData = {};
+    const oModel = { getData: () => modelData, refresh() {} };
+    DeveloperTools.onToggleOpenOnError({
+      getSource: () => ({ getPressed: () => true, getModel: () => oModel }),
+    });
+    expect(calls).toEqual([true]);
+    expect(modelData.openOnError).toBe(true);
   });
 });

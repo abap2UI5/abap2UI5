@@ -124,6 +124,15 @@ sap.ui.define(
       // first Ctrl+F12 either. Bounded ring of short strings.
       Console.install();
 
+      // Console only announces an error when its "open on error" option
+      // is on (it owns that setting), so this handler is unconditional -
+      // except for the one guard that matters: never fight the user for
+      // the dialog when it is already open.
+      Console.setOnError(() => {
+        if (instance?.oDialog?.isOpen?.()) return;
+        show("CONSOLE");
+      });
+
       errorDetailsHook = onErrorDetails;
       Lib.registerCallback("onErrorDetails", errorDetailsHook);
 

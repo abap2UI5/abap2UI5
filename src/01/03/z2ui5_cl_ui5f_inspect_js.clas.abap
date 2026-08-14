@@ -615,6 +615,128 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        out.push("  Edited paths queued for the next roundtrip:");` && |\n| &&
              `        for (const path of Array.from(dirty).sort()) out.push(``    ${path}``);` && |\n| &&
              `      }` && |\n| &&
+             `      out.push(...formatPendingDelta(dirty, data));` && |\n| &&
+             `      out.push(...formatBindingCheck(slotKey, data));` && |\n| &&
+             `      out.push(...formatSizeRanking(data));` && |\n| &&
+             `      return out;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Absolute model paths bound in a view's XML. Only the ABSOLUTE ones` && |\n| &&
+             `    // ("{/NAME}", "{path: '/NAME'}", "${/NAME}" inside an expression) can be` && |\n| &&
+             `    // checked against the model - a relative binding inside an aggregation` && |\n| &&
+             `    // template ("{COL}") resolves against the row context and says nothing` && |\n| &&
+             `    // on its own, so it is deliberately not collected.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Returns the top-level ATTRIBUTE of each path ("/TAB/0/COL" -> "TAB"),` && |\n| &&
+             `    // because that is what client->_bind( ) creates and what the model has` && |\n| &&
+             `    // as a key.` && |\n| &&
+             `    function scrapeBindingAttributes(xml) {` && |\n| &&
+             `      if (!xml) return [];` && |\n| &&
+             `      const found = new Set();` && |\n| &&
+             `      // a "/" directly after {, ${, a quote or a comma-separated path:` && |\n| &&
+             `      // covers {/A}, {path:'/A'}, {parts:['/A','/B']}, {= ${/A} > 1 }` && |\n| &&
+             `      const pattern = /[{$'",:[\s]\/([A-Za-z_][A-Za-z0-9_]*)/g;` && |\n| &&
+             `      let match = pattern.exec(xml);` && |\n| &&
+             `      while (match !== null) {` && |\n| &&
+             `        found.add(match[1]);` && |\n| &&
+             `        match = pattern.exec(xml);` && |\n| &&
+             `      }` && |\n| &&
+             `      return Array.from(found).sort();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The check that answers "why is my field empty": every absolute path` && |\n| &&
+             `    // the view binds, against the attributes the model actually carries. A` && |\n| &&
+             `    // renamed ABAP attribute, a typo, or a forgotten client->_bind( ) all` && |\n| &&
+             `    // land here, and nothing else in the tools makes them visible.` && |\n| &&
+             `    function formatBindingCheck(slotKey, data) {` && |\n| &&
+             `      const xml =` && |\n| &&
+             `        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||` && |\n| &&
+             `        ViewSlots.getViewXml(slotKey);` && |\n| &&
+             `      const bound = scrapeBindingAttributes(xml);` && |\n| &&
+             `      if (!bound.length) return [];` && |\n| &&
+             `      const missing = bound.filter((name) => !(name in data));` && |\n| &&
+             `      const out = [];` && |\n| &&
+             `      if (missing.length) {` && |\n| &&
+             `        out.push("");` && |\n| &&
+             `        out.push("  BOUND IN THE VIEW BUT NOT IN THE MODEL:");` && |\n| &&
+             `        for (const name of missing) out.push(``    /${name}``);` && |\n| &&
+             `        out.push(` && |\n| &&
+             `          "    -> a typo, a renamed ABAP attribute, or a missing" +` && |\n| &&
+             `            " client->_bind( ).",` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      // The other direction is worth one line, not a list: an unbound` && |\n| &&
+             `      // attribute is wasted payload, not a defect.` && |\n| &&
+             `      const unused = Object.keys(data).filter((name) => !bound.includes(name));` && |\n| &&
+             `      if (unused.length) {` && |\n| &&
+             `        out.push("");` && |\n| &&
+             `        out.push(` && |\n| &&
+             `          ``  ${unused.length} model attribute(s) not bound in this view:`` +` && |\n| &&
+             `            `` ${unused.slice(0, 12).join(", ")}`` +` && |\n| &&
+             `            ``${unused.length > 12 ? ", ..." : ""}``,` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      return out;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Serialized size of one model attribute. This is the number that` && |\n| &&
+             `    // explains a large response - and the ranking below turns "the response` && |\n| &&
+             `    // is 800 KB" into "/T_ITEMS is 92 % of it".` && |\n| &&
+             `    function attributeSize(value) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const json = JSON.stringify(value);` && |\n| &&
+             `        return json === undefined ? 0 : json.length;` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return 0;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function formatBytes(bytes) {` && |\n| &&
+             `      if (bytes < 1024) return ``${bytes} B``;` && |\n| &&
+             `      if (bytes < 1024 * 1024) return ``${Math.round(bytes / 1024)} KB``;` && |\n| &&
+             `      return ``${(bytes / (1024 * 1024)).toFixed(1)} MB``;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function formatSizeRanking(data) {` && |\n| &&
+             `      const sizes = Object.keys(data)` && |\n| &&
+             `        .map((name) => ({ name, size: attributeSize(data[name]) }))` && |\n| &&
+             `        .sort((a, b) => b.size - a.size);` && |\n| &&
+             `      const total = sizes.reduce((sum, entry) => sum + entry.size, 0);` && |\n| &&
+             `      if (!total) return [];` && |\n| &&
+             `      const out = ["", ``  Model size: ${formatBytes(total)} serialized``];` && |\n| &&
+             `      // Only the heavy end is interesting; a long tail of small scalars` && |\n| &&
+             `      // would bury it.` && |\n| &&
+             `      for (const entry of sizes.slice(0, 8)) {` && |\n| &&
+             `        if (!entry.size) continue;` && |\n| &&
+             `        const share = Math.round((entry.size * 100) / total);` && |\n| &&
+             `        const rows = Array.isArray(data[entry.name])` && |\n| &&
+             `          ? ``, ${data[entry.name].length} row(s)``` && |\n| &&
+             `          : "";` && |\n| &&
+             `        out.push(` && |\n| &&
+             `          ``    ${``/${entry.name}``.padEnd(30)}${formatBytes(entry.size).padStart(8)}`` +` && |\n| &&
+             `            ``  ${String(share).padStart(3)}%${rows}``,` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      return out;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The delta the NEXT roundtrip will actually put on the wire, built` && |\n| &&
+             `    // with the very function the framework uses for it` && |\n| &&
+             `    // (Lib.buildDeltaFromPaths). Answers "why does my change not arrive in` && |\n| &&
+             `    // the backend" BEFORE the roundtrip instead of after it.` && |\n| &&
+             `    function formatPendingDelta(dirty, data) {` && |\n| &&
+             `      if (!dirty.size) return [];` && |\n| &&
+             `      const out = ["", "  Delta the next roundtrip will send:"];` && |\n| &&
+             `      try {` && |\n| &&
+             `        const delta = Lib.buildDeltaFromPaths(dirty, data);` && |\n| &&
+             `        const json = JSON.stringify(delta, null, 2);` && |\n| &&
+             `        for (const line of truncate(json, 1200).split("\n")) {` && |\n| &&
+             `          out.push(``    ${line}``);` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("DevTools Inspect: building the delta preview failed", e);` && |\n| &&
+             `        out.push("    (could not be built)");` && |\n| &&
+             `      }` && |\n| &&
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -699,11 +821,19 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "                sizes, draft ids - and the ones that never rendered",` && |\n| &&
              `      "  Model Diff    what the backend changed between two responses",` && |\n| &&
              `      "                (needs Record Payloads)",` && |\n| &&
-             `      "  Messages      every toast / message box of the session, also the",` && |\n| &&
+             `      "  View Diff     what changed in the view XML between two rebuilds",` && |\n| &&
+             `      "                (needs Record Payloads)",` && |\n| &&
+             `      "  Search        one term across EVERY tab at once - answers 'where",` && |\n| &&
+             `      "                does /CUSTOMER appear?' without opening each tab",` && |\n| &&
+             `      "  Messages      every toast / message box of the session, also the",` && |\n|.
+    result = result &&
              `      "                ones that already faded",` && |\n| &&
              `      "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",` && |\n| &&
-             `      "  Bindings      the model attributes, and '*' on the paths that will",` && |\n| &&
-             `      "                travel as the next delta",` && |\n| &&
+             `      "  Bindings      the model attributes, '*' on the paths that will",` && |\n| &&
+             `      "                travel as the next delta, the delta itself, the paths",` && |\n| &&
+             `      "                bound in the view that the model does NOT have (the",` && |\n| &&
+             `      "                usual cause of an empty field), and the attributes",` && |\n| &&
+             `      "                ranked by size (the usual cause of a huge response)",` && |\n| &&
              `      "  Picked        the last control picked with 'Pick Control'",` && |\n| &&
              `      "  Registry      shortcuts, timers, callbacks, bound backend events",` && |\n| &&
              `      "  Environment   versions, SAPUI5 vs OpenUI5, the SDK url the page",` && |\n| &&
@@ -723,6 +853,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "                   by default - it is the only part that costs real",` && |\n| &&
              `      "                   memory (2 MB budget, oldest dropped first)",` && |\n| &&
              `      "  Copy Tab         put the current tab's content on the clipboard",` && |\n| &&
+             `      "  Open on Error    pop these tools open on the Console tab as soon",` && |\n| &&
+             `      "                   as anything logs at error level. Off by default",` && |\n| &&
              `      "  ADT              open the ABAP class, at the line of the last",` && |\n| &&
              `      "                   event when the source has been loaded",` && |\n| &&
              `      "  Export           one report over everything, with downloads",` && |\n| &&
@@ -737,9 +869,14 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "Reporting a bug",` && |\n| &&
              `      "---------------",` && |\n| &&
              `      "  Export -> Download Report gives a text file with the environment,",` && |\n| &&
-             `      "  the error, the log and the roundtrip history. With Record Payloads",` && |\n| &&
-             `      "  on, Download History (JSON) additionally carries the actual",` && |\n| &&
-             `      "  request/response bodies.",` && |\n| &&
+             `      "  the error, the log and the roundtrip history. Copy as Markdown puts",` && |\n| &&
+             `      "  the same content on the clipboard as a GitHub-ready issue body.",` && |\n| &&
+             `      "  With Record Payloads on, Download History (JSON) additionally",` && |\n| &&
+             `      "  carries the actual request/response bodies.",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "  The console errors and the roundtrip history survive a page reload",` && |\n| &&
+             `      "  (sessionStorage), so an app that died and was reloaded keeps its",` && |\n| &&
+             `      "  evidence - those rows are marked with a '*'.",` && |\n| &&
              `    ].join("\n");` && |\n| &&
              `` && |\n| &&
              `    function formatHelp() {` && |\n| &&
@@ -755,7 +892,12 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      formatBindings,` && |\n| &&
              `      findEventLine,` && |\n| &&
              `      // exposed for the unit specs` && |\n| &&
-             `      _internals: { scrapeEvents, describeValue, getDistribution },` && |\n| &&
+             `      _internals: {` && |\n| &&
+             `        scrapeEvents,` && |\n| &&
+             `        scrapeBindingAttributes,` && |\n| &&
+             `        describeValue,` && |\n| &&
+             `        getDistribution,` && |\n| &&
+             `      },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

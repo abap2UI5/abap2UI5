@@ -68,9 +68,17 @@ function loadRecorder({ storage = {} } = {}) {
     },
   };
 
+  const windowListeners = {};
   const windowStub = {
     location: { href: PAGE_URL },
     sessionStorage,
+    // the history is written away on pagehide so it survives a reload
+    addEventListener: (type, fn) => {
+      windowListeners[type] = fn;
+    },
+    removeEventListener: (type) => {
+      delete windowListeners[type];
+    },
   };
 
   const { module } = loadModule("core/devtools/Recorder.js", {
@@ -115,6 +123,7 @@ function loadRecorder({ storage = {} } = {}) {
     deliverToObserver,
     fireAfterRendering,
     callbacks,
+    pagehide: () => windowListeners.pagehide?.(),
   };
 }
 
@@ -521,5 +530,193 @@ test.describe("history rendering", () => {
     h.state.responseData = fakeResponse();
     h.fireAfterRendering();
     expect(h.Recorder.formatHistory()).toContain("(start)");
+  });
+});
+
+test.describe("surviving a page reload", () => {
+  test("writes the metadata away on pagehide and reads it back", () => {
+    const storage = {};
+    const first = loadRecorder({ storage });
+    first.Recorder.install();
+    first.state.oBody = fakeRequest({ event: "BEFORE_RELOAD" });
+    first.state.responseData = fakeResponse();
+    first.fireAfterRendering();
+    first.pagehide();
+
+    // a fresh module instance, as after the reload
+    const second = loadRecorder({ storage });
+    second.Recorder.install();
+    const list = second.Recorder.getRecords();
+    expect(list.length).toBe(1);
+    expect(list[0].event).toBe("BEFORE_RELOAD");
+    expect(list[0].previousLoad).toBe(true);
+    expect(second.Recorder.formatHistory()).toContain("PREVIOUS page");
+  });
+
+  test("payloads never travel - only the metadata does", () => {
+    const storage = {};
+    const first = loadRecorder({ storage });
+    first.Recorder.install();
+    first.Recorder.setRecordingPayloads(true);
+    first.state.oBody = fakeRequest();
+    first.state.responseData = fakeResponse({ model: { A: 1 } });
+    first.fireAfterRendering();
+    first.pagehide();
+
+    const second = loadRecorder({ storage });
+    second.Recorder.install();
+    const [record] = second.Recorder.getRecords();
+    expect(record.response).toBe(undefined);
+    expect(record.rendered).toBe(true);
+  });
+
+  test("numbering continues after the restored records", () => {
+    const storage = {};
+    const first = loadRecorder({ storage });
+    first.Recorder.install();
+    for (let i = 0; i < 3; i++) {
+      first.state.oBody = fakeRequest({ event: `E${i}` });
+      first.state.responseData = fakeResponse();
+      first.fireAfterRendering();
+    }
+    first.pagehide();
+
+    const second = loadRecorder({ storage });
+    second.Recorder.install();
+    second.state.oBody = fakeRequest({ event: "AFTER" });
+    second.state.responseData = fakeResponse();
+    second.fireAfterRendering();
+    const list = second.Recorder.getRecords();
+    expect(list[list.length - 1].seq).toBe(4);
+  });
+
+  test("the stored entry is consumed, not replayed on every load", () => {
+    const storage = {};
+    const first = loadRecorder({ storage });
+    first.Recorder.install();
+    first.state.oBody = fakeRequest();
+    first.state.responseData = fakeResponse();
+    first.fireAfterRendering();
+    first.pagehide();
+
+    loadRecorder({ storage }).Recorder.install();
+    const third = loadRecorder({ storage });
+    third.Recorder.install();
+    expect(third.Recorder.getRecords().length).toBe(0);
+  });
+});
+
+test.describe("app navigation", () => {
+  test("reconstructs the app hops observed in this session", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    const hop = (app, event) => {
+      h.state.oBody = fakeRequest({ event });
+      h.state.responseData = fakeResponse({ app });
+      h.fireAfterRendering();
+    };
+    hop("ZCL_START", "");
+    hop("ZCL_START", "SEARCH");
+    hop("ZCL_DETAIL", "OPEN_ITEM");
+    hop("ZCL_START", "BACK");
+
+    const text = h.Recorder.formatHistory();
+    expect(text).toContain("App navigation observed this session");
+    expect(text).toContain("start ZCL_START");
+    expect(text).toContain("ZCL_START -> ZCL_DETAIL");
+    expect(text).toContain("via OPEN_ITEM");
+    expect(text).toContain("ZCL_DETAIL -> ZCL_START");
+  });
+
+  test("a session that never left one app reports no navigation", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    h.state.oBody = fakeRequest();
+    h.state.responseData = fakeResponse({ app: "ZCL_ONLY" });
+    h.fireAfterRendering();
+    expect(h.Recorder.formatHistory()).not.toContain("App navigation");
+  });
+});
+
+test.describe("view diff", () => {
+  const display = (xml) => ["VIEW_SLOTS", "display", "MAIN", xml];
+
+  function recordViews(h, xmlA, xmlB) {
+    h.Recorder.setRecordingPayloads(true);
+    h.state.oBody = fakeRequest({ event: "FIRST" });
+    h.state.responseData = fakeResponse({ system: [display(xmlA)] });
+    h.fireAfterRendering();
+    h.state.oBody = fakeRequest({ event: "SECOND" });
+    h.state.responseData = fakeResponse({ system: [display(xmlB)] });
+    h.fireAfterRendering();
+  }
+
+  test("reports an inserted control as an addition", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    recordViews(
+      h,
+      "<View><Button text='a'/><Input/></View>",
+      "<View><Button text='a'/><Text text='new'/><Input/></View>",
+    );
+    const diff = h.Recorder.formatViewDiff();
+    expect(diff).toContain("+");
+    expect(diff).toContain("Text text='new'");
+    // the unchanged lines are not listed
+    expect(diff).not.toContain("- <Input/>");
+  });
+
+  test("reports a changed attribute as a removal plus an addition", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    recordViews(
+      h,
+      "<View><Button text='old'/></View>",
+      "<View><Button text='new'/></View>",
+    );
+    const diff = h.Recorder.formatViewDiff();
+    expect(diff).toContain("Button text='old'");
+    expect(diff).toContain("Button text='new'");
+  });
+
+  test("says so when the two rebuilds are identical", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    recordViews(h, "<View><A/></View>", "<View><A/></View>");
+    expect(h.Recorder.formatViewDiff()).toContain("identical view XML");
+  });
+
+  test("a roundtrip that only pushed the model does not count", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    h.Recorder.setRecordingPayloads(true);
+    h.state.oBody = fakeRequest();
+    h.state.responseData = fakeResponse({ system: [display("<View/>")] });
+    h.fireAfterRendering();
+    // second roundtrip rebuilds nothing
+    h.state.oBody = fakeRequest();
+    h.state.responseData = fakeResponse({ system: [] });
+    h.fireAfterRendering();
+    expect(h.Recorder.formatViewDiff()).toContain("needs two");
+  });
+
+  test("explains what to do when payload recording is off", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    expect(h.Recorder.formatViewDiff()).toContain("needs payload recording");
+  });
+
+  test("ignores a display into another slot", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    h.Recorder.setRecordingPayloads(true);
+    for (const xml of ["<Dialog a=1/>", "<Dialog a=2/>"]) {
+      h.state.oBody = fakeRequest();
+      h.state.responseData = fakeResponse({
+        system: [["VIEW_SLOTS", "display", "POPUP", xml]],
+      });
+      h.fireAfterRendering();
+    }
+    expect(h.Recorder.formatViewDiff()).toContain("needs two");
   });
 });

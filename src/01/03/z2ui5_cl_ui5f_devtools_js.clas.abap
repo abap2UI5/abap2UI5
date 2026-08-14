@@ -151,6 +151,15 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      // first Ctrl+F12 either. Bounded ring of short strings.` && |\n| &&
              `      Console.install();` && |\n| &&
              `` && |\n| &&
+             `      // Console only announces an error when its "open on error" option` && |\n| &&
+             `      // is on (it owns that setting), so this handler is unconditional -` && |\n| &&
+             `      // except for the one guard that matters: never fight the user for` && |\n| &&
+             `      // the dialog when it is already open.` && |\n| &&
+             `      Console.setOnError(() => {` && |\n| &&
+             `        if (instance?.oDialog?.isOpen?.()) return;` && |\n| &&
+             `        show("CONSOLE");` && |\n| &&
+             `      });` && |\n| &&
+             `` && |\n| &&
              `      errorDetailsHook = onErrorDetails;` && |\n| &&
              `      Lib.registerCallback("onErrorDetails", errorDetailsHook);` && |\n| &&
              `` && |\n| &&

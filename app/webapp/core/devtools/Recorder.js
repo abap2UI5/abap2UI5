@@ -51,6 +51,14 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
   // leave payload recording on for a colleague by accident.
   const PAYLOAD_FLAG_KEY = "z2ui5.devtools.recordPayloads";
 
+  // sessionStorage key of the metadata carried across a page reload, and
+  // how many records travel. When an app dies and the user reloads, the
+  // evidence is exactly what a fresh page throws away - so the METADATA
+  // (never the payloads, which is what makes this affordable) is written
+  // on pagehide and read back on install, flagged as a previous load.
+  const RELOAD_KEY = "z2ui5.devtools.history";
+  const RELOAD_MAX_RECORDS = 30;
+
   // A network observation is paired with the render that followed it only
   // if the render came after the response ended. Roundtrips whose entry is
   // older than this (and never got a render) are flushed as "no render" -
@@ -109,6 +117,7 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
   let observer = null;
   let installed = false;
   let afterRenderingHook = null;
+  let onPageHide = null;
 
   // Absolute form of the backend endpoint, so it can be compared against
   // the absolute names Resource Timing reports. Recomputed per call: the
@@ -373,11 +382,59 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     }
   }
 
+  // Write the metadata of the newest records away for the next page load.
+  // Payload references are dropped on purpose: they are the expensive part
+  // and would not survive serialization usefully anyway.
+  function persist() {
+    try {
+      const slim = records.slice(-RELOAD_MAX_RECORDS).map((record) => {
+        const copy = { ...record, previousLoad: true };
+        delete copy.request;
+        delete copy.response;
+        return copy;
+      });
+      if (!slim.length) return;
+      window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(slim));
+    } catch {
+      // storage full or unavailable - the history simply does not survive
+    }
+  }
+
+  // Adopt what the previous page load left behind, oldest first, so the
+  // history reads as one timeline across the reload.
+  function restore() {
+    let stored;
+    try {
+      stored = window.sessionStorage?.getItem(RELOAD_KEY);
+      window.sessionStorage?.removeItem(RELOAD_KEY);
+    } catch {
+      return;
+    }
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return;
+      records = parsed.slice(-RELOAD_MAX_RECORDS);
+      // Continue the numbering after the restored ones so the two halves
+      // of the timeline cannot collide.
+      nextSeq = (records[records.length - 1]?.seq || 0) + 1;
+    } catch {
+      records = [];
+    }
+  }
+
   function install() {
     if (installed) return;
     installed = true;
+    restore();
     afterRenderingHook = onAfterRendering;
     Lib.registerCallback("onAfterRendering", afterRenderingHook);
+
+    // "pagehide", not "beforeunload" - same reasoning as Component.js: it
+    // is the event that fires reliably, iOS Safari included. A browser
+    // killed outright loses the history, which is the accepted limit here.
+    onPageHide = persist;
+    window.addEventListener("pagehide", onPageHide);
 
     if (typeof PerformanceObserver === "undefined") return;
     try {
@@ -403,6 +460,10 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     installed = false;
     Lib.unregisterCallback("onAfterRendering", afterRenderingHook);
     afterRenderingHook = null;
+    if (onPageHide) {
+      window.removeEventListener("pagehide", onPageHide);
+      onPageHide = null;
+    }
     if (observer) {
       try {
         observer.disconnect();
@@ -452,6 +513,40 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
   function shortId(id) {
     if (!id) return "-";
     return id.length > 8 ? `..${id.slice(-6)}` : id;
+  }
+
+  // The app navigation as OBSERVED in this session. The real draft chain
+  // (id_prev / id_prev_app_stack) lives in the backend and never reaches
+  // the browser, but every app switch is visible here: the response names
+  // its app, so a change between two consecutive records is a navigation.
+  // Answers "how did I get here" and, with the draft ids, why
+  // nav_app_leave( ) returns where it does.
+  function navigationLines(list) {
+    const hops = [];
+    let previous = null;
+    for (const record of list) {
+      if (!record.app || record.app === previous) continue;
+      hops.push({
+        seq: record.seq,
+        from: previous,
+        to: record.app,
+        event: record.event,
+        draft: record.idReceived,
+      });
+      previous = record.app;
+    }
+    if (hops.length < 2) return [];
+    const out = ["App navigation observed this session"];
+    for (const hop of hops) {
+      out.push(
+        `  #${String(hop.seq).padEnd(4)}` +
+          `${hop.from ? `${hop.from} -> ` : "start "}${hop.to}` +
+          `${hop.event ? `   via ${hop.event}` : ""}` +
+          `   draft ${shortId(hop.draft)}`,
+      );
+    }
+    out.push("");
+    return out;
   }
 
   // Aggregate the recorded roundtrips into the handful of numbers that
@@ -537,7 +632,7 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
       if (record.request || record.response) payload = "kept";
       else if (record.payloadEvicted) payload = "evicted";
       lines.push(
-        pad(record.seq, 5) +
+        pad(record.previousLoad ? `${record.seq}*` : record.seq, 5) +
           pad(time, 14) +
           pad(record.rendered ? record.event || "(start)" : "(no render)", 22) +
           pad(formatMs(record.totalMs), 10, true) +
@@ -553,6 +648,7 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     }
 
     lines.push("");
+    lines.push(...navigationLines(list));
     lines.push(...summaryLines(list));
     lines.push("");
     lines.push(
@@ -563,6 +659,12 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
       "ACT = system/custom action counts. A '(no render)' row is a" +
         " roundtrip that never reached the render phase",
     );
+    if (list.some((record) => record.previousLoad)) {
+      lines.push(
+        "A '*' after the number marks a roundtrip of the PREVIOUS page" +
+          " load, carried across the reload.",
+      );
+    }
     lines.push(
       "(error response, aborted request, or a parallel request whose" +
         " result was discarded as stale).",
@@ -637,6 +739,169 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
       return;
     }
     out.push({ path, type: "changed", before, after });
+  }
+
+  // ------------------------------------------------------------------
+  // View XML diff between the two most recent responses that rebuilt a
+  // slot. The model diff answers "what data changed"; this answers "why
+  // does the layout look different", which is the other half.
+  // ------------------------------------------------------------------
+
+  // Lines compared before the diff gives up - a generated view can be
+  // thousands of lines and this walk is deliberately cheap.
+  const MAX_DIFF_LINES = 4000;
+
+  // How far ahead the walk looks for a line to resync on. A view change is
+  // local (an inserted control, a changed attribute), so a small window
+  // finds the anchor; a wholesale rebuild resyncs on nothing and is
+  // reported as a full replacement, which is the honest answer for it.
+  const DIFF_LOOKAHEAD = 25;
+
+  // The XML a response displayed into `slotKey`, or "" when it rebuilt no
+  // such slot. Shape per the backend's own unit tests:
+  // ["VIEW_SLOTS","display","MAIN","<View/>"].
+  function displayedXml(response, slotKey) {
+    const system = response?.S_FRONT?.S_ACTION?.T_SYSTEM;
+    if (!Array.isArray(system)) return "";
+    for (const item of system) {
+      if (!Array.isArray(item)) continue;
+      if (item[0] !== "VIEW_SLOTS" || item[1] !== "display") continue;
+      if (item[2] !== slotKey) continue;
+      if (typeof item[3] === "string") return item[3];
+    }
+    return "";
+  }
+
+  // Line diff with a bounded resync window. Not an LCS: a full one is
+  // quadratic, and for view XML - where edits are local - a lookahead
+  // walk produces the same reading at a fraction of the cost.
+  function diffLines(beforeText, afterText) {
+    const a = beforeText.split("\n").slice(0, MAX_DIFF_LINES);
+    const b = afterText.split("\n").slice(0, MAX_DIFF_LINES);
+    const out = [];
+    let i = 0;
+    let j = 0;
+    while ((i < a.length || j < b.length) && out.length < MAX_DIFF_ENTRIES) {
+      if (i < a.length && j < b.length && a[i] === b[j]) {
+        i += 1;
+        j += 1;
+        continue;
+      }
+      let addedRun = -1;
+      let removedRun = -1;
+      for (let k = 1; k <= DIFF_LOOKAHEAD; k += 1) {
+        if (
+          addedRun < 0 &&
+          i < a.length &&
+          j + k < b.length &&
+          a[i] === b[j + k]
+        ) {
+          addedRun = k;
+        }
+        if (
+          removedRun < 0 &&
+          j < b.length &&
+          i + k < a.length &&
+          b[j] === a[i + k]
+        ) {
+          removedRun = k;
+        }
+        if (addedRun >= 0 || removedRun >= 0) break;
+      }
+      if (addedRun >= 0 && (removedRun < 0 || addedRun <= removedRun)) {
+        for (let k = 0; k < addedRun; k += 1) {
+          out.push({ type: "+", line: b[j + k], number: j + k + 1 });
+        }
+        j += addedRun;
+      } else if (removedRun >= 0) {
+        for (let k = 0; k < removedRun; k += 1) {
+          out.push({ type: "-", line: a[i + k], number: i + k + 1 });
+        }
+        i += removedRun;
+      } else {
+        // nothing to resync on - report the pair as a replacement
+        if (i < a.length) {
+          out.push({ type: "-", line: a[i], number: i + 1 });
+          i += 1;
+        }
+        if (j < b.length) {
+          out.push({ type: "+", line: b[j], number: j + 1 });
+          j += 1;
+        }
+      }
+    }
+    return out;
+  }
+
+  // The two most recent records whose response rebuilt `slotKey`.
+  function lastTwoViews(slotKey) {
+    const withView = records
+      .map((record) => ({
+        record,
+        xml: displayedXml(record.response, slotKey),
+      }))
+      .filter((entry) => entry.xml);
+    return withView.length < 2 ? null : withView.slice(-2);
+  }
+
+  function formatViewDiff() {
+    if (!isRecordingPayloads()) {
+      return (
+        "View diff needs payload recording.\n\n" +
+        'Switch "Record Payloads" on in the dialog footer, then trigger at' +
+        " least two roundtrips that rebuild the view - the diff compares the\n" +
+        "view XML of the two most recently recorded rebuilds."
+      );
+    }
+    // Only MAIN: it is the slot a roundtrip normally rebuilds, and a
+    // popup/popover diff would compare two different dialogs more often
+    // than two versions of one.
+    const pair = lastTwoViews("MAIN");
+    if (!pair) {
+      return (
+        "Not enough recorded view rebuilds yet - the diff needs two.\n\n" +
+        "Only a response that actually rebuilt the MAIN view counts; a\n" +
+        "roundtrip that only pushed the model does not."
+      );
+    }
+    const [previous, current] = pair;
+    const out = [
+      `View XML diff: roundtrip #${previous.record.seq}` +
+        ` (${previous.record.event || "(start)"}) ->` +
+        ` #${current.record.seq} (${current.record.event || "(start)"})`,
+      "",
+    ];
+    const changes = diffLines(
+      prettifyForDiff(previous.xml),
+      prettifyForDiff(current.xml),
+    );
+    if (!changes.length) {
+      out.push("(the two rebuilds produced identical view XML)");
+      return out.join("\n");
+    }
+    out.push(
+      `${changes.length}${changes.length >= MAX_DIFF_ENTRIES ? "+" : ""} changed line(s):`,
+    );
+    out.push("");
+    for (const change of changes) {
+      out.push(
+        `  ${change.type} ${String(change.number).padStart(5)}  ` +
+          `${change.line.trim()}`,
+      );
+    }
+    if (changes.length >= MAX_DIFF_ENTRIES) {
+      out.push("");
+      out.push(`(stopped after ${MAX_DIFF_ENTRIES} changes)`);
+    }
+    return out.join("\n");
+  }
+
+  // The backend sends a view as one long line, which would make every diff
+  // a single "everything changed". Break it at tag boundaries so the walk
+  // has lines to anchor on. Deliberately not the dialog's XSLT prettifier:
+  // this must not depend on a DOM.
+  function prettifyForDiff(xml) {
+    return String(xml).replace(/></g, ">\n<");
   }
 
   // The two most recent records that actually carry a response payload.
@@ -738,6 +1003,7 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     setRecordingPayloads,
     formatHistory,
     formatModelDiff,
+    formatViewDiff,
     // exposed for the unit specs
     _internals: { MAX_RECORDS, PAYLOAD_BUDGET_BYTES, PAYLOAD_FLAG_KEY },
   };

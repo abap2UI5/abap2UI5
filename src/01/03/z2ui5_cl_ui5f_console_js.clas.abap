@@ -69,6 +69,20 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  // Depth at which an argument stops being expanded.` && |\n| &&
              `  const MAX_DEPTH = 4;` && |\n| &&
              `` && |\n| &&
+             `  // sessionStorage key of the entries carried across a page reload, and` && |\n| &&
+             `  // how many travel. Only ERROR level: an app that died and was reloaded` && |\n| &&
+             `  // throws away exactly the evidence you need, and the errors are the` && |\n| &&
+             `  // part of it worth the storage.` && |\n| &&
+             `  const RELOAD_KEY = "z2ui5.devtools.console";` && |\n| &&
+             `  const RELOAD_MAX_ENTRIES = 40;` && |\n| &&
+             `` && |\n| &&
+             `  // Opt-in: announce an error-level entry to whoever subscribed via` && |\n| &&
+             `  // setOnError. The developer tools turn that into "open on the Console` && |\n| &&
+             `  // tab"; the setting lives HERE because this is where the errors are, and` && |\n| &&
+             `  // because the dialog and the lifecycle facade both need to reach it` && |\n| &&
+             `  // without importing each other.` && |\n| &&
+             `  const ALERT_KEY = "z2ui5.devtools.openOnError";` && |\n| &&
+             `` && |\n| &&
              `  // The console methods that are captured. Kept as a list so uninstall()` && |\n| &&
              `  // restores exactly what install() replaced.` && |\n| &&
              `  const METHODS = ["log", "info", "warn", "error", "debug"];` && |\n| &&
@@ -82,6 +96,12 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  let ui5Listener = null;` && |\n| &&
              `  let onWindowError = null;` && |\n| &&
              `  let onRejection = null;` && |\n| &&
+             `  let onPageHide = null;` && |\n| &&
+             `` && |\n| &&
+             `  // Optional notification of an error-level entry, used by` && |\n| &&
+             `  // core/devtools/DevTools.js for its "open on error" option. One` && |\n| &&
+             `  // subscriber is enough - the tools are the only consumer.` && |\n| &&
+             `  let onErrorEntry = null;` && |\n| &&
              `` && |\n| &&
              `  // Re-entrancy guard: formatting an argument must never end up calling a` && |\n| &&
              `  // captured console method again (a getter that logs, a toJSON that` && |\n| &&
@@ -97,12 +117,75 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    if (body.length > MAX_TEXT_CHARS) {` && |\n| &&
              `      body = ``${body.slice(0, MAX_TEXT_CHARS)}... (${body.length} chars)``;` && |\n| &&
              `    }` && |\n| &&
-             `    entries.push({` && |\n| &&
+             `    const entry = {` && |\n| &&
              `      ts: new Date().toISOString(),` && |\n| &&
              `      level,` && |\n| &&
              `      source,` && |\n| &&
              `      text: body,` && |\n| &&
-             `    });` && |\n| &&
+             `    };` && |\n| &&
+             `    entries.push(entry);` && |\n| &&
+             `    if (level === "error" && onErrorEntry && isAlertOnError()) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        onErrorEntry(entry);` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        // a subscriber must never break the capture` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function setOnError(fn) {` && |\n| &&
+             `    onErrorEntry = fn;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isAlertOnError() {` && |\n| &&
+             `    try {` && |\n| &&
+             `      return window.sessionStorage?.getItem(ALERT_KEY) === "X";` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      return false;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function setAlertOnError(enabled) {` && |\n| &&
+             `    try {` && |\n| &&
+             `      if (enabled) {` && |\n| &&
+             `        window.sessionStorage?.setItem(ALERT_KEY, "X");` && |\n| &&
+             `      } else {` && |\n| &&
+             `        window.sessionStorage?.removeItem(ALERT_KEY);` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      // storage unavailable - the switch then does not persist` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Carry the error-level entries into the next page load (see RELOAD_KEY).` && |\n| &&
+             `  function persist() {` && |\n| &&
+             `    try {` && |\n| &&
+             `      const errors = entries` && |\n| &&
+             `        .filter((entry) => entry.level === "error")` && |\n| &&
+             `        .slice(-RELOAD_MAX_ENTRIES)` && |\n| &&
+             `        .map((entry) => ({ ...entry, previousLoad: true }));` && |\n| &&
+             `      if (!errors.length) return;` && |\n| &&
+             `      window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(errors));` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      // storage full or unavailable - they simply do not survive` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function restore() {` && |\n| &&
+             `    let stored;` && |\n| &&
+             `    try {` && |\n| &&
+             `      stored = window.sessionStorage?.getItem(RELOAD_KEY);` && |\n| &&
+             `      window.sessionStorage?.removeItem(RELOAD_KEY);` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    if (!stored) return;` && |\n| &&
+             `    try {` && |\n| &&
+             `      const parsed = JSON.parse(stored);` && |\n| &&
+             `      if (Array.isArray(parsed)) entries = parsed.slice(-RELOAD_MAX_ENTRIES);` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      entries = [];` && |\n| &&
+             `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Errors are recognised by SHAPE, not with ``instanceof Error``: an error` && |\n| &&
@@ -254,6 +337,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  function install() {` && |\n| &&
              `    if (installed) return;` && |\n| &&
              `    installed = true;` && |\n| &&
+             `    restore();` && |\n| &&
              `` && |\n| &&
              `    onWindowError = (event) => {` && |\n| &&
              `      const stack = event?.error?.stack;` && |\n| &&
@@ -277,8 +361,10 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `        reason?.stack || renderArg(reason, 0) || "unhandled rejection",` && |\n| &&
              `      );` && |\n| &&
              `    };` && |\n| &&
+             `    onPageHide = persist;` && |\n| &&
              `    window.addEventListener("error", onWindowError);` && |\n| &&
              `    window.addEventListener("unhandledrejection", onRejection);` && |\n| &&
+             `    window.addEventListener("pagehide", onPageHide);` && |\n| &&
              `` && |\n| &&
              `    installUi5Log();` && |\n| &&
              `    installConsole();` && |\n| &&
@@ -293,8 +379,11 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    if (onRejection) {` && |\n| &&
              `      window.removeEventListener("unhandledrejection", onRejection);` && |\n| &&
              `    }` && |\n| &&
+             `    if (onPageHide) window.removeEventListener("pagehide", onPageHide);` && |\n| &&
              `    onWindowError = null;` && |\n| &&
              `    onRejection = null;` && |\n| &&
+             `    onPageHide = null;` && |\n| &&
+             `    onErrorEntry = null;` && |\n| &&
              `    entries = [];` && |\n| &&
              `    dropped = 0;` && |\n| &&
              `  }` && |\n| &&
@@ -335,7 +424,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `      "  Captured in the app, so the browser's own devtools do not have to be",` && |\n| &&
              `    );` && |\n| &&
              `    lines.push(` && |\n| &&
-             `      "  open: UI5's log (binding and control problems), uncaught errors and",` && |\n| &&
+             `      "  open: UI5's log (binding and control problems), uncaught errors and",` && |\n|.
+    result = result &&
              `    );` && |\n| &&
              `    lines.push("  unhandled rejections, plus every console.* call.");` && |\n| &&
              `    lines.push("");` && |\n| &&
@@ -353,7 +443,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    for (const entry of entries) {` && |\n| &&
              `      const label = LEVEL_LABEL[entry.level] || entry.level.toUpperCase();` && |\n| &&
              `      const head =` && |\n| &&
-             `        ``  ${entry.ts.slice(11, 23)}  ${label}  `` +` && |\n| &&
+             `        ``  ${entry.ts.slice(11, 23)}${entry.previousLoad ? "*" : " "} ${label}  `` +` && |\n| &&
              `        ``${entry.source.padEnd(SOURCE_WIDTH)}``;` && |\n| &&
              `      const [first, ...rest] = entry.text.split("\n");` && |\n| &&
              `      lines.push(``${head}${first}``);` && |\n| &&
@@ -377,6 +467,9 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  return {` && |\n| &&
              `    install,` && |\n| &&
              `    uninstall,` && |\n| &&
+             `    setOnError,` && |\n| &&
+             `    isAlertOnError,` && |\n| &&
+             `    setAlertOnError,` && |\n| &&
              `    format,` && |\n| &&
              `    getEntries,` && |\n| &&
              `    hasErrors,` && |\n| &&

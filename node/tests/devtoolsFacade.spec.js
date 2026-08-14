@@ -15,6 +15,7 @@ function loadDevTools({ search = "" } = {}) {
   const callbacks = {};
   const recorderCalls = [];
   const instances = [];
+  const errorSubscriber = { fn: null };
 
   // A DeveloperTools double: the facade only ever creates it, toggles /
   // shows it and destroys it.
@@ -59,6 +60,11 @@ function loadDevTools({ search = "" } = {}) {
       "z2ui5/core/devtools/Console": {
         install: () => recorderCalls.push("console:install"),
         uninstall: () => recorderCalls.push("console:uninstall"),
+        // Console owns the "open on error" setting and only announces an
+        // error when it is on, so the facade's handler is unconditional.
+        setOnError: (fn) => {
+          errorSubscriber.fn = fn;
+        },
       },
       "z2ui5/core/devtools/DeveloperTools": DeveloperTools,
       "z2ui5/core/devtools/Recorder": {
@@ -86,6 +92,7 @@ function loadDevTools({ search = "" } = {}) {
     callbacks,
     recorderCalls,
     instances,
+    raiseError: () => errorSubscriber.fn?.(),
     press: (init) => {
       for (const l of listeners.filter((x) => x.type === "keydown")) l.fn(init);
     },
@@ -188,6 +195,29 @@ test.describe("error details provider", () => {
     // closing the dialog must land the user back on the error popup, not
     // on the dismissed, broken app
     expect(h.instances[0].reopenErrorOnClose).toBe(true);
+  });
+});
+
+test.describe("open on error", () => {
+  // Console only announces an error when its own "open on error" setting
+  // is on, so the facade's job is just to open - and to stay out of the
+  // way when the dialog is already there.
+  test("opens on the Console tab when the capture announces an error", () => {
+    const h = loadDevTools();
+    h.DevTools.install();
+    h.raiseError();
+    expect(h.instances.length).toBe(1);
+    expect(h.instances[0].shown).toEqual(["CONSOLE"]);
+  });
+
+  test("does not fight the user for an already open dialog", () => {
+    const h = loadDevTools();
+    h.DevTools.install();
+    h.press(CTRL_F12);
+    const dialog = h.instances[0];
+    dialog.oDialog = { isOpen: () => true };
+    h.raiseError();
+    expect(dialog.shown).toEqual([]);
   });
 });
 

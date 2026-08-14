@@ -42,6 +42,20 @@ sap.ui.define([], () => {
   // Depth at which an argument stops being expanded.
   const MAX_DEPTH = 4;
 
+  // sessionStorage key of the entries carried across a page reload, and
+  // how many travel. Only ERROR level: an app that died and was reloaded
+  // throws away exactly the evidence you need, and the errors are the
+  // part of it worth the storage.
+  const RELOAD_KEY = "z2ui5.devtools.console";
+  const RELOAD_MAX_ENTRIES = 40;
+
+  // Opt-in: announce an error-level entry to whoever subscribed via
+  // setOnError. The developer tools turn that into "open on the Console
+  // tab"; the setting lives HERE because this is where the errors are, and
+  // because the dialog and the lifecycle facade both need to reach it
+  // without importing each other.
+  const ALERT_KEY = "z2ui5.devtools.openOnError";
+
   // The console methods that are captured. Kept as a list so uninstall()
   // restores exactly what install() replaced.
   const METHODS = ["log", "info", "warn", "error", "debug"];
@@ -55,6 +69,12 @@ sap.ui.define([], () => {
   let ui5Listener = null;
   let onWindowError = null;
   let onRejection = null;
+  let onPageHide = null;
+
+  // Optional notification of an error-level entry, used by
+  // core/devtools/DevTools.js for its "open on error" option. One
+  // subscriber is enough - the tools are the only consumer.
+  let onErrorEntry = null;
 
   // Re-entrancy guard: formatting an argument must never end up calling a
   // captured console method again (a getter that logs, a toJSON that
@@ -70,12 +90,75 @@ sap.ui.define([], () => {
     if (body.length > MAX_TEXT_CHARS) {
       body = `${body.slice(0, MAX_TEXT_CHARS)}... (${body.length} chars)`;
     }
-    entries.push({
+    const entry = {
       ts: new Date().toISOString(),
       level,
       source,
       text: body,
-    });
+    };
+    entries.push(entry);
+    if (level === "error" && onErrorEntry && isAlertOnError()) {
+      try {
+        onErrorEntry(entry);
+      } catch {
+        // a subscriber must never break the capture
+      }
+    }
+  }
+
+  function setOnError(fn) {
+    onErrorEntry = fn;
+  }
+
+  function isAlertOnError() {
+    try {
+      return window.sessionStorage?.getItem(ALERT_KEY) === "X";
+    } catch {
+      return false;
+    }
+  }
+
+  function setAlertOnError(enabled) {
+    try {
+      if (enabled) {
+        window.sessionStorage?.setItem(ALERT_KEY, "X");
+      } else {
+        window.sessionStorage?.removeItem(ALERT_KEY);
+      }
+    } catch {
+      // storage unavailable - the switch then does not persist
+    }
+  }
+
+  // Carry the error-level entries into the next page load (see RELOAD_KEY).
+  function persist() {
+    try {
+      const errors = entries
+        .filter((entry) => entry.level === "error")
+        .slice(-RELOAD_MAX_ENTRIES)
+        .map((entry) => ({ ...entry, previousLoad: true }));
+      if (!errors.length) return;
+      window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(errors));
+    } catch {
+      // storage full or unavailable - they simply do not survive
+    }
+  }
+
+  function restore() {
+    let stored;
+    try {
+      stored = window.sessionStorage?.getItem(RELOAD_KEY);
+      window.sessionStorage?.removeItem(RELOAD_KEY);
+    } catch {
+      return;
+    }
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) entries = parsed.slice(-RELOAD_MAX_ENTRIES);
+    } catch {
+      entries = [];
+    }
   }
 
   // Errors are recognised by SHAPE, not with `instanceof Error`: an error
@@ -227,6 +310,7 @@ sap.ui.define([], () => {
   function install() {
     if (installed) return;
     installed = true;
+    restore();
 
     onWindowError = (event) => {
       const stack = event?.error?.stack;
@@ -250,8 +334,10 @@ sap.ui.define([], () => {
         reason?.stack || renderArg(reason, 0) || "unhandled rejection",
       );
     };
+    onPageHide = persist;
     window.addEventListener("error", onWindowError);
     window.addEventListener("unhandledrejection", onRejection);
+    window.addEventListener("pagehide", onPageHide);
 
     installUi5Log();
     installConsole();
@@ -266,8 +352,11 @@ sap.ui.define([], () => {
     if (onRejection) {
       window.removeEventListener("unhandledrejection", onRejection);
     }
+    if (onPageHide) window.removeEventListener("pagehide", onPageHide);
     onWindowError = null;
     onRejection = null;
+    onPageHide = null;
+    onErrorEntry = null;
     entries = [];
     dropped = 0;
   }
@@ -326,7 +415,7 @@ sap.ui.define([], () => {
     for (const entry of entries) {
       const label = LEVEL_LABEL[entry.level] || entry.level.toUpperCase();
       const head =
-        `  ${entry.ts.slice(11, 23)}  ${label}  ` +
+        `  ${entry.ts.slice(11, 23)}${entry.previousLoad ? "*" : " "} ${label}  ` +
         `${entry.source.padEnd(SOURCE_WIDTH)}`;
       const [first, ...rest] = entry.text.split("\n");
       lines.push(`${head}${first}`);
@@ -350,6 +439,9 @@ sap.ui.define([], () => {
   return {
     install,
     uninstall,
+    setOnError,
+    isAlertOnError,
+    setAlertOnError,
     format,
     getEntries,
     hasErrors,

@@ -78,6 +78,14 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `  // leave payload recording on for a colleague by accident.` && |\n| &&
              `  const PAYLOAD_FLAG_KEY = "z2ui5.devtools.recordPayloads";` && |\n| &&
              `` && |\n| &&
+             `  // sessionStorage key of the metadata carried across a page reload, and` && |\n| &&
+             `  // how many records travel. When an app dies and the user reloads, the` && |\n| &&
+             `  // evidence is exactly what a fresh page throws away - so the METADATA` && |\n| &&
+             `  // (never the payloads, which is what makes this affordable) is written` && |\n| &&
+             `  // on pagehide and read back on install, flagged as a previous load.` && |\n| &&
+             `  const RELOAD_KEY = "z2ui5.devtools.history";` && |\n| &&
+             `  const RELOAD_MAX_RECORDS = 30;` && |\n| &&
+             `` && |\n| &&
              `  // A network observation is paired with the render that followed it only` && |\n| &&
              `  // if the render came after the response ended. Roundtrips whose entry is` && |\n| &&
              `  // older than this (and never got a render) are flushed as "no render" -` && |\n| &&
@@ -136,6 +144,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `  let observer = null;` && |\n| &&
              `  let installed = false;` && |\n| &&
              `  let afterRenderingHook = null;` && |\n| &&
+             `  let onPageHide = null;` && |\n| &&
              `` && |\n| &&
              `  // Absolute form of the backend endpoint, so it can be compared against` && |\n| &&
              `  // the absolute names Resource Timing reports. Recomputed per call: the` && |\n| &&
@@ -400,11 +409,60 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // Write the metadata of the newest records away for the next page load.` && |\n| &&
+             `  // Payload references are dropped on purpose: they are the expensive part` && |\n| &&
+             `  // and would not survive serialization usefully anyway.` && |\n| &&
+             `  function persist() {` && |\n| &&
+             `    try {` && |\n| &&
+             `      const slim = records.slice(-RELOAD_MAX_RECORDS).map((record) => {` && |\n| &&
+             `        const copy = { ...record, previousLoad: true };` && |\n| &&
+             `        delete copy.request;` && |\n| &&
+             `        delete copy.response;` && |\n| &&
+             `        return copy;` && |\n| &&
+             `      });` && |\n| &&
+             `      if (!slim.length) return;` && |\n| &&
+             `      window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(slim));` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      // storage full or unavailable - the history simply does not survive` && |\n| &&
+             `    }` && |\n|.
+    result = result &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Adopt what the previous page load left behind, oldest first, so the` && |\n| &&
+             `  // history reads as one timeline across the reload.` && |\n| &&
+             `  function restore() {` && |\n| &&
+             `    let stored;` && |\n| &&
+             `    try {` && |\n| &&
+             `      stored = window.sessionStorage?.getItem(RELOAD_KEY);` && |\n| &&
+             `      window.sessionStorage?.removeItem(RELOAD_KEY);` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    if (!stored) return;` && |\n| &&
+             `    try {` && |\n| &&
+             `      const parsed = JSON.parse(stored);` && |\n| &&
+             `      if (!Array.isArray(parsed)) return;` && |\n| &&
+             `      records = parsed.slice(-RELOAD_MAX_RECORDS);` && |\n| &&
+             `      // Continue the numbering after the restored ones so the two halves` && |\n| &&
+             `      // of the timeline cannot collide.` && |\n| &&
+             `      nextSeq = (records[records.length - 1]?.seq || 0) + 1;` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      records = [];` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function install() {` && |\n| &&
              `    if (installed) return;` && |\n| &&
              `    installed = true;` && |\n| &&
+             `    restore();` && |\n| &&
              `    afterRenderingHook = onAfterRendering;` && |\n| &&
              `    Lib.registerCallback("onAfterRendering", afterRenderingHook);` && |\n| &&
+             `` && |\n| &&
+             `    // "pagehide", not "beforeunload" - same reasoning as Component.js: it` && |\n| &&
+             `    // is the event that fires reliably, iOS Safari included. A browser` && |\n| &&
+             `    // killed outright loses the history, which is the accepted limit here.` && |\n| &&
+             `    onPageHide = persist;` && |\n| &&
+             `    window.addEventListener("pagehide", onPageHide);` && |\n| &&
              `` && |\n| &&
              `    if (typeof PerformanceObserver === "undefined") return;` && |\n| &&
              `    try {` && |\n| &&
@@ -424,13 +482,16 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      observer = null;` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `  function uninstall() {` && |\n| &&
              `    if (!installed) return;` && |\n| &&
              `    installed = false;` && |\n| &&
              `    Lib.unregisterCallback("onAfterRendering", afterRenderingHook);` && |\n| &&
              `    afterRenderingHook = null;` && |\n| &&
+             `    if (onPageHide) {` && |\n| &&
+             `      window.removeEventListener("pagehide", onPageHide);` && |\n| &&
+             `      onPageHide = null;` && |\n| &&
+             `    }` && |\n| &&
              `    if (observer) {` && |\n| &&
              `      try {` && |\n| &&
              `        observer.disconnect();` && |\n| &&
@@ -480,6 +541,40 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `  function shortId(id) {` && |\n| &&
              `    if (!id) return "-";` && |\n| &&
              `    return id.length > 8 ? ``..${id.slice(-6)}`` : id;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // The app navigation as OBSERVED in this session. The real draft chain` && |\n| &&
+             `  // (id_prev / id_prev_app_stack) lives in the backend and never reaches` && |\n| &&
+             `  // the browser, but every app switch is visible here: the response names` && |\n| &&
+             `  // its app, so a change between two consecutive records is a navigation.` && |\n| &&
+             `  // Answers "how did I get here" and, with the draft ids, why` && |\n| &&
+             `  // nav_app_leave( ) returns where it does.` && |\n| &&
+             `  function navigationLines(list) {` && |\n| &&
+             `    const hops = [];` && |\n| &&
+             `    let previous = null;` && |\n| &&
+             `    for (const record of list) {` && |\n| &&
+             `      if (!record.app || record.app === previous) continue;` && |\n| &&
+             `      hops.push({` && |\n| &&
+             `        seq: record.seq,` && |\n| &&
+             `        from: previous,` && |\n| &&
+             `        to: record.app,` && |\n| &&
+             `        event: record.event,` && |\n| &&
+             `        draft: record.idReceived,` && |\n| &&
+             `      });` && |\n| &&
+             `      previous = record.app;` && |\n| &&
+             `    }` && |\n| &&
+             `    if (hops.length < 2) return [];` && |\n| &&
+             `    const out = ["App navigation observed this session"];` && |\n| &&
+             `    for (const hop of hops) {` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        ``  #${String(hop.seq).padEnd(4)}`` +` && |\n| &&
+             `          ``${hop.from ? ``${hop.from} -> `` : "start "}${hop.to}`` +` && |\n| &&
+             `          ``${hop.event ? ``   via ${hop.event}`` : ""}`` +` && |\n| &&
+             `          ``   draft ${shortId(hop.draft)}``,` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `    out.push("");` && |\n| &&
+             `    return out;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Aggregate the recorded roundtrips into the handful of numbers that` && |\n| &&
@@ -565,7 +660,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      if (record.request || record.response) payload = "kept";` && |\n| &&
              `      else if (record.payloadEvicted) payload = "evicted";` && |\n| &&
              `      lines.push(` && |\n| &&
-             `        pad(record.seq, 5) +` && |\n| &&
+             `        pad(record.previousLoad ? ``${record.seq}*`` : record.seq, 5) +` && |\n| &&
              `          pad(time, 14) +` && |\n| &&
              `          pad(record.rendered ? record.event || "(start)" : "(no render)", 22) +` && |\n| &&
              `          pad(formatMs(record.totalMs), 10, true) +` && |\n| &&
@@ -581,6 +676,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    lines.push("");` && |\n| &&
+             `    lines.push(...navigationLines(list));` && |\n| &&
              `    lines.push(...summaryLines(list));` && |\n| &&
              `    lines.push("");` && |\n| &&
              `    lines.push(` && |\n| &&
@@ -591,6 +687,12 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      "ACT = system/custom action counts. A '(no render)' row is a" +` && |\n| &&
              `        " roundtrip that never reached the render phase",` && |\n| &&
              `    );` && |\n| &&
+             `    if (list.some((record) => record.previousLoad)) {` && |\n| &&
+             `      lines.push(` && |\n| &&
+             `        "A '*' after the number marks a roundtrip of the PREVIOUS page" +` && |\n| &&
+             `          " load, carried across the reload.",` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
              `    lines.push(` && |\n| &&
              `      "(error response, aborted request, or a parallel request whose" +` && |\n| &&
              `        " result was discarded as stale).",` && |\n| &&
@@ -665,6 +767,170 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return;` && |\n| &&
              `    }` && |\n| &&
              `    out.push({ path, type: "changed", before, after });` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // ------------------------------------------------------------------` && |\n| &&
+             `  // View XML diff between the two most recent responses that rebuilt a` && |\n| &&
+             `  // slot. The model diff answers "what data changed"; this answers "why` && |\n| &&
+             `  // does the layout look different", which is the other half.` && |\n| &&
+             `  // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `  // Lines compared before the diff gives up - a generated view can be` && |\n| &&
+             `  // thousands of lines and this walk is deliberately cheap.` && |\n| &&
+             `  const MAX_DIFF_LINES = 4000;` && |\n| &&
+             `` && |\n| &&
+             `  // How far ahead the walk looks for a line to resync on. A view change is` && |\n| &&
+             `  // local (an inserted control, a changed attribute), so a small window` && |\n| &&
+             `  // finds the anchor; a wholesale rebuild resyncs on nothing and is` && |\n| &&
+             `  // reported as a full replacement, which is the honest answer for it.` && |\n| &&
+             `  const DIFF_LOOKAHEAD = 25;` && |\n| &&
+             `` && |\n| &&
+             `  // The XML a response displayed into ``slotKey``, or "" when it rebuilt no` && |\n| &&
+             `  // such slot. Shape per the backend's own unit tests:` && |\n| &&
+             `  // ["VIEW_SLOTS","display","MAIN","<View/>"].` && |\n| &&
+             `  function displayedXml(response, slotKey) {` && |\n| &&
+             `    const system = response?.S_FRONT?.S_ACTION?.T_SYSTEM;` && |\n| &&
+             `    if (!Array.isArray(system)) return "";` && |\n| &&
+             `    for (const item of system) {` && |\n| &&
+             `      if (!Array.isArray(item)) continue;` && |\n| &&
+             `      if (item[0] !== "VIEW_SLOTS" || item[1] !== "display") continue;` && |\n| &&
+             `      if (item[2] !== slotKey) continue;` && |\n| &&
+             `      if (typeof item[3] === "string") return item[3];` && |\n| &&
+             `    }` && |\n| &&
+             `    return "";` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Line diff with a bounded resync window. Not an LCS: a full one is` && |\n| &&
+             `  // quadratic, and for view XML - where edits are local - a lookahead` && |\n| &&
+             `  // walk produces the same reading at a fraction of the cost.` && |\n| &&
+             `  function diffLines(beforeText, afterText) {` && |\n| &&
+             `    const a = beforeText.split("\n").slice(0, MAX_DIFF_LINES);` && |\n| &&
+             `    const b = afterText.split("\n").slice(0, MAX_DIFF_LINES);` && |\n| &&
+             `    const out = [];` && |\n| &&
+             `    let i = 0;` && |\n| &&
+             `    let j = 0;` && |\n| &&
+             `    while ((i < a.length || j < b.length) && out.length < MAX_DIFF_ENTRIES) {` && |\n| &&
+             `      if (i < a.length && j < b.length && a[i] === b[j]) {` && |\n| &&
+             `        i += 1;` && |\n| &&
+             `        j += 1;` && |\n| &&
+             `        continue;` && |\n| &&
+             `      }` && |\n| &&
+             `      let addedRun = -1;` && |\n| &&
+             `      let removedRun = -1;` && |\n| &&
+             `      for (let k = 1; k <= DIFF_LOOKAHEAD; k += 1) {` && |\n| &&
+             `        if (` && |\n| &&
+             `          addedRun < 0 &&` && |\n| &&
+             `          i < a.length &&` && |\n| &&
+             `          j + k < b.length &&` && |\n| &&
+             `          a[i] === b[j + k]` && |\n| &&
+             `        ) {` && |\n| &&
+             `          addedRun = k;` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
+             `        if (` && |\n| &&
+             `          removedRun < 0 &&` && |\n| &&
+             `          j < b.length &&` && |\n| &&
+             `          i + k < a.length &&` && |\n| &&
+             `          b[j] === a[i + k]` && |\n| &&
+             `        ) {` && |\n| &&
+             `          removedRun = k;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (addedRun >= 0 || removedRun >= 0) break;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (addedRun >= 0 && (removedRun < 0 || addedRun <= removedRun)) {` && |\n| &&
+             `        for (let k = 0; k < addedRun; k += 1) {` && |\n| &&
+             `          out.push({ type: "+", line: b[j + k], number: j + k + 1 });` && |\n| &&
+             `        }` && |\n| &&
+             `        j += addedRun;` && |\n| &&
+             `      } else if (removedRun >= 0) {` && |\n| &&
+             `        for (let k = 0; k < removedRun; k += 1) {` && |\n| &&
+             `          out.push({ type: "-", line: a[i + k], number: i + k + 1 });` && |\n| &&
+             `        }` && |\n| &&
+             `        i += removedRun;` && |\n| &&
+             `      } else {` && |\n| &&
+             `        // nothing to resync on - report the pair as a replacement` && |\n| &&
+             `        if (i < a.length) {` && |\n| &&
+             `          out.push({ type: "-", line: a[i], number: i + 1 });` && |\n| &&
+             `          i += 1;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (j < b.length) {` && |\n| &&
+             `          out.push({ type: "+", line: b[j], number: j + 1 });` && |\n| &&
+             `          j += 1;` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `    return out;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // The two most recent records whose response rebuilt ``slotKey``.` && |\n| &&
+             `  function lastTwoViews(slotKey) {` && |\n| &&
+             `    const withView = records` && |\n| &&
+             `      .map((record) => ({` && |\n| &&
+             `        record,` && |\n| &&
+             `        xml: displayedXml(record.response, slotKey),` && |\n| &&
+             `      }))` && |\n| &&
+             `      .filter((entry) => entry.xml);` && |\n| &&
+             `    return withView.length < 2 ? null : withView.slice(-2);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function formatViewDiff() {` && |\n| &&
+             `    if (!isRecordingPayloads()) {` && |\n| &&
+             `      return (` && |\n| &&
+             `        "View diff needs payload recording.\n\n" +` && |\n| &&
+             `        'Switch "Record Payloads" on in the dialog footer, then trigger at' +` && |\n| &&
+             `        " least two roundtrips that rebuild the view - the diff compares the\n" +` && |\n| &&
+             `        "view XML of the two most recently recorded rebuilds."` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `    // Only MAIN: it is the slot a roundtrip normally rebuilds, and a` && |\n| &&
+             `    // popup/popover diff would compare two different dialogs more often` && |\n| &&
+             `    // than two versions of one.` && |\n| &&
+             `    const pair = lastTwoViews("MAIN");` && |\n| &&
+             `    if (!pair) {` && |\n| &&
+             `      return (` && |\n| &&
+             `        "Not enough recorded view rebuilds yet - the diff needs two.\n\n" +` && |\n| &&
+             `        "Only a response that actually rebuilt the MAIN view counts; a\n" +` && |\n| &&
+             `        "roundtrip that only pushed the model does not."` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `    const [previous, current] = pair;` && |\n| &&
+             `    const out = [` && |\n| &&
+             `      ``View XML diff: roundtrip #${previous.record.seq}`` +` && |\n| &&
+             `        `` (${previous.record.event || "(start)"}) ->`` +` && |\n| &&
+             `        `` #${current.record.seq} (${current.record.event || "(start)"})``,` && |\n| &&
+             `      "",` && |\n| &&
+             `    ];` && |\n| &&
+             `    const changes = diffLines(` && |\n| &&
+             `      prettifyForDiff(previous.xml),` && |\n| &&
+             `      prettifyForDiff(current.xml),` && |\n| &&
+             `    );` && |\n| &&
+             `    if (!changes.length) {` && |\n| &&
+             `      out.push("(the two rebuilds produced identical view XML)");` && |\n| &&
+             `      return out.join("\n");` && |\n| &&
+             `    }` && |\n| &&
+             `    out.push(` && |\n| &&
+             `      ``${changes.length}${changes.length >= MAX_DIFF_ENTRIES ? "+" : ""} changed line(s):``,` && |\n| &&
+             `    );` && |\n| &&
+             `    out.push("");` && |\n| &&
+             `    for (const change of changes) {` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        ``  ${change.type} ${String(change.number).padStart(5)}  `` +` && |\n| &&
+             `          ``${change.line.trim()}``,` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `    if (changes.length >= MAX_DIFF_ENTRIES) {` && |\n| &&
+             `      out.push("");` && |\n| &&
+             `      out.push(``(stopped after ${MAX_DIFF_ENTRIES} changes)``);` && |\n| &&
+             `    }` && |\n| &&
+             `    return out.join("\n");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // The backend sends a view as one long line, which would make every diff` && |\n| &&
+             `  // a single "everything changed". Break it at tag boundaries so the walk` && |\n| &&
+             `  // has lines to anchor on. Deliberately not the dialog's XSLT prettifier:` && |\n| &&
+             `  // this must not depend on a DOM.` && |\n| &&
+             `  function prettifyForDiff(xml) {` && |\n| &&
+             `    return String(xml).replace(/></g, ">\n<");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // The two most recent records that actually carry a response payload.` && |\n| &&
@@ -766,6 +1032,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    setRecordingPayloads,` && |\n| &&
              `    formatHistory,` && |\n| &&
              `    formatModelDiff,` && |\n| &&
+             `    formatViewDiff,` && |\n| &&
              `    // exposed for the unit specs` && |\n| &&
              `    _internals: { MAX_RECORDS, PAYLOAD_BUDGET_BYTES, PAYLOAD_FLAG_KEY },` && |\n| &&
              `  };` && |\n| &&

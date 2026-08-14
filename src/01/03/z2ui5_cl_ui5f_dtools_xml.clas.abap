@@ -63,6 +63,10 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                    key="DIFF"` &&
              `                />` &&
              `                <IconTabFilter` &&
+             `                    text="View Diff"` &&
+             `                    key="VIEWDIFF"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
              `                    text="Messages"` &&
              `                    key="MESSAGES"` &&
              `                />` &&
@@ -86,6 +90,10 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Environment"` &&
              `                    key="ENV"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
+             `                    text="Search"` &&
+             `                    key="SEARCH"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Help"` &&
@@ -146,6 +154,14 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `            </items>` &&
              `        </IconTabHeader>` &&
              `        <VBox>` &&
+             `            <!-- Searches EVERY tab at once and reports which of them contain` &&
+             `                 the term. With more than twenty tabs, "where does CUSTOMER` &&
+             `                 appear?" was a question the dialog could not answer. -->` &&
+             `            <SearchField` &&
+             `                placeholder="Search across all tabs..."` &&
+             `                search=".onSearch"` &&
+             `                width="100%"` &&
+             `            />` &&
              `            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
              `            <!-- Live view editing: only shown on the tabs that map to a view` &&
              `                 slot (core/devtools/LiveEdit.js sets canApply). Apply renders` &&
@@ -197,6 +213,14 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                text="Record Payloads"` &&
              `                pressed="{/recordPayloads}"` &&
              `                press=".onToggleRecordPayloads"` &&
+             `            />` &&
+             `            <!-- Opens these tools on the Console tab as soon as anything` &&
+             `                 logs at error level. Off by default - a modal dialog` &&
+             `                 jumping up is the last thing a productive user needs. -->` &&
+             `            <ToggleButton` &&
+             `                text="Open on Error"` &&
+             `                pressed="{/openOnError}"` &&
+             `                press=".onToggleOpenOnError"` &&
              `            />` &&
              `            <Button` &&
              `                text="Retry"` &&

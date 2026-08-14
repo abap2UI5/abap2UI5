@@ -8,7 +8,7 @@ const { loadModule } = require("./loadModule");
 // driven directly: the patched console methods, the window error /
 // rejection listeners, and UI5's own log listener.
 
-function loadConsole() {
+function loadConsole({ storage = {} } = {}) {
   const nativeCalls = [];
   const windowListeners = {};
   let ui5Listener = null;
@@ -31,6 +31,15 @@ function loadConsole() {
     sandbox: {
       window: {
         console: consoleStub,
+        sessionStorage: {
+          getItem: (k) => (k in storage ? storage[k] : null),
+          setItem: (k, v) => {
+            storage[k] = v;
+          },
+          removeItem: (k) => {
+            delete storage[k];
+          },
+        },
         addEventListener: (type, fn) => {
           windowListeners[type] = fn;
         },
@@ -277,5 +286,84 @@ test.describe("rendering", () => {
     const first = lines.findIndex((l) => l.includes("Error: boom"));
     expect(lines[first + 1]).toContain("at a (X.js:1)");
     expect(lines[first + 2]).toContain("at b (Y.js:2)");
+  });
+});
+
+test.describe("open on error", () => {
+  test("stays silent while the option is off", () => {
+    const h = loadConsole();
+    const raised = [];
+    h.Console.install();
+    h.Console.setOnError(() => raised.push(true));
+    h.consoleStub.error("boom");
+    expect(h.Console.isAlertOnError()).toBe(false);
+    expect(raised.length).toBe(0);
+  });
+
+  test("announces an error once the option is on", () => {
+    const h = loadConsole();
+    const raised = [];
+    h.Console.install();
+    h.Console.setAlertOnError(true);
+    h.Console.setOnError((entry) => raised.push(entry));
+    h.consoleStub.error("boom");
+    expect(raised.length).toBe(1);
+    expect(raised[0].text).toBe("boom");
+    // only errors announce - a warning must not pop the dialog
+    h.consoleStub.warn("careful");
+    expect(raised.length).toBe(1);
+  });
+
+  test("a throwing subscriber cannot break the capture", () => {
+    const h = loadConsole();
+    h.Console.install();
+    h.Console.setAlertOnError(true);
+    h.Console.setOnError(() => {
+      throw new Error("subscriber broke");
+    });
+    h.consoleStub.error("boom");
+    expect(h.Console.getEntries().length).toBe(1);
+  });
+});
+
+test.describe("surviving a page reload", () => {
+  test("carries the errors across, marked as a previous load", () => {
+    const storage = {};
+    const first = loadConsole({ storage });
+    first.Console.install();
+    first.consoleStub.error("died here");
+    first.consoleStub.log("noise");
+    first.windowListeners.pagehide();
+
+    const second = loadConsole({ storage });
+    second.Console.install();
+    const entries = second.Console.getEntries();
+    // only the errors travel - the noise is not worth the storage
+    expect(entries.length).toBe(1);
+    expect(entries[0].text).toBe("died here");
+    expect(entries[0].previousLoad).toBe(true);
+    expect(second.Console.format()).toContain("died here");
+  });
+
+  test("the stored entries are consumed, not replayed forever", () => {
+    const storage = {};
+    const first = loadConsole({ storage });
+    first.Console.install();
+    first.consoleStub.error("once");
+    first.windowListeners.pagehide();
+
+    loadConsole({ storage }).Console.install();
+    const third = loadConsole({ storage });
+    third.Console.install();
+    expect(third.Console.getEntries().length).toBe(0);
+  });
+
+  test("nothing to carry writes nothing", () => {
+    const storage = {};
+    const h = loadConsole({ storage });
+    h.Console.install();
+    h.consoleStub.log("just a log");
+    h.windowListeners.pagehide();
+    expect(Object.keys(storage).length).toBe(0);
   });
 });

@@ -63,6 +63,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    // toJson() pretty-prints with this many spaces per nesting level.` && |\n| &&
              `    const INDENT_UNIT = 3;` && |\n| &&
              `` && |\n| &&
+             `    // Hits reported per tab by searchAllTabs. A term that matches a whole` && |\n| &&
+             `    // model would otherwise bury the tabs that matched it once.` && |\n| &&
+             `    const MAX_HITS_PER_TAB = 20;` && |\n| &&
+             `` && |\n| &&
              `    // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
              `    // A replacer drops circular references (the z2ui5 global can hold them,` && |\n| &&
@@ -263,6 +267,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    // IconTabFilter, never a new branch in renderTab.` && |\n| &&
              `    const textSources = {` && |\n| &&
              `      CONSOLE: () => Console.format(),` && |\n| &&
+             `      VIEWDIFF: () => Recorder.formatViewDiff(),` && |\n| &&
              `      HELP: () => Inspect.formatHelp(),` && |\n| &&
              `      ENV: () => Inspect.formatEnvironment(),` && |\n| &&
              `      REGISTRY: () => Inspect.formatRegistry(),` && |\n| &&
@@ -314,6 +319,80 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
+             `        // Search every tab at once and report which of them contain the term.` && |\n| &&
+             `        // With more than twenty tabs, "where does CUSTOMER appear?" is a` && |\n| &&
+             `        // question the dialog could not answer at all - the developer had to` && |\n| &&
+             `        // open each tab and use the editor's own find.` && |\n| &&
+             `        //` && |\n| &&
+             `        // Sources are evaluated the same way the tabs render them, each` && |\n| &&
+             `        // guarded: one throwing source may not blank the whole result.` && |\n| &&
+             `        searchAllTabs(term) {` && |\n| &&
+             `          const needle = String(term || "").toLowerCase();` && |\n| &&
+             `          if (!needle) return "(enter a search term)";` && |\n| &&
+             `          const sections = [];` && |\n| &&
+             `          let totalHits = 0;` && |\n| &&
+             `` && |\n| &&
+             `          const scan = (tabKey, produce) => {` && |\n| &&
+             `            let text;` && |\n| &&
+             `            try {` && |\n| &&
+             `              text = produce();` && |\n| &&
+             `            } catch {` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
+             `            if (text === undefined || text === null || text === "") return;` && |\n| &&
+             `            const lines = String(text).split("\n");` && |\n| &&
+             `            const hits = [];` && |\n| &&
+             `            for (let i = 0; i < lines.length; i += 1) {` && |\n| &&
+             `              if (!lines[i].toLowerCase().includes(needle)) continue;` && |\n| &&
+             `              hits.push(``    ${String(i + 1).padStart(5)}: ${lines[i].trim()}``);` && |\n| &&
+             `              if (hits.length >= MAX_HITS_PER_TAB) break;` && |\n| &&
+             `            }` && |\n| &&
+             `            if (!hits.length) return;` && |\n| &&
+             `            totalHits += hits.length;` && |\n| &&
+             `            sections.push(` && |\n| &&
+             `              ``  [${tabKey}]  ${hits.length}${hits.length >= MAX_HITS_PER_TAB ? "+" : ""} hit(s)``,` && |\n| &&
+             `            );` && |\n| &&
+             `            sections.push(...hits);` && |\n| &&
+             `            sections.push("");` && |\n| &&
+             `          };` && |\n| &&
+             `` && |\n| &&
+             `          for (const key of Object.keys(jsonSources)) {` && |\n| &&
+             `            scan(key, () => toJson(jsonSources[key]()));` && |\n| &&
+             `          }` && |\n| &&
+             `          for (const key of Object.keys(xmlSources)) {` && |\n| &&
+             `            scan(key, () => this.prettifyXml(xmlSources[key]().xml));` && |\n| &&
+             `          }` && |\n| &&
+             `          for (const key of Object.keys(textSources)) {` && |\n| &&
+             `            scan(key, () => textSources[key]());` && |\n| &&
+             `          }` && |\n| &&
+             `          scan("LOG", formatErrorLog);` && |\n| &&
+             `          scan("ERROR", formatLastError);` && |\n| &&
+             `          scan("HISTORY", () => Recorder.formatHistory());` && |\n| &&
+             `` && |\n| &&
+             `          const head = [` && |\n| &&
+             `            ``Search for "${term}" across every tab``,` && |\n| &&
+             `            "",` && |\n| &&
+             `            totalHits` && |\n| &&
+             `              ? ``${totalHits} hit(s) - the tab key is in brackets.``` && |\n| &&
+             `              : "(no hit in any tab)",` && |\n| &&
+             `            "",` && |\n| &&
+             `          ];` && |\n| &&
+             `          return head.concat(sections).join("\n");` && |\n| &&
+             `        },` && |\n| &&
+             `` && |\n| &&
+             `        onSearch(oEvent) {` && |\n| &&
+             `          const oSource = oEvent.getSource();` && |\n| &&
+             `          const oModel = oSource.getModel();` && |\n| &&
+             `          const modelData = oModel.getData();` && |\n| &&
+             `          modelData.searchTerm = oSource.getValue();` && |\n| &&
+             `          modelData.selectedTab = "SEARCH";` && |\n| &&
+             `          this.displayEditor(` && |\n| &&
+             `            oModel,` && |\n| &&
+             `            this.searchAllTabs(modelData.searchTerm),` && |\n| &&
+             `            "text",` && |\n| &&
+             `          );` && |\n| &&
+             `        },` && |\n| &&
+             `` && |\n| &&
              `        // Called when the user picks an entry in the dropdown of the developer` && |\n| &&
              `        // tools dialog - resolve the model + key and render that tab.` && |\n| &&
              `        onItemSelect(oEvent) {` && |\n| &&
@@ -345,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            // A view tab is editable: its XML can be rendered back into the` && |\n| &&
              `            // slot without a roundtrip (core/devtools/LiveEdit.js), so the` && |\n| &&
              `            // Apply / Reset footer buttons appear for exactly these tabs.` && |\n| &&
-             `            const modelData = oModel.getData();` && |\n| &&
+             `            const modelData = oModel.getData();` && |\n|.
+    result = result &&
              `            modelData.canApply = LiveEdit.canApply(selItem);` && |\n| &&
              `            oModel.refresh();` && |\n| &&
              `            return;` && |\n| &&
@@ -375,6 +455,15 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          // result of the last pick and therefore held on the control.` && |\n| &&
              `          if (textSources[selItem]) {` && |\n| &&
              `            this.displayEditor(oModel, textSources[selItem](), "text");` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          if (selItem === "SEARCH") {` && |\n| &&
+             `            this.displayEditor(` && |\n| &&
+             `              oModel,` && |\n| &&
+             `              this.searchAllTabs(oModel.getData().searchTerm),` && |\n| &&
+             `              "text",` && |\n| &&
+             `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -424,8 +513,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        onErrorLogout() {` && |\n| &&
              `          ErrorView.handleLogout();` && |\n| &&
-             `        },` && |\n|.
-    result = result &&
+             `        },` && |\n| &&
              `` && |\n| &&
              `        // Collect the content of every developer-tools tab into one plain-text` && |\n| &&
              `        // blob so it can be copied elsewhere in one go. XML tabs are` && |\n| &&
@@ -569,6 +657,38 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
+             `        // The same content as buildExport, but as a GitHub-ready issue body:` && |\n| &&
+             `        // each section becomes a collapsed <details> block so a long report` && |\n| &&
+             `        // stays readable in a comment, and the code fences keep XML and JSON` && |\n| &&
+             `        // from being eaten by the markdown renderer. Pasting a report into an` && |\n| &&
+             `        // issue is the last step of most bug reports, and doing it by hand` && |\n| &&
+             `        // means either an unreadable wall of text or manual reformatting.` && |\n| &&
+             `        buildMarkdown(abapSource) {` && |\n| &&
+             `          const plain = this.buildExport(abapSource);` && |\n| &&
+             `          const blocks = plain.split(/^===== (.+) =====$/m);` && |\n| &&
+             `          // split() yields [preamble, title, body, title, body, ...]` && |\n| &&
+             `          const out = ["## abap2UI5 - Developer Tools export", ""];` && |\n| &&
+             `          for (let i = 1; i < blocks.length; i += 2) {` && |\n| &&
+             `            const title = blocks[i];` && |\n| &&
+             `            const body = (blocks[i + 1] || "").trim();` && |\n| &&
+             `            if (!body) continue;` && |\n| &&
+             `            // The environment block is what a reader needs first, so it is` && |\n| &&
+             `            // the one section that is not collapsed.` && |\n| &&
+             `            const open = title === "ENVIRONMENT" ? " open" : "";` && |\n| &&
+             `            const fence = title.includes("SOURCE") ? "abap" : "text";` && |\n| &&
+             `            out.push(``<details${open}>``);` && |\n| &&
+             `            out.push(``<summary>${title}</summary>``);` && |\n| &&
+             `            out.push("");` && |\n| &&
+             `            out.push(``\``\``\``${fence}``);` && |\n| &&
+             `            out.push(body);` && |\n| &&
+             `            out.push("``````");` && |\n| &&
+             `            out.push("");` && |\n| &&
+             `            out.push("</details>");` && |\n| &&
+             `            out.push("");` && |\n| &&
+             `          }` && |\n| &&
+             `          return out.join("\n");` && |\n| &&
+             `        },` && |\n| &&
+             `` && |\n| &&
              `        // Fetch the running app's ABAP class source via the ADT REST endpoint,` && |\n| &&
              `        // so the export can include the class that produced the current state.` && |\n| &&
              `        // Returns the raw source text, or "" when the class name is unknown or` && |\n| &&
@@ -607,6 +727,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          let text;` && |\n| &&
              `          try {` && |\n| &&
              `            const abapSource = await this.fetchAbapSource();` && |\n| &&
+             `            // kept for the Markdown button, which rebuilds from the same` && |\n| &&
+             `            // content instead of fetching the class source a second time` && |\n| &&
+             `            this._lastExportSource = abapSource;` && |\n| &&
              `            text = this.buildExport(abapSource);` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            text = ``(export failed: ${e?.message || e})``;` && |\n| &&
@@ -661,6 +784,21 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `                  // makes a bug reproducible (it carries the recorded` && |\n| &&
              `                  // request/response bodies when payload recording was on).` && |\n| &&
              `                  new Button({` && |\n| &&
+             `                    text: "Copy as Markdown",` && |\n| &&
+             `                    press: () => {` && |\n| &&
+             `                      try {` && |\n| &&
+             `                        Lib.copyToClipboard(` && |\n| &&
+             `                          this.buildMarkdown(this._lastExportSource),` && |\n| &&
+             `                        );` && |\n| &&
+             `                      } catch (e) {` && |\n| &&
+             `                        Lib.logError(` && |\n| &&
+             `                          "DeveloperTools: markdown export failed",` && |\n| &&
+             `                          e,` && |\n| &&
+             `                        );` && |\n| &&
+             `                      }` && |\n| &&
+             `                    },` && |\n| &&
+             `                  }),` && |\n| &&
+             `                  new Button({` && |\n| &&
              `                    text: "Download Report",` && |\n| &&
              `                    press: () =>` && |\n| &&
              `                      this.downloadText(this.exportFileName("txt"), text),` && |\n| &&
@@ -687,7 +825,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        },` && |\n| &&
              `` && |\n| &&
              `        // The class name of the running app, as the backend reported it in the` && |\n| &&
-             `        // last response. Empty before the first response arrived.` && |\n| &&
+             `        // last response. Empty before the first response arrived.` && |\n|.
+    result = result &&
              `        getAppName() {` && |\n| &&
              `          return AppState.state.responseData?.S_FRONT?.APP || "";` && |\n| &&
              `        },` && |\n| &&
@@ -825,8 +964,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          // (xContent) representation.` && |\n| &&
              `          modelData.value = oSource.getPressed()` && |\n| &&
              `            ? modelData.xContent` && |\n| &&
-             `            : modelData.previousValue;` && |\n|.
-    result = result &&
+             `            : modelData.previousValue;` && |\n| &&
              `          oModel.refresh();` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
@@ -915,6 +1053,21 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          setTimeout(() => {` && |\n| &&
              `            if (!Lib.isDestroyed(oSource)) oSource.setText(original);` && |\n| &&
              `          }, 1500);` && |\n| &&
+             `        },` && |\n| &&
+             `` && |\n| &&
+             `        // Pop the tools open on the Console tab as soon as anything logs at` && |\n| &&
+             `        // error level. Off by default - a modal dialog jumping up is the` && |\n| &&
+             `        // last thing a productive user needs - but in a test system it is` && |\n| &&
+             `        // the difference between noticing a broken roundtrip and not. The` && |\n| &&
+             `        // setting lives in core/devtools/Console.js, which is where the` && |\n| &&
+             `        // errors are and which both this dialog and the lifecycle facade` && |\n| &&
+             `        // can reach without importing each other.` && |\n| &&
+             `        onToggleOpenOnError(oEvent) {` && |\n| &&
+             `          const oSource = oEvent.getSource();` && |\n| &&
+             `          Console.setAlertOnError(oSource.getPressed());` && |\n| &&
+             `          const oModel = oSource.getModel();` && |\n| &&
+             `          oModel.getData().openOnError = Console.isAlertOnError();` && |\n| &&
+             `          oModel.refresh();` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
              `        onClose() {` && |\n| &&
