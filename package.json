@@ -5,6 +5,13 @@
   "description": "Developing UI5 Apps Purely in ABAP.",
   "scripts": {
     "deps": "node node/setup/fetch-deps.mjs",
+    "frontend:build": "node frontend/build-branches.mjs",
+    "frontend:cloud": "node frontend/build-branches.mjs cloud",
+    "frontend:cloud_v2": "node frontend/build-branches.mjs cloud_v2",
+    "frontend:standard": "node frontend/build-branches.mjs standard",
+    "frontend:standard_v2": "node frontend/build-branches.mjs standard_v2",
+    "frontend:verify": "node frontend/verify-branches.mjs",
+    "frontend:lint": "npx abaplint frontend/abaplint.jsonc",
     "check": "npm run deps && npx abaplint",
     "check_visibility": "node .github/scripts/testclass-visibility-gate.mjs",
     "check:naming": "node .github/scripts/object-naming-gate.mjs",
@@ -52,10 +59,12 @@
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
     "@abaplint/cli": "^2.119.66",
+    "@ui5/cli": "^4.0.57",
     "@abaplint/database-sqlite": "^2.13.40",
     "@abaplint/runtime": "^2.13.40",
     "@abaplint/transpiler-cli": "^2.13.40",
     "@playwright/test": "^1.61.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "terser": "^5.50.0"
   }
 }

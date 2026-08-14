@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://sap.github.io/ui5-tooling/schema/ui5.yaml.json
+
+# Build configuration for the Component-preload bundle (.github/app2bsp/preload.js).
+# NOT the configuration a developer works with - that is app/ui5.yaml, which
+# carries the Fiori dev server middlewares this build has no use for.
+#
+# metadata.name is what the bundler stamps into every module id, so it has to
+# stay `z2ui5` - the same namespace index.html registers as a resource root and
+# the same one bsp_rename rewrites for a namespaced install.
+specVersion: "3.1"
+metadata:
+  name: z2ui5
+type: application
+builder:
+  componentPreload:
+    # XML views/fragments and manifest.json go into a preload bundle as
+    # single-line JS string literals - the DeveloperTools fragment alone is one
+    # 5997-character line, and a BSP page cannot carry a line longer than 255
+    # characters (see preload.js). They stay separate BSP pages, which is where
+    # UI5 loads them from today anyway.
+    excludes:
+      - "z2ui5/**/*.xml"
+      - "z2ui5/manifest.json"
