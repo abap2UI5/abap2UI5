@@ -12,7 +12,7 @@
 //   src/02/               (BSP-Seite)
 // Die BSP heisst per Default Z2UI5 (wie das klassische Frontend, kein Rename);
 // mit --name Z2UI5_V2 wird fuer eine Parallelinstallation umbenannt.
-// Aufruf:  node frontend/app2app_v2/build-legacy-free.mjs <frontend-dir> <webapp> <out-dir> [--name Z2UI5_V2] [--own-backend]
+// Aufruf:  node tools/app2app_v2/build-legacy-free.mjs <repo-root> <webapp> <out-dir> [--name Z2UI5_V2] [--own-backend]
 
 import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
@@ -20,7 +20,9 @@ import { join } from "node:path";
 // der einzige inhaltliche Eingriff: Bootstrap auf legacy-free umstellen
 import { patchIndexHtml, patchManifest } from "./patch-v2.mjs";
 
-const [frontendDir, cloudWebapp, outDir] = process.argv.slice(2);
+const [repoRoot, cloudWebapp, outDir] = process.argv.slice(2);
+const toolsDir = join(repoRoot, "tools");
+const dataDir = join(repoRoot, "frontend");
 const ownBackend = process.argv.includes("--own-backend");
 const nameIdx = process.argv.indexOf("--name");
 const bspName = nameIdx > -1 ? process.argv[nameIdx + 1] : "Z2UI5";
@@ -35,8 +37,8 @@ const work = join(outDir, "_work");
 rmSync(outDir, { recursive: true, force: true }); mkdirSync(work, { recursive: true });
 
 // 1) Tooling + saubere cloud-Webapp bereitstellen
-cpSync(join(frontendDir, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
-cpSync(join(frontendDir, "bsp_rename"), join(work, ".github/bsp_rename"), { recursive: true });
+cpSync(join(toolsDir, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
+cpSync(join(toolsDir, "bsp_rename"), join(work, ".github/bsp_rename"), { recursive: true });
 cpSync(cloudWebapp, join(work, "frontend/app/webapp"), { recursive: true });
 
 // 2) Bootstrap-Patch
@@ -63,7 +65,7 @@ if (renamed && !ownBackend) {
 }
 
 // 6) Paketstruktur wie im standard-Branch: Root-Paket + 01 (ICF-Handler) + 02 (BSP)
-cpSync(join(frontendDir, "abap/standard"), join(outDir, "src"), { recursive: true });
+cpSync(join(dataDir, "abap/standard"), join(outDir, "src"), { recursive: true });
 cpSync(bsp, join(outDir, "src/02"), { recursive: true });
 rmSync(work, { recursive: true, force: true });
 const n = readdirSync(join(outDir, "src/02")).length;

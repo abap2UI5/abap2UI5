@@ -5,7 +5,7 @@ classic webapp coding over **1:1** and adapting only the bootstrap layer so it
 runs on the legacy-free OpenUI5 build.
 
 ```
-app/webapp ──▶ patchIndexHtml + patchManifest (patch-v2.mjs) ──▶ frontend/app2bsp (preload.js + run.js) ──▶ [bsp_rename, nur mit --name] ──▶ src/
+app/webapp ──▶ patchIndexHtml + patchManifest (patch-v2.mjs) ──▶ tools/app2bsp (preload.js + run.js) ──▶ [bsp_rename, nur mit --name] ──▶ src/
 ```
 
 The output uses the same package layout as the `standard` branch:
@@ -25,8 +25,8 @@ webapp instead of building a BSP.
 ## Run
 
 ```bash
-node frontend/app2app_v2/build-legacy-free.mjs frontend app/webapp frontend/out/_v2
-npm run frontend:build         # alle vier; einzeln: node frontend/build-branches.mjs standard_v2
+node tools/app2app_v2/build-legacy-free.mjs . app/webapp tools/out/_v2
+npm run frontend:build         # alle vier; einzeln: node tools/build-branches.mjs standard_v2
 ```
 
 ## The only adaptations (everything else is 1:1)

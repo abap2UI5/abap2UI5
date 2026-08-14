@@ -1,61 +1,15 @@
 # frontend/
 
-Everything the [abap2UI5/frontend](https://github.com/abap2UI5/frontend) delivery
-repository is built from. The UI5 webapp itself is **not** here — it lives in
-`app/webapp/` at the repository root, the single source it has always been.
-This folder holds what turns that webapp into the branches a user pulls with
-abapGit. The cloud branches ship the whole Fiori project straight out of `app/`
-— the same project files this repository is developed with, not a second copy.
-
-```
-app/webapp/  ──▶  frontend/build-branches.mjs  ──▶  abap2UI5/frontend
-                                                      cloud, cloud_v2
-                                                      standard, standard_v2
-                                                      standard_<name>, standard_v2_<name>
-```
+The parts of the [abap2UI5/frontend](https://github.com/abap2UI5/frontend)
+delivery branches that are **not** generated from `app/webapp/` — data, not
+code. What turns the webapp into a branch lives in [`tools/`](../tools).
 
 | | |
 | --- | --- |
-| `build-branches.mjs` | builds one output branch into `frontend/out/<branch>/` |
-| `app2bsp/` | webapp → BSP pages, and the UI5 component preload bundle (`preload.js`) |
-| `app2app_v2/` | the legacy-free (UI5 2.x) bootstrap patch and the branch built from it |
-| `bsp_rename/` | renames the deployment identity for a parallel install |
-| `abap/` | the ICF/BSP ABAP artefacts each branch ships (`cloud`, `standard`), with `abap/cloud/abaplint.jsonc` linting them in place and being copied into each branch with its glob turned to `/src/` |
-| `common/` | README, LICENSE and friends that every generated branch inherits |
-| `check-pages.mjs` | the BSP page invariants, checked on the built artefact |
-| `verify-branches.mjs` | builds and compares against what is published today |
-| `scripts/` | the monthly guard on the pinned legacy-free SDK |
+| `abap/cloud/`, `abap/standard/` | the ICF/BSP ABAP artefacts each branch ships — the HTTP handler, its SICF/service definitions, the packages |
+| `abap/cloud/abaplint.jsonc` | lints the above in place (`npm run frontend:lint`), and is copied into each branch with its glob turned to `/src/` |
+| `common/` | README, LICENSE, SECURITY, CODE_OF_CONDUCT, .gitignore — the files every generated branch inherits |
 
-## Running it
-
-```bash
-npm run frontend:build          # all four branches -> frontend/out/
-npm run frontend:standard       # just one
-npm run frontend:lint           # abaplint over frontend/abap
-node frontend/check-pages.mjs   # BSP invariants on what was built
-npm run frontend:verify         # diff against the published branches
-```
-
-`frontend/out/` is generated and git-ignored.
-
-## Why the branches may not drift
-
-The generated branches are an **installation source**: abapGit repositories out
-there point at `standard`, `cloud` and the renamed variants. A change to what a
-branch carries reaches every one of them on the next pull. Two things follow.
-
-`frontend_check.yaml` builds every variant on every pull request that touches
-`app/webapp/` or `frontend/`, lints the generated ABAP and checks the BSP page
-invariants — a page line over 255 characters, a page name `CREATE_NEW_PAGE`
-rejects, a content file missing from the page directory, a `.js` page that
-stops being valid JavaScript once padded. Each of those is a failure that
-reached a real system, or came within a step of it.
-
-`verify-branches.mjs` compares a freshly built branch against the published one
-byte for byte. It is the acceptance test for anything that changes *how* the
-branches are built rather than what is in them.
-
-## Deployment
-
-`frontend_deploy.yaml` pushes a built branch into the delivery repository. It is
-dispatch-only for now — see the comment at the top of the workflow.
+The Fiori project the cloud branches ship is **not** here: those branches carry
+`app/` from this repository directly, the same project this repository is
+developed with. A second copy is what let the two drift apart before.

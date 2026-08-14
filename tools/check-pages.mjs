@@ -15,7 +15,7 @@
 //   parse        the .js pages have to survive the 255-character padding, so
 //                they are parsed as stored, padding included
 //
-//     node frontend/check-pages.mjs [tree ...]     (default: every frontend/out/*)
+//     node tools/check-pages.mjs [tree ...]     (default: every tools/out/*)
 
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -82,7 +82,7 @@ const trees = process.argv.slice(2).length
     : (existsSync(out) ? readdirSync(out).filter((n) => !n.startsWith("_") && statSync(join(out, n)).isDirectory()) : []);
 
 if (trees.length === 0) {
-    console.error("check-pages: nothing to check - run frontend/build-branches.mjs first");
+    console.error("check-pages: nothing to check - run tools/build-branches.mjs first");
     process.exit(1);
 }
 for (const tree of trees) if (!checkTree(tree)) console.log(`${tree}: no BSP in this variant`);

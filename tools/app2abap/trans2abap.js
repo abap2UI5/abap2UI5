@@ -140,7 +140,7 @@ function generateClassName(filePath) {
         throw new Error(
             `${relPath}: generated class name '${className}' is ${className.length} chars ` +
             `(max ${MAX_CLASS_NAME_LENGTH}) - add a short stem for this file to ` +
-            `CLASS_NAME_STEMS in .github/app2abap/trans2abap.js`,
+            `CLASS_NAME_STEMS in tools/app2abap/trans2abap.js`,
         );
     }
     return className;
@@ -170,7 +170,7 @@ function buildPreloadClass(entries) {
     return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
 * Embedded frontend resource, generated from app/webapp/ by
-* .github/app2abap/trans2abap.js. Change the source under app/webapp/
+* tools/app2abap/trans2abap.js. Change the source under app/webapp/
 * and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
 * fails any manual edit here.
 * =====================================================================
