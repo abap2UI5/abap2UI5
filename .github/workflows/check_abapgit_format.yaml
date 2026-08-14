@@ -1,0 +1,49 @@
+# Machine gate for the abapGit round trip: every file under src/ must import
+# into a real SAP system, activate there, and serialize back byte-identical.
+#
+# None of that is visible to the other checks. abaplint parses ABAP and has no
+# model of abapGit's file format - a .clas.xml with the UTF-8 BOM stripped, the
+# final newline removed and CRLF line endings throughout produces zero findings
+# - and its global.files covers only src/00 (with noIssues), src/01 and src/02,
+# so src/99 is never read at all. The transpiler ignores visibility, so a
+# PRIVATE class_constructor keeps `npm run unit` green while a real system
+# refuses to activate the class pool.
+#
+# Every rule in the gate is a defect that reached main and was repaired only
+# after somebody pulled the repository into a system: the missing-BOM sidecars
+# (8e272492, 54bce5b6), the missing final newline in z2ui5_if_action.intf.xml
+# (c7185c38), and the static-constructor visibility rule that forced the lazy
+# ct_box_type fill in z2ui5_cl_ui5_frontend (#2547).
+#
+# .github/scripts/abapgit-format-gate.mjs holds the rules; the background for
+# each one, and the checks that need a reader rather than a gate, are in
+# .claude/skills/abapgit-check/SKILL.md.
+name: check_abapgit_format
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - '.abapgit.xml'
+      - '.github/scripts/abapgit-format-gate.mjs'
+      - '.github/workflows/check_abapgit_format.yaml'
+
+concurrency:
+  group: check_abapgit_format-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check_abapgit_format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: src/ round-trips through abapGit
+        run: node .github/scripts/abapgit-format-gate.mjs
