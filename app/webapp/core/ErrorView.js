@@ -254,7 +254,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // knows nothing about WHAT that is: `onErrorDetails` is a plain callback
   // array (core/AppState.js) that a details provider registers into - in a
   // standard install that is the in-app developer tools
-  // (core/devtools/DevTools.js). With nothing registered the Details button
+  // (devtools/DevTools.js). With nothing registered the Details button
   // is left out entirely rather than being a no-op.
   function hasErrorDetails() {
     return (AppState.state.onErrorDetails || []).length > 0;

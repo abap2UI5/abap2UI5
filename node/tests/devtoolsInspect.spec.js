@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the real implementation shipped in
-// app/webapp/core/devtools/Inspect.js. Every inspector is a pure renderer
+// app/webapp/devtools/Inspect.js. Every inspector is a pure renderer
 // over state other modules own, so the harness seeds that state and
 // asserts on the rendered report.
 
@@ -74,7 +74,7 @@ function loadInspect({
       return undefined;
     },
   };
-  const { module } = loadModule("core/devtools/Inspect.js", {
+  const { module } = loadModule("devtools/Inspect.js", {
     deps: {
       "sap/ui/Device": {
         system: { desktop: true },
@@ -114,11 +114,11 @@ function loadInspect({
       // Capture and rendering are split: Console hands over the entries,
       // Inspect merges them with the framework log and the backend
       // messages into one timeline.
-      "z2ui5/core/devtools/Console": {
+      "z2ui5/devtools/Console": {
         getEntries: () => consoleEntries,
         getDropped: () => consoleDropped,
       },
-      "z2ui5/core/devtools/Recorder": { getRecords: () => records },
+      "z2ui5/devtools/Recorder": { getRecords: () => records },
     },
     sandbox: {
       window: {

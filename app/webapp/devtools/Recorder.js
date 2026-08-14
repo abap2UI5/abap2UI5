@@ -7,7 +7,7 @@
 // carry anything for it. Server.js, View1.controller.js, AppState.js and
 // Lib.js contain no recorder code and no recorder-shaped hooks; the whole
 // feature can be deleted by removing this file and its tabs in
-// core/devtools/DeveloperTools.js - core/devtools/DevTools.js is what
+// devtools/DeveloperTools.js - devtools/DevTools.js is what
 // installs it, and that is the framework's only entry point here.
 //
 // Two tiers, because they cost very different amounts:

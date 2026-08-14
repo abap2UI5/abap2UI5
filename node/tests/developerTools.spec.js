@@ -98,7 +98,7 @@ function loadDeveloperTools({
   // then invoked with the spec as `this`, close enough to the UI5 runtime
   // for these prototype methods.
   const Control = { extend: (_name, spec) => spec };
-  const { module } = loadModule("core/devtools/DeveloperTools.js", {
+  const { module } = loadModule("devtools/DeveloperTools.js", {
     deps: {
       "sap/ui/core/Control": Control,
       "sap/ui/core/Fragment": fragment,
@@ -109,11 +109,11 @@ function loadDeveloperTools({
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/ErrorView": ErrorView,
-      "z2ui5/core/devtools/Console": Console,
-      "z2ui5/core/devtools/Recorder": Recorder,
-      "z2ui5/core/devtools/Inspect": Inspect,
-      "z2ui5/core/devtools/Picker": Picker,
-      "z2ui5/core/devtools/LiveEdit": LiveEdit,
+      "z2ui5/devtools/Console": Console,
+      "z2ui5/devtools/Recorder": Recorder,
+      "z2ui5/devtools/Inspect": Inspect,
+      "z2ui5/devtools/Picker": Picker,
+      "z2ui5/devtools/LiveEdit": LiveEdit,
       ...extraDeps,
     },
     sandbox: {

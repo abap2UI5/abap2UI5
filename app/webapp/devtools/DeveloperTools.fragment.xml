@@ -133,7 +133,7 @@
             />
             <!-- Closes the dialog, lets the user click any control in the
                  app and reopens here with its bindings and current values
-                 (core/devtools/Picker.js). -->
+                 (devtools/Picker.js). -->
             <HBox visible="{/isPickTab}" alignItems="Center">
                 <Button text="Pick Control" type="Emphasized" press=".onPickControl" />
                 <Text
@@ -144,7 +144,7 @@
             <!-- Tier 2 of the roundtrip recorder. Off by default: keeping
                  request/response bodies is the only part of the history
                  that costs real memory, so a production session must not
-                 pay for it unnoticed (core/devtools/Recorder.js). -->
+                 pay for it unnoticed (devtools/Recorder.js). -->
             <HBox visible="{/isHistoryTab}" alignItems="Center">
                 <ToggleButton
                     text="Record Payloads"
@@ -158,7 +158,7 @@
             </HBox>
             <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />
             <!-- Live view editing: only shown on the tabs that map to a view
-                 slot (core/devtools/LiveEdit.js sets canApply). Apply renders
+                 slot (devtools/LiveEdit.js sets canApply). Apply renders
                  the edited XML into the running app WITHOUT a roundtrip - a
                  local preview the next response replaces again. -->
             <HBox visible="{/canApply}" alignItems="Center">

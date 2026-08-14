@@ -6,7 +6,7 @@
 // type, owning view slot, every binding it carries with the CURRENT value
 // behind each path, and the backend events bound on it.
 //
-// Outside the framework like the rest of core/devtools/: it works purely
+// Outside the framework like the rest of devtools/: it works purely
 // against the public UI5 element API and the view-slot registry, and
 // installs its own document listener only while a pick is running.
 sap.ui.define(

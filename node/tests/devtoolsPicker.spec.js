@@ -3,12 +3,12 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the real implementation shipped in
-// app/webapp/core/devtools/Picker.js. describe() is the whole payload of
+// app/webapp/devtools/Picker.js. describe() is the whole payload of
 // the feature (the DOM pick around it only decides WHICH control it gets),
 // so the specs drive it with UI5-shaped control doubles.
 
 function loadPicker({ slotKey = "MAIN", closestTo } = {}) {
-  const { module } = loadModule("core/devtools/Picker.js", {
+  const { module } = loadModule("devtools/Picker.js", {
     deps: {
       "sap/ui/core/Element": closestTo ? { closestTo } : {},
       "z2ui5/core/Lib": { logError() {}, getElementById: () => null },

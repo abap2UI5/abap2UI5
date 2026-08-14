@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the real implementation shipped in
-// app/webapp/core/devtools/LiveEdit.js - the local, roundtrip-free
+// app/webapp/devtools/LiveEdit.js - the local, roundtrip-free
 // re-render of a view slot from the developer tools editor.
 
 function loadLiveEdit({ views = {}, slotXml = {}, isBusy = false } = {}) {
@@ -19,7 +19,7 @@ function loadLiveEdit({ views = {}, slotXml = {}, isBusy = false } = {}) {
       return Promise.resolve();
     },
   };
-  const { module } = loadModule("core/devtools/LiveEdit.js", {
+  const { module } = loadModule("devtools/LiveEdit.js", {
     deps: {
       "z2ui5/core/actions/Slots": Slots,
       "z2ui5/core/AppState": { state: { isBusy } },

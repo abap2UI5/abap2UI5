@@ -1,6 +1,6 @@
 // Read-only inspectors of the developer tools.
 //
-// Like core/devtools/Recorder.js this module is OUTSIDE the framework: it
+// Like devtools/Recorder.js this module is OUTSIDE the framework: it
 // only reads state other modules own (AppState, ViewSlots, the recorded
 // history) and renders it as text for a developer-tools tab. Nothing here
 // is wired into a framework code path, and nothing in the framework knows
@@ -16,8 +16,8 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
-    "z2ui5/core/devtools/Console",
-    "z2ui5/core/devtools/Recorder",
+    "z2ui5/devtools/Console",
+    "z2ui5/devtools/Recorder",
   ],
   (Device, AppState, Lib, ScrollFocus, ViewSlots, Console, Recorder) => {
     "use strict";

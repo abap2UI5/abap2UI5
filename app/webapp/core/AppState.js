@@ -104,7 +104,7 @@
 //                     Lib.registerCallback. onErrorDetails is the extension
 //                     point behind the fatal-error overlay's Details action:
 //                     ErrorView runs whatever registered and hides the button
-//                     when nothing did (core/devtools/DevTools.js registers
+//                     when nothing did (devtools/DevTools.js registers
 //                     the in-app developer tools there)
 sap.ui.define([], () => {
   "use strict";

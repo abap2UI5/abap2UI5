@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the real implementation shipped in
-// app/webapp/core/devtools/Recorder.js (loaded via a stubbed sap.ui.define).
+// app/webapp/devtools/Recorder.js (loaded via a stubbed sap.ui.define).
 // The recorder observes the framework from the outside - through the
 // onAfterRendering callback array and the browser's Resource Timing API -
 // so the harness below stubs exactly those two surfaces and nothing else.
@@ -81,7 +81,7 @@ function loadRecorder({ storage = {} } = {}) {
     },
   };
 
-  const { module } = loadModule("core/devtools/Recorder.js", {
+  const { module } = loadModule("devtools/Recorder.js", {
     deps: {
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/Lib": Lib,

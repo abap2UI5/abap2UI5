@@ -300,7 +300,7 @@ test.describe("ErrorView friendly dialog", () => {
   });
 
   // The overlay knows nothing about WHO shows the details: it runs the
-  // registered onErrorDetails providers (core/devtools/DevTools.js is the
+  // registered onErrorDetails providers (devtools/DevTools.js is the
   // one a standard install registers) and leaves the button out entirely
   // when nothing registered.
   test("Details runs the registered details providers and closes the popup", () => {

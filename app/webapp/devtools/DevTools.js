@@ -23,9 +23,9 @@ sap.ui.define(
   [
     "z2ui5/core/AppState",
     "z2ui5/core/Lib",
-    "z2ui5/core/devtools/Console",
-    "z2ui5/core/devtools/DeveloperTools",
-    "z2ui5/core/devtools/Recorder",
+    "z2ui5/devtools/Console",
+    "z2ui5/devtools/DeveloperTools",
+    "z2ui5/devtools/Recorder",
   ],
   (AppState, Lib, Console, DeveloperTools, Recorder) => {
     "use strict";

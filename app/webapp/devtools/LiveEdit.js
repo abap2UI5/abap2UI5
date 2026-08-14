@@ -7,7 +7,7 @@
 // is the intended lifetime: this is an experiment surface, not a way to
 // patch an app.
 //
-// Outside the framework like the rest of core/devtools/: it drives the
+// Outside the framework like the rest of devtools/: it drives the
 // same public slot-display entry point (core/actions/Slots.action) the
 // backend's VIEW_SLOTS action uses, and adds nothing to it.
 sap.ui.define(

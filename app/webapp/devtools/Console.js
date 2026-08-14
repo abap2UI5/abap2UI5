@@ -23,11 +23,11 @@
 //     source link then points at this file instead of the calling line -
 //     see the note on install().
 //
-// Like the rest of core/devtools/ this module is outside the framework: no
-// framework module knows it exists, and core/devtools/DevTools.js is what
+// Like the rest of devtools/ this module is outside the framework: no
+// framework module knows it exists, and devtools/DevTools.js is what
 // installs it. It depends on nothing at all - not even on the rest of
-// core/devtools/: it observes the browser and UI5 and hands the captured
-// entries over as DATA. Rendering them is core/devtools/Inspect.js's job,
+// devtools/: it observes the browser and UI5 and hands the captured
+// entries over as DATA. Rendering them is devtools/Inspect.js's job,
 // which merges them with the framework's error log and the backend
 // messages into one timeline (the Log tab).
 sap.ui.define([], () => {
@@ -75,7 +75,7 @@ sap.ui.define([], () => {
   let onPageHide = null;
 
   // Optional notification of an error-level entry, used by
-  // core/devtools/DevTools.js for its "open on error" option. One
+  // devtools/DevTools.js for its "open on error" option. One
   // subscriber is enough - the tools are the only consumer.
   let onErrorEntry = null;
 

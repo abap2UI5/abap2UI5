@@ -281,7 +281,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `  // knows nothing about WHAT that is: ``onErrorDetails`` is a plain callback` && |\n| &&
              `  // array (core/AppState.js) that a details provider registers into - in a` && |\n| &&
              `  // standard install that is the in-app developer tools` && |\n| &&
-             `  // (core/devtools/DevTools.js). With nothing registered the Details button` && |\n| &&
+             `  // (devtools/DevTools.js). With nothing registered the Details button` && |\n| &&
              `  // is left out entirely rather than being a no-op.` && |\n| &&
              `  function hasErrorDetails() {` && |\n| &&
              `    return (AppState.state.onErrorDetails || []).length > 0;` && |\n| &&

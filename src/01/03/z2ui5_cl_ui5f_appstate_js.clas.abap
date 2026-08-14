@@ -131,7 +131,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `//                     Lib.registerCallback. onErrorDetails is the extension` && |\n| &&
              `//                     point behind the fatal-error overlay's Details action:` && |\n| &&
              `//                     ErrorView runs whatever registered and hides the button` && |\n| &&
-             `//                     when nothing did (core/devtools/DevTools.js registers` && |\n| &&
+             `//                     when nothing did (devtools/DevTools.js registers` && |\n| &&
              `//                     the in-app developer tools there)` && |\n| &&
              `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&

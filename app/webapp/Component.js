@@ -4,7 +4,7 @@ sap.ui.define(
     "z2ui5/model/models",
     "z2ui5/core/Server",
     "sap/ui/VersionInfo",
-    "z2ui5/core/devtools/DevTools",
+    "z2ui5/devtools/DevTools",
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
@@ -117,7 +117,7 @@ sap.ui.define(
         // The developer tools own everything of their own: the Ctrl+F12
         // shortcut, the dialog instance, the roundtrip recorder and the
         // "?z2ui5-devtools=" auto open. This call and the exit() below are
-        // the framework's ENTIRE coupling to core/devtools/ - keep it that
+        // the framework's ENTIRE coupling to devtools/ - keep it that
         // way (see the module header there).
         DevTools.install();
         this._installScrollListener();

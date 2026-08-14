@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the real implementation shipped in
-// app/webapp/core/devtools/DevTools.js - the lifecycle facade that is the
+// app/webapp/devtools/DevTools.js - the lifecycle facade that is the
 // ONLY entry point the framework calls into the developer tools. What it
 // owns (shortcut, instance, recorder install, auto open, the error-details
 // provider) used to be spread over Component.js, AppState.js and
@@ -37,7 +37,7 @@ function loadDevTools({ search = "" } = {}) {
     }
   }
 
-  const { module } = loadModule("core/devtools/DevTools.js", {
+  const { module } = loadModule("devtools/DevTools.js", {
     deps: {
       "z2ui5/core/AppState": {
         state: {},
@@ -56,7 +56,7 @@ function loadDevTools({ search = "" } = {}) {
           callbacks[name] = callbacks[name].filter((f) => f !== fn);
         },
       },
-      "z2ui5/core/devtools/Console": {
+      "z2ui5/devtools/Console": {
         install: () => recorderCalls.push("console:install"),
         uninstall: () => recorderCalls.push("console:uninstall"),
         // Console owns the "open on error" setting and only announces an
@@ -65,8 +65,8 @@ function loadDevTools({ search = "" } = {}) {
           errorSubscriber.fn = fn;
         },
       },
-      "z2ui5/core/devtools/DeveloperTools": DeveloperTools,
-      "z2ui5/core/devtools/Recorder": {
+      "z2ui5/devtools/DeveloperTools": DeveloperTools,
+      "z2ui5/devtools/Recorder": {
         install: () => recorderCalls.push("install"),
         uninstall: () => recorderCalls.push("uninstall"),
       },

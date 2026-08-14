@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the real implementation shipped in
-// app/webapp/core/devtools/Console.js - the in-app capture of what you
+// app/webapp/devtools/Console.js - the in-app capture of what you
 // would otherwise open the browser's devtools for. The three sources are
 // driven directly: the patched console methods, the window error /
 // rejection listeners, and UI5's own log listener.
@@ -27,7 +27,7 @@ function loadConsole({ storage = {} } = {}) {
     },
   };
 
-  const { module } = loadModule("core/devtools/Console.js", {
+  const { module } = loadModule("devtools/Console.js", {
     sandbox: {
       window: {
         console: consoleStub,

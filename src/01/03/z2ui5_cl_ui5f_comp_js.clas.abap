@@ -31,7 +31,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "z2ui5/model/models",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
-             `    "z2ui5/core/devtools/DevTools",` && |\n| &&
+             `    "z2ui5/devtools/DevTools",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
@@ -144,7 +144,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        // The developer tools own everything of their own: the Ctrl+F12` && |\n| &&
              `        // shortcut, the dialog instance, the roundtrip recorder and the` && |\n| &&
              `        // "?z2ui5-devtools=" auto open. This call and the exit() below are` && |\n| &&
-             `        // the framework's ENTIRE coupling to core/devtools/ - keep it that` && |\n| &&
+             `        // the framework's ENTIRE coupling to devtools/ - keep it that` && |\n| &&
              `        // way (see the module header there).` && |\n| &&
              `        DevTools.install();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
