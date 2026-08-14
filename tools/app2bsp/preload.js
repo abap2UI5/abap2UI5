@@ -301,7 +301,7 @@ function assertSameProgram(before, after) {
     if (collapse(before, 'the built bundle') !== collapse(after, 'the wrapped bundle')) {
         throw new Error(
             `${bundleName}: wrapping the bundle for the BSP page format changed the program. ` +
-            'A line break landed somewhere it changes the parse - see breakPoints() in preload.js.',
+            'A line break landed somewhere it changes the parse - see atomize() in preload.js.',
         );
     }
 }

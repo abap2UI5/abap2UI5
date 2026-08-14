@@ -54,8 +54,16 @@ function checkTree(tree) {
     // marks a BSP is the WAPA page directory.
     const src02 = join(dir, "src/02");
     if (!existsSync(src02)) return false;
-    const descriptor = readdirSync(src02).find((name) => name.endsWith(".wapa.xml"));
-    if (!descriptor) return false;
+    const descriptors = readdirSync(src02).filter((name) => name.endsWith(".wapa.xml")).sort();
+    if (descriptors.length === 0) return false;
+    // Ein BSP-Baum hat genau EIN Seitenverzeichnis; zwei hiesse, ein Rename
+    // oder Merge hat ein altes liegen lassen - und welches geprueft wuerde,
+    // hinge an der readdir-Reihenfolge.
+    if (descriptors.length > 1) {
+        note(tree, `more than one .wapa.xml page directory: ${descriptors.join(", ")}`);
+        return true;
+    }
+    const descriptor = descriptors[0];
     const prefix = descriptor.slice(0, -"xml".length);
     const xml = readFileSync(join(src02, descriptor), "utf8");
     const pages = [...xml.matchAll(/<PAGENAME>([^<]+)<\/PAGENAME>/g)].map((m) => m[1]);
