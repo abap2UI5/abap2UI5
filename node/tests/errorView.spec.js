@@ -10,7 +10,11 @@ const { loadModule } = require("./loadModule");
 // node/tests/e2e/error-view.spec.js.
 
 function load({ ui5 = true } = {}) {
-  const state = { developerTools: null, lastError: null };
+  // A standard install registers a details provider (the in-app developer
+  // tools), so the default here does too - the Details button and the
+  // button order the tests below assert on are the normal case. The
+  // "no Details button" test clears it explicitly.
+  const state = { onErrorDetails: [() => {}], lastError: null };
   const AppState = { state };
   const reloads = [];
   const created = { dialogs: [] };
@@ -134,7 +138,7 @@ function load({ ui5 = true } = {}) {
 }
 
 test.describe("ErrorView friendly dialog", () => {
-  test("records the fatal error for the DeveloperTools Error tab", () => {
+  test("records the fatal error so a details provider can re-show it", () => {
     const { ErrorView, state } = load();
     const onRetry = () => {};
     ErrorView.show("Boom happened", "My Title", { onRetry });
@@ -291,20 +295,49 @@ test.describe("ErrorView friendly dialog", () => {
     const message = created.dialogs[0].settings.content[0].settings.text;
     expect(message).toContain("...");
     expect(message.length).toBeLessThan(long.length);
-    // The DeveloperTools Error tab still gets the untruncated text.
+    // A details provider still gets the untruncated text.
     expect(state.lastError.text).toBe(long);
   });
 
-  test("Details closes the popup and opens the DeveloperTools on the Error tab", () => {
+  // The overlay knows nothing about WHO shows the details: it runs the
+  // registered onErrorDetails providers (devtools/DevTools.js is the
+  // one a standard install registers) and leaves the button out entirely
+  // when nothing registered.
+  test("Details runs the registered details providers and closes the popup", () => {
     const { ErrorView, state, created } = load();
-    const showCalls = [];
-    state.developerTools = { show: (tab) => showCalls.push(tab) };
+    const calls = [];
+    state.onErrorDetails = [() => calls.push("first"), () => calls.push("second")];
     ErrorView.show("dump");
     const dialog = created.dialogs[0];
     dialog.settings.buttons[0].settings.press(); // Details
     expect(dialog.open_called).toBe(false); // dialog was closed
-    expect(state.developerTools.reopenErrorOnClose).toBe(true);
-    expect(showCalls).toEqual(["ERROR"]);
+    expect(calls).toEqual(["first", "second"]);
+  });
+
+  test("no Details button when no provider registered", () => {
+    const { ErrorView, state, created } = load();
+    state.onErrorDetails = [];
+    ErrorView.show("dump");
+    const labels = created.dialogs[0].settings.buttons.map(
+      (b) => b.settings.text,
+    );
+    expect(labels).not.toContain("Details");
+    expect(labels).toContain("Copy");
+  });
+
+  test("a throwing provider does not take the overlay down", () => {
+    const { ErrorView, state, created } = load();
+    const calls = [];
+    state.onErrorDetails = [
+      () => {
+        throw new Error("provider broke");
+      },
+      () => calls.push("second"),
+    ];
+    ErrorView.show("dump");
+    created.dialogs[0].settings.buttons[0].settings.press();
+    // the second provider still runs
+    expect(calls).toEqual(["second"]);
   });
 
   test("offers Retry in the dialog when the caller passed one", () => {
@@ -351,7 +384,7 @@ test.describe("ErrorView friendly dialog", () => {
     const { ErrorView, created } = load();
     ErrorView.show("first dump", "First Title");
     expect(created.dialogs).toHaveLength(1);
-    // Closing (e.g. the DeveloperTools reopen flow) and reopening builds a
+    // Closing (e.g. the reopenErrorDialog flow) and reopening builds a
     // fresh dialog carrying the same title and text.
     created.dialogs[0].close();
     ErrorView.reopenErrorDialog();

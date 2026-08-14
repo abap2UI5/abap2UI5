@@ -7,8 +7,26 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
     "z2ui5/core/ErrorView",
+    "z2ui5/devtools/Console",
+    "z2ui5/devtools/Recorder",
+    "z2ui5/devtools/Inspect",
+    "z2ui5/devtools/Picker",
+    "z2ui5/devtools/LiveEdit",
   ],
-  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState, ErrorView) => {
+  (
+    Control,
+    Fragment,
+    JSONModel,
+    Lib,
+    ViewSlots,
+    AppState,
+    ErrorView,
+    Console,
+    Recorder,
+    Inspect,
+    Picker,
+    LiveEdit,
+  ) => {
     "use strict";
 
     // Fragment id under which the developer tools dialog's controls are registered;
@@ -17,6 +35,56 @@ sap.ui.define(
 
     // toJson() pretty-prints with this many spaces per nesting level.
     const INDENT_UNIT = 3;
+
+    // Hits reported per tab by searchAllTabs. A term that matches a whole
+    // model would otherwise bury the tabs that matched it once.
+    const MAX_HITS_PER_TAB = 20;
+
+    // The tab the tools were last on. Reopening on the tab you were
+    // working in is what makes them usable across a debugging session -
+    // landing on the response JSON every time means re-navigating after
+    // every close. In sessionStorage, so it survives a reload too.
+    const LAST_TAB_KEY = "z2ui5.devtools.lastTab";
+
+    // The tab opened when nothing else is known.
+    const DEFAULT_TAB = "PLAIN";
+
+    function readLastTab() {
+      try {
+        return window.sessionStorage?.getItem(LAST_TAB_KEY) || "";
+      } catch {
+        return "";
+      }
+    }
+
+    // The tabs that are not table-driven have their own branch in
+    // renderTab, so they have to be listed for the validity check. Keep
+    // this in step with those branches - a tab missing here is silently
+    // rejected as "unknown" and reopens on the default instead.
+    const STANDALONE_TABS = [
+      "HISTORY",
+      "DIFF",
+      "SEARCH",
+      "PICK",
+      "ERROR",
+      "SOURCE",
+    ];
+
+    function isKnownTab(tabKey) {
+      if (!tabKey) return false;
+      if (STANDALONE_TABS.includes(tabKey)) return true;
+      return Boolean(
+        jsonSources[tabKey] || xmlSources[tabKey] || textSources[tabKey],
+      );
+    }
+
+    function writeLastTab(tabKey) {
+      try {
+        window.sessionStorage?.setItem(LAST_TAB_KEY, tabKey);
+      } catch {
+        // storage unavailable - the memory is then per dialog instance
+      }
+    }
 
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.
@@ -115,15 +183,6 @@ sap.ui.define(
       return view?._xContent?.outerHTML;
     }
 
-    // Minimal text dump of the shared error log (the entries Lib.logError
-    // pushes to AppState.state.errors): one "<ts>  <message>" line per entry,
-    // oldest first. Empty log yields a short placeholder.
-    function formatErrorLog() {
-      const errors = AppState.state.errors || [];
-      if (!errors.length) return "(log is empty)";
-      return errors.map((e) => `${e.ts}  ${e.message}`).join("\n");
-    }
-
     // The last fatal error the ErrorView overlay showed (title + full text),
     // so the Error tab reproduces the overlay's content. Empty when the app
     // has not hit a fatal error this session.
@@ -184,6 +243,22 @@ sap.ui.define(
       // MODEL, shown twice
     };
 
+    // Tabs whose content is a plain-text report built by one of the
+    // devtools inspectors. Kept as a table for the same reason
+    // jsonSources / xmlSources are: adding a tab is one entry plus one
+    // IconTabFilter, never a new branch in renderTab.
+    const textSources = {
+      // The framework error log, the console capture and the backend
+      // messages used to be three tabs; Inspect.formatLog merges them into
+      // one timeline (see there).
+      LOG: () => Inspect.formatLog(),
+      VIEWDIFF: () => Recorder.formatViewDiff(),
+      ENV: () => Inspect.formatEnvironment(),
+      REGISTRY: () => Inspect.formatRegistry(),
+      ACTIONS: () => Inspect.formatActions(),
+      BINDINGS: () => Inspect.formatBindings(),
+    };
+
     const xmlSources = {
       VIEW: () => ({
         xml: getSlotXml("MAIN"),
@@ -201,7 +276,7 @@ sap.ui.define(
       }),
     };
 
-    return Control.extend("z2ui5.core.DeveloperTools", {
+    const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {
       // Reformat an XML string with indentation. If anything goes wrong the
       // original input is returned unchanged - the developer tools must never
       // crash the host app.
@@ -225,6 +300,79 @@ sap.ui.define(
         }
       },
 
+      // Search every tab at once and report which of them contain the term.
+      // With more than twenty tabs, "where does CUSTOMER appear?" is a
+      // question the dialog could not answer at all - the developer had to
+      // open each tab and use the editor's own find.
+      //
+      // Sources are evaluated the same way the tabs render them, each
+      // guarded: one throwing source may not blank the whole result.
+      searchAllTabs(term) {
+        const needle = String(term || "").toLowerCase();
+        if (!needle) return "(enter a search term)";
+        const sections = [];
+        let totalHits = 0;
+
+        const scan = (tabKey, produce) => {
+          let text;
+          try {
+            text = produce();
+          } catch {
+            return;
+          }
+          if (text === undefined || text === null || text === "") return;
+          const lines = String(text).split("\n");
+          const hits = [];
+          for (let i = 0; i < lines.length; i += 1) {
+            if (!lines[i].toLowerCase().includes(needle)) continue;
+            hits.push(`    ${String(i + 1).padStart(5)}: ${lines[i].trim()}`);
+            if (hits.length >= MAX_HITS_PER_TAB) break;
+          }
+          if (!hits.length) return;
+          totalHits += hits.length;
+          sections.push(
+            `  [${tabKey}]  ${hits.length}${hits.length >= MAX_HITS_PER_TAB ? "+" : ""} hit(s)`,
+          );
+          sections.push(...hits);
+          sections.push("");
+        };
+
+        for (const key of Object.keys(jsonSources)) {
+          scan(key, () => toJson(jsonSources[key]()));
+        }
+        for (const key of Object.keys(xmlSources)) {
+          scan(key, () => this.prettifyXml(xmlSources[key]().xml));
+        }
+        for (const key of Object.keys(textSources)) {
+          scan(key, () => textSources[key]());
+        }
+        scan("ERROR", formatLastError);
+        scan("HISTORY", () => Recorder.formatHistory());
+
+        const head = [
+          `Search for "${term}" across every tab`,
+          "",
+          totalHits
+            ? `${totalHits} hit(s) - the tab key is in brackets.`
+            : "(no hit in any tab)",
+          "",
+        ];
+        return head.concat(sections).join("\n");
+      },
+
+      onSearch(oEvent) {
+        const oSource = oEvent.getSource();
+        const oModel = oSource.getModel();
+        const modelData = oModel.getData();
+        modelData.searchTerm = oSource.getValue();
+        modelData.selectedTab = "SEARCH";
+        this.displayEditor(
+          oModel,
+          this.searchAllTabs(modelData.searchTerm),
+          "text",
+        );
+      },
+
       // Called when the user picks an entry in the dropdown of the developer
       // tools dialog - resolve the model + key and render that tab.
       onItemSelect(oEvent) {
@@ -240,6 +388,15 @@ sap.ui.define(
       // to "ERROR"). The content per entry is defined declaratively in
       // jsonSources / xmlSources above.
       renderTab(selItem, oModel) {
+        // The controls that belong to ONE tab live in the content area
+        // rather than the footer, so they appear with their tab instead
+        // of sitting there greyed out on the other twenty.
+        const flags = oModel.getData();
+        flags.isPickTab = selItem === "PICK";
+        flags.isHistoryTab = selItem === "HISTORY";
+        flags.isSearchTab = selItem === "SEARCH";
+        writeLastTab(selItem);
+
         if (jsonSources[selItem]) {
           this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");
           return;
@@ -253,11 +410,54 @@ sap.ui.define(
             "xml",
             this.prettifyXml(rendered),
           );
+          // A view tab is editable: its XML can be rendered back into the
+          // slot without a roundtrip (devtools/LiveEdit.js), so the
+          // Apply / Reset footer buttons appear for exactly these tabs.
+          const modelData = oModel.getData();
+          modelData.canApply = LiveEdit.canApply(selItem);
+          oModel.refresh();
           return;
         }
 
-        if (selItem === "LOG") {
-          this.displayEditor(oModel, formatErrorLog(), "text");
+        // The roundtrip history and the model diff are owned end to end by
+        // devtools/Recorder.js - this dialog only renders the text it
+        // hands over.
+        if (selItem === "HISTORY") {
+          this.displayEditor(oModel, Recorder.formatHistory(), "text");
+          return;
+        }
+
+        if (selItem === "DIFF") {
+          this.displayEditor(oModel, Recorder.formatModelDiff(), "text");
+          return;
+        }
+
+        // The read-only inspectors live in devtools/Inspect.js; the
+        // dialog only decides which one to show. The picked-control report
+        // is the one entry that is not derived from live state - it is the
+        // result of the last pick and therefore held on the control.
+        if (textSources[selItem]) {
+          this.displayEditor(oModel, textSources[selItem](), "text");
+          return;
+        }
+
+        if (selItem === "SEARCH") {
+          this.displayEditor(
+            oModel,
+            this.searchAllTabs(oModel.getData().searchTerm),
+            "text",
+          );
+          return;
+        }
+
+        if (selItem === "PICK") {
+          this.displayEditor(
+            oModel,
+            this.pickedControlReport ||
+              'No control picked yet - press "Pick Control" in the footer,' +
+                " then click any control in the app.",
+            "text",
+          );
           return;
         }
 
@@ -342,12 +542,48 @@ sap.ui.define(
           }
         };
 
+        // First section on purpose: versions, UI5 distribution, launchpad
+        // and device are what a reader of a shared report needs before
+        // anything else, and asking for them is the standard first reply
+        // to a bug report.
+        push(
+          "ENVIRONMENT",
+          text(() => Inspect.formatEnvironment()),
+        );
         if (AppState.state.lastError) push("ERROR", text(formatLastError));
-        push("LOG", text(formatErrorLog));
+        push(
+          "LOG",
+          text(() => Inspect.formatLog()),
+        );
+        // The roundtrip history is the timeline an error happened on, so it
+        // travels with the export - it is the context a reader of a shared
+        // bug report otherwise has to ask for.
+        push(
+          "ROUNDTRIP HISTORY",
+          text(() => Recorder.formatHistory()),
+        );
+        if (Recorder.isRecordingPayloads()) {
+          push(
+            "MODEL DIFF",
+            text(() => Recorder.formatModelDiff()),
+          );
+        }
         // The running app's ABAP class source (fetched by onExport). Placed
         // high up because it is usually the most useful context when sharing
         // an error - a reader can see the class that produced it.
         push("ABAP SOURCE", abapSource);
+        push(
+          "ACTIONS",
+          text(() => Inspect.formatActions()),
+        );
+        push(
+          "REGISTRY",
+          text(() => Inspect.formatRegistry()),
+        );
+        push(
+          "BINDINGS",
+          text(() => Inspect.formatBindings()),
+        );
         push(
           "RESPONSE",
           json(() => jsonSources.PLAIN()),
@@ -403,6 +639,38 @@ sap.ui.define(
         return sections.join("\n\n") || "(nothing to export)";
       },
 
+      // The same content as buildExport, but as a GitHub-ready issue body:
+      // each section becomes a collapsed <details> block so a long report
+      // stays readable in a comment, and the code fences keep XML and JSON
+      // from being eaten by the markdown renderer. Pasting a report into an
+      // issue is the last step of most bug reports, and doing it by hand
+      // means either an unreadable wall of text or manual reformatting.
+      buildMarkdown(abapSource) {
+        const plain = this.buildExport(abapSource);
+        const blocks = plain.split(/^===== (.+) =====$/m);
+        // split() yields [preamble, title, body, title, body, ...]
+        const out = ["## abap2UI5 - Developer Tools export", ""];
+        for (let i = 1; i < blocks.length; i += 2) {
+          const title = blocks[i];
+          const body = (blocks[i + 1] || "").trim();
+          if (!body) continue;
+          // The environment block is what a reader needs first, so it is
+          // the one section that is not collapsed.
+          const open = title === "ENVIRONMENT" ? " open" : "";
+          const fence = title.includes("SOURCE") ? "abap" : "text";
+          out.push(`<details${open}>`);
+          out.push(`<summary>${title}</summary>`);
+          out.push("");
+          out.push(`\`\`\`${fence}`);
+          out.push(body);
+          out.push("```");
+          out.push("");
+          out.push("</details>");
+          out.push("");
+        }
+        return out.join("\n");
+      },
+
       // Fetch the running app's ABAP class source via the ADT REST endpoint,
       // so the export can include the class that produced the current state.
       // Returns the raw source text, or "" when the class name is unknown or
@@ -412,16 +680,25 @@ sap.ui.define(
       async fetchAbapSource() {
         const url = this.getAbapSourceUrl();
         if (!url) return "";
+        const appName = this.getAppName();
+        // Cached per app class: the Source Code tab warms it, and the ADT
+        // jump reads it to find the line of the current event. A second
+        // fetch of the same class would be a wasted request on every open.
+        if (this._abapSourceCache?.app === appName) {
+          return this._abapSourceCache.source;
+        }
+        let source = "";
         try {
           const response = await fetch(url, {
             headers: { Accept: "text/plain" },
             credentials: "same-origin",
           });
-          if (!response.ok) return "";
-          return await response.text();
+          if (response.ok) source = await response.text();
         } catch {
-          return "";
+          source = "";
         }
+        this._abapSourceCache = { app: appName, source };
+        return source;
       },
 
       // Show the whole export in a stretched popup with a read-through TextArea
@@ -432,6 +709,9 @@ sap.ui.define(
         let text;
         try {
           const abapSource = await this.fetchAbapSource();
+          // kept for the Markdown button, which rebuilds from the same
+          // content instead of fetching the class source a second time
+          this._lastExportSource = abapSource;
           text = this.buildExport(abapSource);
         } catch (e) {
           text = `(export failed: ${e?.message || e})`;
@@ -452,35 +732,70 @@ sap.ui.define(
               title: "abap2UI5 - Developer Tools Export",
               stretch: true,
               content: [area],
-              beginButton: new Button({
-                text: "Copy to Clipboard",
-                type: "Emphasized",
-                press: () => {
-                  // navigator.clipboard needs a secure (HTTPS) context, which
-                  // an on-premise ABAP system often is not. Select the
-                  // TextArea and use the classic execCommand("copy") first
-                  // (works over plain HTTP), then fall back to the async API.
-                  const ta = area.getFocusDomRef();
-                  let copied = false;
-                  if (ta) {
-                    ta.focus();
-                    ta.select();
-                    ta.setSelectionRange(0, (ta.value || "").length);
-                    try {
-                      copied = document.execCommand("copy");
-                    } catch {
-                      copied = false;
+              // The `buttons` aggregation, not beginButton/endButton: UI5
+              // ignores those two as soon as `buttons` is filled, and the
+              // download actions below make this a four-button footer.
+              buttons: [
+                new Button({
+                  text: "Copy to Clipboard",
+                  type: "Emphasized",
+                  press: () => {
+                    // navigator.clipboard needs a secure (HTTPS) context, which
+                    // an on-premise ABAP system often is not. Select the
+                    // TextArea and use the classic execCommand("copy") first
+                    // (works over plain HTTP), then fall back to the async API.
+                    const ta = area.getFocusDomRef();
+                    let copied = false;
+                    if (ta) {
+                      ta.focus();
+                      ta.select();
+                      ta.setSelectionRange(0, (ta.value || "").length);
+                      try {
+                        copied = document.execCommand("copy");
+                      } catch {
+                        copied = false;
+                      }
                     }
-                  }
-                  if (!copied && navigator.clipboard?.writeText) {
-                    navigator.clipboard.writeText(text).catch(() => {});
-                  }
-                },
-              }),
-              endButton: new Button({
-                text: "Close",
-                press: () => dialog.close(),
-              }),
+                    if (!copied && navigator.clipboard?.writeText) {
+                      navigator.clipboard.writeText(text).catch(() => {});
+                    }
+                  },
+                }),
+                // Two files, because they answer different questions: the
+                // report is what a human reads, the history JSON is what
+                // makes a bug reproducible (it carries the recorded
+                // request/response bodies when payload recording was on).
+                new Button({
+                  text: "Copy as Markdown",
+                  press: () => {
+                    try {
+                      Lib.copyToClipboard(
+                        this.buildMarkdown(this._lastExportSource),
+                      );
+                    } catch (e) {
+                      Lib.logError("DeveloperTools: markdown export failed", e);
+                    }
+                  },
+                }),
+                new Button({
+                  text: "Download Report",
+                  press: () =>
+                    this.downloadText(this.exportFileName("txt"), text),
+                }),
+                new Button({
+                  text: "Download History (JSON)",
+                  press: () =>
+                    this.downloadText(
+                      this.exportFileName("json"),
+                      Recorder.exportJson(),
+                      "application/json",
+                    ),
+                }),
+                new Button({
+                  text: "Close",
+                  press: () => dialog.close(),
+                }),
+              ],
               afterClose: () => dialog.destroy(),
             });
             dialog.open();
@@ -512,10 +827,61 @@ sap.ui.define(
       // framing the ADT endpoint entirely (X-Frame-Options), so the preview is
       // just blank there. noopener keeps the new tab from reaching back into
       // window.opener.
-      onOpenAbapInAdt() {
+      // The ADT url, deep-linked at the handler of the event the last
+      // roundtrip carried when that is possible: the ADT source endpoint
+      // honours a "#start=<line>,<col>" anchor, and the event name is a
+      // literal in the class that handles it. Needs the source in the cache
+      // (the Source Code tab warms it); without it, or when the name is not
+      // found, the plain class url is returned - the jump is a shortcut,
+      // never a precondition.
+      getAbapAdtUrl() {
         const url = this.getAbapSourceUrl();
+        if (!url) return "";
+        const event = AppState.state.oBody?.S_FRONT?.EVENT;
+        const cache = this._abapSourceCache;
+        if (!event || cache?.app !== this.getAppName() || !cache?.source) {
+          return url;
+        }
+        const lineNumber = Inspect.findEventLine(cache.source, event);
+        return lineNumber ? `${url}#start=${lineNumber},1` : url;
+      },
+
+      onOpenAbapInAdt() {
+        // Stays synchronous: a window.open after an await is treated as an
+        // unrequested popup and blocked.
+        const url = this.getAbapAdtUrl();
         if (!url) return;
         window.open(url, "_blank", "noopener,noreferrer");
+      },
+
+      // Hand a generated text file to the browser. Used by the export
+      // dialog: a copy to the clipboard is fine for a short report, but a
+      // full export with payloads belongs in a file that can be attached
+      // to an issue.
+      downloadText(fileName, content, mimeType) {
+        try {
+          const blob = new Blob([content], {
+            type: `${mimeType || "text/plain"};charset=utf-8`,
+          });
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.download = fileName;
+          document.body.appendChild(anchor);
+          anchor.click();
+          document.body.removeChild(anchor);
+          // Release the object url once the download has been handed over.
+          setTimeout(() => URL.revokeObjectURL(url), 0);
+        } catch (e) {
+          Lib.logError("DeveloperTools: download failed", e);
+        }
+      },
+
+      // Stable, sortable file name stem for the generated downloads.
+      exportFileName(extension) {
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const app = this.getAppName() || "abap2ui5";
+        return `${app}_${stamp}.${extension}`;
       },
 
       // Show the ABAP source of the running app inside an iframe.
@@ -534,6 +900,13 @@ sap.ui.define(
             : "",
         );
 
+        // Warm the source cache in the background so the ADT button can
+        // deep-link at the current event's line (getAbapAdtUrl). Opening
+        // this tab is the moment a developer is heading for the source, and
+        // the fetch must not block the tab switch - failures are swallowed
+        // by fetchAbapSource itself.
+        this.fetchAbapSource();
+
         if (!oModel) return;
         const modelData = oModel.getData();
         modelData.editor_visible = false;
@@ -548,6 +921,9 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = true;
         modelData.source_visible = false;
+        // Only the view tabs re-enable this (see renderTab) - every other
+        // tab shows content that has no slot to be applied to.
+        modelData.canApply = false;
         modelData.isTemplating = Boolean(content?.includes("xmlns:template"));
         // the toggle always starts on the original source for this tab
         modelData.templatingSource = false;
@@ -568,6 +944,141 @@ sap.ui.define(
           ? modelData.xContent
           : modelData.previousValue;
         oModel.refresh();
+      },
+
+      // Tier 2 of the recorder: keeping request/response bodies is the
+      // expensive half of the history, so it is opt-in and switched here.
+      // Switching it OFF also drops what was already retained, so a
+      // developer can free the memory again without reloading the app.
+      // The current tab is re-rendered because both recorder tabs report
+      // the flag's state.
+      onToggleRecordPayloads(oEvent) {
+        const oSource = oEvent.getSource();
+        Recorder.setRecordingPayloads(oSource.getPressed());
+        const oModel = oSource.getModel();
+        const modelData = oModel.getData();
+        modelData.recordPayloads = Recorder.isRecordingPayloads();
+        oModel.refresh();
+        this.renderTab(modelData.selectedTab, oModel);
+      },
+
+      // Pick a control on the screen and report what feeds it. The dialog
+      // has to get out of the way first (it is modal and covers the app),
+      // so it closes for the duration of the pick and reopens on the
+      // picked-control tab with the result. Escape cancels and reopens on
+      // the tab the user came from.
+      onPickControl() {
+        const previousTab = this.oDialog?.getModel()?.getData()?.selectedTab;
+        this.reopenErrorOnClose = false;
+        this.close();
+        Picker.start((report) => {
+          if (Lib.isDestroyed(this)) return;
+          if (report) this.pickedControlReport = report;
+          this.show(report ? "PICK" : previousTab);
+        });
+      },
+
+      // Render the edited XML back into its view slot. Local preview only -
+      // LiveEdit's result message says so, and it is shown in place of the
+      // editor content's usual silence so the developer knows it landed.
+      async onApplyXml(oEvent) {
+        const oModel = oEvent.getSource().getModel();
+        const modelData = oModel.getData();
+        if (LiveEdit.isBusy()) {
+          this.showApplyResult(oModel, "A roundtrip is running - try again.");
+          return;
+        }
+        const result = await LiveEdit.apply(
+          modelData.selectedTab,
+          modelData.value,
+        );
+        if (Lib.isDestroyed(this)) return;
+        this.showApplyResult(oModel, result);
+      },
+
+      // Put the backend's original XML back into the editor. Does not
+      // re-render - press Apply for that.
+      onResetXml(oEvent) {
+        const oModel = oEvent.getSource().getModel();
+        const modelData = oModel.getData();
+        const xml = this.prettifyXml(
+          LiveEdit.originalXml(modelData.selectedTab),
+        );
+        modelData.value = xml;
+        modelData.previousValue = xml;
+        modelData.applyResult = "";
+        oModel.refresh();
+      },
+
+      showApplyResult(oModel, text) {
+        const modelData = oModel.getData();
+        modelData.applyResult = text;
+        oModel.refresh();
+      },
+
+      // Put the current tab's content on the clipboard. A CodeEditor has no
+      // select-all affordance of its own, so copying a report used to mean
+      // dragging across thousands of lines - or going through Export, which
+      // builds everything rather than the one tab being looked at.
+      onCopyTab(oEvent) {
+        const oSource = oEvent.getSource();
+        const modelData = oSource.getModel().getData();
+        Lib.copyToClipboard(modelData.value || "");
+        // Confirm on the button itself and put the label back - the dialog
+        // is modal, so a toast behind it would be invisible.
+        const original = oSource.getText();
+        oSource.setText("Copied");
+        setTimeout(() => {
+          if (!Lib.isDestroyed(oSource)) oSource.setText(original);
+        }, 1500);
+      },
+
+      // Pop the tools open on the Console tab as soon as anything logs at
+      // error level. Off by default - a modal dialog jumping up is the
+      // last thing a productive user needs - but in a test system it is
+      // the difference between noticing a broken roundtrip and not. The
+      // setting lives in devtools/Console.js, which is where the
+      // errors are and which both this dialog and the lifecycle facade
+      // can reach without importing each other.
+      onToggleOpenOnError(oEvent) {
+        const oSource = oEvent.getSource();
+        Console.setAlertOnError(oSource.getPressed());
+        const oModel = oSource.getModel();
+        oModel.getData().openOnError = Console.isAlertOnError();
+        oModel.refresh();
+      },
+
+      // The help used to be a tab of its own, which put a page of prose
+      // in the same row as the twenty tabs that show live state. It is
+      // reached from the info icon in the footer now and opens in its
+      // own dialog, so it does not take the current tab away.
+      onShowHelp() {
+        sap.ui.require(
+          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
+          (Dialog, TextArea, Button) => {
+            const area = new TextArea({
+              editable: false,
+              width: "100%",
+              rows: 25,
+              growing: false,
+            });
+            area.setValue(Inspect.formatHelp());
+            const dialog = new Dialog({
+              title: "abap2UI5 - Developer Tools Help",
+              stretch: true,
+              content: [area],
+              buttons: [
+                new Button({
+                  text: "Close",
+                  type: "Emphasized",
+                  press: () => dialog.close(),
+                }),
+              ],
+              afterClose: () => dialog.destroy(),
+            });
+            dialog.open();
+          },
+        );
       },
 
       onClose() {
@@ -593,7 +1104,7 @@ sap.ui.define(
           if (!this.oDialog) {
             await preloadCodeEditor();
             this.oDialog = await Fragment.load({
-              name: "z2ui5.core.DeveloperTools",
+              name: "z2ui5.devtools.DeveloperTools",
               controller: this,
               id: FRAGMENT_ID,
             });
@@ -606,8 +1117,18 @@ sap.ui.define(
             return;
           }
 
+          // A caller-named tab wins (the error popup's Details jumps to
+          // ERROR); otherwise reopen where the developer left off. The
+          // remembered key is validated: a tab that no longer exists -
+          // one stored by an older version, or a typo in the URL
+          // parameter - would otherwise select nothing at all.
+          const remembered = readLastTab();
           const selectedTab =
-            typeof initialTab === "string" ? initialTab : "PLAIN";
+            typeof initialTab === "string" && initialTab
+              ? initialTab
+              : isKnownTab(remembered)
+                ? remembered
+                : DEFAULT_TAB;
           const value = toJson(AppState.state.responseData);
           const oData = {
             selectedTab: selectedTab,
@@ -619,7 +1140,18 @@ sap.ui.define(
             source_visible: false,
             editor_visible: true,
             hasError: Boolean(AppState.state.lastError),
-            hasLog: Boolean(AppState.state.errors?.length),
+            // Tier 2 opt-in of the roundtrip recorder; drives both the
+            // footer toggle and what the two recorder tabs report.
+            recordPayloads: Recorder.isRecordingPayloads(),
+            // Set per tab by renderTab: only the view tabs can be applied
+            // back into their slot (devtools/LiveEdit.js).
+            canApply: false,
+            applyResult: "",
+            // set per tab by renderTab - the controls that belong to one
+            // tab live in the content area, not in the footer
+            isPickTab: false,
+            isHistoryTab: false,
+            isSearchTab: false,
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
             value: value,
             xContent: "",
@@ -639,6 +1171,7 @@ sap.ui.define(
             hasPopoverModel: hasModelData(ViewSlots.getView("POPOVER")),
           };
 
+          writeLastTab(selectedTab);
           const oModel = new JSONModel(oData);
           const oDialog = this.oDialog;
           oDialog.setModel(oModel);
@@ -698,5 +1231,11 @@ sap.ui.define(
       // The control itself renders nothing - it just provides the dialog API.
       renderer: { apiVersion: 2, render() {} },
     });
+
+    // The lifecycle around this control - creation, the Ctrl+F12
+    // shortcut, auto open and teardown - belongs to
+    // devtools/DevTools.js, which is the single entry point the
+    // framework calls. This module is only the dialog.
+    return DeveloperTools;
   },
 );

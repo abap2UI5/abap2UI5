@@ -4,7 +4,7 @@ sap.ui.define(
     "z2ui5/model/models",
     "z2ui5/core/Server",
     "sap/ui/VersionInfo",
-    "z2ui5/core/DeveloperTools",
+    "z2ui5/devtools/DevTools",
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
@@ -17,7 +17,7 @@ sap.ui.define(
     Models,
     Server,
     VersionInfo,
-    DeveloperTools,
+    DevTools,
     Lib,
     AppState,
     DateUtil,
@@ -114,7 +114,12 @@ sap.ui.define(
         this._initVersionInfo();
 
         this._installUnloadListener();
-        this._installDeveloperToolsShortcut();
+        // The developer tools own everything of their own: the Ctrl+F12
+        // shortcut, the dialog instance, the roundtrip recorder and the
+        // "?z2ui5-devtools=" auto open. This call and the exit() below are
+        // the framework's ENTIRE coupling to devtools/ - keep it that
+        // way (see the module header there).
+        DevTools.install();
         this._installScrollListener();
         this._installRouterListener();
       },
@@ -135,19 +140,6 @@ sap.ui.define(
         // fired beforeunload dependably.
         this._unloadEvent = "pagehide";
         window.addEventListener(this._unloadEvent, this._boundUnload);
-      },
-
-      _installDeveloperToolsShortcut() {
-        // Ctrl + F12 opens / closes the in-app developer tools.
-        this._boundKeydown = (event) => {
-          if (event.ctrlKey && event.key === "F12") {
-            const state = AppState.state;
-            if (!state.developerTools)
-              state.developerTools = new DeveloperTools();
-            state.developerTools.toggle();
-          }
-        };
-        document.addEventListener("keydown", this._boundKeydown);
       },
 
       _installScrollListener() {
@@ -278,19 +270,15 @@ sap.ui.define(
 
       exit() {
         window.removeEventListener(this._unloadEvent, this._boundUnload);
-        document.removeEventListener("keydown", this._boundKeydown);
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,
         });
         Router.exit();
 
-        // The developer tools control is created lazily by the Ctrl+F12
-        // shortcut - destroy it (which also closes its dialog) so a re-launch
-        // (FLP) does not leak the control instance.
-        if (AppState.state.developerTools) {
-          AppState.state.developerTools.destroy();
-          AppState.state.developerTools = null;
-        }
+        // Drops the shortcut, the dialog instance and the recorded history -
+        // all of which are module-scoped and would otherwise outlive the
+        // component on an FLP re-launch.
+        DevTools.exit();
 
         Server.endSession();
 

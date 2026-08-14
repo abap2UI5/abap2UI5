@@ -124,11 +124,15 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `//   lastScrolled      last scrolled element per slot (ScrollFocus.onScrollCapture)` && |\n| &&
              `//   viewSizeLimits    per-slot model size limits (actions/ViewOps)` && |\n| &&
              `//   treeStates        tree binding state per tree_id across rebuilds (Tree control)` && |\n| &&
-             `//   developerTools         DeveloperTools instance (Component, Ctrl+F12)` && |\n| &&
              `//   lastError         the last fatal error shown by ErrorView (title/text/` && |\n| &&
-             `//                     onRetry), so the DeveloperTools Error tab can re-show it` && |\n| &&
+             `//                     onRetry), so a details view can re-show it` && |\n| &&
              `//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,` && |\n| &&
-             `//   onBeforeEventFrontend  callback arrays, see Lib.registerCallback` && |\n| &&
+             `//   onBeforeEventFrontend, onErrorDetails  callback arrays, see` && |\n| &&
+             `//                     Lib.registerCallback. onErrorDetails is the extension` && |\n| &&
+             `//                     point behind the fatal-error overlay's Details action:` && |\n| &&
+             `//                     ErrorView runs whatever registered and hides the button` && |\n| &&
+             `//                     when nothing did (devtools/DevTools.js registers` && |\n| &&
+             `//                     the in-app developer tools there)` && |\n| &&
              `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
@@ -197,7 +201,6 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      lastScrolled: {},` && |\n| &&
              `      viewSizeLimits: {},` && |\n| &&
              `      treeStates: {},` && |\n| &&
-             `      developerTools: null,` && |\n| &&
              `      lastError: null,` && |\n| &&
              `` && |\n| &&
              `      // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)` && |\n| &&
@@ -205,6 +208,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      onAfterRoundtrip: [],` && |\n| &&
              `      onAfterRendering: [],` && |\n| &&
              `      onBeforeEventFrontend: [],` && |\n| &&
+             `      onErrorDetails: [],` && |\n| &&
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&

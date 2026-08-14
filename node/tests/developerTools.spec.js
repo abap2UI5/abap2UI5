@@ -28,19 +28,26 @@ function loadDeveloperTools({
   slotXml = {},
   oResponse = null,
   responseData = null,
+  oBody = null,
   errors,
   lastError = null,
   logoutCalls,
   reopenCalls,
   fragment,
   windowStub,
+  recorder,
+  consoleCapture,
+  inspect,
+  picker,
+  liveEdit,
   // extra sap.ui.define dependencies / sandbox globals - only show() needs
   // them (JSONModel, Lib, sap.ui.require), every other test runs without
   extraDeps = {},
   extraSandbox = {},
+  storage = {},
 } = {}) {
   const AppState = {
-    state: { oResponse, responseData, oBody: null, errors, lastError },
+    state: { oResponse, responseData, oBody, errors, lastError },
     getGlobal: () => undefined,
   };
   // The slot registry is the developer tools' only source for what a slot
@@ -53,17 +60,60 @@ function loadDeveloperTools({
     handleLogout: () => logoutCalls?.push(true),
     reopenErrorDialog: () => reopenCalls?.push(true),
   };
+  // The roundtrip recorder owns the History / Model Diff tabs; the dialog
+  // only renders the text it returns. Its own behaviour is covered by
+  // devtoolsRecorder.spec.js, so a flat stub is enough here.
+  const Recorder = recorder || {
+    isRecordingPayloads: () => false,
+    setRecordingPayloads() {},
+    formatHistory: () => "(no roundtrip recorded yet)",
+    formatModelDiff: () => "(diff needs payload recording)",
+    formatViewDiff: () => "(view diff needs payload recording)",
+    exportJson: () => "{}",
+  };
+  // The inspectors, the control picker and the live view editing each own
+  // their behaviour (and their own specs); the dialog only routes to them.
+  const Inspect = inspect || {
+    formatHelp: () => "(help)",
+    formatEnvironment: () => "(environment)",
+    formatRegistry: () => "(registry)",
+    formatActions: () => "(actions)",
+    formatLog: () => "(log)",
+    formatBindings: () => "(bindings)",
+    findEventLine: () => 0,
+  };
+  const Console = consoleCapture || {
+    isAlertOnError: () => false,
+    setAlertOnError() {},
+  };
+  const Picker = picker || { start() {}, stop() {} };
+  const LiveEdit = liveEdit || {
+    apply: () => Promise.resolve("applied"),
+    canApply: () => false,
+    slotOfTab: () => undefined,
+    originalXml: () => "",
+    isBusy: () => false,
+  };
   // Control.extend returns the class spec itself; the spec's methods are
   // then invoked with the spec as `this`, close enough to the UI5 runtime
   // for these prototype methods.
   const Control = { extend: (_name, spec) => spec };
-  const { module } = loadModule("core/DeveloperTools.js", {
+  const { module } = loadModule("devtools/DeveloperTools.js", {
     deps: {
       "sap/ui/core/Control": Control,
       "sap/ui/core/Fragment": fragment,
+      // Default Lib stub: the async paths (Apply, Pick, show) guard their
+      // continuations with Lib.isDestroyed. The show() tests override it
+      // via extraDeps, which is spread after this.
+      "z2ui5/core/Lib": { isDestroyed: () => false, logError() {} },
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/ErrorView": ErrorView,
+      "z2ui5/devtools/Console": Console,
+      "z2ui5/devtools/Recorder": Recorder,
+      "z2ui5/devtools/Inspect": Inspect,
+      "z2ui5/devtools/Picker": Picker,
+      "z2ui5/devtools/LiveEdit": LiveEdit,
       ...extraDeps,
     },
     sandbox: {
@@ -85,14 +135,25 @@ function loadDeveloperTools({
           return null;
         }
       },
+      URLSearchParams,
       window: windowStub || {
-        location: { origin: "https://sap.example.com" },
+        location: { origin: "https://sap.example.com", search: "" },
         open() {},
+        // the last-opened tab is remembered here
+        sessionStorage: {
+          getItem: (k) => (k in storage ? storage[k] : null),
+          setItem: (k, v) => {
+            storage[k] = v;
+          },
+          removeItem: (k) => {
+            delete storage[k];
+          },
+        },
       },
       ...extraSandbox,
     },
   });
-  return { DeveloperTools: module };
+  return { DeveloperTools: module, storage };
 }
 
 // Fake IconTabHeader select event carrying the dialog's JSON model.
@@ -176,32 +237,6 @@ test.describe("popup / popover tabs", () => {
   });
 });
 
-test.describe("Log tab", () => {
-  test("dumps the error log as minimal ts + message lines", () => {
-    const { DeveloperTools } = loadDeveloperTools({
-      errors: [
-        { message: "boom", ts: "2026-01-01T00:00:00.000Z" },
-        { message: "bang", ts: "2026-01-01T00:00:01.000Z" },
-      ],
-    });
-    const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DeveloperTools.onItemSelect(oEvent);
-    expect(modelData.value).toBe(
-      "2026-01-01T00:00:00.000Z  boom\n2026-01-01T00:00:01.000Z  bang",
-    );
-    expect(modelData.type).toBe("text");
-    expect(modelData.editor_visible).toBe(true);
-  });
-
-  test("shows a placeholder when the log is empty", () => {
-    const { DeveloperTools } = loadDeveloperTools();
-    const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DeveloperTools.onItemSelect(oEvent);
-    expect(modelData.value).toBe("(log is empty)");
-    expect(modelData.type).toBe("text");
-  });
-});
-
 test.describe("Error tab", () => {
   test("shows the captured fatal error title + text and the action bar", () => {
     const { DeveloperTools } = loadDeveloperTools({
@@ -277,8 +312,9 @@ test.describe("Export", () => {
     expect(out).toContain("===== ERROR =====");
     expect(out).toContain("App Terminated");
     expect(out).toContain("backend dump");
+    // the LOG section now carries the merged timeline the inspector
+    // renders; its content is covered by devtoolsInspect.spec.js
     expect(out).toContain("===== LOG =====");
-    expect(out).toContain("2026-01-01T00:00:00.000Z  boom");
   });
 
   test("omits the ERROR section when no fatal error was captured", () => {
@@ -299,6 +335,382 @@ test.describe("Export", () => {
     const { DeveloperTools } = loadDeveloperTools();
     const out = DeveloperTools.buildExport("");
     expect(out).not.toContain("===== ABAP SOURCE =====");
+  });
+});
+
+test.describe("Recorder tabs", () => {
+  test("the History tab renders what the recorder hands over", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      recorder: {
+        isRecordingPayloads: () => false,
+        setRecordingPayloads() {},
+        formatHistory: () => "ROUNDTRIP TABLE",
+        formatModelDiff: () => "",
+      },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("HISTORY");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toBe("ROUNDTRIP TABLE");
+    expect(modelData.type).toBe("text");
+    expect(modelData.editor_visible).toBe(true);
+  });
+
+  test("the Model Diff tab renders what the recorder hands over", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      recorder: {
+        isRecordingPayloads: () => true,
+        setRecordingPayloads() {},
+        formatHistory: () => "",
+        formatModelDiff: () => "~ /NAME",
+      },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("DIFF");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toBe("~ /NAME");
+    expect(modelData.type).toBe("text");
+  });
+
+  test("the export carries the roundtrip history", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      recorder: {
+        isRecordingPayloads: () => false,
+        setRecordingPayloads() {},
+        formatHistory: () => "ROUNDTRIP TABLE",
+        formatModelDiff: () => "",
+      },
+    });
+    const out = DeveloperTools.buildExport("");
+    expect(out).toContain("===== ROUNDTRIP HISTORY =====");
+    expect(out).toContain("ROUNDTRIP TABLE");
+    // the diff only travels when payloads were actually recorded
+    expect(out).not.toContain("===== MODEL DIFF =====");
+  });
+
+  test("the payload toggle forwards to the recorder and re-renders", () => {
+    const calls = [];
+    let recording = false;
+    const { DeveloperTools } = loadDeveloperTools({
+      recorder: {
+        isRecordingPayloads: () => recording,
+        setRecordingPayloads(on) {
+          calls.push(on);
+          recording = on;
+        },
+        formatHistory: () => (recording ? "ON" : "OFF"),
+        formatModelDiff: () => "",
+      },
+    });
+    const modelData = { selectedTab: "HISTORY" };
+    const oModel = { getData: () => modelData, refresh() {} };
+    DeveloperTools.onToggleRecordPayloads({
+      getSource: () => ({ getPressed: () => true, getModel: () => oModel }),
+    });
+    expect(calls).toEqual([true]);
+    expect(modelData.recordPayloads).toBe(true);
+    // the open tab reports the flag, so it is re-rendered after the switch
+    expect(modelData.value).toBe("ON");
+  });
+});
+
+test.describe("Inspector tabs", () => {
+  const inspect = {
+    formatHelp: () => "HELP REPORT",
+    formatEnvironment: () => "ENV REPORT",
+    formatRegistry: () => "REGISTRY REPORT",
+    formatActions: () => "ACTIONS REPORT",
+    formatLog: () => "LOG REPORT",
+    formatBindings: () => "BINDINGS REPORT",
+    findEventLine: () => 0,
+  };
+
+  for (const [key, expected] of [
+    ["ENV", "ENV REPORT"],
+    ["REGISTRY", "REGISTRY REPORT"],
+    ["ACTIONS", "ACTIONS REPORT"],
+    ["LOG", "LOG REPORT"],
+    ["BINDINGS", "BINDINGS REPORT"],
+  ]) {
+    test(`the ${key} tab renders its inspector`, () => {
+      const { DeveloperTools } = loadDeveloperTools({ inspect });
+      const { oEvent, modelData } = fakeSelectEvent(key);
+      DeveloperTools.onItemSelect(oEvent);
+      expect(modelData.value).toBe(expected);
+      expect(modelData.type).toBe("text");
+    });
+  }
+
+  test("the picked-control tab explains itself before the first pick", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const { oEvent, modelData } = fakeSelectEvent("PICK");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(modelData.value).toContain("No control picked yet");
+  });
+});
+
+test.describe("Live view editing", () => {
+  test("a view tab offers Apply, other tabs do not", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      views: { MAIN: fakeXmlView("<mvc:View/>") },
+      liveEdit: {
+        apply: () => Promise.resolve("ok"),
+        canApply: (tab) => tab === "VIEW",
+        slotOfTab: () => "MAIN",
+        originalXml: () => "<mvc:View/>",
+        isBusy: () => false,
+      },
+    });
+    const view = fakeSelectEvent("VIEW");
+    DeveloperTools.onItemSelect(view.oEvent);
+    expect(view.modelData.canApply).toBe(true);
+
+    const log = fakeSelectEvent("LOG");
+    DeveloperTools.onItemSelect(log.oEvent);
+    expect(log.modelData.canApply).toBe(false);
+  });
+
+  test("Apply forwards the edited XML and reports the result", async () => {
+    const applied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      liveEdit: {
+        apply: (tab, xml) => {
+          applied.push({ tab, xml });
+          return Promise.resolve("Applied to slot MAIN.");
+        },
+        canApply: () => true,
+        slotOfTab: () => "MAIN",
+        originalXml: () => "",
+        isBusy: () => false,
+      },
+    });
+    const modelData = { selectedTab: "VIEW", value: "<mvc:View edited=\"1\"/>" };
+    const oModel = { getData: () => modelData, refresh() {} };
+    await DeveloperTools.onApplyXml({ getSource: () => ({ getModel: () => oModel }) });
+    expect(applied).toEqual([
+      { tab: "VIEW", xml: '<mvc:View edited="1"/>' },
+    ]);
+    expect(modelData.applyResult).toContain("Applied to slot MAIN");
+  });
+
+  test("Apply is refused while a roundtrip is running", async () => {
+    const applied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      liveEdit: {
+        apply: () => {
+          applied.push(1);
+          return Promise.resolve("ok");
+        },
+        canApply: () => true,
+        slotOfTab: () => "MAIN",
+        originalXml: () => "",
+        isBusy: () => true,
+      },
+    });
+    const modelData = { selectedTab: "VIEW", value: "<x/>" };
+    const oModel = { getData: () => modelData, refresh() {} };
+    await DeveloperTools.onApplyXml({ getSource: () => ({ getModel: () => oModel }) });
+    expect(applied.length).toBe(0);
+    expect(modelData.applyResult).toContain("roundtrip is running");
+  });
+
+  test("Reset puts the backend's original XML back", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      liveEdit: {
+        apply: () => Promise.resolve("ok"),
+        canApply: () => true,
+        slotOfTab: () => "MAIN",
+        originalXml: () => "<mvc:View original=\"1\"/>",
+        isBusy: () => false,
+      },
+    });
+    const modelData = { selectedTab: "VIEW", value: "<edited/>", applyResult: "x" };
+    const oModel = { getData: () => modelData, refresh() {} };
+    DeveloperTools.onResetXml({ getSource: () => ({ getModel: () => oModel }) });
+    expect(modelData.value).toBe('<mvc:View original="1"/>');
+    expect(modelData.applyResult).toBe("");
+  });
+});
+
+test.describe("Per-tab controls", () => {
+  // These used to sit in the footer, greyed out or misleading on the other
+  // twenty tabs; renderTab flags which tab is showing so each control
+  // appears with the tab it belongs to.
+  test("flags the tab that owns the search field", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const search = fakeSelectEvent("SEARCH");
+    DeveloperTools.onItemSelect(search.oEvent);
+    expect(search.modelData.isSearchTab).toBe(true);
+    expect(search.modelData.isPickTab).toBe(false);
+    expect(search.modelData.isHistoryTab).toBe(false);
+  });
+
+  test("flags the tab that owns Pick Control", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const pick = fakeSelectEvent("PICK");
+    DeveloperTools.onItemSelect(pick.oEvent);
+    expect(pick.modelData.isPickTab).toBe(true);
+    expect(pick.modelData.isSearchTab).toBe(false);
+  });
+
+  test("flags the tab that owns Record Payloads", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const history = fakeSelectEvent("HISTORY");
+    DeveloperTools.onItemSelect(history.oEvent);
+    expect(history.modelData.isHistoryTab).toBe(true);
+    expect(history.modelData.isPickTab).toBe(false);
+  });
+
+  test("every other tab shows none of them", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const plain = fakeSelectEvent("PLAIN");
+    DeveloperTools.onItemSelect(plain.oEvent);
+    expect(plain.modelData.isSearchTab).toBe(false);
+    expect(plain.modelData.isPickTab).toBe(false);
+    expect(plain.modelData.isHistoryTab).toBe(false);
+  });
+});
+
+test.describe("Help", () => {
+  test("opens the inspector's help in a dialog of its own", () => {
+    const opened = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      inspect: {
+        formatHelp: () => "HELP TEXT",
+        formatEnvironment: () => "",
+        formatRegistry: () => "",
+        formatActions: () => "",
+        formatLog: () => "",
+        formatBindings: () => "",
+        findEventLine: () => 0,
+      },
+      extraSandbox: {
+        sap: {
+          ui: {
+            require: (_names, cb) =>
+              cb(
+                class {
+                  constructor(settings) {
+                    opened.push(settings);
+                  }
+                  open() {}
+                },
+                class {
+                  setValue(v) {
+                    opened.push(v);
+                  }
+                },
+                class {},
+              ),
+          },
+        },
+      },
+    });
+    DeveloperTools.onShowHelp();
+    expect(opened).toContain("HELP TEXT");
+  });
+});
+
+test.describe("Copy Tab", () => {
+  test("copies the current tab's content and confirms on the button", () => {
+    const copied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      extraDeps: {
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          logError() {},
+          copyToClipboard: (text) => copied.push(text),
+        },
+      },
+    });
+    let label = "Copy Tab";
+    const oSource = {
+      getModel: () => ({ getData: () => ({ value: "REPORT BODY" }) }),
+      getText: () => label,
+      setText: (t) => {
+        label = t;
+      },
+    };
+    DeveloperTools.onCopyTab({ getSource: () => oSource });
+    expect(copied).toEqual(["REPORT BODY"]);
+    expect(label).toBe("Copied");
+  });
+
+  test("an empty tab copies an empty string rather than undefined", () => {
+    const copied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      extraDeps: {
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          logError() {},
+          copyToClipboard: (text) => copied.push(text),
+        },
+      },
+    });
+    DeveloperTools.onCopyTab({
+      getSource: () => ({
+        getModel: () => ({ getData: () => ({}) }),
+        getText: () => "Copy Tab",
+        setText() {},
+      }),
+    });
+    expect(copied).toEqual([""]);
+  });
+});
+
+test.describe("ADT deep link", () => {
+  const appResponse = { S_FRONT: { APP: "ZCL_DEMO" } };
+
+  test("plain class url without a cached source", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: appResponse,
+    });
+    DeveloperTools._abapSourceCache = null;
+    expect(DeveloperTools.getAbapAdtUrl()).toBe(
+      "https://sap.example.com/sap/bc/adt/oo/classes/ZCL_DEMO/source/main",
+    );
+  });
+
+  // The inspector resolves the line; the dialog only has to turn it into
+  // the anchor the ADT source endpoint understands.
+  const inspectAtLine = (lineNumber) => ({
+    formatEnvironment: () => "",
+    formatRegistry: () => "",
+    formatActions: () => "",
+    formatLog: () => "",
+    formatBindings: () => "",
+    findEventLine: () => lineNumber,
+  });
+
+  test("deep links at the event's line once the source is cached", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: appResponse,
+      oBody: { S_FRONT: { EVENT: "SAVE" } },
+      inspect: inspectAtLine(17),
+    });
+    DeveloperTools._abapSourceCache = { app: "ZCL_DEMO", source: "..." };
+    expect(DeveloperTools.getAbapAdtUrl()).toBe(
+      "https://sap.example.com/sap/bc/adt/oo/classes/ZCL_DEMO/source/main" +
+        "#start=17,1",
+    );
+  });
+
+  test("stays on the plain url when the event name is not found", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: appResponse,
+      oBody: { S_FRONT: { EVENT: "SAVE" } },
+      inspect: inspectAtLine(0),
+    });
+    DeveloperTools._abapSourceCache = { app: "ZCL_DEMO", source: "..." };
+    expect(DeveloperTools.getAbapAdtUrl()).not.toContain("#start=");
+  });
+
+  test("ignores a source cached for a different app class", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: appResponse,
+      oBody: { S_FRONT: { EVENT: "SAVE" } },
+      inspect: inspectAtLine(17),
+    });
+    DeveloperTools._abapSourceCache = { app: "ZCL_OTHER", source: "..." };
+    expect(DeveloperTools.getAbapAdtUrl()).not.toContain("#start=");
   });
 });
 
@@ -493,5 +905,225 @@ test.describe("Nest tabs", () => {
     DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("<core:View/>");
     expect(modelData.type).toBe("xml");
+  });
+});
+
+test.describe("Search across all tabs", () => {
+  const searchable = () =>
+    loadDeveloperTools({
+      views: { MAIN: fakeXmlView('<Input value="{/CUSTOMER}"/>') },
+      responseData: { S_FRONT: { ID: "x" }, MODEL: { CUSTOMER: "Miller AG" } },
+      inspect: {
+        formatHelp: () => "(help)",
+        formatEnvironment: () => "(environment)",
+        formatRegistry: () => "(registry)",
+        formatActions: () => "(actions)",
+        formatLog: () => "(log)",
+        formatBindings: () => "/CUSTOMER  string  Miller AG",
+        findEventLine: () => 0,
+      },
+    });
+
+  test("reports every tab that contains the term", () => {
+    const { DeveloperTools } = searchable();
+    const out = DeveloperTools.searchAllTabs("CUSTOMER");
+    expect(out).toContain("[VIEW]");
+    expect(out).toContain("[BINDINGS]");
+    expect(out).toContain("hit(s)");
+  });
+
+  test("is case-insensitive and shows the line number", () => {
+    const { DeveloperTools } = searchable();
+    const out = DeveloperTools.searchAllTabs("customer");
+    expect(out).toContain("[VIEW]");
+    expect(out).toMatch(/\d+: /);
+  });
+
+  test("says so when nothing matches", () => {
+    const { DeveloperTools } = searchable();
+    expect(DeveloperTools.searchAllTabs("zzz-nothing")).toContain("no hit");
+  });
+
+  test("an empty term asks for one instead of listing everything", () => {
+    const { DeveloperTools } = searchable();
+    expect(DeveloperTools.searchAllTabs("")).toContain("enter a search term");
+  });
+
+  test("a throwing source does not blank the whole result", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      views: { MAIN: fakeXmlView("<Input value='{/NEEDLE}'/>") },
+      inspect: {
+        formatHelp: () => "(help)",
+        formatEnvironment: () => {
+          throw new Error("inspector broke");
+        },
+        formatRegistry: () => "(registry)",
+        formatActions: () => "(actions)",
+        formatLog: () => "(log)",
+        formatBindings: () => "(bindings)",
+        findEventLine: () => 0,
+      },
+    });
+    const out = DeveloperTools.searchAllTabs("NEEDLE");
+    expect(out).toContain("[VIEW]");
+  });
+
+  test("onSearch renders the result and selects the Search tab", () => {
+    const { DeveloperTools } = searchable();
+    const modelData = {};
+    const oModel = { getData: () => modelData, refresh() {} };
+    DeveloperTools.onSearch({
+      getSource: () => ({ getValue: () => "CUSTOMER", getModel: () => oModel }),
+    });
+    expect(modelData.selectedTab).toBe("SEARCH");
+    expect(modelData.searchTerm).toBe("CUSTOMER");
+    expect(modelData.value).toContain("[VIEW]");
+  });
+});
+
+test.describe("Markdown export", () => {
+  test("wraps each section in a collapsed details block", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      errors: [{ message: "boom", ts: "2026-01-01T00:00:00.000Z" }],
+    });
+    const md = DeveloperTools.buildMarkdown("");
+    expect(md).toContain("## abap2UI5 - Developer Tools export");
+    expect(md).toContain("<summary>LOG</summary>");
+    expect(md).toContain("```text");
+    expect(md).toContain("</details>");
+  });
+
+  test("leaves the environment section open - it is read first", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const md = DeveloperTools.buildMarkdown("");
+    expect(md).toContain("<details open>");
+    expect(md).toContain("<summary>ENVIRONMENT</summary>");
+  });
+
+  test("fences the ABAP source as abap", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const md = DeveloperTools.buildMarkdown("CLASS zcl_demo DEFINITION.");
+    expect(md).toContain("<summary>ABAP SOURCE</summary>");
+    expect(md).toContain("```abap");
+  });
+});
+
+test.describe("Open on error toggle", () => {
+  test("forwards to the console capture, which owns the setting", () => {
+    const calls = [];
+    let on = false;
+    const { DeveloperTools } = loadDeveloperTools({
+      consoleCapture: {
+        format: () => "(console)",
+        isAlertOnError: () => on,
+        setAlertOnError: (value) => {
+          calls.push(value);
+          on = value;
+        },
+      },
+    });
+    const modelData = {};
+    const oModel = { getData: () => modelData, refresh() {} };
+    DeveloperTools.onToggleOpenOnError({
+      getSource: () => ({ getPressed: () => true, getModel: () => oModel }),
+    });
+    expect(calls).toEqual([true]);
+    expect(modelData.openOnError).toBe(true);
+  });
+});
+
+test.describe("Reopening on the last tab", () => {
+  // Landing on the response JSON after every close means re-navigating on
+  // every open; the tools are meant to be lived in during a debugging
+  // session.
+  const openTools = async ({ storage = {}, initialTab } = {}) => {
+    const models = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      storage,
+      fragment: {
+        load: async () => ({ setModel: (m) => models.push(m), open() {} }),
+      },
+      extraDeps: {
+        "z2ui5/core/Lib": { isDestroyed: () => false, logError() {} },
+        "sap/ui/model/json/JSONModel": class {
+          constructor(data) {
+            this.data = data;
+          }
+          getData() {
+            return this.data;
+          }
+          refresh() {}
+        },
+      },
+      extraSandbox: { sap: { ui: { require: (_mods, resolve) => resolve() } } },
+    });
+    await DeveloperTools.show(initialTab);
+    return { data: models[0]?.getData(), storage };
+  };
+
+  test("remembers the tab the user selected", () => {
+    const { DeveloperTools, storage } = loadDeveloperTools();
+    const { oEvent } = fakeSelectEvent("BINDINGS");
+    DeveloperTools.onItemSelect(oEvent);
+    expect(storage["z2ui5.devtools.lastTab"]).toBe("BINDINGS");
+  });
+
+  test("reopens on it", async () => {
+    const { data } = await openTools({
+      storage: { "z2ui5.devtools.lastTab": "HISTORY" },
+    });
+    expect(data.selectedTab).toBe("HISTORY");
+  });
+
+  test("falls back to the default tab when nothing is remembered", async () => {
+    const { data } = await openTools();
+    expect(data.selectedTab).toBe("PLAIN");
+  });
+
+  test("ignores a remembered tab that no longer exists", async () => {
+    // e.g. "HELP" or "MESSAGES", stored before those tabs were removed -
+    // selecting them would leave the header with nothing selected
+    const { data } = await openTools({
+      storage: { "z2ui5.devtools.lastTab": "HELP" },
+    });
+    expect(data.selectedTab).toBe("PLAIN");
+  });
+
+  // STANDALONE_TABS has to stay in step with the branches in renderTab -
+  // a tab missing from it is silently rejected and reopens on the default.
+  for (const tab of [
+    "HISTORY",
+    "DIFF",
+    "SEARCH",
+    "PICK",
+    "ERROR",
+    "SOURCE",
+    "LOG",
+    "BINDINGS",
+    "VIEW",
+    "MODEL",
+  ]) {
+    test(`reopens on the ${tab} tab`, async () => {
+      const { data } = await openTools({
+        storage: { "z2ui5.devtools.lastTab": tab },
+      });
+      expect(data.selectedTab).toBe(tab);
+    });
+  }
+
+  test("a caller-named tab wins over the remembered one", async () => {
+    // the error popup's Details action jumps to ERROR regardless
+    const { data } = await openTools({
+      storage: { "z2ui5.devtools.lastTab": "HISTORY" },
+      initialTab: "ERROR",
+    });
+    expect(data.selectedTab).toBe("ERROR");
+  });
+
+  test("opening also records the tab, so a close/open pair stays put", async () => {
+    const { storage } = await openTools({
+      storage: { "z2ui5.devtools.lastTab": "REGISTRY" },
+    });
+    expect(storage["z2ui5.devtools.lastTab"]).toBe("REGISTRY");
   });
 });
