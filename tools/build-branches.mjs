@@ -79,9 +79,10 @@ const scratch = join(here, "out");
 const PUBLISHED = ["cloud", "cloud_v2", "standard", "standard_v2"];
 const outDir = (branch) => join(PUBLISHED.includes(branch) ? generated : scratch, branch);
 
-// Dateien, die jeder Output-Branch erbt (kein Tooling, kein CI);
-// nicht (mehr) vorhandene werden uebersprungen
-const COMMON = [".gitignore", "CODE_OF_CONDUCT.md", "LICENSE", "README.md", "SECURITY.md"];
+// Dateien, die jeder Output-Branch erbt (kein Tooling, kein CI); nicht (mehr)
+// vorhandene werden uebersprungen. README.md fehlt hier absichtlich: es wird
+// in initBranch mit vorangestelltem Banner geschrieben, nicht kopiert.
+const COMMON = [".gitignore", "CODE_OF_CONDUCT.md", "LICENSE", "SECURITY.md"];
 
 // abapGit-Deskriptoren wie auf den bisherigen Branches
 const ABAPGIT_CLOUD = `﻿<?xml version="1.0" encoding="utf-8"?>
@@ -133,6 +134,19 @@ function initBranch(branch, abapgitXml) {
 const skipBuildArtifacts = (src) =>
   !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(relative(core, src));
 
+// Leise im Erfolgsfall, nie im Fehlerfall: das verworfene Log sagt als
+// einziges, WARUM ein Schritt scheiterte (Muster wie runUi5Build in
+// app2bsp/preload.js).
+function runQuiet(args, cwd) {
+  try {
+    execFileSync("node", args, { cwd, stdio: ["ignore", "pipe", "pipe"] });
+  } catch (error) {
+    process.stderr.write(String(error.stdout ?? ""));
+    process.stderr.write(String(error.stderr ?? ""));
+    throw error;
+  }
+}
+
 // The cloud branches ship the Fiori project from app/ - the same one this
 // repository is developed with, so the two cannot drift apart. What they do
 // NOT ship is the tooling that project is developed WITH: the linter and
@@ -175,7 +189,7 @@ function buildStandard(branch = "standard") {
   cpSync(join(here, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
   cpSync(webapp, join(work, "frontend/app/webapp"), { recursive: true, filter: skipBuildArtifacts });
   execFileSync("node", [".github/app2bsp/preload.js"], { cwd: work, stdio: "inherit" });
-  execFileSync("node", [".github/app2bsp/run.js"], { cwd: work, stdio: "ignore" });
+  runQuiet([".github/app2bsp/run.js"], work);
   cpSync(join(data, "abap/standard"), join(dir, "src"), { recursive: true });
   cpSync(join(work, "src/02"), join(dir, "src/02"), { recursive: true });
   rmSync(work, { recursive: true, force: true });

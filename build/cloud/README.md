@@ -19,6 +19,7 @@ This repository contains an abap2UI5 frontend artefacts service. For more inform
 >    + frontend/       as a committed                      standard
 >                      tree, pushed                        standard_v2
 >                      as it stands)                       standard_<name>
+>                                                          (built on demand)
 > ```
 
 #### Branch
