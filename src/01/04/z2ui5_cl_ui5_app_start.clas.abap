@@ -480,8 +480,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
           )->att( n = `enabled`  v = client->_bind( ms_home-link_enabled ) ).
 
     " the five steps are one thought - let it end before the next headline.
-    " Two rows, not one: this is the break between doing something and reading
-    " on, the widest the page has
+    " Four rows, not one: this is the break between doing something and reading
+    " on, the widest the page has, and two rows were not enough to read as a
+    " break next to the row spacing the steps themselves already have
+    render_spacer( form ).
+    render_spacer( form ).
     render_spacer( form ).
     render_spacer( form ).
 
