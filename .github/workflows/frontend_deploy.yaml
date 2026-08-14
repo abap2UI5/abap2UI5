@@ -1,40 +1,92 @@
 name: frontend_deploy
 
-# Builds a generated deploy branch and pushes it into abap2UI5/frontend, which
-# is a pure delivery repository - every branch there is written by this
+# Builds the generated deploy branches and pushes them into abap2UI5/frontend,
+# which is a pure delivery repository - every branch there is written by this
 # workflow, nothing in it is edited by hand.
 #
-# DISPATCH ONLY for now. The push trigger is deliberately not wired up yet: it
-# is turned on in a follow-up, once a manual run has been compared against what
-# is published today (npm run frontend:verify does that comparison). Until
-# then abap2UI5/frontend keeps building the branches itself, and running this
-# workflow would race with it.
+# On every push to main that touches what a branch is built from, all four
+# published branches are rebuilt and pushed. A build without content changes
+# pushes nothing (the tree is compared against the published one), so an
+# unrelated edit under tools/ costs a run and not a commit. Renamed variants
+# (standard_<name>) are built on demand through the dispatch input.
+#
+# The monthly schedule is the safety net the delivery repository used to have:
+# a lost or failed run would otherwise leave the branches silently behind main
+# until somebody notices a fix that never arrived.
 #
 # The branches are an installation source - people's abapGit repositories point
 # at them - so the tree a branch carries may not change just because the build
-# moved. frontend_check.yaml guards the content on every pull request.
+# moved. frontend_check.yaml guards the content on every pull request, and
+# `npm run frontend:verify` compares a build against what is published.
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'frontend/**'
+      - 'tools/**'
+      # the VERSION stamp of every branch carries the framework version
+      - 'src/02/z2ui5_if_app.intf.abap'
+      - '.github/workflows/frontend_deploy.yaml'
+  schedule:
+    - cron: '0 5 1 * *'   # monthly safety net
   workflow_dispatch:
     inputs:
       branch:
-        description: "cloud | cloud_v2 | standard | standard_v2 | standard_<name> | standard_v2_<name>"
-        required: true
+        description: "Leave empty for all four published branches, or name one: cloud | cloud_v2 | standard | standard_v2 | standard_<name> | standard_v2_<name>"
+        required: false
         type: string
 
 permissions:
   contents: read
 
-concurrency:
-  group: frontend_deploy-${{ inputs.branch }}
-  cancel-in-progress: false
-
 jobs:
+  # Which branches this run builds: the one that was asked for, or the four
+  # published ones. A dispatch input reaches a shell and a matrix, so it is
+  # validated here rather than trusted - build-branches.mjs rejects an unknown
+  # branch, but only after the value has been through both.
+  prepare:
+    if: github.repository == 'abap2UI5/abap2UI5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      branches: ${{ steps.pick.outputs.branches }}
+    steps:
+      - name: Pick branches
+        id: pick
+        env:
+          BRANCH: ${{ inputs.branch }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BRANCH:-}" ]; then
+            echo 'branches=["cloud","cloud_v2","standard","standard_v2"]' >> "$GITHUB_OUTPUT"
+            echo "building all four published branches"
+            exit 0
+          fi
+          if ! printf '%s' "$BRANCH" | grep -Eq '^[A-Za-z0-9_#]+$'; then
+            echo "::error::Invalid branch name '$BRANCH'"
+            exit 1
+          fi
+          printf 'branches=["%s"]\n' "$BRANCH" >> "$GITHUB_OUTPUT"
+          echo "building $BRANCH"
+
   deploy:
+    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJSON(needs.prepare.outputs.branches) }}
+    permissions:
+      contents: read
+      issues: write  # to report failed scheduled runs
+    concurrency:
+      group: frontend_deploy-${{ matrix.branch }}
+      cancel-in-progress: false
     env:
-      BRANCH: ${{ inputs.branch }}
+      BRANCH: ${{ matrix.branch }}
       TARGET: git@github.com:abap2UI5/frontend.git
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -44,17 +96,17 @@ jobs:
         cache: 'npm'
     - run: npm ci
 
-    - name: Build ${{ inputs.branch }}
-      run: node frontend/build-branches.mjs "$BRANCH"
+    - name: Build ${{ matrix.branch }}
+      run: node tools/build-branches.mjs "$BRANCH"
 
     - name: Check the BSP page invariants
-      run: node frontend/check-pages.mjs "$BRANCH"
+      run: node tools/check-pages.mjs "$BRANCH"
 
     - name: Lint the generated standard src
-      if: startsWith(inputs.branch, 'standard') && !startsWith(inputs.branch, 'standard_v2')
-      run: cd "frontend/out/$BRANCH" && npx abaplint
+      if: startsWith(matrix.branch, 'standard') && !startsWith(matrix.branch, 'standard_v2')
+      run: cd "tools/out/$BRANCH" && npx abaplint
 
-    - name: Push ${{ inputs.branch }}
+    - name: Push ${{ matrix.branch }}
       env:
         DEPLOY_KEY: ${{ secrets.ACTION_KEY_FRONTEND }}
       run: |
@@ -77,7 +129,7 @@ jobs:
 
         index="$RUNNER_TEMP/index-$b"
         rm -f "$index"
-        (cd "frontend/out/$b" && GIT_DIR="$GITHUB_WORKSPACE/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index" git add -A)
+        (cd "tools/out/$b" && GIT_DIR="$GITHUB_WORKSPACE/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index" git add -A)
         tree=$(GIT_INDEX_FILE="$index" git write-tree)
 
         if [ -n "$parent" ] && [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
@@ -88,3 +140,7 @@ jobs:
         commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -m "build: $b from $GITHUB_SHA")
         git push "$TARGET" "$commit:refs/heads/$b"
         echo "$b: pushed $commit"
+
+    - name: Report scheduled failure as issue
+      if: failure() && github.event_name == 'schedule'
+      uses: ./.github/actions/report-scheduled-failure

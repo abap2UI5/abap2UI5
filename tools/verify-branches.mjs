@@ -10,7 +10,7 @@
 // moved. A difference here is either a regression or a deliberate content
 // change that has to be argued for - never noise.
 //
-//     node frontend/verify-branches.mjs [branch ...]
+//     node tools/verify-branches.mjs [branch ...]
 //
 // Needs a git remote for the frontend repository; it is added on the fly as a
 // read-only remote when missing. With no branch arguments the four published

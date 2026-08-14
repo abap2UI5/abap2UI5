@@ -5,7 +5,7 @@ classic webapp coding over **1:1** and adapting only the bootstrap layer so it
 runs on the legacy-free OpenUI5 build.
 
 ```
-app/webapp ──▶ patchIndexHtml + patchManifest (patch-v2.mjs) ──▶ frontend/app2bsp (preload.js + run.js) ──▶ [bsp_rename, nur mit --name] ──▶ src/
+app/webapp ──▶ patchIndexHtml + patchManifest (patch-v2.mjs) ──▶ tools/app2bsp (preload.js + run.js) ──▶ [bsp_rename, nur mit --name] ──▶ src/
 ```
 
 The output uses the same package layout as the `standard` branch:
@@ -17,16 +17,16 @@ src/02/                the BSP page
 ```
 
 The result is published as the [`standard_v2`](https://github.com/abap2UI5/frontend/tree/standard_v2)
-branch by the `build_standard_v2` workflow (shared base `build_branch.yaml`), which builds the output branches
-(`cloud`, `cloud_v2`, `standard`, `standard_v2`) from `main`. The `cloud_v2`
+branch by the `frontend_deploy` workflow, which builds the output branches
+(`cloud`, `cloud_v2`, `standard`, `standard_v2`) from this repository. The `cloud_v2`
 branch applies the same bootstrap patch (`patch-v2.mjs`) directly to the
 webapp instead of building a BSP.
 
 ## Run
 
 ```bash
-node frontend/app2app_v2/build-legacy-free.mjs frontend app/webapp frontend/out/_v2
-npm run frontend:build         # alle vier; einzeln: node frontend/build-branches.mjs standard_v2
+node tools/app2app_v2/build-legacy-free.mjs . app/webapp tools/out/_v2
+npm run frontend:build         # alle vier; einzeln: node tools/build-branches.mjs standard_v2
 ```
 
 ## The only adaptations (everything else is 1:1)

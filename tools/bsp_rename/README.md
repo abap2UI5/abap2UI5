@@ -21,9 +21,9 @@ workflow with the same name updates the branch to the current `main` state.
 The same build runs locally with
 
 ```bash
-node frontend/build-branches.mjs standard_zmyui5        # -> frontend/out/standard_zmyui5
-node frontend/build-branches.mjs standard_v2_zmyui5     # legacy-free variant
-node frontend/build-branches.mjs 'standard_#abapgit#'   # namespaced -> BSP /ABAPGIT/UI5
+node tools/build-branches.mjs standard_zmyui5        # -> tools/out/standard_zmyui5
+node tools/build-branches.mjs standard_v2_zmyui5     # legacy-free variant
+node tools/build-branches.mjs 'standard_#abapgit#'   # namespaced -> BSP /ABAPGIT/UI5
 ```
 
 The renamed branch is fully self-contained: BSP, SICF nodes and the ICF
@@ -36,11 +36,11 @@ below).
 Run it from the **repository root** (so the default `src` path resolves):
 
 ```bash
-node frontend/bsp_rename/rename-bsp.mjs ZMYUI5            # rename, asks for confirmation
-node frontend/bsp_rename/rename-bsp.mjs                   # prompts for the name
-node frontend/bsp_rename/rename-bsp.mjs zmyui5 --dry-run  # preview only, writes nothing
-node frontend/bsp_rename/rename-bsp.mjs ZMYUI5 --yes      # no confirmation prompt
-node frontend/bsp_rename/rename-bsp.mjs /abapgit/         # rename into a registered namespace
+node tools/bsp_rename/rename-bsp.mjs ZMYUI5            # rename, asks for confirmation
+node tools/bsp_rename/rename-bsp.mjs                   # prompts for the name
+node tools/bsp_rename/rename-bsp.mjs zmyui5 --dry-run  # preview only, writes nothing
+node tools/bsp_rename/rename-bsp.mjs ZMYUI5 --yes      # no confirmation prompt
+node tools/bsp_rename/rename-bsp.mjs /abapgit/         # rename into a registered namespace
 ```
 
 | Option | Meaning |

@@ -11,7 +11,7 @@ on:
     paths:
       - 'app/webapp/**'
       - 'src/01/03/**'
-      - '.github/app2abap/**'
+      - 'tools/app2abap/**'
       - '.github/workflows/check_app2abap.yaml'
 
 concurrency:

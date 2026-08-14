@@ -69,35 +69,34 @@ CLASS zcl_my_app IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `xmlns`     v = `sap.m`
+            )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc`
+            )->a( n = `displayBlock` v = `true`
+            )->a( n = `height`       v = `100%`
 
-    view->ele( n = `View` ns = `mvc`
-        )->a( n = `xmlns`     v = `sap.m`
-        )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc`
-        )->a( n = `displayBlock` v = `true`
-        )->a( n = `height`       v = `100%`
+            )->ele( `Page`
+                )->a( n = `title` v = `My App`
 
-        )->ele( `Page`
-            )->a( n = `title` v = `My App`
+                )->tag( `Input`
+                    )->a( n = `value` v = client->_bind( name )
 
-            )->tag( `Input`
-                )->a( n = `value` v = client->_bind( name )
+                )->ele( `List`
+                    )->a( n = `items` v = client->_bind( t_items )
 
-            )->ele( `List`
-                )->a( n = `items` v = client->_bind( t_items )
+                    )->ele( `items`
 
-                )->ele( `items`
+                        )->tag( `StandardListItem`
+                            )->a( n = `title` v = `{PRODUCT}`
+                            )->a( n = `info`  v = `{QUANTITY}`
 
-                    )->tag( `StandardListItem`
-                        )->a( n = `title` v = `{PRODUCT}`
-                        )->a( n = `info`  v = `{QUANTITY}`
-
+                    )->end(
                 )->end(
-            )->end(
 
-            )->tag( `Button`
-                )->a( n = `text`  v = `Save`
-                )->a( n = `press` v = client->_event( `SAVE` ) ).
+                )->tag( `Button`
+                    )->a( n = `text`  v = `Save`
+                    )->a( n = `press` v = client->_event( `SAVE` ) ).
 
     client->view_display( view->stringify( ) ).
 
@@ -152,6 +151,8 @@ aggregation and namespace, nothing is wrapped or approximated. Four verbs:
   `sap.ui.table` default namespace is `)->ele( n = `content` ns = `m` )`.
 - `stringify( )` renders from the root, so trailing `end( )` calls before
   the final `).` are optional — `end` only moves the cursor to add siblings.
+  That is also what lets the whole view hang off the `factory( )` in one
+  statement (see "Formatting the chain" below).
 - **Booleans from ABAP variables** go through `b` instead of `v`:
   `` )->a( n = `editable` b = mv_edit_mode ) `` renders `true`/`false` (a
   literal is just `` v = `true` `` — never feed `abap_true` into `v` raw, it
@@ -176,6 +177,12 @@ below are the ones the sample repositories are ported and reviewed against;
 `align_parameters` / `line_break_multiple_parameters` so the auto-formatter
 does not undo them.
 
+- **The chain hangs off the `factory( )` — one statement, not two.** Write
+  `` DATA(view) = z2ui5_cl_ui5_view_builder=>factory( )->ele( n = `View` … ) ``,
+  never a `factory( ).` of its own followed by a second statement starting
+  `view->ele( … )`. The variable then holds wherever the chain stopped, which
+  costs nothing: `stringify( )` renders from the root. Same for a popup or a
+  fragment.
 - **The closing paren rides with the arrow.** Never leave a `)` alone at the
   end of a line — carry it to the **start of the next segment**, so every
   continuation reads `)->`. With the `a( )` chain there is no nested `VALUE`,

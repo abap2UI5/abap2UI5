@@ -9,16 +9,20 @@ name: frontend_check
 # push - deploying is frontend_deploy.yaml.
 
 on:
+  # app/ and not just app/webapp/: the cloud branches ship the whole Fiori
+  # project, so ui5.yaml or package.json changes what is delivered too.
   pull_request:
     paths:
-      - 'app/webapp/**'
+      - 'app/**'
       - 'frontend/**'
+      - 'tools/**'
       - '.github/workflows/frontend_check.yaml'
   push:
     branches: [main]
     paths:
-      - 'app/webapp/**'
+      - 'app/**'
       - 'frontend/**'
+      - 'tools/**'
   workflow_dispatch:
 
 permissions:
@@ -44,15 +48,15 @@ jobs:
     # standard_v2 as a BSP - and a renamed variant on top, because the rename
     # rewrites the generated page and has its own way of going wrong.
     - name: Build all deploy branches
-      run: node frontend/build-branches.mjs cloud cloud_v2 standard standard_v2 standard_zcheck
+      run: node tools/build-branches.mjs cloud cloud_v2 standard standard_v2 standard_zcheck
 
     # Same abaplint run the standard branch gets in its own repository
     - name: Lint the generated standard tree
-      run: cd frontend/out/standard && npx abaplint
+      run: cd tools/out/standard && npx abaplint
 
     # The invariants a BSP page has to satisfy, checked on the artefact rather
     # than on the bundle it was made from: a page line is at most 255
     # characters, a page name carries no character CREATE_NEW_PAGE rejects, and
     # the preload page is still valid JavaScript once padded.
     - name: Check the BSP page invariants
-      run: node frontend/check-pages.mjs
+      run: node tools/check-pages.mjs
