@@ -97,8 +97,9 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     METHODS render_docs_link
       IMPORTING form TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    " what this system runs on - a popup, because it answers a question that is
-    " asked once and then not again
+    " what this backend runs on - a popup, because it answers a question that is
+    " asked once and then not again. Backend facts only; everything the
+    " frontend knows about itself lives in the developer tools (Ctrl+F12)
     METHODS render_system_popup.
 
     " the section headline every render_* method opens with
@@ -343,10 +344,13 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     toolbar->tag( `ToolbarSpacer` ).
 
     " first what this system is: the information popup, and the configuration
-    " when it is installed
+    " when it is installed. Sliders rather than a monitor on the first one -
+    " what opens there is the backend side of the installation, user exit and
+    " drafts included, and that reads as settings. The gear next to it stays
+    " with the ICF configuration, so the two are still told apart at a glance
     header_icon( toolbar = toolbar
-                 icon    = `sap-icon://sys-monitor`
-                 tooltip = `System information - UI5 and ABAP release, user exit, drafts`
+                 icon    = `sap-icon://action-settings`
+                 tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
                  press   = client->_event( c_event_system ) ).
 
     IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
@@ -645,12 +649,23 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
             )->att( n = `title`       v = `abap2UI5 - System Information`
             )->att( n = `afterClose`  v = client->_event( c_event_close ) ).
 
-    DATA(form) = create_layout_form( dialog->ele( `content` ) ).
+    DATA(content) = dialog->ele( `content` ).
+
+    " the popup answers what the backend is, and nothing else - the UI5
+    " version, the theme, the device and the requests are the frontend's
+    " answer to the same question, and the developer tools already show all of
+    " it. Naming the shortcut here is what makes that split usable: Ctrl+F12
+    " is not guessable, and a popup that stayed silent about it would read as
+    " if the frontend facts were simply gone
+    content->tag( `MessageStrip`
+        )->att( n = `text`      v = `Frontend information - UI5 version, theme, device, requests and logs - is in the developer tools: Ctrl+F12`
+        )->att( n = `type`      v = `Information`
+        )->att( n = `showIcon`  v = `true`
+        )->att( n = `class`     v = `sapUiSmallMarginBeginEnd sapUiTinyMarginTop` ).
+
+    DATA(form) = create_layout_form( content ).
     DATA(ls_client) = client->get( ).
 
-    render_text( form  = form
-                 label = `UI5 Version`
-                 text  = ls_client-s_ui5-version ).
     form->tag( `Label` )->att( n = `text`  v = `Launchpad active` ).
     form->tag( `CheckBox`
         )->att( n = `selected`  b = ls_client-check_launchpad_active
