@@ -198,7 +198,7 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_s
 ### Key Design Patterns
 
 - **Factory:** `z2ui5_cl_ui5_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
-- **Generic View Builder:** `z2ui5_cl_ui5_view_builder=>factory()` + `ele`/`tag`/`att`/`end`/`stringify` builds any UI5 XML view 1:1 (see `src/02/z2ui5_cl_ui5_view_builder.clas.abap`)
+- **Generic View Builder:** `z2ui5_cl_ui5_view_builder=>factory()` + `ele`/`tag`/`a`/`end`/`stringify` builds any UI5 XML view 1:1 (see `src/02/z2ui5_cl_ui5_view_builder.clas.abap`)
 - **Event Routing:** `client->_event('ID')` registers; `client->check_on_event('ID')` checks
 - **App Navigation:** `client->nav_app_call(app)` pushes; `client->nav_app_leave()` pops (executed in a loop within one roundtrip)
 - **Multi-View:** Main view, nested views (nest/nest2), popups, and popovers simultaneously

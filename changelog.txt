@@ -123,16 +123,22 @@ unreleased
 ! z2ui5_cl_ui5_view_builder=>new( ) is now factory( ) - the same name the
   predecessor z2ui5_cl_ai_xml uses, so both builders start a view the same
   way and the method no longer shares its name with the NEW operator
-! z2ui5_cl_ui5_view_builder sets every attribute through att( ), and att( )
+! z2ui5_cl_ui5_view_builder=>att( ) is now a( ) - the same one-letter verb
+  the predecessor z2ui5_cl_ai_xml uses, so an attribute is written the same
+  way in both builders and the attribute call stays short enough to sit
+  beside its control. Recorded in the API snapshot as a removal plus an
+  addition; like =>factory( ) above this is a rename inside a class that was
+  added after v1.142.0 and has never been part of a release
+! z2ui5_cl_ui5_view_builder sets every attribute through a( ), and a( )
   now lands on the element it FOLLOWS: the child just added by ele( ) or
   tag( ), or the node itself while it has no children yet. tag( ) is
   therefore the form for any leaf, whatever its attributes are - it used to
-  be that an att( ) after a tag( ) attached to the parent, so a leaf could
+  be that an a( ) after a tag( ) attached to the parent, so a leaf could
   carry literals only, and only through the t_att table. That table is gone,
   with it the public type ty_t_attr that existed to type it and the
   protected parse_attr( ) that split its `key=value` strings on the first
   `=`; a bind or an event now works on a tag( ) like any other value. What
-  the rule costs is its flip side: once an element has a child, att( ) can
+  the rule costs is its flip side: once an element has a child, a( ) can
   no longer reach it, so an element gets its attributes before its first
   child - the test that pinned the opposite (att_after_children) is gone
   with the behavior. The two removals are recorded in the API snapshot; the

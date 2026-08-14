@@ -1,20 +1,20 @@
 "! Generic UI5 XML view builder - translate a UI5 XML view 1:1 by method
-"! chaining. The four navigating methods are three-letter abbreviations of the
-"! term they stand for:
+"! chaining. The navigating methods are abbreviations of the term they stand
+"! for - the attribute verb is the single `a`, exactly as in z2ui5_cl_ai_xml:
 "!   factory         a new empty builder root
 "!   ele - element   add a child element and DESCEND into it (returns the child)
 "!   tag - tag       add a child element and STAY here (returns the same node)
-"!   att - attribute set an attribute on the element it follows
+"!   a   - attribute set an attribute on the element it follows
 "!   end - end       ascend to the parent element (returns the parent)
 "!   stringify       render the whole view, always from the root
 "! Element = n (name), namespace prefix = ns (e.g. `f`, `core`, `l`).
-"! There is exactly one rule: att( ) applies to the element the chain is
+"! There is exactly one rule: a( ) applies to the element the chain is
 "! POINTING AT - the child just added by ele( )/tag( ), or the node itself
-"! while it has no children yet. So an att( ) always follows the control it
+"! while it has no children yet. So an a( ) always follows the control it
 "! belongs to, no matter whether that control was opened with ele( ) or added
-"! with tag( ), and every attribute is set by its own att( ).
+"! with tag( ), and every attribute is set by its own a( ).
 "! Reach for tag( ) on a leaf and for ele( )/end( ) on a container. The flip
-"! side of the rule: once an element has a child, att( ) can no longer reach
+"! side of the rule: once an element has a child, a( ) can no longer reach
 "! it - give an element its attributes before its first child.
 "! Every ele( ) may be closed by an end( );
 "! a trailing end( ) at the end of the chain can be omitted, because stringify( )
@@ -23,13 +23,13 @@
 "! exactly like a real UI5 view:
 "!   DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 "!   view->ele( n = `View` ns = `mvc`
-"!       )->att( n = `xmlns`     v = `sap.m`
-"!       )->att( n = `xmlns:mvc` v = `sap.ui.core.mvc` ) ...
+"!       )->a( n = `xmlns`     v = `sap.m`
+"!       )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc` ) ...
 "! `v` may be any string expression (literal, a client bind/event, || template).
 "! For a boolean pass b instead of v - it renders `true` / `false`, so an ABAP
 "! flag reaches the view without a conversion of its own:
-"!   )->att( n = `editable` b = mv_edit_mode
-"!   )->att( n = `visible`  b = xsdbool( lines( mt_item ) > 0 ) )
+"!   )->a( n = `editable` b = mv_edit_mode
+"!   )->a( n = `visible`  b = xsdbool( lines( mt_item ) > 0 ) )
 CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
 
   PUBLIC SECTION.
@@ -41,7 +41,7 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
     "! add a child element and descend into it - the returned reference is the
-    "! new element, so a following att( ) lands on it
+    "! new element, so a following a( ) lands on it
     METHODS ele
       IMPORTING
         n             TYPE string
@@ -50,7 +50,7 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
     "! add a child element and STAY on the current one, so the next tag( ) or
-    "! ele( ) becomes its sibling and no end( ) is needed. A following att( )
+    "! ele( ) becomes its sibling and no end( ) is needed. A following a( )
     "! still lands on the tag, because it is now this node's last child - the
     "! form for a leaf, whatever its attributes are.
     METHODS tag
@@ -65,7 +65,7 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
     "! Pass either v (any string expression) or b (an ABAP boolean, rendered
     "! as `true` / `false`) - exactly one of the two, never both and never
     "! neither.
-    METHODS att
+    METHODS a
       IMPORTING
         n             TYPE string
         v             TYPE string    OPTIONAL
@@ -146,11 +146,11 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD att.
+  METHOD a.
 
     " one rule: the attribute lands on the element the chain is pointing at -
     " the child just added by ele( )/tag( ), or this node itself while it has
-    " no children yet. That way att( ) follows the control it belongs to
+    " no children yet. That way a( ) follows the control it belongs to
     " whether that control was opened with ele( ) or added with tag( ).
     " fail fast instead of dropping silently: on the empty builder root there
     " is no element to attach to, and a duplicate name renders invalid XML
