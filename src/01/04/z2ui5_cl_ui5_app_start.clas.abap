@@ -722,7 +722,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
             )->a( n = `level`  v = `H3`
             )->a( n = `class`  v = `sapUiSmallMarginBegin sapUiSmallMarginTop sapUiTinyMarginBottom`
 
-    )->end( ).
+      )->end( ).
 
   ENDMETHOD.
 
