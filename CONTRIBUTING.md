@@ -196,14 +196,14 @@ Look for issues labeled:
 
 2. **Make Your Changes:**
    - **ABAP Changes:** Use abapGit workflow (recommended)
-   - **Frontend (`app/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend with `npm run app2abap`
+   - **Frontend (`app/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate what is built from the webapp: `npm run app2abap` (the embedded frontend in `src/01/03/`) and `npm run frontend:build` (the four delivery trees in `build/`). Both are generated, both are committed with your change — `npm run check:app2abap` and `npm run check:frontend` are the gates that fail otherwise
 
      > This repository is the **only** place the frontend is edited.
      > [abap2UI5/frontend](https://github.com/abap2UI5/frontend) publishes the
      > same webapp as installable branches, but it is generated: every branch
-     > there is built here by `frontend_deploy` and pushed over whatever is on
-     > it, so a change made in that repository is silently discarded on the next
-     > build. Its `guard_mirrored` workflow rejects manual pull requests for
+     > there is the tree that `build/` carries here, pushed by `frontend_deploy`
+     > over whatever is on it, so a change made in that repository is silently
+     > discarded on the next delivery. Its `guard_mirrored` workflow rejects manual pull requests for
      > exactly that reason — see its
      > [CONTRIBUTING.md](https://github.com/abap2UI5/frontend/blob/main/CONTRIBUTING.md).
 

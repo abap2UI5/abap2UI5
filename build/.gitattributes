@@ -1,0 +1,6 @@
+# These trees are shipped byte for byte into abap2UI5/frontend and pulled from
+# there into SAP systems by abapGit. Git must not touch them: no EOL
+# normalization on a checkout with core.autocrlf=true, no stripped BOM in the
+# .abapgit.xml descriptors, no diff heuristics on the padded BSP pages. A byte
+# that changes here changes what is installed.
+* -text

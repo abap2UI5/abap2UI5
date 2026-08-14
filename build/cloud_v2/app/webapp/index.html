@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>abap2UI5</title>
+
+    <link rel="preconnect" href="https://sdk.openui5.org" crossorigin>
+    <link rel="dns-prefetch" href="https://sdk.openui5.org">
+    <style>
+        html, body, body > div, #container, #container-uiarea {
+            height: 100%;
+        }
+    </style>
+    <script
+        id="sap-ui-bootstrap"
+        src="https://sdk.openui5.org/1.142.0-legacy-free/resources/sap-ui-core.js"
+        data-sap-ui-theme="sap_horizon"
+        data-sap-ui-resource-roots='{
+            "z2ui5": "./"
+        }'
+        data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"
+        data-sap-ui-compat-version="edge"
+        data-sap-ui-async="true"
+        data-sap-ui-frame-options="trusted"
+        data-sap-ui-libs="sap.m"
+    ></script>
+</head>
+<body class="sapUiBody sapUiSizeCompact" id="content">
+    <div
+        data-sap-ui-component
+        data-name="z2ui5"
+        data-id="container"
+        data-settings='{"id" : "z2ui5"}'
+        data-handle-validation="true"
+    ></div>
+</body>
+</html>

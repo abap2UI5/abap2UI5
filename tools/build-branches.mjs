@@ -28,7 +28,21 @@
 // Aufruf:  node tools/build-branches.mjs [branch ...]
 // Ohne Argumente werden die vier festen Branches gebaut; mit Argumenten nur
 // die genannten (so baut ein frontend_deploy-Lauf genau seinen Branch).
-// Output je Branch: tools/out/<branch>/
+//
+// Wohin gebaut wird, entscheidet der Branch-Name, nicht ein Schalter:
+//
+//   die vier festen Branches -> build/<branch>/      im Repository committet
+//   alles andere             -> tools/out/<branch>/  gitignoriert, Scratch
+//
+// build/ ist das, was frontend_deploy in die Delivery-Branches schiebt: ein
+// Push kopiert einen Baum, er baut ihn nicht mehr. Deshalb ist der Baum hier
+// eingecheckt und wird von frontend_check gegen die Quellen geprueft - genau
+// wie src/01/03 gegen app/webapp. Was ein Branch ausliefert, steht damit im
+// Pull Request, bevor er gemerged wird.
+//
+// Der VERSION-Stempel gehoert NICHT in den gebauten Baum: er nennt den
+// Core-Commit, aus dem gebaut wurde, und der ist beim Committen von build/
+// noch gar nicht bekannt. Ihn schreibt tools/branch-stamp.mjs beim Deploy.
 //
 // Die Webapp kommt aus app/webapp DIESES Repositories - die einzige Quelle.
 // Alles andere, was ein Output-Branch braucht, liegt unter frontend/:
@@ -45,6 +59,9 @@ import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync, ex
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { patchIndexHtml, patchManifest } from "./app2app_v2/patch-v2.mjs";
+// Das Banner ohne Herkunftsangabe; den Commit stempelt branch-stamp.mjs beim
+// Deploy dazu, weil er hier noch nicht existiert.
+import { banner } from "./branch-stamp.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const core = join(here, "..");
@@ -52,7 +69,15 @@ const webapp = join(core, "app/webapp");
 // The data the build consumes - ABAP artefacts and the files every branch
 // inherits - lives outside this folder; tools/ holds only what runs.
 const data = join(core, "frontend");
-const out = join(here, "out");
+
+// Die vier veroeffentlichten Branches landen im eingecheckten build/, jeder
+// andere Name (renamed variant, Probelauf) im gitignorierten tools/out/. Kein
+// Schalter: so kann ein Ad-hoc-Build den committeten Baum nicht anfassen, und
+// der Deploy findet die vier immer an derselben Stelle.
+const generated = join(core, "build");
+const scratch = join(here, "out");
+const PUBLISHED = ["cloud", "cloud_v2", "standard", "standard_v2"];
+const outDir = (branch) => join(PUBLISHED.includes(branch) ? generated : scratch, branch);
 
 // Dateien, die jeder Output-Branch erbt (kein Tooling, kein CI);
 // nicht (mehr) vorhandene werden uebersprungen
@@ -83,64 +108,12 @@ const ABAPGIT_STANDARD = `﻿<?xml version="1.0" encoding="utf-8"?>
 </asx:abap>
 `;
 
-function banner(branch) {
-  const origin = CORE_SHA
-    ? ` Frontend state: \`abap2UI5/abap2UI5@${CORE_SHA.slice(0, 12)}\`${CORE_VERSION ? ` (framework ${CORE_VERSION})` : ""} — see \`VERSION\`.`
-    : "";
-  return `> ⚙️ **Generated branch \`${branch}\`** — built in ` +
-    "[abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5) by its `frontend_deploy` workflow " +
-    "and pushed here. Do not commit in this repository; changes belong into abap2UI5." + origin + "\n\n";
-}
-
-// Provenance: which framework state this branch was built from. Both the
-// commit and the framework version constant come from THIS repository, and are
-// stamped into each generated branch so a pulled branch can be matched to a
-// backend release. Deliberately no timestamp: identical sources must produce
-// identical trees, or frontend_deploy.yaml would push an empty rebuild on
-// every run.
-//
-// The stamp still names the commit as "webapp mirror commit" and the branch
-// banner still calls it the frontend state, because that is what a pulled
-// branch out there says - the value is the same sha the mirror commits used to
-// carry, so nothing a user compares against changes.
-function coreSha() {
-  // GITHUB_SHA is what the workflow builds from; the local HEAD is the
-  // equivalent for a manual run. A shallow or detached checkout can leave
-  // neither, and the stamp then simply omits the provenance line.
-  if (/^[0-9a-f]{40}$/.test(process.env.GITHUB_SHA ?? "")) return process.env.GITHUB_SHA;
-  try {
-    return execFileSync("git", ["rev-parse", "HEAD"], { cwd: core, encoding: "utf8" }).trim() || null;
-  } catch {
-    return null;
-  }
-}
-
-function coreVersion() {
-  try {
-    const source = readFileSync(join(core, "src/02/z2ui5_if_app.intf.abap"), "utf8");
-    return /CONSTANTS\s+version\s+TYPE\s+string\s+VALUE\s+`([^`]+)`/i.exec(source)?.[1] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-const CORE_SHA = coreSha();
-const CORE_VERSION = coreVersion();
-
-function versionStamp() {
-  return [
-    "Generated abap2UI5-frontend branch — provenance",
-    `webapp mirror commit: ${CORE_SHA ? `abap2UI5/abap2UI5@${CORE_SHA}` : "unknown"}`,
-    CORE_VERSION ? `abap2UI5 framework version: ${CORE_VERSION}` : null,
-  ].filter(Boolean).join("\n") + "\n";
-}
-
 function initBranch(branch, abapgitXml) {
-  const dir = join(out, branch);
+  const dir = outDir(branch);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   for (const f of COMMON) if (existsSync(join(data, "common", f))) cpSync(join(data, "common", f), join(dir, f));
-  writeFileSync(join(dir, "README.md"), banner(branch) + readFileSync(join(data, "common/README.md"), "utf8"));
+  writeFileSync(join(dir, "README.md"), banner(branch) + "\n" + readFileSync(join(data, "common/README.md"), "utf8"));
   writeFileSync(join(dir, ".abapgit.xml"), abapgitXml);
   // abaplint-Config von main, Quellpfad auf /src/ der Output-Branches gedreht;
   // ohne sie meldet der abaplint-Check auf den Output-Branches immer rot
@@ -191,7 +164,7 @@ function buildCloudVariant(branch) {
 // Klassische BSP via app2bsp + ICF-Handler
 function buildStandard(branch = "standard") {
   const dir = initBranch(branch, ABAPGIT_STANDARD);
-  const work = join(out, "_work_standard");
+  const work = join(scratch, "_work_standard");
   cpSync(join(here, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
   cpSync(webapp, join(work, "frontend/app/webapp"), { recursive: true, filter: skipBuildArtifacts });
   execFileSync("node", [".github/app2bsp/preload.js"], { cwd: work, stdio: "inherit" });
@@ -204,7 +177,7 @@ function buildStandard(branch = "standard") {
 // Legacy-free BSP via build-legacy-free.mjs
 function buildStandardV2(branch = "standard_v2") {
   const dir = initBranch(branch, ABAPGIT_STANDARD);
-  const work = join(out, "_work_standard_v2");
+  const work = join(scratch, "_work_standard_v2");
   execFileSync("node", [join(here, "app2app_v2/build-legacy-free.mjs"), core, webapp, work],
     { stdio: "inherit" });
   cpSync(join(work, "src"), join(dir, "src"), { recursive: true });
@@ -233,7 +206,7 @@ function renamedBuilder(branch) {
       buildBase(branch);
       execFileSync("node",
         [join(here, "bsp_rename/rename-bsp.mjs"), name, "--yes", "--dir", "src"],
-        { cwd: join(out, branch), stdio: "inherit" });
+        { cwd: outDir(branch), stdio: "inherit" });
     };
   }
   return null;
@@ -252,7 +225,6 @@ const builds = branches.map((b) => {
 for (let i = 0; i < branches.length; i++) {
   builds[i]();
   const b = branches[i];
-  writeFileSync(join(out, b, "VERSION"), versionStamp());
-  const n = readdirSync(join(out, b), { recursive: true }).length;
-  console.log(`OK: ${b} (${n} Eintraege) -> ${join(out, b)}`);
+  const n = readdirSync(outDir(b), { recursive: true }).length;
+  console.log(`OK: ${b} (${n} Eintraege) -> ${relative(core, outDir(b))}`);
 }

@@ -15,7 +15,11 @@
 //   parse        the .js pages have to survive the 255-character padding, so
 //                they are parsed as stored, padding included
 //
-//     node tools/check-pages.mjs [tree ...]     (default: every tools/out/*)
+//     node tools/check-pages.mjs [tree ...]
+//
+// Ohne Argumente wird jeder gebaute Baum geprueft: die vier veroeffentlichten
+// Branches in build/ und alles, was ein Ad-hoc-Build nach tools/out/ gelegt
+// hat. Ein benannter Baum wird in beiden gesucht.
 
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -23,7 +27,16 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const out = join(here, "out");
+// Dieselbe Aufteilung wie in build-branches.mjs: build/ ist der committete
+// Baum der vier Branches, tools/out/ der gitignorierte Scratch.
+const ROOTS = [join(here, "..", "build"), join(here, "out")];
+
+const treeDir = (tree) => ROOTS.map((root) => join(root, tree)).find((dir) => existsSync(dir));
+
+const treesIn = (root) =>
+    existsSync(root)
+        ? readdirSync(root).filter((n) => !n.startsWith("_") && statSync(join(root, n)).isDirectory())
+        : [];
 
 const BSP_LINE_WIDTH = 255;
 const VALID_PAGE_NAME = /^[A-Za-z0-9_./]+$/;
@@ -32,9 +45,14 @@ const problems = [];
 const note = (tree, message) => problems.push(`${tree}: ${message}`);
 
 function checkTree(tree) {
+    const dir = treeDir(tree);
+    if (!dir) {
+        note(tree, "not built - run tools/build-branches.mjs first");
+        return true;
+    }
     // The cloud variants have a src/02 too - it holds ABAP, not a BSP. What
     // marks a BSP is the WAPA page directory.
-    const src02 = join(out, tree, "src/02");
+    const src02 = join(dir, "src/02");
     if (!existsSync(src02)) return false;
     const descriptor = readdirSync(src02).find((name) => name.endsWith(".wapa.xml"));
     if (!descriptor) return false;
@@ -79,7 +97,7 @@ function checkTree(tree) {
 
 const trees = process.argv.slice(2).length
     ? process.argv.slice(2)
-    : (existsSync(out) ? readdirSync(out).filter((n) => !n.startsWith("_") && statSync(join(out, n)).isDirectory()) : []);
+    : [...new Set(ROOTS.flatMap(treesIn))];
 
 if (trees.length === 0) {
     console.error("check-pages: nothing to check - run tools/build-branches.mjs first");

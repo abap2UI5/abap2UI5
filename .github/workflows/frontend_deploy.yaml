@@ -1,14 +1,21 @@
 name: frontend_deploy
 
-# Builds the generated deploy branches and pushes them into abap2UI5/frontend,
-# which is a pure delivery repository - every branch there is written by this
-# workflow, nothing in it is edited by hand.
+# Pushes the generated deploy branches into abap2UI5/frontend, which is a pure
+# delivery repository - every branch there is written by this workflow, nothing
+# in it is edited by hand.
 #
-# On every push to main that touches what a branch is built from, all four
-# published branches are rebuilt and pushed. A build without content changes
-# pushes nothing (the tree is compared against the published one), so an
-# unrelated edit under tools/ costs a run and not a commit. Renamed variants
-# (standard_<name>) are built on demand through the dispatch input.
+# The four published branches are NOT built here: their trees are committed in
+# build/, gated against the sources by frontend_check, and this workflow ships
+# the tree as it stands. So what a pull request reviewed is what reaches an
+# installation - a rebuild at deploy time could only ever produce something
+# nobody looked at. Renamed variants (standard_<name>) have no committed tree,
+# are unbounded in number and stay built on demand through the dispatch input.
+#
+# The commit written into the delivery branch carries the subject of the main
+# commit that caused it, plus that commit's sha - so the history over there
+# reads like the history here instead of a column of "build:" lines. A push
+# whose tree matches the published one is skipped, so an unrelated edit costs a
+# run and not a commit.
 #
 # The monthly schedule is the safety net the delivery repository used to have:
 # a lost or failed run would otherwise leave the branches silently behind main
@@ -23,11 +30,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'app/**'
-      - 'frontend/**'
-      - 'tools/**'
+      # what is delivered, verbatim - the sources it is built from only matter
+      # here through the tree they produced
+      - 'build/**'
       # the VERSION stamp of every branch carries the framework version
       - 'src/02/z2ui5_if_app.intf.abap'
+      - 'tools/branch-stamp.mjs'
       - '.github/workflows/frontend_deploy.yaml'
   schedule:
     - cron: '0 5 1 * *'   # monthly safety net
@@ -96,15 +104,34 @@ jobs:
         cache: 'npm'
     - run: npm ci
 
-    - name: Build ${{ matrix.branch }}
-      run: node tools/build-branches.mjs "$BRANCH"
+    # The four published branches are committed in build/ and are shipped as
+    # they stand - not rebuilt, so a deploy cannot produce a tree no pull
+    # request ever saw. Anything else (a renamed standard_<name>) has no
+    # committed tree and is built here.
+    - name: Assemble ${{ matrix.branch }}
+      run: |
+        set -euo pipefail
+        b="$BRANCH"
+        if [ -d "build/$b" ]; then
+          source="build/$b"
+          echo "$b: shipped from build/$b"
+        else
+          node tools/build-branches.mjs "$b"
+          source="tools/out/$b"
+          echo "$b: no committed tree, built on demand"
+        fi
+        rm -rf "$RUNNER_TEMP/tree-$b"
+        cp -a "$source" "$RUNNER_TEMP/tree-$b"
+        echo "SOURCE=$source" >> "$GITHUB_ENV"
+        echo "TREE=$RUNNER_TEMP/tree-$b" >> "$GITHUB_ENV"
 
     - name: Check the BSP page invariants
       run: node tools/check-pages.mjs "$BRANCH"
 
+    # In the workspace copy, so npx resolves the installed abaplint
     - name: Lint the generated standard src
       if: startsWith(matrix.branch, 'standard') && !startsWith(matrix.branch, 'standard_v2')
-      run: cd "tools/out/$BRANCH" && npx abaplint
+      run: cd "$SOURCE" && npx abaplint
 
     - name: Push ${{ matrix.branch }}
       env:
@@ -127,17 +154,43 @@ jobs:
         # Only that one parent: the core commit is not an object over there.
         parent=$(git fetch --depth 1 "$TARGET" "$b" 2>/dev/null && git rev-parse FETCH_HEAD || true)
 
-        index="$RUNNER_TEMP/index-$b"
-        rm -f "$index"
-        (cd "tools/out/$b" && GIT_DIR="$GITHUB_WORKSPACE/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index" git add -A)
-        tree=$(GIT_INDEX_FILE="$index" git write-tree)
+        write_tree() {
+          index="$RUNNER_TEMP/index-$b"
+          rm -f "$index"
+          (cd "$1" && GIT_DIR="$GITHUB_WORKSPACE/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index" git add -A)
+          GIT_INDEX_FILE="$index" git write-tree
+        }
 
-        if [ -n "$parent" ] && [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
-          echo "$b: unchanged, nothing to push"
-          exit 0
+        # Is this the content the branch already carries? Answered by stamping
+        # a copy with the commit the published VERSION names: if that
+        # reproduces the published tree, the only thing this run would change
+        # is the provenance - and a commit that moves the stamp forward without
+        # moving the content is exactly the noise this delivery history is
+        # supposed to be free of. The branch keeps naming the commit its
+        # content actually came from.
+        if [ -n "$parent" ]; then
+          published=$(git show "$parent:VERSION" 2>/dev/null \
+            | sed -n 's|^webapp mirror commit: abap2UI5/abap2UI5@||p' || true)
+          if printf '%s' "$published" | grep -Eq '^[0-9a-f]{40}$'; then
+            rm -rf "$TREE.published"
+            cp -a "$TREE" "$TREE.published"
+            node tools/branch-stamp.mjs "$TREE.published" "$b" "$published"
+            if [ "$(write_tree "$TREE.published")" = "$(git rev-parse "$parent^{tree}")" ]; then
+              echo "$b: unchanged, nothing to push"
+              exit 0
+            fi
+          fi
         fi
 
-        commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -m "build: $b from $GITHUB_SHA")
+        node tools/branch-stamp.mjs "$TREE" "$b" "$GITHUB_SHA"
+        tree=$(write_tree "$TREE")
+
+        # The subject of the commit that caused this delivery, so the branch
+        # history over there reads like the history here; the sha is the body,
+        # because it is not an object in that repository and only a reference.
+        subject=$(git log -1 --format=%s "$GITHUB_SHA")
+        commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} \
+          -m "$subject" -m "abap2UI5/abap2UI5@$GITHUB_SHA")
         git push "$TARGET" "$commit:refs/heads/$b"
         echo "$b: pushed $commit"
 
