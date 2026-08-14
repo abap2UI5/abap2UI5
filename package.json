@@ -11,7 +11,7 @@
     "frontend:standard": "node frontend/build-branches.mjs standard",
     "frontend:standard_v2": "node frontend/build-branches.mjs standard_v2",
     "frontend:verify": "node frontend/verify-branches.mjs",
-    "frontend:lint": "npx abaplint frontend/abaplint.jsonc",
+    "frontend:lint": "npx abaplint frontend/abap/cloud/abaplint.jsonc",
     "check": "npm run deps && npx abaplint",
     "check_visibility": "node .github/scripts/testclass-visibility-gate.mjs",
     "check:naming": "node .github/scripts/object-naming-gate.mjs",

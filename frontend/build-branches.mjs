@@ -32,10 +32,12 @@
 //
 // Die Webapp kommt aus app/webapp DIESES Repositories - die einzige Quelle.
 // Alles andere, was ein Output-Branch braucht, liegt unter frontend/:
-//   frontend/abap/        ICF-/BSP-ABAP-Artefakte (cloud + standard)
-//   frontend/app/         Projektdateien der Fiori-Dev-Umgebung (ohne webapp)
+//   frontend/abap/        ICF-/BSP-ABAP-Artefakte (cloud + standard), samt der
+//                         abaplint-Config, die im Branch auf /src/ gedreht wird
 //   frontend/common/      Dateien, die jeder Branch erbt (README, LICENSE, ...)
-//   frontend/abaplint.jsonc  Lint-Config, im Branch auf /src/ gedreht
+//
+// Die Cloud-Branches liefern das komplette Fiori-Projekt aus app/ aus - dieselben
+// Projektdateien, mit denen hier entwickelt wird, keine zweite Kopie.
 
 import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
@@ -138,21 +140,30 @@ function initBranch(branch, abapgitXml) {
   writeFileSync(join(dir, ".abapgit.xml"), abapgitXml);
   // abaplint-Config von main, Quellpfad auf /src/ der Output-Branches gedreht;
   // ohne sie meldet der abaplint-Check auf den Output-Branches immer rot
-  writeFileSync(join(dir, "abaplint.jsonc"),
-    readFileSync(join(here, "abaplint.jsonc"), "utf8").replaceAll("/abap/cloud/", "/src/"));
+  // Same config that lints frontend/abap/cloud in place, with its glob turned
+  // from the folder it sits in to the /src/ of an output branch. Guarded: a
+  // silent miss would ship a config that lints nothing and reports green.
+  const lint = readFileSync(join(here, "abap/cloud/abaplint.jsonc"), "utf8");
+  const glob = '"files": "/**/*.*"';
+  if (!lint.includes(glob)) throw new Error(`frontend/abap/cloud/abaplint.jsonc: ${glob} not found`);
+  writeFileSync(join(dir, "abaplint.jsonc"), lint.replace(glob, '"files": "/src/**/*.*"'));
   return dir;
 }
 
 const skipBuildArtifacts = (src) =>
   !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(src);
 
+// abap/cloud carries the abaplint config that lints it in place. It belongs to
+// this repository, not to the delivered package - the output branch gets its
+// own copy at the root (see initBranch), with the glob turned to /src/.
+const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
+
 // Webapp + ABAP-Cloud-Artefakte 1:1 von main; fuer cloud_v2 wird der
 // Webapp-Bootstrap zusaetzlich auf legacy-free gepatcht.
 function buildCloudVariant(branch) {
   const dir = initBranch(branch, ABAPGIT_CLOUD);
-  cpSync(join(here, "app"), join(dir, "app"), { recursive: true, filter: skipBuildArtifacts });
-  cpSync(webapp, join(dir, "app/webapp"), { recursive: true, filter: skipBuildArtifacts });
-  cpSync(join(here, "abap/cloud"), join(dir, "src"), { recursive: true });
+  cpSync(join(core, "app"), join(dir, "app"), { recursive: true, filter: skipBuildArtifacts });
+  cpSync(join(here, "abap/cloud"), join(dir, "src"), { recursive: true, filter: skipLintConfig });
   if (branch === "cloud_v2") {
     const wa = join(dir, "app/webapp");
     writeFileSync(join(wa, "index.html"), patchIndexHtml(readFileSync(join(wa, "index.html"), "utf8")));

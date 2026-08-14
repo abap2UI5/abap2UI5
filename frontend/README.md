@@ -4,7 +4,8 @@ Everything the [abap2UI5/frontend](https://github.com/abap2UI5/frontend) deliver
 repository is built from. The UI5 webapp itself is **not** here — it lives in
 `app/webapp/` at the repository root, the single source it has always been.
 This folder holds what turns that webapp into the branches a user pulls with
-abapGit.
+abapGit. The cloud branches ship the whole Fiori project straight out of `app/`
+— the same project files this repository is developed with, not a second copy.
 
 ```
 app/webapp/  ──▶  frontend/build-branches.mjs  ──▶  abap2UI5/frontend
@@ -19,10 +20,8 @@ app/webapp/  ──▶  frontend/build-branches.mjs  ──▶  abap2UI5/fronten
 | `app2bsp/` | webapp → BSP pages, and the UI5 component preload bundle (`preload.js`) |
 | `app2app_v2/` | the legacy-free (UI5 2.x) bootstrap patch and the branch built from it |
 | `bsp_rename/` | renames the deployment identity for a parallel install |
-| `abap/` | the ICF/BSP ABAP artefacts each branch ships (`cloud`, `standard`) |
-| `app/` | the Fiori dev project files the cloud branches ship next to the webapp |
+| `abap/` | the ICF/BSP ABAP artefacts each branch ships (`cloud`, `standard`), with `abap/cloud/abaplint.jsonc` linting them in place and being copied into each branch with its glob turned to `/src/` |
 | `common/` | README, LICENSE and friends that every generated branch inherits |
-| `abaplint.jsonc` | lints `abap/cloud`; copied into each branch with the path turned to `/src/` |
 | `check-pages.mjs` | the BSP page invariants, checked on the built artefact |
 | `verify-branches.mjs` | builds and compares against what is published today |
 | `scripts/` | the monthly guard on the pinned legacy-free SDK |
@@ -32,7 +31,7 @@ app/webapp/  ──▶  frontend/build-branches.mjs  ──▶  abap2UI5/fronten
 ```bash
 npm run frontend:build          # all four branches -> frontend/out/
 npm run frontend:standard       # just one
-npm run frontend:lint           # abaplint over frontend/abap/cloud
+npm run frontend:lint           # abaplint over frontend/abap
 node frontend/check-pages.mjs   # BSP invariants on what was built
 npm run frontend:verify         # diff against the published branches
 ```
