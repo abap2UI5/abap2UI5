@@ -58,10 +58,14 @@ section 2 were found.** When something works for you and not for a user on
 1.71, pull both versions and diff the file — do not guess.
 
 For the pure metadata questions (`@since` of a control, property or enum value)
-there is a shortcut: `@abap2ui5/linter` ships
-`data/properties.json` — 970 controls with per-member `@since`, generated from
-the OpenUI5 sources. It has no icon and no layout data, which is exactly the
-gap this file documents.
+there is a shortcut: `@abap2ui5/linter` ships `data/properties.json` — 970
+controls with per-member `@since`, generated from the OpenUI5 sources — and,
+since the icon rules moved there, `data/icons.json`: every icon name with the
+minor release it reached the font in, scanned across all 79 minors from 1.71
+up. So the *name* questions are answered without unpacking anything. **Layout
+is what is left**: no snapshot can tell you that `.sapMBarLeft` stopped being
+`position: absolute`, and diffing the two `.less` files is still the only way
+to see it.
 
 ## Why the existing tooling is blind to most of this
 
@@ -73,11 +77,14 @@ Five separate holes, worth knowing precisely:
 - **ui5lint only reads `app/webapp/`, and `manifest.json` is excluded** — which
   is where `minUI5Version: 1.71` lives. It never sees a view the backend
   builds, which is where nearly every abap2UI5 view comes from.
-- **The abap2UI5 linter has a 1.71 property gate but no icon and no layout
-  gate**, and — as of the pin in `abap2UI5/samples` — it recognizes only app
-  classes that call `z2ui5_cl_ui5_view_builder=>factory`. The samples repository builds
-  with `z2ui5_cl_xml_view`, so `npx abap2ui5lint` there reports
-  *"no checkable files"* and its CI job is green without checking anything.
+- **The abap2UI5 linter only reads what it recognizes.** It now has an icon gate
+  and one layout rule as well as the 1.71 property gate (sections 1.1 and 2.1
+  moved into it), but it recognizes only app classes that call
+  `z2ui5_cl_ui5_view_builder=>factory` — plus raw `*.view.xml` / `*.fragment.xml`.
+  The samples repository builds with `z2ui5_cl_xml_view`, so `npx abap2ui5lint`
+  there reports *"no checkable files"* and its CI job is green **without
+  checking anything**. This is the hole that does not close by adding rules:
+  a gate that scanned nothing looks exactly like a gate that found nothing.
   **Check what it actually scanned before trusting it.**
 - **The browser says nothing.** This is the important one. UI5 logs an unknown
   *module* loudly and an unknown *icon name*, *property* or *enum value* not
@@ -115,14 +122,26 @@ Where it bit us: the developer tools' help button and the legacy popups in
 `abap2UI5/samples-stack` sample 489 on `clear-all` (all in `#2576` / `#750` /
 `#21`, all found by a user reporting *"not all icons are shown"*).
 
-**Linter:** *gated in this repository* by `npm run check:icons`
-(`.github/scripts/ui5-icon-gate.mjs`) against a snapshot of the 1.71 registry
-(`ui5-icons-1.71.json`, 654 names). **Ready to move into the abap2UI5 linter
-as-is** — it needs nothing but the name list and a regex, and it belongs there,
-because every consumer repository has the same exposure and none of them can
-run this repository's gate. The name list is a snapshot on purpose: 1.71 is
-closed for new features, so it cannot grow. Icons added later are precisely
-what the rule rejects.
+**Linter:** **moved — `unknown-icon`, `icon-too-new`, `icon-removed`** (2026-08).
+Still *also* gated in this repository by `npm run check:icons`
+(`.github/scripts/ui5-icon-gate.mjs`, `ui5-icons-1.71.json`, 654 names), which
+stays because it covers `src/99` and `app/webapp/` — files the linter does not
+read. The linter's data goes further than the snapshot this entry proposed:
+`data/icons.json` carries a **per-icon `since`**, scanned across every OpenUI5
+minor from 1.71 to the pinned version (`scripts/generate-icons.mjs`), so the
+rule answers for any target rather than only for the floor, and it separates
+the two failure modes this section conflates — a name that exists **nowhere**
+(`unknown-icon`, an error: `textFormatting`) from one that merely arrived
+**later** (`icon-too-new`, a warning: `information` @1.80, `clear-all` @1.86).
+The scan also found a third: the font is not purely additive. `binary` (@1.104)
+is `non-binary` from 1.120 on — same codepoint, renamed glyph — which is
+`icon-removed`.
+
+Two notes for whoever regenerates the gate list here: the registry declares a
+few names with **capitals** (`Chart-Tree-Map`, `Netweaver-business-client`) and
+at least one entry with **double quotes** (`"feedback"`), which the 654-name
+snapshot misses. Both are lower-cased on comparison anyway, but a generator
+reading only single-quoted entries silently loses names.
 
 ### 1.2 Properties, aggregations and enum values
 
@@ -141,10 +160,13 @@ enum *values*, and that is where this one hides:
   screenshot is a bug.
 - **`sap.m.IllustratedMessage`** — **1.98**, a whole control.
 
-**Linter:** controls and members are **already decided** by the linter's
-`ui5: "1.71"` property gate. Enum values are the gap: `properties.json` carries
-`enumSince` per value (`sap.m.ButtonType.Critical → 1.73`), so the data is
-there and only the rule is missing — **the cheapest next rule to add.**
+**Linter:** all three are **already decided**. Controls and members by the
+`ui5: "1.71"` property gate (`control-too-new` / `member-too-new`), and enum
+values — the gap this entry was written about — by **`enum-value-too-new`**,
+off `properties.json`'s per-value `enumSince` (`sap.m.ButtonType.Critical →
+1.73`). The `Dialog.footer` row is the exception that earned its own rule:
+being an *aggregation*, it does not merely get dropped, so it is
+**`aggregation-too-new`** and an error — see 3.1.
 
 ### 1.3 Modules and themes
 
@@ -157,10 +179,15 @@ there and only the rule is missing — **the cheapest next rule to add.**
   the `ui5-1.71` Playwright project rewrites the theme as well as the
   bootstrap.
 
-**Linter:** the module half is decidable — parse the `sap.ui.define` dependency
-array and compare against a per-release module list. Needs a data file the
-linter does not have yet. The theme half is configuration, not view content;
-**out of scope for a view linter**, keep it as prose.
+**Linter:** **still open, and the honest reason has sharpened.** The module half
+is decidable in principle — parse the `sap.ui.define` dependency array against a
+per-release module list — but it needs two things the linter does not have: the
+data file, and a reason to read **JavaScript at all**. Its input is app classes
+and view XML; `sap.ui.define` only appears in frontend modules, which are this
+repository's own `app/webapp/` and a consumer's custom controls. So this belongs
+in a gate here rather than in the view linter, unless the linter grows a
+frontend-module input — which nothing else is asking for. The theme half is
+configuration, not view content; **out of scope**, keep it as prose.
 
 ---
 
@@ -206,12 +233,16 @@ controls into a bar and express grouping with a margin class
 `ToolbarSpacer` in `contentRight` is doubly pointless — that container is
 right-aligned by itself.
 
-**Linter:** decidable, and worth having — the rule is "a `ToolbarSpacer` /
-`ToolbarSeparator` whose nearest ancestor control is a `Bar` (or a `Page`
-`headerContent` / `customHeader` / `footer` aggregation) rather than a
-`Toolbar`". The reconstructed view tree the linter already builds has
-everything it needs; no new data file. **The best candidate after the icon
-rule.**
+**Linter:** **moved — `toolbar-control-in-bar`** (2026-08), a warning, reported
+only for a target below 1.76. Exactly the rule this entry specified, with two
+things sharpened while implementing it: the parent test is **exact**
+(`sap.m.Bar`, not an inheritance walk — `Toolbar` does not inherit from `Bar`,
+both merely implement `sap.m.IBar`, so a walk would report the one place these
+controls belong), and of the three `Page` aggregations only **`headerContent`**
+needs naming, because it is the one that forwards into an *implicit* Bar;
+`customHeader`/`footer` hold an explicit `<Bar>`, whose children the first test
+already catches. Its first run over the 416-port corpus reported exactly one
+finding: the overview header named below.
 
 The general form, worth keeping in mind before the next one is found: **a
 control whose layout depends on its parent being a flex box is version-
@@ -245,9 +276,17 @@ Real 1.71 crashes fixed this way:
 **This is section 1.2 with a worse blast radius**: a post-1.71 *property* is
 dropped silently, a post-1.71 *aggregation* takes the view down.
 
-**Linter:** decidable and high value — the aggregation names per control are in
-`properties.json`, and the release floor is already configured. A lowercase tag
-that is not an aggregation of its parent in the target release is an error.
+**Linter:** **moved — `aggregation-too-new`** (2026-08), an **error**. The
+aggregation names per control were already in `properties.json` and the floor
+was already configured, so what this entry actually bought was the *severity*:
+the linter had been reporting the `<footer>` case as `member-too-new`, a
+warning, alongside a post-floor property — which is precisely the conflation
+the paragraph above warns about. It is now its own rule, so the two blast
+radii are no longer spelled the same. (A tag naming an aggregation that exists
+in **no** release was, and stays, `unknown-aggregation`.) First run over the
+416-port corpus: 24 findings, every one of them already carrying a `POST_171`
+deviation — so the split cost the corpus nothing and would have failed 24 ports
+had the deviation mechanism not been taught the new type first.
 
 ---
 
@@ -271,9 +310,18 @@ Not about names or layout — these only show up when the app runs.
   is a `sap.m.Dialog` with `escapeHandler: (oPromise) => oPromise.reject()`.
 
 **Linter:** the expression-binding rule is decidable from the view text alone
-(`{=` in any attribute value) and is a good early candidate. The other two are
-about JS lifecycle, not about a view — **they stay prose**, here and in
-`AGENTS.md` rules 16/17.
+(`{=` in any attribute value) — but **deliberately not added**, and the scope
+line is worth stating once so it is not proposed again. `{= … }` is
+*correct* in an app view: an abap2UI5 app runs under the CSP the framework
+ships, which keeps `'unsafe-eval'` because the 1.71 ui5loader needs it, and the
+corpus uses expression bindings throughout. The prohibition is narrower than
+the rule would be — it is about **framework-controlled** XML, which has to
+survive a customer's stricter CSP. A linter that reported every app's
+expression binding would be wrong for its own users. So the constraint stays
+where it can be scoped correctly: prose here, plus `AGENTS.md` rules 16/17 for
+this repository's own views. (The linter does check `{= … }` for *balance* —
+`invalid-expression-binding` — which is a different question.) The other two
+entries are about JS lifecycle, not about a view: **they stay prose** too.
 
 ---
 
