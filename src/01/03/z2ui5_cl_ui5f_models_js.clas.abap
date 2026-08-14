@@ -50,7 +50,14 @@ CLASS z2ui5_cl_ui5f_models_js IMPLEMENTATION.
              `        const oModel = new JSONModel(Device);` && |\n| &&
              `        oModel.setDefaultBindingMode("OneWay");` && |\n| &&
              `` && |\n| &&
-             `        Device.media.initRangeSet(RANGE_SET);` && |\n| &&
+             `        // "Std" is predefined, so whoever touched Device.media first has` && |\n| &&
+             `        // usually initialised it already - and initialising it twice makes` && |\n| &&
+             `        // UI5 log "Range set Std has already been initialized" into every` && |\n| &&
+             `        // app start. Ask first; the call is still needed for the runtime` && |\n| &&
+             `        // that has not set it up yet.` && |\n| &&
+             `        if (!Device.media.hasRangeSet(RANGE_SET)) {` && |\n| &&
+             `          Device.media.initRangeSet(RANGE_SET);` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
              `        const refresh = () => {` && |\n| &&
              `          // Device.media exposes methods only - there is no property a binding` && |\n| &&

@@ -22,6 +22,7 @@ function loadModels({ range = "Desktop" } = {}) {
     media: {
       current: range,
       rangeSets: [],
+      hasRangeSet(name) { return this.rangeSets.includes(name); },
       initRangeSet(name) { this.rangeSets.push(name); },
       getCurrentRange() { return { name: this.media_current ?? this.current }; },
       attachHandler: (fn) => handlers.media.push(fn),
@@ -64,6 +65,16 @@ test.describe("createDeviceModel", () => {
 
   test("initialises the Std range set the bindings read", () => {
     const { models, Device } = loadModels();
+    models.createDeviceModel();
+    expect(Device.media.rangeSets).toEqual(["Std"]);
+  });
+
+  test("leaves an already initialised range set alone", () => {
+    const { models, Device } = loadModels();
+    // "Std" is UI5's predefined set - whoever touched Device.media first has
+    // usually initialised it, and initialising it again logs "Range set Std
+    // has already been initialized" into every app start
+    Device.media.rangeSets.push("Std");
     models.createDeviceModel();
     expect(Device.media.rangeSets).toEqual(["Std"]);
   });
