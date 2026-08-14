@@ -243,7 +243,7 @@ unreleased
   z2ui5_cl_core_action_front, the class that owns the frontend queues
 ! the model is now pushed AUTOMATICALLY when an event round-trip changed it,
   and the manual push methods are obsolete. The framework compares the model
-  state before main( ) - taken after the incoming two-way deltas were applied,
+  state before main( ) - taken after the incoming client deltas were applied,
   so what the client already knows never triggers a push - with the state
   after main( ) returned, and when they differ sends the model to every open
   view slot (MAIN, POPUP, POPOVER; the nested views inherit MAIN's model).

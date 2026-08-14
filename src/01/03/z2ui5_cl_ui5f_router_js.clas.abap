@@ -244,7 +244,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `    // Point the CALLING app's history entry at the draft the backend saved` && |\n| &&
              `    // for it during this very nav_app_call (the navAppCallPrev* options).` && |\n| &&
              `    // That draft carries every client-side change the user made since the` && |\n| &&
-             `    // caller last rendered - two-way bound switches, checkboxes, input - all` && |\n| &&
+             `    // caller last rendered - bound switches, checkboxes, input - all` && |\n| &&
              `    // of which travelled to the backend with the event that triggered the` && |\n| &&
              `    // navigation. The entry itself still carries the older draft of that` && |\n| &&
              `    // last render, so without this Back restores the caller as it was` && |\n| &&

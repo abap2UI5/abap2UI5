@@ -159,12 +159,12 @@ abap2UI5 does **not** depend on abap-util at install time: abapGit has no depend
 
 ### Data Binding
 
-The framework provides **transparent two-way data binding** between ABAP variables and UI5 controls:
+The framework provides **transparent data binding** between ABAP variables and UI5 controls:
 
 | Method | Path Format | Direction | Use Case |
 |---|---|---|---|
-| `client->_bind(var)` | `{/attribute}` | ABAP ↔ UI (two-way) | Any bound data — input, display, tables |
-| `client->_bind_edit(var)` | `{/attribute}` | ABAP ↔ UI (two-way) | Obsolete alias of `_bind`, kept for compatibility |
+| `client->_bind(var)` | `{/attribute}` | ABAP ↔ UI | Any bound data — input, display, tables |
+| `client->_bind_edit(var)` | `{/attribute}` | ABAP ↔ UI | Obsolete alias of `_bind`, kept for compatibility |
 
 **How it works:**
 1. When you call `_bind(name)`, the framework discovers the ABAP attribute via RTTI and maps it to a UI5 model path `/name`
@@ -172,11 +172,19 @@ The framework provides **transparent two-way data binding** between ABAP variabl
 3. On inbound (browser → ABAP): the edited model paths are read back from the request `MODEL` container and written into the ABAP variables
 4. Table bindings use **delta updates** — only changed rows/cells are transferred
 
-> **Historical note:** two-way data used to live under a dedicated `XX/` view-model
+**Terminology: say "binding", never "one-way"/"two-way" binding.** There is only
+one kind of binding left — `_bind( )` — and it always carries values in both
+directions, so the qualifier distinguishes nothing and only suggests a second
+mode that no longer exists. Write "bound attribute", "the binding writes the
+value back", "the model delta". The one legitimate use of "one-way" is a real
+UI5 one-way model that is not `_bind( )` (the `device>` JSONModel, for example).
+
+> **Historical note:** writable data used to live under a dedicated `XX/` view-model
 > node (`_bind_edit` → `/XX/name`) so the frontend knew which subtree to transport
 > back, while `_bind` wrote read-only data to the root. Delta handling made that
 > separation obsolete: everything is now written to the root model the same way and
-> `_bind`/`_bind_edit` behave identically.
+> `_bind`/`_bind_edit` behave identically. That split is where the old
+> "one-way/two-way" wording came from — it has no meaning in the current framework.
 
 ### Session Persistence (Draft Service)
 
@@ -245,7 +253,7 @@ src/
 | `docs/agents/` | `building-apps.md` — the in-repo app-building guide (see "Building Apps"; gated by `npm run check:guide`) |
 | `docs/` | `removal-plan.md` — the standing checklist of everything obsolete: what replaces it, what breaks, and what has to happen first. Read it before removing any compatibility symbol, and tick the box in the same PR |
 | `.github/workflows/` | CI/CD workflows (see below) |
-| `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`); `testclass-visibility-gate.mjs` — fails when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS`; `api-snapshot.mjs` — records/compares the `src/02` public-API snapshot (rule 5); `check-guide-api.mjs` — fails when `docs/agents/building-apps.md` names a client method or `cs_*` constant the API does not have; `object-naming-gate.mjs` — fails when an object outside the public API carries no `ui5`/`ui5f` segment (exemptions and the scheduled-but-not-done list live in the script, each with its reason) |
+| `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`); `testclass-visibility-gate.mjs` — fails when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS`; `api-snapshot.mjs` — records/compares the `src/02` public-API snapshot (rule 5); `check-guide-api.mjs` — fails when `docs/agents/building-apps.md` names a client method or `cs_*` constant the API does not have; `object-naming-gate.mjs` — fails when an object outside the public API carries no `ui5`/`ui5f` segment (exemptions and the scheduled-but-not-done list live in the script, each with its reason); `dynamic-name-gate.mjs` — fails when a `Z2UI5_*` class or interface named by a string literal (dynamic lookup, `CREATE OBJECT TYPE (name)`) does not exist in `src/` (names owned by other repositories live in the script's `EXTERNAL` list, each with its reason); `ui5-icon-gate.mjs` — fails when a `sap-icon://` name in `src/` or `app/webapp/` is not in the UI5 1.71 icon font (list snapshot: `ui5-icons-1.71.json`; `src/99` is exempt as frozen and its two wrong icons are printed on every run) |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename.jsonc` (namespace rename, used by both the `build_rename` workflow and the `test_rename` PR gate; placeholder `znamespace`) |
 | `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/`, named `z2ui5_cl_ui5f_*` and capped at 25 characters (`MAX_CLASS_NAME_LENGTH`) so the rename workflow's 10-character namespace still fits the 30-character ABAP limit. A file whose basename does not fit needs an entry in `CLASS_NAME_STEMS`; generation fails otherwise rather than truncating |
 | `.github/actions/` | `report-scheduled-failure` — composite action that opens/updates an issue when a scheduled workflow fails (used by `auto_abaplint_fix.yaml` and `mirror.yaml`) |
@@ -279,6 +287,8 @@ Grouped by purpose:
 | **Compatibility checks** | `ABAP_702.yaml`, `ABAP_STANDARD.yaml`, `ABAP_CLOUD.yaml` | Lint against each ABAP target environment |
 | **Frontend checks** | `UI5.yaml` | UI5 linter via `.github/scripts/ui5lint-gate.mjs`, zero-error policy (accepted findings are suppressed at the source) |
 | **Conventions** | `check_object_naming.yaml` | Every object name outside `src/02` (public contract) and `src/99` (frozen) carries the `ui5` segment — `z2ui5_cl_ui5_*` for the engine, `z2ui5_cl_ui5f_*` for the generated frontend. abaplint only checks the `z2ui5` prefix, so this is the gate that keeps a new segment from drifting in |
+| **Dynamic names** | `check_dynamic_names.yaml` | Every `Z2UI5_*` object named by a string literal exists in `src/`. Nothing else resolves those names — the lookups behind them read SEOCLASS/XCO, which the transpiler does not have, so a literal naming nothing returns an empty result and the caller reads it as "not implemented" (how #2564 silently disabled every user exit) |
+| **UI5 1.71 icons** | `check_ui5_icons.yaml` | Every `sap-icon://` name shipped under `src/` or `app/webapp/` exists in the 1.71 icon font. Nothing else checks an icon name: UI5 renders no icon for one it does not know and says nothing, so a post-1.71 glyph is invisible on the oldest supported release and green everywhere in CI (rule 21) |
 | **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, JS unit specs + Playwright browser tests, namespace-rename test |
 | **Automation** | `auto_downport.yaml`, `auto_abaplint_fix.yaml`, `auto_abaplint_fix_pr.yaml` | Scheduled downporting and auto-formatting (open PRs) |
 | **Generation** | `create_app2abap.yaml`, `check_app2abap.yaml` | Regenerate `src/01/03/` from `app/webapp/` (`create_app2abap.yaml`); PR drift gate that fails when `app/webapp/` and `src/01/03/` are out of sync (`check_app2abap.yaml`) |
@@ -354,9 +364,22 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. Known traps — avoid them up
-front, a green abaplint does not prove their absence:
+which flags things `npm run check` cannot see. The three traps a script can
+decide are gated by `npm run check:atc` — `LOOP AT ... WHERE` over a standard
+table (a sequential read, wants `"#EC CI_SORTSEQ` on the statement), an empty
+`CATCH` block (wants `##NO_HANDLER`) and POSIX regex (below). The rest need a
+reader. Known traps — avoid them up front, a green abaplint does not prove
+their absence:
 
+- **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE` (bit us in
+  `z2ui5_cl_core_srv_draft=>count_entries`).
+- **`CREATE OBJECT ... TYPE (name)` into a generic reference followed by a
+  `CAST`** is flagged as insecure object creation. Declare the typed reference
+  and create into it directly:
+  ```abap
+  DATA li_app TYPE REF TO z2ui5_if_app.
+  CREATE OBJECT li_app TYPE (lv_classname).
+  ```
 - **POSIX regex is deprecated.** `FIND/REPLACE ... REGEX` uses the POSIX
   standard; the PCRE replacement (`FIND PCRE`) only exists on >= 7.55 and this
   repo targets v750/7.02. Prefer plain string logic over regex where feasible;
@@ -400,7 +423,8 @@ fail on.)
 npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
 npm run verify       # Gate before every PR: abaplint -> testclass-visibility gate ->
                      # the sub-second gates first (object naming, abapGit round trip,
-                     # frozen-path, guide-API, curated-formatter scope, src/02 API snapshot) ->
+                     # extended check, frozen-path, guide-API, curated-formatter scope,
+                     # src/02 API snapshot) ->
                      # standard/cloud abaplint targets -> downport -> transpile -> unit ->
                      # JS unit specs -> app2abap drift gate (matches the PR gates in CI)
 npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
@@ -435,9 +459,11 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run deps` | Fetch the three pinned git dependencies into `node/deps/` (auto-run by `check`/`downport`; `-- --print-latest` shows upstream HEADs for a pin bump) |
 | `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`, gated in `ABAP_STANDARD.yaml`; abaplint and the transpiler cannot see this) |
 | `npm run check:abapgit` | The abapGit round-trip gate — byte format of every file under `src/` (BOM, LF, terminating newline, tabs, file-name case), sidecar/package completeness, `<CLSNAME>`/`<LANGU>`/`<WITH_UNIT_TESTS>` against the source, and `class_constructor` in the PUBLIC section. Covers `src/00` and `src/99`, which abaplint does not scan (part of `verify`, gated in `check_abapgit_format.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
+| `npm run check:atc` | The extended-check (SLIN/ATC) gate — `LOOP AT … WHERE` without `"#EC CI_SORTSEQ`, an empty `CATCH` without `##NO_HANDLER`, `FIND`/`REPLACE … REGEX` without `##REGEX_POSIX`. Scoped to this repository's own ABAP (`src/00/01`, `src/00/02` are upstream mirrors, `src/99` is frozen). abaplint models none of these (part of `verify`, gated in `check_extended.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
 | `npm run check:standard` / `check:cloud` | abaplint against the standard-ABAP / ABAP-Cloud target configs (part of `verify`) |
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
+| `npm run check:icons` | Fail when a `sap-icon://` name under `src/` or `app/webapp/` is not in the UI5 1.71 icon font (`.github/scripts/ui5-icon-gate.mjs`; part of `verify`, gated in `check_ui5_icons.yaml`; see rule 21) |
 | `npm run check:ui5` | The ui5lint zero-error gate (`.github/scripts/ui5lint-gate.mjs`; part of `verify:full`, needs `app/node_modules`) |
 | `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5; part of `verify`, gated in `check_api_contract.yaml`) |
 | `npm run check:guide` | Fail when `docs/agents/building-apps.md` names a client method or `cs_*` constant the API does not have (part of `verify`) |
@@ -474,7 +500,7 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 ### Testing
 
 - **Unit tests:** Embedded in source files as `.testclasses.abap`, run via abaplint transpiler in Node.js
-- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile), plus the pinned `ui5-1.71` project (Chromium, smoke + roundtrip specs against pinned OpenUI5 1.71 via the bootstrap rewrite in `node/tests/e2e/fixtures.js` — the executable part of the 1.71 rules, see the enforcement-status note). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_ui5_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
+- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile), plus the pinned `ui5-1.71` project (Chromium, smoke + roundtrip specs against pinned OpenUI5 1.71 via the bootstrap rewrite in `node/tests/e2e/fixtures.js` — the executable part of the 1.71 rules, see the enforcement-status note). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_ui5_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
 - **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `core/Router.js` (`router.spec.js`), `Component.js` unload wiring (`componentUnload.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `cc/Focus.js` (`focus.spec.js`), `cc/Dirty.js` (`dirty.spec.js`), `cc/MessageManager.js` (`messageManager.spec.js`), `cc/Websocket.js` (`websocket.spec.js`), `cc/Geolocation.js` (`geolocation.spec.js`), `cc/CameraSelector.js` (`cameraSelector.spec.js`), `cc/CameraPicture.js` (`cameraPicture.spec.js`), `cc/FileUploader.js` (`fileUploader.spec.js`), `cc/UploadSetExt.js` (`uploadSetExt.spec.js`), `cc/MultiInputExt.js` (`multiInputExt.spec.js`), `cc/SmartMultiInputExt.js` (`smartMultiInputExt.spec.js`), `cc/Scrolling.js` (`scrolling.spec.js`), `cc/LPTitle.js` (`lpTitle.spec.js`), `controller/App.controller.js` startup wiring (`appController.spec.js`), the message toast/box display hooks in `core/actions/ControlCall.js` (`messages.spec.js`), `devtools/DeveloperTools.js` (`developerTools.spec.js`), `devtools/DevTools.js` (`devtoolsFacade.spec.js`), `devtools/Recorder.js` (`devtoolsRecorder.spec.js`), `devtools/Console.js` (`devtoolsConsole.spec.js`), `devtools/Inspect.js` (`devtoolsInspect.spec.js`), `devtools/Picker.js` (`devtoolsPicker.spec.js`), `devtools/LiveEdit.js` (`devtoolsLiveEdit.spec.js`), `core/ErrorView.js` (`errorView.spec.js`), `core/FrontendAction.js` incl. the composed `core/actions/` dispatch (`frontendAction.spec.js`), the action runners and the legacy `eF()`-string parsing in `core/actions/LegacyCustomJs.js` (`actionRunner.spec.js`), `controller/View1.controller.js` event handling, the after-render phase (model push by MODEL presence, per-response router sync) and the `core/actions/Slots.js` model fan-out (`view1Events.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`), request sequencing (`serverRequestSeq.spec.js`) and the session-constant location cadence (`serverLocation.spec.js`), `core/Session.js` (`session.spec.js`), `core/ScrollFocus.js` focus-info capture (`focusInfo.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`scrollFocus.spec.js`), `model/formatter.js` (`formatter.spec.js`), `model/models.js` device-model wiring (`deviceModel.spec.js`), `core/Lib.js` event-argument normalization (`eventArgs.spec.js`), `cc/Storage.js` (`storage.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
 - **Never skip a test with `IF sy-sysid = ` + backtick-`ABC`.** `ABC` is the system ID of the Node runtime, so such a guard makes the method a silent no-op in `npm run unit` while it still runs in a real system — CI stays green over assertions nobody executes. A test that genuinely cannot run under the transpiler belongs in the `skip` list of `node/setup/abap_transpile.json` **with a note naming the missing runtime capability**; the runner then prints it as skipped instead of pretending it passed.
@@ -581,8 +607,10 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 
 20. **A green `npm run verify` does not prove the repository still round-trips through abapGit — `npm run check:abapgit` does.** abaplint parses ABAP and has no model of abapGit's file format, and its `global.files` never reaches `src/99` at all, so a `.clas.xml` with the UTF-8 BOM stripped, the terminating newline removed and CRLF line endings throughout produces **zero** findings while differing from the system's serialization on every single pull (`8e272492`, `54bce5b6`, `c7185c38` — three "fix abapgit diffs" commits, all repaired only after someone pulled). The transpiler ignores visibility, so a `class_constructor` outside the **PUBLIC SECTION** keeps `npm run unit` green and fails activation in a real system (why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily, #2547). **Never hand-edit a `.clas.xml`/`.intf.xml` to tidy it** — it is a serialization, not a config file; fix the object in a system and commit what abapGit writes. The full checklist, including the parts no gate can decide (`<DESCRIPTIONS>` following the components), is the `abap-check` skill in `.claude/skills/` — the catalogue for every ABAP problem a green CI misses, not just the abapGit ones.
 
+21. **An icon name must exist in the 1.71 icon font, and a control that only lays out inside a flex container must not sit in a `sap.m.Bar`.** Two silent 1.71 failures that look identical from the outside — the icon is simply not there, with nothing in abaplint, ui5lint or the browser console. (a) **Icon names:** an unknown `sap-icon://` name is not an error, `IconPool` finds nothing and the control renders without an icon. `sap-icon://information` — added to the font *after* 1.71 — left the developer tools' help button blank on the oldest supported release. Gated by `npm run check:icons` / `check_ui5_icons.yaml` against a snapshot of the 1.71 registry. Names resolve through `URI.parse( )`, which lower-cases the host part, so a camelCase name renders nothing in **every** release (`textFormatting` → the name is `text-formatting`). (b) **Toolbar-only controls in a bar:** `sap.m.ToolbarSpacer` and `sap.m.ToolbarSeparator` render a `<div>` and are laid out as intended only inside a `sap.m.Toolbar`. `sap.m.Bar` — what `Page.headerContent` (forwarded to `contentRight`) and `customHeader` end up as — became a flex container only after 1.71; before that a block-level child starts a **new line** and everything from there on is cut away by the container's `overflow:hidden` at the bar's 3rem. That swallowed two of the four header icons of the start page on 1.71 while newer releases showed all of them. Put only inline controls in a bar and group them with a margin class (reasoning at `z2ui5_cl_ui5_app_start=>render_header_toolbar`).
+
 > **Enforcement status — know which rules a green CI actually proves.** Rules
-> 1 (`src/99` part), 2, 3, 4, 5, 14 and 20 are backed by CI gates, and rule 19's
+> 1 (`src/99` part), 2, 3, 4, 5, 14, 20 and rule 21's icon half are backed by CI gates, and rule 19's
 > curated-formatter half by `check_formatter_scope.yaml` (its criteria 2 and
 > 3 — "one value only" still needs a reader). **The OpenUI5-1.71
 > compatibility cluster — rules 12, 13, 15, 16, 17, 18 — now has a partial
@@ -649,6 +677,6 @@ The following items may look like gaps but are intentional design choices:
 When reviewing, auditing, or proposing improvements to this repository, treat the following as **out of scope** — do not report findings in them, refactor them, or otherwise invest in them:
 
 - **The production code of `src/99/`.** It is **frozen legacy code** (see "Layered Design"): no in-repo consumers, kept solely so existing downstream installations keep compiling. Do **not** report, harden, refactor or extend it. For example, the unescaped single quote in the dynamic `WHERE` builders of `z2ui5_cl_util_ext` is a **non-issue** here, and the ~16K-line size of `z2ui5_cl_xml_view` is not a finding either. Only the `*.testclasses.abap` files under `src/99/` are maintained — they run in CI and may need adapting when core internals they assert on change.
-- **The `_bind` / `_bind_edit` "mass assignment" question** — two-way binding was **intentionally unified** (see "Data Binding" above): `_bind` and `_bind_edit` behave identically and every bound attribute is writable from the client `MODEL`. `_bind_edit` is a **compatibility-only alias of `_bind`** and is slated for **removal (~1 year out)**. A proposal to split them again — a separate "editable" flag so `_bind` becomes display-only while only `_bind_edit` writes back — is explicitly **rejected**: it would reintroduce exactly the distinction that was deliberately removed and break the many apps that rely on `_bind` round-tripping. Treat "an attribute exposed via `_bind` is writable from the client model" as **by design**, not a vulnerability.
+- **The `_bind` / `_bind_edit` "mass assignment" question** — binding was **intentionally unified** (see "Data Binding" above): `_bind` and `_bind_edit` behave identically and every bound attribute is writable from the client `MODEL`. `_bind_edit` is a **compatibility-only alias of `_bind`** and is slated for **removal (~1 year out)**. A proposal to split them again — a separate "editable" flag so `_bind` becomes display-only while only `_bind_edit` writes back — is explicitly **rejected**: it would reintroduce exactly the distinction that was deliberately removed and break the many apps that rely on `_bind` round-tripping. Treat "an attribute exposed via `_bind` is writable from the client model" as **by design**, not a vulnerability.
 - **A secondary index on `Z2UI5_T_01-TIMESTAMPL`** — see the draft-cleanup entry above: rejected as not worth the per-write index-maintenance cost.
 - **The "no app-start authorization" question** — see the app-start entry under "Design Decisions" above. That any authenticated user reaching the ICF node can instantiate any `z2ui5_if_app` class is **by design**: authorization lives in the app's own `z2ui5_if_app~main` (like a transaction guarding itself), not in a framework `AUTHORITY-CHECK` or a `check_app_start_allowed` exit. Do not report the missing central hook as a vulnerability, and do not add one.

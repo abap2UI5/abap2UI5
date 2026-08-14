@@ -1,0 +1,45 @@
+# Machine gate for dynamic object names: every Z2UI5 class or interface named by
+# a string literal - the argument of a dynamic lookup, CREATE OBJECT TYPE (name),
+# CALL METHOD (name)= - must name an object this repository ships.
+#
+# Nothing else resolves those names. The compiler does not, abaplint does not,
+# and the transpiler does not either: the lookups behind them read SEOCLASS / XCO,
+# neither of which exists under npm run unit, so a literal naming nothing returns
+# an empty table and the caller reads that as "not implemented" - green CI over a
+# silently dead feature.
+#
+# #2564 did exactly that: the rename of z2ui5_cl_exit to z2ui5_cl_ui5_user_exit
+# also rewrote the interface literal to Z2UI5_IF_USER_EXIT, which does not exist,
+# and from that commit on no user exit was found in any system. A rename sweep is
+# both what makes this likely and when nobody rereads a string literal.
+#
+# .github/scripts/dynamic-name-gate.mjs holds the EXTERNAL allowlist - names that
+# belong to other repositories - each with the reason printed on a finding.
+name: check_dynamic_names
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - '.github/scripts/dynamic-name-gate.mjs'
+      - '.github/workflows/check_dynamic_names.yaml'
+
+concurrency:
+  group: check_dynamic_names-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check_dynamic_names:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: dynamic name literals resolve to shipped objects
+        run: node .github/scripts/dynamic-name-gate.mjs
