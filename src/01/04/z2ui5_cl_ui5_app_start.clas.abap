@@ -322,7 +322,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->att( n = `height`        v = `100%`
         )->ele( `Shell`
         )->ele( `Page`
-            )->att( n = `title`          v = `abap2UI5 - Building UI5 Apps Purely in ABAP`
+            )->att( n = `title`          v = `abap2UI5 - Build UI5 Apps Purely in ABAP`
             )->att( n = `showNavButton`  v = `false` ).
 
     render_header_toolbar( page ).
