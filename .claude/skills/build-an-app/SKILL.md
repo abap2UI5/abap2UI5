@@ -1,6 +1,6 @@
 ---
 name: build-an-app
-description: How to build an application WITH abap2UI5 (as opposed to changing the framework) - app class template, lifecycle, view building via z2ui5_cl_ai_xml, data binding, events, popups, navigation, validation tooling. Use when writing or reviewing a z2ui5_if_app class, demo app, sample or any consumer application code.
+description: How to build an application WITH abap2UI5 (as opposed to changing the framework) - app class template, lifecycle, view building via z2ui5_cl_ui5_view_builder, data binding, events, popups, navigation, validation tooling. Use when writing or reviewing a z2ui5_if_app class, demo app, sample or any consumer application code.
 ---
 
 # Building an abap2UI5 app
@@ -16,18 +16,18 @@ Quick orientation while it loads:
   roundtrip — dispatch with `check_on_init( )` / `check_on_event( )`.
 - PUBLIC attributes = serialized, browser-visible state. Bound data only;
   everything else PROTECTED.
-- Build views with `z2ui5_cl_ai_xml` (`open`/`leaf`/`a`/`shut`/`stringify`).
-  The legacy `z2ui5_cl_xml_view` is frozen — never use it in new code.
+- Build views with `z2ui5_cl_ui5_view_builder`
+  (`ele`/`tag`/`a`/`end`/`stringify`). The legacy `z2ui5_cl_xml_view` is
+  frozen — never use it in new code.
 - The chain's layout is strict, not taste: the `)` rides with the arrow
-  (`)->`), every `open` indents its children one level (4 spaces) and `shut`
-  closes at the `open`'s column, a control's `a( )`s sit one level in with
+  (`)->`), every `ele` indents its children one level (4 spaces) and `end`
+  closes at the `ele`'s column, a control's `a( )`s sit one level in with
   their `v =` aligned. **A blank line opens a block, and there are exactly
   two: the content of a control that carries attributes, and a run of
-  `leaf`s.** Nothing else gets one — not between a control and its own
-  `a( )`s, not between consecutive `leaf`s, not after a bare `open` that only
-  descends into another `open`. Full rules and a worked example:
-  "Formatting the chain" in §3 of the guide. Same layout for the framework's
-  own `z2ui5_cl_ui5_view_builder` (`ele`/`tag`/`a`/`end`).
+  `tag`s.** Nothing else gets one — not between a control and its own
+  `a( )`s, not between consecutive `tag`s, not after a bare `ele` that only
+  descends into another `ele`. Full rules and a worked example:
+  "Formatting the chain" in §3 of the guide.
 - Bind with `client->_bind( var )` (also for display-only;
   `_bind_edit` is obsolete). Row-template fields bind as `` `{UPPERCASE}` ``.
   Never write a model path as a text literal.

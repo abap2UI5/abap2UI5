@@ -123,7 +123,7 @@ The single biggest item. All of it is public and shipped, so removal is a
 breaking change for any downstream app that still references it.
 
 - [ ] **`z2ui5_cl_xml_view` (15,882 lines) + `z2ui5_cl_xml_view_cc`**
-      → `z2ui5_cl_ai_xml` (`src/02/`)
+      → `z2ui5_cl_ui5_view_builder` (`src/02/`)
       - **Blocker A:** samples — 336 of 343 classes use it, 0 use the successor.
       - **Blocker B:** docs — 51 pages teach it.
       - This is a project, not a task. Until it is done, nothing else in
@@ -133,7 +133,8 @@ breaking change for any downstream app that still references it.
         element at all, so the caller has to open one before anything renders
         — `factory( )` (shell + `sap.m` namespaces) and `factory_popup( )`
         (`FragmentDefinition`) are the two useful entry points, and the
-        successor `z2ui5_cl_ai_xml` exposes a single `factory( )` on purpose.
+        successor `z2ui5_cl_ui5_view_builder` exposes a single `factory( )`
+        on purpose.
         Zero usages in samples, samples-controls and samples-stack. It is
         **not** marked obsolete in the source: `src/99` production code is
         frozen (`check:frozen` / `check_frozen_paths.yaml`), and a comment-only

@@ -114,21 +114,19 @@ unreleased
   abap2UI5-linter reports the leftovers as obsolete-frontend-event and
   rewrites them with --fix
 ! small performance cleanups in the rendering/serialization hot paths, no
-  behavior change: both view builders concatenate child elements through a
-  string table instead of re-copying the accumulated XML per sibling,
-  z2ui5_cl_ai_xml=>xml_escape no longer builds its escape table on every
-  attribute (chained replaces, same as z2ui5_cl_ui5_view_builder), and the
-  event serializer runs its positional-placeholder regex only for arguments
-  that start with a brace instead of on every argument
-! z2ui5_cl_ui5_view_builder=>new( ) is now factory( ) - the same name the
-  predecessor z2ui5_cl_ai_xml uses, so both builders start a view the same
-  way and the method no longer shares its name with the NEW operator
-! z2ui5_cl_ui5_view_builder=>att( ) is now a( ) - the same one-letter verb
-  the predecessor z2ui5_cl_ai_xml uses, so an attribute is written the same
-  way in both builders and the attribute call stays short enough to sit
-  beside its control. Recorded in the API snapshot as a removal plus an
-  addition; like =>factory( ) above this is a rename inside a class that was
-  added after v1.142.0 and has never been part of a release
+  behavior change: z2ui5_cl_ui5_view_builder concatenates child elements
+  through a string table instead of re-copying the accumulated XML per
+  sibling, its xml_escape no longer builds its escape table on every
+  attribute (chained replaces instead), and the event serializer runs its
+  positional-placeholder regex only for arguments that start with a brace
+  instead of on every argument
+! z2ui5_cl_ui5_view_builder=>new( ) is now factory( ) - the method no longer
+  shares its name with the NEW operator
+! z2ui5_cl_ui5_view_builder=>att( ) is now a( ) - one letter, so the
+  attribute call stays short enough to sit beside its control. Recorded in
+  the API snapshot as a removal plus an addition; like =>factory( ) above
+  this is a rename inside a class that was added after v1.142.0 and has
+  never been part of a release
 ! z2ui5_cl_ui5_view_builder sets every attribute through a( ), and a( )
   now lands on the element it FOLLOWS: the child just added by ele( ) or
   tag( ), or the node itself while it has no children yet. tag( ) is

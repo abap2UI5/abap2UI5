@@ -45,28 +45,28 @@ CLASS zcl_tst_focus IMPLEMENTATION.
 
 
   METHOD view_display.
-    DATA view TYPE REF TO z2ui5_cl_ai_xml.
-    DATA page TYPE REF TO z2ui5_cl_ai_xml.
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    view = z2ui5_cl_ai_xml=>factory( ).
-    page = view->open( n = `View` ns = `mvc`
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
+    page = view->ele( n = `View` ns = `mvc`
         )->a( n = `xmlns`        v = `sap.m`
         )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
         )->a( n = `displayBlock` v = `true`
         )->a( n = `height`       v = `100%`
-        )->open( `Shell`
-        )->open( `Page`
+        )->ele( `Shell`
+        )->ele( `Page`
             )->a( n = `title` v = `FOCUS AFTER ENABLE` ).
 
-    page->leaf( `Input`
+    page->tag( `Input`
         )->a( n = `id`      v = `inpDocNum`
         )->a( n = `value`   v = client->_bind( value )
         )->a( n = `enabled` v = client->_bind( enabled ) ).
-    page->leaf( `Button`
+    page->tag( `Button`
         )->a( n = `id`    v = `btnLock`
         )->a( n = `text`  v = `lock`
         )->a( n = `press` v = client->_event( `LOCK` ) ).
-    page->leaf( `Button`
+    page->tag( `Button`
         )->a( n = `id`    v = `btnUnlock`
         )->a( n = `text`  v = `unlock + focus`
         )->a( n = `press` v = client->_event( `UNLOCK_AND_FOCUS` ) ).

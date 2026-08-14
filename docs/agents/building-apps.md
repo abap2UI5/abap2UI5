@@ -2,8 +2,9 @@
 
 Self-contained, offline reference for AI assistants (and humans) **building
 apps with** abap2UI5. It is derived from the framework sources in this
-repository (`src/02/` public API, `z2ui5_cl_ai_xml`, the hello-world app) and
-the conventions proven over the ~280 ported UI5 demo-kit samples in
+repository (`src/02/` public API, `z2ui5_cl_ui5_view_builder`, the
+hello-world app) and the conventions proven over the ~280 ported UI5
+demo-kit samples in
 [samples-controls](https://github.com/abap2UI5/samples-controls). The rendered
 documentation site is <https://abap2ui5.github.io/docs/> — this file exists so
 an agent without web access has the complete picture in-repo. When this guide
@@ -68,33 +69,33 @@ CLASS zcl_my_app IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ai_xml=>factory( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    view->open( n = `View` ns = `mvc`
+    view->ele( n = `View` ns = `mvc`
         )->a( n = `xmlns`     v = `sap.m`
         )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc`
         )->a( n = `displayBlock` v = `true`
         )->a( n = `height`       v = `100%`
 
-        )->open( `Page`
+        )->ele( `Page`
             )->a( n = `title` v = `My App`
 
-            )->leaf( `Input`
+            )->tag( `Input`
                 )->a( n = `value` v = client->_bind( name )
 
-            )->open( `List`
+            )->ele( `List`
                 )->a( n = `items` v = client->_bind( t_items )
 
-                )->open( `items`
+                )->ele( `items`
 
-                    )->leaf( `StandardListItem`
+                    )->tag( `StandardListItem`
                         )->a( n = `title` v = `{PRODUCT}`
                         )->a( n = `info`  v = `{QUANTITY}`
 
-                )->shut(
-            )->shut(
+                )->end(
+            )->end(
 
-            )->leaf( `Button`
+            )->tag( `Button`
                 )->a( n = `text`  v = `Save`
                 )->a( n = `press` v = client->_event( `SAVE` ) ).
 
@@ -131,35 +132,40 @@ navigating away (`nav_app_call`) and back leaves the app blank — the
 framework fires `check_on_navigated`, nothing re-displays. Always re-run
 `view_display( )` there.
 
-## 3. The view builder — `z2ui5_cl_ai_xml`
+## 3. The view builder — `z2ui5_cl_ui5_view_builder`
 
 The builder maps **any** UI5 XML view 1:1 — every control, property,
 aggregation and namespace, nothing is wrapped or approximated. Four verbs:
 
 | Verb | XML meaning | Tree action |
 |---|---|---|
-| `open( n ns a )` | opening tag `<X>` | add child and **descend** into it |
-| `leaf( n ns a )` | self-closing `<X/>` | add child, **stay** on current node |
-| `shut( )` | closing `</X>` | **ascend** to the parent |
-| `a( n v )` | one `name="value"` | attribute on the control just opened/leaf'd |
+| `ele( n ns )` | opening tag `<X>` | add child and **descend** into it |
+| `tag( n ns )` | self-closing `<X/>` | add child, **stay** on current node |
+| `end( )` | closing `</X>` | **ascend** to the parent |
+| `a( n v )` / `a( n b )` | one `name="value"` | attribute on the element the chain points at |
 
 - `n` = tag name, `ns` = namespace **prefix** (`f`, `l`, `core`, `mvc`, …);
   omit `ns` for the default namespace (usually `sap.m`). Declare every
   namespace as `xmlns:*` attributes on the root `View`, exactly like XML.
-- **Aggregations are just tags**: `)->open( `items` )` for `<items>`. An
+- **Aggregations are just tags**: `)->ele( `items` )` for `<items>`. An
   aggregation carries the same prefix as in the XML — `<m:content>` under a
-  `sap.ui.table` default namespace is `)->open( n = `content` ns = `m` )`.
-- `stringify( )` renders from the root, so trailing `shut( )` calls before
-  the final `).` are optional — `shut` only moves the cursor to add siblings.
-- **Booleans from ABAP variables** go through
-  `z2ui5_cl_ai_xml=>as_bool( flag )` (a literal is just `` v = `true` `` —
-  never feed `abap_true` raw, it serializes as `X`).
+  `sap.ui.table` default namespace is `)->ele( n = `content` ns = `m` )`.
+- `stringify( )` renders from the root, so trailing `end( )` calls before
+  the final `).` are optional — `end` only moves the cursor to add siblings.
+- **Booleans from ABAP variables** go through `b` instead of `v`:
+  `` )->a( n = `editable` b = mv_edit_mode ) `` renders `true`/`false` (a
+  literal is just `` v = `true` `` — never feed `abap_true` into `v` raw, it
+  serializes as `X`).
+- **An element gets its attributes before its first child.** `a( )` lands on
+  the element the chain is pointing at — the child just added by `ele( )` or
+  `tag( )`, or the node itself while it has none. Once an element has a
+  child, `a( )` can no longer reach it.
 - Braces `{ }` inside an ABAP `|…|` string template must be escaped
   `\{ \}` — an unescaped `{` is parsed as a UI5 binding.
 
 The legacy fluent builder `z2ui5_cl_xml_view` (one method per control) still
 ships for existing apps but is **frozen** — new apps and new code use
-`z2ui5_cl_ai_xml`.
+`z2ui5_cl_ui5_view_builder`.
 
 ### Formatting the chain (strict — reviewers check these)
 
@@ -174,9 +180,9 @@ does not undo them.
   end of a line — carry it to the **start of the next segment**, so every
   continuation reads `)->`. With the `a( )` chain there is no nested `VALUE`,
   so the whole view ends in a single `` ).`` (not `) ).`).
-- **Indent after every `open`.** Each `open( )` shifts its children's `)->`
-  one level (4 spaces) to the right, `shut( )` shifts back left, and the `)->`
-  of a `shut` sits in the same column as the `open` it closes.
+- **Indent after every `ele`.** Each `ele( )` shifts its children's `)->`
+  one level (4 spaces) to the right, `end( )` shifts back left, and the `)->`
+  of an `end` sits in the same column as the `ele` it closes.
 - **A control's `a( )` lines sit one level (4 spaces) in from the control's
   own `)->` line** — one attribute per line, `v =` column aligned across the
   block.
@@ -186,39 +192,39 @@ does not undo them.
   1. **the content of a control that carries attributes** — a blank after its
      last `a( )`, before its first child. The attribute lines are the
      control's own head; the content starts below them;
-  2. **a run of `leaf`s** — a blank before the first one, none between them.
+  2. **a run of `tag`s** — a blank before the first one, none between them.
      A form's fields, a toolbar's buttons, a list's items belong together and
      are read as one block, whether or not each carries attributes.
 
   Everything else runs without a blank:
   - **none** between a control and its own `a( )`s — they are its head, not
     its content;
-  - **none between consecutive `leaf`s** — see block 2. This overrules
+  - **none between consecutive `tag`s** — see block 2. This overrules
     "separate a sibling": only a *container* block is set off from the
     sibling before it;
-  - **none** after a bare `open` whose first child is another `open` — a
+  - **none** after a bare `ele` whose first child is another `ele` — a
     `Shell` → `Page` scaffold is one path down, not two blocks;
-  - **blank before every `shut`**; none after a `shut` or between two `shut`s.
+  - **blank before every `end`**; none after an `end` or between two `end`s.
 - Long text or binding values split with `&&` — an `.abap` line is capped at
   255 characters.
 
 The two blocks, and the scaffold that is neither:
 
 ```abap
-    )->open( `Shell`                       " bare open into another open -
-        )->open( `Page`                    " one path down, no blank
+    )->ele( `Shell`                        " bare ele into another ele -
+        )->ele( `Page`                     " one path down, no blank
             )->a( n = `title` v = `My App`
                                            " block 1: Page's content starts
-            )->open( n = `SimpleForm` ns = `form`
+            )->ele( n = `SimpleForm` ns = `form`
                 )->a( n = `editable` v = `true`
                                            " block 1: SimpleForm's content
-                )->open( n = `content` ns = `form`
+                )->ele( n = `content` ns = `form`
                                            " block 2: the run of leafs
-                    )->leaf( n = `Title` ns = `core`
+                    )->tag( n = `Title` ns = `core`
                         )->a( n = `text`  v = `Your data`
-                    )->leaf( `Label`
+                    )->tag( `Label`
                         )->a( n = `text`  v = `Name`
-                    )->leaf( `Input`
+                    )->tag( `Input`
                         )->a( n = `value` v = client->_bind( name ) ).
 ```
 
@@ -226,11 +232,6 @@ The blank above `Title` is what makes the three fields read as the form's
 content rather than as a continuation of the `content` aggregation; the
 missing blanks between them are what keep the three together. Blanks in both
 places, or in neither, and the same view reads as a pile of fragments.
-
-The framework's own generic builder `z2ui5_cl_ui5_view_builder`
-(`ele`/`tag`/`a`/`end`) is laid out by exactly the same rules: `ele` indents
-like `open`, `tag` behaves like `leaf`, `end` closes like `shut`, and the
-attribute verb is the same `a( )`.
 
 ## 4. Data binding
 
@@ -331,7 +332,7 @@ attribute verb is the same `a( )`.
 ## 6. Popups, popovers, messages
 
 - `client->popup_display( val = … )` opens a `core:FragmentDefinition`
-  string (build it with `z2ui5_cl_ai_xml` too) as a dialog. Closing: wire a
+  string (build it with `z2ui5_cl_ui5_view_builder` too) as a dialog. Closing: wire a
   Close button to `client->_event( z2ui5_if_client=>cs_event-popup_close )`
   (the framework handles it without reaching your `on_event`), or call
   `client->popup_destroy( )` server-side after handling your own event.
