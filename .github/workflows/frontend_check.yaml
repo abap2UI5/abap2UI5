@@ -7,6 +7,13 @@ name: frontend_check
 #
 # It builds every branch variant and lints the generated ABAP. It does NOT
 # push - deploying is frontend_deploy.yaml.
+#
+# The first step is the one that makes build/ trustworthy: the four published
+# trees are committed in this repository, so a pull request that changes the
+# webapp has to carry the rebuilt trees with it (`npm run check:frontend`).
+# Same contract as src/01/03 against app/webapp - what is delivered is
+# reviewable in the diff, and frontend_deploy pushes exactly what was
+# reviewed instead of building its own copy of it afterwards.
 
 on:
   # app/ and not just app/webapp/: the cloud branches ship the whole Fiori
@@ -16,6 +23,8 @@ on:
       - 'app/**'
       - 'frontend/**'
       - 'tools/**'
+      # a hand-edit of the committed trees is caught by the same gate
+      - 'build/**'
       - '.github/workflows/frontend_check.yaml'
   push:
     branches: [main]
@@ -23,6 +32,8 @@ on:
       - 'app/**'
       - 'frontend/**'
       - 'tools/**'
+      # a hand-edit of the committed trees is caught by the same gate
+      - 'build/**'
   workflow_dispatch:
 
 permissions:
@@ -44,15 +55,24 @@ jobs:
     - name: Lint frontend/abap
       run: npm run frontend:lint
 
-    # cloud and cloud_v2 ship the webapp as a source project, standard and
-    # standard_v2 as a BSP - and a renamed variant on top, because the rename
+    # build/ is what gets pushed, so it has to be what the sources produce.
+    # Rebuilds the four published trees in place and fails on any difference.
+    - name: build/ is up to date
+      run: |
+        npm run check:frontend || {
+          echo "::error::build/ does not match the sources - run 'npm run frontend:build' and commit build/"
+          exit 1
+        }
+
+    # The renamed variant is not committed (it is built on demand by
+    # frontend_deploy), so it is built here into tools/out/: the rename
     # rewrites the generated page and has its own way of going wrong.
-    - name: Build all deploy branches
-      run: node tools/build-branches.mjs cloud cloud_v2 standard standard_v2 standard_zcheck
+    - name: Build a renamed variant
+      run: node tools/build-branches.mjs standard_zcheck
 
     # Same abaplint run the standard branch gets in its own repository
     - name: Lint the generated standard tree
-      run: cd tools/out/standard && npx abaplint
+      run: cd build/standard && npx abaplint
 
     # The invariants a BSP page has to satisfy, checked on the artefact rather
     # than on the bundle it was made from: a page line is at most 255
