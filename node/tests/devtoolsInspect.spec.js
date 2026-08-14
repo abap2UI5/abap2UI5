@@ -36,6 +36,8 @@ function loadInspect({
   records = [],
   search = "",
   hash = "",
+  focusInfo,
+  scrollInfo,
 } = {}) {
   const AppState = {
     state: {
@@ -75,7 +77,13 @@ function loadInspect({
         resize: { width: 1920, height: 1080 },
       },
       "z2ui5/core/AppState": AppState,
-      "z2ui5/core/Lib": { deriveSystemType: () => "desktop" },
+      "z2ui5/core/Lib": { deriveSystemType: () => "desktop", logError() {} },
+      // The live producers of the frontend block that travels on every
+      // roundtrip (client->get( )-s_focus / -s_scroll).
+      "z2ui5/core/ScrollFocus": {
+        getFocusInfo: () => focusInfo,
+        getScrollInfo: () => scrollInfo,
+      },
       "z2ui5/core/ViewSlots": {
         slots: SLOTS,
         getView: (key) => views[key],
@@ -140,6 +148,65 @@ test.describe("Environment", () => {
     const out = Inspect.formatEnvironment();
     expect(out).toContain("2 model attributes");
     expect(out).toMatch(/POPUP\s+empty/);
+  });
+});
+
+// The block the framework puts on the wire every roundtrip - what an app
+// reads as client->get( )-s_focus / -s_scroll and what the start page's
+// "System Information" popup shows of the frontend side. Rendered from the
+// LIVE producers, so it is what the NEXT roundtrip will send.
+test.describe("Frontend info sent to the backend", () => {
+  test("reports the focused control and its caret", () => {
+    const Inspect = loadInspect({
+      focusInfo: { ID: "myInput", SELECTION_START: 3, SELECTION_END: 7 },
+    });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("Frontend info sent to the backend");
+    expect(out).toContain("myInput");
+    expect(out).toContain("3 - 7");
+  });
+
+  test("omits the caret when no text field owns a selection", () => {
+    const Inspect = loadInspect({ focusInfo: { ID: "myButton" } });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("myButton");
+    expect(out).not.toContain("Caret");
+  });
+
+  test("reports the scroll position per slot, skipping untouched ones", () => {
+    const Inspect = loadInspect({
+      scrollInfo: {
+        MAIN: { ID: "page1", X: 0, Y: 420 },
+        POPUP: { ID: "list1", X: 15, Y: 0 },
+      },
+    });
+    const out = Inspect.formatEnvironment();
+    expect(out).toContain("Scroll MAIN");
+    expect(out).toContain("page1");
+    expect(out).toContain("y 420");
+    expect(out).toContain("Scroll POPUP");
+    expect(out).not.toContain("Scroll NEST");
+  });
+
+  test("says so when nothing has been scrolled", () => {
+    const Inspect = loadInspect({ scrollInfo: undefined });
+    expect(Inspect.formatEnvironment()).toContain("nothing scrolled yet");
+  });
+
+  test("a throwing producer degrades instead of blanking the tab", () => {
+    const Inspect = loadInspect({
+      focusInfo: undefined,
+      scrollInfo: undefined,
+    });
+    // the environment report as a whole still renders
+    expect(Inspect.formatEnvironment()).toContain("Environment");
+  });
+
+  test("reports the device support flags the wire block carries", () => {
+    const out = loadInspect().formatEnvironment();
+    expect(out).toContain("Touch");
+    expect(out).toContain("Pointer");
+    expect(out).toContain("Retina");
   });
 });
 

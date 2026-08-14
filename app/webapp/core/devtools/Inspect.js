@@ -14,10 +14,11 @@ sap.ui.define(
     "sap/ui/Device",
     "z2ui5/core/AppState",
     "z2ui5/core/Lib",
+    "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/devtools/Recorder",
   ],
-  (Device, AppState, Lib, ViewSlots, Recorder) => {
+  (Device, AppState, Lib, ScrollFocus, ViewSlots, Recorder) => {
     "use strict";
 
     // Longest argument rendered inline in the action list; a view XML
@@ -179,11 +180,65 @@ sap.ui.define(
         ),
       );
       out.push(line("Touch", yesNo(Device.support.touch)));
+      out.push(line("Pointer", yesNo(Device.support.pointer)));
+      out.push(line("Retina", yesNo(Device.support.retina)));
+
+      out.push(...formatFrontendInfo());
 
       out.push(section("View slots"));
       out.push(...formatSlots());
 
       return out.join("\n");
+    }
+
+    // The frontend block the framework puts on the wire - what an app reads
+    // as client->get( )-s_ui5 / -s_device / -s_focus / -s_scroll and what
+    // the start page's "System Information" popup shows of it. Rendered
+    // here from the LIVE producers (core/ScrollFocus.js), so it is what the
+    // NEXT roundtrip will send, not what the last one happened to carry.
+    //
+    // Focus and scroll are the interesting half: they travel on every
+    // roundtrip, they decide where the caret and the scroll position end up
+    // after a re-render, and nothing has ever shown them.
+    function formatFrontendInfo() {
+      const out = [section("Frontend info sent to the backend")];
+      out.push("  (client->get( )-s_focus / -s_scroll, live for the next");
+      out.push("  roundtrip - see -s_ui5 / -s_device above)");
+      out.push("");
+
+      let focus;
+      let scroll;
+      try {
+        focus = ScrollFocus.getFocusInfo();
+        scroll = ScrollFocus.getScrollInfo();
+      } catch (e) {
+        Lib.logError("DevTools Inspect: reading focus/scroll failed", e);
+        out.push("  (focus / scroll info unavailable)");
+        return out;
+      }
+
+      out.push(line("Focused control", focus?.ID));
+      if (focus?.SELECTION_START !== undefined) {
+        out.push(
+          line("Caret", `${focus.SELECTION_START} - ${focus.SELECTION_END}`),
+        );
+      }
+      out.push("");
+      let anyScroll = false;
+      for (const slot of ViewSlots.slots) {
+        // getScrollInfo keys by slot key and omits slots never scrolled
+        const entry = scroll?.[slot.key];
+        if (!entry) continue;
+        anyScroll = true;
+        out.push(
+          line(
+            `Scroll ${slot.key}`,
+            `${entry.ID || "(unnamed)"}  x ${entry.X || 0} / y ${entry.Y || 0}`,
+          ),
+        );
+      }
+      if (!anyScroll) out.push(line("Scroll", "nothing scrolled yet"));
+      return out;
     }
 
     // ------------------------------------------------------------------
@@ -485,6 +540,9 @@ sap.ui.define(
       "----------------------------",
       "  Error         the last fatal error, with Retry / Restart / Logout",
       "  Log           the frontend error log, INCLUDING stack traces",
+      "  Console       what you would open the browser devtools for: UI5's",
+      "                own log (binding / control problems), uncaught errors,",
+      "                unhandled rejections and every console.* call",
       "  History       every roundtrip: backend vs. render time, payload",
       "                sizes, draft ids - and the ones that never rendered",
       "  Model Diff    what the backend changed between two responses",

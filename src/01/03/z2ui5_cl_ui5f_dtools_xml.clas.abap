@@ -51,6 +51,10 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                    enabled="{/hasLog}"` &&
              `                />` &&
              `                <IconTabFilter` &&
+             `                    text="Console"` &&
+             `                    key="CONSOLE"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
              `                    text="History"` &&
              `                    key="HISTORY"` &&
              `                />` &&
@@ -178,10 +182,6 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `             The ``buttons`` aggregation (since 1.21.1) is the cross-version` &&
              `             footer; UI5 lays the buttons out in an overflow toolbar. -->` &&
              `        <buttons>` &&
-             `            <!-- Tier 2 of the roundtrip recorder. Off by default: keeping` &&
-             `                 request/response bodies is the only part of the history` &&
-             `                 that costs real memory, so a production session must not` &&
-             `                 pay for it unnoticed (core/devtools/Recorder.js). -->` &&
              `            <!-- Closes the dialog, lets the user click any control in the` &&
              `                 app and reopens on the "Picked Control" tab with its` &&
              `                 bindings and current values (core/devtools/Picker.js). -->` &&
@@ -189,6 +189,10 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                text="Pick Control"` &&
              `                press=".onPickControl"` &&
              `            />` &&
+             `            <!-- Tier 2 of the roundtrip recorder. Off by default: keeping` &&
+             `                 request/response bodies is the only part of the history` &&
+             `                 that costs real memory, so a production session must not` &&
+             `                 pay for it unnoticed (core/devtools/Recorder.js). -->` &&
              `            <ToggleButton` &&
              `                text="Record Payloads"` &&
              `                pressed="{/recordPayloads}"` &&

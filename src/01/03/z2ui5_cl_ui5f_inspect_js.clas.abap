@@ -41,10 +41,11 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    "sap/ui/Device",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/devtools/Recorder",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Device, AppState, Lib, ViewSlots, Recorder) => {` && |\n| &&
+             `  (Device, AppState, Lib, ScrollFocus, ViewSlots, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Longest argument rendered inline in the action list; a view XML` && |\n| &&
@@ -206,11 +207,65 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        ),` && |\n| &&
              `      );` && |\n| &&
              `      out.push(line("Touch", yesNo(Device.support.touch)));` && |\n| &&
+             `      out.push(line("Pointer", yesNo(Device.support.pointer)));` && |\n| &&
+             `      out.push(line("Retina", yesNo(Device.support.retina)));` && |\n| &&
+             `` && |\n| &&
+             `      out.push(...formatFrontendInfo());` && |\n| &&
              `` && |\n| &&
              `      out.push(section("View slots"));` && |\n| &&
              `      out.push(...formatSlots());` && |\n| &&
              `` && |\n| &&
              `      return out.join("\n");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The frontend block the framework puts on the wire - what an app reads` && |\n| &&
+             `    // as client->get( )-s_ui5 / -s_device / -s_focus / -s_scroll and what` && |\n| &&
+             `    // the start page's "System Information" popup shows of it. Rendered` && |\n| &&
+             `    // here from the LIVE producers (core/ScrollFocus.js), so it is what the` && |\n| &&
+             `    // NEXT roundtrip will send, not what the last one happened to carry.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Focus and scroll are the interesting half: they travel on every` && |\n| &&
+             `    // roundtrip, they decide where the caret and the scroll position end up` && |\n| &&
+             `    // after a re-render, and nothing has ever shown them.` && |\n| &&
+             `    function formatFrontendInfo() {` && |\n| &&
+             `      const out = [section("Frontend info sent to the backend")];` && |\n| &&
+             `      out.push("  (client->get( )-s_focus / -s_scroll, live for the next");` && |\n| &&
+             `      out.push("  roundtrip - see -s_ui5 / -s_device above)");` && |\n| &&
+             `      out.push("");` && |\n| &&
+             `` && |\n| &&
+             `      let focus;` && |\n| &&
+             `      let scroll;` && |\n| &&
+             `      try {` && |\n| &&
+             `        focus = ScrollFocus.getFocusInfo();` && |\n| &&
+             `        scroll = ScrollFocus.getScrollInfo();` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("DevTools Inspect: reading focus/scroll failed", e);` && |\n| &&
+             `        out.push("  (focus / scroll info unavailable)");` && |\n| &&
+             `        return out;` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      out.push(line("Focused control", focus?.ID));` && |\n| &&
+             `      if (focus?.SELECTION_START !== undefined) {` && |\n| &&
+             `        out.push(` && |\n| &&
+             `          line("Caret", ``${focus.SELECTION_START} - ${focus.SELECTION_END}``),` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      out.push("");` && |\n| &&
+             `      let anyScroll = false;` && |\n| &&
+             `      for (const slot of ViewSlots.slots) {` && |\n| &&
+             `        // getScrollInfo keys by slot key and omits slots never scrolled` && |\n| &&
+             `        const entry = scroll?.[slot.key];` && |\n| &&
+             `        if (!entry) continue;` && |\n| &&
+             `        anyScroll = true;` && |\n| &&
+             `        out.push(` && |\n| &&
+             `          line(` && |\n| &&
+             `            ``Scroll ${slot.key}``,` && |\n| &&
+             `            ``${entry.ID || "(unnamed)"}  x ${entry.X || 0} / y ${entry.Y || 0}``,` && |\n| &&
+             `          ),` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!anyScroll) out.push(line("Scroll", "nothing scrolled yet"));` && |\n| &&
+             `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -369,7 +424,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      );` && |\n| &&
              `      out.push("");` && |\n| &&
              `      let any = false;` && |\n| &&
-             `      for (const record of records) {` && |\n| &&
+             `      for (const record of records) {` && |\n|.
+    result = result &&
              `        for (const message of record.messages || []) {` && |\n| &&
              `          any = true;` && |\n| &&
              `          const kind =` && |\n| &&
@@ -424,8 +480,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        // a table edit is tracked on the deep path, so mark the attribute` && |\n| &&
              `        // when any tracked path starts with it` && |\n| &&
              `        const isDirty = Array.from(dirty).some(` && |\n| &&
-             `          (p) => p === path || p.startsWith(``${path}/``),` && |\n|.
-    result = result &&
+             `          (p) => p === path || p.startsWith(``${path}/``),` && |\n| &&
              `        );` && |\n| &&
              `        out.push(` && |\n| &&
              `          ``  ${isDirty ? "*" : " "} ${path.padEnd(30)}${describeValue(data[key])}``,` && |\n| &&
@@ -513,6 +568,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "----------------------------",` && |\n| &&
              `      "  Error         the last fatal error, with Retry / Restart / Logout",` && |\n| &&
              `      "  Log           the frontend error log, INCLUDING stack traces",` && |\n| &&
+             `      "  Console       what you would open the browser devtools for: UI5's",` && |\n| &&
+             `      "                own log (binding / control problems), uncaught errors,",` && |\n| &&
+             `      "                unhandled rejections and every console.* call",` && |\n| &&
              `      "  History       every roundtrip: backend vs. render time, payload",` && |\n| &&
              `      "                sizes, draft ids - and the ones that never rendered",` && |\n| &&
              `      "  Model Diff    what the backend changed between two responses",` && |\n| &&

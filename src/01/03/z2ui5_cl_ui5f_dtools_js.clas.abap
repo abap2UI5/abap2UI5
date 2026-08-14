@@ -34,6 +34,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
+             `    "z2ui5/core/devtools/Console",` && |\n| &&
              `    "z2ui5/core/devtools/Recorder",` && |\n| &&
              `    "z2ui5/core/devtools/Inspect",` && |\n| &&
              `    "z2ui5/core/devtools/Picker",` && |\n| &&
@@ -47,6 +48,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    ViewSlots,` && |\n| &&
              `    AppState,` && |\n| &&
              `    ErrorView,` && |\n| &&
+             `    Console,` && |\n| &&
              `    Recorder,` && |\n| &&
              `    Inspect,` && |\n| &&
              `    Picker,` && |\n| &&
@@ -260,6 +262,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    // jsonSources / xmlSources are: adding a tab is one entry plus one` && |\n| &&
              `    // IconTabFilter, never a new branch in renderTab.` && |\n| &&
              `    const textSources = {` && |\n| &&
+             `      CONSOLE: () => Console.format(),` && |\n| &&
              `      HELP: () => Inspect.formatHelp(),` && |\n| &&
              `      ENV: () => Inspect.formatEnvironment(),` && |\n| &&
              `      REGISTRY: () => Inspect.formatRegistry(),` && |\n| &&
@@ -421,11 +424,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        onErrorLogout() {` && |\n| &&
              `          ErrorView.handleLogout();` && |\n| &&
-             `        },` && |\n| &&
+             `        },` && |\n|.
+    result = result &&
              `` && |\n| &&
              `        // Collect the content of every developer-tools tab into one plain-text` && |\n| &&
-             `        // blob so it can be copied elsewhere in one go. XML tabs are` && |\n|.
-    result = result &&
+             `        // blob so it can be copied elsewhere in one go. XML tabs are` && |\n| &&
              `        // pretty-printed, JSON tabs serialized; empty / inactive sections are` && |\n| &&
              `        // skipped. Every source is guarded (a throwing one can never blank the` && |\n| &&
              `        // whole export) and each section is capped - a value that large blanks` && |\n| &&
@@ -822,11 +825,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          // (xContent) representation.` && |\n| &&
              `          modelData.value = oSource.getPressed()` && |\n| &&
              `            ? modelData.xContent` && |\n| &&
-             `            : modelData.previousValue;` && |\n| &&
+             `            : modelData.previousValue;` && |\n|.
+    result = result &&
              `          oModel.refresh();` && |\n| &&
              `        },` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `        // Tier 2 of the recorder: keeping request/response bodies is the` && |\n| &&
              `        // expensive half of the history, so it is opt-in and switched here.` && |\n| &&
              `        // Switching it OFF also drops what was already retained, so a` && |\n| &&

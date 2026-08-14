@@ -51,10 +51,11 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/devtools/Console",` && |\n| &&
              `    "z2ui5/core/devtools/DeveloperTools",` && |\n| &&
              `    "z2ui5/core/devtools/Recorder",` && |\n| &&
              `  ],` && |\n| &&
-             `  (AppState, ErrorView, Lib, DeveloperTools, Recorder) => {` && |\n| &&
+             `  (AppState, ErrorView, Lib, Console, DeveloperTools, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Query parameter that opens the developer tools on page load, so a` && |\n| &&
@@ -145,6 +146,11 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      // unless the developer opts into payloads.` && |\n| &&
              `      Recorder.install();` && |\n| &&
              `` && |\n| &&
+             `      // Same reason as the recorder: a console message is only useful if` && |\n| &&
+             `      // it was captured BEFORE the problem, so this cannot wait for the` && |\n| &&
+             `      // first Ctrl+F12 either. Bounded ring of short strings.` && |\n| &&
+             `      Console.install();` && |\n| &&
+             `` && |\n| &&
              `      errorDetailsHook = onErrorDetails;` && |\n| &&
              `      Lib.registerCallback("onErrorDetails", errorDetailsHook);` && |\n| &&
              `` && |\n| &&
@@ -173,6 +179,7 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `        instance = null;` && |\n| &&
              `      }` && |\n| &&
              `      publish(null);` && |\n| &&
+             `      Console.uninstall();` && |\n| &&
              `      Recorder.uninstall();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

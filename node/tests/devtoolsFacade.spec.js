@@ -56,6 +56,10 @@ function loadDevTools({ search = "" } = {}) {
           callbacks[name] = callbacks[name].filter((f) => f !== fn);
         },
       },
+      "z2ui5/core/devtools/Console": {
+        install: () => recorderCalls.push("console:install"),
+        uninstall: () => recorderCalls.push("console:uninstall"),
+      },
       "z2ui5/core/devtools/DeveloperTools": DeveloperTools,
       "z2ui5/core/devtools/Recorder": {
         install: () => recorderCalls.push("install"),
@@ -94,7 +98,7 @@ test.describe("install", () => {
   test("starts the recorder, the shortcut and the error-details provider", () => {
     const h = loadDevTools();
     h.DevTools.install();
-    expect(h.recorderCalls).toEqual(["install"]);
+    expect(h.recorderCalls).toEqual(["install", "console:install"]);
     expect(h.listeners.filter((l) => l.type === "keydown").length).toBe(1);
     expect(h.callbacks.onErrorDetails.length).toBe(1);
   });
@@ -104,7 +108,7 @@ test.describe("install", () => {
     h.DevTools.install();
     h.DevTools.install();
     expect(h.listeners.length).toBe(1);
-    expect(h.recorderCalls).toEqual(["install"]);
+    expect(h.recorderCalls).toEqual(["install", "console:install"]);
   });
 
   test("creates no dialog until it is actually needed", () => {
@@ -199,7 +203,12 @@ test.describe("exit", () => {
     expect(h.callbacks.onErrorDetails.length).toBe(0);
     expect(dialog.destroyed).toBe(true);
     expect(h.globals.developerTools).toBe(null);
-    expect(h.recorderCalls).toEqual(["install", "uninstall"]);
+    expect(h.recorderCalls).toEqual([
+      "install",
+      "console:install",
+      "console:uninstall",
+      "uninstall",
+    ]);
   });
 
   test("a re-install after exit starts from a fresh dialog", () => {
@@ -217,6 +226,9 @@ test.describe("exit", () => {
   test("exit without install is harmless", () => {
     const h = loadDevTools();
     h.DevTools.exit();
-    expect(h.recorderCalls).toEqual(["uninstall"]);
+    // the teardown is unconditional on purpose - both uninstalls are
+    // idempotent, so a partially failed install still gets cleaned up
+    expect(h.recorderCalls).toEqual(["console:uninstall", "uninstall"]);
+    expect(h.listeners.length).toBe(0);
   });
 });

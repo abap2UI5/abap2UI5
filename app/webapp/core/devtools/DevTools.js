@@ -24,10 +24,11 @@ sap.ui.define(
     "z2ui5/core/AppState",
     "z2ui5/core/ErrorView",
     "z2ui5/core/Lib",
+    "z2ui5/core/devtools/Console",
     "z2ui5/core/devtools/DeveloperTools",
     "z2ui5/core/devtools/Recorder",
   ],
-  (AppState, ErrorView, Lib, DeveloperTools, Recorder) => {
+  (AppState, ErrorView, Lib, Console, DeveloperTools, Recorder) => {
     "use strict";
 
     // Query parameter that opens the developer tools on page load, so a
@@ -118,6 +119,11 @@ sap.ui.define(
       // unless the developer opts into payloads.
       Recorder.install();
 
+      // Same reason as the recorder: a console message is only useful if
+      // it was captured BEFORE the problem, so this cannot wait for the
+      // first Ctrl+F12 either. Bounded ring of short strings.
+      Console.install();
+
       errorDetailsHook = onErrorDetails;
       Lib.registerCallback("onErrorDetails", errorDetailsHook);
 
@@ -146,6 +152,7 @@ sap.ui.define(
         instance = null;
       }
       publish(null);
+      Console.uninstall();
       Recorder.uninstall();
     }
 

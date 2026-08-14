@@ -36,6 +36,7 @@ function loadDeveloperTools({
   fragment,
   windowStub,
   recorder,
+  consoleCapture,
   inspect,
   picker,
   liveEdit,
@@ -79,6 +80,7 @@ function loadDeveloperTools({
     formatBindings: () => "(bindings)",
     findEventLine: () => 0,
   };
+  const Console = consoleCapture || { format: () => "(console)" };
   const Picker = picker || { start() {}, stop() {} };
   const LiveEdit = liveEdit || {
     apply: () => Promise.resolve("applied"),
@@ -102,6 +104,7 @@ function loadDeveloperTools({
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/ErrorView": ErrorView,
+      "z2ui5/core/devtools/Console": Console,
       "z2ui5/core/devtools/Recorder": Recorder,
       "z2ui5/core/devtools/Inspect": Inspect,
       "z2ui5/core/devtools/Picker": Picker,

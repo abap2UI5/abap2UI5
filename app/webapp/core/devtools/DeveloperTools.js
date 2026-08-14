@@ -7,6 +7,7 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
     "z2ui5/core/ErrorView",
+    "z2ui5/core/devtools/Console",
     "z2ui5/core/devtools/Recorder",
     "z2ui5/core/devtools/Inspect",
     "z2ui5/core/devtools/Picker",
@@ -20,6 +21,7 @@ sap.ui.define(
     ViewSlots,
     AppState,
     ErrorView,
+    Console,
     Recorder,
     Inspect,
     Picker,
@@ -233,6 +235,7 @@ sap.ui.define(
     // jsonSources / xmlSources are: adding a tab is one entry plus one
     // IconTabFilter, never a new branch in renderTab.
     const textSources = {
+      CONSOLE: () => Console.format(),
       HELP: () => Inspect.formatHelp(),
       ENV: () => Inspect.formatEnvironment(),
       REGISTRY: () => Inspect.formatRegistry(),
