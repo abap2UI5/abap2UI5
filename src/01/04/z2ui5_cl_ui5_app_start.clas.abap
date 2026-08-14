@@ -134,7 +134,7 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
     " the two icons the page names twice - once in the title row, once in the
-    " "More" section - so the header and the section cannot drift apart
+    " "Learn more" section - so the header and the section cannot drift apart
     CONSTANTS c_icon_docs TYPE string VALUE `sap-icon://learning-assistant`.
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
@@ -407,7 +407,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " to read on is what the page says right after them - same row shape as a
     " sample repository, and the same two icons the title row carries
     render_section( form  = form
-                    title = `More` ).
+                    title = `Learn more` ).
 
     render_icon_row( form    = form
                      label   = `GitHub`
