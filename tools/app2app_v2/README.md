@@ -16,11 +16,12 @@ src/01/                ICF handler (SICF node + Z2UI5_CL_LP_HANDLER, from abap/s
 src/02/                the BSP page
 ```
 
-The result is published as the [`standard_v2`](https://github.com/abap2UI5/frontend/tree/standard_v2)
-branch by the `frontend_deploy` workflow, which builds the output branches
-(`cloud`, `cloud_v2`, `standard`, `standard_v2`) from this repository. The `cloud_v2`
-branch applies the same bootstrap patch (`patch-v2.mjs`) directly to the
-webapp instead of building a BSP.
+The result is committed as `build/standard_v2` and published as the
+[`standard_v2`](https://github.com/abap2UI5/frontend/tree/standard_v2)
+branch by the `frontend_deploy` workflow, which pushes the committed trees
+in `build/` as they stand (only renamed `standard_<name>` variants are
+built on demand). The `cloud_v2` branch applies the same bootstrap patch
+(`patch-v2.mjs`) directly to the webapp instead of building a BSP.
 
 ## Run
 
@@ -36,14 +37,12 @@ npm run frontend:build         # alle vier; einzeln: node tools/build-branches.m
 | `index.html` | load `1.142.0-legacy-free` SDK (CDN); 2.x config attributes `resource-roots` / `on-init` / `compat-version` / `frame-options`; `preconnect`; `libs=sap.m` | bootstrap the legacy-free build |
 | `manifest.json` | `minUI5Version 1.136.0`, `_version 2.0.0` | legacy-free starts at 1.136 |
 
-> The webapp ships **no routing section** anymore (removed upstream in
-> abap2UI5/abap2UI5 - the shell controller starts the app directly), so
-> nothing routing-related needs patching. `patchManifest` still carries a
-> transitional migration of the classic routing options
-> (`viewPath`/`viewName`/`viewId` → `path`/`name`/`id` + `type: "View"`) as a
-> safeguard for building from a webapp state that predates the removal -
-> schema v2 rejects the v1-style options (blank page). It is a no-op for
-> current deploys and can be deleted once `main`'s webapp is synced.
+> The webapp ships **no routing section** anymore (removed upstream - the
+> shell controller starts the app directly), so nothing routing-related
+> needs patching; `patchManifest` only stamps `_version` and
+> `minUI5Version`. (It used to carry a transitional migration of the
+> classic routing options for webapp states that predate the removal -
+> that safeguard has been deleted.)
 
 Deployment identity stays `Z2UI5` — same name as the classic frontend, so the
 legacy-free variant is a drop-in replacement (install either `standard` or

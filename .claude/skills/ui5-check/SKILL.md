@@ -124,7 +124,7 @@ Where it bit us: the developer tools' help button and the legacy popups in
 
 **Linter:** **moved — `unknown-icon`, `icon-too-new`, `icon-removed`** (2026-08).
 Still *also* gated in this repository by `npm run check:icons`
-(`.github/scripts/ui5-icon-gate.mjs`, `ui5-icons-1.71.json`, 654 names), which
+(`.github/scripts/ui5-icon-gate.mjs`, `ui5-icons-1.71.json`, 655 names), which
 stays because it covers `src/99` and `app/webapp/` — files the linter does not
 read. The linter's data goes further than the snapshot this entry proposed:
 `data/icons.json` carries a **per-icon `since`**, scanned across every OpenUI5
@@ -133,15 +133,16 @@ rule answers for any target rather than only for the floor, and it separates
 the two failure modes this section conflates — a name that exists **nowhere**
 (`unknown-icon`, an error: `textFormatting`) from one that merely arrived
 **later** (`icon-too-new`, a warning: `information` @1.80, `clear-all` @1.86).
-The scan also found a third: the font is not purely additive. `binary` (@1.104)
-is `non-binary` from 1.120 on — same codepoint, renamed glyph — which is
-`icon-removed`.
+The scan also found a third: the font is not purely additive. `binary` was in
+the font for exactly one release (1.104) and gone again after it — the glyph
+is spelled `non-binary` (@1.96) everywhere else — which is `icon-removed`.
 
 Two notes for whoever regenerates the gate list here: the registry declares a
 few names with **capitals** (`Chart-Tree-Map`, `Netweaver-business-client`) and
-at least one entry with **double quotes** (`"feedback"`), which the 654-name
-snapshot misses. Both are lower-cased on comparison anyway, but a generator
-reading only single-quoted entries silently loses names.
+at least one entry with **double quotes** (`"feedback"`), which the snapshot
+missed until 2026-08 — the gate falsely rejected `sap-icon://feedback`. Both
+are lower-cased on comparison anyway, but a generator reading only
+single-quoted entries silently loses names.
 
 ### 1.2 Properties, aggregations and enum values
 

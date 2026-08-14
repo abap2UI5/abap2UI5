@@ -46,12 +46,12 @@ npm run app2abap                # regenerate src/01/03 from app/webapp
 npm run frontend:build          # all four delivery branches -> build/
 npm run frontend:standard       # just one
 npm run check:frontend          # the CI gate: rebuild and fail on any diff in build/
-npm run frontend:lint           # abaplint over frontend/abap
+npm run frontend:lint           # abaplint over frontend/abap/cloud (the standard handler is linted in build/standard)
 node tools/check-pages.mjs      # BSP invariants on what was built
 npm run frontend:verify         # diff the committed trees against the published branches
 ```
 
-A change under `app/webapp/`, `frontend/` or `tools/` is committed **together
+A change under `app/`, `frontend/` or `tools/` is committed **together
 with the rebuilt `build/`** — same rule as `src/01/03/`. `tools/out/` is
 generated and git-ignored.
 
@@ -62,7 +62,7 @@ They are an **installation source**: abapGit repositories out there point at
 reaches every one of them on the next pull.
 
 `frontend_check.yaml` builds every variant on every pull request that touches
-`app/webapp/`, `frontend/` or `tools/`, lints the generated ABAP and checks the
+`app/`, `frontend/`, `tools/`, `build/` or the npm dependencies, lints the generated ABAP and checks the
 BSP page invariants — a page line over 255 characters, a page name
 `CREATE_NEW_PAGE` rejects, a content file missing from the page directory, a
 `.js` page that stops being valid JavaScript once padded. Each of those is a
@@ -75,7 +75,8 @@ changes *how* the branches are built rather than what is in them.
 ## Deployment
 
 `frontend_deploy.yaml` pushes the delivery branches into abap2UI5/frontend: all
-four on every push to `main` that changes `build/`, a single named one
+four on every push to `main` that changes `build/` or the `VERSION` stamp
+inputs (the framework version constant, `branch-stamp.mjs`), a single named one
 (including a renamed `standard_<name>`, which is built on the spot) on
 dispatch, and everything again on a monthly safety-net cron.
 

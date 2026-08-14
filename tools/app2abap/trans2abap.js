@@ -333,7 +333,10 @@ async function main() {
         }
 
         // Generate the preload mapping class (sorted for a stable output).
-        preloadEntries.sort((a, b) => a.urlPath.localeCompare(b.urlPath));
+        // Plain code-unit comparison, not localeCompare: the collation of
+        // localeCompare depends on the host locale/ICU build, and the sort
+        // order is committed output (src/01/03).
+        preloadEntries.sort((a, b) => (a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0));
         const preloadFilePath = path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap');
         await createFileInTargetDir(preloadFilePath, buildPreloadClass(preloadEntries));
         console.log(`Preload class created successfully at: ${preloadFilePath}`);

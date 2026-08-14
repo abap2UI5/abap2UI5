@@ -43,7 +43,7 @@ try {
   if (!newest) {
     console.log("check-v2-sdk: note — no legacy-free versions found in versionoverview.json, skipping the newer-version check");
   } else if (cmp(newest, pinned) > 0) {
-    console.error(`check-v2-sdk: newer legacy-free version available: ${newest} (pinned: ${pinned}) — bump SDK in .github/app2app_v2/patch-v2.mjs`);
+    console.error(`check-v2-sdk: newer legacy-free version available: ${newest} (pinned: ${pinned}) — bump SDK in tools/app2app_v2/patch-v2.mjs`);
     process.exit(1);
   } else {
     console.log(`check-v2-sdk: pin is current (newest legacy-free seen: ${newest})`);

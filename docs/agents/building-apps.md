@@ -399,9 +399,9 @@ places, or in neither, and the same view reads as a pile of fragments.
   `main` and render an error/leave when denied.
 - The default UI5 bootstrap loads from the CDN; system-local hosting and
   CSP/theme/bootstrap customizing go through `z2ui5_if_exit` /
-  `z2ui5_cl_exit`.
+  `z2ui5_cl_ui5_user_exit`.
 - **A third-party JS library is a deployment decision, not a view trick.**
-  The default CSP in `z2ui5_cl_exit` already whitelists `cdn.jsdelivr.net`
+  The default CSP in `z2ui5_cl_ui5_user_exit` already whitelists `cdn.jsdelivr.net`
   and `cdnjs.cloudflare.com`, so a library loaded from one of them is
   allowed out of the box — anything else needs your own
   `content_security_policy` in the exit, and a system-local copy served by

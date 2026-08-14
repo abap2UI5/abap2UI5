@@ -12,7 +12,7 @@
 // font gained after 1.71.
 //
 // The name list in ui5-icons-1.71.json is the icon registry of OpenUI5 1.71
-// (sap/ui/core/IconPool.js, 654 names). It is a snapshot on purpose: 1.71 is
+// (sap/ui/core/IconPool.js, 655 names). It is a snapshot on purpose: 1.71 is
 // closed for new features, so the set cannot grow. Icons added later are
 // exactly what this gate is here to reject.
 //

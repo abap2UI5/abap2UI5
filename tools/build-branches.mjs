@@ -79,9 +79,10 @@ const scratch = join(here, "out");
 const PUBLISHED = ["cloud", "cloud_v2", "standard", "standard_v2"];
 const outDir = (branch) => join(PUBLISHED.includes(branch) ? generated : scratch, branch);
 
-// Dateien, die jeder Output-Branch erbt (kein Tooling, kein CI);
-// nicht (mehr) vorhandene werden uebersprungen
-const COMMON = [".gitignore", "CODE_OF_CONDUCT.md", "LICENSE", "README.md", "SECURITY.md"];
+// Dateien, die jeder Output-Branch erbt (kein Tooling, kein CI); nicht (mehr)
+// vorhandene werden uebersprungen. README.md fehlt hier absichtlich: es wird
+// in initBranch mit vorangestelltem Banner geschrieben, nicht kopiert.
+const COMMON = [".gitignore", "CODE_OF_CONDUCT.md", "LICENSE", "SECURITY.md"];
 
 // abapGit-Deskriptoren wie auf den bisherigen Branches
 const ABAPGIT_CLOUD = `﻿<?xml version="1.0" encoding="utf-8"?>
@@ -127,8 +128,24 @@ function initBranch(branch, abapgitXml) {
   return dir;
 }
 
+// Gegen den Pfad RELATIV zum Repo getestet: der absolute Checkout-Pfad kann
+// selbst ein dist/- oder .git-Segment tragen (~/dist/abap2UI5), und dann
+// filtert der Test die Wurzel weg und cpSync kopiert stumm nichts.
 const skipBuildArtifacts = (src) =>
-  !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(src);
+  !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(relative(core, src));
+
+// Leise im Erfolgsfall, nie im Fehlerfall: das verworfene Log sagt als
+// einziges, WARUM ein Schritt scheiterte (Muster wie runUi5Build in
+// app2bsp/preload.js).
+function runQuiet(args, cwd) {
+  try {
+    execFileSync("node", args, { cwd, stdio: ["ignore", "pipe", "pipe"] });
+  } catch (error) {
+    process.stderr.write(String(error.stdout ?? ""));
+    process.stderr.write(String(error.stderr ?? ""));
+    throw error;
+  }
+}
 
 // The cloud branches ship the Fiori project from app/ - the same one this
 // repository is developed with, so the two cannot drift apart. What they do
@@ -165,10 +182,14 @@ function buildCloudVariant(branch) {
 function buildStandard(branch = "standard") {
   const dir = initBranch(branch, ABAPGIT_STANDARD);
   const work = join(scratch, "_work_standard");
+  // Reste eines abgebrochenen Laufs wuerden sonst mitgebaut: cpSync merged
+  // nur dazu, und eine inzwischen geloeschte Webapp-Datei bliebe als
+  // registrierte BSP-Seite im Baum.
+  rmSync(work, { recursive: true, force: true });
   cpSync(join(here, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
   cpSync(webapp, join(work, "frontend/app/webapp"), { recursive: true, filter: skipBuildArtifacts });
   execFileSync("node", [".github/app2bsp/preload.js"], { cwd: work, stdio: "inherit" });
-  execFileSync("node", [".github/app2bsp/run.js"], { cwd: work, stdio: "ignore" });
+  runQuiet([".github/app2bsp/run.js"], work);
   cpSync(join(data, "abap/standard"), join(dir, "src"), { recursive: true });
   cpSync(join(work, "src/02"), join(dir, "src/02"), { recursive: true });
   rmSync(work, { recursive: true, force: true });
@@ -199,8 +220,11 @@ const BUILDERS = {
 function renamedBuilder(branch) {
   for (const base of ["standard_v2", "standard"]) {
     const prefix = `${base}_`;
-    if (!branch.startsWith(prefix) || branch.length === prefix.length) continue;
+    if (!branch.startsWith(prefix)) continue;
     const name = branch.slice(prefix.length);
+    // Leerer Name ("standard_v2_") ist ein Fehler - er darf nicht auf die
+    // kuerzere Basis durchfallen und dort als Name "v2_" gebaut werden.
+    if (!name) return null;
     const buildBase = base === "standard" ? buildStandard : buildStandardV2;
     return () => {
       buildBase(branch);
@@ -215,6 +239,14 @@ function renamedBuilder(branch) {
 const requested = process.argv.slice(2);
 const branches = requested.length ? requested : Object.keys(BUILDERS);
 const builds = branches.map((b) => {
+  // Dasselbe Muster wie der Guard in frontend_deploy.yaml - hier noch einmal,
+  // weil initBranch mit rmSync auf outDir(b) beginnt und ein Name wie
+  // "standard_x/../../.." sonst ausserhalb von build//tools/out loeschen wuerde,
+  // bevor rename-bsp ihn je validiert.
+  if (!/^[A-Za-z0-9_#]+$/.test(b)) {
+    console.error(`Ungueltiger Branch-Name '${b}' - erlaubt sind nur [A-Za-z0-9_#]`);
+    process.exit(1);
+  }
   const build = BUILDERS[b] ?? renamedBuilder(b);
   if (!build) {
     console.error(`Unbekannter Branch '${b}' - erlaubt: ${Object.keys(BUILDERS).join(", ")}, standard_<name>, standard_v2_<name> (<name> auch als #ns#name)`);

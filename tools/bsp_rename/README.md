@@ -2,21 +2,22 @@
 
 `rename-bsp.mjs` renames the abap2UI5 frontend BSP so a second copy can be
 installed into the **same SAP system** without object-name collisions — the
-way this repo ships as `Z2UI5` and `frontend-legacy-free` ships as `Z2UI5_V2`.
+delivered `standard`/`standard_v2` branches ship as `Z2UI5`, a renamed
+variant ships under the name of your choice (e.g. `ZMYUI5`).
 
 Dependency-free Node script (Node 16+). Nothing to install.
 
-## Renamed branches via `build_rename` (recommended)
+## Renamed branches via `frontend_deploy` (recommended)
 
-The easiest way to get a renamed install: run the **`build_rename`** GitHub
-workflow (Actions → build_rename → Run workflow), pick the base variant
-(`standard` or `standard_v2`) and enter the new BSP name (e.g. `ZMYUI5`, or
-a namespaced name like `/ABAPGIT/`, see below). It builds the base branch,
-applies this rename script to the generated `src` tree and pushes the result
-as branch **`standard_<name>`** / **`standard_v2_<name>`** (name lowercased;
-for namespaced names `/` becomes `#` like in abapGit file names, e.g.
-`standard_#abapgit#ui5`) — ready to pull with abapGit. Re-running the
-workflow with the same name updates the branch to the current `main` state.
+The easiest way to get a renamed install: run the **`frontend_deploy`**
+GitHub workflow (Actions → frontend_deploy → Run workflow) and enter the
+branch name **`standard_<name>`** / **`standard_v2_<name>`** (name
+lowercased, e.g. `standard_zmyui5`; for namespaced names `/` becomes `#`
+like in abapGit file names, e.g. `standard_#abapgit#ui5`, see below). It
+builds the base variant, applies this rename script to the generated `src`
+tree and pushes the result as that branch into `abap2UI5/frontend` — ready
+to pull with abapGit. Re-running the workflow with the same name updates
+the branch to the current `main` state.
 
 The same build runs locally with
 
@@ -67,7 +68,8 @@ Instead of a plain name you can rename into a **registered SAP namespace**:
 | `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP_CL_LP_HANDLER` |
 
 (The abapGit file-name spelling `#abapgit#myapp` is accepted as input too —
-that is also how the name is encoded in the `build_rename` branch name.)
+that is also how the name is encoded in the branch name given to the
+`frontend_deploy` dispatch.)
 
 Namespace max. 8 characters between the slashes, full BSP name max. 15
 characters including the slashes. What happens on top of a plain rename:
@@ -122,8 +124,8 @@ rebranded too:
   `z2ui5/cc/*` and the custom controls `z2ui5.cc.*`. The backend-generated
   view XML references this namespace.
 
-> `frontend-legacy-free` proves this split: it renamed the BSP to `Z2UI5_V2`
-> but kept the custom controls as `z2ui5.*` and mapped
+> Every renamed branch proves this split: `standard_v2_zmyui5` renames the
+> BSP to `ZMYUI5` but keeps the custom controls as `z2ui5.*` and maps
 > `resourceroots {"z2ui5": "./cc/"}`.
 
 ## `--with-namespace` (advanced)

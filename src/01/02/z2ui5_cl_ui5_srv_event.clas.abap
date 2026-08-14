@@ -276,7 +276,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
     " read the newline constants from the context class, not cl_abap_char_
     " utilities directly (the SAP-standard dependency is abstracted there for
-    " non-ABAP runtimes - see z2ui5_cl_ui5_context)
+    " non-ABAP runtimes - see z2ui5_cl_ui5_util_context)
     REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf IN result WITH `\n`.
     REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_util_context=>cv_char_util_newline IN result WITH `\n`.
     " a standalone CR (not part of CR+LF, already collapsed above) is a JS
