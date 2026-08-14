@@ -93,6 +93,14 @@ imported; the app is gone.
   chunks. Gated by `check:abapgit` (`linelen`); abaplint's `line_length` rule
   is off in this repository and would not cover `src/00` and `src/99` anyway.
   For scale: the longest line in `src/` today is 253.
+
+  **Also gated outside this repository now**, which is what the samples case
+  argues for: the abap2UI5 linter reports it as **`source-line-too-long`** (an
+  error) on every app class it checks, so a consumer repo that runs nothing but
+  `npx abap2ui5lint` is covered too. Note what that does *not* replace — the
+  linter reads app classes and views, not `.clas.xml` sidecars or `src/00` and
+  `src/99`, so `check:abapgit` remains this repository's gate for the rest of
+  the round-trip family.
 - **Maximum statement length.** A single `result = VALUE #( … )` with a few
   hundred rows exceeds it. `abap2UI5/samples-controls#38` (`ee28671`): the
   246-row catalog constructor of the overview app could not be imported at
