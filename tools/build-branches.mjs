@@ -42,7 +42,7 @@
 
 import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { patchIndexHtml, patchManifest } from "./app2app_v2/patch-v2.mjs";
 
@@ -157,6 +157,16 @@ function initBranch(branch, abapgitXml) {
 const skipBuildArtifacts = (src) =>
   !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(src);
 
+// The cloud branches ship the Fiori project from app/ - the same one this
+// repository is developed with, so the two cannot drift apart. What they do
+// NOT ship is the tooling that project is developed WITH: the linter and
+// formatter configs run here, on a pull request, and a delivery branch is an
+// installation source, not a development checkout. They are named rather than
+// pattern-matched so a new project file has to be decided on, not silently
+// delivered or silently dropped.
+const DEV_ONLY = new Set([".editorconfig", ".prettierrc", "eslint.config.mjs", "ui5lint.config.mjs"]);
+const skipDevProjectFiles = (src) => !DEV_ONLY.has(relative(join(core, "app"), src));
+
 // abap/cloud carries the abaplint config that lints it in place. It belongs to
 // this repository, not to the delivered package - the output branch gets its
 // own copy at the root (see initBranch), with the glob turned to /src/.
@@ -166,7 +176,10 @@ const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
 // Webapp-Bootstrap zusaetzlich auf legacy-free gepatcht.
 function buildCloudVariant(branch) {
   const dir = initBranch(branch, ABAPGIT_CLOUD);
-  cpSync(join(core, "app"), join(dir, "app"), { recursive: true, filter: skipBuildArtifacts });
+  cpSync(join(core, "app"), join(dir, "app"), {
+    recursive: true,
+    filter: (src) => skipBuildArtifacts(src) && skipDevProjectFiles(src),
+  });
   cpSync(join(data, "abap/cloud"), join(dir, "src"), { recursive: true, filter: skipLintConfig });
   if (branch === "cloud_v2") {
     const wa = join(dir, "app/webapp");

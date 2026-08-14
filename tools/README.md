@@ -55,5 +55,12 @@ branches are built rather than what is in them.
 
 ## Deployment
 
-`frontend_deploy.yaml` pushes a built branch into the delivery repository. It is
-dispatch-only for now — see the comment at the top of the workflow.
+`frontend_deploy.yaml` builds and pushes the delivery branches into
+abap2UI5/frontend: all four on every push to `main` that touches `app/`,
+`frontend/` or `tools/`, a single named one (including a renamed
+`standard_<name>`) on dispatch, and everything again on a monthly safety-net
+cron. A build whose tree matches the published branch pushes nothing.
+
+The delivery repository builds nothing itself any more — its `main` carries
+only its own docs, and each of its branches is a tree written by that
+workflow.

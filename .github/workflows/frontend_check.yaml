@@ -9,16 +9,18 @@ name: frontend_check
 # push - deploying is frontend_deploy.yaml.
 
 on:
+  # app/ and not just app/webapp/: the cloud branches ship the whole Fiori
+  # project, so ui5.yaml or package.json changes what is delivered too.
   pull_request:
     paths:
-      - 'app/webapp/**'
+      - 'app/**'
       - 'frontend/**'
       - 'tools/**'
       - '.github/workflows/frontend_check.yaml'
   push:
     branches: [main]
     paths:
-      - 'app/webapp/**'
+      - 'app/**'
       - 'frontend/**'
       - 'tools/**'
   workflow_dispatch:
