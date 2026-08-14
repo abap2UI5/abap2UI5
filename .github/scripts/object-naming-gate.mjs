@@ -77,7 +77,7 @@ if (findings.length > 0) {
   console.log("Expected z2ui5_cl_ui5_* / z2ui5_cx_ui5_* / z2ui5_if_ui5_* (engine and");
   console.log("internal layers), or z2ui5_cl_ui5f_* for a generated frontend artefact");
   console.log("under src/01/03 - those names come from CLASS_NAME_STEMS in");
-  console.log(".github/app2abap/trans2abap.js, not from this file.");
+  console.log("tools/app2abap/trans2abap.js, not from this file.");
   console.log("");
   console.log("Exempt by design:");
   for (const [prefix, why] of EXEMPT) console.log(`  ${prefix.padEnd(10)} ${why}`);

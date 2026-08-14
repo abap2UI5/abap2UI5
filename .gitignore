@@ -30,5 +30,5 @@ test-results/
 # abaplint --rename output (npm run rename / build_rename)
 .github/abaplint/output/
 
-# frontend/build-branches.mjs output (generated deploy branches)
-frontend/out/
+# tools/build-branches.mjs output (generated deploy branches)
+tools/out/
