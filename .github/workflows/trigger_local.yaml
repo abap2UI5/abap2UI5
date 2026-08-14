@@ -1,11 +1,16 @@
 name: trigger_local
 
-# Keeps abap2UI5/abap2UI5-local in sync with this repository, analogous to
-# create_frontend for abap2UI5/frontend: every push to main refreshes the
-# input/ copy in abap2UI5-local and pushes it to its main branch via a
-# deploy key. That push then triggers the generate_702/standard/cloud
-# workflows over there, which rebuild the artifact branches. The monthly
-# update_input cron in abap2UI5-local remains as a safety net.
+# Keeps abap2UI5/abap2UI5-local in sync with this repository: every push to
+# main refreshes the input/ copy in abap2UI5-local and pushes it to its main
+# branch via a deploy key. That push then triggers the
+# generate_702/standard/cloud workflows over there, which rebuild the artifact
+# branches. The monthly update_input cron in abap2UI5-local remains as a
+# safety net.
+#
+# abap2UI5/frontend used to be kept in sync the same way (create_frontend,
+# which mirrored app/webapp into its main). It no longer is: the frontend
+# build lives here now, and frontend_deploy.yaml pushes finished branches
+# there instead of a source to build from.
 #
 # Requires the secret ACTION_KEY_LOCAL: the private half of a deploy key
 # registered on abap2UI5/abap2UI5-local with write access (same pattern as
