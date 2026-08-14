@@ -1102,12 +1102,11 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
+    " one release for both - the embedded frontend is generated from the same
+    " commit as the interface, so it is not asked a second time
     cl_abap_unit_assert=>assert_equals(
         exp = z2ui5_if_app=>version
-        act = lo_handler->ms_response-s_front-s_build-backend_version ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = z2ui5_cl_ui5f_build=>version
-        act = lo_handler->ms_response-s_front-s_build-frontend_version ).
+        act = lo_handler->ms_response-s_front-s_build-version ).
     cl_abap_unit_assert=>assert_equals(
         exp = z2ui5_cl_ui5f_build=>hash
         act = lo_handler->ms_response-s_front-s_build-frontend_hash ).

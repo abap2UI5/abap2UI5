@@ -182,16 +182,16 @@ INTERFACE z2ui5_if_ui5_types
   " kept them in step and nothing reported when they fell out of it; the first
   " symptom was a view that behaved like a version nobody was running.
   "
-  " backend_version and frontend_version come from the same abapGit pull and
-  " therefore agree unless that pull was partial. frontend_hash is the one that
-  " catches the common case: the same release, but the browser is running other
-  " bytes than the backend embeds - a stale cache, or a BSP that was never
-  " redeployed.
+  " One version, not two. The frontend the backend embeds is generated from
+  " app/webapp in the same repository and the same commit as z2ui5_if_app, so
+  " it cannot be from another release than the backend sending it - a second
+  " version field would be provably equal to the first and only one more thing
+  " to keep in step. The browser-side copy is the one that can genuinely be
+  " older, and that copy carries its own version in core/Build.js.
   TYPES:
     BEGIN OF ty_s_build,
-      backend_version  TYPE string,
-      frontend_version TYPE string,
-      frontend_hash    TYPE string,
+      version       TYPE string,
+      frontend_hash TYPE string,
     END OF ty_s_build.
 
   TYPES:

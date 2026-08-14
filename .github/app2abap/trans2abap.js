@@ -349,7 +349,10 @@ sap.ui.define([], () => {
 
   return {
     // abap2UI5 release these artefacts were generated from - the version
-    // constant of z2ui5_if_app at generation time.
+    // constant of z2ui5_if_app at generation time. Unlike the ABAP half,
+    // this copy DOES have to carry it: it travels into the BSP and into the
+    // browser's cache, away from the backend, and is then the only thing
+    // that can say how far behind it is.
     VERSION: "${version}",
 
     // Fingerprint over app/webapp/** (this file excluded). Two copies with
@@ -362,10 +365,19 @@ sap.ui.define([], () => {
 }
 
 // The ABAP-side half: what the EMBEDDED frontend (src/01/03) says about itself,
-// as constants the backend can read without parsing JavaScript. Consumed by
+// as a constant the backend can read without parsing JavaScript. Consumed by
 // z2ui5_cl_ui5_handler to fill the response and by z2ui5_cl_ui5_app_start to
 // show the build in the system-information popup.
-function buildIdentityClass(version, hash) {
+//
+// The hash only - deliberately no version here. These artefacts are generated
+// from app/webapp in the same repository, in the same commit, as the version
+// constant they would copy: an embedded frontend from another release than the
+// z2ui5_if_app next to it cannot occur, and check_app2abap keeps it from
+// reaching main. A second constant that is provably equal to the first would
+// only be one more thing to keep in step. The version does have to be carried
+// in the browser-side half, where the copy travels away from the backend and
+// can genuinely be older - see buildIdentityModule.
+function buildIdentityClass(hash) {
     return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
 * Build identity of the embedded frontend, generated from app/webapp/ by
@@ -373,7 +385,7 @@ function buildIdentityClass(version, hash) {
 * and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
 * fails any manual edit here.
 *
-* The same two values ship to the browser in app/webapp/core/Build.js, so
+* The same fingerprint ships to the browser in app/webapp/core/Build.js, so
 * the frontend that is actually RUNNING can be compared against the one
 * this backend embeds - see z2ui5_cl_ui5_handler=>main_end.
 * =====================================================================
@@ -384,10 +396,9 @@ CLASS ${BUILD_CLASS_NAME} DEFINITION
 
   PUBLIC SECTION.
 
-    " abap2UI5 release these frontend artefacts were generated from.
-    CONSTANTS version TYPE string VALUE \`${version}\`.
-
-    " Fingerprint over app/webapp/** (core/Build.js excluded).
+    " Fingerprint over app/webapp/** (core/Build.js excluded). The release
+    " these artefacts belong to is z2ui5_if_app=>version - same repository,
+    " same commit, so it is not repeated here.
     CONSTANTS hash TYPE string VALUE \`${hash}\`.
 
   PROTECTED SECTION.
@@ -507,7 +518,7 @@ async function main() {
         // The ABAP-side build identity. Not a resource the browser loads, so
         // it carries no preload entry - the backend reads its constants.
         const buildClassPath = path.join(targetDir, `${BUILD_CLASS_NAME}.clas.abap`);
-        await createFileInTargetDir(buildClassPath, buildIdentityClass(version, frontendHash));
+        await createFileInTargetDir(buildClassPath, buildIdentityClass(frontendHash));
         console.log(`Build identity class created successfully at: ${buildClassPath}`);
         const buildClassXmlPath = path.join(targetDir, `${BUILD_CLASS_NAME}.clas.xml`);
         await createFileInTargetDir(buildClassXmlPath, `\uFEFF${xmlTemplate(BUILD_CLASS_NAME, 'abap2UI5 - build identity')}`);

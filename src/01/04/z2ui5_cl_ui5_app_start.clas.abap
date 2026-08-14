@@ -673,9 +673,10 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " and the frontend logs that comparison into the developer tools itself
     " (core/Server.js, _checkBuildDrift). What this row adds is the value to
     " compare against when the report arrives from someone else's system.
+    " The fingerprint alone: its release is the version one row above.
     render_text( form  = form
                  label = `Frontend Build (embedded)`
-                 text  = |{ z2ui5_cl_ui5f_build=>version } / { z2ui5_cl_ui5f_build=>hash }| ).
+                 text  = z2ui5_cl_ui5f_build=>hash ).
     DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
     render_text( form  = form
                  label = `Draft Entries (own/total)`

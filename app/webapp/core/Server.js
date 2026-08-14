@@ -87,12 +87,11 @@ sap.ui.define(
     //           // A legacy app-authored raw-JS snippet stays a string entry.
     //           "T_CUSTOM": [["SET_FOCUS","id1"]]
     //       },
-    //       // Build identity of the backend and of the frontend it embeds,
-    //       // sent on the first roundtrip of a page load and left off every
-    //       // other response. Compared against core/Build.js by
+    //       // Release of the backend and fingerprint of the frontend it
+    //       // embeds, sent on the first roundtrip of a page load and left off
+    //       // every other response. Compared against core/Build.js by
     //       // _checkBuildDrift, which logs a stale BSP / cached preload.
-    //       "S_BUILD": { "BACKEND_VERSION": "1.142.0",
-    //                    "FRONTEND_VERSION": "1.142.0",
+    //       "S_BUILD": { "VERSION": "1.142.0",
     //                    "FRONTEND_HASH": "32f666bbfca4" }
     //     },
     //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes
@@ -473,16 +472,18 @@ sap.ui.define(
       // wrong one.
       //
       // `Build` is what THIS copy is - whichever way it was delivered, the
-      // module was generated together with the rest of it. `oBuild` is what
-      // the backend embeds. Two axes, because they fail differently:
+      // module was generated together with the rest of it. `oBuild` is the
+      // backend and the frontend it embeds, which are one release by
+      // construction and therefore report one VERSION.
       //
-      //   HASH differs, VERSION agrees   the interesting case. Same release,
-      //                                  different bytes: a browser serving a
-      //                                  cached preload, or a BSP that was
-      //                                  never redeployed.
-      //   VERSION differs                the BSP frontend was not upgraded
-      //                                  with the backend (or the other way
-      //                                  round).
+      // The hash is the finding; the version only says how bad it is:
+      //
+      //   HASH differs, VERSION agrees   same release, different bytes - a
+      //                                  browser serving a cached preload, or
+      //                                  a BSP that was never redeployed.
+      //   HASH and VERSION differ        the BSP frontend was not upgraded
+      //                                  with the backend, and the message can
+      //                                  name both releases.
       //
       // Logged, never enforced: a drifted frontend is usually still a working
       // one, and refusing to run would turn a hint into an outage. Lib.logError
@@ -490,43 +491,24 @@ sap.ui.define(
       // the Log tab of the developer tools (Ctrl+F12) by both routes - which is
       // where someone diagnosing "it works on the other system" will look.
       _checkBuildDrift(oBuild) {
-        if (!oBuild) return;
+        if (!oBuild || !oBuild.FRONTEND_HASH) return;
+        if (oBuild.FRONTEND_HASH === Build.HASH) return;
 
-        const sLoaded = `${Build.VERSION} / ${Build.HASH}`;
-        const sBackend = `${oBuild.FRONTEND_VERSION} / ${oBuild.FRONTEND_HASH}`;
+        const bSameRelease = oBuild.VERSION === Build.VERSION;
+        const sCause = bSameRelease
+          ? `same release (${Build.VERSION}), different build - most likely ` +
+            `a cached Component-preload.js in the browser, otherwise a BSP ` +
+            `that was not redeployed`
+          : `the loaded frontend is from ${Build.VERSION}, the backend from ` +
+            `${oBuild.VERSION} - the BSP frontend was not upgraded together ` +
+            `with the backend`;
 
-        if (oBuild.FRONTEND_HASH && oBuild.FRONTEND_HASH !== Build.HASH) {
-          const sCause =
-            oBuild.FRONTEND_VERSION === Build.VERSION
-              ? "same release, different build - most likely a cached " +
-                "Component-preload.js in the browser, otherwise a BSP that " +
-                "was not redeployed"
-              : "different release - the BSP frontend was not upgraded " +
-                "together with the backend";
-          Lib.logError(
-            `Build: frontend mismatch (${sCause}). Loaded frontend: ` +
-              `${sLoaded}, frontend embedded in the backend: ${sBackend}. ` +
-              `Reload without cache (Ctrl+Shift+R); if the mismatch stays, ` +
-              `redeploy the BSP from abap2UI5/frontend.`,
-          );
-        }
-
-        // Both come out of one abapGit pull, so they can only disagree when
-        // that pull was partial (or src/01/03 was regenerated against another
-        // release). Cheap to check and it names the cause outright, which
-        // beats letting it surface as the mismatch above with a misleading
-        // "redeploy the BSP" hint.
-        if (
-          oBuild.BACKEND_VERSION &&
-          oBuild.FRONTEND_VERSION &&
-          oBuild.BACKEND_VERSION !== oBuild.FRONTEND_VERSION
-        ) {
-          Lib.logError(
-            `Build: the backend (${oBuild.BACKEND_VERSION}) and the frontend ` +
-              `it embeds (${oBuild.FRONTEND_VERSION}) are from different ` +
-              `releases - the abap2UI5 abapGit pull looks incomplete.`,
-          );
-        }
+        Lib.logError(
+          `Build: frontend mismatch (${sCause}). Loaded frontend build: ` +
+            `${Build.HASH}, frontend embedded in the backend: ` +
+            `${oBuild.FRONTEND_HASH}. Reload without cache (Ctrl+Shift+R); ` +
+            `if the mismatch stays, redeploy the BSP from abap2UI5/frontend.`,
+        );
       },
 
       // A view failed to load a sap.com module: when the page runs on

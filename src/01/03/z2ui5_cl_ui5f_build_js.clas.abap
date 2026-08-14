@@ -44,13 +44,16 @@ CLASS z2ui5_cl_ui5f_build_js IMPLEMENTATION.
              `` && |\n| &&
              `  return {` && |\n| &&
              `    // abap2UI5 release these artefacts were generated from - the version` && |\n| &&
-             `    // constant of z2ui5_if_app at generation time.` && |\n| &&
+             `    // constant of z2ui5_if_app at generation time. Unlike the ABAP half,` && |\n| &&
+             `    // this copy DOES have to carry it: it travels into the BSP and into the` && |\n| &&
+             `    // browser's cache, away from the backend, and is then the only thing` && |\n| &&
+             `    // that can say how far behind it is.` && |\n| &&
              `    VERSION: "1.142.0",` && |\n| &&
              `` && |\n| &&
              `    // Fingerprint over app/webapp/** (this file excluded). Two copies with` && |\n| &&
              `    // the same hash ARE the same frontend; a different hash under the same` && |\n| &&
              `    // VERSION is the signature of a stale cache or an un-redeployed BSP.` && |\n| &&
-             `    HASH: "648b8b387a9d",` && |\n| &&
+             `    HASH: "b30d16ebf456",` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

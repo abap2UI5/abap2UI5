@@ -17,12 +17,15 @@ sap.ui.define([], () => {
 
   return {
     // abap2UI5 release these artefacts were generated from - the version
-    // constant of z2ui5_if_app at generation time.
+    // constant of z2ui5_if_app at generation time. Unlike the ABAP half,
+    // this copy DOES have to carry it: it travels into the BSP and into the
+    // browser's cache, away from the backend, and is then the only thing
+    // that can say how far behind it is.
     VERSION: "1.142.0",
 
     // Fingerprint over app/webapp/** (this file excluded). Two copies with
     // the same hash ARE the same frontend; a different hash under the same
     // VERSION is the signature of a stale cache or an un-redeployed BSP.
-    HASH: "648b8b387a9d",
+    HASH: "b30d16ebf456",
   };
 });

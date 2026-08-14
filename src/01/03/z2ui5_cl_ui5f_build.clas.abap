@@ -5,7 +5,7 @@
 * and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
 * fails any manual edit here.
 *
-* The same two values ship to the browser in app/webapp/core/Build.js, so
+* The same fingerprint ships to the browser in app/webapp/core/Build.js, so
 * the frontend that is actually RUNNING can be compared against the one
 * this backend embeds - see z2ui5_cl_ui5_handler=>main_end.
 * =====================================================================
@@ -16,11 +16,10 @@ CLASS z2ui5_cl_ui5f_build DEFINITION
 
   PUBLIC SECTION.
 
-    " abap2UI5 release these frontend artefacts were generated from.
-    CONSTANTS version TYPE string VALUE `1.142.0`.
-
-    " Fingerprint over app/webapp/** (core/Build.js excluded).
-    CONSTANTS hash TYPE string VALUE `648b8b387a9d`.
+    " Fingerprint over app/webapp/** (core/Build.js excluded). The release
+    " these artefacts belong to is z2ui5_if_app=>version - same repository,
+    " same commit, so it is not repeated here.
+    CONSTANTS hash TYPE string VALUE `b30d16ebf456`.
 
   PROTECTED SECTION.
   PRIVATE SECTION.

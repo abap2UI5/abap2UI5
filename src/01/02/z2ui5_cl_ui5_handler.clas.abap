@@ -833,10 +833,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " it against its own app/webapp/core/Build.js and logs the drift; nothing
     " here decides anything, which is why a mismatch never blocks the response.
     IF ms_request-s_front-id IS INITIAL.
-      ms_response-s_front-s_build = VALUE #(
-          backend_version  = z2ui5_if_app=>version
-          frontend_version = z2ui5_cl_ui5f_build=>version
-          frontend_hash    = z2ui5_cl_ui5f_build=>hash ).
+      ms_response-s_front-s_build = VALUE #( version       = z2ui5_if_app=>version
+                                             frontend_hash = z2ui5_cl_ui5f_build=>hash ).
     ENDIF.
 
     mv_response = response_abap_to_json( ms_response ).
