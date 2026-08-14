@@ -112,8 +112,19 @@ fs.rmSync(targetDir, { recursive: true, force: true });
 fs.mkdirSync(targetDir, { recursive: true });
 
 const webappFiles = collectFilesRecursively(sourceDir);
+// Lowercasing and the /->_- mapping are not injective: Component.js vs
+// component.js, or a/x.js vs a_-x.js, would land on the SAME page file -
+// last writer wins, both get registered, and check-pages sees nothing
+// missing. Fail here instead of shipping one of the two silently.
+const targetSources = new Map();
 for (const relativePath of webappFiles) {
     const targetFileName = generateTargetFileName(relativePath);
+    if (targetSources.has(targetFileName)) {
+        throw new Error(
+            `BSP page name collision: '${relativePath}' and '${targetSources.get(targetFileName)}' ` +
+            `both map to '${targetFileName}'`);
+    }
+    targetSources.set(targetFileName, relativePath);
     const content = fs.readFileSync(path.join(sourceDir, relativePath), 'utf8');
     fs.writeFileSync(path.join(targetDir, targetFileName), toBspPageFormat(content), 'utf8');
     console.log(`Copied ${relativePath} as ${targetFileName}.`);

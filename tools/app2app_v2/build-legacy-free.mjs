@@ -21,10 +21,18 @@ import { join } from "node:path";
 import { patchIndexHtml, patchManifest } from "./patch-v2.mjs";
 
 const [repoRoot, cloudWebapp, outDir] = process.argv.slice(2);
+if (!repoRoot || !cloudWebapp || !outDir || [repoRoot, cloudWebapp, outDir].some((a) => a.startsWith("--"))) {
+  console.error("Aufruf: node tools/app2app_v2/build-legacy-free.mjs <repoRoot> <cloudWebapp> <outDir> [--name <BSP>] [--own-backend]");
+  process.exit(1);
+}
 const toolsDir = join(repoRoot, "tools");
 const dataDir = join(repoRoot, "frontend");
 const ownBackend = process.argv.includes("--own-backend");
 const nameIdx = process.argv.indexOf("--name");
+if (nameIdx > -1 && !process.argv[nameIdx + 1]) {
+  console.error("--name braucht einen Wert (z.B. --name Z2UI5_V2)");
+  process.exit(1);
+}
 const bspName = nameIdx > -1 ? process.argv[nameIdx + 1] : "Z2UI5";
 const renamed = bspName.toUpperCase() !== "Z2UI5";
 const BSP_WIDTH = 255;
@@ -47,10 +55,21 @@ writeFileSync(join(wa, "index.html"), patchIndexHtml(readFileSync(join(wa, "inde
 writeFileSync(join(wa, "manifest.json"), patchManifest(readFileSync(join(wa, "manifest.json"), "utf8")));
 
 // 3) preload.js  +  app2bsp  +  4) optionales Rename (nur mit --name, z.B. Z2UI5_V2)
+// Leise im Erfolgsfall, nie im Fehlerfall: das verworfene Log sagt als
+// einziges, WARUM ein Schritt scheiterte.
+function runQuiet(args) {
+  try {
+    execFileSync("node", args, { cwd: work, stdio: ["ignore", "pipe", "pipe"] });
+  } catch (error) {
+    process.stderr.write(String(error.stdout ?? ""));
+    process.stderr.write(String(error.stderr ?? ""));
+    throw error;
+  }
+}
 execFileSync("node", [".github/app2bsp/preload.js"], { cwd: work, stdio: "inherit" });
-execFileSync("node", [".github/app2bsp/run.js"], { cwd: work, stdio: "ignore" });
+runQuiet([".github/app2bsp/run.js"]);
 if (renamed) {
-  execFileSync("node", [".github/bsp_rename/rename-bsp.mjs", bspName, "--dir", "src/02", "--yes"], { cwd: work, stdio: "ignore" });
+  runQuiet([".github/bsp_rename/rename-bsp.mjs", bspName, "--dir", "src/02", "--yes"]);
 }
 
 // 5) Backend-Datasource: default geteilt (/sap/bc/z2ui5), --own-backend = /sap/bc/<name>

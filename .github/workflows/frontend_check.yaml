@@ -25,6 +25,10 @@ on:
       - 'tools/**'
       # a hand-edit of the committed trees is caught by the same gate
       - 'build/**'
+      # the BSP preload bundle is minified with the installed terser, so a
+      # dependency bump can change build/ without touching any source above
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/frontend_check.yaml'
   push:
     branches: [main]
@@ -34,6 +38,10 @@ on:
       - 'tools/**'
       # a hand-edit of the committed trees is caught by the same gate
       - 'build/**'
+      # the BSP preload bundle is minified with the installed terser, so a
+      # dependency bump can change build/ without touching any source above
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch:
 
 permissions:
