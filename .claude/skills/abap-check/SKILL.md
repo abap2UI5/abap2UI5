@@ -118,6 +118,22 @@ pitfalls"; the short form:
 
 ## 4. Runtime — green here, wrong there
 
+- **An object name inside a string literal is not a reference — a rename sweep
+  will get it wrong and nothing will notice.** `#2564` renamed `z2ui5_cl_exit`
+  to `z2ui5_cl_ui5_user_exit` and carried the rename into the *interface*
+  literal of `get_user_exit_class`, which became `Z2UI5_IF_USER_EXIT` — an
+  interface that does not exist; the shipped one is `Z2UI5_IF_EXIT`. From that
+  commit on, no user exit was found in any system: no configured UI5 bootstrap,
+  no theme, no CSP override, no error. Everything stayed green, because the
+  lookups behind such literals read SEOCLASS/XCO — neither exists under
+  `npm run unit`, so "names nothing" and "customer implemented nothing" produce
+  the same empty table. Found by a user whose config class had stopped working.
+  Gated by `npm run check:dynamic`
+  (`.github/scripts/dynamic-name-gate.mjs`): every `Z2UI5_*` name in a string
+  literal must exist under `src/`, with names owned by other repositories listed
+  in `EXTERNAL` with their reason. **After any rename, reread the string
+  literals** — and when adding a dynamic lookup for something outside this
+  repository, put it in `EXTERNAL` rather than silencing the gate.
 - **Never "modernize" `WITH DEFAULT KEY` to `WITH EMPTY KEY` on a table passed
   to a classic function module.** The key is part of the table type; an
   incompatible one makes `CALL FUNCTION` fail at runtime, silently when it sits
