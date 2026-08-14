@@ -245,15 +245,15 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " char constants come from the context class - the one place allowed to
     " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
     result = replace( val  = result
-                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_newline
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_newline
                       with = `&#xA;`
                       occ  = 0 ).
     result = replace( val  = result
-                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf(1)
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
                       with = `&#xD;`
                       occ  = 0 ).
     result = replace( val  = result
-                      sub  = z2ui5_cl_a2ui5_context=>cv_char_util_horizontal_tab
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
                       with = `&#x9;`
                       occ  = 0 ).
 

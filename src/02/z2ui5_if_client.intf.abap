@@ -2,9 +2,42 @@ INTERFACE z2ui5_if_client
   PUBLIC.
 
   CONSTANTS:
+    BEGIN OF cs_device,
+      BEGIN OF system,
+        phone   TYPE string VALUE `phone`,
+        tablet  TYPE string VALUE `tablet`,
+        desktop TYPE string VALUE `desktop`,
+        combi   TYPE string VALUE `combi`,
+      END OF system,
+      BEGIN OF browser,
+        chrome  TYPE string VALUE `cr`,
+        firefox TYPE string VALUE `ff`,
+        safari  TYPE string VALUE `sf`,
+        edge    TYPE string VALUE `ed`,
+      END OF browser,
+      BEGIN OF os,
+        windows   TYPE string VALUE `win`,
+        macintosh TYPE string VALUE `mac`,
+        linux     TYPE string VALUE `linux`,
+        ios       TYPE string VALUE `ios`,
+        android   TYPE string VALUE `android`,
+      END OF os,
+      BEGIN OF orientation,
+        portrait  TYPE string VALUE `portrait`,
+        landscape TYPE string VALUE `landscape`,
+      END OF orientation,
+    END OF cs_device.
+
+  TYPES:
+    BEGIN OF ty_s_name_value,
+      n TYPE string,
+      v TYPE string,
+    END OF ty_s_name_value.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
+  CONSTANTS:
     BEGIN OF cs_event,
 
-      "Framework
       popup_close               TYPE string VALUE `POPUP_CLOSE`,
       popover_close             TYPE string VALUE `POPOVER_CLOSE`,
 
@@ -14,8 +47,6 @@ INTERFACE z2ui5_if_client
       cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
 
-
-      "Actions base
       clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
       set_title                 TYPE string VALUE `SET_TITLE`,
       set_favicon               TYPE string VALUE `SET_FAVICON`,
@@ -28,77 +59,28 @@ INTERFACE z2ui5_if_client
       keyboard_shortcut         TYPE string VALUE `KEYBOARD_SHORTCUT`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
-
-      "Actions more
       set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
-
-      "Control Action
-      "! obsolete - a Wizard is a control like any other, so drive it through
-      "! the generic control call instead. This event bundles the two calls
-      "! a UI5 controller makes (oWizard.discardProgress( oStep ) and
-      "! oStep.setNextStep( oNext )) into one fixed pair; the same flow is
-      "! two follow_up_action( cs_event-control_by_id ) calls, which the
-      "! CONTROL_METHODS whitelist already carries - together with
-      "! goToStep, which this event cannot reach at all. The constant stays
-      "! in the public API and keeps working
-      wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
-
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
       clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
-
       store_data                TYPE string VALUE `STORE_DATA`,
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
 
-      "! Enable hash-based app routing for this app (UI5 Router style):
-      "! follow_up_action( val = cs_event-set_nav_routing t_arg = ( mode ) ).
-      "! Once enabled, the URL hash mirrors the running app as a bookmarkable
-      "! route, and the browser Back/Forward buttons navigate between apps via
-      "! that hash. A forward navigation to another app (nav_app_call) pushes a
-      "! new route history entry, so Back returns to the calling app - the
-      "! routing equivalent of a UI5 navTo.
-      "!
-      "! Queue it ONCE, in check_on_init - the way a UI5 app configures routing
-      "! once in its manifest. The mode is remembered on the app (it travels in
-      "! the draft) and re-sent whenever the frontend may not still hold it -
-      "! page load, Back/Forward restore, a navigation hop, a mode change - so
-      "! it does not have to be re-asserted; an app called via nav_app_call inherits
-      "! it, and an app the user navigates back to keeps its own mode even when
-      "! the app in between ran with a different one.
-      "!
-      "! Works inside the SAP Fiori Launchpad as well: the route is written as
-      "! the app (inner) hash behind the shell hash, so the FLP back button
-      "! returns to the previous app instead of the launchpad home page.
-      "!
-      "! The mode (see cs_nav_mode) decides what Back/Forward/reload/bookmark
-      "! restore: keep restores the exact preserved state via a draft id in the
-      "! route '#/app/&lt;CLASS&gt;/&lt;DRAFT&gt;'; fresh routes by class only
-      "! '#/app/&lt;CLASS&gt;' and always starts the app fresh; default disables
-      "! routing. An empty t_arg means keep.
-      set_nav_routing           TYPE string VALUE `SET_NAV_ROUTING`,
-
-      "! Push an app-owned hash suffix onto the browser URL:
-      "! follow_up_action( val = cs_event-set_push_state t_arg = ( suffix ) ).
-      "! client->set_push_state( ) is the same call.
-      set_push_state            TYPE string VALUE `SET_PUSH_STATE`,
-
-      "! Carry the app-state id in the URL so the state can be bookmarked and
-      "! restored: follow_up_action( cs_event-set_app_state_active ). An empty
-      "! t_arg switches it on; pass a single space to switch it off again.
-      "! client->set_app_state_active( ) is the same call.
-      set_app_state_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
+      smart_variant_init        TYPE string VALUE `SMART_VARIANT_INIT`,
+      filter_bar_variant_init   TYPE string VALUE `FILTER_BAR_VARIANT_INIT`,
 
       "Control
       control_by_id             TYPE string VALUE `CONTROL_BY_ID`,
       control_global            TYPE string VALUE `CONTROL_GLOBAL`,
       binding_call              TYPE string VALUE `BINDING_CALL`,
       bind_element              TYPE string VALUE `BIND_ELEMENT`,
-      smart_variant_init        TYPE string VALUE `SMART_VARIANT_INIT`,
-      filter_bar_variant_init   TYPE string VALUE `FILTER_BAR_VARIANT_INIT`,
 
-      " legacy event names - still supported: the *nav_container_to variants
-      " are remapped to the generic control_by_id call (z2ui5_cl_core_srv_event),
-      " the others have dedicated frontend handlers
+      "experimental
+      set_app_state_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
+      set_push_state            TYPE string VALUE `SET_PUSH_STATE`,
+      set_nav_routing           TYPE string VALUE `SET_NAV_ROUTING`,
+
+      "obsolet
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
       nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
@@ -106,6 +88,7 @@ INTERFACE z2ui5_if_client
       popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
       popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
       z2ui5                     TYPE string VALUE `Z2UI5`,
+      wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
 
     END OF cs_event.
 
@@ -149,7 +132,7 @@ INTERFACE z2ui5_if_client
   "! obsolete - does NOTHING. An event round-trip that changes bound data
   "! pushes the model AUTOMATICALLY: the framework compares the model state
   "! before and after main( ) and, when it differs, sends it to every open
-  "! view slot (see z2ui5_cl_core_handler=>main_end). A handler can therefore
+  "! view slot (see z2ui5_cl_ui5_handler=>main_end). A handler can therefore
   "! no longer render stale by forgetting a call, and there is nothing left
   "! for this method to do. It stays in the interface so existing apps keep
   "! compiling - remove the calls at your leisure.
@@ -363,7 +346,7 @@ INTERFACE z2ui5_if_client
   "!                                keys `sap.app`/`sap.card` are not valid ABAP
   "!                                field names, and a string is read as a
   "!                                manifest URL). Outbound only - see
-  "!                                z2ui5_cl_core_srv_model.
+  "!                                z2ui5_cl_ui5_srv_model.
   METHODS _bind
     IMPORTING
       val                  TYPE data

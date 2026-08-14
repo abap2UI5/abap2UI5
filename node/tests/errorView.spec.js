@@ -232,7 +232,7 @@ test.describe("ErrorView friendly dialog", () => {
 
   test("shows only the messages of a framework dump, one per line", () => {
     const { ErrorView, state, created } = load();
-    // The 500 body built by z2ui5_cx_a2ui5_error=>get_text_full: version
+    // The 500 body built by z2ui5_cx_ui5_util_error=>get_text_full: version
     // header, the `--- error ---` message chain, then the detail sections.
     const dump = [
       "abap2UI5 1.142.0 - unhandled exception in a POST request",
@@ -242,7 +242,7 @@ test.describe("ErrorView friendly dialog", () => {
       "Json parsing error: Not JSON @Line 1, Offset 1",
       "",
       "--- exception chain ---",
-      "[1] Z2UI5_CX_A2UI5_ERROR",
+      "[1] Z2UI5_CX_UI5_UTIL_ERROR",
       "    position : CLASS=ZCL_MY_APP=====CP / line 42",
       "",
       "--- context ---",

@@ -60,7 +60,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 - [ ] **`cs_event-nav_container_to`** and the `nest_` / `nest2_` / `popup_` /
       `popover_` variants — `z2ui5_if_client.intf.abap:97-101`.
       - Removing them also deletes the remap block in
-        `z2ui5_cl_core_srv_event=>map_client_event` (~20 lines) that rewrites
+        `z2ui5_cl_ui5_srv_event=>map_client_event` (~20 lines) that rewrites
         them onto `control_by_id` + method `to`.
       - Zero usages in samples and samples-controls (checked, incl. raw literals).
 - [ ] **`cs_event-image_editor_popup_close`** — `z2ui5_if_client.intf.abap:96`.
@@ -92,7 +92,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 - [ ] **`check_sticky` / `check_initialized` of `z2ui5_if_app`** —
       `z2ui5_if_app.intf.abap:29`, `:34`. The state moved to
-      `z2ui5_cl_core_app=>mv_check_sticky` / `mv_check_initialized`; what is
+      `z2ui5_cl_ui5_app=>mv_check_sticky` / `mv_check_initialized`; what is
       left are mirrors `app_compat_mirror( )` keeps in sync for readers.
       - Removing them is a rule-5 break like any other, but a cheap one: they
         are `DATA`, not a signature, and the framework no longer reads them.
@@ -105,7 +105,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 > **Not obsolete, do not remove:** `id_draft` and `id_app` of `z2ui5_if_app`
 > look like the two above and are not. `id_draft` is the handle
-> `z2ui5_cl_core_app=>db_load_by_app( )` resolves an app reference by
+> `z2ui5_cl_ui5_app=>db_load_by_app( )` resolves an app reference by
 > (`read_draft( app->id_draft )`), and both are written at moments when no
 > wrapper exists yet — an app handed to `nav_app_call( )`, a draft looked up
 > before it is parsed. They are public only because an ABAP interface has no
@@ -141,7 +141,7 @@ breaking change for any downstream app that still references it.
 - [ ] **`src/99/01/` — 9 utility classes (11,925 lines) + `z2ui5_cx_util_error`
       + table `Z2UI5_T_91`**
       - **Blocker:** there is no successor API for *app* code. The internal
-        replacement (`z2ui5_cl_a2ui5_context`) is framework-only. Decide first
+        replacement (`z2ui5_cl_ui5_context`) is framework-only. Decide first
         whether apps get a public utility API, get pointed at
         [abap-util](https://github.com/abap-util/abap-util), or get nothing.
       - docs still uses them on 3 pages (logon language, lock, spreadsheet).
@@ -155,7 +155,7 @@ breaking change for any downstream app that still references it.
 
 **Falls out automatically when `src/99` goes:**
 
-- [ ] 23 `FROZEN-ONLY` methods in `z2ui5_cl_a2ui5_context` (`src/00/03/`) — they
+- [ ] 23 `FROZEN-ONLY` methods in `z2ui5_cl_ui5_context` (`src/00/03/`) — they
       exist solely because the shipped `src/99` still calls them. Grep the
       marker, delete the marked block.
 - [ ] `npm run check:frozen` + the `check_frozen_paths` workflow
@@ -214,7 +214,7 @@ controls a public contract, so these break hand-written view XML. Regenerate
 Not part of any public contract; removable whenever.
 
 - [ ] **`follow_up_action( _event( ) )` snippet parsing** —
-      `z2ui5_cl_core_action.clas.abap:256-262`. A `SPLIT` on `.eB(['` that
+      `z2ui5_cl_ui5_action.clas.abap:256-262`. A `SPLIT` on `.eB(['` that
       reverse-engineers the next event out of a legacy JS string.
 - [x] **The dynamic slot loops** — `reset_view_update_flags` 20 → 10 lines,
       `check_view_update_needed` 43 → 22. Plain `CLEAR` / `IF` on the statically

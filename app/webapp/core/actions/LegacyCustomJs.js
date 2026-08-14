@@ -20,7 +20,7 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
   const CH_DQUOTE = '"';
 
   // Undo the escapes the backend applies to a single-quoted argument
-  // (z2ui5_cl_core_srv_event=>escape_js_string): backslash, quote AND the
+  // (z2ui5_cl_ui5_srv_event=>escape_js_string): backslash, quote AND the
   // line breaks it rewrites to \n / \r - a raw newline would be a syntax
   // error inside a JS string literal, so a multi-line argument only ever
   // travels escaped. Decoding them in one pass keeps the order right: a

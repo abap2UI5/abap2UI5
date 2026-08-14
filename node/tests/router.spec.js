@@ -424,7 +424,7 @@ test("routes with stacked leading slashes still parse (old history entries)", ()
   expect(Router.appOf(`//app/${CALLEE}`)).toBe(CALLEE);
 });
 
-// The option names are a contract with the backend: z2ui5_cl_core_action_front=>
+// The option names are a contract with the backend: z2ui5_cl_ui5_act_front=>
 // nav_serialize writes exactly these keys into the ROUTER/sync call.
 // A rename on either side silently disables routing - the router would read
 // undefined everywhere and simply do nothing - so pin the set here.

@@ -1,17 +1,23 @@
 {
   "global": {
-    // src/99 is deliberately NOT listed in THIS strict ruleset: its frozen
-    // production code may not be changed to satisfy new rules (see AGENTS.md).
-    // The CI target configs (.github/abaplint/*) do syntax-lint it, and its
-    // test classes run in the transpiled unit suite
+    // src/99 has to be PARSED - src/01 and src/02 resolve types out of it
+    // (z2ui5_if_types lives there) and a file abaplint cannot see resolves to
+    // "Could not resolve top Z2UI5_IF_TYPES" in every consumer. It must not be
+    // JUDGED, though: its frozen production code may not be changed to satisfy
+    // new rules (see AGENTS.md). noIssues is exactly that distinction, and is
+    // how src/00 already carries its vendored libraries. The CI target configs
+    // (.github/abaplint/*) syntax-lint src/99 on their own, and its test
+    // classes run in the transpiled unit suite
     "files": [
       "/src/00/**/*.*",
       "/src/01/**/*.*",
       "/src/02/**/*.*",
+      "/src/99/**/*.*",
       "/src/*.*"
     ],
     "noIssues": [
-      "/src/00"
+      "/src/00",
+      "/src/99"
     ]
   },
   "dependencies": [
@@ -103,8 +109,8 @@
       "skip": [
         "Z2UI5_IF_APP",
         "Z2UI5_IF_CLIENT",
-        "Z2UI5_CL_CORE_ACTION",
-        "Z2UI5_CL_CORE_HANDLER"
+        "Z2UI5_CL_UI5_ACTION",
+        "Z2UI5_CL_UI5_HANDLER"
       ],
       "skipSharedMemory": true,
       "skipTestclasses": true

@@ -1,0 +1,55 @@
+* =====================================================================
+* GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
+* Embedded frontend resource, generated from app/webapp/ by
+* .github/app2abap/trans2abap.js. Change the source under app/webapp/
+* and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
+* fails any manual edit here.
+* =====================================================================
+CLASS z2ui5_cl_ui5f_title_js DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    CLASS-METHODS get
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
+
+  METHOD get.
+
+    result = `// Invisible control that sets the browser tab title from its bound` && |\n| &&
+             `// ``title`` property.` && |\n| &&
+             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+             `  "use strict";` && |\n| &&
+             `  // OBSOLETE: replaced by the frontend event cs_event-set_title - kept for backward compatibility.` && |\n| &&
+             `  return Control.extend("z2ui5.cc.Title", {` && |\n| &&
+             `    metadata: {` && |\n| &&
+             `      properties: {` && |\n| &&
+             `        title: {` && |\n| &&
+             `          type: "string",` && |\n| &&
+             `        },` && |\n| &&
+             `      },` && |\n| &&
+             `    },` && |\n| &&
+             `    setTitle(val) {` && |\n| &&
+             `      // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
+             `      // (setting the tab title) is what actually matters.` && |\n| &&
+             `      this.setProperty("title", val, true);` && |\n| &&
+             `      document.title = Lib.toText(val);` && |\n| &&
+             `    },` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `  });` && |\n| &&
+             `});` && |\n| &&
+             `` && |\n| &&
+              ``.
+
+  ENDMETHOD.
+
+ENDCLASS.

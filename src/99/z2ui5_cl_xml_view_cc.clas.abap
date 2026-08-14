@@ -311,7 +311,9 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
+
+CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
+
 
   METHOD approve_popover.
 
@@ -330,6 +332,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD bwip_js.
 
     result = mo_view.
@@ -343,6 +346,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD camera_picture.
 
     result = mo_view.
@@ -355,12 +359,13 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `height`     v = height )
                                          ( n = `width`      v = width )
                                          ( n = `OnPhoto`    v = onphoto )
-                                         ( n = `autoplay`   v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( autoplay ) )
+                                         ( n = `autoplay`   v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( autoplay ) )
                                          ( n = `facingMode` v = facingmode )
                                          ( n = `deviceId`   v = deviceid )
          ) ).
 
   ENDMETHOD.
+
 
   METHOD camera_selector.
 
@@ -369,7 +374,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
         name   = `CameraSelector`
         ns     = `z2ui5`
         t_prop = VALUE #(
-            (  n = `showClearIcon` v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( showclearicon ) )
+            (  n = `showClearIcon` v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( showclearicon ) )
             (  n = `selectedKey`   v = selectedkey )
             (  n = `items`         v = items )
             (  n = `id`         v = id )
@@ -382,19 +387,20 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
             (  n = `valueState`         v = valuestate )
             (  n = `valueStateText`         v = valuestatetext )
             (  n = `textAlign`         v = textalign )
-            (  n = `showSecondaryValues`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( showsecondaryvalues ) )
-            (  n = `visible`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( visible ) )
-            (  n = `showValueStateMessage`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( showvaluestatemessage ) )
-            (  n = `showButton`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( showbutton ) )
-            (  n = `required`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( required ) )
-            (  n = `editable`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( editable ) )
-            (  n = `enabled`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( enabled ) )
-            (  n = `filterSecondaryValues`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( filtersecondaryvalues ) )
+            (  n = `showSecondaryValues`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( showsecondaryvalues ) )
+            (  n = `visible`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( visible ) )
+            (  n = `showValueStateMessage`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( showvaluestatemessage ) )
+            (  n = `showButton`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( showbutton ) )
+            (  n = `required`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( required ) )
+            (  n = `editable`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( editable ) )
+            (  n = `enabled`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( enabled ) )
+            (  n = `filterSecondaryValues`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( filtersecondaryvalues ) )
             (  n = `width`         v = width )
             (  n = `placeholder`         v = placeholder )
             (  n = `change`        v = change ) ) ).
 
   ENDMETHOD.
+
 
   METHOD chartjs.
 
@@ -410,11 +416,13 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                        ) ).
   ENDMETHOD.
 
+
   METHOD constructor.
 
     mo_view = view.
 
   ENDMETHOD.
+
 
   METHOD demo_output.
 
@@ -430,6 +438,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD favicon.
 
     result = mo_view.
@@ -438,6 +447,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `favicon`  v = favicon ) ) ).
 
   ENDMETHOD.
+
 
   METHOD file_uploader.
 
@@ -449,16 +459,17 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                           (  n = `upload`             v = upload )
                           (  n = `path`               v = path )
                           (  n = `value`              v = value )
-                          (  n = `iconOnly`           v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( icononly ) )
-                          (  n = `buttonOnly`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( buttononly ) )
+                          (  n = `iconOnly`           v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( icononly ) )
+                          (  n = `buttonOnly`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( buttononly ) )
                           (  n = `buttonText`         v = buttontext )
                           (  n = `uploadButtonText`   v = uploadbuttontext )
                           (  n = `fileType`           v = filetype )
-                          (  n = `checkDirectUpload`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( checkdirectupload ) )
+                          (  n = `checkDirectUpload`  v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( checkdirectupload ) )
                           (  n = `icon`           v = icon )
-                          (  n = `enabled`         v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( enabled ) ) ) ).
+                          (  n = `enabled`         v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( enabled ) ) ) ).
 
   ENDMETHOD.
+
 
   METHOD focus.
 
@@ -472,6 +483,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
          ) ).
 
   ENDMETHOD.
+
 
   METHOD geolocation.
 
@@ -488,11 +500,12 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                            ( n = `altitudeAccuracy`  v = altitudeaccuracy )
                            ( n = `speed`  v = speed )
                            ( n = `heading`  v = heading )
-                           ( n = `enableHighAccuracy`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( enablehighaccuracy ) )
+                           ( n = `enableHighAccuracy`  v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( enablehighaccuracy ) )
                            ( n = `timeout`  v = timeout )
                 ) ).
 
   ENDMETHOD.
+
 
   METHOD storage.
     result = mo_view.
@@ -505,6 +518,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `value`  v = value ) ) ).
   ENDMETHOD.
 
+
   METHOD history.
 
     result = mo_view.
@@ -513,6 +527,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `search`  v = search ) ) ).
 
   ENDMETHOD.
+
 
   METHOD info_frontend.
 
@@ -535,6 +550,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD message_manager.
 
     result = mo_view.
@@ -545,6 +561,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD messaging.
 
     result = mo_view.
@@ -554,6 +571,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                 ) ).
 
   ENDMETHOD.
+
 
   METHOD multiinput_ext.
 
@@ -567,6 +585,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `removedTokens` v = removedtokens ) ) ).
 
   ENDMETHOD.
+
 
   METHOD uploadset_ext.
 
@@ -584,6 +603,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD tree.
 
     result = mo_view.
@@ -593,6 +613,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
          ) ).
 
   ENDMETHOD.
+
 
   METHOD scrolling.
 
@@ -604,6 +625,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
          ) ).
 
   ENDMETHOD.
+
 
   METHOD spreadsheet_export.
 
@@ -620,6 +642,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD timer.
 
     result = mo_view.
@@ -627,11 +650,12 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        ns     = `z2ui5`
                        t_prop = VALUE #( ( n = `delayMS`  v = delayms )
                                          ( n = `finished`  v = finished )
-                                         ( n = `checkActive`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( checkactive ) )
-                                         ( n = `checkRepeat`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( checkrepeat ) )
+                                         ( n = `checkActive`  v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( checkactive ) )
+                                         ( n = `checkRepeat`  v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( checkrepeat ) )
                 ) ).
 
   ENDMETHOD.
+
 
   METHOD binding_update.
 
@@ -645,6 +669,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD websocket.
 
     result = mo_view.
@@ -653,11 +678,12 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `value`  v = value )
                                          ( n = `path`  v = path )
                                          ( n = `received`  v = received )
-                                         ( n = `checkActive`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( checkactive ) )
-                                         ( n = `checkRepeat`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( checkrepeat ) )
+                                         ( n = `checkActive`  v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( checkactive ) )
+                                         ( n = `checkRepeat`  v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( checkrepeat ) )
                 ) ).
 
   ENDMETHOD.
+
 
   METHOD lp_title.
 
@@ -666,9 +692,10 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
         name   = `LPTitle`
         ns     = `z2ui5`
         t_prop = VALUE #( ( n = `title`  v = title )
-                          ( n = `ApplicationFullWidth`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( applicationfullwidth ) ) ) ).
+                          ( n = `ApplicationFullWidth`  v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( applicationfullwidth ) ) ) ).
 
   ENDMETHOD.
+
 
   METHOD title.
 
@@ -679,14 +706,16 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD dirty.
 
     result = mo_view.
     mo_view->_generic( name   = `Dirty`
                        ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `isDirty`  v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( isdirty ) ) ) ).
+                       t_prop = VALUE #( ( n = `isDirty`  v = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( isdirty ) ) ) ).
 
   ENDMETHOD.
+
 
   METHOD uitableext.
 
@@ -696,6 +725,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `tableId` v = tableid ) ) ).
 
   ENDMETHOD.
+
 
   METHOD smartmultiinput_ext.
 
@@ -709,5 +739,4 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `removedTokens` v = removedtokens ) ) ).
 
   ENDMETHOD.
-
 ENDCLASS.

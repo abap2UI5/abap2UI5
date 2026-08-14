@@ -21,7 +21,7 @@ on:
     paths:
       - 'app/webapp/model/formatter.js'
       - 'app/webapp/Util.js'
-      - 'src/01/03/z2ui5_cl_app_formatter_js.clas.abap'
+      - 'src/01/03/z2ui5_cl_ui5f_format_js.clas.abap'
       - '.github/scripts/formatter-scope-gate.mjs'
       - '.github/workflows/check_formatter_scope.yaml'
 

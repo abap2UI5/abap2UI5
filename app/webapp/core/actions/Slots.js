@@ -313,7 +313,7 @@ sap.ui.define(
           // otherwise float on top of a page they no longer belong to - a
           // dialog of the previous screen over the new one. The backend
           // relies on this and sends no destroy action for them next to a
-          // MAIN display (z2ui5_cl_core_action_front=>slots_serialize). A
+          // MAIN display (z2ui5_cl_ui5_act_front=>slots_serialize). A
           // popup/popover the SAME response opens still opens: slot actions
           // are serialized MAIN first, and each one is awaited before the
           // next runs (View1._runSystemActions).

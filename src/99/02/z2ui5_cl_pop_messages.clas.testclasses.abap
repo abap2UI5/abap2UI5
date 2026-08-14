@@ -65,7 +65,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_empty_input.
 
-    DATA(lx) = NEW z2ui5_cx_a2ui5_error( val = `test` ).
+    DATA(lx) = NEW z2ui5_cx_ui5_util_error( val = `test` ).
     DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lx ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
@@ -80,7 +80,7 @@ CLASS ltcl_test_roundtrip DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    DATA mo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA mi_client TYPE REF TO z2ui5_if_client.
 
     METHODS popup_displayed_xml
@@ -113,7 +113,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     result = VALUE #( mo_action->ms_next-t_action_front[
                           slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_core_types=>cs_slot_action-display ]-xml OPTIONAL ).
+                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ).
 
   ENDMETHOD.
 
@@ -122,16 +122,16 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
                           slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_core_types=>cs_slot_action-destroy ] ) ).
+                          method = z2ui5_if_ui5_types=>cs_slot_action-destroy ] ) ).
 
   ENDMETHOD.
 
 
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_core_handler( `` ) ).
+    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_core_client( mo_action ).
+    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
 
   ENDMETHOD.
 

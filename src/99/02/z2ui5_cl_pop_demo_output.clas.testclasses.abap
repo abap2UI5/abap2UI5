@@ -73,7 +73,7 @@ CLASS ltcl_test_roundtrip DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    DATA mo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA mi_client TYPE REF TO z2ui5_if_client.
 
     METHODS popup_displayed_xml
@@ -106,7 +106,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     result = VALUE #( mo_action->ms_next-t_action_front[
                           slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_core_types=>cs_slot_action-display ]-xml OPTIONAL ).
+                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ).
 
   ENDMETHOD.
 
@@ -115,16 +115,16 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
                           slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_core_types=>cs_slot_action-destroy ] ) ).
+                          method = z2ui5_if_ui5_types=>cs_slot_action-destroy ] ) ).
 
   ENDMETHOD.
 
 
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_core_handler( `` ) ).
+    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_core_client( mo_action ).
+    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
 
   ENDMETHOD.
 
@@ -140,7 +140,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
   METHOD test_init_displays_popup.
 
     " any object without a GET method works - the HTML extraction is guarded
-    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( i_output = NEW z2ui5_cx_a2ui5_error( `x` )
+    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( i_output = NEW z2ui5_cx_ui5_util_error( `x` )
                                                       i_title  = `Demo Title` ).
     client_create( lo_pop ).
 
@@ -152,7 +152,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_toggle_fullscreen.
 
-    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( NEW z2ui5_cx_a2ui5_error( `x` ) ).
+    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( NEW z2ui5_cx_ui5_util_error( `x` ) ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `TOGGLE_FULLSCREEN` ).
 
@@ -161,13 +161,13 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial(
         VALUE string( mo_action->ms_next-t_action_front[
                           slot   = z2ui5_if_client=>cs_view-main
-                          method = z2ui5_if_core_types=>cs_slot_action-display ]-xml OPTIONAL ) ).
+                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ) ).
 
   ENDMETHOD.
 
   METHOD test_confirm_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( NEW z2ui5_cx_a2ui5_error( `x` ) ).
+    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory( NEW z2ui5_cx_ui5_util_error( `x` ) ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONFIRM` ).
 
