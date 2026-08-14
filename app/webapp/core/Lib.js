@@ -61,14 +61,25 @@ sap.ui.define(
     // releases (e.g. 1.71) where an async require would 404 and make the
     // ui5loader retry noisily via synchronous XHR. getMessaging()'s
     // MessageManager fallback covers those releases instead.
+    //
+    // An UNREADABLE version means "modern", never "old": the legacy-free
+    // (UI5 2.x) build no longer ships the sap.ui.version global, so probing
+    // it there yields undefined on a 1.142 runtime. Answering "false" for
+    // that case is doubly wrong - legacy-free is the one runtime where
+    // sap/ui/core/Messaging is the ONLY messaging API, because the
+    // sap.ui.getCore().getMessageManager() fallback in getMessaging() is
+    // gone too. The warm-load in Component.init would then be skipped and
+    // getMessaging() would return null for good: no message> model, no
+    // handleValidation. Only a version we can read AND that is older than
+    // 1.118 may switch the warm-load off.
     function hasMessagingModule() {
       /* ui5lint-disable no-globals --
        sap.ui.version is the only way to read the running UI5 version; there
-       is no injected/module equivalent. */
+       is no injected/module equivalent. Absent on the legacy-free build. */
       const rawVersion = String(sap.ui.version || "");
       /* ui5lint-enable no-globals */
       const [major, minor] = rawVersion.split(".").map(Number);
-      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;
+      if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;
       return major > 1 || (major === 1 && minor >= 118);
     }
 

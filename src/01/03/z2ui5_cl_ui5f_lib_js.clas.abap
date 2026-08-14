@@ -88,14 +88,25 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    // releases (e.g. 1.71) where an async require would 404 and make the` && |\n| &&
              `    // ui5loader retry noisily via synchronous XHR. getMessaging()'s` && |\n| &&
              `    // MessageManager fallback covers those releases instead.` && |\n| &&
+             `    //` && |\n| &&
+             `    // An UNREADABLE version means "modern", never "old": the legacy-free` && |\n| &&
+             `    // (UI5 2.x) build no longer ships the sap.ui.version global, so probing` && |\n| &&
+             `    // it there yields undefined on a 1.142 runtime. Answering "false" for` && |\n| &&
+             `    // that case is doubly wrong - legacy-free is the one runtime where` && |\n| &&
+             `    // sap/ui/core/Messaging is the ONLY messaging API, because the` && |\n| &&
+             `    // sap.ui.getCore().getMessageManager() fallback in getMessaging() is` && |\n| &&
+             `    // gone too. The warm-load in Component.init would then be skipped and` && |\n| &&
+             `    // getMessaging() would return null for good: no message> model, no` && |\n| &&
+             `    // handleValidation. Only a version we can read AND that is older than` && |\n| &&
+             `    // 1.118 may switch the warm-load off.` && |\n| &&
              `    function hasMessagingModule() {` && |\n| &&
              `      /* ui5lint-disable no-globals --` && |\n| &&
              `       sap.ui.version is the only way to read the running UI5 version; there` && |\n| &&
-             `       is no injected/module equivalent. */` && |\n| &&
+             `       is no injected/module equivalent. Absent on the legacy-free build. */` && |\n| &&
              `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
              `      /* ui5lint-enable no-globals */` && |\n| &&
              `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
+             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;` && |\n| &&
              `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -413,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `          return null;` && |\n| &&
              `        }` && |\n| &&
              `        i += 2;` && |\n| &&
-             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
+             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n|.
+    result = result &&
              `          steps.push({ row, field, leaf: true });` && |\n| &&
              `          return steps;` && |\n| &&
              `        }` && |\n| &&
@@ -424,8 +436,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Build the delta object sent to the backend. ``paths`` is the set of` && |\n| &&
-             `    // model paths that the user edited; ``model`` is the full view model data.` && |\n|.
-    result = result &&
+             `    // model paths that the user edited; ``model`` is the full view model data.` && |\n| &&
              `    // Table edits become (recursively nested) __delta structures, so a cell` && |\n| &&
              `    // edit in a nested/tree table ships only the changed cell instead of` && |\n| &&
              `    // the whole outer table.` && |\n| &&
