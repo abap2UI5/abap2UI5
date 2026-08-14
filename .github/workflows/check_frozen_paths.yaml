@@ -4,16 +4,26 @@ name: check_frozen_paths
 #
 # The production code of src/99 is frozen: the retired z2ui5_cl_util* classes
 # (99/01), the obsolete built-in popups (99/02) and the legacy XML view
-# builder at the top level, superseded by z2ui5_cl_ai_xml in src/02/. No
-# framework code, app or tooling consumes it; it ships solely so existing
-# downstream installations keep compiling on upgrade, and none of it may
-# change here.
+# builders at the top level, superseded by z2ui5_cl_ui5_view_builder in
+# src/02/. No framework code, app or tooling consumes it; it ships solely so
+# existing downstream installations keep compiling on upgrade, and none of it
+# may change here.
 #
 # The test classes are the exception: *.testclasses.abap and the abapGit
 # .clas.xml sidecars (which carry the WITH_UNIT_TESTS flag) are exempt from
 # the freeze. They lint and run in the transpiled unit suite, guarding the
 # layer against regressions - and because they assert on core internals, they
 # must be free to follow those internals when they move.
+#
+# Moving an object OUT of the package is the other exception, and it follows
+# from what the freeze is for. The guarantee is that a downstream installation
+# keeps compiling after an upgrade - so what may not happen is a signature
+# changing under it, or an object vanishing from the delivery. A file that
+# leaves src/99 while the same object keeps shipping from another package
+# breaks neither: abapGit installs the repository, not the folder. So a
+# deletion is allowed exactly when the object still exists somewhere under
+# src/ afterwards, and refused when it does not. Anything edited in place is
+# refused either way.
 #
 # AGENTS.md says so in prose, which is a request. This is the guarantee.
 
@@ -44,18 +54,36 @@ jobs:
         run: |
           set -euo pipefail
 
-          changed=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- src/99 \
+          # Touched in place - added, modified, or renamed within the package.
+          # Never allowed. (-d, lowercase, excludes deletions.)
+          edited=$(git diff --name-only --diff-filter=d "$BASE_SHA" "$HEAD_SHA" -- src/99 \
             ':(exclude)src/99/*.testclasses.abap' ':(exclude)src/99/*.clas.xml')
 
-          if [ -n "$changed" ]; then
-            echo "::error::src/99 production code is frozen - these files must not change:"
-            echo "$changed" | sed 's/^/  /'
+          # Gone from src/99. Allowed only as a relocation - see the header.
+          deleted=$(git diff --name-only --diff-filter=D "$BASE_SHA" "$HEAD_SHA" -- src/99 \
+            ':(exclude)src/99/*.testclasses.abap' ':(exclude)src/99/*.clas.xml')
+
+          # One listing of the post-merge tree; the object name IS the file name.
+          tree=$(git ls-tree -r --name-only "$HEAD_SHA" -- src)
+
+          dropped=""
+          for f in $deleted; do
+            if printf '%s\n' "$tree" | grep -qx "src/.*/$(basename "$f")"; then
+              echo "relocated, still ships: $f -> $(printf '%s\n' "$tree" | grep -m1 -x "src/.*/$(basename "$f")")"
+            else
+              dropped="${dropped}${f}"$'\n'
+            fi
+          done
+
+          if [ -n "$edited" ] || [ -n "$dropped" ]; then
+            echo "::error::src/99 production code is frozen:"
+            [ -n "$edited" ] && { echo "  changed in place - revert:"; echo "$edited" | sed 's/^/    /'; }
+            [ -n "$dropped" ] && { echo "  deleted, and the object ships nowhere else - downstream stops compiling:"; printf '%s' "$dropped" | sed 's/^/    /'; }
             echo ""
             echo "src/99 is kept only so downstream apps keep compiling."
-            echo "The XML view builder is being replaced by the ai-demokit"
-            echo "version; that work does not happen in this repository."
+            echo "Moving an object to another package is fine; dropping it is not."
             echo "See AGENTS.md, 'Layered Design'."
             exit 1
           fi
 
-          echo "src/99 untouched."
+          echo "src/99 frozen code intact."
