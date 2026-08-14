@@ -345,7 +345,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     GET REFERENCE OF <source_ref> INTO <parent_ref>.
     ir_attri->o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( <parent_ref> ).
 
-    LOOP AT ir_child_idx->* REFERENCE INTO DATA(lr_child_idx)
+    LOOP AT ir_child_idx->* REFERENCE INTO DATA(lr_child_idx) "#EC CI_SORTSEQ
          WHERE name_parent = ir_attri->name.
       READ TABLE mt_attri->* REFERENCE INTO DATA(lr_child)
            WITH KEY name = lr_child_idx->name.
@@ -579,7 +579,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     DATA(lv_prefix) = COND string( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ).
 
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE visibility   = z2ui5_cl_ui5_util_context=>cv_objectdescr_public
                AND is_interface = abap_false
                AND is_class     = abap_false

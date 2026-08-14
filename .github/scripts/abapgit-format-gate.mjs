@@ -21,6 +21,16 @@
 //                `class_constructor` passes every lint we run and fails on
 //                activation. Worked around in z2ui5_cl_ui5_frontend (#2547),
 //                see the ct_box_type comment there.
+//   linelen      abap2UI5/samples#669 - a merged reorganization carried source
+//                lines over 255 characters. ABAP's hard limit; the import dies
+//                with "Literals across more than one line are not allowed" and
+//                leaves the classes behind as empty stubs. abaplint's
+//                line_length rule is off here (`abaplint.jsonc`), and it would
+//                not cover src/00 and src/99 anyway.
+//   apos         abap2UI5/samples 702813e "fix abapgit" - nine .clas.xml files
+//                carried a raw apostrophe in <DESCRIPT>. abapGit renders XML
+//                through the ABAP iXML writer, which escapes it as &apos;, so
+//                every one of them came back changed on the next pull.
 //
 // The rest (CRLF, tabs, filename case, sidecar pairing, CLSNAME, LANGU,
 // WITH_UNIT_TESTS) is the same class of defect and costs nothing to check, so
@@ -94,6 +104,35 @@ for (const file of files) {
   const name = file.slice(file.lastIndexOf("/") + 1);
   if (name !== name.toLowerCase()) {
     add(file, "filename", "abapGit derives the object name from a lower-case file name");
+  }
+
+  // ABAP source lines are 255 characters, hard. A longer line does not fail the
+  // pull with a format error - it fails the *import* of that object, and abapGit
+  // carries on, so the class is left in the system as an empty stub.
+  if (file.endsWith(".abap")) {
+    let line = 0;
+    for (const text of body.toString("utf8").split("\n")) {
+      line += 1;
+      if (text.length > 255) {
+        add(
+          `${file}:${line}`,
+          "linelen",
+          `${text.length} characters - ABAP source lines stop at 255; split the literal into && chunks`,
+        );
+      }
+    }
+  }
+
+  // abapGit writes its XML with the ABAP iXML renderer, which escapes the
+  // apostrophe. A hand-written raw ' is therefore not what the system returns.
+  if (file.endsWith(".xml")) {
+    let line = 0;
+    for (const text of body.toString("utf8").split("\n")) {
+      line += 1;
+      if (text.includes("'")) {
+        add(`${file}:${line}`, "apos", "raw apostrophe - abapGit serializes it as &apos;");
+      }
+    }
   }
 }
 

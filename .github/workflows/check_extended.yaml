@@ -1,0 +1,44 @@
+# Machine gate for the extended program check (SLIN / ATC).
+#
+# That check runs in real SAP systems and nowhere in this pipeline. abaplint
+# models none of it: it has no notion of the sequential-read check behind
+# "#EC CI_SORTSEQ, of the empty-handler check behind ##NO_HANDLER, or of the
+# POSIX-regex deprecation behind ##REGEX_POSIX. A green `npm run check`
+# therefore says nothing about whether the sources are clean in a system.
+#
+# Prose was tried first and did not hold - AGENTS.md has carried the rules for a
+# while and the findings still had to be swept up afterwards, in 43515c97
+# ("fix cloud atc findings"), 0d9a7485 ("fix atc findings"), 5b9e16ea ("fix atc
+# warnings in abap cloud") and 44642cbe ("resolve extended-check warnings").
+#
+# .github/scripts/extended-check-gate.mjs holds the rules; the case behind each
+# one, and the extended-check traps no script can decide, are in
+# .claude/skills/abap-check/SKILL.md, section 3.
+name: check_extended
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - '.github/scripts/extended-check-gate.mjs'
+      - '.github/workflows/check_extended.yaml'
+
+concurrency:
+  group: check_extended-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check_extended:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: src/ is clean under the extended check
+        run: node .github/scripts/extended-check-gate.mjs

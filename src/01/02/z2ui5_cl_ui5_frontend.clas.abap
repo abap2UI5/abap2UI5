@@ -373,7 +373,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
          INTO DATA(lv_slot).
       " REFERENCE INTO - a row carries the whole view XML, which a copying
       " LOOP would duplicate once per slot action
-      LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO DATA(lr_action)
+      LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO DATA(lr_action) "#EC CI_SORTSEQ
            WHERE slot = lv_slot.
         DATA(lt_arg) = VALUE string_table( ( z2ui5_if_ui5_types=>cs_slot_action-target )
                                            ( lr_action->method )
