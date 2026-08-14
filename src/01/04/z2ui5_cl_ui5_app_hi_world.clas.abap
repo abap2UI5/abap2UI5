@@ -32,6 +32,7 @@ CLASS z2ui5_cl_ui5_app_hi_world IMPLEMENTATION.
                       )->a( n = `editable`  v = `true`
 
                       )->ele( n = `content` ns = `form`
+
                           )->tag( n = `Title` ns = `core`
                               )->a( n = `text`  v = `Enter a value and send it to the server...`
                           )->tag( `Label`

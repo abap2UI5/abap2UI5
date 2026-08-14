@@ -697,6 +697,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                  text  = |{ lo_draft->count_entries( ) } / { lo_draft->count_entries_total( ) }| ).
 
     dialog->ele( `endButton`
+
         )->tag( `Button`
             )->a( n = `text`   v = `Close`
             )->a( n = `press`  v = client->_event( c_event_close )
@@ -715,11 +716,13 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " pulls it over the rows it introduces; the top/bottom pair is what sets one
     " section apart from the one above without a separator line.
     form->ele( `Toolbar`
+
         )->tag( `Title`
             )->a( n = `text`   v = title
             )->a( n = `level`  v = `H3`
             )->a( n = `class`  v = `sapUiSmallMarginBegin sapUiSmallMarginTop sapUiTinyMarginBottom`
-      )->end( ).
+
+    )->end( ).
 
   ENDMETHOD.
 

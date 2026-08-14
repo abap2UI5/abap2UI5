@@ -84,7 +84,9 @@ CLASS zcl_my_app IMPLEMENTATION.
 
             )->open( `List`
                 )->a( n = `items` v = client->_bind( t_items )
+
                 )->open( `items`
+
                     )->leaf( `StandardListItem`
                         )->a( n = `title` v = `{PRODUCT}`
                         )->a( n = `info`  v = `{QUANTITY}`
@@ -178,43 +180,52 @@ does not undo them.
 - **A control's `a( )` lines sit one level (4 spaces) in from the control's
   own `)->` line** — one attribute per line, `v =` column aligned across the
   block.
-- **A blank line marks a descent, and nothing else** — it separates a
-  control's attribute block from the **child** that follows it. Everything
-  else in the chain runs without blanks. In detail:
-  - **blank** after the last `a( )` of a control, before its first child
-    (`open` or `leaf`) — the attributes belong to the parent, the next line
-    starts its content;
-  - **none** after a one-liner `open` (an aggregation or container with no
-    attributes) before its first child — there is no attribute block to close;
-  - **none** between a control and its own `a( )`s;
-  - **none between consecutive `leaf`s** — a row of leafs is one block,
-    whether or not they carry attributes. This is the rule that overrules
-    "separate a sibling": only a *container* block (an `open` … `shut`) is
-    separated from the sibling before it;
+- **A blank line opens a block — nothing else in the chain gets one.** A
+  block is a run of lines that is read as one thing, and there are exactly
+  two of them:
+  1. **the content of a control that carries attributes** — a blank after its
+     last `a( )`, before its first child. The attribute lines are the
+     control's own head; the content starts below them;
+  2. **a run of `leaf`s** — a blank before the first one, none between them.
+     A form's fields, a toolbar's buttons, a list's items belong together and
+     are read as one block, whether or not each carries attributes.
+
+  Everything else runs without a blank:
+  - **none** between a control and its own `a( )`s — they are its head, not
+    its content;
+  - **none between consecutive `leaf`s** — see block 2. This overrules
+    "separate a sibling": only a *container* block is set off from the
+    sibling before it;
+  - **none** after a bare `open` whose first child is another `open` — a
+    `Shell` → `Page` scaffold is one path down, not two blocks;
   - **blank before every `shut`**; none after a `shut` or between two `shut`s.
 - Long text or binding values split with `&&` — an `.abap` line is capped at
   255 characters.
 
-The two spots the blank-line rule is most often gotten wrong — an
-attribute-less container, and a row of leafs:
+The two blocks, and the scaffold that is neither:
 
 ```abap
-    )->open( n = `SimpleForm` ns = `form`
-        )->a( n = `editable` v = `true`
-                                       " <- blank: SimpleForm's attrs end here
-        )->open( n = `content` ns = `form`
-            )->leaf( n = `Title` ns = `core`
-                )->a( n = `text`  v = `Your data`
-            )->leaf( `Label`
-                )->a( n = `text`  v = `Name`
-            )->leaf( `Input`
-                )->a( n = `value` v = client->_bind( name ) ).
+    )->open( `Shell`                       " bare open into another open -
+        )->open( `Page`                    " one path down, no blank
+            )->a( n = `title` v = `My App`
+                                           " block 1: Page's content starts
+            )->open( n = `SimpleForm` ns = `form`
+                )->a( n = `editable` v = `true`
+                                           " block 1: SimpleForm's content
+                )->open( n = `content` ns = `form`
+                                           " block 2: the run of leafs
+                    )->leaf( n = `Title` ns = `core`
+                        )->a( n = `text`  v = `Your data`
+                    )->leaf( `Label`
+                        )->a( n = `text`  v = `Name`
+                    )->leaf( `Input`
+                        )->a( n = `value` v = client->_bind( name ) ).
 ```
 
-`content` carries no attributes, so nothing separates it from `Title`; the
-three leafs are one block, so nothing separates them from each other either.
-The same view with a blank line after `content` and between the leafs reads
-as four unrelated fragments instead of one form.
+The blank above `Title` is what makes the three fields read as the form's
+content rather than as a continuation of the `content` aggregation; the
+missing blanks between them are what keep the three together. Blanks in both
+places, or in neither, and the same view reads as a pile of fragments.
 
 The framework's own generic builder `z2ui5_cl_ui5_view_builder`
 (`ele`/`tag`/`a`/`end`) is laid out by exactly the same rules: `ele` indents
