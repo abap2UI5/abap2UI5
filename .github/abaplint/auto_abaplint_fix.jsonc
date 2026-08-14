@@ -26,7 +26,7 @@
     "in_statement_indentation": true,
     "indentation": true,
     "double_space": true,
-    // The two shipped apps write the view builder's att( ) as one line per
+    // The two shipped apps write the view builder's a( ) as one line per
     // attribute - `n` and its value side by side, value column aligned. Both
     // rules below undo that: line_break_multiple_parameters splits any call
     // with more than one parameter, align_parameters then re-indents the

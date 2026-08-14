@@ -18,6 +18,16 @@ Quick orientation while it loads:
   everything else PROTECTED.
 - Build views with `z2ui5_cl_ai_xml` (`open`/`leaf`/`a`/`shut`/`stringify`).
   The legacy `z2ui5_cl_xml_view` is frozen — never use it in new code.
+- The chain's layout is strict, not taste: the `)` rides with the arrow
+  (`)->`), every `open` indents its children one level (4 spaces) and `shut`
+  closes at the `open`'s column, a control's `a( )`s sit one level in with
+  their `v =` aligned. **A blank line opens a block, and there are exactly
+  two: the content of a control that carries attributes, and a run of
+  `leaf`s.** Nothing else gets one — not between a control and its own
+  `a( )`s, not between consecutive `leaf`s, not after a bare `open` that only
+  descends into another `open`. Full rules and a worked example:
+  "Formatting the chain" in §3 of the guide. Same layout for the framework's
+  own `z2ui5_cl_ui5_view_builder` (`ele`/`tag`/`a`/`end`).
 - Bind with `client->_bind( var )` (also for display-only;
   `_bind_edit` is obsolete). Row-template fields bind as `` `{UPPERCASE}` ``.
   Never write a model path as a text literal.

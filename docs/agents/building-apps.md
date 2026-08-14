@@ -84,7 +84,9 @@ CLASS zcl_my_app IMPLEMENTATION.
 
             )->open( `List`
                 )->a( n = `items` v = client->_bind( t_items )
+
                 )->open( `items`
+
                     )->leaf( `StandardListItem`
                         )->a( n = `title` v = `{PRODUCT}`
                         )->a( n = `info`  v = `{QUANTITY}`
@@ -158,6 +160,77 @@ aggregation and namespace, nothing is wrapped or approximated. Four verbs:
 The legacy fluent builder `z2ui5_cl_xml_view` (one method per control) still
 ships for existing apps but is **frozen** — new apps and new code use
 `z2ui5_cl_ai_xml`.
+
+### Formatting the chain (strict — reviewers check these)
+
+A chain is read far more often than it is written, and its layout is the only
+thing that still makes it legible as the XML tree it stands for. The rules
+below are the ones the sample repositories are ported and reviewed against;
+`.github/abaplint/auto_abaplint_fix.jsonc` excludes the shipped apps from
+`align_parameters` / `line_break_multiple_parameters` so the auto-formatter
+does not undo them.
+
+- **The closing paren rides with the arrow.** Never leave a `)` alone at the
+  end of a line — carry it to the **start of the next segment**, so every
+  continuation reads `)->`. With the `a( )` chain there is no nested `VALUE`,
+  so the whole view ends in a single `` ).`` (not `) ).`).
+- **Indent after every `open`.** Each `open( )` shifts its children's `)->`
+  one level (4 spaces) to the right, `shut( )` shifts back left, and the `)->`
+  of a `shut` sits in the same column as the `open` it closes.
+- **A control's `a( )` lines sit one level (4 spaces) in from the control's
+  own `)->` line** — one attribute per line, `v =` column aligned across the
+  block.
+- **A blank line opens a block — nothing else in the chain gets one.** A
+  block is a run of lines that is read as one thing, and there are exactly
+  two of them:
+  1. **the content of a control that carries attributes** — a blank after its
+     last `a( )`, before its first child. The attribute lines are the
+     control's own head; the content starts below them;
+  2. **a run of `leaf`s** — a blank before the first one, none between them.
+     A form's fields, a toolbar's buttons, a list's items belong together and
+     are read as one block, whether or not each carries attributes.
+
+  Everything else runs without a blank:
+  - **none** between a control and its own `a( )`s — they are its head, not
+    its content;
+  - **none between consecutive `leaf`s** — see block 2. This overrules
+    "separate a sibling": only a *container* block is set off from the
+    sibling before it;
+  - **none** after a bare `open` whose first child is another `open` — a
+    `Shell` → `Page` scaffold is one path down, not two blocks;
+  - **blank before every `shut`**; none after a `shut` or between two `shut`s.
+- Long text or binding values split with `&&` — an `.abap` line is capped at
+  255 characters.
+
+The two blocks, and the scaffold that is neither:
+
+```abap
+    )->open( `Shell`                       " bare open into another open -
+        )->open( `Page`                    " one path down, no blank
+            )->a( n = `title` v = `My App`
+                                           " block 1: Page's content starts
+            )->open( n = `SimpleForm` ns = `form`
+                )->a( n = `editable` v = `true`
+                                           " block 1: SimpleForm's content
+                )->open( n = `content` ns = `form`
+                                           " block 2: the run of leafs
+                    )->leaf( n = `Title` ns = `core`
+                        )->a( n = `text`  v = `Your data`
+                    )->leaf( `Label`
+                        )->a( n = `text`  v = `Name`
+                    )->leaf( `Input`
+                        )->a( n = `value` v = client->_bind( name ) ).
+```
+
+The blank above `Title` is what makes the three fields read as the form's
+content rather than as a continuation of the `content` aggregation; the
+missing blanks between them are what keep the three together. Blanks in both
+places, or in neither, and the same view reads as a pile of fragments.
+
+The framework's own generic builder `z2ui5_cl_ui5_view_builder`
+(`ele`/`tag`/`a`/`end`) is laid out by exactly the same rules: `ele` indents
+like `open`, `tag` behaves like `leaf`, `end` closes like `shut`, and the
+attribute verb is the same `a( )`.
 
 ## 4. Data binding
 

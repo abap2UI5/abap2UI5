@@ -198,7 +198,7 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_s
 ### Key Design Patterns
 
 - **Factory:** `z2ui5_cl_ui5_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
-- **Generic View Builder:** `z2ui5_cl_ui5_view_builder=>factory()` + `ele`/`tag`/`att`/`end`/`stringify` builds any UI5 XML view 1:1 (see `src/02/z2ui5_cl_ui5_view_builder.clas.abap`)
+- **Generic View Builder:** `z2ui5_cl_ui5_view_builder=>factory()` + `ele`/`tag`/`a`/`end`/`stringify` builds any UI5 XML view 1:1 (see `src/02/z2ui5_cl_ui5_view_builder.clas.abap`)
 - **Event Routing:** `client->_event('ID')` registers; `client->check_on_event('ID')` checks
 - **App Navigation:** `client->nav_app_call(app)` pushes; `client->nav_app_leave()` pops (executed in a loop within one roundtrip)
 - **Multi-View:** Main view, nested views (nest/nest2), popups, and popovers simultaneously
@@ -252,6 +252,7 @@ src/
 | `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
 | `docs/agents/` | `building-apps.md` — the in-repo app-building guide (see "Building Apps"; gated by `npm run check:guide`) |
 | `docs/` | `removal-plan.md` — the standing checklist of everything obsolete: what replaces it, what breaks, and what has to happen first. Read it before removing any compatibility symbol, and tick the box in the same PR |
+| `.claude/skills/` | The three catalogues, by audience: `build-an-app` (how to write an app **with** abap2UI5 — the `docs/agents/building-apps.md` guide), `abap-check` (every **ABAP** problem a green CI misses — abapGit round trip, activation, extended check, downport, runtime), `ui5-check` (every **UI5** problem a green CI misses — post-1.71 names, version-sensitive layout, views that fail to load, CSP traps; also the staging area for the [abap2UI5 linter](https://github.com/abap2UI5/linter), so each entry says what a rule would need to decide it). Build with the first, check with the other two |
 | `.github/workflows/` | CI/CD workflows (see below) |
 | `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`); `testclass-visibility-gate.mjs` — fails when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS`; `api-snapshot.mjs` — records/compares the `src/02` public-API snapshot (rule 5); `check-guide-api.mjs` — fails when `docs/agents/building-apps.md` names a client method or `cs_*` constant the API does not have; `object-naming-gate.mjs` — fails when an object outside the public API carries no `ui5`/`ui5f` segment (exemptions and the scheduled-but-not-done list live in the script, each with its reason); `dynamic-name-gate.mjs` — fails when a `Z2UI5_*` class or interface named by a string literal (dynamic lookup, `CREATE OBJECT TYPE (name)`) does not exist in `src/` (names owned by other repositories live in the script's `EXTERNAL` list, each with its reason); `ui5-icon-gate.mjs` — fails when a `sap-icon://` name in `src/` or `app/webapp/` is not in the UI5 1.71 icon font (list snapshot: `ui5-icons-1.71.json`; `src/99` is exempt as frozen and its two wrong icons are printed on every run) |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename.jsonc` (namespace rename, used by both the `build_rename` workflow and the `test_rename` PR gate; placeholder `znamespace`) |
@@ -626,6 +627,10 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 > and `manifest.json` (where `minUI5Version: 1.71` lives) is excluded from
 > ui5lint. So keep checking "available since" of every module, aggregation
 > and control against 1.71 on every frontend change the gate does not reach.
+> **The whole cluster is written out — with the evidence, and with how to
+> check a fact against 1.71 from the `@openui5/*` npm packages, without a
+> system or a CDN — in the `ui5-check` skill in `.claude/skills/`.** Read it
+> before touching a view; add the case there when you find a new one.
 
 
 ## Design Decisions & Known Non-Issues
