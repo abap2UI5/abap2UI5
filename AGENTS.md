@@ -355,9 +355,22 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. Known traps — avoid them up
-front, a green abaplint does not prove their absence:
+which flags things `npm run check` cannot see. The three traps a script can
+decide are gated by `npm run check:atc` — `LOOP AT ... WHERE` over a standard
+table (a sequential read, wants `"#EC CI_SORTSEQ` on the statement), an empty
+`CATCH` block (wants `##NO_HANDLER`) and POSIX regex (below). The rest need a
+reader. Known traps — avoid them up front, a green abaplint does not prove
+their absence:
 
+- **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE` (bit us in
+  `z2ui5_cl_core_srv_draft=>count_entries`).
+- **`CREATE OBJECT ... TYPE (name)` into a generic reference followed by a
+  `CAST`** is flagged as insecure object creation. Declare the typed reference
+  and create into it directly:
+  ```abap
+  DATA li_app TYPE REF TO z2ui5_if_app.
+  CREATE OBJECT li_app TYPE (lv_classname).
+  ```
 - **POSIX regex is deprecated.** `FIND/REPLACE ... REGEX` uses the POSIX
   standard; the PCRE replacement (`FIND PCRE`) only exists on >= 7.55 and this
   repo targets v750/7.02. Prefer plain string logic over regex where feasible;
@@ -401,7 +414,8 @@ fail on.)
 npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
 npm run verify       # Gate before every PR: abaplint -> testclass-visibility gate ->
                      # the sub-second gates first (object naming, abapGit round trip,
-                     # frozen-path, guide-API, curated-formatter scope, src/02 API snapshot) ->
+                     # extended check, frozen-path, guide-API, curated-formatter scope,
+                     # src/02 API snapshot) ->
                      # standard/cloud abaplint targets -> downport -> transpile -> unit ->
                      # JS unit specs -> app2abap drift gate (matches the PR gates in CI)
 npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
@@ -436,6 +450,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run deps` | Fetch the three pinned git dependencies into `node/deps/` (auto-run by `check`/`downport`; `-- --print-latest` shows upstream HEADs for a pin bump) |
 | `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`, gated in `ABAP_STANDARD.yaml`; abaplint and the transpiler cannot see this) |
 | `npm run check:abapgit` | The abapGit round-trip gate — byte format of every file under `src/` (BOM, LF, terminating newline, tabs, file-name case), sidecar/package completeness, `<CLSNAME>`/`<LANGU>`/`<WITH_UNIT_TESTS>` against the source, and `class_constructor` in the PUBLIC section. Covers `src/00` and `src/99`, which abaplint does not scan (part of `verify`, gated in `check_abapgit_format.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
+| `npm run check:atc` | The extended-check (SLIN/ATC) gate — `LOOP AT … WHERE` without `"#EC CI_SORTSEQ`, an empty `CATCH` without `##NO_HANDLER`, `FIND`/`REPLACE … REGEX` without `##REGEX_POSIX`. Scoped to this repository's own ABAP (`src/00/01`, `src/00/02` are upstream mirrors, `src/99` is frozen). abaplint models none of these (part of `verify`, gated in `check_extended.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
 | `npm run check:standard` / `check:cloud` | abaplint against the standard-ABAP / ABAP-Cloud target configs (part of `verify`) |
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
