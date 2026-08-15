@@ -30,6 +30,7 @@
     "check:formatter": "node .github/scripts/formatter-scope-gate.mjs",
     "check:asserts": "node .github/scripts/assertion-gate.mjs",
     "blockers": "node .github/scripts/removal-blockers.mjs",
+    "check:release": "node .github/scripts/release-gate.mjs",
     "coverage": "node .github/scripts/coverage-report.mjs",
     "check:abap2ui5": "abap2ui5lint",
     "fmt:chains": "abap2ui5lint --fix",
