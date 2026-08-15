@@ -49,7 +49,7 @@ Quick orientation while it loads:
   frontend). UI5 1.71 is the compatibility floor — check "available since".
 - The app checks its own authorizations at the top of `main`.
 - Validate with the abap2UI5-linter
-  (`npx --yes github:abap2UI5/linter <file>`); iterate without a SAP
+  (`npx --yes @abap2ui5/linter <file>`); iterate without a SAP
   system via the ai-mcp server (`deploy_app` → `build_backend` → `run_app`).
 - Before you finish, run the `abap-check` skill over what you wrote — it is the
   companion to this one and catches what a green lint does not: abapGit

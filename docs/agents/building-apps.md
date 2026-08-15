@@ -549,7 +549,7 @@ The same tree, with the subtree held in a variable:
 - **[abap2UI5-linter](https://github.com/abap2UI5/linter)** checks
   app classes statically (unknown/deprecated/too-new controls and members,
   binding mistakes, builder-tree defects) and can render the view headless:
-  `npx --yes github:abap2UI5/linter my_app.clas.abap` — also
+  `npx --yes @abap2ui5/linter my_app.clas.abap` — also
   available as a GitHub Action and inside the VS Code extension.
 - **[ai-mcp](https://github.com/abap2UI5/ai-mcp)** gives MCP-capable agents
   the full loop without a SAP system: `capabilities` → `deploy_app` →
