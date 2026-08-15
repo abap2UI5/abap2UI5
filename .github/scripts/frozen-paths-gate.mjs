@@ -19,7 +19,7 @@
  *
  * Anything edited in place is refused either way.
  *
- * Used by `npm run check:frozen` and by the check_frozen_paths workflow, so
+ * Used by `npm run check:frozen` and by the check_gates workflow, so
  * the local run and CI decide the same way. Base and head default to
  * origin/main...HEAD and are overridden by BASE_SHA / HEAD_SHA.
  */

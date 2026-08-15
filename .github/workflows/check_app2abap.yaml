@@ -27,18 +27,15 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/setup-node@v6
+      - uses: ./.github/actions/setup
         with:
-          node-version: '22'
-          cache: 'npm'
+          app-npm-ci: "true"
+          npm-ci: "true"
 
       - name: Regenerate embedded frontend
-        run: |
-          npm ci
-          npm --prefix app ci
-          npm run app2abap
+        run: npm run app2abap
 
       - name: Fail on drift
         run: |
