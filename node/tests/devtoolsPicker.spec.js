@@ -158,3 +158,62 @@ test.describe("lifecycle", () => {
     expect(Picker.isActive()).toBe(false);
   });
 });
+
+// The report of the last pick lives here rather than on the dialog: the
+// Picked Control tab is rendered from the tab registry like every other
+// tab, and the registry has to reach a tab's content without the dialog
+// handing it over.
+test.describe("last report", () => {
+  function loadPickerWithDom() {
+    const listeners = [];
+    const { module } = loadModule("devtools/Picker.js", {
+      deps: {
+        "sap/ui/core/Element": {},
+        "z2ui5/core/Lib": { logError() {}, getElementById: () => null },
+        "z2ui5/core/ViewSlots": { containingSlotKey: () => "MAIN" },
+      },
+      sandbox: {
+        document: {
+          getElementById: () => null,
+          createElement: () => ({ style: {}, classList: { add() {} } }),
+          body: { appendChild() {}, removeChild() {} },
+          addEventListener: (type, fn) => listeners.push({ type, fn }),
+          removeEventListener: (type, fn) => {
+            const i = listeners.findIndex((l) => l.type === type && l.fn === fn);
+            if (i >= 0) listeners.splice(i, 1);
+          },
+        },
+        window: { location: { href: "https://sap.example.com/" } },
+      },
+    });
+    const fire = (type) => {
+      for (const l of listeners.filter((x) => x.type === type)) {
+        l.fn({ target: null, preventDefault() {}, stopPropagation() {}, key: "Escape" });
+      }
+    };
+    return { Picker: module, fire };
+  }
+
+  test("is empty before the first pick", () => {
+    expect(loadPickerWithDom().Picker.lastReport()).toBe("");
+  });
+
+  test("holds the report of the control that was picked", () => {
+    const { Picker, fire } = loadPickerWithDom();
+    Picker.start(() => {});
+    fire("click");
+    // no control under the cursor still produces a report, and that is
+    // what the tab has to show
+    expect(Picker.lastReport()).toContain("no control found");
+  });
+
+  test("a cancelled pick leaves the previous report standing", () => {
+    const { Picker, fire } = loadPickerWithDom();
+    Picker.start(() => {});
+    fire("click");
+    const first = Picker.lastReport();
+    Picker.start(() => {});
+    fire("keydown"); // Escape
+    expect(Picker.lastReport()).toBe(first);
+  });
+});

@@ -34,6 +34,7 @@ function loadInspect({
   views = {},
   slotXml = {},
   records = [],
+  recording = false,
   search = "",
   hash = "",
   focusInfo,
@@ -118,7 +119,10 @@ function loadInspect({
         getEntries: () => consoleEntries,
         getDropped: () => consoleDropped,
       },
-      "z2ui5/devtools/Recorder": { getRecords: () => records },
+      "z2ui5/devtools/Recorder": {
+        getRecords: () => records,
+        isRecordingPayloads: () => recording,
+      },
     },
     sandbox: {
       window: {
@@ -716,5 +720,107 @@ test.describe("Bindings diagnostics", () => {
       views: { MAIN: fakeView({ data: { A: 1 } }) },
     });
     expect(Inspect.formatBindings()).not.toContain("Delta the next roundtrip");
+  });
+});
+
+// The Error report is what the fatal-error overlay showed, rendered back
+// into the tools so closing the overlay does not lose it.
+test.describe("Error report", () => {
+  test("renders the captured title and text", () => {
+    const Inspect = loadInspect({
+      state: { lastError: { title: "App Terminated", text: "backend dump" } },
+    });
+    expect(Inspect.formatError()).toBe("App Terminated\n\nbackend dump");
+  });
+
+  test("renders the text alone when there is no title", () => {
+    const Inspect = loadInspect({
+      state: { lastError: { title: "", text: "client crash" } },
+    });
+    expect(Inspect.formatError()).toBe("client crash");
+  });
+
+  test("says so when nothing failed this session", () => {
+    expect(loadInspect().formatError()).toContain("no fatal error");
+  });
+});
+
+// The landing tab. Where the tools used to open - on the raw response
+// JSON - answered no question anybody arrives with; every line here is a
+// summary of a tab that holds the detail, and names that tab.
+test.describe("Overview", () => {
+  test("names the app, the draft and the last event", () => {
+    const Inspect = loadInspect({
+      state: {
+        responseData: { S_FRONT: { APP: "Z2UI5_CL_DEMO", ID: "4A2F" } },
+        oBody: { S_FRONT: { EVENT: "ON_SAVE" } },
+      },
+    });
+    const out = Inspect.formatOverview();
+    expect(out).toContain("Z2UI5_CL_DEMO");
+    expect(out).toContain("4A2F");
+    expect(out).toContain("ON_SAVE");
+  });
+
+  test("calls the first response what it is rather than leaving it blank", () => {
+    expect(loadInspect().formatOverview()).toContain("(app start)");
+  });
+
+  test("leads the status with whether anything is fatally broken", () => {
+    const broken = loadInspect({
+      state: { lastError: { title: "App Terminated", text: "dump" } },
+    }).formatOverview();
+    expect(broken).toContain("App Terminated");
+    // the pointer to the tab that has it in full is part of the line
+    expect(broken).toContain("Problems > Error");
+    expect(loadInspect().formatOverview()).toContain("none this session");
+  });
+
+  test("counts what the log holds and points at it when it is loud", () => {
+    const Inspect = loadInspect({
+      consoleEntries: [
+        { ts: "2026-01-01T00:00:00.000Z", level: "error", source: "console", text: "boom" },
+        { ts: "2026-01-01T00:00:01.000Z", level: "warn", source: "ui5", text: "hm" },
+      ],
+    });
+    const out = Inspect.formatOverview();
+    expect(out).toContain("1 error, 1 warn");
+    expect(out).toContain("Problems > Log");
+  });
+
+  test("stays quiet about the log when there is nothing to see", () => {
+    const out = loadInspect().formatOverview();
+    expect(out).toContain("0 error, 0 warn");
+    expect(out).not.toContain("Problems > Log");
+  });
+
+  test("summarises the last roundtrip", () => {
+    const Inspect = loadInspect({
+      records: [
+        { seq: 1, ts: "2026-01-01T00:00:00.000Z", event: "", totalMs: 900, backendMs: 800 },
+        { seq: 2, ts: "2026-01-01T00:00:02.000Z", event: "ON_SAVE", totalMs: 402, backendMs: 340 },
+      ],
+    });
+    const out = Inspect.formatOverview();
+    expect(out).toContain("2 recorded");
+    expect(out).toContain("ON_SAVE");
+    expect(out).toContain("402 ms total");
+    expect(out).toContain("340 ms backend");
+  });
+
+  test("says where the diffs come from when recording is off", () => {
+    expect(loadInspect().formatOverview()).toContain("OFF - switch it on");
+    expect(loadInspect({ recording: true }).formatOverview()).toContain(
+      "ON - Model Diff",
+    );
+  });
+
+  test("lists the slots and how to get around", () => {
+    const Inspect = loadInspect({
+      views: { MAIN: fakeView({ xml: "<View/>", data: { A: 1, B: 2 } }) },
+    });
+    const out = Inspect.formatOverview();
+    expect(out).toContain("2 model attributes");
+    expect(out).toContain("Ctrl+F12");
   });
 });

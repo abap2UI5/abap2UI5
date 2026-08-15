@@ -53,6 +53,10 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `    let boundClick = null;` && |\n| &&
              `    let boundKey = null;` && |\n| &&
              `` && |\n| &&
+             `    // The report of the last successful pick, so the Picked Control tab` && |\n| &&
+             `    // can be rendered from the registry like every other tab.` && |\n| &&
+             `    let lastPickReport = "";` && |\n| &&
+             `` && |\n| &&
              `    function truncate(value, max) {` && |\n| &&
              `      const text = String(value);` && |\n| &&
              `      return text.length <= max ? text : ``${text.slice(0, max)}...``;` && |\n| &&
@@ -256,6 +260,11 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `          Lib.logError("DevTools Picker: describe failed", e);` && |\n| &&
              `          report = "(could not inspect that control)";` && |\n| &&
              `        }` && |\n| &&
+             `        // Kept here rather than on the dialog: the Picked Control tab is` && |\n| &&
+             `        // rendered from the tab registry like every other tab, and the` && |\n| &&
+             `        // registry must be able to reach a tab's content without the` && |\n| &&
+             `        // dialog handing it over.` && |\n| &&
+             `        lastPickReport = report;` && |\n| &&
              `        stop();` && |\n| &&
              `        if (onDone) onDone(report);` && |\n| &&
              `      };` && |\n| &&
@@ -277,6 +286,10 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      stop,` && |\n| &&
              `      describe,` && |\n| &&
              `      isActive: () => active,` && |\n| &&
+             `      // The report of the most recent successful pick, "" before the` && |\n| &&
+             `      // first one. A cancelled pick (Escape) leaves the previous report` && |\n| &&
+             `      // standing - the user did not ask to throw it away.` && |\n| &&
+             `      lastReport: () => lastPickReport,` && |\n| &&
              `      _internals: { collectBindings, collectEvents, renderValue },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

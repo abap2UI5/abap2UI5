@@ -78,14 +78,18 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/Variants.js": function()\{{ z2ui5_cl_ui5f_variants_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ViewOps.js": function()\{{ z2ui5_cl_ui5f_viewops_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/css/style.css": '{ escape_js_literal( styles_css ) }',| && |\n| &&
+             |      "z2ui5/devtools/AbapSource.js": function()\{{ z2ui5_cl_ui5f_abapsrc_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Console.js": function()\{{ z2ui5_cl_ui5f_console_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/DevTools.js": function()\{{ z2ui5_cl_ui5f_devtools_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/DeveloperTools.fragment.xml": '{ escape_js_literal( z2ui5_cl_ui5f_dtools_xml=>get( ) ) }',| && |\n| &&
              |      "z2ui5/devtools/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Format.js": function()\{{ z2ui5_cl_ui5f_dtformat_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Inspect.js": function()\{{ z2ui5_cl_ui5f_inspect_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/LiveEdit.js": function()\{{ z2ui5_cl_ui5f_liveedit_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Picker.js": function()\{{ z2ui5_cl_ui5f_picker_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Recorder.js": function()\{{ z2ui5_cl_ui5f_recorder_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Report.js": function()\{{ z2ui5_cl_ui5f_report_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Tabs.js": function()\{{ z2ui5_cl_ui5f_tabs_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_ui5f_models_js=>get( ) }\},| && |\n| &&
