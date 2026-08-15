@@ -53,11 +53,13 @@ CLASS zcl_tst_nav_hub IMPLEMENTATION.
         )->a( n = `displayBlock` v = `true`
         )->a( n = `height`       v = `100%`
         )->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title` v = `NAV HUB FRESH` ).
+            )->ele( `Page`
+                )->a( n = `title` v = `NAV HUB FRESH` ).
 
-    page->tag( `Label` )->a( n = `text` v = `hub-marker` ).
-    page->tag( `Input` )->a( n = `value` v = client->_bind( input ) ).
+    page->tag( `Label`
+        )->a( n = `text` v = `hub-marker` ).
+    page->tag( `Input`
+        )->a( n = `value` v = client->_bind( input ) ).
     page->tag( `Button`
         )->a( n = `text`  v = |increment ({ counter })|
         )->a( n = `press` v = client->_event( `INC` ) ).

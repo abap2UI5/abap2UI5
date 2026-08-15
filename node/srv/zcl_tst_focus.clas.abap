@@ -55,8 +55,8 @@ CLASS zcl_tst_focus IMPLEMENTATION.
         )->a( n = `displayBlock` v = `true`
         )->a( n = `height`       v = `100%`
         )->ele( `Shell`
-        )->ele( `Page`
-            )->a( n = `title` v = `FOCUS AFTER ENABLE` ).
+            )->ele( `Page`
+                )->a( n = `title` v = `FOCUS AFTER ENABLE` ).
 
     page->tag( `Input`
         )->a( n = `id`      v = `inpDocNum`

@@ -22,33 +22,21 @@ Quick orientation while it loads:
 - **A boolean from an ABAP variable goes through `a( )`'s `b` parameter**:
   `` )->a( n = `editable` b = mv_edit_mode ) `` renders `true`/`false`.
   Never feed `abap_true` into `v` raw — it serializes as `X`.
-- **The chain hangs off the `factory( )` — always one statement:**
-  `` DATA(view) = z2ui5_cl_ui5_view_builder=>factory( )->ele( n = `View` … ) ``,
-  never a `factory( ).` of its own followed by `view->ele( … )`.
-- The chain's layout is strict, not taste: the `)` rides with the arrow
-  (`)->`), every `ele` indents its children one level (4 spaces) and `end`
-  closes at the `ele`'s column, a control's `a( )`s sit one level in with
-  their `v =` aligned. **A blank line opens a block, and there are exactly
-  two: the content of a control that carries attributes, and a run of
-  `tag`s.** Nothing else gets one — not between a control and its own
-  `a( )`s, not between consecutive `tag`s, not after a bare `ele` that only
-  descends into another `ele`. Full rules and a worked example:
-  "Formatting the chain" in §3 of the guide.
-- **The indent has to state the depth: 4 spaces per level, never 2, and one
-  descent per line.** A line may open the next element at its end
-  (`` )->tag( `Label` ``); it may not open two, and
-  `` )->end( )->end( )->ele( … )->ele( … `` at the end of an attribute line is
-  the shape that makes a chain unreadable. When you need a node again, hold it
-  in a variable (`` DATA(page) = view->ele( `Shell` )->ele( `Page` … ) ``) and
-  start a new statement per subtree — never unwind with a run of `end( )`s.
-- **Do not expect a gate to catch a mangled chain.** abaplint's formatting
-  rules are off for app code on purpose; the abap2UI5-linter's
-  `chain-indentation` / `chain-element-per-line` do judge it but ship as
-  `hint`, which a `failOn: warning` config never prints — and in `samples` 339
-  of them sit in the baseline. Read the repository's `abap2ui5lint.jsonc`
-  before you trust a green run, and re-read the chain you wrote against §3's
-  example. `samples` `z2ui5_cl_smp_app_052` came out of a port unreadable and
-  every gate stayed green.
+- **The chain's layout is strict, not taste — read the `view-chain-layout`
+  skill before writing one.** It is the single source of the rules, identical
+  in this repository and both sample repositories, and it is machine-checked
+  (`npm run check:chains`, `npm run fmt:chains`). In short: one call per line,
+  four spaces per level, the `)` rides with the arrow (`)->`), `end( )` alone
+  in the column of the `ele( )` it closes, a control's `a( )`s one level in
+  with their `v =` aligned. Blank lines only in the single-chain shape, where
+  a blank opens a block and there are exactly two.
+- **Which `factory( )` shape you use is decided by the chain shape**, not by
+  preference: a view split into a statement per subtree hangs the chain off
+  the `factory( )` (one statement, not two) so the variable holds the
+  `mvc:View`; a view written as one chain may take a `factory( ).` of its own.
+  A standalone `factory( ).` *with* the split shape is broken — the variable
+  then holds the root and the next statement adds a second root beside the
+  `mvc:View`. See the skill.
 - Bind with `client->_bind( var )` (also for display-only;
   `_bind_edit` is obsolete). Row-template fields bind as `` `{UPPERCASE}` ``.
   Never write a model path as a text literal.

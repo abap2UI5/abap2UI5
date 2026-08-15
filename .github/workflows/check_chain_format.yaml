@@ -20,6 +20,7 @@ on:
     branches: [ main ]
     paths:
       - 'src/**/*.abap'
+      - 'node/srv/*.abap'
       - '.github/scripts/chain-format-gate.mjs'
       - '.github/workflows/check_chain_format.yaml'
 
@@ -40,4 +41,4 @@ jobs:
         with:
           node-version: '22'
       - name: the chain's indent states the view's depth
-        run: node .github/scripts/chain-format-gate.mjs src
+        run: node .github/scripts/chain-format-gate.mjs src node/srv

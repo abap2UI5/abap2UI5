@@ -1,24 +1,27 @@
 /**
- * Gate: the layout of a z2ui5_cl_ui5_view_builder chain.
+ * chain-format — the layout of a z2ui5_cl_ui5_view_builder chain.
  *
  * The chain is the only picture of the view's tree there is, so its layout is
  * load-bearing: one call per line, four spaces per level of nesting, an `end( )`
  * back in the column of the `ele( )` it closes.
  *
- * Why this exists as a gate and not as prose: nothing else formats a builder
- * chain. abaplint's `indentation` does not reach into a method-call chain, and
- * the abap2UI5-linter's two layout rules judge a chain's OWN rhythm
+ * Why this is a gate and not prose: nothing else formats a builder chain.
+ * abaplint's `indentation` does not reach into a method-call chain, and the
+ * abap2UI5-linter's two layout rules judge a chain's OWN rhythm
  * (`chain-indentation`) and one call per line (`chain-element-per-line`) —
  * neither judges the STEP, so a chain uniformly indented by 8 passes both while
- * saying the wrong thing about depth. It shipped that way here too: the start
- * app carried `)->ele( \`Shell\` )->ele( \`Page\` ).` on one line, hiding a
- * level, and every gate stayed green.
+ * saying the wrong thing about depth. Every corpus had shipped that way: 77
+ * drifted ports in samples-controls, 168 stray indent steps in samples, and in
+ * the framework the start app carrying `)->ele( `Shell` )->ele( `Page` ).` on
+ * one line, hiding a level — all of it green.
  *
- * The builder lives in this repository, so its layout rule is documented here
- * (AGENTS.md, "Building views") and this file is kept identical in
- * abap2UI5/samples (scripts/chain-format.mjs) and in
- * abap2UI5/samples-controls. The shipped apps under src/01/04 are what app
- * developers copy from, which is the reason the gate covers this corpus at all.
+ * THIS FILE IS KEPT BYTE-IDENTICAL IN THREE REPOSITORIES: abap2UI5
+ * (.github/scripts/chain-format-gate.mjs), abap2UI5/samples and
+ * abap2UI5/samples-controls (scripts/chain-format.mjs). Change it in one and
+ * copy it to the other two. The rules it enforces are the `view-chain-layout`
+ * skill; `formatSource` is exported so a generator that emits builder chains
+ * can run its output through it rather than hand-indenting template strings —
+ * that is how the layout drifted back in on samples-controls.
  *
  * The transform only ever rewrites whitespace BETWEEN chain segments (the `)->`
  * boundaries at paren depth 0). Literals, comments, blank lines and the internal
@@ -216,10 +219,7 @@ function walk(dir, acc = []) {
   return acc;
 }
 
-/* `formatSource` is exported so a generator that emits builder chains can run
- * its output through it rather than hand-indenting template strings - that is
- * how the layout drifted back in on the sibling repository. Nothing below runs
- * on import. This file is kept identical in abap2UI5/samples-controls. */
+/* Nothing below runs on import. */
 if (import.meta.url !== pathToFileURL(process.argv[1] || '').href) {
   // imported as a library
 } else main();
