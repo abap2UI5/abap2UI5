@@ -376,7 +376,7 @@ reader. Known traps — avoid them up front, a green abaplint does not prove
 their absence:
 
 - **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE` (bit us in
-  `z2ui5_cl_core_srv_draft=>count_entries`).
+  `z2ui5_cl_ui5_srv_draft=>count_entries`).
 - **`CREATE OBJECT ... TYPE (name)` into a generic reference followed by a
   `CAST`** is flagged as insecure object creation. Declare the typed reference
   and create into it directly:

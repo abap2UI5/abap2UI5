@@ -5,7 +5,7 @@
 // reviewer lore (see the ui5-1.71 project in ../../playwright.config.js).
 //
 // The backend GET page hardcodes the evergreen CDN bootstrap and the
-// default theme (z2ui5_cl_exit=>set_config_http_get). The `ui5Src` /
+// default theme (z2ui5_cl_ui5_user_exit=>set_config_http_get). The `ui5Src` /
 // `ui5Theme` project options rewrite those attributes in the served HTML
 // before it reaches the browser; UI5 derives its resource root from the
 // script tag's src, so rewriting the bootstrap URL is enough - every later
@@ -23,7 +23,7 @@ const path = require("path");
 const base = require("@playwright/test");
 
 // The exact attributes the default exit writes into the GET page - keep in
-// sync with z2ui5_cl_exit=>set_config_http_get.
+// sync with z2ui5_cl_ui5_user_exit=>set_config_http_get.
 const DEFAULT_BOOTSTRAP =
   'src="https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js"';
 const DEFAULT_THEME = 'data-sap-ui-theme="sap_horizon"';

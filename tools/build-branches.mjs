@@ -258,5 +258,5 @@ for (let i = 0; i < branches.length; i++) {
   builds[i]();
   const b = branches[i];
   const n = readdirSync(outDir(b), { recursive: true }).length;
-  console.log(`OK: ${b} (${n} Eintraege) -> ${relative(core, outDir(b))}`);
+  console.log(`OK: ${b} (${n} entries) -> ${relative(core, outDir(b))}`);
 }
