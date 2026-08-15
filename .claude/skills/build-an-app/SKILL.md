@@ -25,8 +25,9 @@ Quick orientation while it loads:
 - **The chain's layout is strict, not taste — read the `view-chain-layout`
   skill before writing one.** It is the single source of the rules, identical
   in this repository and both sample repositories, and it is machine-checked
-  (`npm run check:chains`, `npm run fmt:chains`). In short: one call per line,
-  four spaces per level, the `)` rides with the arrow (`)->`), `end( )` alone
+  (the linter's `chain-house-layout` rule: `npm run check:abap2ui5` reports,
+  `npm run fmt:chains` applies). In short: one call per line, four spaces per
+  level, the `)` rides with the arrow (`)->`), `end( )` alone
   in the column of the `ele( )` it closes, a control's `a( )`s one level in
   with their `v =` aligned. Blank lines only in the single-chain shape, where
   a blank opens a block and there are exactly two.

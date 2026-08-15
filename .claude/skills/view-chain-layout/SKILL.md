@@ -110,37 +110,58 @@ first child is another `ele( )`, blank before every `end( )`, none after an
 
 ## What checks this, and what does not
 
-`npm run check:chains` / `npm run fmt:chains` — the same `chain-format` script
-in all three repositories, byte for byte
-(`.github/scripts/chain-format-gate.mjs` in `abap2UI5`, `scripts/chain-format.mjs`
-in both sample repos; in `samples-controls` it is also the first step of
-`npm run gates`). It checks rules 1–4 and applies them. It rewrites
-whitespace *between* chain segments only, and verifies that collapsing every
-run of code-whitespace leaves the file identical — **a layout fix can never
-change what the view builds.** Rules 5–6 and the blank lines stay
-reviewer-enforced.
+The rule is the abap2UI5-linter's **`chain-house-layout`**. It checks rules 1-4
+and carries fixes, so `--fix` reformats a drifted chain. The rewrite only ever
+touches whitespace *between* chain segments and the indent of a continuation
+line that is not itself content, and it verifies that collapsing every run of
+code-whitespace leaves the source identical — **a layout fix can never change
+what the view builds.** Rules 5-6 and the blank lines stay reviewer-enforced.
 
-Nothing else covers this, which is why the gate exists:
+It is the linter's one **opt-in** rule (`OPT_IN` in its `findings.mjs`): it is
+not emitted at all until a config asks for it, because it encodes one house
+style — this one — and because its fixes span a whole chain, which would defer
+any other rule's fix inside the same chain to a second `--fix` pass.
+
+How to run it depends on the repository, and they are not yet the same:
+
+| | how |
+|---|---|
+| `abap2UI5` | `npm run check:abap2ui5` / `npm run fmt:chains` — the linter, enabled in `abap2ui5lint.jsonc` |
+| `abap2UI5/samples` | `npm run check:chains` / `npm run fmt:chains` — still `scripts/chain-format.mjs` |
+| `abap2UI5/samples-controls` | `npm run check:chains` / `npm run fmt:chains` — the same script; also the first step of `npm run gates` |
+
+`scripts/chain-format.mjs` is the same algorithm as the rule, kept
+byte-identical in the two sample repositories. **It is meant to go away**: both
+repos pin the linter by SHA at a version that predates the rule, and bumping
+that pin also moves them onto the linter's new packaging, where the UI5 render
+runtime is a separate optional peer (`@abap2ui5/render-runtime`) rather than an
+optional dependency. Until that package resolves for them, bumping would take
+their render gate — 172 and 416 documents — down with it. So the script stays
+until the pin can move, and then it is deleted in the same change that adds
+`"chain-house-layout": "warning"` to their configs.
+
+Nothing else covers this, which is why the rule exists:
 
 - **abaplint** — its formatting rules do not reach into a method-call chain,
   and `align_parameters` / `line_break_multiple_parameters` are excluded for
   the shipped apps in `auto_abaplint_fix.jsonc` so the auto-formatter does not
   undo the layout.
-- **abap2UI5-linter `chain-element-per-line`** — covers rule 1. Ships as
-  `hint`; raised to `warning` in `samples`.
-- **abap2UI5-linter `chain-indentation`** — judges that a chain keeps its
-  **own** rhythm (a sibling in a different column than its siblings, a call
-  written left of the element it belongs to). It does **not** judge the step,
-  so a chain uniformly indented by 8 passes it while saying the wrong thing
-  about depth. 77 ports in `samples-controls` had drifted exactly that way, and
-  every gate stayed green. That gap is the reason `chain-format` exists.
+- **`chain-element-per-line`** — covers rule 1 only for *elements*: it
+  deliberately lets an attribute share its control's line, which the house
+  layout does not. Ships as `hint`; raised to `warning` in `samples`.
+- **`chain-indentation`** — judges that a chain keeps its **own** rhythm (a
+  sibling in a different column than its siblings, a call written left of the
+  element it belongs to). It does **not** judge the step, so a chain uniformly
+  indented by 8 passes it while saying the wrong thing about depth. 77 ports in
+  `samples-controls` had drifted exactly that way, and every gate stayed green.
+  That gap is what `chain-house-layout` was written for.
 
 ## When a chain has drifted
 
-Run `npm run fmt:chains`. Do not re-indent by hand — the script is verified
-whitespace-only, a hand fix is not. If it reports *"transform is not
-whitespace-only, left untouched"*, that file has something the scanner
-mis-reads (an unusual string template); fix that file by hand and say so.
+Run `npm run fmt:chains`. Do not re-indent by hand — the fix is verified
+whitespace-only, a hand fix is not. If a file is reported but never rewritten,
+it has something the scanner mis-reads (an unusual string template); fix that
+one by hand and say so.
 
 The shape that destroys a chain, and what one call per line prevents:
 

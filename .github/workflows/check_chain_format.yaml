@@ -1,18 +1,21 @@
-# Machine gate for the layout of a z2ui5_cl_ui5_view_builder chain. The chain
-# is the only picture of the view's tree there is, so its layout is
-# load-bearing: one call per line, four spaces per level of nesting, an `end( )`
-# back in the column of the `ele( )` it closes.
+# The abap2UI5-linter over the framework's OWN app classes — the ones under
+# src/01/04 and src/02 plus the test-server apps in node/srv. Those are what an
+# app developer copies from (hi_world is the worked example in the app guide),
+# so the corpus this repository ships to be imitated is checked with the tool
+# it ships for imitators. Configuration and the reasoning: abap2ui5lint.jsonc.
 #
-# Nothing else formats a builder chain. abaplint's `indentation` does not reach
-# into a method-call chain, and the abap2UI5-linter's two layout rules judge a
-# chain's OWN rhythm (`chain-indentation`) and one call per line
-# (`chain-element-per-line`) - neither judges the STEP, so a chain uniformly
-# indented by 8 passes both while saying the wrong thing about depth.
+# The rule this job exists for is `chain-house-layout`: the layout of a builder
+# chain — one call per line, four spaces per level of the tree, the closing call
+# in the column of the element it closes. Nothing else formats a chain.
+# abaplint's `indentation` does not reach into a method-call chain, and the
+# linter's two other layout rules judge a chain's OWN rhythm — neither judges
+# the STEP, so a chain uniformly indented by 8 passes both while saying the
+# wrong thing about depth. It shipped that way here: the start app carried
+# `)->ele( `Shell` )->ele( `Page` ).` on one line, hiding a level, green.
 #
-# The gate only ever rewrites whitespace BETWEEN chain segments, and verifies
-# that collapsing every run of code-whitespace leaves the file identical - so a
-# layout fix can never alter what the view builds. `npm run fmt:chains` applies
-# what it reports.
+# It used to be a local script kept byte-identical in three repositories by
+# hand. It is now the rule, in the one place the rule belongs, and
+# `npm run fmt:chains` applies it.
 name: check_chain_format
 
 on:
@@ -21,7 +24,7 @@ on:
     paths:
       - 'src/**/*.abap'
       - 'node/srv/*.abap'
-      - '.github/scripts/chain-format-gate.mjs'
+      - 'abap2ui5lint.jsonc'
       - '.github/workflows/check_chain_format.yaml'
 
 concurrency:
@@ -40,5 +43,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
+      - run: npm ci
       - name: the chain's indent states the view's depth
-        run: node .github/scripts/chain-format-gate.mjs src node/srv
+        run: npx abap2ui5lint

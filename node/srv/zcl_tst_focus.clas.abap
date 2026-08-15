@@ -32,11 +32,9 @@ CLASS zcl_tst_focus IMPLEMENTATION.
 
     ELSEIF client->check_on_event( `LOCK` ) IS NOT INITIAL.
       enabled = abap_false.
-      client->view_model_update( ).
 
     ELSEIF client->check_on_event( `UNLOCK_AND_FOCUS` ) IS NOT INITIAL.
       enabled = abap_true.
-      client->view_model_update( ).
       client->follow_up_action( val   = client->cs_event-set_focus
                                 t_arg = VALUE #( ( `inpDocNum` ) ( `0` ) ( `4` ) ) ).
     ENDIF.

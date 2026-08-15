@@ -1,0 +1,52 @@
+{
+  // The abap2UI5-linter, run against the framework's OWN app classes — the
+  // six under src/01/04 and src/02 plus the test-server apps under node/srv.
+  //
+  // Those apps are what an app developer copies from: `z2ui5_cl_ui5_app_hi_world`
+  // is the worked example in docs/agents/building-apps.md, and the start app is
+  // the first abap2UI5 view most people ever see. So the corpus this repository
+  // ships to be imitated is checked with the tool it ships for imitators.
+  //
+  // This is NOT a gate over the framework's engine: `src/01/01`–`src/01/03`,
+  // `src/00` and `src/99` build no views and the linter has nothing to say
+  // about them. abaplint (`npm run check`) remains the ABAP gate for all of it.
+  "$schema": "./node_modules/@abap2ui5/linter/data/abap2ui5lint.schema.json",
+
+  "paths": ["src", "node/srv"],
+
+  // The oldest release abap2UI5 supports — the same floor the samples are held
+  // to, and the reason it matters here is that a shipped app demonstrating a
+  // post-1.71 control would break on exactly the systems this floor exists for.
+  "ui5": "1.71",
+  "distribution": "openui5",
+
+  "rules": {
+    // The reason the linter is a dependency here at all. It replaces
+    // .github/scripts/chain-format-gate.mjs, which was this rule reimplemented
+    // locally and kept byte-identical in three repositories by hand — the
+    // duplication the rule itself was invented to remove.
+    //
+    // Opt-in by design (OPT_IN in the linter's findings.mjs): it encodes ONE
+    // house style, and this repository is where that style is defined
+    // (docs/agents/building-apps.md, "Formatting the chain", and the
+    // view-chain-layout skill). `npm run fmt:chains` applies it.
+    "chain-house-layout": { "severity": "warning" },
+
+    // Off, and only here: the rule tells an APP not to name an object outside
+    // the released `src/02` package, because those get renamed without notice.
+    // These app classes ARE the framework — `z2ui5_cl_ui5_app_start` reaching
+    // for `z2ui5_cl_ui5_srv_draft` or `z2ui5_cl_ui5_user_exit` is a shipped app
+    // calling its own engine, which is what it is for, and there is no release
+    // boundary between them to cross. Leaving it on would train the reader to
+    // ignore a rule that is exactly right everywhere else.
+    "non-released-api": false
+  },
+
+  // No render gate: it needs @abap2ui5/render-runtime (~123 MB of UI5), and
+  // this repository already renders these very apps in a real browser through
+  // its own Playwright suite (`npm run check:js`, node/srv). Run it on demand
+  // with `npx abap2ui5lint` after `npm i -D @abap2ui5/render-runtime`.
+  "render": false,
+
+  "failOn": "warning"
+}

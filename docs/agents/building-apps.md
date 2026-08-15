@@ -177,13 +177,18 @@ below are the ones the sample repositories are ported and reviewed against;
 `align_parameters` / `line_break_multiple_parameters` so the auto-formatter
 does not undo them.
 
-**They are machine-checked.** `npm run check:chains`
-(`.github/scripts/chain-format-gate.mjs`, a required workflow, and the same
-file in both sample repositories) checks one call per line, four spaces per
-level and the `end( )` column; `npm run fmt:chains` applies them. It rewrites
+**They are machine-checked.** The abap2UI5-linter's `chain-house-layout` rule
+checks one call per line, four spaces per level and the closing call's column;
+`npm run check:abap2ui5` reports and `npm run fmt:chains` applies. It rewrites
 whitespace *between* chain segments only and verifies that collapsing every run
 of code-whitespace leaves the file identical, so a layout fix can never change
 what the view builds. The blank-line rules below stay reviewer-enforced.
+
+The rule is **opt-in** in the linter, because it encodes one house style — this
+one — and is named in `abap2ui5lint.jsonc` rather than inherited. It is what
+the linter's two older layout rules cannot reach: they judge a chain against
+ITSELF, so a chain whose every level is uniformly wrong keeps its own rhythm
+and passes.
 
 - **The `factory( )` shape follows the chain shape, and there are two.** The
   variable has to denote the node you will attach to next:
