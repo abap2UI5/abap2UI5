@@ -1,0 +1,48 @@
+# The abap2UI5-linter over the framework's OWN app classes — the ones under
+# src/01/04 and src/02 plus the test-server apps in node/srv. Those are what an
+# app developer copies from (hi_world is the worked example in the app guide),
+# so the corpus this repository ships to be imitated is checked with the tool
+# it ships for imitators. Configuration and the reasoning: abap2ui5lint.jsonc.
+#
+# The rule this job exists for is `chain-house-layout`: the layout of a builder
+# chain — one call per line, four spaces per level of the tree, the closing call
+# in the column of the element it closes. Nothing else formats a chain.
+# abaplint's `indentation` does not reach into a method-call chain, and the
+# linter's two other layout rules judge a chain's OWN rhythm — neither judges
+# the STEP, so a chain uniformly indented by 8 passes both while saying the
+# wrong thing about depth. It shipped that way here: the start app carried
+# `)->ele( `Shell` )->ele( `Page` ).` on one line, hiding a level, green.
+#
+# It used to be a local script kept byte-identical in three repositories by
+# hand. It is now the rule, in the one place the rule belongs, and
+# `npm run fmt:chains` applies it.
+name: check_chain_format
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**/*.abap'
+      - 'node/srv/*.abap'
+      - 'abap2ui5lint.jsonc'
+      - '.github/workflows/check_chain_format.yaml'
+
+concurrency:
+  group: check_chain_format-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check_chain_format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: the chain's indent states the view's depth
+        run: npx abap2ui5lint

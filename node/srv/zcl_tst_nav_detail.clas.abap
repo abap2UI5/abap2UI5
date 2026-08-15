@@ -29,9 +29,10 @@ CLASS zcl_tst_nav_detail IMPLEMENTATION.
           )->a( n = `displayBlock` v = `true`
           )->a( n = `height`       v = `100%`
           )->ele( `Shell`
-          )->ele( `Page`
-              )->a( n = `title` v = `NAV DETAIL` ).
-      page->tag( `Label` )->a( n = `text` v = `detail-marker` ).
+              )->ele( `Page`
+                  )->a( n = `title` v = `NAV DETAIL` ).
+      page->tag( `Label`
+          )->a( n = `text` v = `detail-marker` ).
       client->view_display( view->stringify( ) ).
     ENDIF.
 
