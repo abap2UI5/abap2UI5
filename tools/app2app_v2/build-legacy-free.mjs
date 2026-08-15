@@ -88,4 +88,4 @@ cpSync(join(dataDir, "abap/standard"), join(outDir, "src"), { recursive: true })
 cpSync(bsp, join(outDir, "src/02"), { recursive: true });
 rmSync(work, { recursive: true, force: true });
 const n = readdirSync(join(outDir, "src/02")).length;
-console.log(`OK: legacy-free BSP ${bspName.toUpperCase()} erzeugt (${n} Dateien) in ${join(outDir, "src/02")} ${renamed && ownBackend ? "[eigener Backend-Handler]" : "[Backend-Handler /sap/bc/z2ui5]"}`);
+console.log(`OK: legacy-free BSP ${bspName.toUpperCase()} generated (${n} files) in ${join(outDir, "src/02")} ${renamed && ownBackend ? "[own backend handler]" : "[backend handler /sap/bc/z2ui5]"}`);
