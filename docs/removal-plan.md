@@ -4,7 +4,26 @@ Working checklist for the day the compatibility layer gets cut. Every entry says
 what it is, what replaces it, what breaks, and what has to be true before it can
 go. Nothing here is urgent; the point is that none of it gets forgotten.
 
-Counts are as of 2026-08-04 and worth re-measuring before acting.
+Counts are as of **2026-08-15**, and re-measuring is one command:
+
+```
+npm run blockers -- ../samples ../samples-controls ../samples-stack ../app-template
+```
+
+`.github/scripts/removal-blockers.mjs` counts the files naming each deprecated
+symbol under every checkout you point it at. It is not a CI gate — the sibling
+repositories are not checked out here, and making this repository's checks
+depend on four others would be worse than a stale number. It exists because the
+numbers below were measured by hand, and a hand-measured count is right on the
+day it is written: the previous revision of this file said *"samples: 336 of
+343 classes use `z2ui5_cl_xml_view`, 0 use the successor"* while `samples` had
+already been migrated in full and the true number was 0. A maintainer reading
+that would have concluded the migration had not started.
+
+**As of 2026-08-15 every blocker in sections 1 and 2 is at zero** across
+`samples`, `samples-controls`, `samples-stack` and `app-template` — 614 classes
+use `z2ui5_cl_ui5_view_builder` and none use its predecessor. What is left is
+**`docs`**, which is a separate repository and is not scanned here.
 
 **Rule of thumb for the order:** documentation, then samples, then the code. A
 removal whose replacement is still undocumented turns every upgrader into a
@@ -124,8 +143,13 @@ breaking change for any downstream app that still references it.
 
 - [ ] **`z2ui5_cl_xml_view` (15,882 lines) + `z2ui5_cl_xml_view_cc`**
       → `z2ui5_cl_ui5_view_builder` (`src/02/`)
-      - **Blocker A:** samples — 336 of 343 classes use it, 0 use the successor.
-      - **Blocker B:** docs — 51 pages teach it.
+      - **Blocker A: cleared 2026-08-15.** Zero callers across `samples` (150
+        classes on the successor), `samples-controls` (431), `samples-stack`
+        (32) and `app-template` (1). The last fourteen were
+        `samples-controls` `src/03`, the SAPUI5-only collection, migrated in
+        the same pass — they were also the only ABAP in that repository no
+        view check could read, because nothing can reconstruct this builder.
+      - **Blocker B:** docs — 51 pages teach it. **The only one left.**
       - This is a project, not a task. Until it is done, nothing else in
         `src/99` can go either, because the package ships as a unit.
       - `factory_plain( )` (`:22`) is obsolete **inside** an already-obsolete
