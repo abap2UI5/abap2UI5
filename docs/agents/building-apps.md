@@ -177,12 +177,37 @@ below are the ones the sample repositories are ported and reviewed against;
 `align_parameters` / `line_break_multiple_parameters` so the auto-formatter
 does not undo them.
 
-- **The chain hangs off the `factory( )` — one statement, not two.** Write
-  `` DATA(view) = z2ui5_cl_ui5_view_builder=>factory( )->ele( n = `View` … ) ``,
-  never a `factory( ).` of its own followed by a second statement starting
-  `view->ele( … )`. The variable then holds wherever the chain stopped, which
-  costs nothing: `stringify( )` renders from the root. Same for a popup or a
-  fragment.
+**They are machine-checked.** `npm run check:chains`
+(`.github/scripts/chain-format-gate.mjs`, a required workflow, and the same
+file in both sample repositories) checks one call per line, four spaces per
+level and the `end( )` column; `npm run fmt:chains` applies them. It rewrites
+whitespace *between* chain segments only and verifies that collapsing every run
+of code-whitespace leaves the file identical, so a layout fix can never change
+what the view builds. The blank-line rules below stay reviewer-enforced.
+
+- **The `factory( )` shape follows the chain shape, and there are two.** The
+  variable has to denote the node you will attach to next:
+  - **A view split into a statement per subtree** (the shape of the apps here
+    and of `abap2UI5/samples`) hangs the chain off the `factory( )` — one
+    statement, not two — so the variable holds the `mvc:View` and a later
+    `view->ele( `Shell` … )` lands inside it:
+
+    ```abap
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `xmlns`     v = `sap.m`
+            )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc` ).
+    ```
+  - **A view built as one chain** (the shape of `abap2UI5/samples-controls`,
+    where a 1:1 port mirrors one original XML file) may take the `factory( ).`
+    as a statement of its own, because nothing attaches to the variable
+    afterwards — `stringify( )` renders from the root either way. It buys two
+    levels of indent back across the whole view, which is worth having in a
+    deeply nested one.
+
+  What is never right is the standalone `factory( ).` *with* the split shape:
+  the variable then holds the root, and `view->ele( `Shell` )` adds a second
+  root next to the `mvc:View` instead of a child inside it.
 - **The closing paren rides with the arrow.** Never leave a `)` alone at the
   end of a line — carry it to the **start of the next segment**, so every
   continuation reads `)->`. With the `a( )` chain there is no nested `VALUE`,
@@ -196,16 +221,18 @@ does not undo them.
   four more. A step of two, or a line that changes depth and leaves the next
   line in the old column, and the layout is no longer describing the XML — it
   is decorating it.
-- **One descent per line, and never a descent behind an `end( )`.** Two things
-  may share a line with the call that opens them, because neither hides
-  anything: a control and its own attributes
-  (`` )->tag( `Label` )->a( n = `text` … ``), and a bare container handing
-  straight over to the next (`` view->ele( `Shell` )->ele( `Page` ``,
-  `` popover->ele( `footer` )->ele( `OverflowToolbar` ``). A *subtree* may
-  not. `` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar` `` at the
-  end of an attribute line — up two, down two — is the shape that destroys a
-  chain: four level changes nobody can follow, and every line after them
-  starts in a column that means nothing.
+- **One call per line — no exceptions.** Every `ele( )`, `tag( )`, `a( )` and
+  `end( )` opens its own line with `)->`. A control does not share its line
+  with its own attributes (`` )->tag( `Label` )->a( n = `text` … ``), and a
+  container does not hand straight over to the next
+  (`` view->ele( `Shell` )->ele( `Page` ``). Both used to be allowed here as
+  "they hide nothing", and both were dropped when the two sample corpora were
+  unified: the exception is what the worst shape grows out of.
+  `` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar` `` at the end
+  of an attribute line — up two, down two — is four level changes nobody can
+  follow, after which every line starts in a column that means nothing. With
+  one call per line there is no line for it to hide on. This is also the
+  abap2UI5-linter's `chain-element-per-line`.
 - **Come back to a node through a variable, not through a run of `end( )`s.**
   `end( )` is for closing what you are finished with, one level, at the start
   of its own line. When you need a node *again* — a page you hang three

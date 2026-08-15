@@ -1,0 +1,43 @@
+# Machine gate for the layout of a z2ui5_cl_ui5_view_builder chain. The chain
+# is the only picture of the view's tree there is, so its layout is
+# load-bearing: one call per line, four spaces per level of nesting, an `end( )`
+# back in the column of the `ele( )` it closes.
+#
+# Nothing else formats a builder chain. abaplint's `indentation` does not reach
+# into a method-call chain, and the abap2UI5-linter's two layout rules judge a
+# chain's OWN rhythm (`chain-indentation`) and one call per line
+# (`chain-element-per-line`) - neither judges the STEP, so a chain uniformly
+# indented by 8 passes both while saying the wrong thing about depth.
+#
+# The gate only ever rewrites whitespace BETWEEN chain segments, and verifies
+# that collapsing every run of code-whitespace leaves the file identical - so a
+# layout fix can never alter what the view builds. `npm run fmt:chains` applies
+# what it reports.
+name: check_chain_format
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**/*.abap'
+      - '.github/scripts/chain-format-gate.mjs'
+      - '.github/workflows/check_chain_format.yaml'
+
+concurrency:
+  group: check_chain_format-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check_chain_format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: the chain's indent states the view's depth
+        run: node .github/scripts/chain-format-gate.mjs src

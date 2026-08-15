@@ -128,10 +128,16 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " stringify( ) renders from the root, so the chain may simply stop
     DATA(closed) = z2ui5_cl_ui5_view_builder=>factory( ).
-    closed->ele( `Page` )->ele( `Panel` )->ele( `Title` )->end( )->end( ).
+    closed->ele( `Page`
+        )->ele( `Panel`
+            )->ele( `Title`
+            )->end(
+        )->end( ).
 
     DATA(open) = z2ui5_cl_ui5_view_builder=>factory( ).
-    open->ele( `Page` )->ele( `Panel` )->ele( `Title` ).
+    open->ele( `Page`
+        )->ele( `Panel`
+            )->ele( `Title` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = open->stringify( )
