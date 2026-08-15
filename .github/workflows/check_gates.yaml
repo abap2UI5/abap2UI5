@@ -1,0 +1,97 @@
+name: check_gates
+
+# The static gates of this repository, in one job.
+#
+# Each of them is a Node script that reads the sources and decides one rule.
+# Together they run in under a second. As nine separate workflows they cost
+# nine runner starts, nine checkouts and nine toolchain setups - about two
+# minutes of CI and nine entries in the checks list - to do that one second
+# of work. This is the same set, on one runner.
+#
+# Every step is `if: ${{ !cancelled() }}`, which is the part that makes the
+# merge an improvement rather than a trade: a pull request that trips three
+# gates now reports all three in one log, instead of surfacing the next one
+# only after the previous has been fixed and pushed.
+#
+# The reasoning for each rule lives where the rule lives - in the script it
+# runs, and for the chain layout in abap2ui5lint.jsonc. That is deliberate:
+# a rule and its justification move together. The comments here say only what
+# is being checked.
+#
+# No paths filter, on purpose. Filtering saved nothing measurable at this
+# runtime, and a check that does not run cannot be required in the branch
+# protection - the filters were quietly making these gates unrequirable.
+
+on:
+  pull_request:
+
+concurrency:
+  group: check_gates-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check_gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Full history: the frozen-path gate diffs against the merge base and
+      # reads the latest release tag to tell a never-shipped object from a
+      # delivered one.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+
+      # The chain-layout gate is the abap2UI5-linter, which is a dependency;
+      # the rest are plain Node and need nothing installed.
+      - uses: ./.github/actions/setup
+        with:
+          npm-ci: "true"
+
+      # Each gate is the npm script a developer runs locally, so a failure
+      # here names the command that reproduces it.
+
+      - name: src/99 production code is frozen
+        if: ${{ !cancelled() }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npm run check:frozen
+
+      - name: src/ round-trips through abapGit
+        if: ${{ !cancelled() }}
+        run: npm run check:abapgit
+
+      - name: src/ is clean under the extended check (SLIN / ATC)
+        if: ${{ !cancelled() }}
+        run: npm run check:atc
+
+      - name: internal object names carry the ui5 segment
+        if: ${{ !cancelled() }}
+        run: npm run check:naming
+
+      - name: dynamic name literals resolve to shipped objects
+        if: ${{ !cancelled() }}
+        run: npm run check:dynamic
+
+      - name: the chain's indent states the view's depth
+        if: ${{ !cancelled() }}
+        run: npm run check:abap2ui5
+
+      - name: public API unchanged (additions recorded)
+        if: ${{ !cancelled() }}
+        run: npm run check:api
+
+      - name: the app guide names real API
+        if: ${{ !cancelled() }}
+        run: npm run check:guide
+
+      - name: every sap-icon:// name exists in UI5 1.71
+        if: ${{ !cancelled() }}
+        run: npm run check:icons
+
+      - name: curated formatters stay a marshalling layer, not app logic
+        if: ${{ !cancelled() }}
+        run: npm run check:formatter

@@ -4,7 +4,8 @@
   // placeholder with the chosen name (max. 10 characters) before running
   // `abaplint <config> --rename` - see .github/workflows/build_rename.yaml.
   //
-  // This is also what the test_rename PR gate runs (`npm run rename`), against
+  // This is also what the rename step of the abaplint PR gate runs
+  // (`npm run rename`), against
   // the 10-character placeholder, i.e. the worst case the workflow allows. A
   // separate, weaker test config used to exist and let three over-long class
   // names slip through unnoticed - do not reintroduce one.
