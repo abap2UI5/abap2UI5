@@ -2,6 +2,7 @@
 node/deps/
 node_modules
 /node/output/
+/node/coverage/
 .github/out
 .github/abaplint/rename_run.jsonc
 .github/abaplint/downport_run.jsonc

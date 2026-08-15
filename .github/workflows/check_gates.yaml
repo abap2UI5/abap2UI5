@@ -103,3 +103,7 @@ jobs:
       - name: curated formatters stay a marshalling layer, not app logic
         if: ${{ !cancelled() }}
         run: npm run check:formatter
+
+      - name: every FOR TESTING method asserts something
+        if: ${{ !cancelled() }}
+        run: npm run check:asserts
