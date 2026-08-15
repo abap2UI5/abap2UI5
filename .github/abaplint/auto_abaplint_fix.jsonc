@@ -23,7 +23,23 @@
   },
   "rules": {
 
-    "in_statement_indentation": true,
+    // Third rule excluded for the same two files, for the same reason as the
+    // pair below. The house layout puts a chain's closing call in the column
+    // of the element it closes (view-chain-layout, enforced by the
+    // chain-house-layout rule of abap2ui5lint), so the `)->end( ).` that
+    // closes the outermost element lands in the column of the `form->ele( )`
+    // that opened it - two columns left of the statement-start + 2 that
+    // in_statement_indentation requires of a continuation line. The two are
+    // irreconcilable for that one shape: the chain gate rejects any column
+    // but the opener's, this rule rejects anything left of start + 2.
+    //
+    // Left unexcluded, the autofix wins - it runs on every pull request and
+    // pushes - and check_gates then fails on the result. That already
+    // happened: #2583 moved this exact line and #2599 was the pull request
+    // that made the failure visible.
+    "in_statement_indentation": {
+      "exclude": ["z2ui5_cl_ui5_app_start\\.clas\\.abap$", "z2ui5_cl_ui5_app_hi_world\\.clas\\.abap$"]
+    },
     "indentation": true,
     "double_space": true,
     // The two shipped apps write the view builder's a( ) as one line per
