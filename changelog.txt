@@ -25,12 +25,12 @@ unreleased
   one line of icons: issues, pull requests, the Slack channel and sponsoring,
   and at its right end the system information, which stays a popup - it
   answers a question that is asked once. The draft entries there are given as own/total
-  now (z2ui5_cl_core_srv_draft=>count_entries_total( )), the figure that says
+  now (z2ui5_cl_ui5_srv_draft=>count_entries_total( )), the figure that says
   whether the cleanup is keeping up on this system. The title row is icons
   only: the documentation, the repository (globe) and, where the class
   exists, the configuration
 - BREAKING: removed render_documentation( ), render_system_popup( ) and
-  render_contribution( ) from the public section of z2ui5_cl_app_startup,
+  render_contribution( ) from the public section of z2ui5_cl_ui5_app_start,
   together with cs_event-open_info, cs_event-close and cs_event-open_debug.
   The "Keep learning" section they rendered is gone, the system popup is
   built by a private method now, the Join in section became a line of icons,
@@ -42,12 +42,12 @@ unreleased
   private, including the two event names the page now uses: a page internal
   does not belong in the public contract
 ! check_sticky and check_initialized moved off z2ui5_if_app into the
-  framework's own app wrapper (z2ui5_cl_core_app=>mv_check_sticky /
+  framework's own app wrapper (z2ui5_cl_ui5_app_cont=>mv_check_sticky /
   mv_check_initialized), where mv_nav_mode and ms_session already live. They
   are framework bookkeeping, not something an app implements, and every
   reader already held that wrapper - the http handler even reached through
   it to CAST the app back out. Both interface attributes stay and are kept in
-  sync by z2ui5_cl_core_app=>app_compat_mirror( ), so an app that READS them
+  sync by z2ui5_cl_ui5_app_cont=>app_compat_mirror( ), so an app that READS them
   still sees the truth; a direct WRITE is no longer honored -
   client->set_session_stateful( ) switches sticky on and
   client->check_on_init( ) answers the lifecycle question. id_draft and
@@ -244,7 +244,7 @@ unreleased
   registry, the slot display machinery in core/actions/Slots.js, the
   session block in core/Session.js and the focus/scroll capture in
   core/ScrollFocus.js; the backend serialization moved into
-  z2ui5_cl_core_action_front, the class that owns the frontend queues
+  z2ui5_cl_ui5_frontend, the class that owns the frontend queues
 ! the model is now pushed AUTOMATICALLY when an event round-trip changed it,
   and the manual push methods are obsolete. The framework compares the model
   state before main( ) - taken after the incoming client deltas were applied,
@@ -309,7 +309,7 @@ unreleased
   id and every public exception attribute that carries a value), and
   `--- context ---` with the app / event / draft / url of the failing roundtrip
   and the system (system, client, host, release, user, time). Rendered by the
-  new z2ui5_cx_a2ui5_error=>get_text_full( ), which works for any exception
+  new z2ui5_cx_ui5_util_error=>get_text_full( ), which works for any exception
 ! The error popup shows only the messages of that dump, one per line; the detail
   sections stay one click away behind Details (developer tools Error tab) and in
   Copy, which both carry the untruncated text. Non-framework errors (network,
@@ -322,7 +322,7 @@ unreleased
   longer looks like all there is. Colors come from the UI5 theme parameters, so
   the popup follows the app theme; the raw-DOM fallback overlay (shown when the
   UI5 core itself cannot render) got the same square frame
-* z2ui5_cx_a2ui5_error chains the exception passed as val as its previous. The
+* z2ui5_cx_ui5_util_error chains the exception passed as val as its previous. The
   framework's dominant raise pattern (EXPORTING val = x, no previous) used to
   drop everything below x, so the cause of a wrapped error - and its source
   position - never reached the client. Nested causes are still printed exactly

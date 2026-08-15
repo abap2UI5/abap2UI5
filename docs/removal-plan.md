@@ -92,7 +92,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 - [ ] **`check_sticky` / `check_initialized` of `z2ui5_if_app`** —
       `z2ui5_if_app.intf.abap:29`, `:34`. The state moved to
-      `z2ui5_cl_ui5_app=>mv_check_sticky` / `mv_check_initialized`; what is
+      `z2ui5_cl_ui5_app_cont=>mv_check_sticky` / `mv_check_initialized`; what is
       left are mirrors `app_compat_mirror( )` keeps in sync for readers.
       - Removing them is a rule-5 break like any other, but a cheap one: they
         are `DATA`, not a signature, and the framework no longer reads them.
@@ -105,7 +105,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 > **Not obsolete, do not remove:** `id_draft` and `id_app` of `z2ui5_if_app`
 > look like the two above and are not. `id_draft` is the handle
-> `z2ui5_cl_ui5_app=>db_load_by_app( )` resolves an app reference by
+> `z2ui5_cl_ui5_app_cont=>db_load_by_app( )` resolves an app reference by
 > (`read_draft( app->id_draft )`), and both are written at moments when no
 > wrapper exists yet — an app handed to `nav_app_call( )`, a draft looked up
 > before it is parsed. They are public only because an ABAP interface has no

@@ -76,6 +76,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:dynamic
 
+      - name: prose names objects that exist
+        if: ${{ !cancelled() }}
+        run: npm run check:prose
+
+      - name: the two version numbers agree
+        if: ${{ !cancelled() }}
+        run: npm run check:version
+
       - name: the chain's indent states the view's depth
         if: ${{ !cancelled() }}
         run: npm run check:abap2ui5
