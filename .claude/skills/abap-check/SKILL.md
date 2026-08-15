@@ -252,7 +252,7 @@ pitfalls".
 **Not gated — a script cannot decide these:**
 
 - **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE`
-  (`z2ui5_cl_core_srv_draft=>count_entries`, `43515c97`). Whether the missing
+  (`z2ui5_cl_ui5_srv_draft=>count_entries`, `43515c97`). Whether the missing
   `WHERE` is correct is a judgement, not a pattern.
 - **`CREATE OBJECT … TYPE (name)` into a generic reference, then `CAST`,** is
   flagged as insecure object creation. Declare the typed reference and create

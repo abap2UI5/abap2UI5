@@ -450,7 +450,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     render_link( form = form
                  text = `See a complete example: Hello World`
-                 href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_ui5_app_hi_world.clas.abap` ).
+                 href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap` ).
 
     form->tag( `Label` )->a( n = `text`  v = `Step 4` ).
 
