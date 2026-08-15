@@ -34,6 +34,21 @@ Quick orientation while it loads:
   `a( )`s, not between consecutive `tag`s, not after a bare `ele` that only
   descends into another `ele`. Full rules and a worked example:
   "Formatting the chain" in §3 of the guide.
+- **The indent has to state the depth: 4 spaces per level, never 2, and one
+  descent per line.** A line may open the next element at its end
+  (`` )->tag( `Label` ``); it may not open two, and
+  `` )->end( )->end( )->ele( … )->ele( … `` at the end of an attribute line is
+  the shape that makes a chain unreadable. When you need a node again, hold it
+  in a variable (`` DATA(page) = view->ele( `Shell` )->ele( `Page` … ) ``) and
+  start a new statement per subtree — never unwind with a run of `end( )`s.
+- **Do not expect a gate to catch a mangled chain.** abaplint's formatting
+  rules are off for app code on purpose; the abap2UI5-linter's
+  `chain-indentation` / `chain-element-per-line` do judge it but ship as
+  `hint`, which a `failOn: warning` config never prints — and in `samples` 339
+  of them sit in the baseline. Read the repository's `abap2ui5lint.jsonc`
+  before you trust a green run, and re-read the chain you wrote against §3's
+  example. `samples` `z2ui5_cl_smp_app_052` came out of a port unreadable and
+  every gate stayed green.
 - Bind with `client->_bind( var )` (also for display-only;
   `_bind_edit` is obsolete). Row-template fields bind as `` `{UPPERCASE}` ``.
   Never write a model path as a text literal.

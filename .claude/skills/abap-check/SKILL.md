@@ -1,6 +1,6 @@
 ---
 name: abap-check
-description: The catalogue of ABAP problems a green CI does not catch - abapGit round-trip and import failures (BOM, line endings, EOF newline, 255-character lines, metadata sidecars for CLAS and for DDLS/BDEF/TABL), activation errors abaplint does not model (class_constructor visibility, LOCAL FRIENDS, generic types on older releases, RAP and CDS), extended-check (SLIN/ATC) traps, downport and transpiler traps, and runtime breakage that only shows on a real system. Use before finishing any change under src/, after editing a .clas.xml or any other metadata sidecar, when a pull into a system produced unexpected diffs, an import error or an activation error - and add the case here whenever a new one is found.
+description: The catalogue of ABAP problems a green CI does not catch - abapGit round-trip and import failures (BOM, line endings, trailing whitespace, EOF newline, 255-character lines, metadata sidecars for CLAS and for DDLS/BDEF/TABL), activation errors abaplint does not model (class_constructor visibility, LOCAL FRIENDS, generic types on older releases, RAP and CDS), extended-check (SLIN/ATC) traps, downport and transpiler traps, and runtime breakage that only shows on a real system. Use before finishing any change under src/, after editing a .clas.xml or any other metadata sidecar, when a pull into a system produced unexpected diffs, an import error or an activation error - and add the case here whenever a new one is found.
 ---
 
 # What a green CI does not prove
@@ -156,9 +156,38 @@ below, one step earlier.
   entry is stale. The gate cannot know which components have a description in
   the system — you have to look.
 
-Deliberately **not** gated: trailing whitespace. abaplint's `whitespace_end`
-owns it for `src/01` and `src/02`, and the historical blanks in mirrored
-`src/00` and frozen `src/99` are not ours to fix.
+### Trailing whitespace — owned by a rule that is not in every repository
+
+The ABAP editor strips a trailing blank when it saves, so a line that ends in
+one comes back different on the next pull — the same defect as the rest of
+this section, and the one most likely to be *written* here, because reflowing
+a chain or a string template leaves blanks behind that no diff view shows.
+
+It is not in the abapGit gate: in **this** repository abaplint's
+`whitespace_end` already owns it for `src/01` and `src/02`, and the historical
+blanks in mirrored `src/00` and frozen `src/99` are not ours to fix.
+
+**That rule is per repository, and it is not everywhere.** `abap2UI5/samples`
+had no `whitespace_end` in its `abaplint.jsonc` at all: the port of the corpus
+to `z2ui5_cl_ui5_view_builder` (`#752`) left a trailing blank on seven lines in
+seven app classes, all four CI workflows stayed green, and a maintainer had to
+find and push them by hand — `b7edbc6` "fix abaplint diffs". The rule is
+enabled there now, so that specific hole is closed.
+
+So, before you finish in **any** repository: if its abaplint config does not
+list `whitespace_end`, the check is yours.
+
+```
+grep -rnP '[ \t]+$' --include='*.abap' --include='*.xml' src/ && echo "trailing whitespace"
+```
+
+(`grep -E '[ \t]+$'` does **not** work — in a POSIX bracket expression `\t` is
+a backslash and a `t`, so it matches every line ending in `t`, which is why a
+scan can come back full of hits and still have found nothing. Use `-P`.) Strip
+what it finds with `sed -i 's/[[:space:]]\+$//'` — that is all
+`npm run strip_trailing_ws` does — and add `whitespace_end` to that
+repository's abaplint config in the same pull request once the tree is clean.
+That is what turns one fix into the last one.
 
 ## 2. Activation — compiles here, syntax error there
 
