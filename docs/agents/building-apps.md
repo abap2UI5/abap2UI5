@@ -190,6 +190,32 @@ does not undo them.
 - **Indent after every `ele`.** Each `ele( )` shifts its children's `)->`
   one level (4 spaces) to the right, `end( )` shifts back left, and the `)->`
   of an `end` sits in the same column as the `ele` it closes.
+- **The indent *states* the depth — 4 spaces, never 2.** The column a line
+  starts in is the only place the reader can see where in the tree they are,
+  so it has to be true: same depth, same column; one level deeper, exactly
+  four more. A step of two, or a line that changes depth and leaves the next
+  line in the old column, and the layout is no longer describing the XML — it
+  is decorating it.
+- **One descent per line, and never a descent behind an `end( )`.** Two things
+  may share a line with the call that opens them, because neither hides
+  anything: a control and its own attributes
+  (`` )->tag( `Label` )->a( n = `text` … ``), and a bare container handing
+  straight over to the next (`` view->ele( `Shell` )->ele( `Page` ``,
+  `` popover->ele( `footer` )->ele( `OverflowToolbar` ``). A *subtree* may
+  not. `` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar` `` at the
+  end of an attribute line — up two, down two — is the shape that destroys a
+  chain: four level changes nobody can follow, and every line after them
+  starts in a column that means nothing.
+- **Come back to a node through a variable, not through a run of `end( )`s.**
+  `end( )` is for closing what you are finished with, one level, at the start
+  of its own line. When you need a node *again* — a page you hang three
+  sections off, a `footer` beside a form — keep it: `` DATA(page) =
+  view->ele( `Shell` )->ele( `Page` … ) ``, then `page->ele( … )` per subtree,
+  each its own statement, each starting at the method's indent. Every app in
+  the framework and in `abap2UI5/samples` is built this way, and it is what
+  keeps the rule above satisfiable: a statement that never unwinds can indent
+  monotonically. A subtree deep enough that its lines drift past the
+  right-hand side of the screen is telling you the same thing — split it.
 - **A control's `a( )` lines sit one level (4 spaces) in from the control's
   own `)->` line** — one attribute per line, `v =` column aligned across the
   block.
@@ -239,6 +265,69 @@ The blank above `Title` is what makes the three fields read as the form's
 content rather than as a continuation of the `content` aggregation; the
 missing blanks between them are what keep the three together. Blanks in both
 places, or in neither, and the same view reads as a pile of fragments.
+
+**Do not expect a gate to catch this for you.** abaplint's formatting rules
+are deliberately kept off the app chains (`align_parameters` and
+`line_break_multiple_parameters` are excluded in
+`.github/abaplint/auto_abaplint_fix.jsonc`, `indentation` is off — they would
+flatten exactly the layout this section builds). The abap2UI5-linter does
+judge it, with two rules — `chain-indentation` (a sibling in a different
+column than its siblings, a call written left of the element it belongs to;
+the step *size* is not judged, only that a chain keeps its own rhythm) and
+`chain-element-per-line` (several controls on one line; attributes may share
+their control's line, and so may the container it opens) — **but both ship as
+`hint`, and a config with `failOn: warning` does not even print them.** In
+`abap2UI5/samples` they are muted twice over: 339 `chain-element-per-line`
+findings went into `abap2ui5lint-baseline.json` when the linter was adopted,
+one of them the `` view->ele( `Shell` )->ele( `Page` `` idiom that repository
+documents. So check the config of the repository you are in before you trust
+a green run — and either way, re-read the chain you just wrote against the
+example above.
+
+#### What a broken chain looks like
+
+From `abap2UI5/samples` `z2ui5_cl_smp_app_052`, after the port to this builder
+— lint-green, and unreadable:
+
+```abap
+    lo_popover->ele( `Popover`
+        )->a( n = `title`        v = |abap2UI5 - Popover - { mv_product }|
+        )->a( n = `contentWidth` v = `20rem` )->ele( n = `SimpleForm` ns = `form`
+          )->a( n = `layout`   v = `ColumnLayout`
+          )->a( n = `editable` b = abap_false )->ele( n = `content` ns = `form` )->tag( `Label`
+              )->a( n = `text` v = `Product` )->tag( `Text`
+              )->a( n = `text` v = mv_product )->tag( `Text`
+              )->a( n = `text` v = `this is a text` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar`
+              )->tag( `ToolbarSpacer` )->tag( `Button`
+                )->a( n = `press` v = client->_event( `BUTTON_DETAILS` ) ).
+```
+
+Three defects, and they compound: the indent steps by 2 and then by 4 and then
+stops moving at all; one line opens `content` *and* a `Label`; and the
+`` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar` `` at the end of
+an attribute line leaves the `ToolbarSpacer` two levels away from where its
+column claims it is. Nothing here says `footer` is a sibling of `SimpleForm`.
+The same tree, with the subtree held in a variable:
+
+```abap
+    DATA(popover) = lo_popover->ele( `Popover`
+        )->a( n = `title`        v = |abap2UI5 - Popover - { mv_product }|
+        )->a( n = `contentWidth` v = `20rem` ).
+
+    popover->ele( n = `SimpleForm` ns = `form`
+        )->a( n = `layout`   v = `ColumnLayout`
+        )->a( n = `editable` b = abap_false
+        )->ele( n = `content` ns = `form`
+            )->tag( `Label` )->a( n = `text` v = `Product`
+            )->tag( `Text`  )->a( n = `text` v = mv_product
+            )->tag( `Text`  )->a( n = `text` v = `this is a text` ).
+
+    popover->ele( `footer` )->ele( `OverflowToolbar`
+        )->tag( `ToolbarSpacer`
+        )->tag( `Button`
+            )->a( n = `press` v = client->_event( `BUTTON_DETAILS` )
+            )->a( n = `text`  v = `details` ).
+```
 
 ## 4. Data binding
 
