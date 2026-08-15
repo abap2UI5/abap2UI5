@@ -174,7 +174,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " page shows next to the own count, and what says whether cleanup( ) is
     " keeping up. Deliberately NOT owner-scoped, and deliberately only a count:
     " everything that reads draft CONTENT stays owner-bound ( see read( ) )
-    SELECT COUNT( * ) FROM z2ui5_t_01
+    SELECT COUNT( * ) FROM z2ui5_t_01                     "#EC CI_NOWHERE
       INTO @result.
 
   ENDMETHOD.

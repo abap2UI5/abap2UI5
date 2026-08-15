@@ -252,8 +252,11 @@ pitfalls".
 **Not gated — a script cannot decide these:**
 
 - **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE`
-  (`z2ui5_cl_ui5_srv_draft=>count_entries`, `43515c97`). Whether the missing
-  `WHERE` is correct is a judgement, not a pattern.
+  (`z2ui5_cl_ui5_srv_draft=>count_entries_total`, `43515c97`). Whether the
+  missing `WHERE` is correct is a judgement, not a pattern — here it is
+  deliberate ( the method reports the whole table's size ), so the pragma
+  records the decision instead of hiding it. `count_entries` next to it *is*
+  owner-scoped and needs no pragma.
 - **`CREATE OBJECT … TYPE (name)` into a generic reference, then `CAST`,** is
   flagged as insecure object creation. Declare the typed reference and create
   into it directly (`b25388ff`):
