@@ -3,169 +3,200 @@
     xmlns:core="sap.ui.core"
     xmlns:ce="sap.ui.codeeditor"
 >
+    <!-- The title is a plain model property, never an expression binding:
+         `{= ... }` is compiled with eval/new Function and dies under any
+         CSP stricter than the one the framework ships (AGENTS.md rule 13).
+         show() assembles the string. -->
     <Dialog
-        title="{= ${/appName} ? 'abap2UI5 - Developer Tools - ' + ${/appName} : 'abap2UI5 - Developer Tools' }"
+        title="{/title}"
         stretch="true"
         escapeHandler=".onEscape"
     >
+        <!-- Search is not a tab any more. It answers "where does /CUSTOMER
+             appear?" across EVERY tab at once, which is the one question
+             that gets harder the more the tools can show - so it sits in
+             the sub-header, reachable from wherever the user is, instead
+             of being the eleventh entry in a tab strip.
+             A Toolbar, not a Bar: Dialog.subHeader takes any sap.m.IBar
+             and Toolbar is the flex one. A Bar lays block-level children
+             out in normal flow before 1.76 and clips them (rule 21b). -->
+        <subHeader>
+            <Toolbar>
+                <SearchField
+                    value="{/searchTerm}"
+                    placeholder="Search across all tabs..."
+                    search=".onSearch"
+                    width="100%"
+                />
+            </Toolbar>
+        </subHeader>
+        <!-- Five groups instead of twenty-two flat tabs. They are ordered
+             the way a debugging session runs: what is going on, what
+             broke, what went over the wire, what the screen is made of,
+             what it all runs on. Which sub-view each one offers is
+             decided by devtools/Tabs.js, not here. -->
         <IconTabHeader
-            selectedKey="{/selectedTab}"
-            select=".onItemSelect"
+            selectedKey="{/selectedGroup}"
+            select=".onGroupSelect"
         >
             <items>
                 <IconTabFilter
-                    text="Error"
-                    key="ERROR"
-                    enabled="{/hasError}"
-                />
-                <!-- One timeline: the framework error log, UI5's log,
-                     uncaught errors and rejections, every console.* call
-                     and the backend messages the user was shown. These
-                     were three tabs and had to be correlated by hand. -->
-                <IconTabFilter
-                    text="Log"
-                    key="LOG"
+                    text="Overview"
+                    key="OVERVIEW"
                 />
                 <IconTabFilter
-                    text="History"
-                    key="HISTORY"
+                    text="Problems"
+                    key="PROBLEMS"
+                    count="{/problemCount}"
                 />
                 <IconTabFilter
-                    text="Model Diff"
-                    key="DIFF"
+                    text="Roundtrips"
+                    key="ROUNDTRIPS"
                 />
                 <IconTabFilter
-                    text="View Diff"
-                    key="VIEWDIFF"
+                    text="View &amp; Data"
+                    key="VIEWDATA"
                 />
                 <IconTabFilter
-                    text="Actions"
-                    key="ACTIONS"
-                />
-                <IconTabSeparator />
-                <IconTabFilter
-                    text="Bindings"
-                    key="BINDINGS"
-                />
-                <IconTabFilter
-                    text="Picked Control"
-                    key="PICK"
-                />
-                <IconTabFilter
-                    text="Registry"
-                    key="REGISTRY"
-                />
-                <IconTabFilter
-                    text="Environment"
-                    key="ENV"
-                />
-                <IconTabFilter
-                    text="Search"
-                    key="SEARCH"
-                />
-                <IconTabSeparator />
-                <IconTabFilter
-                    text="Previous Request"
-                    key="REQUEST"
-                />
-                <IconTabFilter
-                    text="Response"
-                    key="PLAIN"
-                />
-                <IconTabFilter
-                    text="Source Code"
-                    key="SOURCE"
-                />
-                <IconTabFilter
-                    text="View"
-                    key="VIEW"
-                />
-                <IconTabFilter
-                    text="View Model"
-                    key="MODEL"
-                    enabled="{/hasViewModel}"
-                />
-                <IconTabFilter
-                    text="Popup"
-                    key="POPUP"
-                    enabled="{/activePopup}"
-                />
-                <IconTabFilter
-                    text="Popup Model"
-                    key="POPUP_MODEL"
-                    enabled="{/hasPopupModel}"
-                />
-                <IconTabFilter
-                    text="Popover"
-                    key="POPOVER"
-                    enabled="{/activePopover}"
-                />
-                <IconTabFilter
-                    text="Popover Model"
-                    key="POPOVER_MODEL"
-                    enabled="{/hasPopoverModel}"
-                />
-                <IconTabFilter
-                    text="Nest1"
-                    key="NEST1"
-                    enabled="{/activeNest1}"
-                />
-                <IconTabFilter
-                    text="Nest2"
-                    key="NEST2"
-                    enabled="{/activeNest2}"
+                    text="System"
+                    key="SYSTEM"
                 />
             </items>
         </IconTabHeader>
         <VBox>
-            <!-- The controls below belong to ONE tab each and are shown with
-                 it instead of sitting in the footer, greyed out or
-                 misleading on the other twenty tabs. renderTab sets the
-                 flags. -->
-            <!-- Searches EVERY tab at once and reports which of them contain
-                 the term. With more than twenty tabs, "where does CUSTOMER
-                 appear?" was a question the dialog could not answer. -->
-            <SearchField
-                visible="{/isSearchTab}"
-                placeholder="Search across all tabs..."
-                search=".onSearch"
-                width="100%"
-            />
-            <!-- Closes the dialog, lets the user click any control in the
-                 app and reopens here with its bindings and current values
-                 (devtools/Picker.js). -->
-            <HBox visible="{/isPickTab}" alignItems="Center">
-                <Button text="Pick Control" type="Emphasized" press=".onPickControl" />
-                <Text
-                    text="Closes these tools, then click any control in the app. Escape cancels."
-                    class="sapUiTinyMarginBegin"
+            <!-- One action bar for the whole dialog: the sub-view selector
+                 on the left, and on the right only the actions that belong
+                 to the group being shown. They used to sit in the footer,
+                 where Retry / Restart / Logout were offered on all
+                 twenty-two tabs including the twenty-one that have no
+                 error to retry. -->
+            <OverflowToolbar>
+                <!-- View & Data is two dimensions - which slot, and which
+                     aspect of it - rather than the eight flat tabs it was.
+                     Only the filled slots are offered. -->
+                <Label
+                    text="Slot"
+                    visible="{/showSlotBar}"
                 />
-            </HBox>
-            <!-- Tier 2 of the roundtrip recorder. Off by default: keeping
-                 request/response bodies is the only part of the history
-                 that costs real memory, so a production session must not
-                 pay for it unnoticed (devtools/Recorder.js). -->
-            <HBox visible="{/isHistoryTab}" alignItems="Center">
+                <SegmentedButton
+                    selectedKey="{/selectedSlot}"
+                    items="{/slots}"
+                    selectionChange=".onSlotSelect"
+                    visible="{/showSlotBar}"
+                >
+                    <items>
+                        <SegmentedButtonItem
+                            key="{key}"
+                            text="{text}"
+                        />
+                    </items>
+                </SegmentedButton>
+                <SegmentedButton
+                    selectedKey="{/selectedTab}"
+                    items="{/views}"
+                    selectionChange=".onViewSelect"
+                    visible="{/showViewBar}"
+                >
+                    <items>
+                        <SegmentedButtonItem
+                            key="{key}"
+                            text="{text}"
+                        />
+                    </items>
+                </SegmentedButton>
+                <ToolbarSpacer />
+                <!-- Overview: the one setting that belongs nowhere else. -->
+                <ToggleButton
+                    text="Open on Error"
+                    tooltip="Pop these tools open on the Log as soon as anything logs at error level. Off by default."
+                    pressed="{/openOnError}"
+                    press=".onToggleOpenOnError"
+                    visible="{/isOverview}"
+                />
+                <!-- Roundtrips: tier 2 of the recorder. Off by default -
+                     keeping request/response bodies is the only part of
+                     the history that costs real memory, so a production
+                     session must not pay for it unnoticed. -->
                 <ToggleButton
                     text="Record Payloads"
+                    tooltip="Keep request/response bodies, so the Model Diff and View Diff work. 2 MB budget, oldest dropped first."
                     pressed="{/recordPayloads}"
                     press=".onToggleRecordPayloads"
+                    visible="{/isRoundtrips}"
                 />
-                <Text
-                    text="Keeps request/response bodies, so the Model Diff and View Diff work. 2 MB budget."
-                    class="sapUiTinyMarginBegin"
+                <!-- Problems: the actions of the fatal-error overlay,
+                     shown with the error rather than everywhere. -->
+                <Button
+                    text="Retry"
+                    tooltip="Re-run the request that failed"
+                    press=".onErrorRetry"
+                    visible="{/hasRetry}"
                 />
-            </HBox>
-            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />
-            <!-- Live view editing: only shown on the tabs that map to a view
-                 slot (devtools/LiveEdit.js sets canApply). Apply renders
-                 the edited XML into the running app WITHOUT a roundtrip - a
-                 local preview the next response replaces again. -->
-            <HBox visible="{/canApply}" alignItems="Center">
-                <Button text="Apply to App" type="Emphasized" press=".onApplyXml" />
-                <Button text="Reset" press=".onResetXml" class="sapUiTinyMarginBegin" />
-                <Text text="{/applyResult}" class="sapUiTinyMarginBegin" />
-            </HBox>
+                <Button
+                    text="Restart"
+                    tooltip="Reload the page"
+                    press=".onErrorRestart"
+                    visible="{/isErrorView}"
+                />
+                <Button
+                    text="Logout"
+                    press=".onErrorLogout"
+                    visible="{/isErrorView}"
+                />
+                <!-- View & Data: closes the dialog, lets the user click any
+                     control in the app and reopens with its bindings and
+                     current values (devtools/Picker.js). -->
+                <Button
+                    text="Pick Control"
+                    type="Emphasized"
+                    tooltip="Closes these tools, then click any control in the app. Escape cancels."
+                    press=".onPickControl"
+                    visible="{/isViewData}"
+                />
+                <ToggleButton
+                    text="After Templating"
+                    tooltip="Show the XML after XML templating ran"
+                    pressed="{/templatingSource}"
+                    press=".onTemplatingPress"
+                    visible="{/isTemplating}"
+                />
+                <!-- Live view editing: only on the sub-views that map to a
+                     view slot (devtools/LiveEdit.js sets canApply). Apply
+                     renders the edited XML into the running app WITHOUT a
+                     roundtrip - a local preview the next response
+                     replaces again. -->
+                <Button
+                    text="Apply to App"
+                    type="Emphasized"
+                    tooltip="Render the edited XML into the running app - no roundtrip, no activation"
+                    press=".onApplyXml"
+                    visible="{/canApply}"
+                />
+                <Button
+                    text="Reset"
+                    tooltip="Put the backend's original XML back"
+                    press=".onResetXml"
+                    visible="{/canApply}"
+                />
+                <!-- System: the inline frame below is only a preview - some
+                     systems block framing the ADT endpoint, and the ADT
+                     jump link inside it never navigates. This opens the
+                     same source in a new tab, where its jump works. -->
+                <Button
+                    text="Open in ADT"
+                    tooltip="Open the ABAP class in a new tab, at the line of the last event"
+                    press=".onOpenAbapInAdt"
+                    visible="{/isSourceView}"
+                />
+            </OverflowToolbar>
+            <!-- The result of Apply / Report a Bug. In the content area,
+                 not as a toast: this dialog is modal, so a toast behind it
+                 would be invisible. -->
+            <Text
+                text="{/statusText}"
+                visible="{/hasStatusText}"
+                class="sapUiTinyMarginBottom"
+            />
             <ce:CodeEditor
                 id="developerToolsEditor"
                 type="{/type}"
@@ -176,13 +207,9 @@
             />
         </VBox>
         <VBox visible="{/source_visible}">
-            <!-- The inline iframe below is only a preview: some systems block
-                 framing the ADT endpoint and the ADT jump link inside it never
-                 navigates. Use the "ADT" button in the dialog footer to open
-                 the same source in a new tab, where its ADT jump link works. -->
             <!-- preferDOM defaults to true, which restores the preserved
                  iframe DOM of a previous open instead of the freshly set
-                 content - the Source Code tab then kept showing the class
+                 content - the ABAP Source view then kept showing the class
                  of the previously running app. -->
             <core:HTML id="sourceHtml" preferDOM="false"/>
         </VBox>
@@ -190,12 +217,11 @@
              1.110; on older releases (e.g. 1.71) a <footer> tag is resolved
              as a control and fails with "failed to load sap/m/footer.js".
              The `buttons` aggregation (since 1.21.1) is the cross-version
-             footer; UI5 lays the buttons out in an overflow toolbar. -->
+             footer; UI5 lays the buttons out in an overflow toolbar.
+
+             Only what is global belongs here. Everything that serves one
+             group moved into the action bar above. -->
         <buttons>
-            <!-- First entry, so it sits at the leading edge of the footer
-                 button group. The help used to be a tab of its own, which
-                 put a page of prose in the same row as the twenty tabs
-                 that show live state. -->
             <!-- message-information, not information: the plain `information`
                  glyph was added to the SAP icon font after 1.71, so on the
                  oldest release abap2UI5 supports the button renders with no
@@ -206,42 +232,27 @@
                 tooltip="Help - what every tab answers and how to report a bug"
                 press=".onShowHelp"
             />
-            <!-- Opens these tools on the Console tab as soon as anything
-                 logs at error level. Off by default - a modal dialog
-                 jumping up is the last thing a productive user needs. -->
-            <ToggleButton
-                text="Open on Error"
-                pressed="{/openOnError}"
-                press=".onToggleOpenOnError"
-            />
             <Button
-                text="Retry"
-                visible="{/hasRetry}"
-                press=".onErrorRetry"
-            />
-            <Button
-                text="Logout"
-                press=".onErrorLogout"
-            />
-            <Button
-                text="Restart"
-                press=".onErrorRestart"
-            />
-            <Button
-                text="Copy Tab"
+                text="Copy"
+                tooltip="Put what is shown on the clipboard"
                 press=".onCopyTab"
             />
+            <!-- The most common reason these tools are opened at all, so
+                 it is one click and emphasized: the whole session state on
+                 the clipboard as a GitHub-ready issue body. -->
             <Button
-                text="ADT"
-                press=".onOpenAbapInAdt"
+                text="Report a Bug"
+                type="Emphasized"
+                tooltip="Copy the whole session state as a GitHub issue body"
+                press=".onReportBug"
             />
             <Button
                 text="Export"
+                tooltip="Read the same report, with downloads"
                 press=".onExport"
             />
             <Button
                 text="Close"
-                type="Emphasized"
                 press=".onClose"
             />
         </buttons>

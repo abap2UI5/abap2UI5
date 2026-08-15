@@ -108,8 +108,12 @@ const CLASS_NAME_STEMS = {
     'cc/UITableExt.js': 'uitable_js',
     'cc/UploadSetExt.js': 'upldset_js',
     'cc/Websocket.js': 'websock_js',
+    'devtools/AbapSource.js': 'abapsrc_js',
     'devtools/DeveloperTools.fragment.xml': 'dtools_xml',
     'devtools/DeveloperTools.js': 'dtools_js',
+    // `format_js` is taken by model/formatter.js, and a collision is a hard
+    // error rather than a silent overwrite - so this one carries the folder.
+    'devtools/Format.js': 'dtformat_js',
     'core/ErrorView.js': 'errview_js',
     'core/FrontendAction.js': 'frontact_js',
     'core/ScrollFocus.js': 'scrfocus_js',

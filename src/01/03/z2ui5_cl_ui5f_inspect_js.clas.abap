@@ -878,7 +878,12 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatBindings() {` && |\n| &&
+             `    // ``slotKey`` restricts the report to one slot - the developer tools` && |\n| &&
+             `    // pick the slot in their own selector now, so a Bindings tab that` && |\n| &&
+             `    // always rendered every slot would repeat what the selector already` && |\n| &&
+             `    // said. Without it every model-owning slot is reported, which is what` && |\n| &&
+             `    // the export wants.` && |\n| &&
+             `    function formatBindings(slotKey) {` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Model bindings"];` && |\n| &&
              `      out.push("");` && |\n| &&
              `      out.push(` && |\n| &&
@@ -893,6 +898,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      for (const slot of ViewSlots.slots) {` && |\n| &&
              `        // only the slots that own a model - the nested ones would repeat MAIN` && |\n| &&
              `        if (!slot.ownsModel) continue;` && |\n| &&
+             `        if (slotKey && slot.key !== slotKey) continue;` && |\n| &&
              `        const lines = formatSlotBindings(slot.key);` && |\n| &&
              `        if (!lines.length) continue;` && |\n| &&
              `        any = true;` && |\n| &&
@@ -932,6 +938,126 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
+             `    // Error - the last fatal error the overlay showed` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `    // Title + full text of the last fatal error, so the Error tab` && |\n| &&
+             `    // reproduces the ErrorView overlay's content. Empty when the app has` && |\n| &&
+             `    // not hit a fatal error this session.` && |\n| &&
+             `    function formatError() {` && |\n| &&
+             `      const err = AppState.state.lastError;` && |\n| &&
+             `      if (!err) return "(no fatal error captured this session)";` && |\n| &&
+             `      return err.title ? ``${err.title}\n\n${err.text}`` : err.text;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `    // Overview - the landing tab` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `    // Where the tools used to open: on the raw response JSON, which` && |\n| &&
+             `    // answers no question anybody arrives with. This is the replacement -` && |\n| &&
+             `    // which app, which roundtrip, is anything broken, and where to go` && |\n| &&
+             `    // next. Every line is a summary of a tab that holds the detail, and` && |\n| &&
+             `    // the pointer to that tab is part of the line.` && |\n| &&
+             `    function formatOverview() {` && |\n| &&
+             `      const state = AppState.state;` && |\n| &&
+             `      const responseFront = state.responseData?.S_FRONT;` && |\n| &&
+             `      const out = ["abap2UI5 Developer Tools"];` && |\n| &&
+             `` && |\n| &&
+             `      out.push(section("App"));` && |\n| &&
+             `      out.push(line("App class", responseFront?.APP));` && |\n| &&
+             `      out.push(line("Draft id", responseFront?.ID));` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        line("Last event", state.oBody?.S_FRONT?.EVENT || "(app start)"),` && |\n| &&
+             `      );` && |\n| &&
+             `      out.push(line("Roundtrip in flight", yesNo(state.isBusy)));` && |\n| &&
+             `` && |\n| &&
+             `      out.push(section("Status"));` && |\n| &&
+             `` && |\n| &&
+             `      // The one line that decides whether this session is worth looking` && |\n| &&
+             `      // at at all, so it is first and it names the tab.` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        line(` && |\n| &&
+             `          "Fatal error",` && |\n| &&
+             `          state.lastError` && |\n| &&
+             `            ? ``YES - "${truncate(state.lastError.title || state.lastError.text, 50)}" (Problems > Error)``` && |\n| &&
+             `            : "none this session",` && |\n| &&
+             `        ),` && |\n| &&
+             `      );` && |\n| &&
+             `` && |\n| &&
+             `      const counts = countLevels(collectLog());` && |\n| &&
+             `      const loud = counts.error + counts.warn;` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        line(` && |\n| &&
+             `          "Log",` && |\n| &&
+             `          ``${counts.error} error, ${counts.warn} warn, ${counts.info} info`` +` && |\n| &&
+             `            (loud ? "  (Problems > Log)" : ""),` && |\n| &&
+             `        ),` && |\n| &&
+             `      );` && |\n| &&
+             `` && |\n| &&
+             `      const records = Recorder.getRecords();` && |\n| &&
+             `      const last = records[records.length - 1];` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        line(` && |\n| &&
+             `          "Roundtrips",` && |\n| &&
+             `          last` && |\n| &&
+             `            ? ``${records.length} recorded, last ${formatOverviewMs(last)}`` +` && |\n| &&
+             `                " (Roundtrips > History)"` && |\n| &&
+             `            : "none recorded yet",` && |\n| &&
+             `        ),` && |\n| &&
+             `      );` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        line(` && |\n| &&
+             `          "Payload recording",` && |\n| &&
+             `          Recorder.isRecordingPayloads()` && |\n| &&
+             `            ? "ON - Model Diff and View Diff work"` && |\n| &&
+             `            : "OFF - switch it on in Roundtrips for the diffs",` && |\n| &&
+             `        ),` && |\n| &&
+             `      );` && |\n| &&
+             `` && |\n| &&
+             `      out.push(section("UI5"));` && |\n| &&
+             `      /* ui5lint-disable no-globals --` && |\n| &&
+             `       sap.ui.version is the only way to read the running UI5 version; there` && |\n| &&
+             `       is no injected/module equivalent (core/Lib.js reads it the same way). */` && |\n| &&
+             `      out.push(line("Version", sap.ui.version));` && |\n| &&
+             `      /* ui5lint-enable no-globals */` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        line(` && |\n| &&
+             `          "Distribution",` && |\n| &&
+             `          getDistribution((AppState.getGlobal("oConfig") || {}).S_UI5),` && |\n| &&
+             `        ),` && |\n| &&
+             `      );` && |\n| &&
+             `      out.push(line("Theme", getTheme()));` && |\n| &&
+             `` && |\n| &&
+             `      out.push(section("View slots"));` && |\n| &&
+             `      out.push(...formatSlots());` && |\n| &&
+             `` && |\n| &&
+             `      out.push(section("Getting around"));` && |\n| &&
+             `      out.push("  Ctrl+F12          open / close these tools");` && |\n| &&
+             `      out.push("  Search field      one term across every tab at once");` && |\n| &&
+             `      out.push("  (i) in the footer what every tab answers");` && |\n| &&
+             `      out.push(` && |\n| &&
+             `        "  Report a Bug      the whole session state as a GitHub issue body",` && |\n| &&
+             `      );` && |\n| &&
+             `` && |\n| &&
+             `      return out.join("\n");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The timing of one roundtrip, in the shortest form that still says` && |\n| &&
+             `    // where the time went.` && |\n| &&
+             `    function formatOverviewMs(record) {` && |\n| &&
+             `      const parts = [];` && |\n| &&
+             `      if (record.totalMs !== null && record.totalMs !== undefined) {` && |\n| &&
+             `        parts.push(``${Math.round(record.totalMs)} ms total``);` && |\n| &&
+             `      }` && |\n| &&
+             `      if (record.backendMs !== null && record.backendMs !== undefined) {` && |\n| &&
+             `        parts.push(``${Math.round(record.backendMs)} ms backend``);` && |\n| &&
+             `      }` && |\n| &&
+             `      const timing = parts.length ? `` ${parts.join(", ")}`` : "";` && |\n| &&
+             `      return ``"${record.event || "(start)"}"${timing}``;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
              `    // Help - what each tab answers, and the entry points` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
@@ -946,12 +1072,21 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "  Ctrl+F12                    open / close these tools",` && |\n| &&
              `      "  ?z2ui5-devtools=1           open them on page load (for problems",` && |\n| &&
              `      "                              that happen during startup)",` && |\n| &&
-             `      "  ?z2ui5-devtools=HISTORY     open them directly on a tab, by its key",` && |\n| &&
+             `      "  ?z2ui5-devtools=HISTORY     open them directly on a view, by its key",` && |\n| &&
              `      "",` && |\n| &&
-             `      "  Without a tab named, they reopen on the tab you were last on.",` && |\n| &&
+             `      "  Without one named, they reopen where you left off.",` && |\n| &&
              `      "",` && |\n| &&
-             `      "Tabs - what each one answers",` && |\n| &&
-             `      "----------------------------",` && |\n| &&
+             `      "The five tabs, and what each is for",` && |\n| &&
+             `      "-----------------------------------",` && |\n| &&
+             `      "  Overview      which app, which roundtrip, is anything broken - and",` && |\n| &&
+             `      "                where to go next. The landing tab",` && |\n| &&
+             `      "  Problems      what went wrong",` && |\n| &&
+             `      "  Roundtrips    what went over the wire",` && |\n| &&
+             `      "  View & Data   what the screen is made of, and what fills it",` && |\n| &&
+             `      "  System        what the app is running on, and its ABAP class",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "Problems",` && |\n| &&
+             `      "--------",` && |\n| &&
              `      "  Error         the last fatal error, with Retry / Restart / Logout",` && |\n| &&
              `      "  Log           ONE timeline of everything logged: the framework's",` && |\n| &&
              `      "                own error log (with stack traces), UI5's log (binding",` && |\n| &&
@@ -959,66 +1094,72 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "                rejections, every console.* call, and the backend",` && |\n| &&
              `      "                messages the user was shown - so the browser's own",` && |\n| &&
              `      "                devtools do not have to be open",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "Roundtrips",` && |\n| &&
+             `      "----------",` && |\n| &&
              `      "  History       every roundtrip: backend vs. render time, payload",` && |\n| &&
              `      "                sizes, draft ids - and the ones that never rendered",` && |\n| &&
-             `      "  Model Diff    what the backend changed between two responses",` && |\n| &&
-             `      "                (needs Record Payloads)",` && |\n| &&
-             `      "  View Diff     what changed in the view XML between two rebuilds",` && |\n| &&
-             `      "                (needs Record Payloads)",` && |\n| &&
-             `      "  Search        one term across EVERY tab at once - answers 'where",` && |\n| &&
-             `      "                does /CUSTOMER appear?' without opening each tab",` && |\n| &&
+             `      "  Request /     the raw JSON on the wire",` && |\n| &&
+             `      "  Response",` && |\n| &&
              `      "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",` && |\n| &&
+             `      "  Model Diff    what the backend changed between two responses",` && |\n| &&
+             `      "  View Diff     what changed in the view XML between two rebuilds",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "  'Record Payloads' keeps the request/response bodies, which is what",` && |\n| &&
+             `      "  the two diffs need. OFF by default: it is the only part of the",` && |\n| &&
+             `      "  history that costs real memory (2 MB budget, oldest dropped first).",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "View & Data",` && |\n| &&
+             `      "-----------",` && |\n| &&
+             `      "  Pick the SLOT on the left (only the filled ones are offered), then",` && |\n| &&
+             `      "  the aspect:",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "  XML           the view XML the slot holds",` && |\n| &&
+             `      "  Model         the JSON model behind it",` && |\n| &&
              `      "  Bindings      the model attributes, '*' on the paths that will",` && |\n| &&
              `      "                travel as the next delta, the delta itself, the paths",` && |\n| &&
              `      "                bound in the view that the model does NOT have (the",` && |\n| &&
              `      "                usual cause of an empty field), and the attributes",` && |\n| &&
              `      "                ranked by size (the usual cause of a huge response)",` && |\n| &&
-             `      "  Picked        the last control picked with 'Pick Control'",` && |\n| &&
-             `      "  Registry      shortcuts, timers, callbacks, bound backend events",` && |\n| &&
+             `      "  Picked        'Pick Control' closes these tools, lets you click any",` && |\n| &&
+             `      "  Control       control in the app, and reports which ABAP attribute",` && |\n| &&
+             `      "                feeds it with its current value. Escape cancels",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "  On an XML view: 'Apply to App' renders the edited XML into the",` && |\n| &&
+             `      "  running app with NO roundtrip and no activation - a local preview",` && |\n| &&
+             `      "  the next response replaces again. 'Reset' puts the original back.",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "System",` && |\n| &&
+             `      "------",` && |\n| &&
              `      "  Environment   versions, SAPUI5 vs OpenUI5, the SDK url the page",` && |\n| &&
              `      "                bootstrapped from and its resource roots, theme,",` && |\n| &&
              `      "                language, content density, session, device, the",` && |\n| &&
              `      "                focus/scroll block sent on every roundtrip, slots",` && |\n| &&
-             `      "  Source Code   the running app's ABAP class (ADT opens it in a tab)",` && |\n| &&
-             `      "  Request /     the raw JSON on the wire",` && |\n| &&
-             `      "  Response",` && |\n| &&
-             `      "  View / Popup / Popover / Nest   the view XML each slot holds",` && |\n| &&
+             `      "  Registry      shortcuts, timers, callbacks, bound backend events",` && |\n| &&
+             `      "  ABAP Source   the running app's class. 'Open in ADT' opens it in a",` && |\n| &&
+             `      "                new tab, at the line of the last event",` && |\n| &&
              `      "",` && |\n| &&
-             `      "In the tabs themselves",` && |\n| &&
-             `      "----------------------",` && |\n| &&
-             `      "  Search tab       the search field",` && |\n| &&
-             `      "  Picked tab       'Pick Control' - click any control in the app and",` && |\n| &&
-             `      "                   see which ABAP attribute feeds it, with its",` && |\n| &&
-             `      "                   current value",` && |\n| &&
-             `      "  History tab      'Record Payloads' - keep request/response bodies.",` && |\n| &&
-             `      "                   OFF by default: it is the only part that costs",` && |\n| &&
-             `      "                   real memory (2 MB budget, oldest dropped first).",` && |\n| &&
-             `      "                   The Model Diff and View Diff need it",` && |\n| &&
-             `      "",` && |\n| &&
-             `      "Footer actions",` && |\n| &&
-             `      "--------------",` && |\n| &&
-             `      "  (i)              this help",` && |\n| &&
-             `      "  Copy Tab         put the current tab's content on the clipboard",` && |\n| &&
-             `      "  Open on Error    pop these tools open on the Log tab as soon as",` && |\n| &&
-             `      "                   anything logs at error level. Off by default",` && |\n| &&
-             `      "  ADT              open the ABAP class, at the line of the last",` && |\n| &&
-             `      "                   event when the source has been loaded",` && |\n| &&
-             `      "  Export           one report over everything, with downloads",` && |\n| &&
-             `      "",` && |\n| &&
-             `      "On the view tabs",` && |\n| &&
+             `      "Always available",` && |\n| &&
              `      "----------------",` && |\n| &&
-             `      "  Apply to App     render the edited XML into the running app with",` && |\n| &&
-             `      "                   NO roundtrip and no activation - a local preview",` && |\n| &&
-             `      "                   the next response replaces again",` && |\n| &&
-             `      "  Reset            put the backend's original XML back",` && |\n| &&
+             `      "  Search field     one term across EVERY tab at once - answers 'where",` && |\n| &&
+             `      "                   does /CUSTOMER appear?' without opening each one",` && |\n| &&
+             `      "  Copy             put the current view's content on the clipboard",` && |\n| &&
+             `      "  Report a Bug     see below",` && |\n| &&
+             `      "  (i)              this help",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "  'Open on Error' (on Overview) pops these tools open on the Log as",` && |\n| &&
+             `      "  soon as anything logs at error level. Off by default.",` && |\n| &&
              `      "",` && |\n| &&
              `      "Reporting a bug",` && |\n| &&
              `      "---------------",` && |\n| &&
-             `      "  Export -> Download Report gives a text file with the environment,",` && |\n| &&
-             `      "  the error, the log and the roundtrip history. Copy as Markdown puts",` && |\n| &&
-             `      "  the same content on the clipboard as a GitHub-ready issue body.",` && |\n| &&
-             `      "  With Record Payloads on, Download History (JSON) additionally",` && |\n| &&
-             `      "  carries the actual request/response bodies.",` && |\n| &&
+             `      "  'Report a Bug' puts the whole session state on the clipboard as a",` && |\n| &&
+             `      "  GitHub-ready issue body: environment, the error, the log, the",` && |\n| &&
+             `      "  roundtrip history and the running app's ABAP class, each in a",` && |\n| &&
+             `      "  collapsed section. Paste it into an issue as it is.",` && |\n| &&
+             `      "",` && |\n| &&
+             `      "  'Export' opens the same content for reading, with downloads. With",` && |\n| &&
+             `      "  Record Payloads on, Download History (JSON) additionally carries",` && |\n| &&
+             `      "  the actual request/response bodies.",` && |\n| &&
              `      "",` && |\n| &&
              `      "  The console errors and the roundtrip history survive a page reload",` && |\n| &&
              `      "  (sessionStorage), so an app that died and was reloaded keeps its",` && |\n| &&
@@ -1031,7 +1172,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `` && |\n| &&
              `    return {` && |\n| &&
              `      formatEnvironment,` && |\n| &&
+             `      formatError,` && |\n| &&
              `      formatHelp,` && |\n| &&
+             `      formatOverview,` && |\n| &&
              `      formatRegistry,` && |\n| &&
              `      formatActions,` && |\n| &&
              `      formatLog,` && |\n| &&
