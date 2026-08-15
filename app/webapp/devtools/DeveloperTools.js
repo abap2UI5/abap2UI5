@@ -146,23 +146,31 @@ sap.ui.define(
           text: slot.label,
         }));
         data.slots = slots;
+        // The picked control is in this group but is not about a slot, so
+        // it keeps whichever slot was being looked at rather than
+        // resetting it, and hides the selector instead of pointing it at
+        // an unrelated slot.
         data.selectedSlot = tab.slot || data.selectedSlot || "MAIN";
-        // The picked control is in this group but is not about a slot,
-        // so it hides the slot selector rather than pointing it at an
-        // unrelated slot.
         data.showSlotBar = Boolean(tab.slot) && slots.length > 1;
 
-        const views = (
-          tab.slot ? Tabs.aspectsOfSlot(tab.slot) : Tabs.enabledTabs(tab.group)
-        ).map((entry) => ({ key: entry.key, text: entry.label }));
-        // In View & Data the picked control is reachable from every
-        // slot's aspect bar - it belongs to the group, not to a slot.
-        if (tab.group === "VIEWDATA" && tab.slot) {
-          const pick = Tabs.get("PICK");
-          views.push({ key: pick.key, text: pick.label });
+        // In View & Data the sub-view bar is the ASPECTS of the selected
+        // slot - never every tab of the group, which would put all five
+        // slots' aspects in one row and bring back the flat list this
+        // regrouping exists to remove. The picked control is appended
+        // because it belongs to the group rather than to a slot.
+        let views;
+        if (tab.group === "VIEWDATA") {
+          views = Tabs.aspectsOfSlot(data.selectedSlot).concat(
+            Tabs.get("PICK"),
+          );
+        } else {
+          views = Tabs.enabledTabs(tab.group);
         }
-        data.views = views;
-        data.showViewBar = views.length > 1;
+        data.views = views.map((entry) => ({
+          key: entry.key,
+          text: entry.label,
+        }));
+        data.showViewBar = data.views.length > 1;
 
         // Group flags drive the action bar. Plain booleans, never an
         // expression binding in the fragment (AGENTS.md rule 13).
@@ -176,8 +184,18 @@ sap.ui.define(
           typeof AppState.state.lastError?.onRetry === "function";
         data.recordPayloads = Recorder.isRecordingPayloads();
         data.openOnError = Console.isAlertOnError();
+        // Refreshed per selection, not only on open: a timer or a late
+        // rejection can log while the dialog stands open.
+        data.problemCount = this.problemCount();
 
         if (tab.kind === "source") {
+          // The editor-only controls have to be cleared here as well -
+          // this branch does not go through displayEditor, so arriving
+          // from a view tab would leave Apply / Reset on screen over a
+          // framed ABAP class.
+          data.canApply = false;
+          data.isTemplating = false;
+          data.templatingSource = false;
           this.showAbapSource(oModel);
           return;
         }
@@ -226,9 +244,13 @@ sap.ui.define(
         const data = oModel.getData();
         data.searchTerm = oSource.getValue();
         this.displayEditor(oModel, Tabs.search(data.searchTerm), "text");
-        // Set after displayEditor, which clears the per-view flags.
+        // Set after displayEditor, which derives the per-view flags from
+        // the content - and a hit inside a templated view XML carries the
+        // "xmlns:template" that would otherwise offer a templating toggle
+        // over a list of search hits.
         data.searchResult = true;
         data.canApply = false;
+        data.isTemplating = false;
         oModel.refresh();
       },
 

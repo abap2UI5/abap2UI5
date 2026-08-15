@@ -173,23 +173,31 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          text: slot.label,` && |\n| &&
              `        }));` && |\n| &&
              `        data.slots = slots;` && |\n| &&
+             `        // The picked control is in this group but is not about a slot, so` && |\n| &&
+             `        // it keeps whichever slot was being looked at rather than` && |\n| &&
+             `        // resetting it, and hides the selector instead of pointing it at` && |\n| &&
+             `        // an unrelated slot.` && |\n| &&
              `        data.selectedSlot = tab.slot || data.selectedSlot || "MAIN";` && |\n| &&
-             `        // The picked control is in this group but is not about a slot,` && |\n| &&
-             `        // so it hides the slot selector rather than pointing it at an` && |\n| &&
-             `        // unrelated slot.` && |\n| &&
              `        data.showSlotBar = Boolean(tab.slot) && slots.length > 1;` && |\n| &&
              `` && |\n| &&
-             `        const views = (` && |\n| &&
-             `          tab.slot ? Tabs.aspectsOfSlot(tab.slot) : Tabs.enabledTabs(tab.group)` && |\n| &&
-             `        ).map((entry) => ({ key: entry.key, text: entry.label }));` && |\n| &&
-             `        // In View & Data the picked control is reachable from every` && |\n| &&
-             `        // slot's aspect bar - it belongs to the group, not to a slot.` && |\n| &&
-             `        if (tab.group === "VIEWDATA" && tab.slot) {` && |\n| &&
-             `          const pick = Tabs.get("PICK");` && |\n| &&
-             `          views.push({ key: pick.key, text: pick.label });` && |\n| &&
+             `        // In View & Data the sub-view bar is the ASPECTS of the selected` && |\n| &&
+             `        // slot - never every tab of the group, which would put all five` && |\n| &&
+             `        // slots' aspects in one row and bring back the flat list this` && |\n| &&
+             `        // regrouping exists to remove. The picked control is appended` && |\n| &&
+             `        // because it belongs to the group rather than to a slot.` && |\n| &&
+             `        let views;` && |\n| &&
+             `        if (tab.group === "VIEWDATA") {` && |\n| &&
+             `          views = Tabs.aspectsOfSlot(data.selectedSlot).concat(` && |\n| &&
+             `            Tabs.get("PICK"),` && |\n| &&
+             `          );` && |\n| &&
+             `        } else {` && |\n| &&
+             `          views = Tabs.enabledTabs(tab.group);` && |\n| &&
              `        }` && |\n| &&
-             `        data.views = views;` && |\n| &&
-             `        data.showViewBar = views.length > 1;` && |\n| &&
+             `        data.views = views.map((entry) => ({` && |\n| &&
+             `          key: entry.key,` && |\n| &&
+             `          text: entry.label,` && |\n| &&
+             `        }));` && |\n| &&
+             `        data.showViewBar = data.views.length > 1;` && |\n| &&
              `` && |\n| &&
              `        // Group flags drive the action bar. Plain booleans, never an` && |\n| &&
              `        // expression binding in the fragment (AGENTS.md rule 13).` && |\n| &&
@@ -203,8 +211,18 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          typeof AppState.state.lastError?.onRetry === "function";` && |\n| &&
              `        data.recordPayloads = Recorder.isRecordingPayloads();` && |\n| &&
              `        data.openOnError = Console.isAlertOnError();` && |\n| &&
+             `        // Refreshed per selection, not only on open: a timer or a late` && |\n| &&
+             `        // rejection can log while the dialog stands open.` && |\n| &&
+             `        data.problemCount = this.problemCount();` && |\n| &&
              `` && |\n| &&
              `        if (tab.kind === "source") {` && |\n| &&
+             `          // The editor-only controls have to be cleared here as well -` && |\n| &&
+             `          // this branch does not go through displayEditor, so arriving` && |\n| &&
+             `          // from a view tab would leave Apply / Reset on screen over a` && |\n| &&
+             `          // framed ABAP class.` && |\n| &&
+             `          data.canApply = false;` && |\n| &&
+             `          data.isTemplating = false;` && |\n| &&
+             `          data.templatingSource = false;` && |\n| &&
              `          this.showAbapSource(oModel);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -253,9 +271,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const data = oModel.getData();` && |\n| &&
              `        data.searchTerm = oSource.getValue();` && |\n| &&
              `        this.displayEditor(oModel, Tabs.search(data.searchTerm), "text");` && |\n| &&
-             `        // Set after displayEditor, which clears the per-view flags.` && |\n| &&
+             `        // Set after displayEditor, which derives the per-view flags from` && |\n| &&
+             `        // the content - and a hit inside a templated view XML carries the` && |\n| &&
+             `        // "xmlns:template" that would otherwise offer a templating toggle` && |\n| &&
+             `        // over a list of search hits.` && |\n| &&
              `        data.searchResult = true;` && |\n| &&
              `        data.canApply = false;` && |\n| &&
+             `        data.isTemplating = false;` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -402,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      // Pop the tools open on the Log as soon as anything logs at error` && |\n| &&
              `      // level. Off by default - a modal dialog jumping up is the last` && |\n| &&
-             `      // thing a productive user needs - but in a test system it is the` && |\n| &&
+             `      // thing a productive user needs - but in a test system it is the` && |\n|.
+    result = result &&
              `      // difference between noticing a broken roundtrip and not. The` && |\n| &&
              `      // setting lives in devtools/Console.js, which is where the errors` && |\n| &&
              `      // are and which both this dialog and the lifecycle facade can reach` && |\n| &&
@@ -424,8 +447,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const previousTab = this.oDialog?.getModel()?.getData()?.selectedTab;` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
              `        this.close();` && |\n| &&
-             `        Picker.start((report) => {` && |\n|.
-    result = result &&
+             `        Picker.start((report) => {` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `          this.show(report ? "PICK" : previousTab);` && |\n| &&
              `        });` && |\n| &&

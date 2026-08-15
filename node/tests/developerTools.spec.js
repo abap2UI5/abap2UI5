@@ -352,6 +352,37 @@ test.describe("View & Data - the two selectors", () => {
     expect(modelData.value).toContain("No control picked yet");
   });
 
+  // The aspect bar is the aspects of ONE slot. Rendering every tab of the
+  // group instead would put all five slots' aspects in a single row and
+  // bring back the flat list this regrouping exists to remove.
+  test("the aspect bar never spills other slots into the row", () => {
+    const { DeveloperTools } = filled();
+    const { oEvent, modelData } = fakeSelectEvent("PICK", {
+      selectedSlot: "MAIN",
+    });
+    DeveloperTools.onViewSelect(oEvent);
+    expect(modelData.views.map((v) => v.key)).toEqual([
+      "VIEW",
+      "MODEL",
+      "BINDINGS",
+      "PICK",
+    ]);
+  });
+
+  test("and keeps the slot the user was on while picking", () => {
+    const { DeveloperTools } = filled();
+    const popup = fakeSelectEvent("POPUP");
+    DeveloperTools.onViewSelect(popup.oEvent);
+    DeveloperTools.renderTab("PICK", popup.oModel);
+    expect(popup.modelData.selectedSlot).toBe("POPUP");
+    expect(popup.modelData.views.map((v) => v.key)).toEqual([
+      "POPUP",
+      "POPUP_MODEL",
+      "POPUP_BINDINGS",
+      "PICK",
+    ]);
+  });
+
   test("shows the XML kept in the view's mProperties", () => {
     const { DeveloperTools } = filled();
     const { oEvent, modelData } = fakeSelectEvent("VIEW");
@@ -645,6 +676,18 @@ test.describe("Search", () => {
     expect(data.searchResult).toBe(false);
   });
 
+  test("a hit inside a templated view offers no templating toggle", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      views: { MAIN: fakeXmlView('<mvc:View xmlns:template="x"/>', { A: 1 }) },
+    });
+    const { model, data } = fakeModel();
+    DeveloperTools.onSearch({
+      getSource: () => ({ getValue: () => "template", getModel: () => model }),
+    });
+    expect(data.value).toContain("hit(s)");
+    expect(data.isTemplating).toBe(false);
+  });
+
   test("a search result is never applyable", () => {
     const { DeveloperTools } = loadDeveloperTools({
       views: { MAIN: fakeXmlView("<mvc:View/>", { A: 1 }) },
@@ -756,6 +799,33 @@ test.describe("ABAP Source view", () => {
     expect(modelData.editor_visible).toBe(false);
     // the ADT button is offered here and nowhere else
     expect(modelData.isSourceView).toBe(true);
+  });
+
+  // This branch does not go through displayEditor, so the editor-only
+  // controls have to be cleared here too - arriving from a view tab left
+  // Apply / Reset on screen over a framed ABAP class.
+  test("arriving from a view tab drops Apply and the templating toggle", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: { S_FRONT: { APP: "Z" } },
+      views: { MAIN: fakeXmlView('<mvc:View xmlns:template="x"/>', { A: 1 }) },
+      fragment: { byId: () => ({ setContent() {} }) },
+      liveEdit: {
+        apply: () => Promise.resolve("ok"),
+        canApply: (tab) => tab === "VIEW",
+        slotOfTab: () => "MAIN",
+        originalXml: () => "",
+        isBusy: () => false,
+      },
+      extraSandbox: { fetch: async () => ({ ok: false }) },
+    });
+    const view = fakeSelectEvent("VIEW");
+    DeveloperTools.onViewSelect(view.oEvent);
+    expect(view.modelData.canApply).toBe(true);
+    expect(view.modelData.isTemplating).toBe(true);
+
+    DeveloperTools.renderTab("SOURCE", view.oModel);
+    expect(view.modelData.canApply).toBe(false);
+    expect(view.modelData.isTemplating).toBe(false);
   });
 
   test("a missing HTML control does not take the selection down", () => {
@@ -1029,6 +1099,18 @@ test.describe("show()", () => {
   test("and shows no badge when nothing failed", async () => {
     // IconTabFilter renders a "0" otherwise, which reads as a problem
     expect((await openTools()).data.problemCount).toBe("");
+  });
+
+  test("the badge is refreshed per selection, not frozen at open", () => {
+    // a timer or a late rejection can log while the dialog stands open
+    const errors = [];
+    const { DeveloperTools } = loadDeveloperTools({ errors });
+    const { model, data } = fakeModel();
+    DeveloperTools.renderTab("LOG", model);
+    expect(data.problemCount).toBe("");
+    errors.push({ message: "boom", ts: "2026-01-01T00:00:00.000Z" });
+    DeveloperTools.renderTab("LOG", model);
+    expect(data.problemCount).toBe("1");
   });
 
   test("a caller-named view wins over the remembered one", async () => {

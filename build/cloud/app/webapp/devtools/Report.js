@@ -121,6 +121,16 @@ sap.ui.define(
       }
     }
 
+    // Say "Copied" on the button that was pressed and put its label back.
+    // A copy that leaves no trace looks like a copy that did not happen.
+    function confirmOnButton(oButton) {
+      const original = oButton.getText();
+      oButton.setText("Copied");
+      setTimeout(() => {
+        if (!Lib.isDestroyed(oButton)) oButton.setText(original);
+      }, 1500);
+    }
+
     // Show the whole export in a stretched popup: a read-through TextArea
     // for the eye, and the four ways it leaves the browser. Markdown is
     // the emphasized one because an issue comment is where it is going.
@@ -148,11 +158,19 @@ sap.ui.define(
               new Button({
                 text: "Copy as Markdown",
                 type: "Emphasized",
-                press: () => copyMarkdown(abapSource),
+                // Confirm on the button itself: this dialog is modal, so
+                // a MessageToast behind it would be invisible.
+                press: (oEvent) => {
+                  copyMarkdown(abapSource);
+                  confirmOnButton(oEvent.getSource());
+                },
               }),
               new Button({
                 text: "Copy as Text",
-                press: () => Lib.copyToClipboard(text),
+                press: (oEvent) => {
+                  Lib.copyToClipboard(text);
+                  confirmOnButton(oEvent.getSource());
+                },
               }),
               // Two files, because they answer different questions: the
               // report is what a human reads, the history JSON is what

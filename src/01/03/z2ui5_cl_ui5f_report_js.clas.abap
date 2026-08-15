@@ -148,6 +148,16 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Say "Copied" on the button that was pressed and put its label back.` && |\n| &&
+             `    // A copy that leaves no trace looks like a copy that did not happen.` && |\n| &&
+             `    function confirmOnButton(oButton) {` && |\n| &&
+             `      const original = oButton.getText();` && |\n| &&
+             `      oButton.setText("Copied");` && |\n| &&
+             `      setTimeout(() => {` && |\n| &&
+             `        if (!Lib.isDestroyed(oButton)) oButton.setText(original);` && |\n| &&
+             `      }, 1500);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Show the whole export in a stretched popup: a read-through TextArea` && |\n| &&
              `    // for the eye, and the four ways it leaves the browser. Markdown is` && |\n| &&
              `    // the emphasized one because an issue comment is where it is going.` && |\n| &&
@@ -175,11 +185,19 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `              new Button({` && |\n| &&
              `                text: "Copy as Markdown",` && |\n| &&
              `                type: "Emphasized",` && |\n| &&
-             `                press: () => copyMarkdown(abapSource),` && |\n| &&
+             `                // Confirm on the button itself: this dialog is modal, so` && |\n| &&
+             `                // a MessageToast behind it would be invisible.` && |\n| &&
+             `                press: (oEvent) => {` && |\n| &&
+             `                  copyMarkdown(abapSource);` && |\n| &&
+             `                  confirmOnButton(oEvent.getSource());` && |\n| &&
+             `                },` && |\n| &&
              `              }),` && |\n| &&
              `              new Button({` && |\n| &&
              `                text: "Copy as Text",` && |\n| &&
-             `                press: () => Lib.copyToClipboard(text),` && |\n| &&
+             `                press: (oEvent) => {` && |\n| &&
+             `                  Lib.copyToClipboard(text);` && |\n| &&
+             `                  confirmOnButton(oEvent.getSource());` && |\n| &&
+             `                },` && |\n| &&
              `              }),` && |\n| &&
              `              // Two files, because they answer different questions: the` && |\n| &&
              `              // report is what a human reads, the history JSON is what` && |\n| &&
