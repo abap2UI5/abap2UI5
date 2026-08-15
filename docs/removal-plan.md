@@ -137,7 +137,7 @@ breaking change for any downstream app that still references it.
         on purpose.
         Zero usages in samples, samples-controls and samples-stack. It is
         **not** marked obsolete in the source: `src/99` production code is
-        frozen (`check:frozen` / `check_frozen_paths.yaml`), and a comment-only
+        frozen (`check:frozen` / `check_gates.yaml`), and a comment-only
         edit would fail that gate for no gain — the whole class is the entry.
 - [ ] **`src/99/01/` — 9 utility classes (11,925 lines) + `z2ui5_cx_util_error`
       + table `Z2UI5_T_91`**
@@ -159,10 +159,10 @@ breaking change for any downstream app that still references it.
 - [ ] 23 `FROZEN-ONLY` methods in `z2ui5_cl_ui5_util_context` (`src/00/03/`) — they
       exist solely because the shipped `src/99` still calls them. Grep the
       marker, delete the marked block.
-- [ ] `npm run check:frozen` + the `check_frozen_paths` workflow
+- [ ] `npm run check:frozen` + the `check_gates` workflow
 - [ ] the three `src/99` test skips in `node/setup/abap_transpile.json`
       and the `src/99` testclass/sidecar exemptions in `check:frozen` +
-      `check_frozen_paths.yaml`
+      `check_gates.yaml`
 - [ ] the `src/99` exclusions in `abaplint.jsonc`
 
 ---

@@ -1,0 +1,55 @@
+name: abaplint
+
+# Every abaplint run a pull request needs, on one runner.
+#
+# These were three workflows - ABAP_STANDARD, ABAP_CLOUD and test_rename -
+# that shared their whole expensive half (npm ci plus `npm run deps`, which
+# fetches the abaplint dependencies) and differed only in which config they
+# then handed to abaplint. The install was being paid three times for three
+# runs of a few seconds each.
+#
+# ABAP_702 stays its own workflow: it lints the downported 702 branch, so it
+# checks out a different ref on a different trigger and shares nothing with
+# these but the tool.
+
+on:
+  pull_request:
+
+concurrency:
+  group: abaplint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  abaplint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: ./.github/actions/setup
+        with:
+          deps: "true"
+
+      - name: Standard ABAP
+        if: ${{ !cancelled() }}
+        run: npm run check:standard
+
+      # Visibility of the class under test: abaplint does not check it and the
+      # transpiler ignores it, so a missing LOCAL FRIENDS only shows up when
+      # the class pool is activated in a real system.
+      - name: Test classes reach their subject legally
+        if: ${{ !cancelled() }}
+        run: npm run check_visibility
+
+      - name: ABAP Cloud
+        if: ${{ !cancelled() }}
+        run: npm run check:cloud
+
+      # Last, because the rename writes a full renamed copy of the sources to
+      # .github/abaplint/output/. Same config build_rename uses for the real
+      # rename_<name> branches, against the placeholder namespace.
+      - name: Namespace rename
+        if: ${{ !cancelled() }}
+        run: npm run rename

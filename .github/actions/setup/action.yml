@@ -1,0 +1,48 @@
+name: setup
+description: >
+  The Node toolchain every job in this repository starts from. One place for
+  the version, for the pinned action sha and for the three install
+  incantations that were otherwise copied into every workflow - and drifted
+  while they were copied (half the callers pinned actions/setup-node, half
+  tracked the v6 tag).
+
+  Checkout stays with the caller: a local action can only run once the
+  repository is on disk, so `actions/checkout` has to come first.
+
+inputs:
+  cache:
+    description: >
+      Restore the npm cache. Needs a package-lock.json at the workspace root,
+      so a job that checks out into a subdirectory has to turn it off.
+    default: "true"
+  npm-ci:
+    description: "Install the root dependencies (npm ci)"
+    default: "false"
+  app-npm-ci:
+    description: "Install the dependencies of the Fiori project in app/ as well"
+    default: "false"
+  deps:
+    description: >
+      Fetch the abaplint dependencies (npm run deps). Needed by every abaplint
+      run; implies npm-ci, which has to have happened first.
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      with:
+        node-version: "22"
+        cache: ${{ inputs.cache == 'true' && 'npm' || '' }}
+
+    - if: inputs.npm-ci == 'true' || inputs.deps == 'true'
+      shell: bash
+      run: npm ci
+
+    - if: inputs.app-npm-ci == 'true'
+      shell: bash
+      run: npm --prefix app ci
+
+    - if: inputs.deps == 'true'
+      shell: bash
+      run: npm run deps

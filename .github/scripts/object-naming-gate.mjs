@@ -31,8 +31,8 @@ const ROOT = new URL("../../", import.meta.url).pathname;
 const EXEMPT = [
   ["src/02", "public API - a stable contract, see AGENTS.md rule 5"],
   ["src/99", "frozen package - ships as-is until the removal plan retires it"],
-  ["src/00/01", "mirrored from abap2UI5/ajson_mirror by mirror_ajson.yaml"],
-  ["src/00/02", "mirrored from abap2UI5/srtti_mirror by mirror_srtti.yaml"],
+  ["src/00/01", "mirrored from abap2UI5/ajson_mirror by mirror.yaml"],
+  ["src/00/02", "mirrored from abap2UI5/srtti_mirror by mirror.yaml"],
 ];
 
 // Nothing is pending: every layer outside EXEMPT is on the ui5 segment. If a
