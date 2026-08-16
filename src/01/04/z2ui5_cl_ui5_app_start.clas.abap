@@ -210,6 +210,15 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
       render_start( ).
       set_focus_input( ).
       RETURN.
+
+    ELSEIF client->check_on_navigated( ).
+      " coming back from the config app this app called: the browser still
+      " shows THAT app's view, and the navigated roundtrip carries no event -
+      " on_event( ) would fall through its CASE and render nothing. No
+      " on_init( ) here, the state survived the serialization; no
+      " set_focus_input( ) either, the user did not just arrive.
+      render_start( ).
+      RETURN.
     ENDIF.
 
     on_event( ).
