@@ -509,6 +509,17 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE abap_bool.
 
+  "! TRUE on the first roundtrip of THIS app instance, and only that one -
+  "! the framework flips the flag after the first response, so an app that
+  "! runs for an hour sees it once.
+  "!
+  "! It is NOT "the app starts": an app reached again through the app stack,
+  "! a value help handing control back or a restored bookmark are all
+  "! roundtrips of an EXISTING instance, and check_on_init( ) is false on
+  "! every one of them. Gating the view on it alone is the most common way
+  "! to end up with a screen that does not refresh - see
+  "! check_on_navigated( ), which is true on all of those AND on the first
+  "! roundtrip, and is therefore the branch to display in.
   METHODS check_on_init
     RETURNING
       VALUE(result) TYPE abap_bool.
@@ -517,6 +528,24 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE abap_bool.
 
+  "! TRUE whenever this roundtrip has to put the app on screen: the first
+  "! start of a new instance, a called app returning through the app stack,
+  "! one of the built-in value-help popups closing, and a bookmarked draft
+  "! being restored.
+  "!
+  "! The first start is included ON PURPOSE and is part of the contract, not
+  "! an accident of the current factory: z2ui5_cl_ui5_action=>factory_first_start
+  "! sets the flag for a fresh CREATE OBJECT as well as for a draft restore.
+  "! So `check_on_init( )` being true implies this is true, which makes
+  "!
+  "!     IF client->check_on_navigated( ).
+  "!       view_display( ).
+  "!     ENDIF.
+  "!
+  "! the complete display condition on its own - no OR with check_on_init( )
+  "! is needed, and the samples and documentation are written that way.
+  "! Whoever changes the factory keeps this true, or 530 apps stop rendering
+  "! on their first start with nothing raised anywhere.
   METHODS check_on_navigated
     RETURNING
       VALUE(result) TYPE abap_bool.
