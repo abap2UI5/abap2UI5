@@ -23,6 +23,14 @@
 //   out  anything not in src/   the transpile harness copies node/srv classes
 //                               into the downport tree; they are not shipped
 //
+// "which file is the low one" is the question the list answers. The next one
+// is always "and WHICH PART of it", so:
+//
+//   npm run coverage -- --detail src/02/z2ui5_cl_ui5_http_handler.clas.abap
+//
+// prints the uncovered line ranges of that file with their ABAP source, which
+// is what a test has to be written against.
+//
 // Run:  npm run coverage      (needs `npm run downport && npm run auto_transpile` first)
 
 import { existsSync, readFileSync, rmSync } from "fs";
@@ -41,16 +49,23 @@ if (!existsSync(OUTPUT)) {
 
 rmSync(REPORT_DIR, { recursive: true, force: true });
 
+const detailArg = (() => {
+  const i = process.argv.indexOf("--detail");
+  return i === -1 ? null : process.argv[i + 1] || null;
+})();
+
 const run = spawnSync(
   "npx",
-  ["c8", "--reporter=json-summary", `--report-dir=${REPORT_DIR}`, "--src", "node/output",
-    "node", OUTPUT],
+  ["c8", `--reporter=${detailArg ? "json" : "json-summary"}`, `--report-dir=${REPORT_DIR}`,
+    "--src", "node/output", "node", OUTPUT],
   { stdio: ["ignore", "ignore", "inherit"] },
 );
 if (run.status !== 0) {
   console.error("the unit suite did not run to completion - fix that first");
   process.exit(run.status ?? 1);
 }
+
+if (detailArg) { detail(detailArg); process.exit(0); }
 
 const summary = JSON.parse(readFileSync(SUMMARY, "utf8"));
 const rows = [];
@@ -84,3 +99,60 @@ console.log(
   `\n${((100 * covered) / total).toFixed(1)}% of the engine — ${covered}/${total} lines in ${rows.length} files`,
 );
 console.log("(src/00/01, src/00/02, src/99 and the src/01/03 frontend carriers are out of scope - see the header)");
+
+/* The uncovered line ranges of one ABAP file, with the source. c8's `json`
+ * report carries per-statement hit counts against the mapped ABAP positions,
+ * which is the same mapping the summary is built from - so this is the same
+ * measurement, only not summed up. */
+function detail(wanted) {
+  const report = JSON.parse(readFileSync(`${REPORT_DIR}/coverage-final.json`, "utf8"));
+  const want = wanted.replace(/^src\//, "");
+  const entry = Object.entries(report)
+    .find(([file]) => file.endsWith(`node/downport/${want}`));
+  if (!entry) {
+    console.error(`no coverage for ${wanted}.\n\n`
+      + "Give a path as the report prints it, e.g.\n"
+      + "  npm run coverage -- --detail src/02/z2ui5_cl_ui5_http_handler.clas.abap");
+    process.exit(1);
+  }
+  const [, data] = entry;
+  /* The line numbers belong to the DOWNPORT copy - that is the file the
+   * transpiler read and the file its source map points at. Printing them
+   * against src/ would be off by however much the downport moved, which is
+   * exactly the kind of quietly-wrong output that sends someone testing the
+   * wrong method. */
+  const shown = `node/downport/${want}`;
+  const cold = new Set();
+  for (const [id, count] of Object.entries(data.s)) {
+    if (count) continue;
+    const loc = data.statementMap[id];
+    for (let l = loc.start.line; l <= loc.end.line; l++) cold.add(l);
+  }
+  const hot = new Set();
+  for (const [id, count] of Object.entries(data.s)) {
+    if (!count) continue;
+    const loc = data.statementMap[id];
+    for (let l = loc.start.line; l <= loc.end.line; l++) hot.add(l);
+  }
+  const lines = readFileSync(shown, "utf8").split("\n");
+  const missing = [...cold].filter((l) => !hot.has(l)).sort((a, b) => a - b);
+  if (!missing.length) { console.log(`${wanted}: every mapped line is covered`); return; }
+
+  console.log(`${shown} — ${missing.length} line(s) the unit suite never runs.`);
+  console.log(`(the downport of ${wanted}; the transpiler read that copy, so the`);
+  console.log(" line numbers are its own)\n");
+  let from = missing[0];
+  let prev = missing[0];
+  const flush = () => {
+    console.log(from === prev ? `  line ${from}` : `  lines ${from}-${prev}`);
+    for (let l = from; l <= prev; l++) console.log(`    ${String(l).padStart(4)}  ${lines[l - 1] ?? ""}`);
+    console.log("");
+  };
+  for (const l of missing.slice(1)) {
+    if (l === prev + 1) { prev = l; continue; }
+    flush();
+    from = l;
+    prev = l;
+  }
+  flush();
+}

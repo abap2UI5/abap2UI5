@@ -249,7 +249,31 @@ Not part of any public contract; removable whenever.
 
 ---
 
-## 5. Documentation debt to clear alongside
+## 5. What app code still has to reach into internals for
+
+The mirror image of a removal: every one of these is an app doing something
+ordinary and finding nothing released to do it with, so it reaches into
+`src/00` or `src/01` and the linter's `non-released-api` rule is right to say
+so. Found by reading every `non-released-api` finding in `abap2UI5/samples`
+rather than by guessing; each entry names the callers that exist today.
+
+- [ ] **Parsing JSON.** An event argument arrives as a JSON string, and there
+      is no released way to read it. `z2ui5_cl_ajson` is the mirrored library
+      in `src/00/01` — synced from another project, and the same type this
+      plan wants to stop handing app code through `custom_mapper` (§1).
+      - Callers: `samples` `z2ui5_cl_smp_app_197`, `z2ui5_cl_smp_app_327`
+        (both now carry a directive naming this gap).
+      - Neither alternative is portable: `/ui2/cl_json` is not released for
+        ABAP Cloud, `xco_cp_json` does not exist on 7.02.
+- [ ] **A DDIC object to point a dynamic type at.** `src/02` releases no table
+      or structure, so a sample demonstrating
+      `CREATE DATA … TYPE STANDARD TABLE OF (name)` has to name the framework's
+      own draft table `z2ui5_t_01`.
+      - Caller: `samples` `z2ui5_cl_smp_app_061`.
+      - Cheap to close: one released structure with two fields would do, and
+        it costs nothing to keep compatible.
+
+## 6. Documentation debt to clear alongside
 
 - [ ] Move `cs_event-z2ui5` out of the "legacy event names" block (see §1)
 - [ ] Turn the two `"obsolete"` plain comments on the `view` parameter into
