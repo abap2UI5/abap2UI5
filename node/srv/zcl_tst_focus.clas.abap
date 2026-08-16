@@ -30,6 +30,9 @@ CLASS zcl_tst_focus IMPLEMENTATION.
       value   = `86801398`.
       view_display( ).
 
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
+      view_display( ).
+
     ELSEIF client->check_on_event( `LOCK` ) IS NOT INITIAL.
       enabled = abap_false.
 
