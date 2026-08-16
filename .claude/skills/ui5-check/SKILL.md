@@ -309,6 +309,25 @@ Not about names or layout — these only show up when the app runs.
 - **`sap.m.MessageBox` always closes on Escape** and offers no way to suppress
   it. A popup that must not be Escape-dismissable — the fatal-error overlay —
   is a `sap.m.Dialog` with `escapeHandler: (oPromise) => oPromise.reject()`.
+- **An enum property REFUSES an empty string, and a bound ABAP field is empty
+  by default.** Not "falls back to the default" — the control throws:
+
+      "" is of type string, expected sap.ui.unified.CalendarDayType
+       for property "secondaryType"
+
+  Found in `abap2UI5/samples-controls` app 308 (2026-08-16), by an e2e
+  interaction rather than by reading: a `DateTypeRange.secondaryType` bound to
+  a `secondary_type TYPE string` that only one row of the table ever fills.
+  Every offline gate was green, and the port had been in the repository for
+  weeks. The fix is to spell out the enum's own default — `None` — on every
+  row, which changes nothing about the rendering and makes the binding legal.
+
+  The trap is structural rather than particular to that control: ABAP has no
+  null, an unfilled `TYPE string` serialises as `""`, and **`""` is a member of
+  no UI5 enum**. So it applies to every enum-typed property fed from an
+  internal table where the value is optional — `type`, `state`, `design`,
+  `valueState`, `highlight` — and it only fires on the rows that leave it
+  empty, which is why a first render can pass and an update fail.
 
 **Linter:** the expression-binding rule is decidable from the view text alone
 (`{=` in any attribute value) — but **deliberately not added**, and the scope
@@ -321,8 +340,22 @@ survive a customer's stricter CSP. A linter that reported every app's
 expression binding would be wrong for its own users. So the constraint stays
 where it can be scoped correctly: prose here, plus `AGENTS.md` rules 16/17 for
 this repository's own views. (The linter does check `{= … }` for *balance* —
-`invalid-expression-binding` — which is a different question.) The other two
-entries are about JS lifecycle, not about a view: **they stay prose** too.
+`invalid-expression-binding` — which is a different question.) The two
+fragment/MessageBox entries are about JS lifecycle, not about a view: **they
+stay prose** too.
+
+The **empty-string-into-an-enum** entry is the one worth a rule, and it is
+**open**. What a rule would need: the property's type from `properties.json`
+(the enum-valued ones are already known — `enum-value-too-new` reads their
+`enumSince`), plus the knowledge that the bound path resolves to a field the
+app leaves empty. The second half is the hard one, and it is why this is not
+simply `enum-value-too-new` with an extra value: the offending value is not IN
+the view text at all, it arrives from the model. The decidable subset is
+narrower and still useful — **a binding of an enum-typed property to a field of
+a `TYPES BEGIN OF` structure whose rows are built with `VALUE #( )` and do not
+all set it** — which the linter cannot see today, because it reads the view and
+the builder chain rather than the ABAP data declarations. Recorded here as the
+staging area intends, with the shape a rule would take rather than a wish.
 
 ---
 
