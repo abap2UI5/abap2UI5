@@ -25,6 +25,20 @@ under the transpiler.
 pull. When you hit a new one, add it (see the last section) — the point is that
 nobody has to discover it twice.
 
+**Every numbered section below carries a `Gate:` line**, the same idea as the
+`Linter:` lines in `ui5-check` — but the answer here is rarely "a linter rule".
+Most of this is decided by a script in *this* repository, which means a
+consumer running nothing but `npx abap2ui5lint` is **not** covered by it. The
+line says which of the three it is, because that is the difference between a
+defect that cannot reach `main` and one that cannot reach `main` *here*:
+
+| | |
+|---|---|
+| **linter** | an `abap2ui5lint` rule — travels to every repository that runs it |
+| **this repo** | a script under `.github/scripts/` — covers this tree only |
+| **abaplint** | a rule in `abaplint.jsonc` — covers repositories that enable it |
+| **open** | nothing decides it; the entry is a thing you have to know |
+
 Run first, in this order:
 
 ```
@@ -101,6 +115,16 @@ to push upstream rather than to reimplement here:
 
 Gated by `npm run check:abapgit`
 (`.github/scripts/abapgit-format-gate.mjs`), over all of `src/`.
+
+**Gate: this repo**, for the whole family — BOM, EOF newline, line endings,
+tabs, `&apos;`, file names, sidecar pairing, `<CLSNAME>`, `<LANGU>`. Two halves
+reach further: the 255-character line is **linter — `source-line-too-long`**
+(an error on every app class it checks), and `<WITH_UNIT_TESTS>` plus
+`<CLSNAME>` are **abaplint — `local_testclass_consistency`, `xml_consistency`**
+(measured, both directions). Trailing whitespace is **abaplint —
+`whitespace_end`**, per repository and not everywhere; see below. Everything
+else in the table is this repository's script and nothing else, which is why a
+consumer repository can ship a BOM-less sidecar with a green CI.
 
 abapGit writes every file one specific way. Write it another way and it
 differs from what the system serializes back — permanently, on every pull, for
@@ -233,6 +257,15 @@ That is what turns one fix into the last one.
 
 ## 2. Activation — compiles here, syntax error there
 
+**Gate: this repo**, and it is the section with the widest hole. The private
+`class_constructor` is `check:abapgit`; `LOCAL FRIENDS` is
+`npm run check_visibility`. Neither is an abaplint rule — measured against
+2.120.24 with 73 rules on and a control probe (see above), both produce zero
+findings, which is why they are on the upstream shortlist rather than
+reimplemented here. Generic types on older releases are **abaplint —
+`downport`, `fully_type_itabs`, `cloud_types`** where a repository enables
+them; the app-template core does, the sample repositories do not yet.
+
 ### The class pool
 
 | Trap | Rule |
@@ -300,6 +333,11 @@ system, or must fetch data dynamically.
 
 ## 3. Extended check (SLIN/ATC) — runs in real systems, not here
 
+**Gate: this repo**, partially — `npm run check:atc`
+(`.github/scripts/extended-check-gate.mjs`) decides the traps a script can
+decide. The rest is **open** by construction: SLIN and ATC run in a system,
+and no gate outside one can stand in for them.
+
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
 hold: `43515c97`, `0d9a7485`, `5b9e16ea` and `44642cbe` are four separate
@@ -349,6 +387,10 @@ pitfalls".
 
 ## 4. Downport and transpile — one source, three targets plus a JS runtime
 
+**Gate: this repo** — `npm run verify` builds all three targets and runs the
+transpiled tests. Nothing here is a linter rule and nothing here should be: the
+downport is a build of this repository, not a property of somebody's app.
+
 Every framework file is downported to 7.02 (`npm run auto_downport`) and
 transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
@@ -384,6 +426,23 @@ break one of those four.
   functionality only through `z2ui5_cl_ui5_util_context` for exactly this reason.
 
 ## 5. Runtime — green here, wrong there
+
+**Gate: mostly open.** Three entries have moved: **linter —
+`live-event-roundtrip`** (a `liveChange` that drops events under fast input),
+**`obsolete-binder`/`obsolete-model-update`/`obsolete-frontend-event`** (API
+that is accepted and no longer evaluated) and **`non-released-api`** (naming
+anything outside `src/02`).
+
+One more lands in 0.2.0, and it is the sharpest case of this whole file: a
+class that BUILDS its view with the frozen `z2ui5_cl_xml_view` used to be
+skipped by the linter entirely — the run ended with `no checkable app classes`
+and exit 0, which reads like approval while nothing had been looked at.
+**`frozen-view-builder`** reports it instead. Not pinned here yet; this
+repository's `src/99` will need it excluded when it is, since that package IS
+the frozen legacy.
+
+The rest needs a running system with real data and is written down here
+precisely because no gate will catch it.
 
 - **After `ASSIGN`, check `IS ASSIGNED` — not `sy-subrc`.** A 7.40 SP7 system
   ran every abap2UI5 app into an endless loop because `sy-subrc` was still `4`
@@ -445,6 +504,11 @@ break one of those four.
   as a literal.
 
 ## 6. Blind spots — green, or red, for the wrong reason
+
+**Gate: none, and that is the definition.** An entry lands in this section
+because a check *passed* while the code was wrong, or *failed* while it was
+right. A gate cannot cover it — if one could, the entry would have moved to a
+numbered section above.
 
 - **Never skip a test with `IF sy-sysid = ` + backtick-`ABC`.** `ABC` is the
   system ID of the Node runtime, so the guard makes the method a silent no-op
