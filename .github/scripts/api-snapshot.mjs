@@ -165,6 +165,33 @@ function publicBody(file, code) {
   return end === -1 ? rest : rest.slice(0, end);
 }
 
+/*
+ * The ONE public symbol whose value is supposed to change, and does so on every
+ * release: z2ui5_if_app=>version. Recorded with its literal, it makes every
+ * release a "changed" finding - a rule-5 violation the release is not, and the
+ * loudest possible false alarm on the one commit nobody wants noise on.
+ *
+ * The snapshot was created 2026-08-12; the newest tag at the time was 1.142.0
+ * from 2026-07-21, so this gate had never seen a release when it was written.
+ * The first one to reach it would have been told to "restore the signature".
+ *
+ * So the value is normalised away and the SIGNATURE is what is guarded - the
+ * constant still cannot be removed, renamed or retyped. Its value already has
+ * two gates of its own: check:version holds it to package.json, check:release
+ * holds both to changelog.txt. A third copy here buys nothing.
+ *
+ * Deliberately this one symbol and no other: a constant's value is often part
+ * of the contract (the cs_event names are), so nothing else is neutralised.
+ */
+const VERSION_CONSTANT = { file: "z2ui5_if_app.intf.abap", kind: "constants", name: "version" };
+
+const releaseNeutral = (file, kind, name, entry) =>
+  (file === VERSION_CONSTANT.file
+    && kind === VERSION_CONSTANT.kind
+    && name.toLowerCase() === VERSION_CONSTANT.name)
+    ? entry.replace(/value\s+`[^`]*`/i, "value `<the release>`")
+    : entry;
+
 function extract() {
   const api = {};
   for (const f of fs.readdirSync(SRC02).sort()) {
@@ -183,7 +210,7 @@ function extract() {
       const kind = m[0].toLowerCase().replace(/\s+/g, "-");
       const nameM = entry.slice(m[0].length).match(/^\s*:?\s*([a-z0-9_~\/]+)/i);
       if (!nameM) continue;
-      api[`${f}#${kind}:${nameM[1].toLowerCase()}`] = norm(entry);
+      api[`${f}#${kind}:${nameM[1].toLowerCase()}`] = norm(releaseNeutral(f, kind, nameM[1], entry));
     }
   }
   return api;
