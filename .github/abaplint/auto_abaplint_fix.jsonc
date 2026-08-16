@@ -23,7 +23,17 @@
   },
   "rules": {
 
-    "in_statement_indentation": true,
+    // Third rule excluded for the same two files and the same reason as
+    // align_parameters below: it re-indents a continuation line to where
+    // abaplint would put it, and in a view chain that is the closing `)->end( )`
+    // - which the house layout puts in the column of the element it closes
+    // (chain-house-layout, abap2ui5lint). The two formatters disagreed about
+    // exactly that line, and because `npm run verify` runs check:abap2ui5
+    // BEFORE check:app2abap, the run reported green and left the file behind
+    // in the state its own gate rejects.
+    "in_statement_indentation": {
+      "exclude": ["z2ui5_cl_ui5_app_start\\.clas\\.abap$", "z2ui5_cl_ui5_app_hi_world\\.clas\\.abap$"]
+    },
     "indentation": true,
     "double_space": true,
     // The two shipped apps write the view builder's a( ) as one line per

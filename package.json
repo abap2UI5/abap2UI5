@@ -24,7 +24,7 @@
     "check:js": "npx playwright test -c node/playwright-unit.config.js",
     "check:frozen": "node .github/scripts/frozen-paths-gate.mjs",
     "check:ui5": "node .github/scripts/ui5lint-gate.mjs",
-    "check:app2abap": "node .github/scripts/ensure-app-deps.mjs && npm run app2abap && git diff --exit-code -- src/01/03 app/webapp && test -z \"$(git status --porcelain -- src/01/03 app/webapp)\"",
+    "check:app2abap": "node .github/scripts/ensure-app-deps.mjs && node .github/scripts/app2abap-gate.mjs",
     "check:frontend": "npm run frontend:build && git diff --exit-code -- build && test -z \"$(git status --porcelain -- build)\"",
     "check:api": "node .github/scripts/api-snapshot.mjs",
     "check:formatter": "node .github/scripts/formatter-scope-gate.mjs",
