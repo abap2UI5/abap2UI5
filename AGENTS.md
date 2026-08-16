@@ -537,8 +537,40 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 | File | Lines | Why |
 |---|---|---|
 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` | 35% of 3,174 | **The real gap** — 2,055 uncovered lines, more than the rest of the engine's misses together. It is the door to everything utility-shaped (§ "Utilities"), and most of what it offers is called by *apps*, not by the engine the suite drives |
-| `src/02/z2ui5_cl_ui5_http_handler.clas.abap` | 28% of 598 | The ICF entry point. The transpiled suite comes in through `z2ui5_cl_ui5_handler` (94%) because there is no ICF request to make; the browser tests drive the rest through `zcl_sicf`. **The number is lower than the tests suggest and nobody has explained why:** `ltcl_test_http_handler` has 17 tests, they run and pass, and `_check_csrf_rejected` shows the hit counts to prove attribution works (line 205, count 4) — yet every statement of `_http_get( )` reads as never executed although `test_http_get_status` calls it. Measured again on a clean `downport` + `auto_transpile`, and directly with `npx c8`, with the same 170/598 both times. Until that is understood this figure says something about the mapping, not only about the tests. `npm run coverage -- --detail <file>` prints the cold ranges if you want to pick it up |
+| `src/02/z2ui5_cl_ui5_http_handler.clas.abap` | 28% of 598, **of the downported copy** | The ICF entry point. The transpiled suite comes in through `z2ui5_cl_ui5_handler` (94%) because there is no ICF request to make; the browser tests drive the rest through `zcl_sicf`. **The "`_http_get( )` is never executed" reading was an artefact, and it is now explained** — see below. Read the 28% as coverage of `node/downport/02/…`, never as a per-line statement about `src/02/…` |
 | `src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap` | 29% of 56 | A demo app. Its view is exercised by the browser tests, not by the unit suite |
+
+**Coverage line numbers are the DOWNPORT's, not `src/`'s.** This cost a while
+to see, because the two files share a basename and the report prints the
+`src/` path:
+
+```
+node/output/z2ui5_cl_ui5_http_handler.clas.mjs.map
+  sources: [ "../downport/02/z2ui5_cl_ui5_http_handler.clas.abap" ]
+```
+
+`c8` instruments the transpiled JS and maps back through that file — and the
+downporter rewrites the source on the way. One `DATA(ls_config) = …` becomes
+seven `DATA` declarations plus an assignment, `COND` becomes an `IF`, a string
+template becomes a concatenation. The measurable numbers:
+
+| | `src/02/…` | `node/downport/02/…` |
+|---|---:|---:|
+| the file | 529 lines | **598** lines |
+| `_http_get( )` starts at | 275 | **297** |
+| `_http_get( )` is | 75 lines | **91** lines |
+
+The 598 in the table above is the downported count — it never was `src/`'s.
+So the covered ranges are real, and reading them against `src/` shifts them by
+20-odd lines and growing: `_http_get( )` looked stone cold because the lines
+that ran are the *downport's* 297-387, which land somewhere else entirely in
+the source. The tests were fine all along.
+
+What this does **not** settle is whether 170/598 is the right statement
+coverage of the downported file; that needs a run, and the figure is only ever
+about that file. `npm run coverage -- --detail <file>` prints the cold ranges
+against `node/downport/<rest>` and says so, which is why it reads that copy
+rather than the source.
 
 ## Key Files
 
