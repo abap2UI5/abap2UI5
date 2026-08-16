@@ -41,8 +41,10 @@ Four separate holes, worth knowing precisely:
 
 - **abaplint parses ABAP, it does not model abapGit's file format.** The
   sidecar is only read for the few facts its rules name. Verified against
-  abaplint 2.120: a `.clas.xml` with the BOM stripped, the terminating newline
-  removed **and** CRLF line endings throughout produces **zero** findings.
+  abaplint 2.120.24 with 73 rules active and `check_syntax` live: a `.clas.xml`
+  with the BOM stripped, the terminating newline removed, CRLF line endings
+  throughout **and** a raw apostrophe in `<DESCRIPT>` — four defects at once —
+  produces **zero** findings.
 - **abaplint's `global.files` is not all of `src/`.** It covers `src/00`
   (with `noIssues`), `src/01` and `src/02` — `src/99` is never read at all.
 - **The transpiler ignores visibility.** Every ABAP member becomes a plain JS
@@ -52,6 +54,46 @@ Four separate holes, worth knowing precisely:
   v750 and the transpiler is a JS runtime. Neither is 7.02, neither is a 7.40
   or low-SP 7.50 system, and neither is ABAP Cloud — and a good half of this
   catalogue is code that is valid on one of those and rejected by another.
+
+### Measuring one of these against abaplint — read this first
+
+Every "abaplint does not catch X" claim in this file was measured, and the
+measurement has one trap that makes every result meaningless:
+
+> **An abaplint config with no `rules` block runs NO rules.** Not the defaults —
+> none. A run over a deliberately broken file then prints
+> `0 issue(s) found, 3 file(s) analyzed`, which looks exactly like a confirmed
+> gap and is nothing of the kind.
+
+Three of four claims measured this way in one sitting came back "gap", and one
+of them was wrong: `local_testclass_consistency` covers `<WITH_UNIT_TESTS>` in
+**both** directions and says so in plain words. It had simply not been switched
+on.
+
+So: **enable the rules explicitly, and run a control probe first.** Break
+something abaplint certainly catches — an undefined variable is the cheapest —
+and only trust a zero once you have seen a one:
+
+```jsonc
+{ "global": { "files": "/src/**/*.*" },
+  "syntax": { "version": "v750", "errorNamespace": "^(Z|Y)" },
+  "rules": { "check_syntax": true, /* …and the rule you are testing… */ } }
+```
+
+Two more things that silently void a result: an `errorNamespace` that does not
+match your test class's name, and a `syntax.version` too old for the syntax you
+wrote (`DATA(x) = …` on `v702` is a parser error that masks everything after
+it).
+
+**Verified gaps as of abaplint 2.120.24** — measured this way, control probe
+passed, nothing abap2UI5-specific about any of them, and therefore candidates
+to push upstream rather than to reimplement here:
+
+| Case | Why it matters |
+|---|---|
+| `CLASS-METHODS class_constructor.` in a PRIVATE SECTION | ABAP requires the static constructor in the public section; the class pool does not activate. `constructor_visibility_public` sees only the instance constructor |
+| a test class calling a PRIVATE member without `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.` | same activation failure; it has reached users twice (`cadfb7ae`, #2146) |
+| the `.clas.xml` byte format — BOM, line endings, terminating newline, `&apos;` | abapGit re-serializes it differently on every pull, for everyone |
 
 ---
 
@@ -76,7 +118,7 @@ everyone.
 | `package` | every folder under `src/` has a `package.devc.xml` — it *is* the package | — |
 | `clsname` | `<CLSNAME>` equals the file name, upper-cased | — |
 | `langu` | `<LANGU>` equals `<MASTER_LANGUAGE>` from `.abapgit.xml` (`E`). An object created while logged on in another language serializes with that language and diffs against every other developer | — |
-| `unit-tests` | `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>` exactly when a `.testclasses.abap` exists | `d5eaaa79` "fix unit test metadata" — `z2ui5_cl_util_range` had the test include and not the flag |
+| `unit-tests` | `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>` exactly when a `.testclasses.abap` exists. **Also owned by abaplint's `local_testclass_consistency`, in both directions** — so in a repository that enables that rule this one is belt and braces, not the only gate | `d5eaaa79` "fix unit test metadata" — `z2ui5_cl_util_range` had the test include and not the flag |
 
 ### The size limits — where the *import* fails, not the diff
 

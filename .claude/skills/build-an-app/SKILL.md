@@ -10,6 +10,20 @@ self-contained guide** (template, lifecycle, builder verbs, binding rules,
 events, popups, navigation, portability rules, validation tooling). This
 skill is the trigger and the checklist; the guide is the content.
 
+**Before writing one from scratch, ask whether it exists.** `abap2UI5/samples`
+holds 152 working apps, each linted, rendered and downported to three
+releases — a value help, a tree, navigation between two apps, a dynamic table
+typed at runtime. Reading one beats reproducing it, and beats any snippet: the
+sample is gated, a snippet is a copy somebody has to keep in step.
+
+- With the [MCP server](https://github.com/abap2UI5/ai-mcp): the `examples`
+  tool queries that catalogue (`examples { query: "value help f4" }`) and
+  hands back the class to read. Its neighbour `capabilities` answers the other
+  question — whether a UI5 *control* can be expressed at all — out of
+  samples-controls' 416 ports.
+- Without it: [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)
+  is the same catalogue as a page.
+
 Quick orientation while it loads:
 
 - One ABAP class implements `z2ui5_if_app`; `main( client )` runs once per
