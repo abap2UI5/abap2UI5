@@ -80,6 +80,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:prose
 
+      # the skills say which linter rule already decides a case - a claim about
+      # ANOTHER repository, where rule ids are renamed and retired on their own
+      # schedule and nothing here moves when they are
+      - name: rule ids named in the skills exist
+        if: ${{ !cancelled() }}
+        run: npm run check:skills
+
       - name: the two version numbers agree
         if: ${{ !cancelled() }}
         run: npm run check:version

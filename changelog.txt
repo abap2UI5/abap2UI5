@@ -10,8 +10,8 @@ Legend
 
 
 
-unreleased
-----------
+2026-08-16 v1.143.0
+-------------------
 ! the startup page was rebuilt. It reads top to bottom: the five quickstart
   steps - with the cursor already in the class name field of step 4, behind
   the proposal, so the first keystroke lands where the page expects it - then

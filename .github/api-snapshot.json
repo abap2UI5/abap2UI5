@@ -17,7 +17,7 @@
   "z2ui5_cl_ui5_view_builder.clas.abap#methods:end": "methods end returning value(result) type ref to z2ui5_cl_ui5_view_builder",
   "z2ui5_cl_ui5_view_builder.clas.abap#methods:stringify": "methods stringify returning value(result) type string",
   "z2ui5_if_app.intf.abap#interfaces:if_serializable_object": "interfaces if_serializable_object",
-  "z2ui5_if_app.intf.abap#constants:version": "constants version type string value `1.142.0`",
+  "z2ui5_if_app.intf.abap#constants:version": "constants version type string value `<the release>`",
   "z2ui5_if_app.intf.abap#constants:origin": "constants origin type string value `https://github.com/abap2ui5/abap2ui5`",
   "z2ui5_if_app.intf.abap#constants:authors": "constants authors type string value `https://github.com/abap2ui5/abap2ui5/graphs/contributors`",
   "z2ui5_if_app.intf.abap#constants:license": "constants license type string value `mit`",
