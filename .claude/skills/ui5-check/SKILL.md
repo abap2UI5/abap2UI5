@@ -309,25 +309,36 @@ Not about names or layout — these only show up when the app runs.
 - **`sap.m.MessageBox` always closes on Escape** and offers no way to suppress
   it. A popup that must not be Escape-dismissable — the fatal-error overlay —
   is a `sap.m.Dialog` with `escapeHandler: (oPromise) => oPromise.reject()`.
-- **An enum property REFUSES an empty string, and a bound ABAP field is empty
-  by default.** Not "falls back to the default" — the control throws:
+- **An enum property REFUSES an empty string, and an EMPTIED aggregation hands
+  it one.** Not "falls back to the default" — the control throws:
 
       "" is of type string, expected sap.ui.unified.CalendarDayType
        for property "secondaryType"
 
-  Found in `abap2UI5/samples-controls` app 308 (2026-08-16), by an e2e
-  interaction rather than by reading: a `DateTypeRange.secondaryType` bound to
-  a `secondary_type TYPE string` that only one row of the table ever fills.
-  Every offline gate was green, and the port had been in the repository for
-  weeks. The fix is to spell out the enum's own default — `None` — on every
-  row, which changes nothing about the rendering and makes the binding legal.
+  Found in `abap2UI5/samples-controls` app 308 (2026-08-16) by an e2e
+  interaction, and the trigger is worth stating precisely, because the obvious
+  reading is wrong. It is **not** the row that leaves the field unset: an
+  unset field never reaches the model (`_bind( … omit_initial_paths = … )`
+  keeps it out). It is the table being **cleared**. UI5 then evaluates the
+  aggregation TEMPLATE with no row behind it, `{SECONDARY_TYPE}` resolves to
+  `` — and the enum-typed property rejects it.
+
+  Isolated rather than guessed: the port boots clean, survives the first press
+  of its toggle, and dies on the second, which is the press that empties the
+  table.
+
+  The fix is at the view, not at the data — fall back to the enum's own
+  default in the binding, which the same port already does for a nullable
+  date one line above:
+
+      )->a( n = `secondaryType` v = |\{= $\{SECONDARY_TYPE} ? $\{SECONDARY_TYPE} : 'None' }|
 
   The trap is structural rather than particular to that control: ABAP has no
   null, an unfilled `TYPE string` serialises as `""`, and **`""` is a member of
-  no UI5 enum**. So it applies to every enum-typed property fed from an
-  internal table where the value is optional — `type`, `state`, `design`,
-  `valueState`, `highlight` — and it only fires on the rows that leave it
-  empty, which is why a first render can pass and an update fail.
+  no UI5 enum**. So it applies to every enum-typed property in an aggregation
+  TEMPLATE — `type`, `state`, `design`, `valueState`, `highlight` — whenever
+  the bound table can be empty. A first render passes and the emptying fails,
+  which is why nothing offline sees it.
 
 **Linter:** the expression-binding rule is decidable from the view text alone
 (`{=` in any attribute value) — but **deliberately not added**, and the scope
@@ -344,18 +355,20 @@ this repository's own views. (The linter does check `{= … }` for *balance* —
 fragment/MessageBox entries are about JS lifecycle, not about a view: **they
 stay prose** too.
 
-The **empty-string-into-an-enum** entry is the one worth a rule, and it is
-**open**. What a rule would need: the property's type from `properties.json`
-(the enum-valued ones are already known — `enum-value-too-new` reads their
-`enumSince`), plus the knowledge that the bound path resolves to a field the
-app leaves empty. The second half is the hard one, and it is why this is not
-simply `enum-value-too-new` with an extra value: the offending value is not IN
-the view text at all, it arrives from the model. The decidable subset is
-narrower and still useful — **a binding of an enum-typed property to a field of
-a `TYPES BEGIN OF` structure whose rows are built with `VALUE #( )` and do not
-all set it** — which the linter cannot see today, because it reads the view and
-the builder chain rather than the ABAP data declarations. Recorded here as the
-staging area intends, with the shape a rule would take rather than a wish.
+The **empty-string-into-an-enum** entry is the one worth a rule, and once the
+trigger is stated correctly the rule gets *easier*, not harder. It does not
+need to know anything about the data: **an enum-typed property inside an
+aggregation template, bound to a plain path with no fallback**, is decidable
+from the view alone. The enum-valued properties are already known —
+`enum-value-too-new` reads their `enumSince` out of `properties.json` — and
+"inside a template" is the `ele( <aggregation> )` the builder chain already
+models. The fix the rule would point at is the one this entry shows: an
+expression binding with the enum's default as the else branch.
+
+What it must NOT do is fire on every enum binding: a property bound outside a
+template, or one whose table can never be emptied, is fine, and a rule that
+reported all of them would be routed around. Left **open** with that scope
+rather than filed as a wish.
 
 ---
 
