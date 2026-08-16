@@ -206,18 +206,26 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
   METHOD constructor.
 
     mo_action = action.
-    mo_srv_event = NEW #( ).
+    CREATE OBJECT mo_srv_event.
 
   ENDMETHOD.
 
 
   METHOD build_global_call.
+        DATA temp5 TYPE REF TO z2ui5_if_ajson.
+        DATA temp6 LIKE LINE OF t_arg.
+        DATA lr_arg LIKE REF TO temp6.
+        DATA lx_json TYPE REF TO z2ui5_cx_ajson_error.
 
     TRY.
-        result = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+
+        temp5 ?= z2ui5_cl_ajson=>create_empty( ).
+        result = temp5.
         result->touch_array( `/` ).
         " REFERENCE INTO - an argument can be a whole view XML
-        LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
+
+
+        LOOP AT t_arg REFERENCE INTO lr_arg.
           result->push( iv_path = `/`
                         iv_val  = lr_arg->* ).
         ENDLOOP.
@@ -225,7 +233,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
           result->push( iv_path = `/`
                         iv_val  = opt ).
         ENDIF.
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+
+      CATCH z2ui5_cx_ajson_error INTO lx_json.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |ACTION_BUILD_FAILED - { lx_json->get_text( ) }|.
@@ -236,8 +245,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD queue_app.
 
-    INSERT VALUE #( o_json = build_global_call( t_arg = t_arg
-                                                opt   = opt ) )
+    DATA temp7 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    CLEAR temp7.
+    temp7-o_json = build_global_call( t_arg = t_arg opt = opt ).
+    INSERT temp7
            INTO TABLE mo_action->ms_next-s_action-t_custom.
 
   ENDMETHOD.
@@ -245,8 +256,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD queue_system.
 
-    INSERT VALUE #( o_json = build_global_call( t_arg = t_arg
-                                                opt   = opt ) )
+    DATA temp8 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    CLEAR temp8.
+    temp8-o_json = build_global_call( t_arg = t_arg opt = opt ).
+    INSERT temp8
            INTO TABLE mo_action->ms_next-s_action-t_system.
 
   ENDMETHOD.
@@ -254,10 +267,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD queue_app_event.
 
-    INSERT VALUE #( o_json = mo_srv_event->get_event_client_ajson(
-                                 val   = val
-                                 view  = view
-                                 t_arg = t_arg ) )
+    DATA temp9 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    CLEAR temp9.
+    temp9-o_json = mo_srv_event->get_event_client_ajson( val = val view = view t_arg = t_arg ).
+    INSERT temp9
            INTO TABLE mo_action->ms_next-s_action-t_custom.
 
   ENDMETHOD.
@@ -265,17 +278,24 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD queue_app_js.
 
-    INSERT VALUE #( js = val )
+    DATA temp10 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    CLEAR temp10.
+    temp10-js = val.
+    INSERT temp10
            INTO TABLE mo_action->ms_next-s_action-t_custom.
 
   ENDMETHOD.
 
 
   METHOD slot_destroy.
+    DATA temp11 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
 
     slot_reset( slot ).
-    INSERT VALUE #( slot   = slot
-                    method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
+
+    CLEAR temp11.
+    temp11-slot = slot.
+    temp11-method = z2ui5_if_ui5_types=>cs_slot_action-destroy.
+    INSERT temp11
            INTO TABLE mo_action->ms_next-t_action_front.
 
   ENDMETHOD.
@@ -295,6 +315,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
 
   METHOD slot_display.
+        DATA temp12 TYPE REF TO z2ui5_if_ajson.
+        DATA li_opt LIKE temp12.
+        DATA temp13 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
+        DATA lx_json TYPE REF TO z2ui5_cx_ajson_error.
 
     " Whatever was queued for this slot so far is void - the last call
     " decides the slot's state. The teardown of what the slot currently
@@ -307,7 +331,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         " anchor, a nested view's insert/destroy methods, the MAIN view's
         " model switch. An option the caller left alone is absent, never
         " sent as an empty value.
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+
+        temp12 ?= z2ui5_cl_ajson=>create_empty( ).
+
+        li_opt = temp12.
         set_opt_string( json = li_opt
                         name = `id`
                         val  = id ).
@@ -327,13 +354,17 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                         name = `switchDefaultModelAnnoUri`
                         val  = switch_default_model_anno_uri ).
 
-        INSERT VALUE #( slot    = slot
-                        method  = z2ui5_if_ui5_types=>cs_slot_action-display
-                        xml     = xml
-                        options = li_opt )
+
+        CLEAR temp13.
+        temp13-slot = slot.
+        temp13-method = z2ui5_if_ui5_types=>cs_slot_action-display.
+        temp13-xml = xml.
+        temp13-options = li_opt.
+        INSERT temp13
                INTO TABLE mo_action->ms_next-t_action_front.
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+
+      CATCH z2ui5_cx_ajson_error INTO lx_json.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
@@ -353,9 +384,21 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " roundtrip that rebuilds the view. Their DISPLAYS are untouched - the
     " slot order below puts them behind MAIN, and each action is awaited
     " before the next runs, so a popup this roundtrip opens still opens.
-    DATA(lv_main_displayed) = xsdbool( line_exists(
-        mo_action->ms_next-t_action_front[ slot   = z2ui5_if_client=>cs_view-main
-                                           method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ).
+    DATA lv_main_displayed TYPE abap_bool.
+    DATA temp1 LIKE sy-subrc.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp2 TYPE string_table.
+    DATA temp14 LIKE temp2.
+    DATA lv_slot LIKE LINE OF temp14.
+      DATA temp15 LIKE LINE OF mo_action->ms_next-t_action_front.
+      DATA lr_action LIKE REF TO temp15.
+        DATA temp16 TYPE string_table.
+        DATA lt_arg LIKE temp16.
+    READ TABLE mo_action->ms_next-t_action_front WITH KEY slot = z2ui5_if_client=>cs_view-main method = z2ui5_if_ui5_types=>cs_slot_action-display TRANSPORTING NO FIELDS.
+    temp1 = sy-subrc.
+
+    temp3 = boolc( temp1 = 0 ).
+    lv_main_displayed = temp3.
     IF lv_main_displayed = abap_true.
       DELETE mo_action->ms_next-t_action_front
              WHERE method = z2ui5_if_ui5_types=>cs_slot_action-destroy
@@ -365,19 +408,31 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
     " The view-lifecycle calls leave in SLOT order, never in the order the
     " app happened to make them - see the ABAP Doc.
-    LOOP AT VALUE string_table( ( z2ui5_if_client=>cs_view-main )
-                                ( z2ui5_if_client=>cs_view-nested )
-                                ( z2ui5_if_client=>cs_view-nested2 )
-                                ( z2ui5_if_client=>cs_view-popup )
-                                ( z2ui5_if_client=>cs_view-popover ) )
-         INTO DATA(lv_slot).
+
+    CLEAR temp2.
+    INSERT z2ui5_if_client=>cs_view-main INTO TABLE temp2.
+    INSERT z2ui5_if_client=>cs_view-nested INTO TABLE temp2.
+    INSERT z2ui5_if_client=>cs_view-nested2 INTO TABLE temp2.
+    INSERT z2ui5_if_client=>cs_view-popup INTO TABLE temp2.
+    INSERT z2ui5_if_client=>cs_view-popover INTO TABLE temp2.
+
+    temp14 = temp2.
+
+    LOOP AT temp14
+         INTO lv_slot.
       " REFERENCE INTO - a row carries the whole view XML, which a copying
       " LOOP would duplicate once per slot action
-      LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO DATA(lr_action) "#EC CI_SORTSEQ
+
+
+      LOOP AT mo_action->ms_next-t_action_front REFERENCE INTO lr_action "#EC CI_SORTSEQ
            WHERE slot = lv_slot.
-        DATA(lt_arg) = VALUE string_table( ( z2ui5_if_ui5_types=>cs_slot_action-target )
-                                           ( lr_action->method )
-                                           ( lr_action->slot ) ).
+
+        CLEAR temp16.
+        INSERT z2ui5_if_ui5_types=>cs_slot_action-target INTO TABLE temp16.
+        INSERT lr_action->method INTO TABLE temp16.
+        INSERT lr_action->slot INTO TABLE temp16.
+
+        lt_arg = temp16.
         IF lr_action->method = z2ui5_if_ui5_types=>cs_slot_action-display.
           INSERT lr_action->xml INTO TABLE lt_arg.
         ENDIF.
@@ -391,12 +446,20 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD nav_serialize.
 
-    DATA(ls_nav) = mo_action->ms_next-s_nav.
+    DATA ls_nav LIKE mo_action->ms_next-s_nav.
+        DATA temp18 TYPE REF TO z2ui5_if_ajson.
+        DATA li_opt LIKE temp18.
+        DATA temp19 TYPE string_table.
+        DATA lx_json TYPE REF TO z2ui5_cx_ajson_error.
+    ls_nav = mo_action->ms_next-s_nav.
 
     TRY.
         " only what is actually set travels - an absent option reads exactly
         " like the empty value it would otherwise carry
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+
+        temp18 ?= z2ui5_cl_ajson=>create_empty( ).
+
+        li_opt = temp18.
         set_opt_bool( json = li_opt
                       name = `setAppStateActive`
                       val  = ls_nav-set_app_state_active ).
@@ -422,11 +485,15 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        queue_system( t_arg = VALUE #( ( `ROUTER` )
-                                       ( `sync` ) )
+
+        CLEAR temp19.
+        INSERT `ROUTER` INTO TABLE temp19.
+        INSERT `sync` INTO TABLE temp19.
+        queue_system( t_arg = temp19
                       opt   = li_opt ).
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+
+      CATCH z2ui5_cx_ajson_error INTO lx_json.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |NAV_OPTIONS_INVALID - { lx_json->get_text( ) }|.
@@ -436,9 +503,17 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
 
   METHOD msg_toast.
+        DATA temp21 TYPE REF TO z2ui5_if_ajson.
+        DATA li_opt LIKE temp21.
+        DATA temp22 TYPE string_table.
+        DATA temp4 TYPE string.
+        DATA lx_json TYPE REF TO z2ui5_cx_ajson_error.
 
     TRY.
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+
+        temp21 ?= z2ui5_cl_ajson=>create_empty( ).
+
+        li_opt = temp21.
 
         " Only what the app actually set travels. sap.m.MessageToast owns a
         " default for every option, and it applies its vertical lift ONLY
@@ -494,12 +569,18 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
         " sap.m.MessageToast is a global object, so the toast rides the
         " generic whitelisted global call
-        queue_app( t_arg = VALUE #( ( `MESSAGE_TOAST` )
-                                    ( `show` )
-                                    ( CONV string( text ) ) )
+
+        CLEAR temp22.
+        INSERT `MESSAGE_TOAST` INTO TABLE temp22.
+        INSERT `show` INTO TABLE temp22.
+
+        temp4 = text.
+        INSERT temp4 INTO TABLE temp22.
+        queue_app( t_arg = temp22
                    opt   = li_opt ).
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+
+      CATCH z2ui5_cx_ajson_error INTO lx_json.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |MESSAGE_TOAST_OPTIONS_INVALID - { lx_json->get_text( ) }|.
@@ -510,7 +591,13 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD msg_box.
 
-    DATA(ls_msg) = box_resolve( text    = text
+    DATA ls_msg TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+        DATA temp24 TYPE REF TO z2ui5_if_ajson.
+        DATA li_opt LIKE temp24.
+          DATA lv_action LIKE LINE OF actions.
+        DATA temp25 TYPE string_table.
+        DATA lx_json TYPE REF TO z2ui5_cx_ajson_error.
+    ls_msg = box_resolve( text    = text
                                 type    = type
                                 title   = title
                                 details = details ).
@@ -519,7 +606,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+
+        temp24 ?= z2ui5_cl_ajson=>create_empty( ).
+
+        li_opt = temp24.
 
         " only what the app actually set travels - every MessageBox method
         " carries its OWN defaults ( confirm's [OK, CANCEL], error's [CLOSE],
@@ -564,7 +654,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
         IF actions IS NOT INITIAL.
           li_opt->touch_array( `/actions` ).
-          LOOP AT actions INTO DATA(lv_action).
+
+          LOOP AT actions INTO lv_action.
             li_opt->push( iv_path = `/actions`
                           iv_val  = lv_action ).
           ENDLOOP.
@@ -578,12 +669,16 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
         " sap.m.MessageBox is a global too - and its display methods are the
         " box types, so the type IS the method of the global call
-        queue_app( t_arg = VALUE #( ( `MESSAGE_BOX` )
-                                    ( ls_msg-type )
-                                    ( ls_msg-text ) )
+
+        CLEAR temp25.
+        INSERT `MESSAGE_BOX` INTO TABLE temp25.
+        INSERT ls_msg-type INTO TABLE temp25.
+        INSERT ls_msg-text INTO TABLE temp25.
+        queue_app( t_arg = temp25
                    opt   = li_opt ).
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
+
+      CATCH z2ui5_cx_ajson_error INTO lx_json.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |MESSAGE_BOX_OPTIONS_INVALID - { lx_json->get_text( ) }|.
@@ -593,15 +688,20 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
 
   METHOD box_resolve.
+      DATA temp27 TYPE string_table.
+    DATA temp29 LIKE sy-subrc.
 
     IF ct_box_type IS INITIAL.
-      ct_box_type = VALUE #( ( `show` )
-                             ( `alert` )
-                             ( `confirm` )
-                             ( `information` )
-                             ( `warning` )
-                             ( `error` )
-                             ( `success` ) ).
+
+      CLEAR temp27.
+      INSERT `show` INTO TABLE temp27.
+      INSERT `alert` INTO TABLE temp27.
+      INSERT `confirm` INTO TABLE temp27.
+      INSERT `information` INTO TABLE temp27.
+      INSERT `warning` INTO TABLE temp27.
+      INSERT `error` INTO TABLE temp27.
+      INSERT `success` INTO TABLE temp27.
+      ct_box_type = temp27.
     ENDIF.
 
     IF z2ui5_cl_ui5_util_context=>rtti_check_clike( text ) = abap_false.
@@ -615,10 +715,11 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     ELSE.
       " lowercased right here, so `Information` gets the same show-mapping
       " and default title as `information`
-      result = VALUE #( text    = text
-                        type    = to_lower( type )
-                        title   = title
-                        details = details ).
+      CLEAR result.
+      result-text = text.
+      result-type = to_lower( type ).
+      result-title = title.
+      result-details = details.
 
       IF result-type = `information`.
         result-type = `show`.
@@ -637,7 +738,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " that is no MessageBox display method would be rejected there and the box
     " would not appear at all - a requested box is never dropped silently, it
     " falls back to a plain show( ) like the frontend used to do
-    IF NOT line_exists( ct_box_type[ table_line = result-type ] ).
+
+    READ TABLE ct_box_type WITH KEY table_line = result-type TRANSPORTING NO FIELDS.
+    temp29 = sy-subrc.
+    IF NOT temp29 = 0.
       result-type = `show`.
     ENDIF.
 
@@ -663,10 +767,17 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " converted, so a stray string can never reach MessageToast as NaN.
     " Condense first: `1 000` would pass a check that allows blanks and then
     " dump in CONV, and a blanks-only value must count as left-alone.
-    DATA(lv_val) = condense( CONV string( val ) ).
+    DATA temp30 TYPE string.
+    DATA lv_val TYPE string.
+      DATA temp31 TYPE i.
+    temp30 = val.
+
+    lv_val = condense( temp30 ).
     IF lv_val IS NOT INITIAL AND lv_val CO `0123456789`.
+
+      temp31 = lv_val.
       json->set_integer( iv_path = |/{ name }|
-                         iv_val  = CONV i( lv_val ) ).
+                         iv_val  = temp31 ).
     ENDIF.
 
   ENDMETHOD.

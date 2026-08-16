@@ -15,16 +15,33 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_w_bapiret.
+    DATA temp1 TYPE bapirettab.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA lt_msg LIKE temp1.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_messages.
 
     IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
-    DATA(lt_msg) = VALUE bapirettab(
-      ( type = `E` id = `MSG1` number = `001` message = `Error occurred` )
-      ( type = `I` id = `MSG2` number = `002` message = `Info message` ) ).
 
-    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lt_msg ).
+    CLEAR temp1.
+
+    temp2-type = `E`.
+    temp2-id = `MSG1`.
+    temp2-number = `001`.
+    temp2-message = `Error occurred`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-type = `I`.
+    temp2-id = `MSG2`.
+    temp2-number = `002`.
+    temp2-message = `Info message`.
+    INSERT temp2 INTO TABLE temp1.
+
+    lt_msg = temp1.
+
+
+    lo_pop = z2ui5_cl_pop_messages=>factory( lt_msg ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_pop->mt_msg ) ).
@@ -32,41 +49,75 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_factory_w_cx.
+        DATA lv_val TYPE i.
+        DATA lx TYPE REF TO cx_root.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_messages.
 
     TRY.
-        DATA(lv_val) = 1 / 0 ##NEEDED.
-      CATCH cx_root INTO DATA(lx).
+
+        lv_val = 1 / 0 ##NEEDED.
+
+      CATCH cx_root INTO lx.
     ENDTRY.
 
-    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lx ).
+
+    lo_pop = z2ui5_cl_pop_messages=>factory( lx ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_not_initial( lo_pop->mt_msg ).
 
   ENDMETHOD.
 
   METHOD test_factory_msg_type.
+    DATA temp3 TYPE bapirettab.
+    DATA temp4 LIKE LINE OF temp3.
+    DATA lt_msg LIKE temp3.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_messages.
+    DATA temp5 LIKE LINE OF lo_pop->mt_msg.
+    DATA temp6 LIKE sy-tabix.
 
     IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
-    DATA(lt_msg) = VALUE bapirettab(
-      ( type = `E` message = `Error` )
-      ( type = `W` message = `Warning` )
-      ( type = `S` message = `Success` ) ).
 
-    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lt_msg ).
+    CLEAR temp3.
+
+    temp4-type = `E`.
+    temp4-message = `Error`.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-type = `W`.
+    temp4-message = `Warning`.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-type = `S`.
+    temp4-message = `Success`.
+    INSERT temp4 INTO TABLE temp3.
+
+    lt_msg = temp3.
+
+
+    lo_pop = z2ui5_cl_pop_messages=>factory( lt_msg ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lo_pop->mt_msg ) ).
-    cl_abap_unit_assert=>assert_not_initial( lo_pop->mt_msg[ 1 ]-type ).
+
+
+    temp6 = sy-tabix.
+    READ TABLE lo_pop->mt_msg INDEX 1 INTO temp5.
+    sy-tabix = temp6.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp5-type ).
 
   ENDMETHOD.
 
   METHOD test_factory_empty_input.
 
-    DATA(lx) = NEW z2ui5_cx_ui5_util_error( val = `test` ).
-    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lx ).
+    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_messages.
+    CREATE OBJECT lx TYPE z2ui5_cx_ui5_util_error EXPORTING val = `test`.
+
+    lo_pop = z2ui5_cl_pop_messages=>factory( lx ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_not_initial( lo_pop->mt_msg ).
@@ -111,27 +162,39 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD popup_displayed_xml.
 
-    result = VALUE #( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ).
+    DATA temp7 TYPE string.
+    DATA temp8 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
+    CLEAR temp7.
+
+    READ TABLE mo_action->ms_next-t_action_front INTO temp8 WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-display.
+    IF sy-subrc = 0.
+      temp7 = temp8-xml.
+    ENDIF.
+    result = temp7.
 
   ENDMETHOD.
 
 
   METHOD popup_destroy_queued.
 
-    result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-destroy ] ) ).
+    DATA temp9 LIKE sy-subrc.
+    DATA temp1 TYPE xsdboolean.
+    READ TABLE mo_action->ms_next-t_action_front WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-destroy TRANSPORTING NO FIELDS.
+    temp9 = sy-subrc.
+
+    temp1 = boolc( temp9 = 0 ).
+    result = temp1.
 
   ENDMETHOD.
 
 
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
+    DATA temp1 TYPE REF TO z2ui5_cl_ui5_handler.
+    CREATE OBJECT temp1 TYPE z2ui5_cl_ui5_handler EXPORTING VAL = ``.
+    CREATE OBJECT mo_action EXPORTING VAL = temp1.
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
+    CREATE OBJECT mi_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = mo_action.
 
   ENDMETHOD.
 
@@ -146,34 +209,67 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_factory_maps_messages.
 
-    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory(
-        VALUE string_table( ( `first message` )
-                            ( `second message` ) ) ).
+    DATA temp10 TYPE string_table.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_messages.
+    DATA temp12 LIKE LINE OF lo_pop->mt_msg.
+    DATA temp13 LIKE sy-tabix.
+    CLEAR temp10.
+    INSERT `first message` INTO TABLE temp10.
+    INSERT `second message` INTO TABLE temp10.
+
+    lo_pop = z2ui5_cl_pop_messages=>factory(
+        temp10 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_pop->mt_msg ) ).
+
+
+    temp13 = sy-tabix.
+    READ TABLE lo_pop->mt_msg INDEX 1 INTO temp12.
+    sy-tabix = temp13.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `first message`
-                                        act = lo_pop->mt_msg[ 1 ]-title ).
+                                        act = temp12-title ).
 
   ENDMETHOD.
 
   METHOD test_init_displays_popup.
 
-    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( i_messages = VALUE string_table( ( `first message` ) )
+    DATA temp14 TYPE string_table.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_messages.
+    DATA lv_xml TYPE string.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
+    CLEAR temp14.
+    INSERT `first message` INTO TABLE temp14.
+
+    lo_pop = z2ui5_cl_pop_messages=>factory( i_messages = temp14
                                                    i_title    = `MSG Title` ).
     client_create( lo_pop ).
 
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    DATA(lv_xml) = popup_displayed_xml( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `MSG Title` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `MessageView` ) ).
+
+    lv_xml = popup_displayed_xml( ).
+
+    temp2 = boolc( lv_xml CS `MSG Title` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
+
+    temp3 = boolc( lv_xml CS `MessageView` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
 
   METHOD test_continue_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( VALUE string_table( ( `msg` ) ) ).
+    DATA temp16 TYPE string_table.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_messages.
+    CLEAR temp16.
+    INSERT `msg` INTO TABLE temp16.
+
+    lo_pop = z2ui5_cl_pop_messages=>factory( temp16 ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONTINUE` ).
 
