@@ -58,7 +58,10 @@ const NOT_A_RULE = new Map([
  * Same semantics as a baseline entry: once the pin catches up the rule is
  * known, and an entry left behind here FAILS rather than lingering. */
 const PENDING = new Map([
-  ['frozen-view-builder', '0.2.0 — pinned in Phase D of the linter release'],
+  // Empty, and it stayed empty for about an hour. `frozen-view-builder` was
+  // listed here while this repository pinned 0.1.1; the bump to 0.2.0 made the
+  // rule known, this gate reported the entry as stale on the same commit, and
+  // it came out. That is the mechanism working, not an accident of timing.
 ]);
 
 const TOKEN = /`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`/g;
