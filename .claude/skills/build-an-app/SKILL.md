@@ -27,7 +27,18 @@ sample is gated, a snippet is a copy somebody has to keep in step.
 Quick orientation while it loads:
 
 - One ABAP class implements `z2ui5_if_app`; `main( client )` runs once per
-  roundtrip — dispatch with `check_on_init( )` / `check_on_event( )`.
+  roundtrip — dispatch with `check_on_init( )` / `check_on_event( )` /
+  `check_on_navigated( )`.
+- **The `check_on_navigated( )` branch is part of the dispatcher, not an
+  option.** `check_on_init( )` is "this app instance never ran", not "the app
+  starts": it stays false when a called app hands control back
+  (`nav_app_leave`, any `z2ui5_cl_pop_*` value help — those run over
+  `nav_app_call` too) and when a bookmarked state is restored. Those roundtrips
+  fire `check_on_navigated( )` alone, and a branch that does not re-run
+  `view_display( )` there leaves the previous screen standing with no error
+  anywhere. Apps built without it work perfectly until the day someone calls
+  them from a navigation — the linter's `missing-view-display-on-navigated`
+  covers the branch that exists but never displays.
 - PUBLIC attributes = serialized, browser-visible state. Bound data only;
   everything else PROTECTED.
 - Build views with `z2ui5_cl_ui5_view_builder`
