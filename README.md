@@ -60,9 +60,18 @@ METHOD z2ui5_if_app~main.
     view_display( ).   " app start – build a UI5 XML view, bind ABAP variables into it
   ELSEIF client->check_on_event( ).
     on_event( ).       " user interaction – bound data already contains the user's input
+  ELSEIF client->check_on_navigated( ).
+    view_display( ).   " back from a called app or a popup – put this app's view back
   ENDIF.
 ENDMETHOD.
 ```
+
+All three branches belong to the dispatcher. `check_on_init( )` fires once per
+app instance, so it is *not* reached again when another app hands control back
+(`nav_app_leave`, a `z2ui5_cl_pop_*` value help) or when a bookmarked state is
+restored – those roundtrips fire `check_on_navigated( )`. Without that branch
+the browser keeps showing whatever was on screen before, with no error
+anywhere.
 
 Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip to ABAP:
 
