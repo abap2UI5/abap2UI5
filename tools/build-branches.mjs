@@ -162,8 +162,46 @@ const skipDevProjectFiles = (src) => !DEV_ONLY.has(relative(join(core, "app"), s
 // own copy at the root (see initBranch), with the glob turned to /src/.
 const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
 
-// Webapp + ABAP-Cloud-Artefakte 1:1 von main; fuer cloud_v2 wird der
-// Webapp-Bootstrap zusaetzlich auf legacy-free gepatcht.
+/* Wo das Backend liegt, entscheidet die Deployment-Art - und die beiden
+ * Stacks veroeffentlichen denselben Dienst unter verschiedenen Pfaden:
+ *
+ *   on premise   /sap/bc/z2ui5          SICF-Knoten (build/standard*)
+ *   ABAP Cloud   /sap/bc/http/sap/z2ui5 HTTP Service Z2UI5
+ *                                       (frontend/abap/cloud/01/z2ui5.http.xml)
+ *
+ * app/webapp/manifest.json traegt den On-Premise-Pfad, weil dort entwickelt
+ * und die BSP-Variante daraus gebaut wird. Die Cloud-Branches kopierten ihn
+ * bisher mit - und ein Fiori-Deployment auf Steampunk schickt seine POSTs dann
+ * an einen ICF-Knoten, den es dort nicht gibt: 403 ICFEUCONFORBIDDEN, ohne
+ * Hinweis worauf (Issue #2602).
+ *
+ * Nur die separat deployte Webapp ist betroffen. Serviert das Backend die
+ * GET-Seite selbst, setzt sie `checkLocal` und App.controller nimmt
+ * `window.location.href` - der Manifest-Eintrag wird dann gar nicht gelesen.
+ *
+ * Der Guard ist der Punkt: faende der Ersatz seinen Pfad nicht mehr, wuerde
+ * hier stillschweigend wieder die On-Premise-URL ausgeliefert, und der Fehler
+ * kaeme als 403 im System eines Anwenders zurueck statt hier im Build. */
+const ONPREM_URI = "/sap/bc/z2ui5";
+const CLOUD_URI = "/sap/bc/http/sap/z2ui5";
+
+function patchCloudBackendUri(manifestJson) {
+  const m = JSON.parse(manifestJson);
+  const ds = m["sap.app"]?.dataSources?.http;
+  if (ds?.uri !== ONPREM_URI) {
+    throw new Error(
+      `app/webapp/manifest.json: sap.app.dataSources.http.uri is ${JSON.stringify(ds?.uri)}, `
+      + `expected ${JSON.stringify(ONPREM_URI)} - the cloud branches rewrite it to ${CLOUD_URI} `
+      + "and must not ship a path they did not recognise",
+    );
+  }
+  ds.uri = CLOUD_URI;
+  return JSON.stringify(m, null, 2) + "\n";
+}
+
+// Webapp + ABAP-Cloud-Artefakte 1:1 von main; die Backend-URL wird auf den
+// HTTP-Service-Pfad gedreht, fuer cloud_v2 zusaetzlich der Webapp-Bootstrap
+// auf legacy-free gepatcht.
 function buildCloudVariant(branch) {
   const dir = initBranch(branch, ABAPGIT_CLOUD);
   cpSync(join(core, "app"), join(dir, "app"), {
@@ -171,10 +209,12 @@ function buildCloudVariant(branch) {
     filter: (src) => skipBuildArtifacts(src) && skipDevProjectFiles(src),
   });
   cpSync(join(data, "abap/cloud"), join(dir, "src"), { recursive: true, filter: skipLintConfig });
+  const wa = join(dir, "app/webapp");
+  const manifest = join(wa, "manifest.json");
+  writeFileSync(manifest, patchCloudBackendUri(readFileSync(manifest, "utf8")));
   if (branch === "cloud_v2") {
-    const wa = join(dir, "app/webapp");
     writeFileSync(join(wa, "index.html"), patchIndexHtml(readFileSync(join(wa, "index.html"), "utf8")));
-    writeFileSync(join(wa, "manifest.json"), patchManifest(readFileSync(join(wa, "manifest.json"), "utf8")));
+    writeFileSync(manifest, patchManifest(readFileSync(manifest, "utf8")));
   }
 }
 

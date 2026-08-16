@@ -16,7 +16,7 @@
     },
     "dataSources": {
       "http": {
-        "uri": "/sap/bc/z2ui5",
+        "uri": "/sap/bc/http/sap/z2ui5",
         "type": "JSON"
       }
     },

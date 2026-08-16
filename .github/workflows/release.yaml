@@ -1,0 +1,127 @@
+name: release
+# Cuts a release from one tag: the GitHub release for `X.Y.Z`, and the
+# `X.Y.Z-702` tag on the downported branch.
+#
+# Why this exists: releases were cut entirely by hand, and the cost of that is
+# visible in the ecosystem rather than in this repository. `z2ui5_cl_ui5_view_
+# builder` reached main on 2026-08-12; the newest release, 1.142.0, is from
+# 2026-07-21. So the samples, samples-controls, samples-stack, app-template and
+# the documentation all teach a builder that NO released version carries, and
+# abap2UI5/app-template cannot pin its abaplint dependency to a tag at all -
+# it has to resolve the framework from `main`. A release that is a chore gets
+# skipped; one that is a tag push does not.
+#
+# What it does NOT do is decide. It publishes what the tag points at, after
+# checking that the tree agrees with itself:
+#
+#   - the tag, package.json and z2ui5_if_app=>version name the same version
+#   - changelog.txt has a section for it (release-gate.mjs)
+#   - the full `npm run verify` passes on the tagged commit, not on whatever
+#     was green on main that day
+#
+# To cut a release:
+#
+#   1. move the `unreleased` entries in changelog.txt under a
+#      `<YYYY-MM-DD> vX.Y.Z` heading
+#   2. bump package.json AND src/02/z2ui5_if_app.intf.abap
+#   3. npm run check:release          (the same gate this job runs)
+#   4. commit, then: git tag X.Y.Z && git push --follow-tags
+#
+# RELEASING.md is the longer version, including what is not automated.
+#
+# Dispatching this workflow by hand runs every check and builds the notes
+# WITHOUT publishing anything - the rehearsal.
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'abap2UI5/abap2UI5'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        # the 702 tag is placed on the derived branch, which has to be fetched
+        fetch-depth: 0
+
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+
+    # Everything the tag claims, before anything is published. Catching a
+    # mismatch here costs a minute; catching it afterwards costs a version
+    # number, because a tag that has been pushed has already been fetched.
+    - name: The tag, the two versions and the changelog agree
+      run: node .github/scripts/release-gate.mjs ${{ github.ref_type == 'tag' && format('--tag {0}', github.ref_name) || '' }}
+
+    # On the exact commit being released. `verify` is the whole thing: abaplint
+    # for standard and cloud, every gate, the downport, the transpiled unit
+    # suite, the JS specs and the two generated trees.
+    - run: npm run verify
+
+    # The changelog section for this version, as the release body. Written from
+    # the file rather than by hand, so the release notes and the changelog can
+    # never say different things.
+    - name: Release notes from changelog.txt
+      id: notes
+      run: |
+        VERSION="$(node -p "require('./package.json').version")"
+        node -e '
+          const fs = require("fs");
+          const version = process.argv[1];
+          const text = fs.readFileSync("changelog.txt", "utf8");
+          const heads = [...text.matchAll(/^(\d{4}-\d{2}-\d{2}) v(\d+\.\d+\.\d+)\s*\n-{5,}\s*$/gm)];
+          const at = heads.findIndex((h) => h[2] === version);
+          if (at === -1) { console.error(`no changelog section for ${version}`); process.exit(1); }
+          const start = heads[at].index + heads[at][0].length;
+          const end = at + 1 < heads.length ? heads[at + 1].index : text.length;
+          fs.writeFileSync("release-notes.md", text.slice(start, end).trim() + "\n");
+        ' "$VERSION"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "--- release notes ---"
+        cat release-notes.md
+
+    - name: Publish the release
+      if: github.ref_type == 'tag'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ steps.notes.outputs.version }}
+      run: |
+        gh release create "$VERSION" \
+          --title "$VERSION" \
+          --notes-file release-notes.md \
+          --verify-tag
+
+    # The 702 branch is rebuilt from main by auto_downport on every push, so at
+    # tag time it already carries the downport of this commit. Tagging it is
+    # what gives a 7.02 system something immutable to install - the same
+    # promise the main tag makes, for the other half of the supported range.
+    - name: Tag the downported branch
+      if: github.ref_type == 'tag'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ steps.notes.outputs.version }}
+      run: |
+        git fetch origin 702:702
+        echo "702 head: $(git log -1 --format='%h %s' 702)"
+        git tag "$VERSION-702" 702
+        git push origin "$VERSION-702"
+        gh release create "$VERSION-702" \
+          --title "$VERSION-702" \
+          --notes "The 7.02-downported build of [$VERSION](../../releases/tag/$VERSION), generated from \`main\` by \`auto_downport\`. Same content, downported sources; install this one on NW 7.02-7.4x." \
+          --verify-tag

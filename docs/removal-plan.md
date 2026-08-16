@@ -4,7 +4,26 @@ Working checklist for the day the compatibility layer gets cut. Every entry says
 what it is, what replaces it, what breaks, and what has to be true before it can
 go. Nothing here is urgent; the point is that none of it gets forgotten.
 
-Counts are as of 2026-08-04 and worth re-measuring before acting.
+Counts are as of **2026-08-15**, and re-measuring is one command:
+
+```
+npm run blockers -- ../samples ../samples-controls ../samples-stack ../app-template
+```
+
+`.github/scripts/removal-blockers.mjs` counts the files naming each deprecated
+symbol under every checkout you point it at. It is not a CI gate — the sibling
+repositories are not checked out here, and making this repository's checks
+depend on four others would be worse than a stale number. It exists because the
+numbers below were measured by hand, and a hand-measured count is right on the
+day it is written: the previous revision of this file said *"samples: 336 of
+343 classes use `z2ui5_cl_xml_view`, 0 use the successor"* while `samples` had
+already been migrated in full and the true number was 0. A maintainer reading
+that would have concluded the migration had not started.
+
+**As of 2026-08-15 every blocker in sections 1 and 2 is at zero** across
+`samples`, `samples-controls`, `samples-stack` and `app-template` — 614 classes
+use `z2ui5_cl_ui5_view_builder` and none use its predecessor. What is left is
+**`docs`**, which is a separate repository and is not scanned here.
 
 **Rule of thumb for the order:** documentation, then samples, then the code. A
 removal whose replacement is still undocumented turns every upgrader into a
@@ -92,7 +111,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 - [ ] **`check_sticky` / `check_initialized` of `z2ui5_if_app`** —
       `z2ui5_if_app.intf.abap:29`, `:34`. The state moved to
-      `z2ui5_cl_ui5_app=>mv_check_sticky` / `mv_check_initialized`; what is
+      `z2ui5_cl_ui5_app_cont=>mv_check_sticky` / `mv_check_initialized`; what is
       left are mirrors `app_compat_mirror( )` keeps in sync for readers.
       - Removing them is a rule-5 break like any other, but a cheap one: they
         are `DATA`, not a signature, and the framework no longer reads them.
@@ -105,7 +124,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 > **Not obsolete, do not remove:** `id_draft` and `id_app` of `z2ui5_if_app`
 > look like the two above and are not. `id_draft` is the handle
-> `z2ui5_cl_ui5_app=>db_load_by_app( )` resolves an app reference by
+> `z2ui5_cl_ui5_app_cont=>db_load_by_app( )` resolves an app reference by
 > (`read_draft( app->id_draft )`), and both are written at moments when no
 > wrapper exists yet — an app handed to `nav_app_call( )`, a draft looked up
 > before it is parsed. They are public only because an ABAP interface has no
@@ -124,8 +143,13 @@ breaking change for any downstream app that still references it.
 
 - [ ] **`z2ui5_cl_xml_view` (15,882 lines) + `z2ui5_cl_xml_view_cc`**
       → `z2ui5_cl_ui5_view_builder` (`src/02/`)
-      - **Blocker A:** samples — 336 of 343 classes use it, 0 use the successor.
-      - **Blocker B:** docs — 51 pages teach it.
+      - **Blocker A: cleared 2026-08-15.** Zero callers across `samples` (150
+        classes on the successor), `samples-controls` (431), `samples-stack`
+        (32) and `app-template` (1). The last fourteen were
+        `samples-controls` `src/03`, the SAPUI5-only collection, migrated in
+        the same pass — they were also the only ABAP in that repository no
+        view check could read, because nothing can reconstruct this builder.
+      - **Blocker B:** docs — 51 pages teach it. **The only one left.**
       - This is a project, not a task. Until it is done, nothing else in
         `src/99` can go either, because the package ships as a unit.
       - `factory_plain( )` (`:22`) is obsolete **inside** an already-obsolete
@@ -225,7 +249,31 @@ Not part of any public contract; removable whenever.
 
 ---
 
-## 5. Documentation debt to clear alongside
+## 5. What app code still has to reach into internals for
+
+The mirror image of a removal: every one of these is an app doing something
+ordinary and finding nothing released to do it with, so it reaches into
+`src/00` or `src/01` and the linter's `non-released-api` rule is right to say
+so. Found by reading every `non-released-api` finding in `abap2UI5/samples`
+rather than by guessing; each entry names the callers that exist today.
+
+- [ ] **Parsing JSON.** An event argument arrives as a JSON string, and there
+      is no released way to read it. `z2ui5_cl_ajson` is the mirrored library
+      in `src/00/01` — synced from another project, and the same type this
+      plan wants to stop handing app code through `custom_mapper` (§1).
+      - Callers: `samples` `z2ui5_cl_smp_app_197`, `z2ui5_cl_smp_app_327`
+        (both now carry a directive naming this gap).
+      - Neither alternative is portable: `/ui2/cl_json` is not released for
+        ABAP Cloud, `xco_cp_json` does not exist on 7.02.
+- [ ] **A DDIC object to point a dynamic type at.** `src/02` releases no table
+      or structure, so a sample demonstrating
+      `CREATE DATA … TYPE STANDARD TABLE OF (name)` has to name the framework's
+      own draft table `z2ui5_t_01`.
+      - Caller: `samples` `z2ui5_cl_smp_app_061`.
+      - Cheap to close: one released structure with two fields would do, and
+        it costs nothing to keep compatible.
+
+## 6. Documentation debt to clear alongside
 
 - [ ] Move `cs_event-z2ui5` out of the "legacy event names" block (see §1)
 - [ ] Turn the two `"obsolete"` plain comments on the `view` parameter into
