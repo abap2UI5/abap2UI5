@@ -59,10 +59,10 @@ CLASS zcl_my_app IMPLEMENTATION.
     IF client->check_on_init( ).
       model_init( ).
       view_display( ).
-    ELSEIF client->check_on_event( ).
-      on_event( ).
     ELSEIF client->check_on_navigated( ).
       view_display( ).
+    ELSEIF client->check_on_event( ).
+      on_event( ).
     ENDIF.
 
   ENDMETHOD.

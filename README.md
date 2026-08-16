@@ -58,10 +58,10 @@ Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework
 METHOD z2ui5_if_app~main.
   IF client->check_on_init( ).
     view_display( ).   " app start – build a UI5 XML view, bind ABAP variables into it
-  ELSEIF client->check_on_event( ).
-    on_event( ).       " user interaction – bound data already contains the user's input
   ELSEIF client->check_on_navigated( ).
     view_display( ).   " back from a called app or a popup – put this app's view back
+  ELSEIF client->check_on_event( ).
+    on_event( ).       " user interaction – bound data already contains the user's input
   ENDIF.
 ENDMETHOD.
 ```
