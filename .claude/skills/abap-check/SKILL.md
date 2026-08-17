@@ -109,6 +109,7 @@ to push upstream rather than to reimplement here:
 | a test class calling a PRIVATE member without `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.` | same activation failure; it has reached users twice (`cadfb7ae`, #2146) |
 | the `.clas.xml` byte format — BOM, line endings, terminating newline, `&apos;` | abapGit re-serializes it differently on every pull, for everyone |
 | `INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` under `syntax.version` v750 | 7.55 syntax; every older system refuses the class — reached a user via `abap2UI5/samples` app 348 (section 2) |
+| a `VALUE` header default plus a per-row assignment of the same component | *"The component … was specified more than once"* — the system refuses the class; reached a user via `abap2UI5/samples-controls` app 241 (section 2) |
 
 ---
 
@@ -299,6 +300,21 @@ the newest release. abaplint's default target accepts all of it.
   `prefer_corresponding` rule had to be switched off for the low-release config
   because it recommends the construct that does not compile there.
 
+### VALUE constructor — a header default plus a per-row value is a syntax error
+
+- **A component assigned before the first line spec cannot be assigned again
+  inside a line.** `VALUE #( selectable = abap_true ( … ) ( … selectable =
+  abap_false ) )` is refused by the system's syntax check with *"The component
+  "SELECTABLE" was specified more than once."* — the header assignment is a
+  default for ALL following lines, not an overridable one. Found by a user
+  running Code Inspector variant SYNTAX_CHECK over a pulled
+  `abap2UI5/samples-controls` main (2026-08-17): `z2ui5_cl_smpc_app_241`'s
+  `model_init` carried it. Write the value per row instead — or close the
+  header's scope with a second group, since the default only binds to the
+  lines *after* it. abaplint 2.120.24 accepts the construct without a finding
+  (`check_syntax` on, control probe fired) — its VALUE grammar does not model
+  the one-assignment rule. **Gate: open** — upstream shortlist.
+
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
 - **`INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` is 7.55 syntax.** Below that
@@ -410,7 +426,14 @@ pitfalls".
   CREATE OBJECT li_app TYPE (lv_classname).
   ```
 - **No redundant conversions.** Do not wrap a value in `CONV string( … )` when
-  the source already has the target type.
+  the source already has the target type — and not in `CONV i( … )` when the
+  assignment target is already `TYPE i`: the assignment converts by itself,
+  and SLIN warns *"Redundant conversion for type I"*. Found by a user on a
+  real system (2026-08-17): `z2ui5_cl_smpc_app_295`'s
+  `slider_value = CONV i( client->get_event_arg( ) )` in
+  `abap2UI5/samples-controls`. abaplint's `value_conversion` /
+  `unnecessary_pragma` do not cover it (measured on 2.120.24, control probe
+  fired), and the type inference makes it undecidable for a text-level gate.
 - **A RAP handler names the entity by its BDEF alias.** Where the behavior
   definition declares `alias Ticket`, an event handler's
   `FOR ENTITY EVENT ... FOR z2ui5_r_smps_tck~TicketCreated` draws "The alias

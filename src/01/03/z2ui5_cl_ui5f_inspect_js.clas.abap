@@ -1076,14 +1076,16 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "",` && |\n| &&
              `      "  Without one named, they reopen where you left off.",` && |\n| &&
              `      "",` && |\n| &&
-             `      "The five tabs, and what each is for",` && |\n| &&
-             `      "-----------------------------------",` && |\n| &&
+             `      "The six tabs, and what each is for",` && |\n| &&
+             `      "----------------------------------",` && |\n| &&
              `      "  Overview      which app, which roundtrip, is anything broken - and",` && |\n| &&
              `      "                where to go next. The landing tab",` && |\n| &&
              `      "  Problems      what went wrong",` && |\n| &&
              `      "  Roundtrips    what went over the wire",` && |\n| &&
              `      "  View & Data   what the screen is made of, and what fills it",` && |\n| &&
              `      "  System        what the app is running on, and its ABAP class",` && |\n| &&
+             `      "  Search        one term across EVERY other tab at once - answers",` && |\n| &&
+             `      "                'where does /CUSTOMER appear?' without opening each",` && |\n| &&
              `      "",` && |\n| &&
              `      "Problems",` && |\n| &&
              `      "--------",` && |\n| &&
@@ -1141,8 +1143,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "",` && |\n| &&
              `      "Always available",` && |\n| &&
              `      "----------------",` && |\n| &&
-             `      "  Search field     one term across EVERY tab at once - answers 'where",` && |\n| &&
-             `      "                   does /CUSTOMER appear?' without opening each one",` && |\n| &&
              `      "  Copy             put the current view's content on the clipboard",` && |\n| &&
              `      "  Report a Bug     see below",` && |\n| &&
              `      "  (i)              this help",` && |\n| &&

@@ -220,6 +220,7 @@ test.describe("bindings", () => {
       "PICK",
       "ENV",
       "SOURCE",
+      "SEARCH",
     ]) {
       DeveloperTools.renderTab(key, oModel);
       for (const path of boundPaths()) {
@@ -261,8 +262,6 @@ test.describe("1.71 compatibility", () => {
       expect(bar).not.toContain("ToolbarSpacer");
       expect(bar).not.toContain("ToolbarSeparator");
     }
-    // the sub-header is a Toolbar precisely because of the above
-    expect(MARKUP).toMatch(/<subHeader>\s*<Toolbar>/);
   });
 
   // AGENTS.md rule 14: every frontend file is embedded verbatim into an
