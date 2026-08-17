@@ -15,16 +15,6 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`event-auto-model-update`](items/event-auto-model-update.md) | detect a model change during an event round-trip and send the model automatically — removes the mandatory `view_model_update( )` (230 calls / 125 ports) and its silent-stale-UI failure mode<br><sub>https://github.com/abap2UI5/abap2UI5/pull/2545 — implemented, always on, pending merge</sub> | medium | 2026-08-11 | abap2UI5/abap2UI5 |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_

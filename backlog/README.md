@@ -54,7 +54,11 @@ speculation, and a backlog of speculation is one nobody reads twice.
 
 - **open** — nothing exists upstream. This is the stock.
 - **filed** — an issue or PR exists; `filed:` names it. The item stays visible
-  until the change merges.
+  until the change merges. `npm run backlog:filed` asks GitHub what happened to
+  each one, because the backlog cannot see when a claim about another
+  repository stops being true: `event-auto-model-update` said "pending merge"
+  for six days after abap2UI5#2545 had merged, at the first filed item the
+  stock ever had.
 - **deferred** — a decision was made not to do this now. The body says why, so
   it is not re-proposed.
 
