@@ -46,6 +46,7 @@ const RELEASED_HEADING = /^\d{4}-\d{2}-\d{2}\s+v\d/;
 const EXTERNAL = new Map([
   ["Z2UI5_CL_APP_ICF_CONFIG", "ships in abap2UI5/abap2UI5-icf-config"],
   ["Z2UI5_CL_CC_DEMO_OUT", "sample custom control of the samples repository"],
+  ["Z2UI5_CL_SMP_CONTEXT", "the samples repository's shared table/context helper"],
   ["Z2UI5_CL_SMP_APP_000", "the samples repository's overview app"],
   ["Z2UI5_CL_SMPC_APP_OVERVIEW", "the samples-controls overview app"],
   ["Z2UI5_CL_SMPS_APP_00", "the samples-stack overview app"],
