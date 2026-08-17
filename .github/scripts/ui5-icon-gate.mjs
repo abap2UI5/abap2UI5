@@ -11,10 +11,29 @@
 // legacy popups in src/99, all on `sap-icon://information`, a glyph the icon
 // font gained after 1.71.
 //
-// The name list in ui5-icons-1.71.json is the icon registry of OpenUI5 1.71
-// (sap/ui/core/IconPool.js, 655 names). It is a snapshot on purpose: 1.71 is
-// closed for new features, so the set cannot grow. Icons added later are
-// exactly what this gate is here to reject.
+// The name list is DERIVED from `@abap2ui5/linter`'s `data/icons.json`, which
+// carries a per-icon `since` scanned across every OpenUI5 minor from 1.71 up
+// (`scripts/generate-icons.mjs` over there) plus the handful of names the font
+// has REMOVED again. Everything at `since <= 1.71` and not removed by then is
+// the 1.71 registry: 655 names, byte-for-byte the hand-kept snapshot this file
+// used to carry, which is what made replacing it safe.
+//
+// It was a hand-kept array before, and it was a THIRD copy of UI5 metadata in
+// this ecosystem - the linter has the generated one, samples-controls keeps
+// another for its own gates. A hand-kept list also cannot be corrected without
+// somebody noticing it is wrong: the registry declares a few names with
+// CAPITALS (`Chart-Tree-Map`) and at least one in DOUBLE quotes (`"feedback"`),
+// and the snapshot missed the quoted one until 2026-08, so the gate falsely
+// rejected `sap-icon://feedback` for months. Reading the generated data ends
+// that whole class.
+//
+// Comparing versions needs a real comparison and not a number: `1.138` as a
+// float is LESS than `1.71`, so a float compare quietly admits every icon
+// added between 1.100 and 1.199. That mistake was made while writing this and
+// caught by the byte-for-byte check against the old snapshot.
+//
+// 1.71 itself is closed for new features, so the derived set cannot grow.
+// Icons added later are exactly what this gate is here to reject.
 //
 // Note on case: IconPool resolves `sap-icon://X` through URI.parse( ), which
 // lower-cases the host part, so icon names are effectively case-insensitive
@@ -27,8 +46,35 @@ import { join, relative } from "path";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 
+const FLOOR = "1.71";
+
+// "1.9" is older than "1.71"; "1.138" is newer. Compare the parts, never the
+// string and never a float.
+const upTo = (version, floor) => {
+  const [a, b] = version.split(".").map(Number);
+  const [c, d] = floor.split(".").map(Number);
+  return a < c || (a === c && b <= d);
+};
+
+const ICON_DATA = JSON.parse(
+  readFileSync(join(ROOT, "node_modules/@abap2ui5/linter/data/icons.json"), "utf8"),
+);
+
+if (!upTo(ICON_DATA.floor, FLOOR)) {
+  // the linter's scan starts above our floor, so an icon that existed at 1.71
+  // and vanished before its floor would be missing from the derived set
+  console.error(
+    `icon data floor is ${ICON_DATA.floor}, above this gate's ${FLOOR} - the derived`
+    + " set cannot be trusted. Pin a linter whose icon scan reaches 1.71.",
+  );
+  process.exit(1);
+}
+
 const ICONS = new Set(
-  JSON.parse(readFileSync(join(ROOT, ".github/scripts/ui5-icons-1.71.json"), "utf8")),
+  Object.keys(ICON_DATA.icons).filter(
+    (name) => upTo(ICON_DATA.icons[name], FLOOR)
+      && !(ICON_DATA.removed[name] && upTo(ICON_DATA.removed[name], FLOOR)),
+  ),
 );
 
 // Where icons can be written: the ABAP sources and the frontend app that

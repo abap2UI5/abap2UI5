@@ -124,9 +124,11 @@ Where it bit us: the developer tools' help button and the legacy popups in
 
 **Linter:** **moved — `unknown-icon`, `icon-too-new`, `icon-removed`** (2026-08).
 Still *also* gated in this repository by `npm run check:icons`
-(`.github/scripts/ui5-icon-gate.mjs`, `ui5-icons-1.71.json`, 655 names), which
-stays because it covers `src/99` and `app/webapp/` — files the linter does not
-read. The linter's data goes further than the snapshot this entry proposed:
+(`.github/scripts/ui5-icon-gate.mjs`), which stays because it covers `src/99`
+and `app/webapp/` — files the linter does not read. It no longer keeps a list
+of its own: the 655 names are **derived** from the linter's `data/icons.json`
+(`since <= 1.71`, minus what the font removed by then) and came out
+byte-for-byte equal to the hand-kept snapshot they replaced. The linter's data goes further than the snapshot this entry proposed:
 `data/icons.json` carries a **per-icon `since`**, scanned across every OpenUI5
 minor from 1.71 to the pinned version (`scripts/generate-icons.mjs`), so the
 rule answers for any target rather than only for the floor, and it separates
@@ -137,12 +139,18 @@ The scan also found a third: the font is not purely additive. `binary` was in
 the font for exactly one release (1.104) and gone again after it — the glyph
 is spelled `non-binary` (@1.96) everywhere else — which is `icon-removed`.
 
-Two notes for whoever regenerates the gate list here: the registry declares a
-few names with **capitals** (`Chart-Tree-Map`, `Netweaver-business-client`) and
-at least one entry with **double quotes** (`"feedback"`), which the snapshot
-missed until 2026-08 — the gate falsely rejected `sap-icon://feedback`. Both
-are lower-cased on comparison anyway, but a generator reading only
-single-quoted entries silently loses names.
+Two notes for whoever regenerates the LINTER's list, which is the only one
+left: the registry declares a few names with **capitals** (`Chart-Tree-Map`,
+`Netweaver-business-client`) and at least one entry with **double quotes**
+(`"feedback"`), which this repository's old hand-kept snapshot missed until
+2026-08 — the gate falsely rejected `sap-icon://feedback` for months. Both are
+lower-cased on comparison anyway, but a generator reading only single-quoted
+entries silently loses names.
+
+And one for anyone comparing versions from that data: **`1.138` as a float is
+less than `1.71`.** A float compare quietly admits every icon added between
+1.100 and 1.199 — made and caught while deriving the set above, and the same
+shape of bug as any other version-as-number comparison.
 
 ### 1.2 Properties, aggregations and enum values
 
@@ -189,6 +197,8 @@ repository's own `app/webapp/` and a consumer's custom controls. So this belongs
 in a gate here rather than in the view linter, unless the linter grows a
 frontend-module input — which nothing else is asking for. The theme half is
 configuration, not view content; **out of scope**, keep it as prose.
+
+**Backlog:** abap2ui5-linter · linter-frontend-module-since
 
 ---
 
@@ -331,7 +341,17 @@ Not about names or layout — these only show up when the app runs.
   default in the binding, which the same port already does for a nullable
   date one line above:
 
-      )->a( n = `secondaryType` v = |\{= $\{SECONDARY_TYPE} ? $\{SECONDARY_TYPE} : 'None' }|
+      )->a( n = `secondaryType` v = `{= ${SECONDARY_TYPE} ? ${SECONDARY_TYPE} : 'None' }`
+
+  **Write an expression binding as a backtick literal, not as a string
+  template.** A template would have to escape every brace — `\{`, `\}` and the
+  `\}` of each `$\{…\}` — and one missed escape is a `parser_error` on the
+  whole statement, not a wrong string. Measured on abaplint 2.120.24: the
+  half-escaped forms are rejected, the fully escaped
+  `|\{= $\{X\} ? $\{X\} : 'None' \}|` parses, and the backtick literal above
+  says the same thing with nothing to escape. Nothing in the expression needs
+  interpolating from ABAP — the `$` paths are resolved by UI5 — so the
+  template buys nothing anyway.
 
   The trap is structural rather than particular to that control: ABAP has no
   null, an unfilled `TYPE string` serialises as `""`, and **`""` is a member of
@@ -367,8 +387,10 @@ expression binding with the enum's default as the else branch.
 
 What it must NOT do is fire on every enum binding: a property bound outside a
 template, or one whose table can never be emptied, is fine, and a rule that
-reported all of them would be routed around. Left **open** with that scope
-rather than filed as a wish.
+reported all of them would be routed around. Written up with that scope rather
+than filed as a wish — it is in the stock now, waiting for somebody to open it.
+
+**Backlog:** abap2ui5-linter · linter-enum-empty-in-template
 
 ---
 

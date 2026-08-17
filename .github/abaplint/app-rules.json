@@ -1,0 +1,360 @@
+{
+  "note": "The abaplint rule set for abap2UI5 APP repositories. Generated artefact of @abap2ui5/linter - do not hand-edit a copy; see data/README-abap-rules.md.",
+  "version": 1,
+  "excluded": {
+    "object_naming": "each repository names its own object prefixes"
+  },
+  "rules": {
+    "7bit_ascii": {
+      "exclude": [
+        "z2ui5_cl_smpc_app_(012|040|092|103|104|114|134|185|191|194|215|218|254|290|302|303|350|356|357|358|360)\\.clas\\.",
+        "z2ui5_cl_smpc_app_overview\\.clas\\."
+      ]
+    },
+    "abapdoc": false,
+    "add_test_attributes": true,
+    "aff_and_xml": true,
+    "align_parameters": false,
+    "align_pseudo_comments": true,
+    "align_type_expressions": true,
+    "allowed_object_naming": true,
+    "allowed_object_types": {
+      "allowed": [
+        "CLAS",
+        "DEVC",
+        "INTF",
+        "TABL",
+        "DTEL",
+        "DDLS",
+        "BDEF",
+        "SRVD",
+        "SRVB",
+        "SICF",
+        "SAPC",
+        "SAMC",
+        "SUSH",
+        "SMIM",
+        "G4BA"
+      ]
+    },
+    "ambiguous_statement": true,
+    "avoid_use": {
+      "skipQuickFix": false,
+      "define": true,
+      "statics": true,
+      "defaultKey": true,
+      "break": true,
+      "testSeams": true,
+      "describeLines": true,
+      "exportToMemory": true,
+      "exportToDatabase": true
+    },
+    "begin_end_names": true,
+    "begin_single_include": true,
+    "call_transaction_authority_check": true,
+    "catch_and_raise": true,
+    "cds_association_name": true,
+    "cds_comment_style": true,
+    "cds_field_order": true,
+    "cds_legacy_view": true,
+    "cds_naming": {
+      "basicInterfaceView": "Z2UI5_",
+      "compositeInterfaceView": "Z2UI5_",
+      "consumptionView": "Z2UI5_",
+      "basicRestrictedReuseView": "Z2UI5_",
+      "compositeRestrictedReuseView": "Z2UI5_",
+      "privateView": "Z2UI5_",
+      "remoteAPIView": "Z2UI5_",
+      "viewExtend": "Z2UI5_",
+      "extensionIncludeView": "Z2UI5_",
+      "derivationFunction": "Z2UI5_",
+      "abstractEntity": "Z2UI5_"
+    },
+    "cds_parser_error": true,
+    "chain_mainly_declarations": true,
+    "change_if_to_case": true,
+    "check_abstract": {
+      "exclude": [
+        "z2ui5_cl_smps_bp_[a-z]+\\.clas\\."
+      ]
+    },
+    "check_comments": true,
+    "check_ddic": true,
+    "check_include": true,
+    "check_subrc": {
+      "openDataset": true,
+      "authorityCheck": true,
+      "selectSingle": false,
+      "selectTable": false,
+      "updateDatabase": true,
+      "insertDatabase": true,
+      "modifyDatabase": true,
+      "deleteDatabase": true,
+      "readTable": true,
+      "assign": true,
+      "find": true
+    },
+    "check_syntax": {
+      "exclude": [
+        "z2ui5_cl_smps_app_489(_ws)?\\.clas\\."
+      ]
+    },
+    "check_text_elements": true,
+    "check_transformation_exists": true,
+    "class_attribute_names": false,
+    "classic_exceptions_overlap": true,
+    "clear_exporting_parameters": true,
+    "cloud_types": true,
+    "colon_missing_space": true,
+    "commented_code": true,
+    "constant_classes": true,
+    "constructor_visibility_public": true,
+    "contains_tab": true,
+    "cyclic_oo": true,
+    "cyclomatic_complexity": true,
+    "dangerous_statement": {
+      "execSQL": true,
+      "kernelCall": true,
+      "systemCall": true,
+      "insertReport": true,
+      "generateDynpro": true,
+      "generateReport": true,
+      "generateSubroutine": true,
+      "deleteReport": true,
+      "deleteTextpool": true,
+      "insertTextpool": true,
+      "deleteDynpro": true,
+      "exportDynpro": true,
+      "editorCallForReport": true,
+      "dynamicSQL": false,
+      "ignoreRAPQueryProvider": true
+    },
+    "db_operation_in_loop": true,
+    "definitions_top": true,
+    "description_empty": true,
+    "double_space": {
+      "keywords": false,
+      "startParen": true,
+      "endParen": false,
+      "afterColon": true
+    },
+    "downport": true,
+    "dynpro_checks": true,
+    "easy_to_find_messages": true,
+    "empty_event": true,
+    "empty_line_in_statement": false,
+    "empty_statement": true,
+    "empty_structure": {
+      "loop": true,
+      "loopAllowIfSubrc": true,
+      "if": true,
+      "while": true,
+      "case": true,
+      "select": true,
+      "do": true,
+      "at": true,
+      "try": true,
+      "when": false
+    },
+    "exit_or_check": true,
+    "expand_macros": true,
+    "exporting": true,
+    "fm_global_parameters_obsolete": true,
+    "forbidden_identifier": true,
+    "forbidden_pseudo_and_pragma": true,
+    "forbidden_void_type": true,
+    "form_tables_obsolete": true,
+    "fully_type_constants": {
+      "checkData": true,
+      "exclude": [
+        "z2ui5_cl_smps_app_(07|10)\\.clas\\."
+      ]
+    },
+    "fully_type_itabs": true,
+    "function_module_recommendations": true,
+    "functional_writing": true,
+    "global_class": true,
+    "identical_conditions": true,
+    "identical_contents": true,
+    "identical_descriptions": true,
+    "identical_form_names": true,
+    "identical_move": true,
+    "if_in_if": true,
+    "implement_methods": true,
+    "implicit_start_of_selection": true,
+    "in_statement_indentation": false,
+    "indentation": false,
+    "index_completely_contained": true,
+    "inline_data_old_versions": true,
+    "intf_referencing_clas": true,
+    "invalid_table_index": true,
+    "keep_single_parameter_on_one_line": false,
+    "keyword_case": {
+      "style": "upper",
+      "ignoreExceptions": true,
+      "ignoreLowerClassImplmentationStatement": true,
+      "exclude": [
+        "z2ui5_cl_smps_"
+      ],
+      "ignoreKeywords": []
+    },
+    "line_break_multiple_parameters": false,
+    "line_break_style": true,
+    "line_length": {
+      "length": 255
+    },
+    "line_only_punc": false,
+    "local_class_naming": {
+      "exclude": [
+        "z2ui5_cl_smps_bp_[a-z]+\\.clas\\.locals_imp\\."
+      ],
+      "patternKind": "required",
+      "local": "^LCL_.+$",
+      "exception": "^LCX_.+$",
+      "test": "^LTCL_.+$"
+    },
+    "local_testclass_consistency": true,
+    "local_variable_names": false,
+    "macro_naming": true,
+    "main_file_contents": true,
+    "many_parentheses": true,
+    "max_one_method_parameter_per_line": true,
+    "max_one_statement": {
+      "exclude": [
+        "z2ui5_cl_smps_app_319\\.clas\\."
+      ]
+    },
+    "message_exists": true,
+    "method_implemented_twice": true,
+    "method_length": {
+      "statements": 100,
+      "errorWhenEmpty": false,
+      "ignoreTestClasses": true,
+      "checkForms": true,
+      "checkFunctionModules": true,
+      "exclude": [
+        "z2ui5_cl_smpc_app_overview\\.clas\\."
+      ]
+    },
+    "method_overwrites_builtin": true,
+    "method_parameter_names": false,
+    "mix_returning": true,
+    "modify_only_own_db_tables": true,
+    "msag_consistency": true,
+    "names_no_dash": true,
+    "nesting": true,
+    "newline_between_methods": true,
+    "no_aliases": true,
+    "no_chained_assignment": true,
+    "no_comments_between_methods": true,
+    "no_exclamation_escape": true,
+    "no_external_form_calls": true,
+    "no_inline_in_optional_branches": false,
+    "no_macros": true,
+    "no_mandt_in_database_operations": true,
+    "no_prefixes": false,
+    "no_public_attributes": false,
+    "no_yoda_conditions": {
+      "onlyConstants": true
+    },
+    "nrob_consistency": true,
+    "obsolete_statement": true,
+    "omit_parameter_name": true,
+    "omit_preceding_zeros": true,
+    "omit_receiving": true,
+    "parser_702_chaining": true,
+    "parser_bad_exceptions": true,
+    "parser_error": true,
+    "parser_missing_space": true,
+    "pragma_style": true,
+    "prefer_corresponding": false,
+    "prefer_inline": false,
+    "prefer_is_not": true,
+    "prefer_pragmas": true,
+    "prefer_raise_exception_new": {
+      "exclude": [
+        "z2ui5_cl_smps_app_485\\.clas\\."
+      ]
+    },
+    "prefer_returning_to_exporting": true,
+    "prefer_xsdbool": true,
+    "preferred_compare_operator": true,
+    "prefix_is_current_class": true,
+    "reduce_procedural_code": true,
+    "reduce_string_templates": true,
+    "redundant_conversion": true,
+    "release_idoc": true,
+    "remove_descriptions": true,
+    "rfc_error_handling": true,
+    "select_add_order_by": true,
+    "select_performance": true,
+    "select_single_full_key": {
+      "allowPseudo": true,
+      "exclude": [
+        "z2ui5_cl_smps_bp_[a-z]+\\.clas\\.locals_imp\\."
+      ]
+    },
+    "selection_screen_naming": true,
+    "selection_screen_texts_missing": true,
+    "sequential_blank": {
+      "lines": 3
+    },
+    "short_case": true,
+    "sicf_consistency": true,
+    "slow_parameter_passing": true,
+    "smim_consistency": false,
+    "space_before_colon": true,
+    "space_before_dot": true,
+    "sql_escape_host_variables": true,
+    "sql_value_conversion": true,
+    "start_at_tab": true,
+    "static_call_via_instance": true,
+    "strict_sql": true,
+    "superclass_final": {
+      "exclude": [
+        "z2ui5_cl_smps_app_489_ws\\.clas\\."
+      ]
+    },
+    "superfluous_value": true,
+    "sy_modification": true,
+    "sy_read_restriction": true,
+    "tabl_enhancement_category": true,
+    "tables_declared_locally": true,
+    "try_without_catch": true,
+    "type_form_parameters": true,
+    "types_naming": {
+      "pattern": "^TY_"
+    },
+    "uncaught_exception": true,
+    "unknown_types": true,
+    "unnecessary_chaining": true,
+    "unnecessary_pragma": true,
+    "unnecessary_return": true,
+    "unreachable_code": true,
+    "unsecure_fae": true,
+    "unused_ddic": {
+      "exclude": [
+        "z2ui5_(t|d)_smps_"
+      ]
+    },
+    "unused_macros": true,
+    "unused_methods": {
+      "exclude": [
+        "z2ui5_cl_smps_bp_[a-z]+\\.clas\\.locals_imp\\."
+      ]
+    },
+    "unused_types": true,
+    "unused_variables": {
+      "exclude": [
+        "z2ui5_cl_smps_bp_[a-z]+\\.clas\\.locals_imp\\."
+      ]
+    },
+    "use_bool_expression": true,
+    "use_class_based_exceptions": true,
+    "use_line_exists": true,
+    "use_new": true,
+    "when_others_last": true,
+    "whitespace_end": true,
+    "xml_consistency": true
+  }
+}

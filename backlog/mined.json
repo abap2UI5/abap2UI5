@@ -1,0 +1,12 @@
+{
+  "ran": "2026-08-17",
+  "source": "samples-controls improvised-cluster",
+  "total": 66,
+  "candidates": [
+    {
+      "target": "abap2ui5",
+      "text": "**event-value-unreachable** (PROBE) — the value the original reads sits in an array / control reference on the event · 1 port(s): 109",
+      "where": "mined from samples-controls `meta/` (IMPROVISED, verdict PROBE)"
+    }
+  ]
+}
