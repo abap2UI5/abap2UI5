@@ -22,6 +22,7 @@
     "backlog": "node .github/scripts/generate-backlog.mjs",
     "backlog:probe": "node .github/scripts/backlog-probe.mjs",
     "backlog:mine": "node .github/scripts/backlog-mine.mjs",
+    "backlog:filed": "node .github/scripts/backlog-filed.mjs",
     "check:backlog": "node .github/scripts/generate-backlog.mjs --check",
     "check:version": "node .github/scripts/version-sync-gate.mjs",
     "check:icons": "node .github/scripts/ui5-icon-gate.mjs",
