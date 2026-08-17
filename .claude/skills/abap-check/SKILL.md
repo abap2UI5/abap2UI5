@@ -108,6 +108,7 @@ to push upstream rather than to reimplement here:
 | `CLASS-METHODS class_constructor.` in a PRIVATE SECTION | ABAP requires the static constructor in the public section; the class pool does not activate. `constructor_visibility_public` sees only the instance constructor |
 | a test class calling a PRIVATE member without `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.` | same activation failure; it has reached users twice (`cadfb7ae`, #2146) |
 | the `.clas.xml` byte format — BOM, line endings, terminating newline, `&apos;` | abapGit re-serializes it differently on every pull, for everyone |
+| `INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` under `syntax.version` v750 | 7.55 syntax; every older system refuses the class — reached a user via `abap2UI5/samples` app 348 (section 2) |
 
 ---
 
@@ -297,6 +298,24 @@ the newest release. abaplint's default target accepts all of it.
   (`a16e2465`): use `CLEAR` + `MOVE-CORRESPONDING`. abaplint's
   `prefer_corresponding` rule had to be switched off for the low-release config
   because it recommends the construct that does not compile there.
+
+### Release-gated ABAP SQL — the syntax version switch does not gate it
+
+- **`INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` is 7.55 syntax.** Below that
+  release the system refuses the class with *"Inline data declarations cannot
+  be used together with INTO CORRESPONDING additions"*, plus one follow-up
+  *"Field … is unknown"* for every later read of the never-declared table —
+  three errors whose cause is the first one. Found by a user pulling
+  `abap2UI5/samples` main (2026-08-17): `z2ui5_cl_smp_app_348` carried it in
+  both of its SELECTs; fixed by declaring the tables with
+  `DATA … TYPE STANDARD TABLE OF … WITH EMPTY KEY` and selecting
+  `INTO CORRESPONDING FIELDS OF TABLE @lt_…` (samples `0d082a3`). abaplint
+  stays green because its SELECT grammar puts no version gate on the inline
+  declaration — measured on 2.120.24 with `check_syntax` and `downport` on at
+  `syntax.version` v750: zero findings, control probe fired. Plain
+  `INTO TABLE @DATA(…)` is fine from 7.40 on; it is only the combination with
+  `CORRESPONDING` that is late. **Gate: open** — on the upstream shortlist
+  (the `downport` rule or the version model), not reimplemented here.
 
 ### RAP and CDS (`abap2UI5/samples-stack`)
 
