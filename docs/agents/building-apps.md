@@ -301,23 +301,29 @@ content rather than as a continuation of the `content` aggregation; the
 missing blanks between them are what keep the three together. Blanks in both
 places, or in neither, and the same view reads as a pile of fragments.
 
-**Do not expect a gate to catch this for you.** abaplint's formatting rules
+**The blank lines are the part no gate catches.** abaplint's formatting rules
 are deliberately kept off the app chains (`align_parameters` and
-`line_break_multiple_parameters` are excluded in
+`line_break_multiple_parameters` are excluded in the framework repository's
 `.github/abaplint/auto_abaplint_fix.jsonc`, `indentation` is off — they would
-flatten exactly the layout this section builds). The abap2UI5-linter does
-judge it, with two rules — `chain-indentation` (a sibling in a different
-column than its siblings, a call written left of the element it belongs to;
-the step *size* is not judged, only that a chain keeps its own rhythm) and
-`chain-element-per-line` (several controls on one line; attributes may share
-their control's line, and so may the container it opens) — **but both ship as
-`hint`, and a config with `failOn: warning` does not even print them.** In
-`abap2UI5/samples` they are muted twice over: 339 `chain-element-per-line`
-findings went into `abap2ui5lint-baseline.json` when the linter was adopted,
-one of them the `` view->ele( `Shell` )->ele( `Page` `` idiom that repository
-documents. So check the config of the repository you are in before you trust
-a green run — and either way, re-read the chain you just wrote against the
-example above.
+flatten exactly the layout this section builds), and no linter rule judges
+where a blank line belongs. That stays with the reader.
+
+The *shape* around them is judged. The abap2UI5-linter has three layout rules:
+`chain-indentation` (a sibling in a different column than its siblings, a call
+written left of the element it belongs to; the step *size* is not judged, only
+that a chain keeps its own rhythm), `chain-element-per-line` (several controls
+on one line; attributes may share their control's line, and so may the
+container it opens), and `chain-house-layout`, which judges the step size too
+and is the one this section describes.
+
+**All three default to `hint`, which a config with `failOn: warning` does not
+even print — so what decides is the repository you are in, and every repository
+in this ecosystem raises them.** `abap2UI5`, `abap2UI5/samples-stack` and
+`abap2UI5/app-template` enable `chain-house-layout` at `warning`;
+`abap2UI5/samples` raises `chain-indentation` and `chain-element-per-line`
+instead; `abap2UI5/samples-controls` runs its own `chain-format` gate. Check
+the config before you trust a green run — and either way, re-read the chain you
+just wrote against the example above.
 
 #### What a broken chain looks like
 
@@ -559,7 +565,12 @@ The same tree, with the subtree held in a variable:
   `build_backend` → `run_app` (headless screenshot + errors).
 - **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:
   F9 launches the class in an embedded preview against a real system.
-- **Worked examples**: 416 gate-verified sample apps in
-  [samples-controls](https://github.com/abap2UI5/samples-controls) (`src/`), curated
-  samples in [abap2UI5/samples](https://github.com/abap2UI5/samples), and
-  what-is-expressible answers in samples-controls' `CAPABILITIES.md`.
+- **Worked examples**, three catalogues with the same row shape, so one search
+  reads all of them: curated apps for "has somebody built this pattern" in
+  [abap2UI5/samples](https://github.com/abap2UI5/samples), 416 gate-verified
+  demo-kit ports for "how is this control expressed" in
+  [samples-controls](https://github.com/abap2UI5/samples-controls) (`src/`), and
+  apps that need something from your stack — OData, RAP, APC, the launchpad —
+  in [samples-stack](https://github.com/abap2UI5/samples-stack). What abap2UI5
+  can express at all is answered in samples-controls' `CAPABILITIES.md`, each
+  claim naming the port that proves it.

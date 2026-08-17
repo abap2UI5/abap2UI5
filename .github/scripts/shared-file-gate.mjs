@@ -90,6 +90,73 @@ const SHARED = [
     },
     mine: (text) => parseJsonc(text).rules,
   },
+  {
+    /* The app-building guide, mirrored into app-template's AGENTS.md so a new
+     * project needs no framework checkout to brief an agent. It had drifted
+     * both ways within a fortnight — the dispatcher branches in the wrong
+     * order there, a corpus count and a claim about samples' baseline stale
+     * here — because the file SAYS it is a mirror and nothing checked it.
+     *
+     * Not a byte comparison, and it cannot be one: the mirrored text names
+     * `npm run fmt:chains` and `.github/abaplint/auto_abaplint_fix.jsonc`,
+     * which exist in THIS repository and not in a project made from the
+     * template. A consumer that must rewrite three sentences to stay true
+     * cannot also be byte-equal.
+     *
+     * So the deviations are declared, applied to this side, and only what is
+     * left over is compared. Declaring one is deliberately a diff here: it
+     * says "this sentence is repository-specific", which is a decision about
+     * the guide, not about the copy. If a deviation ever grows past a few
+     * lines, that is the signal to move the sentence out of the mirrored half
+     * instead of maintaining a translation of it.
+     */
+    file: 'docs/agents/building-apps.md',
+    consumers: ['app-template'],
+    consumerFile: 'AGENTS.md',
+    why: 'the app-building guide every new project briefs its agent with —'
+      + ' mirrored so the template needs no framework checkout',
+    section: (text) => guideBody(text),
+    mine: (text) => DEVIATIONS.reduce((s, [from, to]) => {
+      if (!s.includes(from)) {
+        throw new Error(
+          `declared deviation no longer matches this repository's guide:\n      ${JSON.stringify(from)}\n`
+          + '      the sentence it rewrites was edited or removed — update DEVIATIONS',
+        );
+      }
+      return s.split(from).join(to);
+    }, guideBody(text)),
+  },
+];
+
+/* Everything from section 1 down: the part app-template mirrors. Above it each
+ * repository says what IT is, which is not shared and must not be compared. */
+function guideBody(text) {
+  /* Anchored to the start of a line, because the consumer's provenance block
+   * NAMES this heading when it explains how to re-sync — and an unanchored
+   * search found that sentence instead, then reported the whole guide as
+   * different from line 1. A heading is a line, so the pattern says so. */
+  const at = text.search(/^## 1\. The model in one paragraph$/m);
+  if (at === -1) throw new Error('no "## 1. The model in one paragraph" heading on a line of its own');
+  return text.slice(at);
+}
+
+/* [what this repository says, what a template repository says] — each one a
+ * name that exists here and not there. Kept to whole sentences so a reviewer
+ * can see what was traded. */
+const DEVIATIONS = [
+  [
+    '`npm run check:abap2ui5` reports and `npm run fmt:chains` applies.',
+    '`npm run check:abap2ui5` reports and `npm run fix` applies.',
+  ],
+  [
+    "`.github/abaplint/auto_abaplint_fix.jsonc` excludes the shipped apps from",
+    "the framework repository's `.github/abaplint/auto_abaplint_fix.jsonc`"
+      + ' excludes its shipped apps from',
+  ],
+  [
+    'and `npm run check:formatter` enforces them.',
+    "and the framework's own `check:formatter` gate enforces them there.",
+  ],
 ];
 
 /* JSONC: strip block and line comments, keeping anything inside a string.
@@ -124,6 +191,12 @@ const raw = (repo, file) => `https://raw.githubusercontent.com/abap2UI5/${repo}/
  * ignore the gate. */
 const normalise = (s) => s.replace(/\r\n/g, '\n').replace(/[ \t]+$/gm, '').trimEnd();
 
+/* A `section` may return settings to compare (the rule block) or the text of a
+ * shared passage (the guide). Both end up as lines, because the report names
+ * the first LINE that differs — JSON.stringify on a 500-line passage makes one
+ * line of it, and then the report is the whole file. */
+const comparable = (v) => (typeof v === 'string' ? normalise(v) : JSON.stringify(v, null, 1));
+
 const problems = [];
 const notes = [];
 let compared = 0;
@@ -136,9 +209,17 @@ for (const entry of SHARED) {
     continue;
   }
   const sourceText = fs.readFileSync(source, 'utf8');
-  const mine = entry.section
-    ? JSON.stringify(entry.mine(sourceText), null, 1)
-    : normalise(sourceText);
+  /* A source-side reader can refuse: the guide entry checks that every
+   * declared deviation still matches a sentence here. That is a finding to
+   * report like any other, not a stack trace — it means somebody edited a
+   * sentence that a consumer is known to rewrite. */
+  let mine;
+  try {
+    mine = entry.section ? comparable(entry.mine(sourceText)) : normalise(sourceText);
+  } catch (err) {
+    problems.push(`${entry.file}: ${err.message}`);
+    continue;
+  }
 
   const consumerFile = entry.consumerFile || entry.file;
 
@@ -164,7 +245,7 @@ for (const entry of SHARED) {
       }
     }
     try {
-      theirs = entry.section ? JSON.stringify(entry.section(text, repo), null, 1) : normalise(text);
+      theirs = entry.section ? comparable(entry.section(text, repo)) : normalise(text);
     } catch (err) {
       problems.push(`${repo}/${consumerFile}: ${err.message}`);
       continue;

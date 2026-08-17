@@ -97,7 +97,7 @@ const CLAIMS = [
   {
     file: 'docs/agents/building-apps.md',
     metric: 'samples-controls/ports',
-    find: /\*\*Worked examples\*\*: (\d+) gate-verified sample apps/,
+    find: /(\d+) gate-verified\s+demo-kit ports/,
   },
   {
     file: '.claude/skills/build-an-app/SKILL.md',
