@@ -167,7 +167,7 @@
     "fully_type_constants": {
       "checkData": true,
       "exclude": [
-        "z2ui5_cl_smps_app_(07|10)\\.clas\\."
+        "z2ui5_cl_smps_app_(007|010)\\.clas\\."
       ]
     },
     "fully_type_itabs": true,

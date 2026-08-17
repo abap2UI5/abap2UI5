@@ -16,6 +16,14 @@
 //                needs >= 7.55 and this repo targets v750/7.02, so the
 //                statement stays and carries ##REGEX_POSIX (the convention the
 //                vendored AJSON code follows).
+//   abapdoc      "ABAP Doc comment is in the wrong position" - a "! block
+//                before a chain keyword, inside a parameter list, or before a
+//                section end attaches to no declaration and is never shown.
+//                Third recurrence: z2ui5_if_client=>cs_nav_mode here, then
+//                samples-stack's cs_status (7459f39), then five findings on
+//                samples-stack's overview app from a user's system
+//                (2026-08-17). Upstream rule proposed - backlog:
+//                abaplint-abapdoc-block-placement.
 //
 // Why a gate and not prose: abaplint models none of these. They are checks of a
 // different tool, and prose in AGENTS.md did not stop the three "fix atc
@@ -89,8 +97,54 @@ const files = walk(ROOT, "src")
   .filter(f => !EXCLUDED.some(re => re.test(f)))
   .sort();
 
+// An ABAP Doc block attaches to the ONE declaration directly below it. The
+// statement splitter above strips comment lines, so this check reads the raw
+// lines: a block before a chain keyword, inside a parameter list (the code
+// line above it ends in neither `.` nor `:` nor `,`), or before a section end
+// documents nothing. Only the class-pool main and interface sources carry
+// declarations ABAP Doc can reach.
+const CHAIN_KEYWORD =
+  /^\s*(constants|data|types|methods|class-methods|class-data|events)\s*:\s*$/i;
+const NOTHING_TO_DOCUMENT =
+  /^\s*(end\s+of\b|endclass\b|endinterface\b|(public|protected|private)\s+section\b)/i;
+
+function abapdocFindings(file, source) {
+  const src = source.split("\n");
+  src.forEach((line, i) => {
+    if (!/^\s*"!/.test(line)) return;
+    if (/^\s*"!/.test(src[i - 1] || "")) return; // only the block's first line
+
+    let p = i - 1;
+    while (p >= 0 && (!src[p].trim() || /^\s*"[^!]/.test(src[p]) || src[p].trim() === '"')) p -= 1;
+    const prev = p >= 0 ? src[p].trim() : "";
+
+    let n = i + 1;
+    while (n < src.length && (/^\s*"!/.test(src[n]) || !src[n].trim())) n += 1;
+    const next = n < src.length ? src[n].trim() : "";
+
+    const at = `${file}:${i + 1}`;
+    if (prev && !/[.:,]$/.test(prev)) {
+      findings.push({
+        at,
+        rule: "abapdoc",
+        message: '"! inside a parameter list documents nothing - use "! @parameter <name> | <text> in the method\'s own block',
+      });
+    } else if (CHAIN_KEYWORD.test(next)) {
+      findings.push({
+        at,
+        rule: "abapdoc",
+        message: `"! before the chain keyword \`${next}\` documents nothing - move it inside the chain, directly before the member`,
+      });
+    } else if (NOTHING_TO_DOCUMENT.test(next)) {
+      findings.push({ at, rule: "abapdoc", message: `"! before \`${next}\` documents nothing` });
+    }
+  });
+}
+
 for (const file of files) {
-  const stmts = statements(readFileSync(join(ROOT, file), "utf8"));
+  const source = readFileSync(join(ROOT, file), "utf8");
+  if (/\.(clas|intf)\.abap$/.test(file)) abapdocFindings(file, source);
+  const stmts = statements(source);
 
   stmts.forEach((stmt, index) => {
     const flat = stmt.text.replace(/\n/g, " ");

@@ -378,6 +378,21 @@ pitfalls".
   exists on >= 7.55 and this repo targets v750/7.02. Prefer plain string logic;
   when a regex is genuinely needed, carry `##REGEX_POSIX` (the vendored AJSON
   code does the same).
+- **`"!` position.** A doc comment sits directly before the one declaration it
+  documents — *inside* a chained statement, not before the chain keyword — and
+  **never inside a parameter list**. Document parameters with
+  `"! @parameter <name> | <text>` in the method's own block. SLIN reports it as
+  "ABAP Doc comment is in the wrong position"; nothing breaks, the text is
+  simply never shown, which is why it kept recurring: first
+  `z2ui5_if_client=>cs_nav_mode` here, then `cs_status` in
+  `abap2UI5/samples-stack` (`7459f39`), then **five findings on samples-stack's
+  overview app from a user's system** (2026-08-17) — two blocks before
+  `CONSTANTS:`, three comments between the parameters of one method. That
+  third recurrence turned it into a gate: decided here by `check:atc`, in
+  samples-stack by its own `npm run check:abapdoc`, both by the same purely
+  structural test (what statement follows the block; what the code line above
+  it ends with). The rule itself is proposed upstream — backlog:
+  abaplint-abapdoc-block-placement, with a measured probe.
 
 **Not gated — a script cannot decide these:**
 
@@ -396,13 +411,19 @@ pitfalls".
   ```
 - **No redundant conversions.** Do not wrap a value in `CONV string( … )` when
   the source already has the target type.
-- **`"!` position.** A doc comment sits directly before the one declaration it
-  documents — *inside* a chained statement, not before the chain keyword — and
-  **never inside a parameter list**. Document parameters with
-  `"! @parameter <name> | <text>` in the method's own block. This one recurs
-  across repositories: `z2ui5_if_client=>cs_nav_mode` here, and again on
-  `cs_status` in `abap2UI5/samples-stack` (`7459f39`), where the block sat
-  before `CONSTANTS:` and therefore documented nothing.
+- **A RAP handler names the entity by its BDEF alias.** Where the behavior
+  definition declares `alias Ticket`, an event handler's
+  `FOR ENTITY EVENT ... FOR z2ui5_r_smps_tck~TicketCreated` draws "The alias
+  Ticket from the behavior definition should be used instead" — twice on
+  `z2ui5_cl_smps_evt_tck` (`abap2UI5/samples-stack`, found on a user's system
+  2026-08-17). Write `FOR ticket~TicketCreated`. abaplint has no grammar for
+  `FOR ENTITY EVENT` (section 6), so no rule can reach it.
+- **A draft `Activate` wants `optimized`.** A plain `draft action Activate;`
+  in a behavior definition draws "should be defined as optimized to enable
+  optimized execution of determinations and validations" — samples-stack's
+  ticket BO carried it while the travel BO one package over already had
+  `draft action Activate optimized;` (same finding source, 2026-08-17).
+  abaplint does not read BDEF sources at all.
 - **ABAP Doc is parsed as HTML.** A literal `<`, `>` or `&` must be escaped as
   `&lt;`, `&gt;`, `&amp;`.
 

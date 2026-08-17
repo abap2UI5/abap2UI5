@@ -10,6 +10,7 @@ evidence:
   - abap2UI5 `z2ui5_if_client=>cs_nav_mode` — the block sat before `CONSTANTS:` and documented nothing
   - the identical mistake in `abap2UI5/samples-stack` on `cs_status` (`7459f39`), found only by reading the file
   - it recurs across repositories because nothing anywhere reports it — the text is present, so the author has no reason to look again
+  - third recurrence, from a user's system (2026-08-17) — five SLIN findings on samples-stack's overview app, two blocks before `CONSTANTS:` and three comments inside one parameter list (the shape the probe counts as a negative); gated locally since, by abap2UI5's `check:atc` and samples-stack's `check:abapdoc`
 ---
 
 # Report an ABAP Doc block that documents nothing
