@@ -338,7 +338,7 @@ system, or must fetch data dynamically.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-abapdoc-block-placement, abaplint-abapdoc-html-escaping
+**Backlog:** abaplint · abaplint-abapdoc-block-placement
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not

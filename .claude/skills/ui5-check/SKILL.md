@@ -198,7 +198,17 @@ in a gate here rather than in the view linter, unless the linter grows a
 frontend-module input — which nothing else is asking for. The theme half is
 configuration, not view content; **out of scope**, keep it as prose.
 
-**Backlog:** abap2ui5-linter · linter-frontend-module-since
+**Neither is being built, and the measurement is why** (2026-08-17). Across all
+55 `sap.ui.define` files in `app/webapp/`, exactly **seven** modules are
+declared in a dependency array — four of them z2ui5's own, and the three UI5
+ones (`sap/ui/core/Control`, `sap/ui/core/IconPool`, `sap/ui/Device`) all long
+predate 1.71. The current exposure is **zero**: everything version-sensitive is
+already resolved lazily, which is what the `Theming` example above shows. A
+rule or a gate would be a ratchet holding a state that holds itself, and the
+rule additionally wants a per-release module inventory nothing else needs. Do
+not re-propose it; if a future frontend module ever declares a post-1.71
+dependency, the blank screen it causes is described above and that is the
+cheaper cure.
 
 ---
 
@@ -402,10 +412,23 @@ expression binding with the enum's default as the else branch.
 
 What it must NOT do is fire on every enum binding: a property bound outside a
 template, or one whose table can never be emptied, is fine, and a rule that
-reported all of them would be routed around. Written up with that scope rather
-than filed as a wish — it is in the stock now, waiting for somebody to open it.
+reported all of them would be routed around.
 
-**Backlog:** abap2ui5-linter · linter-enum-empty-in-template
+**It was implemented against the linter on 2026-08-17 and reverted**, and the
+reason is worth keeping so nobody spends the afternoon again. The rule needs to
+know whether a bound field arrives as `""`, and nothing static answers it: the
+render model holds only what a seed sets, so an unassigned field is ABSENT —
+which is also what `omit_initial_paths` produces, i.e. the fix; and the model
+SHAPE has every declared field present and empty, so the rule fires on every
+enum binding there is. The linter's own comment above `deriveModel` closes it:
+*"A field the class fills in code (a LOOP in `model_init`) cannot be followed
+statically, and inventing an empty string for it makes UI5's strict mode reject
+a perfectly good view."* It would need "is this component ever assigned
+anywhere in the class" — data flow over the ABAP, not the view.
+
+Second limit found on the way: `sap.m.ObjectStatus.state` is declared
+`type: "string"` in the metadata, because UI5 validates it at runtime against
+`ValueState` **or** `IndicationColor`. Even a working rule would not see it.
 
 ---
 
