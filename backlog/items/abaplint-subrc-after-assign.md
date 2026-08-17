@@ -49,12 +49,40 @@ neither. Nothing reports the check that is actually wrong.
 
 Report a `sy-subrc` comparison whose nearest preceding `sy-subrc`-setting
 statement is an `ASSIGN`, and suggest `IS [NOT] ASSIGNED` on the assigned field
-symbol.
+symbol — **but not unconditionally**, see the next section.
 
 Both halves are statically decidable within a statement block: the set of
 statements that set `sy-subrc` is fixed and abaplint already models it for
 `check_subrc`, and the field symbol to name in the message is the `ASSIGN`
 target.
+
+## `IS ASSIGNED` is not a drop-in replacement, and the rule has to say so
+
+A **failed** `ASSIGN` leaves the field symbol bound to whatever it pointed at
+before. Verified in `@abaplint/runtime`'s `assign`: every failure path sets
+`sy-subrc = 4` and returns *without* clearing the target. So wherever the same
+symbol can already be bound, `IS ASSIGNED` reads TRUE for a failure — turning a
+wrong-branch bug into a silently-taken one, which is worse than what it
+replaces.
+
+The detector next to this item classifies every site by which fix applies,
+measured over abap2UI5, samples, samples-controls and samples-stack:
+
+| | | fix |
+|---|--:|---|
+| **simple** | 42 | freshly declared in this method, assigned once — `IS [NOT] ASSIGNED` is a drop-in |
+| **in-loop** | 17 | inside `LOOP`/`DO`/`WHILE` — needs `UNASSIGN <fs>.` before the `ASSIGN` |
+| **reassigned** | 2 | the same symbol was already assigned earlier in the method — same trap, same fix |
+
+So roughly **one site in three cannot take the naive fix**, and a rule that
+offered it as a quick-fix everywhere would introduce bugs in those. Either the
+rule reports all three and describes both fixes, or it fires only on the simple
+shape and stays silent on the other two — the second is smaller and safer, and
+the classification above is decidable from the same single file.
+
+The corpus's own #1937 fix is a *simple* case and is correct:
+`attri_get_val_ref` declares `<attri>` at method start and assigns it in two
+mutually exclusive branches, so nothing can be left over from before.
 
 ## What it must NOT report
 
@@ -83,67 +111,67 @@ Run **2026-08-17** against `abap2UI5`, `samples`, `samples-controls`, `samples-s
 
 | Repository | Where | |
 |---|---|---|
-| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1035 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1039 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1043 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1048 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1180 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1179 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1191 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1513 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1876 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1882 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1970 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2032 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2274 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2321 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:191 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:233 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:457 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:470 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:320 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:336 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:342 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:371 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:376 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:392 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:414 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:827 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:892 | IF sy-subrc = 0. |
-| abap2UI5 | `src/02/z2ui5_cl_ui5_http_handler.clas.abap`:243 | IF sy-subrc = 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:1563 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:2502 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4105 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4111 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4176 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4223 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4628 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4673 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util_ext.clas.abap`:1015 | IF sy-subrc  <> 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util_ext.clas.abap`:1027 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/99/01/z2ui5_cl_util_ext.clas.abap`:4586 | ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/99/02/z2ui5_cl_pop_to_select.clas.abap`:205 | ASSERT sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:707 | IF sy-subrc <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1642 | IF sy-subrc  <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1654 | ASSERT sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1824 | IF sy-subrc <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1867 | IF sy-subrc <> 0. |
-| samples | `src/00/98/z2ui5_cl_smp_app_117.clas.abap`:136 | IF sy-subrc = 0 AND <view_display> = abap_true. |
-| samples | `src/00/98/z2ui5_cl_smp_app_131.clas.abap`:139 | IF sy-subrc = 0 AND <view_display> = abap_true. |
-| samples | `src/00/98/z2ui5_cl_smp_app_185.clas.abap`:123 | IF sy-subrc = 0 AND <view_display> = abap_true. |
-| samples | `src/00/98/z2ui5_cl_smp_app_191.clas.abap`:124 | IF sy-subrc = 0 AND <view_display> = abap_true. |
-| samples | `src/00/98/z2ui5_cl_smp_app_193.clas.abap`:43 | IF sy-subrc = 0. |
-| samples | `src/00/98/z2ui5_cl_smp_app_193.clas.abap`:51 | IF sy-subrc = 0. |
-| samples | `src/00/98/z2ui5_cl_smp_app_195.clas.abap`:123 | IF sy-subrc = 0 AND <view_display> = abap_true. |
-| samples | `src/00/98/z2ui5_cl_smp_app_211.clas.abap`:150 | IF sy-subrc = 0 AND <view_display> = abap_true. |
-| samples | `src/00/98/z2ui5_cl_smp_app_212.clas.abap`:86 | IF sy-subrc <> 0. |
-| samples | `src/00/98/z2ui5_cl_smp_app_338.clas.abap`:138 | IF sy-subrc = 0 AND <view_display> = abap_true. |
-| samples | `src/01/z2ui5_cl_smp_app_104.clas.abap`:49 | IF sy-subrc <> 0. |
-| samples | `src/01/z2ui5_cl_smp_app_104.clas.abap`:68 | IF sy-subrc <> 0. |
-| samples | `src/01/z2ui5_cl_smp_app_461.clas.abap`:85 | IF sy-subrc <> 0. |
-| samples | `src/01/z2ui5_cl_smp_app_461.clas.abap`:89 | IF sy-subrc <> 0. |
-| samples-stack | `src/00/00/z2ui5_cl_smps_context.clas.abap`:449 | IF sy-subrc <> 0. |
-| samples-stack | `src/00/00/z2ui5_cl_smps_context.clas.abap`:492 | IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1035 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1039 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1043 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1048 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1180 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1179 | [simple] IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1191 | [simple] IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1513 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1876 | [simple] IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1882 | [reassigned] IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1970 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2032 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2274 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2321 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:191 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:233 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:457 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:470 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:320 | [simple] IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:336 | [simple] IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:342 | [simple] IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:371 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:376 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:392 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:414 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:827 | [simple] IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:892 | [simple] IF sy-subrc = 0. |
+| abap2UI5 | `src/02/z2ui5_cl_ui5_http_handler.clas.abap`:243 | [simple] IF sy-subrc = 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:1563 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:2502 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4105 | [simple] IF sy-subrc <> 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4111 | [reassigned] IF sy-subrc <> 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4176 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4223 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4628 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4673 | [in-loop] IF sy-subrc <> 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util_ext.clas.abap`:1015 | [simple] IF sy-subrc  <> 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util_ext.clas.abap`:1027 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/99/01/z2ui5_cl_util_ext.clas.abap`:4586 | [simple] ASSERT sy-subrc = 0. |
+| abap2UI5 | `src/99/02/z2ui5_cl_pop_to_select.clas.abap`:205 | [in-loop] ASSERT sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:692 | [in-loop] IF sy-subrc <> 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1608 | [simple] IF sy-subrc  <> 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1620 | [simple] ASSERT sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1790 | [in-loop] IF sy-subrc <> 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1833 | [in-loop] IF sy-subrc <> 0. |
+| samples | `src/00/98/z2ui5_cl_smp_app_117.clas.abap`:136 | [simple] IF sy-subrc = 0 AND <view_display> = abap_true. |
+| samples | `src/00/98/z2ui5_cl_smp_app_131.clas.abap`:139 | [simple] IF sy-subrc = 0 AND <view_display> = abap_true. |
+| samples | `src/00/98/z2ui5_cl_smp_app_185.clas.abap`:123 | [simple] IF sy-subrc = 0 AND <view_display> = abap_true. |
+| samples | `src/00/98/z2ui5_cl_smp_app_191.clas.abap`:124 | [simple] IF sy-subrc = 0 AND <view_display> = abap_true. |
+| samples | `src/00/98/z2ui5_cl_smp_app_193.clas.abap`:43 | [simple] IF sy-subrc = 0. |
+| samples | `src/00/98/z2ui5_cl_smp_app_193.clas.abap`:51 | [simple] IF sy-subrc = 0. |
+| samples | `src/00/98/z2ui5_cl_smp_app_195.clas.abap`:123 | [simple] IF sy-subrc = 0 AND <view_display> = abap_true. |
+| samples | `src/00/98/z2ui5_cl_smp_app_211.clas.abap`:150 | [simple] IF sy-subrc = 0 AND <view_display> = abap_true. |
+| samples | `src/00/98/z2ui5_cl_smp_app_212.clas.abap`:86 | [simple] IF sy-subrc <> 0. |
+| samples | `src/00/98/z2ui5_cl_smp_app_338.clas.abap`:138 | [simple] IF sy-subrc = 0 AND <view_display> = abap_true. |
+| samples | `src/01/z2ui5_cl_smp_app_104.clas.abap`:49 | [simple] IF sy-subrc <> 0. |
+| samples | `src/01/z2ui5_cl_smp_app_104.clas.abap`:68 | [simple] IF sy-subrc <> 0. |
+| samples | `src/01/z2ui5_cl_smp_app_461.clas.abap`:85 | [simple] IF sy-subrc <> 0. |
+| samples | `src/01/z2ui5_cl_smp_app_461.clas.abap`:89 | [simple] IF sy-subrc <> 0. |
+| samples-stack | `src/00/00/z2ui5_cl_smps_context.clas.abap`:449 | [in-loop] IF sy-subrc <> 0. |
+| samples-stack | `src/00/00/z2ui5_cl_smps_context.clas.abap`:492 | [in-loop] IF sy-subrc <> 0. |
 
 **Must NOT fire on 171 site(s)** that match the shape and are correct:
 
@@ -275,25 +303,25 @@ Run **2026-08-17** against `abap2UI5`, `samples`, `samples-controls`, `samples-s
 | abap2UI5 | `src/99/02/z2ui5_cl_pop_to_select.clas.abap`:244 | ASSERT sy-subrc = 0. |
 | abap2UI5 | `src/99/02/z2ui5_cl_pop_to_select.clas.testclasses.abap`:244 | IF sy-subrc <> 0. |
 | abap2UI5 | `src/99/02/z2ui5_cl_pop_to_select.clas.testclasses.abap`:288 | IF sy-subrc <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:884 | IF sy-subrc <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:893 | IF sy-subrc <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:948 | IF sy-subrc <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:999 | IF sy-subrc <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1659 | IF sy-subrc <> 0 OR <field> <> abap_true. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1663 | ASSERT sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1777 | IF sy-subrc <> 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1920 | CHECK sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1961 | CHECK sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1993 | IF sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2008 | IF sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2011 | IF sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2032 | CHECK sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2047 | IF sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2060 | CHECK sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2071 | IF sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2080 | IF sy-subrc = 0. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2089 | IF sy-subrc <> 0 OR <tky> IS INITIAL. |
-| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2109 | CHECK sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:850 | IF sy-subrc <> 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:859 | IF sy-subrc <> 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:914 | IF sy-subrc <> 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:965 | IF sy-subrc <> 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1625 | IF sy-subrc <> 0 OR <field> <> abap_true. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1629 | ASSERT sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1743 | IF sy-subrc <> 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1886 | CHECK sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1927 | CHECK sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1959 | IF sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1974 | IF sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1977 | IF sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:1998 | CHECK sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2013 | IF sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2026 | CHECK sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2037 | IF sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2046 | IF sy-subrc = 0. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2055 | IF sy-subrc <> 0 OR <tky> IS INITIAL. |
+| samples | `src/00/01/z2ui5_cl_smp_context.clas.abap`:2075 | CHECK sy-subrc = 0. |
 | samples | `src/00/98/z2ui5_cl_smp_app_194.clas.abap`:55 | IF sy-subrc <> 0. |
 | samples | `src/00/98/z2ui5_cl_smp_app_212.clas.abap`:94 | IF sy-subrc <> 0. |
 | samples | `src/00/98/z2ui5_cl_smp_app_212.clas.abap`:101 | IF sy-subrc <> 0. |
@@ -305,7 +333,7 @@ Run **2026-08-17** against `abap2UI5`, `samples`, `samples-controls`, `samples-s
 | samples | `src/00/98/z2ui5_cl_smp_app_337.clas.abap`:185 | IF sy-subrc <> 0. |
 | samples | `src/00/98/z2ui5_cl_smp_app_348.clas.abap`:175 | IF sy-subrc <> 0. |
 | samples | `src/00/98/z2ui5_cl_smp_app_349.clas.abap`:193 | IF sy-subrc <> 0. |
-| samples | `src/01/z2ui5_cl_smp_app_070.clas.abap`:365 | IF sy-subrc <> 0. |
+| samples | `src/01/z2ui5_cl_smp_app_070.clas.abap`:356 | IF sy-subrc <> 0. |
 | samples-controls | `src/01/01/z2ui5_cl_smpc_app_012.clas.abap`:558 | IF sy-subrc = 0. |
 | samples-stack | `src/00/00/z2ui5_cl_smps_context.clas.abap`:414 | CHECK sy-subrc = 0. |
 | samples-stack | `src/00/00/z2ui5_cl_smps_context.clas.abap`:535 | IF sy-subrc <> 0. |
@@ -323,7 +351,8 @@ Run **2026-08-17** against `abap2UI5`, `samples`, `samples-controls`, `samples-s
 
 **Where the detector is an approximation of the rule:**
 
-- The set of sy-subrc-writing statements above is hand-written and short. A statement missing from it lets an ASSIGN keep its claim too long, so the count is an upper bound — abaplint knows the real set (it models it for `check_subrc`) and would report fewer.
+- Which fix applies: 42 simple · 17 in a loop · 2 re-assigned. Only the first is a drop-in; the other two need `UNASSIGN` before the `ASSIGN`, because a failed assign leaves the previous binding in place and `IS ASSIGNED` then reads TRUE for a failure. Verified against `@abaplint/runtime`'s assign, which sets sy-subrc = 4 and returns without clearing the target.
+- The set of sy-subrc-writing statements is hand-written and short. A statement missing from it lets an ASSIGN keep its claim too long, so the count is an upper bound — abaplint knows the real set (it models it for `check_subrc`) and would report fewer.
 - Field-symbol assignment inside a macro or a chained statement is not followed.
 
 <!-- probe:end -->

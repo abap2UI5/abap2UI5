@@ -461,6 +461,18 @@ precisely because no gate will catch it.
   ```
   The transpiler is more forgiving about `sy-subrc` than the release range this
   repository ships to, so no test here can reproduce it.
+
+  **But `IS ASSIGNED` is not a blind replacement.** A FAILED `ASSIGN` leaves the
+  field symbol bound to whatever it pointed at before — verified in
+  `@abaplint/runtime`'s `assign`, where every failure path sets `sy-subrc = 4`
+  and returns without clearing the target. Inside a `LOOP`, or anywhere the
+  same symbol was already assigned, `IS ASSIGNED` therefore reads TRUE for a
+  failure, which is worse than the bug it replaces. `UNASSIGN <fs>.` before the
+  `ASSIGN` where that can happen. Measured across the four repositories
+  (2026-08-17): **42** sites take the drop-in, **17** are inside a loop and
+  **2** re-assign — about one in three needs the `UNASSIGN`. The #1937 fix
+  itself is a simple case: `<attri>` is declared at method start and assigned
+  in two mutually exclusive branches.
 - **An object name inside a string literal is not a reference — a rename sweep
   will get it wrong and nothing will notice.** `#2564` renamed `z2ui5_cl_exit`
   to `z2ui5_cl_ui5_user_exit` and carried the rename into the *interface*
