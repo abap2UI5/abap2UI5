@@ -17,9 +17,9 @@
 //
 //     node tools/check-pages.mjs [tree ...]
 //
-// Ohne Argumente wird jeder gebaute Baum geprueft: die vier veroeffentlichten
-// Branches in build/ und alles, was ein Ad-hoc-Build nach tools/out/ gelegt
-// hat. Ein benannter Baum wird in beiden gesucht.
+// Without arguments every built tree is checked: the four published branches
+// in build/ and everything an ad-hoc build has put into tools/out/. A named
+// tree is looked for in both.
 
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -27,8 +27,8 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
-// Dieselbe Aufteilung wie in build-branches.mjs: build/ ist der committete
-// Baum der vier Branches, tools/out/ der gitignorierte Scratch.
+// The same split as in build-branches.mjs: build/ is the committed tree of the
+// four branches, tools/out/ the gitignored scratch.
 const ROOTS = [join(here, "..", "build"), join(here, "out")];
 
 const treeDir = (tree) => ROOTS.map((root) => join(root, tree)).find((dir) => existsSync(dir));
@@ -56,9 +56,9 @@ function checkTree(tree) {
     if (!existsSync(src02)) return false;
     const descriptors = readdirSync(src02).filter((name) => name.endsWith(".wapa.xml")).sort();
     if (descriptors.length === 0) return false;
-    // Ein BSP-Baum hat genau EIN Seitenverzeichnis; zwei hiesse, ein Rename
-    // oder Merge hat ein altes liegen lassen - und welches geprueft wuerde,
-    // hinge an der readdir-Reihenfolge.
+    // A BSP tree has exactly ONE page directory; two would mean a rename or
+    // merge left an old one behind - and which one gets checked would hang on
+    // the readdir order.
     if (descriptors.length > 1) {
         note(tree, `more than one .wapa.xml page directory: ${descriptors.join(", ")}`);
         return true;

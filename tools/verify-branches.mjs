@@ -3,13 +3,13 @@
 // Compares the committed delivery trees in build/ against what is published in
 // abap2UI5/frontend today - file for file, byte for byte.
 //
-// Gebaut wird hier nichts mehr: build/ IST der Baum, den frontend_deploy
-// pusht, und dass er zu den Quellen passt, prueft frontend_check
-// (`npm run check:frontend`). Was hier laeuft, ist der andere Vergleich - der
-// committete Baum gegen den, der draussen liegt. Damit das byteweise
-// aufgeht, wird die Kopie wie beim Deploy gestempelt (README-Banner und
-// VERSION, siehe branch-stamp.mjs), und zwar mit dem Commit, aus dem der
-// veroeffentlichte Branch gebaut wurde.
+// Nothing is built here any more: build/ IS the tree frontend_deploy pushes,
+// and that it matches the sources is checked by frontend_check
+// (`npm run check:frontend`). What runs here is the other comparison - the
+// committed tree against the one that is out there. For that to work byte
+// for byte, the copy is stamped just as the deploy stamps it (README banner
+// and VERSION, see branch-stamp.mjs), and with the commit the published
+// branch was built from.
 //
 // This is the acceptance test for the move of the frontend build into this
 // repository: the branches are an INSTALLATION SOURCE. People's abapGit repos
@@ -109,9 +109,9 @@ for (const branch of branches) {
         console.log(`${branch}: SKIPPED - published from ${expected.slice(0, 12)}, this tree is ${head.slice(0, 12)}`);
         continue;
     }
-    // Die committete Kopie, gestempelt wie beim Deploy - sonst unterscheiden
-    // sich README-Banner und VERSION immer, und der Vergleich saehe rot aus,
-    // wo nichts ist.
+    // The committed copy, stamped just as the deploy stamps it - otherwise
+    // README banner and VERSION always differ, and the comparison would look
+    // red where there is nothing.
     const built = join(stamped, branch);
     rmSync(built, { recursive: true, force: true });
     mkdirSync(built, { recursive: true });

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // build-branches.mjs
-// Baut aus diesem Repository (app/ + frontend/ + tools/) die generierten
-// Output-Branches von abap2UI5/frontend:
+// Builds the generated output branches of abap2UI5/frontend from this
+// repository (app/ + frontend/ + tools/):
 //
-//   cloud        app/ (Webapp) + frontend/abap/cloud (ABAP-Artefakte), klassischer Bootstrap
-//   cloud_v2     wie cloud, Webapp auf legacy-free (UI5 2.0) gepatcht
-//   standard     BSP Z2UI5 (app2bsp) + ICF-Handler, klassischer Bootstrap
+//   cloud        app/ (webapp) + frontend/abap/cloud (ABAP artefacts), classic bootstrap
+//   cloud_v2     like cloud, webapp patched to legacy-free (UI5 2.0)
+//   standard     BSP Z2UI5 (app2bsp) + ICF handler, classic bootstrap
 //   standard_v2  BSP Z2UI5 legacy-free (build-legacy-free.mjs)
 //
 // The two BSP branches additionally get the minified UI5 component preload
@@ -13,54 +13,55 @@
 // start into one and boots the app from it. The cloud branches ship the webapp
 // as a source project instead - there the developer runs the build.
 //
-// Zusaetzlich koennen umbenannte BSP-Varianten gebaut werden (fuer eine
-// Parallelinstallation im selben SAP-System, siehe tools/bsp_rename):
+// Renamed BSP variants can be built in addition (for a parallel installation
+// in the same SAP system, see tools/bsp_rename):
 //
-//   standard_<NAME>     wie standard,    BSP/SICF/Handler auf <NAME> umbenannt
-//   standard_v2_<NAME>  wie standard_v2, BSP/SICF/Handler auf <NAME> umbenannt
+//   standard_<NAME>     like standard,    BSP/SICF/handler renamed to <NAME>
+//   standard_v2_<NAME>  like standard_v2, BSP/SICF/handler renamed to <NAME>
 //
-// z.B. standard_zmyui5 -> BSP ZMYUI5. <NAME> darf auch ein Namespace in
-// abapGit-Dateinamen-Schreibweise sein ("/" -> "#"): standard_#abapgit#
-// -> BSP /ABAPGIT/UI5, standard_#abapgit#x -> BSP /ABAPGIT/X (Details in
-// tools/bsp_rename). Der Workflow frontend_deploy baut und pusht
-// solche Branches on demand.
+// e.g. standard_zmyui5 -> BSP ZMYUI5. <NAME> may also be a namespace in
+// abapGit file name notation ("/" -> "#"): standard_#abapgit#
+// -> BSP /ABAPGIT/UI5, standard_#abapgit#x -> BSP /ABAPGIT/X (details in
+// tools/bsp_rename). The frontend_deploy workflow builds and pushes
+// such branches on demand.
 //
-// Aufruf:  node tools/build-branches.mjs [branch ...]
-// Ohne Argumente werden die vier festen Branches gebaut; mit Argumenten nur
-// die genannten (so baut ein frontend_deploy-Lauf genau seinen Branch).
+// Usage:  node tools/build-branches.mjs [branch ...]
+// Without arguments the four fixed branches are built; with arguments only
+// the named ones (so a frontend_deploy run builds exactly its branch).
 //
-// Wohin gebaut wird, entscheidet der Branch-Name, nicht ein Schalter:
+// Where the build goes is decided by the branch name, not by a switch:
 //
-//   die vier festen Branches -> build/<branch>/      im Repository committet
-//   alles andere             -> tools/out/<branch>/  gitignoriert, Scratch
+//   the four fixed branches -> build/<branch>/      committed in the repository
+//   everything else         -> tools/out/<branch>/  gitignored, scratch
 //
-// build/ ist das, was frontend_deploy in die Delivery-Branches schiebt: ein
-// Push kopiert einen Baum, er baut ihn nicht mehr. Deshalb ist der Baum hier
-// eingecheckt und wird von frontend_check gegen die Quellen geprueft - genau
-// wie src/01/03 gegen app/webapp. Was ein Branch ausliefert, steht damit im
-// Pull Request, bevor er gemerged wird.
+// build/ is what frontend_deploy pushes into the delivery branches: a push
+// copies a tree, it no longer builds it. That is why the tree is checked in
+// here and verified against the sources by frontend_check - exactly like
+// src/01/03 against app/webapp. What a branch delivers is therefore in the
+// pull request before it is merged.
 //
-// Der VERSION-Stempel gehoert NICHT in den gebauten Baum: er nennt den
-// Core-Commit, aus dem gebaut wurde, und der ist beim Committen von build/
-// noch gar nicht bekannt. Ihn schreibt tools/branch-stamp.mjs beim Deploy.
+// The VERSION stamp does NOT belong in the built tree: it names the core
+// commit the tree was built from, and that one is not even known yet when
+// build/ is committed. tools/branch-stamp.mjs writes it at deploy time.
 //
-// Die Webapp kommt aus app/webapp DIESES Repositories - die einzige Quelle.
-// Alles andere, was ein Output-Branch braucht, liegt unter frontend/:
-//   frontend/abap/        ICF-/BSP-ABAP-Artefakte (cloud + standard), samt der
-//                         abaplint-Config, die im Branch auf /src/ gedreht wird
-//   frontend/common/      Dateien, die jeder Branch erbt (README, LICENSE, ...)
-// Die Skripte selbst liegen in tools/.
+// The webapp comes from app/webapp of THIS repository - the single source.
+// Everything else an output branch needs lives under frontend/:
+//   frontend/abap/        ICF/BSP ABAP artefacts (cloud + standard), together
+//                         with the abaplint config, which is turned to /src/
+//                         in the branch
+//   frontend/common/      files every branch inherits (README, LICENSE, ...)
+// The scripts themselves live in tools/.
 //
-// Die Cloud-Branches liefern das komplette Fiori-Projekt aus app/ aus - dieselben
-// Projektdateien, mit denen hier entwickelt wird, keine zweite Kopie.
+// The cloud branches deliver the complete Fiori project from app/ - the same
+// project files this repository is developed with, not a second copy.
 
 import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { patchIndexHtml, patchManifest } from "./app2app_v2/patch-v2.mjs";
-// Das Banner ohne Herkunftsangabe; den Commit stempelt branch-stamp.mjs beim
-// Deploy dazu, weil er hier noch nicht existiert.
+// The banner without the provenance line; branch-stamp.mjs stamps the commit
+// in at deploy time, because it does not exist yet here.
 import { banner } from "./branch-stamp.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -70,21 +71,21 @@ const webapp = join(core, "app/webapp");
 // inherits - lives outside this folder; tools/ holds only what runs.
 const data = join(core, "frontend");
 
-// Die vier veroeffentlichten Branches landen im eingecheckten build/, jeder
-// andere Name (renamed variant, Probelauf) im gitignorierten tools/out/. Kein
-// Schalter: so kann ein Ad-hoc-Build den committeten Baum nicht anfassen, und
-// der Deploy findet die vier immer an derselben Stelle.
+// The four published branches land in the checked-in build/, every other name
+// (renamed variant, trial run) in the gitignored tools/out/. No switch: this
+// way an ad-hoc build cannot touch the committed tree, and the deploy always
+// finds the four in the same place.
 const generated = join(core, "build");
 const scratch = join(here, "out");
 const PUBLISHED = ["cloud", "cloud_v2", "standard", "standard_v2"];
 const outDir = (branch) => join(PUBLISHED.includes(branch) ? generated : scratch, branch);
 
-// Dateien, die jeder Output-Branch erbt (kein Tooling, kein CI); nicht (mehr)
-// vorhandene werden uebersprungen. README.md fehlt hier absichtlich: es wird
-// in initBranch mit vorangestelltem Banner geschrieben, nicht kopiert.
+// Files every output branch inherits (no tooling, no CI); ones that are not
+// (or no longer) there are skipped. README.md is deliberately missing here: it
+// is written in initBranch with the banner prepended, not copied.
 const COMMON = [".gitignore", "CODE_OF_CONDUCT.md", "LICENSE", "SECURITY.md"];
 
-// abapGit-Deskriptoren wie auf den bisherigen Branches
+// abapGit descriptors as on the previous branches
 const ABAPGIT_CLOUD = `﻿<?xml version="1.0" encoding="utf-8"?>
 <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
  <asx:values>
@@ -116,8 +117,9 @@ function initBranch(branch, abapgitXml) {
   for (const f of COMMON) if (existsSync(join(data, "common", f))) cpSync(join(data, "common", f), join(dir, f));
   writeFileSync(join(dir, "README.md"), banner(branch) + "\n" + readFileSync(join(data, "common/README.md"), "utf8"));
   writeFileSync(join(dir, ".abapgit.xml"), abapgitXml);
-  // abaplint-Config von main, Quellpfad auf /src/ der Output-Branches gedreht;
-  // ohne sie meldet der abaplint-Check auf den Output-Branches immer rot
+  // abaplint config from main, source path turned to the /src/ of the output
+  // branches; without it the abaplint check on the output branches always
+  // reports red
   // Same config that lints frontend/abap/cloud in place, with its glob turned
   // from the folder it sits in to the /src/ of an output branch. Guarded: a
   // silent miss would ship a config that lints nothing and reports green.
@@ -128,14 +130,14 @@ function initBranch(branch, abapgitXml) {
   return dir;
 }
 
-// Gegen den Pfad RELATIV zum Repo getestet: der absolute Checkout-Pfad kann
-// selbst ein dist/- oder .git-Segment tragen (~/dist/abap2UI5), und dann
-// filtert der Test die Wurzel weg und cpSync kopiert stumm nichts.
+// Tested against the path RELATIVE to the repo: the absolute checkout path can
+// itself carry a dist/ or .git segment (~/dist/abap2UI5), and then the test
+// filters the root away and cpSync silently copies nothing.
 const skipBuildArtifacts = (src) =>
   !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(relative(core, src));
 
-// Leise im Erfolgsfall, nie im Fehlerfall: das verworfene Log sagt als
-// einziges, WARUM ein Schritt scheiterte (Muster wie runUi5Build in
+// Quiet on success, never on failure: the discarded log is the only thing
+// that says WHY a step failed (same pattern as runUi5Build in
 // app2bsp/preload.js).
 function runQuiet(args, cwd) {
   try {
@@ -162,26 +164,26 @@ const skipDevProjectFiles = (src) => !DEV_ONLY.has(relative(join(core, "app"), s
 // own copy at the root (see initBranch), with the glob turned to /src/.
 const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
 
-/* Wo das Backend liegt, entscheidet die Deployment-Art - und die beiden
- * Stacks veroeffentlichen denselben Dienst unter verschiedenen Pfaden:
+/* Where the backend lives is decided by the kind of deployment - and the two
+ * stacks publish the same service under different paths:
  *
- *   on premise   /sap/bc/z2ui5          SICF-Knoten (build/standard*)
- *   ABAP Cloud   /sap/bc/http/sap/z2ui5 HTTP Service Z2UI5
+ *   on premise   /sap/bc/z2ui5          SICF node (build/standard*)
+ *   ABAP Cloud   /sap/bc/http/sap/z2ui5 HTTP service Z2UI5
  *                                       (frontend/abap/cloud/01/z2ui5.http.xml)
  *
- * app/webapp/manifest.json traegt den On-Premise-Pfad, weil dort entwickelt
- * und die BSP-Variante daraus gebaut wird. Die Cloud-Branches kopierten ihn
- * bisher mit - und ein Fiori-Deployment auf Steampunk schickt seine POSTs dann
- * an einen ICF-Knoten, den es dort nicht gibt: 403 ICFEUCONFORBIDDEN, ohne
- * Hinweis worauf (Issue #2602).
+ * app/webapp/manifest.json carries the on-premise path, because that is where
+ * development happens and where the BSP variant is built from. The cloud
+ * branches used to copy it along - and a Fiori deployment on Steampunk then
+ * sends its POSTs to an ICF node that does not exist there: 403
+ * ICFEUCONFORBIDDEN, with no hint what about (Issue #2602).
  *
- * Nur die separat deployte Webapp ist betroffen. Serviert das Backend die
- * GET-Seite selbst, setzt sie `checkLocal` und App.controller nimmt
- * `window.location.href` - der Manifest-Eintrag wird dann gar nicht gelesen.
+ * Only the separately deployed webapp is affected. If the backend serves the
+ * GET page itself, it sets `checkLocal` and App.controller takes
+ * `window.location.href` - the manifest entry is then not read at all.
  *
- * Der Guard ist der Punkt: faende der Ersatz seinen Pfad nicht mehr, wuerde
- * hier stillschweigend wieder die On-Premise-URL ausgeliefert, und der Fehler
- * kaeme als 403 im System eines Anwenders zurueck statt hier im Build. */
+ * The guard is the point: if the replacement no longer found its path, the
+ * on-premise URL would silently be delivered again here, and the error would
+ * come back as a 403 in a user's system instead of here in the build. */
 const ONPREM_URI = "/sap/bc/z2ui5";
 const CLOUD_URI = "/sap/bc/http/sap/z2ui5";
 
@@ -199,9 +201,9 @@ function patchCloudBackendUri(manifestJson) {
   return JSON.stringify(m, null, 2) + "\n";
 }
 
-// Webapp + ABAP-Cloud-Artefakte 1:1 von main; die Backend-URL wird auf den
-// HTTP-Service-Pfad gedreht, fuer cloud_v2 zusaetzlich der Webapp-Bootstrap
-// auf legacy-free gepatcht.
+// Webapp + ABAP cloud artefacts 1:1 from main; the backend URL is turned to
+// the HTTP service path, and for cloud_v2 the webapp bootstrap is patched to
+// legacy-free on top.
 function buildCloudVariant(branch) {
   const dir = initBranch(branch, ABAPGIT_CLOUD);
   cpSync(join(core, "app"), join(dir, "app"), {
@@ -218,13 +220,13 @@ function buildCloudVariant(branch) {
   }
 }
 
-// Klassische BSP via app2bsp + ICF-Handler
+// Classic BSP via app2bsp + ICF handler
 function buildStandard(branch = "standard") {
   const dir = initBranch(branch, ABAPGIT_STANDARD);
   const work = join(scratch, "_work_standard");
-  // Reste eines abgebrochenen Laufs wuerden sonst mitgebaut: cpSync merged
-  // nur dazu, und eine inzwischen geloeschte Webapp-Datei bliebe als
-  // registrierte BSP-Seite im Baum.
+  // Leftovers of an aborted run would otherwise be built in as well: cpSync
+  // only merges on top, and a webapp file deleted in the meantime would stay
+  // in the tree as a registered BSP page.
   rmSync(work, { recursive: true, force: true });
   cpSync(join(here, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
   cpSync(webapp, join(work, "frontend/app/webapp"), { recursive: true, filter: skipBuildArtifacts });
@@ -252,18 +254,18 @@ const BUILDERS = {
   standard_v2: () => buildStandardV2(),
 };
 
-// standard_<NAME> / standard_v2_<NAME>: Basis bauen, dann die komplette
-// Deployment-Identitaet (BSP, SICF-Knoten, Handler-Klasse, Dateinamen) im
-// generierten src-Tree auf <NAME> umbenennen. Namensvalidierung (max. 15
-// Zeichen, Z/Y-Namensraum-Warnung, /NS/-Namen) uebernimmt rename-bsp.mjs;
-// die #ns#name-Schreibweise reicht es unveraendert durch.
+// standard_<NAME> / standard_v2_<NAME>: build the base, then rename the whole
+// deployment identity (BSP, SICF node, handler class, file names) in the
+// generated src tree to <NAME>. Name validation (max. 15 characters, Z/Y
+// namespace warning, /NS/ names) is done by rename-bsp.mjs; it passes the
+// #ns#name notation through unchanged.
 function renamedBuilder(branch) {
   for (const base of ["standard_v2", "standard"]) {
     const prefix = `${base}_`;
     if (!branch.startsWith(prefix)) continue;
     const name = branch.slice(prefix.length);
-    // Leerer Name ("standard_v2_") ist ein Fehler - er darf nicht auf die
-    // kuerzere Basis durchfallen und dort als Name "v2_" gebaut werden.
+    // An empty name ("standard_v2_") is an error - it must not fall through to
+    // the shorter base and be built there with "v2_" as the name.
     if (!name) return null;
     const buildBase = base === "standard" ? buildStandard : buildStandardV2;
     return () => {
@@ -279,10 +281,10 @@ function renamedBuilder(branch) {
 const requested = process.argv.slice(2);
 const branches = requested.length ? requested : Object.keys(BUILDERS);
 const builds = branches.map((b) => {
-  // Dasselbe Muster wie der Guard in frontend_deploy.yaml - hier noch einmal,
-  // weil initBranch mit rmSync auf outDir(b) beginnt und ein Name wie
-  // "standard_x/../../.." sonst ausserhalb von build//tools/out loeschen wuerde,
-  // bevor rename-bsp ihn je validiert.
+  // The same pattern as the guard in frontend_deploy.yaml - here once more,
+  // because initBranch starts with rmSync on outDir(b) and a name like
+  // "standard_x/../../.." would otherwise delete outside of build//tools/out,
+  // before rename-bsp ever validates it.
   if (!/^[A-Za-z0-9_#]+$/.test(b)) {
     console.error(`Ungueltiger Branch-Name '${b}' - erlaubt sind nur [A-Za-z0-9_#]`);
     process.exit(1);
