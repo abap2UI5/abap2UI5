@@ -111,6 +111,7 @@ Three sample repositories accompany the framework. They build on each other – 
 All samples are ready to run – install them with abapGit and explore the source code.
 
 #### References
+* UI5 in ABAP Cloud (without RAP or Fiori Elements) [(LinkedIn - 17.08.2026)](https://blog.decabase.com/ui5-in-abap-cloud-without-rap-or-fiori-elements-4e8a70d961c3)
 * Fiori-type Apps built 100% with ABAP [(Logali Group - 23.04.2026)](https://logaligroup.com/magia-en-el-servidor-local-apps-tipo-fiori-creadas-100-con-codigo-abap/)
 * Webinar on Launchpad Integration [(YouTube - 30.07.2025)](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P)
 * Featured on SAP Developer News [(YouTube - 21.03.2025)](https://www.youtube.com/watch?v=vKrpkDe2mkU&list=PL6RpkC85SLQAVBSQXN9522_1jNvPavBgg&t=90s)
@@ -151,44 +152,7 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 
 #### AI Assistants
 
-Almost everything ever published about abap2UI5 shows `z2ui5_cl_xml_view`, the
-view builder that has since been frozen. A model asked cold will write that —
-it compiles and it renders, so nothing complains. **Give it the current
-sources first.** Paste this ahead of your task:
-
-```text
-Before writing any abap2UI5 code, read https://abap2ui5.github.io/docs/llms.txt
-and follow it to the pages you need.
-
-Four things that override whatever you remember about abap2UI5:
-1. An app is ONE ABAP class implementing z2ui5_if_app. Everything enters main( ),
-   which dispatches on client->check_on_init( ), client->check_on_event( `X` ) and
-   client->check_on_navigated( ).
-2. Build the view with z2ui5_cl_ui5_view_builder and its verbs ele / tag / a / end /
-   stringify. z2ui5_cl_xml_view is the FROZEN predecessor - it is what most examples
-   online show, and it is not what to write.
-3. Bind with client->_bind( ). It is bidirectional; only what the user edited comes back.
-4. Every roundtrip is a fresh ABAP session. Nothing survives on the server except
-   the app class itself, which is serialized.
-
-Before building something from scratch, check whether it exists: 152 complete apps
-are listed with search terms at
-https://github.com/abap2UI5/samples/blob/main/SAMPLES.md
-
-When you are done, check the result with the abap2UI5-linter
-(npx abap2ui5lint) - it reads the view your ABAP builds and needs no SAP system.
-```
-
-Then, depending on how much setup you want:
-
-| | |
-|---|---|
-| [llms.txt](https://abap2ui5.github.io/docs/llms.txt) | the documentation as a map, one fetch. [llms-full.txt](https://abap2ui5.github.io/docs/llms-full.txt) is all of it in one document, and every page is served as raw markdown next to its `.html` |
-| [ai-mcp](https://github.com/abap2UI5/ai-mcp) | MCP server: query the sample catalogue, validate a view, deploy, build, boot the app headless and **look at a screenshot**. No SAP system. This is the setup that closes the loop |
-| [app-template](https://github.com/abap2UI5/app-template) | start a project here — both gates, CI and an `AGENTS.md` for your own repo, already wired up |
-| [linter](https://github.com/abap2UI5/linter) | the check to run on generated code. It reports a class written on the frozen builder, which is the most common thing a model gets wrong |
-| [docs/agents/building-apps.md](docs/agents/building-apps.md) | self-contained offline guide for **building apps**, when fetching is not an option |
-| [AGENTS.md](AGENTS.md) · [llms.txt](llms.txt) | for work **on the framework itself** — architecture, layering, coding rules, and a map of the code |
+Coming soon...
 
 #### Get Involved
 We welcome all contributions! Here's how you can help:
