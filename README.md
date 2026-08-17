@@ -52,7 +52,7 @@ That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
 #### How It Works
 
-Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip – once at startup and once per user interaction – and your app decides what happens:
+Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did:
 
 ```abap
 METHOD z2ui5_if_app~main.
