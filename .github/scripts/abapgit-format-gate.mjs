@@ -41,8 +41,9 @@
 // (frozen) are excluded from lint on purpose - flagging their historical
 // trailing blanks would produce ~100 findings nobody is allowed to fix.
 
-import { readdirSync, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import { join } from "path";
+import { walk } from "./lib/walk.mjs";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 
@@ -51,16 +52,7 @@ const add = (file, rule, message) => findings.push({ file, rule, message });
 
 // ---------------------------------------------------------------- collect
 
-function walk(dir, out = []) {
-  for (const entry of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
-    const rel = `${dir}/${entry.name}`;
-    if (entry.isDirectory()) walk(rel, out);
-    else out.push(rel);
-  }
-  return out;
-}
-
-const files = walk("src").sort();
+const files = walk(ROOT, "src").sort();
 const dirs = [...new Set(files.map(f => f.slice(0, f.lastIndexOf("/"))))];
 
 // The repository's master language, as abapGit records it. Every serialized

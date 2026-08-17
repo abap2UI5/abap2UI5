@@ -77,8 +77,8 @@ module.exports = defineConfig(
        silently boot the evergreen CDN build and gate nothing. To promote
        one, port it to ./tests/e2e/fixtures and to the shared page fixture
        first, then verify it against 1.71 and widen this testMatch. Runs as
-       its own CI step in test_browser.yaml; for sandboxes without CDN
-       egress see UI5_PINNED_RESOURCES in tests/e2e/fixtures.js. */
+       its own leg of the `browser` matrix in test.yaml; for sandboxes
+       without CDN egress see UI5_PINNED_RESOURCES in tests/e2e/fixtures.js. */
     {
       name: 'ui5-1.71',
       testMatch: /e2e[/\\](example|roundtrip)\.spec\.js$/,

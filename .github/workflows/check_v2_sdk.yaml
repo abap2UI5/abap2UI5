@@ -15,6 +15,12 @@ on:
   schedule:
     - cron: '30 5 2 * *'   # monthly
 
+# No cancel-in-progress: the run files an issue, and a cancelled one files
+# nothing. The group stops a dispatch and the monthly cron from filing the
+# same issue twice.
+concurrency:
+  group: check_v2_sdk
+
 permissions:
   contents: read
   issues: write  # to report failed scheduled runs

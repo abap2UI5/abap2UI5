@@ -1,23 +1,23 @@
 #!/usr/bin/env node
 // build-legacy-free.mjs
-// Erzeugt den legacy-free (UI5 2.0) BSP-Stand 1:1 aus dem klassischen
-// abap2UI5-Frontend (app/webapp) + minimalem Bootstrap-Patch.
+// Produces the legacy-free (UI5 2.0) BSP state 1:1 from the classic abap2UI5
+// frontend (app/webapp) + a minimal bootstrap patch.
 //
-//   app/webapp -> [Bootstrap-Patch] -> app2bsp/preload.js -> app2bsp/run.js [-> bsp_rename(--name)]
+//   app/webapp -> [bootstrap patch] -> app2bsp/preload.js -> app2bsp/run.js [-> bsp_rename(--name)]
 //
-// Nur index.html + manifest.json werden angepasst (alles andere bleibt 1:1).
-// Das Ergebnis hat dieselbe Paketstruktur wie der standard-Branch:
-//   src/package.devc.xml  (Root-Paket)
-//   src/01/               (ICF-Handler, aus abap/standard)
-//   src/02/               (BSP-Seite)
-// Die BSP heisst per Default Z2UI5 (wie das klassische Frontend, kein Rename);
-// mit --name Z2UI5_V2 wird fuer eine Parallelinstallation umbenannt.
-// Aufruf:  node tools/app2app_v2/build-legacy-free.mjs <repo-root> <webapp> <out-dir> [--name Z2UI5_V2] [--own-backend]
+// Only index.html + manifest.json are adjusted (everything else stays 1:1).
+// The result has the same package structure as the standard branch:
+//   src/package.devc.xml  (root package)
+//   src/01/               (ICF handler, from abap/standard)
+//   src/02/               (BSP page)
+// The BSP is called Z2UI5 by default (like the classic frontend, no rename);
+// with --name Z2UI5_V2 it is renamed for a parallel installation.
+// Usage:  node tools/app2app_v2/build-legacy-free.mjs <repo-root> <webapp> <out-dir> [--name Z2UI5_V2] [--own-backend]
 
 import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-// der einzige inhaltliche Eingriff: Bootstrap auf legacy-free umstellen
+// the only change in substance: switch the bootstrap to legacy-free
 import { patchIndexHtml, patchManifest } from "./patch-v2.mjs";
 
 const [repoRoot, cloudWebapp, outDir] = process.argv.slice(2);
@@ -37,26 +37,26 @@ const bspName = nameIdx > -1 ? process.argv[nameIdx + 1] : "Z2UI5";
 const renamed = bspName.toUpperCase() !== "Z2UI5";
 const BSP_WIDTH = 255;
 
-// BSP-Page-Format (255-Zeichen-Zeilen, kein Schluss-Newline) – wie app2bsp
+// BSP page format (255-character lines, no trailing newline) - like app2bsp
 function rePad(line) { return line.length <= BSP_WIDTH ? line.padEnd(BSP_WIDTH)
   : line.match(new RegExp(`.{1,${BSP_WIDTH}}`, "g")).map(x => x.padEnd(BSP_WIDTH)).join("\n"); }
 
 const work = join(outDir, "_work");
 rmSync(outDir, { recursive: true, force: true }); mkdirSync(work, { recursive: true });
 
-// 1) Tooling + saubere cloud-Webapp bereitstellen
+// 1) provide the tooling + a clean cloud webapp
 cpSync(join(toolsDir, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
 cpSync(join(toolsDir, "bsp_rename"), join(work, ".github/bsp_rename"), { recursive: true });
 cpSync(cloudWebapp, join(work, "frontend/app/webapp"), { recursive: true });
 
-// 2) Bootstrap-Patch
+// 2) bootstrap patch
 const wa = join(work, "frontend/app/webapp");
 writeFileSync(join(wa, "index.html"), patchIndexHtml(readFileSync(join(wa, "index.html"), "utf8")));
 writeFileSync(join(wa, "manifest.json"), patchManifest(readFileSync(join(wa, "manifest.json"), "utf8")));
 
-// 3) preload.js  +  app2bsp  +  4) optionales Rename (nur mit --name, z.B. Z2UI5_V2)
-// Leise im Erfolgsfall, nie im Fehlerfall: das verworfene Log sagt als
-// einziges, WARUM ein Schritt scheiterte.
+// 3) preload.js  +  app2bsp  +  4) optional rename (only with --name, e.g. Z2UI5_V2)
+// Quiet on success, never on failure: the discarded log is the only thing
+// that says WHY a step failed.
 function runQuiet(args) {
   try {
     execFileSync("node", args, { cwd: work, stdio: ["ignore", "pipe", "pipe"] });
@@ -72,7 +72,7 @@ if (renamed) {
   runQuiet([".github/bsp_rename/rename-bsp.mjs", bspName, "--dir", "src/02", "--yes"]);
 }
 
-// 5) Backend-Datasource: default geteilt (/sap/bc/z2ui5), --own-backend = /sap/bc/<name>
+// 5) backend datasource: shared by default (/sap/bc/z2ui5), --own-backend = /sap/bc/<name>
 const bsp = join(work, "src/02");
 if (renamed && !ownBackend) {
   const svc = `/sap/bc/${bspName.toLowerCase()}`;
@@ -83,7 +83,7 @@ if (renamed && !ownBackend) {
   writeFileSync(mf, fixed);
 }
 
-// 6) Paketstruktur wie im standard-Branch: Root-Paket + 01 (ICF-Handler) + 02 (BSP)
+// 6) package structure as in the standard branch: root package + 01 (ICF handler) + 02 (BSP)
 cpSync(join(dataDir, "abap/standard"), join(outDir, "src"), { recursive: true });
 cpSync(bsp, join(outDir, "src/02"), { recursive: true });
 rmSync(work, { recursive: true, force: true });

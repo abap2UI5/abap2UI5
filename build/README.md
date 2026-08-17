@@ -28,6 +28,29 @@ This is the same contract `src/01/03/` has against `app/webapp/`: generated,
 committed, and gated. `frontend_check.yaml` rebuilds all four on every pull
 request and fails on any difference.
 
+## Reading a diff of this folder
+
+Two things make a change here look far bigger than it is. Both are intended;
+this section exists so nobody "cleans up" either one.
+
+**A `_v2` tree is its base plus three files.** `cloud_v2` differs from `cloud`
+only in `README.md`, `app/webapp/index.html` and `app/webapp/manifest.json`;
+`standard_v2` differs from `standard` only in `README.md`,
+`src/02/z2ui5.wapa.index.html` and `src/02/z2ui5.wapa.manifest.json`. Everything
+else is byte-identical, because legacy-free is a **bootstrap** patch
+(`tools/app2app_v2/patch-v2.mjs`), not a different build. So a change to the
+webapp shows up twice on each side, and a 150-file diff here is usually a
+6-file change. Storing only the delta was considered and rejected: it would put
+back exactly the build step the section above removes from the deploy.
+
+**`app/package-lock.json` is here twice** (in `cloud/app/` and `cloud_v2/app/`),
+byte-identical to the one at the repository root — about 900 KB of the tree.
+It is not redundancy to collect. The cloud branches deliver the *complete Fiori
+source project*: someone who pulls that branch runs `npm ci` inside it, and a
+delivered project without its lockfile resolves floating versions, which is the
+drift every other pin in this repository exists to prevent. The 900 KB buys the
+consumer the same toolchain this repository built against.
+
 ## When they change
 
 Whenever `app/webapp/`, `frontend/` or `tools/` changes:

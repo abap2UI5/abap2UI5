@@ -9,6 +9,12 @@ description: >
   Checkout stays with the caller: a local action can only run once the
   repository is on disk, so `actions/checkout` has to come first.
 
+  `trigger_local.yaml` cannot use this action - both of its checkouts go to
+  subdirectories, so there is no repository at the workspace root to load it
+  from. It therefore pins actions/setup-node itself, and that pin has to be
+  kept equal to the one below; they had already drifted a major version
+  apart, which is the drift this action exists to end.
+
 inputs:
   cache:
     description: >
@@ -30,9 +36,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+    # node-version-file, not a literal: `.nvmrc` is the one place the version
+    # is written, so a contributor with nvm/fnm lands on what CI runs instead
+    # of on whatever satisfies the `>=22` floor in package.json.
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
-        node-version: "22"
+        node-version-file: .nvmrc
         cache: ${{ inputs.cache == 'true' && 'npm' || '' }}
 
     - if: inputs.npm-ci == 'true' || inputs.deps == 'true'
@@ -42,6 +51,19 @@ runs:
     - if: inputs.app-npm-ci == 'true'
       shell: bash
       run: npm --prefix app ci
+
+    # The three dependencies are pinned by sha IN fetch-deps.mjs, so the file
+    # that names them is the cache key: it changes exactly when a pin is
+    # bumped. Without this every job that lints or downports re-clones all
+    # three, which is four jobs and twelve clones on an ordinary pull request.
+    # fetch-deps.mjs still runs on a hit - it is a ~50ms no-op when the
+    # checkout is already at the pinned sha, and it is what repairs a partial
+    # restore.
+    - if: inputs.deps == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: node/deps
+        key: abap-deps-${{ runner.os }}-${{ hashFiles('node/setup/fetch-deps.mjs') }}
 
     - if: inputs.deps == 'true'
       shell: bash

@@ -13,13 +13,17 @@ abapGit — a pull of `main` installs what is there. A tag is for everyone else:
 it is the only thing in this repository that does not move.
 
 That matters more than it sounds. The whole ecosystem resolves the framework by
-tag or by branch, and today the newest tag is **1.142.0 (2026-07-21)** while
-`z2ui5_cl_ui5_view_builder` reached `main` on **2026-08-12**. So the samples,
-samples-controls, samples-stack, app-template and the documentation all teach a
-builder that no released version carries, and
-[app-template](https://github.com/abap2UI5/app-template) cannot pin its
-abaplint dependency at all — it has to resolve `main`, which means its check
-result depends on the day it runs.
+tag or by branch, so whenever `main` carries an API the newest tag does not,
+every repository that teaches that API is teaching something no released
+version can install — and anything that has to pin `main` instead of a tag gets
+a check result that depends on the day it runs.
+
+That is not hypothetical: `z2ui5_cl_ui5_view_builder` reached `main` on
+**2026-08-12** while the newest tag was still **1.142.0 (2026-07-20)**, and for
+those four days the samples, samples-controls, samples-stack, app-template and
+the documentation all taught a builder no release carried. **1.143.0** closed
+it. The gap is the cost of a skipped release, and it is paid by five other
+repositories rather than by this one — which is why nothing here measures it.
 
 **A release that is a chore gets skipped.** That is why it is a tag push now.
 
@@ -41,7 +45,7 @@ changelog.
 1. **`changelog.txt`** — move the `unreleased` entries under a heading:
 
    ```
-   2026-08-15 v1.143.0
+   2026-08-16 v1.143.0
    -------------------
    ```
 
@@ -86,9 +90,10 @@ tab: same gates, same notes, no tag and no release.
 
 ## After a release
 
-- **The ecosystem can pin again.** `app-template`'s `abaplint.jsonc` resolves
-  the framework from `main` because no tag carried the current builder; once
-  one does, that dependency should name the tag, and the same goes for anything
-  else pinning `main` out of necessity rather than choice.
+- **The ecosystem can pin again.** Anything resolving the framework from `main`
+  out of necessity rather than choice should name the new tag once it carries
+  what that repository needs. `app-template`'s `abaplint.jsonc` is the standing
+  case: it went to `main` because no tag carried the current builder, and
+  1.143.0 is the first one that does.
 - **`docs`** documents the version it describes; a release is the moment to
   check that what it teaches is in the tag.
