@@ -87,6 +87,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:skills
 
+      # the four backlogs are generated from vorrat/items and the skills'
+      # **Vorrat:** lines - a hand-edited page is the thing this replaced
+      - name: the backlog pages match their items
+        if: ${{ !cancelled() }}
+        run: npm run check:vorrat
+
       - name: the two version numbers agree
         if: ${{ !cancelled() }}
         run: npm run check:version

@@ -338,6 +338,8 @@ system, or must fetch data dynamically.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
+**Vorrat:** abaplint · abaplint-abapdoc-block-placement, abaplint-abapdoc-html-escaping
+
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
 hold: `43515c97`, `0d9a7485`, `5b9e16ea` and `44642cbe` are four separate
@@ -390,6 +392,8 @@ pitfalls".
 **Gate: this repo** — `npm run verify` builds all three targets and runs the
 transpiled tests. Nothing here is a linter rule and nothing here should be: the
 downport is a build of this repository, not a property of somebody's app.
+
+**Vorrat:** open-abap · transpiler-reserved-js-identifiers
 
 Every framework file is downported to 7.02 (`npm run auto_downport`) and
 transpiled to JS (`npm run auto_transpile`), and is linted against
@@ -444,6 +448,8 @@ the frozen legacy.
 The rest needs a running system with real data and is written down here
 precisely because no gate will catch it.
 
+**Vorrat:** abaplint · abaplint-subrc-after-assign, abaplint-delete-index-in-loop
+
 - **After `ASSIGN`, check `IS ASSIGNED` — not `sy-subrc`.** A 7.40 SP7 system
   ran every abap2UI5 app into an endless loop because `sy-subrc` was still `4`
   from an earlier `READ TABLE` when `attri_get_val_ref` tested it: the dynamic
@@ -494,8 +500,8 @@ precisely because no gate will catch it.
   `DELETE`, the response structures) do have it, which is why only the
   `EXECUTE` statements were flagged and the `READ ENTITIES` in the same class
   was not. `cebe6bd`.
-- **`DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the SAME table is a
-  silent wrong answer on a system and a 500 on the Node backend.** Deleting the
+- **`DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the SAME table has two
+  failure modes, and only the loud one is reliably visible.** Deleting the
   current row shifts every row after it while the loop's own cursor walks on,
   so the row *after* each deletion is skipped:
 
@@ -505,11 +511,19 @@ precisely because no gate will catch it.
         ENDIF.
       ENDLOOP.
 
-  On a real system this does not dump. It returns a plausible-looking, WRONG
-  result — a filter that keeps rows it was told to drop. The transpiled Node
-  backend is stricter and raises `TABLE_INVALID_INDEX`, which is how the case
-  was found at all (an e2e interaction driving samples-controls' app 352 got an
-  HTTP 500 out of its `listClose` round-trip, 2026-08-17).
+  Where `sy-tabix` is merely STALE but positive, nothing dumps: the statement
+  returns a plausible-looking, WRONG result — a filter that keeps rows it was
+  told to drop. Where it has been reset to **0** — an inner loop that has
+  ended, a `DO` between the `LOOP` and the `DELETE` — index 0 is a short dump,
+  and `TABLE_INVALID_INDEX` is the ABAP runtime error's own name for it.
+
+  Found by an e2e interaction driving samples-controls' app 352, whose
+  `listClose` round-trip answered HTTP 500 with that error (2026-08-17).
+  **Do not read that as the transpiler being stricter than a system** — it was
+  checked, and it is not: `@abaplint/runtime` 2.13.59's `deleteInternal`
+  raises for index 0 and sets `sy-subrc = 4` for an out-of-range one, which is
+  what a real system does. The transpiled backend found this because it was
+  exercised, not because it judges harder.
 
   A pattern search then found it **eight times** across the ecosystem: four
   ports in `abap2UI5/samples-controls` (352 twice, 354, 298, 377), three in

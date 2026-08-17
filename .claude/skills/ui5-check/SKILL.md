@@ -190,6 +190,8 @@ in a gate here rather than in the view linter, unless the linter grows a
 frontend-module input — which nothing else is asking for. The theme half is
 configuration, not view content; **out of scope**, keep it as prose.
 
+**Vorrat:** abap2ui5-linter · linter-frontend-module-since
+
 ---
 
 ## 2. Layout that only works from a newer release on
@@ -331,7 +333,17 @@ Not about names or layout — these only show up when the app runs.
   default in the binding, which the same port already does for a nullable
   date one line above:
 
-      )->a( n = `secondaryType` v = |\{= $\{SECONDARY_TYPE} ? $\{SECONDARY_TYPE} : 'None' }|
+      )->a( n = `secondaryType` v = `{= ${SECONDARY_TYPE} ? ${SECONDARY_TYPE} : 'None' }`
+
+  **Write an expression binding as a backtick literal, not as a string
+  template.** A template would have to escape every brace — `\{`, `\}` and the
+  `\}` of each `$\{…\}` — and one missed escape is a `parser_error` on the
+  whole statement, not a wrong string. Measured on abaplint 2.120.24: the
+  half-escaped forms are rejected, the fully escaped
+  `|\{= $\{X\} ? $\{X\} : 'None' \}|` parses, and the backtick literal above
+  says the same thing with nothing to escape. Nothing in the expression needs
+  interpolating from ABAP — the `$` paths are resolved by UI5 — so the
+  template buys nothing anyway.
 
   The trap is structural rather than particular to that control: ABAP has no
   null, an unfilled `TYPE string` serialises as `""`, and **`""` is a member of
@@ -367,8 +379,10 @@ expression binding with the enum's default as the else branch.
 
 What it must NOT do is fire on every enum binding: a property bound outside a
 template, or one whose table can never be emptied, is fine, and a rule that
-reported all of them would be routed around. Left **open** with that scope
-rather than filed as a wish.
+reported all of them would be routed around. Written up with that scope rather
+than filed as a wish — it is in the stock now, waiting for somebody to open it.
+
+**Vorrat:** abap2ui5-linter · linter-enum-empty-in-template
 
 ---
 
