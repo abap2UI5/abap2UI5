@@ -123,13 +123,15 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `` && |\n| &&
              `    // A group is a top-level tab. They are ordered the way a session` && |\n| &&
              `    // runs: what is going on, what broke, what went over the wire, what` && |\n| &&
-             `    // the screen is made of, what the system underneath looks like.` && |\n| &&
+             `    // the screen is made of, what the system underneath looks like -` && |\n| &&
+             `    // and last the cross-tab search, which is about all of them at once.` && |\n| &&
              `    const GROUPS = [` && |\n| &&
              `      { key: "OVERVIEW", label: "Overview" },` && |\n| &&
              `      { key: "PROBLEMS", label: "Problems" },` && |\n| &&
              `      { key: "ROUNDTRIPS", label: "Roundtrips" },` && |\n| &&
              `      { key: "VIEWDATA", label: "View & Data" },` && |\n| &&
              `      { key: "SYSTEM", label: "System" },` && |\n| &&
+             `      { key: "SEARCH", label: "Search" },` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
              `    const DEFAULT_GROUP = "OVERVIEW";` && |\n| &&
@@ -420,12 +422,30 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        searchable: true,` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // -------- Search --------` && |\n| &&
+             `      // The cross-tab search as a tab of its own. It used to be a` && |\n| &&
+             `      // permanent field in the dialog's sub-header, and the result` && |\n|.
+    result = result &&
+             `      // silently replaced whatever tab was open underneath - which read` && |\n| &&
+             `      // as the tab's own content having changed. As a tab, entering and` && |\n| &&
+             `      // leaving the result is the same navigation as everywhere else.` && |\n| &&
+             `      {` && |\n| &&
+             `        key: "SEARCH",` && |\n| &&
+             `        group: "SEARCH",` && |\n| &&
+             `        label: "Search",` && |\n| &&
+             `        // Rendered by the dialog, not by produce(): the result depends` && |\n| &&
+             `        // on the entered term, which lives in the dialog model.` && |\n| &&
+             `        kind: "search",` && |\n| &&
+             `        produce: () => "",` && |\n| &&
+             `        // The search must not scan its own result.` && |\n| &&
+             `        searchable: false,` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      // -------- System --------` && |\n| &&
              `      {` && |\n| &&
              `        key: "ENV",` && |\n| &&
              `        group: "SYSTEM",` && |\n| &&
-             `        label: "Environment",` && |\n|.
-    result = result &&
+             `        label: "Environment",` && |\n| &&
              `        kind: "text",` && |\n| &&
              `        produce: () => Inspect.formatEnvironment(),` && |\n| &&
              `        // First section of the export on purpose: versions, UI5` && |\n| &&

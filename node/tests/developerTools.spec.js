@@ -8,7 +8,7 @@ const { loadModule } = require("./loadModule");
 // is exercised here is the composition that ships. Only the leaf modules
 // that own their own behaviour (and their own specs) are stubbed.
 //
-// What the dialog is responsible for, and what these specs pin: five
+// What the dialog is responsible for, and what these specs pin: six
 // groups instead of twenty-two flat tabs, the two selectors of View &
 // Data, and getting the right string into the editor. What a tab IS lives
 // in Tabs.js (devtoolsTabs.spec.js), the report in Report.js
@@ -652,28 +652,41 @@ test.describe("Search", () => {
       responseData: { S_FRONT: { ID: "x" }, MODEL: { CUSTOMER: "Miller AG" } },
     });
 
-  test("renders the result and marks the dialog as showing one", () => {
+  test("searching renders the result on the Search tab", () => {
     const { DeveloperTools } = searchable();
     const { model, data } = fakeModel();
     DeveloperTools.onSearch({
       getSource: () => ({ getValue: () => "CUSTOMER", getModel: () => model }),
     });
     expect(data.searchTerm).toBe("CUSTOMER");
-    expect(data.searchResult).toBe(true);
+    expect(data.selectedTab).toBe("SEARCH");
+    expect(data.selectedGroup).toBe("SEARCH");
+    expect(data.isSearch).toBe(true);
     expect(data.value).toContain("View & Data > Main > XML");
     expect(data.type).toBe("text");
   });
 
-  // Search is no longer a tab you have to navigate to and then leave -
-  // picking any view is how you leave it.
-  test("picking a view leaves the search result behind", () => {
+  test("opening the Search tab without a term asks for one", () => {
+    const { DeveloperTools } = searchable();
+    const { model, data } = fakeModel({ searchTerm: "" });
+    DeveloperTools.renderTab("SEARCH", model);
+    expect(data.value).toContain("enter a search term");
+    expect(data.isSearch).toBe(true);
+  });
+
+  // The search is a tab again, so leaving and returning is plain
+  // navigation - the term stays in the model and the result comes back.
+  test("returning to the Search tab re-renders the kept term", () => {
     const { DeveloperTools } = searchable();
     const { model, data } = fakeModel();
     DeveloperTools.onSearch({
       getSource: () => ({ getValue: () => "CUSTOMER", getModel: () => model }),
     });
     DeveloperTools.renderTab("LOG", model);
-    expect(data.searchResult).toBe(false);
+    expect(data.isSearch).toBe(false);
+    expect(data.value).toBe("(log)");
+    DeveloperTools.renderTab("SEARCH", model);
+    expect(data.value).toContain("View & Data > Main > XML");
   });
 
   test("a hit inside a templated view offers no templating toggle", () => {
@@ -1200,10 +1213,15 @@ test.describe("Reopening where the developer left off", () => {
   });
 
   test("ignores a remembered view that no longer exists", async () => {
-    // e.g. "HELP" or "SEARCH", stored before those tabs were removed -
-    // selecting them would leave the header with nothing selected
+    // e.g. "HELP", stored before that tab was removed - selecting it
+    // would leave the header with nothing selected
     expect((await openOn("HELP")).data.selectedTab).toBe("OVERVIEW");
-    expect((await openOn("SEARCH")).data.selectedTab).toBe("OVERVIEW");
+  });
+
+  test("reopens on the Search tab - the key resolves again", async () => {
+    // SEARCH was a tab, then a sub-header field, and is a tab again; a
+    // remembered SEARCH lands there (with the term reset per open).
+    expect((await openOn("SEARCH")).data.selectedTab).toBe("SEARCH");
   });
 
   test("opening also records it, so a close/open pair stays put", async () => {

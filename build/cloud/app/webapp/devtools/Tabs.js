@@ -96,13 +96,15 @@ sap.ui.define(
 
     // A group is a top-level tab. They are ordered the way a session
     // runs: what is going on, what broke, what went over the wire, what
-    // the screen is made of, what the system underneath looks like.
+    // the screen is made of, what the system underneath looks like -
+    // and last the cross-tab search, which is about all of them at once.
     const GROUPS = [
       { key: "OVERVIEW", label: "Overview" },
       { key: "PROBLEMS", label: "Problems" },
       { key: "ROUNDTRIPS", label: "Roundtrips" },
       { key: "VIEWDATA", label: "View & Data" },
       { key: "SYSTEM", label: "System" },
+      { key: "SEARCH", label: "Search" },
     ];
 
     const DEFAULT_GROUP = "OVERVIEW";
@@ -391,6 +393,24 @@ sap.ui.define(
           'No control picked yet - press "Pick Control", then click any' +
             " control in the app.",
         searchable: true,
+      },
+
+      // -------- Search --------
+      // The cross-tab search as a tab of its own. It used to be a
+      // permanent field in the dialog's sub-header, and the result
+      // silently replaced whatever tab was open underneath - which read
+      // as the tab's own content having changed. As a tab, entering and
+      // leaving the result is the same navigation as everywhere else.
+      {
+        key: "SEARCH",
+        group: "SEARCH",
+        label: "Search",
+        // Rendered by the dialog, not by produce(): the result depends
+        // on the entered term, which lives in the dialog model.
+        kind: "search",
+        produce: () => "",
+        // The search must not scan its own result.
+        searchable: false,
       },
 
       // -------- System --------

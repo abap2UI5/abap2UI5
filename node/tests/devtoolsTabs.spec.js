@@ -91,7 +91,7 @@ function loadTabs({
 }
 
 test.describe("Groups", () => {
-  test("five groups, in the order a debugging session runs", () => {
+  test("six groups, in the order a debugging session runs", () => {
     const Tabs = loadTabs();
     expect(Tabs.GROUPS.map((g) => g.key)).toEqual([
       "OVERVIEW",
@@ -99,6 +99,7 @@ test.describe("Groups", () => {
       "ROUNDTRIPS",
       "VIEWDATA",
       "SYSTEM",
+      "SEARCH",
     ]);
   });
 
@@ -333,6 +334,17 @@ test.describe("Cross-tab search", () => {
   test("searches the picked control", () => {
     const Tabs = loadTabs({ pickReport: "Control sap.m.Input NEEDLE" });
     expect(Tabs.search("NEEDLE")).toContain("View & Data > Picked Control");
+  });
+
+  // The search lives on a tab of its own now; scanning that tab would
+  // report the previous result as a hit, and exporting it would ship a
+  // stale result nobody asked for.
+  test("the Search tab is reachable but never scanned or exported", () => {
+    const Tabs = loadTabs();
+    expect(Tabs.isKnown("SEARCH")).toBe(true);
+    expect(Tabs.firstTabOf("SEARCH")).toBe("SEARCH");
+    expect(Tabs.searchableTabs().map((t) => t.key)).not.toContain("SEARCH");
+    expect(Tabs.exportTabs().map((t) => t.key)).not.toContain("SEARCH");
   });
 });
 
