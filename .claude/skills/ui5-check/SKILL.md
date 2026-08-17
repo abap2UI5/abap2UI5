@@ -353,6 +353,21 @@ Not about names or layout — these only show up when the app runs.
   interpolating from ABAP — the `$` paths are resolved by UI5 — so the
   template buys nothing anyway.
 
+  **And it happens without a template at all.** A sweep of all 417
+  samples-controls apps (2026-08-17) found two DEAD on their first render from
+  this class — and app **121** is the sharper one, because the ORIGINAL UI5
+  sample does the same thing and works. It binds
+  `visibility="{visibility}"` against data that is `{"type":"Draft"}` — no
+  `visibility` anywhere. In JavaScript that is `undefined` and UI5 leaves the
+  property at its default; in ABAP the unfilled `TYPE string` serialises as
+  `""` and the enum rejects it. So a **1:1 port of a correct sample is fatal**,
+  and nothing at either end looks wrong. Keep the value out of the model
+  (`_bind( … omit_initial_paths = … )`) or give the binding a fallback.
+
+  Both apps had been reporting **green**: the framework catches a fatal error
+  and RENDERS it, so nothing reaches `pageerror`. samples-controls' e2e gate
+  reads the overlay directly now.
+
   The trap is structural rather than particular to that control: ABAP has no
   null, an unfilled `TYPE string` serialises as `""`, and **`""` is a member of
   no UI5 enum**. So it applies to every enum-typed property in an aggregation

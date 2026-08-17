@@ -11,6 +11,7 @@ evidence:
   - the control throws `"" is of type string, expected sap.ui.unified.CalendarDayType for property "secondaryType"` and takes the view down
   - the port boots clean, survives the first press of its toggle and dies on the second — the press that empties the table
   - the analysis and the scope this proposal needs are written up in `.claude/skills/ui5-check/SKILL.md` §4
+  - a full e2e sweep of all 417 samples-controls apps (2026-08-17) found **two** apps DEAD on their first render from this class, both reporting green until the gate learned to read the framework's fatal overlay — app 362 (`sap.ui.core.SortOrder`) and app 121 (`sap.m.ObjectMarkerVisibility`)
 ---
 
 # Report an enum-typed property bound with no fallback inside an aggregation template
@@ -37,6 +38,31 @@ UI5 enum**. So it applies to every enum-typed property in an aggregation
 template — `type`, `state`, `design`, `valueState`, `highlight` — whenever the
 bound table can be empty. A first render passes and the emptying fails, which is
 why nothing offline sees it.
+
+## The same trap without a template: a plain member left initial
+
+App **121** is the sharper case, because **the original UI5 sample does the
+same thing and works**. Its view binds
+
+```xml
+<ObjectMarker type="{type}" visibility="{visibility}"/>
+```
+
+and its data is `{"type":"Draft"}` — no `visibility` anywhere. In JavaScript
+that resolves to `undefined`, and UI5 leaves the property at its default. ABAP
+has no `undefined`: the unfilled `TYPE string` serialises as `""`, and `""` is a
+member of no enum. The app terminated on its first render.
+
+So a **1:1 port of a correct sample is fatal**, and nothing about the view or
+the data looks wrong at either end. That is the structural half of this entry,
+proven against the original rather than argued from ABAP's type system.
+
+It also widens the rule's scope beyond the emptied-table case: any enum-typed
+property bound to a path the model may not carry — a template row that omits
+the field, or a plain member never assigned — has the same end state. The fix
+is the same shape in both: keep the value out of the model
+(`_bind( … omit_initial_paths = … )`, which apps 121, 241 and 299 use) or give
+the binding a fallback.
 
 ## Why this one is worth a rule
 
