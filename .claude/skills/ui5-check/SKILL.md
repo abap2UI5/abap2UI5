@@ -309,6 +309,36 @@ Not about names or layout — these only show up when the app runs.
 - **`sap.m.MessageBox` always closes on Escape** and offers no way to suppress
   it. A popup that must not be Escape-dismissable — the fatal-error overlay —
   is a `sap.m.Dialog` with `escapeHandler: (oPromise) => oPromise.reject()`.
+- **An enum property REFUSES an empty string, and an EMPTIED aggregation hands
+  it one.** Not "falls back to the default" — the control throws:
+
+      "" is of type string, expected sap.ui.unified.CalendarDayType
+       for property "secondaryType"
+
+  Found in `abap2UI5/samples-controls` app 308 (2026-08-16) by an e2e
+  interaction, and the trigger is worth stating precisely, because the obvious
+  reading is wrong. It is **not** the row that leaves the field unset: an
+  unset field never reaches the model (`_bind( … omit_initial_paths = … )`
+  keeps it out). It is the table being **cleared**. UI5 then evaluates the
+  aggregation TEMPLATE with no row behind it, `{SECONDARY_TYPE}` resolves to
+  `` — and the enum-typed property rejects it.
+
+  Isolated rather than guessed: the port boots clean, survives the first press
+  of its toggle, and dies on the second, which is the press that empties the
+  table.
+
+  The fix is at the view, not at the data — fall back to the enum's own
+  default in the binding, which the same port already does for a nullable
+  date one line above:
+
+      )->a( n = `secondaryType` v = |\{= $\{SECONDARY_TYPE} ? $\{SECONDARY_TYPE} : 'None' }|
+
+  The trap is structural rather than particular to that control: ABAP has no
+  null, an unfilled `TYPE string` serialises as `""`, and **`""` is a member of
+  no UI5 enum**. So it applies to every enum-typed property in an aggregation
+  TEMPLATE — `type`, `state`, `design`, `valueState`, `highlight` — whenever
+  the bound table can be empty. A first render passes and the emptying fails,
+  which is why nothing offline sees it.
 
 **Linter:** the expression-binding rule is decidable from the view text alone
 (`{=` in any attribute value) — but **deliberately not added**, and the scope
@@ -321,8 +351,24 @@ survive a customer's stricter CSP. A linter that reported every app's
 expression binding would be wrong for its own users. So the constraint stays
 where it can be scoped correctly: prose here, plus `AGENTS.md` rules 16/17 for
 this repository's own views. (The linter does check `{= … }` for *balance* —
-`invalid-expression-binding` — which is a different question.) The other two
-entries are about JS lifecycle, not about a view: **they stay prose** too.
+`invalid-expression-binding` — which is a different question.) The two
+fragment/MessageBox entries are about JS lifecycle, not about a view: **they
+stay prose** too.
+
+The **empty-string-into-an-enum** entry is the one worth a rule, and once the
+trigger is stated correctly the rule gets *easier*, not harder. It does not
+need to know anything about the data: **an enum-typed property inside an
+aggregation template, bound to a plain path with no fallback**, is decidable
+from the view alone. The enum-valued properties are already known —
+`enum-value-too-new` reads their `enumSince` out of `properties.json` — and
+"inside a template" is the `ele( <aggregation> )` the builder chain already
+models. The fix the rule would point at is the one this entry shows: an
+expression binding with the enum's default as the else branch.
+
+What it must NOT do is fire on every enum binding: a property bound outside a
+template, or one whose table can never be emptied, is fine, and a rule that
+reported all of them would be routed around. Left **open** with that scope
+rather than filed as a wish.
 
 ---
 
