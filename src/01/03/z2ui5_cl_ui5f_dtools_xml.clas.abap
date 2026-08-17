@@ -39,29 +39,12 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `        stretch="true"` &&
              `        escapeHandler=".onEscape"` &&
              `    >` &&
-             `        <!-- Search is not a tab any more. It answers "where does /CUSTOMER` &&
-             `             appear?" across EVERY tab at once, which is the one question` &&
-             `             that gets harder the more the tools can show - so it sits in` &&
-             `             the sub-header, reachable from wherever the user is, instead` &&
-             `             of being the eleventh entry in a tab strip.` &&
-             `             A Toolbar, not a Bar: Dialog.subHeader takes any sap.m.IBar` &&
-             `             and Toolbar is the flex one. A Bar lays block-level children` &&
-             `             out in normal flow before 1.76 and clips them (rule 21b). -->` &&
-             `        <subHeader>` &&
-             `            <Toolbar>` &&
-             `                <SearchField` &&
-             `                    value="{/searchTerm}"` &&
-             `                    placeholder="Search across all tabs..."` &&
-             `                    search=".onSearch"` &&
-             `                    width="100%"` &&
-             `                />` &&
-             `            </Toolbar>` &&
-             `        </subHeader>` &&
-             `        <!-- Five groups instead of twenty-two flat tabs. They are ordered` &&
+             `        <!-- Six groups instead of twenty-two flat tabs. They are ordered` &&
              `             the way a debugging session runs: what is going on, what` &&
              `             broke, what went over the wire, what the screen is made of,` &&
-             `             what it all runs on. Which sub-view each one offers is` &&
-             `             decided by devtools/Tabs.js, not here. -->` &&
+             `             what it all runs on - and last the cross-tab search, which` &&
+             `             is about all of them at once. Which sub-view each one offers` &&
+             `             is decided by devtools/Tabs.js, not here. -->` &&
              `        <IconTabHeader` &&
              `            selectedKey="{/selectedGroup}"` &&
              `            select=".onGroupSelect"` &&
@@ -88,6 +71,10 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                    text="System"` &&
              `                    key="SYSTEM"` &&
              `                />` &&
+             `                <IconTabFilter` &&
+             `                    text="Search"` &&
+             `                    key="SEARCH"` &&
+             `                />` &&
              `            </items>` &&
              `        </IconTabHeader>` &&
              `        <VBox>` &&
@@ -98,6 +85,21 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                 twenty-two tabs including the twenty-one that have no` &&
              `                 error to retry. -->` &&
              `            <OverflowToolbar>` &&
+             `                <!-- Search: answers "where does /CUSTOMER appear?" across` &&
+             `                     every tab at once. It used to sit permanently in the` &&
+             `                     dialog's sub-header, where a result silently replaced` &&
+             `                     whatever tab was open underneath - as its own tab,` &&
+             `                     entering and leaving the result is plain navigation.` &&
+             `                     A fixed width, not "100%": OverflowToolbar cannot` &&
+             `                     size a percentage-width child when it computes what` &&
+             `                     overflows. -->` &&
+             `                <SearchField` &&
+             `                    value="{/searchTerm}"` &&
+             `                    placeholder="Search across all tabs..."` &&
+             `                    search=".onSearch"` &&
+             `                    width="24rem"` &&
+             `                    visible="{/isSearch}"` &&
+             `                />` &&
              `                <!-- View & Data is two dimensions - which slot, and which` &&
              `                     aspect of it - rather than the eight flat tabs it was.` &&
              `                     Only the filled slots are offered. -->` &&

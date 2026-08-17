@@ -33,13 +33,14 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `// devtools/AbapSource.js, and the lifecycle (Ctrl+F12, auto open,` && |\n| &&
              `// teardown) in devtools/DevTools.js.` && |\n| &&
              `//` && |\n| &&
-             `// The structure this renders is five groups, not twenty-two flat tabs:` && |\n| &&
+             `// The structure this renders is six groups, not twenty-two flat tabs:` && |\n| &&
              `//` && |\n| &&
              `//   Overview     which app, which roundtrip, is anything broken` && |\n| &&
              `//   Problems     Error / Log` && |\n| &&
              `//   Roundtrips   History / Request / Response / Actions / the two diffs` && |\n| &&
              `//   View & Data  slot x aspect, plus the picked control` && |\n| &&
              `//   System       Environment / Registry / ABAP Source` && |\n| &&
+             `//   Search       one term across every other tab at once` && |\n| &&
              `//` && |\n| &&
              `// The tab KEYS underneath are unchanged, because they are a` && |\n| &&
              `// compatibility surface: "?z2ui5-devtools=HISTORY" and the remembered` && |\n| &&
@@ -160,9 +161,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `        data.selectedTab = key;` && |\n| &&
              `        data.selectedGroup = tab.group;` && |\n| &&
-             `        // Leaving the search result behind is what picking any view` && |\n| &&
-             `        // means - the result is not a place you can navigate within.` && |\n| &&
-             `        data.searchResult = false;` && |\n| &&
              `        writeLastTab(key);` && |\n| &&
              `` && |\n| &&
              `        // The two selectors of View & Data. The slot list is rebuilt on` && |\n| &&
@@ -204,6 +202,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        data.isOverview = tab.group === "OVERVIEW";` && |\n| &&
              `        data.isRoundtrips = tab.group === "ROUNDTRIPS";` && |\n| &&
              `        data.isViewData = tab.group === "VIEWDATA";` && |\n| &&
+             `        data.isSearch = tab.group === "SEARCH";` && |\n| &&
              `        data.isErrorView = key === "ERROR";` && |\n| &&
              `        data.isSourceView = key === "SOURCE";` && |\n| &&
              `        data.hasRetry =` && |\n| &&
@@ -214,6 +213,19 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        // Refreshed per selection, not only on open: a timer or a late` && |\n| &&
              `        // rejection can log while the dialog stands open.` && |\n| &&
              `        data.problemCount = this.problemCount();` && |\n| &&
+             `` && |\n| &&
+             `        if (tab.kind === "search") {` && |\n| &&
+             `          // The result is rendered from the term in the dialog model; a` && |\n| &&
+             `          // fresh open shows the "(enter a search term)" prompt.` && |\n| &&
+             `          this.displayEditor(oModel, Tabs.search(data.searchTerm), "text");` && |\n| &&
+             `          // Set after displayEditor, which derives the templating toggle` && |\n| &&
+             `          // from the content - a hit inside a templated view XML carries` && |\n| &&
+             `          // the "xmlns:template" that would otherwise offer the toggle` && |\n| &&
+             `          // over a list of search hits.` && |\n| &&
+             `          data.isTemplating = false;` && |\n| &&
+             `          oModel.refresh();` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
              `        if (tab.kind === "source") {` && |\n| &&
              `          // The editor-only controls have to be cleared here as well -` && |\n| &&
@@ -265,20 +277,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      // Search` && |\n| &&
              `      // ----------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
+             `      // Enter / the magnifier of the Search tab's field: keep the term` && |\n| &&
+             `      // in the model and re-render the tab with the result.` && |\n| &&
              `      onSearch(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        const oModel = oSource.getModel();` && |\n| &&
-             `        const data = oModel.getData();` && |\n| &&
-             `        data.searchTerm = oSource.getValue();` && |\n| &&
-             `        this.displayEditor(oModel, Tabs.search(data.searchTerm), "text");` && |\n| &&
-             `        // Set after displayEditor, which derives the per-view flags from` && |\n| &&
-             `        // the content - and a hit inside a templated view XML carries the` && |\n| &&
-             `        // "xmlns:template" that would otherwise offer a templating toggle` && |\n| &&
-             `        // over a list of search hits.` && |\n| &&
-             `        data.searchResult = true;` && |\n| &&
-             `        data.canApply = false;` && |\n| &&
-             `        data.isTemplating = false;` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
+             `        oModel.getData().searchTerm = oSource.getValue();` && |\n| &&
+             `        this.renderTab("SEARCH", oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ----------------------------------------------------------------` && |\n| &&
@@ -419,13 +424,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        Recorder.setRecordingPayloads(oSource.getPressed());` && |\n| &&
              `        const oModel = oSource.getModel();` && |\n| &&
-             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
+             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n|.
+    result = result &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Pop the tools open on the Log as soon as anything logs at error` && |\n| &&
              `      // level. Off by default - a modal dialog jumping up is the last` && |\n| &&
-             `      // thing a productive user needs - but in a test system it is the` && |\n|.
-    result = result &&
+             `      // thing a productive user needs - but in a test system it is the` && |\n| &&
              `      // difference between noticing a broken roundtrip and not. The` && |\n| &&
              `      // setting lives in devtools/Console.js, which is where the errors` && |\n| &&
              `      // are and which both this dialog and the lifecycle facade can reach` && |\n| &&
@@ -575,7 +580,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            selectedTab: DEFAULT_TAB,` && |\n| &&
              `            selectedSlot: "MAIN",` && |\n| &&
              `            searchTerm: "",` && |\n| &&
-             `            searchResult: false,` && |\n| &&
              `            slots: [],` && |\n| &&
              `            views: [],` && |\n| &&
              `            showSlotBar: false,` && |\n| &&
@@ -583,6 +587,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            isOverview: true,` && |\n| &&
              `            isRoundtrips: false,` && |\n| &&
              `            isViewData: false,` && |\n| &&
+             `            isSearch: false,` && |\n| &&
              `            isErrorView: false,` && |\n| &&
              `            isSourceView: false,` && |\n| &&
              `            hasRetry: false,` && |\n| &&
