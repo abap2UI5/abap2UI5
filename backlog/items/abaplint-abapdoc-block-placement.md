@@ -68,7 +68,7 @@ which abaplint's statement model already gives it.
 A warning. Nothing breaks — that is the point, and it is why it needs a rule
 rather than a convention.
 
-<!-- probe:start — written by `npm run vorrat:probe`, do not edit by hand -->
+<!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 
 ## Measured
 

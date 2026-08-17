@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /*
- * vorrat-mine — find backlog candidates nobody thought to write down.
+ * backlog-mine — find backlog candidates nobody thought to write down.
  *
- * The `**Vorrat:**` markers in the skills are collection, not discovery:
+ * The `**Backlog:**` markers in the skills are collection, not discovery:
  * somebody still has to notice a finding and record it. This is the other
  * half — a source that already knows about gaps and has never been asked.
  *
@@ -22,7 +22,7 @@
  *   PROBE  a SUSPECTED gap whose premise is unverified — measure before filing
  *
  * A family that already has an item is dropped, so what comes out is what
- * nobody has picked up. The result lands in `vorrat/mined.json` (committed)
+ * nobody has picked up. The result lands in `backlog/mined.json` (committed)
  * and the generator renders it as raw stock — visible, and not pretending to
  * be ready: a candidate still needs an item file, and a PROBE still needs its
  * premise measured. Twice now a PROBE family has turned out to rest on a
@@ -31,7 +31,7 @@
  * Like the probes, this cannot run in CI — it needs the sibling checkout — so
  * the result records when it ran and against what.
  *
- *   node .github/scripts/vorrat-mine.mjs
+ *   node .github/scripts/backlog-mine.mjs
  */
 import fs from 'fs';
 import path from 'path';
@@ -39,8 +39,8 @@ import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const ITEMS = path.join(ROOT, 'vorrat', 'items');
-const OUT = path.join(ROOT, 'vorrat', 'mined.json');
+const ITEMS = path.join(ROOT, 'backlog', 'items');
+const OUT = path.join(ROOT, 'backlog', 'mined.json');
 
 const CORPUS = ['samples-controls', 'abap2UI5-api', 'ai-demokit']
   .map((d) => path.join(ROOT, '..', d))
@@ -48,7 +48,7 @@ const CORPUS = ['samples-controls', 'abap2UI5-api', 'ai-demokit']
 
 if (!CORPUS) {
   console.error(
-    'vorrat-mine: no samples-controls checkout next to this one\n'
+    'backlog-mine: no samples-controls checkout next to this one\n'
     + '    clone https://github.com/abap2UI5/samples-controls as a sibling, or skip mining',
   );
   process.exit(1);
@@ -68,7 +68,7 @@ const raw = execFileSync(
 const report = JSON.parse(raw);
 
 if (!report.rows?.length) {
-  console.error('vorrat-mine: the cluster probe reported no rows — has its output changed?');
+  console.error('backlog-mine: the cluster probe reported no rows — has its output changed?');
   process.exit(1);
 }
 /* The verdict has to come from over there. Reconstructing it here would mean
@@ -76,7 +76,7 @@ if (!report.rows?.length) {
  * within a month. */
 if (report.rows.some((r) => r.verdict === undefined)) {
   console.error(
-    'vorrat-mine: the cluster probe\'s --json carries no `verdict` per row\n'
+    'backlog-mine: the cluster probe\'s --json carries no `verdict` per row\n'
     + '    update the samples-controls checkout (git pull) — without it, mining\n'
     + '    would have to re-classify here, which is exactly what it must not do',
   );
@@ -121,11 +121,11 @@ for (const f of [...families.values()].sort((a, b) => b.ports.length - a.ports.l
 const ran = new Date().toISOString().slice(0, 10);
 fs.writeFileSync(OUT, `${JSON.stringify({ ran, source: 'samples-controls improvised-cluster', total: report.total, candidates }, null, 2)}\n`);
 
-console.log(`vorrat-mine: ${report.total} IMPROVISED deviation(s) classified over there`);
+console.log(`backlog-mine: ${report.total} IMPROVISED deviation(s) classified over there`);
 console.log(`  ${families.size} family/families with verdict ${[...WANTED].join('/')}`);
 for (const c of filed) console.log(`    already filed as a request: ${c}`);
 for (const c of covered) console.log(`    already in the stock: ${c}`);
-console.log(`  ${candidates.length} candidate(s) written to vorrat/mined.json`);
+console.log(`  ${candidates.length} candidate(s) written to backlog/mined.json`);
 if (!candidates.length) {
   console.log('  nothing new — the IMPROVISED mine is drained, which is what a closed');
   console.log('  gap harvest looks like. Re-run after the next porting batch.');

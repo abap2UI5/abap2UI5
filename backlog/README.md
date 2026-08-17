@@ -1,4 +1,4 @@
-# vorrat — the stock of things to file
+# backlog — the stock of things to file
 
 Four backlogs, one per place a finding gets filed:
 
@@ -9,8 +9,8 @@ Four backlogs, one per place a finding gets filed:
 | [**ABAP2UI5-LINTER.md**](ABAP2UI5-LINTER.md) | `abap2UI5/linter` | rules about an abap2UI5 app and its view |
 | [**ABAP2UI5.md**](ABAP2UI5.md) | this repository | the framework itself |
 
-All four are **generated** from `items/*.md` — `npm run vorrat`, gated by
-`npm run check:vorrat`. Do not edit them.
+All four are **generated** from `items/*.md` — `npm run backlog`, gated by
+`npm run check:backlog`. Do not edit them.
 
 ## Why this exists
 
@@ -72,8 +72,8 @@ in the stock with a line of its own, alongside its `**Linter:**` and
 `**Gate:**` lines:
 
 ```
-**Vorrat:** abaplint · abaplint-delete-index-in-loop, abaplint-subrc-after-assign
-**Vorrat:** open-abap · TODO: the ixml parser drops the position of a parse error
+**Backlog:** abaplint · abaplint-delete-index-in-loop, abaplint-subrc-after-assign
+**Backlog:** open-abap · TODO: the ixml parser drops the position of a parse error
 ```
 
 The first form has to resolve to an item of that target, so a renamed or
@@ -85,7 +85,7 @@ ready.
 The generated pages cite the skill section back, so a row always leads to the
 analysis and the analysis always leads to the row.
 
-**The second source needs nobody at all.** `npm run vorrat:mine` reads
+**The second source needs nobody at all.** `npm run backlog:mine` reads
 `abap2UI5/samples-controls`' `meta/` sidecars, where every port records what
 its rebuild could NOT do 1:1 (an `IMPROVISED` deviation), takes that
 repository's own classification of them and keeps the two verdicts that mean
@@ -98,7 +98,7 @@ disappointment: the 2026-08 gap harvest filed six requests and all six shipped,
 so the mine is drained. The value is that it is now a standing watch — the next
 porting batch fills it again, and nobody has to remember to check.
 
-## Measuring a proposed rule — `npm run vorrat:probe`
+## Measuring a proposed rule — `npm run backlog:probe`
 
 A rule proposal asks a maintainer to believe two things: that the defect is
 real, and that the rule can be written without drowning everyone in false
@@ -126,7 +126,7 @@ scope argument, which is what the proposal actually has to make.
 
 The result is written into the item between markers — so the paste-ready body
 carries the evidence — and cached in `probes.json` so the pages can show the
-count. It is **not** re-run by `check:vorrat`: the sibling checkouts do not
+count. It is **not** re-run by `check:backlog`: the sibling checkouts do not
 exist in CI, and a probe silently answering 0 because a repository is missing
 would be worse than no probe. Each result records when it ran and against
 which checkouts.
@@ -141,7 +141,7 @@ maintainer disproves in ten minutes costs more than no number at all.
 
 ## Does the stock actually drain?
 
-`npm run vorrat` prints it: the count per state, and the oldest open item. An
+`npm run backlog` prints it: the count per state, and the oldest open item. An
 open item older than **90 days** is listed by name — not as a failure, since
 waiting is what a backlog is for, but because an item nobody has filed in three
 months is either not important (delete it) or blocked (say by what). This is
@@ -149,7 +149,7 @@ exactly what `pr/` lacked: five requests sat in it for weeks and nothing ever
 said so.
 
 Age is deliberately not rendered into the pages. It would change every day, so
-every page would go stale overnight and `check:vorrat` would fail on a tree
+every page would go stale overnight and `check:backlog` would fail on a tree
 nobody touched. The **date** is stable and goes on the page; the aging goes to
 the console, where it can be as current as it likes.
 
@@ -171,8 +171,8 @@ To convert one:
    filing at all, and this stock inherited one item whose "filed upstream"
    claim carries no link and could not be verified.
 3. Open it against the `upstream` in its row.
-4. Set `state: filed` and `filed: <url>`, run `npm run vorrat`, commit.
-5. When it merges, **delete the item** and run `npm run vorrat` again.
+4. Set `state: filed` and `filed: <url>`, run `npm run backlog`, commit.
+5. When it merges, **delete the item** and run `npm run backlog` again.
 
 **Issue or pull request?** It depends on the target, and it is worth deciding
 before writing: for `abaplint` and `abap2UI5/linter` we can write the rule and

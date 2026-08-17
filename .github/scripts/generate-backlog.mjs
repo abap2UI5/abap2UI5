@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * generate-vorrat — the four backlogs, written from the items instead of by hand.
+ * generate-backlog — the four backlogs, written from the items instead of by hand.
  *
  * A finding that outlives the change it came from has to go somewhere, and for
  * a long time it went into whichever file the author happened to be in: an
@@ -9,7 +9,7 @@
  * Three shapes, three repositories, and no way to answer "what is there to file
  * against abaplint" without reading all of them.
  *
- * So the stock is ONE shape now — `vorrat/items/<id>.md`, front matter plus the
+ * So the stock is ONE shape now — `backlog/items/<id>.md`, front matter plus the
  * body that becomes the issue — and this script sorts it into the four
  * backlogs by the `target` field. The pages are generated because a
  * hand-maintained index is exactly what rots: `pr/README.md` carried an "Open"
@@ -32,8 +32,8 @@
  * staging area `skill-rule-gate.mjs` describes). A skill section names what it
  * put in the stock with a line of its own:
  *
- *   **Vorrat:** abaplint · abaplint-delete-index-in-loop, abaplint-subrc-after-assign
- *   **Vorrat:** open-abap · TODO: the transpiler's DELETE INDEX raises where ABAP sets sy-subrc
+ *   **Backlog:** abaplint · abaplint-delete-index-in-loop, abaplint-subrc-after-assign
+ *   **Backlog:** open-abap · TODO: the transpiler's DELETE INDEX raises where ABAP sets sy-subrc
  *
  * The first form has to resolve to an item of that target - so a renamed or
  * deleted item is reported here rather than leaving the skill pointing at
@@ -41,18 +41,18 @@
  * work out, listed in the backlog as raw stock so it is visible without
  * pretending to be ready.
  *
- *   node .github/scripts/generate-vorrat.mjs          write the four pages
- *   node .github/scripts/generate-vorrat.mjs --check  fail if stale (npm run check:vorrat)
+ *   node .github/scripts/generate-backlog.mjs          write the four pages
+ *   node .github/scripts/generate-backlog.mjs --check  fail if stale (npm run check:backlog)
  */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const VORRAT = path.join(ROOT, 'vorrat');
-const ITEMS = path.join(VORRAT, 'items');
-const PROBES = path.join(VORRAT, 'probes.json');
-const MINED = path.join(VORRAT, 'mined.json');
+const BACKLOG = path.join(ROOT, 'backlog');
+const ITEMS = path.join(BACKLOG, 'items');
+const PROBES = path.join(BACKLOG, 'probes.json');
+const MINED = path.join(BACKLOG, 'mined.json');
 const SKILLS = path.join(ROOT, '.claude', 'skills');
 const CHECK = process.argv.includes('--check');
 
@@ -166,10 +166,10 @@ function parseItem(file) {
   return { id: path.basename(file, '.md'), file, meta, body: m[2] };
 }
 
-/* A skill section's `**Vorrat:**` line. Section level, like the `**Linter:**`
+/* A skill section's `**Backlog:**` line. Section level, like the `**Linter:**`
  * and `**Gate:**` lines next to it — a marker per bullet would be unreadable
  * and the decision is per section anyway. */
-const MARKER = /^\*\*Vorrat:\*\*\s+([a-z0-9-]+)\s+·\s+(.+?)\s*$/;
+const MARKER = /^\*\*Backlog:\*\*\s+([a-z0-9-]+)\s+·\s+(.+?)\s*$/;
 
 function markdownFiles(dir, out = []) {
   for (const name of fs.readdirSync(dir).sort()) {
@@ -220,7 +220,7 @@ const byId = new Map(items.map((i) => [i.id, i]));
 const targets = new Map(TARGETS.map((t) => [t.key, t]));
 
 for (const item of items) {
-  const where = `vorrat/items/${item.id}.md`;
+  const where = `backlog/items/${item.id}.md`;
   for (const key of REQUIRED) {
     if (!item.meta[key]) problems.push(`${where}: front matter is missing \`${key}\``);
   }
@@ -261,7 +261,7 @@ for (const ref of refs) {
   const item = byId.get(ref.id);
   if (!item) {
     problems.push(
-      `${ref.where.file}:${ref.where.line}: names \`${ref.id}\`, which is no item under vorrat/items/\n`
+      `${ref.where.file}:${ref.where.line}: names \`${ref.id}\`, which is no item under backlog/items/\n`
       + '    the item was renamed or removed — fix the marker, or drop it',
     );
     continue;
@@ -323,7 +323,7 @@ function table(rows) {
 }
 
 /* Age is deliberately NOT rendered. It would change every day, so every page
- * would go stale overnight and `check:vorrat` would fail on a tree nobody
+ * would go stale overnight and `check:backlog` would fail on a tree nobody
  * touched. The DATE is stable; the aging is reported to the console below,
  * where it can be as current as it likes. */
 
@@ -352,7 +352,7 @@ for (const target of TARGETS) {
     blocks.push(
       '## Raw stock\n\n'
       + '_Candidates nobody has worked out yet — named in a skill, or found by '
-      + '`npm run vorrat:mine`. Listed so they are visible, not so they can be '
+      + '`npm run backlog:mine`. Listed so they are visible, not so they can be '
       + 'filed: an item file has to be written first._\n\n'
       + ['| Candidate | Found in |', '|---|---|', ...rows].join('\n'),
     );
@@ -362,8 +362,8 @@ for (const target of TARGETS) {
 
   counts.push(`${target.key} ${mine.length}+${mineRaw.length + mineMined.length}`);
 
-  const page = `<!-- Generated by .github/scripts/generate-vorrat.mjs. Do not edit by hand:
-     edit vorrat/items/<id>.md, run \`npm run vorrat\` and commit the result. -->
+  const page = `<!-- Generated by .github/scripts/generate-backlog.mjs. Do not edit by hand:
+     edit backlog/items/<id>.md, run \`npm run backlog\` and commit the result. -->
 
 # ${target.title}
 
@@ -383,15 +383,15 @@ ${blocks.join('\n\n---\n\n')}
 
 ---
 
-_Generated from \`vorrat/items/*.md\` and the \`**Vorrat:**\` lines in
-\`.claude/skills/\` — \`npm run vorrat\`._
+_Generated from \`backlog/items/*.md\` and the \`**Backlog:**\` lines in
+\`.claude/skills/\` — \`npm run backlog\`._
 `;
 
-  const out = path.join(VORRAT, target.file);
+  const out = path.join(BACKLOG, target.file);
   if (CHECK) {
     const current = fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '';
     if (current !== page) {
-      console.error(`vorrat/${target.file} is stale — run \`npm run vorrat\` and commit the result.`);
+      console.error(`backlog/${target.file} is stale — run \`npm run backlog\` and commit the result.`);
       process.exit(1);
     }
   } else {
@@ -400,7 +400,7 @@ _Generated from \`vorrat/items/*.md\` and the \`**Vorrat:**\` lines in
 }
 
 console.log(
-  `vorrat: ${items.length} item(s), ${raw.length + (mined.candidates || []).length} raw candidate(s), `
+  `backlog: ${items.length} item(s), ${raw.length + (mined.candidates || []).length} raw candidate(s), `
   + `${refs.length} skill marker(s) — ${counts.join(' · ')}`
   + `${CHECK ? ' — pages current' : ' — pages written'}`,
 );
@@ -432,4 +432,4 @@ if (stale.length) {
  * that has since changed. Reported, not failed: the sibling checkouts are not
  * in CI, so re-running is a local act. */
 const restale = items.filter((i) => probes[i.id] && probes[i.id].ran < i.meta.first_seen);
-for (const i of restale) console.log(`  ${i.id}: probe ran ${probes[i.id].ran}, before the item — re-run \`npm run vorrat:probe\``);
+for (const i of restale) console.log(`  ${i.id}: probe ran ${probes[i.id].ran}, before the item — re-run \`npm run backlog:probe\``);

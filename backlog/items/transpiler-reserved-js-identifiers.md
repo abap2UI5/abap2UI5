@@ -76,7 +76,7 @@ with  = `b`.
 Today this needs both words configured before it compiles at all; the request
 is that it simply compiles.
 
-<!-- probe:start — written by `npm run vorrat:probe`, do not edit by hand -->
+<!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 
 ## Measured
 

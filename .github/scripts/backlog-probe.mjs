@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * vorrat-probe — measure a proposed rule against the code it would judge.
+ * backlog-probe — measure a proposed rule against the code it would judge.
  *
  * A rule proposal written as prose asks a maintainer to take the author's word
  * for two things: that the defect is real, and that the rule can be written
@@ -9,7 +9,7 @@
  * abap2UI5, samples, samples-controls and samples-stack are ~630 working apps
  * plus a framework, all in ABAP, all sitting next to each other on disk.
  *
- * So an item may ship a detector: `vorrat/items/<id>.probe.mjs`, exporting
+ * So an item may ship a detector: `backlog/items/<id>.probe.mjs`, exporting
  *
  *   export const describe = 'one line: what this looks for'
  *   export function run(roots) -> { sites: [{repo, file, line, text}],
@@ -21,8 +21,8 @@
  * scope argument, which is what the proposal actually has to make.
  *
  * The result is written back into the item between markers, so the paste-ready
- * body carries the evidence, and cached in `vorrat/probes.json` so the
- * generated pages can show the count. It is NOT re-run by `check:vorrat`: the
+ * body carries the evidence, and cached in `backlog/probes.json` so the
+ * generated pages can show the count. It is NOT re-run by `check:backlog`: the
  * sibling checkouts do not exist in CI, and a probe that silently answers 0
  * because a repository is missing would be worse than no probe. Each result
  * therefore records WHEN it ran and against WHICH checkouts, and says so on the
@@ -32,8 +32,8 @@
  * over- or under-approximates, `notes` has to say so — an inflated number that
  * a maintainer disproves in ten minutes costs more than no number at all.
  *
- *   node .github/scripts/vorrat-probe.mjs            run every probe
- *   node .github/scripts/vorrat-probe.mjs <id> …     run these
+ *   node .github/scripts/backlog-probe.mjs            run every probe
+ *   node .github/scripts/backlog-probe.mjs <id> …     run these
  */
 import fs from 'fs';
 import path from 'path';
@@ -41,13 +41,13 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { roots } from './lib/abap-scan.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const ITEMS = path.join(ROOT, 'vorrat', 'items');
-const CACHE = path.join(ROOT, 'vorrat', 'probes.json');
+const ITEMS = path.join(ROOT, 'backlog', 'items');
+const CACHE = path.join(ROOT, 'backlog', 'probes.json');
 
 const want = process.argv.slice(2);
 const { found, missing } = roots();
 if (!found.length) {
-  console.error('vorrat-probe: no checkout found — nothing to measure against');
+  console.error('backlog-probe: no checkout found — nothing to measure against');
   process.exit(1);
 }
 if (missing.length) console.log(`not checked out, so not measured: ${missing.join(', ')}`);
@@ -62,7 +62,7 @@ for (const name of probes) {
   if (want.length && !want.includes(id)) continue;
   const item = path.join(ITEMS, `${id}.md`);
   if (!fs.existsSync(item)) {
-    console.error(`  ${id}: probe with no item — delete it or write vorrat/items/${id}.md`);
+    console.error(`  ${id}: probe with no item — delete it or write backlog/items/${id}.md`);
     process.exitCode = 1;
     continue;
   }
@@ -92,7 +92,7 @@ for (const name of probes) {
     : '_none_');
 
   const block = [
-    '<!-- probe:start — written by `npm run vorrat:probe`, do not edit by hand -->',
+    '<!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->',
     '',
     '## Measured',
     '',
@@ -130,4 +130,4 @@ for (const id of Object.keys(cache)) {
 }
 
 fs.writeFileSync(CACHE, `${JSON.stringify(cache, null, 2)}\n`);
-console.log(`vorrat-probe: ${Object.keys(cache).length} probe(s) cached in vorrat/probes.json`);
+console.log(`backlog-probe: ${Object.keys(cache).length} probe(s) cached in backlog/probes.json`);

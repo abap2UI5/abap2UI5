@@ -198,7 +198,7 @@ in a gate here rather than in the view linter, unless the linter grows a
 frontend-module input — which nothing else is asking for. The theme half is
 configuration, not view content; **out of scope**, keep it as prose.
 
-**Vorrat:** abap2ui5-linter · linter-frontend-module-since
+**Backlog:** abap2ui5-linter · linter-frontend-module-since
 
 ---
 
@@ -390,7 +390,7 @@ template, or one whose table can never be emptied, is fine, and a rule that
 reported all of them would be routed around. Written up with that scope rather
 than filed as a wish — it is in the stock now, waiting for somebody to open it.
 
-**Vorrat:** abap2ui5-linter · linter-enum-empty-in-template
+**Backlog:** abap2ui5-linter · linter-enum-empty-in-template
 
 ---
 

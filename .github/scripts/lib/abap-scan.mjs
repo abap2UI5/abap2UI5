@@ -1,7 +1,7 @@
 /*
  * abap-scan — read the ABAP of this checkout and its siblings.
  *
- * Its own module rather than part of `vorrat-probe.mjs` for a mechanical
+ * Its own module rather than part of `backlog-probe.mjs` for a mechanical
  * reason: the probes import these helpers and the runner imports the probes,
  * so putting them in the runner deadlocks its top-level await. It is also the
  * better shape — a probe depends on "how do I read the corpus", not on the

@@ -96,7 +96,7 @@ It reads as what it does and has neither failure mode.
 All but the last are fixed; the sites are listed because "would it have fired,
 and only there" is the question a rule proposal has to answer.
 
-<!-- probe:start — written by `npm run vorrat:probe`, do not edit by hand -->
+<!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 
 ## Measured
 

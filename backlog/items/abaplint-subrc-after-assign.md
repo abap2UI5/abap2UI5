@@ -72,7 +72,7 @@ A warning rather than an error. The code is correct on current releases, and a
 project that has dropped 7.40 support can turn it off knowingly — which is the
 distinction between this and a defect that is wrong everywhere.
 
-<!-- probe:start — written by `npm run vorrat:probe`, do not edit by hand -->
+<!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 
 ## Measured
 

@@ -338,7 +338,7 @@ system, or must fetch data dynamically.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Vorrat:** abaplint · abaplint-abapdoc-block-placement, abaplint-abapdoc-html-escaping
+**Backlog:** abaplint · abaplint-abapdoc-block-placement, abaplint-abapdoc-html-escaping
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -393,7 +393,7 @@ pitfalls".
 transpiled tests. Nothing here is a linter rule and nothing here should be: the
 downport is a build of this repository, not a property of somebody's app.
 
-**Vorrat:** open-abap · transpiler-reserved-js-identifiers
+**Backlog:** open-abap · transpiler-reserved-js-identifiers
 
 Every framework file is downported to 7.02 (`npm run auto_downport`) and
 transpiled to JS (`npm run auto_transpile`), and is linted against
@@ -448,7 +448,7 @@ the frozen legacy.
 The rest needs a running system with real data and is written down here
 precisely because no gate will catch it.
 
-**Vorrat:** abaplint · abaplint-subrc-after-assign, abaplint-delete-index-in-loop
+**Backlog:** abaplint · abaplint-subrc-after-assign, abaplint-delete-index-in-loop
 
 - **After `ASSIGN`, check `IS ASSIGNED` — not `sy-subrc`.** A 7.40 SP7 system
   ran every abap2UI5 app into an endless loop because `sy-subrc` was still `4`
