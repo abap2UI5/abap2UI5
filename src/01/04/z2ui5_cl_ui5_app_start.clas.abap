@@ -538,12 +538,13 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " overview app of that repository on THIS system? Then the name links to
     " it - otherwise to the repository on GitHub, where the installation
     " starts, and the row is marked as not installed. All three of them renamed
-    " their overview app (z2ui5_cl_demo_app_g00 -> z2ui5_cl_smp_app_000,
-    " z2ui5_cl_dmo_app_overview -> z2ui5_cl_smpc_app_overview and
-    " z2ui5_cl_smps_app_00 -> z2ui5_cl_smps_app_000), so they pass the old name
-    " as a fallback: an installation that predates the rename still links to
-    " its app. One old name each - samples-stack's smpe-era name from before
-    " its namespace migration is older still and no longer tried.
+    " their overview app onto the three-digit number scheme
+    " (z2ui5_cl_demo_app_g00 -> z2ui5_cl_smp_app_000,
+    " z2ui5_cl_smpc_app_overview -> z2ui5_cl_smpc_app_000 and
+    " z2ui5_cl_smps_app_00 -> z2ui5_cl_smps_app_000), so they pass the old
+    " name as a fallback: an installation that predates the rename still links
+    " to its app. One old name each - the dmo- and smpe-era names from before
+    " the earlier renames are older still and no longer tried.
     " The descriptions are the GitHub "About" text of each repository word for
     " word, so the page and the repository say the same thing - with the em
     " dash written as a hyphen, because ABAP source here is 7-bit ASCII.
@@ -564,8 +565,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         name      = `samples-controls`
         descr     = `Learn how to use every UI5 control in ABAP - the UI5 Demo Kit rebuilt with abap2UI5`
         href      = `https://github.com/abap2UI5/samples-controls`
-        class     = `z2ui5_cl_smpc_app_overview`
-        class_old = `z2ui5_cl_dmo_app_overview` ).
+        class     = `z2ui5_cl_smpc_app_000`
+        class_old = `z2ui5_cl_smpc_app_overview` ).
 
     render_samples(
         form      = form

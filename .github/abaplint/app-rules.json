@@ -8,7 +8,7 @@
     "7bit_ascii": {
       "exclude": [
         "z2ui5_cl_smpc_app_(012|040|092|103|104|114|134|185|191|194|215|218|254|290|302|303|350|356|357|358|360)\\.clas\\.",
-        "z2ui5_cl_smpc_app_overview\\.clas\\."
+        "z2ui5_cl_smpc_app_000\\.clas\\."
       ]
     },
     "abapdoc": false,
@@ -233,7 +233,7 @@
       "checkForms": true,
       "checkFunctionModules": true,
       "exclude": [
-        "z2ui5_cl_smpc_app_overview\\.clas\\."
+        "z2ui5_cl_smpc_app_000\\.clas\\."
       ]
     },
     "method_overwrites_builtin": true,
