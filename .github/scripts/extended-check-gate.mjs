@@ -25,23 +25,15 @@
 // are upstream mirrors and src/99 is frozen history - annotating them would
 // create diffs nobody is allowed to make.
 
-import { readdirSync, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import { join } from "path";
+import { walk } from "./lib/walk.mjs";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 
 const EXCLUDED = [/^src\/99\//, /^src\/00\/01\//, /^src\/00\/02\//];
 
 const findings = [];
-
-function walk(dir, out = []) {
-  for (const entry of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
-    const rel = `${dir}/${entry.name}`;
-    if (entry.isDirectory()) walk(rel, out);
-    else out.push(rel);
-  }
-  return out;
-}
 
 // Split ABAP source into statements. Comments are kept, not stripped: the
 // pseudo-comments this gate is about ("#EC ...) live in exactly the trailing
@@ -92,7 +84,7 @@ function statements(source) {
   return out;
 }
 
-const files = walk("src")
+const files = walk(ROOT, "src")
   .filter(f => f.endsWith(".abap"))
   .filter(f => !EXCLUDED.some(re => re.test(f)))
   .sort();

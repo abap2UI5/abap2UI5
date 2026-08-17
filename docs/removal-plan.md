@@ -141,7 +141,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 The single biggest item. All of it is public and shipped, so removal is a
 breaking change for any downstream app that still references it.
 
-- [ ] **`z2ui5_cl_xml_view` (15,882 lines) + `z2ui5_cl_xml_view_cc`**
+- [ ] **`z2ui5_cl_xml_view` (15,884 lines) + `z2ui5_cl_xml_view_cc` (742)**
       → `z2ui5_cl_ui5_view_builder` (`src/02/`)
       - **Blocker A: cleared 2026-08-15.** Zero callers across `samples` (150
         classes on the successor), `samples-controls` (431), `samples-stack`
@@ -177,12 +177,25 @@ breaking change for any downstream app that still references it.
         was already dropped in 1.142.0 without a replacement — do not repeat
         that silently.
       - docs uses them on 9 pages; samples in 4 classes.
+- [ ] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler`
+      - An empty subclass that exists so an ICF node pointing at the old
+        handler name keeps resolving. AGENTS.md names it deprecated in two
+        places; it had no box here, which made `src/99` look like three items
+        when it is four.
+      - **Blocker: it is the one object here a customer names rather than
+        calls.** The class sits in an ICF service definition in a system, not
+        in ABAP anybody wrote, so "zero callers in the sample repositories"
+        says nothing about it. It goes when the handler rename is announced
+        in the docs Deprecations page, not before.
 
 **Falls out automatically when `src/99` goes:**
 
-- [ ] 23 `FROZEN-ONLY` methods in `z2ui5_cl_ui5_util_context` (`src/00/03/`) — they
+- [ ] the `FROZEN-ONLY` methods in `z2ui5_cl_ui5_util_context` (`src/00/03/`) — they
       exist solely because the shipped `src/99` still calls them. Grep the
-      marker, delete the marked block.
+      marker, delete the marked block. (No count here on purpose: this said 23
+      while the file carried 25, because a marker is added by whoever needs one
+      and nothing tells this page. `grep -c FROZEN-ONLY` is the answer, and it
+      is the same command that does the work.)
 - [ ] `npm run check:frozen` + the `check_gates` workflow
 - [ ] the three `src/99` test skips in `node/setup/abap_transpile.json`
       and the `src/99` testclass/sidecar exemptions in `check:frozen` +

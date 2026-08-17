@@ -68,7 +68,7 @@ ENDMETHOD.
 
 All three branches belong to the dispatcher. `check_on_init( )` fires once per
 app instance, so it is *not* reached again when another app hands control back
-(`nav_app_leave`, a `z2ui5_cl_pop_*` value help) or when a bookmarked state is
+(`nav_app_leave`, a value help popup) or when a bookmarked state is
 restored – those roundtrips fire `check_on_navigated( )`. Without that branch
 the browser keeps showing whatever was on screen before, with no error
 anywhere.
@@ -111,7 +111,7 @@ Three sample repositories accompany the framework. They build on each other – 
 All samples are ready to run – install them with abapGit and explore the source code.
 
 #### References
-* UI5 in ABAP Cloud (without RAP or Fiori Elements) [(LinkedIn - 17.08.2026)](https://blog.decabase.com/ui5-in-abap-cloud-without-rap-or-fiori-elements-4e8a70d961c3)
+* UI5 in ABAP Cloud (without RAP or Fiori Elements) [(Decabase Blog - 17.08.2026)](https://blog.decabase.com/ui5-in-abap-cloud-without-rap-or-fiori-elements-4e8a70d961c3)
 * Fiori-type Apps built 100% with ABAP [(Logali Group - 23.04.2026)](https://logaligroup.com/magia-en-el-servidor-local-apps-tipo-fiori-creadas-100-con-codigo-abap/)
 * Webinar on Launchpad Integration [(YouTube - 30.07.2025)](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P)
 * Featured on SAP Developer News [(YouTube - 21.03.2025)](https://www.youtube.com/watch?v=vKrpkDe2mkU&list=PL6RpkC85SLQAVBSQXN9522_1jNvPavBgg&t=90s)
@@ -152,7 +152,13 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 
 #### AI Assistants
 
-Coming soon...
+The repository is set up to be read by coding agents, and the entry point
+depends on which side you are on:
+
+* **Building an app *with* abap2UI5** – [`docs/agents/building-apps.md`](docs/agents/building-apps.md): the app class template, lifecycle, view building, data binding and events, in one offline file. Also packaged as the `build-an-app` skill.
+* **Working *on* the framework** – [`AGENTS.md`](AGENTS.md): architecture, the layered `src/` design, the rules a change has to hold, and what every CI gate checks. Follows the cross-tool `AGENTS.md` convention, so Claude Code, Codex and Cursor all read it natively.
+* **The map of the code** – [`llms.txt`](llms.txt) indexes both audiences; the documentation site publishes its own at [llms.txt](https://abap2ui5.github.io/docs/llms.txt) for the prose.
+* **Skills** – [`.claude/skills/`](.claude/skills/): `build-an-app`, `abap-check` (the problems a green CI does not catch), `ui5-check` (names that do not exist in the oldest supported release), `view-chain-layout` (the builder chain's layout rules).
 
 #### Get Involved
 We welcome all contributions! Here's how you can help:

@@ -1,15 +1,15 @@
 // patch-v2.mjs
-// Der Bootstrap-Patch klassisch -> legacy-free (UI5 2.0). Wird von
-// build-legacy-free.mjs (standard_v2) und build-branches.mjs (cloud_v2)
-// gemeinsam genutzt, damit beide v2-Varianten identisch gepatcht sind.
+// The bootstrap patch classic -> legacy-free (UI5 2.0). Shared by
+// build-legacy-free.mjs (standard_v2) and build-branches.mjs (cloud_v2), so
+// that both v2 variants are patched identically.
 
 export const SDK = "https://sdk.openui5.org/1.142.0-legacy-free/resources/sap-ui-core.js";
 
-// Jede Ersetzung ist eine Annahme ueber app/webapp/index.html. Trifft sie
-// nicht mehr zu, waere stilles Weiterlaufen der schlimmste Ausgang:
-// cloud_v2/standard_v2 lieferten dann den klassischen Bootstrap aus, und kein
-// Gate saehe es - der falsch gebaute Baum ist ja konsistent zu den Quellen.
-// Wer index.html umformuliert, formuliert die Annahme hier mit um.
+// Every replacement is an assumption about app/webapp/index.html. If it no
+// longer holds, carrying on silently would be the worst outcome:
+// cloud_v2/standard_v2 would then deliver the classic bootstrap, and no gate
+// would see it - the wrongly built tree is consistent with the sources, after
+// all. Whoever rewords index.html rewords the assumption here along with it.
 function mustPatch(s, re, replacement, what) {
   if (!re.test(s)) {
     throw new Error(`patch-v2: ${what} not found - the v2 patch no longer matches app/webapp/index.html`);
@@ -18,9 +18,9 @@ function mustPatch(s, re, replacement, what) {
 }
 
 export function patchIndexHtml(s) {
-  // Aufgeraeumt, falls vorhanden: die IE-Compat-Meta-Zeile hat app/webapp
-  // inzwischen selbst verloren - ihr Fehlen ist hier kein Fehler, nur ihr
-  // Wiederauftauchen wuerde entfernt.
+  // Cleaned up if present: app/webapp has lost the IE compat meta line itself
+  // in the meantime - its absence is not an error here, only its reappearance
+  // would be removed.
   s = s.replace(/^\s*<meta http-equiv="X-UA-Compatible"[^>]*>\n/m, "");
   s = mustPatch(s, /(<title>abap2UI5<\/title>\n)/,
     `$1\n    <link rel="preconnect" href="https://sdk.openui5.org" crossorigin>\n    <link rel="dns-prefetch" href="https://sdk.openui5.org">\n`,

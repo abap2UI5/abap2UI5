@@ -1,28 +1,29 @@
 #!/usr/bin/env node
 // branch-stamp.mjs
-// Die Provenienz eines Delivery-Branches: der Core-Commit, aus dem er gebaut
-// wurde, und die Framework-Version dazu - im README-Banner und in VERSION.
+// The provenance of a delivery branch: the core commit it was built from, and
+// the framework version that goes with it - in the README banner and in
+// VERSION.
 //
-// Warum das ein eigener Schritt ist und nicht Teil des Builds: seit build/ im
-// Repository liegt, wird der Baum eines Branches COMMITTET, bevor es den
-// Commit gibt, den er nennen soll. Ein Stempel im gebauten Baum waere damit
-// entweder unmoeglich (der eigene Commit) oder immer einen Commit alt.
+// Why this is a step of its own and not part of the build: since build/ lives
+// in the repository, the tree of a branch is COMMITTED before the commit it is
+// meant to name exists. A stamp in the built tree would therefore be either
+// impossible (its own commit) or always one commit old.
 //
-// Also baut build-branches.mjs den Inhalt - deterministisch, ohne Commit, ohne
-// Zeitstempel, deshalb ueberhaupt einchecken - und dieses Skript stempelt
-// unmittelbar vor dem Push:
+// So build-branches.mjs builds the content - deterministic, without a commit,
+// without a timestamp, which is why it can be checked in at all - and this
+// script stamps immediately before the push:
 //
 //     node tools/branch-stamp.mjs <dir> <branch> [sha]
 //
-// <dir> ist der fertige Baum (build/<branch> oder tools/out/<branch>), <sha>
-// der Core-Commit; ohne Argument GITHUB_SHA, sonst HEAD. Ohne ermittelbaren
-// Commit bleibt die Herkunftsangabe weg statt falsch zu sein.
+// <dir> is the finished tree (build/<branch> or tools/out/<branch>), <sha> the
+// core commit; without the argument GITHUB_SHA, otherwise HEAD. If no commit
+// can be determined, the provenance line is left out instead of being wrong.
 //
-// Was ein gepulltes Repository sieht, aendert sich dadurch nicht: README und
-// VERSION tragen denselben Text wie vorher, er entsteht nur einen Schritt
-// spaeter. Deliberately no timestamp - identische Quellen muessen identische
-// Baeume ergeben, sonst pusht frontend_deploy.yaml bei jedem Lauf einen
-// leeren Rebuild.
+// What a pulled repository sees does not change through this: README and
+// VERSION carry the same text as before, it just comes into being one step
+// later. Deliberately no timestamp - identical sources have to produce
+// identical trees, otherwise frontend_deploy.yaml pushes an empty rebuild on
+// every run.
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -32,8 +33,8 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const core = join(here, "..");
 
-// Erste Zeile jedes generierten README. build-branches.mjs schreibt sie ohne
-// Herkunftsangabe, dieses Skript ersetzt sie durch dieselbe Zeile mit.
+// First line of every generated README. build-branches.mjs writes it without
+// the provenance line, this script replaces it with the same line including it.
 export const BANNER_PREFIX = "> ⚙️ **Generated branch";
 
 export function banner(branch, { sha = null, version = null } = {}) {
@@ -45,9 +46,9 @@ export function banner(branch, { sha = null, version = null } = {}) {
     "and pushed here. Do not commit in this repository; changes belong into abap2UI5." + origin + "\n";
 }
 
-// Der Stempel nennt den Commit weiterhin "webapp mirror commit" und das Banner
-// weiterhin den Frontend-Stand: es ist derselbe Wert, den die alten
-// Mirror-Commits trugen, also aendert sich nichts, wogegen jemand vergleicht.
+// The stamp still calls the commit "webapp mirror commit" and the banner still
+// calls it the frontend state: it is the same value the old mirror commits
+// carried, so nothing changes that anyone compares against.
 export function versionStamp({ sha = null, version = null } = {}) {
   return [
     "Generated abap2UI5-frontend branch — provenance",
@@ -62,8 +63,8 @@ export function coreSha(explicit = null) {
   try {
     return execFileSync("git", ["rev-parse", "HEAD"], { cwd: core, encoding: "utf8" }).trim() || null;
   } catch {
-    // Ein flacher oder detachter Checkout hat keinen - dann bleibt die
-    // Herkunftsangabe weg, statt einen falschen Commit zu nennen.
+    // A shallow or detached checkout has none - then the provenance line is
+    // left out instead of naming a wrong commit.
     return null;
   }
 }
@@ -77,14 +78,14 @@ export function coreVersion() {
   }
 }
 
-// README-Banner ersetzen und VERSION schreiben. Der Baum bleibt sonst, wie er
-// gebaut wurde.
+// Replace the README banner and write VERSION. The tree otherwise stays as it
+// was built.
 export function stamp(dir, branch, sha = null) {
   const provenance = { sha: coreSha(sha), version: coreVersion() };
   const readme = join(dir, "README.md");
   const lines = readFileSync(readme, "utf8").split("\n");
-  // Gefunden werden MUSS die Zeile: ein stiller Fehlschlag wuerde einen Branch
-  // ohne Herkunftsangabe ausliefern, und niemandem faellt es auf.
+  // The line MUST be found: a silent failure would deliver a branch without a
+  // provenance line, and nobody would notice.
   if (!lines[0].startsWith(BANNER_PREFIX)) {
     throw new Error(`${readme}: first line is not the generated banner`);
   }
