@@ -124,9 +124,11 @@ Where it bit us: the developer tools' help button and the legacy popups in
 
 **Linter:** **moved — `unknown-icon`, `icon-too-new`, `icon-removed`** (2026-08).
 Still *also* gated in this repository by `npm run check:icons`
-(`.github/scripts/ui5-icon-gate.mjs`, `ui5-icons-1.71.json`, 655 names), which
-stays because it covers `src/99` and `app/webapp/` — files the linter does not
-read. The linter's data goes further than the snapshot this entry proposed:
+(`.github/scripts/ui5-icon-gate.mjs`), which stays because it covers `src/99`
+and `app/webapp/` — files the linter does not read. It no longer keeps a list
+of its own: the 655 names are **derived** from the linter's `data/icons.json`
+(`since <= 1.71`, minus what the font removed by then) and came out
+byte-for-byte equal to the hand-kept snapshot they replaced. The linter's data goes further than the snapshot this entry proposed:
 `data/icons.json` carries a **per-icon `since`**, scanned across every OpenUI5
 minor from 1.71 to the pinned version (`scripts/generate-icons.mjs`), so the
 rule answers for any target rather than only for the floor, and it separates
@@ -137,12 +139,18 @@ The scan also found a third: the font is not purely additive. `binary` was in
 the font for exactly one release (1.104) and gone again after it — the glyph
 is spelled `non-binary` (@1.96) everywhere else — which is `icon-removed`.
 
-Two notes for whoever regenerates the gate list here: the registry declares a
-few names with **capitals** (`Chart-Tree-Map`, `Netweaver-business-client`) and
-at least one entry with **double quotes** (`"feedback"`), which the snapshot
-missed until 2026-08 — the gate falsely rejected `sap-icon://feedback`. Both
-are lower-cased on comparison anyway, but a generator reading only
-single-quoted entries silently loses names.
+Two notes for whoever regenerates the LINTER's list, which is the only one
+left: the registry declares a few names with **capitals** (`Chart-Tree-Map`,
+`Netweaver-business-client`) and at least one entry with **double quotes**
+(`"feedback"`), which this repository's old hand-kept snapshot missed until
+2026-08 — the gate falsely rejected `sap-icon://feedback` for months. Both are
+lower-cased on comparison anyway, but a generator reading only single-quoted
+entries silently loses names.
+
+And one for anyone comparing versions from that data: **`1.138` as a float is
+less than `1.71`.** A float compare quietly admits every icon added between
+1.100 and 1.199 — made and caught while deriving the set above, and the same
+shape of bug as any other version-as-number comparison.
 
 ### 1.2 Properties, aggregations and enum values
 
