@@ -87,6 +87,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:skills
 
+      # a file that exists byte-identical in four repositories has one source,
+      # and it is here - the copies drift silently otherwise
+      - name: shared files match their source copy
+        if: ${{ !cancelled() }}
+        run: npm run check:shared
+
       # the four backlogs are generated from backlog/items and the skills'
       # **Backlog:** lines - a hand-edited page is the thing this replaced
       - name: the backlog pages match their items
@@ -112,6 +118,12 @@ jobs:
       - name: every sap-icon:// name exists in UI5 1.71
         if: ${{ !cancelled() }}
         run: npm run check:icons
+
+      # a sap.ui.define dependency the floor does not have 404s and takes the
+      # whole component with it - the app is blank, and nothing names the module
+      - name: every sap.ui.define dependency exists on the floor
+        if: ${{ !cancelled() }}
+        run: npm run check:modules
 
       - name: curated formatters stay a marshalling layer, not app logic
         if: ${{ !cancelled() }}

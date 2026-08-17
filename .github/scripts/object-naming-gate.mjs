@@ -21,8 +21,7 @@
 //             on the next scheduled run unless the mirror repos are renamed too,
 //             and their interfaces sit in the signature of z2ui5_if_client~_bind
 
-import { readdirSync } from "fs";
-import { join } from "path";
+import { walk, baseName, dirName } from "./lib/walk.mjs";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 
@@ -47,20 +46,17 @@ const TABLE = /^z2ui5_t_[0-9]+$/;
 const OBJECT = /\.(clas|intf|tabl)\.xml$/;
 const WANTED = /^z2ui5_(cl|cx|if)_ui5f?_/;
 
-function walk(dir, out = []) {
-  for (const entry of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
-    const rel = `${dir}/${entry.name}`;
-    if (entry.isDirectory()) walk(rel, out);
-    else if (OBJECT.test(entry.name)) out.push({ dir, name: entry.name.replace(OBJECT, "") });
-  }
-  return out;
-}
+// abapGit derives the object name from the file name, so the file name IS
+// the object name - which is why this reads the tree rather than any XML.
+const OBJECTS = walk(ROOT, "src")
+  .filter(rel => OBJECT.test(baseName(rel)))
+  .map(rel => ({ dir: dirName(rel), name: baseName(rel).replace(OBJECT, "") }));
 
 const skipped = [...EXEMPT, ...PENDING];
 const inSkipped = (dir) => skipped.some(([p]) => dir === p || dir.startsWith(`${p}/`));
 
 const findings = [];
-for (const { dir, name } of walk("src")) {
+for (const { dir, name } of OBJECTS) {
   if (inSkipped(dir)) continue;
   if (TABLE.test(name)) continue;
   if (WANTED.test(name)) continue;
@@ -88,6 +84,6 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-const checked = walk("src").filter(({ dir }) => !inSkipped(dir)).length;
+const checked = OBJECTS.filter(({ dir }) => !inSkipped(dir)).length;
 const pending = PENDING.length > 0 ? `, ${PENDING.map(([p]) => p).join(" + ")} still scheduled` : "";
 console.log(`object-naming: ${checked} object(s) checked, all on the ui5 segment - OK${pending}`);

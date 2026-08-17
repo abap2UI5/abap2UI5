@@ -20,8 +20,9 @@
 // A rename sweep is what makes this class of defect likely, and a rename sweep
 // is precisely when nobody rereads a string literal.
 
-import { readdirSync, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import { join } from "path";
+import { walk } from "./lib/walk.mjs";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 
@@ -43,16 +44,7 @@ const EXTERNAL = new Map([
 // packages also carry single-quoted ones
 const LITERAL = /[`'](Z2UI5_(?:CL|CX|IF)_[A-Z0-9_]+)[`']/g;
 
-function walk(dir, out = []) {
-  for (const entry of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
-    const rel = `${dir}/${entry.name}`;
-    if (entry.isDirectory()) walk(rel, out);
-    else if (entry.name.endsWith(".abap")) out.push(rel);
-  }
-  return out;
-}
-
-const files = walk("src");
+const files = walk(ROOT, "src").filter(f => f.endsWith(".abap"));
 
 // what the repository ships, by the file name - abapGit derives the object name
 // from it, so the file name IS the object name (see check:abapgit, rule
