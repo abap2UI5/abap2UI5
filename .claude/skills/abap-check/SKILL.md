@@ -494,6 +494,38 @@ precisely because no gate will catch it.
   `DELETE`, the response structures) do have it, which is why only the
   `EXECUTE` statements were flagged and the `READ ENTITIES` in the same class
   was not. `cebe6bd`.
+- **`DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the SAME table is a
+  silent wrong answer on a system and a 500 on the Node backend.** Deleting the
+  current row shifts every row after it while the loop's own cursor walks on,
+  so the row *after* each deletion is skipped:
+
+      LOOP AT tab INTO DATA(row).          " filters 10 rows, judges 5 of them
+        IF <drop it>.
+          DELETE tab INDEX sy-tabix.
+        ENDIF.
+      ENDLOOP.
+
+  On a real system this does not dump. It returns a plausible-looking, WRONG
+  result — a filter that keeps rows it was told to drop. The transpiled Node
+  backend is stricter and raises `TABLE_INVALID_INDEX`, which is how the case
+  was found at all (an e2e interaction driving samples-controls' app 352 got an
+  HTTP 500 out of its `listClose` round-trip, 2026-08-17).
+
+  A pattern search then found it **eight times** across the ecosystem: four
+  ports in `abap2UI5/samples-controls` (352 twice, 354, 298, 377), three in
+  `abap2UI5/samples` (`z2ui5_cl_smp_context`'s `filter_itab` and
+  `itab_filter_by_val`, app 070), and one in the vendored ajson
+  (`z2ui5_cl_ajson_filter_lib`, upstream — not patched here). Two of them were
+  wrong twice over: in `filter_itab` the `sy-tabix` belonged to an INNER loop,
+  so the index deleted was another table's, and elsewhere a `DO` loop between
+  the `LOOP` and the `DELETE` clobbers it again.
+
+  Build the result instead — collect what is kept and assign it back. It reads
+  as what it does and has neither failure mode. `DELETE itab WHERE …` is fine
+  too where the condition can be expressed there; `DELETE itab INDEX sy-tabix`
+  right after a `READ TABLE` is correct and common (`z2ui5_cl_ajson`), which is
+  why the shape cannot simply be banned.
+
 - **Three environments, one source.** Code must work on NW 7.02, standard ABAP
   and ABAP Cloud (`check:standard`, `check:cloud`, `downport`). A statement
   that only exists in a newer release passes the default target and fails the
