@@ -64,6 +64,49 @@ is the same shape in both: keep the value out of the model
 (`_bind( … omit_initial_paths = … )`, which apps 121, 241 and 299 use) or give
 the binding a fallback.
 
+## Tried, and it is not writable in the view linter as it stands
+
+Implemented against `abap2UI5/linter` on 2026-08-17 and **reverted before
+shipping**, because the one version that could be written fires on correct
+code. The attempt is worth recording so the next person does not repeat it.
+
+The rule needs one fact: *will this bound field arrive as `""`?* Three sources
+were tried, in order:
+
+1. **The derived render model.** It holds only what a `VALUE #( )` seed
+   actually sets, so an unassigned field is **absent**, not `""` — and absent
+   is ambiguous: it is also what `omit_initial_paths` produces, which is the
+   fix. Reading it made the rule fire on the fix it recommends.
+2. **The model shape** (`shape || model`, what the path checks use). Every
+   declared field is present and empty there, whether serialized or not — so
+   the rule fires on every enum-typed binding in the corpus.
+3. **The model, plus the omit metadata.** This is where it ends, and the
+   linter's own source says why, in the comment above `deriveModel`:
+
+   > `model` is what the RENDERER gets: only what a seed actually sets. A field
+   > the class fills in code (a LOOP in `model_init`) cannot be followed
+   > statically, and **inventing an empty string for it makes UI5's strict mode
+   > reject a perfectly good view — `state=""` is not a ValueState.**
+
+   The authors hit this exact wall and decided deliberately. A field missing
+   from the seed may be filled three methods later, and nothing in the view or
+   in the static model distinguishes that from app 121's `visibility`, which is
+   never filled at all.
+
+**What would make it writable:** a "is this structure component ever assigned
+anywhere in the class" answer — data flow over the ABAP, not over the view. The
+linter already asks a near-identical question for `unused-public-attribute`
+("never bound, read or written"), so the machinery is not far away; extending
+it to structure components is the actual prerequisite, and it is a bigger piece
+of work than this rule.
+
+**Second limit, found on the way:** `sap.m.ObjectStatus.state` — the property in
+app 121's *second* fatal error — is declared `type: "string"` in the metadata
+snapshot, because UI5 validates it at runtime against `sap.ui.core.ValueState`
+**or** `sap.ui.core.IndicationColor` and therefore does not declare a single
+enum type. So even a working rule would not have seen it. Any rule here covers
+the properties whose declared type IS an enum, and no others.
+
 ## Why this one is worth a rule
 
 Once the trigger is stated correctly the rule gets *easier*, not harder. It does
