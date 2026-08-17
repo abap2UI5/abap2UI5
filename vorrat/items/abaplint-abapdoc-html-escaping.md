@@ -4,6 +4,7 @@ title: 'Report an unescaped `<`, `>` or `&` in ABAP Doc'
 summary: ABAP Doc is rendered as HTML, so a literal angle bracket swallows the rest of the sentence in the tooltip while the source looks right
 priority: low
 state: open
+first_seen: 2026-08-17
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5's own doc comments need `&lt;`/`&gt;`/`&amp;` and the rule is carried as prose in the `abap-check` skill because nothing checks it

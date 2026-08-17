@@ -4,6 +4,7 @@ title: 'A named API over the positional `t_arg` frontend-action wire'
 summary: 425 + 99 calls across 130 ports go through a positional argument table — deferred to a future dedicated ACTION OBJECT (maintainer decision 2026-08-11), and this item is the collected requirement for it
 priority: medium
 state: deferred
+first_seen: 2026-08-11
 upstream: abap2UI5/abap2UI5
 evidence:
   - the corpus' most error-prone API — four arg-shape incidents to date (probe apps 609/624/625, app 012, app 263, app 285)

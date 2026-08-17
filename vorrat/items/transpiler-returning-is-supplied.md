@@ -4,6 +4,7 @@ title: '`IS SUPPLIED` on a RETURNING parameter is always false in transpiled ABA
 summary: it compiles to `INPUT.result`, which no call site ever sets, so `follow_up_action( )`'s wired branch is dead and every view-wired handler arrives empty
 priority: high
 state: open
+first_seen: 2026-08-13
 upstream: abaplint/transpiler
 evidence:
   - 26 samples-controls ports red in the e2e nightly of 2026-08-13, the first after the corpus renamed its `_event_client( )` wires

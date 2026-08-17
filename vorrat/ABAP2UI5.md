@@ -19,9 +19,9 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 _an issue or PR exists; the item goes when it merges_
 
-| Item | What | Priority | Upstream |
-|---|---|---|---|
-| [`event-auto-model-update`](items/event-auto-model-update.md) | detect a model change during an event round-trip and send the model automatically — removes the mandatory `view_model_update( )` (230 calls / 125 ports) and its silent-stale-UI failure mode<br><sub>https://github.com/abap2UI5/abap2UI5/pull/2545 — implemented, always on, pending merge</sub> | medium | abap2UI5/abap2UI5 |
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`event-auto-model-update`](items/event-auto-model-update.md) | detect a model change during an event round-trip and send the model automatically — removes the mandatory `view_model_update( )` (230 calls / 125 ports) and its silent-stale-UI failure mode<br><sub>https://github.com/abap2UI5/abap2UI5/pull/2545 — implemented, always on, pending merge</sub> | medium | 2026-08-11 | abap2UI5/abap2UI5 |
 
 ---
 
@@ -29,9 +29,19 @@ _an issue or PR exists; the item goes when it merges_
 
 _a decision was made not to do this now, and why_
 
-| Item | What | Priority | Upstream |
-|---|---|---|---|
-| [`frontend-action-named-api`](items/frontend-action-named-api.md) | 425 + 99 calls across 130 ports go through a positional argument table — deferred to a future dedicated ACTION OBJECT (maintainer decision 2026-08-11), and this item is the collected requirement for it | medium | abap2UI5/abap2UI5 |
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`frontend-action-named-api`](items/frontend-action-named-api.md) | 425 + 99 calls across 130 ports go through a positional argument table — deferred to a future dedicated ACTION OBJECT (maintainer decision 2026-08-11), and this item is the collected requirement for it | medium | 2026-08-11 | abap2UI5/abap2UI5 |
+
+---
+
+## Raw stock
+
+_Candidates nobody has worked out yet — named in a skill, or found by `npm run vorrat:mine`. Listed so they are visible, not so they can be filed: an item file has to be written first._
+
+| Candidate | Found in |
+|---|---|
+| **event-value-unreachable** (PROBE) — the value the original reads sits in an array / control reference on the event · 1 port(s): 109 | mined from samples-controls `meta/` (IMPROVISED, verdict PROBE) |
 
 ---
 

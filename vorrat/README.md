@@ -34,8 +34,11 @@ priority: high|medium|low
 state: open|filed|deferred
 upstream: abaplint/abaplint   # optional, when it differs from the target's default
 filed: <url>                  # required when state is `filed`
+first_seen: 2026-08-17        # when it entered the stock — this is what ages
 evidence:                     # required — at least one
   - what happened, where, when
+checked_upstream: 2026-08-17  # optional: when somebody last searched the
+                              # upstream tracker, so we do not file a duplicate
 ---
 ```
 
@@ -82,6 +85,74 @@ ready.
 The generated pages cite the skill section back, so a row always leads to the
 analysis and the analysis always leads to the row.
 
+**The second source needs nobody at all.** `npm run vorrat:mine` reads
+`abap2UI5/samples-controls`' `meta/` sidecars, where every port records what
+its rebuild could NOT do 1:1 (an `IMPROVISED` deviation), takes that
+repository's own classification of them and keeps the two verdicts that mean
+"possibly a framework gap" — `GAP` and `PROBE`. Families that already have an
+item, or that already name a filed request, drop out. What is left is raw
+stock, found without anybody deciding to look.
+
+It answers 1 candidate today, and that is the honest state rather than a
+disappointment: the 2026-08 gap harvest filed six requests and all six shipped,
+so the mine is drained. The value is that it is now a standing watch — the next
+porting batch fills it again, and nobody has to remember to check.
+
+## Measuring a proposed rule — `npm run vorrat:probe`
+
+A rule proposal asks a maintainer to believe two things: that the defect is
+real, and that the rule can be written without drowning everyone in false
+positives. The second is what kills proposals — and it is the one this
+ecosystem can simply **answer**, because abap2UI5, samples, samples-controls
+and samples-stack are ~630 working apps plus a framework, all in ABAP, all
+sitting next to each other on disk.
+
+So an item may ship a detector next to it, `items/<id>.probe.mjs`:
+
+```js
+export const describe = 'one line: what this looks for'
+export function run(roots) {
+  return {
+    sites: [...],      // where the rule would fire
+    negatives: [...],  // where it must NOT, and looks identical
+    notes: [...],      // where the detector approximates the rule
+  }
+}
+```
+
+**`negatives` is the important half.** "Fires 8 times" is a statistic; "fires 8
+times, and here are the 3 places that look identical and are correct" is the
+scope argument, which is what the proposal actually has to make.
+
+The result is written into the item between markers — so the paste-ready body
+carries the evidence — and cached in `probes.json` so the pages can show the
+count. It is **not** re-run by `check:vorrat`: the sibling checkouts do not
+exist in CI, and a probe silently answering 0 because a repository is missing
+would be worse than no probe. Each result records when it ran and against
+which checkouts.
+
+A detector is a throwaway approximation, not the rule. Where it over- or
+under-counts, `notes` has to say so. The first cut of
+`transpiler-reserved-js-identifiers` reported six words; four were structure
+components and constants, which the transpiler emits as object keys where a
+reserved word is legal — and the corpus transpiles green with all four. It was
+narrowed to one rather than explained away, because an inflated number a
+maintainer disproves in ten minutes costs more than no number at all.
+
+## Does the stock actually drain?
+
+`npm run vorrat` prints it: the count per state, and the oldest open item. An
+open item older than **90 days** is listed by name — not as a failure, since
+waiting is what a backlog is for, but because an item nobody has filed in three
+months is either not important (delete it) or blocked (say by what). This is
+exactly what `pr/` lacked: five requests sat in it for weeks and nothing ever
+said so.
+
+Age is deliberately not rendered into the pages. It would change every day, so
+every page would go stale overnight and `check:vorrat` would fail on a tree
+nobody touched. The **date** is stable and goes on the page; the aging goes to
+the console, where it can be as current as it likes.
+
 ## How it empties
 
 By hand, and that is deliberate.
@@ -95,6 +166,16 @@ behind.
 To convert one:
 
 1. Read the item. It is the issue body.
-2. Open it against the `upstream` in its row.
-3. Set `state: filed` and `filed: <url>`, run `npm run vorrat`, commit.
-4. When it merges, **delete the item** and run `npm run vorrat` again.
+2. **Search the upstream tracker first** and record the date in
+   `checked_upstream:`. Filing a duplicate costs a maintainer more than not
+   filing at all, and this stock inherited one item whose "filed upstream"
+   claim carries no link and could not be verified.
+3. Open it against the `upstream` in its row.
+4. Set `state: filed` and `filed: <url>`, run `npm run vorrat`, commit.
+5. When it merges, **delete the item** and run `npm run vorrat` again.
+
+**Issue or pull request?** It depends on the target, and it is worth deciding
+before writing: for `abaplint` and `abap2UI5/linter` we can write the rule and
+its tests ourselves, and a PR lands far more reliably than a request. For
+`open-abap` and the transpiler an issue with a minimal repro is the realistic
+ask. For the framework it is our own repository, so it is a PR.

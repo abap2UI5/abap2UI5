@@ -4,6 +4,7 @@ title: 'Let `generate-metadata.mjs` cover the SAPUI5-only libraries'
 summary: a third resolve candidate plus an additive `--libs`, so `properties.json` can cover the `@sapui5/*` packages — without it the property and scope gates are blind wherever a control is SAPUI5-only
 priority: medium
 state: open
+first_seen: 2026-08-11
 upstream: abap2UI5/linter
 evidence:
   - the prerequisite for opening `src/03`/`src/04` in `abap2UI5/samples-controls` (its AGENTS §3)

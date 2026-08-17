@@ -4,6 +4,7 @@ title: 'Push the model automatically when an event round-trip changed it'
 summary: detect a model change during an event round-trip and send the model automatically — removes the mandatory `view_model_update( )` (230 calls / 125 ports) and its silent-stale-UI failure mode
 priority: medium
 state: filed
+first_seen: 2026-08-11
 upstream: abap2UI5/abap2UI5
 filed: https://github.com/abap2UI5/abap2UI5/pull/2545 — implemented, always on, pending merge
 evidence:

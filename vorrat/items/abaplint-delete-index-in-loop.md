@@ -4,6 +4,7 @@ title: 'Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same tab
 summary: deleting the current row from under the loop skips the next one — a wrong answer where `sy-tabix` is stale, a short dump where it is 0; found eight times across four repositories
 priority: high
 state: open
+first_seen: 2026-08-17
 upstream: abaplint/abaplint
 evidence:
   - found 2026-08-17 by an e2e interaction — `abap2UI5/samples-controls` app 352's `listClose` round-trip answered HTTP 500 with `TABLE_INVALID_INDEX`
@@ -94,3 +95,30 @@ It reads as what it does and has neither failure mode.
 
 All but the last are fixed; the sites are listed because "would it have fired,
 and only there" is the question a rule proposal has to answer.
+
+<!-- probe:start — written by `npm run vorrat:probe`, do not edit by hand -->
+
+## Measured
+
+`abaplint-delete-index-in-loop.probe.mjs` — DELETE <t> INDEX sy-tabix inside an open LOOP AT <t>, and the correct READ-TABLE-then-DELETE form as the negative.
+Run **2026-08-17** against `abap2UI5`, `samples`, `samples-controls`, `samples-stack`.
+
+**Would fire on 1 site(s)** in 1 repository:
+
+| Repository | Where | |
+|---|---|---|
+| abap2UI5 | `src/00/01/z2ui5_cl_ajson_filter_lib.clas.locals_imp.abap`:86 | DELETE lt_tab INDEX sy-tabix. |
+
+**Must NOT fire on 1 site(s)** that match the shape and are correct:
+
+| Repository | Where | |
+|---|---|---|
+| abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.abap`:205 | DELETE mt_json_tree INDEX sy-tabix. "#EC CI_SORTSEQ where pa |
+
+**Where the detector is an approximation of the rule:**
+
+- The detector reads line by line, so a `LOOP AT` or `DELETE` split across lines is missed. A real rule works on the statement tree and would find those too — this is a floor, not a ceiling.
+- "Within 8 statements of a READ TABLE on the same table" stands in for the rule's real condition, which is whether anything has written sy-tabix since. abaplint can ask that exactly; this cannot.
+- The site count is what is LEFT: seven of the eight found on 2026-08-17 were fixed the same day, so the number here measures the current trees rather than the size of the original finding. The one remaining is vendored upstream code, deliberately not patched downstream.
+
+<!-- probe:end -->

@@ -4,6 +4,7 @@ title: 'Judge a `sap.ui.define` dependency array against the target release'
 summary: a module the release lacks 404s and takes the whole component down — a blank app, not a missing feature — and nothing checks the dependency list of a custom control
 priority: low
 state: open
+first_seen: 2026-08-17
 upstream: abap2UI5/linter
 evidence:
   - `sap/ui/core/Theming` and `sap/ui/core/Messaging` are both @since 1.118 and both appear in framework code that has to boot on 1.71

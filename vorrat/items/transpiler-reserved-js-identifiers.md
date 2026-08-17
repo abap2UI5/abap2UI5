@@ -4,6 +4,7 @@ title: 'An ABAP name that is a reserved JS word should be renamed by the transpi
 summary: an ABAP identifier called `with`, `class`, `delete`, … is emitted as-is and dies in strict mode — every consumer has to discover the word and add it to a config list first
 priority: medium
 state: open
+first_seen: 2026-08-17
 upstream: abaplint/transpiler
 evidence:
   - abap2UI5 `e3d8889c` (#2351) — the importing parameter `with` of `c_replace_all` compiled to `let with = …` and took the unit job red
@@ -74,3 +75,37 @@ with  = `b`.
 
 Today this needs both words configured before it compiles at all; the request
 is that it simply compiles.
+
+<!-- probe:start — written by `npm run vorrat:probe`, do not edit by hand -->
+
+## Measured
+
+`transpiler-reserved-js-identifiers.probe.mjs` — an ABAP declaration named after a reserved JavaScript word, with the seven abap2UI5 already configures as the negatives.
+Run **2026-08-17** against `abap2UI5`, `samples`, `samples-controls`, `samples-stack`.
+
+**Would fire on 1 site(s)** in 1 repository:
+
+| Repository | Where | |
+|---|---|---|
+| abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:885 | `new` — new           TYPE any |
+
+**Must NOT fire on 7 site(s)** that match the shape and are correct:
+
+| Repository | Where | |
+|---|---|---|
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1919 | `class` — DATA class    TYPE REF TO data. |
+| abap2UI5 | `src/99/z2ui5_cl_xml_view.clas.abap`:3237 | `delete` — delete                 TYPE clike OPTIONAL |
+| abap2UI5 | `src/99/z2ui5_cl_xml_view.clas.abap`:7486 | `for` — for                           TYPE clike OPTIONAL |
+| abap2UI5 | `src/99/z2ui5_cl_xml_view.clas.abap`:8805 | `var` — var           TYPE clike OPTIONAL |
+| samples | `src/z2ui5_cl_smp_app_000.clas.abap`:134 | `class` — class       TYPE string OPTIONAL |
+| samples-controls | `src/z2ui5_cl_smpc_app_overview.clas.abap`:216 | `class` — class       TYPE string OPTIONAL |
+| samples-stack | `src/z2ui5_cl_smps_app_00.clas.abap`:162 | `class` — class       TYPE string OPTIONAL |
+
+**Where the detector is an approximation of the rule:**
+
+- One row per reserved word per repository, not per occurrence: the question is which words this code base uses, and every occurrence of one shares its fate.
+- Only local data, field symbols and method parameters are counted. A constant or a structure component becomes an object KEY, where a reserved word is legal JavaScript — the corpus transpiles green today with `enum`, `false`, `null` and `default` as component names, which is why counting them would have inflated this by a factor of three.
+- Only declarations with an explicit `TYPE`/`LIKE` on one line are matched. Inline `DATA(x)` and parameters split across lines are missed, so this is a floor.
+- The negatives are the words already listed in `node/setup/abap_transpile.json` — code that compiles only because somebody was bitten first. They are the argument, not an exception.
+
+<!-- probe:end -->

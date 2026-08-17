@@ -4,12 +4,21 @@ title: '`CALL TRANSFORMATION id` must escape XML character data'
 summary: element values are written raw, so a model value containing `<` produces a draft the transpiled `CL_IXML` cannot parse back
 priority: high
 state: open
+first_seen: 2026-07-31
 upstream: open-abap/open-abap-core
 evidence:
   - user report 2026-07-31 — every round-trip of the samples-controls overview app on the Pages demo died with `Network error: ASSERTION_FAILED`
   - the same failure recorded 2026-07-27 on the Node e2e backend and written off as an "open-abap runtime limit"
   - worked around by a build-time patch applied by both transpiled builds ([`web/ci/patch_open_abap_xml.mjs`](https://github.com/abap2UI5/samples-controls/blob/main/web/ci/patch_open_abap_xml.mjs))
 ---
+
+> **Before filing: check whether it already is.** This item came over from
+> `samples-controls/pr/`, where it was headed *"Status: open upstream — filed
+> against open-abap/open-abap-core"* with **no link**, and the claim could not
+> be verified when the stock was assembled on 2026-08-17. Search the tracker,
+> record the date in `checked_upstream:`, and either set `state: filed` with
+> the url or file it fresh. A duplicate costs a maintainer more than a late
+> report does.
 
 # `CALL TRANSFORMATION id` must escape XML character data
 

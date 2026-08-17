@@ -19,6 +19,8 @@
     "check:prose": "node .github/scripts/prose-name-gate.mjs",
     "check:skills": "node .github/scripts/skill-rule-gate.mjs",
     "vorrat": "node .github/scripts/generate-vorrat.mjs",
+    "vorrat:probe": "node .github/scripts/vorrat-probe.mjs",
+    "vorrat:mine": "node .github/scripts/vorrat-mine.mjs",
     "check:vorrat": "node .github/scripts/generate-vorrat.mjs --check",
     "check:version": "node .github/scripts/version-sync-gate.mjs",
     "check:icons": "node .github/scripts/ui5-icon-gate.mjs",

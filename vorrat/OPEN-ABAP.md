@@ -19,11 +19,11 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 _nothing exists upstream yet — this is the stock_
 
-| Item | What | Priority | Upstream |
-|---|---|---|---|
-| [`open-abap-xml-escaping`](items/open-abap-xml-escaping.md) | element values are written raw, so a model value containing `<` produces a draft the transpiled `CL_IXML` cannot parse back | high | open-abap/open-abap-core |
-| [`transpiler-returning-is-supplied`](items/transpiler-returning-is-supplied.md) | it compiles to `INPUT.result`, which no call site ever sets, so `follow_up_action( )`'s wired branch is dead and every view-wired handler arrives empty | high | abaplint/transpiler |
-| [`transpiler-reserved-js-identifiers`](items/transpiler-reserved-js-identifiers.md) | an ABAP identifier called `with`, `class`, `delete`, … is emitted as-is and dies in strict mode — every consumer has to discover the word and add it to a config list first<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub> | medium | abaplint/transpiler |
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`open-abap-xml-escaping`](items/open-abap-xml-escaping.md) | element values are written raw, so a model value containing `<` produces a draft the transpiled `CL_IXML` cannot parse back | high | 2026-07-31 | open-abap/open-abap-core |
+| [`transpiler-returning-is-supplied`](items/transpiler-returning-is-supplied.md) | it compiles to `INPUT.result`, which no call site ever sets, so `follow_up_action( )`'s wired branch is dead and every view-wired handler arrives empty | high | 2026-08-13 | abaplint/transpiler |
+| [`transpiler-reserved-js-identifiers`](items/transpiler-reserved-js-identifiers.md) | an ABAP identifier called `with`, `class`, `delete`, … is emitted as-is and dies in strict mode — every consumer has to discover the word and add it to a config list first<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-08-17: fires on <b>1</b> site(s) in abap2UI5, 7 correct look-alike(s)</sub> | medium | 2026-08-17 | abaplint/transpiler |
 
 ---
 

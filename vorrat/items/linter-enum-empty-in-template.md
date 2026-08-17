@@ -4,6 +4,7 @@ title: 'Report an enum-typed property bound with no fallback inside an aggregati
 summary: an emptied table makes UI5 evaluate the template with no row behind it, the path resolves to `""`, and an enum-typed property throws rather than falling back to its default
 priority: high
 state: open
+first_seen: 2026-08-17
 upstream: abap2UI5/linter
 evidence:
   - `abap2UI5/samples-controls` app 308, 2026-08-16 — found by an e2e interaction, not by any gate

@@ -19,11 +19,11 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 _nothing exists upstream yet — this is the stock_
 
-| Item | What | Priority | Upstream |
-|---|---|---|---|
-| [`linter-enum-empty-in-template`](items/linter-enum-empty-in-template.md) | an emptied table makes UI5 evaluate the template with no row behind it, the path resolves to `""`, and an enum-typed property throws rather than falling back to its default<br><sub>written up in [4. Runtime and environment](../.claude/skills/ui5-check/SKILL.md)</sub> | high | abap2UI5/linter |
-| [`linter-sapui5-metadata`](items/linter-sapui5-metadata.md) | a third resolve candidate plus an additive `--libs`, so `properties.json` can cover the `@sapui5/*` packages — without it the property and scope gates are blind wherever a control is SAPUI5-only | medium | abap2UI5/linter |
-| [`linter-frontend-module-since`](items/linter-frontend-module-since.md) | a module the release lacks 404s and takes the whole component down — a blank app, not a missing feature — and nothing checks the dependency list of a custom control<br><sub>written up in [1.3 Modules and themes](../.claude/skills/ui5-check/SKILL.md)</sub> | low | abap2UI5/linter |
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`linter-enum-empty-in-template`](items/linter-enum-empty-in-template.md) | an emptied table makes UI5 evaluate the template with no row behind it, the path resolves to `""`, and an enum-typed property throws rather than falling back to its default<br><sub>written up in [4. Runtime and environment](../.claude/skills/ui5-check/SKILL.md)</sub> | high | 2026-08-17 | abap2UI5/linter |
+| [`linter-sapui5-metadata`](items/linter-sapui5-metadata.md) | a third resolve candidate plus an additive `--libs`, so `properties.json` can cover the `@sapui5/*` packages — without it the property and scope gates are blind wherever a control is SAPUI5-only | medium | 2026-08-11 | abap2UI5/linter |
+| [`linter-frontend-module-since`](items/linter-frontend-module-since.md) | a module the release lacks 404s and takes the whole component down — a blank app, not a missing feature — and nothing checks the dependency list of a custom control<br><sub>written up in [1.3 Modules and themes](../.claude/skills/ui5-check/SKILL.md)</sub> | low | 2026-08-17 | abap2UI5/linter |
 
 ---
 
