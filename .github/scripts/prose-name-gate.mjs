@@ -49,7 +49,8 @@ const EXTERNAL = new Map([
   ["Z2UI5_CL_SMP_CONTEXT", "the samples repository's shared table/context helper"],
   ["Z2UI5_CL_SMP_APP_000", "the samples repository's overview app"],
   ["Z2UI5_CL_SMPC_APP_OVERVIEW", "the samples-controls overview app"],
-  ["Z2UI5_CL_SMPS_APP_00", "the samples-stack overview app"],
+  ["Z2UI5_CL_SMPS_APP_000", "the samples-stack overview app"],
+  ["Z2UI5_CL_SMPS_EVT_TCK", "the samples-stack ticket event handler - an abap-check case"],
   ["Z2UI5_CL_MY_CLASS", "placeholder in an AGENTS.md example"],
   ["Z2UI5_CL_MY_APP", "placeholder in an example"],
 ]);

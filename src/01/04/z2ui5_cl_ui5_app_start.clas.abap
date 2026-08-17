@@ -540,9 +540,10 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " starts, and the row is marked as not installed. All three of them renamed
     " their overview app (z2ui5_cl_demo_app_g00 -> z2ui5_cl_smp_app_000,
     " z2ui5_cl_dmo_app_overview -> z2ui5_cl_smpc_app_overview and
-    " z2ui5_cl_smpe_app_00 -> z2ui5_cl_smps_app_00), so they pass the old name
+    " z2ui5_cl_smps_app_00 -> z2ui5_cl_smps_app_000), so they pass the old name
     " as a fallback: an installation that predates the rename still links to
-    " its app.
+    " its app. One old name each - samples-stack's smpe-era name from before
+    " its namespace migration is older still and no longer tried.
     " The descriptions are the GitHub "About" text of each repository word for
     " word, so the page and the repository say the same thing - with the em
     " dash written as a hyphen, because ABAP source here is 7-bit ASCII.
@@ -573,8 +574,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         name      = `samples-stack`
         descr     = `Learn how abap2UI5 plays with your stack - OData, RAP, WebSockets, the Fiori Launchpad and more`
         href      = `https://github.com/abap2UI5/samples-stack`
-        class     = `z2ui5_cl_smps_app_00`
-        class_old = `z2ui5_cl_smpe_app_00` ).
+        class     = `z2ui5_cl_smps_app_000`
+        class_old = `z2ui5_cl_smps_app_00` ).
 
   ENDMETHOD.
 

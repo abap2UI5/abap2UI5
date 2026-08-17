@@ -380,12 +380,12 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. The three traps a script can
+which flags things `npm run check` cannot see. The four traps a script can
 decide are gated by `npm run check:atc` — `LOOP AT ... WHERE` over a standard
 table (a sequential read, wants `"#EC CI_SORTSEQ` on the statement), an empty
-`CATCH` block (wants `##NO_HANDLER`) and POSIX regex (below). The rest need a
-reader. Known traps — avoid them up front, a green abaplint does not prove
-their absence:
+`CATCH` block (wants `##NO_HANDLER`), POSIX regex (below) and a misplaced
+ABAP Doc block (below). The rest need a reader. Known traps — avoid them up
+front, a green abaplint does not prove their absence:
 
 - **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE` (bit us in
   `z2ui5_cl_ui5_srv_draft=>count_entries`).
@@ -405,19 +405,21 @@ their absence:
   (or `CONV #( ... )`) when the source already has the target type — assign it
   directly (bit us in `z2ui5_cl_ui5_action=>factory_first_start`, where
   `s_control-app_start` is already a `string`).
-- **ABAP Doc (`"!`) position:** a doc comment must sit directly before the one
+- **ABAP Doc (`"!`) position** — gated by `npm run check:atc` since it
+  recurred a third time (five findings on samples-stack's overview app from a
+  user's system, 2026-08-17): a doc comment must sit directly before the one
   declaration it documents. In a chained statement (`CONSTANTS: BEGIN OF ...`)
   that means *inside* the chain, directly before the element — a `"!` block
   before the chain keyword is "in the wrong position" (bit us on
   `z2ui5_if_client=>cs_nav_mode`).
-- **Never `"!` inside a parameter list.** A single parameter of a `METHODS`
-  statement is not a declaration of its own, so a `"!` block in front of it
-  (anywhere between `IMPORTING` and the final `.`) is "in the wrong position".
-  Document parameters in the method's own doc block, before the `METHODS`
-  keyword, with `"! @parameter <name> | <text>` (see `z2ui5_cl_xml_view` for
-  the house style; bit us on `z2ui5_if_client~_bind( omit_initial )`). A plain
-  `"` comment inside the list stays legal — that is why the `"obsolete …` note
-  on `path` has no `!`.
+- **Never `"!` inside a parameter list** (same gate). A single parameter of a
+  `METHODS` statement is not a declaration of its own, so a `"!` block in
+  front of it (anywhere between `IMPORTING` and the final `.`) is "in the
+  wrong position". Document parameters in the method's own doc block, before
+  the `METHODS` keyword, with `"! @parameter <name> | <text>` (see
+  `z2ui5_cl_xml_view` for the house style; bit us on
+  `z2ui5_if_client~_bind( omit_initial )`). A plain `"` comment inside the
+  list stays legal — that is why the `"obsolete …` note on `path` has no `!`.
 - **ABAP Doc is parsed as HTML:** a literal `<`/`>`/`&` must be escaped as
   `&lt;`/`&gt;`/`&amp;` — a placeholder like `#/app/<CLASS>` is otherwise read
   as an unsupported, unclosed HTML tag; write `#/app/&lt;CLASS&gt;`.
@@ -478,7 +480,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run deps` | Fetch the three pinned git dependencies into `node/deps/` (auto-run by `check`/`downport`; `-- --print-latest` shows upstream HEADs for a pin bump) |
 | `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`, gated in `abaplint.yaml`; abaplint and the transpiler cannot see this) |
 | `npm run check:abapgit` | The abapGit round-trip gate — byte format of every file under `src/` (BOM, LF, terminating newline, tabs, file-name case), sidecar/package completeness, `<CLSNAME>`/`<LANGU>`/`<WITH_UNIT_TESTS>` against the source, and `class_constructor` in the PUBLIC section. Covers `src/00` and `src/99`, which abaplint does not scan (part of `verify`, gated in `check_gates.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
-| `npm run check:atc` | The extended-check (SLIN/ATC) gate — `LOOP AT … WHERE` without `"#EC CI_SORTSEQ`, an empty `CATCH` without `##NO_HANDLER`, `FIND`/`REPLACE … REGEX` without `##REGEX_POSIX`. Scoped to this repository's own ABAP (`src/00/01`, `src/00/02` are upstream mirrors, `src/99` is frozen). abaplint models none of these (part of `verify`, gated in `check_gates.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
+| `npm run check:atc` | The extended-check (SLIN/ATC) gate — `LOOP AT … WHERE` without `"#EC CI_SORTSEQ`, an empty `CATCH` without `##NO_HANDLER`, `FIND`/`REPLACE … REGEX` without `##REGEX_POSIX`, and an ABAP Doc block that documents nothing (before a chain keyword, inside a parameter list, before a section end). Scoped to this repository's own ABAP (`src/00/01`, `src/00/02` are upstream mirrors, `src/99` is frozen). abaplint models none of these (part of `verify`, gated in `check_gates.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
 | `npm run check:standard` / `check:cloud` | abaplint against the standard-ABAP / ABAP-Cloud target configs (part of `verify`) |
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
