@@ -55,7 +55,67 @@ const SHARED = [
     why: 'the builder-chain layout rules the linter\'s chain-house-layout enforces —'
       + ' four repositories format ABAP by this file',
   },
+  {
+    /* Not a whole file: the consumers keep their own `abaplint.jsonc` with
+     * their own `object_naming`, and share the 187 rules around it. So the
+     * comparison is on a SECTION, extracted and parsed from both sides.
+     *
+     * The source here is not a config this repository uses — abap2UI5's own
+     * abaplint.jsonc governs FRAMEWORK code and is legitimately different.
+     * It sits here because this is where "how to write an abap2UI5 app" lives:
+     * the build-an-app and view-chain-layout skills, docs/agents/building-apps.md,
+     * abap-check and ui5-check. The app rule set is one more of those.
+     *
+     * What that costs, stated once: an app author outside these three
+     * repositories cannot `npm install` it, which they could if it shipped
+     * with @abap2ui5/linter. Publishing it from there later is compatible with
+     * this — the source would move, the gate would not.
+     */
+    file: '.github/abaplint/app-rules.json',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'abaplint.jsonc',
+    why: 'the abaplint rule set every abap2UI5 APP repository is judged by —'
+      + ' 187 rules, byte-equal across the three when this was written',
+    /* Compared as PARSED SETTINGS, not as text and not as a list of names.
+     * The checker this replaces compared rule NAMES only, so `"rule": true`
+     * and `"rule": false` looked identical to it — and switching a rule off is
+     * precisely the drift its own header warned about. */
+    section: (text, side) => {
+      const rules = parseJsonc(text)?.rules;
+      if (!rules) throw new Error(`${side}: no \`rules\` block`);
+      const out = {};
+      // each repository names its own object prefixes
+      for (const k of Object.keys(rules).sort()) if (k !== 'object_naming') out[k] = rules[k];
+      return out;
+    },
+    mine: (text) => parseJsonc(text).rules,
+  },
 ];
+
+/* JSONC: strip block and line comments, keeping anything inside a string.
+ * A naive strip eats the `//` of a URL in a `dependencies` entry, which both
+ * consumer configs have. */
+function parseJsonc(text) {
+  let out = '';
+  let inString = false;
+  let quote = '';
+  for (let i = 0; i < text.length; i += 1) {
+    const c = text[i];
+    const next = text[i + 1];
+    if (inString) {
+      out += c;
+      if (c === '\\') { out += next; i += 1; continue; }
+      if (c === quote) inString = false;
+      continue;
+    }
+    if (c === '"' || c === "'") { inString = true; quote = c; out += c; continue; }
+    if (c === '/' && next === '/') { while (i < text.length && text[i] !== '\n') i += 1; out += '\n'; continue; }
+    if (c === '/' && next === '*') { i += 2; while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i += 1; i += 1; continue; }
+    out += c;
+  }
+  // trailing commas are legal in JSONC and common in these files
+  return JSON.parse(out.replace(/,(\s*[}\]])/g, '$1'));
+}
 
 const raw = (repo, file) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/${file}`;
 
@@ -75,27 +135,39 @@ for (const entry of SHARED) {
     problems.push(`${entry.file}: declared shared, but this repository does not have it`);
     continue;
   }
-  const mine = normalise(fs.readFileSync(source, 'utf8'));
+  const sourceText = fs.readFileSync(source, 'utf8');
+  const mine = entry.section
+    ? JSON.stringify(entry.mine(sourceText), null, 1)
+    : normalise(sourceText);
+
+  const consumerFile = entry.consumerFile || entry.file;
 
   for (const repo of entry.consumers) {
     expected += 1;
-    const local = path.join(ROOT, '..', repo, entry.file);
+    const local = path.join(ROOT, '..', repo, consumerFile);
     let theirs = null;
     let from = '';
 
+    let text = null;
     if (fs.existsSync(local)) {
-      theirs = normalise(fs.readFileSync(local, 'utf8'));
+      text = fs.readFileSync(local, 'utf8');
       from = 'checkout';
     } else {
       try {
-        const res = await fetch(raw(repo, entry.file), { signal: AbortSignal.timeout(15000) });
+        const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        theirs = normalise(await res.text());
+        text = await res.text();
         from = 'github';
       } catch (err) {
         notes.push(`${repo}: not compared (${err.message})`);
         continue;
       }
+    }
+    try {
+      theirs = entry.section ? JSON.stringify(entry.section(text, repo), null, 1) : normalise(text);
+    } catch (err) {
+      problems.push(`${repo}/${consumerFile}: ${err.message}`);
+      continue;
     }
 
     compared += 1;
@@ -107,12 +179,12 @@ for (const entry of SHARED) {
     const b = theirs.split('\n');
     const at = a.findIndex((line, i) => line !== b[i]);
     problems.push(
-      `${entry.file} differs in ${repo} (read from ${from})\n`
+      `${entry.file} differs in ${repo}/${consumerFile} (read from ${from})\n`
       + (at === -1
         ? `    same first ${Math.min(a.length, b.length)} line(s), then one file ends`
         : `    first difference at line ${at + 1}\n`
           + `      here:      ${JSON.stringify(a[at] ?? '<end of file>')}\n`
-          + `      ${repo}: ${JSON.stringify(b[at] ?? '<end of file>')}`)
+          + `      ${repo}:    ${JSON.stringify(b[at] ?? '<end of file>')}`)
       + `\n    this repository is the source — copy it there, or change it here first`,
     );
   }
