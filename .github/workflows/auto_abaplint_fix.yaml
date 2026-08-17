@@ -5,6 +5,12 @@ on:
   schedule:
     - cron: '0 0 * * 1'
 
+# No cancel-in-progress: a run that is already opening a pull request should
+# finish. The group is what keeps a hand dispatch and the Monday cron from
+# doing that twice at once.
+concurrency:
+  group: auto_abaplint_fix
+
 permissions:
   contents: read
 

@@ -18,6 +18,12 @@ on:
   schedule:
     - cron: '0 1 1 * *'
 
+# No cancel-in-progress: a run mid-way through opening a mirror PR should
+# finish. The group stops a dispatch and the monthly cron from opening the
+# same PR twice.
+concurrency:
+  group: mirror
+
 permissions:
   contents: read
 
