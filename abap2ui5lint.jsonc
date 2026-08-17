@@ -37,18 +37,6 @@
      * linter's own 0.2.0 changelog says so. */
     "frozen-view-builder": { "exclude": ["/src/99/"] },
 
-    /* The other two findings 0.2.0 brings are real: z2ui5_cl_ui5_app_hi_world
-     * and the focus test server dispatch on check_on_init( ) alone, so nothing
-     * re-displays when a bookmarked state is restored.
-     *
-     * A hint, not an exclusion — it stays on every report. Not fixed in this
-     * commit on purpose: hi_world builds its view INLINE, so the fix extracts a
-     * method, and that reshapes THE canonical example — the smallest complete
-     * app, the one docs/agents/building-apps.md walks through and the first
-     * abap2UI5 view most people ever see. Changing what it teaches is a
-     * deliberate decision, not a side effect of a release commit. */
-    "missing-on-navigated-branch": "hint",
-
     // The reason the linter is a dependency here at all. It replaces
     // .github/scripts/chain-format-gate.mjs, which was this rule reimplemented
     // locally and kept byte-identical in three repositories by hand — the

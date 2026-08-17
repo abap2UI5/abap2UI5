@@ -3,7 +3,7 @@
 Self-contained, offline reference for AI assistants (and humans) **building
 apps with** abap2UI5. It is derived from the framework sources in this
 repository (`src/02/` public API, `z2ui5_cl_ui5_view_builder`, the
-hello-world app) and the conventions proven over the ~280 ported UI5
+hello-world app) and the conventions proven over the 416 ported UI5
 demo-kit samples in
 [samples-controls](https://github.com/abap2UI5/samples-controls). The rendered
 documentation site is <https://abap2ui5.github.io/docs/> — this file exists so
@@ -556,7 +556,7 @@ The same tree, with the subtree held in a variable:
   `build_backend` → `run_app` (headless screenshot + errors).
 - **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:
   F9 launches the class in an embedded preview against a real system.
-- **Worked examples**: ~280 gate-verified sample apps in
+- **Worked examples**: 416 gate-verified sample apps in
   [samples-controls](https://github.com/abap2UI5/samples-controls) (`src/`), curated
   samples in [abap2UI5/samples](https://github.com/abap2UI5/samples), and
   what-is-expressible answers in samples-controls' `CAPABILITIES.md`.
