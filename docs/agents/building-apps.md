@@ -16,8 +16,11 @@ For working **on the framework itself**, read `AGENTS.md` instead.
 ## 1. The model in one paragraph
 
 An abap2UI5 app is **one ABAP class** implementing `z2ui5_if_app`. The
-framework calls its `main( client )` method on every HTTP roundtrip: once at
-startup (`check_on_init`) and once per user interaction (`check_on_event`).
+framework calls its `main( client )` method on every HTTP roundtrip, and the
+app dispatches on why it was called: it has to put its view on screen
+(`check_on_navigated`, true on the first start and on every return into the
+app), or the user interacted with it (`check_on_event`), or it is running for
+the very first time and has one-time setup to do (`check_on_init`).
 The app builds a UI5 XML view as a string, binds ABAP attributes into it,
 and registers named events. Between roundtrips the framework
 serializes the app object into a draft table and restores it — **every PUBLIC
