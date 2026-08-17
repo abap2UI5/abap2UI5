@@ -3,11 +3,18 @@ name: autofix
 # Every generator this repository owns, run on demand against a pull request,
 # and committed back to it in one commit.
 #
-# The gates in check_gates.yaml, check_app2abap.yaml and frontend_check.yaml
-# each fail with the npm script that fixes them. This runs those scripts. It
-# is the same set a contributor would run locally, in the same order, so a
-# pull request that trips four gates is one command away from green instead of
-# four local toolchains away.
+# The gates in abaplint.yaml, check_gates.yaml, check_app2abap.yaml and
+# frontend_check.yaml each fail with the npm script that fixes them. This runs
+# those scripts. It is the same set a contributor would run locally, in the
+# same order, so a pull request that trips four gates is one command away from
+# green instead of four local toolchains away.
+#
+#   app2abap   prettier over app/webapp, regenerate src/01/03, abaplint --fix
+#   abaplint   abaplint --fix on its own (app2abap ends in it; this is the
+#              same pass without the Fiori toolchain in front of it)
+#   chains     abap2ui5lint --fix over the view chains
+#   backlog    regenerate the four backlog pages
+#   frontend   rebuild the four delivery trees under build/
 #
 # Two ways to ask for it, because they suit different people:
 #
@@ -149,12 +156,18 @@ jobs:
           ref: ${{ steps.pr.outputs.head_ref }}
 
       # `/fix` alone means everything. `/fix chains backlog` means those two -
-      # worth having because app2abap is three of the four minutes, and a
+      # worth having because app2abap is three of the five minutes, and a
       # chain-layout fix does not need it.
+      #
+      # abaplint is a scope of its own even though app2abap ends in the same
+      # `abaplint --fix`: reaching that fix through app2abap costs the Fiori
+      # project's npm ci and a full regeneration of src/01/03, for a formatting
+      # pass over src/ that neither of them can affect. Asking for both is not
+      # an error, it just runs the standalone step once instead of twice.
       #
       # Only the first line of the comment is read, and only ever as data: a
       # body is attacker-controlled text, so it arrives in an environment
-      # variable and leaves as four booleans and a summary built from literals.
+      # variable and leaves as five booleans and a summary built from literals.
       # Nothing derived from it reaches a command line.
       - name: Decide what to run
         id: plan
@@ -166,21 +179,46 @@ jobs:
             scopes=$(printf '%s' "$BODY" | head -n 1 | tr -d '\r' | sed 's|^/fix||')
             case "$scopes" in *[!\ ]*) ;; *) scopes=all ;; esac
           fi
-          summary=
-          for scope in app2abap chains backlog frontend; do
+          want() {
             case " $scopes " in
-              *" all "*|*" $scope "*)
-                echo "$scope=true" >> "$GITHUB_OUTPUT"
-                summary="${summary:+$summary, }$scope"
-                ;;
-              *)
-                echo "$scope=false" >> "$GITHUB_OUTPUT"
-                ;;
+              *" all "*|*" $1 "*) echo true ;;
+              *) echo false ;;
             esac
-          done
-          echo "summary=${summary:-nothing}" >> "$GITHUB_OUTPUT"
+          }
+          app2abap=$(want app2abap)
+          abaplint=$(want abaplint)
+          chains=$(want chains)
+          backlog=$(want backlog)
+          frontend=$(want frontend)
+
+          # app2abap's last step IS auto_abaplint, so the standalone run would
+          # be a second pass over a tree the first one already settled
+          folded=false
+          if [ "$app2abap" = true ] && [ "$abaplint" = true ]; then
+            abaplint=false
+            folded=true
+          fi
+
+          summary=
+          add() { summary="${summary:+$summary, }$1"; }
+          if [ "$app2abap" = true ]; then
+            if [ "$folded" = true ]; then add "app2abap (abaplint included)"; else add app2abap; fi
+          fi
+          if [ "$abaplint" = true ]; then add abaplint; fi
+          if [ "$chains" = true ]; then add chains; fi
+          if [ "$backlog" = true ]; then add backlog; fi
+          if [ "$frontend" = true ]; then add frontend; fi
+
+          {
+            echo "app2abap=$app2abap"
+            echo "abaplint=$abaplint"
+            echo "chains=$chains"
+            echo "backlog=$backlog"
+            echo "frontend=$frontend"
+            echo "summary=${summary:-nothing}"
+          } >> "$GITHUB_OUTPUT"
           if [ -z "$summary" ]; then
-            echo "::warning::no scope matched - the ones that exist are app2abap, chains, backlog, frontend, or /fix on its own for all four"
+            echo "::warning::no scope matched - the ones that exist are app2abap, abaplint, chains, backlog, frontend, or /fix on its own for all of them"
           else
             echo "::notice::autofix will run: $summary"
           fi
@@ -205,6 +243,13 @@ jobs:
       - name: app2abap
         if: ${{ !cancelled() && steps.plan.outputs.app2abap == 'true' }}
         run: npm run app2abap
+
+      # abaplint --fix over src/ with .github/abaplint/auto_abaplint_fix.jsonc -
+      # the formatting half of what abaplint.yaml reports. Skipped when
+      # app2abap ran, which ends in this same command.
+      - name: abaplint
+        if: ${{ !cancelled() && steps.plan.outputs.abaplint == 'true' }}
+        run: npm run auto_abaplint
 
       # abap2ui5lint --fix over the view chains (check:abap2ui5).
       #
