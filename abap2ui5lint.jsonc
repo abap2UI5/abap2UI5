@@ -1,6 +1,8 @@
 {
   // The abap2UI5-linter, run against the framework's OWN app classes — the
-  // six under src/01/04 and src/02 plus the test-server apps under node/srv.
+  // ones under src/01/04 and src/02 plus the test-server apps under node/srv.
+  // (The run prints how many it found and how many of them build a view; a
+  // count written here would be one more number nothing checks.)
   //
   // Those apps are what an app developer copies from: `z2ui5_cl_ui5_app_hi_world`
   // is the worked example in docs/agents/building-apps.md, and the start app is
