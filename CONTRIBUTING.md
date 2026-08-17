@@ -224,6 +224,19 @@ Look for issues labeled:
    > only to produce the `702` branch in CI. `npm run verify` performs the
    > identical downport non-destructively in `node/downport/`.
 
+   Several of the gates are generators, and their failure message names the
+   script that fixes them. If you would rather not install the toolchain for
+   that, comment **`/fix`** on the pull request: CI runs all four of them —
+   `npm run app2abap`, `npm run fmt:chains`, `npm run backlog`,
+   `npm run frontend:build` — and commits the result to your branch. Name a
+   subset to skip the rest (`/fix chains backlog`; `app2abap` is three of the
+   four minutes). Applying the `autofix` label does the same thing.
+
+   > `/fix` cannot push to a fork's branch, so on a pull request from a fork it
+   > answers with the command line to run locally instead. And because a commit
+   > made by CI does not start a new workflow run, push once more (or reopen the
+   > pull request) after it lands, so the checks judge the fixed tree.
+
 4. **Commit Your Changes:**
    ```bash
    git add .
