@@ -1,0 +1,316 @@
+name: autofix
+
+# Every generator this repository owns, run on demand against a pull request,
+# and committed back to it in one commit.
+#
+# The gates in abaplint.yaml, check_gates.yaml, check_app2abap.yaml and
+# frontend_check.yaml each fail with the npm script that fixes them. This runs
+# those scripts. It is the same set a contributor would run locally, in the
+# same order, so a pull request that trips four gates is one command away from
+# green instead of four local toolchains away.
+#
+#   app2abap   prettier over app/webapp, regenerate src/01/03, abaplint --fix
+#   abaplint   abaplint --fix on its own (app2abap ends in it; this is the
+#              same pass without the Fiori toolchain in front of it)
+#   chains     abap2ui5lint --fix over the view chains
+#   backlog    regenerate the four backlog pages
+#   frontend   rebuild the four delivery trees under build/
+#
+# Two ways to ask for it, because they suit different people:
+#
+#   /fix                 a comment on the pull request. Discoverable, works
+#                        from the phone, and takes an optional scope list -
+#                        `/fix chains backlog` runs those two and skips the
+#                        three-minute app2abap.
+#   label `autofix`      for anyone who would rather click. Runs everything.
+#                        The label is removed again when the run finishes, so
+#                        re-applying it re-triggers.
+#
+# This replaces auto_abaplint_fix_pr.yaml, which ran app2abap on EVERY push to
+# every pull request and committed on top of it. That is what makes on-demand
+# the better trade: the bot commit arrived while you were still working, so
+# every second local push needed a pull --rebase first, and it re-ran the
+# three-minute regeneration on pushes that could not possibly have changed its
+# output. Nothing here runs unless someone asks for it.
+#
+# NOT included, on purpose:
+#
+#   auto_downport      rewrites all of src/ into 702 syntax and swaps
+#                      abaplint.jsonc for the 702 profile. That is how the 702
+#                      branch is built (auto_downport.yaml), not a fix to a
+#                      pull request - running it here would rewrite the branch
+#                      into something that is no longer the change under
+#                      review.
+#   api-snapshot --write
+#                      check:api exists so that a public API addition is
+#                      consciously recorded and reviewed. A bot that writes
+#                      the snapshot whenever it drifts removes the review and
+#                      keeps the green check - it would turn the gate into a
+#                      formality.
+#
+# Fork pull requests are refused rather than half-served. issue_comment runs
+# with a write token even when the comment sits under a fork's pull request,
+# and the GITHUB_TOKEN cannot push to the fork's branch anyway (that needs a
+# PAT plus "allow edits by maintainers", and this repository has neither). So
+# the job resolves the head repository first and stops there, with a comment
+# saying what to run locally - the same guard auto_abaplint_fix_pr carried.
+# The label path refuses earlier, in the job condition: a pull_request event
+# from a fork gets a read-only token, so it could not even post the refusal.
+#
+# issue_comment only ever runs the copy of this file on the default branch. A
+# change to the fixer list below therefore does nothing on its own pull
+# request; it takes effect once merged.
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [labeled]
+
+# Not cancel-in-progress: this job pushes. A cancelled run can have committed
+# and not yet pushed, or pushed half of what it fixed.
+concurrency:
+  group: autofix-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    # The comment body is matched here only to keep the runner from starting;
+    # it is never trusted as shell input. Anything derived from it is passed
+    # through the environment and parsed in the plan step.
+    if: >-
+      github.repository == 'abap2UI5/abap2UI5'
+      && (
+        (github.event_name == 'pull_request'
+          && github.event.label.name == 'autofix'
+          && github.event.pull_request.head.repo.full_name == github.repository)
+        || (github.event_name == 'issue_comment'
+          && github.event.issue.pull_request != null
+          && startsWith(github.event.comment.body, '/fix')
+          && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+      )
+    permissions:
+      contents: write       # the fix commit
+      pull-requests: write  # the reaction, the refusal comment, the label
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # Says "started" before the four minutes of install and regeneration
+      # begin. A comment would say the same and never go away again.
+      - name: Acknowledge the command
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          gh api -X POST --silent \
+            "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions" \
+            -f content=eyes
+
+      # issue_comment carries the issue number and nothing else - no head ref,
+      # no head repository - so both have to be read back from the API.
+      - name: Resolve the pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          pr=$(gh pr view "$NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefName,isCrossRepository)
+          {
+            echo "number=$NUMBER"
+            echo "head_ref=$(jq -r .headRefName <<<"$pr")"
+            echo "cross=$(jq -r .isCrossRepository <<<"$pr")"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Refuse a fork pull request
+        if: steps.pr.outputs.cross == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          set -euo pipefail
+          # quoted delimiter: the body is markdown, and nothing in it is meant
+          # to be expanded by the shell
+          cat > refusal.md <<'EOF'
+          autofix cannot push to a fork's branch. Run the generators locally and commit the result:
+
+          ```
+          npm ci && npm --prefix app ci
+          npm run app2abap && npm run fmt:chains && npm run backlog && npm run frontend:build
+          ```
+
+          ---
+          _Generated by [Claude Code](https://claude.ai/code)_
+          EOF
+          gh pr comment "$NUMBER" --repo "$GITHUB_REPOSITORY" --body-file refusal.md
+          echo "::notice::fork pull request - nothing pushed"
+
+      - name: Checkout the pull request branch
+        if: steps.pr.outputs.cross != 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.pr.outputs.head_ref }}
+
+      # `/fix` alone means everything. `/fix chains backlog` means those two -
+      # worth having because app2abap is three of the five minutes, and a
+      # chain-layout fix does not need it.
+      #
+      # abaplint is a scope of its own even though app2abap ends in the same
+      # `abaplint --fix`: reaching that fix through app2abap costs the Fiori
+      # project's npm ci and a full regeneration of src/01/03, for a formatting
+      # pass over src/ that neither of them can affect. Asking for both is not
+      # an error, it just runs the standalone step once instead of twice.
+      #
+      # Only the first line of the comment is read, and only ever as data: a
+      # body is attacker-controlled text, so it arrives in an environment
+      # variable and leaves as five booleans and a summary built from literals.
+      # Nothing derived from it reaches a command line.
+      - name: Decide what to run
+        id: plan
+        if: steps.pr.outputs.cross != 'true'
+        run: |
+          set -euo pipefail
+          scopes=all
+          if [ "$GITHUB_EVENT_NAME" = "issue_comment" ]; then
+            scopes=$(printf '%s' "$BODY" | head -n 1 | tr -d '\r' | sed 's|^/fix||')
+            case "$scopes" in *[!\ ]*) ;; *) scopes=all ;; esac
+          fi
+          want() {
+            case " $scopes " in
+              *" all "*|*" $1 "*) echo true ;;
+              *) echo false ;;
+            esac
+          }
+          app2abap=$(want app2abap)
+          abaplint=$(want abaplint)
+          chains=$(want chains)
+          backlog=$(want backlog)
+          frontend=$(want frontend)
+
+          # app2abap's last step IS auto_abaplint, so the standalone run would
+          # be a second pass over a tree the first one already settled
+          folded=false
+          if [ "$app2abap" = true ] && [ "$abaplint" = true ]; then
+            abaplint=false
+            folded=true
+          fi
+
+          summary=
+          add() { summary="${summary:+$summary, }$1"; }
+          if [ "$app2abap" = true ]; then
+            if [ "$folded" = true ]; then add "app2abap (abaplint included)"; else add app2abap; fi
+          fi
+          if [ "$abaplint" = true ]; then add abaplint; fi
+          if [ "$chains" = true ]; then add chains; fi
+          if [ "$backlog" = true ]; then add backlog; fi
+          if [ "$frontend" = true ]; then add frontend; fi
+
+          {
+            echo "app2abap=$app2abap"
+            echo "abaplint=$abaplint"
+            echo "chains=$chains"
+            echo "backlog=$backlog"
+            echo "frontend=$frontend"
+            echo "summary=${summary:-nothing}"
+          } >> "$GITHUB_OUTPUT"
+          if [ -z "$summary" ]; then
+            echo "::warning::no scope matched - the ones that exist are app2abap, abaplint, chains, backlog, frontend, or /fix on its own for all of them"
+          else
+            echo "::notice::autofix will run: $summary"
+          fi
+        env:
+          BODY: ${{ github.event.comment.body }}
+
+      - name: Setup
+        if: steps.pr.outputs.cross != 'true'
+        uses: ./.github/actions/setup
+        with:
+          npm-ci: "true"
+          # only app2abap needs the Fiori project's own dependencies
+          app-npm-ci: ${{ steps.plan.outputs.app2abap }}
+
+      # Every fixer is `!cancelled()`, for the reason check_gates gives: a run
+      # that trips two of them reports both, instead of surfacing the second
+      # only after the first has been fixed and asked for again. What did
+      # succeed is still committed.
+
+      # prettier over app/webapp, regenerate the embedded ABAP under src/01/03,
+      # then abaplint --fix over src/ (check_app2abap, abaplint)
+      - name: app2abap
+        if: ${{ !cancelled() && steps.plan.outputs.app2abap == 'true' }}
+        run: npm run app2abap
+
+      # abaplint --fix over src/ with .github/abaplint/auto_abaplint_fix.jsonc -
+      # the formatting half of what abaplint.yaml reports. Skipped when
+      # app2abap ran, which ends in this same command.
+      - name: abaplint
+        if: ${{ !cancelled() && steps.plan.outputs.abaplint == 'true' }}
+        run: npm run auto_abaplint
+
+      # abap2ui5lint --fix over the view chains (check:abap2ui5).
+      #
+      # After app2abap, not before: app2abap ends in abaplint --fix, whose
+      # whitespace rules run over the same statements the chain layout is made
+      # of. Whoever runs last owns the result, and the gate that decides these
+      # files is the chain one.
+      - name: chains
+        if: ${{ !cancelled() && steps.plan.outputs.chains == 'true' }}
+        run: npm run fmt:chains
+
+      # regenerate the four backlog pages from backlog/items and the skills
+      # (check:backlog)
+      - name: backlog
+        if: ${{ !cancelled() && steps.plan.outputs.backlog == 'true' }}
+        run: npm run backlog
+
+      # rebuild the four published trees under build/ (check:frontend)
+      - name: frontend
+        if: ${{ !cancelled() && steps.plan.outputs.frontend == 'true' }}
+        run: npm run frontend:build
+
+      # Scoped to the paths those four own - a fixer that starts writing
+      # somewhere else should be noticed, not committed.
+      - name: Commit the fixes
+        id: commit
+        if: ${{ !cancelled() && steps.pr.outputs.cross != 'true' }}
+        uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
+        with:
+          commit_message: "autofix: ${{ steps.plan.outputs.summary }}"
+          file_pattern: "src/ app/webapp/ build/ backlog/"
+
+      # A commit by the GITHUB_TOKEN does not start a new workflow run, so the
+      # checks on the pull request still belong to the commit before it. Say so
+      # where it will be read, rather than leaving a green tick that is about
+      # the wrong tree.
+      - name: Ask for a re-run of the checks
+        if: ${{ !cancelled() && steps.commit.outputs.changes_detected == 'true' }}
+        run: |
+          echo "::warning::autofix pushed ${{ steps.commit.outputs.commit_hash }}. A GITHUB_TOKEN commit does not trigger workflows - close and reopen the pull request, or push once more, to run the checks against it."
+
+      # 🚀 committed something, 👍 there was nothing to fix. The commit itself
+      # is the report when there is one, so neither case is worth a comment.
+      - name: Report back
+        if: ${{ !cancelled() && github.event_name == 'issue_comment' && steps.pr.outputs.cross != 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          REACTION: ${{ steps.commit.outputs.changes_detected == 'true' && 'rocket' || '+1' }}
+        run: |
+          gh api -X POST --silent \
+            "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions" \
+            -f content="$REACTION"
+
+      # So that applying it again re-triggers, instead of needing a remove and
+      # a re-add by hand.
+      - name: Drop the label
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr edit "$NUMBER" --repo "$GITHUB_REPOSITORY" --remove-label autofix
