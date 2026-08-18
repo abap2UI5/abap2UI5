@@ -20,6 +20,8 @@
     "check:skills": "node .github/scripts/skill-rule-gate.mjs",
     "check:shared": "node .github/scripts/shared-file-gate.mjs",
     "check:counts": "node .github/scripts/corpus-count-gate.mjs",
+    "check:samples-md": "node .github/scripts/samples-md-gate.mjs",
+    "check:changelog": "node .github/scripts/changelog-gate.mjs",
     "backlog": "node .github/scripts/generate-backlog.mjs",
     "backlog:probe": "node .github/scripts/backlog-probe.mjs",
     "backlog:mine": "node .github/scripts/backlog-mine.mjs",

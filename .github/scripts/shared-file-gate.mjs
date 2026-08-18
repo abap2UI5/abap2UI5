@@ -39,6 +39,11 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+/* The guide's declared deviations, and the reader that cuts the mirrored half
+ * out of it. In `.github/shared/` rather than in this file because app-template
+ * now GENERATES its copy from the same two functions — see the entry for
+ * `app-guide-deviations.mjs` below. */
+import { applyGuideDeviations, guideBody } from '../shared/app-guide-deviations.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -104,11 +109,16 @@ const SHARED = [
      * cannot also be byte-equal.
      *
      * So the deviations are declared, applied to this side, and only what is
-     * left over is compared. Declaring one is deliberately a diff here: it
-     * says "this sentence is repository-specific", which is a decision about
-     * the guide, not about the copy. If a deviation ever grows past a few
-     * lines, that is the signal to move the sentence out of the mirrored half
-     * instead of maintaining a translation of it.
+     * left over is compared. Declaring one is deliberately a diff in
+     * `.github/shared/app-guide-deviations.mjs`: it says "this sentence is
+     * repository-specific", which is a decision about the guide, not about the
+     * copy.
+     *
+     * The mirror is no longer maintained by hand on the other side.
+     * app-template GENERATES its half with `npm run agents`, from this guide
+     * and from that same deviation list, and its `npm run check:agents` fails
+     * on drift — so the copy is produced rather than transcribed, and this
+     * gate is the second opinion rather than the only one.
      */
     file: 'docs/agents/building-apps.md',
     consumers: ['app-template'],
@@ -116,46 +126,225 @@ const SHARED = [
     why: 'the app-building guide every new project briefs its agent with —'
       + ' mirrored so the template needs no framework checkout',
     section: (text) => guideBody(text),
-    mine: (text) => DEVIATIONS.reduce((s, [from, to]) => {
-      if (!s.includes(from)) {
-        throw new Error(
-          `declared deviation no longer matches this repository's guide:\n      ${JSON.stringify(from)}\n`
-          + '      the sentence it rewrites was edited or removed — update DEVIATIONS',
-        );
-      }
-      return s.split(from).join(to);
-    }, guideBody(text)),
+    mine: (text) => applyGuideDeviations(guideBody(text)),
+  },
+  {
+    /* The deviation list itself, and the two functions that execute it.
+     *
+     * It has to be shared because it has two executors in two repositories:
+     * this gate applies it to compare, and app-template's
+     * `scripts/generate-agents.mjs` applies it to WRITE. Two transcriptions of
+     * the same three substitutions would move the drift one level down, into
+     * the least visible place there is — a generator and a gate that disagree
+     * produce a file that fails a check nobody can fix from either side alone.
+     *
+     * Whole file, no deviations of its own: it is a declaration plus two pure
+     * functions and names no path that differs between the two repositories.
+     */
+    file: '.github/shared/app-guide-deviations.mjs',
+    consumers: ['app-template'],
+    consumerFile: 'scripts/app-guide-deviations.mjs',
+    why: 'the declared deviations of the guide above — applied by this gate to'
+      + " compare, and by app-template's generator to write",
+  },
+  {
+    /* The frontend repository's front page. It is the same document as this
+     * one — the build copies THIS file into every generated branch (see
+     * `tools/build-branches.mjs`), so `main` was the only copy nothing wrote,
+     * and it drifted: five paragraphs reworded on one side or the other, and
+     * a table naming the reserved resourceRoots `z2ui5cc`/`z2ui5ext` in BOTH,
+     * when `app/webapp/manifest.json` has reserved `z2ui5_cci`/`z2ui5_ccc`
+     * since the day the roots existed. A reader following that table installs
+     * a BSP the loader never asks for.
+     *
+     * Wrong in both copies is what an unchecked mirror looks like: nobody
+     * compares them, so nobody reads them side by side, so nobody reads them
+     * against the manifest either. Gating it does not make the text true, but
+     * it makes the next divergence a failing check instead of a discovery.
+     */
+    file: 'frontend/common/README.md',
+    consumers: ['frontend'],
+    consumerFile: 'README.md',
+    why: "the frontend repository's front page — this file is what the build"
+      + ' copies into every generated branch, so `main` must say the same',
+    /* Whole file, and the one declared deviation is a badge: `main` carries no
+     * generated tree, so the `frontend_deploy` badge on it would report on
+     * something that is not there. Everything below line 1 is compared. */
+    section: (text) => text,
+    mine: (text) => applyDeviations(text, README_DEVIATIONS),
+  },
+  {
+    /* The metadata convention — what belongs on the class (`DESCRIPT`,
+     * `@summary`, `@keywords`) and what belongs in a `meta/` sidecar. It says
+     * so itself, in its first line: "Shared across abap2UI5/samples,
+     * abap2UI5/samples-controls and abap2UI5/samples-stack. Decided once, so
+     * nobody has to decide it again per repository."
+     *
+     * Which was true of the text and not of the arrangement: three copies,
+     * pasted, none of them the source. A convention that lives in three
+     * unowned copies is decided once and then re-decided every time one of
+     * them is edited, which is the case the whole gate exists for.
+     *
+     * The source is here rather than in one of the three for the same reason
+     * `app-rules.json` is: picking one consumer as the owner makes the other
+     * two guess whose copy is right.
+     *
+     * Compared section for section, from the `## Metadata` heading down to the
+     * next `##`, so each repository keeps its own AGENTS.md around it. A
+     * consumer may ADD a `###` subsection of its own — samples-controls
+     * documents its `@keywords` / `@summary` generators there — which is
+     * declared below and dropped before comparing. An addition is a decision,
+     * a reword of a shared subsection is drift; the split is what makes them
+     * distinguishable.
+     */
+    /* The checker for the rule set two entries up. The rule set had one owner
+     * and the program reading it had three unowned copies — which is the
+     * arrangement `check-app-rules` was itself written to replace, one
+     * directory over: it says so in its own header, about the peer comparison
+     * it took the place of.
+     *
+     * A copy of a CHECKER drifting is worse than a copy of a document doing
+     * it, because a checker that has quietly stopped checking still prints
+     * that it passed. Nothing here would have noticed the three going
+     * different ways.
+     *
+     * Whole file, no deviations: the script resolves everything it needs from
+     * its own location, so the three copies have nothing repository-specific
+     * left to say. The framework does not run it — it is the source of the
+     * rule set, not a consumer of it — which is the same trade
+     * `app-rules.json` and `agents-metadata.md` already make.
+     */
+    file: '.github/shared/check-app-rules.mjs',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'scripts/check-app-rules.mjs',
+    why: 'the checker that holds each app repository to the shared abaplint'
+      + ' rule set — three copies of it, none of them the source',
+  },
+  {
+    /* The cross-repository name check. `prose-name-gate.mjs` here is NOT this
+     * program and is not a candidate to be merged with it: that one reads one
+     * repository's tree and puts every foreign name on an allowlist, and this
+     * one exists precisely because the names that go stale are the foreign
+     * ones — it resolves them against the owning repository's catalogue
+     * instead of exempting them. Two jobs, two programs, and only the second
+     * is shared.
+     *
+     * Whole file. `scripts/prose-absent.json` beside it is deliberately NOT
+     * shared and is not listed here: it is each repository's own allowlist of
+     * names it means to write in the past tense, and unifying it would be the
+     * opposite of the point. The script says so where it reads the file.
+     */
+    file: '.github/shared/check-prose-names.mjs',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'scripts/check-prose-names.mjs',
+    why: 'the check that a class named in one repository\'s prose still exists'
+      + ' in the repository that owns it',
+  },
+  {
+    /* The builder-chain formatter — the executable half of the
+     * `view-chain-layout` skill that heads this list. Two repositories run it;
+     * neither owned it. Both being byte-equal today is the state this gate
+     * makes checkable rather than a fact somebody re-verifies by hand.
+     *
+     * This repository does not run it: the framework formats its own chains
+     * with the linter's `chain-house-layout` rule, and its copy of the script
+     * is gone. The script's own header used to claim otherwise, naming a path
+     * that had not existed since — which is what an unchecked shared file
+     * looks like from the inside.
+     *
+     * It is scheduled for deletion. `view-chain-layout` says when: both
+     * consumers pin the linter at a version predating the rule, and the day
+     * that pin can move the script goes away and the rule replaces it. Until
+     * then it is a formatter two corpora format ABAP by, and one line here is
+     * a cheaper way to hold it than trusting that nobody edits one copy.
+     */
+    file: '.github/shared/chain-format.mjs',
+    consumers: ['samples', 'samples-controls'],
+    consumerFile: 'scripts/chain-format.mjs',
+    why: 'the builder-chain formatter the two sample corpora are laid out by,'
+      + ' until the linter pin can move and the rule replaces it',
+  },
+  {
+    file: '.github/shared/agents-metadata.md',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'AGENTS.md',
+    why: 'the metadata convention the three app repositories are written by —'
+      + ' what goes on the class, what goes in the `meta/` sidecar',
+    section: (text, side) => dropSubsections(metadataBlock(text), METADATA_EXTENSIONS[side] ?? [], side),
+    mine: (text) => metadataBlock(text),
   },
 ];
 
-/* Everything from section 1 down: the part app-template mirrors. Above it each
- * repository says what IT is, which is not shared and must not be compared. */
-function guideBody(text) {
-  /* Anchored to the start of a line, because the consumer's provenance block
-   * NAMES this heading when it explains how to re-sync — and an unanchored
-   * search found that sentence instead, then reported the whole guide as
-   * different from line 1. A heading is a line, so the pattern says so. */
-  const at = text.search(/^## 1\. The model in one paragraph$/m);
-  if (at === -1) throw new Error('no "## 1. The model in one paragraph" heading on a line of its own');
-  return text.slice(at);
+const METADATA_HEADING = '## Metadata: what goes on the class, and what goes beside it';
+
+/* The shared block, from its heading down to the next top-level heading. The
+ * source file carries only this block (under a provenance comment); each
+ * consumer carries it inside its own AGENTS.md, where everything around it is
+ * that repository's own and must not be compared. */
+function metadataBlock(text) {
+  const lines = text.split('\n');
+  const at = lines.indexOf(METADATA_HEADING);
+  if (at === -1) throw new Error(`no ${JSON.stringify(METADATA_HEADING)} heading on a line of its own`);
+  let end = at + 1;
+  while (end < lines.length && !/^## /.test(lines[end])) end += 1;
+  return lines.slice(at, end).join('\n');
 }
 
-/* [what this repository says, what a template repository says] — each one a
- * name that exists here and not there. Kept to whole sentences so a reviewer
- * can see what was traded. */
-const DEVIATIONS = [
+/* `### <heading>` subsections a named consumer adds to the shared block, cut
+ * out before the comparison.
+ *
+ * Declared per repository rather than "anything unrecognised passes": the
+ * whole point of the block is that a repository does not get to re-decide it,
+ * and a rule that lets any extra heading through cannot tell an addition from
+ * a shared subsection somebody retitled. */
+const METADATA_EXTENSIONS = {
+  'samples-controls': ['### In this repository'],
+};
+
+function dropSubsections(block, headings, side) {
+  const lines = block.split('\n');
+  for (const heading of headings) {
+    const at = lines.indexOf(heading);
+    if (at === -1) {
+      throw new Error(
+        `declared extension ${JSON.stringify(heading)} is no longer in ${side}'s copy —`
+        + ' it was removed or retitled; update METADATA_EXTENSIONS',
+      );
+    }
+    let end = at + 1;
+    while (end < lines.length && !/^###? /.test(lines[end])) end += 1;
+    lines.splice(at, end - at);
+  }
+  return lines.join('\n');
+}
+
+/* Applies a declared deviation list to THIS side, so what is compared is what
+ * the consumer is actually expected to carry.
+ *
+ * A deviation that no longer matches anything here is a finding, not a
+ * silently skipped rewrite: it means somebody edited a passage a consumer is
+ * known to reword, and the two copies have to be reconciled by hand. */
+function applyDeviations(text, deviations) {
+  return deviations.reduce((s, [from, to]) => {
+    if (!s.includes(from)) {
+      throw new Error(
+        `declared deviation no longer matches this repository's copy:\n      ${JSON.stringify(from)}\n`
+        + '      the text it rewrites was edited or removed — update the deviation list',
+      );
+    }
+    return s.split(from).join(to);
+  }, text);
+}
+
+/* [what the shipped copy carries, what `frontend`'s `main` carries] — the
+ * badge line and nothing else. Kept whole-line so removing it leaves no blank
+ * line behind, and so a reviewer can see that the deviation is a badge rather
+ * than a sentence about how the frontend works. */
+const README_DEVIATIONS = [
   [
-    '`npm run check:abap2ui5` reports and `npm run fmt:chains` applies.',
-    '`npm run check:abap2ui5` reports and `npm run fix` applies.',
-  ],
-  [
-    "`.github/abaplint/auto_abaplint_fix.jsonc` excludes the shipped apps from",
-    "the framework repository's `.github/abaplint/auto_abaplint_fix.jsonc`"
-      + ' excludes its shipped apps from',
-  ],
-  [
-    'and `npm run check:formatter` enforces them.',
-    "and the framework's own `check:formatter` gate enforces them there.",
+    '[![frontend_deploy](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml'
+      + '/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml)\n',
+    '',
   ],
 ];
 

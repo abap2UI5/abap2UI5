@@ -11,7 +11,7 @@ events, popups, navigation, portability rules, validation tooling). This
 skill is the trigger and the checklist; the guide is the content.
 
 **Before writing one from scratch, ask whether it exists.** `abap2UI5/samples`
-holds 152 working apps, each linted, rendered and downported to three
+holds 150 working apps, each linted, rendered and downported to three
 releases — a value help, a tree, navigation between two apps, a dynamic table
 typed at runtime. Reading one beats reproducing it, and beats any snippet: the
 sample is gated, a snippet is a copy somebody has to keep in step.
