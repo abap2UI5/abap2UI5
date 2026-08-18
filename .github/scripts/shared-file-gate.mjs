@@ -39,6 +39,11 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+/* The guide's declared deviations, and the reader that cuts the mirrored half
+ * out of it. In `.github/shared/` rather than in this file because app-template
+ * now GENERATES its copy from the same two functions — see the entry for
+ * `app-guide-deviations.mjs` below. */
+import { applyGuideDeviations, guideBody } from '../shared/app-guide-deviations.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -104,11 +109,16 @@ const SHARED = [
      * cannot also be byte-equal.
      *
      * So the deviations are declared, applied to this side, and only what is
-     * left over is compared. Declaring one is deliberately a diff here: it
-     * says "this sentence is repository-specific", which is a decision about
-     * the guide, not about the copy. If a deviation ever grows past a few
-     * lines, that is the signal to move the sentence out of the mirrored half
-     * instead of maintaining a translation of it.
+     * left over is compared. Declaring one is deliberately a diff in
+     * `.github/shared/app-guide-deviations.mjs`: it says "this sentence is
+     * repository-specific", which is a decision about the guide, not about the
+     * copy.
+     *
+     * The mirror is no longer maintained by hand on the other side.
+     * app-template GENERATES its half with `npm run agents`, from this guide
+     * and from that same deviation list, and its `npm run check:agents` fails
+     * on drift — so the copy is produced rather than transcribed, and this
+     * gate is the second opinion rather than the only one.
      */
     file: 'docs/agents/building-apps.md',
     consumers: ['app-template'],
@@ -116,7 +126,26 @@ const SHARED = [
     why: 'the app-building guide every new project briefs its agent with —'
       + ' mirrored so the template needs no framework checkout',
     section: (text) => guideBody(text),
-    mine: (text) => applyDeviations(guideBody(text), GUIDE_DEVIATIONS),
+    mine: (text) => applyGuideDeviations(guideBody(text)),
+  },
+  {
+    /* The deviation list itself, and the two functions that execute it.
+     *
+     * It has to be shared because it has two executors in two repositories:
+     * this gate applies it to compare, and app-template's
+     * `scripts/generate-agents.mjs` applies it to WRITE. Two transcriptions of
+     * the same three substitutions would move the drift one level down, into
+     * the least visible place there is — a generator and a gate that disagree
+     * produce a file that fails a check nobody can fix from either side alone.
+     *
+     * Whole file, no deviations of its own: it is a declaration plus two pure
+     * functions and names no path that differs between the two repositories.
+     */
+    file: '.github/shared/app-guide-deviations.mjs',
+    consumers: ['app-template'],
+    consumerFile: 'scripts/app-guide-deviations.mjs',
+    why: 'the declared deviations of the guide above — applied by this gate to'
+      + " compare, and by app-template's generator to write",
   },
   {
     /* The frontend repository's front page. It is the same document as this
@@ -246,18 +275,6 @@ const SHARED = [
   },
 ];
 
-/* Everything from section 1 down: the part app-template mirrors. Above it each
- * repository says what IT is, which is not shared and must not be compared. */
-function guideBody(text) {
-  /* Anchored to the start of a line, because the consumer's provenance block
-   * NAMES this heading when it explains how to re-sync — and an unanchored
-   * search found that sentence instead, then reported the whole guide as
-   * different from line 1. A heading is a line, so the pattern says so. */
-  const at = text.search(/^## 1\. The model in one paragraph$/m);
-  if (at === -1) throw new Error('no "## 1. The model in one paragraph" heading on a line of its own');
-  return text.slice(at);
-}
-
 const METADATA_HEADING = '## Metadata: what goes on the class, and what goes beside it';
 
 /* The shared block, from its heading down to the next top-level heading. The
@@ -318,25 +335,6 @@ function applyDeviations(text, deviations) {
     return s.split(from).join(to);
   }, text);
 }
-
-/* [what this repository says, what a template repository says] — each one a
- * name that exists here and not there. Kept to whole sentences so a reviewer
- * can see what was traded. */
-const GUIDE_DEVIATIONS = [
-  [
-    '`npm run check:abap2ui5` reports and `npm run fmt:chains` applies.',
-    '`npm run check:abap2ui5` reports and `npm run fix` applies.',
-  ],
-  [
-    "`.github/abaplint/auto_abaplint_fix.jsonc` excludes the shipped apps from",
-    "the framework repository's `.github/abaplint/auto_abaplint_fix.jsonc`"
-      + ' excludes its shipped apps from',
-  ],
-  [
-    'and `npm run check:formatter` enforces them.',
-    "and the framework's own `check:formatter` gate enforces them there.",
-  ],
-];
 
 /* [what the shipped copy carries, what `frontend`'s `main` carries] — the
  * badge line and nothing else. Kept whole-line so removing it leaves no blank
