@@ -204,10 +204,11 @@ Look for issues labeled:
      > This repository is the **only** place the frontend is edited.
      > [abap2UI5/frontend](https://github.com/abap2UI5/frontend) publishes the
      > same webapp as installable branches, but it is generated: every branch
-     > there is the tree that `build/` carries here, pushed by `frontend_deploy`
-     > over whatever is on it, so a change made in that repository is silently
-     > discarded on the next delivery. Its `guard_mirrored` workflow rejects manual pull requests for
-     > exactly that reason — see its
+     > there is the tree that `build/` carries here, delivered by
+     > `frontend_deploy` into `result/<branch>` on its `main` and fanned out
+     > from there by its `deliver` workflow, so a change made in that
+     > repository is silently discarded on the next delivery. Its `guard`
+     > workflow rejects manual pull requests for exactly that reason — see its
      > [CONTRIBUTING.md](https://github.com/abap2UI5/frontend/blob/main/CONTRIBUTING.md).
 
 3. **Test Your Changes:**
