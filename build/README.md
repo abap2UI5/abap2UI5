@@ -12,7 +12,11 @@ as trees. **Generated — never edit anything below this file.**
 
 Each folder is the *whole* branch: `.abapgit.xml`, `README.md`, `abaplint.jsonc`
 and `src/` exactly as an abapGit repository out there pulls them.
-`frontend_deploy.yaml` pushes the folder as it stands — it does not build.
+`frontend_deploy.yaml` ships the folder as it stands — it does not build: it
+stamps the provenance and commits all four as `result/<branch>` folders onto
+abap2UI5/frontend's `main`, from where that repository's `deliver` workflow
+fans each folder out into its branch (one commit on top of `main`, so every
+branch is always exactly one commit ahead of it).
 
 ## Why they are committed
 
@@ -71,4 +75,5 @@ built on demand by a `frontend_deploy` dispatch, into the git-ignored
 
 And `VERSION`: it names the commit a branch was built from, which does not
 exist yet while that very commit is being made. `tools/branch-stamp.mjs` writes
-it — and the provenance sentence of the branch `README.md` — at deploy time.
+it — and the provenance sentence of the branch `README.md` — at deploy time,
+into the `result/<branch>` copy that lands on abap2UI5/frontend's `main`.

@@ -1,4 +1,4 @@
-name: mirror
+name: vendor-mirror
 
 # Refreshes the vendored upstream sources under src/00/ from their mirror
 # repositories and opens a PR with the diff.

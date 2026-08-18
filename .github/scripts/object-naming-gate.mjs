@@ -16,7 +16,7 @@
 //   src/99  - frozen production code (rule 1); it ships as-is until the
 //             removal plan retires it
 //   MIRRORED - src/00/01 (ajson) and src/00/02 (S-RTTI) are force-synced from
-//             their mirror repositories by mirror.yaml, which does
+//             their mirror repositories by vendor-mirror.yaml, which does
 //             `rm <target>/z*` + `cp <mirror>/src/z*`. A rename here is reverted
 //             on the next scheduled run unless the mirror repos are renamed too,
 //             and their interfaces sit in the signature of z2ui5_if_client~_bind
@@ -30,8 +30,8 @@ const ROOT = new URL("../../", import.meta.url).pathname;
 const EXEMPT = [
   ["src/02", "public API - a stable contract, see AGENTS.md rule 5"],
   ["src/99", "frozen package - ships as-is until the removal plan retires it"],
-  ["src/00/01", "mirrored from abap2UI5/ajson_mirror by mirror.yaml"],
-  ["src/00/02", "mirrored from abap2UI5/srtti_mirror by mirror.yaml"],
+  ["src/00/01", "mirrored from abap2UI5/ajson_mirror by vendor-mirror.yaml"],
+  ["src/00/02", "mirrored from abap2UI5/srtti_mirror by vendor-mirror.yaml"],
 ];
 
 // Nothing is pending: every layer outside EXEMPT is on the ui5 segment. If a
