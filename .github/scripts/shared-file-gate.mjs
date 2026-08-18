@@ -144,6 +144,38 @@ const SHARED = [
     section: (text) => text,
     mine: (text) => applyDeviations(text, README_DEVIATIONS),
   },
+  {
+    /* The metadata convention — what belongs on the class (`DESCRIPT`,
+     * `@summary`, `@keywords`) and what belongs in a `meta/` sidecar. It says
+     * so itself, in its first line: "Shared across abap2UI5/samples,
+     * abap2UI5/samples-controls and abap2UI5/samples-stack. Decided once, so
+     * nobody has to decide it again per repository."
+     *
+     * Which was true of the text and not of the arrangement: three copies,
+     * pasted, none of them the source. A convention that lives in three
+     * unowned copies is decided once and then re-decided every time one of
+     * them is edited, which is the case the whole gate exists for.
+     *
+     * The source is here rather than in one of the three for the same reason
+     * `app-rules.json` is: picking one consumer as the owner makes the other
+     * two guess whose copy is right.
+     *
+     * Compared section for section, from the `## Metadata` heading down to the
+     * next `##`, so each repository keeps its own AGENTS.md around it. A
+     * consumer may ADD a `###` subsection of its own — samples-controls
+     * documents its `@keywords` / `@summary` generators there — which is
+     * declared below and dropped before comparing. An addition is a decision,
+     * a reword of a shared subsection is drift; the split is what makes them
+     * distinguishable.
+     */
+    file: '.github/shared/agents-metadata.md',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'AGENTS.md',
+    why: 'the metadata convention the three app repositories are written by —'
+      + ' what goes on the class, what goes in the `meta/` sidecar',
+    section: (text, side) => dropSubsections(metadataBlock(text), METADATA_EXTENSIONS[side] ?? [], side),
+    mine: (text) => metadataBlock(text),
+  },
 ];
 
 /* Everything from section 1 down: the part app-template mirrors. Above it each
@@ -157,6 +189,50 @@ function guideBody(text) {
   if (at === -1) throw new Error('no "## 1. The model in one paragraph" heading on a line of its own');
   return text.slice(at);
 }
+
+const METADATA_HEADING = '## Metadata: what goes on the class, and what goes beside it';
+
+/* The shared block, from its heading down to the next top-level heading. The
+ * source file carries only this block (under a provenance comment); each
+ * consumer carries it inside its own AGENTS.md, where everything around it is
+ * that repository's own and must not be compared. */
+function metadataBlock(text) {
+  const lines = text.split('\n');
+  const at = lines.indexOf(METADATA_HEADING);
+  if (at === -1) throw new Error(`no ${JSON.stringify(METADATA_HEADING)} heading on a line of its own`);
+  let end = at + 1;
+  while (end < lines.length && !/^## /.test(lines[end])) end += 1;
+  return lines.slice(at, end).join('\n');
+}
+
+/* `### <heading>` subsections a named consumer adds to the shared block, cut
+ * out before the comparison.
+ *
+ * Declared per repository rather than "anything unrecognised passes": the
+ * whole point of the block is that a repository does not get to re-decide it,
+ * and a rule that lets any extra heading through cannot tell an addition from
+ * a shared subsection somebody retitled. */
+const METADATA_EXTENSIONS = {
+  'samples-controls': ['### In this repository'],
+};
+
+function dropSubsections(block, headings, side) {
+  const lines = block.split('\n');
+  for (const heading of headings) {
+    const at = lines.indexOf(heading);
+    if (at === -1) {
+      throw new Error(
+        `declared extension ${JSON.stringify(heading)} is no longer in ${side}'s copy —`
+        + ' it was removed or retitled; update METADATA_EXTENSIONS',
+      );
+    }
+    let end = at + 1;
+    while (end < lines.length && !/^###? /.test(lines[end])) end += 1;
+    lines.splice(at, end - at);
+  }
+  return lines.join('\n');
+}
+
 /* Applies a declared deviation list to THIS side, so what is compared is what
  * the consumer is actually expected to carry.
  *
