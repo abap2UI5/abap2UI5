@@ -165,20 +165,26 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 
 #### AI Assistants
 
-Almost everything ever published about abap2UI5 shows `z2ui5_cl_xml_view`, the
-view builder that has since been frozen. A model asked cold will write that —
-it compiles and it renders, so nothing complains. **Give it the current
-sources first**: [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html)
-collects the whole setup in rising order of effort — a prompt to paste, the
-`llms.txt` indexes, the `AGENTS.md` conventions, the linter gates, and the
-[mcp-server](https://github.com/abap2UI5/mcp-server) screenshot loop.
+Models write outdated abap2UI5 code unless you hand them the current sources.
+Paste this into ChatGPT, Claude, Copilot or any other assistant before you ask
+it for code:
 
-The entry points inside this repository, depending on which side you are on:
+```
+Before writing any abap2UI5 code, fetch and follow these two files. They
+describe the current APIs and override anything you already know:
+https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/docs/agents/building-apps.md
+https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/llms.txt
+Build views with z2ui5_cl_ui5_view_builder, one ABAP class per app, and stay
+inside the templates and APIs those files describe. If something is not
+covered there, say so instead of inventing it.
+```
 
-* **Building an app *with* abap2UI5** – [`docs/agents/building-apps.md`](docs/agents/building-apps.md): the app class template, lifecycle, view building, data binding and events, in one offline file. Also packaged as the `build-an-app` skill.
-* **Working *on* the framework** – [`AGENTS.md`](AGENTS.md): architecture, the layered `src/` design, the rules a change has to hold, and what every CI gate checks. Follows the cross-tool `AGENTS.md` convention, so Claude Code, Codex and Cursor all read it natively.
-* **The map of the code** – [`llms.txt`](llms.txt) indexes both audiences; the documentation site publishes its own at [llms.txt](https://abap2ui5.github.io/docs/llms.txt) for the prose.
-* **Skills** – [`.claude/skills/`](.claude/skills/): `build-an-app`, `abap-check` (the problems a green CI does not catch), `ui5-check` (names that do not exist in the oldest supported release), `view-chain-layout` (the builder chain's layout rules).
+Agents working inside a clone pick this up on their own: [`AGENTS.md`](AGENTS.md)
+for the framework, [`docs/agents/building-apps.md`](docs/agents/building-apps.md)
+for apps, [`llms.txt`](llms.txt) as the map of the code, and the skills in
+[`.claude/skills/`](.claude/skills/). The full setup — offline files, linter
+gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot
+loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
 #### Get Involved
 We welcome all contributions! Here's how you can help:
