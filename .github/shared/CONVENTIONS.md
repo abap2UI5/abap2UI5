@@ -34,14 +34,22 @@ Rules that follow from the role:
 
 ## 2. Workflows
 
-- File name: lower kebab case, `.yml` for new files. Existing `.yaml` files stay
-  as they are — a mass rename retitles every required status check and breaks
-  branch protection in every consumer at once. Rename only when the file is
-  being reworked anyway, and say so in the pull request so the required checks
-  can be moved.
-- `name:` equals the file name without its extension. The `name:` is what branch
-  protection sees; a file whose `name:` disagrees with it is a check nobody can
-  find.
+- File name: lower kebab case. The extension follows whatever the repository
+  already uses — a new workflow in a `.yaml` repository is `.yaml`; only a
+  repository starting fresh picks `.yml`. A mass rename across a repository
+  retitles every required status check at once, so rename only when the file is
+  being reworked anyway, and say so in the pull request so branch protection
+  can be moved with it.
+- The `name:` must be recognisable from the file name. It is what branch
+  protection and the checks list show, so a reader who sees a red check has to
+  be able to find the file it came from. `ci.yml` → `CI` and
+  `bump-linter.yml` → `Bump linter` are fine; `UI5.yaml` → `UI5_2X` was not,
+  because nothing connects the two. Repositories whose workflows are technical
+  gates use the file name verbatim; the JavaScript-side repositories use a
+  readable sentence, and both are correct as long as the pairing is obvious.
+- A workflow name never carries a count or a version ("samples-controls corpus
+  (416 ports)"). It is the one string nothing re-measures, and it is on every
+  pull request.
 - Verb prefixes, in this order of preference: `check-` (proves a property),
   `build-`, `publish-`, `deploy-`, `bump-` (moves a pin), `release`, `test`.
   The same act carries the same verb in every repository.
