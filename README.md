@@ -168,43 +168,12 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 Almost everything ever published about abap2UI5 shows `z2ui5_cl_xml_view`, the
 view builder that has since been frozen. A model asked cold will write that —
 it compiles and it renders, so nothing complains. **Give it the current
-sources first.** Paste this ahead of your task:
+sources first**: [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html)
+collects the whole setup in rising order of effort — a prompt to paste, the
+`llms.txt` indexes, the `AGENTS.md` conventions, the linter gates, and the
+[ai-mcp](https://github.com/abap2UI5/ai-mcp) screenshot loop.
 
-```text
-Before writing any abap2UI5 code, read https://abap2ui5.github.io/docs/llms.txt
-and follow it to the pages you need.
-
-Four things that override whatever you remember about abap2UI5:
-1. An app is ONE ABAP class implementing z2ui5_if_app. Everything enters main( ),
-   which dispatches on client->check_on_navigated( ) (the display branch, true on
-   first start too), client->check_on_event( `X` ) and - for one-time setup only -
-   client->check_on_init( ).
-2. Build the view with z2ui5_cl_ui5_view_builder and its verbs ele / tag / a / end /
-   stringify. z2ui5_cl_xml_view is the FROZEN predecessor - it is what most examples
-   online show, and it is not what to write.
-3. Bind with client->_bind( ). It is bidirectional; only what the user edited comes back.
-4. Every roundtrip is a fresh ABAP session. Nothing survives on the server except
-   the app class itself, which is serialized.
-
-Before building something from scratch, check whether it exists: the sample
-catalogue lists every app with the words to search it by, at
-https://github.com/abap2UI5/samples/blob/main/SAMPLES.md
-
-When you are done, check the result with the abap2UI5-linter
-(npx abap2ui5lint) - it reads the view your ABAP builds and needs no SAP system.
-```
-
-Then, depending on how much setup you want:
-
-| | |
-|---|---|
-| [llms.txt](https://abap2ui5.github.io/docs/llms.txt) | the documentation as a map, one fetch. [llms-full.txt](https://abap2ui5.github.io/docs/llms-full.txt) is all of it in one document, and every page is served as raw markdown next to its `.html` |
-| [ai-mcp](https://github.com/abap2UI5/ai-mcp) | MCP server: query the sample catalogues, validate a view, deploy, build, boot the app headless and **look at a screenshot**. No SAP system. This is the setup that closes the loop |
-| [app-template](https://github.com/abap2UI5/app-template) | start a project here — both gates, CI and an `AGENTS.md` for your own repo, already wired up |
-| [linter](https://github.com/abap2UI5/linter) | the check to run on generated code. It reports a class written on the frozen builder, which is the most common thing a model gets wrong |
-| [vscode-extension](https://github.com/abap2UI5/vscode-extension) | registers the MCP servers into the editor, lints while you type, and runs an app against a real system with `F9` |
-
-And the entry points inside this repository, depending on which side you are on:
+The entry points inside this repository, depending on which side you are on:
 
 * **Building an app *with* abap2UI5** – [`docs/agents/building-apps.md`](docs/agents/building-apps.md): the app class template, lifecycle, view building, data binding and events, in one offline file. Also packaged as the `build-an-app` skill.
 * **Working *on* the framework** – [`AGENTS.md`](AGENTS.md): architecture, the layered `src/` design, the rules a change has to hold, and what every CI gate checks. Follows the cross-tool `AGENTS.md` convention, so Claude Code, Codex and Cursor all read it natively.
