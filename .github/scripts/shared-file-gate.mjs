@@ -116,15 +116,33 @@ const SHARED = [
     why: 'the app-building guide every new project briefs its agent with —'
       + ' mirrored so the template needs no framework checkout',
     section: (text) => guideBody(text),
-    mine: (text) => DEVIATIONS.reduce((s, [from, to]) => {
-      if (!s.includes(from)) {
-        throw new Error(
-          `declared deviation no longer matches this repository's guide:\n      ${JSON.stringify(from)}\n`
-          + '      the sentence it rewrites was edited or removed — update DEVIATIONS',
-        );
-      }
-      return s.split(from).join(to);
-    }, guideBody(text)),
+    mine: (text) => applyDeviations(guideBody(text), GUIDE_DEVIATIONS),
+  },
+  {
+    /* The frontend repository's front page. It is the same document as this
+     * one — the build copies THIS file into every generated branch (see
+     * `tools/build-branches.mjs`), so `main` was the only copy nothing wrote,
+     * and it drifted: five paragraphs reworded on one side or the other, and
+     * a table naming the reserved resourceRoots `z2ui5cc`/`z2ui5ext` in BOTH,
+     * when `app/webapp/manifest.json` has reserved `z2ui5_cci`/`z2ui5_ccc`
+     * since the day the roots existed. A reader following that table installs
+     * a BSP the loader never asks for.
+     *
+     * Wrong in both copies is what an unchecked mirror looks like: nobody
+     * compares them, so nobody reads them side by side, so nobody reads them
+     * against the manifest either. Gating it does not make the text true, but
+     * it makes the next divergence a failing check instead of a discovery.
+     */
+    file: 'frontend/common/README.md',
+    consumers: ['frontend'],
+    consumerFile: 'README.md',
+    why: "the frontend repository's front page — this file is what the build"
+      + ' copies into every generated branch, so `main` must say the same',
+    /* Whole file, and the one declared deviation is a badge: `main` carries no
+     * generated tree, so the `frontend_deploy` badge on it would report on
+     * something that is not there. Everything below line 1 is compared. */
+    section: (text) => text,
+    mine: (text) => applyDeviations(text, README_DEVIATIONS),
   },
 ];
 
@@ -139,11 +157,28 @@ function guideBody(text) {
   if (at === -1) throw new Error('no "## 1. The model in one paragraph" heading on a line of its own');
   return text.slice(at);
 }
+/* Applies a declared deviation list to THIS side, so what is compared is what
+ * the consumer is actually expected to carry.
+ *
+ * A deviation that no longer matches anything here is a finding, not a
+ * silently skipped rewrite: it means somebody edited a passage a consumer is
+ * known to reword, and the two copies have to be reconciled by hand. */
+function applyDeviations(text, deviations) {
+  return deviations.reduce((s, [from, to]) => {
+    if (!s.includes(from)) {
+      throw new Error(
+        `declared deviation no longer matches this repository's copy:\n      ${JSON.stringify(from)}\n`
+        + '      the text it rewrites was edited or removed — update the deviation list',
+      );
+    }
+    return s.split(from).join(to);
+  }, text);
+}
 
 /* [what this repository says, what a template repository says] — each one a
  * name that exists here and not there. Kept to whole sentences so a reviewer
  * can see what was traded. */
-const DEVIATIONS = [
+const GUIDE_DEVIATIONS = [
   [
     '`npm run check:abap2ui5` reports and `npm run fmt:chains` applies.',
     '`npm run check:abap2ui5` reports and `npm run fix` applies.',
@@ -156,6 +191,18 @@ const DEVIATIONS = [
   [
     'and `npm run check:formatter` enforces them.',
     "and the framework's own `check:formatter` gate enforces them there.",
+  ],
+];
+
+/* [what the shipped copy carries, what `frontend`'s `main` carries] — the
+ * badge line and nothing else. Kept whole-line so removing it leaves no blank
+ * line behind, and so a reviewer can see that the deviation is a badge rather
+ * than a sentence about how the frontend works. */
+const README_DEVIATIONS = [
+  [
+    '[![frontend_deploy](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml'
+      + '/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml)\n',
+    '',
   ],
 ];
 
