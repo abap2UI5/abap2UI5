@@ -159,7 +159,7 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 * Syntax downporting via the [downport branch](https://github.com/abap2UI5/abap2UI5/tree/702) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Namespace renaming with [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Browser testing with [Playwright](https://playwright.dev/) [(contributors)](https://github.com/microsoft/playwright/graphs/contributors)
-* Live demos running via [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
+* [Live demos](https://abap2ui5.github.io/web-abap2UI5-build/) built from [web-abap2UI5](https://github.com/abap2UI5/web-abap2UI5) [(larshp)](https://github.com/larshp)
 * Code cleanup with [ABAP Cleaner](https://github.com/SAP/abap-cleaner) [(contributors)](https://github.com/SAP/abap-cleaner/graphs/contributors)
 * Documentation created with [VitePress](https://vitepress.dev/) [(contributors)](https://github.com/vuejs/vitepress/graphs/contributors)
 
