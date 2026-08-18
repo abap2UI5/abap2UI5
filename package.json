@@ -18,6 +18,7 @@
     "check:dynamic": "node .github/scripts/dynamic-name-gate.mjs",
     "check:prose": "node .github/scripts/prose-name-gate.mjs",
     "check:skills": "node .github/scripts/skill-rule-gate.mjs",
+    "check:scripts": "node .github/scripts/scripts-gate.mjs",
     "check:shared": "node .github/scripts/shared-file-gate.mjs",
     "check:counts": "node .github/scripts/corpus-count-gate.mjs",
     "check:samples-md": "node .github/scripts/samples-md-gate.mjs",

@@ -93,6 +93,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:shared
 
+      # `npm run check` and `npm test` are the two commands somebody types
+      # before reading anything - five of the ten repositories answered
+      # "Missing script" until this gate went in
+      - name: every repository answers to check and test
+        if: ${{ !cancelled() }}
+        run: npm run check:scripts
+
       # the corpus sizes this repository quotes at agents belong to other
       # repositories - held to their generated catalogues, not to memory
       - name: corpus counts match the corpora

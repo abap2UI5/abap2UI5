@@ -61,12 +61,29 @@ Rules that follow from the role:
 
 ## 3. npm scripts
 
-- `check` runs exactly what CI runs on a pull request — no more, no less. A step
-  that exists only in `package.json` is a step no pull request has to pass; a
-  step that exists only in a workflow is one no contributor can run before
-  pushing.
-- `test` runs the repository's own tests. If CI has no separate test step,
-  `test` and `check` may be the same command, but both must exist.
+- **Every repository has `check` and `test`.** They are the two names an
+  outside developer types without reading anything first, and "Missing script"
+  is a bad first answer. `check` exists in all ten repositories as of
+  2026-08-18; before that it existed in five.
+- `check` runs what CI runs on a pull request. A step that exists only in
+  `package.json` is a step no pull request has to pass; a step that exists only
+  in a workflow is one no contributor can run before pushing.
+- A CI step `check` leaves out must need something a checkout does not have — a
+  browser download, a full downport, a sibling repository's `main` — and the
+  repository's `AGENTS.md` must name it and say why. Anything else and `check`
+  quietly means something narrower in one repository than in the next, which is
+  the failure this rule exists to prevent. Today: `vscode-extension` omits
+  `test:web` (downloads VS Code web + chromium), `samples-controls` omits
+  `gates:full` and the two downport lint configs, `web-abap2UI5` omits the
+  Playwright e2e run.
+- `test` runs the repository's own tests. Where there is no separate test suite
+  — the corpora are checked, not unit-tested — `test` is `npm run check`, so
+  that the universal command still answers.
+- The first two rules are gated: `npm run check:scripts` in this repository
+  reads all ten `package.json` files (sibling checkout, else raw main, else say
+  so and pass) and fails naming any repository that has lost either script.
+  Prose is not a thing that fails a pull request, which is why five of them
+  drifted out of the rule before anyone noticed.
 - Namespaces use a colon: `check:chains`, `fmt:chains`, `bump:linter`. No
   snake_case script names, no bare verbs for anything a namespace fits.
 - Scripts that rewrite files are `fmt:*` or carry `--write`/`--fix`; their
