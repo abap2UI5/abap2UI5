@@ -199,7 +199,7 @@ Then, depending on how much setup you want:
 | | |
 |---|---|
 | [llms.txt](https://abap2ui5.github.io/docs/llms.txt) | the documentation as a map, one fetch. [llms-full.txt](https://abap2ui5.github.io/docs/llms-full.txt) is all of it in one document, and every page is served as raw markdown next to its `.html` |
-| [ai-mcp](https://github.com/abap2UI5/ai-mcp) | MCP server: query the sample catalogues, validate a view, deploy, build, boot the app headless and **look at a screenshot**. No SAP system. This is the setup that closes the loop |
+| [mcp-server](https://github.com/abap2UI5/mcp-server) | MCP server: query the sample catalogues, validate a view, deploy, build, boot the app headless and **look at a screenshot**. No SAP system. This is the setup that closes the loop |
 | [app-template](https://github.com/abap2UI5/app-template) | start a project here — both gates, CI and an `AGENTS.md` for your own repo, already wired up |
 | [linter](https://github.com/abap2UI5/linter) | the check to run on generated code. It reports a class written on the frozen builder, which is the most common thing a model gets wrong |
 | [vscode-extension](https://github.com/abap2UI5/vscode-extension) | registers the MCP servers into the editor, lints while you type, and runs an app against a real system with `F9` |

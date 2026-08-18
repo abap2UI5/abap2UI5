@@ -38,7 +38,7 @@ Two audiences, two entry points:
   Launchpad and more
 - [abap2UI5-linter](https://github.com/abap2UI5/linter): static +
   headless-render checks for app view code (CLI, GitHub Action, VS Code)
-- [ai-mcp](https://github.com/abap2UI5/ai-mcp): MCP server with the
+- [mcp-server](https://github.com/abap2UI5/mcp-server): MCP server with the
   deploy -> build -> run -> screenshot loop, no SAP system needed
 
 ## Developing the framework itself
