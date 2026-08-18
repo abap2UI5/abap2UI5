@@ -171,7 +171,7 @@ it compiles and it renders, so nothing complains. **Give it the current
 sources first**: [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html)
 collects the whole setup in rising order of effort — a prompt to paste, the
 `llms.txt` indexes, the `AGENTS.md` conventions, the linter gates, and the
-[ai-mcp](https://github.com/abap2UI5/ai-mcp) screenshot loop.
+[mcp-server](https://github.com/abap2UI5/mcp-server) screenshot loop.
 
 The entry points inside this repository, depending on which side you are on:
 
