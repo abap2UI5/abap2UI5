@@ -93,6 +93,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:shared
 
+      # the corpus sizes this repository quotes at agents belong to other
+      # repositories - held to their generated catalogues, not to memory
+      - name: corpus counts match the corpora
+        if: ${{ !cancelled() }}
+        run: npm run check:counts
+
       # the four backlogs are generated from backlog/items and the skills'
       # **Backlog:** lines - a hand-edited page is the thing this replaced
       - name: the backlog pages match their items

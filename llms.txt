@@ -31,7 +31,7 @@ Two audiences, two entry points:
   lists every one of them with the words to search it by — ask it whether a
   sample already exists before writing an app from scratch
 - [samples-controls](https://github.com/abap2UI5/samples-controls) (formerly
-  ai-demokit): ~400 gate-verified ports of the official UI5 demo kit samples,
+  ai-demokit): 416 gate-verified ports of the official UI5 demo kit samples,
   plus CAPABILITIES.md (what abap2UI5 can express)
 - [samples-stack](https://github.com/abap2UI5/samples-stack) (formerly
   samples-ext): abap2UI5 combined with OData, RAP, WebSockets, the Fiori

@@ -1,6 +1,8 @@
 {
   // The abap2UI5-linter, run against the framework's OWN app classes — the
-  // six under src/01/04 and src/02 plus the test-server apps under node/srv.
+  // ones under src/01/04 and src/02 plus the test-server apps under node/srv.
+  // (The run prints how many it found and how many of them build a view; a
+  // count written here would be one more number nothing checks.)
   //
   // Those apps are what an app developer copies from: `z2ui5_cl_ui5_app_hi_world`
   // is the worked example in docs/agents/building-apps.md, and the start app is
@@ -36,18 +38,6 @@
      * version does not have, so the exclusion and the bump are one commit. The
      * linter's own 0.2.0 changelog says so. */
     "frozen-view-builder": { "exclude": ["/src/99/"] },
-
-    /* The other two findings 0.2.0 brings are real: z2ui5_cl_ui5_app_hi_world
-     * and the focus test server dispatch on check_on_init( ) alone, so nothing
-     * re-displays when a bookmarked state is restored.
-     *
-     * A hint, not an exclusion — it stays on every report. Not fixed in this
-     * commit on purpose: hi_world builds its view INLINE, so the fix extracts a
-     * method, and that reshapes THE canonical example — the smallest complete
-     * app, the one docs/agents/building-apps.md walks through and the first
-     * abap2UI5 view most people ever see. Changing what it teaches is a
-     * deliberate decision, not a side effect of a release commit. */
-    "missing-on-navigated-branch": "hint",
 
     // The reason the linter is a dependency here at all. It replaces
     // .github/scripts/chain-format-gate.mjs, which was this rule reimplemented
