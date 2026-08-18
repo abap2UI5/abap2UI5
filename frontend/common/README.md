@@ -1,13 +1,13 @@
 [![frontend_check](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_check.yaml/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_check.yaml)
 [![frontend_deploy](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml)
 
-# abap2UI5-frontend
+# abap2UI5 frontend
 
 This repository contains an abap2UI5 frontend artefacts service. For more information on installation, check out the [installation guide.](https://abap2ui5.github.io/docs/configuration/installation.html)
 
 > ### This repository is generated — it does not take manual pull requests
 >
-> It is not where the frontend is written, it is where the frontend is *published*. **Every** branch here is built in [abap2UI5](https://github.com/abap2UI5/abap2UI5) and pushed in, so **frontend changes belong there** and bug reports belong in [its issues](https://github.com/abap2UI5/abap2UI5/issues). The `guard_mirrored` check fails every pull request opened here by default; maintaining this repository's own docs is the one exception, unlocked by a maintainer with the `maintenance` label. Full rationale: [CONTRIBUTING.md](https://github.com/abap2UI5/frontend/blob/main/CONTRIBUTING.md).
+> It is not where the frontend is written, it is where the frontend is *published*. **Every** branch here is built in [abap2UI5](https://github.com/abap2UI5/abap2UI5) and pushed in, so **frontend changes belong there** and bug reports belong in [its issues](https://github.com/abap2UI5/abap2UI5/issues). The `guard` check fails every pull request opened here by default; maintaining this repository's own docs is the one exception, unlocked by a maintainer with the `maintenance` label. Full rationale: [CONTRIBUTING.md](https://github.com/abap2UI5/frontend/blob/main/CONTRIBUTING.md).
 >
 > ```
 > abap2UI5/abap2UI5                                   abap2UI5/frontend
@@ -44,7 +44,7 @@ Nothing in this repository is written by hand any more. A change made to a gener
 
 So a frontend change belongs in abap2UI5: edit `app/webapp` there, run `npm run app2abap` to regenerate the embedded ABAP resources under `src/01/03` and `npm run frontend:build` to regenerate the delivery trees under `build/`, and commit both with the change. The BSP packaging is checked in the same pull request, against the webapp being changed (`frontend_check`), and `frontend_deploy` delivers the committed trees here.
 
-Because the overwrite is not loud — the change is merged, works, and vanishes on some later unrelated run — the convention is enforced rather than trusted: the `guard_mirrored` workflow fails **every** pull request opened here, and a change to this repository's own docs is unlocked by a maintainer applying the `maintenance` label.
+Because the overwrite is not loud — the change is merged, works, and vanishes on some later unrelated run — the convention is enforced rather than trusted: the `guard` workflow fails **every** pull request opened here, and a change to this repository's own docs is unlocked by a maintainer applying the `maintenance` label.
 
 #### Renaming
 
