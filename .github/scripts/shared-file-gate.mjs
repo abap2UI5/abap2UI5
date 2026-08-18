@@ -168,6 +168,74 @@ const SHARED = [
      * a reword of a shared subsection is drift; the split is what makes them
      * distinguishable.
      */
+    /* The checker for the rule set two entries up. The rule set had one owner
+     * and the program reading it had three unowned copies — which is the
+     * arrangement `check-app-rules` was itself written to replace, one
+     * directory over: it says so in its own header, about the peer comparison
+     * it took the place of.
+     *
+     * A copy of a CHECKER drifting is worse than a copy of a document doing
+     * it, because a checker that has quietly stopped checking still prints
+     * that it passed. Nothing here would have noticed the three going
+     * different ways.
+     *
+     * Whole file, no deviations: the script resolves everything it needs from
+     * its own location, so the three copies have nothing repository-specific
+     * left to say. The framework does not run it — it is the source of the
+     * rule set, not a consumer of it — which is the same trade
+     * `app-rules.json` and `agents-metadata.md` already make.
+     */
+    file: '.github/shared/check-app-rules.mjs',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'scripts/check-app-rules.mjs',
+    why: 'the checker that holds each app repository to the shared abaplint'
+      + ' rule set — three copies of it, none of them the source',
+  },
+  {
+    /* The cross-repository name check. `prose-name-gate.mjs` here is NOT this
+     * program and is not a candidate to be merged with it: that one reads one
+     * repository's tree and puts every foreign name on an allowlist, and this
+     * one exists precisely because the names that go stale are the foreign
+     * ones — it resolves them against the owning repository's catalogue
+     * instead of exempting them. Two jobs, two programs, and only the second
+     * is shared.
+     *
+     * Whole file. `scripts/prose-absent.json` beside it is deliberately NOT
+     * shared and is not listed here: it is each repository's own allowlist of
+     * names it means to write in the past tense, and unifying it would be the
+     * opposite of the point. The script says so where it reads the file.
+     */
+    file: '.github/shared/check-prose-names.mjs',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'scripts/check-prose-names.mjs',
+    why: 'the check that a class named in one repository\'s prose still exists'
+      + ' in the repository that owns it',
+  },
+  {
+    /* The builder-chain formatter — the executable half of the
+     * `view-chain-layout` skill that heads this list. Two repositories run it;
+     * neither owned it. Both being byte-equal today is the state this gate
+     * makes checkable rather than a fact somebody re-verifies by hand.
+     *
+     * This repository does not run it: the framework formats its own chains
+     * with the linter's `chain-house-layout` rule, and its copy of the script
+     * is gone. The script's own header used to claim otherwise, naming a path
+     * that had not existed since — which is what an unchecked shared file
+     * looks like from the inside.
+     *
+     * It is scheduled for deletion. `view-chain-layout` says when: both
+     * consumers pin the linter at a version predating the rule, and the day
+     * that pin can move the script goes away and the rule replaces it. Until
+     * then it is a formatter two corpora format ABAP by, and one line here is
+     * a cheaper way to hold it than trusting that nobody edits one copy.
+     */
+    file: '.github/shared/chain-format.mjs',
+    consumers: ['samples', 'samples-controls'],
+    consumerFile: 'scripts/chain-format.mjs',
+    why: 'the builder-chain formatter the two sample corpora are laid out by,'
+      + ' until the linter pin can move and the rule replaces it',
+  },
+  {
     file: '.github/shared/agents-metadata.md',
     consumers: ['samples', 'samples-controls', 'samples-stack'],
     consumerFile: 'AGENTS.md',
