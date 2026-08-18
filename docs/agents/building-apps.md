@@ -560,7 +560,7 @@ The same tree, with the subtree held in a variable:
   binding mistakes, builder-tree defects) and can render the view headless:
   `npx --yes @abap2ui5/linter my_app.clas.abap` — also
   available as a GitHub Action and inside the VS Code extension.
-- **[ai-mcp](https://github.com/abap2UI5/ai-mcp)** gives MCP-capable agents
+- **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents
   the full loop without a SAP system: `capabilities` → `deploy_app` →
   `build_backend` → `run_app` (headless screenshot + errors).
 - **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:

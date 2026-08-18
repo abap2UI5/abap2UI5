@@ -13,9 +13,9 @@
  * What is NOT defensible is that the LINE FORMAT they all emit is read by two
  * programs in two further repositories:
  *
- *   abap2UI5/ai-mcp   lib/examples.mjs      — the `examples` tool an agent
+ *   abap2UI5/mcp-server   lib/examples.mjs  — the `examples` tool an agent
  *                                             searches all three catalogues with
- *   abap2UI5/docs     scripts/lib/catalogue.mjs
+ *   abap2UI5/docs         scripts/lib/catalogue.mjs
  *                                           — the "Working Samples" block on
  *                                             every cookbook page, and the app
  *                                             counts the site quotes
@@ -42,7 +42,7 @@
  * is "can be read", not "is written the way samples writes it".
  *
  * The one known asymmetry between the readers is left alone on purpose:
- * ai-mcp's pattern makes the dash after a bold header optional and docs' does
+ * mcp-server's pattern makes the dash after a bold header optional and docs' does
  * not, so a bold-header-no-dash row loses its title over in docs and falls back
  * to `**Header**` inside the label. That renders as bold text in the generated
  * block — cosmetic, and it is docs' pattern to widen if anybody minds. What
@@ -75,7 +75,7 @@ const raw = (repo) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/$
  * line in their own repository; keeping them one line here makes a future diff
  * against the original a diff of one line.
  *
- * abap2UI5/ai-mcp, lib/examples.mjs */
+ * abap2UI5/mcp-server, lib/examples.mjs */
 const MCP_ROW = /^\|\s*(?:\*\*(?<title>[^*]+)\*\*\s*(?:(?:—|--)\s*)?)?(?<sub>[^|<]*?)\s*(?<blocks>(?:<br>(?:<[a-z]+>[^<]*<\/[a-z]+>|[^<]*))*)\s*\|\s*\[`(?<cls>[A-Z0-9_]+)`\]\((?<path>[^)]+)\)\s*\|/;
 
 /* abap2UI5/docs, scripts/lib/catalogue.mjs */
@@ -86,7 +86,7 @@ const DOCS_ROW = /^\|\s*(?:\*\*(?<title>[^*]+)\*\*\s*(?:—|--)\s*)?(?<sub>[^|<]
  * row that sits under no heading has no name at all in either reader. */
 const HEADING = /^#{2,3}\s+(.+?)\s*$/;
 
-/* The `<br>`-separated blocks after the title, as ai-mcp splits them. A block
+/* The `<br>`-separated blocks after the title, as mcp-server splits them. A block
  * this gate does not recognise costs nothing — that tolerance is the readers'
  * deliberate design and copying it is the point. */
 const blocksOf = (blocks) =>
@@ -147,7 +147,7 @@ function checkCatalogue(repo, text) {
     const mcp = MCP_ROW.exec(line);
     const docs = DOCS_ROW.exec(line);
     if (!mcp || !docs) {
-      const who = !mcp && !docs ? 'neither reader' : (!mcp ? "abap2UI5/ai-mcp's reader" : "abap2UI5/docs' reader");
+      const who = !mcp && !docs ? 'neither reader' : (!mcp ? "abap2UI5/mcp-server's reader" : "abap2UI5/docs' reader");
       problems.push(
         `${at}: ${who} can parse this row\n`
         + `      ${JSON.stringify(line.slice(0, 120))}\n`
@@ -162,8 +162,8 @@ function checkCatalogue(repo, text) {
     if (g.cls !== docs.groups.cls || g.path !== docs.groups.path) {
       problems.push(
         `${at}: the two readers disagree about the pointer\n`
-        + `      ai-mcp: ${g.cls} -> ${g.path}\n`
-        + `      docs:   ${docs.groups.cls} -> ${docs.groups.path}`,
+        + `      mcp-server: ${g.cls} -> ${g.path}\n`
+        + `      docs:       ${docs.groups.cls} -> ${docs.groups.path}`,
       );
     }
 
@@ -172,7 +172,7 @@ function checkCatalogue(repo, text) {
     }
 
     /* The link target is the class file. Both readers hand the path straight to
-     * a reader or a URL builder without checking it, and ai-mcp additionally
+     * a reader or a URL builder without checking it, and mcp-server additionally
      * decides `src/01` vs experimental from its first segment. */
     if (!/^src\/[^)\s]*\.clas\.abap$/.test(g.path)) {
       problems.push(`${at}: \`${g.path}\` is not a \`src/…/<class>.clas.abap\` path`);
@@ -199,7 +199,7 @@ function checkCatalogue(repo, text) {
       }
     }
 
-    /* The `docs:` block: ai-mcp returns its links as the answer to "which
+    /* The `docs:` block: mcp-server returns its links as the answer to "which
      * chapter explains this", and finds the KEYWORDS by taking the first `<sub>`
      * that is not it. Two of them and the second is unreachable. */
     const docBlocks = blocksOf(g.blocks).filter((b) => b.tag === 'sub' && b.text.startsWith('docs:'));
@@ -258,7 +258,7 @@ if (problems.length) {
   console.error(`\n${problems.length} problem(s):`);
   for (const p of problems) console.error(`  ${p}`);
   console.error(
-    '\n  The row format is read by abap2UI5/ai-mcp (lib/examples.mjs) and'
+    '\n  The row format is read by abap2UI5/mcp-server (lib/examples.mjs) and'
     + '\n  abap2UI5/docs (scripts/lib/catalogue.mjs). A row neither can parse is'
     + '\n  a sample that answers "no such sample" instead of failing anything.'
     + '\n  Fix the generator in the repository the row came from.',

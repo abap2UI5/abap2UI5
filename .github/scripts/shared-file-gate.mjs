@@ -167,11 +167,13 @@ const SHARED = [
     consumerFile: 'README.md',
     why: "the frontend repository's front page — this file is what the build"
       + ' copies into every generated branch, so `main` must say the same',
-    /* Whole file, and the one declared deviation is a badge: `main` carries no
-     * generated tree, so the `frontend_deploy` badge on it would report on
-     * something that is not there. Everything below line 1 is compared. */
+    /* Whole file, no deviations. There used to be one — the `frontend_deploy`
+     * badge, dropped from `main`'s copy while `main` carried no generated
+     * tree. Since the deploy writes the finished trees into `result/` on
+     * `main`, the badge reports on exactly the thing that page fronts, and
+     * the two copies are byte-equal again. */
     section: (text) => text,
-    mine: (text) => applyDeviations(text, README_DEVIATIONS),
+    mine: (text) => text,
   },
   {
     /* The metadata convention — what belongs on the class (`DESCRIPT`,
@@ -308,13 +310,13 @@ const METADATA_EXTENSIONS = {
 /* samples-controls' chain formatter skips one directory the other consumer's
  * does not, and the difference is real rather than drift.
  *
- * `src/zz_dev` is where abap2UI5/ai-mcp's `deploy_app` writes the class an
+ * `src/zz_dev` is where abap2UI5/mcp-server's `deploy_app` writes the class an
  * agent is working on. It is gitignored scratch, but every script here walks
  * `src/` on the filesystem and the filesystem does not read `.gitignore`, so
  * the loop this ecosystem recommends to agents left four classes where the
  * gates look. samples-controls is the ONLY repository that happens to:
  * `deploy_app` resolves the samples-controls checkout and writes nowhere else
- * (ai-mcp `lib/runtime.mjs`). Carrying the skip into `samples` would be a
+ * (mcp-server `lib/runtime.mjs`). Carrying the skip into `samples` would be a
  * branch that can never be taken, plus a `lib/src-tree.mjs` beside it that
  * exists to list nothing.
  *
@@ -358,36 +360,6 @@ function dropSubsections(block, headings, side) {
   }
   return lines.join('\n');
 }
-
-/* Applies a declared deviation list to THIS side, so what is compared is what
- * the consumer is actually expected to carry.
- *
- * A deviation that no longer matches anything here is a finding, not a
- * silently skipped rewrite: it means somebody edited a passage a consumer is
- * known to reword, and the two copies have to be reconciled by hand. */
-function applyDeviations(text, deviations) {
-  return deviations.reduce((s, [from, to]) => {
-    if (!s.includes(from)) {
-      throw new Error(
-        `declared deviation no longer matches this repository's copy:\n      ${JSON.stringify(from)}\n`
-        + '      the text it rewrites was edited or removed — update the deviation list',
-      );
-    }
-    return s.split(from).join(to);
-  }, text);
-}
-
-/* [what the shipped copy carries, what `frontend`'s `main` carries] — the
- * badge line and nothing else. Kept whole-line so removing it leaves no blank
- * line behind, and so a reviewer can see that the deviation is a badge rather
- * than a sentence about how the frontend works. */
-const README_DEVIATIONS = [
-  [
-    '[![frontend_deploy](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml'
-      + '/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml)\n',
-    '',
-  ],
-];
 
 /* JSONC: strip block and line comments, keeping anything inside a string.
  * A naive strip eats the `//` of a URL in a `dependencies` entry, which both
