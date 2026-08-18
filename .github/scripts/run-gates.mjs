@@ -52,6 +52,7 @@ const GATES = [
   { npm: "check:skills", script: "skill-rule-gate.mjs" },
   { npm: "check:shared", script: "shared-file-gate.mjs" },
   { npm: "check:counts", script: "corpus-count-gate.mjs" },
+  { npm: "check:samples-md", script: "samples-md-gate.mjs" },
   { npm: "check:changelog", script: "changelog-gate.mjs" },
   { npm: "check:backlog", script: "generate-backlog.mjs", args: ["--check"] },
   { npm: "check:version", script: "version-sync-gate.mjs" },

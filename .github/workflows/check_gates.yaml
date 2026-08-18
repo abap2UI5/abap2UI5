@@ -99,6 +99,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:counts
 
+      # the row format of the three generated SAMPLES.md catalogues is parsed by
+      # abap2UI5/ai-mcp and abap2UI5/docs - three generators, two readers, none
+      # of them in the same repository, and a reader that stops matching answers
+      # "there are no samples for that" instead of failing
+      - name: every catalogue row can be read by both of its readers
+        if: ${{ !cancelled() }}
+        run: npm run check:samples-md
+
       # changelog.txt and the release notes page in abap2UI5/docs are both
       # hand-written and deliberately differ in detail - they may not differ
       # about which releases exist or when they shipped
