@@ -310,13 +310,13 @@ const METADATA_EXTENSIONS = {
 /* samples-controls' chain formatter skips one directory the other consumer's
  * does not, and the difference is real rather than drift.
  *
- * `src/zz_dev` is where abap2UI5/ai-mcp's `deploy_app` writes the class an
+ * `src/zz_dev` is where abap2UI5/mcp-server's `deploy_app` writes the class an
  * agent is working on. It is gitignored scratch, but every script here walks
  * `src/` on the filesystem and the filesystem does not read `.gitignore`, so
  * the loop this ecosystem recommends to agents left four classes where the
  * gates look. samples-controls is the ONLY repository that happens to:
  * `deploy_app` resolves the samples-controls checkout and writes nowhere else
- * (ai-mcp `lib/runtime.mjs`). Carrying the skip into `samples` would be a
+ * (mcp-server `lib/runtime.mjs`). Carrying the skip into `samples` would be a
  * branch that can never be taken, plus a `lib/src-tree.mjs` beside it that
  * exists to list nothing.
  *

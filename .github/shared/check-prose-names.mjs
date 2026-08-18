@@ -104,7 +104,7 @@ const here = (() => {
 })();
 
 /* Where a sibling repository is, if it is here at all. The environment wins,
- * the way it does for abap2UI5/ai-mcp's resolvers - and it has to: a CI runner
+ * the way it does for abap2UI5/mcp-server's resolvers - and it has to: a CI runner
  * cannot check a repository out ABOVE the workspace, so `../<repo>` is a local
  * convenience and the variable is what CI uses. */
 const HOMES = {

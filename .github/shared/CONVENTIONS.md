@@ -19,7 +19,7 @@ first paragraph.
 | --- | --- | --- |
 | **Source** | Humans and agents edit here. CI gates every change. | `abap2UI5`, `linter`, `web-abap2UI5` |
 | **Channel** | Generated and pushed by a workflow. Never edit. | `frontend`, `web-abap2UI5-build`, `app-template` |
-| **Product** | Ships on its own release cycle to npm, Marketplace or an action. | `linter`, `vscode-extension`, `ai-mcp` |
+| **Product** | Ships on its own release cycle to npm, Marketplace or an action. | `linter`, `vscode-extension`, `mcp-server` |
 | **Corpus** | A body of installable example code, installed on its own. | `samples`, `samples-controls`, `samples-stack` |
 
 Rules that follow from the role:

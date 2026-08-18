@@ -100,7 +100,7 @@ jobs:
         run: npm run check:counts
 
       # the row format of the three generated SAMPLES.md catalogues is parsed by
-      # abap2UI5/ai-mcp and abap2UI5/docs - three generators, two readers, none
+      # abap2UI5/mcp-server and abap2UI5/docs - three generators, two readers, none
       # of them in the same repository, and a reader that stops matching answers
       # "there are no samples for that" instead of failing
       - name: every catalogue row can be read by both of its readers
