@@ -74,14 +74,19 @@ changes *how* the branches are built rather than what is in them.
 
 ## Deployment
 
-`frontend_deploy.yaml` pushes the delivery branches into abap2UI5/frontend: all
-four on every push to `main` that changes `build/` or the `VERSION` stamp
-inputs (the framework version constant, `branch-stamp.mjs`), a single named one
-(including a renamed `standard_<name>`, which is built on the spot) on
-dispatch, and everything again on a monthly safety-net cron.
+`frontend_deploy.yaml` publishes the delivery trees into abap2UI5/frontend: the
+four published ones on every push to `main` that changes `build/` or the
+`VERSION` stamp inputs (the framework version constant, `branch-stamp.mjs`), a
+renamed `standard_<name>` (which is built on the spot) on dispatch, and
+everything again on a monthly safety-net cron.
 
-For the four it pushes the committed tree — the deploy stamps the provenance
-and pushes, it does not build. A run whose content matches what the branch
+For the four it ships the committed tree — the deploy stamps the provenance,
+it does not build — as `result/<branch>` folders in ONE commit on the delivery
+repository's `main`. From there that repository's own `deliver` workflow fans
+each folder out into its branch: one commit per branch, parented on the `main`
+commit, tree = the folder's content — so every published branch is always
+exactly one commit ahead of `main`, and `main`'s history over there shows
+every delivered change as one diff. A run whose content matches what `result/`
 already carries pushes nothing: the comparison stamps the candidate with the
 commit the published `VERSION` names, so a run that would only move the
 provenance forward is not a commit. The commit that *is* written carries the
@@ -89,5 +94,6 @@ subject of the `main` commit behind it, so the history over there reads like
 the history here.
 
 The delivery repository builds nothing itself any more — its `main` carries
-only its own docs, and each of its branches is a tree written by that
-workflow.
+its own docs plus the machine-written `result/` trees, and each of its
+branches is fanned out from them (a renamed `standard_<name>` is pushed onto
+its branch directly, parented on `main` like the rest).

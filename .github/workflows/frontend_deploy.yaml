@@ -1,30 +1,46 @@
 name: frontend_deploy
 
-# Pushes the generated deploy branches into abap2UI5/frontend, which is a pure
-# delivery repository - every branch there is written by this workflow, nothing
-# in it is edited by hand.
+# Publishes the generated delivery trees into abap2UI5/frontend, which is a
+# pure delivery repository - everything it ships is produced here and written
+# there by a machine.
 #
-# The four published branches are NOT built here: their trees are committed in
-# build/, gated against the sources by frontend_check, and this workflow ships
-# the tree as it stands. So what a pull request reviewed is what reaches an
+# Delivery is a relay of two workflows:
+#
+#   1. THIS workflow writes the four finished trees - stamped, nothing left to
+#      add at deploy time - as result/<branch> folders into ONE commit on
+#      frontend's main. So main over there carries the complete delivered
+#      content, and its history shows every content change as one reviewable
+#      diff across all four flavours.
+#   2. frontend's own `deliver` workflow, triggered by that push, turns each
+#      result/<branch> folder into the branch itself: one commit per branch,
+#      parented on the main commit, tree = the folder's content and nothing
+#      else. Every published branch is therefore always exactly one commit
+#      ahead of main - its full history IS main's history.
+#
+# The four published trees are NOT built here: they are committed in build/,
+# gated against the sources by frontend_check, and this workflow ships the
+# tree as it stands. So what a pull request reviewed is what reaches an
 # installation - a rebuild at deploy time could only ever produce something
 # nobody looked at. Renamed variants (standard_<name>) have no committed tree,
-# are unbounded in number and stay built on demand through the dispatch input.
+# are unbounded in number and stay built on demand through the dispatch input;
+# they are pushed to their branch directly, parented on frontend's main like
+# every other branch, but their content is not tracked in result/.
 #
-# The commit written into the delivery branch carries the subject of the main
-# commit that caused it, plus that commit's sha - so the history over there
-# reads like the history here instead of a column of "build:" lines. A push
-# whose tree matches the published one is skipped, so an unrelated edit costs a
-# run and not a commit.
+# The commit written into frontend's main carries the subject of the main
+# commit here that caused it, plus that commit's sha - so the history over
+# there reads like the history here instead of a column of "build:" lines. A
+# push whose stamped trees match the published result/ folders is skipped, so
+# an unrelated edit costs a run and not a commit.
 #
 # The monthly schedule is the safety net the delivery repository used to have:
-# a lost or failed run would otherwise leave the branches silently behind main
+# a lost or failed run would otherwise leave result/ silently behind main here
 # until somebody notices a fix that never arrived.
 #
-# The branches are an installation source - people's abapGit repositories point
-# at them - so the tree a branch carries may not change just because the build
-# moved. frontend_check.yaml guards the content on every pull request, and
-# `npm run frontend:verify` compares a build against what is published.
+# The branches are an installation source - people's abapGit repositories
+# point at them - so the tree a branch carries may not change just because the
+# delivery route changed. frontend_check.yaml guards the content on every pull
+# request, and `npm run frontend:verify` compares a build against what is
+# published.
 
 on:
   push:
@@ -42,7 +58,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Leave empty for all four published branches, or name one: cloud | cloud_v2 | standard | standard_v2 | standard_<name> | standard_v2_<name>"
+        description: "Leave empty to publish the four published branches through frontend's main, or name a renamed variant: standard_<name> | standard_v2_<name>"
         required: false
         type: string
 
@@ -50,51 +66,20 @@ permissions:
   contents: read
 
 jobs:
-  # Which branches this run builds: the one that was asked for, or the four
-  # published ones. A dispatch input reaches a shell and a matrix, so it is
-  # validated here rather than trusted - build-branches.mjs rejects an unknown
-  # branch, but only after the value has been through both.
-  prepare:
-    if: github.repository == 'abap2UI5/abap2UI5'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      branches: ${{ steps.pick.outputs.branches }}
-    steps:
-      - name: Pick branches
-        id: pick
-        env:
-          BRANCH: ${{ inputs.branch }}
-        run: |
-          set -euo pipefail
-          if [ -z "${BRANCH:-}" ]; then
-            echo 'branches=["cloud","cloud_v2","standard","standard_v2"]' >> "$GITHUB_OUTPUT"
-            echo "building all four published branches"
-            exit 0
-          fi
-          if ! printf '%s' "$BRANCH" | grep -Eq '^[A-Za-z0-9_#]+$'; then
-            echo "::error::Invalid branch name '$BRANCH'"
-            exit 1
-          fi
-          printf 'branches=["%s"]\n' "$BRANCH" >> "$GITHUB_OUTPUT"
-          echo "building $BRANCH"
-
-  deploy:
-    needs: prepare
+  # The four published branches: their stamped trees go into result/<branch>
+  # on frontend's main as one commit, and frontend's deliver workflow fans
+  # that commit out into the branches.
+  publish:
+    if: github.repository == 'abap2UI5/abap2UI5' && (github.event_name != 'workflow_dispatch' || inputs.branch == '')
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        branch: ${{ fromJSON(needs.prepare.outputs.branches) }}
     permissions:
       contents: read
       issues: write  # to report failed scheduled runs
     concurrency:
-      group: frontend_deploy-${{ matrix.branch }}
+      group: frontend_deploy
       cancel-in-progress: false
     env:
-      BRANCH: ${{ matrix.branch }}
       TARGET: git@github.com:abap2UI5/frontend.git
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -102,36 +87,138 @@ jobs:
       with:
         npm-ci: "true"
 
-    # The four published branches are committed in build/ and are shipped as
-    # they stand - not rebuilt, so a deploy cannot produce a tree no pull
-    # request ever saw. Anything else (a renamed standard_<name>) has no
-    # committed tree and is built here.
-    - name: Assemble ${{ matrix.branch }}
+    - name: Check the BSP page invariants
+      run: node tools/check-pages.mjs
+
+    # In the workspace copy, so npx resolves the installed abaplint
+    - name: Lint the committed standard tree
+      run: cd build/standard && npx abaplint
+
+    # One commit on frontend's main that updates result/<branch> for every
+    # tree that changed - and only for those: a folder whose content is
+    # unchanged keeps its stamp, because a commit that moves the provenance
+    # forward without moving the content is exactly the noise this history is
+    # supposed to be free of. Whether it is unchanged is answered by stamping
+    # a copy with the commit the published VERSION names: if that reproduces
+    # the published folder, the folder stays as it is.
+    - name: Publish result/ to frontend main
+      env:
+        DEPLOY_KEY: ${{ secrets.ACTION_KEY_FRONTEND }}
+      run: |
+        set -euo pipefail
+
+        mkdir -p ~/.ssh
+        printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_deploy
+        chmod 600 ~/.ssh/id_deploy
+        ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+        export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes"
+
+        clone="$RUNNER_TEMP/frontend-main"
+        rm -rf "$clone"
+        git clone --quiet --depth 1 --branch main "$TARGET" "$clone"
+        git -C "$clone" config user.name 'github-actions[bot]'
+        git -C "$clone" config user.email 'github-actions[bot]@users.noreply.github.com'
+
+        for b in cloud cloud_v2 standard standard_v2; do
+          dest="$clone/result/$b"
+          published=""
+          if [ -f "$dest/VERSION" ]; then
+            published=$(sed -n 's|^webapp mirror commit: abap2UI5/abap2UI5@||p' "$dest/VERSION")
+          fi
+          rm -rf "$dest"
+          mkdir -p "$clone/result"
+          cp -a "build/$b" "$dest"
+          if printf '%s' "$published" | grep -Eq '^[0-9a-f]{40}$'; then
+            node tools/branch-stamp.mjs "$dest" "$b" "$published"
+            if [ -z "$(git -C "$clone" status --porcelain -uall -- "result/$b")" ]; then
+              echo "$b: unchanged"
+              continue
+            fi
+          fi
+          node tools/branch-stamp.mjs "$dest" "$b" "$GITHUB_SHA"
+          echo "$b: updated"
+        done
+
+        if [ -z "$(git -C "$clone" status --porcelain -uall)" ]; then
+          echo "result/ matches the published state, nothing to push"
+          exit 0
+        fi
+
+        # The subject of the commit that caused this delivery, so the history
+        # over there reads like the history here; the sha is the body, because
+        # it is not an object in that repository and only a reference.
+        subject=$(git log -1 --format=%s "$GITHUB_SHA")
+        git -C "$clone" add -A
+        git -C "$clone" commit --quiet -m "$subject" -m "abap2UI5/abap2UI5@$GITHUB_SHA"
+
+        # main over there also takes maintenance merges, so the push can race
+        # one. The rebase is safe: this commit touches result/ and a
+        # maintenance commit may not (its guard holds hand edits to the docs).
+        for attempt in 1 2 3; do
+          if git -C "$clone" push --quiet origin HEAD:refs/heads/main; then
+            echo "pushed $(git -C "$clone" rev-parse HEAD) to main"
+            exit 0
+          fi
+          echo "push rejected, main moved - rebasing (attempt $attempt)"
+          git -C "$clone" fetch --quiet origin main
+          git -C "$clone" rebase --quiet FETCH_HEAD
+        done
+        echo "::error::could not push to frontend main"
+        exit 1
+
+    - name: Report scheduled failure as issue
+      if: failure() && github.event_name == 'schedule'
+      uses: ./.github/actions/report-scheduled-failure
+
+  # A renamed variant (standard_<name>, standard_v2_<name>): no committed
+  # tree, unbounded in number, built on demand - so it is not tracked in
+  # result/ and goes to its branch directly. Like every branch over there it
+  # is parented on frontend's current main commit, which is why the push is
+  # forced: the previous tip is never an ancestor of the new one.
+  rename:
+    if: github.repository == 'abap2UI5/abap2UI5' && github.event_name == 'workflow_dispatch' && inputs.branch != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: frontend_deploy-${{ inputs.branch }}
+      cancel-in-progress: false
+    env:
+      BRANCH: ${{ inputs.branch }}
+      TARGET: git@github.com:abap2UI5/frontend.git
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+
+    # A dispatch input reaches a shell, so it is validated here rather than
+    # trusted - build-branches.mjs rejects an unknown name too, but only
+    # after the value has been through the shell once.
+    - name: Build ${{ inputs.branch }}
       run: |
         set -euo pipefail
         b="$BRANCH"
-        if [ -d "build/$b" ]; then
-          source="build/$b"
-          echo "$b: shipped from build/$b"
-        else
-          node tools/build-branches.mjs "$b"
-          source="tools/out/$b"
-          echo "$b: no committed tree, built on demand"
+        case "$b" in
+          cloud|cloud_v2|standard|standard_v2)
+            echo "::error::'$b' is published through frontend's main (result/$b) - leave the input empty to deliver the four published branches."
+            exit 1;;
+        esac
+        if ! printf '%s' "$b" | grep -Eq '^[A-Za-z0-9_#]+$'; then
+          echo "::error::Invalid branch name '$b'"
+          exit 1
         fi
-        rm -rf "$RUNNER_TEMP/tree-$b"
-        cp -a "$source" "$RUNNER_TEMP/tree-$b"
-        echo "SOURCE=$source" >> "$GITHUB_ENV"
-        echo "TREE=$RUNNER_TEMP/tree-$b" >> "$GITHUB_ENV"
+        node tools/build-branches.mjs "$b"
+        echo "SOURCE=tools/out/$b" >> "$GITHUB_ENV"
 
     - name: Check the BSP page invariants
       run: node tools/check-pages.mjs "$BRANCH"
 
     # In the workspace copy, so npx resolves the installed abaplint
-    - name: Lint the generated standard src
-      if: startsWith(matrix.branch, 'standard') && !startsWith(matrix.branch, 'standard_v2')
+    - name: Lint the generated src
+      if: startsWith(inputs.branch, 'standard') && !startsWith(inputs.branch, 'standard_v2')
       run: cd "$SOURCE" && npx abaplint
 
-    - name: Push ${{ matrix.branch }}
+    - name: Push ${{ inputs.branch }}
       env:
         DEPLOY_KEY: ${{ secrets.ACTION_KEY_FRONTEND }}
       run: |
@@ -147,10 +234,15 @@ jobs:
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
 
-        # The published branch, if it exists, becomes the parent - so the
-        # delivery repository keeps a history instead of an orphan per run.
-        # Only that one parent: the core commit is not an object over there.
-        parent=$(git fetch --depth 1 "$TARGET" "$b" 2>/dev/null && git rev-parse FETCH_HEAD || true)
+        # The parent of every branch over there is main's current commit; the
+        # branch tip is only fetched to answer whether the content changed.
+        git fetch --depth 1 "$TARGET" main
+        main=$(git rev-parse FETCH_HEAD)
+        tip=$(git fetch --depth 1 "$TARGET" "$b" 2>/dev/null && git rev-parse FETCH_HEAD || true)
+
+        rm -rf "$RUNNER_TEMP/tree-$b"
+        cp -a "$SOURCE" "$RUNNER_TEMP/tree-$b"
+        TREE="$RUNNER_TEMP/tree-$b"
 
         write_tree() {
           index="$RUNNER_TEMP/index-$b"
@@ -162,18 +254,16 @@ jobs:
         # Is this the content the branch already carries? Answered by stamping
         # a copy with the commit the published VERSION names: if that
         # reproduces the published tree, the only thing this run would change
-        # is the provenance - and a commit that moves the stamp forward without
-        # moving the content is exactly the noise this delivery history is
-        # supposed to be free of. The branch keeps naming the commit its
-        # content actually came from.
-        if [ -n "$parent" ]; then
-          published=$(git show "$parent:VERSION" 2>/dev/null \
+        # is the provenance. The branch keeps naming the commit its content
+        # actually came from.
+        if [ -n "$tip" ]; then
+          published=$(git show "$tip:VERSION" 2>/dev/null \
             | sed -n 's|^webapp mirror commit: abap2UI5/abap2UI5@||p' || true)
           if printf '%s' "$published" | grep -Eq '^[0-9a-f]{40}$'; then
             rm -rf "$TREE.published"
             cp -a "$TREE" "$TREE.published"
             node tools/branch-stamp.mjs "$TREE.published" "$b" "$published"
-            if [ "$(write_tree "$TREE.published")" = "$(git rev-parse "$parent^{tree}")" ]; then
+            if [ "$(write_tree "$TREE.published")" = "$(git rev-parse "$tip^{tree}")" ]; then
               echo "$b: unchanged, nothing to push"
               exit 0
             fi
@@ -183,15 +273,8 @@ jobs:
         node tools/branch-stamp.mjs "$TREE" "$b" "$GITHUB_SHA"
         tree=$(write_tree "$TREE")
 
-        # The subject of the commit that caused this delivery, so the branch
-        # history over there reads like the history here; the sha is the body,
-        # because it is not an object in that repository and only a reference.
         subject=$(git log -1 --format=%s "$GITHUB_SHA")
-        commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} \
+        commit=$(git commit-tree "$tree" -p "$main" \
           -m "$subject" -m "abap2UI5/abap2UI5@$GITHUB_SHA")
-        git push "$TARGET" "$commit:refs/heads/$b"
+        git push --force "$TARGET" "$commit:refs/heads/$b"
         echo "$b: pushed $commit"
-
-    - name: Report scheduled failure as issue
-      if: failure() && github.event_name == 'schedule'
-      uses: ./.github/actions/report-scheduled-failure
