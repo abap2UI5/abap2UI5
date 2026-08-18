@@ -99,6 +99,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:counts
 
+      # changelog.txt and the release notes page in abap2UI5/docs are both
+      # hand-written and deliberately differ in detail - they may not differ
+      # about which releases exist or when they shipped
+      - name: the changelog agrees with the published release notes
+        if: ${{ !cancelled() }}
+        run: npm run check:changelog
+
       # the four backlogs are generated from backlog/items and the skills'
       # **Backlog:** lines - a hand-edited page is the thing this replaced
       - name: the backlog pages match their items
