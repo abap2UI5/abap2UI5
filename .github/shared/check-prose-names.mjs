@@ -61,7 +61,7 @@ const OWNER = [
 
 /* Prose only. src/ is ABAP and belongs to abaplint; the generated catalogue is
  * written FROM the classes, so checking it would only ever confirm itself. */
-const PROSE = ['README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'CLAUDE.md', 'TRAINING.md', 'STATUS.md'];
+const PROSE = ['README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'CLAUDE.md', 'TRAINING.md', 'STATUS.md', 'CAPABILITIES.md', 'E2E.md'];
 
 /* A journal records what a class was called when the entry was written; that
  * is history, not drift. Same reasoning as abap2UI5's changelog cut-off. */
