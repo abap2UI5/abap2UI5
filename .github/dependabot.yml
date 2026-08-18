@@ -1,4 +1,4 @@
-# Weekly dependency updates, opened as pull requests so check_gates decides
+# Monthly dependency updates, opened as pull requests so check_gates decides
 # whether they are safe rather than a human reading a version number.
 #
 # Grouped one pull request per ecosystem: these manifests hold a handful of
@@ -14,16 +14,21 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-      day: tuesday
-      # Tuesday, clear of the Monday morning bump workflows in
-      # abap2UI5/linter's consumers, so the two do not open pull requests
-      # against each other's lockfile changes on the same day.
+      interval: monthly
+      # Monthly runs land on the 1st, so the weekday is whatever it falls on -
+      # the old Tuesday slot existed to stay clear of the Monday bump
+      # workflows in abap2UI5/linter's consumers, and that separation is no
+      # longer available. Roughly one month in seven the two will open pull
+      # requests against the same lockfile; that costs a rebase, not a build.
       time: "06:30"
     open-pull-requests-limit: 5
     groups:
       toolchain:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+      toolchain-major:
+        patterns: ["*"]
+        update-types: ["major"]
 
   # app/webapp is the UI5 source the frontend is built from; its own manifest
   # carries the UI5 tooling, and a bump there changes build/ - which the
@@ -31,21 +36,27 @@ updates:
   - package-ecosystem: npm
     directory: /app
     schedule:
-      interval: weekly
-      day: tuesday
+      interval: monthly
       time: "06:30"
     open-pull-requests-limit: 5
     groups:
       ui5-tooling:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+      ui5-tooling-major:
+        patterns: ["*"]
+        update-types: ["major"]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: tuesday
+      interval: monthly
       time: "06:30"
     open-pull-requests-limit: 5
     groups:
       actions:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-major:
+        patterns: ["*"]
+        update-types: ["major"]
