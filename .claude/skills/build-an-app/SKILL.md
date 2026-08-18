@@ -16,7 +16,7 @@ releases — a value help, a tree, navigation between two apps, a dynamic table
 typed at runtime. Reading one beats reproducing it, and beats any snippet: the
 sample is gated, a snippet is a copy somebody has to keep in step.
 
-- With the [MCP server](https://github.com/abap2UI5/ai-mcp): the `examples`
+- With the [MCP server](https://github.com/abap2UI5/mcp-server): the `examples`
   tool queries that catalogue (`examples { query: "value help f4" }`) and
   hands back the class to read. Its neighbour `capabilities` answers the other
   question — whether a UI5 *control* can be expressed at all — out of
@@ -75,7 +75,7 @@ Quick orientation while it loads:
 - The app checks its own authorizations at the top of `main`.
 - Validate with the abap2UI5-linter
   (`npx --yes @abap2ui5/linter <file>`); iterate without a SAP
-  system via the ai-mcp server (`deploy_app` → `build_backend` → `run_app`).
+  system via the mcp-server (`deploy_app` → `build_backend` → `run_app`).
 - Before you finish, run the `abap-check` skill over what you wrote — it is the
   companion to this one and catches what a green lint does not: abapGit
   round-trip diffs, activation errors (`class_constructor` visibility,
