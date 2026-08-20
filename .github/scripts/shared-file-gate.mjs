@@ -91,6 +91,38 @@ const SHARED = [
       const out = {};
       // each repository names its own object prefixes
       for (const k of Object.keys(rules).sort()) if (k !== 'object_naming') out[k] = rules[k];
+
+/* --manifest <consumer>: the whole-file entries that consumer carries, as
+ * `sourcePath<TAB>consumerPath` lines.
+ *
+ * This gate NOTICES drift; it has never been able to end it, because the fix
+ * lives in another repository and somebody has to go and make it. So the
+ * consumers pull instead: each one has a workflow that reads this manifest,
+ * fetches the named sources and opens a pull request against itself when a
+ * copy has moved. No cross-repository credentials anywhere — a repository
+ * updating its own file with its own token is the same shape as every other
+ * bump workflow in this organisation.
+ *
+ * Only entries compared as WHOLE FILES are listed. An entry with a `section`
+ * extractor shares a part of a file the consumer also owns the rest of — the
+ * app rule block inside its own abaplint.jsonc, a section of its own
+ * AGENTS.md — and copying the source over it would destroy what it owns.
+ * Those stay a gate-and-fix-by-hand affair, which is the honest answer for
+ * them.
+ */
+const manifestArg = process.argv.indexOf('--manifest');
+if (manifestArg !== -1) {
+  const who = process.argv[manifestArg + 1];
+  if (!who) {
+    console.error('--manifest wants a consumer name, e.g. --manifest samples');
+    process.exit(2);
+  }
+  const rows = SHARED
+    .filter((e) => !e.section && e.consumers.includes(who))
+    .map((e) => `${e.file}\t${e.consumerFile ?? e.file}`);
+  console.log(rows.join('\n'));
+  process.exit(0);
+}
       return out;
     },
     mine: (text) => parseJsonc(text).rules,
@@ -243,6 +275,18 @@ const SHARED = [
       + ' in the repository that owns it',
   },
   {
+    /* The workflow that pulls this whole list. It is shared like everything
+     * else, and therefore syncs itself - which is the right way round: the
+     * decision about how copies travel is the source repository's too. The
+     * obvious objection, that a broken sync workflow cannot fix itself, is
+     * true and is what `check:shared` is for; it reports the copy either way.
+     */
+    file: '.github/shared/sync-shared.yaml',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: '.github/workflows/sync-shared.yaml',
+    why: 'the workflow each consumer runs to pull its copies from here',
+  },
+  {
     /* Only the two HAND-MAINTAINED sample repositories. samples-controls has a
      * check-pins of its own and a different policy: it pins the framework by
      * commit SHA in A2UI5_PIN, which abaplint cannot consume — `"branch"` feeds
@@ -253,34 +297,6 @@ const SHARED = [
     consumerFile: 'scripts/check-framework-pin.mjs',
     why: 'the check that the abaplint configs pin abap2UI5 to a RELEASE rather'
       + ' than resolving whatever is on main',
-  },
-  {
-    /* The builder-chain formatter — the executable half of the
-     * `view-chain-layout` skill that heads this list. Two repositories run it;
-     * neither owned it. Both being byte-equal today is the state this gate
-     * makes checkable rather than a fact somebody re-verifies by hand.
-     *
-     * This repository does not run it: the framework formats its own chains
-     * with the linter's `chain-house-layout` rule, and its copy of the script
-     * is gone. The script's own header used to claim otherwise, naming a path
-     * that had not existed since — which is what an unchecked shared file
-     * looks like from the inside.
-     *
-     * It is scheduled for deletion. `view-chain-layout` says when: both
-     * consumers pin the linter at a version predating the rule, and the day
-     * that pin can move the script goes away and the rule replaces it. Until
-     * then it is a formatter two corpora format ABAP by, and one line here is
-     * a cheaper way to hold it than trusting that nobody edits one copy.
-     */
-    file: '.github/shared/chain-format.mjs',
-    consumers: ['samples', 'samples-controls'],
-    consumerFile: 'scripts/chain-format.mjs',
-    /* The source carries no skip, so its side of the comparison is the file
-     * as it stands; only a consumer that declares one has anything cut. */
-    section: (text, side) => dropSandboxSkip(text, side),
-    mine: (text) => text,
-    why: 'the builder-chain formatter the two sample corpora are laid out by,'
-      + ' until the linter pin can move and the rule replaces it',
   },
   {
     file: '.github/shared/agents-metadata.md',
@@ -342,20 +358,6 @@ const SANDBOX_SKIP = {
     '    if (isSkippedDir(e.name)) continue;\n',
   ],
 };
-
-function dropSandboxSkip(text, side) {
-  const lines = SANDBOX_SKIP[side] ?? [];
-  return lines.reduce((s, line) => {
-    if (!s.includes(line)) {
-      throw new Error(
-        `declared sandbox skip is no longer in ${side}'s copy:\n      ${JSON.stringify(line)}\n`
-        + '      it was removed or rewritten — update SANDBOX_SKIP',
-      );
-    }
-    return s.split(line).join('');
-  }, text);
-}
-
 function dropSubsections(block, headings, side) {
   const lines = block.split('\n');
   for (const heading of headings) {

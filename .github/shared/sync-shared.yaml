@@ -1,0 +1,110 @@
+name: sync-shared
+
+# The files this repository carries a COPY of, pulled from the repository that
+# owns them.
+#
+# abap2UI5 declares itself the source of everything that exists byte-identical
+# in several repositories here - the view-chain-layout skill, the shared gate
+# scripts - and its `check:shared` notices when a copy stops matching. Noticing
+# was as far as it went: the fix lived in another repository, so a change to a
+# shared script meant somebody remembering to carry it into three others by
+# hand, and the gate went red in the meantime in repositories that had done
+# nothing wrong. The copies had already drifted that way once - chain-format
+# differed between two of them while a skill in a third still called them
+# byte-identical.
+#
+# So the copies are pulled rather than pushed. No cross-repository credentials
+# exist anywhere in this: the repository updates its own files with its own
+# token, which is the same shape as every other bump workflow in this
+# organisation. The manifest comes from the source repository, so which files
+# are shared is still decided in exactly one place.
+#
+# Section-shared content is deliberately NOT synced: the app rule block inside
+# this repository's own abaplint.jsonc, the AGENTS.md sections. Those live
+# inside files this repository owns the rest of, and copying a source over them
+# would destroy what it owns. `check:shared` still reports them.
+
+on:
+  schedule:
+    - cron: '47 5 * * 2'   # Tuesdays 05:47 UTC, after the framework pin bump
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+    - name: Check out the source repository
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: abap2UI5/abap2UI5
+        ref: main
+        path: .abap2UI5
+        sparse-checkout: |
+          .claude
+          .github
+          docs
+
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: '22'
+
+    - name: Copy every shared file this repository carries
+      id: sync
+      run: |
+        set -euo pipefail
+        GATE=.abap2UI5/.github/scripts/shared-file-gate.mjs
+        test -f "$GATE" || {
+          echo "::error::$GATE is missing — the source repository moved the gate."
+          echo "::error::Fix the path here; a silent skip would let the copies drift again."
+          exit 1
+        }
+        # Tab-separated: source path in abap2UI5, path in this repository.
+        node "$GATE" --manifest "${{ github.event.repository.name }}" > manifest.txt
+        test -s manifest.txt || {
+          echo "::error::the manifest is empty for ${{ github.event.repository.name }} —"
+          echo "::error::either this repository is no longer a consumer, or its name changed."
+          exit 1
+        }
+        while IFS=$'\t' read -r src dst; do
+          [ -n "$src" ] || continue
+          test -f ".abap2UI5/$src" || { echo "::error::.abap2UI5/$src does not exist"; exit 1; }
+          mkdir -p "$(dirname "$dst")"
+          cp ".abap2UI5/$src" "$dst"
+          echo "  $src -> $dst"
+        done < manifest.txt
+        rm -f manifest.txt
+        if git diff --quiet; then
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+          echo "every copy already matches its source"
+        else
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          git diff --stat
+        fi
+
+    - if: steps.sync.outputs.changed == 'true'
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      with:
+        branch: sync-shared
+        title: 'chore: pull the shared files from abap2UI5'
+        commit-message: 'chore: sync the shared files from abap2UI5/abap2UI5'
+        body: |
+          A file this repository carries a copy of moved in
+          [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5), which owns
+          it. This pull request carries the change across.
+
+          The copies are byte-equal by design and `check:shared` in the source
+          repository is what notices when they stop being — so this is the fix
+          for a gate that would otherwise be red there while nothing was wrong
+          here. Read the diff as you would any other change to these files: if
+          it looks wrong, the argument belongs in the source repository, not in
+          a local edit that will be pulled over next week.
+        delete-branch: true
