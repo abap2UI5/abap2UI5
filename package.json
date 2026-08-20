@@ -80,8 +80,8 @@
   },
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
-    "@abap2ui5/linter": "^0.2.1",
-    "@abaplint/cli": "^2.119.66",
+    "@abap2ui5/linter": "^0.2.2",
+    "@abaplint/cli": "^2.120.23",
     "@abaplint/database-sqlite": "^2.13.40",
     "@abaplint/runtime": "^2.13.40",
     "@abaplint/transpiler-cli": "^2.13.40",
