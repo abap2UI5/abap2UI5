@@ -98,7 +98,7 @@ export function stamp(dir, branch, sha = null) {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [dir, branch, sha] = process.argv.slice(2);
   if (!dir || !branch) {
-    console.error("Aufruf: node tools/branch-stamp.mjs <dir> <branch> [sha]");
+    console.error("Usage: node tools/branch-stamp.mjs <dir> <branch> [sha]");
     process.exit(1);
   }
   const { sha: used, version } = stamp(dir, branch, sha);

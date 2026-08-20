@@ -10,13 +10,13 @@
   ],
   "main": "webapp/index.html",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@sap/ux-ui5-tooling": "^1.30.0",
-    "@ui5/cli": "^4.0.61",
-    "@ui5/linter": "^1.23.4",
+    "@ui5/cli": "^4.0.62",
+    "@ui5/linter": "^1.23.5",
     "eslint": "^10.8.1",
     "globals": "^17.11.0",
     "prettier": "^3.9.6"

@@ -1,0 +1,64 @@
+name: render-gate
+
+# The linter's render gate, over this repository's own app classes.
+#
+# abap2UI5 asks four other repositories to pass this gate and did not run it
+# itself. The reason was good as far as it went - @abap2ui5/render-runtime is
+# ~123 MB of UI5 and the shared setup action runs `npm ci` for every job, so
+# putting it in devDependencies makes seventeen workflows pay for a check that
+# concerns two of them - but the conclusion did not follow. A job of its own
+# installs it once, here, and nothing else changes.
+#
+# It is also not the same test as node/srv's Playwright suite, which was the
+# other half of the old argument. That suite proves the SHIPPED apps work end
+# to end. This proves every view a class builds survives a real
+# XMLView.create, including the ones no shipped app routes to.
+#
+# Measured when it was written: 24 files, 5 documents rendered, 19 built in
+# helper methods and skipped, no findings, 9.6 seconds of gate.
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'abap2ui5lint.jsonc'
+      - '.github/workflows/render-gate.yaml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: '22'
+
+    # The linter comes from the lockfile like everywhere else; the render
+    # runtime is added here only, and deliberately NOT saved - a devDependency
+    # would put it back into every other job's install.
+    - name: Install the linter and the render runtime
+      run: |
+        set -euo pipefail
+        npm ci --no-audit --no-fund
+        VER=$(node -p "require('./package-lock.json').packages['node_modules/@abap2ui5/linter'].version")
+        echo "linter $VER (from package-lock.json)"
+        # Same version: the two packages are cut from one tag, and the peer
+        # range is what fails if that ever stops being true.
+        npm i --no-save --no-audit --no-fund "@abap2ui5/render-runtime@$VER"
+
+    - name: Chromium for the render gate
+      run: npx playwright install --with-deps chromium
+
+    - name: Every view this repository builds survives XMLView.create
+      run: npm run check:render

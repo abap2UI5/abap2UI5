@@ -1,8 +1,11 @@
 # AGENTS.md — AI Assistant Guide for abap2UI5
 
 > This file follows the cross-tool AGENTS.md convention and is the single
-> agent instruction file of this repository — there is no separate
-> `CLAUDE.md`; Claude Code reads `AGENTS.md` natively.
+> agent instruction file of this repository. `CLAUDE.md` exists next to it and
+> is a pointer at this file, nothing more — CONVENTIONS §6 asks for one in
+> every repository that has an AGENTS.md, and `check:conventions` now enforces
+> it. This paragraph used to claim there was no CLAUDE.md, which made a
+> convention this repository OWNS false in the repository that declares it.
 
 ### Where knowledge lives
 

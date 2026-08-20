@@ -93,6 +93,23 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:shared
 
+      # the OTHER direction of the same problem: @abap2ui5/linter hand-mirrors
+      # three closed sets defined here, and it is not a dependency of this
+      # repository, so a rename here is silent until its weekly sync files an
+      # issue days later - against a repository whose users hit it first
+      - name: the linter's copies of this repository's closed sets
+        if: ${{ !cancelled() }}
+        run: npm run check:mirrors
+
+      # the rules in CONVENTIONS.md that a script can decide. This repository
+      # declares the organisation's conventions and broke most of them - the
+      # workflow naming rule names UI5_2X as its bad example, and UI5_2X.yaml
+      # is a file here. The twelve names that predate the rule are exceptions
+      # by name; the thirteenth cannot happen
+      - name: the conventions this repository declares
+        if: ${{ !cancelled() }}
+        run: npm run check:conventions
+
       # `npm run check` and `npm test` are the two commands somebody types
       # before reading anything - five of the ten repositories answered
       # "Missing script" until this gate went in

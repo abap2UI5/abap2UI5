@@ -50,6 +50,12 @@ Rules that follow from the role:
   retitles every required status check at once, so rename only when the file is
   being reworked anyway, and say so in the pull request so branch protection
   can be moved with it.
+- Gated in `abap2UI5` by `npm run check:conventions`, with the names that
+  predate the rule listed as exceptions by name — including `UI5_2X.yaml`, the
+  file this section names as its own bad example. The list only shrinks: an
+  entry for a file that no longer exists fails, so a rename drops its exception
+  in the same change. What the gate buys today is that the next workflow is
+  named by the rule rather than by the exceptions around it.
 - The `name:` must be recognisable from the file name. It is what branch
   protection and the checks list show, so a reader who sees a red check has to
   be able to find the file it came from. `ci.yml` → `CI` and
@@ -142,7 +148,7 @@ never both hand-maintained and copied.
 | --- | --- | --- |
 | `README.md` | every repository | What it is, who it is for, how to start. Understandable in 30 seconds by someone who has never seen the project. |
 | `AGENTS.md` | every source repository | The single source of truth for agents. Opens with "Single source of truth for agents working on…". |
-| `CLAUDE.md` | every repository that has `AGENTS.md` | A pointer to `AGENTS.md`, nothing else. |
+| `CLAUDE.md` | every repository that has `AGENTS.md` | A pointer to `AGENTS.md`, nothing else. Gated in `abap2UI5` by `check:conventions`. Claude Code reads `CLAUDE.md` and nothing else by that name, so guidance without one is invisible to it. |
 | `CONTRIBUTING.md` | every source and corpus repository | How to propose a change, and what CI will check. |
 | `SECURITY.md` | every repository that ships code | Where to report a vulnerability. |
 | `CHANGELOG.md` | every product repository | Keep-a-Changelog format, `## Unreleased` on top. |
@@ -174,3 +180,49 @@ ABAP or generated trees.
 - Sample numbers are allocated per repository, not globally. The class prefix is
   what makes a number unique — prose names a sample by its class, never by its
   number alone.
+
+## 9. Which abap2UI5 a repository builds against
+
+Every repository outside the framework itself resolves abap2UI5 from somewhere,
+and the wrong default is the same everywhere: an unpinned git dependency clones
+the DEFAULT branch, so the repository silently builds against the development
+tip. That hides two defects at once — code that only works on `main` passes,
+and a framework change reddens repositories that did not change.
+
+Which pin a repository takes follows from what it is FOR, not from taste:
+
+| Purpose | Pins | Moved by |
+| --- | --- | --- |
+| **Teaches a reader** — documentation examples, the starter template, the hand-maintained corpora | the release **tag** | a weekly bump that re-runs the gates at the new release before opening the PR |
+| **Canary** — the generated corpus, the playground | a commit **SHA** | a weekly bump that proves the new pin, with a separate nightly run against `main` tip |
+| **Mirror** — the delivery and single-class builds | `main`, by push | the framework's own workflows; these repositories *are* the framework |
+
+Rules:
+
+- Nothing resolves the default branch implicitly. A repository that genuinely
+  wants `main` says so with a key and a comment, so it reads as a decision.
+- A repository that teaches pins the release its readers have. `main` is ahead
+  of that by design: `z2ui5_cl_ui5_view_builder` was on `main` from 2026-08-12
+  and in no release until 1.143.0 three weeks later, and for those three weeks
+  five repositories could teach an API no reader could install.
+- A pin nobody moves is its own defect. Every pin has a bump workflow that
+  re-runs that repository's gates at the new version *before* the pull request
+  exists, so a framework change that breaks a consumer fails in the bump rather
+  than on somebody's unrelated pull request.
+- One repository, one framework version. When several configs carry the pin,
+  a gate holds them equal — a forgotten config linting against a different
+  release is exactly the drift the pin was supposed to end.
+
+One consequence of the tooling, stated rather than hidden: abaplint's
+`"branch"` key feeds `git clone --branch`, which takes a branch name or a tag
+and **never** a commit SHA. A repository pinned by SHA therefore cannot express
+that pin to abaplint at all — and leaving the key off does not centralise the
+pin, it removes it, because abaplint then clones the default branch.
+
+So such a repository resolves the framework more than once, on purpose, and
+says which reference answers which question. `samples-controls` is the worked
+example: `A2UI5_PIN` (a SHA) for the transpiled backend and the e2e smoke, a
+release tag in the abaplint configs for whether the corpus compiles against the
+framework its readers installed, and `main` tip in the nightly e2e as the
+upstream canary. Three references is fine; three references where two are
+undeclared is not.

@@ -5,7 +5,7 @@ classic webapp coding over **1:1** and adapting only the bootstrap layer so it
 runs on the legacy-free OpenUI5 build.
 
 ```
-app/webapp ──▶ patchIndexHtml + patchManifest (patch-v2.mjs) ──▶ tools/app2bsp (preload.js + run.js) ──▶ [bsp_rename, nur mit --name] ──▶ src/
+app/webapp ──▶ patchIndexHtml + patchManifest (patch-v2.mjs) ──▶ tools/app2bsp (preload.js + run.js) ──▶ [bsp_rename, only with --name] ──▶ src/
 ```
 
 The output uses the same package layout as the `standard` branch:

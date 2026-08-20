@@ -55,8 +55,35 @@ jobs:
       with:
         node-version: '22'
 
+    # The script this job runs belongs to the OTHER repository, and the step
+    # after this one runs it as bash, in this workflow, with ACTION_KEY_LOCAL
+    # already sitting in the checkout it came from. That is a write to
+    # abap2UI5-local choosing what executes here - so the script is pinned by
+    # content, and a change to it has to be acknowledged on this side too.
+    #
+    # Not moved into this repository instead: abap2UI5-local's own monthly
+    # update_input.yaml runs the same script, and one implementation of the
+    # refresh is what keeps the push-driven and scheduled paths identical.
+    # What was wrong was never where it lived, only that it could change
+    # unseen.
+    - name: The refresh script is the one this repository reviewed
+      run: |
+        set -euo pipefail
+        want=$(grep -v '^#' upstream/.github/pins/refresh_input.sha256 | tr -d '[:space:]')
+        got=$(sha256sum local/.github/scripts/refresh_input.sh | cut -d' ' -f1)
+        if [ "$want" != "$got" ]; then
+          echo "::error::abap2UI5-local's refresh_input.sh has changed."
+          echo "::error::  expected $want"
+          echo "::error::  found    $got"
+          echo "::error::This workflow executes that script with a deploy key in scope, so the"
+          echo "::error::change has to be read here as well. Review it, then update"
+          echo "::error::.github/pins/refresh_input.sha256 in this repository."
+          exit 1
+        fi
+        echo "refresh_input.sh matches the pinned hash ($got)"
+
     # Same refresh as update_input in abap2UI5-local (shared script kept
     # there), only running here so it happens on every upstream push
     # instead of once a month.
     - name: Refresh input, lint and push to abap2UI5-local main
-      run: bash local/.github/scripts/refresh_input.sh "$GITHUB_WORKSPACE/upstream/src"
+      run: bash local/.github/scripts/refresh_input.sh "$GITHUB_WORKSPACE/upstream/src" "$GITHUB_SHA"
