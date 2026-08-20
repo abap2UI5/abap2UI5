@@ -52,17 +52,36 @@ const REPOS = [
   'linter',
   'docs',
   'web-abap2UI5',
-];
+
+  /* The addons, which sit in a second organisation and were outside every
+   * ecosystem gate until 2026-08-20 - which is how eleven repositories came to
+   * disagree with CONVENTIONS on workflow naming, toolchain pins and these two
+   * scripts at once, and how one of them shipped for ten days against a class
+   * that exists nowhere. They are source repositories with contributors, so
+   * the rule is theirs too. */
+  { org: 'abap2UI5-addons', repo: 'popups' },
+  { org: 'abap2UI5-addons', repo: 'se16n' },
+  { org: 'abap2UI5-addons', repo: 'sql-console' },
+  { org: 'abap2UI5-addons', repo: 'table-content-loader' },
+  { org: 'abap2UI5-addons', repo: 'table-maintenance' },
+  { org: 'abap2UI5-addons', repo: 'layout-management' },
+  { org: 'abap2UI5-addons', repo: 'selection-screen' },
+  { org: 'abap2UI5-addons', repo: 'lock-manager' },
+  { org: 'abap2UI5-addons', repo: 'custom-controls' },
+  { org: 'abap2UI5-addons', repo: 'rap-ext' },
+  { org: 'abap2UI5-addons', repo: 'fork-abapToC' },
+].map((e) => (typeof e === 'string' ? { org: 'abap2UI5', repo: e } : e));
 
 const REQUIRED = ['check', 'test'];
 
-const raw = (repo) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/package.json`;
+const raw = ({ org, repo }) => `https://raw.githubusercontent.com/${org}/${repo}/main/package.json`;
 
 const problems = [];
 const notes = [];
 let checked = 0;
 
-for (const repo of REPOS) {
+for (const entry of REPOS) {
+  const { repo } = entry;
   /* This repository is the checkout the gate runs in, not a sibling of it. */
   const local = repo === 'abap2UI5'
     ? path.join(ROOT, 'package.json')
@@ -75,7 +94,7 @@ for (const repo of REPOS) {
     from = 'checkout';
   } else {
     try {
-      const res = await fetch(raw(repo), { signal: AbortSignal.timeout(15000) });
+      const res = await fetch(raw(entry), { signal: AbortSignal.timeout(15000) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       text = await res.text();
       from = 'github';

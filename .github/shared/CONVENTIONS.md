@@ -22,6 +22,13 @@ first paragraph.
 | **Product** | Ships on its own release cycle to npm, Marketplace or an action. | `linter`, `vscode-extension`, `mcp-server` |
 | **Corpus** | A body of installable example code, installed on its own. | `samples`, `samples-controls`, `samples-stack` |
 
+These rules bind the `abap2UI5-addons` organisation as well as `abap2UI5`. They
+did not until 2026-08-20, and the drift that bought is the reason the sentence
+is here: eleven repositories with their own workflow naming, three different
+abaplint pins, no `check` script between them, not one scheduled run — and one
+that shipped for ten days against a class that exists in no repository, behind
+a green badge, because nothing re-ran its CI.
+
 Rules that follow from the role:
 
 - A channel repository carries a README whose first line says it is generated,
@@ -66,8 +73,9 @@ Rules that follow from the role:
 
 - **Every repository has `check` and `test`.** They are the two names an
   outside developer types without reading anything first, and "Missing script"
-  is a bad first answer. `check` exists in all ten repositories as of
-  2026-08-18; before that it existed in five.
+  is a bad first answer. `check` exists in all twenty-one repositories as of
+  2026-08-20; it reached the ten `abap2UI5` ones on 2026-08-18, and the eleven
+  `abap2UI5-addons` ones when they were brought into these rules.
 - `check` runs what CI runs on a pull request. A step that exists only in
   `package.json` is a step no pull request has to pass; a step that exists only
   in a workflow is one no contributor can run before pushing.
@@ -83,8 +91,9 @@ Rules that follow from the role:
   — the corpora are checked, not unit-tested — `test` is `npm run check`, so
   that the universal command still answers.
 - The first two rules are gated: `npm run check:scripts` in this repository
-  reads all ten `package.json` files (sibling checkout, else raw main, else say
-  so and pass) and fails naming any repository that has lost either script.
+  reads all twenty-one `package.json` files (sibling checkout, else raw main,
+  else say so and pass) and fails naming any repository that has lost either
+  script.
   Prose is not a thing that fails a pull request, which is why five of them
   drifted out of the rule before anyone noticed.
 - Namespaces use a colon: `check:chains`, `fmt:chains`, `bump:linter`. No
