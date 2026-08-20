@@ -43,6 +43,12 @@ Rules that follow from the role:
   retitles every required status check at once, so rename only when the file is
   being reworked anyway, and say so in the pull request so branch protection
   can be moved with it.
+- Gated in `abap2UI5` by `npm run check:conventions`, with the names that
+  predate the rule listed as exceptions by name — including `UI5_2X.yaml`, the
+  file this section names as its own bad example. The list only shrinks: an
+  entry for a file that no longer exists fails, so a rename drops its exception
+  in the same change. What the gate buys today is that the next workflow is
+  named by the rule rather than by the exceptions around it.
 - The `name:` must be recognisable from the file name. It is what branch
   protection and the checks list show, so a reader who sees a red check has to
   be able to find the file it came from. `ci.yml` → `CI` and
@@ -133,7 +139,7 @@ never both hand-maintained and copied.
 | --- | --- | --- |
 | `README.md` | every repository | What it is, who it is for, how to start. Understandable in 30 seconds by someone who has never seen the project. |
 | `AGENTS.md` | every source repository | The single source of truth for agents. Opens with "Single source of truth for agents working on…". |
-| `CLAUDE.md` | every repository that has `AGENTS.md` | A pointer to `AGENTS.md`, nothing else. |
+| `CLAUDE.md` | every repository that has `AGENTS.md` | A pointer to `AGENTS.md`, nothing else. Gated in `abap2UI5` by `check:conventions`. Claude Code reads `CLAUDE.md` and nothing else by that name, so guidance without one is invisible to it. |
 | `CONTRIBUTING.md` | every source and corpus repository | How to propose a change, and what CI will check. |
 | `SECURITY.md` | every repository that ships code | Where to report a vulnerability. |
 | `CHANGELOG.md` | every product repository | Keep-a-Changelog format, `## Unreleased` on top. |

@@ -46,6 +46,8 @@
     "check:release": "node .github/scripts/release-gate.mjs",
     "coverage": "node .github/scripts/coverage-report.mjs",
     "check:abap2ui5": "abap2ui5lint",
+    "check:render": "abap2ui5lint --render",
+    "check:conventions": "node .github/scripts/conventions-gate.mjs",
     "fmt:chains": "abap2ui5lint --fix",
     "check:abapgit": "node .github/scripts/abapgit-format-gate.mjs",
     "check:atc": "node .github/scripts/extended-check-gate.mjs",
