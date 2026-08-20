@@ -304,6 +304,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " BSP and Launchpad mode the fields are absent and the manifest entries
     " stand. Registering a path costs nothing when the BSP is not installed -
     " nothing is requested from it until a view names the namespace.
+    " The tab icon, next to the tab title the exit set two lines above it. An
+    " exit that clears the field gets no <link> at all rather than one
+    " pointing nowhere - a browser then falls back to /favicon.ico on the
+    " host, which is what a page without the tag has always done here.
+    DATA(lv_favicon) = COND string(
+        WHEN ls_config-favicon IS INITIAL THEN ``
+        ELSE |    <link rel="icon" href="{ ls_config-favicon }">\n| ).
+
     DATA(lv_globals) = |window.z2ui5 = \{ checkLocal : true, | &&
                        |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
                        |cccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_ccc" \};|.
@@ -316,6 +324,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
                   |<title>{ ls_config-title }</title>\n| &&
+                  lv_favicon &&
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&
                   |        \}</style> \n| &&
