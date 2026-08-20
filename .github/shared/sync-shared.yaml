@@ -67,10 +67,15 @@ jobs:
           echo "::error::Fix the path here; a silent skip would let the copies drift again."
           exit 1
         }
+        # The consumer name is this repository's own, taken from
+        # GITHUB_REPOSITORY rather than from the event payload: this workflow
+        # only ever runs on `schedule` and `workflow_dispatch`, and a scheduled
+        # run carries no repository object to read a name off.
+        NAME="${GITHUB_REPOSITORY#*/}"
         # Tab-separated: source path in abap2UI5, path in this repository.
-        node "$GATE" --manifest "${{ github.event.repository.name }}" > manifest.txt
+        node "$GATE" --manifest "$NAME" > manifest.txt
         test -s manifest.txt || {
-          echo "::error::the manifest is empty for ${{ github.event.repository.name }} —"
+          echo "::error::the manifest is empty for $NAME —"
           echo "::error::either this repository is no longer a consumer, or its name changed."
           exit 1
         }
