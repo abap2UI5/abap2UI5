@@ -204,9 +204,16 @@ Rules:
   a gate holds them equal — a forgotten config linting against a different
   release is exactly the drift the pin was supposed to end.
 
-One asymmetry, stated rather than hidden: abaplint's `"branch"` key feeds
-`git clone --branch`, which takes a branch name or a tag and **never** a commit
-SHA. So a repository pinned by SHA cannot express that pin to abaplint, and its
-abaplint configs keep resolving `main` while its runtime path is pinned.
-`samples-controls` is that case. Closing it means changing what the pin is, not
-adding a second one.
+One consequence of the tooling, stated rather than hidden: abaplint's
+`"branch"` key feeds `git clone --branch`, which takes a branch name or a tag
+and **never** a commit SHA. A repository pinned by SHA therefore cannot express
+that pin to abaplint at all — and leaving the key off does not centralise the
+pin, it removes it, because abaplint then clones the default branch.
+
+So such a repository resolves the framework more than once, on purpose, and
+says which reference answers which question. `samples-controls` is the worked
+example: `A2UI5_PIN` (a SHA) for the transpiled backend and the e2e smoke, a
+release tag in the abaplint configs for whether the corpus compiles against the
+framework its readers installed, and `main` tip in the nightly e2e as the
+upstream canary. Three references is fine; three references where two are
+undeclared is not.

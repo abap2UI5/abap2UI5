@@ -15,6 +15,7 @@
  *
  *   1. workflow file names are lower kebab case (§2)
  *   2. a repository with an AGENTS.md has a CLAUDE.md (§6)
+ *   3. a repository carrying ABAP or generated trees has a .gitattributes (§6)
  *
  * The twelve workflow names that predate this are GRANDFATHERED by name.
  * Renaming a workflow renames its status check and its badge URL, so doing it
@@ -85,9 +86,23 @@ if (has('AGENTS.md') && !has('CLAUDE.md')) {
     + ' a pointer at AGENTS.md is the whole file.');
 }
 
+// --- §6 LF-only, enforced by .gitattributes ---------------------------------
+/* This repository carries both: src/ is pulled into SAP systems by abapGit,
+ * which expects LF, and build/ is shipped byte for byte. It had no root
+ * .gitattributes at all - the only one was build/.gitattributes, saying `*
+ * -text` for the opposite and deliberate reason. Measured when the root file
+ * went in: `git add --renormalize .` changed nothing, so the tree was already
+ * LF throughout and the file records that rather than converting anything. */
+if (!has('.gitattributes')) {
+  err('no .gitattributes — CONVENTIONS §6 asks for one in every repository that'
+    + ' carries ABAP or generated trees, and this one carries both. Without it a'
+    + ' checkout with core.autocrlf=true rewrites src/ to CRLF and abapGit'
+    + ' imports the difference.');
+}
+
 if (errors) {
   console.log(`conventions-gate: ${errors} error(s).`);
   process.exit(1);
 }
 console.log(`conventions-gate: ok (${files.length} workflow(s), ${grandfathered} grandfathered name(s),`
-  + ` AGENTS.md${has('CLAUDE.md') ? ' + CLAUDE.md' : ''})`);
+  + ` AGENTS.md${has('CLAUDE.md') ? ' + CLAUDE.md' : ''}, .gitattributes)`);

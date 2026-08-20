@@ -1,0 +1,19 @@
+# Normalize line endings to LF for all text files (abapGit + tooling expect LF)
+#
+# The framework's own src/ is pulled into SAP systems by abapGit, which expects
+# LF, and CONVENTIONS §6 asks for this file in every repository that carries
+# ABAP or generated trees. This one carries both and had none - the only
+# .gitattributes here was build/.gitattributes, which says the OPPOSITE (`*
+# -text`) for a deliberate reason: those trees are shipped byte for byte and
+# git must not touch them. That rule still applies; a .gitattributes deeper in
+# the tree wins over this one.
+* text=auto eol=lf
+*.abap text eol=lf
+*.xml text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.md text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
