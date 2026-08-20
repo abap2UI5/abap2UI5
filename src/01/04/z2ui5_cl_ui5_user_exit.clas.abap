@@ -78,6 +78,23 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     cs_config-title = `abap2UI5`.
     cs_config-theme = `sap_horizon`.
 
+    " The tab icon: the abap2UI5 mark, the same one the documentation and the
+    " three sample pages put in the tab. An SVG data URI rather than a file -
+    " the page is built here, has no static resources of its own, and the
+    " default CSP above already allows `data:`. Two elements and no font
+    " file, because at 16 px a tab icon is a coloured disc with something on
+    " it; the wordmark is what tells this disc from another one at 32 px.
+    " An app that wants its OWN icon sets this field in its exit the way it
+    " sets the title - or clears it, and gets no <link> at all. An app that
+    " wants to switch it while running has the SET_FAVICON frontend action.
+    cs_config-favicon =
+      |data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' | &&
+      |viewBox='0 0 40 40' fill='%23fff' font-family='sans-serif' | &&
+      |font-size='11' font-weight='bold' text-anchor='middle'>| &&
+      |<circle cx='20' cy='20' r='20' fill='%23d03c4a'/>| &&
+      |<text x='20' y='18'>abap</text>| &&
+      |<text x='20' y='31'>2UI5</text></svg>|.
+
     cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
 
     " 'unsafe-eval' is required by the OpenUI5 1.71 ui5loader (it evaluates
