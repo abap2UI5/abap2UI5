@@ -243,6 +243,18 @@ const SHARED = [
       + ' in the repository that owns it',
   },
   {
+    /* Only the two HAND-MAINTAINED sample repositories. samples-controls has a
+     * check-pins of its own and a different policy: it pins the framework by
+     * commit SHA in A2UI5_PIN, which abaplint cannot consume — `"branch"` feeds
+     * `git clone --branch` and takes a branch or a tag, never a SHA. So the two
+     * gates are not copies of each other and must not be listed as such. */
+    file: '.github/shared/check-framework-pin.mjs',
+    consumers: ['samples', 'samples-stack'],
+    consumerFile: 'scripts/check-framework-pin.mjs',
+    why: 'the check that the abaplint configs pin abap2UI5 to a RELEASE rather'
+      + ' than resolving whatever is on main',
+  },
+  {
     /* The builder-chain formatter — the executable half of the
      * `view-chain-layout` skill that heads this list. Two repositories run it;
      * neither owned it. Both being byte-equal today is the state this gate

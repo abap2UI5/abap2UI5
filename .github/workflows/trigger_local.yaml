@@ -59,4 +59,4 @@ jobs:
     # there), only running here so it happens on every upstream push
     # instead of once a month.
     - name: Refresh input, lint and push to abap2UI5-local main
-      run: bash local/.github/scripts/refresh_input.sh "$GITHUB_WORKSPACE/upstream/src"
+      run: bash local/.github/scripts/refresh_input.sh "$GITHUB_WORKSPACE/upstream/src" "$GITHUB_SHA"

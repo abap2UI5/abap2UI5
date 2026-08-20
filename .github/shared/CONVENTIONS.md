@@ -165,3 +165,42 @@ ABAP or generated trees.
 - Sample numbers are allocated per repository, not globally. The class prefix is
   what makes a number unique — prose names a sample by its class, never by its
   number alone.
+
+## 9. Which abap2UI5 a repository builds against
+
+Every repository outside the framework itself resolves abap2UI5 from somewhere,
+and the wrong default is the same everywhere: an unpinned git dependency clones
+the DEFAULT branch, so the repository silently builds against the development
+tip. That hides two defects at once — code that only works on `main` passes,
+and a framework change reddens repositories that did not change.
+
+Which pin a repository takes follows from what it is FOR, not from taste:
+
+| Purpose | Pins | Moved by |
+| --- | --- | --- |
+| **Teaches a reader** — documentation examples, the starter template, the hand-maintained corpora | the release **tag** | a weekly bump that re-runs the gates at the new release before opening the PR |
+| **Canary** — the generated corpus, the playground | a commit **SHA** | a weekly bump that proves the new pin, with a separate nightly run against `main` tip |
+| **Mirror** — the delivery and single-class builds | `main`, by push | the framework's own workflows; these repositories *are* the framework |
+
+Rules:
+
+- Nothing resolves the default branch implicitly. A repository that genuinely
+  wants `main` says so with a key and a comment, so it reads as a decision.
+- A repository that teaches pins the release its readers have. `main` is ahead
+  of that by design: `z2ui5_cl_ui5_view_builder` was on `main` from 2026-08-12
+  and in no release until 1.143.0 three weeks later, and for those three weeks
+  five repositories could teach an API no reader could install.
+- A pin nobody moves is its own defect. Every pin has a bump workflow that
+  re-runs that repository's gates at the new version *before* the pull request
+  exists, so a framework change that breaks a consumer fails in the bump rather
+  than on somebody's unrelated pull request.
+- One repository, one framework version. When several configs carry the pin,
+  a gate holds them equal — a forgotten config linting against a different
+  release is exactly the drift the pin was supposed to end.
+
+One asymmetry, stated rather than hidden: abaplint's `"branch"` key feeds
+`git clone --branch`, which takes a branch name or a tag and **never** a commit
+SHA. So a repository pinned by SHA cannot express that pin to abaplint, and its
+abaplint configs keep resolving `main` while its runtime path is pinned.
+`samples-controls` is that case. Closing it means changing what the pin is, not
+adding a second one.
