@@ -50,6 +50,8 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
+This snippet is deliberately the smallest possible app – one interface, one method, one message box. The next rung ships with the framework: [`z2ui5_cl_ui5_app_hi_world`](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap), the hello-world sample that adds a real view, a bound input, and an event roundtrip. When you start an app of your own, begin from the [canonical app template](docs/agents/building-apps.md) in the agent guide – it adds the full lifecycle dispatcher and the structure every sample repository follows.
+
 #### How It Works
 
 Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did:
