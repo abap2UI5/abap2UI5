@@ -3,6 +3,25 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     TYPES:
+      BEGIN OF ty_s_name_value,
+        n TYPE string,
+        v TYPE string,
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_s_http_config,
+        src                     TYPE string,
+        theme                   TYPE string,
+        content_security_policy TYPE string,
+        styles_css              TYPE string,
+        title                   TYPE string,
+        t_add_config            TYPE ty_t_name_value,
+        custom_js               TYPE string,
+        t_security_header       TYPE ty_t_name_value,
+      END OF ty_s_http_config.
+
+    TYPES:
       BEGIN OF ty_s_http_res,
         body          TYPE string,
         status_code   TYPE i,
@@ -18,7 +37,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         method   TYPE string,
         body     TYPE string,
         path     TYPE string,
-        t_params TYPE z2ui5_if_client=>ty_t_name_value,
+        t_params TYPE ty_t_name_value,
       END OF ty_s_http_req.
 
     CLASS-METHODS run
@@ -107,12 +126,12 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " and set_response (security headers) need it; without the cache the user
     " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
     " after init_context( ), so the exit always sees the current request context.
-    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_types=>ty_s_http_config.
+    CLASS-DATA ss_config_http_get     TYPE ty_s_http_config.
     CLASS-DATA sv_config_http_get_set TYPE abap_bool.
 
     CLASS-METHODS config_http_get
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_s_http_config.
+        VALUE(result) TYPE ty_s_http_config.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump

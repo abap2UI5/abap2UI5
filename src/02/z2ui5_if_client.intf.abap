@@ -28,13 +28,6 @@ INTERFACE z2ui5_if_client
       END OF orientation,
     END OF cs_device.
 
-  TYPES:
-    BEGIN OF ty_s_name_value,
-      n TYPE string,
-      v TYPE string,
-    END OF ty_s_name_value.
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-
   CONSTANTS:
     BEGIN OF cs_event,
 
@@ -100,6 +93,13 @@ INTERFACE z2ui5_if_client
       popup   TYPE string VALUE `POPUP`,
       popover TYPE string VALUE `POPOVER`,
     END OF cs_view.
+
+  TYPES:
+    BEGIN OF ty_s_name_value,
+      n TYPE string,
+      v TYPE string,
+    END OF ty_s_name_value.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   CONSTANTS:
     "! Hash-based app routing modes (see set_nav_routing). The mode decides how
