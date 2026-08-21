@@ -1,5 +1,11 @@
 # AGENTS.md — AI Assistant Guide for abap2UI5
 
+> **Building an app WITH abap2UI5? Stop reading here.** Everything an app
+> needs — template, lifecycle, view builder, client API — is the
+> self-contained guide **`docs/agents/building-apps.md`** (also wired as the
+> `build-an-app` Claude Code skill; `llms.txt` indexes both audiences). The
+> rest of this file is for changing the framework itself.
+
 > This file follows the cross-tool AGENTS.md convention and is the single
 > agent instruction file of this repository. `CLAUDE.md` exists next to it and
 > is a pointer at this file, nothing more — CONVENTIONS §6 asks for one in
@@ -50,7 +56,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
 | [customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) | Template for a customer's **own** frontend artefacts (reuse library, icon font, CSS) in their own BSP — same mechanism under the reserved resourceRoot `z2ui5_ccc`. Both roots exist so nobody has to patch `index.html` / `manifest.json`, which are generated here and overwritten downstream |
 
-> **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle — read the in-repo guide **`docs/agents/building-apps.md`** (also wired as the `build-an-app` Claude Code skill; `llms.txt` indexes both audiences). The rendered docs site is <https://abap2ui5.github.io/docs/> — unreachable from many sandboxes, which is why the guide lives in-repo.
+> **Building apps?** See the routing note at the very top of this file — the guide is `docs/agents/building-apps.md`. The rendered docs site is <https://abap2ui5.github.io/docs/> — unreachable from many sandboxes, which is why the guide lives in-repo.
 
 ## Architecture
 
