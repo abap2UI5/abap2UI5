@@ -49,7 +49,7 @@ support case.
       predating raw-JS `follow_up_action( )`. Replacement:
       `follow_up_action( |history.back()| )`, or `nav_app_leave( )` for
       navigation inside the app. Frontend handler deleted with it; the only
-      caller, the experimental samples app 322, was removed in the same change
+      caller, samples app 322, moved to the raw-JS form in the same change
 - [x] `z2ui5_if_types` retired to `src/99` — every type it held now sits on the
       object that uses it (`ty_s_get` / `ty_s_event_control` / `ty_s_name_value`
       / `ty_t_name_value` / `cs_device` on `z2ui5_if_client`, the three HTTP
@@ -92,30 +92,31 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       methods in `z2ui5_cl_ui5_user_exit`, and the `/src/99/z2ui5_if_exit.intf.*`
       line that puts this one frozen object into `abaplint.jsonc`'s strict
       ruleset
-- [ ] **`_bind_edit( )`** — `z2ui5_if_client.intf.abap:354`. Alias of `_bind`,
-      identical behaviour. AGENTS.md puts removal at ~1 year out (from 2026-07).
+- [ ] **`_bind_edit( )`** of `z2ui5_if_client` — alias of `_bind`, identical
+      behaviour. AGENTS.md puts removal at ~1 year out (from 2026-07).
       - Former blocker resolved: per-direction mapping was dropped —
         `custom_mapper_back` / `custom_filter_back` are still accepted for
         source compatibility but no longer evaluated.
-      - Last caller in the ecosystem: `samples z2ui5_cl_demo_app_153` — check
-        it still makes sense without the asymmetric mapper before removal.
-- [ ] **`view` parameter of `_bind( )` and `_bind_edit( )`** —
-      `z2ui5_if_client.intf.abap:339` and `:359`. Inert, not passed on
-      internally. Removing it is a signature change, so it rides along with the
+      - No callers left in the ecosystem: zero in `samples`,
+        `samples-controls` and `samples-stack` (re-checked 2026-08-21). The
+        only in-repo hits are the declaration, the delegating implementation
+        and its test.
+- [ ] **`view` parameter of `_bind( )` and `_bind_edit( )`** — marked
+      obsolete at both declarations. Inert, not passed on internally. Removing it is a signature change, so it rides along with the
       `_bind_edit` removal rather than going separately.
-- [ ] **`nest_view_model_update( )` / `nest2_view_model_update( )`** —
-      `z2ui5_if_client.intf.abap:172`, `:184`. No-ops now (the model push is
-      automatic).
-      - Callers in samples: `z2ui5_cl_demo_app_069` (1), `z2ui5_cl_demo_app_085` (6).
-        Delete the calls there first - migrating them to another no-op is
-        pointless.
+- [ ] **`nest_view_model_update( )` / `nest2_view_model_update( )`** of
+      `z2ui5_if_client` — no-ops now (the model push is automatic), and so is
+      `view_model_update( )` itself.
+      - No callers left: zero across `samples`, `samples-controls` and
+        `samples-stack` (re-checked 2026-08-21). The blocker this item used to
+        carry is cleared.
 - [ ] **`cs_event-nav_container_to`** and the `nest_` / `nest2_` / `popup_` /
-      `popover_` variants — `z2ui5_if_client.intf.abap:97-101`.
+      `popover_` variants — in the "obsolet" block of `cs_event`.
       - Removing them also deletes the remap block in
         `z2ui5_cl_ui5_srv_event=>map_client_event` (~20 lines) that rewrites
         them onto `control_by_id` + method `to`.
       - Zero usages in samples and samples-controls (checked, incl. raw literals).
-- [ ] **`cs_event-image_editor_popup_close`** — `z2ui5_if_client.intf.abap:96`.
+- [ ] **`cs_event-image_editor_popup_close`** — the same "obsolet" block.
       Belongs to `z2ui5_cl_pop_image_editor`; goes when `src/99/02` goes.
 - [ ] **`cs_event-wizard_set_next_step`** — marked obsolete in the interface.
       Bundles `discardProgress( oStep )` + `oStep.setNextStep( oNext )` into
@@ -126,9 +127,8 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       - Zero usages in samples: the Wizard sample (`samples`
         `z2ui5_cl_smp_app_202`) already drives the flow through `control_by_id`,
         which is the migration example.
-- [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** —
-      `z2ui5_if_client.intf.abap:373-374`, marked obsolete in the interface.
-      Still evaluated. They hand app code a reference into the **mirrored**
+- [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** — marked obsolete at
+      the declaration. Still evaluated. They hand app code a reference into the **mirrored**
       AJSON library (`src/00/01`, synced from an external project), so an app
       implementing `z2ui5_if_ajson_mapping` / `_filter` binds itself to a type
       this repo does not own.
@@ -142,18 +142,12 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
         before cutting, there is no declarative equivalent for a *custom*
         transformation (only `omit_initial` / `omit_initial_paths` / `json`).
 
-- [ ] **`check_sticky` / `check_initialized` of `z2ui5_if_app`** —
-      `z2ui5_if_app.intf.abap:29`, `:34`. The state moved to
-      `z2ui5_cl_ui5_app_cont=>mv_check_sticky` / `mv_check_initialized`; what is
-      left are mirrors `app_compat_mirror( )` keeps in sync for readers.
-      - Removing them is a rule-5 break like any other, but a cheap one: they
-        are `DATA`, not a signature, and the framework no longer reads them.
-      - Zero usages in samples, samples-controls and samples-stack. The
-        remaining in-repo readers are two assertions that exist to test the
-        mirror itself (`core_handler` / `core_app` test classes) — delete them
-        with the attributes.
-      - Cut them together with the `_bind_edit` batch so downstream apps get
-        one breaking release, not two.
+- [x] `check_sticky` / `check_initialized` of `z2ui5_if_app` removed — the
+      state had already moved to `z2ui5_cl_ui5_app_cont`'s `mv_check_sticky` /
+      `mv_check_initialized`, and what was left were mirrors an
+      `app_compat_mirror( )` kept in sync for readers. Interface, mirror method
+      and the two assertions that tested the mirror all went; `id_draft` and
+      `id_app` stayed, for the reason below.
 
 > **Not obsolete, do not remove:** `id_draft` and `id_app` of `z2ui5_if_app`
 > look like the two above and are not. `id_draft` is the handle
@@ -182,7 +176,14 @@ breaking change for any downstream app that still references it.
         `samples-controls` `src/03`, the SAPUI5-only collection, migrated in
         the same pass — they were also the only ABAP in that repository no
         view check could read, because nothing can reconstruct this builder.
-      - **Blocker B:** docs — 51 pages teach it. **The only one left.**
+      - **Blocker B: cleared 2026-08-21.** The 51 pages that taught it have
+        been migrated: `abap2UI5/docs` names it on six pages and not one of
+        them teaches it — the linter rule `frozen-view-builder`, the
+        deprecations table, the changelog, the custom-control link into
+        `z2ui5_cl_xml_view_cc`, and two sentences calling it the frozen
+        predecessor. That side is also gated now: `check:examples` there
+        refuses a `z2ui5_cl_xml_view=>` example unless the page carries the
+        migration banner, so the count cannot climb back.
       - This is a project, not a task. Until it is done, nothing else in
         `src/99` can go either, because the package ships as a unit.
       - `factory_plain( )` (`:22`) is obsolete **inside** an already-obsolete
@@ -261,11 +262,11 @@ controls a public contract, so these break hand-written view XML. Regenerate
       re-exporting `z2ui5/model/formatter`. Named in AGENTS.md rule 7 as a
       public contract, so it needs the same announcement as the controls.
 - [ ] **`destroyPopup` / `destroyPopover` / `destroyNestView` /
-      `destroyNestView2` / `destroyView`** — `View1.controller.js:170-186`.
+      `destroyNestView2` / `destroyView`** — in `View1.controller.js`.
       Thin wrappers around `ViewSlots.destroy()`, kept because apps may call
       them from custom JS.
-- [ ] **Legacy app-state hash handling in `core/Router.js`** (`:131`, `:330`,
-      `:350`) — only removable if the pre-routing app-state hash is dropped
+- [ ] **Legacy app-state hash handling in `core/Router.js`** (the note in
+      `parse( )`, and the two branches in `sync( )`) — only removable if the pre-routing app-state hash is dropped
       entirely. Check `clipboard_app_state` and `set_app_state_active` first.
 
 > **Cannot go yet:** the `eF('…')` string parser in `core/actions/LegacyCustomJs.js`. It is
@@ -284,8 +285,8 @@ controls a public contract, so these break hand-written view XML. Regenerate
 
 Not part of any public contract; removable whenever.
 
-- [ ] **`follow_up_action( _event( ) )` snippet parsing** —
-      `z2ui5_cl_ui5_action.clas.abap:256-262`. A `SPLIT` on `.eB(['` that
+- [ ] **`follow_up_action( _event( ) )` snippet parsing** — in
+      `z2ui5_cl_ui5_action=>prepare_app_stack`. A `SPLIT` on `.eB(['` that
       reverse-engineers the next event out of a legacy JS string.
 - [x] **The dynamic slot loops** — `reset_view_update_flags` 20 → 10 lines,
       `check_view_update_needed` 43 → 22. Plain `CLEAR` / `IF` on the statically

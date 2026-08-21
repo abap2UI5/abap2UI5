@@ -519,7 +519,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " The exception itself only says WHAT went wrong. Which app, which event
     " and which draft it went wrong in is known here and nowhere above, so
     " annotate it on the way out - the top-level catch in
-    " z2ui5_cl_http_handler=>_main renders the whole chain, this frame
+    " z2ui5_cl_ui5_http_handler=>_main renders the whole chain, this frame
     " included, into the 500 body.
     TRY.
         main_begin( ).
@@ -761,7 +761,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " session: re-send the app's own mode whenever this roundtrip did not set
     " one itself, so an app that queued cs_event-set_nav_routing in check_on_init
     " stays routed in its chosen mode - even after the user visited another
-    " app that runs with a different one (see z2ui5_cl_ui5_app=>mv_nav_mode).
+    " app that runs with a different one (see z2ui5_cl_ui5_app_cont->mv_nav_mode).
     " NOT on every roundtrip though: the frontend keeps the mode in session
     " state, so a plain event roundtrip of the SAME app repeats no mode (it
     " would re-queue the ROUTER action for a constant). It has to travel
@@ -852,7 +852,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ENDIF.
 
     " exceptions from main( ) are intentionally not caught here - they bubble up
-    " to the single top-level catch in z2ui5_cl_http_handler=>_main( ), which
+    " to the single top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which
     " turns them into a 500 response carrying the exception text
     IF mo_action->ms_actual-event = z2ui5_if_ui5_types=>cs_event_nav_app_leave.
       " no popup/popover teardown is queued here: the standalone slots die on

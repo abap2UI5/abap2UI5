@@ -123,7 +123,7 @@ INTERFACE z2ui5_if_ui5_types
       " (see app/webapp/core/Router.js). Opt-in per APP via
       " follow_up_action( cs_event-set_nav_routing ) - the mode is remembered on the app,
       " travels in its draft and is re-sent whenever the frontend may not
-      " still hold it (see z2ui5_cl_ui5_app=>mv_nav_mode and the
+      " still hold it (see z2ui5_cl_ui5_app_cont->mv_nav_mode and the
       " nav_mode_sent latch in main_end). The value carries the MODE (see
       " z2ui5_if_client=>cs_nav_mode): 'KEEP' syncs the class AND its draft id
       " '#/app/<CLASS>/<DRAFT>' so Back/Forward restore the exact preserved
@@ -169,7 +169,7 @@ INTERFACE z2ui5_if_ui5_types
       " seven separate response fields.
       s_nav          TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
-      " concern - z2ui5_cl_http_handler reads it off the response record to
+      " concern - z2ui5_cl_ui5_http_handler reads it off the response record to
       " call set_session_stateful, and no frontend module ever looked at it.
       s_stateful     TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next.
