@@ -71,7 +71,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_req.
 
-    " CSRF defense (on by default; an app can opt out via z2ui5_if_exit~
+    " CSRF defense (on by default; an app can opt out via z2ui5_if_ui5_exit~
     " set_config_http_post -> check_csrf_active = abap_false). Pure and
     " side-effect free so it is unit-testable
     " without a server mock: the caller reads the header values off the
@@ -107,12 +107,12 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " and set_response (security headers) need it; without the cache the user
     " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
     " after init_context( ), so the exit always sees the current request context.
-    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_exit=>ty_s_http_config.
+    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     CLASS-DATA sv_config_http_get_set TYPE abap_bool.
 
     CLASS-METHODS config_http_get
       RETURNING
-        VALUE(result) TYPE z2ui5_if_exit=>ty_s_http_config.
+        VALUE(result) TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
@@ -165,7 +165,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_ui5_user_exit=>
         " set_config_http_post), so a cross-origin POST is rejected unless an
         " app opts out via its own exit.
-        DATA(ls_config_post) = VALUE z2ui5_if_exit=>ty_s_http_config_post( ).
+        DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
@@ -495,7 +495,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " and the system/user context the full dump carries) is replaced by a
         " generic message instead of leaking to the client.
         " Default is abap_false -> the real reason is returned as before.
-        DATA(ls_config_post) = VALUE z2ui5_if_exit=>ty_s_http_config_post( ).
+        DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         " the body is the only diagnostic the developer gets - the browser

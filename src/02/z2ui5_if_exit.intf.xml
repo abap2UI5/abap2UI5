@@ -5,7 +5,7 @@
    <VSEOINTERF>
     <CLSNAME>Z2UI5_IF_EXIT</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - user exit</DESCRIPT>
+    <DESCRIPT>Superseded by z2ui5_if_ui5_exit</DESCRIPT>
     <EXPOSURE>2</EXPOSURE>
     <STATE>1</STATE>
     <UNICODE>X</UNICODE>

@@ -29,14 +29,24 @@ import { execFileSync } from "child_process";
 
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" });
 
-/** Every path git considers modified, staged, or untracked, with its status. */
-const treeState = () =>
-  new Map(
-    git("status", "--porcelain", "-z")
-      .split("\0")
-      .filter(Boolean)
-      .map((entry) => [entry.slice(3), entry.slice(0, 2)]),
-  );
+/** Every path git considers modified, staged, or untracked, with its status.
+ *
+ * A rename is TWO NUL-separated fields in -z output ("R  <new>\0<old>"), so the
+ * fields cannot simply be mapped one by one: the second one carries no status
+ * byte and slicing three characters off it invents a path ("/99/x.abap" out of
+ * "src/99/x.abap"), which the content hash below then reports as `gone` and git
+ * prints a `fatal:` line for. Consume the source path with the entry it belongs
+ * to instead - it is the pre-rename name, not a state of its own. */
+const treeState = () => {
+  const fields = git("status", "--porcelain", "-z").split("\0").filter(Boolean);
+  const out = new Map();
+  for (let i = 0; i < fields.length; i++) {
+    const status = fields[i].slice(0, 2);
+    out.set(fields[i].slice(3), status);
+    if (/[RC]/.test(status)) i++; // skip the source path of a rename/copy
+  }
+  return out;
+};
 
 /* The content too, not just the path list: a file already modified before the
  * run can be modified FURTHER by it, and a path-only comparison would call

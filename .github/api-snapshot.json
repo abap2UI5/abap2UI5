@@ -69,9 +69,14 @@
   "z2ui5_if_client.intf.abap#methods:check_app_prev_stack": "methods check_app_prev_stack returning value(result) type abap_bool",
   "z2ui5_if_client.intf.abap#methods:check_on_navigated": "methods check_on_navigated returning value(result) type abap_bool",
   "z2ui5_if_client.intf.abap#methods:get_app_prev": "methods get_app_prev returning value(result) type ref to z2ui5_if_app",
-  "z2ui5_if_exit.intf.abap#types:ty_s_http_context": "types begin of ty_s_http_context . types path type string . types app_start type string . types t_params type z2ui5_if_client=>ty_t_name_value . types end of ty_s_http_context",
-  "z2ui5_if_exit.intf.abap#types:ty_s_http_config": "types begin of ty_s_http_config . types src type string . types theme type string . types content_security_policy type string . types styles_css type string . types title type string . types t_add_config type z2ui5_if_client=>ty_t_name_value . types custom_js type string . types t_security_header type z2ui5_if_client=>ty_t_name_value . types end of ty_s_http_config",
-  "z2ui5_if_exit.intf.abap#types:ty_s_http_config_post": "types begin of ty_s_http_config_post . types draft_exp_time_in_hours type i . types check_hide_error_details type abap_bool . types check_csrf_active type abap_bool . types end of ty_s_http_config_post",
+  "z2ui5_if_exit.intf.abap#types:ty_s_http_context": "types ty_s_http_context type z2ui5_if_ui5_exit=>ty_s_http_context",
+  "z2ui5_if_exit.intf.abap#types:ty_s_http_config": "types ty_s_http_config type z2ui5_if_ui5_exit=>ty_s_http_config",
+  "z2ui5_if_exit.intf.abap#types:ty_s_http_config_post": "types ty_s_http_config_post type z2ui5_if_ui5_exit=>ty_s_http_config_post",
   "z2ui5_if_exit.intf.abap#methods:set_config_http_get": "methods set_config_http_get importing is_context type ty_s_http_context optional changing cs_config type ty_s_http_config",
-  "z2ui5_if_exit.intf.abap#methods:set_config_http_post": "methods set_config_http_post importing is_context type ty_s_http_context optional changing cs_config type ty_s_http_config_post"
+  "z2ui5_if_exit.intf.abap#methods:set_config_http_post": "methods set_config_http_post importing is_context type ty_s_http_context optional changing cs_config type ty_s_http_config_post",
+  "z2ui5_if_ui5_exit.intf.abap#types:ty_s_http_context": "types begin of ty_s_http_context . types path type string . types app_start type string . types t_params type z2ui5_if_client=>ty_t_name_value . types end of ty_s_http_context",
+  "z2ui5_if_ui5_exit.intf.abap#types:ty_s_http_config": "types begin of ty_s_http_config . types src type string . types theme type string . types content_security_policy type string . types styles_css type string . types title type string . types t_add_config type z2ui5_if_client=>ty_t_name_value . types custom_js type string . types t_security_header type z2ui5_if_client=>ty_t_name_value . types end of ty_s_http_config",
+  "z2ui5_if_ui5_exit.intf.abap#types:ty_s_http_config_post": "types begin of ty_s_http_config_post . types draft_exp_time_in_hours type i . types check_hide_error_details type abap_bool . types check_csrf_active type abap_bool . types end of ty_s_http_config_post",
+  "z2ui5_if_ui5_exit.intf.abap#methods:set_config_http_get": "methods set_config_http_get importing is_context type ty_s_http_context optional changing cs_config type ty_s_http_config",
+  "z2ui5_if_ui5_exit.intf.abap#methods:set_config_http_post": "methods set_config_http_post importing is_context type ty_s_http_context optional changing cs_config type ty_s_http_config_post"
 }
