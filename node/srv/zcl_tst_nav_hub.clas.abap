@@ -19,13 +19,13 @@ CLASS zcl_tst_nav_hub IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ) IS NOT INITIAL.
+    IF client->check_on_init( ).
       view_display( ).
 
-    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
+    ELSEIF client->check_on_navigated( ).
       view_display( ).
 
-    ELSEIF client->check_on_event( ) IS NOT INITIAL.
+    ELSEIF client->check_on_event( ).
       CASE client->get_event( ).
         WHEN `INC`.
           counter = counter + 1.
