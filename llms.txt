@@ -22,6 +22,9 @@ Two audiences, two entry points:
   popups, navigation, validation tooling
 - [Client API contract](src/02/z2ui5_if_client.intf.abap): every method an app
   can call, with inline documentation
+- [Client API reference](https://abap2ui5.github.io/docs/resources/api.html):
+  the same contract as a generated, searchable page — also fetchable as
+  [client-api.json](https://abap2ui5.github.io/docs/api/client-api.json)
 - [App interface](src/02/z2ui5_if_app.intf.abap): the one interface an app implements
 - [View builder](src/02/z2ui5_cl_ui5_view_builder.clas.abap): generic 1:1 UI5 XML builder
 - [Hello world](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap): smallest complete app
