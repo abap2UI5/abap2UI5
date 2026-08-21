@@ -169,7 +169,7 @@ INTERFACE z2ui5_if_ui5_types
       " seven separate response fields.
       s_nav          TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
-      " concern - z2ui5_cl_http_handler reads it off the response record to
+      " concern - z2ui5_cl_ui5_http_handler reads it off the response record to
       " call set_session_stateful, and no frontend module ever looked at it.
       s_stateful     TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next.

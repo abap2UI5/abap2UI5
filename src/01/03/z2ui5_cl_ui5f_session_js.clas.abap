@@ -133,10 +133,14 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  // The carrying request won - what IT carried is now known to the backend.` && |\n| &&
+             `  // Each latch advances only for the value THIS token actually carried: a` && |\n| &&
+             `  // token built by location( ) alone has no ``live``, and overwriting the live` && |\n| &&
+             `  // key with undefined would re-send the device block for no reason.` && |\n| &&
              `  function confirmSent(p) {` && |\n| &&
              `    if (!p) return;` && |\n| &&
              `    if (p.config) sessionConfigSent = true;` && |\n| &&
-             `    liveSent = p.live;` && |\n| &&
+             `    if (p.live !== undefined) liveSent = p.live;` && |\n| &&
+             `    if (p.location) locationSent = true;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // The page location (origin, pathname, query) is session-constant like` && |\n| &&
@@ -147,11 +151,19 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `  // can store it with the draft (z2ui5_cl_ui5_handler=>session_merge).` && |\n| &&
              `  // Event roundtrips omit it. The hash is NOT part of this: it carries the` && |\n| &&
              `  // live routing state and stays a per-request field (Server.roundtrip).` && |\n| &&
+             `  //` && |\n| &&
+             `  // The latch is confirm-gated like the ones above, and for the same reason:` && |\n| &&
+             `  // an app started FROM a draft id sends the location on a request that` && |\n| &&
+             `  // already carries that id, and if that request is aborted or superseded a` && |\n| &&
+             `  // build-time latch would leave the backend without an origin for good -` && |\n| &&
+             `  // every later event roundtrip omits it.` && |\n| &&
              `  let locationSent = false;` && |\n| &&
              `` && |\n| &&
              `  function location(draftId, search) {` && |\n| &&
              `    if (draftId && locationSent) return null;` && |\n| &&
-             `    locationSent = true;` && |\n| &&
+             `    // rides in the same per-request token as the session block, which` && |\n| &&
+             `    // config( ) has already built (or cleared) by the time we get here` && |\n| &&
+             `    pending = { ...pending, location: true };` && |\n| &&
              `    return {` && |\n| &&
              `      ORIGIN: window.location.origin,` && |\n| &&
              `      PATHNAME: window.location.pathname,` && |\n| &&

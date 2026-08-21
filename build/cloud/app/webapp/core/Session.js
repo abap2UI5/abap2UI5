@@ -106,10 +106,14 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   }
 
   // The carrying request won - what IT carried is now known to the backend.
+  // Each latch advances only for the value THIS token actually carried: a
+  // token built by location( ) alone has no `live`, and overwriting the live
+  // key with undefined would re-send the device block for no reason.
   function confirmSent(p) {
     if (!p) return;
     if (p.config) sessionConfigSent = true;
-    liveSent = p.live;
+    if (p.live !== undefined) liveSent = p.live;
+    if (p.location) locationSent = true;
   }
 
   // The page location (origin, pathname, query) is session-constant like
@@ -120,11 +124,19 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   // can store it with the draft (z2ui5_cl_ui5_handler=>session_merge).
   // Event roundtrips omit it. The hash is NOT part of this: it carries the
   // live routing state and stays a per-request field (Server.roundtrip).
+  //
+  // The latch is confirm-gated like the ones above, and for the same reason:
+  // an app started FROM a draft id sends the location on a request that
+  // already carries that id, and if that request is aborted or superseded a
+  // build-time latch would leave the backend without an origin for good -
+  // every later event roundtrip omits it.
   let locationSent = false;
 
   function location(draftId, search) {
     if (draftId && locationSent) return null;
-    locationSent = true;
+    // rides in the same per-request token as the session block, which
+    // config( ) has already built (or cleared) by the time we get here
+    pending = { ...pending, location: true };
     return {
       ORIGIN: window.location.origin,
       PATHNAME: window.location.pathname,

@@ -79,7 +79,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        // "../z2ui5_ccc/"), a sibling of THIS BSP. In the standalone HTTP` && |\n| &&
              `        // service there is no BSP for them to be a sibling of, so the backend` && |\n| &&
              `        // hands the absolute paths over on the global instead` && |\n| &&
-             `        // (z2ui5_cl_http_handler=>_http_get).` && |\n| &&
+             `        // (z2ui5_cl_ui5_http_handler=>_http_get).` && |\n| &&
              `        //` && |\n| &&
              `        // They have to be applied HERE and not in the page: the manifest` && |\n| &&
              `        // registers its own value while the component is being created, which` && |\n| &&

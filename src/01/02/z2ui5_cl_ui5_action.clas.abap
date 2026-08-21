@@ -114,7 +114,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       CATCH cx_root INTO DATA(x).
         " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
         " non-existent class). Just raise with a readable text - the single
-        " top-level catch in z2ui5_cl_http_handler=>_main( ) turns it into a
+        " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ) turns it into a
         " 500 whose body carries this message for the frontend to display.
         " app_start is client-controlled, so strip it down to class-name-safe
         " characters before reflecting it into the error text - a real typo

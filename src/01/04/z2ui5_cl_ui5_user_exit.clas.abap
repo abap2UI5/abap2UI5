@@ -64,8 +64,8 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   METHOD get_user_exit_class.
 
     TRY.
-        " the interface is Z2UI5_IF_EXIT - the class around it is the user exit,
-        " the interface is not. #2564 renamed z2ui5_cl_exit to
+        " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user
+        " exit, the interface is not. #2564 renamed z2ui5_cl_exit to
         " z2ui5_cl_ui5_user_exit and carried the rename into this literal, which
         " left the lookup asking for an interface that does not exist: no class
         " implements it, so every user exit in every system silently stopped

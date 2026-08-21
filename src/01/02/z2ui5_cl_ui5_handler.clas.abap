@@ -519,7 +519,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " The exception itself only says WHAT went wrong. Which app, which event
     " and which draft it went wrong in is known here and nowhere above, so
     " annotate it on the way out - the top-level catch in
-    " z2ui5_cl_http_handler=>_main renders the whole chain, this frame
+    " z2ui5_cl_ui5_http_handler=>_main renders the whole chain, this frame
     " included, into the 500 body.
     TRY.
         main_begin( ).
@@ -852,7 +852,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ENDIF.
 
     " exceptions from main( ) are intentionally not caught here - they bubble up
-    " to the single top-level catch in z2ui5_cl_http_handler=>_main( ), which
+    " to the single top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which
     " turns them into a 500 response carrying the exception text
     IF mo_action->ms_actual-event = z2ui5_if_ui5_types=>cs_event_nav_app_leave.
       " no popup/popover teardown is queued here: the standalone slots die on
