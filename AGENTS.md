@@ -383,6 +383,7 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 - No aliases, no STATICS, no BREAK-POINT, no DEFINE macros
 - `NEW #()` instead of `CREATE OBJECT`; `xsdbool()` for booleans (NEVER use `boolc()` — the downport pipeline converts `xsdbool` to `boolc` automatically); `line_exists()` instead of READ TABLE
 - Backtick string literals (`` ` ``) preferred over single quotes
+- An `abap_bool` is compared to `abap_true` / `abap_false` — never asked with `IS INITIAL` / `IS NOT INITIAL`, which is the question for a string. The app corpus goes one step further for the three `check_on_*( )` lifecycle methods and writes the predicative call itself (`IF client->check_on_init( ).`), a negative branch only as `= abap_false`; that rule and its reasons live in the `build-an-app` skill, and the apps under `node/srv` follow it like any other
 - `IS NOT` over `NOT ... IS`; `RETURNING` over `EXPORTING` for single outputs
 - No `EXPORT TO MEMORY`/`DATABASE`; no test seams; `lines()` instead of `DESCRIBE LINES`
 - No DB operations in loops; SQL uses `@` host variable escaping
