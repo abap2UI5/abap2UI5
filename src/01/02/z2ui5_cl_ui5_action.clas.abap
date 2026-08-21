@@ -238,7 +238,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     " routing is inherited by the app being navigated to, unless it already
     " chose a mode of its own - so enabling it once in the entry app is enough
-    " for the whole app stack (see z2ui5_cl_ui5_app=>mv_nav_mode)
+    " for the whole app stack (see z2ui5_cl_ui5_app_cont->mv_nav_mode)
     IF result->mo_app->mv_nav_mode IS INITIAL.
       result->mo_app->mv_nav_mode = mo_app->mv_nav_mode.
     ENDIF.

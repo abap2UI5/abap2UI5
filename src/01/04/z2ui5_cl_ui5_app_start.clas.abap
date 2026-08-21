@@ -747,11 +747,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD render_section.
 
     " The heading is indented and spaced the way the samples overview does it
-    " (z2ui5_cl_smp_app_000=>render_start): a Title in a bare Toolbar sits flush
-    " against the form edge, left of everything under it, which reads as if the
-    " heading belonged to the page rather than to its rows. sapUiSmallMarginBegin
-    " pulls it over the rows it introduces; the top/bottom pair is what sets one
-    " section apart from the one above without a separator line.
+    " (the group headings in z2ui5_cl_smp_app_000=>view_display): a Title in a
+    " bare Toolbar sits flush against the form edge, left of everything under
+    " it, which reads as if the heading belonged to the page rather than to its
+    " rows. sapUiSmallMarginBegin pulls it over the rows it introduces; the
+    " top/bottom pair is what sets one section apart from the one above
+    " without a separator line.
     form->ele( `Toolbar`
 
         )->tag( `Title`
