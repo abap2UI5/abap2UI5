@@ -2,9 +2,6 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ui5_exit.
-    " the superseded name, implemented as well so a reference of either type
-    " still holds the shipped exit; both methods delegate to the ones above
-    INTERFACES z2ui5_if_exit.
 
     CLASS-METHODS init_context
       IMPORTING
@@ -181,22 +178,6 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     IF cs_config-draft_exp_time_in_hours <= 0.
       cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_exit~set_config_http_get.
-
-    " the superseded interface on the shipped exit: one implementation, called
-    " under either name
-    z2ui5_if_ui5_exit~set_config_http_get( EXPORTING is_context = is_context
-                                           CHANGING  cs_config  = cs_config ).
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_exit~set_config_http_post.
-
-    z2ui5_if_ui5_exit~set_config_http_post( EXPORTING is_context = is_context
-                                            CHANGING  cs_config  = cs_config ).
 
   ENDMETHOD.
 
