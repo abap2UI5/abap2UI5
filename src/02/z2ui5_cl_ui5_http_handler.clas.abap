@@ -308,6 +308,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                        |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
                        |cccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_ccc" \};|.
 
+    " The tab title is a constant. It used to come from `cs_config-title`, and
+    " that field is still on the structure - it is simply no longer read. The
+    " tab title belongs to the running app, which sets it through
+    " cs_event-set_title at any point in its life; two mechanisms for one
+    " string meant the page and the app could disagree about what the tab says,
+    " and only one of them can react to what the app is actually showing. What
+    " is left here is the name the browser shows while UI5 boots, before any
+    " app can speak - and a page whose <title> is empty shows the URL.
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&
                   |<head>\n| &&
@@ -315,7 +323,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta charset="UTF-8">\n| &&
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
-                  |<title>{ ls_config-title }</title>\n| &&
+                  |<title>abap2UI5</title>\n| &&
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&
                   |        \}</style> \n| &&

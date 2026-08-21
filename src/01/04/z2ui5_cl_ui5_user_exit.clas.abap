@@ -75,7 +75,9 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~set_config_http_get.
 
-    cs_config-title = `abap2UI5`.
+    " No title here: the page carries a constant <title> (see
+    " z2ui5_cl_ui5_http_handler), and an app that wants its own tab title sets
+    " it while it runs, with cs_event-set_title.
     cs_config-theme = `sap_horizon`.
 
     cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.

@@ -56,6 +56,11 @@ INTERFACE z2ui5_if_types
       theme                   TYPE string,
       content_security_policy TYPE string,
       styles_css              TYPE string,
+      " NO LONGER READ: the generated page carries a constant
+      " <title>abap2UI5</title>, and the tab title is set by the running app
+      " with cs_event-set_title. The component stays because it is part of the
+      " public contract (rule 5) - an exit that still assigns it compiles and
+      " runs, the assignment just has no effect on the page
       title                   TYPE string,
       t_add_config            TYPE ty_t_name_value,
       custom_js               TYPE string,
