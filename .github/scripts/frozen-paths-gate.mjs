@@ -17,6 +17,12 @@
  *   never shipped  the object is absent from the latest release tag, so it
  *                has never reached an installation in the first place.
  *
+ * The same reasoning lets an object move the OTHER way, INTO the package: it
+ * shipped from another package before and ships from src/99 now, so no
+ * installation loses anything, and whatever the change did to it was done
+ * while it was not yet frozen. That is how an object retires - z2ui5_if_types
+ * went this way once the public API stopped naming its types.
+ *
  * Anything edited in place is refused either way.
  *
  * Used by `npm run check:frozen` and by the check_gates workflow, so
@@ -48,15 +54,20 @@ if (!base) {
 }
 const range = process.env.BASE_SHA ? [base, head] : [`${base}...${head}`];
 
-// Touched in place - added, modified or renamed within the package. Never
-// allowed. (-d, lowercase, excludes deletions.)
-const edited = git("diff", "--name-only", "--diff-filter=d", ...range, "--", "src/99", ...EXEMPT);
+// Touched - added, modified or renamed within the package. Refused unless the
+// file ARRIVED here (see below). (-d, lowercase, excludes deletions.)
+const touched = git("diff", "--name-only", "--diff-filter=d", ...range, "--", "src/99", ...EXEMPT);
 
 // Gone from src/99. Allowed only as a relocation or as a never-shipped object.
 const deleted = git("diff", "--name-only", "--diff-filter=D", ...range, "--", "src/99", ...EXEMPT);
 
 // One listing of the post-change tree; the object name IS the file name.
 const tree = git("ls-tree", "-r", "--name-only", head, "--", "src");
+
+// The tree as it was BEFORE the change, to tell an object that arrived in the
+// package from one that was edited inside it.
+const baseRef = process.env.BASE_SHA || git("merge-base", base, head)[0];
+const before = git("ls-tree", "-r", "--name-only", baseRef, "--", "src");
 
 // The latest release tag (plain x.y.z - the -702 downport tags carry the same
 // objects) and the tree it shipped. No tag reachable (a shallow clone without
@@ -68,6 +79,21 @@ const shipped = release ? git("ls-tree", "-r", "--name-only", release, "--", "sr
 
 const basename = (f) => f.slice(f.lastIndexOf("/") + 1);
 const has = (list, f) => list.some((p) => basename(p) === basename(f));
+const outside99 = (list, f) =>
+  list.find((p) => basename(p) === basename(f) && !p.startsWith("src/99/"));
+
+// An object that shipped from another package before and sits here now moved
+// IN. It was not frozen while it was changed, and it still ships - so nothing
+// downstream notices, which is the whole test this gate applies.
+const edited = [];
+for (const f of touched) {
+  const from = outside99(before, f);
+  if (from) {
+    console.log(`relocated into the package: ${from} -> ${f}`);
+  } else {
+    edited.push(f);
+  }
+}
 
 const dropped = [];
 for (const f of deleted) {

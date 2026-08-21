@@ -1,3 +1,17 @@
+"! <p class="shorttext synchronized">Superseded - kept so apps keep compiling</p>
+"!
+"! Every type here now lives on the object that uses it, and that is where new
+"! code should name it:
+"! <ul>
+"! <li>ty_s_get, ty_s_event_control, ty_s_name_value, ty_t_name_value,
+"! cs_device - z2ui5_if_client</li>
+"! <li>ty_s_http_context, ty_s_http_config, ty_s_http_config_post -
+"! z2ui5_if_exit</li>
+"! <li>ty_s_draft - z2ui5_cl_ui5_srv_draft</li>
+"! <li>ty_s_config - written out inside z2ui5_if_client=>ty_s_get-s_config</li>
+"! </ul>
+"! The definitions below are unchanged and keep shipping: an app that names
+"! them compiles and runs exactly as before.
 INTERFACE z2ui5_if_types
   PUBLIC.
 

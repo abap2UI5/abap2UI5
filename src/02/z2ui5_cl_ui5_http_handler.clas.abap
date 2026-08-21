@@ -3,25 +3,6 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     TYPES:
-      BEGIN OF ty_s_name_value,
-        n TYPE string,
-        v TYPE string,
-      END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-
-    TYPES:
-      BEGIN OF ty_s_http_config,
-        src                     TYPE string,
-        theme                   TYPE string,
-        content_security_policy TYPE string,
-        styles_css              TYPE string,
-        title                   TYPE string,
-        t_add_config            TYPE ty_t_name_value,
-        custom_js               TYPE string,
-        t_security_header       TYPE ty_t_name_value,
-      END OF ty_s_http_config.
-
-    TYPES:
       BEGIN OF ty_s_http_res,
         body          TYPE string,
         status_code   TYPE i,
@@ -37,7 +18,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         method   TYPE string,
         body     TYPE string,
         path     TYPE string,
-        t_params TYPE ty_t_name_value,
+        t_params TYPE z2ui5_if_client=>ty_t_name_value,
       END OF ty_s_http_req.
 
     CLASS-METHODS run
@@ -126,12 +107,12 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " and set_response (security headers) need it; without the cache the user
     " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
     " after init_context( ), so the exit always sees the current request context.
-    CLASS-DATA ss_config_http_get     TYPE ty_s_http_config.
+    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_exit=>ty_s_http_config.
     CLASS-DATA sv_config_http_get_set TYPE abap_bool.
 
     CLASS-METHODS config_http_get
       RETURNING
-        VALUE(result) TYPE ty_s_http_config.
+        VALUE(result) TYPE z2ui5_if_exit=>ty_s_http_config.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
@@ -162,7 +143,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " the one place the Layer 0 request type meets the public one - both are
     " structurally identical, and the public signature stays free of
-    " z2ui5_cl_ui5_util_http (see z2ui5_if_types=>ty_s_http_req)
+    " z2ui5_cl_ui5_util_http (see ty_s_http_req above)
     MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
 
     " initialize the exit context and reset the per-request GET-config cache
@@ -184,7 +165,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_ui5_user_exit=>
         " set_config_http_post), so a cross-origin POST is rejected unless an
         " app opts out via its own exit.
-        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+        DATA(ls_config_post) = VALUE z2ui5_if_exit=>ty_s_http_config_post( ).
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
@@ -514,7 +495,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " and the system/user context the full dump carries) is replaced by a
         " generic message instead of leaking to the client.
         " Default is abap_false -> the real reason is returned as before.
-        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+        DATA(ls_config_post) = VALUE z2ui5_if_exit=>ty_s_http_config_post( ).
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         " the body is the only diagnostic the developer gets - the browser

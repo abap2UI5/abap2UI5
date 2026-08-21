@@ -18,7 +18,7 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
   PROTECTED SECTION.
     CLASS-DATA gi_me        TYPE REF TO z2ui5_if_exit.
     CLASS-DATA gi_user_exit TYPE REF TO z2ui5_if_exit.
-    CLASS-DATA context      TYPE z2ui5_if_types=>ty_s_http_context.
+    CLASS-DATA context      TYPE z2ui5_if_exit=>ty_s_http_context.
 
   PRIVATE SECTION.
 ENDCLASS.

@@ -50,6 +50,20 @@ support case.
       `follow_up_action( |history.back()| )`, or `nav_app_leave( )` for
       navigation inside the app. Frontend handler deleted with it; the only
       caller, the experimental samples app 322, was removed in the same change
+- [x] `z2ui5_if_types` retired to `src/99` — every type it held now sits on the
+      object that uses it (`ty_s_get` / `ty_s_event_control` / `ty_s_name_value`
+      / `ty_t_name_value` / `cs_device` on `z2ui5_if_client`, the three HTTP
+      config types on `z2ui5_if_exit`, `ty_s_draft` on
+      `z2ui5_cl_ui5_srv_draft`, `ty_s_config` written out inside `ty_s_get`).
+      A rule-5 break on paper — 10 `REMOVED`, 4 `CHANGED`, snapshot 80 to 75 —
+      but nothing is deleted and nothing is reshaped: the interface ships
+      unchanged from the frozen package, so `z2ui5_if_types=>…` still compiles
+      downstream, and every moved type is identical field for field. Left to
+      do: `- BREAKING:` in `changelog.txt` at the next release cut, and the
+      9 places in `samples` (3 classes) and `samples-controls` (3 classes)
+      that still name the retired interface — they can only move once the new
+      homes ship in a release, since those repositories compile against the
+      released framework
 
 ---
 

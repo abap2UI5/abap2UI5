@@ -5,6 +5,16 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
 
     TYPES ty_s_db TYPE z2ui5_t_01.
 
+    TYPES:
+      "! The four draft ids an app carries between roundtrips - what create( )
+      "! is given and what read_info( ) hands back.
+      BEGIN OF ty_s_draft,
+        id                TYPE string,
+        id_prev           TYPE string,
+        id_prev_app       TYPE string,
+        id_prev_app_stack TYPE string,
+      END OF ty_s_draft.
+
     METHODS count_entries
       RETURNING
         VALUE(result) TYPE i.
@@ -15,7 +25,7 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
 
     METHODS create
       IMPORTING
-        draft     TYPE z2ui5_if_types=>ty_s_draft
+        draft     TYPE ty_s_draft
         model_xml TYPE clike.
 
     METHODS read_draft
@@ -28,7 +38,7 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
       IMPORTING
         id            TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_s_draft.
+        VALUE(result) TYPE ty_s_draft.
 
     METHODS check_exists
       IMPORTING
@@ -54,7 +64,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   METHOD cleanup.
 
-    DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+    DATA(ls_config) = VALUE z2ui5_if_exit=>ty_s_http_config_post( ).
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
     " z2ui5_cl_ui5_user_exit=>set_config_http_post already guarantees a positive
