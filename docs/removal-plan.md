@@ -59,11 +59,15 @@ support case.
       but nothing is deleted and nothing is reshaped: the interface ships
       unchanged from the frozen package, so `z2ui5_if_types=>…` still compiles
       downstream, and every moved type is identical field for field. Left to
-      do: `- BREAKING:` in `changelog.txt` at the next release cut, and the
-      9 places in `samples` (3 classes) and `samples-controls` (3 classes)
-      that still name the retired interface — they can only move once the new
-      homes ship in a release, since those repositories compile against the
-      released framework
+      do: `- BREAKING:` in `changelog.txt` at the next release cut. The
+      ecosystem is already off it: `samples` and `samples-controls` named it
+      in 6 classes and name it in none now — `cs_device` moved to
+      `z2ui5_if_client`, which the pinned release already carries, and the
+      three `ty_t_name_value` uses became a type the sample declares itself,
+      which needs no release at all. What still resolves into
+      `z2ui5_if_types` is `src/99` itself: `z2ui5_cl_xml_view` (and its test
+      class) and `z2ui5_cl_pop_get_range`, frozen code reaching for a frozen
+      interface, which is where both of them belong
 
 ---
 
