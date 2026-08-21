@@ -25,18 +25,18 @@ CLASS zcl_tst_focus IMPLEMENTATION.
     " asynchronously - the browser silently ignores focus() on a disabled
     " element, so the frontend has to re-apply the focus after the re-render
     " (see evSetFocus in app/webapp/core/FrontendAction.js).
-    IF client->check_on_init( ) IS NOT INITIAL.
+    IF client->check_on_init( ).
       enabled = abap_true.
       value   = `86801398`.
       view_display( ).
 
-    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
+    ELSEIF client->check_on_navigated( ).
       view_display( ).
 
-    ELSEIF client->check_on_event( `LOCK` ) IS NOT INITIAL.
+    ELSEIF client->check_on_event( `LOCK` ).
       enabled = abap_false.
 
-    ELSEIF client->check_on_event( `UNLOCK_AND_FOCUS` ) IS NOT INITIAL.
+    ELSEIF client->check_on_event( `UNLOCK_AND_FOCUS` ).
       enabled = abap_true.
       client->follow_up_action( val   = client->cs_event-set_focus
                                 t_arg = VALUE #( ( `inpDocNum` ) ( `0` ) ( `4` ) ) ).

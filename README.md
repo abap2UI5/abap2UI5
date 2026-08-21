@@ -64,29 +64,9 @@ METHOD z2ui5_if_app~main.
 ENDMETHOD.
 ```
 
-`check_on_navigated( )` is the display branch, and it covers the first start as
-well: the framework raises it for a fresh app instance just as it does when
-another app hands control back (`nav_app_leave`, a value help popup) or when a
-bookmarked state is restored. That is a documented part of the contract, not an
-accident – see the ABAP Doc on `check_on_navigated( )` in
-[`z2ui5_if_client`](src/02/z2ui5_if_client.intf.abap). An app that displays on
-`check_on_init( )` instead goes blank the first time something navigates into
-it, with no error anywhere.
+`check_on_navigated( )` is the display branch and covers the first start as well; `check_on_init( )` is the extra branch in front of it for work that must happen exactly once, like filling a model.
 
-`check_on_init( )` means "this app instance never ran", so it is the branch for
-work that must happen exactly once – filling a model, reading defaults. Apps
-with such setup add it in front:
-
-```abap
-  IF client->check_on_init( ).
-    model_init( ).
-    view_display( ).
-  ELSEIF client->check_on_navigated( ).
-    view_display( ).
-  ...
-```
-
-Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip to ABAP:
+Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip in which the framework restores your app's state, calls `main`, and sends the view back:
 
 ```mermaid
 sequenceDiagram
@@ -96,20 +76,18 @@ sequenceDiagram
     ABAP-->>Browser: HTML + UI5 shell (loaded once)
     loop every user interaction
         Browser->>ABAP: POST { event, model changes }
-        Note over ABAP: restore app state<br/>apply model changes<br/>call your app's main( )<br/>persist new state
         ABAP-->>Browser: { view XML, view model, actions }
-        Note over Browser: UI5 renders the view, binds the model,<br/>waits for the next event
     end
 ```
 
-Between roundtrips the framework does all the plumbing you would otherwise write yourself:
+Everything in between is plumbing you would otherwise write yourself:
 
-* **Data Binding** – `client->_bind( var )` connects an ABAP variable to a UI5 control; user input is written back into the variable before `main` runs, and changes travel as deltas
+* **Data Binding** – `client->_bind( var )` connects an ABAP variable to a UI5 control; user input is written back into the variable before `main` runs
 * **Events** – `client->_event( |SAVE| )` wires any UI5 event to a name you check in ABAP with `client->get_event( )`
 * **Rendering** – views are plain UI5 XML built in ABAP with the view builder `z2ui5_cl_ui5_view_builder`; every UI5 control, property, and aggregation is available 1:1
 * **State** – your app object is serialized to a draft table and restored on the next request, so attributes simply keep their values between interactions
 
-The same protocol also carries popups, navigation, messages, and frontend actions – you never touch JSON, HTTP, or JavaScript yourself.
+Popups, navigation, messages, and frontend actions travel the same protocol – you never touch JSON, HTTP, or JavaScript yourself. The architecture behind it is described in [UI5 Over-the-Wire](https://abap2ui5.github.io/docs/technical/concept.html).
 
 #### Learn abap2UI5
 
@@ -165,13 +143,13 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 
 #### AI Assistants
 
-Models write outdated abap2UI5 code unless you hand them the current sources.
-Paste this into ChatGPT, Claude, Copilot or any other assistant before you ask
-it for code:
+abap2UI5 is well suited to being written by an AI assistant, and the reason is structural: an app is **one ABAP class and nothing else** – no service to generate, no OData artifacts, no frontend project, no deployment pipeline. There is one file to write, view and logic are text in the same language, hundreds of working sample apps show how each pattern is done, and the result can be verified without an SAP system by the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html).
+
+Paste this into ChatGPT, Claude, Copilot or any other assistant before you ask it for code:
 
 ```
 Before writing any abap2UI5 code, fetch and follow these two files. They
-describe the current APIs and override anything you already know:
+describe the current APIs and take precedence over anything you already know:
 https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/docs/agents/building-apps.md
 https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/llms.txt
 Build views with z2ui5_cl_ui5_view_builder, one ABAP class per app, and stay
@@ -179,12 +157,7 @@ inside the templates and APIs those files describe. If something is not
 covered there, say so instead of inventing it.
 ```
 
-Agents working inside a clone pick this up on their own: [`AGENTS.md`](AGENTS.md)
-for the framework, [`docs/agents/building-apps.md`](docs/agents/building-apps.md)
-for apps, [`llms.txt`](llms.txt) as the map of the code, and the skills in
-[`.claude/skills/`](.claude/skills/). The full setup — offline files, linter
-gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot
-loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
+The full setup — offline files, linter gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
 #### Get Involved
 We welcome all contributions! Here's how you can help:
