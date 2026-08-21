@@ -20,8 +20,8 @@ CLASS zcl_tst_nav_detail IMPLEMENTATION.
     " check_on_navigated also fires when browser Forward / reload restores
     " this app from its KEEP-route draft - the view must be rendered again
     " there (the app contract; see docs life_cycle.md)
-    IF client->check_on_init( ) IS NOT INITIAL
-        OR client->check_on_navigated( ) IS NOT INITIAL.
+    IF client->check_on_init( )
+        OR client->check_on_navigated( ).
       view = z2ui5_cl_ui5_view_builder=>factory( ).
       page = view->ele( n = `View` ns = `mvc`
           )->a( n = `xmlns`        v = `sap.m`

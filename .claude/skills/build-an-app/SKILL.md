@@ -11,7 +11,7 @@ events, popups, navigation, portability rules, validation tooling). This
 skill is the trigger and the checklist; the guide is the content.
 
 **Before writing one from scratch, ask whether it exists.** `abap2UI5/samples`
-holds 150 working apps, each linted, rendered and downported to three
+holds 149 working apps, each linted, rendered and downported to three
 releases — a value help, a tree, navigation between two apps, a dynamic table
 typed at runtime. Reading one beats reproducing it, and beats any snippet: the
 sample is gated, a snippet is a copy somebody has to keep in step.
@@ -39,6 +39,17 @@ Quick orientation while it loads:
   anywhere. Apps built without it work perfectly until the day someone calls
   them from a navigation — the linter's `missing-view-display-on-navigated`
   covers the branch that exists but never displays.
+- **Ask the lifecycle with the call itself, never with `IS INITIAL`.** The
+  three `check_on_*( )` methods return `abap_bool`, so the branch is
+  `IF client->check_on_init( ).` — a predicative call, the way the sample corpus
+  and the documentation on `z2ui5_if_client` write it. Compounds keep the
+  shape (`IF client->check_on_init( ) OR client->check_on_navigated( ).`,
+  `` ELSEIF client->check_on_event( `LOCK` ). ``). `IS NOT INITIAL` asks a
+  boolean whether it is EMPTY, which is what that question means for a string,
+  and it is one more dialect an app author has to read. Only a NEGATIVE branch
+  is spelled out, as `= abap_false`: the corpus has no negated predicative
+  form. Every other `abap_bool` follows the same rule: `IF mv_flag = abap_false.`
+  and `DELETE lt_x WHERE flag = abap_false.`, never `IS INITIAL` on either.
 - PUBLIC attributes = serialized, browser-visible state. Bound data only;
   everything else PROTECTED.
 - Build views with `z2ui5_cl_ui5_view_builder`
