@@ -212,7 +212,9 @@ INTERFACE z2ui5_if_client
     END OF ty_s_event_control.
 
   CONSTANTS:
-    "! Hash-based app routing modes (see set_nav_routing). The mode decides how
+    "! Hash-based app routing modes, switched on with
+    "! follow_up_action( cs_event-set_nav_routing ) - the set_nav_routing( )
+    "! METHOD this used to name was removed in 1.143.0. The mode decides how
     "! much of the running app the URL hash carries, and therefore what the
     "! browser Back/Forward buttons (and a reload / bookmark) restore:
     "!  default - no routing: the hash is left untouched, exactly as before this

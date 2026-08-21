@@ -140,7 +140,8 @@ sap.ui.define([], () => {
       oSentModel: null,
       search: null,
 
-      // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).
+      // Hash-based app routing (UI5 Router style, opt-in per app via
+      // follow_up_action( cs_event-set_nav_routing )).
       // Owned by core/Router.js - see there for the route format and how the
       // hash is split between the FLP shell and the app.
       //  navRouting  once the running app enabled routing, the URL hash mirrors

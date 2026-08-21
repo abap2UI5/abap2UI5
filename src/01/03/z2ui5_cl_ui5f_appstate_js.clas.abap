@@ -167,7 +167,8 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      oSentModel: null,` && |\n| &&
              `      search: null,` && |\n| &&
              `` && |\n| &&
-             `      // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).` && |\n| &&
+             `      // Hash-based app routing (UI5 Router style, opt-in per app via` && |\n| &&
+             `      // follow_up_action( cs_event-set_nav_routing )).` && |\n| &&
              `      // Owned by core/Router.js - see there for the route format and how the` && |\n| &&
              `      // hash is split between the FLP shell and the app.` && |\n| &&
              `      //  navRouting  once the running app enabled routing, the URL hash mirrors` && |\n| &&
