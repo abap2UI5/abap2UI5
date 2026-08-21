@@ -7,15 +7,22 @@
     // It had to be parsed here for as long as src/01 and src/02 named
     // z2ui5_if_types - every consumer of that interface resolved through the
     // frozen package. The types now sit on the objects that use them
-    // (z2ui5_if_client, z2ui5_if_exit, z2ui5_cl_ui5_srv_draft) and the
+    // (z2ui5_if_client, z2ui5_if_ui5_exit, z2ui5_cl_ui5_srv_draft) and the
     // interface itself is retired INTO src/99, where only src/99 resolves into
-    // it. Nothing outside the package points in any more - keep it that way:
-    // one signature naming z2ui5_if_types again turns every consumer of it
-    // into an unresolvable type here
+    // it.
+    //
+    // ONE object in the frozen package is listed below on purpose:
+    // z2ui5_if_exit, the superseded name of z2ui5_if_ui5_exit. It is retired
+    // but not yet dead - z2ui5_cl_ui5_user_exit looks it up and calls it, so
+    // that no exit written against the old name breaks on the rename, and a
+    // src/01 class naming a type this parser cannot see is 37 unresolvable-type
+    // errors. Listing the one file keeps the rest of src/99 out, and the line
+    // goes when the interface does. Nothing else outside src/99 may point in.
     "files": [
       "/src/00/**/*.*",
       "/src/01/**/*.*",
       "/src/02/**/*.*",
+      "/src/99/z2ui5_if_exit.intf.*",
       "/src/*.*"
     ],
     "noIssues": [
