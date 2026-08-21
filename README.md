@@ -143,9 +143,9 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 
 #### AI Assistants
 
-abap2UI5 is unusually well suited to being written by an AI assistant, and the reason is structural: an app is **one ABAP class and nothing else** – no service to generate, no OData artifacts, no frontend project, no deployment pipeline. There is one file to write, view and logic are text in the same language, hundreds of working sample apps show how each pattern is done, and the result can be verified without an SAP system by the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html).
+abap2UI5 is well suited to being written by an AI assistant, and the reason is structural: an app is **one ABAP class and nothing else** – no service to generate, no OData artifacts, no frontend project, no deployment pipeline. There is one file to write, view and logic are text in the same language, hundreds of working sample apps show how each pattern is done, and the result can be verified without an SAP system by the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html).
 
-Hand any assistant the current sources and it writes today's APIs – paste this into ChatGPT, Claude, Copilot or any other assistant before you ask it for code:
+Paste this into ChatGPT, Claude, Copilot or any other assistant before you ask it for code:
 
 ```
 Before writing any abap2UI5 code, fetch and follow these two files. They
@@ -157,12 +157,7 @@ inside the templates and APIs those files describe. If something is not
 covered there, say so instead of inventing it.
 ```
 
-Agents working inside a clone pick this up on their own: [`AGENTS.md`](AGENTS.md)
-for the framework, [`docs/agents/building-apps.md`](docs/agents/building-apps.md)
-for apps, [`llms.txt`](llms.txt) as the map of the code, and the skills in
-[`.claude/skills/`](.claude/skills/). The full setup — offline files, linter
-gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot
-loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
+The full setup — offline files, linter gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
 #### Get Involved
 We welcome all contributions! Here's how you can help:
