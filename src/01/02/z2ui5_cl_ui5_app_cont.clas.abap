@@ -6,7 +6,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
 
     DATA mt_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
-    DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft.
+    DATA ms_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     " Hash routing mode of THIS app (z2ui5_if_client=>cs_nav_mode), set via
     " follow_up_action( cs_event-set_nav_routing ). It lives on the app - and therefore in its
     " draft - rather than on the session, so it is re-sent with every response

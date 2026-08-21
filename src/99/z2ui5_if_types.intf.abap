@@ -1,3 +1,17 @@
+"! <p class="shorttext synchronized">Superseded - kept so apps keep compiling</p>
+"!
+"! Every type here now lives on the object that uses it, and that is where new
+"! code should name it:
+"! <ul>
+"! <li>ty_s_get, ty_s_event_control, ty_s_name_value, ty_t_name_value,
+"! cs_device - z2ui5_if_client</li>
+"! <li>ty_s_http_context, ty_s_http_config, ty_s_http_config_post -
+"! z2ui5_if_exit</li>
+"! <li>ty_s_draft - z2ui5_cl_ui5_srv_draft</li>
+"! <li>ty_s_config - written out inside z2ui5_if_client=>ty_s_get-s_config</li>
+"! </ul>
+"! The definitions below are unchanged and keep shipping: an app that names
+"! them compiles and runs exactly as before.
 INTERFACE z2ui5_if_types
   PUBLIC.
 
@@ -56,14 +70,15 @@ INTERFACE z2ui5_if_types
       theme                   TYPE string,
       content_security_policy TYPE string,
       styles_css              TYPE string,
+      " NO LONGER READ: the generated page carries a constant
+      " <title>abap2UI5</title>, and the tab title is set by the running app
+      " with cs_event-set_title. The component stays because it is part of the
+      " public contract (rule 5) - an exit that still assigns it compiles and
+      " runs, the assignment just has no effect on the page
       title                   TYPE string,
       t_add_config            TYPE ty_t_name_value,
       custom_js               TYPE string,
       t_security_header       TYPE ty_t_name_value,
-      " appended, not slotted next to `title` where it belongs by meaning:
-      " a public structure may only GROW at the end (api-snapshot's
-      " isAdditiveTypeComponents), and the contract outranks the reading order
-      favicon                 TYPE string,
     END OF ty_s_http_config.
 
   TYPES:

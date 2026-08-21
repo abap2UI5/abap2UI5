@@ -71,7 +71,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_req.
 
-    " CSRF defense (on by default; an app can opt out via z2ui5_if_exit~
+    " CSRF defense (on by default; an app can opt out via z2ui5_if_ui5_exit~
     " set_config_http_post -> check_csrf_active = abap_false). Pure and
     " side-effect free so it is unit-testable
     " without a server mock: the caller reads the header values off the
@@ -107,12 +107,12 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " and set_response (security headers) need it; without the cache the user
     " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
     " after init_context( ), so the exit always sees the current request context.
-    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_types=>ty_s_http_config.
+    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     CLASS-DATA sv_config_http_get_set TYPE abap_bool.
 
     CLASS-METHODS config_http_get
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_s_http_config.
+        VALUE(result) TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
@@ -143,7 +143,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " the one place the Layer 0 request type meets the public one - both are
     " structurally identical, and the public signature stays free of
-    " z2ui5_cl_ui5_util_http (see z2ui5_if_types=>ty_s_http_req)
+    " z2ui5_cl_ui5_util_http (see ty_s_http_req above)
     MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
 
     " initialize the exit context and reset the per-request GET-config cache
@@ -165,7 +165,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_ui5_user_exit=>
         " set_config_http_post), so a cross-origin POST is rejected unless an
         " app opts out via its own exit.
-        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+        DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
@@ -304,18 +304,18 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " BSP and Launchpad mode the fields are absent and the manifest entries
     " stand. Registering a path costs nothing when the BSP is not installed -
     " nothing is requested from it until a view names the namespace.
-    " The tab icon, next to the tab title the exit set two lines above it. An
-    " exit that clears the field gets no <link> at all rather than one
-    " pointing nowhere - a browser then falls back to /favicon.ico on the
-    " host, which is what a page without the tag has always done here.
-    DATA(lv_favicon) = COND string(
-        WHEN ls_config-favicon IS INITIAL THEN ``
-        ELSE |    <link rel="icon" href="{ ls_config-favicon }">\n| ).
-
     DATA(lv_globals) = |window.z2ui5 = \{ checkLocal : true, | &&
                        |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
                        |cccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_ccc" \};|.
 
+    " The tab title is a constant. It used to come from `cs_config-title`, and
+    " that field is still on the structure - it is simply no longer read. The
+    " tab title belongs to the running app, which sets it through
+    " cs_event-set_title at any point in its life; two mechanisms for one
+    " string meant the page and the app could disagree about what the tab says,
+    " and only one of them can react to what the app is actually showing. What
+    " is left here is the name the browser shows while UI5 boots, before any
+    " app can speak - and a page whose <title> is empty shows the URL.
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&
                   |<head>\n| &&
@@ -323,8 +323,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta charset="UTF-8">\n| &&
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
-                  |<title>{ ls_config-title }</title>\n| &&
-                  lv_favicon &&
+                  |<title>abap2UI5</title>\n| &&
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&
                   |        \}</style> \n| &&
@@ -496,7 +495,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " and the system/user context the full dump carries) is replaced by a
         " generic message instead of leaking to the client.
         " Default is abap_false -> the real reason is returned as before.
-        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+        DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         " the body is the only diagnostic the developer gets - the browser

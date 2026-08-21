@@ -5,7 +5,7 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_http_get_status   FOR TESTING RAISING cx_static_check.
     METHODS test_http_get_html     FOR TESTING RAISING cx_static_check.
     METHODS test_http_get_ui5_boot FOR TESTING RAISING cx_static_check.
-    METHODS test_http_get_favicon  FOR TESTING RAISING cx_static_check.
+    METHODS test_http_get_title    FOR TESTING RAISING cx_static_check.
     METHODS test_http_post_ok      FOR TESTING RAISING cx_static_check.
     METHODS test_http_post_error   FOR TESTING RAISING cx_static_check.
     METHODS test_main_post_no_app  FOR TESTING RAISING cx_static_check.
@@ -77,24 +77,21 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_http_get_favicon.
+  METHOD test_http_get_title.
 
-    " The tab icon is config, like the title: the exit sets a URI and the page
-    " carries it as <link rel="icon">. Asserted as the two halves of that
-    " contract - the tag is there, and it holds the default the shipped exit
-    " sets (an SVG data URI, so no static resource has to exist for it).
+    " The tab title is constant: `cs_config-title` is not read any more, and an
+    " app that wants its own title sets it while it runs, with
+    " cs_event-set_title. Pinned as the literal tag, because a <title> holding
+    " whatever the exit happened to assign is exactly what changed here - and
+    " an empty one would leave the URL in the tab during the UI5 boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp7 TYPE xsdboolean.
-    DATA temp8 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    temp7 = xsdbool( ls_result-body CS `<link rel="icon" href="` ).
+    temp7 = xsdbool( ls_result-body CS `<title>abap2UI5</title>` ).
     cl_abap_unit_assert=>assert_true( temp7 ).
-
-    temp8 = xsdbool( ls_result-body CS `data:image/svg+xml,<svg` ).
-    cl_abap_unit_assert=>assert_true( temp8 ).
 
   ENDMETHOD.
 

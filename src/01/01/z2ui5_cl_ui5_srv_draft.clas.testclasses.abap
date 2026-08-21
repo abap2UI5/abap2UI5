@@ -21,7 +21,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_create.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp1 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp1 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
 
@@ -42,7 +42,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_create_and_read.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp2 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp2 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
 
@@ -68,8 +68,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_read_info.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp3 TYPE z2ui5_if_types=>ty_s_draft.
-    DATA ls_info TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp3 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    DATA ls_info TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     lo_draft = NEW #( ).
 
 
@@ -94,7 +94,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " there is NO read buffer: a second read after an overwrite must see the
     " new row, not a stale copy of the first - the property callers rely on
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp4 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp4 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
@@ -117,8 +117,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_overwrite.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp5 TYPE z2ui5_if_types=>ty_s_draft.
-    DATA temp6 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA temp5 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    DATA temp6 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
 

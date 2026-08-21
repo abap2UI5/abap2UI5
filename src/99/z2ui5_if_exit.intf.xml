@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOINTERF>
-    <CLSNAME>Z2UI5_IF_TYPES</CLSNAME>
+    <CLSNAME>Z2UI5_IF_EXIT</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - types</DESCRIPT>
+    <DESCRIPT>Superseded by z2ui5_if_ui5_exit</DESCRIPT>
     <EXPOSURE>2</EXPOSURE>
     <STATE>1</STATE>
     <UNICODE>X</UNICODE>

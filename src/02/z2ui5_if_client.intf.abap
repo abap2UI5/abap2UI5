@@ -28,13 +28,6 @@ INTERFACE z2ui5_if_client
       END OF orientation,
     END OF cs_device.
 
-  TYPES:
-    BEGIN OF ty_s_name_value,
-      n TYPE string,
-      v TYPE string,
-    END OF ty_s_name_value.
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-
   CONSTANTS:
     BEGIN OF cs_event,
 
@@ -100,6 +93,123 @@ INTERFACE z2ui5_if_client
       popup   TYPE string VALUE `POPUP`,
       popover TYPE string VALUE `POPOVER`,
     END OF cs_view.
+
+  TYPES:
+    BEGIN OF ty_s_name_value,
+      n TYPE string,
+      v TYPE string,
+    END OF ty_s_name_value.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
+  TYPES:
+    "! Everything the frontend sent with this roundtrip - the return type of
+    "! get( ). s_draft and s_config are written out here rather than named
+    "! separately, the way s_device, s_focus, s_scroll and s_ui5 already are:
+    "! nothing outside this structure has ever used them as a type.
+    BEGIN OF ty_s_get,
+      event                  TYPE string,
+      t_event_arg            TYPE string_table,
+      check_launchpad_active TYPE abap_bool,
+      check_on_navigated     TYPE abap_bool,
+      BEGIN OF s_draft,
+        id                TYPE string,
+        id_prev           TYPE string,
+        id_prev_app       TYPE string,
+        id_prev_app_stack TYPE string,
+      END OF s_draft,
+      BEGIN OF s_config,
+        origin   TYPE string,
+        pathname TYPE string,
+        search   TYPE string,
+        hash     TYPE string,
+      END OF s_config,
+      t_comp_params          TYPE ty_t_name_value,
+      r_event_data           TYPE REF TO data,
+      BEGIN OF s_device,
+        system      TYPE string,
+        orientation TYPE string,
+        BEGIN OF browser,
+          name    TYPE string,
+          version TYPE string,
+        END OF browser,
+        BEGIN OF os,
+          name    TYPE string,
+          version TYPE string,
+        END OF os,
+        BEGIN OF resize,
+          width  TYPE i,
+          height TYPE i,
+        END OF resize,
+        BEGIN OF support,
+          touch   TYPE abap_bool,
+          pointer TYPE abap_bool,
+          retina  TYPE abap_bool,
+        END OF support,
+      END OF s_device,
+      BEGIN OF s_focus,
+        id              TYPE string,
+        selection_start TYPE i,
+        selection_end   TYPE i,
+      END OF s_focus,
+      BEGIN OF s_scroll,
+        BEGIN OF main,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF main,
+        BEGIN OF nest,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF nest,
+        BEGIN OF nest2,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF nest2,
+        BEGIN OF popup,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF popup,
+        BEGIN OF popover,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF popover,
+      END OF s_scroll,
+      BEGIN OF s_ui5,
+        version         TYPE string,
+        build_timestamp TYPE string,
+        gav             TYPE string,
+        theme           TYPE string,
+      END OF s_ui5,
+      BEGIN OF _s_nav,
+        check_leave TYPE abap_bool,
+        check_call  TYPE abap_bool,
+      END OF _s_nav,
+    END OF ty_s_get.
+
+  TYPES:
+    "! The per-wire options of _event( ) - see the documentation on the method
+    "! for what each one decides.
+    BEGIN OF ty_s_event_control,
+      check_allow_multi_req TYPE abap_bool,
+      " cancel the control's built-in default for this event before the
+      " roundtrip (oEvent.preventDefault(), e.g. sap.tnt NavigationListItem
+      " press without the automatic item selection); the event itself is
+      " still sent, so the backend decides what happens instead
+      check_prevent_default TYPE abap_bool,
+      " the same veto, but decided PER FIRING instead of per wire: a client
+      " expression that is evaluated when the event fires and cancels the
+      " default only when it is truthy, e.g.
+      "   `${$parameters>/column}.getId() CS 'COL_DATE'` in UI5 terms:
+      "   `${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`
+      " so ONE wire can protect one row/column and let the rest through.
+      " Wins over check_prevent_default when both are set; the event is sent
+      " in either case, exactly as with the flag
+      prevent_default_expr  TYPE string,
+    END OF ty_s_event_control.
 
   CONSTANTS:
     "! Hash-based app routing modes (see set_nav_routing). The mode decides how
@@ -198,7 +308,7 @@ INTERFACE z2ui5_if_client
 
   METHODS get
     RETURNING
-      VALUE(result) TYPE z2ui5_if_types=>ty_s_get.
+      VALUE(result) TYPE ty_s_get.
 
   "! The name of the event that triggered this roundtrip - empty when no
   "! event is being handled (e.g. on the initial call). Shortcut for
@@ -289,7 +399,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE clike                              OPTIONAL
       t_arg         TYPE string_table                       OPTIONAL
-      s_ctrl        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
+      s_ctrl        TYPE ty_s_event_control                  OPTIONAL
         PREFERRED PARAMETER val
     RETURNING
       VALUE(result) TYPE string.

@@ -5,7 +5,7 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
       IMPORTING
         val           TYPE clike                              OPTIONAL
         t_arg         TYPE string_table                       OPTIONAL
-        s_cnt         TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
+        s_cnt         TYPE z2ui5_if_client=>ty_s_event_control OPTIONAL
           PREFERRED PARAMETER val
       RETURNING
         VALUE(result) TYPE string.

@@ -87,15 +87,15 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
   PROTECTED SECTION.
     TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH EMPTY KEY.
     TYPES:
-      BEGIN OF ty_s_pair,
+      BEGIN OF ty_s_name_value,
         n TYPE string,
         v TYPE string,
-      END OF ty_s_pair.
-    TYPES ty_t_pair TYPE STANDARD TABLE OF ty_s_pair WITH EMPTY KEY.
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
     DATA name    TYPE string.
     DATA prefix  TYPE string.
-    DATA t_pair  TYPE ty_t_pair.
+    DATA t_pair  TYPE ty_t_name_value.
     DATA t_child TYPE ty_t_node.
     DATA parent  TYPE REF TO z2ui5_cl_ui5_view_builder.
     DATA root    TYPE REF TO z2ui5_cl_ui5_view_builder.

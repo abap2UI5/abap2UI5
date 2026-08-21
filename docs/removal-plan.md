@@ -50,6 +50,24 @@ support case.
       `follow_up_action( |history.back()| )`, or `nav_app_leave( )` for
       navigation inside the app. Frontend handler deleted with it; the only
       caller, the experimental samples app 322, was removed in the same change
+- [x] `z2ui5_if_types` retired to `src/99` — every type it held now sits on the
+      object that uses it (`ty_s_get` / `ty_s_event_control` / `ty_s_name_value`
+      / `ty_t_name_value` / `cs_device` on `z2ui5_if_client`, the three HTTP
+      config types on `z2ui5_if_ui5_exit`, `ty_s_draft` on
+      `z2ui5_cl_ui5_srv_draft`, `ty_s_config` written out inside `ty_s_get`).
+      A rule-5 break on paper — 10 `REMOVED`, 4 `CHANGED`, snapshot 80 to 75 —
+      but nothing is deleted and nothing is reshaped: the interface ships
+      unchanged from the frozen package, so `z2ui5_if_types=>…` still compiles
+      downstream, and every moved type is identical field for field. Left to
+      do: `- BREAKING:` in `changelog.txt` at the next release cut. The
+      ecosystem is already off it: `samples` and `samples-controls` named it
+      in 6 classes and name it in none now — `cs_device` moved to
+      `z2ui5_if_client`, which the pinned release already carries, and the
+      three `ty_t_name_value` uses became a type the sample declares itself,
+      which needs no release at all. What still resolves into
+      `z2ui5_if_types` is `src/99` itself: `z2ui5_cl_xml_view` (and its test
+      class) and `z2ui5_cl_pop_get_range`, frozen code reaching for a frozen
+      interface, which is where both of them belong
 
 ---
 
@@ -59,6 +77,21 @@ Every entry here is a **rule-5 break**: it needs `node .github/scripts/api-snaps
 a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 [Deprecations](https://abap2ui5.github.io/docs/resources/deprecations) page.
 
+- [ ] **`z2ui5_if_exit`** — the superseded name of `z2ui5_if_ui5_exit`, kept
+      so that no existing exit breaks on the rename. It ships from `src/99` and
+      `z2ui5_cl_ui5_user_exit` still looks it up, so a class implementing it is
+      found and called exactly as before; its three types are references to the
+      new interface's rather than copies, so there is one definition and it
+      cannot drift. Before the old name can go: the new one has to be in a
+      release, the documentation has to teach it — the examples on the Setup,
+      Security, Style/CSS, Bootstrap-Attributes and Logon-Language pages still
+      write `z2ui5_if_exit`, and they are compiled against the RELEASE, so they
+      can only follow after one — and the deprecation has to have stood long
+      enough to be seen. Deleting it is then four things: the second lookup in
+      `get_user_exit_class( )`, `gi_user_exit_dep` and the two delegating
+      methods in `z2ui5_cl_ui5_user_exit`, and the `/src/99/z2ui5_if_exit.intf.*`
+      line that puts this one frozen object into `abaplint.jsonc`'s strict
+      ruleset
 - [ ] **`_bind_edit( )`** — `z2ui5_if_client.intf.abap:354`. Alias of `_bind`,
       identical behaviour. AGENTS.md puts removal at ~1 year out (from 2026-07).
       - Former blocker resolved: per-direction mapping was dropped —

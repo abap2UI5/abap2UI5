@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOINTERF>
-    <CLSNAME>Z2UI5_IF_EXIT</CLSNAME>
+    <CLSNAME>Z2UI5_IF_TYPES</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - user exit</DESCRIPT>
+    <DESCRIPT>Superseded - kept so apps keep compiling</DESCRIPT>
     <EXPOSURE>2</EXPOSURE>
     <STATE>1</STATE>
     <UNICODE>X</UNICODE>
