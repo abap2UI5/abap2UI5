@@ -60,10 +60,6 @@ INTERFACE z2ui5_if_types
       t_add_config            TYPE ty_t_name_value,
       custom_js               TYPE string,
       t_security_header       TYPE ty_t_name_value,
-      " appended, not slotted next to `title` where it belongs by meaning:
-      " a public structure may only GROW at the end (api-snapshot's
-      " isAdditiveTypeComponents), and the contract outranks the reading order
-      favicon                 TYPE string,
     END OF ty_s_http_config.
 
   TYPES:
