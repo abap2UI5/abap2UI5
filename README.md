@@ -159,6 +159,8 @@ inside the templates and APIs those files describe. If something is not
 covered there, say so instead of inventing it.
 ```
 
+Claude Code users can register the [mcp-server](https://github.com/abap2UI5/mcp-server) — the validate/deploy/screenshot loop, no SAP system needed — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`.
+
 The full setup — offline files, linter gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
 #### Get Involved
