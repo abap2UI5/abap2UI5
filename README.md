@@ -17,7 +17,7 @@
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
   <a href="https://abap2ui5.github.io/web-abap2UI5-build/">Live Demo</a> •
-  <a href="#samples">Samples</a> •
+  <a href="https://github.com/abap2UI5/samples">Samples</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">LinkedIn</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
@@ -53,19 +53,7 @@ That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
 No SAP system at hand? Try the [live demos](https://abap2ui5.github.io/web-abap2UI5-build/) right in your browser – the ABAP backend runs there too, transpiled to JavaScript.
 
-This snippet is deliberately the smallest possible app – one interface, one method, one message box. The next rung ships with the framework: [`z2ui5_cl_ui5_app_hi_world`](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap), the hello-world sample that adds a real view, a bound input, and an event roundtrip. When you start an app of your own, begin from the [canonical app template](docs/agents/building-apps.md) in the agent guide – it adds the full lifecycle dispatcher and the structure every sample repository follows.
-
-## Samples
-
-Three sample repositories accompany the framework. They build on each other – from the first app to full-stack integration:
-
-| Repository | Content |
-|------------|---------|
-| [samples](https://github.com/abap2UI5/samples) | Fundamentals – data binding, events, popups, navigation, and complete example apps |
-| [samples-controls](https://github.com/abap2UI5/samples-controls) | The full UI5 control set – the UI5 Demo Kit rebuilt with abap2UI5 |
-| [samples-stack](https://github.com/abap2UI5/samples-stack) | Integration scenarios – OData, RAP, WebSockets, and the Fiori Launchpad |
-
-All samples are ready to run – install them with abapGit and explore the source code.
+From here, learn by example: the [samples](https://github.com/abap2UI5/samples) cover everything from data binding, events, and popups to the full UI5 control set and OData, RAP, and Launchpad integration – all ready to install with abapGit. When you start an app of your own, begin from the [app template](docs/agents/building-apps.md).
 
 ## How It Works
 
@@ -80,8 +68,6 @@ METHOD z2ui5_if_app~main.
   ENDIF.
 ENDMETHOD.
 ```
-
-`check_on_navigated( )` is the display branch and covers the first start as well; `check_on_init( )` is the extra branch in front of it for work that must happen exactly once, like filling a model.
 
 Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip in which the framework restores your app's state, calls `main`, and sends the view back:
 
