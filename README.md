@@ -32,7 +32,7 @@
 
 ## Quick Start
 
-Ready to build your first app? Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html) and jump in with the following code:
+Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html) and jump in:
 
 ```abap
 CLASS zcl_my_app DEFINITION PUBLIC.
@@ -49,39 +49,39 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
-From here, learn by example: the [samples](https://abap2ui5.github.io/samples/) cover everything from data binding, events, and popups to the full UI5 control set and OData, RAP, and Launchpad integration – all ready to install with abapGit. Or check out the [docs](https://abap2ui5.github.io/docs/) and find all the information you need.
+Next stop: the [samples](https://abap2ui5.github.io/samples/) – hundreds of ready-to-run apps, from data binding basics to OData, RAP, and Launchpad integration – and the [docs](https://abap2ui5.github.io/docs/) for everything else.
 
 ## How It Works
 
-As you see above, your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did. Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip in which the framework restores your app's state, calls `main`, and sends the view back:
+Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The browser loads a generic UI5 shell once; after that, every user interaction is one HTTP/JSON roundtrip: the framework restores your app's state, calls `main`, and sends the view back:
 
 ```mermaid
 %%{init: {"sequence": {"useMaxWidth": false}}}%%
 sequenceDiagram
-    participant Browser as Browser (UI5)
-    participant ABAP as Backend (ABAP)
-    Browser->>ABAP: HTTP GET
-    ABAP-->>Browser: HTML + UI5 shell (loaded once)
-    loop every user interaction
-        Browser->>ABAP: POST { event, model changes }
-        ABAP-->>Browser: { view XML, view model, actions }
+    participant Browser
+    participant ABAP
+    Browser->>ABAP: GET
+    ABAP-->>Browser: UI5 shell (once)
+    loop each interaction
+        Browser->>ABAP: event + model
+        ABAP-->>Browser: view + model
     end
 ```
 
-Everything in between is plumbing you would otherwise write yourself:
+Everything in between is handled for you:
 
-* **Data Binding** – `client->_bind( var )` connects an ABAP variable to a UI5 control; user input is written back into the variable before `main` runs
-* **Events** – `client->_event( |SAVE| )` wires any UI5 event to a name you check in ABAP with `client->get_event( )`
-* **Rendering** – views are plain UI5 XML built in ABAP with the view builder `z2ui5_cl_ui5_view_builder`; every UI5 control, property, and aggregation is available 1:1
-* **State** – your app object is serialized to a draft table and restored on the next request, so attributes simply keep their values between interactions
+* **Data Binding** – `client->_bind( var )` connects an ABAP variable to a UI5 control; user input flows back before `main` runs
+* **Events** – `client->_event( |SAVE| )` wires any UI5 event to a name you check with `client->get_event( )`
+* **Rendering** – views are plain UI5 XML built in ABAP with `z2ui5_cl_ui5_view_builder`; every control, property, and aggregation is available 1:1
+* **State** – your app object is serialized and restored on every request, so attributes simply keep their values
 
-Popups, navigation, messages, and frontend actions travel the same protocol – you never touch JSON, HTTP, or JavaScript yourself. The architecture behind it is described in [UI5 Over-the-Wire](https://abap2ui5.github.io/docs/technical/concept.html).
+Popups, navigation, messages, and frontend actions travel the same protocol – you never touch JSON, HTTP, or JavaScript. The architecture is described in [UI5 Over-the-Wire](https://abap2ui5.github.io/docs/technical/concept.html).
 
 ## AI Assistants
 
-abap2UI5 is well suited to being written by an AI assistant, and the reason is structural: an app is **one ABAP class and nothing else** – no service to generate, no OData artifacts, no frontend project, no deployment pipeline. There is one file to write, view and logic are text in the same language, hundreds of working sample apps show how each pattern is done, and the result can be verified without an SAP system by the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html).
+abap2UI5 apps are a perfect fit for AI assistants: **one ABAP class and nothing else** – no service, no frontend project, no deployment pipeline. One file to write, hundreds of samples to learn from, and the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html) to verify the result without an SAP system.
 
-Paste this into ChatGPT, Claude, Copilot or any other assistant before you ask it for code:
+Paste this into ChatGPT, Claude, Copilot or any other assistant before asking for code:
 
 ```
 Before writing any abap2UI5 code, fetch and follow these two files. They
@@ -93,9 +93,7 @@ inside the templates and APIs those files describe. If something is not
 covered there, say so instead of inventing it.
 ```
 
-Claude Code users can register the [mcp-server](https://github.com/abap2UI5/mcp-server) — the validate/deploy/screenshot loop, no SAP system needed — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`.
-
-The full setup — offline files, linter gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
+Claude Code users can add the [mcp-server](https://github.com/abap2UI5/mcp-server) — validate, deploy, and screenshot apps without an SAP system — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`. The full setup is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
 ## References
 * Field Service Management Mobile Logging using abap2UI5 [(Decabase Blog - 22.08.2026)](https://blog.decabase.com/field-service-management-mobile-logging-using-abap2ui5-2c18e4ed455d)
