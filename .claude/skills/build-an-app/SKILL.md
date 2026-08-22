@@ -20,7 +20,7 @@ sample is gated, a snippet is a copy somebody has to keep in step.
   tool queries that catalogue (`examples { query: "value help f4" }`) and
   hands back the class to read. Its neighbour `capabilities` answers the other
   question — whether a UI5 *control* can be expressed at all — out of
-  samples-controls' 416 ports.
+  samples-controls' 622 ports.
 - Without it: [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)
   is the same catalogue as a page.
 
