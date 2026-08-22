@@ -51,7 +51,7 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
-From here, learn by example: the [samples](https://abap2ui5.github.io/samples/) cover everything from data binding, events, and popups to the full UI5 control set and OData, RAP, and Launchpad integration – all ready to install with abapGit.
+From here, learn by example: the [samples](https://abap2ui5.github.io/samples/) cover everything from data binding, events, and popups to the full UI5 control set and OData, RAP, and Launchpad integration – all ready to install with abapGit. Or check out the [docs](https://abap2ui5.github.io/docs/) and find all information you need.
 
 ## How It Works
 
