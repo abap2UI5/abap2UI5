@@ -85,13 +85,13 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH EMPTY KEY.
+    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH DEFAULT KEY.
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
         v TYPE string,
       END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH DEFAULT KEY.
 
     DATA name    TYPE string.
     DATA prefix  TYPE string.
@@ -118,7 +118,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = result.
 
   ENDMETHOD.
@@ -126,7 +126,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD ele.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = root.
     result->parent = me.
     result->name = n.
@@ -147,6 +147,15 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
 
   METHOD a.
+    DATA val LIKE v.
+      DATA temp1 TYPE string.
+      DATA temp2 LIKE sy-subrc.
+      DATA temp3 TYPE z2ui5_cl_ui5_view_builder=>ty_s_name_value.
+      DATA target LIKE LINE OF t_child.
+      DATA temp6 LIKE LINE OF t_child.
+      DATA temp7 LIKE sy-tabix.
+      DATA temp4 LIKE sy-subrc.
+      DATA temp5 TYPE z2ui5_cl_ui5_view_builder=>ty_s_name_value.
 
     " one rule: the attribute lands on the element the chain is pointing at -
     " the child just added by ele( )/tag( ), or this node itself while it has
@@ -157,21 +166,49 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     ASSERT name IS NOT INITIAL OR t_child IS NOT INITIAL.
     " b and v are mutually exclusive - b is checked with IS SUPPLIED because
     " abap_false and "not passed" are the same character
-    DATA(val) = v.
+
+    val = v.
     IF b IS SUPPLIED.
       ASSERT v IS INITIAL.
-      val = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
+
+      IF b = abap_true.
+        temp1 = `true`.
+      ELSE.
+        temp1 = `false`.
+      ENDIF.
+      val = temp1.
     ENDIF.
 
     IF t_child IS INITIAL.
-      ASSERT NOT line_exists( t_pair[ n = n ] ).
-      APPEND VALUE #( n = n
-                      v = val ) TO t_pair.
+
+      READ TABLE t_pair WITH KEY n = n TRANSPORTING NO FIELDS.
+      temp2 = sy-subrc.
+      ASSERT NOT temp2 = 0.
+
+      CLEAR temp3.
+      temp3-n = n.
+      temp3-v = val.
+      APPEND temp3 TO t_pair.
     ELSE.
-      DATA(target) = t_child[ lines( t_child ) ].
-      ASSERT NOT line_exists( target->t_pair[ n = n ] ).
-      APPEND VALUE #( n = n
-                      v = val ) TO target->t_pair.
+
+
+
+      temp7 = sy-tabix.
+      READ TABLE t_child INDEX lines( t_child ) INTO temp6.
+      sy-tabix = temp7.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      target = temp6.
+
+      READ TABLE target->t_pair WITH KEY n = n TRANSPORTING NO FIELDS.
+      temp4 = sy-subrc.
+      ASSERT NOT temp4 = 0.
+
+      CLEAR temp5.
+      temp5-n = n.
+      temp5-v = val.
+      APPEND temp5 TO target->t_pair.
     ENDIF.
     result = me.
 
@@ -194,10 +231,17 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " template accumulator would re-copy everything rendered so far on every
     " sibling, which grows quadratic on wide views
     DATA lt_inner TYPE string_table.
-    LOOP AT t_child INTO DATA(child).
+    DATA child LIKE LINE OF t_child.
+    DATA inner TYPE string.
+    DATA temp6 TYPE string.
+    DATA qname LIKE temp6.
+    DATA attrs TYPE string.
+    DATA pair LIKE LINE OF t_pair.
+    LOOP AT t_child INTO child.
       INSERT child->render( ) INTO TABLE lt_inner.
     ENDLOOP.
-    DATA(inner) = concat_lines_of( lt_inner ).
+
+    inner = concat_lines_of( lt_inner ).
 
     " empty builder root - render only the children
     IF name IS INITIAL.
@@ -205,9 +249,18 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
-    DATA(attrs) = ``.
-    LOOP AT t_pair INTO DATA(pair).
+
+    IF prefix IS INITIAL.
+      temp6 = name.
+    ELSE.
+      temp6 = |{ prefix }:{ name }|.
+    ENDIF.
+
+    qname = temp6.
+
+    attrs = ``.
+
+    LOOP AT t_pair INTO pair.
       attrs = |{ attrs } { pair-n }="{ xml_escape( pair-v ) }"|.
     ENDLOOP.
 

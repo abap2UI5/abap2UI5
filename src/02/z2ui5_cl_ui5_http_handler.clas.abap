@@ -140,6 +140,8 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD main.
+        DATA temp1 TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+        DATA ls_config_post LIKE temp1.
 
     " the one place the Layer 0 request type meets the public one - both are
     " structurally identical, and the public signature stays free of
@@ -165,16 +167,20 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_ui5_user_exit=>
         " set_config_http_post), so a cross-origin POST is rejected unless an
         " app opts out via its own exit.
-        DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+
+        CLEAR temp1.
+
+        ls_config_post = temp1.
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
                                  origin  = mo_server->get_header_field( `origin` )
                                  referer = mo_server->get_header_field( `referer` )
                                  host    = mo_server->get_header_field( `host` ) ) = abap_true.
-          ms_res = VALUE #( body          = `CSRF validation failed - cross-origin POST rejected`
-                            status_code   = 403
-                            status_reason = `Forbidden` ).
+          CLEAR ms_res.
+          ms_res-body = `CSRF validation failed - cross-origin POST rejected`.
+          ms_res-status_code = 403.
+          ms_res-status_reason = `Forbidden`.
         ELSE.
           ms_res = _main( ms_req ).
         ENDIF.
@@ -187,6 +193,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _check_csrf_rejected.
+    DATA temp2 TYPE string.
+    DATA lv_source LIKE temp2.
+    DATA temp1 TYPE xsdboolean.
 
     IF active = abap_false.
       RETURN.
@@ -194,9 +203,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " prefer Origin (sent on every cross-origin POST and on same-origin
     " fetch), fall back to Referer when Origin is absent
-    DATA(lv_source) = COND string( WHEN origin IS NOT INITIAL
-                                   THEN origin
-                                   ELSE referer ).
+
+    IF origin IS NOT INITIAL.
+      temp2 = origin.
+    ELSE.
+      temp2 = referer.
+    ENDIF.
+
+    lv_source = temp2.
 
     " lenient: nothing to compare -> allow (do not lock out proxies/old
     " clients that strip these headers); only an explicit mismatch is blocked
@@ -204,16 +218,22 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result = xsdbool( _csrf_host_authority( lv_source ) <> _csrf_host_authority( host ) ).
+
+    temp1 = boolc( _csrf_host_authority( lv_source ) <> _csrf_host_authority( host ) ).
+    result = temp1.
 
   ENDMETHOD.
 
   METHOD _csrf_host_authority.
 
-    DATA(lv_val) = to_lower( val ).
+    DATA lv_val TYPE string.
+    DATA lv_pos TYPE i.
+    DATA lv_rest TYPE string.
+    lv_val = to_lower( val ).
 
     " drop the scheme (e.g. `https://`)
-    DATA(lv_pos) = find( val = lv_val
+
+    lv_pos = find( val = lv_val
                          sub = `://` ).
     IF lv_pos >= 0.
       lv_val = substring( val = lv_val
@@ -221,7 +241,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDIF.
 
     " the authority ends at the first path / query / fragment separator
-    SPLIT lv_val AT `/` INTO lv_val DATA(lv_rest).
+
+    SPLIT lv_val AT `/` INTO lv_val lv_rest.
     SPLIT lv_val AT `?` INTO lv_val lv_rest.
     SPLIT lv_val AT `#` INTO lv_val lv_rest.
 
@@ -230,15 +251,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory.
+      FIELD-SYMBOLS <response> TYPE any.
 
     IF server IS BOUND.
-      result = NEW #( ).
+      CREATE OBJECT result.
       result->mo_server = z2ui5_cl_ui5_util_http=>factory( server ).
       " generic field symbol on purpose: a typed one (REF TO object) makes
       " the dynamic ASSIGN cast, and REF TO if_http_response is not
       " IDENTICAL to REF TO object - a real stack raises an uncatchable
       " casting error there, the MOVE below widens legally instead
-      FIELD-SYMBOLS <response> TYPE any.
+
       ASSIGN server->(`RESPONSE`) TO <response>.
       IF sy-subrc = 0.
         result->mo_response_onprem = <response>.
@@ -256,7 +278,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD factory_cloud.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mo_server = z2ui5_cl_ui5_util_http=>factory_cloud( req = req
                                                             res    = res ).
 
@@ -274,16 +296,29 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _http_get.
 
-    DATA(ls_config) = config_http_get( ).
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA temp3 TYPE string.
+    DATA lv_style_css LIKE temp3.
+    DATA lv_preload TYPE string.
+    DATA lv_globals TYPE string.
+    DATA temp4 LIKE LINE OF ls_config-t_add_config.
+    DATA lr_config LIKE REF TO temp4.
+    ls_config = config_http_get( ).
 
-    DATA(lv_style_css) = COND string( WHEN ls_config-styles_css IS INITIAL
-                                      THEN z2ui5_cl_ui5f_style_css=>get( )
-                                      ELSE ls_config-styles_css ).
+
+    IF ls_config-styles_css IS INITIAL.
+      temp3 = z2ui5_cl_ui5f_style_css=>get( ).
+    ELSE.
+      temp3 = ls_config-styles_css.
+    ENDIF.
+
+    lv_style_css = temp3.
 
     " The entries for all embedded frontend files come from the generated
     " preload mapping (see .github/app2abap/trans2abap.js), so the list can
     " never run out of sync with app/webapp.
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_style_css
+
+    lv_preload = z2ui5_cl_ui5f_preload=>get( styles_css = lv_style_css
                                                    custom_js  = ls_config-custom_js ).
 
     " Custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
@@ -304,7 +339,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " BSP and Launchpad mode the fields are absent and the manifest entries
     " stand. Registering a path costs nothing when the BSP is not installed -
     " nothing is requested from it until a view names the namespace.
-    DATA(lv_globals) = |window.z2ui5 = \{ checkLocal : true, | &&
+
+    lv_globals = |window.z2ui5 = \{ checkLocal : true, | &&
                        |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
                        |cccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_ccc" \};|.
 
@@ -341,7 +377,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
                   |data-sap-ui-theme="{ ls_config-theme }" src="{ ls_config-src }"|.
 
-    LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
+
+
+    LOOP AT ls_config-t_add_config REFERENCE INTO lr_config.
       result-body = |{ result-body } { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
@@ -358,7 +396,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD run.
 
-    DATA(lo_handler) = factory( server = server
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_http_handler.
+    lo_handler = factory( server = server
                                 req    = req
                                 res    = res ).
 
@@ -367,6 +406,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_response.
+    DATA temp5 TYPE string.
+    DATA lv_content_type LIKE temp5.
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_header LIKE LINE OF ls_config-t_security_header.
+    DATA lv_contextid TYPE string.
 
     mo_server->set_cdata( ms_res-body ).
 
@@ -376,10 +420,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " text/html from rendering a reflected app name / exception text as markup
     " (reflected-XSS). Success bodies are HTML for the GET shell and JSON for
     " the POST roundtrip.
-    DATA(lv_content_type) = COND string(
-        WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
-        WHEN ms_req-method = `GET`     THEN `text/html; charset=UTF-8`
-        ELSE `application/json; charset=UTF-8` ).
+
+    IF ms_res-status_code >= 400.
+      temp5 = `text/plain; charset=UTF-8`.
+    ELSEIF ms_req-method = `GET`.
+      temp5 = `text/html; charset=UTF-8`.
+    ELSE.
+      temp5 = `application/json; charset=UTF-8`.
+    ENDIF.
+
+    lv_content_type = temp5.
     mo_server->set_header_field( n = `content-type`
                                  v = lv_content_type ).
 
@@ -402,9 +452,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    DATA(ls_config) = config_http_get( ).
 
-    LOOP AT ls_config-t_security_header INTO DATA(ls_header).
+    ls_config = config_http_get( ).
+
+
+    LOOP AT ls_config-t_security_header INTO ls_header.
       mo_server->set_header_field( n = ls_header-n
                                    v = ls_header-v ).
     ENDLOOP.
@@ -413,7 +465,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                            reason = ms_res-status_reason ).
 
     " transform cookie into header-based contextid handling
-    DATA lv_contextid TYPE string.
+
     IF ms_res-s_stateful-switched = abap_true.
       mo_server->set_session_stateful( ms_res-s_stateful-active ).
       IF mo_server->get_header_field( `sap-contextid-accept` ) = `header`.
@@ -435,13 +487,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _http_post.
+      DATA lo_post TYPE REF TO z2ui5_cl_ui5_handler.
 
     " the request itself is intentionally not wrapped - exceptions bubble up
     " to the single top-level catch in _main( ), which turns them into a 500.
     " Only the sticky-handler bookkeeping at the end has its own catch, which
     " must never turn an already successful response into a 500
     IF so_sticky_handler IS NOT BOUND.
-      DATA(lo_post) = NEW z2ui5_cl_ui5_handler( is_req-body ).
+
+      CREATE OBJECT lo_post TYPE z2ui5_cl_ui5_handler EXPORTING VAL = is_req-body.
     ELSE.
       lo_post = so_sticky_handler.
       lo_post->mv_request_json = is_req-body.
@@ -466,6 +520,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _main.
+        DATA lx TYPE REF TO cx_root.
+        DATA temp6 TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+        DATA ls_config_post LIKE temp6.
+        DATA temp1 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res-body.
 
     " Single top-level catch for the whole request. The framework may raise
     " anywhere (e.g. a wrong app name in the URL -> CREATE OBJECT of an unknown
@@ -484,18 +542,23 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
           WHEN OTHERS.
             " OPTIONS/PUT/DELETE/... - without this branch the response
             " would go out with status code 0
-            result = VALUE #( body          = `Method Not Allowed`
-                              status_code   = 405
-                              status_reason = `Method Not Allowed` ).
+            CLEAR result.
+            result-body = `Method Not Allowed`.
+            result-status_code = 405.
+            result-status_reason = `Method Not Allowed`.
         ENDCASE.
 
-      CATCH cx_root INTO DATA(lx).
+
+      CATCH cx_root INTO lx.
         " In hardened installations the exit sets check_hide_error_details, so
         " the raw exception text (RTTI/class/DDIC names, dynamic-call failures,
         " and the system/user context the full dump carries) is replaced by a
         " generic message instead of leaking to the client.
         " Default is abap_false -> the real reason is returned as before.
-        DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+
+        CLEAR temp6.
+
+        ls_config_post = temp6.
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
         " the body is the only diagnostic the developer gets - the browser
@@ -504,19 +567,24 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " with class, source position, kernel id and exception attributes),
         " not just the outermost message: a MOVE_CAST or a failed dynamic
         " call says nothing without the cause below it
-        result = VALUE #( body          = COND #( WHEN ls_config_post-check_hide_error_details = abap_true
-                                                  THEN `Internal Server Error`
-                                                  ELSE _error_body( val    = lx
-                                                                    method = is_req-method ) )
-                          status_code   = 500
-                          status_reason = `Internal Server Error` ).
+        CLEAR result.
+
+        IF ls_config_post-check_hide_error_details = abap_true.
+          temp1 = `Internal Server Error`.
+        ELSE.
+          temp1 = _error_body( val = lx method = is_req-method ).
+        ENDIF.
+        result-body = temp1.
+        result-status_code = 500.
+        result-status_reason = `Internal Server Error`.
     ENDTRY.
 
   ENDMETHOD.
 
   METHOD _error_body.
 
-    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    DATA lv_nl LIKE z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    lv_nl = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     result = |abap2UI5 { z2ui5_if_app=>version } - unhandled exception in a { method } request| &&
              lv_nl && lv_nl && z2ui5_cx_ui5_util_error=>get_text_full( val ).
@@ -525,7 +593,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD get_request.
 
-    DATA(lo_handler) = factory( server = server
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_http_handler.
+    lo_handler = factory( server = server
                                 req    = req
                                 res    = res ).
 

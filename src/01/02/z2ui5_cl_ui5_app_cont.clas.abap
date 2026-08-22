@@ -104,10 +104,15 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD all_xml_stringify.
 
-    DATA(lo_model) = create_model( ).
-
+    DATA lo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
     DATA lv_restored TYPE abap_bool VALUE abap_true.
     DATA x_first TYPE REF TO cx_root.
+        DATA x TYPE REF TO cx_root.
+    DATA temp1 TYPE REF TO cx_root.
+    lo_model = create_model( ).
+
+
+
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).
@@ -142,18 +147,25 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
         result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
         lo_model->main_attri_db_load( ).
         RETURN.
-      CATCH cx_root INTO DATA(x) ##NO_HANDLER.
+
+      CATCH cx_root INTO x.
     ENDTRY.
 
     " chain the FIRST serialization failure - it names the attribute/type
     " that is not serializable and carries the source position of the
     " transformation that gave up; the retries fail for the same root cause
     " or a follow-up one
+
+    IF x_first IS BOUND.
+      temp1 = x_first.
+    ELSE.
+      temp1 = x.
+    ENDIF.
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
         val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
                    |Please check if all generic data references are public attributes of your class|
-        previous = COND #( WHEN x_first IS BOUND THEN x_first ELSE x ).
+        previous = temp1.
 
   ENDMETHOD.
 
@@ -165,21 +177,36 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load.
 
-    DATA(lv_id) = CONV string( id ).
+    DATA temp2 TYPE string.
+    DATA lv_id LIKE temp2.
+    DATA lr_buf TYPE REF TO z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    DATA lo_db TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA ls_db TYPE z2ui5_t_01.
+    DATA temp3 TYPE z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    temp2 = id.
 
-    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf) WITH KEY id = lv_id.
+    lv_id = temp2.
+
+
+    READ TABLE mt_buffer REFERENCE INTO lr_buf WITH KEY id = lv_id.
     IF sy-subrc = 0.
       result = lr_buf->app.
       RETURN.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( id ).
+
+    CREATE OBJECT lo_db TYPE z2ui5_cl_ui5_srv_draft.
+
+    ls_db = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
     result->create_model( )->main_attri_db_load( ).
 
-    INSERT VALUE #( id = lv_id app = result ) INTO TABLE mt_buffer.
+
+    CLEAR temp3.
+    temp3-id = lv_id.
+    temp3-app = result.
+    INSERT temp3 INTO TABLE mt_buffer.
 
   ENDMETHOD.
 
@@ -191,8 +218,11 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( app->id_draft ).
+    DATA lo_db TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA ls_db TYPE z2ui5_t_01.
+    CREATE OBJECT lo_db TYPE z2ui5_cl_ui5_srv_draft.
+
+    ls_db = lo_db->read_draft( app->id_draft ).
     result = all_xml_parse( ls_db-data ).
 
     result->mo_app = app.
@@ -201,23 +231,28 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD app_refresh_draft_id.
+    DATA temp4 TYPE REF TO z2ui5_if_app.
 
     IF mo_app IS NOT BOUND.
       RETURN.
     ENDIF.
 
-    CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
+
+    temp4 ?= mo_app.
+    temp4->id_draft = ms_draft-id.
 
   ENDMETHOD.
 
   METHOD db_save.
+    DATA lo_db TYPE REF TO z2ui5_cl_ui5_srv_draft.
 
     IF mo_app IS BOUND.
       mv_check_initialized = abap_true.
       app_refresh_draft_id( ).
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
+
+    CREATE OBJECT lo_db TYPE z2ui5_cl_ui5_srv_draft.
     lo_db->create( draft     = ms_draft
                    model_xml = all_xml_stringify( ) ).
 
@@ -237,8 +272,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD create_model.
 
-    result = NEW z2ui5_cl_ui5_srv_model( attri = mt_attri
-                                          app  = mo_app ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_srv_model EXPORTING attri = mt_attri app = mo_app.
 
   ENDMETHOD.
 ENDCLASS.

@@ -19,7 +19,8 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " event has run. This replaced a test that called factory( ) into a
     " ##NEEDED variable and asserted nothing: it passed for as long as the
     " constructor did not dump, which is not what its name claimed.
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
 
     cl_abap_unit_assert=>assert_bound( lo_app ).
     cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-class_editable
@@ -37,7 +38,8 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " rather than written as a literal: the name is the one thing here that a
     " rename would silently break, and the input would then propose a class
     " that no longer exists.
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
     lo_app->on_init( ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -57,7 +59,8 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " re-opened input still shows the old value state and a stale step-5 link.
     " class_value_state is bound to a UI5 ValueState, so it is set to `None`
     " and NOT cleared - an empty string there is not a valid ValueState.
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
 
     lo_app->ms_home-url                    = `https://example.org/?app_start=ZCL_X`.
     lo_app->ms_home-class_value_state      = `Success`.
@@ -81,7 +84,8 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " replaced a UI5 expression binding, which would be eval-compiled and
     " therefore break under a strict CSP. It must stay the exact inverse of
     " class_editable, so the link is only clickable after a successful check.
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
 
     lo_app->ms_home-link_enabled = abap_true.
     lo_app->reset_button_state( ).

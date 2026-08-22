@@ -47,6 +47,7 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
@@ -55,7 +56,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-src ).
 
-    temp1 = xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ).
+
+    temp2 = boolc( ls_config-content_security_policy CS `Content-Security-Policy` ).
+    temp1 = temp2.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-t_security_header ).
@@ -104,9 +107,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     DATA ls_post   TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA li_exit TYPE REF TO z2ui5_if_ui5_exit.
+    li_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
 
-    z2ui5_cl_ui5_user_exit=>gi_user_exit_dep = NEW ltcl_exit_dep( ).
+    CREATE OBJECT z2ui5_cl_ui5_user_exit=>gi_user_exit_dep TYPE ltcl_exit_dep.
 
     li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
     li_exit->set_config_http_post( CHANGING cs_config = ls_post ).

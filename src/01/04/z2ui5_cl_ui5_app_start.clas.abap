@@ -197,7 +197,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
 
   ENDMETHOD.
 
@@ -205,13 +205,13 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       on_init( ).
       render_start( ).
       set_focus_input( ).
       RETURN.
 
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       " coming back from the config app this app called: the browser still
       " shows THAT app's view, and the navigated roundtrip carries no event -
       " on_event( ) would fall through its CASE and render nothing. No
@@ -226,9 +226,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_init.
+    DATA temp1 TYPE REF TO z2ui5_cl_ui5_app_hi_world.
 
     reset_button_state( ).
-    ms_home-classname = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_ui5_app_hi_world( ) ).
+
+    CREATE OBJECT temp1 TYPE z2ui5_cl_ui5_app_hi_world.
+    ms_home-classname = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( temp1 ).
 
   ENDMETHOD.
 
@@ -263,6 +266,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD on_event_check.
 
     DATA li_app_test TYPE REF TO z2ui5_if_app.
+        DATA lx TYPE REF TO cx_root.
 
     TRY.
         ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
@@ -277,7 +281,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         ms_home-link_enabled      = abap_true.
         ms_home-url               = get_app_url( ms_home-classname ).
 
-      CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
+
+      CATCH cx_root INTO lx.
         ms_home-class_value_state_text = lx->get_text( ).
         ms_home-class_value_state      = `Warning`.
         client->message_box_display( text = ms_home-class_value_state_text
@@ -310,19 +315,28 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " selection, and both ends of the selection are the length of what stands
     " in the field - a caret behind the last character, nothing selected, so
     " the proposal can be typed over or completed
-    DATA(lv_end) = |{ strlen( ms_home-classname ) }|.
+    DATA lv_end TYPE string.
+    DATA temp2 TYPE string_table.
+    lv_end = |{ strlen( ms_home-classname ) }|.
+
+    CLEAR temp2.
+    INSERT c_id_input INTO TABLE temp2.
+    INSERT lv_end INTO TABLE temp2.
+    INSERT lv_end INTO TABLE temp2.
     client->follow_up_action( val   = client->cs_event-set_focus
-                              t_arg = VALUE #( ( c_id_input )
-                                               ( lv_end )
-                                               ( lv_end ) ) ).
+                              t_arg = temp2 ).
 
   ENDMETHOD.
 
   METHOD render_start.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA form TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    DATA(page) = view->ele( n = `View` ns = `mvc`
+
+    page = view->ele( n = `View` ns = `mvc`
         )->a( n = `xmlns`         v = `sap.m`
         )->a( n = `xmlns:mvc`     v = `sap.ui.core.mvc`
         )->a( n = `xmlns:form`    v = `sap.ui.layout.form`
@@ -337,7 +351,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " header, which is what render_header_toolbar( ) does - see there
     render_header_toolbar( page ).
 
-    DATA(form) = create_layout_form( page ).
+
+    form = create_layout_form( page ).
     render_quickstart( form ).
     render_whats_next( form ).
     render_docs_link( form ).
@@ -356,7 +371,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " the margin that sets it off from the window edge. The stock Page title
     " sits flush against it, which reads as if the heading belonged to the
     " browser rather than to the page.
-    DATA(bar) = page->ele( `customHeader`
+    DATA bar TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA toolbar TYPE REF TO z2ui5_cl_ui5_view_builder.
+    bar = page->ele( `customHeader`
         )->ele( `Bar` ).
 
     bar->ele( `contentLeft`
@@ -377,7 +394,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " 1.71 that silently swallowed the documentation and repository icons,
     " while newer releases showed all of them.
     " No ToolbarSpacer either: contentRight is right-aligned on its own.
-    DATA(toolbar) = bar->ele( `contentRight` ).
+
+    toolbar = bar->ele( `contentRight` ).
 
     " first what this system is: the information popup, and the configuration
     " when it is installed. Sliders rather than a monitor on the first one -
@@ -389,7 +407,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                  tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
                  press   = client->_event( c_event_system ) ).
 
-    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ) IS NOT INITIAL.
       header_icon( toolbar = toolbar
                    icon    = `sap-icon://settings`
                    tooltip = `Configuration`
@@ -615,10 +633,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     DATA lv_class TYPE string.
     DATA lv_href  TYPE string.
+    DATA row TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( class ).
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( class ) IS NOT INITIAL.
       lv_class = class.
-    ELSEIF class_old IS NOT INITIAL AND z2ui5_cl_ui5_util_context=>rtti_check_class_exists( class_old ).
+    ELSEIF class_old IS NOT INITIAL AND z2ui5_cl_ui5_util_context=>rtti_check_class_exists( class_old ) IS NOT INITIAL.
       lv_class = class_old.
     ENDIF.
 
@@ -631,7 +650,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
       lv_href = href.
     ENDIF.
 
-    DATA(row) = render_icon_row( form    = form
+
+    row = render_icon_row( form    = form
                                  label   = label
                                  icon    = icon
                                  text    = name
@@ -667,10 +687,16 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     " REDIRECT takes a { URL, NEW_WINDOW } object literal - NEW_WINDOW true is
     " what target="_blank" does on a Link
+    DATA temp4 TYPE string_table.
+    DATA temp1 LIKE LINE OF temp4.
+    CLEAR temp4.
+    INSERT `REDIRECT` INTO TABLE temp4.
+
+    temp1 = |\{ URL: '{ href }', NEW_WINDOW: true \}|.
+    INSERT temp1 INTO TABLE temp4.
     result = client->follow_up_action(
                  val   = client->cs_event-urlhelper
-                 t_arg = VALUE #( ( `REDIRECT` )
-                                  ( |\{ URL: '{ href }', NEW_WINDOW: true \}| ) ) ).
+                 t_arg = temp4 ).
 
   ENDMETHOD.
 
@@ -682,9 +708,16 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " the bottom: two COUNT( * ), the own rows and the whole table, which
     " together say whether cleanup( ) is keeping up. In a popup they run when
     " the popup is opened, which is exactly when somebody asks
-    DATA(popup) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA popup TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA dialog TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA content TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA form TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA ls_client TYPE z2ui5_if_client=>ty_s_get.
+    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    popup = z2ui5_cl_ui5_view_builder=>factory( ).
 
-    DATA(dialog) = popup->ele( n = `FragmentDefinition` ns = `core`
+
+    dialog = popup->ele( n = `FragmentDefinition` ns = `core`
         )->a( n = `xmlns`       v = `sap.m`
         )->a( n = `xmlns:core`  v = `sap.ui.core`
         )->a( n = `xmlns:form`  v = `sap.ui.layout.form`
@@ -693,7 +726,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
             )->a( n = `title`       v = `abap2UI5 - System Information`
             )->a( n = `afterClose`  v = client->_event( c_event_close ) ).
 
-    DATA(content) = dialog->ele( `content` ).
+
+    content = dialog->ele( `content` ).
 
     " the popup answers what the backend is, and nothing else - the UI5
     " version, the theme, the device and the requests are the frontend's
@@ -707,8 +741,10 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `showIcon`  v = `true`
         )->a( n = `class`     v = `sapUiSmallMarginBeginEnd sapUiTinyMarginTop` ).
 
-    DATA(form) = create_layout_form( content ).
-    DATA(ls_client) = client->get( ).
+
+    form = create_layout_form( content ).
+
+    ls_client = client->get( ).
 
     form->tag( `Label`
         )->a( n = `text`  v = `Launchpad active` ).
@@ -728,7 +764,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     render_text( form  = form
                  label = `abap2UI5 Version`
                  text  = z2ui5_if_app=>version ).
-    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
+
+    CREATE OBJECT lo_draft TYPE z2ui5_cl_ui5_srv_draft.
     render_text( form  = form
                  label = `Draft Entries (own/total)`
                  text  = |{ lo_draft->count_entries( ) } / { lo_draft->count_entries_total( ) }| ).
@@ -817,7 +854,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
   METHOD get_app_url.
 
-    DATA(ls_config) = client->get( )-s_config.
+    DATA ls_config TYPE z2ui5_if_client=>ty_s_get-s_config.
+    ls_config = client->get( )-s_config.
     result = z2ui5_cl_ui5_util_context=>app_get_url( classname = classname
                                                   origin       = ls_config-origin
                                                   pathname     = ls_config-pathname
