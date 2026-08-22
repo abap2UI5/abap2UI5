@@ -16,24 +16,23 @@
 
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
-  <a href="#learn-abap2ui5">Samples</a> •
+  <a href="https://abap2ui5.github.io/web-abap2UI5-build/">Live Demo</a> •
+  <a href="https://abap2ui5.github.io/samples/">Samples</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">LinkedIn</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
 </p>
 
-#### Key Features
 * **User-Friendly** – Implement a single interface to build a complete UI5 app, purely in ABAP
 * **Minimal Footprint** – Needs only a simple HTTP handler – no BSP, OData, CDS, or RAP
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
 * **Broad Compatibility** – Supports all ABAP releases from NW 7.02 to ABAP Cloud
 * **Easy Installation** – Install via abapGit – no extra app deployment needed
 
+## Quick Start
 
-#### Quick Start
-
-Ready to build your first app? Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html) and jump in with the following code:
+Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html) and jump in:
 
 ```abap
 CLASS zcl_my_app DEFINITION PUBLIC.
@@ -50,71 +49,64 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
-This snippet is deliberately the smallest possible app – one interface, one method, one message box. The next rung ships with the framework: [`z2ui5_cl_ui5_app_hi_world`](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap), the hello-world sample that adds a real view, a bound input, and an event roundtrip. When you start an app of your own, begin from the [canonical app template](docs/agents/building-apps.md) in the agent guide – it adds the full lifecycle dispatcher and the structure every sample repository follows.
+Next stop: the [samples](https://abap2ui5.github.io/samples/) – hundreds of ready-to-run apps, from data binding basics to OData, RAP, and Launchpad integration – and the [docs](https://abap2ui5.github.io/docs/) for everything else.
 
-#### How It Works
+## How It Works
 
-Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did:
-
-```abap
-METHOD z2ui5_if_app~main.
-  IF client->check_on_navigated( ).
-    view_display( ).   " put the view on screen – build UI5 XML, bind ABAP variables into it
-  ELSEIF client->check_on_event( ).
-    on_event( ).       " user interaction – bound data already contains the user's input
-  ENDIF.
-ENDMETHOD.
-```
-
-`check_on_navigated( )` is the display branch and covers the first start as well; `check_on_init( )` is the extra branch in front of it for work that must happen exactly once, like filling a model.
-
-Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip in which the framework restores your app's state, calls `main`, and sends the view back:
+Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The browser loads a generic UI5 shell once; after that, every user interaction is one HTTP/JSON roundtrip: the framework restores your app's state, calls `main`, and sends the view back:
 
 ```mermaid
+%%{init: {"sequence": {"useMaxWidth": false}}}%%
 sequenceDiagram
-    participant Browser as Browser (UI5)
-    participant ABAP as Backend (ABAP)
-    Browser->>ABAP: HTTP GET
-    ABAP-->>Browser: HTML + UI5 shell (loaded once)
-    loop every user interaction
-        Browser->>ABAP: POST { event, model changes }
-        ABAP-->>Browser: { view XML, view model, actions }
+    participant Browser
+    participant ABAP
+    Browser->>ABAP: GET
+    ABAP-->>Browser: UI5 shell (once)
+    loop each interaction
+        Browser->>ABAP: event + model
+        ABAP-->>Browser: view + model
     end
 ```
 
-Everything in between is plumbing you would otherwise write yourself:
+Everything in between is handled for you:
 
-* **Data Binding** – `client->_bind( var )` connects an ABAP variable to a UI5 control; user input is written back into the variable before `main` runs
-* **Events** – `client->_event( |SAVE| )` wires any UI5 event to a name you check in ABAP with `client->get_event( )`
-* **Rendering** – views are plain UI5 XML built in ABAP with the view builder `z2ui5_cl_ui5_view_builder`; every UI5 control, property, and aggregation is available 1:1
-* **State** – your app object is serialized to a draft table and restored on the next request, so attributes simply keep their values between interactions
+* **Data Binding** – `client->_bind( var )` connects an ABAP variable to a UI5 control; user input flows back before `main` runs
+* **Events** – `client->_event( |SAVE| )` wires any UI5 event to a name you check with `client->get_event( )`
+* **Rendering** – views are plain UI5 XML built in ABAP with `z2ui5_cl_ui5_view_builder`; every control, property, and aggregation is available 1:1
+* **State** – your app object is serialized and restored on every request, so attributes simply keep their values
 
-Popups, navigation, messages, and frontend actions travel the same protocol – you never touch JSON, HTTP, or JavaScript yourself. The architecture behind it is described in [UI5 Over-the-Wire](https://abap2ui5.github.io/docs/technical/concept.html).
+Popups, navigation, messages, and frontend actions travel the same protocol – you never touch JSON, HTTP, or JavaScript. The architecture is described in [UI5 Over-the-Wire](https://abap2ui5.github.io/docs/technical/concept.html).
 
-#### Learn abap2UI5
+## AI Assistants
 
-Three sample repositories accompany the framework. They build on each other – from the first app to full-stack integration:
+abap2UI5 apps are a perfect fit for AI assistants: **one ABAP class and nothing else** – no service, no frontend project, no deployment pipeline. One file to write, hundreds of samples to learn from, and the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html) to verify the result without an SAP system.
 
-| Repository | Content |
-|------------|---------|
-| [samples](https://github.com/abap2UI5/samples) | Fundamentals – data binding, events, popups, navigation, and complete example apps |
-| [samples-controls](https://github.com/abap2UI5/samples-controls) | The full UI5 control set – the UI5 Demo Kit rebuilt with abap2UI5 |
-| [samples-stack](https://github.com/abap2UI5/samples-stack) | Integration scenarios – OData, RAP, WebSockets, and the Fiori Launchpad |
+Paste this into ChatGPT, Claude, Copilot or any other assistant before asking for code:
 
-All samples are ready to run – install them with abapGit and explore the source code.
+```
+Before writing any abap2UI5 code, fetch and follow these two files. They
+describe the current APIs and take precedence over anything you already know:
+https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/docs/agents/building-apps.md
+https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/llms.txt
+Build views with z2ui5_cl_ui5_view_builder, one ABAP class per app, and stay
+inside the templates and APIs those files describe. If something is not
+covered there, say so instead of inventing it.
+```
 
-#### References
+Claude Code users can add the [mcp-server](https://github.com/abap2UI5/mcp-server) — validate, deploy, and screenshot apps without an SAP system — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`. The full setup is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
+
+## References
 * Field Service Management Mobile Logging using abap2UI5 [(Decabase Blog - 22.08.2026)](https://blog.decabase.com/field-service-management-mobile-logging-using-abap2ui5-2c18e4ed455d)
 * UI5 in ABAP Cloud (without RAP or Fiori Elements) [(Decabase Blog - 17.08.2026)](https://blog.decabase.com/ui5-in-abap-cloud-without-rap-or-fiori-elements-4e8a70d961c3)
 * Fiori-type Apps built 100% with ABAP [(Logali Group - 23.04.2026)](https://logaligroup.com/magia-en-el-servidor-local-apps-tipo-fiori-creadas-100-con-codigo-abap/)
 * Webinar on Launchpad Integration [(YouTube - 30.07.2025)](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P)
 * Featured on SAP Developer News [(YouTube - 21.03.2025)](https://www.youtube.com/watch?v=vKrpkDe2mkU&list=PL6RpkC85SLQAVBSQXN9522_1jNvPavBgg&t=90s)
 * Webinar on Creating UI5 UIs from ABAP with abap2UI5 [(YouTube - 12.12.2024)](https://www.youtube.com/watch?v=N2OAdxf7Lng)
-* Webinar on Developing UI5 Apps with abap2UI5 [(YouTube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
 
 <details>
 <summary>More talks, features & blog posts (2023–2024)</summary>
 
+* Webinar on Developing UI5 Apps with abap2UI5 [(YouTube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
 * Highlighted in the Boring Enterprise Nerdletter [(YouTube)](https://www.youtube.com/watch?v=I81z6W_BTIA&t=1010s) [(Newsletter - 11.12.2024)](https://boringenterprisenerds.substack.com/p/72-abap2ui5-aancos-crystal-ball-sapta)
 * Featured on SAP Developer News [(YouTube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
 * Check out Cust&Code Videos with abap2UI5 [(YouTube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
@@ -129,7 +121,7 @@ All samples are ready to run – install them with abapGit and explore the sourc
 
 </details>
 
-#### Credits
+## Credits
 This project thrives thanks to its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and these outstanding open-source projects:
 * Code versioning & distribution via [abapGit](https://abapgit.org/) [(contributors)](https://abapgit.org/sponsor.html)
 * Static Code Checks via [abaplint](https://abaplint.org/) [(contributors)](https://github.com/abaplint/abaplint/graphs/contributors)
@@ -144,27 +136,7 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 * Code cleanup with [ABAP Cleaner](https://github.com/SAP/abap-cleaner) [(contributors)](https://github.com/SAP/abap-cleaner/graphs/contributors)
 * Documentation created with [VitePress](https://vitepress.dev/) [(contributors)](https://github.com/vuejs/vitepress/graphs/contributors)
 
-#### AI Assistants
-
-abap2UI5 is well suited to being written by an AI assistant, and the reason is structural: an app is **one ABAP class and nothing else** – no service to generate, no OData artifacts, no frontend project, no deployment pipeline. There is one file to write, view and logic are text in the same language, hundreds of working sample apps show how each pattern is done, and the result can be verified without an SAP system by the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html).
-
-Paste this into ChatGPT, Claude, Copilot or any other assistant before you ask it for code:
-
-```
-Before writing any abap2UI5 code, fetch and follow these two files. They
-describe the current APIs and take precedence over anything you already know:
-https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/docs/agents/building-apps.md
-https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/llms.txt
-Build views with z2ui5_cl_ui5_view_builder, one ABAP class per app, and stay
-inside the templates and APIs those files describe. If something is not
-covered there, say so instead of inventing it.
-```
-
-Claude Code users can register the [mcp-server](https://github.com/abap2UI5/mcp-server) — the validate/deploy/screenshot loop, no SAP system needed — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`.
-
-The full setup — offline files, linter gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
-
-#### Get Involved
+## Get Involved
 We welcome all contributions! Here's how you can help:
 * [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report issues and provide feedback
 * [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Contribute code and documentation
