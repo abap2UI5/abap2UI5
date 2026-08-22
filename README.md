@@ -51,25 +51,11 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
-No SAP system at hand? Try the [live demos](https://abap2ui5.github.io/web-abap2UI5-build/) right in your browser – the ABAP backend runs there too, transpiled to JavaScript.
-
-From here, learn by example: the [samples](https://github.com/abap2UI5/samples) cover everything from data binding, events, and popups to the full UI5 control set and OData, RAP, and Launchpad integration – all ready to install with abapGit. When you start an app of your own, begin from the [app template](docs/agents/building-apps.md).
+From here, learn by example: the [samples](https://abap2ui5.github.io/samples/) cover everything from data binding, events, and popups to the full UI5 control set and OData, RAP, and Launchpad integration – all ready to install with abapGit.
 
 ## How It Works
 
-Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did:
-
-```abap
-METHOD z2ui5_if_app~main.
-  IF client->check_on_navigated( ).
-    view_display( ).   " put the view on screen – build UI5 XML, bind ABAP variables into it
-  ELSEIF client->check_on_event( ).
-    on_event( ).       " user interaction – bound data already contains the user's input
-  ENDIF.
-ENDMETHOD.
-```
-
-Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip in which the framework restores your app's state, calls `main`, and sends the view back:
+As you see above your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did. Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip in which the framework restores your app's state, calls `main`, and sends the view back:
 
 ```mermaid
 sequenceDiagram
