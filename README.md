@@ -50,6 +50,8 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
+This snippet is deliberately the smallest possible app – one interface, one method, one message box. The next rung ships with the framework: [`z2ui5_cl_ui5_app_hi_world`](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap), the hello-world sample that adds a real view, a bound input, and an event roundtrip. When you start an app of your own, begin from the [canonical app template](docs/agents/building-apps.md) in the agent guide – it adds the full lifecycle dispatcher and the structure every sample repository follows.
+
 #### How It Works
 
 Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did:
@@ -156,6 +158,8 @@ Build views with z2ui5_cl_ui5_view_builder, one ABAP class per app, and stay
 inside the templates and APIs those files describe. If something is not
 covered there, say so instead of inventing it.
 ```
+
+Claude Code users can register the [mcp-server](https://github.com/abap2UI5/mcp-server) — the validate/deploy/screenshot loop, no SAP system needed — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`.
 
 The full setup — offline files, linter gates and the [mcp-server](https://github.com/abap2UI5/mcp-server) screenshot loop — is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
