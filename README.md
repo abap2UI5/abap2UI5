@@ -17,20 +17,18 @@
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
   <a href="https://abap2ui5.github.io/web-abap2UI5-build/">Live Demo</a> •
-  <a href="https://github.com/abap2UI5/samples">Samples</a> •
+  <a href="https://abap2ui5.github.io/samples/">Samples</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">LinkedIn</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
 </p>
 
-## Key Features
 * **User-Friendly** – Implement a single interface to build a complete UI5 app, purely in ABAP
 * **Minimal Footprint** – Needs only a simple HTTP handler – no BSP, OData, CDS, or RAP
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
 * **Broad Compatibility** – Supports all ABAP releases from NW 7.02 to ABAP Cloud
 * **Easy Installation** – Install via abapGit – no extra app deployment needed
-
 
 ## Quick Start
 
@@ -51,13 +49,14 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
-From here, learn by example: the [samples](https://abap2ui5.github.io/samples/) cover everything from data binding, events, and popups to the full UI5 control set and OData, RAP, and Launchpad integration – all ready to install with abapGit. Or check out the [docs](https://abap2ui5.github.io/docs/) and find all information you need.
+From here, learn by example: the [samples](https://abap2ui5.github.io/samples/) cover everything from data binding, events, and popups to the full UI5 control set and OData, RAP, and Launchpad integration – all ready to install with abapGit. Or check out the [docs](https://abap2ui5.github.io/docs/) and find all the information you need.
 
 ## How It Works
 
-As you see above your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did. Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip in which the framework restores your app's state, calls `main`, and sends the view back:
+As you see above, your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did. Under the hood, abap2UI5 is a **single-page app**: the browser loads a generic UI5 shell once, then every user interaction becomes one HTTP/JSON roundtrip in which the framework restores your app's state, calls `main`, and sends the view back:
 
 ```mermaid
+%%{init: {"sequence": {"useMaxWidth": false}}}%%
 sequenceDiagram
     participant Browser as Browser (UI5)
     participant ABAP as Backend (ABAP)
@@ -103,12 +102,12 @@ The full setup — offline files, linter gates and the [mcp-server](https://gith
 * UI5 in ABAP Cloud (without RAP or Fiori Elements) [(Decabase Blog - 17.08.2026)](https://blog.decabase.com/ui5-in-abap-cloud-without-rap-or-fiori-elements-4e8a70d961c3)
 * Fiori-type Apps built 100% with ABAP [(Logali Group - 23.04.2026)](https://logaligroup.com/magia-en-el-servidor-local-apps-tipo-fiori-creadas-100-con-codigo-abap/)
 * Webinar on Launchpad Integration [(YouTube - 30.07.2025)](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P)
-
-<details>
-<summary>More talks, features & blog posts (2023–2025)</summary>
-
 * Featured on SAP Developer News [(YouTube - 21.03.2025)](https://www.youtube.com/watch?v=vKrpkDe2mkU&list=PL6RpkC85SLQAVBSQXN9522_1jNvPavBgg&t=90s)
 * Webinar on Creating UI5 UIs from ABAP with abap2UI5 [(YouTube - 12.12.2024)](https://www.youtube.com/watch?v=N2OAdxf7Lng)
+
+<details>
+<summary>More talks, features & blog posts (2023–2024)</summary>
+
 * Webinar on Developing UI5 Apps with abap2UI5 [(YouTube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
 * Highlighted in the Boring Enterprise Nerdletter [(YouTube)](https://www.youtube.com/watch?v=I81z6W_BTIA&t=1010s) [(Newsletter - 11.12.2024)](https://boringenterprisenerds.substack.com/p/72-abap2ui5-aancos-crystal-ball-sapta)
 * Featured on SAP Developer News [(YouTube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
