@@ -21,6 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
+| [`linter-multiinputext-token-cells`](items/linter-multiinputext-token-cells.md) | the linter carries a metadata-only mirror of the bundled companion controls, and the two properties the suggestion-row validator added are not in it - so a view that uses them fails view creation in the render gate | medium | 2026-08-22 | abap2UI5/linter |
 | [`linter-sapui5-metadata`](items/linter-sapui5-metadata.md) | a third resolve candidate plus an additive `--libs`, so `properties.json` can cover the `@sapui5/*` packages — without it the property and scope gates are blind wherever a control is SAPUI5-only | medium | 2026-08-11 | abap2UI5/linter |
 
 ---
