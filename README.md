@@ -52,6 +52,18 @@ That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
 This snippet is deliberately the smallest possible app – one interface, one method, one message box. The next rung ships with the framework: [`z2ui5_cl_ui5_app_hi_world`](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap), the hello-world sample that adds a real view, a bound input, and an event roundtrip. When you start an app of your own, begin from the [canonical app template](docs/agents/building-apps.md) in the agent guide – it adds the full lifecycle dispatcher and the structure every sample repository follows.
 
+#### Learn abap2UI5
+
+Three sample repositories accompany the framework. They build on each other – from the first app to full-stack integration:
+
+| Repository | Content |
+|------------|---------|
+| [samples](https://github.com/abap2UI5/samples) | Fundamentals – data binding, events, popups, navigation, and complete example apps |
+| [samples-controls](https://github.com/abap2UI5/samples-controls) | The full UI5 control set – the UI5 Demo Kit rebuilt with abap2UI5 |
+| [samples-stack](https://github.com/abap2UI5/samples-stack) | Integration scenarios – OData, RAP, WebSockets, and the Fiori Launchpad |
+
+All samples are ready to run – install them with abapGit and explore the source code.
+
 #### How It Works
 
 Your entire app is **one ABAP class** implementing `z2ui5_if_app`. The framework calls its `main` method on every roundtrip, and the app dispatches on why it was called – put the view on screen, or handle what the user just did:
@@ -90,18 +102,6 @@ Everything in between is plumbing you would otherwise write yourself:
 * **State** – your app object is serialized to a draft table and restored on the next request, so attributes simply keep their values between interactions
 
 Popups, navigation, messages, and frontend actions travel the same protocol – you never touch JSON, HTTP, or JavaScript yourself. The architecture behind it is described in [UI5 Over-the-Wire](https://abap2ui5.github.io/docs/technical/concept.html).
-
-#### Learn abap2UI5
-
-Three sample repositories accompany the framework. They build on each other – from the first app to full-stack integration:
-
-| Repository | Content |
-|------------|---------|
-| [samples](https://github.com/abap2UI5/samples) | Fundamentals – data binding, events, popups, navigation, and complete example apps |
-| [samples-controls](https://github.com/abap2UI5/samples-controls) | The full UI5 control set – the UI5 Demo Kit rebuilt with abap2UI5 |
-| [samples-stack](https://github.com/abap2UI5/samples-stack) | Integration scenarios – OData, RAP, WebSockets, and the Fiori Launchpad |
-
-All samples are ready to run – install them with abapGit and explore the source code.
 
 #### References
 * Field Service Management Mobile Logging using abap2UI5 [(Decabase Blog - 22.08.2026)](https://blog.decabase.com/field-service-management-mobile-logging-using-abap2ui5-2c18e4ed455d)
