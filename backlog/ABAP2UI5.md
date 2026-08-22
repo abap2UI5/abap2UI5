@@ -15,6 +15,16 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`multiinputext-suggestion-row-validator`](items/multiinputext-suggestion-row-validator.md) | the companion control installs a hardcoded free-text validator and ignores `args.suggestionObject`, so a MultiInput with TABULAR suggestions - the demo kit's own copy-pasted idiom - has to round-trip to build a token the original builds on the client | medium | 2026-08-22 | abap2UI5/abap2UI5 |
+
+---
+
 ## Deferred
 
 _a decision was made not to do this now, and why_
