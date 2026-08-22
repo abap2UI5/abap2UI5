@@ -24,6 +24,7 @@
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
 </p>
 
+## Why abap2UI5?
 * **User-Friendly** – Implement a single interface to build a complete UI5 app, purely in ABAP
 * **Minimal Footprint** – Needs only a simple HTTP handler – no BSP, OData, CDS, or RAP
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
@@ -106,8 +107,8 @@ Claude Code users can add the [mcp-server](https://github.com/abap2UI5/mcp-serve
 <details>
 <summary>More talks, features & blog posts (2023–2024)</summary>
 
-* Webinar on Developing UI5 Apps with abap2UI5 [(YouTube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
 * Highlighted in the Boring Enterprise Nerdletter [(YouTube)](https://www.youtube.com/watch?v=I81z6W_BTIA&t=1010s) [(Newsletter - 11.12.2024)](https://boringenterprisenerds.substack.com/p/72-abap2ui5-aancos-crystal-ball-sapta)
+* Webinar on Developing UI5 Apps with abap2UI5 [(YouTube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
 * Featured on SAP Developer News [(YouTube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
 * Check out Cust&Code Videos with abap2UI5 [(YouTube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
 * Running abap2UI5 Backend in Browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
