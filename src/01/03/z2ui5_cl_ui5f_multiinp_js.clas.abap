@@ -38,8 +38,11 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `    // Invisible companion control for a sap.m.MultiInput (referenced via` && |\n| &&
              `    // MultiInputId): mirrors added/removed tokens into the bindable` && |\n| &&
              `    // addedTokens/removedTokens properties and fires ``change`` so the` && |\n| &&
-             `    // backend sees every token update. Also installs a validator that` && |\n| &&
-             `    // turns free-text entries into tokens.` && |\n| &&
+             `    // backend sees every token update. Also installs the validator` && |\n| &&
+             `    // MultiInput.addValidator takes: free-text entries always become tokens,` && |\n| &&
+             `    // and a picked suggestion ROW becomes one too once TokenKeyCell /` && |\n| &&
+             `    // TokenTextCells say which cells to build it from (tabular suggestions` && |\n| &&
+             `    // have no default token at all).` && |\n| &&
              `    return Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -58,6 +61,24 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `          },` && |\n| &&
              `          removedTokens: {` && |\n| &&
              `            type: "object",` && |\n| &&
+             `          },` && |\n| &&
+             `          // Suggestion-ROW validator (optional). MultiInput.addValidator's` && |\n| &&
+             `          // callback gets ``suggestionObject`` when the user picked a suggestion` && |\n| &&
+             `          // ROW rather than typing free text, and with tabular suggestions` && |\n| &&
+             `          // there is no default token at all - without a validator, picking a` && |\n| &&
+             `          // row produces nothing. TokenKeyCell names the cell whose text` && |\n| &&
+             `          // becomes the token key; TokenTextCells names the cells composing` && |\n| &&
+             `          // the rest, rendered as ``key(a b)`` - the demo kit's own shape.` && |\n| &&
+             `          // Both unset: the free-text branch below behaves exactly as before.` && |\n| &&
+             `          TokenKeyCell: {` && |\n| &&
+             `            type: "int",` && |\n| &&
+             `            defaultValue: -1,` && |\n| &&
+             `          },` && |\n| &&
+             `          // comma-separated cell indices ("2,3"): an XML attribute is a` && |\n| &&
+             `          // string, and a typed int[] cannot be written from a view` && |\n| &&
+             `          TokenTextCells: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
              `        },` && |\n| &&
              `        events: {` && |\n| &&
@@ -81,6 +102,43 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `        this.fireChange();` && |\n| &&
              `      },` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      // one suggestion row -> one Token, or null when this instance was not` && |\n| &&
+             `      // configured for rows (which is what MultiInput expects for "no token")` && |\n| &&
+             `      tokenFromRow(row) {` && |\n| &&
+             `        const keyIdx = this.getProperty("TokenKeyCell");` && |\n| &&
+             `        if (!(keyIdx >= 0)) return null;` && |\n| &&
+             `        const cells = typeof row.getCells === "function" ? row.getCells() : [];` && |\n| &&
+             `        const cellText = (i) => {` && |\n| &&
+             `          const c = cells[i];` && |\n| &&
+             `          return c && typeof c.getText === "function" ? c.getText() : undefined;` && |\n| &&
+             `        };` && |\n| &&
+             `        const key = cellText(keyIdx);` && |\n| &&
+             `        if (key === undefined) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``MultiInputExt: TokenKeyCell ${keyIdx} is not a text cell of the picked row``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return null;` && |\n| &&
+             `        }` && |\n| &&
+             `        const rest = String(this.getProperty("TokenTextCells") || "")` && |\n| &&
+             `          .split(",")` && |\n| &&
+             `          .map((s) => s.trim())` && |\n| &&
+             `          .filter((s) => s !== "")` && |\n| &&
+             `          .map(Number)` && |\n| &&
+             `          .map((i) => {` && |\n| &&
+             `            const v = cellText(i);` && |\n| &&
+             `            if (v === undefined) {` && |\n| &&
+             `              Lib.logError(` && |\n| &&
+             `                ``MultiInputExt: TokenTextCells entry ${i} is not a text cell of the picked row``,` && |\n| &&
+             `              );` && |\n| &&
+             `            }` && |\n| &&
+             `            return v;` && |\n| &&
+             `          })` && |\n| &&
+             `          .filter((v) => v !== undefined && v !== "");` && |\n| &&
+             `        return new Token({` && |\n| &&
+             `          key,` && |\n| &&
+             `          text: rest.length ? ``${key}(${rest.join(" ")})`` : key,` && |\n| &&
+             `        });` && |\n| &&
+             `      },` && |\n| &&
              `      setControl() {` && |\n| &&
              `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
              `          this,` && |\n| &&
@@ -89,9 +147,15 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `        if (!Lib.claimOnce(this, input)) return;` && |\n| &&
              `        try {` && |\n| &&
              `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
-             `          // Custom validator: turn any free-text entry into a Token where` && |\n| &&
-             `          // both key and visible text equal the input string.` && |\n| &&
-             `          input.addValidator(({ text }) => new Token({ key: text, text }));` && |\n| &&
+             `          // Custom validator: a picked suggestion ROW becomes a Token built` && |\n| &&
+             `          // from its cells (only when TokenKeyCell says which one), any` && |\n| &&
+             `          // free-text entry becomes a Token whose key and visible text are` && |\n| &&
+             `          // both the input string.` && |\n| &&
+             `          input.addValidator((args) => {` && |\n| &&
+             `            const row = args && args.suggestionObject;` && |\n| &&
+             `            if (row) return this.tokenFromRow(row);` && |\n| &&
+             `            return new Token({ key: args.text, text: args.text });` && |\n| &&
+             `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("MultiInputExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&
