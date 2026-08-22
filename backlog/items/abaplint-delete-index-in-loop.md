@@ -11,6 +11,7 @@ evidence:
   - a pattern search then found eight sites — four ports in samples-controls (352 twice, 354, 298, 377), three in `abap2UI5/samples` (`z2ui5_cl_smp_context` twice, app 070), one in the vendored ajson
   - two of the eight were wrong twice over — the `sy-tabix` belonged to an inner loop, so the index deleted was another table's
   - no rule of the 188 abaplint ships reports it; `invalid_table_index` is constant index 0 only
+  - written again 2026-08-22, five days after this item was filed: `abap2UI5/samples-controls` batch b51 shipped the same shape in three NEW ports (617, 618, 619) and took it back out the same day - the author had read app 298's source note and still wrote it, which is the argument for a rule rather than a note
 ---
 
 # Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table
@@ -95,6 +96,14 @@ It reads as what it does and has neither failure mode.
 
 All but the last are fixed; the sites are listed because "would it have fired,
 and only there" is the question a rule proposal has to answer.
+
+**It came back.** On 2026-08-22 — five days after this item was written — three
+NEW ports in `abap2UI5/samples-controls` (617, 618, 619) were written with
+exactly this shape and corrected the same day. They were written by someone who
+had read the note app 298 carries in its own source, which is precisely the
+case for a rule: a convention that lives in the source of the code that learned
+it is invisible to the next file, and a linter is the only place it stays
+readable from outside.
 
 <!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 
