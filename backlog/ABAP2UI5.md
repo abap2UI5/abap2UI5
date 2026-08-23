@@ -22,6 +22,7 @@ _nothing exists upstream yet — this is the stock_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`event-arg-date-utc-shift`](items/event-arg-date-utc-shift.md) | the control projection that made control-valued event parameters travel serializes a Date through `toISOString()`, so a control holding LOCAL midnight reaches the backend as the previous day everywhere east of Greenwich — measured, and it is why two ports still hand-roll one expression argument per array slot | medium | 2026-08-23 | abap2UI5/abap2UI5 |
+| [`prose-gate-blind-to-sidecars`](items/prose-gate-blind-to-sidecars.md) | a dead class name survived a corpus-wide sweep for a month because the gate that removed it everywhere else checks eight markdown files and no sidecar — and a sidecar deviation is prose, read by agents, and is where the corpus writes most of its class references | low | 2026-08-23 | abap2UI5/abap2UI5 |
 
 ---
 
