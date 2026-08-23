@@ -6,13 +6,22 @@
 // Why this exists as a gate and not as prose: none of it is visible here.
 // abaplint parses ABAP, it does not model abapGit's file format, and its
 // `global.files` covers only src/00, src/01, src/02 with `noIssues` on src/00 -
-// so src/00 and src/99 get no byte-level check at all. The transpiler ignores
-// the metadata sidecars entirely. Every rule below is a bug that reached main
-// and had to be repaired after somebody pulled the repository into a system:
+// so src/00 and src/99 get no byte-level check at all bar the one noted under
+// BOM below. The transpiler ignores the metadata sidecars entirely. Every rule
+// below is a bug that reached main and had to be repaired after somebody
+// pulled the repository into a system:
 //
 //   BOM          8e272492, 54bce5b6 "fix abapgit diffs" - a .clas.xml written
 //                without the UTF-8 BOM abapGit emits. Re-serializing puts the
 //                BOM back, so the file differs on every pull, forever.
+//                Half of this rule is abaplint's since 2.120.32: `xml_bom` is
+//                on in abaplint.jsonc, in the standard/cloud/702 target
+//                configs (which do reach src/00 and src/99) and in the autofix
+//                config, where its quick fix inserts the BOM. It reads the ONE
+//                XML abapGit writes per object - getXMLFile( ) - and says
+//                nothing about the other direction, so `.abap` carrying a BOM
+//                stays this script's finding, over every file rather than over
+//                the objects abaplint parsed.
 //   EOF newline  c7185c38 "fix abapgit diffs" - z2ui5_if_action.intf.xml ended
 //                without a final newline. Same permanent diff.
 //   class_ctor   The static constructor must be declared in the PUBLIC section

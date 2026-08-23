@@ -352,6 +352,7 @@
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
+    "xml_bom": true,
     "xml_consistency": true,
     "forbidden_void_type": {
       "check": [
