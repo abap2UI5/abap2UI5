@@ -433,7 +433,28 @@ pitfalls".
   `slider_value = CONV i( client->get_event_arg( ) )` in
   `abap2UI5/samples-controls`. abaplint's `value_conversion` /
   `unnecessary_pragma` do not cover it (measured on 2.120.24, control probe
-  fired), and the type inference makes it undecidable for a text-level gate.
+  fired).
+
+  **Now gated, and the earlier claim here was wrong.** This entry used to end
+  "the type inference makes it undecidable for a text-level gate". It is
+  undecidable in general and decidable for the shape SLIN actually flags, which
+  is the only one that matters: the CONV is the WHOLE right-hand side of an
+  assignment (`<name> = CONV i( x ).`) into a name the same file declares
+  `TYPE i` — a `DATA`/`CLASS-DATA` line or a typed parameter. That is
+  `redundant-conv-i` in `samples-controls`' `scripts/pattern-lint.mjs`.
+
+  Two boundaries the rule keeps, both learned by getting them wrong first:
+  a CONV inside a comparison (`COND #( WHEN CONV i( x ) < 14 …`) or an
+  arithmetic expression (`CONV i( x ) + 1`) is load-bearing or at least
+  arguable and is NOT flagged — the first draft reported apps 350 and 353,
+  which SLIN itself had left alone. And a CONV inside a string template
+  (`|{ CONV i( x ) WIDTH = 2 }|`) is a real conversion.
+
+  What the gate is worth, measured: a user's system reported nine findings
+  (534, 546 ×2, 547 ×2, 548, 549, 566, 609) on 2026-08-23. The rule reproduced
+  all nine **and found four more the system run had not** — 356 once, 363
+  three times. A system run sees one package at a time; the gate sees the
+  corpus.
 - **A RAP handler names the entity by its BDEF alias.** Where the behavior
   definition declares `alias Ticket`, an event handler's
   `FOR ENTITY EVENT ... FOR z2ui5_r_smps_tck~TicketCreated` draws "The alias

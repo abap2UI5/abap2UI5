@@ -43,6 +43,7 @@ const NOT_A_RULE = new Map([
   ['ui5-check', 'a skill in this directory'],
   ['view-chain-layout', 'a skill in this directory'],
   ['samples-controls', 'the repository abap2UI5/samples-controls'],
+  ['redundant-conv-i', "a rule of samples-controls' own scripts/pattern-lint.mjs, not of the linter - SLIN's redundant-conversion finding, gated there because the corpus is where it appears"],
   ['clear-all', 'a UI5 icon name (sap-icon://clear-all)'],
   ['message-information', 'a UI5 icon name'],
   ['text-align', 'a CSS property named in a view example'],
