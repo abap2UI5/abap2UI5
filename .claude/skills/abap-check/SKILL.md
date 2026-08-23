@@ -433,7 +433,57 @@ pitfalls".
   `slider_value = CONV i( client->get_event_arg( ) )` in
   `abap2UI5/samples-controls`. abaplint's `value_conversion` /
   `unnecessary_pragma` do not cover it (measured on 2.120.24, control probe
-  fired), and the type inference makes it undecidable for a text-level gate.
+  fired).
+
+  **Now gated, and the earlier claim here was wrong.** This entry used to end
+  "the type inference makes it undecidable for a text-level gate". It is
+  undecidable in general and decidable for the shape SLIN actually flags, which
+  is the only one that matters: the CONV is the WHOLE right-hand side of an
+  assignment (`<name> = CONV i( x ).`) into a name the same file declares
+  `TYPE i` — a `DATA`/`CLASS-DATA` line or a typed parameter. That is
+  `redundant-conv-i` in `samples-controls`' `scripts/pattern-lint.mjs`.
+
+  Two boundaries the rule keeps, both learned by getting them wrong first:
+  a CONV inside a comparison (`COND #( WHEN CONV i( x ) < 14 …`) or an
+  arithmetic expression (`CONV i( x ) + 1`) is load-bearing or at least
+  arguable and is NOT flagged — the first draft reported apps 350 and 353,
+  which SLIN itself had left alone. And a CONV inside a string template
+  (`|{ CONV i( x ) WIDTH = 2 }|`) is a real conversion.
+
+  What the gate is worth, measured: a user's system reported nine findings
+  (534, 546 ×2, 547 ×2, 548, 549, 566, 609) on 2026-08-23. The rule reproduced
+  all nine **and found four more the system run had not** — 356 once, 363
+  three times. A system run sees one package at a time; the gate sees the
+  corpus.
+- **An Open SQL literal is a host expression: `@( … )`.** In strict Open SQL
+  every value in a WHERE comparison is escaped, a literal included — bare
+  `WHERE id = \`TEST_COUNT_FOREIGN\`` becomes
+  `WHERE id = @( \`TEST_COUNT_FOREIGN\` )`. Fixed by a user on a real system
+  (2026-08-23, abap2UI5#2657) in `z2ui5_cl_ui5_srv_draft`'s test class; the
+  transpiled tests and abaplint both accepted it.
+
+  **Do not "fix" an internal table.** `DELETE lt_param WHERE n = \`app_start\``
+  is ITAB syntax, where `@( )` is neither needed nor valid, and a grep for
+  `WHERE <name> = <literal>` finds ten of those in this repository for the one
+  real case. The discriminator is the statement: `DELETE FROM <dbtab>` /
+  `SELECT … FROM <dbtab>` / `UPDATE` / `MODIFY` against a database table.
+  Measured after the fix: that one line was the only bare literal in Open SQL
+  across `src`.
+
+- **`GET REFERENCE OF … INTO x` is the old spelling; write `x = REF #( … )`.**
+  Same pull request, same reason — it is not released for ABAP Cloud, and
+  nothing on this side reports it: `check:cloud` and the transpiled unit run
+  are both green with it in place.
+
+  Still standing in `src` after that fix, and worth deciding on rather than
+  discovering later: four occurrences outside the upstream mirrors and the
+  frozen package — `src/00/03/z2ui5_cl_ui5_util_context.clas.abap:878` and
+  `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` at 325, 345 and 467. All four
+  take a field symbol or a formal parameter, which `REF #( )` expresses
+  directly. They were left alone deliberately: the pull request changed a test
+  class, and rewriting three production reference paths in the model is a
+  separate change with its own verification.
+
 - **A RAP handler names the entity by its BDEF alias.** Where the behavior
   definition declares `alias Ticket`, an event handler's
   `FOR ENTITY EVENT ... FOR z2ui5_r_smps_tck~TicketCreated` draws "The alias
