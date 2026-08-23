@@ -450,6 +450,32 @@ pitfalls".
 - **ABAP Doc is parsed as HTML.** A literal `<`, `>` or `&` must be escaped as
   `&lt;`, `&gt;`, `&amp;`.
 
+**Not gated: the BUNDLE.** `check:atc` walks this repository's `src/` — that is
+its stated scope, and over `src/` it holds: every `FIND`/`REPLACE … REGEX` here
+carries `##REGEX_POSIX`, including the five in the vendored AJSON where the
+pragma sits on the statement's CONTINUATION line (a line-based grep reports
+those as missing; the gate flattens statements first, so it does not).
+
+`abap2UI5-local` is a different artefact. `trigger_local.yaml` copies these
+sources into that repository, where a script folds them into ONE class whose
+"Local Implementations" hold everything. A user's system run on
+`z2ui5_cl_abap2ui5_local` (2026-08-23) reported eight SLIN warnings against
+that folded include — POSIX regex twice, ABAP Doc position, `<CLASS>` not
+supported / not closed three times, a redundant `CONV string( )` — at character
+OFFSETS (`@16232`, `@38704`), not at lines in any file here. All four kinds are
+the families above, and all four are silenced in `src/` by a pragma, a
+`##REGEX_POSIX`, or an escape. **They come back after the fold**, so what the
+fold does to those annotations is the thing to establish; the sources on this
+side are clean and no change here would move them. The `<CLASS>` pair is worth
+looking at first: `<p class="shorttext synchronized">` is the standard ADT
+shorttext form, and a tag scanner that splits on whitespace reads the attribute
+name as a second tag — which would make it an artefact of the fold rather than
+of the doc comment.
+
+Not verified from here: `abap2UI5-local` was not attached to the session that
+wrote this, so the bundler itself was not read. What IS measured is that
+`src/` carries the annotations and that `check:atc` is green over it.
+
 ## 4. Downport and transpile — one source, three targets plus a JS runtime
 
 **Gate: this repo** — `npm run verify` builds all three targets and runs the
