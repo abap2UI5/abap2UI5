@@ -274,7 +274,8 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
 
     DATA lr_value TYPE REF TO data.
-    GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
+*    GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
+    lr_value = REF #( lo_app_client->mv_value ).
 
     DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
 
