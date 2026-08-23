@@ -57,6 +57,7 @@
     "max_one_method_parameter_per_line": true,
     "sequential_blank": true,
     "whitespace_end": true,
+    "xml_bom": true,
     "space_before_colon": true,
     "space_before_dot": true,
     "commented_code": false
