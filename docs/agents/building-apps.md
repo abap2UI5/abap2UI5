@@ -3,7 +3,7 @@
 Self-contained, offline reference for AI assistants (and humans) **building
 apps with** abap2UI5. It is derived from the framework sources in this
 repository (`src/02/` public API, `z2ui5_cl_ui5_view_builder`, the
-hello-world app) and the conventions proven over the 416 ported UI5
+hello-world app) and the conventions proven over the 622 ported UI5
 demo-kit samples in
 [samples-controls](https://github.com/abap2UI5/samples-controls). The rendered
 documentation site is <https://abap2ui5.github.io/docs/> — this file exists so
@@ -567,7 +567,7 @@ The same tree, with the subtree held in a variable:
   F9 launches the class in an embedded preview against a real system.
 - **Worked examples**, three catalogues with the same row shape, so one search
   reads all of them: curated apps for "has somebody built this pattern" in
-  [abap2UI5/samples](https://github.com/abap2UI5/samples), 416 gate-verified
+  [abap2UI5/samples](https://github.com/abap2UI5/samples), 622 gate-verified
   demo-kit ports for "how is this control expressed" in
   [samples-controls](https://github.com/abap2UI5/samples-controls) (`src/`), and
   apps that need something from your stack — OData, RAP, APC, the launchpad —
