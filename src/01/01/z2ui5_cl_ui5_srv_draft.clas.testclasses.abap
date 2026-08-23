@@ -182,7 +182,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_total_exp TYPE i.
 
     " start from a known state, so a second run of the test counts the same
-    DELETE FROM z2ui5_t_01 WHERE id = `TEST_COUNT_FOREIGN` ##SUBRC_OK.
+    DELETE FROM z2ui5_t_01 WHERE id = @( `TEST_COUNT_FOREIGN` ) ##SUBRC_OK.
     COMMIT WORK.
 
     lo_draft = NEW #( ).
