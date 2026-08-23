@@ -252,10 +252,14 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Ancestor-text breadcrumb of a control resolved in an event argument,` && |\n| &&
-             `      // e.g. ``$controller.textPath(${$parameters>/item})`` on a menu's` && |\n| &&
-             `      // itemSelected -> "Create New Site > Official Store". The parent-chain` && |\n| &&
-             `      // walk happens on the live control tree, so no binding path can express` && |\n| &&
-             `      // it; the separator defaults to " > ".` && |\n| &&
+             `      // e.g. ``$controller.textPath(${$parameters>/item})`` on a tree or list` && |\n| &&
+             `      // item -> "Create New Site > Official Store". The parent-chain walk` && |\n| &&
+             `      // happens on the live control tree, so no binding path can express it;` && |\n| &&
+             `      // the separator defaults to " > ".` && |\n| &&
+             `      //` && |\n| &&
+             `      // It stops at the first ancestor without getText, which for a sap.m.Menu` && |\n| &&
+             `      // item is the internal MenuWrapper one hop up - so a MENU is the one` && |\n| &&
+             `      // example not to reach for here; see getTextPath in core/Lib.js.` && |\n| &&
              `      textPath(oControl, sSeparator) {` && |\n| &&
              `        return Lib.getTextPath(oControl, sSeparator);` && |\n| &&
              `      },` && |\n| &&

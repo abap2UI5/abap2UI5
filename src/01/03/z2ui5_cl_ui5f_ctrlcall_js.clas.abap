@@ -440,22 +440,29 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        methods: { announce: ["string", "string"] },` && |\n| &&
              `      },` && |\n| &&
-             `      // sap/ui/core/Formatting (@since 1.120) carries the global formatting` && |\n| &&
+             `      // sap/base/i18n/Formatting (@since 1.120) carries the global formatting` && |\n| &&
              `      // configuration. Custom currencies are the case an app cannot express` && |\n| &&
              `      // otherwise: the digit count of a currency code is neither a control` && |\n| &&
              `      // property nor something a per-binding formatter can register for the` && |\n| &&
              `      // standard sap.ui.model.type.Currency. The payload is a JSON object -` && |\n| &&
              `      // data the backend owns anyway. Lazy-require like THEMING.` && |\n| &&
              `      // The two are NOT interchangeable and the difference is silent: set` && |\n| &&
-             `      // REPLACES the whole registration, add ADDS one code to it. An app` && |\n| &&
+             `      // REPLACES the whole registration, add MERGES codes into it. An app` && |\n| &&
              `      // that registers currencies as it loads more data and reaches for` && |\n| &&
              `      // ``set`` drops the ones it registered before - and the symptom is a` && |\n| &&
              `      // wrong digit count in a table, never an error.` && |\n| &&
+             `      // Both names are the module's own and were WRONG here until 2026-08-23:` && |\n| &&
+             `      // the target read ``sap/ui/core/Formatting``, which is not a module in any` && |\n| &&
+             `      // UI5 release (Core.js loads the base one), so the require returned` && |\n| &&
+             `      // undefined and every call logged "not available" and did nothing; and` && |\n| &&
+             `      // the second method was spelled ``addCustomCurrency``, which the module` && |\n| &&
+             `      // does not have either - it is addCustomCurrencies, taking the same map` && |\n| &&
+             `      // as set. Found through samples-controls app 196.` && |\n| &&
              `      FORMATTING: {` && |\n| &&
-             `        get: () => sap.ui.require("sap/ui/core/Formatting"),` && |\n| &&
+             `        get: () => sap.ui.require("sap/base/i18n/Formatting"),` && |\n| &&
              `        methods: {` && |\n| &&
              `          setCustomCurrencies: ["object"], // REPLACES: { CODE: { digits: n }, ... }` && |\n| &&
-             `          addCustomCurrency: ["string", "object"], // ADDS one: code, { digits: n }` && |\n| &&
+             `          addCustomCurrencies: ["object"], // MERGES: same shape, keeps the rest` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
@@ -818,15 +825,15 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      "GE",` && |\n| &&
              `      "GT",` && |\n| &&
              `      "LE",` && |\n| &&
-             `      "LT",` && |\n| &&
+             `      "LT",` && |\n|.
+    result = result &&
              `      "NB",` && |\n| &&
              `      "NE",` && |\n| &&
              `      "NotContains",` && |\n| &&
              `      "NotEndsWith",` && |\n| &&
              `      "NotStartsWith",` && |\n| &&
              `      "StartsWith",` && |\n| &&
-             `    ]);` && |\n|.
-    result = result &&
+             `    ]);` && |\n| &&
              `` && |\n| &&
              `    const isEmpty = (v) => v == null || v === "";` && |\n| &&
              `` && |\n| &&

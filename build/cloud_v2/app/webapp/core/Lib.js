@@ -210,13 +210,23 @@ sap.ui.define(
     }
 
     // Join a control's own text with its ancestors' texts, outermost first
-    // ("Create New Site > Official Store"). The walk climbs getParent() and
-    // stops at the first ancestor that has no getText - for a menu item that
-    // is the Menu itself, so the result is exactly the item's breadcrumb
-    // (the `while (oItem instanceof MenuItem)` loop UI5 samples write in a
-    // controller). A control-tree walk cannot be expressed as a binding path,
-    // which is why it lives here and is reachable from an event argument via
-    // the controller's textPath().
+    // ("Create New Site > Official Store"), the `while (oItem instanceof
+    // MenuItem)` loop UI5 samples write in a controller. A control-tree walk
+    // cannot be expressed as a binding path, which is why it lives here and is
+    // reachable from an event argument via the controller's textPath().
+    //
+    // The walk climbs getParent() and BREAKS at the first ancestor that has no
+    // getText - it does not skip that ancestor and keep climbing. So the result
+    // is a breadcrumb only while every level in between is text-bearing, and
+    // whether that holds is a question about the control, not about this
+    // function. It notably does NOT hold for sap.m.Menu any more: since UI5
+    // 1.136 a Menu forwards its items aggregation into an internal
+    // sap.m.MenuWrapper (Menu.js, forwarding idSuffix "-menuWrapper"), the
+    // wrapper declares no text property and no getText, and it sits between
+    // every item and its parent item - so the walk stops after one hop and
+    // returns the leaf text alone. UI5's own sample loop breaks on the same
+    // wrapper, so that is upstream behaviour rather than a difference, but do
+    // not promise a menu breadcrumb on the strength of this helper.
     function getTextPath(control, separator) {
       const texts = [];
       let node = control;

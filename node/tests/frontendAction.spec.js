@@ -454,8 +454,13 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   test("FORMATTING.setCustomCurrencies parses its JSON payload", () => {
     const { FrontendAction, ctx } = load();
     const set = [];
+    // the module id is asserted, not assumed: this stub answered
+    // "sap/ui/core/Formatting" until 2026-08-23 - a module no UI5 release has -
+    // so the test passed while every real call resolved to undefined and did
+    // nothing. A stub that mirrors the code under test proves only that the two
+    // agree.
     ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Formatting"
+      name === "sap/base/i18n/Formatting"
         ? { setCustomCurrencies: (v) => set.push(v) }
         : null;
     FrontendAction.execute(null, [
@@ -467,6 +472,24 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(set).toEqual([{ BGN4: { digits: 4 }, WWWW: { digits: 5 } }]);
   });
 
+  test("FORMATTING asks for the module id UI5 actually ships", () => {
+    const { FrontendAction, ctx } = load();
+    const asked = [];
+    ctx.sap.ui.require = (name) => {
+      asked.push(name);
+      return { setCustomCurrencies: () => {} };
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "FORMATTING",
+      "setCustomCurrencies",
+      "{}",
+    ]);
+    // sap/base/i18n/Formatting is the one Formatting module in OpenUI5 and the
+    // one Core.js loads; sap/ui/core/Formatting does not exist
+    expect(asked).toContain("sap/base/i18n/Formatting");
+  });
+
   test("a trailing object stays an ARGUMENT on a non-message target", () => {
     // the options extraction applies to a `display` target only - everywhere
     // else a trailing object is a declared argument kind and must reach the
@@ -474,17 +497,16 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     const { FrontendAction, ctx } = load();
     const added = [];
     ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Formatting"
-        ? { addCustomCurrency: (...a) => added.push(a) }
+      name === "sap/base/i18n/Formatting"
+        ? { addCustomCurrencies: (...a) => added.push(a) }
         : null;
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "FORMATTING",
-      "addCustomCurrency",
-      "BGN4",
-      { digits: 4 },
+      "addCustomCurrencies",
+      { BGN4: { digits: 4 } },
     ]);
-    expect(added).toEqual([["BGN4", { digits: 4 }]]);
+    expect(added).toEqual([[{ BGN4: { digits: 4 } }]]);
   });
 });
 

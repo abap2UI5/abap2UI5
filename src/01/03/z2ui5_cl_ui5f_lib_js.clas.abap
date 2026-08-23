@@ -237,13 +237,23 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Join a control's own text with its ancestors' texts, outermost first` && |\n| &&
-             `    // ("Create New Site > Official Store"). The walk climbs getParent() and` && |\n| &&
-             `    // stops at the first ancestor that has no getText - for a menu item that` && |\n| &&
-             `    // is the Menu itself, so the result is exactly the item's breadcrumb` && |\n| &&
-             `    // (the ``while (oItem instanceof MenuItem)`` loop UI5 samples write in a` && |\n| &&
-             `    // controller). A control-tree walk cannot be expressed as a binding path,` && |\n| &&
-             `    // which is why it lives here and is reachable from an event argument via` && |\n| &&
-             `    // the controller's textPath().` && |\n| &&
+             `    // ("Create New Site > Official Store"), the ``while (oItem instanceof` && |\n| &&
+             `    // MenuItem)`` loop UI5 samples write in a controller. A control-tree walk` && |\n| &&
+             `    // cannot be expressed as a binding path, which is why it lives here and is` && |\n| &&
+             `    // reachable from an event argument via the controller's textPath().` && |\n| &&
+             `    //` && |\n| &&
+             `    // The walk climbs getParent() and BREAKS at the first ancestor that has no` && |\n| &&
+             `    // getText - it does not skip that ancestor and keep climbing. So the result` && |\n| &&
+             `    // is a breadcrumb only while every level in between is text-bearing, and` && |\n| &&
+             `    // whether that holds is a question about the control, not about this` && |\n| &&
+             `    // function. It notably does NOT hold for sap.m.Menu any more: since UI5` && |\n| &&
+             `    // 1.136 a Menu forwards its items aggregation into an internal` && |\n| &&
+             `    // sap.m.MenuWrapper (Menu.js, forwarding idSuffix "-menuWrapper"), the` && |\n| &&
+             `    // wrapper declares no text property and no getText, and it sits between` && |\n| &&
+             `    // every item and its parent item - so the walk stops after one hop and` && |\n| &&
+             `    // returns the leaf text alone. UI5's own sample loop breaks on the same` && |\n| &&
+             `    // wrapper, so that is upstream behaviour rather than a difference, but do` && |\n| &&
+             `    // not promise a menu breadcrumb on the strength of this helper.` && |\n| &&
              `    function getTextPath(control, separator) {` && |\n| &&
              `      const texts = [];` && |\n| &&
              `      let node = control;` && |\n| &&
@@ -414,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      let i = 0;` && |\n| &&
              `      while (i < segs.length) {` && |\n| &&
              `        const row = segs[i];` && |\n| &&
-             `        if (row === "" || Number.isNaN(Number(row))) return null;` && |\n| &&
+             `        if (row === "" || Number.isNaN(Number(row))) return null;` && |\n|.
+    result = result &&
              `        const field = segs[i + 1];` && |\n| &&
              `        if (` && |\n| &&
              `          field === undefined ||` && |\n| &&
@@ -424,8 +435,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `          return null;` && |\n| &&
              `        }` && |\n| &&
              `        i += 2;` && |\n| &&
-             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n|.
-    result = result &&
+             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
              `          steps.push({ row, field, leaf: true });` && |\n| &&
              `          return steps;` && |\n| &&
              `        }` && |\n| &&
