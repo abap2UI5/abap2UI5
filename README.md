@@ -17,10 +17,8 @@
 
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
-  <a href="https://abap2ui5.github.io/web-abap2UI5-build/">Live Demo</a> •
   <a href="https://abap2ui5.github.io/samples/">Samples</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
-  <a href="https://www.linkedin.com/company/abap2ui5">LinkedIn</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
 </p>
