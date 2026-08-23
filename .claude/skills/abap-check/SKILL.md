@@ -455,6 +455,35 @@ pitfalls".
   all nine **and found four more the system run had not** — 356 once, 363
   three times. A system run sees one package at a time; the gate sees the
   corpus.
+- **An Open SQL literal is a host expression: `@( … )`.** In strict Open SQL
+  every value in a WHERE comparison is escaped, a literal included — bare
+  `WHERE id = \`TEST_COUNT_FOREIGN\`` becomes
+  `WHERE id = @( \`TEST_COUNT_FOREIGN\` )`. Fixed by a user on a real system
+  (2026-08-23, abap2UI5#2657) in `z2ui5_cl_ui5_srv_draft`'s test class; the
+  transpiled tests and abaplint both accepted it.
+
+  **Do not "fix" an internal table.** `DELETE lt_param WHERE n = \`app_start\``
+  is ITAB syntax, where `@( )` is neither needed nor valid, and a grep for
+  `WHERE <name> = <literal>` finds ten of those in this repository for the one
+  real case. The discriminator is the statement: `DELETE FROM <dbtab>` /
+  `SELECT … FROM <dbtab>` / `UPDATE` / `MODIFY` against a database table.
+  Measured after the fix: that one line was the only bare literal in Open SQL
+  across `src`.
+
+- **`GET REFERENCE OF … INTO x` is the old spelling; write `x = REF #( … )`.**
+  Same pull request, same reason — it is not released for ABAP Cloud, and
+  nothing on this side reports it: `check:cloud` and the transpiled unit run
+  are both green with it in place.
+
+  Still standing in `src` after that fix, and worth deciding on rather than
+  discovering later: four occurrences outside the upstream mirrors and the
+  frozen package — `src/00/03/z2ui5_cl_ui5_util_context.clas.abap:878` and
+  `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` at 325, 345 and 467. All four
+  take a field symbol or a formal parameter, which `REF #( )` expresses
+  directly. They were left alone deliberately: the pull request changed a test
+  class, and rewriting three production reference paths in the model is a
+  separate change with its own verification.
+
 - **A RAP handler names the entity by its BDEF alias.** Where the behavior
   definition declares `alias Ticket`, an event handler's
   `FOR ENTITY EVENT ... FOR z2ui5_r_smps_tck~TicketCreated` draws "The alias
