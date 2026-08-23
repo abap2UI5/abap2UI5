@@ -53,6 +53,10 @@ const EXTERNAL = new Map([
   ["Z2UI5_CL_SMPS_EVT_TCK", "the samples-stack ticket event handler - an abap-check case"],
   ["Z2UI5_CL_MY_CLASS", "placeholder in an AGENTS.md example"],
   ["Z2UI5_CL_MY_APP", "placeholder in an example"],
+  // the single class abap2UI5-local folds this repository's sources into -
+  // its "Local Implementations" are where SLIN reports findings that are
+  // annotated away on this side, which is the abap-check entry naming it
+  ["Z2UI5_CL_ABAP2UI5_LOCAL", "the bundled class abap2UI5/abap2UI5-local builds"],
 ]);
 
 // Whole families that live in the sample repositories. The removal plan counts
