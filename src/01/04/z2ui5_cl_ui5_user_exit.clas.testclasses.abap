@@ -34,6 +34,13 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
+    " whatever exit class the SYSTEM has installed, parked for the test's
+    " duration - see setup
+    DATA installed_exit TYPE REF TO z2ui5_if_ui5_exit.
+
+    METHODS setup.
+    METHODS teardown.
+
     METHODS test_defaults_http_get   FOR TESTING RAISING cx_static_check.
     METHODS test_defaults_http_post  FOR TESTING RAISING cx_static_check.
     METHODS test_expiry_clamped      FOR TESTING RAISING cx_static_check.
@@ -42,6 +49,33 @@ ENDCLASS.
 
 
 CLASS ltcl_test_user_exit IMPLEMENTATION.
+
+  METHOD setup.
+
+    " get_instance( ) binds gi_user_exit to the exit class it FINDS on the
+    " system, and the dispatch prefers it: IF gi_user_exit ... ELSEIF
+    " gi_user_exit_dep. Every test here asserts either the shipped defaults or
+    " the superseded-interface fallback, so an installed customer exit changes
+    " what they measure - test_superseded_intf failed on a system with one
+    " while passing in CI, because its double sat in the branch the installed
+    " exit had already won. The statics are owned here and put back in
+    " teardown; they are class-wide, so leaving them changed would leak into
+    " whatever runs next.
+    z2ui5_cl_ui5_user_exit=>get_instance( ).
+    installed_exit = z2ui5_cl_ui5_user_exit=>gi_user_exit.
+    CLEAR z2ui5_cl_ui5_user_exit=>gi_user_exit.
+    CLEAR z2ui5_cl_ui5_user_exit=>gi_user_exit_dep.
+
+  ENDMETHOD.
+
+
+  METHOD teardown.
+
+    z2ui5_cl_ui5_user_exit=>gi_user_exit = installed_exit.
+    CLEAR z2ui5_cl_ui5_user_exit=>gi_user_exit_dep.
+
+  ENDMETHOD.
+
 
   METHOD test_defaults_http_get.
 
@@ -110,8 +144,6 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
     li_exit->set_config_http_post( CHANGING cs_config = ls_post ).
-
-    CLEAR z2ui5_cl_ui5_user_exit=>gi_user_exit_dep.
 
     " both seeded by the shipped exit first, then overwritten by the exit it
     " found - `sap_horizon` or 4 here would mean the old interface was skipped
