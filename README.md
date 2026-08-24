@@ -12,14 +12,13 @@
   <a href="https://github.com/abap2UI5/abap2UI5/stargazers"><img src="https://img.shields.io/github/stars/abap2UI5/abap2UI5?style=flat&color=blue" alt="GitHub stars"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/abap2UI5/abap2UI5?color=blue" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/ABAP-NW%207.02%20%E2%86%92%20Cloud-blue" alt="ABAP NW 7.02 to ABAP Cloud">
+  <a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-abap2UI5-blue?style=flat&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
 </p>
 
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
-  <a href="https://abap2ui5.github.io/web-abap2UI5-build/">Live Demo</a> •
   <a href="https://abap2ui5.github.io/samples/">Samples</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
-  <a href="https://www.linkedin.com/company/abap2ui5">LinkedIn</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
 </p>

@@ -58,7 +58,11 @@ Four separate holes, worth knowing precisely:
   abaplint 2.120.24 with 73 rules active and `check_syntax` live: a `.clas.xml`
   with the BOM stripped, the terminating newline removed, CRLF line endings
   throughout **and** a raw apostrophe in `<DESCRIPT>` — four defects at once —
-  produces **zero** findings.
+  produces **zero** findings. One of the four has since been closed upstream:
+  `xml_bom` (2.120.32) flags a sidecar without the BOM and quick-fixes it in.
+  The other three still produce nothing — re-measured on 2.120.33 with the
+  three remaining defects in one sidecar, using `xml_bom` itself as the second
+  control probe.
 - **abaplint's `global.files` is not all of `src/`.** It covers `src/00`
   (with `noIssues`), `src/01` and `src/02` — `src/99` is never read at all.
 - **The transpiler ignores visibility.** Every ABAP member becomes a plain JS
@@ -101,13 +105,15 @@ it).
 
 **Verified gaps as of abaplint 2.120.24** — measured this way, control probe
 passed, nothing abap2UI5-specific about any of them, and therefore candidates
-to push upstream rather than to reimplement here:
+to push upstream rather than to reimplement here. The BOM half of the third row
+is the one that *was* pushed upstream: it is `xml_bom` since 2.120.32, and the
+row records what is left.
 
 | Case | Why it matters |
 |---|---|
 | `CLASS-METHODS class_constructor.` in a PRIVATE SECTION | ABAP requires the static constructor in the public section; the class pool does not activate. `constructor_visibility_public` sees only the instance constructor |
 | a test class calling a PRIVATE member without `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.` | same activation failure; it has reached users twice (`cadfb7ae`, #2146) |
-| the `.clas.xml` byte format — BOM, line endings, terminating newline, `&apos;` | abapGit re-serializes it differently on every pull, for everyone |
+| the `.clas.xml` byte format — line endings, terminating newline, `&apos;` (the BOM is `xml_bom` since 2.120.32, and on here) | abapGit re-serializes it differently on every pull, for everyone |
 | `INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` under `syntax.version` v750 | 7.55 syntax; every older system refuses the class — reached a user via `abap2UI5/samples` app 348 (section 2) |
 | a `VALUE` header default plus a per-row assignment of the same component | *"The component … was specified more than once"* — the system refuses the class; reached a user via `abap2UI5/samples-controls` app 241 (section 2) |
 
@@ -119,14 +125,18 @@ Gated by `npm run check:abapgit`
 (`.github/scripts/abapgit-format-gate.mjs`), over all of `src/`.
 
 **Gate: this repo**, for the whole family — BOM, EOF newline, line endings,
-tabs, `&apos;`, file names, sidecar pairing, `<CLSNAME>`, `<LANGU>`. Two halves
-reach further: the 255-character line is **linter — `source-line-too-long`**
-(an error on every app class it checks), and `<WITH_UNIT_TESTS>` plus
-`<CLSNAME>` are **abaplint — `local_testclass_consistency`, `xml_consistency`**
-(measured, both directions). Trailing whitespace is **abaplint —
-`whitespace_end`**, per repository and not everywhere; see below. Everything
-else in the table is this repository's script and nothing else, which is why a
-consumer repository can ship a BOM-less sidecar with a green CI.
+tabs, `&apos;`, file names, sidecar pairing, `<CLSNAME>`, `<LANGU>`. Three of
+them reach further: the 255-character line is **linter —
+`source-line-too-long`** (an error on every app class it checks),
+`<WITH_UNIT_TESTS>` plus `<CLSNAME>` are **abaplint —
+`local_testclass_consistency`, `xml_consistency`** (measured, both directions),
+and the BOM on an object's sidecar is **abaplint — `xml_bom`**, new in
+2.120.32 and on here in `abaplint.jsonc`, in the three target configs and in
+the autofix config, where its quick fix inserts the BOM rather than reporting
+it. Trailing whitespace is **abaplint — `whitespace_end`**, per repository and
+not everywhere; see below. Everything else in the table is this repository's
+script and nothing else — and a consumer repository that has not turned
+`xml_bom` on can still ship a BOM-less sidecar with a green CI.
 
 abapGit writes every file one specific way. Write it another way and it
 differs from what the system serializes back — permanently, on every pull, for
@@ -134,7 +144,7 @@ everyone.
 
 | Rule | What abapGit does | Where it bit us |
 |---|---|---|
-| `bom` | `.xml` starts with the UTF-8 BOM `EF BB BF`; `.abap` never does | `8e272492`, `54bce5b6` — both titled "fix abapgit diffs", both a `.clas.xml` written without the BOM. Again in `abap2UI5/samples` `bc1f3d2` across 15 sidecars at once |
+| `bom` | `.xml` starts with the UTF-8 BOM `EF BB BF`; `.abap` never does | `8e272492`, `54bce5b6` — both titled "fix abapgit diffs", both a `.clas.xml` written without the BOM. Again in `abap2UI5/samples` `bc1f3d2` across 15 sidecars at once. The first half is **abaplint — `xml_bom`** now (one XML per object, `getXMLFile( )`, with a quick fix); the second half — a `.abap` file that carries a BOM — has no rule anywhere and stays this script's |
 | `eof` | exactly one terminating `\n`, no blank line after it | `c7185c38` — `z2ui5_if_action.intf.xml` ended with `\ No newline at end of file` |
 | `crlf` | LF only, everywhere | `.gitattributes` used to normalize this and was deleted in `b62ea07`; the gate is what enforces it now |
 | `tab` | no tabs — the ABAP editor expands them, so the pulled source is not this file | — |
