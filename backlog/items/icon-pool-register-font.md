@@ -3,7 +3,8 @@ target: abap2ui5
 title: 'A global target for IconPool.registerFont — icon collections an app cannot register'
 summary: an app that uses an icon collection outside the default SAP-icons font has no way to register it, because IconPool is a module-level singleton no frontend-action target can address
 priority: low
-state: open
+state: filed
+filed: https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr
 first_seen: 2026-08-24
 upstream: abap2UI5/abap2UI5
 evidence:
@@ -13,6 +14,8 @@ evidence:
 ---
 
 # A global target for `IconPool.registerFont`
+
+> **Implemented 2026-08-24** in this repository - the ICON_POOL global target, its two-argument wire and the toUrl resolution - on branch `claude/samples-controls-review-u4g6cr`. The item stays here until that merges.
 
 ## Motivation
 

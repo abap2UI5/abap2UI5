@@ -3,7 +3,8 @@ target: abap2ui5
 title: 'A client control action cannot set a string property to the EMPTY string — `castArgAuto` turns it into the boolean `false`'
 summary: an empty argument to an unlisted control method is inferred as `false`, and UI5 casts a non-string implicitly for a string-typed property, so a `setText`/`setValue` that should clear a control writes the literal word "false" instead
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr
 first_seen: 2026-08-23
 upstream: abap2UI5/abap2UI5
 evidence:
@@ -12,6 +13,8 @@ evidence:
 ---
 
 # A client control action cannot set a string property to the EMPTY string
+
+> **Implemented 2026-08-24** in this repository - option 1 - typing the argument from the control metadata - on branch `claude/samples-controls-review-u4g6cr`. The item stays here until that merges.
 
 ## Motivation
 

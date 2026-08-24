@@ -3,7 +3,8 @@ target: abap2ui5
 title: 'A `Date`-typed control property is projected as UTC, so a local-date event argument arrives a day early'
 summary: the control projection that made control-valued event parameters travel serializes a Date through `toISOString()`, so a control holding LOCAL midnight reaches the backend as the previous day everywhere east of Greenwich — measured, and it is why two ports still hand-roll one expression argument per array slot
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr
 first_seen: 2026-08-23
 upstream: abap2UI5/abap2UI5
 evidence:
@@ -13,6 +14,8 @@ evidence:
 ---
 
 # A `Date`-typed control property is projected as UTC, so a local-date event argument arrives a day early
+
+> **Implemented 2026-08-24** in this repository - the local-parts projection - on branch `claude/samples-controls-review-u4g6cr`. The item stays here until that merges.
 
 ## Motivation
 
