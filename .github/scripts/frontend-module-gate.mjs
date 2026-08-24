@@ -126,6 +126,9 @@ const ALLOWED_REQUIRE = new Set([
   'sap/m/Button',
   'sap/m/Dialog',
   'sap/m/Text',
+  'sap/ui/core/IconPool',          // every supported release; lazy so the
+                                   // ICON_POOL target reports "not available"
+                                   // instead of failing the component load
   'sap/ui/core/InvisibleMessage',  // @since 1.78
   'sap/ui/core/Messaging',         // @since 1.118
   'sap/ui/core/Theming',           // @since 1.118

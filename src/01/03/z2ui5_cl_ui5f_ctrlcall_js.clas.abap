@@ -407,7 +407,25 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        get: () => BusyIndicator,` && |\n| &&
              `        methods: { show: ["int"], hide: [] },` && |\n| &&
              `      },` && |\n| &&
-             `      // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a` && |\n| &&
+             `      // A UI5 icon collection outside the default SAP-icons font - sap.tnt's` && |\n| &&
+             `      // SAP-icons-TNT is the common one - resolves only once something has` && |\n| &&
+             `      // called IconPool.registerFont({ fontFamily, fontURI }). In a normal UI5` && |\n| &&
+             `      // app that call sits in the Component's init. An abap2UI5 app has no` && |\n| &&
+             `      // Component of its own, and IconPool is a module-level SINGLETON rather` && |\n| &&
+             `      // than a control, so CONTROL_BY_ID cannot address it and no global target` && |\n| &&
+             `      // reached it: a sap-icon://SAP-icons-TNT/... URI rendered no glyph at` && |\n| &&
+             `      // all, silently (samples-controls app 350).` && |\n| &&
+             `      //` && |\n| &&
+             `      // Two positional arguments rather than the config object UI5 takes,` && |\n| &&
+             `      // because that is what a t_arg can carry; the hook assembles it.` && |\n| &&
+             `      ICON_POOL: {` && |\n| &&
+             `        get: () => sap.ui.require("sap/ui/core/IconPool"),` && |\n| &&
+             `        methods: { registerFont: ["string", "string"] },` && |\n| &&
+             `        display: (oController, method, aArgs) =>` && |\n| &&
+             `          registerIconFont(aArgs[0], aArgs[1]),` && |\n| &&
+             `      },` && |\n| &&
+             `      // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a` && |\n|.
+    result = result &&
              `      // hard dependency (it 404s on 1.71 and kills the whole component load).` && |\n| &&
              `      // Resolve it lazily: on modern UI5 the core has it loaded, on 1.71 the` && |\n| &&
              `      // require returns undefined and the dispatch reports "not available".` && |\n| &&
@@ -424,8 +442,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      // "not available" guard below covers that.` && |\n| &&
              `      POPUP: {` && |\n| &&
              `        get: () => CorePopup,` && |\n| &&
-             `        methods: { setWithinArea: ["within"] },` && |\n|.
-    result = result &&
+             `        methods: { setWithinArea: ["within"] },` && |\n| &&
              `      },` && |\n| &&
              `      // sap/ui/core/InvisibleMessage is @since 1.78 and is a SINGLETON: it` && |\n| &&
              `      // renders nothing, so it has no id CONTROL_BY_ID could resolve - a` && |\n| &&
@@ -580,15 +597,48 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      return raw;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // The one case where inference is provably wrong: a string-typed property.` && |\n| &&
+             `    // castArgAuto has to map ""/" " to false - that is how an ABAP boolean` && |\n| &&
+             `    // travels - which leaves the EMPTY STRING with no spelling at all, so every` && |\n| &&
+             `    // string setter on the unlisted path can be given any value except "".` && |\n| &&
+             `    // UI5 then hides the failure instead of reporting it: validateProperty does` && |\n| &&
+             `    // not reject a boolean for a string property, it casts implicitly` && |\n| &&
+             `    // (``oValue = "" + oValue``), so setText("") arrives as setText(false) and` && |\n| &&
+             `    // renders the four characters "false" - no error, no warning, and a` && |\n| &&
+             `    // screenshot that reads like a typo rather than a type bug.` && |\n| &&
+             `    //` && |\n| &&
+             `    // The control and the method are both known here, so UI5's own declaration` && |\n| &&
+             `    // can settle it instead of a guess: for a setXxx whose property is declared` && |\n| &&
+             `    // ``string``, pass the raw value through untouched. Everything else keeps the` && |\n| &&
+             `    // inference, so the "X"/space boolean contract is untouched.` && |\n| &&
+             `    function setsStringProperty(control, method) {` && |\n| &&
+             `      if (!control || typeof method !== "string" || !/^set[A-Z]/.test(method))` && |\n| &&
+             `        return false;` && |\n| &&
+             `      const prop = control.getMetadata?.()?.getAllProperties?.()[` && |\n| &&
+             `        method.charAt(3).toLowerCase() + method.slice(4)` && |\n| &&
+             `      ];` && |\n| &&
+             `      return !!prop && prop.type === "string";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // kinds whose EMPTY value is meaningful (null), so a missing trailing` && |\n| &&
              `    // argument still has to be passed: the backend wire drops a trailing empty` && |\n| &&
              `    // t_arg entry, and "clear this association" is exactly a call whose only` && |\n| &&
              `    // argument is empty.` && |\n| &&
              `    const NULLABLE_KINDS = ["controlIdOrNull"];` && |\n| &&
              `` && |\n| &&
-             `    function castArgs(kinds, rawArgs, view) {` && |\n| &&
+             `    // ``target`` (optional) is the { control, method } the call will land on -` && |\n| &&
+             `    // only the CONTROL_BY_ID path can supply it, and it is only consulted on` && |\n| &&
+             `    // the inferred branch.` && |\n| &&
+             `    function castArgs(kinds, rawArgs, view, target) {` && |\n| &&
              `      // kinds === null: unlisted-but-allowed method, infer each arg's type` && |\n| &&
-             `      if (kinds === null) return rawArgs.map((raw) => castArgAuto(raw));` && |\n| &&
+             `      if (kinds === null) {` && |\n| &&
+             `        // a setXxx takes its value first, and that is the only position a` && |\n| &&
+             `        // declared property type can speak for` && |\n| &&
+             `        const keepString = setsStringProperty(target?.control, target?.method);` && |\n| &&
+             `        return rawArgs.map((raw, i) =>` && |\n| &&
+             `          i === 0 && keepString ? raw : castArgAuto(raw),` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
              `      // only cast args the caller actually sent - padding missing trailing` && |\n| &&
              `      // args would turn open() into open(undefined) and ints into NaN. The one` && |\n| &&
              `      // exception is a nullable kind (see above): pad it so the call carries` && |\n| &&
@@ -599,6 +649,35 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      return kinds` && |\n| &&
              `        .slice(0, count)` && |\n| &&
              `        .map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Collections already registered in this session. UI5 tolerates a repeat` && |\n| &&
+             `    // registerFont but Log.warning's on it, and a port issuing this from its` && |\n| &&
+             `    // init branch would do so on every single round-trip.` && |\n| &&
+             `    const registeredIconFonts = new Set();` && |\n| &&
+             `` && |\n| &&
+             `    function registerIconFont(fontFamily, fontURI) {` && |\n| &&
+             `      const IconPool = sap.ui.require("sap/ui/core/IconPool");` && |\n| &&
+             `      if (!IconPool) {` && |\n| &&
+             `        Lib.logError("ICON_POOL: sap/ui/core/IconPool is not loaded");` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!fontFamily || !fontURI) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          "ICON_POOL: registerFont needs a fontFamily AND a fontURI",` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (registeredIconFonts.has(fontFamily)) return;` && |\n| &&
+             `      /* fontURI is a MODULE PATH in every real use ('sap/tnt/themes/base/fonts/'),` && |\n| &&
+             `       * and resolving it through sap.ui.require.toUrl is what makes the` && |\n| &&
+             `       * registration survive a different mount point - it is also what the UI5` && |\n| &&
+             `       * samples pass. Anything that already looks like a URL is left alone. */` && |\n| &&
+             `      const uri = /^(?:[a-z]+:)?\/\//i.test(fontURI)` && |\n| &&
+             `        ? fontURI` && |\n| &&
+             `        : sap.ui.require.toUrl(fontURI);` && |\n| &&
+             `      IconPool.registerFont({ fontFamily, fontURI: uri });` && |\n| &&
+             `      registeredIconFonts.add(fontFamily);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Run fn once the openBy/toggleBy anchor is in the DOM. A control anchor` && |\n| &&
@@ -729,7 +808,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      control[method](...castArgs(kinds, args.slice(4), view));` && |\n| &&
+             `      control[method](` && |\n| &&
+             `        ...castArgs(kinds, args.slice(4), view, { control, method }),` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // args: [_, object, method, ...params]. ``ctx`` is the action context the` && |\n| &&
@@ -744,7 +825,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const obj = target.get();` && |\n| &&
-             `      if (!obj) {` && |\n| &&
+             `      if (!obj) {` && |\n|.
+    result = result &&
              `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -825,8 +907,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      "GE",` && |\n| &&
              `      "GT",` && |\n| &&
              `      "LE",` && |\n| &&
-             `      "LT",` && |\n|.
-    result = result &&
+             `      "LT",` && |\n| &&
              `      "NB",` && |\n| &&
              `      "NE",` && |\n| &&
              `      "NotContains",` && |\n| &&
