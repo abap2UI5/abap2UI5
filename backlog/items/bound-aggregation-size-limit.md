@@ -1,7 +1,7 @@
 ---
 target: abap2ui5-linter
 title: 'Report a bound aggregation seeded with more rows than the model size limit'
-summary: JSONModel caps a bound aggregation at 100 entries unless the app raises it, so a table seeded with more rows renders truncated with no error anywhere — the sample whose whole subject is the row count then demonstrates the wrong number
+summary: the 100-entry cap is normal UI5 behaviour and `cs_event-set_size_limit` already switches it — what is missing is the detection, because a port that forgets it renders truncated with no error anywhere and every gate stays green
 priority: medium
 state: open
 first_seen: 2026-08-24
@@ -16,10 +16,14 @@ evidence:
 
 ## Motivation
 
-`sap.ui.model.Model`'s constructor sets `iSizeLimit = 100`, and abap2UI5 leaves
-it there unless the app sends `cs_event-set_size_limit`. Every list bound to a
-model table therefore stops at 100 entries — silently, because a size limit is
-not an error condition: the binding simply returns fewer contexts.
+Nothing is missing on the framework side: the 100-entry cap is UI5's own
+default, `sap.ui.model.Model` sets `iSizeLimit = 100` in its constructor, and
+abap2UI5 already exposes the switch as `cs_event-set_size_limit`. This item is
+about **detection** — a port that simply forgets the call.
+
+It bites quietly: a list bound to a model table stops at 100 entries without
+complaining, because a size limit is not an error condition — the binding
+simply returns fewer contexts than the model holds.
 
 The original samples usually do not meet this limit, and often for a reason that
 makes the port's exposure invisible: app 444's controller never uses a model at
