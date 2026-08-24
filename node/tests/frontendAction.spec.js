@@ -8,7 +8,10 @@ const { loadModule } = require("./loadModule");
 // a stubbed sap.ui.define). The focus is the whitelist boundary and the
 // argument casting.
 
-function load({ sandbox } = {}) {
+// `requires` seeds the sap.ui.require stub for targets that resolve their
+// global LAZILY by module id (ICON_POOL, THEMING), which the array form below
+// does not cover.
+function load({ sandbox, requires = {} } = {}) {
   const calls = [];
   const errors = [];
   const rec =
@@ -71,11 +74,17 @@ function load({ sandbox } = {}) {
       ...(sandbox || {}),
       sap: {
         ui: {
-          require: (vDep, fnCb) => {
-            if (Array.isArray(vDep) && vDep[0] === "sap/m/MessageToast" && fnCb)
-              fnCb(MessageToast);
-            return null;
-          },
+          require: Object.assign(
+            (vDep, fnCb) => {
+              if (Array.isArray(vDep) && vDep[0] === "sap/m/MessageToast" && fnCb)
+                fnCb(MessageToast);
+              if (typeof vDep === "string") return requires[vDep] ?? null;
+              return null;
+            },
+            // the real one roots a module path against the UI5 resource base;
+            // a recognizable prefix is all an assertion needs
+            { toUrl: (sPath) => `/resources/${sPath}` },
+          ),
         },
       },
     },
@@ -454,8 +463,13 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   test("FORMATTING.setCustomCurrencies parses its JSON payload", () => {
     const { FrontendAction, ctx } = load();
     const set = [];
+    // the module id is asserted, not assumed: this stub answered
+    // "sap/ui/core/Formatting" until 2026-08-23 - a module no UI5 release has -
+    // so the test passed while every real call resolved to undefined and did
+    // nothing. A stub that mirrors the code under test proves only that the two
+    // agree.
     ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Formatting"
+      name === "sap/base/i18n/Formatting"
         ? { setCustomCurrencies: (v) => set.push(v) }
         : null;
     FrontendAction.execute(null, [
@@ -467,6 +481,24 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(set).toEqual([{ BGN4: { digits: 4 }, WWWW: { digits: 5 } }]);
   });
 
+  test("FORMATTING asks for the module id UI5 actually ships", () => {
+    const { FrontendAction, ctx } = load();
+    const asked = [];
+    ctx.sap.ui.require = (name) => {
+      asked.push(name);
+      return { setCustomCurrencies: () => {} };
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "FORMATTING",
+      "setCustomCurrencies",
+      "{}",
+    ]);
+    // sap/base/i18n/Formatting is the one Formatting module in OpenUI5 and the
+    // one Core.js loads; sap/ui/core/Formatting does not exist
+    expect(asked).toContain("sap/base/i18n/Formatting");
+  });
+
   test("a trailing object stays an ARGUMENT on a non-message target", () => {
     // the options extraction applies to a `display` target only - everywhere
     // else a trailing object is a declared argument kind and must reach the
@@ -474,17 +506,16 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     const { FrontendAction, ctx } = load();
     const added = [];
     ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Formatting"
-        ? { addCustomCurrency: (...a) => added.push(a) }
+      name === "sap/base/i18n/Formatting"
+        ? { addCustomCurrencies: (...a) => added.push(a) }
         : null;
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "FORMATTING",
-      "addCustomCurrency",
-      "BGN4",
-      { digits: 4 },
+      "addCustomCurrencies",
+      { BGN4: { digits: 4 } },
     ]);
-    expect(added).toEqual([["BGN4", { digits: 4 }]]);
+    expect(added).toEqual([[{ BGN4: { digits: 4 } }]]);
   });
 });
 
@@ -524,6 +555,63 @@ test.describe("executeSystem (the SYSTEM phase entry point)", () => {
     const { FrontendAction, errors } = load();
     FrontendAction.executeSystem(null, ["NO_SUCH_ACTION"]);
     expect(errors[0]).toContain("unknown system action");
+  });
+});
+
+/* An icon collection outside the default SAP-icons font resolves only after
+ * IconPool.registerFont. A normal UI5 app does that in its Component's init;
+ * an abap2UI5 app has no Component, and IconPool is a module singleton no
+ * other target could reach - so the URI rendered no glyph, silently. */
+test.describe("ICON_POOL (registering an icon collection)", () => {
+  function withIconPool() {
+    const fonts = [];
+    const { FrontendAction, errors } = load({
+      requires: {
+        "sap/ui/core/IconPool": { registerFont: (cfg) => fonts.push(cfg) },
+      },
+    });
+    return { FrontendAction, fonts, errors };
+  }
+
+  test("registers the collection, resolving the module path to a URL", () => {
+    const { FrontendAction, fonts } = withIconPool();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL", "ICON_POOL", "registerFont",
+      "SAP-icons-TNT", "sap/tnt/themes/base/fonts/",
+    ]);
+    expect(fonts.length).toEqual(1);
+    expect(fonts[0].fontFamily).toEqual("SAP-icons-TNT");
+    // toUrl turned the module path into something rooted, not passed raw
+    expect(fonts[0].fontURI).not.toEqual("sap/tnt/themes/base/fonts/");
+    expect(fonts[0].fontURI).toContain("sap/tnt/themes/base/fonts/");
+  });
+
+  test("an absolute URL is passed through untouched", () => {
+    const { FrontendAction, fonts } = withIconPool();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL", "ICON_POOL", "registerFont",
+      "MyFont", "https://example.org/fonts/",
+    ]);
+    expect(fonts[0].fontURI).toEqual("https://example.org/fonts/");
+  });
+
+  test("the same collection is registered once, not on every roundtrip", () => {
+    const { FrontendAction, fonts } = withIconPool();
+    const call = () => FrontendAction.execute(null, [
+      "CONTROL_GLOBAL", "ICON_POOL", "registerFont",
+      "SAP-icons-TNT", "sap/tnt/themes/base/fonts/",
+    ]);
+    call(); call(); call();
+    expect(fonts.length).toEqual(1);
+  });
+
+  test("a missing fontURI is reported instead of registering a broken font", () => {
+    const { FrontendAction, fonts, errors } = withIconPool();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL", "ICON_POOL", "registerFont", "SAP-icons-TNT",
+    ]);
+    expect(fonts.length).toEqual(0);
+    expect(errors.join(" ")).toContain("fontURI");
   });
 });
 
@@ -594,6 +682,44 @@ test.describe("CONTROL_BY_ID", () => {
         "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/0",
       ]);
       expect(calls).toEqual([["setActivePage", pages[0]]]);
+    });
+
+    /* castArgAuto has to map ""/" " to false - that is the ABAP boolean
+     * contract - which used to leave the EMPTY STRING unspellable on the
+     * unlisted-method path. UI5 does not reject a boolean for a string
+     * property, it casts it, so setText("") arrived as setText(false) and
+     * rendered the word "false". The declared property type settles it now. */
+    function labelled(calls, controls, type) {
+      controls.lbl = {
+        getMetadata: () => ({ getAllProperties: () => ({ text: { type } }) }),
+        setText: (v) => calls.push(["setText", v]),
+        setVisible: (v) => calls.push(["setVisible", v]),
+      };
+    }
+
+    test("an empty argument reaches a string property AS the empty string", () => {
+      const { FrontendAction, calls, controls } = load();
+      labelled(calls, controls, "string");
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setText", ""]);
+      expect(calls).toEqual([["setText", ""]]);
+    });
+
+    test("a string property keeps 'X' and 'true' as text, not as booleans", () => {
+      const { FrontendAction, calls, controls } = load();
+      labelled(calls, controls, "string");
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setText", "X"]);
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setText", "true"]);
+      expect(calls).toEqual([["setText", "X"], ["setText", "true"]]);
+    });
+
+    test("the ABAP boolean contract is untouched where the property is not a string", () => {
+      const { FrontendAction, calls, controls } = load();
+      labelled(calls, controls, "string");
+      // setVisible is not declared in the property map, so nothing overrides
+      // the inference: "X" is still true and "" still false
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setVisible", "X"]);
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setVisible", " "]);
+      expect(calls).toEqual([["setVisible", true], ["setVisible", false]]);
     });
 
     test("a plain id still resolves exactly as before", () => {

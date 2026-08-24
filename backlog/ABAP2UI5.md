@@ -15,6 +15,28 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`prose-gate-blind-to-sidecars`](items/prose-gate-blind-to-sidecars.md) | a dead class name survived a corpus-wide sweep for a month because the gate that removed it everywhere else checks eight markdown files and no sidecar — and a sidecar deviation is prose, read by agents, and is where the corpus writes most of its class references | low | 2026-08-23 | abap2UI5/abap2UI5 |
+
+---
+
+## Filed upstream
+
+_an issue or PR exists; the item goes when it merges_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`control-action-empty-string-arg`](items/control-action-empty-string-arg.md) | an empty argument to an unlisted control method is inferred as `false`, and UI5 casts a non-string implicitly for a string-typed property, so a `setText`/`setValue` that should clear a control writes the literal word "false" instead<br><sub>https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr</sub> | medium | 2026-08-23 | abap2UI5/abap2UI5 |
+| [`event-arg-date-utc-shift`](items/event-arg-date-utc-shift.md) | the control projection that made control-valued event parameters travel serializes a Date through `toISOString()`, so a control holding LOCAL midnight reaches the backend as the previous day everywhere east of Greenwich — measured, and it is why two ports still hand-roll one expression argument per array slot<br><sub>https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr</sub> | medium | 2026-08-23 | abap2UI5/abap2UI5 |
+| [`icon-pool-register-font`](items/icon-pool-register-font.md) | an app that uses an icon collection outside the default SAP-icons font has no way to register it, because IconPool is a module-level singleton no frontend-action target can address<br><sub>https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr</sub> | low | 2026-08-24 | abap2UI5/abap2UI5 |
+
+---
+
 ## Deferred
 
 _a decision was made not to do this now, and why_
@@ -22,16 +44,6 @@ _a decision was made not to do this now, and why_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`frontend-action-named-api`](items/frontend-action-named-api.md) | 425 + 99 calls across 130 ports go through a positional argument table — deferred to a future dedicated ACTION OBJECT (maintainer decision 2026-08-11), and this item is the collected requirement for it | medium | 2026-08-11 | abap2UI5/abap2UI5 |
-
----
-
-## Raw stock
-
-_Candidates nobody has worked out yet — named in a skill, or found by `npm run backlog:mine`. Listed so they are visible, not so they can be filed: an item file has to be written first._
-
-| Candidate | Found in |
-|---|---|
-| **event-value-unreachable** (PROBE) — the value the original reads sits in an array / control reference on the event · 1 port(s): 109 | mined from samples-controls `meta/` (IMPROVISED, verdict PROBE) |
 
 ---
 

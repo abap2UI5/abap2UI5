@@ -538,7 +538,7 @@ INTERFACE z2ui5_if_client
   "! slashes) resolves exactly as before.
   "! cs_event-control_global - call a whitelisted method on a global object
   "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING, POPUP,
-  "! INVISIBLE_MESSAGE, FORMATTING): t_arg = object, method, params.
+  "! INVISIBLE_MESSAGE, FORMATTING, ICON_POOL): t_arg = object, method, params.
   "! POPUP-setWithinArea confines every popup to the control whose id is
   "! passed (sap.ui.core.Popup.setWithinArea, needs UI5 &gt;= 1.89) instead of
   "! to the window; an EMPTY argument releases the restriction again.
@@ -549,13 +549,30 @@ INTERFACE z2ui5_if_client
   "! backend made.
   "! FORMATTING-setCustomCurrencies registers currency codes the standard
   "! sap.ui.model.type.Currency does not know, or overrides their digit count
-  "! (sap.ui.core.Formatting, needs UI5 &gt;= 1.120):
+  "! (sap/base/i18n/Formatting, needs UI5 &gt;= 1.120):
   "! t_arg = JSON object, e.g. \{"BGN4":\{"digits":4\}\}. It REPLACES the whole
-  "! registration - addCustomCurrency ADDS a single code to it instead
-  "! (t_arg = code, JSON object). Reaching for the wrong one is silent: an
+  "! registration - addCustomCurrencies MERGES codes into it instead
+  "! (t_arg = the same map). Reaching for the wrong one is silent: an
   "! app that registers currencies as it loads more data and calls
   "! setCustomCurrencies drops what it registered before, and the symptom is
   "! a wrong digit count in a table, never an error.
+  "! What this reaches is the FORMATTING configuration, not a control that has
+  "! already formatted: a control caching its NumberFormat at init( ) - among
+  "! them sap.ui.unified.Currency - keeps the digit count it was built with,
+  "! because it implements no localization-change hook. A BOUND
+  "! sap.ui.model.type.Currency does implement one and re-formats.
+  "! ICON_POOL-registerFont makes an icon collection outside the default
+  "! SAP-icons font resolvable - sap.tnt&apos;s SAP-icons-TNT is the common one:
+  "! t_arg = fontFamily, fontURI, e.g. `SAP-icons-TNT` /
+  "! `sap/tnt/themes/base/fonts/`. A normal UI5 app does this in its
+  "! Component&apos;s init; an abap2UI5 app has no Component of its own, and
+  "! IconPool is a module SINGLETON rather than a control, so no other wire
+  "! reaches it. Without the registration a sap-icon://SAP-icons-TNT/... URI
+  "! renders NO GLYPH and logs nothing. The fontURI is a module path in every
+  "! real use and is resolved through sap.ui.require.toUrl, so the registration
+  "! survives a different mount point; an absolute URL is passed through. Issue
+  "! it from the init branch - the same collection is registered only once per
+  "! session, so a repeat call costs nothing.
   "! cs_event-smart_variant_init - run the initialise( ) handshake sap.ui.comp
   "! variant management needs (a controller would call
   "! oSmartVariantManagement.initialise( fnCallback, oPersonalizableControl )).

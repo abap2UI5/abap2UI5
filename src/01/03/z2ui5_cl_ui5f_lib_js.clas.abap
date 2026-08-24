@@ -237,13 +237,23 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Join a control's own text with its ancestors' texts, outermost first` && |\n| &&
-             `    // ("Create New Site > Official Store"). The walk climbs getParent() and` && |\n| &&
-             `    // stops at the first ancestor that has no getText - for a menu item that` && |\n| &&
-             `    // is the Menu itself, so the result is exactly the item's breadcrumb` && |\n| &&
-             `    // (the ``while (oItem instanceof MenuItem)`` loop UI5 samples write in a` && |\n| &&
-             `    // controller). A control-tree walk cannot be expressed as a binding path,` && |\n| &&
-             `    // which is why it lives here and is reachable from an event argument via` && |\n| &&
-             `    // the controller's textPath().` && |\n| &&
+             `    // ("Create New Site > Official Store"), the ``while (oItem instanceof` && |\n| &&
+             `    // MenuItem)`` loop UI5 samples write in a controller. A control-tree walk` && |\n| &&
+             `    // cannot be expressed as a binding path, which is why it lives here and is` && |\n| &&
+             `    // reachable from an event argument via the controller's textPath().` && |\n| &&
+             `    //` && |\n| &&
+             `    // The walk climbs getParent() and BREAKS at the first ancestor that has no` && |\n| &&
+             `    // getText - it does not skip that ancestor and keep climbing. So the result` && |\n| &&
+             `    // is a breadcrumb only while every level in between is text-bearing, and` && |\n| &&
+             `    // whether that holds is a question about the control, not about this` && |\n| &&
+             `    // function. It notably does NOT hold for sap.m.Menu any more: since UI5` && |\n| &&
+             `    // 1.136 a Menu forwards its items aggregation into an internal` && |\n| &&
+             `    // sap.m.MenuWrapper (Menu.js, forwarding idSuffix "-menuWrapper"), the` && |\n| &&
+             `    // wrapper declares no text property and no getText, and it sits between` && |\n| &&
+             `    // every item and its parent item - so the walk stops after one hop and` && |\n| &&
+             `    // returns the leaf text alone. UI5's own sample loop breaks on the same` && |\n| &&
+             `    // wrapper, so that is upstream behaviour rather than a difference, but do` && |\n| &&
+             `    // not promise a menu breadcrumb on the strength of this helper.` && |\n| &&
              `    function getTextPath(control, separator) {` && |\n| &&
              `      const texts = [];` && |\n| &&
              `      let node = control;` && |\n| &&
@@ -414,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      let i = 0;` && |\n| &&
              `      while (i < segs.length) {` && |\n| &&
              `        const row = segs[i];` && |\n| &&
-             `        if (row === "" || Number.isNaN(Number(row))) return null;` && |\n| &&
+             `        if (row === "" || Number.isNaN(Number(row))) return null;` && |\n|.
+    result = result &&
              `        const field = segs[i + 1];` && |\n| &&
              `        if (` && |\n| &&
              `          field === undefined ||` && |\n| &&
@@ -424,8 +435,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `          return null;` && |\n| &&
              `        }` && |\n| &&
              `        i += 2;` && |\n| &&
-             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n|.
-    result = result &&
+             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
              `          steps.push({ row, field, leaf: true });` && |\n| &&
              `          return steps;` && |\n| &&
              `        }` && |\n| &&
@@ -581,13 +591,52 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    /* A Date property carries a CALENDAR DAY the user picked in their own` && |\n| &&
+             `     * timezone, not a point on the timeline - UI5 fills DateRange.startDate,` && |\n| &&
+             `     * CalendarAppointment.startDate, DatePicker.dateValue and friends with` && |\n| &&
+             `     * LOCAL midnight of that day. JSON.stringify would take it through` && |\n| &&
+             `     * Date.prototype.toJSON -> toISOString(), which is UTC, so east of` && |\n| &&
+             `     * Greenwich the date part came out as the PREVIOUS day - a wrong day` && |\n| &&
+             `     * delivered with no error anywhere.` && |\n| &&
+             `     *` && |\n| &&
+             `     * Serialize the local parts instead, as an ISO local timestamp with no Z.` && |\n| &&
+             `     * That is the shape the framework already uses in the INBOUND direction` && |\n| &&
+             `     * (model/formatter.js builds a Date from local parts precisely so a` && |\n| &&
+             `     * date-only string does not shift), and an app reads the first ten` && |\n| &&
+             `     * characters as the day. Sending the instant plus an offset would also be` && |\n| &&
+             `     * recoverable, but it makes every consumer do arithmetic to recover a` && |\n| &&
+             `     * value that was never more than a calendar day.` && |\n| &&
+             `     *` && |\n| &&
+             `     * An INVALID Date is left alone deliberately: UI5 produces one for an` && |\n| &&
+             `     * empty optional date, and it must not become the string "Invalid Date" -` && |\n| &&
+             `     * the existing path yields null, which is what the curated formatter's` && |\n| &&
+             `     * DateCreateObject returns for a falsy input. */` && |\n| &&
+             `    function projectValue(value) {` && |\n| &&
+             `      // toString rather than ``instanceof Date``: instanceof compares against` && |\n| &&
+             `      // ONE realm's constructor, so a Date that crossed a realm boundary (an` && |\n| &&
+             `      // iframe, or the vm sandbox the unit tests load this module in) is not` && |\n| &&
+             `      // recognized and silently keeps the UTC serialization this exists to` && |\n| &&
+             `      // avoid. The tag is realm-independent.` && |\n| &&
+             `      if (` && |\n| &&
+             `        Object.prototype.toString.call(value) === "[object Date]" &&` && |\n| &&
+             `        !isNaN(value)` && |\n| &&
+             `      ) {` && |\n| &&
+             `        const p = (n, w = 2) => String(n).padStart(w, "0");` && |\n| &&
+             `        return (` && |\n| &&
+             `          ``${p(value.getFullYear(), 4)}-${p(value.getMonth() + 1)}-${p(value.getDate())}`` +` && |\n| &&
+             `          ``T${p(value.getHours())}:${p(value.getMinutes())}:${p(value.getSeconds())}``` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      return value;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function projectControl(control) {` && |\n| &&
              `      const result = { ID: control.getId() };` && |\n| &&
              `      const properties = control.getMetadata().getAllProperties();` && |\n| &&
              `      for (const name in properties) {` && |\n| &&
              `        try {` && |\n| &&
              `          const value = control.getProperty(name);` && |\n| &&
-             `          if (value !== undefined) result[name] = value;` && |\n| &&
+             `          if (value !== undefined) result[name] = projectValue(value);` && |\n| &&
              `        } catch {` && |\n| &&
              `          // a property whose getter throws is simply not reported - the` && |\n| &&
              `          // remaining ones still have to reach the backend` && |\n| &&
