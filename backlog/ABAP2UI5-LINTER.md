@@ -22,10 +22,17 @@ _nothing exists upstream yet — this is the stock_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`bound-aggregation-size-limit`](items/bound-aggregation-size-limit.md) | the 100-entry cap is normal UI5 behaviour and `cs_event-set_size_limit` already switches it — what is missing is the detection, because a port that forgets it renders truncated with no error anywhere and every gate stays green | medium | 2026-08-24 | abap2UI5/linter |
-| [`linter-sapui5-metadata`](items/linter-sapui5-metadata.md) | a third resolve candidate plus an additive `--libs`, so `properties.json` can cover the `@sapui5/*` packages — without it the property and scope gates are blind wherever a control is SAPUI5-only | medium | 2026-08-11 | abap2UI5/linter |
-| [`metadata-experimental-since`](items/metadata-experimental-since.md) | the snapshot parses only `@since`, so a member tagged `@ui5-experimental-since` lands in properties.json with no version and the property/scope gates pass it silently — a port can sit on a 1.142 API while declaring a 1.82 floor | medium | 2026-08-24 | abap2UI5/linter |
-| [`post171-without-a-member`](items/post171-without-a-member.md) | view-gates lets a POST_171 EXCUSE a version finding but never checks the excuse corresponds to a real one, so a wrong `@since` in a sidecar silently moves a port into the wrong category folder and nothing ever reports it | medium | 2026-08-24 | abap2UI5/linter |
-| [`relative-asset-url`](items/relative-asset-url.md) | `src="./test-resources/…"` resolves against the demo kit's page but 404s from the ABAP ICF node, and no gate sees it — data-fidelity only rejects a non-OpenUI5 HOST, and a relative path has none | medium | 2026-08-24 | abap2UI5/linter |
+
+---
+
+## Filed upstream
+
+_an issue or PR exists; the item goes when it merges_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`metadata-experimental-since`](items/metadata-experimental-since.md) | the snapshot parses only `@since`, so a member tagged `@ui5-experimental-since` lands in properties.json with no version and the property/scope gates pass it silently — a port can sit on a 1.142 API while declaring a 1.82 floor<br><sub>https://github.com/abap2UI5/linter/tree/claude/samples-controls-review-u4g6cr</sub> | medium | 2026-08-24 | abap2UI5/linter |
+| [`relative-asset-url`](items/relative-asset-url.md) | `src="./test-resources/…"` resolves against the demo kit's page but 404s from the ABAP ICF node, and no gate sees it — data-fidelity only rejects a non-OpenUI5 HOST, and a relative path has none<br><sub>https://github.com/abap2UI5/linter/tree/claude/samples-controls-review-u4g6cr</sub> | medium | 2026-08-24 | abap2UI5/linter |
 
 ---
 

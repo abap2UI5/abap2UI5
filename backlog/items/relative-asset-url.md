@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a document-relative asset URL in a view — an abap2UI5 app has no document root to resolve it against'
 summary: `src="./test-resources/…"` resolves against the demo kit's page but 404s from the ABAP ICF node, and no gate sees it — data-fidelity only rejects a non-OpenUI5 HOST, and a relative path has none
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/tree/claude/samples-controls-review-u4g6cr
 first_seen: 2026-08-24
 upstream: abap2UI5/linter
 evidence:
@@ -13,6 +14,8 @@ evidence:
 ---
 
 # Report a document-relative asset URL in a view
+
+> **Implemented 2026-08-24** in `abap2UI5/linter` - the rule, its fixture and the three assertions - on branch `claude/samples-controls-review-u4g6cr`. The item stays here until that merges.
 
 ## Motivation
 
