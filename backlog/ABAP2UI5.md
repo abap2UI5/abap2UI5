@@ -25,18 +25,6 @@ _nothing exists upstream yet — this is the stock_
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`control-action-empty-string-arg`](items/control-action-empty-string-arg.md) | an empty argument to an unlisted control method is inferred as `false`, and UI5 casts a non-string implicitly for a string-typed property, so a `setText`/`setValue` that should clear a control writes the literal word "false" instead<br><sub>https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr</sub> | medium | 2026-08-23 | abap2UI5/abap2UI5 |
-| [`event-arg-date-utc-shift`](items/event-arg-date-utc-shift.md) | the control projection that made control-valued event parameters travel serializes a Date through `toISOString()`, so a control holding LOCAL midnight reaches the backend as the previous day everywhere east of Greenwich — measured, and it is why two ports still hand-roll one expression argument per array slot<br><sub>https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr</sub> | medium | 2026-08-23 | abap2UI5/abap2UI5 |
-| [`icon-pool-register-font`](items/icon-pool-register-font.md) | an app that uses an icon collection outside the default SAP-icons font has no way to register it, because IconPool is a module-level singleton no frontend-action target can address<br><sub>https://github.com/abap2UI5/abap2UI5/tree/claude/samples-controls-review-u4g6cr</sub> | low | 2026-08-24 | abap2UI5/abap2UI5 |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_
