@@ -15,23 +15,6 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`binding-call-filter-object-form`](items/binding-call-filter-object-form.md) | '`[{"path":…,"operator":…,"value1":…}]` is dropped whole by buildFilterGroups and falls into binding.filter([]), so the filter is cleared and nothing is logged'<br><sub>https://github.com/abap2UI5/linter/pull/61</sub> | high | 2026-08-24 | abap2UI5/linter |
-| [`enum-property-unseeded-field`](items/enum-property-unseeded-field.md) | 'an ABAP field is never absent, so an unseeded one reaches an enum property as "" and validateProperty throws, killing the binding update and the view'<br><sub>https://github.com/abap2UI5/linter/pull/61</sub> | high | 2026-08-24 | abap2UI5/linter |
-| [`event-arg-js-callback`](items/event-arg-js-callback.md) | '`.map(function(r){…})` in a t_arg does not degrade to a wrong value; it throws at parse time and every argument of that handler is lost'<br><sub>https://github.com/abap2UI5/linter/pull/61</sub> | high | 2026-08-24 | abap2UI5/linter |
-| [`reconstructor-drops-variable-attribute`](items/reconstructor-drops-variable-attribute.md) | 'an attribute whose value is a COND #( ) or a local variable never reaches the reconstructed view, so member-too-new, icon-too-new and every other property gate are blind to it'<br><sub>https://github.com/abap2UI5/linter/pull/61</sub> | high | 2026-08-24 | abap2UI5/linter |
-| [`root-aggregation-relative-path`](items/root-aggregation-relative-path.md) | "{path: 'T_ITEMS'} outside a bound row template has no context to resolve against; hardcoded-binding-path only matches paths that START with /, and relative-binding-without-context skips aggregations"<br><sub>https://github.com/abap2UI5/linter/pull/61</sub> | high | 2026-08-24 | abap2UI5/linter |
-| [`member-since-from-declaring-class`](items/member-since-from-declaring-class.md) | 'cards.BaseHeader is @1.86 and its press event carries no member-level @since, so a press on the @1.64 cards.Header reads as base-version and passes at a 1.71 floor'<br><sub>https://github.com/abap2UI5/linter/pull/61</sub> | medium | 2026-08-24 | abap2UI5/linter |
-| [`metadata-experimental-since`](items/metadata-experimental-since.md) | the snapshot parses only `@since`, so a member tagged `@ui5-experimental-since` lands in properties.json with no version and the property/scope gates pass it silently — a port can sit on a 1.142 API while declaring a 1.82 floor<br><sub>https://github.com/abap2UI5/linter/tree/claude/samples-controls-review-u4g6cr</sub> | medium | 2026-08-24 | abap2UI5/linter |
-| [`relative-asset-url`](items/relative-asset-url.md) | `src="./test-resources/…"` resolves against the demo kit's page but 404s from the ABAP ICF node, and no gate sees it — data-fidelity only rejects a non-OpenUI5 HOST, and a relative path has none<br><sub>https://github.com/abap2UI5/linter/tree/claude/samples-controls-review-u4g6cr</sub> | medium | 2026-08-24 | abap2UI5/linter |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_
