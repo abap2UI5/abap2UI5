@@ -21,7 +21,13 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
+| [`binding-call-filter-object-form`](items/binding-call-filter-object-form.md) | '`[{"path":…,"operator":…,"value1":…}]` is dropped whole by buildFilterGroups and falls into binding.filter([]), so the filter is cleared and nothing is logged' | high | 2026-08-24 | abap2UI5/linter |
+| [`enum-property-unseeded-field`](items/enum-property-unseeded-field.md) | 'an ABAP field is never absent, so an unseeded one reaches an enum property as "" and validateProperty throws, killing the binding update and the view' | high | 2026-08-24 | abap2UI5/linter |
+| [`event-arg-js-callback`](items/event-arg-js-callback.md) | '`.map(function(r){…})` in a t_arg does not degrade to a wrong value; it throws at parse time and every argument of that handler is lost' | high | 2026-08-24 | abap2UI5/linter |
+| [`reconstructor-drops-variable-attribute`](items/reconstructor-drops-variable-attribute.md) | 'an attribute whose value is a COND #( ) or a local variable never reaches the reconstructed view, so member-too-new, icon-too-new and every other property gate are blind to it' | high | 2026-08-24 | abap2UI5/linter |
+| [`root-aggregation-relative-path`](items/root-aggregation-relative-path.md) | "{path: 'T_ITEMS'} outside a bound row template has no context to resolve against; hardcoded-binding-path only matches paths that START with /, and relative-binding-without-context skips aggregations" | high | 2026-08-24 | abap2UI5/linter |
 | [`bound-aggregation-size-limit`](items/bound-aggregation-size-limit.md) | the 100-entry cap is normal UI5 behaviour and `cs_event-set_size_limit` already switches it — what is missing is the detection, because a port that forgets it renders truncated with no error anywhere and every gate stays green | medium | 2026-08-24 | abap2UI5/linter |
+| [`member-since-from-declaring-class`](items/member-since-from-declaring-class.md) | 'cards.BaseHeader is @1.86 and its press event carries no member-level @since, so a press on the @1.64 cards.Header reads as base-version and passes at a 1.71 floor' | medium | 2026-08-24 | abap2UI5/linter |
 
 ---
 
