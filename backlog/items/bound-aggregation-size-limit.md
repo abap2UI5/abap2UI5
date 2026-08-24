@@ -3,7 +3,7 @@ target: abap2ui5-linter
 title: 'Report a bound aggregation seeded with more rows than the model size limit'
 summary: the 100-entry cap is normal UI5 behaviour and `cs_event-set_size_limit` already switches it — what is missing is the detection, because a port that forgets it renders truncated with no error anywhere and every gate stays green
 priority: medium
-state: open
+state: deferred
 first_seen: 2026-08-24
 upstream: abap2UI5/linter
 evidence:
@@ -67,3 +67,32 @@ is 100 — raise it with cs_event-set_size_limit`.
   legitimately small list.
 - It must not fire on a table that is bound to something other than an
   aggregation (a property, a `binding` attribute), where no size limit applies.
+
+## Why this is deferred
+
+It was built, run against the whole samples-controls corpus, and dropped. The
+rule as specified above is honest — it fires only on a countable literal or a
+literal `DO n TIMES` bound, and any `set_size_limit` silences it — and it still
+produced **101 findings across 637 files, of which about one was worth having**.
+
+The false-positive class is not a bug in the detection. It is a fact the linter
+cannot see. Almost every hit was `T_PRODUCTS` with 123 rows: the shared product
+mock, bound to a table or list, in a sample whose **original also stops at
+100** — the demo-kit app binds the same oversized mock to a `JSONModel` with the
+same default cap, so the port renders exactly what the original renders. The
+port is faithful; the rule calls it broken.
+
+Deciding those apart needs the one thing the linter has no access to: whether
+the ORIGINAL raised its size limit. Nothing in the ABAP source, the view, or the
+sidecar records it. App 444 is a real finding precisely because its original
+does not use a model at all — and that, too, is only knowable from the original.
+
+That leaves the rule failing its own stated bar, written above before it was
+built: *"this rule is only worth having if it never cries wolf on a legitimately
+small list."* 123 rows against a cap of 100 is not a legitimately small list,
+but it is a legitimately correct port, and the effect on a reader is the same.
+
+Reviving it needs a source of truth about the original's own limit — an
+audited flag in the `meta/` sidecar, say, set when a port is read against its
+original. Until such a signal exists, the finding cannot be separated from the
+noise, and 100 wrong lines would bury the one right one.

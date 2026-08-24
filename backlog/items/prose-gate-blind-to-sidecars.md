@@ -85,11 +85,31 @@ change is inert in the consumers that do not use sidecars.
   bite, exclude `checked.note` rather than widening `prose-absent.json`, so the
   exemption stays a rule instead of a list.
 
-## Why this is filed rather than done
+## Status: written and verified, blocked on propagation
 
-The script is shared by three consumer repositories
-(`samples`, `samples-controls`, `samples-stack`) and `npm run check:shared`
-compares each copy against the source here. Changing the source and only one
-copy is exactly the drift that gate exists to catch, and the change should land
-in all four places in one go — which needs all three consumers checked out, not
-one.
+The change above exists and does what it says. Measured on
+`abap2UI5/samples-controls` on 2026-08-24:
+
+- clean corpus: `prose-names: 184 class name(s) checked in 8 prose file(s) and
+  622 meta/ sidecar(s)` — the sidecars roughly double what the gate reads, and
+  every name in them resolves;
+- with the 2026-08-23 defect put back into
+  `meta/z2ui5_cl_smpc_app_038.json`, the gate fails with
+  `meta/z2ui5_cl_smpc_app_038.json deviations[0].what: names
+  \`z2ui5_cl_demo_app_038\`, which abap2UI5 does not ship` — the sentence, not
+  the file, which is what the scope section asked for.
+
+Shape as implemented: a `SIDECARS` scope beside `PROSE` rather than more
+entries in it, both reduced to a `{ label, text }` list so that the regex,
+`ABSENT` and the whole ecosystem-wide resolution run over sidecar prose
+unchanged. A repository with no `meta/` contributes nothing.
+
+## Why it is not landed
+
+`npm run check:shared` compares the source here against
+`samples`, `samples-controls` and `samples-stack` — and it reads the two
+without a local checkout from `raw.githubusercontent.com/<repo>/main`. So the
+copies have to be on those repositories' **main** before the source changes
+here, or `check_gates` goes red on abap2UI5 for as long as they are not. That
+is the drift the gate exists to catch and it is working correctly; it just
+means this is a four-repository change and cannot be half-landed.

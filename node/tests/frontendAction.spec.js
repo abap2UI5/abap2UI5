@@ -629,6 +629,69 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["scroll", 42]]);
   });
 
+  // sap.m.Tree and sap.ui.table.TreeTable both expand/collapse by INDEX, and
+  // only the table hands indices over (getSelectedIndices). The m.Tree route
+  // is getSelectedItems() + indexOfItem() - a loop, and a loop in an event
+  // argument needs a JS callback the UI5 expression grammar cannot parse at
+  // all, so the app has no spelling for this without the synthetic method.
+  test("expandSelected maps an m.Tree selection to indices", () => {
+    const { FrontendAction, calls, controls } = load();
+    const items = [{ k: "a" }, { k: "b" }, { k: "c" }];
+    controls.myTree = {
+      getSelectedItems: () => [items[2], items[0]],
+      indexOfItem: (o) => items.indexOf(o),
+      expand: (i) => calls.push(["expand", i]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "myTree", "", "expandSelected"]);
+    expect(calls).toEqual([["expand", [2, 0]]]);
+  });
+
+  test("collapseSelected reads a TreeTable's indices directly", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.myTable = {
+      getSelectedIndices: () => [1, 4],
+      collapse: (i) => calls.push(["collapse", i]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "myTable", "", "collapseSelected"]);
+    expect(calls).toEqual([["collapse", [1, 4]]]);
+  });
+
+  // an index of -1 means the tree no longer holds that item; expand(-1) is not
+  // a smaller mistake than expand(undefined)
+  test("expandSelected drops an item the tree no longer holds", () => {
+    const { FrontendAction, calls, controls } = load();
+    const kept = { k: "a" };
+    controls.myTree = {
+      getSelectedItems: () => [kept, { k: "gone" }],
+      indexOfItem: (o) => (o === kept ? 0 : -1),
+      expand: (i) => calls.push(["expand", i]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "myTree", "", "expandSelected"]);
+    expect(calls).toEqual([["expand", [0]]]);
+  });
+
+  // nothing selected is not an error - and not a re-render of a tree the user
+  // did not touch either
+  test("expandSelected on an empty selection calls nothing", () => {
+    const { FrontendAction, calls, controls, errors } = load();
+    controls.myTree = {
+      getSelectedItems: () => [],
+      indexOfItem: () => -1,
+      expand: (i) => calls.push(["expand", i]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "myTree", "", "expandSelected"]);
+    expect(calls).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test("expandSelected on a control with no selection says so", () => {
+    const { FrontendAction, calls, controls, errors } = load();
+    controls.notATree = { expand: (i) => calls.push(["expand", i]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "notATree", "", "expandSelected"]);
+    expect(calls).toEqual([]);
+    expect(errors.join(" ")).toContain("no selection");
+  });
+
   // sap.m.p13n.SelectionPanel/SortPanel/GroupPanel take their items through
   // setP13nData() only - the panels expose no bindable aggregation for them -
   // so seeding a p13n popup used to need hand-written custom JS. The `object`
