@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a root-level aggregation bound with a bare relative path — it resolves against nothing and renders empty'
 summary: "{path: 'T_ITEMS'} outside a bound row template has no context to resolve against; hardcoded-binding-path only matches paths that START with /, and relative-binding-without-context skips aggregations"
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/61
 first_seen: 2026-08-24
 evidence:
   - samples-controls apps 541 and 554 bound their PlanningCalendarLegend items and appointmentItems (and 541 its specialDates) with a bare T_ path. The legend rendered empty - and in both cases the tables were additionally never passed to _bind( ), so they never reached the client model either

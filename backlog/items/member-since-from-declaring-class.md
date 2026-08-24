@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'A member with no own @since inherits its declaring class version, not the version of the control it is used on'
 summary: 'cards.BaseHeader is @1.86 and its press event carries no member-level @since, so a press on the @1.64 cards.Header reads as base-version and passes at a 1.71 floor'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/61
 first_seen: 2026-08-24
 evidence:
   - samples-controls app 528 wired press on card:Header and sat in src/01/04 claiming a 1.71 floor. The event is declared on sap.f.cards.BaseHeader, which is @since 1.86 - below that the header renders but is not pressable, so the withAction card's navigation silently does nothing

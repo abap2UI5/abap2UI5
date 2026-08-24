@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a binding_call filter payload written as an array of OBJECTS — it silently clears the binding instead of filtering it'
 summary: '`[{"path":…,"operator":…,"value1":…}]` is dropped whole by buildFilterGroups and falls into binding.filter([]), so the filter is cleared and nothing is logged'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/61
 first_seen: 2026-08-24
 evidence:
   - samples-controls apps 454, 473, 510, 515 and 521 shipped seven such payloads. 473's suggestion filter and the four value-help dialogs all cleared their binding on every search instead of applying one

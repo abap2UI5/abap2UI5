@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'A variable-valued attribute is dropped by the view reconstructor, so no property rule can ever fire on it'
 summary: 'an attribute whose value is a COND #( ) or a local variable never reaches the reconstructed view, so member-too-new, icon-too-new and every other property gate are blind to it'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/61
 first_seen: 2026-08-24
 evidence:
   - samples-controls app 454 used `initialFocus` with a COND #( ) value. It is @since 1.117 on sap.m.SelectDialogBase, the snapshot carries that fact, and the port sat in src/01 claiming a 1.71 floor - view-gates reported pass, because the attribute was never in the document it judged

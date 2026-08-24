@@ -195,6 +195,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
+             `      expandSelected: [], // NOT a UI5 method: expand the tree's selected nodes` && |\n| &&
+             `      collapseSelected: [], // NOT a UI5 method: collapse the tree's selected nodes` && |\n| &&
              `      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)` && |\n| &&
              `      setSticky: ["object"], // sap.m.ListBase/sap.m.Table: JSON array of sap.m.Sticky keys` && |\n| &&
              `      setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        get: () => sap.ui.require("sap/ui/core/IconPool"),` && |\n| &&
              `        methods: { registerFont: ["string", "string"] },` && |\n| &&
              `        display: (oController, method, aArgs) =>` && |\n| &&
-             `          registerIconFont(aArgs[0], aArgs[1]),` && |\n| &&
-             `      },` && |\n| &&
-             `      // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a` && |\n|.
+             `          registerIconFont(aArgs[0], aArgs[1]),` && |\n|.
     result = result &&
+             `      },` && |\n| &&
+             `      // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a` && |\n| &&
              `      // hard dependency (it 404s on 1.71 and kills the whole component load).` && |\n| &&
              `      // Resolve it lazily: on modern UI5 the core has it loaded, on 1.71 the` && |\n| &&
              `      // require returns undefined and the dispatch reports "not available".` && |\n| &&
@@ -680,6 +682,30 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      registeredIconFonts.add(fontFamily);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // The selected rows of a tree, as the row INDICES its expand()/collapse()` && |\n| &&
+             `    // take. Two shapes, because the two tree controls disagree:` && |\n| &&
+             `    //   sap.ui.table.TreeTable - getSelectedIndices() gives them directly` && |\n| &&
+             `    //   sap.m.Tree             - getSelectedItems() + indexOfItem() per item` && |\n| &&
+             `    // Returns null when the control is neither, so the caller can say so` && |\n| &&
+             `    // rather than silently doing nothing. An index of -1 (an item the tree no` && |\n| &&
+             `    // longer holds) is dropped: expand(-1) is not a smaller mistake than` && |\n| &&
+             `    // expand(undefined).` && |\n| &&
+             `    function selectedIndicesOf(control) {` && |\n| &&
+             `      if (typeof control.getSelectedIndices === "function") {` && |\n| &&
+             `        return control.getSelectedIndices();` && |\n| &&
+             `      }` && |\n| &&
+             `      if (` && |\n| &&
+             `        typeof control.getSelectedItems === "function" &&` && |\n| &&
+             `        typeof control.indexOfItem === "function"` && |\n| &&
+             `      ) {` && |\n| &&
+             `        return control` && |\n| &&
+             `          .getSelectedItems()` && |\n| &&
+             `          .map((item) => control.indexOfItem(item))` && |\n| &&
+             `          .filter((i) => i >= 0);` && |\n| &&
+             `      }` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Run fn once the openBy/toggleBy anchor is in the DOM. A control anchor` && |\n| &&
              `    // goes through Lib.whenRendered (immediate if already rendered, otherwise` && |\n| &&
              `    // after its next onAfterRendering); anything else (a bare DOM element, or a` && |\n| &&
@@ -751,6 +777,40 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        el.style.setProperty(prop, String(args[5] ?? ""));` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `      // expandSelected / collapseSelected are not UI5 methods either. Both` && |\n| &&
+             `      // trees take INDICES (``expand(int|int[])``, ``collapse(int|int[])``), and` && |\n| &&
+             `      // only sap.ui.table.TreeTable can hand them over: it has` && |\n| &&
+             `      // getSelectedIndices(). sap.m.Tree offers getSelectedItems() plus` && |\n| &&
+             `      // indexOfItem(), so the mapping is a LOOP - and a loop written into an` && |\n| &&
+             `      // event argument needs a JS callback, which UI5's ExpressionParser has` && |\n| &&
+             `      // no grammar for (no ``function`` keyword, ``{`` is the object-literal nud),` && |\n| &&
+             `      // so ``.getSelectedItems().map(function (o) { ... })`` does not fail on that` && |\n| &&
+             `      // argument, it takes the WHOLE handler down and every argument with it.` && |\n| &&
+             `      // The loop therefore lives here, which is the same reason ``css`` does:` && |\n| &&
+             `      // the app has no spelling for it at all. It stays a thin executor - no` && |\n| &&
+             `      // decision is made, the selection is read and handed straight back to` && |\n| &&
+             `      // the control's own method.` && |\n| &&
+             `      if (method === "expandSelected" || method === "collapseSelected") {` && |\n| &&
+             `        const op = method === "expandSelected" ? "expand" : "collapse";` && |\n| &&
+             `        if (!control || typeof control[op] !== "function") {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const indices = selectedIndicesOf(control);` && |\n| &&
+             `        if (indices === null) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        // an empty selection is not an error: nothing selected, nothing to` && |\n| &&
+             `        // expand. Calling expand([]) would be a no-op anyway, but skipping it` && |\n| &&
+             `        // keeps a stray re-render off a tree the user did not touch.` && |\n| &&
+             `        if (indices.length) control[op](indices);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      // setAsyncURLHandler takes a FUNCTION, so the argument names a policy` && |\n| &&
              `      // (see URL_POLICIES) and the client installs the matching built-in` && |\n| &&
              `      // validator - the wire still carries data, never code.` && |\n| &&
@@ -765,7 +825,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        if (!control || typeof control.setAsyncURLHandler !== "function") {` && |\n| &&
              `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``,` && |\n| &&
+             `            ``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``,` && |\n|.
+    result = result &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -825,8 +886,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const obj = target.get();` && |\n| &&
-             `      if (!obj) {` && |\n|.
-    result = result &&
+             `      if (!obj) {` && |\n| &&
              `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&

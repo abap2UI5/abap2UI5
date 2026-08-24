@@ -21,7 +21,6 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`tree-selected-indices`](items/tree-selected-indices.md) | 'sap.ui.table.TreeTable has getSelectedIndices(); sap.m.Tree has only getSelectedItems(), and mapping it to indices needs a JS callback the UI5 expression grammar cannot parse' | medium | 2026-08-24 | abap2UI5/abap2UI5 |
 | [`prose-gate-blind-to-sidecars`](items/prose-gate-blind-to-sidecars.md) | a dead class name survived a corpus-wide sweep for a month because the gate that removed it everywhere else checks eight markdown files and no sidecar — and a sidecar deviation is prose, read by agents, and is where the corpus writes most of its class references | low | 2026-08-23 | abap2UI5/abap2UI5 |
 
 ---

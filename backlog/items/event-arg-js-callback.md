@@ -3,7 +3,8 @@ target: abap2ui5-linter
 title: 'Report a JS callback in an event argument — UI5 ExpressionParser has no function keyword, so the WHOLE handler fails to parse'
 summary: '`.map(function(r){…})` in a t_arg does not degrade to a wrong value; it throws at parse time and every argument of that handler is lost'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abap2UI5/linter/pull/61
 first_seen: 2026-08-24
 evidence:
   - samples-controls apps 537, 538, 539 and 547 shipped `.map(function(r){…})` / `.some(function(a){…})`. All four intervalSelect and appointmentSelect wires were dead, including 547's group report
