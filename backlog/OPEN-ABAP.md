@@ -23,6 +23,7 @@ _nothing exists upstream yet — this is the stock_
 |---|---|---|---|---|
 | [`open-abap-xml-escaping`](items/open-abap-xml-escaping.md) | element values are written raw, so a model value containing `<` produces a draft the transpiled `CL_IXML` cannot parse back | high | 2026-07-31 | open-abap/open-abap-core |
 | [`transpiler-returning-is-supplied`](items/transpiler-returning-is-supplied.md) | it compiles to `INPUT.result`, which no call site ever sets, so `follow_up_action( )`'s wired branch is dead and every view-wired handler arrives empty | high | 2026-08-13 | abaplint/transpiler |
+| [`boolean-event-arg-string-in-transpiler`](items/boolean-event-arg-string-in-transpiler.md) | the framework's ajson path normalizes a JSON boolean `t_arg` to `X`/space on a real system; in open-abap the same argument lands verbatim as `'true'`/`'false'`, so the comparison fails, the flag never flips and the wire reads as dead while the port is correct | medium | 2026-08-25 | open-abap/open-abap-core |
 | [`transpiler-reserved-js-identifiers`](items/transpiler-reserved-js-identifiers.md) | an ABAP identifier called `with`, `class`, `delete`, … is emitted as-is and dies in strict mode — every consumer has to discover the word and add it to a config list first<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-08-17: fires on <b>1</b> site(s) in abap2UI5, 7 correct look-alike(s)</sub> | medium | 2026-08-17 | abaplint/transpiler |
 
 ---
