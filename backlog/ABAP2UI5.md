@@ -15,16 +15,6 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-## Ready to file
-
-_nothing exists upstream yet — this is the stock_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`prose-gate-blind-to-sidecars`](items/prose-gate-blind-to-sidecars.md) | a dead class name survived a corpus-wide sweep for a month because the gate that removed it everywhere else checks eight markdown files and no sidecar — and a sidecar deviation is prose, read by agents, and is where the corpus writes most of its class references | low | 2026-08-23 | abap2UI5/abap2UI5 |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_

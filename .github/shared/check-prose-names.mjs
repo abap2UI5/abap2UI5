@@ -67,6 +67,37 @@ const PROSE = ['README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'CLAUDE.md', 'TRAINI
  * is history, not drift. Same reasoning as abap2UI5's changelog cut-off. */
 const HISTORY = /STATUS-history\.md$/;
 
+/* The other half of the prose, and in a sample repository the bigger half.
+ * Every port carries a `meta/<class>.json` whose `deviations[].what`,
+ * `audit.note` and `checked.note` are long-form sentences — samples-controls'
+ * own AGENTS.md calls a deviation "a log entry about a process" and puts it
+ * there BECAUSE it is prose — and those sentences cite sibling ports
+ * constantly. They were out of scope until 2026-08-24, which is how
+ * `meta/z2ui5_cl_smpc_app_038.json` kept citing the retired
+ * `z2ui5_cl_demo_app_038` through a corpus-wide sweep that reported itself
+ * finished. It travels further than a sidecar suggests: generate-overview.mjs
+ * bakes these texts into ABAP that gets pulled into a customer system.
+ *
+ * Read as a second scope rather than as more entries in PROSE, because the
+ * files are JSON and the reader differs. NOT the sidecar's own `class` field,
+ * which names the port the file belongs to and would double every port into
+ * the count. A repository with no `meta/` contributes nothing, so this is
+ * inert in the consumers that do not use sidecars. */
+const SIDECARS = 'meta';
+const SIDECAR_PROSE = (file) => {
+  const out = [];
+  let doc;
+  try { doc = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return out; }
+  const at = path.relative(ROOT, file);
+  (doc.deviations ?? []).forEach((d, i) => {
+    if (typeof d?.what === 'string') out.push({ label: `${at} deviations[${i}].what`, text: d.what });
+  });
+  for (const [key, holder] of [['audit', doc.audit], ['checked', doc.checked]]) {
+    if (typeof holder?.note === 'string') out.push({ label: `${at} ${key}.note`, text: holder.note });
+  }
+  return out;
+};
+
 /* Names that are meant to be absent, from `scripts/prose-absent.json` — one
  * per repository, because what a repository deliberately names in the past
  * tense is its own business. Each needs its reason, so an entry cannot become
@@ -166,10 +197,27 @@ async function catalogueOf(repo) {
 const problems = [];
 let checked = 0;
 
+/* Both scopes reduce to the same thing: a labelled piece of prose. Everything
+ * below — the regex, ABSENT, the ecosystem-wide resolution including the
+ * foreign SAMPLES.md lookup — then runs over sidecar text unchanged, which is
+ * the whole reason to do this in the shared script rather than beside it. */
+const sources = [];
 for (const file of PROSE) {
   const at = path.join(ROOT, file);
   if (!fs.existsSync(at) || HISTORY.test(at)) continue;
-  const text = fs.readFileSync(at, 'utf8');
+  sources.push({ label: file, text: fs.readFileSync(at, 'utf8') });
+}
+const sidecarDir = path.join(ROOT, SIDECARS);
+let sidecarFiles = 0;
+if (fs.existsSync(sidecarDir)) {
+  for (const name of fs.readdirSync(sidecarDir).sort()) {
+    if (!name.endsWith('.json')) continue;
+    sidecarFiles += 1;
+    sources.push(...SIDECAR_PROSE(path.join(sidecarDir, name)));
+  }
+}
+
+for (const { label: file, text } of sources) {
   const seen = new Set();
 
   /* Two shapes look like a name and are not one; both are a PREFIX standing for
@@ -228,7 +276,8 @@ for (const file of PROSE) {
   }
 }
 
-console.log(`prose-names: ${checked} class name(s) checked in ${PROSE.length} prose file(s)`);
+console.log(`prose-names: ${checked} class name(s) checked in ${PROSE.length} prose file(s)`
+  + (sidecarFiles ? ` and ${sidecarFiles} ${SIDECARS}/ sidecar(s)` : ''));
 for (const n of notes) console.log(`  ${n}`);
 
 if (problems.length) {
