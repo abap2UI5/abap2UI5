@@ -1,0 +1,98 @@
+# The linter comes from npm as `@abap2ui5/linter`, and package-lock.json is
+# what actually decides which version the gates run: the shared setup action
+# does `npm ci`, which reads the lock. Nothing here moved it. The lock sat at
+# 0.2.2 through 0.3.0 and 0.4.x while the three sample repositories moved on,
+# and `^0.2.2` means `>=0.2.2 <0.3.0` - so 0.3.0 could not arrive even through
+# a fresh install. The gate stayed green the whole time and said less every
+# release without saying so.
+#
+# This repository is a linter CONSUMER like the sample corpora, for a reason
+# spelled out in abap2ui5lint.jsonc: the app classes under src/01/04, src/02
+# and node/srv are what an app developer copies from, so the corpus this
+# repository ships to be imitated is checked with the tool it ships for
+# imitators. A stale pin there means the shipped examples are held to an older
+# standard than the samples that follow them.
+#
+# It tracks `latest` rather than staying inside the declared range, because the
+# range is the thing being maintained here: a linter release that adds rules is
+# additive for the linter and breaking for a corpus, so a range that pins the
+# corpus out of new rules is the failure, not the protection.
+#
+# BOTH gates run before the PR exists, which is what makes tracking `latest`
+# safe - a rule regression fails this workflow instead of landing on main:
+#
+#   check:abap2ui5   the properties half, the one check_gates.yaml runs
+#   check:render     the render half, which needs @abap2ui5/render-runtime
+#
+# The runtime is installed --no-save at the linter's exact version, the way
+# render-gate.yaml does it: the two packages are cut from one tag, and it is
+# deliberately NOT a dependency here (~123 MB of UI5 that every other job
+# would pay for through the shared `npm ci`). --no-save leaves package.json
+# AND package-lock.json untouched - verified, because this workflow commits
+# the lock and a runtime entry leaking into it would be committed with it.
+name: bump-linter
+
+on:
+  schedule:
+    - cron: '11 6 * * 1'   # Mondays 06:11 UTC - before the three sample corpora
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump-linter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: '22'
+
+    - name: Move @abap2ui5/linter to the latest published version
+      id: pin
+      run: |
+        set -euo pipefail
+        # Resolved first and checked, because `npm view` prints nothing and
+        # still exits 0 when a package has no `latest` dist-tag - installing
+        # `@abap2ui5/linter@` would then resolve to whatever npm felt like.
+        VERSION=$(npm view @abap2ui5/linter version)
+        test -n "$VERSION"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        # Writes the range in package.json AND the exact version in the lock.
+        # Both matter: the range is what a fresh install reads, the lock is
+        # what `npm ci` reads, and the gates below run on the lock.
+        npm install --save-dev "@abap2ui5/linter@$VERSION"
+        # package.json alone is not the signal: a release inside the declared
+        # range moves only package-lock.json, and that is exactly the bump this
+        # repository needs to see.
+        if git diff --quiet package.json package-lock.json; then
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - if: steps.pin.outputs.changed == 'true'
+      run: npm run check:abap2ui5
+
+    # the render half, exactly as render-gate.yaml installs it
+    - if: steps.pin.outputs.changed == 'true'
+      run: npm i --no-save --no-audit --no-fund "@abap2ui5/render-runtime@${{ steps.pin.outputs.version }}"
+    - if: steps.pin.outputs.changed == 'true'
+      run: npx playwright install --with-deps chromium
+    - if: steps.pin.outputs.changed == 'true'
+      run: npm run check:render
+
+    - if: steps.pin.outputs.changed == 'true'
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      with:
+        branch: bump-linter
+        title: 'chore: bump @abap2ui5/linter'
+        commit-message: 'chore: bump @abap2ui5/linter to ${{ steps.pin.outputs.version }}'
+        body: |
+          Weekly move of `@abap2ui5/linter` to the latest version on npm
+          (${{ steps.pin.outputs.version }}). Both gates that consume it ran
+          over the shipped app classes in the workflow that opened this PR -
+          `check:abap2ui5` and `check:render`.
