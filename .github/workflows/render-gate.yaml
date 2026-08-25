@@ -23,6 +23,12 @@ on:
       - 'src/**'
       - 'abap2ui5lint.jsonc'
       - '.github/workflows/render-gate.yaml'
+      # The lock decides WHICH linter renders: the install step below reads the
+      # version out of it, so a bump changes what this gate does more than a
+      # config edit ever could - and it was the one input that did not start
+      # the gate. bump-linter.yaml runs check:render itself, so an automated
+      # bump was covered; a lock moved by hand was not.
+      - 'package-lock.json'
   push:
     branches: [main]
   workflow_dispatch:
