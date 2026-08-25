@@ -177,3 +177,7 @@ jobs:
       - name: every FOR TESTING method asserts something
         if: ${{ !cancelled() }}
         run: npm run check:asserts
+
+      - name: no built-in function in a 7.02 non-expression operand position
+        if: ${{ !cancelled() }}
+        run: npm run check:downport
