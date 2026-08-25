@@ -652,6 +652,24 @@ test: add unit tests for utility class
   renaming, restructuring) must not ride along in a PR titled for an
   unrelated fix — split it into its own PR so the history stays searchable.
 
+### Issues reported by users
+
+- **Never close an issue somebody else reported, and never let a merge close
+  it.** The reporter is the only one who can confirm the fix, because the
+  defect is on *their* system and ours is what shipped it. Merging a PR is
+  not the end of the report — activating the fix on the affected system is,
+  and only they can do that. So do not use a closing keyword (`Fixes #NNNN`,
+  `Closes #NNNN`, `Resolves #NNNN`) in a PR title, body or commit message:
+  GitHub acts on it at merge time and closes the issue without anybody
+  deciding to. Write `Report: #NNNN` or `See #NNNN` instead, which links the
+  two without the side effect. #2664 was closed exactly this way.
+- **A reply on an issue is written for the reporter, not as a record of the
+  analysis.** A few lines: what was actually wrong, what they do now, and
+  whether their own reading of it was right. The evidence, the ruled-out
+  alternatives and the reasoning belong in the PR body and in the code
+  comment at the fix — a reader who wants them follows the link. A long
+  answer buries the one sentence the reporter needs.
+
 ## Important Rules for AI Assistants
 
 These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, read `docs/agents/building-apps.md` instead (rendered docs site: <https://abap2ui5.github.io/docs/>).
