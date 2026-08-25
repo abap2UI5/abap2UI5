@@ -543,12 +543,33 @@ transpiled tests. Nothing here is a linter rule and nothing here should be: the
 downport is a build of this repository, not a property of somebody's app.
 
 **Backlog:** open-abap · transpiler-reserved-js-identifiers
+**Backlog:** abaplint · abaplint-downport-builtin-operand
 
 Every framework file is downported to 7.02 (`npm run auto_downport`) and
 transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
+- **Never put a 7.02 built-in function inside a table-expression key.** This is
+  the sharpest case in this section, because all four checks were green and a
+  user's system was not. `line_exists( mt_names[ table_line = to_upper( is_node-name ) ] )`
+  is valid at v750; the downport rewrites it to
+  `READ TABLE mt_names WITH KEY table_line = to_upper( is_node-name )`, carrying
+  the call over verbatim, and a `WITH KEY` operand is not a general expression
+  position before 7.40. A built-in function is only *read* as one where a string
+  expression is allowed, so 7.02/7.31 falls back to the only other reading of
+  `name( … )` — a functional method call — and the class pool dies with
+  `SYNTAX_ERROR`, "method TO_UPPER is unknown". That class is
+  `z2ui5_cl_ui5_client`, so every app on the system was down (#2664).
+  **Hoist the call into a variable on the line above**; a plain assignment IS an
+  expression position at 7.02, so the variable is the whole fix. Same for a
+  `WITH [TABLE] KEY` you write yourself and for an internal-table `WHERE`.
+  *Not* affected: a functional **method** call in those positions (that reading
+  is what 7.02 already applies), and the pre-7.02 built-ins — the same
+  downported method has `READ TABLE lt_parts INDEX lines( lt_parts )` ten lines
+  above the failure and the compiler accepted it.
+  **Gate:** `npm run check:downport` over `src/`, and the downport is asked to
+  hoist it upstream (backlog below).
 - **Do not let an inline `DATA(…)` take its type from an offset/length
   expression.** `DATA(lv_field) = ls_attri->name+9.` made abaplint's
   `definitions_top` infer `TYPE name`, which is no DDIC type at v702, and

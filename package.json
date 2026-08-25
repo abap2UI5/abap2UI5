@@ -42,6 +42,7 @@
     "check:api": "node .github/scripts/api-snapshot.mjs",
     "check:formatter": "node .github/scripts/formatter-scope-gate.mjs",
     "check:asserts": "node .github/scripts/assertion-gate.mjs",
+    "check:downport": "node .github/scripts/downport-operand-gate.mjs",
     "blockers": "node .github/scripts/removal-blockers.mjs",
     "check:release": "node .github/scripts/release-gate.mjs",
     "coverage": "node .github/scripts/coverage-report.mjs",

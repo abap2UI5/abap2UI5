@@ -113,7 +113,15 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF NOT line_exists( mt_names[ table_line = to_upper( is_node-name ) ] ).
+    " to_upper( ) is hoisted on purpose - it must NOT sit inside the table
+    " expression. The downporter rewrites line_exists( tab[ k = x ] ) into
+    " READ TABLE tab WITH KEY k = x, and a WITH KEY operand is not a general
+    " expression position before 7.40: 7.02/7.31 parse `to_upper( )` there as
+    " a method call and the whole class pool fails to compile with "method
+    " TO_UPPER is unknown" (#2664). In a plain assignment the built-in is fine
+    " on 7.02, so the variable is all it takes.
+    DATA(lv_name) = to_upper( is_node-name ).
+    IF NOT line_exists( mt_names[ table_line = lv_name ] ).
       RETURN.
     ENDIF.
 
