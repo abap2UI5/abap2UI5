@@ -15,6 +15,16 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`navcontainer-position-not-reissued`](items/navcontainer-position-not-reissued.md) | a NavContainer / FlexibleColumnLayout / ToolPage position is live control state a rebuilt view resets, while the bound `selectedKey`-family field that describes it is class state that survives; the discriminator is mechanical and a rule can carry it | medium | 2026-08-26 | abap2UI5/linter |
+
+---
+
 ## Deferred
 
 _a decision was made not to do this now, and why_

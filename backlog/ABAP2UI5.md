@@ -21,7 +21,9 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
+| [`delta-cell-conversion-silent`](items/delta-cell-conversion-silent.md) | delta_apply_field ends in `CATCH cx_root ##NO_HANDLER` ("skip just this cell"), so a conversion failure in a ROW cell keeps the old value while the browser still shows what was typed - unlike the scalar path, which raises JSON_PARSING_ERROR | medium | 2026-08-26 | abap2UI5/abap2UI5 |
 | [`fcl-control-id-cast-in-to`](items/fcl-control-id-cast-in-to.md) | the `to` whitelist entry casts its first argument with the `controlId` kind, which resolves to a Control; `sap.m.NavContainer.to` converts that to an id, but `sap.f.FlexibleColumnLayout.to` passes it straight into `getPage( )`, which compares ids as strings - so no column matches, the call falls through to the END column, and the begin-column page never appears | medium | 2026-08-26 | abap2UI5/abap2UI5 |
+| [`badge-setter-arg-kinds`](items/badge-setter-arg-kinds.md) | neither setter is in CONTROL_METHODS, so castArgAuto leaves the value a string; sap.m.Button then evaluates `iMin <= this._badgeMaxValue` lexicographically, and a pair like min 9 / max 50 is dropped with only a Log.warning | low | 2026-08-26 | abap2UI5/abap2UI5 |
 
 ---
 
