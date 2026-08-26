@@ -11,7 +11,7 @@ evidence:
   - sap.m.NavContainer.to converts a Control to its id at NavContainer.js:782 (`if (vPageIdOrControl instanceof Control) { vPageIdOrControl = vPageIdOrControl.getId(); }`), which is why every plain NavContainer port works and only the FCL ones do not
   - sap.f.FlexibleColumnLayout.to (FlexibleColumnLayout.js:2873) probes `this._getBeginColumn().getPage(sPageId)` and NavContainer.getPage compares `aPages[i].getId() == pageId` (NavContainer.js:485), so a Control never matches any column and the final `else` sends it to the end column
   - no gate can see it - the id in the ABAP is correct, so `frontend-action-unknown-id` passes; the CAST is what is wrong. App 578's own e2e module passed throughout because it asserted `productsTable.getItems()`, which an unrendered control still answers
-  - the same trap applies to `backToPage`, whitelisted with the same `controlId` kind
+  - `backToPage` is NOT affected by this cast and is NOT whitelisted at all (an earlier draft of this item said it was, which was wrong): `back`, `backDetail` and `backMaster` are the only back-navigation entries in CONTROL_METHODS and all three are zero-arg. A `backToPage` call therefore takes the unlisted-method path, where castArgAuto hands `NavContainer.backToPage( pageId )` the raw ABAP literal - unprefixed, where the rendered id carries the view prefix. Whether that misses is a separate, UNMEASURED question; samples-controls app 101 has the only two call sites
 ---
 
 # `to` hands FlexibleColumnLayout a Control where it expects a page-id string
@@ -69,3 +69,10 @@ Two candidates, both one line; the first is preferred.
 - **It must not silently swallow a miss.** Whatever is chosen, a `to` naming a
   page no column owns should say so - today it lands on the end column and
   reports nothing an app can see.
+
+## Adjacent, not part of this item
+
+`backToPage` is unlisted rather than mis-cast, so it is a different question and
+is deliberately left out of scope here. Whoever picks this up should decide
+whether the unlisted path handing over an unprefixed id is a second defect or
+merely unused; do not fold it into this change without measuring it first.
