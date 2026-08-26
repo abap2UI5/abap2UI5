@@ -157,17 +157,57 @@ sap.ui.define(
       installShortcutListener();
     }
 
+    // ------------------------------------------------------------------
+    // KEYBOARD_SET_MODE: the HTML `inputmode` of an input - inputmode="none"
+    // is what keeps the soft keyboard down on a scanner device.
+    //
+    // The mode is a property of the CONTROL, but `inputmode` is an attribute
+    // of the DOM element UI5 throws away and rebuilds on every re-render, so
+    // setting it once is not enough. It is remembered per control here and
+    // re-applied after each rendering.
+    // ------------------------------------------------------------------
+
+    // control -> { mode }, the mode the delegate installed on that control
+    // applies; a WeakMap so a destroyed control (a full view rebuild destroys
+    // them all) takes its entry with it
+    const inputModes = new WeakMap();
+
+    function applyInputMode(oElement, mode) {
+      const dom = oElement.getDomRef();
+      if (!dom) return;
+      const input = dom.matches("input, textarea")
+        ? dom
+        : dom.querySelector("input, textarea");
+      if (!input) return;
+      input.setAttribute("inputmode", mode);
+    }
+
     function evKeyboardSetMode(oController, args) {
       try {
-        const oElement = ViewSlots.byId("MAIN", args[1]);
+        // resolveById, not byId("MAIN"): the scan field may sit in a popup,
+        // a popover or a nested view - same resolution SET_FOCUS uses
+        const oElement = ViewSlots.resolveById(args[1]);
         if (!oElement) return;
-        const dom = oElement.getDomRef();
-        if (!dom) return;
-        const input = dom.matches("input, textarea")
-          ? dom
-          : dom.querySelector("input, textarea");
-        if (!input) return;
-        input.setAttribute("inputmode", args[2] || "text");
+        const mode = args[2] || "text";
+        const entry = inputModes.get(oElement);
+        if (entry) {
+          // one delegate per control: re-issuing the action only changes the
+          // mode the delegate already installed applies
+          entry.mode = mode;
+        } else {
+          const state = { mode };
+          inputModes.set(oElement, state);
+          oElement.addEventDelegate({
+            onAfterRendering: () => applyInputMode(oElement, state.mode),
+          });
+        }
+        // An app that re-issues the mode next to a FULL re-render (the usual
+        // shape: view_display, then set focus and input mode) reaches here
+        // BEFORE UI5 rendered the freshly built control - getDomRef( ) is
+        // null then and only the delegate above can land the attribute.
+        // Applying here as well covers the already-rendered control, i.e.
+        // the view_model_update path, in the same roundtrip.
+        applyInputMode(oElement, mode);
       } catch (e) {
         Lib.logError(
           `KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'`,

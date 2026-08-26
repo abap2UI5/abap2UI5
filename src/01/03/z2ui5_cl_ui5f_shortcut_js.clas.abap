@@ -184,17 +184,57 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      installShortcutListener();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `    // KEYBOARD_SET_MODE: the HTML ``inputmode`` of an input - inputmode="none"` && |\n| &&
+             `    // is what keeps the soft keyboard down on a scanner device.` && |\n| &&
+             `    //` && |\n| &&
+             `    // The mode is a property of the CONTROL, but ``inputmode`` is an attribute` && |\n| &&
+             `    // of the DOM element UI5 throws away and rebuilds on every re-render, so` && |\n| &&
+             `    // setting it once is not enough. It is remembered per control here and` && |\n| &&
+             `    // re-applied after each rendering.` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `    // control -> { mode }, the mode the delegate installed on that control` && |\n| &&
+             `    // applies; a WeakMap so a destroyed control (a full view rebuild destroys` && |\n| &&
+             `    // them all) takes its entry with it` && |\n| &&
+             `    const inputModes = new WeakMap();` && |\n| &&
+             `` && |\n| &&
+             `    function applyInputMode(oElement, mode) {` && |\n| &&
+             `      const dom = oElement.getDomRef();` && |\n| &&
+             `      if (!dom) return;` && |\n| &&
+             `      const input = dom.matches("input, textarea")` && |\n| &&
+             `        ? dom` && |\n| &&
+             `        : dom.querySelector("input, textarea");` && |\n| &&
+             `      if (!input) return;` && |\n| &&
+             `      input.setAttribute("inputmode", mode);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evKeyboardSetMode(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `        // resolveById, not byId("MAIN"): the scan field may sit in a popup,` && |\n| &&
+             `        // a popover or a nested view - same resolution SET_FOCUS uses` && |\n| &&
+             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
-             `        const dom = oElement.getDomRef();` && |\n| &&
-             `        if (!dom) return;` && |\n| &&
-             `        const input = dom.matches("input, textarea")` && |\n| &&
-             `          ? dom` && |\n| &&
-             `          : dom.querySelector("input, textarea");` && |\n| &&
-             `        if (!input) return;` && |\n| &&
-             `        input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
+             `        const mode = args[2] || "text";` && |\n| &&
+             `        const entry = inputModes.get(oElement);` && |\n| &&
+             `        if (entry) {` && |\n| &&
+             `          // one delegate per control: re-issuing the action only changes the` && |\n| &&
+             `          // mode the delegate already installed applies` && |\n| &&
+             `          entry.mode = mode;` && |\n| &&
+             `        } else {` && |\n| &&
+             `          const state = { mode };` && |\n| &&
+             `          inputModes.set(oElement, state);` && |\n| &&
+             `          oElement.addEventDelegate({` && |\n| &&
+             `            onAfterRendering: () => applyInputMode(oElement, state.mode),` && |\n| &&
+             `          });` && |\n| &&
+             `        }` && |\n| &&
+             `        // An app that re-issues the mode next to a FULL re-render (the usual` && |\n| &&
+             `        // shape: view_display, then set focus and input mode) reaches here` && |\n| &&
+             `        // BEFORE UI5 rendered the freshly built control - getDomRef( ) is` && |\n| &&
+             `        // null then and only the delegate above can land the attribute.` && |\n| &&
+             `        // Applying here as well covers the already-rendered control, i.e.` && |\n| &&
+             `        // the view_model_update path, in the same roundtrip.` && |\n| &&
+             `        applyInputMode(oElement, mode);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&

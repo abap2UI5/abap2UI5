@@ -2066,6 +2066,106 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
   });
 });
 
+test.describe("KEYBOARD_SET_MODE (soft keyboard via inputmode)", () => {
+  // A UI5 input as the browser sees it: every render builds a NEW inner
+  // <input>, so an `inputmode` attribute written once is gone afterwards.
+  // `rendered: false` is the state right after a full view build - the
+  // control exists, its DOM does not.
+  function inputFixture({ rendered = true } = {}) {
+    const delegates = [];
+    let inner = null;
+    let root = null;
+    const render = () => {
+      const attrs = {};
+      inner = { attrs, setAttribute: (k, v) => (attrs[k] = v) };
+      root = { matches: () => false, querySelector: () => inner };
+      // UI5 calls the delegates once the new DOM is in place
+      for (const d of [...delegates]) d.onAfterRendering?.();
+    };
+    const control = {
+      getDomRef: () => root,
+      addEventDelegate: (d) => delegates.push(d),
+      removeEventDelegate: (d) => {
+        const i = delegates.indexOf(d);
+        if (i >= 0) delegates.splice(i, 1);
+      },
+    };
+    if (rendered) render();
+    return { control, delegates, render, mode: () => inner?.attrs.inputmode };
+  }
+
+  function loadWithInput(fx) {
+    const loaded = load();
+    loaded.controls.inp = fx.control;
+    return loaded;
+  }
+
+  test("sets the mode on the inner input of a rendered control", () => {
+    const fx = inputFixture();
+    const { FrontendAction } = loadWithInput(fx);
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp", "none"]);
+    expect(fx.mode()).toBe("none");
+  });
+
+  test("defaults to text when no mode is passed", () => {
+    const fx = inputFixture();
+    const { FrontendAction } = loadWithInput(fx);
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp"]);
+    expect(fx.mode()).toBe("text");
+  });
+
+  test("lands the attribute after a full re-render, where the control has no DOM yet", () => {
+    // The regression: an app that re-issues the mode next to view_display
+    // runs BEFORE UI5 rendered the freshly built control. Dropping the
+    // action there left the input without inputmode="none" - and the soft
+    // keyboard came back on every refresh.
+    const fx = inputFixture({ rendered: false });
+    const { FrontendAction } = loadWithInput(fx);
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp", "none"]);
+    expect(fx.mode()).toBeUndefined();
+    fx.render();
+    expect(fx.mode()).toBe("none");
+  });
+
+  test("keeps the mode when UI5 re-renders the control", () => {
+    const fx = inputFixture();
+    const { FrontendAction } = loadWithInput(fx);
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp", "none"]);
+    // a value change alone re-renders the input and drops the attribute
+    fx.render();
+    expect(fx.mode()).toBe("none");
+  });
+
+  test("re-issuing swaps the mode without stacking a second delegate", () => {
+    const fx = inputFixture();
+    const { FrontendAction } = loadWithInput(fx);
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp", "none"]);
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp", "numeric"]);
+    expect(fx.mode()).toBe("numeric");
+    expect(fx.delegates).toHaveLength(1);
+    fx.render();
+    expect(fx.mode()).toBe("numeric");
+  });
+
+  test("an unknown control id is a no-op", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "nope", "none"]);
+    expect(errors).toEqual([]);
+  });
+
+  test("reports a failing DOM instead of throwing", () => {
+    const { FrontendAction, controls, errors } = load();
+    controls.inp = {
+      getDomRef: () => {
+        throw new Error("no dom");
+      },
+      addEventDelegate: () => {},
+    };
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp", "none"]);
+    expect(errors[0]).toContain("KEYBOARD_SET_MODE");
+  });
+});
+
 test.describe("START_TIMER (backend timer liveness)", () => {
   test("the fired timer dispatches only while the app is alive", () => {
     // deterministic timers: capture the callback instead of waiting it out
