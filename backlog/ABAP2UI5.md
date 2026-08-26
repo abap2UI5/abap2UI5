@@ -15,6 +15,16 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`fcl-control-id-cast-in-to`](items/fcl-control-id-cast-in-to.md) | the `to` whitelist entry casts its first argument with the `controlId` kind, which resolves to a Control; `sap.m.NavContainer.to` converts that to an id, but `sap.f.FlexibleColumnLayout.to` passes it straight into `getPage( )`, which compares ids as strings - so no column matches, the call falls through to the END column, and the begin-column page never appears | medium | 2026-08-26 | abap2UI5/abap2UI5 |
+
+---
+
 ## Deferred
 
 _a decision was made not to do this now, and why_
