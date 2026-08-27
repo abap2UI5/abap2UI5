@@ -102,6 +102,28 @@ INTERFACE z2ui5_if_client
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
+    "! One table cell of this roundtrip's delta that could NOT be applied. The
+    "! value DID arrive from the client, it just would not convert into the
+    "! ABAP component behind the cell - `1,250.00` or `12.50 EUR` into a
+    "! packed price, text into an integer. Such a cell is SKIPPED, never
+    "! raised on: one unconvertible cell must not kill a delta that carries
+    "! many good ones. This is the trace of that skip, and the only way an app
+    "! can find out it happened - the browser still shows what the user typed,
+    "! because the client model was updated before the roundtrip.
+    "! See z2ui5_cl_ui5_srv_model=>delta_apply_field, which fills it.
+    BEGIN OF ty_s_model_skip,
+      " the bound attribute that holds the table, spelled as the app declared
+      " it (`MT_PRODUCTS`). A cell of a NESTED table names the path to it,
+      " parent first (`MT_TREE-NODES`)
+      name  TYPE string,
+      " 1-based ABAP row index in that table
+      row   TYPE i,
+      " the component inside the row (`PRICE`)
+      field TYPE string,
+    END OF ty_s_model_skip.
+  TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH EMPTY KEY.
+
+  TYPES:
     "! Everything the frontend sent with this roundtrip - the return type of
     "! get( ). s_draft and s_config are written out here rather than named
     "! separately, the way s_device, s_focus, s_scroll and s_ui5 already are:
@@ -188,6 +210,20 @@ INTERFACE z2ui5_if_client
         check_leave TYPE abap_bool,
         check_call  TYPE abap_bool,
       END OF _s_nav,
+      " The table cells this roundtrip's delta could not apply - empty in
+      " the normal case. Only a value that actually ARRIVED and failed to
+      " convert is listed; a field the client never sent is not an error.
+      " An app that writes back what the user edited reads this to tell the
+      " user which cell was refused (and to stay in edit mode) instead of
+      " reporting a success the model does not carry. The scalar-attribute
+      " path is unaffected - a value that will not convert into a non-table
+      " attribute still raises JSON_PARSING_ERROR, as it always has.
+      " It sits AFTER the internal _s_nav block rather than next to the other
+      " t_* members because the API gate only accepts a component APPENDED at
+      " the end of a public structure as compatible (api-snapshot.mjs,
+      " isAdditiveTypeComponents) - an insertion in the middle is a rule-5
+      " violation
+      t_model_skipped        TYPE ty_t_model_skip,
     END OF ty_s_get.
 
   TYPES:

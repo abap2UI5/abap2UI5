@@ -786,12 +786,18 @@ test.describe("CONTROL_BY_ID", () => {
     });
 
     test("a plain id still resolves exactly as before", () => {
+      // toDetail, not to: `to` takes the pageId kind now (see the
+      // page-id navigation describe below), and this test is about the
+      // plain-id vs "<id>/<aggregation>/<index>" resolution forms, which
+      // both kinds share.
       const { FrontendAction, calls, controls } = load();
       const page2 = { id: "page2" };
       controls.page2 = page2;
-      controls.NavCon = { to: (ctrl) => calls.push(["to", ctrl]) };
-      FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
-      expect(calls).toEqual([["to", page2]]);
+      controls.SplitApp = { toDetail: (ctrl) => calls.push(["toDetail", ctrl]) };
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID", "SplitApp", "", "toDetail", "page2",
+      ]);
+      expect(calls).toEqual([["toDetail", page2]]);
     });
 
     test("an out-of-range index is reported, not silently passed as undefined", () => {
@@ -1039,15 +1045,18 @@ test.describe("CONTROL_BY_ID", () => {
   });
 
   test("to passes the optional transitionName (NavContainer animation)", () => {
+    // the first argument is the RESOLVED page's id (the pageId kind - see
+    // the page-id navigation describe at the end of this file); only the
+    // trailing transitionName is under test here
     const { FrontendAction, calls, controls } = load();
-    const page2 = { id: "page2" };
+    const page2 = { getId: () => "v1--page2" };
     controls.page2 = page2;
     controls.NavCon = { to: (...a) => calls.push(["to", ...a]) };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2", "fade"]);
     FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
     expect(calls).toEqual([
-      ["to", page2, "fade"],
-      ["to", page2],
+      ["to", "v1--page2", "fade"],
+      ["to", "v1--page2"],
     ]);
   });
 
@@ -2285,5 +2294,223 @@ test.describe("SET_FAVICON (browser tab icon)", () => {
     });
     FrontendAction.execute(null, ["SET_FAVICON", "/icon.png"]);
     expect(errors[0]).toContain("SET_FAVICON");
+  });
+});
+
+// ---------------------------------------------------------------------
+// `to` and the pageId argument kind.
+//
+// The three containers that own a `to( )` disagree about its first
+// argument. sap.m.NavContainer normalises a Control to its id
+// (NavContainer.js:782), but sap.f.FlexibleColumnLayout.to
+// (FlexibleColumnLayout.js:2873) and sap.m.SplitContainer.to probe their
+// columns with getPage( sPageId ), which compares `aPages[i].getId() ==
+// pageId` (NavContainer.js:485). A Control never equals an id string, so
+// every probe missed and the trailing `else` navigated the LAST column.
+// The stubs below are those three lines, so the spec fails the same way
+// the real controls did if the kind ever goes back to `controlId`.
+// ---------------------------------------------------------------------
+function pageStub(sId) {
+  return { getId: () => sId, name: sId };
+}
+
+function navContainerStub(aPages, aLog, sName) {
+  return {
+    getPages: () => aPages,
+    // NavContainer.js:485 - the id comparison the FCL/SplitContainer probes
+    // depend on
+    getPage: (pageId) => aPages.find((p) => p.getId() == pageId) || null,
+    // NavContainer.js:782 - normalises a Control to its id before doing
+    // anything else, which is why every plain NavContainer port worked
+    to: (vPageIdOrControl, sTransitionName) => {
+      const sId =
+        vPageIdOrControl && typeof vPageIdOrControl.getId === "function"
+          ? vPageIdOrControl.getId()
+          : vPageIdOrControl;
+      aLog.push([sName, sId, sTransitionName]);
+    },
+  };
+}
+
+// FlexibleColumnLayout.js:2873 verbatim: begin, then mid, then the
+// unconditional else.
+function fclStub(oBegin, oMid, oEnd) {
+  return {
+    to: (sPageId, sTransitionName) => {
+      if (oBegin.getPage(sPageId)) oBegin.to(sPageId, sTransitionName);
+      else if (oMid.getPage(sPageId)) oMid.to(sPageId, sTransitionName);
+      else oEnd.to(sPageId, sTransitionName);
+    },
+  };
+}
+
+test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
+  function fcl() {
+    const nav = [];
+    // the rendered ids carry the view prefix the backend never sees
+    const products = pageStub("v1--dynamicPageId");
+    const detail = pageStub("v1--midPage");
+    const end = pageStub("v1--endPage");
+    const begin = navContainerStub([products], nav, "begin");
+    const mid = navContainerStub([detail], nav, "mid");
+    const endCol = navContainerStub([end], nav, "end");
+    return { nav, products, begin, mid, endCol, fcl: fclStub(begin, mid, endCol) };
+  }
+
+  // the defect this kind exists for, asserted on the stub itself so the
+  // spec states what the framework must not hand over any more
+  test("handing an FCL the CONTROL navigates the wrong column", () => {
+    const { nav, products, fcl: oFcl } = fcl();
+    oFcl.to(products);
+    // begin and mid probe with getPage( <Control> ) and miss, so the
+    // unconditional else runs the END column - which does not own the page
+    // either. That is the measured symptom on samples-controls app 578:
+    // "Navigation triggered to page with ID 'mainView--dynamicPageId', but
+    // this page is not known/aggregated by ... fcl-endColumnNav".
+    expect(nav).toEqual([["end", "v1--dynamicPageId", undefined]]);
+  });
+
+  test("a 'to' naming a begin-column page moves the BEGIN column", () => {
+    const { FrontendAction, controls } = load();
+    const env = fcl();
+    // the backend spells the id without the view prefix; the slot resolves it
+    controls.dynamicPageId = env.products;
+    controls.fcl = env.fcl;
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "fcl", "", "to", "dynamicPageId",
+    ]);
+    expect(env.nav).toEqual([["begin", "v1--dynamicPageId", undefined]]);
+  });
+
+  test("the id handed over is the RESOLVED one, never the raw literal", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.dynamicPageId = pageStub("v1--dynamicPageId");
+    controls.fcl = { to: (...a) => calls.push(["to", ...a]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "fcl", "", "to", "dynamicPageId",
+    ]);
+    expect(calls).toEqual([["to", "v1--dynamicPageId"]]);
+  });
+
+  test("the optional transition name still travels as the second argument", () => {
+    const { FrontendAction, controls } = load();
+    const env = fcl();
+    controls.dynamicPageId = env.products;
+    controls.fcl = env.fcl;
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "fcl", "", "to", "dynamicPageId", "flip",
+    ]);
+    expect(env.nav).toEqual([["begin", "v1--dynamicPageId", "flip"]]);
+  });
+
+  // the constraint the change was allowed under: NavContainer must observe
+  // exactly what it observed before
+  test("NavContainer sees the identical id it would have computed itself", () => {
+    const { FrontendAction, controls } = load();
+    const nav = [];
+    const page2 = pageStub("v1--page2");
+    controls.page2 = page2;
+    controls.NavCon = navContainerStub([page2], nav, "nav");
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
+    // what the old cast produced, run through NavContainer's own
+    // normalisation - the two must be indistinguishable
+    controls.NavCon.to(page2);
+    expect(nav).toEqual([
+      ["nav", "v1--page2", undefined],
+      ["nav", "v1--page2", undefined],
+    ]);
+  });
+
+  test("an aggregation item still addresses a page positionally", () => {
+    const { FrontendAction, calls, controls } = load();
+    const pages = [pageStub("v1--p0"), pageStub("v1--p1")];
+    controls.nav = {
+      getAggregation: (name) => (name === "pages" ? pages : null),
+      to: (...a) => calls.push(["to", ...a]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "nav", "", "to", "nav/pages/1",
+    ]);
+    expect(calls).toEqual([["to", "v1--p1"]]);
+  });
+
+  // "must not silently swallow a miss": today the container absorbs an
+  // unknown page and only UI5 logs about it
+  test("a page id no control answers to is reported", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    controls.fcl = { to: (...a) => calls.push(["to", ...a]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "fcl", "", "to", "nosuch"]);
+    expect(errors.join(" ")).toContain("nosuch");
+    // still handed over: an already-qualified id must keep working
+    expect(calls).toEqual([["to", "nosuch"]]);
+  });
+});
+
+// ---------------------------------------------------------------------
+// sap.m.Button badge bounds. Both setters compare the incoming value
+// against the STORED bound (Button.js:339 / :360), so two strings make
+// the comparison lexicographic - "50" >= "9" is false and the value is
+// dropped into an else whose only effect is a Log.warning. The stub is
+// those two guards, with the 1 / 9999 Button.init writes.
+// ---------------------------------------------------------------------
+function badgedButtonStub(aLog) {
+  const state = { min: 1, max: 9999 };
+  return {
+    state,
+    setBadgeMinValue: (iMin) => {
+      if (iMin && !isNaN(iMin) && iMin >= 1 && iMin != state.min && iMin <= state.max) {
+        state.min = iMin;
+        aLog.push(["min", iMin]);
+      } else aLog.push(["min-rejected", iMin]);
+    },
+    setBadgeMaxValue: (iMax) => {
+      if (iMax && !isNaN(iMax) && iMax <= 9999 && iMax != state.max && iMax >= state.min) {
+        state.max = iMax;
+        aLog.push(["max", iMax]);
+      } else aLog.push(["max-rejected", iMax]);
+    },
+  };
+}
+
+test.describe("badge bounds (CONTROL_BY_ID setBadgeMinValue/setBadgeMaxValue)", () => {
+  // the defect, on the stub: strings are compared as strings
+  test("string bounds make the Button reject a valid pair", () => {
+    const log = [];
+    const btn = badgedButtonStub(log);
+    btn.setBadgeMinValue("9");
+    btn.setBadgeMaxValue("50");
+    expect(log).toEqual([["min", "9"], ["max-rejected", "50"]]);
+  });
+
+  test("min 9 / max 50 is accepted - both arrive as numbers", () => {
+    const { FrontendAction, controls } = load();
+    const log = [];
+    controls.BadgedButton = badgedButtonStub(log);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "BadgedButton", "", "setBadgeMinValue", "9",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "BadgedButton", "", "setBadgeMaxValue", "50",
+    ]);
+    expect(log).toEqual([["min", 9], ["max", 50]]);
+    expect(controls.BadgedButton.state).toEqual({ min: 9, max: 50 });
+  });
+
+  test("the values are numbers, not numeric strings", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.b = {
+      setBadgeMinValue: (v) => calls.push(["min", v, typeof v]),
+      setBadgeMaxValue: (v) => calls.push(["max", v, typeof v]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "b", "", "setBadgeMinValue", "2",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "b", "", "setBadgeMaxValue", "500",
+    ]);
+    expect(calls).toEqual([
+      ["min", 2, "number"],
+      ["max", 500, "number"],
+    ]);
   });
 });
