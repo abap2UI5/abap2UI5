@@ -458,7 +458,7 @@ fail on.)
 
 ```bash
 npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
-npm run gates        # The 17 sub-second static gates in one process (~4s). Reports
+npm run gates        # The 24 sub-second static gates in one process (~4s). Reports
                      # EVERY failure, not just the first, and names the npm script
                      # that reruns each one - the local half of what
                      # check_gates.yaml's per-step `!cancelled()` does in CI
