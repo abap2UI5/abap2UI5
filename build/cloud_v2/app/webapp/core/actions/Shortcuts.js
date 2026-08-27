@@ -197,8 +197,20 @@ sap.ui.define(
         } else {
           const state = { mode };
           inputModes.set(oElement, state);
+          const apply = () => applyInputMode(oElement, state.mode);
           oElement.addEventDelegate({
-            onAfterRendering: () => applyInputMode(oElement, state.mode),
+            onAfterRendering: apply,
+            // And again while the field is TAKING the focus: a SET_FOCUS from
+            // the same roundtrip runs from its own onAfterRendering delegate,
+            // and delegates fire in registration order - an app that sets the
+            // focus before the mode (the documented order) would focus an
+            // input that still carries no inputmode. A browser that decides
+            // about its on-screen keyboard when the focus lands - a Windows
+            // terminal does - has shown the keyboard by then, and a later
+            // attribute change no longer takes it back. focusin fires while
+            // that focus is still being processed, so this makes the mode
+            // independent of the order the two actions arrive in.
+            onfocusin: apply,
           });
         }
         // An app that re-issues the mode next to a FULL re-render (the usual

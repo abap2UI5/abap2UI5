@@ -2075,12 +2075,24 @@ test.describe("KEYBOARD_SET_MODE (soft keyboard via inputmode)", () => {
     const delegates = [];
     let inner = null;
     let root = null;
-    const render = () => {
+    // the render produced a NEW element - whatever was written on the
+    // previous one went with it
+    const renderDom = () => {
       const attrs = {};
       inner = { attrs, setAttribute: (k, v) => (attrs[k] = v) };
       root = { matches: () => false, querySelector: () => inner };
-      // UI5 calls the delegates once the new DOM is in place
+    };
+    // UI5 calls the delegates once the new DOM is in place, in registration
+    // order - so a SET_FOCUS delegate registered earlier focuses first
+    const afterRendering = () => {
       for (const d of [...delegates]) d.onAfterRendering?.();
+    };
+    const focusin = () => {
+      for (const d of [...delegates]) d.onfocusin?.();
+    };
+    const render = () => {
+      renderDom();
+      afterRendering();
     };
     const control = {
       getDomRef: () => root,
@@ -2091,7 +2103,15 @@ test.describe("KEYBOARD_SET_MODE (soft keyboard via inputmode)", () => {
       },
     };
     if (rendered) render();
-    return { control, delegates, render, mode: () => inner?.attrs.inputmode };
+    return {
+      control,
+      delegates,
+      render,
+      renderDom,
+      afterRendering,
+      focusin,
+      mode: () => inner?.attrs.inputmode,
+    };
   }
 
   function loadWithInput(fx) {
@@ -2124,6 +2144,21 @@ test.describe("KEYBOARD_SET_MODE (soft keyboard via inputmode)", () => {
     FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp", "none"]);
     expect(fx.mode()).toBeUndefined();
     fx.render();
+    expect(fx.mode()).toBe("none");
+  });
+
+  test("is in place when the field takes the focus, whatever the delegate order", () => {
+    // SET_FOCUS from the same roundtrip registers its delegate FIRST and
+    // focuses before this module's onAfterRendering hook runs. A browser that
+    // decides about its on-screen keyboard at focus time would have shown it
+    // by then, so the mode has to be there already.
+    const fx = inputFixture({ rendered: false });
+    const { FrontendAction } = loadWithInput(fx);
+    FrontendAction.execute(null, ["KEYBOARD_SET_MODE", "inp", "none"]);
+    fx.renderDom();
+    fx.focusin();
+    expect(fx.mode()).toBe("none");
+    fx.afterRendering();
     expect(fx.mode()).toBe("none");
   });
 

@@ -224,8 +224,20 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `        } else {` && |\n| &&
              `          const state = { mode };` && |\n| &&
              `          inputModes.set(oElement, state);` && |\n| &&
+             `          const apply = () => applyInputMode(oElement, state.mode);` && |\n| &&
              `          oElement.addEventDelegate({` && |\n| &&
-             `            onAfterRendering: () => applyInputMode(oElement, state.mode),` && |\n| &&
+             `            onAfterRendering: apply,` && |\n| &&
+             `            // And again while the field is TAKING the focus: a SET_FOCUS from` && |\n| &&
+             `            // the same roundtrip runs from its own onAfterRendering delegate,` && |\n| &&
+             `            // and delegates fire in registration order - an app that sets the` && |\n| &&
+             `            // focus before the mode (the documented order) would focus an` && |\n| &&
+             `            // input that still carries no inputmode. A browser that decides` && |\n| &&
+             `            // about its on-screen keyboard when the focus lands - a Windows` && |\n| &&
+             `            // terminal does - has shown the keyboard by then, and a later` && |\n| &&
+             `            // attribute change no longer takes it back. focusin fires while` && |\n| &&
+             `            // that focus is still being processed, so this makes the mode` && |\n| &&
+             `            // independent of the order the two actions arrive in.` && |\n| &&
+             `            onfocusin: apply,` && |\n| &&
              `          });` && |\n| &&
              `        }` && |\n| &&
              `        // An app that re-issues the mode next to a FULL re-render (the usual` && |\n| &&
