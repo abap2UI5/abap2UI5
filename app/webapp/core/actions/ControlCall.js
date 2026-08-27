@@ -159,6 +159,22 @@ sap.ui.define(
       // itself, and the two probing containers finally match.
       to: ["pageId", "string"], // target page + optional transitionName
       back: [],
+      // Same `pageId` kind as `to`, and MEASURED the same way (2026-08-27,
+      // samples-controls app 101 on the live Node backend). Unlike `to`,
+      // sap.m.NavContainer.backToPage does NOT rescue a raw id:
+      // `_backTo` normalises only a Control (`if (sRequestedPageId instanceof
+      // Control) sRequestedPageId = sRequestedPageId.getId()`), then hands the
+      // value to `_findClosestPreviousPageInfo`, which walks `_pageStack` and
+      // compares `info.id === sRequestedPreviousPageId` - strict, no prefixing.
+      // Every `_pageStack` entry was pushed as `page.getId()`, so it carries
+      // the view prefix the backend never sees. The unlisted-method path used
+      // to hand over the raw ABAP literal, which therefore matched nothing:
+      // UI5 logged "Cannot navigate backToPage('wizardContentPage') because
+      // target page was not found among the previous pages." and `_backTo`
+      // returned without navigating - a SILENT miss, the review page stayed up
+      // and app 101's four "Edit" links and its Cancel/Submit legs did nothing.
+      // Resolving to `mainView--wizardContentPage` navigates.
+      backToPage: ["pageId"],
       toDetail: ["controlId"], // sap.m.SplitApp/SplitContainer: show a detail page
       toMaster: ["controlId"], // sap.m.SplitApp/SplitContainer: show a master page
       backDetail: [], // sap.m.SplitApp/SplitContainer: back in the detail stack

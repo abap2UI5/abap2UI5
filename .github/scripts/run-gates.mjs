@@ -33,6 +33,7 @@
  * wrapper is noise, and their output is long enough to want its own place.
  */
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -51,6 +52,8 @@ const GATES = [
   { npm: "check:prose", script: "prose-name-gate.mjs" },
   { npm: "check:skills", script: "skill-rule-gate.mjs" },
   { npm: "check:shared", script: "shared-file-gate.mjs" },
+  { npm: "check:mirrors", script: "linter-mirror-gate.mjs" },
+  { npm: "check:conventions", script: "conventions-gate.mjs" },
   { npm: "check:scripts", script: "scripts-gate.mjs" },
   { npm: "check:counts", script: "corpus-count-gate.mjs" },
   { npm: "check:samples-md", script: "samples-md-gate.mjs" },
@@ -65,6 +68,58 @@ const GATES = [
   { npm: "check:downport", script: "downport-operand-gate.mjs" },
   { npm: "check:api", script: "api-snapshot.mjs" },
 ];
+
+/*
+ * GATES has to stay COMPLETE, and package.json is what can decide that.
+ *
+ * The inclusion rule above - "plain Node over the working tree" - lived only
+ * in that comment, so nothing noticed when two gates did not follow it.
+ * check:mirrors and check:conventions were steps in check_gates.yaml and in
+ * neither list a contributor can run, so `npm run verify` reported "gates: 22
+ * checked - all OK" on a change whose check_gates went red in CI. Both were
+ * legitimately green locally; the gate that would have caught them was not
+ * reachable from any command they ran.
+ *
+ * A `check…` script whose body is ONE `node .github/scripts/<x>.mjs [args]`
+ * run IS plain Node over the working tree, by construction - so the rule is
+ * decidable from package.json rather than by reading a workflow, which
+ * scripts-gate.mjs declines to do for good reasons of its own (its header
+ * says why, and is right about the workflow).
+ *
+ * Staying out is still allowed. It just has to be said here, with the reason,
+ * so that omission becomes a decision.
+ */
+const NOT_A_VERIFY_GATE = {
+  "check:ui5": "shells out to the UI5 linter - the same reason check:standard and check:cloud stay in `verify` as their own commands",
+  "check:release": "release-time only: it judges a version bump against the changelog, not the working tree",
+};
+
+// One command, no && / | / ; - a chain (check:app2abap) is two runs and falls
+// out here on its own, which is the right answer for a different reason.
+const ONE_NODE_RUN = /^node \.github\/scripts\/[\w-]+\.mjs(?:\s+[^&|;<>]*)?$/;
+
+{
+  const scripts = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).scripts ?? {};
+  const listed = new Set(GATES.map((g) => g.npm));
+  const drift = [];
+
+  for (const [name, body] of Object.entries(scripts)) {
+    if (!/^check[:_]/.test(name)) continue;
+    if (!ONE_NODE_RUN.test(body.trim())) continue;
+    if (listed.has(name) || name in NOT_A_VERIFY_GATE) continue;
+    drift.push(`  ${name} is a plain-Node gate and is in neither GATES nor NOT_A_VERIFY_GATE`);
+  }
+  for (const gate of GATES) {
+    if (!(gate.npm in scripts)) drift.push(`  ${gate.npm} is in GATES but is no longer a script in package.json`);
+  }
+
+  if (drift.length) {
+    console.log("run-gates: this list and package.json disagree about which gates exist —\n");
+    for (const line of drift) console.log(line);
+    console.log("\nAdd it to GATES, or to NOT_A_VERIFY_GATE with the reason it stays out.");
+    process.exit(1);
+  }
+}
 
 const failed = [];
 const started = Date.now();

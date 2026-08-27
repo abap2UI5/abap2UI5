@@ -186,6 +186,22 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      // itself, and the two probing containers finally match.` && |\n| &&
              `      to: ["pageId", "string"], // target page + optional transitionName` && |\n| &&
              `      back: [],` && |\n| &&
+             `      // Same ``pageId`` kind as ``to``, and MEASURED the same way (2026-08-27,` && |\n| &&
+             `      // samples-controls app 101 on the live Node backend). Unlike ``to``,` && |\n| &&
+             `      // sap.m.NavContainer.backToPage does NOT rescue a raw id:` && |\n| &&
+             `      // ``_backTo`` normalises only a Control (``if (sRequestedPageId instanceof` && |\n| &&
+             `      // Control) sRequestedPageId = sRequestedPageId.getId()``), then hands the` && |\n| &&
+             `      // value to ``_findClosestPreviousPageInfo``, which walks ``_pageStack`` and` && |\n| &&
+             `      // compares ``info.id === sRequestedPreviousPageId`` - strict, no prefixing.` && |\n| &&
+             `      // Every ``_pageStack`` entry was pushed as ``page.getId()``, so it carries` && |\n| &&
+             `      // the view prefix the backend never sees. The unlisted-method path used` && |\n| &&
+             `      // to hand over the raw ABAP literal, which therefore matched nothing:` && |\n| &&
+             `      // UI5 logged "Cannot navigate backToPage('wizardContentPage') because` && |\n| &&
+             `      // target page was not found among the previous pages." and ``_backTo``` && |\n| &&
+             `      // returned without navigating - a SILENT miss, the review page stayed up` && |\n| &&
+             `      // and app 101's four "Edit" links and its Cancel/Submit legs did nothing.` && |\n| &&
+             `      // Resolving to ``mainView--wizardContentPage`` navigates.` && |\n| &&
+             `      backToPage: ["pageId"],` && |\n| &&
              `      toDetail: ["controlId"], // sap.m.SplitApp/SplitContainer: show a detail page` && |\n| &&
              `      toMaster: ["controlId"], // sap.m.SplitApp/SplitContainer: show a master page` && |\n| &&
              `      backDetail: [], // sap.m.SplitApp/SplitContainer: back in the detail stack` && |\n| &&
@@ -408,7 +424,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          // knowledge, so the action only says that the model changed` && |\n| &&
              `          updateModel: [],` && |\n| &&
              `        },` && |\n| &&
-             `        display: (oController, method, aArgs, mOptions, ctx) =>` && |\n| &&
+             `        display: (oController, method, aArgs, mOptions, ctx) =>` && |\n|.
+    result = result &&
              `          Slots.action(method, aArgs[0], aArgs[1], mOptions, ctx?.seq),` && |\n| &&
              `      },` && |\n| &&
              `      // The browser history / URL. Router computes ONE outcome from the whole` && |\n| &&
@@ -424,8 +441,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        display: (oController, method, aArgs, mOptions, ctx) => {` && |\n| &&
              `          if (ctx?.response) ctx.response._routerOptions = mOptions;` && |\n| &&
              `          else Router.sync(mOptions);` && |\n| &&
-             `        },` && |\n|.
-    result = result &&
+             `        },` && |\n| &&
              `      },` && |\n| &&
              `      BUSY_INDICATOR: {` && |\n| &&
              `        get: () => BusyIndicator,` && |\n| &&
@@ -809,7 +825,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `            ``CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `        const el = control?.getDomRef?.();` && |\n| &&
              `        if (!el) {` && |\n| &&
              `          Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);` && |\n| &&
@@ -825,8 +842,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      // indexOfItem(), so the mapping is a LOOP - and a loop written into an` && |\n| &&
              `      // event argument needs a JS callback, which UI5's ExpressionParser has` && |\n| &&
              `      // no grammar for (no ``function`` keyword, ``{`` is the object-literal nud),` && |\n| &&
-             `      // so ``.getSelectedItems().map(function (o) { ... })`` does not fail on that` && |\n|.
-    result = result &&
+             `      // so ``.getSelectedItems().map(function (o) { ... })`` does not fail on that` && |\n| &&
              `      // argument, it takes the WHOLE handler down and every argument with it.` && |\n| &&
              `      // The loop therefore lives here, which is the same reason ``css`` does:` && |\n| &&
              `      // the app has no spelling for it at all. It stays a thin executor - no` && |\n| &&

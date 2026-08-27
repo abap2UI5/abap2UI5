@@ -21,7 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`verify-misses-workflow-only-gates`](items/verify-misses-workflow-only-gates.md) | two gates are steps in `check_gates.yaml` but absent from `run-gates.mjs`, so a change can be green through the whole local `verify` chain and still turn CI red on the gate nobody can run by accident | medium | 2026-08-27 | abap2UI5/abap2UI5 |
+| [`model-skip-cannot-name-the-record-or-the-value`](items/model-skip-cannot-name-the-record-or-the-value.md) | '`client->get( )-t_model_skipped` locates a top-level cell exactly, but a NESTED cell loses its parent row, and no entry carries the refused value — so the one message an app most wants to write, quoting what the user typed, is not expressible' | medium | 2026-08-27 | abap2UI5/abap2UI5 |
 
 ---
 
