@@ -46,6 +46,13 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     DATA mt_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
+    "! The table cells this parse could not apply - one entry per delta cell
+    "! whose value arrived and would not convert (see delta_apply_field). The
+    "! instance is created per roundtrip (z2ui5_cl_ui5_app_cont=>create_model),
+    "! so the list covers exactly one model parse; the caller hands it to the
+    "! app as client->get( )-t_model_skipped.
+    DATA mt_skipped TYPE z2ui5_if_client=>ty_t_model_skip.
+
     METHODS attri_update_entry_refs.
     METHODS attri_update_refs_children
       IMPORTING
@@ -103,6 +110,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS delta_apply_nodes
       IMPORTING
         io_delta TYPE REF TO z2ui5_if_ajson
+        iv_table TYPE string
       CHANGING
         ct_tab   TYPE STANDARD TABLE
       RAISING
@@ -110,11 +118,18 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     "! Apply one delta field value into the referenced row component. A
     "! single malformed cell (e.g. text into a numeric target) is skipped
-    "! here so it cannot abort the whole model batch.
+    "! here so it cannot abort the whole model batch - and the skip is
+    "! recorded in mt_skipped, because a cell that vanishes without a word is
+    "! what made a typed price disappear while the browser kept showing it.
+    "! is_cell IS the trace entry: it names the cell the caller resolved
+    "! (table path, 1-based row, component), so nothing has to be derived
+    "! again in the handler. Only a value that ARRIVED can be recorded here -
+    "! the caller reaches this method per member of the delta row, so an
+    "! absent field never becomes an entry.
     METHODS delta_apply_field
       IMPORTING
         io_row_d TYPE REF TO z2ui5_if_ajson
-        iv_path  TYPE string
+        is_cell  TYPE z2ui5_if_client=>ty_s_model_skip
         ir_comp  TYPE REF TO data
       RAISING
         z2ui5_cx_ajson_error.
@@ -829,6 +844,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     delta_apply_nodes( EXPORTING io_delta = io_val_front->slice( `/__delta` )
+                                 iv_table = iv_name
                        CHANGING  ct_tab   = <delta_tab> ).
 
   ENDMETHOD.
@@ -864,7 +880,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           CONTINUE.
         ENDIF.
         delta_apply_field( io_row_d = lo_row_d
-                           iv_path  = |/{ lv_fld }|
+                           is_cell  = VALUE #( name  = iv_table
+                                               row   = lv_tabix
+                                               field = lv_fld )
                            ir_comp  = REF #( <comp> ) ).
       ENDLOOP.
     ENDLOOP.
@@ -876,21 +894,26 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <comp> TYPE any.
     ASSIGN ir_comp->* TO <comp>.
 
+    DATA(lv_path) = |/{ is_cell-field }|.
+
     TRY.
-        CASE io_row_d->get_node_type( iv_path ).
+        CASE io_row_d->get_node_type( lv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            <comp> = io_row_d->get_boolean( iv_path ).
+            <comp> = io_row_d->get_boolean( lv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-object.
             " either a nested table delta (marked by __delta) or a
             " structure component shipped as a whole value
-            DATA(lo_sub) = io_row_d->slice( iv_path ).
+            DATA(lo_sub) = io_row_d->slice( lv_path ).
             IF lo_sub->exists( `/__delta` ) = abap_true.
               FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
               ASSIGN ir_comp->* TO <sub_tab>.
               IF sy-subrc = 0.
+                " a nested row cell traces under the path to its own table,
+                " parent first - MT_TREE-NODES, not MT_TREE
                 delta_apply_nodes( EXPORTING io_delta = lo_sub->slice( `/__delta` )
+                                             iv_table = |{ is_cell-name }-{ is_cell-field }|
                                    CHANGING  ct_tab   = <sub_tab> ).
               ENDIF.
             ELSE.
@@ -900,18 +923,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
           WHEN z2ui5_if_ajson_types=>node_type-array.
             " a whole sub-table value replaced a nested delta on the client
-            io_row_d->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
+            io_row_d->slice( lv_path )->to_abap( EXPORTING iv_corresponding = abap_true
                                                  IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
             " numbers intentionally go through get_string: the raw JSON text
             " converts losslessly into any numeric target type, while
             " get_number would round through a binary float first
-            <comp> = io_row_d->get_string( iv_path ).
+            <comp> = io_row_d->get_string( lv_path ).
         ENDCASE.
 
-      CATCH cx_root ##NO_HANDLER.
-        " skip just this cell - see the method comment
+      CATCH cx_root.
+        " Skip just this cell - see the method comment - but never silently:
+        " the value arrived and did not fit, and without this entry the old
+        " value stays in the model while the browser goes on showing what the
+        " user typed. Recording it is deliberately ALL that happens here;
+        " raising would let one bad cell kill a delta full of good ones,
+        " which is the whole reason the skip exists
+        APPEND is_cell TO mt_skipped.
     ENDTRY.
 
   ENDMETHOD.

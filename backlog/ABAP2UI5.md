@@ -15,16 +15,6 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-## Ready to file
-
-_nothing exists upstream yet — this is the stock_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`delta-cell-conversion-silent`](items/delta-cell-conversion-silent.md) | delta_apply_field ends in `CATCH cx_root ##NO_HANDLER` ("skip just this cell"), so a conversion failure in a ROW cell keeps the old value while the browser still shows what was typed - unlike the scalar path, which raises JSON_PARSING_ERROR | medium | 2026-08-26 | abap2UI5/abap2UI5 |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_

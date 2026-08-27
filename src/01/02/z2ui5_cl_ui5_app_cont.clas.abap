@@ -45,9 +45,17 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! Apply the incoming client model to the app's bound attributes and
+    "! return what the delta could NOT apply (see
+    "! z2ui5_if_client=>ty_s_model_skip). The list is RETURNED rather than
+    "! stored on this object on purpose: this object is serialized into the
+    "! draft, and a trace that outlived its roundtrip would be handed to the
+    "! app again after the next restore.
     METHODS model_json_parse
       IMPORTING
-        io_model TYPE REF TO z2ui5_if_ajson.
+        io_model      TYPE REF TO z2ui5_if_ajson
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_client=>ty_t_model_skip.
 
     METHODS all_xml_stringify
       RETURNING
@@ -225,7 +233,9 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    create_model( )->main_json_to_attri( io_model ).
+    DATA(lo_model) = create_model( ).
+    lo_model->main_json_to_attri( io_model ).
+    result = lo_model->mt_skipped.
 
   ENDMETHOD.
 

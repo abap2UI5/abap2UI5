@@ -281,6 +281,13 @@ INTERFACE z2ui5_if_ui5_types
       t_event_arg        TYPE string_table,
       check_on_navigated TYPE abap_bool,
       r_data             TYPE REF TO data,
+      " The table cells the incoming delta could not convert, collected by
+      " z2ui5_cl_ui5_srv_model while the model was parsed and handed on to
+      " the app through client->get( )-t_model_skipped. It belongs to THIS
+      " roundtrip only - the action is rebuilt per request and never
+      " serialized into the draft, so a trace can never outlive the edit
+      " that caused it
+      t_model_skipped    TYPE z2ui5_if_client=>ty_t_model_skip,
     END OF ty_s_actual.
 
 ENDINTERFACE.

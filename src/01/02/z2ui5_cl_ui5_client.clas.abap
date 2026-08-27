@@ -125,6 +125,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                       s_scroll               = mo_action->mo_http_post->ms_request-s_front-s_scroll
                       s_ui5                  = mo_action->mo_http_post->ms_request-s_front-s_ui5
                       r_event_data           = mo_action->ms_actual-r_data
+                      t_model_skipped        = mo_action->ms_actual-t_model_skipped
                       _s_nav-check_call      = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL )
                       _s_nav-check_leave     = xsdbool( mo_action->ms_next-o_app_leave IS NOT INITIAL ) ).
 
