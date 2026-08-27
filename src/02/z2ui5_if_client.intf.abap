@@ -110,15 +110,32 @@ INTERFACE z2ui5_if_client
     "! many good ones. This is the trace of that skip, and the only way an app
     "! can find out it happened - the browser still shows what the user typed,
     "! because the client model was updated before the roundtrip.
+    "! Read it unconditionally at the top of main( ), NOT inside a Save
+    "! branch: the delta travels with whatever roundtrip follows the edit,
+    "! which need not be the press the app is interested in. The list is
+    "! per-roundtrip - the next request sees an empty one.
+    "!
+    "! The entry names the cell but does NOT carry the value that was
+    "! refused, so an app can say which field was not accepted and not what
+    "! the user typed. And reading the trace alone pushes no model, so the
+    "! browser goes on showing the refused text until the app writes
+    "! something.
     "! See z2ui5_cl_ui5_srv_model=>delta_apply_field, which fills it.
     BEGIN OF ty_s_model_skip,
       " the bound attribute that holds the table, spelled as the app declared
       " it (`MT_PRODUCTS`). A cell of a NESTED table names the path to it,
-      " parent first (`MT_TREE-NODES`)
+      " parent first (`MT_TREE-NODES`).
+      "
+      " NOT the path _bind( ) hands the view: that is `{/MT_PRODUCTS}`, and
+      " nothing public converts one spelling into the other. A consumer
+      " matching on this has to carry the ABAP attribute name as a literal,
+      " which a rename breaks silently
       name  TYPE string,
-      " 1-based ABAP row index in that table
+      " 1-based ABAP row index in the table `name` ends at. For a NESTED cell
+      " that is the index of the INNER table - the parent row is not recorded,
+      " so the field is named but the record owning it cannot be identified
       row   TYPE i,
-      " the component inside the row (`PRICE`)
+      " the component inside the row (`PRICE`) - the ABAP name, not a label
       field TYPE string,
     END OF ty_s_model_skip.
   TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH EMPTY KEY.
