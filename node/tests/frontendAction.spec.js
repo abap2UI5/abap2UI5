@@ -2315,7 +2315,7 @@ function pageStub(sId) {
 }
 
 function navContainerStub(aPages, aLog, sName) {
-  return {
+  const oStub = {
     getPages: () => aPages,
     // NavContainer.js:485 - the id comparison the FCL/SplitContainer probes
     // depend on
@@ -2328,8 +2328,34 @@ function navContainerStub(aPages, aLog, sName) {
           ? vPageIdOrControl.getId()
           : vPageIdOrControl;
       aLog.push([sName, sId, sTransitionName]);
+      oStub._pageStack.push(sId);
+    },
+    // NavContainer.js:1064 + :1201 verbatim. `_backTo` normalises a CONTROL
+    // (":1065 if (sRequestedPageId instanceof Control)") exactly like `to`
+    // does - but nothing normalises a raw STRING, and
+    // `_findClosestPreviousPageInfo` then compares
+    // "info.id === sRequestedPreviousPageId" against a stack whose entries
+    // were all pushed as `page.getId()`. An unprefixed literal matches no
+    // entry, so the method logs and returns WITHOUT navigating.
+    backToPage: (vPageIdOrControl) => {
+      const sId =
+        vPageIdOrControl && typeof vPageIdOrControl.getId === "function"
+          ? vPageIdOrControl.getId()
+          : vPageIdOrControl;
+      const i = oStub._pageStack.lastIndexOf(sId, oStub._pageStack.length - 2);
+      if (i < 0) {
+        // the miss is silent: UI5 Log.error's and returns `this`
+        aLog.push([sName, "MISSED", sId]);
+        return;
+      }
+      oStub._pageStack.length = i + 1;
+      aLog.push([sName, "back", sId]);
     },
   };
+  // the initial page is on the stack before any navigation, under its
+  // RENDERED id (NavContainer.js:493 `_ensurePageStackInitialized`)
+  oStub._pageStack = aPages.length ? [aPages[0].getId()] : [];
+  return oStub;
 }
 
 // FlexibleColumnLayout.js:2873 verbatim: begin, then mid, then the
@@ -2443,6 +2469,107 @@ test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
     expect(errors.join(" ")).toContain("nosuch");
     // still handed over: an already-qualified id must keep working
     expect(calls).toEqual([["to", "nosuch"]]);
+  });
+});
+
+/* backToPage is the SAME defect as `to`, one method along, and it was left
+ * unmeasured when the `pageId` kind was introduced. Measured 2026-08-27 on
+ * samples-controls app 101 against the live Node backend: after
+ * `to( wizardReviewPage )` the stack reads
+ * ["mainView--wizardContentPage", "mainView--wizardReviewPage"], the port's
+ * "Edit" link fires backToPage("wizardContentPage"), and UI5 answers
+ *
+ *   Element sap.m.NavContainer#mainView--wizardNavContainer: Cannot navigate
+ *   backToPage('wizardContentPage') because target page was not found among
+ *   the previous pages.
+ *
+ * with the review page still on screen. The same call with the prefixed id
+ * navigates. Unlike the FCL case there is no wrong-target symptom - it is a
+ * pure no-op, which is why nothing caught it. */
+test.describe("page-id navigation (CONTROL_BY_ID 'backToPage')", () => {
+  function wizard() {
+    const nav = [];
+    // app 101's two pages, under the ids the view actually renders
+    const content = pageStub("mainView--wizardContentPage");
+    const review = pageStub("mainView--wizardReviewPage");
+    return {
+      nav,
+      content,
+      review,
+      navCon: navContainerStub([content, review], nav, "nav"),
+    };
+  }
+
+  // the defect, asserted on the stub itself
+  test("a RAW unprefixed id finds no stack entry and navigates nowhere", () => {
+    const { nav, navCon } = wizard();
+    navCon.to("mainView--wizardReviewPage");
+    navCon.backToPage("wizardContentPage");
+    expect(nav).toEqual([
+      ["nav", "mainView--wizardReviewPage", undefined],
+      ["nav", "MISSED", "wizardContentPage"],
+    ]);
+  });
+
+  test("the id handed over is the RESOLVED one, so the back leg lands", () => {
+    const { FrontendAction, controls } = load();
+    const env = wizard();
+    // the backend spells the id without the view prefix
+    controls.wizardContentPage = env.content;
+    controls.nav = env.navCon;
+    env.navCon.to("mainView--wizardReviewPage");
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "nav", "", "backToPage", "wizardContentPage",
+    ]);
+    expect(env.nav).toEqual([
+      ["nav", "mainView--wizardReviewPage", undefined],
+      ["nav", "back", "mainView--wizardContentPage"],
+    ]);
+    expect(env.navCon._pageStack).toEqual(["mainView--wizardContentPage"]);
+  });
+
+  test("the resolved id is what reaches the method, never the raw literal", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.wizardContentPage = pageStub("mainView--wizardContentPage");
+    controls.nav = { backToPage: (...a) => calls.push(["backToPage", ...a]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "nav", "", "backToPage", "wizardContentPage",
+    ]);
+    expect(calls).toEqual([["backToPage", "mainView--wizardContentPage"]]);
+  });
+
+  test("an aggregation item still addresses a page positionally", () => {
+    const { FrontendAction, calls, controls } = load();
+    const pages = [pageStub("v1--p0"), pageStub("v1--p1")];
+    controls.nav = {
+      getAggregation: (name) => (name === "pages" ? pages : null),
+      backToPage: (...a) => calls.push(["backToPage", ...a]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "nav", "", "backToPage", "nav/pages/0",
+    ]);
+    expect(calls).toEqual([["backToPage", "v1--p0"]]);
+  });
+
+  // same escape hatch as `to`: a port that already spells the qualified id
+  // must keep working, and the miss must be named rather than swallowed
+  test("a page id no control answers to is reported and still handed over", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    controls.nav = { backToPage: (...a) => calls.push(["backToPage", ...a]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID", "nav", "", "backToPage", "nosuch",
+    ]);
+    expect(errors.join(" ")).toContain("nosuch");
+    expect(calls).toEqual([["backToPage", "nosuch"]]);
+  });
+
+  // the zero-arg back-navigation entries stay zero-arg: `back` must not
+  // acquire an argument from this change
+  test("plain 'back' is still zero-arg", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.nav = { back: (...a) => calls.push(["back", ...a]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "nav", "", "back", "x"]);
+    expect(calls).toEqual([["back"]]);
   });
 });
 
