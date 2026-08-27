@@ -49,6 +49,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/cc/LPTitle.js": function()\{{ z2ui5_cl_ui5f_lptitle_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MessageManager.js": function()\{{ z2ui5_cl_ui5f_msgmgr_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MultiInputExt.js": function()\{{ z2ui5_cl_ui5f_multiinp_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/cc/ScanInput.js": function()\{{ z2ui5_cl_ui5f_scaninp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Scrolling.js": function()\{{ z2ui5_cl_ui5f_scroll_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/SmartMultiInputExt.js": function()\{{ z2ui5_cl_ui5f_smartinp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Storage.js": function()\{{ z2ui5_cl_ui5f_storage_js=>get( ) }\},| && |\n| &&

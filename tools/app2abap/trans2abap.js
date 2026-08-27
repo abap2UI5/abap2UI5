@@ -103,6 +103,7 @@ const CLASS_NAME_STEMS = {
     'cc/Geolocation.js': 'geoloc_js',
     'cc/MessageManager.js': 'msgmgr_js',
     'cc/MultiInputExt.js': 'multiinp_js',
+    'cc/ScanInput.js': 'scaninp_js',
     'cc/Scrolling.js': 'scroll_js',
     'cc/SmartMultiInputExt.js': 'smartinp_js',
     'cc/UITableExt.js': 'uitable_js',
