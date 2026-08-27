@@ -146,7 +146,18 @@ sap.ui.define(
     // declared kinds are dropped; trailing args the caller did not send are
     // not passed at all (so `open()` stays a true no-arg call).
     const CONTROL_METHODS = {
-      to: ["controlId", "string"], // target page + optional transitionName
+      // `pageId`, NOT `controlId`: the three containers that own a `to( )`
+      // disagree about what the first argument may be. sap.m.NavContainer
+      // normalises a Control to its id on its own first line, but
+      // sap.f.FlexibleColumnLayout.to and sap.m.SplitContainer.to PROBE the
+      // columns with `getPage( sPageId )`, which compares `aPages[i].getId()
+      // == pageId` - a Control never equals an id string, so every probe
+      // misses and the trailing `else` navigates the LAST column instead of
+      // the one that owns the page. Measured on samples-controls app 578,
+      // whose begin column never moved. Handing over the RESOLVED control's
+      // id serves all three: NavContainer would compute exactly that id
+      // itself, and the two probing containers finally match.
+      to: ["pageId", "string"], // target page + optional transitionName
       back: [],
       toDetail: ["controlId"], // sap.m.SplitApp/SplitContainer: show a detail page
       toMaster: ["controlId"], // sap.m.SplitApp/SplitContainer: show a master page
@@ -175,6 +186,16 @@ sap.ui.define(
       setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association
       setSelectedItem: ["controlIdOrNull"], // sap.m.List/sap.m.Select/...: an EMPTY argument clears the selection
       setP13nData: ["object"], // sap.m.p13n.*Panel: JSON array of the panel's items
+
+      // sap.m.Button badge bounds. The `int` kind is load-bearing, not
+      // decoration: both setters compare the incoming value against the
+      // STORED bound (`iMax >= this._badgeMinValue`), so an undeclared
+      // numeric string makes the second comparison a STRING comparison -
+      // "50" >= "9" is false - and the setter drops the value into an `else`
+      // whose only effect is a Log.warning. min 9 / max 50 is the smallest
+      // pair that breaks (samples-controls app 249 drives both).
+      setBadgeMinValue: ["int"], // below this value the badge stays hidden
+      setBadgeMaxValue: ["int"], // above this value the badge reads "999+"
 
       css: ["string", "string"], // NOT a UI5 method: set one CSS property on the control's own DOM node
       enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of `enabled`
@@ -517,6 +538,26 @@ sap.ui.define(
           return raw === "true" || raw === "X" || raw === true;
         case "controlId":
           return resolveControl(raw, view);
+        case "pageId": {
+          // Like `controlId`, but hands the container the resolved control's
+          // ID rather than the control. Only for methods whose UI5 signature
+          // is a page ID and which do NOT normalise a Control themselves -
+          // see the `to` entry in CONTROL_METHODS for the measurement. The
+          // resolution step is what makes this safe: the rendered id carries
+          // the view prefix the backend never sees, so passing the raw ABAP
+          // literal instead would break every existing navigation.
+          const page = resolveControl(raw, view);
+          if (page && typeof page.getId === "function") return page.getId();
+          // No control under that id. Today the container absorbs this
+          // silently (it just navigates its last column and logs a UI5
+          // warning nobody reads), so name it here; the raw value is still
+          // handed over, which is the best effort an already-qualified id
+          // needs and is never worse than the `undefined` this used to pass.
+          Lib.logError(
+            `CONTROL_CALL: no control '${raw}' for the page argument`,
+          );
+          return raw;
+        }
         case "controlIdOrNull":
           // an ASSOCIATION cannot be data-bound, so clearing one
           // (setSelectedSection(null), setSelectedItem(null)) can only travel
