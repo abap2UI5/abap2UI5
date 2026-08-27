@@ -15,16 +15,6 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-## Ready to file
-
-_nothing exists upstream yet — this is the stock_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`verify-misses-workflow-only-gates`](items/verify-misses-workflow-only-gates.md) | two gates are steps in `check_gates.yaml` but absent from `run-gates.mjs`, so a change can be green through the whole local `verify` chain and still turn CI red on the gate nobody can run by accident | medium | 2026-08-27 | abap2UI5/abap2UI5 |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_
