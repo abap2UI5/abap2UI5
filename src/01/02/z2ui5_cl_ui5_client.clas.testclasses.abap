@@ -894,3 +894,304 @@ CLASS ltcl_test_client IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+"------------------------------------------------------------------------
+" The first CONSUMER of client->get( )-t_model_skipped
+"
+" The five tests on z2ui5_cl_ui5_srv_model reach into the model service and
+" read mt_skipped there. Nothing exercised the way OUT - app_cont's
+" model_json_parse, the action that carries the list for this roundtrip, and
+" get( ), which is the only thing an app ever sees. So this drives the whole
+" wire with an app that reacts to the trace the way an app has to.
+"------------------------------------------------------------------------
+CLASS ltcl_app_price_editor DEFINITION FINAL.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_pos,
+        qty TYPE i,
+      END OF ty_s_pos.
+    TYPES ty_t_pos TYPE STANDARD TABLE OF ty_s_pos WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_s_product,
+        name  TYPE string,
+        price TYPE p LENGTH 9 DECIMALS 2,
+        t_pos TYPE ty_t_pos,
+      END OF ty_s_product.
+    TYPES ty_t_product TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
+
+    DATA mt_product TYPE ty_t_product.
+
+    " what the user is told - empty exactly when the write-back was complete
+    DATA mv_message TYPE string.
+    " the Save handler's verdict. Before the trace existed it could only ever
+    " be abap_true, over discarded input included
+    DATA mv_saved   TYPE abap_bool.
+    " the binding path _bind gave the view. Kept because it is NOT the
+    " spelling the trace uses - see test_bind_path_is_not_name
+    DATA mv_bind_path TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    "! `PRICE` -> `Price`. The trace names the ABAP COMPONENT, so an app that
+    "! wants to name the field to a user owns this mapping itself - there is
+    "! nothing in the entry a label could be derived from.
+    METHODS label_of
+      IMPORTING
+        field         TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS message_add
+      IMPORTING
+        val TYPE string.
+ENDCLASS.
+
+CLASS ltcl_app_price_editor IMPLEMENTATION.
+
+  METHOD label_of.
+
+    CASE field.
+      WHEN `PRICE`.
+        result = `Price`.
+      WHEN `QTY`.
+        result = `Quantity`.
+      WHEN OTHERS.
+        result = field.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD message_add.
+
+    IF mv_message IS NOT INITIAL.
+      mv_message = mv_message && `; `.
+    ENDIF.
+    mv_message = mv_message && val.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_app~main.
+
+    DATA ls_row TYPE ty_s_product.
+
+    DATA(ls_get) = client->get( ).
+
+    " Read UNCONDITIONALLY, before any event branch. The delta travels with
+    " whatever roundtrip follows the edit, and that is not necessarily the
+    " Save press - an app that only looks inside its Save branch misses the
+    " refusal on every other button.
+    CLEAR mv_message.
+    LOOP AT ls_get-t_model_skipped INTO DATA(ls_skip).
+
+      IF ls_skip-name = `MT_PRODUCT`.
+        " the row index is an ABAP table index, so the app's own READ TABLE
+        " reaches the same row with no translation
+        READ TABLE mt_product INDEX ls_skip-row INTO ls_row.
+        IF sy-subrc <> 0.
+          CONTINUE.
+        ENDIF.
+        message_add( |{ label_of( ls_skip-field ) } of '{ ls_row-name }' was not accepted| ).
+        CONTINUE.
+      ENDIF.
+
+      IF ls_skip-name = `MT_PRODUCT-T_POS`.
+        " a NESTED table: row is the index inside T_POS, and the entry says
+        " nothing about which MT_PRODUCT row owns that T_POS - so this is the
+        " best an app can do
+        message_add( |{ label_of( ls_skip-field ) } in a position row was not accepted| ).
+        CONTINUE.
+      ENDIF.
+
+    ENDLOOP.
+
+    IF ls_get-event = `SAVE`.
+      mv_saved = xsdbool( mv_message IS INITIAL ).
+    ENDIF.
+
+    mv_bind_path = client->_bind_edit( mt_product ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_model_skipped DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA mo_app    TYPE REF TO ltcl_app_price_editor.
+    DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
+
+    METHODS setup RAISING z2ui5_cx_ajson_error.
+
+    "! One roundtrip, assembled the way z2ui5_cl_ui5_action=>factory_by_frontend
+    "! assembles it: apply the incoming client model, carry what it could not
+    "! apply on the action, then let the app run against a client over it.
+    METHODS roundtrip
+      IMPORTING
+        model TYPE string OPTIONAL
+        event TYPE string OPTIONAL
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    METHODS test_accepted_price_silent  FOR TESTING RAISING cx_static_check.
+    METHODS test_refused_price_reported FOR TESTING RAISING cx_static_check.
+    METHODS test_save_no_longer_lies    FOR TESTING RAISING cx_static_check.
+    METHODS test_trace_is_per_roundtrip FOR TESTING RAISING cx_static_check.
+    METHODS test_nested_row_unresolved  FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_path_is_not_name  FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_model_skipped IMPLEMENTATION.
+
+  METHOD setup.
+
+    DATA ls_product TYPE ltcl_app_price_editor=>ty_s_product.
+
+    DATA(lo_http) = NEW z2ui5_cl_ui5_handler( val = `` ).
+    mo_action = NEW #( val = lo_http ).
+    mo_app = NEW #( ).
+
+    CLEAR ls_product.
+    ls_product-name  = `Notebook`.
+    ls_product-price = '1249.00'.
+    APPEND VALUE #( qty = 1 ) TO ls_product-t_pos.
+    APPEND ls_product TO mo_app->mt_product.
+
+    CLEAR ls_product.
+    ls_product-name  = `Monitor`.
+    ls_product-price = '299.00'.
+    APPEND ls_product TO mo_app->mt_product.
+
+    mo_action->mo_app->mo_app = mo_app.
+
+    " the init roundtrip - it is what BINDS mt_product, and nothing can be
+    " written back before that happened
+    roundtrip( ).
+
+  ENDMETHOD.
+
+  METHOD roundtrip.
+
+    CLEAR mo_action->ms_actual.
+
+    IF model IS NOT INITIAL.
+      mo_action->ms_actual-t_model_skipped = mo_action->mo_app->model_json_parse(
+                                                 CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( model ) ) ).
+    ENDIF.
+    mo_action->ms_actual-event = event.
+
+    DATA(lo_client) = NEW z2ui5_cl_ui5_client( action = mo_action ).
+    mo_app->z2ui5_if_app~main( lo_client ).
+
+  ENDMETHOD.
+
+  METHOD test_accepted_price_silent.
+
+    " the accepted case first - it is what proves the wire is alive, so the
+    " refusal below is a conversion failure and not a dead binding
+    roundtrip( model = `{"MT_PRODUCT":{"__delta":{"1":{"PRICE":"1250.00"}}}}`
+               event = `SAVE` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1250.00' )
+                                        act = CONV decfloat34( mo_app->mt_product[ 2 ]-price ) ).
+    cl_abap_unit_assert=>assert_initial( mo_app->mv_message ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_app->mv_saved ).
+
+  ENDMETHOD.
+
+  METHOD test_refused_price_reported.
+
+    " the grouped thousands separator a locale-formatted Input sends
+    roundtrip( model = `{"MT_PRODUCT":{"__delta":{"1":{"PRICE":"1,250.00"}}}}`
+               event = `SAVE` ).
+
+    " the cell is still skipped and nothing raised - the old value stands
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '299.00' )
+                                        act = CONV decfloat34( mo_app->mt_product[ 2 ]-price ) ).
+
+    " ... and the app could say so, which is the whole point. Name, row and
+    " field together were enough to reach the row and quote it back
+    cl_abap_unit_assert=>assert_equals( exp = `Price of 'Monitor' was not accepted`
+                                        act = mo_app->mv_message ).
+
+  ENDMETHOD.
+
+  METHOD test_save_no_longer_lies.
+
+    " one bad cell, one good one, in the same delta and the same Save press
+    roundtrip( model = `{"MT_PRODUCT":{"__delta":{"0":{"PRICE":"abc"},"1":{"PRICE":"350.00"}}}}`
+               event = `SAVE` ).
+
+    " the good cell landed - the skip did not take the delta down with it
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '350.00' )
+                                        act = CONV decfloat34( mo_app->mt_product[ 2 ]-price ) ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1249.00' )
+                                        act = CONV decfloat34( mo_app->mt_product[ 1 ]-price ) ).
+
+    " and Save reports failure over the discarded cell instead of success
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = mo_app->mv_saved ).
+    cl_abap_unit_assert=>assert_equals( exp = `Price of 'Notebook' was not accepted`
+                                        act = mo_app->mv_message ).
+
+  ENDMETHOD.
+
+  METHOD test_trace_is_per_roundtrip.
+
+    roundtrip( model = `{"MT_PRODUCT":{"__delta":{"1":{"PRICE":"1,250.00"}}}}`
+               event = `SAVE` ).
+    cl_abap_unit_assert=>assert_equals( exp = `Price of 'Monitor' was not accepted`
+                                        act = mo_app->mv_message ).
+
+    " the NEXT roundtrip must not be told about the previous one's refusal -
+    " the list describes this request and nothing else
+    roundtrip( event = `SAVE` ).
+    cl_abap_unit_assert=>assert_initial( mo_app->mv_message ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_app->mv_saved ).
+
+  ENDMETHOD.
+
+  METHOD test_nested_row_unresolved.
+
+    " a cell of the NESTED table. The trace names the path parent first, and
+    " row is the index INSIDE t_pos - which MT_PRODUCT row owns that t_pos is
+    " not in the entry, so an app cannot name the product
+    roundtrip( model = `{"MT_PRODUCT":{"__delta":{"0":{"T_POS":{"__delta":{"0":{"QTY":"seven"}}}}}}}`
+               event = `SAVE` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = mo_app->mt_product[ 1 ]-t_pos[ 1 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = `Quantity in a position row was not accepted`
+                                        act = mo_app->mv_message ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = mo_app->mv_saved ).
+
+  ENDMETHOD.
+
+  METHOD test_bind_path_is_not_name.
+
+    " the two spellings of the same table an app has to hold at once: _bind
+    " hands the view a client PATH, the trace names the ABAP ATTRIBUTE, and
+    " nothing public converts one into the other - so the app above had to
+    " carry `MT_PRODUCT` as a literal
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_PRODUCT}`
+                                        act = mo_app->mv_bind_path ).
+
+    roundtrip( model = `{"MT_PRODUCT":{"__delta":{"1":{"PRICE":"1,250.00"}}}}` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_action->ms_actual-t_model_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_PRODUCT`
+                                        act = mo_action->ms_actual-t_model_skipped[ 1 ]-name ).
+
+  ENDMETHOD.
+
+ENDCLASS.
