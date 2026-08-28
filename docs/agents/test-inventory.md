@@ -35,7 +35,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `cc/UploadSetExt.js` | `uploadSetExt.spec.js` | — |
 | `cc/MultiInputExt.js` | `multiInputExt.spec.js` | — |
 | `cc/SmartMultiInputExt.js` | `smartMultiInputExt.spec.js` | — |
-| `cc/InputExt.js` | `inputExt.spec.js` | the HTML `type` written onto the inner input at render and set directly on later changes without invalidating, ABAP casing/padding normalized, clearing restoring what `sap.m.Input` rendered, re-application after a re-render and on a control that had no DOM yet, and an unsupported type logged once and ignored |
+| `cc/InputExt.js` | `inputExt.spec.js` | the HTML `inputmode` written onto the inner input at render and set directly on later changes without invalidating, ABAP casing/padding normalized, an empty property leaving the DOM exactly as `sap.m.Input` rendered it (including an inputmode a release rendered itself), re-application after a re-render and on a control that had no DOM yet, and a value that is not an inputmode keyword logged once and ignored |
 | `cc/Scrolling.js` | `scrolling.spec.js` | — |
 | `cc/LPTitle.js` | `lpTitle.spec.js` | — |
 | `cc/Favicon.js` | `favicon.spec.js` | — |
