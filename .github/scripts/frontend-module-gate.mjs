@@ -58,6 +58,8 @@ const ALLOWED = new Set([
   'sap/m/ComboBoxRenderer',
   'sap/m/Dialog',
   'sap/m/HBox',
+  'sap/m/Input',
+  'sap/m/InputRenderer',
   'sap/m/MessageBox',
   'sap/m/Text',
   'sap/m/Token',
