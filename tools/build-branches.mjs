@@ -29,20 +29,18 @@
 // Without arguments the four fixed branches are built; with arguments only
 // the named ones (so a frontend_deploy run builds exactly its branch).
 //
-// Where the build goes is decided by the branch name, not by a switch:
-//
-//   the four fixed branches -> build/<branch>/      committed in the repository
-//   everything else         -> tools/out/<branch>/  gitignored, scratch
-//
-// build/ is what frontend_deploy pushes into the delivery branches: a push
-// copies a tree, it no longer builds it. That is why the tree is checked in
-// here and verified against the sources by frontend_check - exactly like
-// src/01/03 against app/webapp. What a branch delivers is therefore in the
-// pull request before it is merged.
+// Everything is built into the gitignored tools/out/<branch>/ - no tree is
+// committed in this repository. The published copies live in
+// abap2UI5/frontend (result/<branch> on its main, fanned out into the
+// branches): frontend_check rebuilds the trees from the sources on every
+// pull request that touches them, and frontend_deploy rebuilds them once
+// more at deploy time and ships that build. So the reviewed sources and the
+// delivered bytes are tied together by the same build running in both
+// places, not by a committed copy of its output.
 //
 // The VERSION stamp does NOT belong in the built tree: it names the core
-// commit the tree was built from, and that one is not even known yet when
-// build/ is committed. tools/branch-stamp.mjs writes it at deploy time.
+// commit the tree was built from, which a pull-request build does not have.
+// tools/branch-stamp.mjs writes it at deploy time.
 //
 // The webapp comes from app/webapp of THIS repository - the single source.
 // Everything else an output branch needs lives under frontend/:
@@ -71,14 +69,11 @@ const webapp = join(core, "app/webapp");
 // inherits - lives outside this folder; tools/ holds only what runs.
 const data = join(core, "frontend");
 
-// The four published branches land in the checked-in build/, every other name
-// (renamed variant, trial run) in the gitignored tools/out/. No switch: this
-// way an ad-hoc build cannot touch the committed tree, and the deploy always
-// finds the four in the same place.
-const generated = join(core, "build");
+// Every branch - published or renamed variant - lands in the gitignored
+// tools/out/, so the deploy and the pull-request gate always find a build in
+// the same place and nothing generated is ever committed here.
 const scratch = join(here, "out");
-const PUBLISHED = ["cloud", "cloud_v2", "standard", "standard_v2"];
-const outDir = (branch) => join(PUBLISHED.includes(branch) ? generated : scratch, branch);
+const outDir = (branch) => join(scratch, branch);
 
 // Files every output branch inherits (no tooling, no CI); ones that are not
 // (or no longer) there are skipped. README.md is deliberately missing here: it
@@ -167,7 +162,7 @@ const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
 /* Where the backend lives is decided by the kind of deployment - and the two
  * stacks publish the same service under different paths:
  *
- *   on premise   /sap/bc/z2ui5          SICF node (build/standard*)
+ *   on premise   /sap/bc/z2ui5          SICF node (the standard* branches)
  *   ABAP Cloud   /sap/bc/http/sap/z2ui5 HTTP service Z2UI5
  *                                       (frontend/abap/cloud/01/z2ui5.http.xml)
  *
@@ -283,7 +278,7 @@ const branches = requested.length ? requested : Object.keys(BUILDERS);
 const builds = branches.map((b) => {
   // The same pattern as the guard in frontend_deploy.yaml - here once more,
   // because initBranch starts with rmSync on outDir(b) and a name like
-  // "standard_x/../../.." would otherwise delete outside of build//tools/out,
+  // "standard_x/../../.." would otherwise delete outside of tools/out,
   // before rename-bsp ever validates it.
   if (!/^[A-Za-z0-9_#]+$/.test(b)) {
     console.error(`Ungueltiger Branch-Name '${b}' - erlaubt sind nur [A-Za-z0-9_#]`);

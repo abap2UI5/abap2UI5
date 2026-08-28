@@ -4,20 +4,23 @@
 // the framework version that goes with it - in the README banner and in
 // VERSION.
 //
-// Why this is a step of its own and not part of the build: since build/ lives
-// in the repository, the tree of a branch is COMMITTED before the commit it is
-// meant to name exists. A stamp in the built tree would therefore be either
-// impossible (its own commit) or always one commit old.
+// Why this is a step of its own and not part of the build: the pull-request
+// gate (frontend_check) builds the same trees, and there the commit the
+// stamp would name does not exist yet. A build without a stamp is also what
+// lets the deploy answer "did the content change?" - it stamps a candidate
+// with the commit the published VERSION names and compares (see
+// frontend_deploy.yaml).
 //
 // So build-branches.mjs builds the content - deterministic, without a commit,
-// without a timestamp, which is why it can be checked in at all - and this
-// script stamps immediately before the push:
+// without a timestamp, so identical sources produce identical trees - and
+// this script stamps immediately before the push:
 //
 //     node tools/branch-stamp.mjs <dir> <branch> [sha]
 //
-// <dir> is the finished tree (build/<branch> or tools/out/<branch>), <sha> the
-// core commit; without the argument GITHUB_SHA, otherwise HEAD. If no commit
-// can be determined, the provenance line is left out instead of being wrong.
+// <dir> is the finished tree (tools/out/<branch> or the deploy's copy of
+// it), <sha> the core commit; without the argument GITHUB_SHA, otherwise
+// HEAD. If no commit can be determined, the provenance line is left out
+// instead of being wrong.
 //
 // What a pulled repository sees does not change through this: README and
 // VERSION carry the same text as before, it just comes into being one step

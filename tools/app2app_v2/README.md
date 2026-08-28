@@ -16,11 +16,11 @@ src/01/                ICF handler (SICF node + Z2UI5_CL_LP_HANDLER, from abap/s
 src/02/                the BSP page
 ```
 
-The result is committed as `build/standard_v2` and published as the
+The result is built into the git-ignored `tools/out/standard_v2` and
+published as the
 [`standard_v2`](https://github.com/abap2UI5/frontend/tree/standard_v2)
-branch by the `frontend_deploy` workflow, which pushes the committed trees
-in `build/` as they stand (only renamed `standard_<name>` variants are
-built on demand). The `cloud_v2` branch applies the same bootstrap patch
+branch by the `frontend_deploy` workflow, which runs the same build at
+deploy time. The `cloud_v2` branch applies the same bootstrap patch
 (`patch-v2.mjs`) directly to the webapp instead of building a BSP.
 
 ## Run

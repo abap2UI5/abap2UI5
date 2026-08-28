@@ -87,12 +87,12 @@ if (has('AGENTS.md') && !has('CLAUDE.md')) {
 }
 
 // --- §6 LF-only, enforced by .gitattributes ---------------------------------
-/* This repository carries both: src/ is pulled into SAP systems by abapGit,
- * which expects LF, and build/ is shipped byte for byte. It had no root
- * .gitattributes at all - the only one was build/.gitattributes, saying `*
- * -text` for the opposite and deliberate reason. Measured when the root file
- * went in: `git add --renormalize .` changed nothing, so the tree was already
- * LF throughout and the file records that rather than converting anything. */
+/* src/ is pulled into SAP systems by abapGit, which expects LF. Measured
+ * when the root file went in: `git add --renormalize .` changed nothing, so
+ * the tree was already LF throughout and the file records that rather than
+ * converting anything. (The delivery trees are no longer committed here -
+ * they are built into the git-ignored tools/out/ and shipped byte for byte
+ * by frontend_deploy, out of reach of any attribute of this repository.) */
 if (!has('.gitattributes')) {
   err('no .gitattributes — CONVENTIONS §6 asks for one in every repository that'
     + ' carries ABAP or generated trees, and this one carries both. Without it a'

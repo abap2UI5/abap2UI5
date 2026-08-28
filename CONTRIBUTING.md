@@ -45,7 +45,6 @@ The repository structure:
 - `app/` - the UI5 frontend as a Fiori project (`app/webapp/` plus `ui5.yaml` etc.)
 - `tools/` - generators that build artefacts out of `app/webapp/` (embedded ABAP, BSP packaging, delivery branches)
 - `frontend/` - the non-generated parts of the delivery branches (ICF/BSP ABAP artefacts, common files)
-- `build/` - the four delivery branches of [abap2UI5/frontend](https://github.com/abap2UI5/frontend) as committed trees (generated, never edited - `npm run frontend:build`)
 - `node/` - Node.js transpilation setup
 - `.github/` - CI/CD workflows and configurations
 - `package.json` - Node.js dependencies and build scripts
@@ -199,12 +198,12 @@ Look for issues labeled:
 
 2. **Make Your Changes:**
    - **ABAP Changes:** Use abapGit workflow (recommended)
-   - **Frontend (`app/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate what is built from the webapp: `npm run app2abap` (the embedded frontend in `src/01/03/`) and `npm run frontend:build` (the four delivery trees in `build/`). Both are generated, both are committed with your change — `npm run check:app2abap` and `npm run check:frontend` are the gates that fail otherwise
+   - **Frontend (`app/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend in `src/01/03/` with `npm run app2abap` and commit it with your change — `npm run check:app2abap` is the gate that fails otherwise. The delivery trees are NOT committed: `npm run check:frontend` builds them into the git-ignored `tools/out/` to prove the build, and `frontend_deploy` builds and ships them from `main`
 
      > This repository is the **only** place the frontend is edited.
      > [abap2UI5/frontend](https://github.com/abap2UI5/frontend) publishes the
      > same webapp as installable branches, but it is generated: every branch
-     > there is the tree that `build/` carries here, delivered by
+     > there is a tree built here from `app/webapp/`, delivered by
      > `frontend_deploy` into `result/<branch>` on its `main` and fanned out
      > from there by its `deliver` workflow, so a change made in that
      > repository is silently discarded on the next delivery. Its `guard`
