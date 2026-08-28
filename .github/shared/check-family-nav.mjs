@@ -20,6 +20,20 @@
  * alone: a consumer's copy is a file it owns the top of, and copying a source
  * over it would destroy those three lines.
  */
+
+/* The three a consumer owns, declared here only so that this file is a valid
+ * module on its own — ESLint lints `.github/shared/` and `no-undef` is right
+ * to object to a body that reads names nothing declares.
+ *
+ * They are placeholders and this copy is not meant to run: every consumer
+ * replaces this block with its own values, and `familyNavBody()` in
+ * shared-file-gate.mjs slices from the `import` BELOW, so nothing above this
+ * line is part of what the gate compares. Changing them here changes nothing
+ * anywhere. */
+const SELF = 'samples';
+const PAGE_HTML = 'web/index.html';
+const PAGE_CSS = 'web/overview.css';
+
 import { readFileSync } from 'node:fs';
 
 /* --------------------------------------------------------------- canon */
