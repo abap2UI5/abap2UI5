@@ -178,6 +178,31 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RAISING
         z2ui5_cx_ajson_error.
 
+    " One option of a payload: the name it travels under, and the value the
+    " app set. `val` is a string because that is what the option becomes -
+    " `set_string( )` assigns its `clike` into one before it writes it, so a
+    " trailing blank is cut at exactly the same point either way.
+    TYPES:
+      BEGIN OF ty_s_opt,
+        name TYPE string,
+        val  TYPE string,
+      END OF ty_s_opt.
+    TYPES ty_t_opt TYPE STANDARD TABLE OF ty_s_opt WITH EMPTY KEY.
+
+    "! The same for a whole set of options at once: four payloads are built
+    "! out of nothing but string options, and written call by call each one
+    "! was four lines of marshalling per option - 28 of the 31 calls in this
+    "! class, in which the only thing worth reading is the pairing of a name
+    "! with a value. A table of pairs puts the pairs on one line each and
+    "! leaves the one behaviour ( absent when unset ) in set_opt_string( ),
+    "! where it is stated once.
+    METHODS set_opt_strings
+      IMPORTING
+        json TYPE REF TO z2ui5_if_ajson
+        opt  TYPE ty_t_opt
+      RAISING
+        z2ui5_cx_ajson_error.
+
     METHODS set_opt_int
       IMPORTING
         json TYPE REF TO z2ui5_if_ajson
@@ -309,24 +334,14 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         " model switch. An option the caller left alone is absent, never
         " sent as an empty value.
         DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        set_opt_string( json = li_opt
-                        name = `id`
-                        val  = id ).
-        set_opt_string( json = li_opt
-                        name = `methodInsert`
-                        val  = method_insert ).
-        set_opt_string( json = li_opt
-                        name = `methodDestroy`
-                        val  = method_destroy ).
-        set_opt_string( json = li_opt
-                        name = `openById`
-                        val  = open_by_id ).
-        set_opt_string( json = li_opt
-                        name = `switchDefaultModelPath`
-                        val  = switch_default_model_path ).
-        set_opt_string( json = li_opt
-                        name = `switchDefaultModelAnnoUri`
-                        val  = switch_default_model_anno_uri ).
+        set_opt_strings(
+            json = li_opt
+            opt  = VALUE #( ( name = `id`                        val = id )
+                            ( name = `methodInsert`              val = method_insert )
+                            ( name = `methodDestroy`             val = method_destroy )
+                            ( name = `openById`                  val = open_by_id )
+                            ( name = `switchDefaultModelPath`    val = switch_default_model_path )
+                            ( name = `switchDefaultModelAnnoUri` val = switch_default_model_anno_uri ) ) ).
 
         INSERT VALUE #( slot    = slot
                         method  = z2ui5_if_ui5_types=>cs_slot_action-display
@@ -405,18 +420,12 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         set_opt_bool( json = li_opt
                       name = `checkNavAppCall`
                       val  = ls_nav-check_nav_app_call ).
-        set_opt_string( json = li_opt
-                        name = `setPushState`
-                        val  = ls_nav-set_push_state ).
-        set_opt_string( json = li_opt
-                        name = `setNavRouting`
-                        val  = ls_nav-set_nav_routing ).
-        set_opt_string( json = li_opt
-                        name = `navAppCallPrevApp`
-                        val  = ls_nav-nav_app_call_prev_app ).
-        set_opt_string( json = li_opt
-                        name = `navAppCallPrevId`
-                        val  = ls_nav-nav_app_call_prev_id ).
+        set_opt_strings(
+            json = li_opt
+            opt  = VALUE #( ( name = `setPushState`      val = ls_nav-set_push_state )
+                            ( name = `setNavRouting`     val = ls_nav-set_nav_routing )
+                            ( name = `navAppCallPrevApp` val = ls_nav-nav_app_call_prev_app )
+                            ( name = `navAppCallPrevId`  val = ls_nav-nav_app_call_prev_id ) ) ).
 
         " no nav intent this roundtrip - queue nothing, the frontend's own
         " per-response sync covers the plain case (it injects the id itself)
@@ -454,35 +463,20 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         set_opt_int( json = li_opt
                      name = `animationDuration`
                      val  = animationduration ).
-        set_opt_string( json = li_opt
-                        name = `width`
-                        val  = width ).
-        set_opt_string( json = li_opt
-                        name = `my`
-                        val  = my ).
-        set_opt_string( json = li_opt
-                        name = `at`
-                        val  = at ).
-        set_opt_string( json = li_opt
-                        name = `of`
-                        val  = of ).
-        set_opt_string( json = li_opt
-                        name = `offset`
-                        val  = offset ).
-        set_opt_string( json = li_opt
-                        name = `collision`
-                        val  = collision ).
-        set_opt_string( json = li_opt
-                        name = `onClose`
-                        val  = onclose ).
-        set_opt_string( json = li_opt
-                        name = `animationTimingFunction`
-                        val  = animationtimingfunction ).
-        " not a MessageToast option - the frontend puts the classes on the
-        " DOM node of the toast, which carries no id to address it by
-        set_opt_string( json = li_opt
-                        name = `class`
-                        val  = class ).
+        set_opt_strings(
+            json = li_opt
+            " `class` is NOT a MessageToast option - the frontend puts the
+            " classes on the DOM node of the toast, which carries no id to
+            " address it by
+            opt  = VALUE #( ( name = `width`                   val = width )
+                            ( name = `my`                      val = my )
+                            ( name = `at`                      val = at )
+                            ( name = `of`                      val = of )
+                            ( name = `offset`                  val = offset )
+                            ( name = `collision`               val = collision )
+                            ( name = `onClose`                 val = onclose )
+                            ( name = `animationTimingFunction` val = animationtimingfunction )
+                            ( name = `class`                   val = class ) ) ).
 
         " abap_true is UI5's own default for both, so only the opt-out is
         " worth sending
@@ -529,33 +523,17 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         " carries its OWN defaults ( confirm's [OK, CANCEL], error's [CLOSE],
         " the emphasized action derived from them ), so sending a value for an
         " option the app left alone would override those
-        set_opt_string( json = li_opt
-                        name = `title`
-                        val  = ls_msg-title ).
-        set_opt_string( json = li_opt
-                        name = `styleClass`
-                        val  = styleclass ).
-        set_opt_string( json = li_opt
-                        name = `onClose`
-                        val  = onclose ).
-        set_opt_string( json = li_opt
-                        name = `emphasizedAction`
-                        val  = emphasizedaction ).
-        set_opt_string( json = li_opt
-                        name = `initialFocus`
-                        val  = initialfocus ).
-        set_opt_string( json = li_opt
-                        name = `textDirection`
-                        val  = textdirection ).
-        set_opt_string( json = li_opt
-                        name = `details`
-                        val  = ls_msg-details ).
-        set_opt_string( json = li_opt
-                        name = `dependentOn`
-                        val  = dependenton ).
-        set_opt_string( json = li_opt
-                        name = `contentWidth`
-                        val  = contentwidth ).
+        set_opt_strings(
+            json = li_opt
+            opt  = VALUE #( ( name = `title`            val = ls_msg-title )
+                            ( name = `styleClass`       val = styleclass )
+                            ( name = `onClose`          val = onclose )
+                            ( name = `emphasizedAction` val = emphasizedaction )
+                            ( name = `initialFocus`     val = initialfocus )
+                            ( name = `textDirection`    val = textdirection )
+                            ( name = `details`          val = ls_msg-details )
+                            ( name = `dependentOn`      val = dependenton )
+                            ( name = `contentWidth`     val = contentwidth ) ) ).
 
         " MessageBox.Icon.NONE is a valid UI5 value, but passing it would
         " defeat the icon the chosen method sets for itself ( error -> the
@@ -657,6 +635,17 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
       json->set_string( iv_path = |/{ name }|
                         iv_val  = val ).
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD set_opt_strings.
+
+    LOOP AT opt INTO DATA(ls_opt).
+      set_opt_string( json = json
+                      name = ls_opt-name
+                      val  = ls_opt-val ).
+    ENDLOOP.
 
   ENDMETHOD.
 
