@@ -213,6 +213,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:asserts
 
+      # the inventory is how a reader finds out whether a frontend module is
+      # already covered; one that quietly stops being complete answers "no
+      # spec" for a module that has one
+      - name: every JS unit spec is in the inventory
+        if: ${{ !cancelled() }}
+        run: npm run check:specs
+
       - name: no built-in function in a 7.02 non-expression operand position
         if: ${{ !cancelled() }}
         run: npm run check:downport

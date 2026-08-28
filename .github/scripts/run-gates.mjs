@@ -68,6 +68,7 @@ const GATES = [
   { npm: "check:guide", script: "check-guide-api.mjs" },
   { npm: "check:formatter", script: "formatter-scope-gate.mjs" },
   { npm: "check:asserts", script: "assertion-gate.mjs" },
+  { npm: "check:specs", script: "spec-inventory-gate.mjs" },
   { npm: "check:downport", script: "downport-operand-gate.mjs" },
   { npm: "check:api", script: "api-snapshot.mjs" },
 ];
