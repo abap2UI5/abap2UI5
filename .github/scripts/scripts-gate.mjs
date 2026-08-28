@@ -52,6 +52,12 @@ const REPOS = [
   'linter',
   'docs',
   'web-abap2UI5',
+  /* Added 2026-08-28. It was missing, and the omission is what the rule is
+   * about: `playground` is a source repository with an AGENTS.md, a test
+   * suite, its own `check.yml` and a contributor - and it had no `check`
+   * script at all, which is precisely the state this gate exists to refuse.
+   * Nothing found that, because nothing was looking. */
+  'playground',
 
   /* The addons, which sit in a second organisation and were outside every
    * ecosystem gate until 2026-08-20 - which is how eleven repositories came to
