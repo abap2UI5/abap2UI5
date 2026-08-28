@@ -22,8 +22,14 @@ name: check_gates
 # runtime, and a check that does not run cannot be required in the branch
 # protection - the filters were quietly making these gates unrequirable.
 
+# Pull requests AND pushes to main - a merge is not a state any pull request
+# tested, and the workflows that fire on `push: main` (auto_downport,
+# create_app2abap, frontend_deploy, trigger_local) rebuild and deploy from it.
+# Same pattern as frontend_check.yaml.
 on:
   pull_request:
+  push:
+    branches: [main]
 
 concurrency:
   group: check_gates-${{ github.ref }}

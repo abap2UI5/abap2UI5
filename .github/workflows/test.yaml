@@ -26,8 +26,17 @@ name: test
 # that name reportable - a matrix leg's check name carries its parameter, so
 # `test_browser` could not be required if it were the matrix itself.
 
+# Pull requests AND pushes to main. The push leg is not redundant with the
+# pull-request one: `auto_downport`, `create_app2abap`, `frontend_deploy` and
+# `trigger_local` all fire on `push: main` and rebuild or deploy from the
+# merged state, and a merge is not the state any pull request tested - two
+# individually green branches can merge into a red main. Without this leg the
+# first thing that touches the merge result is a deployment. Same pattern as
+# `frontend_check.yaml` and `render-gate.yaml`, which already had it.
 on:
   pull_request:
+  push:
+    branches: [main]
 
 concurrency:
   group: test-${{ github.ref }}

@@ -12,8 +12,13 @@ name: abaplint
 # checks out a different ref on a different trigger and shares nothing with
 # these but the tool.
 
+# Pull requests AND pushes to main - `auto_downport.yaml` rebuilds the 702
+# branch from every push to main, so main being lintable is what that rebuild
+# assumes. Same pattern as frontend_check.yaml.
 on:
   pull_request:
+  push:
+    branches: [main]
 
 concurrency:
   group: abaplint-${{ github.ref }}
