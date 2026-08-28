@@ -39,7 +39,7 @@
     "check:frozen-only": "node .github/scripts/frozen-only-gate.mjs",
     "check:ui5": "node .github/scripts/ui5lint-gate.mjs",
     "check:app2abap": "node .github/scripts/ensure-app-deps.mjs && node .github/scripts/app2abap-gate.mjs",
-    "check:frontend": "npm run frontend:build && node .github/scripts/frontend-drift-gate.mjs",
+    "check:frontend": "npm run frontend:build && node tools/check-pages.mjs",
     "check:api": "node .github/scripts/api-snapshot.mjs",
     "check:formatter": "node .github/scripts/formatter-scope-gate.mjs",
     "check:asserts": "node .github/scripts/assertion-gate.mjs",

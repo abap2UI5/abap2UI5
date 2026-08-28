@@ -89,6 +89,10 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
     METHODS test_nested_display_push FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
+    METHODS test_model_client_stored   FOR TESTING RAISING cx_static_check.
+    METHODS test_model_client_unchanged FOR TESTING RAISING cx_static_check.
+    METHODS test_snapshot_reuses_client FOR TESTING RAISING cx_static_check.
+    METHODS test_delta_drops_client     FOR TESTING RAISING cx_static_check.
     METHODS test_session_stored       FOR TESTING RAISING cx_static_check.
     METHODS test_session_location     FOR TESTING RAISING cx_static_check.
     METHODS test_session_launchpad    FOR TESTING RAISING cx_static_check.
@@ -1027,8 +1031,8 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
-    " main_process always takes the before-main snapshot - there is no app
-    " flag to consult any more
+    " main_process always has a before-main snapshot - taken fresh here,
+    " since a fresh app carries no stored client model to reuse
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
@@ -1037,6 +1041,104 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lo_handler->mv_model_before_taken ).
+
+  ENDMETHOD.
+
+
+  METHOD test_model_client_stored.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " a pushed model is exactly what the client is left holding - main_end
+    " stores it on the app, and the next roundtrip of this app reuses it as
+    " its pre-main( ) snapshot instead of serializing the model again
+    lo_handler = NEW #( val = `` ).
+    DATA(lo_app) = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_handler->mo_action->mo_app->mt_attri
+                                                  app  = lo_app ).
+    lo_model->dissolve( ).
+    READ TABLE lo_handler->mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri)
+         WITH KEY name = `CHECK_INIT`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = `/CHECK_INIT`.
+
+    lo_handler->mv_model_before_taken = abap_true.
+    lo_handler->mv_model_before       = `<other model state>`.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_differs( exp = `{}`
+                                         act = lo_handler->ms_response-model ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_handler->ms_response-model
+                                        act = lo_handler->mo_action->mo_app->mv_model_client ).
+
+  ENDMETHOD.
+
+
+  METHOD test_model_client_unchanged.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " no push: the client still holds the before-state, so THAT is stored -
+    " and an empty model is stored as the known `{}` rather than INITIAL,
+    " so the next roundtrip can still skip its snapshot serialization
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->mv_model_before_taken = abap_true.
+    lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{}`
+                                        act = lo_handler->mo_action->mo_app->mv_model_client ).
+
+  ENDMETHOD.
+
+
+  METHOD test_snapshot_reuses_client.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " main_process trusts the stored client model over a fresh serialization
+    " - the sentinel can only arrive in the snapshot through the reuse path,
+    " a real serialization of the no-op app would produce `{}`
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_model_client = `{"SENTINEL":true}`.
+
+    lo_handler->main_process( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{"SENTINEL":true}`
+                                        act = lo_handler->mv_model_before ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_handler->mv_model_before_taken ).
+
+  ENDMETHOD.
+
+
+  METHOD test_delta_drops_client.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " incoming model deltas change the state the stored string describes -
+    " the factory drops it, so the snapshot of this roundtrip falls back to
+    " a real serialization instead of trusting a stale string
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->mv_model_client = `{"SENTINEL":true}`.
+    lo_handler->ms_request-o_model = z2ui5_cl_ajson=>parse( `{"NAME":"changed"}` ).
+
+    DATA(lo_action) = lo_handler->mo_action->factory_by_frontend( ).
+
+    cl_abap_unit_assert=>assert_initial( lo_action->mo_app->mv_model_client ).
 
   ENDMETHOD.
 

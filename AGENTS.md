@@ -259,7 +259,7 @@ src/
 ### Additional Directories
 
 Everything outside `src/` — `app/` and its `webapp/` module inventory, `node/`,
-`docs/`, `.claude/skills/`, `backlog/`, `tools/`, `build/`, `frontend/`,
+`docs/`, `.claude/skills/`, `backlog/`, `tools/`, `frontend/`,
 `.github/` and what each script and shared file in it is for — is
 **`docs/agents/repository-map.md`**. It is a lookup: an agent needs it once it
 knows it has to place a change, not before, and this file is loaded into every
@@ -296,9 +296,10 @@ What is worth carrying without looking it up:
   all three at once. `npm run gates` is the local half of the same behaviour.
 - **`src/99` is frozen and `src/02` is a contract**, and both are machine-checked
   (rule 1, rule 5). A change that edits either fails the pull request.
-- **`build/` and `src/01/03/` are generated from `app/webapp/`** and their drift
-  gates run on the pull request, so a frontend change carries both regenerated
-  trees with it (rule 2).
+- **`src/01/03/` is generated from `app/webapp/`** and its drift gate runs on
+  the pull request, so a frontend change carries the regenerated tree with it
+  (rule 2). The delivery trees are not committed at all — `frontend_check`
+  builds them from the sources into the git-ignored `tools/out/`.
 - **The gates run on `push: main` as well as on pull requests.** A merge is not a
   state any pull request tested, and `auto_downport`, `create_app2abap`,
   `frontend_deploy` and `trigger_local` all rebuild or deploy from it.
@@ -527,8 +528,8 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
 | `npm run unit` | Run the transpiled unit tests |
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
-| `npm run frontend:cloud` / `frontend:cloud_v2` / `frontend:standard` / `frontend:standard_v2` | Rebuild ONE of the four committed delivery trees under `build/` instead of all four (`npm run frontend:build` is all four) |
-| `npm run frontend:verify` | Compare the committed trees in `build/` against what is published in `abap2UI5/frontend` **today** — file for file, byte for byte, stamped the way the deploy stamps them. Not the same question as `check:frontend`, which asks whether `build/` matches the sources |
+| `npm run frontend:cloud` / `frontend:cloud_v2` / `frontend:standard` / `frontend:standard_v2` | Build ONE of the four delivery trees into `tools/out/` instead of all four (`npm run frontend:build` is all four) |
+| `npm run frontend:verify` | Compare a local build in `tools/out/` against what is published in `abap2UI5/frontend` **today** — file for file, byte for byte, stamped the way the deploy stamps them. Not the same question as `check:frontend`, which asks whether the sources still produce a valid build |
 | `npm run frontend:lint` | abaplint over `frontend/abap/cloud/` — the ICF/BSP handler sources this repository ships into the delivery branches (gated in `frontend_check.yaml`) |
 | `npm test` | Alias of `npm run unit` — CONVENTIONS §3 asks every repository in the ecosystem to answer to it (`npm run check:scripts` is the gate) |
 | `npm run express` | Start dev server on port 3000 |
@@ -698,7 +699,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
    - The `sap.ui.require.preload` mapping is **also generated**: `trans2abap.js` emits `z2ui5_cl_ui5f_preload`, which `z2ui5_cl_ui5_http_handler` consumes. New files under `app/webapp/` are picked up automatically — never reintroduce a manually maintained preload list in the HTTP handler.
    Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small fixes", no formatting changes, nothing. The job may be invoked, but the files must never be touched by hand or by any other means.
    - **Prettier governs all of `app/webapp/`** — do not add `// prettier-ignore` directives. Since every custom control lives in its own file, a header reflow only touches that control's small generated constant; just let `npm run app2abap` format and regenerate.
-   - **`build/` follows the same rule for the delivery branches.** The four trees under `build/` are generated from `app/webapp/`, `frontend/` and `tools/` by `npm run frontend:build`, and `frontend_deploy` pushes them into abap2UI5/frontend unchanged. Never edit anything below `build/` by hand — change the source, rebuild, and commit the rebuilt trees with the change (`npm run check:frontend` is the gate that fails otherwise). A change under `app/webapp/` therefore regenerates two things, `src/01/03/` and `build/`, and both belong in the same commit.
+   - **The delivery trees follow the same rule, one step further: they are not committed here at all.** `npm run frontend:build` builds them from `app/webapp/`, `frontend/` and `tools/` into the git-ignored `tools/out/`, `frontend_check` proves the build on every pull request, and `frontend_deploy` runs the same build on `main` and ships it into abap2UI5/frontend (`result/<branch>` on its `main`). Never edit a built tree — change the source; the only generated artefact a webapp change commits alongside it is `src/01/03/`.
 3. **Always run `npx abaplint`** before considering changes complete.
 4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP, and ABAP Cloud.
 5. **The public API (`src/02/`) is a stable contract — never change or remove existing public attributes, methods, or constants.** This folder is consumed directly by thousands of downstream apps. Specifically:

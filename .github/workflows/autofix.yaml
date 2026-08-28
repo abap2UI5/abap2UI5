@@ -3,18 +3,17 @@ name: autofix
 # Every generator this repository owns, run on demand against a pull request,
 # and committed back to it in one commit.
 #
-# The gates in abaplint.yaml, check_gates.yaml, check_app2abap.yaml and
-# frontend_check.yaml each fail with the npm script that fixes them. This runs
-# those scripts. It is the same set a contributor would run locally, in the
-# same order, so a pull request that trips four gates is one command away from
-# green instead of four local toolchains away.
+# The gates in abaplint.yaml, check_gates.yaml and check_app2abap.yaml each
+# fail with the npm script that fixes them. This runs those scripts. It is
+# the same set a contributor would run locally, in the same order, so a pull
+# request that trips four gates is one command away from green instead of
+# four local toolchains away.
 #
 #   app2abap   prettier over app/webapp, regenerate src/01/03, abaplint --fix
 #   abaplint   abaplint --fix on its own (app2abap ends in it; this is the
 #              same pass without the Fiori toolchain in front of it)
 #   chains     abap2ui5lint --fix over the view chains
 #   backlog    regenerate the four backlog pages
-#   frontend   rebuild the four delivery trees under build/
 #
 # Two ways to ask for it, because they suit different people:
 #
@@ -140,7 +139,7 @@ jobs:
 
           ```
           npm ci && npm --prefix app ci
-          npm run app2abap && npm run fmt:chains && npm run backlog && npm run frontend:build
+          npm run app2abap && npm run fmt:chains && npm run backlog
           ```
 
           ---
@@ -189,7 +188,6 @@ jobs:
           abaplint=$(want abaplint)
           chains=$(want chains)
           backlog=$(want backlog)
-          frontend=$(want frontend)
 
           # app2abap's last step IS auto_abaplint, so the standalone run would
           # be a second pass over a tree the first one already settled
@@ -207,18 +205,16 @@ jobs:
           if [ "$abaplint" = true ]; then add abaplint; fi
           if [ "$chains" = true ]; then add chains; fi
           if [ "$backlog" = true ]; then add backlog; fi
-          if [ "$frontend" = true ]; then add frontend; fi
 
           {
             echo "app2abap=$app2abap"
             echo "abaplint=$abaplint"
             echo "chains=$chains"
             echo "backlog=$backlog"
-            echo "frontend=$frontend"
             echo "summary=${summary:-nothing}"
           } >> "$GITHUB_OUTPUT"
           if [ -z "$summary" ]; then
-            echo "::warning::no scope matched - the ones that exist are app2abap, abaplint, chains, backlog, frontend, or /fix on its own for all of them"
+            echo "::warning::no scope matched - the ones that exist are app2abap, abaplint, chains, backlog, or /fix on its own for all of them"
           else
             echo "::notice::autofix will run: $summary"
           fi
@@ -267,12 +263,7 @@ jobs:
         if: ${{ !cancelled() && steps.plan.outputs.backlog == 'true' }}
         run: npm run backlog
 
-      # rebuild the four published trees under build/ (check:frontend)
-      - name: frontend
-        if: ${{ !cancelled() && steps.plan.outputs.frontend == 'true' }}
-        run: npm run frontend:build
-
-      # Scoped to the paths those four own - a fixer that starts writing
+      # Scoped to the paths those fixers own - a fixer that starts writing
       # somewhere else should be noticed, not committed.
       - name: Commit the fixes
         id: commit
@@ -280,7 +271,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
         with:
           commit_message: "autofix: ${{ steps.plan.outputs.summary }}"
-          file_pattern: "src/ app/webapp/ build/ backlog/"
+          file_pattern: "src/ app/webapp/ backlog/"
 
       # A commit by the GITHUB_TOKEN does not start a new workflow run, so the
       # checks on the pull request still belong to the commit before it. Say so

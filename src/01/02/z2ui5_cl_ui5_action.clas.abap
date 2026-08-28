@@ -69,6 +69,9 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       " app: it describes THIS roundtrip, and the app object is what gets
       " serialized into the draft
       result->ms_actual-t_model_skipped = result->mo_app->model_json_parse( mo_http_post->ms_request-o_model ).
+      " the deltas just changed the state that string describes - drop it,
+      " so main_process falls back to a real serialization for its snapshot
+      CLEAR result->mo_app->mv_model_client.
     ENDIF.
 
     result->ms_actual-event       = mo_http_post->ms_request-s_front-event.
