@@ -335,29 +335,6 @@ const METADATA_EXTENSIONS = {
   'samples-controls': ['### In this repository'],
 };
 
-/* samples-controls' chain formatter skips one directory the other consumer's
- * does not, and the difference is real rather than drift.
- *
- * `src/zz_dev` is where abap2UI5/mcp-server's `deploy_app` writes the class an
- * agent is working on. It is gitignored scratch, but every script here walks
- * `src/` on the filesystem and the filesystem does not read `.gitignore`, so
- * the loop this ecosystem recommends to agents left four classes where the
- * gates look. samples-controls is the ONLY repository that happens to:
- * `deploy_app` resolves the samples-controls checkout and writes nowhere else
- * (mcp-server `lib/runtime.mjs`). Carrying the skip into `samples` would be a
- * branch that can never be taken, plus a `lib/src-tree.mjs` beside it that
- * exists to list nothing.
- *
- * So it is declared, the way `scripts/prose-absent.json` is left per
- * repository for the same reason: the shared thing is the program, and what
- * each repository excludes from its own tree is not. Removing the skip over
- * there fails this gate by name rather than passing quietly. */
-const SANDBOX_SKIP = {
-  'samples-controls': [
-    "import { isSkippedDir } from './lib/src-tree.mjs';\n",
-    '    if (isSkippedDir(e.name)) continue;\n',
-  ],
-};
 function dropSubsections(block, headings, side) {
   const lines = block.split('\n');
   for (const heading of headings) {
@@ -442,10 +419,10 @@ for (const entry of SHARED) {
   for (const repo of entry.consumers) {
     expected += 1;
     const local = path.join(ROOT, '..', repo, consumerFile);
-    let theirs = null;
-    let from = '';
+    let theirs;
+    let from;
 
-    let text = null;
+    let text;
     if (fs.existsSync(local)) {
       text = fs.readFileSync(local, 'utf8');
       from = 'checkout';

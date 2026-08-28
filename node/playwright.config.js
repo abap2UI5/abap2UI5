@@ -2,12 +2,6 @@
 const { defineConfig, devices } = require('@playwright/test');
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config({ path: path.resolve(__dirname, '.env') });
-
-/**
  * Custom project options (see tests/e2e/fixtures.js): ui5Src pins the UI5
  * bootstrap the served page boots with, ui5Theme the theme.
  * @typedef {{ ui5Src?: string, ui5Theme?: string }} Z2UI5TestOptions
@@ -34,8 +28,9 @@ module.exports = defineConfig(
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  // CI: 'list' puts per-test detail in the job log, where the html report
-  // (written but not uploaded) would leave a failure opaque.
+  // CI: 'list' puts per-test detail in the job log; the html report and the
+  // first-retry trace below are uploaded by test.yaml's browser matrix when a
+  // leg fails, so a flake that only reproduces in CI can be opened afterwards.
   reporter: process.env.CI ? [['list'], ['html']] : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -89,26 +84,6 @@ module.exports = defineConfig(
         ui5Theme: 'sap_fiori_3',
       },
     },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
   /* Run your local dev server before starting the tests */

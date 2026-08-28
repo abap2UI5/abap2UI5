@@ -63,9 +63,32 @@ const OWNER = [
  * written FROM the classes, so checking it would only ever confirm itself. */
 const PROSE = ['README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'CLAUDE.md', 'TRAINING.md', 'STATUS.md', 'CAPABILITIES.md', 'E2E.md'];
 
+/* And every markdown file under docs/, recursively.
+ *
+ * The root list above is a closed set of file names, which is why `docs/` was
+ * outside the gate entirely: a page moved into that folder left the check
+ * without anything saying so. samples-controls' `docs/upstream-requests.md`
+ * cites class and control names in almost every paragraph and had never been
+ * read by this script - it is where a stale pin claim survived - and its
+ * journal moved to `docs/history.md` from a root file the exclusion below
+ * still named.
+ *
+ * A directory rather than more file names on purpose: the failure this fixes
+ * is a page being ADDED or MOVED, and a closed list cannot notice either. A
+ * repository without a `docs/` folder contributes nothing, so this is inert
+ * in the consumers that do not have one. */
+const PROSE_DIRS = ['docs'];
+
 /* A journal records what a class was called when the entry was written; that
- * is history, not drift. Same reasoning as abap2UI5's changelog cut-off. */
-const HISTORY = /STATUS-history\.md$/;
+ * is history, not drift. Same reasoning as abap2UI5's changelog cut-off.
+ *
+ * It used to name `STATUS-history.md`, a root file that no longer exists in
+ * any consumer - so the exclusion had quietly stopped excluding anything, and
+ * would have started reporting the moment `docs/` came into scope:
+ * samples-controls' `docs/history.md` names `z2ui5_cl_smpc_app_overview`
+ * three times, in entries written before that class was renamed, and every
+ * one of them is correct as a record of what happened. */
+const HISTORY = /(^|\/)history\.md$/i;
 
 /* The other half of the prose, and in a sample repository the bigger half.
  * Every port carries a `meta/<class>.json` whose `deviations[].what`,
@@ -202,11 +225,32 @@ let checked = 0;
  * foreign SAMPLES.md lookup — then runs over sidecar text unchanged, which is
  * the whole reason to do this in the shared script rather than beside it. */
 const sources = [];
-for (const file of PROSE) {
-  const at = path.join(ROOT, file);
-  if (!fs.existsSync(at) || HISTORY.test(at)) continue;
-  sources.push({ label: file, text: fs.readFileSync(at, 'utf8') });
+
+/* Repo-relative and forward-slashed, so a label reads the same on every
+ * platform and HISTORY can be written as one pattern. */
+const rel = (at) => path.relative(ROOT, at).split(path.sep).join('/');
+
+const markdownUnder = (dir, out = []) => {
+  if (!fs.existsSync(dir)) return out;
+  for (const e of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const at = path.join(dir, e.name);
+    if (e.isDirectory()) markdownUnder(at, out);
+    else if (e.name.endsWith('.md')) out.push(at);
+  }
+  return out;
+};
+
+const proseFiles = [
+  ...PROSE.map((file) => path.join(ROOT, file)),
+  ...PROSE_DIRS.flatMap((dir) => markdownUnder(path.join(ROOT, dir))),
+];
+
+for (const at of proseFiles) {
+  const label = rel(at);
+  if (!fs.existsSync(at) || HISTORY.test(label)) continue;
+  sources.push({ label, text: fs.readFileSync(at, 'utf8') });
 }
+const proseCount = sources.length;
 const sidecarDir = path.join(ROOT, SIDECARS);
 let sidecarFiles = 0;
 if (fs.existsSync(sidecarDir)) {
@@ -276,7 +320,7 @@ for (const { label: file, text } of sources) {
   }
 }
 
-console.log(`prose-names: ${checked} class name(s) checked in ${PROSE.length} prose file(s)`
+console.log(`prose-names: ${checked} class name(s) checked in ${proseCount} prose file(s)`
   + (sidecarFiles ? ` and ${sidecarFiles} ${SIDECARS}/ sidecar(s)` : ''));
 for (const n of notes) console.log(`  ${n}`);
 

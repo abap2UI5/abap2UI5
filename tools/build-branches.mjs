@@ -81,7 +81,7 @@ const outDir = (branch) => join(scratch, branch);
 const COMMON = [".gitignore", "CODE_OF_CONDUCT.md", "LICENSE", "SECURITY.md"];
 
 // abapGit descriptors as on the previous branches
-const ABAPGIT_CLOUD = `﻿<?xml version="1.0" encoding="utf-8"?>
+const ABAPGIT_CLOUD = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
  <asx:values>
   <DATA>
@@ -92,7 +92,7 @@ const ABAPGIT_CLOUD = `﻿<?xml version="1.0" encoding="utf-8"?>
  </asx:values>
 </asx:abap>
 `;
-const ABAPGIT_STANDARD = `﻿<?xml version="1.0" encoding="utf-8"?>
+const ABAPGIT_STANDARD = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
  <asx:values>
   <DATA>

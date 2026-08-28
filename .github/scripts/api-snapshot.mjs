@@ -208,7 +208,7 @@ function extract() {
       const m = entry.match(KIND_RE);
       if (!m) continue; // PUBLIC SECTION noise (e.g. pragmas)
       const kind = m[0].toLowerCase().replace(/\s+/g, "-");
-      const nameM = entry.slice(m[0].length).match(/^\s*:?\s*([a-z0-9_~\/]+)/i);
+      const nameM = entry.slice(m[0].length).match(/^\s*:?\s*([a-z0-9_~/]+)/i);
       if (!nameM) continue;
       api[`${f}#${kind}:${nameM[1].toLowerCase()}`] = norm(releaseNeutral(f, kind, nameM[1], entry));
     }

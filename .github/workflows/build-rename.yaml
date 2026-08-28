@@ -1,4 +1,4 @@
-name: build_rename
+name: build-rename
 
 # Renames all artifacts to a chosen namespace and pushes the result to
 # the branch rename_<name>, e.g. rename_zmyui5 — ready to pull with
