@@ -165,6 +165,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:abap2ui5
 
+      # app/eslint.config.mjs is scoped to webapp/**, so everything that BUILDS
+      # and CHECKS the frontend - these gates, tools/, node/ - was uncovered.
+      # Those scripts decide whether a pull request merges, and a typo in one
+      # of them failed as a crash in CI rather than as a finding
+      - name: the Node tooling lints
+        if: ${{ !cancelled() }}
+        run: npm run check:eslint
+
       - name: public API unchanged (additions recorded)
         if: ${{ !cancelled() }}
         run: npm run check:api

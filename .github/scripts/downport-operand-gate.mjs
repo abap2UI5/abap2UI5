@@ -164,7 +164,7 @@ if (findings.length) {
     console.error(
       "    a built-in function is not read as one here at 7.02/7.31 - the "
       + "downported\n    statement fails to compile with \"method "
-      + `${f.fn.toUpperCase()} is unknown\" (#2664).`,
+      + `${f.fn.toUpperCase()} is unknown" (#2664).`,
     );
     console.error("    assign it to a variable on the line above and use the variable.");
   }

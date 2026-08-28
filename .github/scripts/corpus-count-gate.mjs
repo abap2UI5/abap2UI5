@@ -120,8 +120,8 @@ const notes = [];
 const truth = {};
 for (const [metric, spec] of Object.entries(CORPORA)) {
   const local = path.join(ROOT, '..', spec.repo, spec.file);
-  let text = null;
-  let from = '';
+  let text;
+  let from;
 
   if (fs.existsSync(local)) {
     text = fs.readFileSync(local, 'utf8');

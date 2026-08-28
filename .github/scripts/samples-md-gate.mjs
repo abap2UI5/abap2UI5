@@ -225,8 +225,8 @@ const read = [];
 
 for (const repo of CATALOGUES) {
   const local = path.join(ROOT, '..', repo, FILE);
-  let text = null;
-  let from = '';
+  let text;
+  let from;
   if (fs.existsSync(local)) {
     text = fs.readFileSync(local, 'utf8');
     from = 'checkout';
