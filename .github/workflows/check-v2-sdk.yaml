@@ -1,4 +1,4 @@
-name: check_v2_sdk
+name: check-v2-sdk
 
 # The v2 branches bootstrap UI5 from a public CDN at the version hard-coded
 # in tools/app2app_v2/patch-v2.mjs — the one manually bumped external pin of

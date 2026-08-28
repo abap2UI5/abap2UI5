@@ -9,7 +9,7 @@ export async function setup(abap, schemas, insert) {
     try {
       await fn();
     } catch (e) {
-      throw new Error(`setup: ${label} failed - ${e.message}`);
+      throw new Error(`setup: ${label} failed - ${e.message}`, { cause: e });
     }
   };
   await step("connect", () => db.connect());

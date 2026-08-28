@@ -1,0 +1,85 @@
+name: coverage
+
+# What `npm run unit` covers, per ABAP file, once a month.
+#
+# The command has existed for a while and no workflow ever ran it. The number
+# in AGENTS.md was therefore hand-measured and dated - "72.4% of the engine at
+# the time of writing" - which is exactly the kind of claim this repository
+# gates everywhere else, and here it was carried by nobody.
+#
+# It stays a REPORT, deliberately. `coverage-report.mjs` says why in its own
+# header: a threshold is a number a build starts optimising for, while the
+# useful question is always which file is low and whether that matters. So this
+# job cannot fail on a percentage - it fails only when the suite itself does -
+# and its whole output is the job summary, which is where a monthly run is
+# actually read.
+#
+# Monthly rather than per pull request because it needs the full downport plus
+# transpile plus an instrumented unit run, and a number that moves by a tenth
+# of a point per change is not worth that on every push. `workflow_dispatch` is
+# there for the change that means to move it.
+
+on:
+  schedule:
+    # 05:17 on the 2nd - off the hour and off the 1st, where every scheduled
+    # workflow on GitHub queues at once.
+    - cron: '17 5 2 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage
+  cancel-in-progress: false
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      issues: write  # to report a failed scheduled run
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup
+        with:
+          npm-ci: "true"
+
+      # The measurement runs against the transpiled tree, and the transpiler's
+      # source maps point back at the .clas.abap - which is what lets a
+      # JavaScript coverage tool measure ABAP lines with ABAP line numbers.
+      - run: npm run downport
+      - run: npm run auto_transpile
+
+      - name: Measure and write the table to the job summary
+        run: |
+          set -o pipefail
+          npm run coverage --silent | tee coverage.txt
+          {
+            echo "## Coverage of \`npm run unit\`, per ABAP file"
+            echo
+            echo "Commit \`${GITHUB_SHA}\`, measured $(date -u +%Y-%m-%d)."
+            echo
+            echo '```'
+            cat coverage.txt
+            echo '```'
+            echo
+            echo "A report, not a gate: the useful question is which file is low and"
+            echo "whether that matters, not whether a number cleared a bar. AGENTS.md,"
+            echo "section \"What the suite covers\", carries the reason for each of the"
+            echo "three low ones."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The table, kept as a file as well: the job summary is not addressable
+      # from outside the run, so a comparison against last month needs this.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() }}
+        with:
+          name: coverage
+          path: coverage.txt
+          retention-days: 90
+
+      - name: Report scheduled failure as issue
+        if: failure() && github.event_name == 'schedule'
+        uses: ./.github/actions/report-scheduled-failure

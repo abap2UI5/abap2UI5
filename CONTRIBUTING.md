@@ -36,7 +36,12 @@ abap2UI5 is a framework for developing UI5 applications purely in ABAP, without 
 4. **ABAP Development Environment** - SE80, ADT, or your preferred ABAP editor
 
 **For Node.js Development (Optional):**
-5. **Node.js** - [Download Node.js](https://nodejs.org/) (only needed for transpilation testing)
+5. **Node.js 22 or newer** - [Download Node.js](https://nodejs.org/) (needed for
+   transpilation testing and for every `npm run` gate; `package.json` declares
+   `"engines": { "node": ">=22" }` and the CI toolchain is pinned to it). The
+   gates and the build pipeline are Node scripts on purpose: nothing in them
+   assumes a POSIX shell, so `npm run verify` runs on Linux, macOS and Windows
+   alike.
 
 ### Understanding the Project
 
@@ -252,10 +257,14 @@ Look for issues labeled:
    ```
 
 #### Commit Message Guidelines
-- Use [conventional commits](https://www.conventionalcommits.org/): `type: description`
-- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Keep first line under 50 characters
-- Add detailed description for complex changes
+The rule for the whole ecosystem is
+[`.github/shared/CONVENTIONS.md` section 7](.github/shared/CONVENTIONS.md#7-commits-and-pull-requests),
+and it binds this repository too: a subject in the imperative describing the
+**outcome**, not the mechanics. Do not repeat it here — this file used to ask
+for conventional commits under 50 characters while AGENTS.md asked for
+something else again and CONVENTIONS asked for a third thing, so a
+contributor reading two of the three got a rule the reviewer did not hold
+them to.
 
 ## Submitting Changes
 

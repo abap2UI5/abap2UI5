@@ -191,7 +191,6 @@ function atomize(line, chunk) {
             } else {
                 // ("part" + "part" + ...) - greedily as long as the pieces get.
                 push(code + '(', false);
-                code = '';
                 let from = i + 1;
                 let cut = splits.filter((s) => s - from <= chunk).pop();
                 while (cut !== undefined && cut > from && end - from > chunk) {

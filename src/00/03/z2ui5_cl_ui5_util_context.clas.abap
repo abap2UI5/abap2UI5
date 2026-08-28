@@ -1073,7 +1073,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD rtti_get_t_attri_by_include.
 
     cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
-                                         RECEIVING  p_descr_ref    = DATA(type_desc)
+                                         RECEIVING p_descr_ref     = DATA(type_desc)
                                          EXCEPTIONS type_not_found = 1 ).
     " classic exception method: a missing type sets sy-subrc and leaves the
     " ref unbound instead of raising - check it, or get_components below
@@ -1492,7 +1492,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     TRY.
         DATA(lt_attri) = rtti_get_t_attri_by_oref( val ).
-      CATCH cx_root ##NO_HANDLER.
+      CATCH cx_root.
         RETURN.
     ENDTRY.
 
@@ -1909,6 +1909,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " incompatible, so the CALL FUNCTION fails and no implementers are returned
     " (silently breaking user-exit discovery). Never change this key type.
     DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
+    "#EC DEFAULT_KEY
     TYPES BEGIN OF ty_s_key.
     TYPES intkey TYPE c LENGTH 30.
     TYPES END OF ty_s_key.
@@ -2031,9 +2032,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ASSIGN ddic_ref->* TO <ddic>.
     ASSERT sy-subrc = 0.
 
-    cl_abap_elemdescr=>describe_by_name( EXPORTING  p_name      = name
-                                         RECEIVING  p_descr_ref = lo_typedescr
-                                         EXCEPTIONS OTHERS      = 1 ).
+    cl_abap_elemdescr=>describe_by_name( EXPORTING  p_name     = name
+                                         RECEIVING p_descr_ref = lo_typedescr
+                                         EXCEPTIONS OTHERS     = 1 ).
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
@@ -2230,9 +2231,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             INSERT LINES OF lt_tab INTO TABLE result.
             RETURN.
           ELSE.
-            ls_result = msg_map( name   = ls_attri->name
-                                 val    = <comp>
-                                 msg = ls_result ).
+            ls_result = msg_map( name = ls_attri->name
+                                 val  = <comp>
+                                 msg  = ls_result ).
           ENDIF.
 
         ENDLOOP.
@@ -2274,9 +2275,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
-          ls_result = msg_map( name   = ls_attri_o->name
-                               val    = <comp>
-                               msg = ls_result ).
+          ls_result = msg_map( name = ls_attri_o->name
+                               val  = <comp>
+                               msg  = ls_result ).
         ENDLOOP.
         INSERT ls_result INTO TABLE result.
       CATCH cx_root.
@@ -2321,9 +2322,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
                   IF sy-subrc <> 0.
                     CONTINUE.
                   ENDIF.
-                  ls_result = msg_map( name   = ls_attri_o->name
-                                       val    = <comp>
-                                       msg = ls_result ).
+                  ls_result = msg_map( name = ls_attri_o->name
+                                       val  = <comp>
+                                       msg  = ls_result ).
                 ENDLOOP.
                 INSERT ls_result INTO TABLE result.
 
@@ -2478,7 +2479,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD msg_get_rap_element.
 
-    DATA(lt_suffix) = scan_flag_prefix( val       = val
+    DATA(lt_suffix) = scan_flag_prefix( val    = val
                                         prefix = `%ELEMENT-` ).
     result = concat_lines_of( table = lt_suffix
                               sep   = `, ` ).
@@ -2511,14 +2512,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD msg_get_rap_state_area.
 
-    result = get_comp_str( val     = val
+    result = get_comp_str( val  = val
                            comp = `%STATE_AREA` ).
 
   ENDMETHOD.
 
   METHOD msg_get_rap_action.
 
-    DATA(lt_suffix) = scan_flag_prefix( val       = val
+    DATA(lt_suffix) = scan_flag_prefix( val    = val
                                         prefix = `%OP-%ACTION-` ).
     result = VALUE #( lt_suffix[ 1 ] OPTIONAL ).
 
@@ -2526,14 +2527,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD msg_get_rap_pid.
 
-    result = get_comp_str( val     = val
+    result = get_comp_str( val  = val
                            comp = `%PID` ).
 
   ENDMETHOD.
 
   METHOD msg_get_rap_cid.
 
-    result = get_comp_str( val     = val
+    result = get_comp_str( val  = val
                            comp = `%CID` ).
 
   ENDMETHOD.
