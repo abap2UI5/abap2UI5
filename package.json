@@ -49,6 +49,7 @@
     "check:abap2ui5": "abap2ui5lint",
     "check:render": "abap2ui5lint --render",
     "check:conventions": "node .github/scripts/conventions-gate.mjs",
+    "check:commands": "node .github/scripts/agents-commands-gate.mjs",
     "check:format": "npx abaplint .github/abaplint/auto_abaplint_fix.jsonc",
     "check:eslint": "eslint .",
     "fmt:chains": "abap2ui5lint --fix",

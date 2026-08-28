@@ -257,10 +257,14 @@ Look for issues labeled:
    ```
 
 #### Commit Message Guidelines
-- Use [conventional commits](https://www.conventionalcommits.org/): `type: description`
-- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Keep first line under 50 characters
-- Add detailed description for complex changes
+The rule for the whole ecosystem is
+[`.github/shared/CONVENTIONS.md` section 7](.github/shared/CONVENTIONS.md#7-commits-and-pull-requests),
+and it binds this repository too: a subject in the imperative describing the
+**outcome**, not the mechanics. Do not repeat it here — this file used to ask
+for conventional commits under 50 characters while AGENTS.md asked for
+something else again and CONVENTIONS asked for a third thing, so a
+contributor reading two of the three got a rule the reviewer did not hold
+them to.
 
 ## Submitting Changes
 
