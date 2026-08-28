@@ -22,6 +22,8 @@ _nothing exists upstream yet — this is the stock_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`model-skip-cannot-name-the-record-or-the-value`](items/model-skip-cannot-name-the-record-or-the-value.md) | '`client->get( )-t_model_skipped` locates a top-level cell exactly, but a NESTED cell loses its parent row, and no entry carries the refused value — so the one message an app most wants to write, quoting what the user typed, is not expressible' | medium | 2026-08-27 | abap2UI5/abap2UI5 |
+| [`bind-path-shorthand`](items/bind-path-shorthand.md) | 345 of 3245 `_bind( )` calls carry `path = abap_true` and nothing else — a one-parameter alias removes a boolean flag from every one of them, in 167 of 637 ported apps | low | 2026-08-28 | abap2UI5/abap2UI5 |
+| [`event-arg-shorthand`](items/event-arg-shorthand.md) | 274 of 399 `_event( )` calls that pass arguments wrap a SINGLE value in `VALUE #( ( … ) )` — optional `a1`/`a2`/`a3` parameters would take the table constructor out of the line every sample copies first | low | 2026-08-28 | abap2UI5/abap2UI5 |
 
 ---
 
