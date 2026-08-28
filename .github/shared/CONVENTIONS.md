@@ -128,9 +128,20 @@ Rules that follow from the role:
 - `license` is set in every `package.json`; the LICENSE file is MIT and names
   the same holder across the organisation.
 - `@abaplint/cli` and `@abap2ui5/linter` are on the same version in every
-  repository that lints ABAP. A repository that pins deliberately (because it
-  must match what another repository syntax-checks with) says so in a comment
-  next to the pin.
+  repository that lints ABAP. A repository that pins deliberately — because it
+  must match what another repository syntax-checks with, or because the
+  dependency ends up inside a bundle a visitor downloads — **names the pin and
+  the reason in its own `AGENTS.md`**, the way §3 already asks for a `check`
+  step that is left out.
+
+  It said "in a comment next to the pin" until 2026-08-28, and that could never
+  be done: the pins live in `package.json`, and JSON has no comments. So the
+  one escape hatch the rule offers was impossible to take, and the divergence
+  went unrecorded instead — five different `@abaplint/cli` versions and four
+  different `@abap2ui5/linter` ranges across the nine repositories on the day
+  this sentence was rewritten, with no repository saying why. A rule whose
+  exception cannot be written down is a rule that gets ignored silently rather
+  than argued with.
 - `@abap2ui5/linter` and `@abap2ui5/render-runtime` ship from one tag and are
   installed on the same minor line. A runtime older than the snapshot the linter
   was built against serves controls the gate then judges by metadata it does not
