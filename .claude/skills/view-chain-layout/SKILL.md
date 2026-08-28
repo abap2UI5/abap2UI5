@@ -15,7 +15,7 @@ tree a line sits, so it has to be true.
 after a survey found the two sample corpora following opposite conventions for
 the same builder.
 
-## The six rules
+## The seven rules
 
 1. **One call per line.** Every `ele( )`, `tag( )`, `a( )` and `end( )` opens
    its own line with `)->`. A control never shares its line with its own
@@ -32,6 +32,18 @@ the same builder.
    attribute block.
 6. **`stringify( )` is a standalone final statement** —
    `client->view_display( view->stringify( ) ).`, never nested in the chain.
+7. **A wrapped `t_arg` list hangs under its FIRST element.** When a
+   `_event( )` / `follow_up_action( )` argument table runs over several lines,
+   every continuation line starts in the column of the first `( … )` — not
+   under the `#` of `VALUE #(`, which is three columns to its left and the
+   drift this rule exists to stop:
+
+   ```abap
+   )->a( n = `close` v = client->follow_up_action( val   = client->cs_event-control_by_id
+                                                   t_arg = VALUE #( ( `notificationList` )
+                                                                    ( `removeItem` )
+                                                                    ( `$event.oSource.getId()` ) ) )
+   ```
 
 ```abap
 METHOD view_display.
@@ -115,7 +127,7 @@ and carries fixes, so `--fix` reformats a drifted chain. The rewrite only ever
 touches whitespace *between* chain segments and the indent of a continuation
 line that is not itself content, and it verifies that collapsing every run of
 code-whitespace leaves the source identical — **a layout fix can never change
-what the view builds.** Rules 5-6 and the blank lines stay reviewer-enforced.
+what the view builds.** Rules 5-7 and the blank lines stay reviewer-enforced.
 
 It is the linter's one **opt-in** rule (`OPT_IN` in its `findings.mjs`): it is
 not emitted at all until a config asks for it, because it encodes one house
