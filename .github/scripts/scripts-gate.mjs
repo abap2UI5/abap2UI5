@@ -27,20 +27,17 @@
  *
  *   node .github/scripts/scripts-gate.mjs        (npm run check:scripts)
  */
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { REPOS } from './lib-ecosystem.mjs';
+import { REPOS, read } from './lib-ecosystem.mjs';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-
-/* The ecosystem list lives in `lib-ecosystem.mjs`, because `toolchain-gate.mjs`
- * needs the same one. Two hand-maintained copies of "which repositories the
- * rules apply to" is exactly the drift both gates exist to catch. */
+/* The ecosystem list AND the reader live in `lib-ecosystem.mjs`, because
+ * `toolchain-gate.mjs` needs both. Two hand-maintained copies of "which
+ * repositories the rules apply to" is exactly the drift both gates exist to
+ * catch — and two readers is how the same repository came to get two different
+ * answers: this gate reported `lock-manager: not checked (HTTP 404)` while the
+ * other one said the repository is not readable at all. One reader, one
+ * answer. */
 
 const REQUIRED = ['check', 'test'];
-
-const raw = ({ org, repo }) => `https://raw.githubusercontent.com/${org}/${repo}/main/package.json`;
 
 const problems = [];
 const notes = [];
@@ -48,27 +45,15 @@ let checked = 0;
 
 for (const entry of REPOS) {
   const { repo } = entry;
-  /* This repository is the checkout the gate runs in, not a sibling of it. */
-  const local = repo === 'abap2UI5'
-    ? path.join(ROOT, 'package.json')
-    : path.join(ROOT, '..', repo, 'package.json');
 
-  let text;
-  let from;
-  if (fs.existsSync(local)) {
-    text = fs.readFileSync(local, 'utf8');
-    from = 'checkout';
-  } else {
-    try {
-      const res = await fetch(raw(entry), { signal: AbortSignal.timeout(15000) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      text = await res.text();
-      from = 'github';
-    } catch (err) {
-      notes.push(`${repo}: not checked (${err.message})`);
-      continue;
-    }
+  const pkg = await read(entry, 'package.json');
+  if (pkg.note) { notes.push(`${repo}: not checked (${pkg.note})`); continue; }
+  if (pkg.missing) {
+    problems.push(`${repo}: no package.json (read from ${pkg.from})`
+      + ' — it is on the ecosystem list, so it is expected to have one');
+    continue;
   }
+  const { text, from } = pkg;
 
   let scripts;
   try {
