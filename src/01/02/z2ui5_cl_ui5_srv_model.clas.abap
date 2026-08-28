@@ -199,7 +199,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD main_json_stringify.
     TRY.
 
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        " the result instance itself carries the upper-case mapping, so the
+        " common path below can convert an attribute straight into it - one
+        " ABAP->node conversion instead of a conversion into a scratch
+        " instance plus a node-by-node copy with per-node path rebasing
+        " (lcl_abap_to_json=>convert_ajson). Component names come out the
+        " same either way; the path leaf (name_client) is upper case by
+        " construction (attribute names come from RTTI), so the mapping is
+        " a no-op on it
+        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                       ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
         DATA(ajson_default) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                        ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
@@ -213,21 +222,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
              WHERE bind = abap_true
                    AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
                    AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
-
-          IF lr_attri->custom_mapper IS BOUND.
-            READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
-                 WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
-            IF sy-subrc = 0.
-              DATA(ajson) = lr_mapper_cache->ajson.
-            ELSE.
-              ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                   ii_custom_mapping = lr_attri->custom_mapper ) ).
-              INSERT VALUE #( mapper = lr_attri->custom_mapper
-                              ajson  = ajson ) INTO TABLE lt_mapper_cache.
-            ENDIF.
-          ELSE.
-            ajson = ajson_default.
-          ENDIF.
 
           TRY.
               DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
@@ -246,22 +240,49 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " decides the failure mode: an unparseable string raises here instead
           " of emitting broken JSON the frontend would choke on. No mapper runs
           " over it - the keys are the payload's own and must survive verbatim
+          " (an ajson value is copied node for node, the result's mapping does
+          " not touch it)
           IF lr_attri->check_json = abap_true.
             ajson_result->set( iv_path = lr_attri->name_client
                                iv_val  = z2ui5_cl_ajson=>parse( <val> ) ).
             CONTINUE.
           ENDIF.
 
-          ajson->set( iv_ignore_empty = abap_false
-                      iv_path         = `/`
-                      iv_val          = <val> ).
+          " a mapper or filter is attached to an ajson INSTANCE, so those
+          " attributes keep the scratch-instance detour the direct set cannot
+          " express: convert into the scratch, filter, copy into the result
+          IF lr_attri->custom_mapper IS BOUND OR lr_attri->custom_filter IS BOUND.
+            IF lr_attri->custom_mapper IS BOUND.
+              READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
+                   WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
+              IF sy-subrc = 0.
+                DATA(ajson) = lr_mapper_cache->ajson.
+              ELSE.
+                ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                                     ii_custom_mapping = lr_attri->custom_mapper ) ).
+                INSERT VALUE #( mapper = lr_attri->custom_mapper
+                                ajson  = ajson ) INTO TABLE lt_mapper_cache.
+              ENDIF.
+            ELSE.
+              ajson = ajson_default.
+            ENDIF.
 
-          IF lr_attri->custom_filter IS BOUND.
-            ajson = ajson->filter( lr_attri->custom_filter ).
+            ajson->set( iv_ignore_empty = abap_false
+                        iv_path         = `/`
+                        iv_val          = <val> ).
+
+            IF lr_attri->custom_filter IS BOUND.
+              ajson = ajson->filter( lr_attri->custom_filter ).
+            ENDIF.
+
+            ajson_result->set( iv_path = lr_attri->name_client
+                               iv_val  = ajson ).
+            CONTINUE.
           ENDIF.
 
-          ajson_result->set( iv_path = lr_attri->name_client
-                             iv_val  = ajson ).
+          ajson_result->set( iv_ignore_empty = abap_false
+                             iv_path         = lr_attri->name_client
+                             iv_val          = <val> ).
         ENDLOOP.
 
         result = ajson_result->stringify( ).
