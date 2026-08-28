@@ -10,6 +10,37 @@ Legend
 
 
 
+unreleased
+----------
++ Frontend actions: expandSelected / collapseSelected on a tree table,
+  setBadgeMinValue / setBadgeMaxValue, IconPool.registerFont for a custom
+  icon font, and addCustomCurrencies
+! NavContainer to( ) takes a typed page id plus an optional transition name
+* NavContainer backToPage( ) was a silent no-op on a plain page id
+* Event arguments: an empty string arrives as an empty string, and a
+  date-valued argument travels as the LOCAL date instead of shifting a day
+  west of the system's timezone
+* client->get( )-t_model_skipped names the cells a model delta could not
+  convert, instead of dropping them without a trace
+* The page-location block is latched when its request is confirmed, not when
+  it is built, so an aborted first request no longer suppresses it for the
+  rest of the session
+* 7.02 / 7.31: a built-in function in a table-expression key no longer takes
+  the whole class pool down at compile time (report #2664)
++ MultiInputExt: the suggestion-row half of addValidator
+! Developer tools: the cross-tab search moved onto a tab of its own
+! z2ui5_if_exit is renamed to z2ui5_if_ui5_exit. The old interface still
+  ships and is still looked up and called, so every existing exit keeps
+  working
+- BREAKING: z2ui5_if_types is retired to src/99 - every type it held now
+  sits on the object that uses it (ty_s_get / ty_s_event_control /
+  ty_s_name_value / ty_t_name_value / cs_device on z2ui5_if_client, the
+  three HTTP config types on z2ui5_if_ui5_exit, ty_s_draft on
+  z2ui5_cl_ui5_srv_draft). Nothing is deleted or reshaped: the interface
+  ships unchanged from the frozen package, so z2ui5_if_types=>... still
+  compiles, and every moved type is identical field for field
+
+
 2026-08-16 v1.143.0
 -------------------
 + Various improvements for AIs

@@ -1,0 +1,93 @@
+name: codeql
+
+# Static security analysis of the JavaScript this repository owns.
+#
+# Three bodies of JS, and each of them reaches a system:
+#
+#   app/webapp/     the shipped frontend. Embedded verbatim into the ABAP
+#                   classes under src/01/03 and into the four build/ trees, so
+#                   it runs in every user's browser against their backend. It
+#                   already handles untrusted input by design - the sanitizer
+#                   in core/Lib.js exists because message details reach the DOM
+#                   (`lib-sanitizer.spec.js` is the regression suite for it).
+#   .github/scripts the CI gates. They decide whether a pull request merges,
+#                   and several of them fetch from raw.githubusercontent.
+#   tools/          the generators that WRITE what is delivered - the embedded
+#                   ABAP, the BSP pages, the four delivery trees.
+#
+# ui5lint and ESLint are style and API checks; neither models taint. Nothing
+# else in this repository looks for an injection path at all.
+#
+# Deliberately scoped by `paths`. `build/` and `src/01/03/` are generated from
+# `app/webapp/` and would triple every finding under a filename nobody may
+# edit; `node/output/` and `node/downport/` are transpiler output.
+#
+# Runs on pull requests (so a finding lands on the change that introduced it),
+# on pushes to main, and monthly - the query pack moves on its own schedule, so
+# code that was clean last month can have a finding without anybody touching
+# it.
+
+on:
+  pull_request:
+    paths:
+      - 'app/webapp/**'
+      - '.github/scripts/**'
+      - 'tools/**'
+      - '.github/workflows/codeql.yaml'
+  push:
+    branches: [main]
+  schedule:
+    # 07:23 on the 3rd - off the hour and off the 1st, where every scheduled
+    # workflow on GitHub queues at once.
+    - cron: '23 7 3 * *'
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # Uploading the SARIF result is what puts a finding in the Security tab.
+      security-events: write
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          languages: javascript-typescript
+          # security-extended over the default pack: the default set is tuned
+          # for a low false-positive rate on application code, and what is being
+          # analysed here is a code generator plus a frontend that composes DOM
+          # from backend-supplied data.
+          queries: security-extended
+          config: |
+            paths:
+              - app/webapp
+              - .github/scripts
+              - .github/shared
+              - tools
+              - node/srv
+              - node/setup
+            paths-ignore:
+              - build
+              - src/01/03
+              - node/output
+              - node/downport
+              - node/deps
+
+      # No build step: the JavaScript here is interpreted, and there is nothing
+      # to compile before the queries can run.
+      - name: Analyze
+        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          category: /language:javascript-typescript

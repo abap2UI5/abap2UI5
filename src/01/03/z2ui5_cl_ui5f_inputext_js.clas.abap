@@ -30,115 +30,110 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
              `  (Input, InputRenderer, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // A sap.m.Input that carries the HTML ``type`` of its inner <input> as a` && |\n| &&
-             `    // bindable PROPERTY - the control is a sap.m.Input in every other respect.` && |\n| &&
+             `    // A sap.m.Input that carries the HTML ``inputmode`` of its inner <input> as` && |\n| &&
+             `    // a bindable PROPERTY. It is a sap.m.Input in every other respect: the` && |\n| &&
+             `    // renderer is sap.m.InputRenderer unchanged, and with the property empty` && |\n| &&
+             `    // the control writes nothing at all, so value binding, suggestions, value` && |\n| &&
+             `    // state, events and the rendered DOM are the ones the app already knows.` && |\n| &&
              `    //` && |\n| &&
-             `    // sap.m.Input does have a ``type`` property, but it is the sap.m.InputType` && |\n| &&
-             `    // ENUM (Text, Password, Number, Email, Tel, Url and the date/time members)` && |\n| &&
-             `    // and the control derives its own behaviour from it. The HTML5 types` && |\n| &&
-             `    // outside that enum - color, range, search, month, week, datetime-local -` && |\n| &&
-             `    // cannot be reached through it at all. ``inputType`` writes the attribute` && |\n| &&
-             `    // and nothing else, so the browser renders the field the app asked for` && |\n| &&
-             `    // while value binding, suggestions, value state and events stay the` && |\n| &&
-             `    // sap.m.Input the app already knows.` && |\n| &&
+             `    // ``inputmode`` asks the on-screen keyboard for a layout without changing` && |\n| &&
+             `    // what the field IS - ``numeric`` gives a digit pad on a field that still` && |\n| &&
+             `    // takes any text, and ``none`` keeps the soft keyboard DOWN while the field` && |\n| &&
+             `    // goes on taking input, which is what a barcode scanner needs. UI5 has no` && |\n| &&
+             `    // property for it, so the only other way to set it is to write the` && |\n| &&
+             `    // attribute onto the DOM - and every re-render throws that DOM away. Here` && |\n| &&
+             `    // the mode is part of what the control IS: it is written on every` && |\n| &&
+             `    // rendering, so nothing can lose it and no follow-up action has to arrive` && |\n| &&
+             `    // in the right order.` && |\n| &&
              `` && |\n| &&
-             `    // The HTML types a sap.m.Input stays a working field with. The eight left` && |\n| &&
-             `    // out (button, checkbox, file, hidden, image, radio, reset, submit) are` && |\n| &&
-             `    // not text-entry fields: writing a value into a ``file`` field THROWS,` && |\n| &&
-             `    // ``hidden`` removes the field the control renders its label and value` && |\n| &&
-             `    // state around, and the rest ignore the value entirely.` && |\n| &&
-             `    // An unknown value is refused rather than written, because a browser` && |\n| &&
-             `    // silently falls back to ``text`` for a type it does not know - which on` && |\n| &&
-             `    // screen looks exactly like the property having had no effect at all.` && |\n| &&
-             `    const HTML_TYPES = new Set([` && |\n| &&
-             `      "color",` && |\n| &&
-             `      "date",` && |\n| &&
-             `      "datetime-local",` && |\n| &&
+             `    // The complete inputmode keyword list of the HTML standard. An unknown` && |\n| &&
+             `    // value is refused rather than written, because a browser silently falls` && |\n| &&
+             `    // back to its default for a keyword it does not know - which on screen` && |\n| &&
+             `    // looks exactly like the property having had no effect at all.` && |\n| &&
+             `    const HTML_MODES = new Set([` && |\n| &&
+             `      "decimal",` && |\n| &&
              `      "email",` && |\n| &&
-             `      "month",` && |\n| &&
-             `      "number",` && |\n| &&
-             `      "password",` && |\n| &&
-             `      "range",` && |\n| &&
+             `      "none",` && |\n| &&
+             `      "numeric",` && |\n| &&
              `      "search",` && |\n| &&
              `      "tel",` && |\n| &&
              `      "text",` && |\n| &&
-             `      "time",` && |\n| &&
              `      "url",` && |\n| &&
-             `      "week",` && |\n| &&
              `    ]);` && |\n| &&
              `` && |\n| &&
              `    return Input.extend("z2ui5.cc.InputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
-             `          // The HTML input type: "color", "range", "search", "month", ...` && |\n| &&
-             `          // Empty leaves the field exactly as sap.m.Input rendered it, which` && |\n| &&
-             `          // makes this control a plain sap.m.Input - so a BOUND type can` && |\n| &&
-             `          // switch the override off again without the app having to restore` && |\n| &&
-             `          // anything, and that is the point of the property: "render this as` && |\n| &&
-             `          // a colour picker now" is a plain model update, no action travels.` && |\n| &&
-             `          inputType: {` && |\n| &&
+             `          // The HTML inputmode: "none" hides the soft keyboard, "numeric",` && |\n| &&
+             `          // "decimal", "tel", ... restore it with that layout. Empty leaves` && |\n| &&
+             `          // the field exactly as sap.m.Input rendered it - so a BOUND mode can` && |\n| &&
+             `          // switch the behaviour off again without the app having to restore` && |\n| &&
+             `          // anything, and that is the point of the property: "keyboard on/off"` && |\n| &&
+             `          // is a plain model update, with no action travelling at all.` && |\n| &&
+             `          inputMode: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Written WITHOUT invalidating: the type is one DOM attribute and UI5` && |\n| &&
-             `      // renders nothing else from it, so a bound type must not cost a` && |\n| &&
-             `      // re-render of the input (and of its suggestion popup) on every change.` && |\n| &&
-             `      // The write below reaches the live DOM directly; onAfterRendering` && |\n| &&
-             `      // covers the case where there is no DOM yet.` && |\n| &&
-             `      setInputType(val) {` && |\n| &&
-             `        this.setProperty("inputType", val, true);` && |\n| &&
-             `        this._applyInputType();` && |\n| &&
+             `      // Written WITHOUT invalidating: the mode is one DOM attribute and UI5` && |\n| &&
+             `      // renders nothing from it, so a bound mode must not cost a re-render of` && |\n| &&
+             `      // the input (and of its suggestion popup) on every toggle. The write` && |\n| &&
+             `      // below reaches the live DOM directly; onAfterRendering covers the case` && |\n| &&
+             `      // where there is no DOM yet.` && |\n| &&
+             `      setInputMode(val) {` && |\n| &&
+             `        this.setProperty("inputMode", val, true);` && |\n| &&
+             `        this._applyInputMode();` && |\n| &&
              `        return this;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onAfterRendering(...args) {` && |\n| &&
              `        Input.prototype.onAfterRendering.apply(this, args);` && |\n| &&
-             `        // The fresh DOM carries the type sap.m.Input rendered from its own` && |\n| &&
-             `        // ``type`` property. Remembered per rendering so that clearing` && |\n| &&
-             `        // inputType puts THAT back - removing the attribute would silently` && |\n| &&
-             `        // turn a Password field into a visible text one.` && |\n| &&
+             `        // What sap.m.Input rendered on the fresh DOM, remembered per` && |\n| &&
+             `        // rendering. Today it renders no inputmode, so clearing the property` && |\n| &&
+             `        // takes the attribute off; should a release start rendering one, an` && |\n| &&
+             `        // empty property still leaves that release's own field behind rather` && |\n| &&
+             `        // than a field this control stripped an attribute from.` && |\n| &&
              `        const dom = this.getFocusDomRef();` && |\n| &&
-             `        this._renderedType = dom ? dom.getAttribute("type") : null;` && |\n| &&
-             `        this._applyInputType();` && |\n| &&
+             `        this._renderedMode = dom ? dom.getAttribute("inputmode") : null;` && |\n| &&
+             `        this._applyInputMode();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // the type to write, "" when unset; an unknown one is logged once and` && |\n| &&
+             `      // the mode to write, "" when unset; an unknown one is logged once and` && |\n| &&
              `      // treated as unset` && |\n| &&
-             `      _htmlType() {` && |\n| &&
-             `        const raw = this.getInputType();` && |\n| &&
+             `      _htmlMode() {` && |\n| &&
+             `        const raw = this.getInputMode();` && |\n| &&
              `        if (!raw) return "";` && |\n| &&
              `        // HTML compares the attribute case-insensitively and an ABAP caller` && |\n| &&
-             `        // writes ``COLOR`` as readily as ``color``, so normalize before the` && |\n| &&
+             `        // writes ``NUMERIC`` as readily as ``numeric``, so normalize before the` && |\n| &&
              `        // lookup rather than refuse a value the browser would have taken.` && |\n| &&
-             `        const type = String(raw).trim().toLowerCase();` && |\n| &&
-             `        if (HTML_TYPES.has(type)) return type;` && |\n| &&
-             `        // once per distinct value: _applyInputType runs on every rendering,` && |\n| &&
-             `        // and a bad type must not fill the log with the same line` && |\n| &&
-             `        if (this._refusedType !== type) {` && |\n| &&
-             `          this._refusedType = type;` && |\n| &&
+             `        const mode = String(raw).trim().toLowerCase();` && |\n| &&
+             `        if (HTML_MODES.has(mode)) return mode;` && |\n| &&
+             `        // _applyInputMode runs on every rendering, and a bad mode must not` && |\n| &&
+             `        // fill the log with the same line` && |\n| &&
+             `        if (this._refusedMode !== mode) {` && |\n| &&
+             `          this._refusedMode = mode;` && |\n| &&
              `          Lib.logError(` && |\n| &&
-             `            ``InputExt: inputType "${raw}" is not an HTML input type a text `` +` && |\n| &&
-             `              ``field supports - ignored``,` && |\n| &&
+             `            ``InputExt: inputMode "${raw}" is not an HTML inputmode keyword - `` +` && |\n| &&
+             `              ``ignored``,` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
              `        return "";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _applyInputType() {` && |\n| &&
+             `      _applyInputMode() {` && |\n| &&
              `        // the inner <input>, which is what carries the attribute - not the` && |\n| &&
              `        // control's outer DOM root` && |\n| &&
              `        const dom = this.getFocusDomRef();` && |\n| &&
              `        if (!dom) return;` && |\n| &&
-             `        const type = this._htmlType();` && |\n| &&
-             `        if (type) {` && |\n| &&
-             `          dom.setAttribute("type", type);` && |\n| &&
-             `        } else if (this._renderedType) {` && |\n| &&
-             `          dom.setAttribute("type", this._renderedType);` && |\n| &&
+             `        const mode = this._htmlMode();` && |\n| &&
+             `        if (mode) {` && |\n| &&
+             `          dom.setAttribute("inputmode", mode);` && |\n| &&
+             `        } else if (this._renderedMode) {` && |\n| &&
+             `          dom.setAttribute("inputmode", this._renderedMode);` && |\n| &&
              `        } else {` && |\n| &&
-             `          dom.removeAttribute("type");` && |\n| &&
+             `          dom.removeAttribute("inputmode");` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

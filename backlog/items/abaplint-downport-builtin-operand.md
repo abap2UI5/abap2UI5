@@ -96,3 +96,30 @@ that lints the downported branch (`ABAP_702.yaml` in abap2UI5) passed it as
 well — abaplint does not model which operand positions accept a built-in
 function at which release. The defect is introduced by the downport, which
 makes the downport the place to repair it.
+
+<!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
+
+## Measured
+
+`abaplint-downport-builtin-operand.probe.mjs` — a 7.02 built-in function in a table-expression key, a WITH KEY operand or an internal-table WHERE, with the functional method call in the same positions as the negative.
+Run **2026-08-28** against `abap2UI5`, `samples-controls` (not checked out: samples, samples-stack).
+
+**Would fire on 0 site(s)** in 0 repositories:
+
+_none_
+
+**Must NOT fire on 1 site(s)** that match the shape and are correct:
+
+| Repository | Where | |
+|---|---|---|
+| samples-controls | `src/02/01/z2ui5_cl_smpc_app_121.clas.abap`:167 | [internal-table WHERE operand, method call] DELETE t_items WHERE filename = client->get_event_arg( ). |
+
+**Where the detector is an approximation of the rule:**
+
+- The detector IS the gate: both import `.github/scripts/lib/downport-operands.mjs`, so a site here is a line `npm run check:downport` would fail on, and the two cannot drift apart.
+- Sites by repository: none. abap2UI5 itself is expected to be at zero - the one site it had is the defect this item was written from, and it was repaired in the same change that added the gate.
+- The positions are recognised line by line rather than statement by statement. A key or a WHERE operand split across lines still carries its `= builtin( ` on one of them, so the count holds; a construct built by a macro is not followed.
+- The negatives are approximated by "a call that is not one of the 39 built-ins": a constructor expression or a control-flow keyword in the same position is filtered out by name, but the set is hand-written, so read the count as an order of magnitude rather than an exact figure.
+- abaplint knows all of this properly - it models the release levels and it owns the downport rewrite that introduces the construct. The right fix is in the downport itself (hoist the call into a variable, which IS an expression position at 7.02), not in a source-shape rule; this probe measures how often the rewrite would have to do it.
+
+<!-- probe:end -->

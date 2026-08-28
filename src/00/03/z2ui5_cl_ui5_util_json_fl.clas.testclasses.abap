@@ -8,12 +8,12 @@ CLASS ltcl_test DEFINITION FINAL
 
     METHODS keep_node
       IMPORTING
-        iv_type         TYPE z2ui5_if_ajson_types=>ty_node_type OPTIONAL
-        iv_value        TYPE string                             OPTIONAL
-        iv_children     TYPE i                                  OPTIONAL
-        iv_visit        TYPE z2ui5_if_ajson_filter=>ty_visit_type DEFAULT z2ui5_if_ajson_filter=>visit_type-value
+        iv_type        TYPE z2ui5_if_ajson_types=>ty_node_type OPTIONAL
+        iv_value       TYPE string                             OPTIONAL
+        iv_children    TYPE i                                  OPTIONAL
+        iv_visit       TYPE z2ui5_if_ajson_filter=>ty_visit_type DEFAULT z2ui5_if_ajson_filter=>visit_type-value
       RETURNING
-        VALUE(rv_keep)  TYPE abap_bool
+        VALUE(rv_keep) TYPE abap_bool
       RAISING
         z2ui5_cx_ajson_error.
 

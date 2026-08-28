@@ -60,5 +60,16 @@
     "repos": [
       "abap2UI5"
     ]
+  },
+  "abaplint-downport-builtin-operand": {
+    "describe": "a 7.02 built-in function in a table-expression key, a WITH KEY operand or an internal-table WHERE, with the functional method call in the same positions as the negative",
+    "ran": "2026-08-28",
+    "checkouts": [
+      "abap2UI5",
+      "samples-controls"
+    ],
+    "sites": 0,
+    "negatives": 1,
+    "repos": []
   }
 }

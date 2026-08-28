@@ -25,8 +25,16 @@
       "/src/99/z2ui5_if_exit.intf.*",
       "/src/*.*"
     ],
+    // Only the two mirrors are exempt: src/00/01 (AJSON) and src/00/02
+    // (S-RTTI) are vendored from upstream projects and may not be edited here,
+    // so a finding in them is a finding nobody in this repository may act on.
+    // src/00/03 is NOT a mirror - AGENTS.md says to edit it freely - and it
+    // used to be covered by a blanket "/src/00", which left the largest
+    // hand-written class in the repository (z2ui5_cl_ui5_util_context, 2.6k
+    // lines) as the one framework file no rule reached.
     "noIssues": [
-      "/src/00"
+      "/src/00/01",
+      "/src/00/02"
     ]
   },
   "dependencies": [

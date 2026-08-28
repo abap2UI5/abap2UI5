@@ -8,7 +8,9 @@
       "/../../src/02/**/*.*",
       "/../../src/*.*"
     ],
-    "noIssues": [ "/src/00" ]
+    // Same narrowing as abaplint.jsonc: only the two upstream mirrors are
+    // exempt. src/00/03 is edited here, so it is formatted here too.
+    "noIssues": [ "/src/00/01", "/src/00/02" ]
   },
   "dependencies": [
     {

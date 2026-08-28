@@ -789,8 +789,9 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " from the collected view-lifecycle calls themselves: a display that was
     " later voided by a destroy (slot_reset) counts as no view.
     DATA(lv_model) = `{}`.
-    IF line_exists( mo_action->ms_next-t_action_front[
-                        method = z2ui5_if_ui5_types=>cs_slot_action-display ] ).
+    DATA(lv_check_display) = xsdbool( line_exists( mo_action->ms_next-t_action_front[
+                                          method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ).
+    IF lv_check_display = abap_true.
       lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
@@ -808,6 +809,20 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " (inherits the MAIN model by propagation - three-column samples) and a
     " popup left open across a roundtrip that rebuilt no view alike, without
     " spelling a derivable instruction into every model-carrying response.
+
+    " Remember what this response leaves the client holding: a display or a
+    " push leaves it on lv_model (a display whose model is `{}` leaves the
+    " fresh view's model empty, which `{}` says too), no push leaves it on
+    " the before-state. The next roundtrip of this app reads it back as its
+    " pre-main( ) snapshot (main_process) instead of serializing the model
+    " a second time.
+    IF lv_check_display = abap_true OR lv_model <> `{}`.
+      mo_action->mo_app->mv_model_client = lv_model.
+    ELSEIF mv_model_before_taken = abap_true.
+      mo_action->mo_app->mv_model_client = mv_model_before.
+    ELSE.
+      CLEAR mo_action->mo_app->mv_model_client.
+    ENDIF.
 
     " last of all, so the route reflects everything this roundtrip did - the
     " slots that were built and the model that was pushed into them. Queued
@@ -843,8 +858,16 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " deltas were applied (factory_by_frontend) and BEFORE main( ) runs -
     " what the client already knows must never trigger a push. Taken per
     " dispatch iteration, so after a nav_app_call/leave the snapshot belongs
-    " to the app main_end responds for.
-    mv_model_before       = mo_action->mo_app->model_json_stringify( ).
+    " to the app main_end responds for. The app's mv_model_client IS that
+    " snapshot whenever it is known: main_end wrote it as exactly what the
+    " client was left holding, and factory_by_frontend cleared it when this
+    " request's deltas touched the state it describes - so the full model
+    " serialization only runs when no stored string can stand in for it.
+    IF mo_action->mo_app->mv_model_client IS NOT INITIAL.
+      mv_model_before = mo_action->mo_app->mv_model_client.
+    ELSE.
+      mv_model_before = mo_action->mo_app->model_json_stringify( ).
+    ENDIF.
     mv_model_before_taken = abap_true.
 
     IF mo_action->mo_app->mv_check_sticky = abap_false.

@@ -58,8 +58,9 @@ support case.
       A rule-5 break on paper — 10 `REMOVED`, 4 `CHANGED`, snapshot 80 to 75 —
       but nothing is deleted and nothing is reshaped: the interface ships
       unchanged from the frozen package, so `z2ui5_if_types=>…` still compiles
-      downstream, and every moved type is identical field for field. Left to
-      do: `- BREAKING:` in `changelog.txt` at the next release cut. The
+      downstream, and every moved type is identical field for field. The
+      `- BREAKING:` line is written, under `unreleased` in `changelog.txt`,
+      and the release cut carries it under the version heading. The
       ecosystem is already off it: `samples` and `samples-controls` named it
       in 6 classes and name it in none now — `cs_device` moved to
       `z2ui5_if_client`, which the pinned release already carries, and the

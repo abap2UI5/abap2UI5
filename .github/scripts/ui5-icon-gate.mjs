@@ -42,7 +42,7 @@
 // lower-cased for the same reason.
 
 import { readdirSync, readFileSync, statSync } from "fs";
-import { join, relative } from "path";
+import { join } from "path";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 

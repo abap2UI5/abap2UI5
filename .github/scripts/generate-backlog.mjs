@@ -140,6 +140,26 @@ const REQUIRED = ['target', 'title', 'summary', 'priority', 'state', 'first_seen
  * five requests sat there for weeks and nothing ever said so. */
 const STALE_DAYS = 90;
 
+/* How long an OPEN item may sit before its `checked_upstream:` stops being
+ * optional.
+ *
+ * backlog/README.md step 2 of "converting an item" says to search the upstream
+ * tracker first and record the date, because filing a duplicate costs a
+ * maintainer more than not filing at all - and the stock already inherited one
+ * item whose "filed upstream" claim carried no link and could not be verified.
+ * The field was optional, and NOT ONE item carried it: an instruction that
+ * nothing asks for is an instruction nobody follows.
+ *
+ * It stays optional for a fresh item, because the first days of an item are
+ * spent writing it rather than filing it, and a search done then is stale by
+ * the time anyone acts on it. Past this age the item is a standing claim that
+ * nothing exists upstream, and a claim nobody has re-checked in a month is one
+ * the stock cannot stand behind. */
+const UPSTREAM_CHECK_DAYS = 30;
+
+const DAY = 86400000;
+const ageInDays = (date) => Math.round((Date.now() - new Date(date)) / DAY);
+
 /* Front matter, minimally: `key: value` and `key:` followed by `  - item`
  * lines. Deliberately not a YAML dependency — the schema is six keys and the
  * gate below is what actually guards it. */
@@ -243,6 +263,21 @@ for (const item of items) {
     problems.push(
       `${where}: state is \`filed\` but no \`filed:\` url\n`
       + '    name the issue or PR, or set the state back to `open`',
+    );
+  }
+  /* An open item older than UPSTREAM_CHECK_DAYS has to say when somebody last
+   * looked upstream - see the constant. Only for `open`: a `filed` item names
+   * the issue it produced, and a `deferred` one is not going to be filed. */
+  if (
+    item.meta.state === 'open'
+    && item.meta.first_seen
+    && ageInDays(item.meta.first_seen) > UPSTREAM_CHECK_DAYS
+    && !item.meta.checked_upstream
+  ) {
+    problems.push(
+      `${where}: open for ${ageInDays(item.meta.first_seen)} days with no \`checked_upstream:\`\n`
+      + `    an item this old is a standing claim that nothing exists upstream. Search\n`
+      + `    ${item.meta.upstream || targets.get(item.meta.target)?.upstream || 'the upstream tracker'} and record the date, or file it and set \`state: filed\``,
     );
   }
   if (!(item.meta.evidence || []).length) {

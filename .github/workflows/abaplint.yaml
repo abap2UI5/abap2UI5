@@ -12,8 +12,13 @@ name: abaplint
 # checks out a different ref on a different trigger and shares nothing with
 # these but the tool.
 
+# Pull requests AND pushes to main - `auto_downport.yaml` rebuilds the 702
+# branch from every push to main, so main being lintable is what that rebuild
+# assumes. Same pattern as frontend_check.yaml.
 on:
   pull_request:
+  push:
+    branches: [main]
 
 concurrency:
   group: abaplint-${{ github.ref }}
@@ -47,8 +52,20 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:cloud
 
+      # The formatting rules - indentation, keyword_case, line_length,
+      # align_parameters, whitespace_end, sequential_blank, space_before_colon
+      # and _dot - are `false` in abaplint.jsonc and `true` only in the autofix
+      # config, so nothing checked them: `auto_abaplint_fix.yaml` runs weekly
+      # and opens a pull request, which means a week of drift is normal and
+      # unformatted code merges in between. This is the same config with the
+      # --fix left off, so the rules that write the house format also decide
+      # whether it is there. `npm run auto_abaplint` is the fix.
+      - name: Sources are in the house format
+        if: ${{ !cancelled() }}
+        run: npm run check:format
+
       # Last, because the rename writes a full renamed copy of the sources to
-      # .github/abaplint/output/. Same config build_rename uses for the real
+      # .github/abaplint/output/. Same config build-rename uses for the real
       # rename_<name> branches, against the placeholder namespace.
       - name: Namespace rename
         if: ${{ !cancelled() }}

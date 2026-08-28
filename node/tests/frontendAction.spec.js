@@ -2319,6 +2319,9 @@ function navContainerStub(aPages, aLog, sName) {
     getPages: () => aPages,
     // NavContainer.js:485 - the id comparison the FCL/SplitContainer probes
     // depend on
+    // Reproduces NavContainer's own loose comparison; tightening it here
+    // would stop the stub standing in for the control.
+    // eslint-disable-next-line eqeqeq
     getPage: (pageId) => aPages.find((p) => p.getId() == pageId) || null,
     // NavContainer.js:782 - normalises a Control to its id before doing
     // anything else, which is why every plain NavContainer port worked
@@ -2585,12 +2588,16 @@ function badgedButtonStub(aLog) {
   return {
     state,
     setBadgeMinValue: (iMin) => {
+      // Reproduces the control's own loose comparison, as above.
+      // eslint-disable-next-line eqeqeq
       if (iMin && !isNaN(iMin) && iMin >= 1 && iMin != state.min && iMin <= state.max) {
         state.min = iMin;
         aLog.push(["min", iMin]);
       } else aLog.push(["min-rejected", iMin]);
     },
     setBadgeMaxValue: (iMax) => {
+      // As above.
+      // eslint-disable-next-line eqeqeq
       if (iMax && !isNaN(iMax) && iMax <= 9999 && iMax != state.max && iMax >= state.min) {
         state.max = iMax;
         aLog.push(["max", iMax]);

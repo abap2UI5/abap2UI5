@@ -22,8 +22,14 @@ name: check_gates
 # runtime, and a check that does not run cannot be required in the branch
 # protection - the filters were quietly making these gates unrequirable.
 
+# Pull requests AND pushes to main - a merge is not a state any pull request
+# tested, and the workflows that fire on `push: main` (auto_downport,
+# create_app2abap, frontend_deploy, trigger_local) rebuild and deploy from it.
+# Same pattern as frontend_check.yaml.
 on:
   pull_request:
+  push:
+    branches: [main]
 
 concurrency:
   group: check_gates-${{ github.ref }}
@@ -60,6 +66,13 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: npm run check:frozen
 
+      # the 23 utility symbols that exist only because src/99 still calls them.
+      # A framework caller on one turns a symbol that goes WITH src/99 into a
+      # new blocker for removing it, and compiles, lints and transpiles green
+      - name: no live caller on a FROZEN-ONLY symbol
+        if: ${{ !cancelled() }}
+        run: npm run check:frozen-only
+
       - name: src/ round-trips through abapGit
         if: ${{ !cancelled() }}
         run: npm run check:abapgit
@@ -67,6 +80,13 @@ jobs:
       - name: src/ is clean under the extended check (SLIN / ATC)
         if: ${{ !cancelled() }}
         run: npm run check:atc
+
+      # one top-level catch renders the whole `previous` chain into the 500
+      # body; a raise that inlines get_text( ) into its own message flattens
+      # that to one line and drops the position of the method that failed
+      - name: a raise inside a CATCH chains its cause
+        if: ${{ !cancelled() }}
+        run: npm run check:cause
 
       - name: internal object names carry the ui5 segment
         if: ${{ !cancelled() }}
@@ -110,6 +130,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:conventions
 
+      # AGENTS.md is loaded into every session, so a command missing from its
+      # command chapter does not exist for the reader: 21 were, including every
+      # cross-repository gate and every backlog command
+      - name: every npm script is documented in AGENTS.md
+        if: ${{ !cancelled() }}
+        run: npm run check:commands
+
       # `npm run check` and `npm test` are the two commands somebody types
       # before reading anything - five of the ten repositories answered
       # "Missing script" until this gate went in
@@ -152,6 +179,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:abap2ui5
 
+      # app/eslint.config.mjs is scoped to webapp/**, so everything that BUILDS
+      # and CHECKS the frontend - these gates, tools/, node/ - was uncovered.
+      # Those scripts decide whether a pull request merges, and a typo in one
+      # of them failed as a crash in CI rather than as a finding
+      - name: the Node tooling lints
+        if: ${{ !cancelled() }}
+        run: npm run check:eslint
+
       - name: public API unchanged (additions recorded)
         if: ${{ !cancelled() }}
         run: npm run check:api
@@ -177,6 +212,13 @@ jobs:
       - name: every FOR TESTING method asserts something
         if: ${{ !cancelled() }}
         run: npm run check:asserts
+
+      # the inventory is how a reader finds out whether a frontend module is
+      # already covered; one that quietly stops being complete answers "no
+      # spec" for a module that has one
+      - name: every JS unit spec is in the inventory
+        if: ${{ !cancelled() }}
+        run: npm run check:specs
 
       - name: no built-in function in a 7.02 non-expression operand position
         if: ${{ !cancelled() }}

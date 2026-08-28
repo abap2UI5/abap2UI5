@@ -42,6 +42,9 @@ function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
         // downstream with a confusing error, so fail here at the exact source
         // line instead. Runtime non-ASCII must be built via String.fromCharCode
         // / entity decoding (see AGENTS.md rule 14).
+        // The range IS ASCII, control characters included: this line is the
+        // 7bit_ascii rule itself.
+        // eslint-disable-next-line no-control-regex
         const nonAscii = line.match(/[^\x00-\x7F]/);
         if (nonAscii) {
             throw new Error(
@@ -218,7 +221,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     " single-quoted string literal, inside the single <script> block that
     " defines onInitComponent (z2ui5_cl_http_handler=>_http_get). Its content
     " is arbitrary text and does carry apostrophes - a UI5 expression binding
-    " in a fragment (title="\{= \${/appName} ? 'a' : 'b' }") writes them, and so
+    " in a fragment (title="{= \${/appName} ? 'a' : 'b' }") writes them, and so
     " does a customer's own styles_css from the exit. An unescaped one ends the
     " literal early, which is a syntax error for the whole block: the browser
     " then never defines onInitComponent, the bootstrap call fails and the page
@@ -306,7 +309,7 @@ async function main() {
         }
 
         for (const file of files) {
-            let sourceContent = await readFile(file);
+            const sourceContent = await readFile(file);
             console.log(`Source file content fetched successfully for ${file}.`);
 
             const className = classNameByFile.get(file);

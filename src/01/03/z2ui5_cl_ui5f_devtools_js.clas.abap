@@ -46,6 +46,37 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `// into - the overlay hides its Details button when nothing registered,` && |\n| &&
              `// so removing this folder degrades the framework gracefully instead of` && |\n| &&
              `// breaking it.` && |\n| &&
+             `//` && |\n| &&
+             `// LAZY here means the DIALOG CONTROL, not the modules. The dependencies` && |\n| &&
+             `// below are hard ``sap.ui.define`` deps on purpose, and moving them behind` && |\n| &&
+             `// ``sap.ui.require([...], cb)`` would not make the cold load smaller - it` && |\n| &&
+             `// would break the tools on every ICF deployment. Three separate reasons,` && |\n| &&
+             `// in the order they bite:` && |\n| &&
+             `//` && |\n| &&
+             `//  1. There is no second delivery path. On an ABAP system every frontend` && |\n| &&
+             `//     file arrives in ONE ``sap.ui.require.preload`` block inside the GET` && |\n| &&
+             `//     response (``z2ui5_cl_ui5f_preload``, generated from this folder), and` && |\n| &&
+             `//     the bootstrap sets ``resourceroots {"z2ui5": "./"}`` - the ICF node` && |\n| &&
+             `//     itself. A module dropped from that block is then fetched from the` && |\n| &&
+             `//     node, which answers every GET with the shell page: the loader gets` && |\n| &&
+             `//     ``text/html`` where it wanted a module, the define never runs and the` && |\n| &&
+             `//     require callback never fires. The tools would simply not open, with` && |\n| &&
+             `//     nothing naming the cause. That frontend files are NOT served as ICF` && |\n| &&
+             `//     resources at their raw URLs is AGENTS.md rule 18, and it is what` && |\n| &&
+             `//     makes lazy loading a delivery question rather than a loader one.` && |\n| &&
+             `//  2. Requiring lazily WITHOUT dropping them from the preload saves` && |\n| &&
+             `//     nothing that is being paid - the bytes have already travelled, and` && |\n| &&
+             `//     only the factory execution moves.` && |\n| &&
+             `//  3. Two of the three deps have to be eager anyway, and install() says` && |\n| &&
+             `//     why: a roundtrip history and a console capture are worth something` && |\n| &&
+             `//     only if they were collected BEFORE the problem, so they cannot wait` && |\n| &&
+             `//     for the first Ctrl+F12.` && |\n| &&
+             `//` && |\n| &&
+             `// Measured 2026-08-28: devtools/ is 32.7% of the preload's bytes, and at` && |\n| &&
+             `// best 23.2% of it could ever be deferred (everything except Console,` && |\n| &&
+             `// Recorder and this file). Making that real needs an on-demand delivery` && |\n| &&
+             `// path for a module the page did not receive - a design change to the` && |\n| &&
+             `// handler, not an edit here.` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
