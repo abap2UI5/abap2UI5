@@ -75,6 +75,26 @@ const raw = ({ org, repo }, file) => `https://raw.githubusercontent.com/${org}/$
  * `abap2UI5` is the checkout this runs in rather than a sibling of it. */
 export async function read(entry, file) {
   const { repo } = entry;
+  /* `read` is exported and generic, and both of its arguments reach a
+   * filesystem path AND a URL. Today every caller passes an entry from REPOS
+   * and a literal filename, so nothing can be hostile — but "the only callers
+   * today are well behaved" is a property of the callers, not of this
+   * function, and it is not the kind of property that survives the next one.
+   *
+   * So the function states its own contract: the entry has to BE one of the
+   * repositories this module lists, and the file has to be a plain relative
+   * name — no absolute path, no `..` climbing out of the checkout, no
+   * backslash for a Windows caller to smuggle a separator through. */
+  if (!REPOS.some((e) => e.org === entry.org && e.repo === repo)) {
+    throw new Error(`read: ${entry.org}/${repo} is not a repository on the ecosystem list`);
+  }
+  if (typeof file !== 'string' || !file
+      || path.isAbsolute(file)
+      || file.includes('\\')
+      || path.posix.normalize(file).startsWith('..')) {
+    throw new Error(`read: ${JSON.stringify(file)} is not a plain relative file name`);
+  }
+
   const local = repo === 'abap2UI5'
     ? path.join(ROOT, file)
     : path.join(ROOT, '..', repo, file);
