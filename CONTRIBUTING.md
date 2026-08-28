@@ -36,7 +36,12 @@ abap2UI5 is a framework for developing UI5 applications purely in ABAP, without 
 4. **ABAP Development Environment** - SE80, ADT, or your preferred ABAP editor
 
 **For Node.js Development (Optional):**
-5. **Node.js** - [Download Node.js](https://nodejs.org/) (only needed for transpilation testing)
+5. **Node.js 22 or newer** - [Download Node.js](https://nodejs.org/) (needed for
+   transpilation testing and for every `npm run` gate; `package.json` declares
+   `"engines": { "node": ">=22" }` and the CI toolchain is pinned to it). The
+   gates and the build pipeline are Node scripts on purpose: nothing in them
+   assumes a POSIX shell, so `npm run verify` runs on Linux, macOS and Windows
+   alike.
 
 ### Understanding the Project
 

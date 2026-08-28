@@ -527,10 +527,10 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run auto_abaplint` | Run the auto-fix config directly |
 | `npm run rename` | Test namespace-rename transformation via abaplint |
 | `npm run auto_downport` | **CI only** — destructive variant that rewrites `src/` in place to produce the `702` branch. Never run this to validate work (rule 9) |
-| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` in `node/downport/` (compatibility step for 7.02 downport) |
-| `npm run strip_trailing_ws` | Strip trailing whitespace from all `node/downport/**/*.abap` files (runs as part of `downport`) |
+| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` in `node/downport/` (compatibility step for 7.02 downport; `node/setup/downport-fix.mjs`) |
+| `npm run strip_trailing_ws` | Strip trailing whitespace from all `node/downport/**/*.abap` files (runs as part of `downport`; `node/setup/downport-fix.mjs`) |
 | `npm run downport_config` | Generate the gitignored `.github/abaplint/downport_run.jsonc` from `abap_702.jsonc` (same rules, retargeted at `node/downport/`) |
-| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after the `auto_downport` copy |
+| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after the `auto_downport` copy (`node/setup/downport-fix.mjs`) |
 
 ### Frontend Tooling (`app/`)
 
