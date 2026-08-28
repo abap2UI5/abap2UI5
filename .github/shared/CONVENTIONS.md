@@ -79,9 +79,12 @@ Rules that follow from the role:
 
 - **Every repository has `check` and `test`.** They are the two names an
   outside developer types without reading anything first, and "Missing script"
-  is a bad first answer. `check` exists in all twenty-one repositories as of
-  2026-08-20; it reached the ten `abap2UI5` ones on 2026-08-18, and the eleven
-  `abap2UI5-addons` ones when they were brought into these rules.
+  is a bad first answer. `check` exists in all twenty-two repositories as of
+  2026-08-28; it reached the ten `abap2UI5` ones on 2026-08-18, and the eleven
+  `abap2UI5-addons` ones when they were brought into these rules. `playground`
+  was the twenty-second, added on 2026-08-28: it had never been on the gate's
+  list, and it had no `check` at all — the rule holds only over the repositories
+  somebody remembered to enumerate.
 - `check` runs what CI runs on a pull request. A step that exists only in
   `package.json` is a step no pull request has to pass; a step that exists only
   in a workflow is one no contributor can run before pushing.
@@ -92,12 +95,14 @@ Rules that follow from the role:
   the failure this rule exists to prevent. Today: `vscode-extension` omits
   `test:web` (downloads VS Code web + chromium), `samples-controls` omits
   `gates:full` and the two downport lint configs, `web-abap2UI5` omits the
-  Playwright e2e run.
+  Playwright e2e run, `playground` and `linter` omit the Chromium download their
+  own tests then ask for by name, and `linter` also omits `codeql`, the
+  composite-action job and the publish-shaped `package` job.
 - `test` runs the repository's own tests. Where there is no separate test suite
   — the corpora are checked, not unit-tested — `test` is `npm run check`, so
   that the universal command still answers.
 - The first two rules are gated: `npm run check:scripts` in this repository
-  reads all twenty-one `package.json` files (sibling checkout, else raw main,
+  reads all twenty-two `package.json` files (sibling checkout, else raw main,
   else say so and pass) and fails naming any repository that has lost either
   script.
   Prose is not a thing that fails a pull request, which is why five of them

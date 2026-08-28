@@ -73,7 +73,7 @@
     "auto_transpile": "rm -rf node/output && cp node/srv/*.abap node/srv/*.clas.xml node/downport && abap_transpile ./node/setup/abap_transpile.json",
     "rename": "abaplint .github/abaplint/rename.jsonc --rename",
     "express": "node node/srv/express.mjs",
-    "unit": "node node/output/index.mjs",
+    "unit": "node node/setup/require-transpiled.mjs && node node/output/index.mjs",
     "test": "npm run unit",
     "check:guide": "node .github/scripts/check-guide-api.mjs"
   },

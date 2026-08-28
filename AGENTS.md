@@ -526,12 +526,12 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place; installs `app/node_modules` when missing; part of `verify`) |
 | `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
 | `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
-| `npm run unit` | Run the transpiled unit tests |
+| `npm run unit` | Run the transpiled unit tests. **Needs the transpiled tree** (`npm run downport && npm run auto_transpile`) — it is generated, not committed, and `node/setup/require-transpiled.mjs` says so instead of letting node answer `MODULE_NOT_FOUND` on a file nobody wrote by hand. `test.yaml` never hits that: its `transpile` job builds the tree once and every downstream job unpacks it |
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
 | `npm run frontend:cloud` / `frontend:cloud_v2` / `frontend:standard` / `frontend:standard_v2` | Build ONE of the four delivery trees into `tools/out/` instead of all four (`npm run frontend:build` is all four) |
 | `npm run frontend:verify` | Compare a local build in `tools/out/` against what is published in `abap2UI5/frontend` **today** — file for file, byte for byte, stamped the way the deploy stamps them. Not the same question as `check:frontend`, which asks whether the sources still produce a valid build |
 | `npm run frontend:lint` | abaplint over `frontend/abap/cloud/` — the ICF/BSP handler sources this repository ships into the delivery branches (gated in `frontend_check.yaml`) |
-| `npm test` | Alias of `npm run unit` — CONVENTIONS §3 asks every repository in the ecosystem to answer to it (`npm run check:scripts` is the gate) |
+| `npm test` | Alias of `npm run unit` — CONVENTIONS §3 asks every repository in the ecosystem to answer to it (`npm run check:scripts` is the gate). It carries the same transpiled-tree prerequisite, which is the whole reason the guard exists: §3 calls these the two names an outside developer types without reading anything first, so what they answer on a fresh clone is the repository's first impression |
 | `npm run express` | Start dev server on port 3000 |
 | `npm run app2abap` | **Canonical** full regeneration pipeline: Prettier (`app` format) → generate → abaplint normalize. Use this after editing `app/webapp/` so only truly-changed `src/01/03/` files differ |
 | `npm run auto_app2abap` | Generate ABAP string constants from `app/webapp/` (raw, **un-normalized** — prefer `npm run app2abap` instead) |
