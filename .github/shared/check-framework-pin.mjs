@@ -61,7 +61,16 @@ const ALLOWED_BRANCHES = new Map([
   ['.github/abaplint/abap_702.jsonc', '702'],
 ]);
 
-const A2UI5_URL_RE = /github\.com\/abap2UI5\/abap2UI5/i;
+/* The framework dependency, identified by its url VALUE rather than by a
+ * substring of the entry.
+ *
+ * `/github\.com\/abap2UI5\/abap2UI5/` matched anywhere in the object slice and
+ * stopped at the repository name without closing it, so
+ * `https://github.com/abap2UI5/abap2UI5-local` - a different repository in
+ * the same organisation, and a plausible thing for a config to depend on -
+ * was read as the framework and had its "branch" key checked as if it were.
+ * Anchoring at the key and closing at the quote leaves only the framework. */
+const A2UI5_URL_RE = /"url"\s*:\s*"https:\/\/github\.com\/abap2UI5\/abap2UI5(?:\.git)?\/?"/i;
 const RELEASE_RE = /^\d+\.\d+\.\d+$/;
 
 let errors = 0;
