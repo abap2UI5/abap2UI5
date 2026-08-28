@@ -69,6 +69,14 @@ const PAGES = [
 
 const TOOLS = [`${BASE}/playground/`, `${BASE}/docs/`];
 
+/* Our own origin, with the trailing slash, for the "is this one of ours?"
+ * filter below. The slash is not cosmetic: a host name may continue where a
+ * prefix stops, so `startsWith(BASE)` also accepts
+ * `https://abap2ui5.github.io.example.com/samples/` - a link to somebody
+ * else entirely, counted as one of the three and compared against the wanted
+ * list as if it were. With the slash the host is closed. */
+const OURS = `${BASE}/`;
+
 /* The catalogue moved to the root of its Pages site when the in-browser demo
  * was dropped, so this address is a 404 and stayed in one footer for a while.
  * Nothing may link to it again. */
@@ -117,7 +125,7 @@ if (!three) fail(`${PAGE_HTML}: no three-pages:start / three-pages:end block`);
 
 if (nav) {
   const want = [...PAGES.map((p) => p.url), ...TOOLS];
-  const got = hrefs(nav).filter((h) => h.startsWith(BASE));
+  const got = hrefs(nav).filter((h) => h.startsWith(OURS));
   if (got.join(' ') !== want.join(' ')) {
     fail(`the bar links to\n    ${got.join('\n    ')}\n  but must link, in this order, to\n    ${want.join('\n    ')}`);
   }
@@ -138,7 +146,7 @@ if (nav) {
 
 if (three) {
   const want = PAGES.map((p) => p.url);
-  const got = hrefs(three).filter((h) => h.startsWith(BASE));
+  const got = hrefs(three).filter((h) => h.startsWith(OURS));
   if (got.join(' ') !== want.join(' ')) {
     fail(`the three-pages strip links to\n    ${got.join('\n    ')}\n  but must link, in this order, to\n    ${want.join('\n    ')}`);
   }
