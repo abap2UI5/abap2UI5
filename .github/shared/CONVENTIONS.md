@@ -117,7 +117,14 @@ Rules that follow from the role:
 
 ## 4. Toolchain
 
-- `engines.node` is `>=22` and `.nvmrc` says `22`.
+- `engines.node` is `>=22` and `.nvmrc` says `22`. **Gated** since 2026-08-28 by
+  `npm run check:toolchain` in this repository, which reads every repository on
+  the list (sibling checkout, else raw `main`, else say so and pass). It was
+  written because this section was the only one nothing decided, and the cost
+  was measurable: **seven of the nine** repositories had no `.nvmrc`, and
+  `playground` declared neither it nor `engines` while its AGENTS.md asserted
+  "Node 22, matching the rest of the organisation" in prose. Drift that predates
+  the gate is named in its `EXCEPTIONS` list, which only shrinks.
 - `license` is set in every `package.json`; the LICENSE file is MIT and names
   the same holder across the organisation.
 - `@abaplint/cli` and `@abap2ui5/linter` are on the same version in every

@@ -144,6 +144,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:scripts
 
+      # the section of CONVENTIONS one further down, and the only one nothing
+      # decided: seven of the nine repositories had no .nvmrc at all, while
+      # one of them asserted the version in prose
+      - name: every repository declares the same toolchain
+        if: ${{ !cancelled() }}
+        run: npm run check:toolchain
+
       # the corpus sizes this repository quotes at agents belong to other
       # repositories - held to their generated catalogues, not to memory
       - name: corpus counts match the corpora
