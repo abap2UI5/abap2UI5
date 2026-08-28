@@ -65,7 +65,7 @@ jobs:
         run: npm run check:format
 
       # Last, because the rename writes a full renamed copy of the sources to
-      # .github/abaplint/output/. Same config build_rename uses for the real
+      # .github/abaplint/output/. Same config build-rename uses for the real
       # rename_<name> branches, against the placeholder namespace.
       - name: Namespace rename
         if: ${{ !cancelled() }}
