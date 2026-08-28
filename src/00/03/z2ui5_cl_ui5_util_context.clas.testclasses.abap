@@ -449,7 +449,7 @@ CLASS ltcl_rtti IMPLEMENTATION.
     ls_flags-flag_b = abap_false.
     ls_flags-other  = abap_true.
 
-    DATA(lt_found) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val    = ls_flags
+    DATA(lt_found) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val = ls_flags
                                                                prefix = `FLAG_` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
@@ -502,7 +502,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     DATA(lt_row) = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
-                                                CHANGING  tab = lt_row ).
+                                                CHANGING  tab    = lt_row ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_row ) ).
@@ -515,7 +515,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     DATA(lt_row) = get_rows( ).
 
-    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val         = `ada`
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val      = `ada`
                                                           ignore_case = abap_true
                                                 CHANGING  tab         = lt_row ).
 
@@ -535,7 +535,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     APPEND `NAME` TO lt_fields.
 
-    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val    = `London`
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
                                                           fields = lt_fields
                                                 CHANGING  tab    = lt_row ).
 
@@ -548,7 +548,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     DATA(lt_row) = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `Nobody`
-                                                CHANGING  tab = lt_row ).
+                                                CHANGING  tab    = lt_row ).
 
     cl_abap_unit_assert=>assert_initial( lt_row ).
 
@@ -563,7 +563,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     lt_str = VALUE #( ( `London` ) ( `Wilmslow` ) ( `New York` ) ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
-                                                CHANGING  tab = lt_str ).
+                                                CHANGING  tab    = lt_str ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_str ) ).
@@ -587,7 +587,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     DATA(lt_row) = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_corresponding( EXPORTING val = lt_row
-                                                CHANGING  tab = lt_target ).
+                                                CHANGING  tab    = lt_target ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lt_target ) ).
@@ -655,9 +655,12 @@ CLASS ltcl_msg IMPLEMENTATION.
     DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `boom`  act = ls_box-text ).
-    cl_abap_unit_assert=>assert_equals( exp = `Error` act = ls_box-title ).
-    cl_abap_unit_assert=>assert_equals( exp = `error` act = ls_box-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `boom`
+                                        act = ls_box-text ).
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
+                                        act = ls_box-title ).
+    cl_abap_unit_assert=>assert_equals( exp = `error`
+                                        act = ls_box-type ).
     cl_abap_unit_assert=>assert_initial( ls_box-details ).
 
   ENDMETHOD.
@@ -674,7 +677,8 @@ CLASS ltcl_msg IMPLEMENTATION.
     DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `Warning` act = ls_box-title ).
+    cl_abap_unit_assert=>assert_equals( exp = `Warning`
+                                        act = ls_box-title ).
     cl_abap_unit_assert=>assert_equals(
         exp = `<ul><li>first</li><li>second</li></ul>`
         act = ls_box-details ).
@@ -694,12 +698,17 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 4 act = lines( lt_token ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `=X`    act = lt_token[ 1 ]-key ).
-    cl_abap_unit_assert=>assert_equals( exp = `1...9` act = lt_token[ 2 ]-key ).
-    cl_abap_unit_assert=>assert_equals( exp = `*A*`   act = lt_token[ 3 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lines( lt_token ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `=X`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `1...9`
+                                        act = lt_token[ 2 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `*A*`
+                                        act = lt_token[ 3 ]-key ).
     " an excluding row renders negated, not like its including twin
-    cl_abap_unit_assert=>assert_equals( exp = `!(=Y)` act = lt_token[ 4 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `!(=Y)`
+                                        act = lt_token[ 4 ]-key ).
 
     " tokens come back visible and editable so the UI5 MultiInput can render
     " and remove them
