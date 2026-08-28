@@ -1,0 +1,35 @@
+name: check-app-rules
+
+# The abaplint rules below the marker in abaplint.jsonc are the SHARED app rule
+# set, and abap2UI5/abap2UI5 is their source (.github/abaplint/app-rules.json).
+# This compares them as parsed SETTINGS, so a rule switched to false is a
+# difference - the peer checker this replaced compared rule names only, and
+# that is the one case it passed.
+#
+# It fetches the source, so it is the one gate here that talks to the network.
+# When that fails it says so and passes: this repository's checks must not go
+# red because github.com is unreachable, and must not claim to have verified
+# what they did not.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-app-rules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-app-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: '22'
+    - run: node scripts/check-app-rules.mjs

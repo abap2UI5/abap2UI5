@@ -109,6 +109,15 @@ const SHARED = [
  * AGENTS.md — and copying the source over it would destroy what it owns.
  * Those stay a gate-and-fix-by-hand affair, which is the honest answer for
  * them.
+ *
+ * So is anything landing in the consumer's `.github/workflows/`, marked
+ * `sync: false`. `GITHUB_TOKEN` cannot be granted the `workflows` permission —
+ * this organisation already writes that down, in the linter's release
+ * workflow — so a pull request that touches a workflow file is REFUSED at the
+ * push, and the sync job fails on a message about permissions rather than
+ * about the file. Leaving those entries in would have turned the first real
+ * edit to a shared workflow into a red weekly job in three repositories at
+ * once. They are still gated: drift is reported, and a human carries it.
  */
 const manifestArg = process.argv.indexOf('--manifest');
 if (manifestArg !== -1) {
@@ -118,7 +127,7 @@ if (manifestArg !== -1) {
     process.exit(2);
   }
   const rows = SHARED
-    .filter((e) => !e.section && e.consumers.includes(who))
+    .filter((e) => !e.section && e.sync !== false && e.consumers.includes(who))
     .map((e) => `${e.file}\t${e.consumerFile ?? e.file}`);
   console.log(rows.join('\n'));
   process.exit(0);
@@ -284,7 +293,44 @@ if (manifestArg !== -1) {
     file: '.github/shared/sync-shared.yaml',
     consumers: ['samples', 'samples-controls', 'samples-stack'],
     consumerFile: '.github/workflows/sync-shared.yaml',
-    why: 'the workflow each consumer runs to pull its copies from here',
+    sync: false,
+    why: 'the workflow each consumer runs to pull its copies from here — and the'
+      + ' one file the pull it opens could never carry, being a workflow itself',
+  },
+  /* The workflows that RUN the shared scripts.
+   *
+   * `check-app-rules.mjs`, `check-family-nav`'s checker and
+   * `check-framework-pin.mjs` are all gated above, and the workflow files that
+   * invoke them were not — byte-identical in three repositories, three copies,
+   * nothing comparing them. So the script could not drift and its trigger,
+   * its permissions and its job name could, which is the same gap seen from
+   * the other side: a consumer that quietly stops running a shared check still
+   * passes every gate that check exists to feed.
+   *
+   * Measured 2026-08-28: all three sets were still identical, so this pins
+   * agreement that already held rather than declaring a new one. */
+  {
+    file: '.github/shared/check-app-rules.yaml',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: '.github/workflows/check-app-rules.yaml',
+    sync: false,
+    why: 'the workflow that runs the shared app-rules checker',
+  },
+  {
+    file: '.github/shared/check-family-nav.yaml',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: '.github/workflows/check-family-nav.yaml',
+    sync: false,
+    why: 'the workflow that runs the shared family-nav checker',
+  },
+  {
+    /* Two consumers, not three: samples-controls pins differently and runs
+     * `check-pins.yaml` instead, which is its own file and not this one. */
+    file: '.github/shared/check-framework-pin.yaml',
+    consumers: ['samples', 'samples-stack'],
+    consumerFile: '.github/workflows/check-framework-pin.yaml',
+    sync: false,
+    why: 'the workflow that runs the shared framework-pin checker',
   },
   {
     /* Only the two HAND-MAINTAINED sample repositories. samples-controls has a
