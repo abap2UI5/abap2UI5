@@ -333,6 +333,15 @@ if (manifestArg !== -1) {
     why: 'the workflow that runs the shared framework-pin checker',
   },
   {
+    file: '.github/shared/check-family-nav.mjs',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'scripts/check-family-nav.mjs',
+    section: familyNavBody,
+    mine: familyNavBody,
+    why: 'the checker body and the canonical wording its three copies share —'
+      + ' the file says "identical in all three copies" and nothing checked it',
+  },
+  {
     /* Only the two HAND-MAINTAINED sample repositories. samples-controls has a
      * check-pins of its own and a different policy: it pins the framework by
      * commit SHA in A2UI5_PIN, which abaplint cannot consume — `"branch"` feeds
@@ -354,6 +363,18 @@ if (manifestArg !== -1) {
     mine: (text) => metadataBlock(text),
   },
 ];
+
+/* The body of a family-nav checker: everything from its first `import` down.
+ *
+ * Above that line each repository owns three constants — SELF, PAGE_HTML,
+ * PAGE_CSS — and the file itself documents that as the only difference between
+ * the copies. Below it, the logic AND the canonical wording are meant to be
+ * identical in all three, which is the half worth comparing. */
+function familyNavBody(text) {
+  const at = text.search(/^import /m);
+  if (at === -1) throw new Error('no `import` line — the shared body starts at the first one');
+  return text.slice(at);
+}
 
 const METADATA_HEADING = '## Metadata: what goes on the class, and what goes beside it';
 
