@@ -36,6 +36,7 @@
     "check:cloud": "npx abaplint .github/abaplint/abap_cloud.jsonc",
     "check:js": "npx playwright test -c node/playwright-unit.config.js",
     "check:frozen": "node .github/scripts/frozen-paths-gate.mjs",
+    "check:frozen-only": "node .github/scripts/frozen-only-gate.mjs",
     "check:ui5": "node .github/scripts/ui5lint-gate.mjs",
     "check:app2abap": "node .github/scripts/ensure-app-deps.mjs && node .github/scripts/app2abap-gate.mjs",
     "check:frontend": "npm run frontend:build && node .github/scripts/frontend-drift-gate.mjs",

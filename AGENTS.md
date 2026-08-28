@@ -159,7 +159,7 @@ src/
 **Consequences of that process:**
 - **`z2ui5_cl_ui5_util_context` is not a read-only mirror — edit it freely.** Add methods, change existing ones, extract helpers, refactor. (Only the AJSON/S-RTTI mirrors in `src/00/01` and `src/00/02` are off-limits.)
 - **Keep what you add generic.** Framework-specific logic belongs in the core `z2ui5_cl_ui5_*` classes; the sync harvests this class into a catalog other projects consume.
-- **Symbols marked `FROZEN-ONLY`** in the class have no caller anywhere in `src/00`–`src/02`. They exist only because the shipped `src/99` package still calls them on real systems, and they go when `src/99` goes — do not add new callers on them.
+- **Symbols marked `FROZEN-ONLY`** in the class have no caller anywhere in `src/00`–`src/02`, and `npm run check:frozen-only` is what keeps that true. They exist only because the shipped `src/99` package still calls them on real systems, and they go when `src/99` goes — do not add new callers on them.
 
 **What is vendored, and what is legacy:**
 
@@ -527,6 +527,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run check:standard` / `check:cloud` | abaplint against the standard-ABAP / ABAP-Cloud target configs (part of `verify`) |
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
+| `npm run check:frozen-only` | Fail when anything in `src/00`–`src/02` calls a symbol marked `FROZEN-ONLY` in `z2ui5_cl_ui5_util_context` — those 23 symbols exist only because the frozen `src/99` still calls them and go when it goes, so a framework caller turns one into a new blocker for that removal (`.github/scripts/frozen-only-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:icons` | Fail when a `sap-icon://` name under `src/` or `app/webapp/` is not in the UI5 1.71 icon font (`.github/scripts/ui5-icon-gate.mjs`; part of `verify`, gated in `check_gates.yaml`; see rule 21) |
 | `npm run check:ui5` | The ui5lint zero-error gate (`.github/scripts/ui5lint-gate.mjs`; part of `verify:full`, needs `app/node_modules`) |
 | `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5; part of `verify`, gated in `check_gates.yaml`) |

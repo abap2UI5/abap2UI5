@@ -44,6 +44,7 @@ const ROOT = path.join(SCRIPTS, "..", "..");
 // own - the same contract check_gates.yaml's step names carry.
 const GATES = [
   { npm: "check:frozen", script: "frozen-paths-gate.mjs" },
+  { npm: "check:frozen-only", script: "frozen-only-gate.mjs" },
   { npm: "check:abapgit", script: "abapgit-format-gate.mjs" },
   { npm: "check:atc", script: "extended-check-gate.mjs" },
   { npm: "check:cause", script: "exception-cause-gate.mjs" },

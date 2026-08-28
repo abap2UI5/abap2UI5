@@ -66,6 +66,13 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: npm run check:frozen
 
+      # the 23 utility symbols that exist only because src/99 still calls them.
+      # A framework caller on one turns a symbol that goes WITH src/99 into a
+      # new blocker for removing it, and compiles, lints and transpiles green
+      - name: no live caller on a FROZEN-ONLY symbol
+        if: ${{ !cancelled() }}
+        run: npm run check:frozen-only
+
       - name: src/ round-trips through abapGit
         if: ${{ !cancelled() }}
         run: npm run check:abapgit
