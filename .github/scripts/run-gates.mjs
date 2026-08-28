@@ -46,6 +46,7 @@ const GATES = [
   { npm: "check:frozen", script: "frozen-paths-gate.mjs" },
   { npm: "check:abapgit", script: "abapgit-format-gate.mjs" },
   { npm: "check:atc", script: "extended-check-gate.mjs" },
+  { npm: "check:cause", script: "exception-cause-gate.mjs" },
   { npm: "check_visibility", script: "testclass-visibility-gate.mjs" },
   { npm: "check:naming", script: "object-naming-gate.mjs" },
   { npm: "check:dynamic", script: "dynamic-name-gate.mjs" },

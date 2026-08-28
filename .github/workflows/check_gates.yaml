@@ -74,6 +74,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:atc
 
+      # one top-level catch renders the whole `previous` chain into the 500
+      # body; a raise that inlines get_text( ) into its own message flattens
+      # that to one line and drops the position of the method that failed
+      - name: a raise inside a CATCH chains its cause
+        if: ${{ !cancelled() }}
+        run: npm run check:cause
+
       - name: internal object names carry the ui5 segment
         if: ${{ !cancelled() }}
         run: npm run check:naming

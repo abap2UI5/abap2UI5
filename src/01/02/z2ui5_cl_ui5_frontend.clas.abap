@@ -228,7 +228,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val = |ACTION_BUILD_FAILED - { lx_json->get_text( ) }|.
+            val      = `ACTION_BUILD_FAILED`
+            previous = lx_json.
     ENDTRY.
 
   ENDMETHOD.
@@ -336,7 +337,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val = |SLOT_DISPLAY_OPTIONS_INVALID - { lx_json->get_text( ) }|.
+            val      = `SLOT_DISPLAY_OPTIONS_INVALID`
+            previous = lx_json.
     ENDTRY.
 
   ENDMETHOD.
@@ -429,7 +431,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val = |NAV_OPTIONS_INVALID - { lx_json->get_text( ) }|.
+            val      = `NAV_OPTIONS_INVALID`
+            previous = lx_json.
     ENDTRY.
 
   ENDMETHOD.
@@ -502,7 +505,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val = |MESSAGE_TOAST_OPTIONS_INVALID - { lx_json->get_text( ) }|.
+            val      = `MESSAGE_TOAST_OPTIONS_INVALID`
+            previous = lx_json.
     ENDTRY.
 
   ENDMETHOD.
@@ -586,7 +590,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
       CATCH z2ui5_cx_ajson_error INTO DATA(lx_json).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val = |MESSAGE_BOX_OPTIONS_INVALID - { lx_json->get_text( ) }|.
+            val      = `MESSAGE_BOX_OPTIONS_INVALID`
+            previous = lx_json.
     ENDTRY.
 
   ENDMETHOD.
