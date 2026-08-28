@@ -328,7 +328,11 @@ for (const ref of refs) {
   refsById.get(ref.id).push(ref.where);
 }
 
-const cell = (s) => String(s ?? '').replace(/\|/g, '\\|').trim();
+/* One markdown table cell. The backslash goes first: escaping only the pipe
+ * turns a cell that already ends in a backslash into `\\|`, which is an
+ * escaped backslash followed by a LIVE column separator - the row the
+ * escaping exists to keep intact is the row it breaks. */
+const cell = (s) => String(s ?? '').replace(/\\/g, '\\\\').replace(/\|/g, '\\|').trim();
 
 function row(item, target) {
   const upstream = item.meta.upstream || target.upstream;
