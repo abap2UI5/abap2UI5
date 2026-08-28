@@ -37,8 +37,10 @@ filed: <url>                  # required when state is `filed`
 first_seen: 2026-08-17        # when it entered the stock — this is what ages
 evidence:                     # required — at least one
   - what happened, where, when
-checked_upstream: 2026-08-17  # optional: when somebody last searched the
-                              # upstream tracker, so we do not file a duplicate
+checked_upstream: 2026-08-17  # when somebody last searched the upstream
+                              # tracker, so we do not file a duplicate.
+                              # REQUIRED once an `open` item is more than 30
+                              # days old (see below)
 ---
 ```
 
@@ -49,6 +51,17 @@ the hard half, and an item without it is a wish.
 
 `evidence:` is required because an item without a case that happened is
 speculation, and a backlog of speculation is one nobody reads twice.
+
+`checked_upstream:` is required once an **open** item is more than 30 days
+old, and `npm run backlog` fails without it. It used to be optional, and not
+one item in the stock carried it — an instruction nothing asks for is an
+instruction nobody follows. It stays optional for a fresh item, because the
+first days of an item go into writing it rather than filing it and a search
+done then is stale by the time anyone acts on it; past that age the item is a
+standing claim that nothing exists upstream, and a claim nobody has re-checked
+in a month is one this stock cannot make. Recording a search that found
+nothing is the point — the field says *when somebody looked*, not *what they
+found*.
 
 ### States
 

@@ -59,79 +59,15 @@
 
 import { readFileSync } from "node:fs";
 import { walk } from "./lib/walk.mjs";
+// The detector itself is in lib/ because the backlog probe for the upstream
+// rule proposal measures the SAME shape across the sibling checkouts - a
+// probe that disagreed with this gate would be arguing for a rule this
+// repository does not enforce.
+import { BUILTINS, CALL, stripNoise, positions } from "./lib/downport-operands.mjs";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 
 const EXCLUDED = [/^src\/99\//, /^src\/00\/01\//, /^src\/00\/02\//];
-
-/* The built-in functions release 7.02 introduced - the ones whose name is only
- * read as a function where a string expression is allowed, and as a method
- * call everywhere else. The numeric built-ins that predate 7.02 (`abs`,
- * `sign`, `strlen`, `lines`, `numofchar`, `charlen`) are deliberately absent:
- * see the header. */
-const BUILTINS = [
-  "boolc", "boolx", "xsdbool",
-  "char_off", "cmax", "cmin", "concat_lines_of", "condense",
-  "contains", "contains_any_of", "contains_any_not_of",
-  "count", "count_any_of", "count_any_not_of",
-  "distance", "escape",
-  "find", "find_any_of", "find_any_not_of", "find_end",
-  "from_mixed", "insert", "match", "matches",
-  "repeat", "replace", "reverse", "segment",
-  "shift_left", "shift_right",
-  "substring", "substring_after", "substring_before", "substring_from", "substring_to",
-  "to_lower", "to_mixed", "to_upper", "translate",
-];
-
-const CALL = new RegExp(`\\b(${BUILTINS.join("|")})\\s*\\(`, "i");
-
-/* Comments and string literals never hold an operand position, and both are
- * full of words that would otherwise match. */
-function stripNoise(line) {
-  let out = "";
-  let quote = null;
-  for (let i = 0; i < line.length; i += 1) {
-    const c = line[i];
-    if (quote) {
-      if (c === quote) quote = null;
-      continue;
-    }
-    if (c === "`" || c === "'") {
-      quote = c;
-      continue;
-    }
-    if (c === '"') break; // rest of the line is a comment
-    out += c;
-  }
-  return out;
-}
-
-/* The three positions, each as the slice of the line that IS the position.
- * Line-scoped on purpose: a key or a WHERE operand split across lines still
- * gets its `= builtin( ` on one of them, and a whole-statement parse would buy
- * nothing but a way to disagree with the reader about where the finding is. */
-function positions(code) {
-  const found = [];
-
-  // 1. a table expression: everything between `[` and its `]`. Nested
-  //    brackets do not occur in this corpus; an unclosed one takes the rest
-  //    of the line, which is the safe direction for a check.
-  for (const m of code.matchAll(/\[([^\]]*)\]/g)) {
-    if (m[1].includes("=")) found.push({ where: "table expression key", text: m[1] });
-  }
-
-  // 2. WITH KEY / WITH TABLE KEY, to the end of the statement fragment.
-  const key = /\bWITH\s+(?:TABLE\s+)?KEY\b(.*)$/i.exec(code);
-  if (key) found.push({ where: "WITH KEY operand", text: key[1] });
-
-  // 3. the WHERE condition of an internal-table statement. LOOP AT / DELETE /
-  //    MODIFY only - an ABAP SQL WHERE is a different position with different
-  //    rules, and this gate has no evidence about it.
-  const where = /^\s*(?:LOOP\s+AT|DELETE|MODIFY)\b(?![^"]*\bFROM\b)[^"]*?\bWHERE\b(.*)$/i.exec(code);
-  if (where) found.push({ where: "internal-table WHERE operand", text: where[1] });
-
-  return found;
-}
 
 const files = walk(ROOT, "src")
   .filter((f) => f.endsWith(".abap"))
