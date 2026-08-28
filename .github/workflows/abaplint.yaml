@@ -52,6 +52,18 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:cloud
 
+      # The formatting rules - indentation, keyword_case, line_length,
+      # align_parameters, whitespace_end, sequential_blank, space_before_colon
+      # and _dot - are `false` in abaplint.jsonc and `true` only in the autofix
+      # config, so nothing checked them: `auto_abaplint_fix.yaml` runs weekly
+      # and opens a pull request, which means a week of drift is normal and
+      # unformatted code merges in between. This is the same config with the
+      # --fix left off, so the rules that write the house format also decide
+      # whether it is there. `npm run auto_abaplint` is the fix.
+      - name: Sources are in the house format
+        if: ${{ !cancelled() }}
+        run: npm run check:format
+
       # Last, because the rename writes a full renamed copy of the sources to
       # .github/abaplint/output/. Same config build_rename uses for the real
       # rename_<name> branches, against the placeholder namespace.
