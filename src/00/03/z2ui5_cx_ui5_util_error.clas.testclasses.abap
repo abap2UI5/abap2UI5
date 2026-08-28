@@ -136,7 +136,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     " a wrapper that only re-raises carries the same text as its cause -
     " it must appear once, not twice
     DATA(lx_inner) = NEW z2ui5_cx_ui5_util_error( val = `same text` ).
-    DATA(lx_outer) = NEW z2ui5_cx_ui5_util_error( val      = `same text`
+    DATA(lx_outer) = NEW z2ui5_cx_ui5_util_error( val   = `same text`
                                                previous = lx_inner ).
 
     cl_abap_unit_assert=>assert_equals( exp = `same text`
@@ -147,7 +147,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_text_full_chain.
 
     DATA(lx_inner) = NEW z2ui5_cx_ui5_util_error( val = `root cause` ).
-    DATA(lx_outer) = NEW z2ui5_cx_ui5_util_error( val      = `outer problem`
+    DATA(lx_outer) = NEW z2ui5_cx_ui5_util_error( val   = `outer problem`
                                                previous = lx_inner ).
 
     DATA(lv_text) = z2ui5_cx_ui5_util_error=>get_text_full( lx_outer ).
@@ -201,7 +201,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lx) = NEW z2ui5_cx_ui5_util_error( val = `level 0` ).
 
     DO 30 TIMES.
-      lx = NEW z2ui5_cx_ui5_util_error( val      = |level { sy-index }|
+      lx = NEW z2ui5_cx_ui5_util_error( val   = |level { sy-index }|
                                      previous = lx ).
     ENDDO.
 

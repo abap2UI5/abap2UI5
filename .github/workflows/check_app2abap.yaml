@@ -12,7 +12,29 @@ on:
       - 'app/webapp/**'
       - 'src/01/03/**'
       - 'tools/app2abap/**'
+      # `npm run app2abap` starts with `npm --prefix app run format`, so
+      # Prettier's version and its configuration decide the bytes that end up
+      # in src/01/03 just as much as the sources above do. A bump in app's
+      # lockfile or a rule change in .prettierrc reformats app/webapp and
+      # regenerates every carrier - and without these lines the gate that
+      # notices that would not have started. Same bug class the comments in
+      # render-gate.yaml (package-lock) and frontend_check.yaml (terser) name.
+      - 'app/package.json'
+      - 'app/package-lock.json'
+      - 'app/.prettierrc'
       - '.github/workflows/check_app2abap.yaml'
+  # A merge is not a state any pull request tested, and create_app2abap.yaml
+  # regenerates from main on every push. Same pattern - paths repeated and all -
+  # as frontend_check.yaml.
+  push:
+    branches: [main]
+    paths:
+      - 'app/webapp/**'
+      - 'src/01/03/**'
+      - 'tools/app2abap/**'
+      - 'app/package.json'
+      - 'app/package-lock.json'
+      - 'app/.prettierrc'
 
 concurrency:
   group: check_app2abap-${{ github.ref }}

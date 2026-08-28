@@ -6,25 +6,26 @@ name: frontend_deploy
 #
 # Delivery is a relay of two workflows:
 #
-#   1. THIS workflow writes the four finished trees - stamped, nothing left to
-#      add at deploy time - as result/<branch> folders into ONE commit on
-#      frontend's main. So main over there carries the complete delivered
-#      content, and its history shows every content change as one reviewable
-#      diff across all four flavours.
+#   1. THIS workflow builds the four trees, stamps them, and writes them as
+#      result/<branch> folders into ONE commit on frontend's main. So main
+#      over there carries the complete delivered content, and its history
+#      shows every content change as one reviewable diff across all four
+#      flavours.
 #   2. frontend's own `deliver` workflow, triggered by that push, turns each
 #      result/<branch> folder into the branch itself: one commit per branch,
 #      parented on the main commit, tree = the folder's content and nothing
 #      else. Every published branch is therefore always exactly one commit
 #      ahead of main - its full history IS main's history.
 #
-# The four published trees are NOT built here: they are committed in build/,
-# gated against the sources by frontend_check, and this workflow ships the
-# tree as it stands. So what a pull request reviewed is what reaches an
-# installation - a rebuild at deploy time could only ever produce something
-# nobody looked at. Renamed variants (standard_<name>) have no committed tree,
-# are unbounded in number and stay built on demand through the dispatch input;
-# they are pushed to their branch directly, parented on frontend's main like
-# every other branch, but their content is not tracked in result/.
+# The four published trees are built HERE, at deploy time, from the sources
+# main carries - the same `npm run frontend:build` frontend_check already ran
+# on the pull request that changed them, so a build that reaches this point
+# has produced these bytes once before, in the gate. No tree is committed in
+# this repository; the only durable copies are the result/<branch> folders
+# over there. Renamed variants (standard_<name>) are unbounded in number and
+# stay built on demand through the dispatch input; they are pushed to their
+# branch directly, parented on frontend's main like every other branch, but
+# their content is not tracked in result/.
 #
 # The commit written into frontend's main carries the subject of the main
 # commit here that caused it, plus that commit's sha - so the history over
@@ -46,12 +47,16 @@ on:
   push:
     branches: [main]
     paths:
-      # what is delivered, verbatim - the sources it is built from only matter
-      # here through the tree they produced
-      - 'build/**'
+      # everything the build consumes - the webapp and Fiori project, the
+      # ABAP artefacts and common files, the build scripts, and the terser
+      # whose version shapes the minified preload bundle
+      - 'app/**'
+      - 'frontend/**'
+      - 'tools/**'
+      - 'package.json'
+      - 'package-lock.json'
       # the VERSION stamp of every branch carries the framework version
       - 'src/02/z2ui5_if_app.intf.abap'
-      - 'tools/branch-stamp.mjs'
       - '.github/workflows/frontend_deploy.yaml'
   schedule:
     - cron: '0 5 1 * *'   # monthly safety net
@@ -87,12 +92,17 @@ jobs:
       with:
         npm-ci: "true"
 
+    # The same build the pull-request gate ran (frontend_check) - what it
+    # produced there from these sources is what it produces here.
+    - name: Build the four delivery trees
+      run: npm run frontend:build
+
     - name: Check the BSP page invariants
       run: node tools/check-pages.mjs
 
     # In the workspace copy, so npx resolves the installed abaplint
-    - name: Lint the committed standard tree
-      run: cd build/standard && npx abaplint
+    - name: Lint the built standard tree
+      run: cd tools/out/standard && npx abaplint
 
     # One commit on frontend's main that updates result/<branch> for every
     # tree that changed - and only for those: a folder whose content is
@@ -127,7 +137,7 @@ jobs:
           fi
           rm -rf "$dest"
           mkdir -p "$clone/result"
-          cp -a "build/$b" "$dest"
+          cp -a "tools/out/$b" "$dest"
           if printf '%s' "$published" | grep -Eq '^[0-9a-f]{40}$'; then
             node tools/branch-stamp.mjs "$dest" "$b" "$published"
             if [ -z "$(git -C "$clone" status --porcelain -uall -- "result/$b")" ]; then

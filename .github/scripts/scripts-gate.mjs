@@ -87,8 +87,8 @@ for (const entry of REPOS) {
     ? path.join(ROOT, 'package.json')
     : path.join(ROOT, '..', repo, 'package.json');
 
-  let text = null;
-  let from = '';
+  let text;
+  let from;
   if (fs.existsSync(local)) {
     text = fs.readFileSync(local, 'utf8');
     from = 'checkout';

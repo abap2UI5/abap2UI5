@@ -44,8 +44,10 @@ const ROOT = path.join(SCRIPTS, "..", "..");
 // own - the same contract check_gates.yaml's step names carry.
 const GATES = [
   { npm: "check:frozen", script: "frozen-paths-gate.mjs" },
+  { npm: "check:frozen-only", script: "frozen-only-gate.mjs" },
   { npm: "check:abapgit", script: "abapgit-format-gate.mjs" },
   { npm: "check:atc", script: "extended-check-gate.mjs" },
+  { npm: "check:cause", script: "exception-cause-gate.mjs" },
   { npm: "check_visibility", script: "testclass-visibility-gate.mjs" },
   { npm: "check:naming", script: "object-naming-gate.mjs" },
   { npm: "check:dynamic", script: "dynamic-name-gate.mjs" },
@@ -54,6 +56,7 @@ const GATES = [
   { npm: "check:shared", script: "shared-file-gate.mjs" },
   { npm: "check:mirrors", script: "linter-mirror-gate.mjs" },
   { npm: "check:conventions", script: "conventions-gate.mjs" },
+  { npm: "check:commands", script: "agents-commands-gate.mjs" },
   { npm: "check:scripts", script: "scripts-gate.mjs" },
   { npm: "check:counts", script: "corpus-count-gate.mjs" },
   { npm: "check:samples-md", script: "samples-md-gate.mjs" },
@@ -65,6 +68,7 @@ const GATES = [
   { npm: "check:guide", script: "check-guide-api.mjs" },
   { npm: "check:formatter", script: "formatter-scope-gate.mjs" },
   { npm: "check:asserts", script: "assertion-gate.mjs" },
+  { npm: "check:specs", script: "spec-inventory-gate.mjs" },
   { npm: "check:downport", script: "downport-operand-gate.mjs" },
   { npm: "check:api", script: "api-snapshot.mjs" },
 ];

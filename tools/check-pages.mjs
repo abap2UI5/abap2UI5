@@ -17,9 +17,8 @@
 //
 //     node tools/check-pages.mjs [tree ...]
 //
-// Without arguments every built tree is checked: the four published branches
-// in build/ and everything an ad-hoc build has put into tools/out/. A named
-// tree is looked for in both.
+// Without arguments every tree a build has put into tools/out/ is checked;
+// a named tree is looked for there.
 
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -27,9 +26,8 @@ import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
-// The same split as in build-branches.mjs: build/ is the committed tree of the
-// four branches, tools/out/ the gitignored scratch.
-const ROOTS = [join(here, "..", "build"), join(here, "out")];
+// The one place build-branches.mjs writes to: the gitignored tools/out/.
+const ROOTS = [join(here, "out")];
 
 const treeDir = (tree) => ROOTS.map((root) => join(root, tree)).find((dir) => existsSync(dir));
 

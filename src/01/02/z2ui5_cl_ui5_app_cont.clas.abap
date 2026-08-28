@@ -36,6 +36,21 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mv_check_sticky      TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
 
+    " The model exactly as the client is left holding it after this app's
+    " last response - the full JSON string (`{}` for an empty model), or
+    " INITIAL when unknown: a fresh app, a draft written before this
+    " attribute existed, or an incoming model delta that invalidated it
+    " (z2ui5_cl_ui5_action=>factory_by_frontend). It lives on the app - and
+    " therefore in its draft - so the next roundtrip reuses it as the
+    " pre-main( ) snapshot instead of serializing the whole model a second
+    " time (z2ui5_cl_ui5_handler=>main_process / main_end). Staleness leans
+    " one way only: a value that no longer matches re-serialization causes
+    " at most one redundant model push - it can never suppress a push the
+    " client needs, because it is only ever written to what the client was
+    " actually left holding, and cleared the moment incoming deltas touch
+    " the state it describes.
+    DATA mv_model_client TYPE string.
+
     "! Refresh z2ui5_if_app~id_draft on the wrapped app. Not a courtesy: it is
     "! the handle db_load_by_app( ) resolves an app reference by, so it has to
     "! follow ms_draft-id whenever that changes.

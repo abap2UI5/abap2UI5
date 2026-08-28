@@ -70,7 +70,7 @@
 //   node rename-bsp.mjs ZMYUI5 --with-namespace --yes
 //
 
-import { readFile, writeFile, rename, readdir, stat } from "node:fs/promises";
+import { readFile, writeFile, rename, readdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { join, basename, dirname } from "node:path";
 import { createInterface } from "node:readline/promises";
@@ -372,7 +372,7 @@ function renamedBasename(name, N, content) {
 // object list is sorted, "<ns>..." < "<leaf>..." only matters within one
 // package - both land in the same one here).
 function namespaceNodeFile(N, dir, parentUrl) {
-  const content = `﻿<?xml version="1.0" encoding="utf-8"?>
+  const content = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_SICF" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>

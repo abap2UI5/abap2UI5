@@ -40,16 +40,37 @@ const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*\.(yml|yaml)$/;
 
 /* Workflow names that predate the rule. Each one is a status check and a badge
  * URL somebody may have linked, which is why they are exceptions rather than a
- * rename in this change. Remove an entry by renaming its file. */
+ * rename in this change. Remove an entry by renaming its file.
+ *
+ * They are being retired in stages rather than in one sweep, because renaming
+ * a workflow retitles what branch protection requires and a repository that
+ * renames twelve at once is a repository with twelve unrequirable checks until
+ * somebody re-points every rule. The order follows the blast radius:
+ *
+ *   1. DONE - the two that produce no pull-request check at all.
+ *      `build_rename` (workflow_dispatch only) and `check_v2_sdk` (schedule +
+ *      dispatch) never report on a pull request, so no branch-protection rule
+ *      can name them and the rename cost nothing but their references.
+ *   2. NEXT - `UI5_2X.yaml`, which CONVENTIONS §2 names as its own bad example
+ *      (`UI5.yaml -> UI5_2X`) and which this file's header therefore has to
+ *      keep explaining. It IS a pull-request check, so it goes with the branch
+ *      protection change in the same pull request.
+ *   3. `ABAP_702`, `auto_downport`, `auto_abaplint_fix`, `create_app2abap`,
+ *      `trigger_local` - single-purpose workflows with few references each.
+ *   4. LAST - `check_gates`, `check_app2abap`, `frontend_check`,
+ *      `frontend_deploy`. These are the required checks and the ones the
+ *      documentation names most (`check_gates` alone is referenced ~50 times),
+ *      so each is its own change.
+ *
+ * The list only shrinks: an entry for a file that no longer exists fails
+ * below, so a rename drops its exception in the same change. */
 const GRANDFATHERED = new Set([
   'ABAP_702.yaml',
   'UI5_2X.yaml',
   'auto_abaplint_fix.yaml',
   'auto_downport.yaml',
-  'build_rename.yaml',
   'check_app2abap.yaml',
   'check_gates.yaml',
-  'check_v2_sdk.yaml',
   'create_app2abap.yaml',
   'frontend_check.yaml',
   'frontend_deploy.yaml',
@@ -87,12 +108,12 @@ if (has('AGENTS.md') && !has('CLAUDE.md')) {
 }
 
 // --- §6 LF-only, enforced by .gitattributes ---------------------------------
-/* This repository carries both: src/ is pulled into SAP systems by abapGit,
- * which expects LF, and build/ is shipped byte for byte. It had no root
- * .gitattributes at all - the only one was build/.gitattributes, saying `*
- * -text` for the opposite and deliberate reason. Measured when the root file
- * went in: `git add --renormalize .` changed nothing, so the tree was already
- * LF throughout and the file records that rather than converting anything. */
+/* src/ is pulled into SAP systems by abapGit, which expects LF. Measured
+ * when the root file went in: `git add --renormalize .` changed nothing, so
+ * the tree was already LF throughout and the file records that rather than
+ * converting anything. (The delivery trees are no longer committed here -
+ * they are built into the git-ignored tools/out/ and shipped byte for byte
+ * by frontend_deploy, out of reach of any attribute of this repository.) */
 if (!has('.gitattributes')) {
   err('no .gitattributes — CONVENTIONS §6 asks for one in every repository that'
     + ' carries ABAP or generated trees, and this one carries both. Without it a'
