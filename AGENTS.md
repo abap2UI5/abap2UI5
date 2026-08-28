@@ -769,6 +769,22 @@ The following items may look like gaps but are intentional design choices:
 - **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_ui5f_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
 - **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_ui5_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
+- **The developer tools cannot be lazy-loaded out of the preload, and the
+  hard `sap.ui.define` dependencies in `devtools/DevTools.js` are deliberate.**
+  On an ABAP system every frontend file arrives in ONE
+  `sap.ui.require.preload` block inside the GET response
+  (`z2ui5_cl_ui5f_preload`), and the bootstrap sets the resource root to the
+  ICF node, which answers every GET with the shell page — so a module dropped
+  from that block is fetched as `text/html`, never defines, and the tools
+  simply do not open (rule 18 is the same constraint stated from the other
+  side). Requiring lazily *without* dropping them from the preload moves only
+  the factory execution, not the bytes; and `Console` and `Recorder` have to
+  install eagerly anyway, because a history collected after the problem is
+  worth nothing. Measured 2026-08-28: `devtools/` is 32.7% of the preload's
+  bytes and at most 23.2% of it could ever be deferred. Making that real is an
+  on-demand delivery path for a module the page did not receive — a design
+  change to the HTTP handler, not an edit to `DevTools.js`. The full reasoning
+  is in that file's header.
 - **An app implements `z2ui5_if_app` — there is deliberately NO app base
   class, and the dispatcher boilerplate is accepted.** Every app hand-writes
   the same `main( )` lifecycle branching (`check_on_init` / `check_on_event`
