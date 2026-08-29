@@ -35,62 +35,19 @@
 
 import { readFileSync } from "fs";
 import { join } from "path";
+import { fileURLToPath } from "url";
 import { walk } from "./lib/walk.mjs";
+// The statement splitter is shared with exception-cause-gate. It keeps
+// comments rather than stripping them: the pseudo-comments this gate is about
+// ("#EC ...) live in exactly the trailing comment of the statement they
+// annotate.
+import { statements } from "./lib/abap-statements.mjs";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const EXCLUDED = [/^src\/99\//, /^src\/00\/01\//, /^src\/00\/02\//];
 
 const findings = [];
-
-// Split ABAP source into statements. Comments are kept, not stripped: the
-// pseudo-comments this gate is about ("#EC ...) live in exactly the trailing
-// comment of the statement they annotate.
-function statements(source) {
-  const out = [];
-  let code = [];
-  let start = 0;
-  let line = 0;
-
-  for (const raw of source.split("\n")) {
-    line += 1;
-    if (/^\*/.test(raw)) continue; // full-line comment: not part of any statement
-    if (code.length === 0) {
-      // Between statements, an indented `"` line is a comment of its own. Only
-      // once a statement is open can such a line be a continuation of it.
-      if (raw.trim() === "" || raw.trim().startsWith('"')) continue;
-      start = line;
-    }
-    code.push(raw);
-
-    // find the statement terminator: a period outside a string and outside the
-    // trailing comment
-    let quote = null;
-    let end = -1;
-    for (let i = 0; i < raw.length; i += 1) {
-      const c = raw[i];
-      if (quote) {
-        if (c === quote) quote = null;
-        continue;
-      }
-      if (c === "`" || c === "'") {
-        quote = c;
-        continue;
-      }
-      if (c === '"') break; // rest of the line is a comment
-      if (c === ".") {
-        end = i;
-        break;
-      }
-    }
-    if (end >= 0) {
-      out.push({ start, text: code.join("\n") });
-      code = [];
-    }
-  }
-  if (code.length > 0) out.push({ start, text: code.join("\n") });
-  return out;
-}
 
 const files = walk(ROOT, "src")
   .filter(f => f.endsWith(".abap"))

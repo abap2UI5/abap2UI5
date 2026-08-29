@@ -190,7 +190,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
     DATA(lv_id) = CONV string( id ).
 
-    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf) WITH KEY id = lv_id.
+    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf) WITH TABLE KEY id = lv_id.
     IF sy-subrc = 0.
       result = lr_buf->app.
       RETURN.

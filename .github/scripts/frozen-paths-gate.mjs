@@ -44,6 +44,21 @@ const EXEMPT = [
 
 const head = process.env.HEAD_SHA || "HEAD";
 let base = process.env.BASE_SHA;
+// a push event's before-sha can be unusable: all zeros on a branch's first
+// push, or absent from a shallow/foreign clone - treat it like "not set"
+// rather than letting the diff below error out
+if (base) {
+  if (/^0+$/.test(base)) {
+    base = "";
+  } else {
+    try {
+      execFileSync("git", ["cat-file", "-e", `${base}^{commit}`], { stdio: "ignore" });
+    } catch {
+      base = "";
+    }
+  }
+  if (!base) delete process.env.BASE_SHA;
+}
 if (!base) {
   try {
     execFileSync("git", ["fetch", "origin", "main", "--quiet"]);

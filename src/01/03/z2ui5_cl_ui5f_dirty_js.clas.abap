@@ -25,19 +25,11 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that marks the session as having unsaved changes:` && |\n| &&
-             `// inside the Launchpad via the FLP dirty flag, standalone via the` && |\n| &&
-             `// browser's "leave page?" confirmation prompt.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
              `  (Control, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Every live Dirty instance that is currently dirty. The FLP dirty flag` && |\n| &&
-             `    // and the browser's onbeforeunload are single global slots, so the guard` && |\n| &&
-             `    // must reflect whether ANY instance is dirty - one instance clearing its` && |\n| &&
-             `    // own flag (or being destroyed) must not wipe another instance's unsaved` && |\n| &&
-             `    // guard (e.g. a main-view form plus a form in a dialog).` && |\n| &&
              `    const dirtyControls = new Set();` && |\n| &&
              `` && |\n| &&
              `    function syncUnloadPrompt(anyDirty) {` && |\n| &&
@@ -59,8 +51,6 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `      setIsDirty(val) {` && |\n| &&
-             `        // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
-             `        // (applying the dirty state) is what actually matters.` && |\n| &&
              `        this.setProperty("isDirty", val, true);` && |\n| &&
              `        if (val) {` && |\n| &&
              `          dirtyControls.add(this);` && |\n| &&
@@ -70,9 +60,6 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `        this._applyDirtyState();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Apply the AGGREGATE dirty state (any instance dirty) to whichever` && |\n| &&
-             `      // mechanism is active: the FLP dirty flag inside the Launchpad (SAPUI5` && |\n| &&
-             `      // only), else the browser unload prompt.` && |\n| &&
              `      _applyDirtyState() {` && |\n| &&
              `        const anyDirty = dirtyControls.size > 0;` && |\n| &&
              `        try {` && |\n| &&
@@ -81,6 +68,8 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `            launchpad?.Container?.setDirtyFlag && launchpad.ShellUIService;` && |\n| &&
              `          if (hasFlpDirtyFlag) {` && |\n| &&
              `            launchpad.Container.setDirtyFlag(anyDirty);` && |\n| &&
+             `` && |\n| &&
+             `            syncUnloadPrompt(false);` && |\n| &&
              `          } else {` && |\n| &&
              `            syncUnloadPrompt(anyDirty);` && |\n| &&
              `          }` && |\n| &&
@@ -93,7 +82,7 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `        dirtyControls.delete(this);` && |\n| &&
              `        this._applyDirtyState();` && |\n| &&
              `      },` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

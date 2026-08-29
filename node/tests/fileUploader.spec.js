@@ -38,10 +38,14 @@ function load() {
     constructor(settings) {
       this.settings = settings;
       this.enabled = settings.enabled;
+      this.text = settings.text;
       this.destroyed = false;
     }
     setEnabled(v) {
       this.enabled = v;
+    }
+    setText(v) {
+      this.text = v;
     }
     destroy() {
       this.destroyed = true;
@@ -54,6 +58,27 @@ function load() {
     getProperty(name) {
       return this.settings[name];
     }
+  }
+  // The per-render property sync (_syncControls) pushes every value through
+  // the UI5 setters; the stub routes them back into `settings`.
+  for (const name of [
+    "tooltip",
+    "icon",
+    "iconOnly",
+    "buttonOnly",
+    "buttonText",
+    "style",
+    "fileType",
+    "visible",
+    "multiple",
+    "enabled",
+    "value",
+    "placeholder",
+  ]) {
+    const setter = `set${name[0].toUpperCase()}${name.slice(1)}`;
+    InnerUploader.prototype[setter] = function (v) {
+      this.settings[name] = v;
+    };
   }
   class HBox {
     constructor() {
@@ -216,16 +241,43 @@ test("a read finishing after destroy neither writes value nor fires upload", () 
   expect(inst.uploads).toBe(0);
 });
 
-test("re-rendering destroys the previous control set", () => {
+// Create-once (the cc/CameraPicture pattern): the renderer must NOT rebuild
+// the inner controls on every pass - that threw away the inner file input's
+// selection and focus on every roundtrip that re-rendered the view.
+test("re-rendering keeps the control set and syncs the new property values", () => {
   const { makeInstance, render } = load();
   const inst = makeInstance();
   render(inst);
   const firstBox = inst._oHBox;
+  const firstUploader = inst.oFileUploader;
 
+  inst._props.tooltip = "changed";
+  render(inst);
+
+  expect(inst._oHBox).toBe(firstBox);
+  expect(firstBox.destroyed).toBe(false);
+  expect(inst.oFileUploader).toBe(firstUploader);
+  // ... but the property values still reach the inner control per render
+  expect(firstUploader.settings.tooltip).toBe("changed");
+});
+
+// checkDirectUpload changes the STRUCTURE (upload button yes/no, and
+// uploadOnChange is init-only on the inner control) - toggling it is the
+// one case that rebuilds, destroying the previous set.
+test("toggling checkDirectUpload rebuilds the control set", () => {
+  const { makeInstance, render } = load();
+  const inst = makeInstance();
+  render(inst);
+  const firstBox = inst._oHBox;
+  expect(inst.oUploadButton).not.toBe(null);
+
+  inst._props.checkDirectUpload = true;
   render(inst);
 
   expect(firstBox.destroyed).toBe(true);
   expect(inst._oHBox).not.toBe(firstBox);
+  expect(inst.oUploadButton).toBe(null);
+  expect(inst.oFileUploader.settings.uploadOnChange).toBe(true);
 });
 
 test("exit() destroys the owned HBox; before any render it is a no-op", () => {

@@ -30,20 +30,7 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `  (mobileLibrary, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Actions against the SAP Fiori Launchpad shell: cross-app navigation` && |\n| &&
-             `    // and the shell title. They all resolve the launchpad services captured` && |\n| &&
-             `    // at component start (AppState.state.oLaunchpad). The cross-app-nav` && |\n| &&
-             `    // handlers no-op with a log line outside the FLP; the title handler is` && |\n| &&
-             `    // deliberately silent, because ShellUIService resolves asynchronously` && |\n| &&
-             `    // and can legitimately still be unset inside the FLP.` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
-             `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Launchpad helpers` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    function withCrossAppNavigator(callback) {` && |\n| &&
              `      const nav = AppState.state.oLaunchpad?.CrossAppNavigator;` && |\n| &&
@@ -67,10 +54,6 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `        const hash =` && |\n| &&
              `          nav.hrefForExternal({ target: args[1], params: args[2] }) || "";` && |\n| &&
              `        if (args[3] === "EXT") {` && |\n| &&
-             `          // External redirect: replace the location while keeping the host.` && |\n| &&
-             `          // base is the current page (same origin) + a shell-hash fragment,` && |\n| &&
-             `          // so this is same-origin by construction; validate anyway to stay` && |\n| &&
-             `          // consistent with every other redirect handler in this file.` && |\n| &&
              `          const base = window.location.href.split("#")[0];` && |\n| &&
              `          const url = ``${base}${hash}``;` && |\n| &&
              `          if (!Lib.isValidRedirectURL(url)) {` && |\n| &&
@@ -104,8 +87,6 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The events this module owns in the eF dispatch (see` && |\n| &&
-             `    // core/FrontendAction.js, which merges the domain modules' handler maps).` && |\n| &&
              `    const handlers = {` && |\n| &&
              `      CROSS_APP_NAV_TO_PREV_APP: evCrossAppNavToPrevApp,` && |\n| &&
              `      CROSS_APP_NAV_TO_EXT: evCrossAppNavToExt,` && |\n| &&

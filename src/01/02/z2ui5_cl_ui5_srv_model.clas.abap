@@ -128,7 +128,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! absent field never becomes an entry.
     METHODS delta_apply_field
       IMPORTING
-        io_row_d TYPE REF TO z2ui5_if_ajson
+        io_delta TYPE REF TO z2ui5_if_ajson
+        iv_path  TYPE string
         is_cell  TYPE z2ui5_if_client=>ty_s_model_skip
         ir_comp  TYPE REF TO data
       RAISING
@@ -153,6 +154,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
+          " the frontend sends only the DELTA, so most bound attributes have
+          " no node in the request model at all. slice( ) walks and copies
+          " the whole node tree per call (CP compare on every node); the
+          " keyed exists( ) lookup answers "nothing there" first, so the
+          " walk only runs for attributes the request actually carries -
+          " the same reasoning as the /value unwrap in
+          " z2ui5_cl_ui5_handler=>request_parse_body
+          IF model->exists( lr_attri->name_client ) = abap_false.
+            CONTINUE.
+          ENDIF.
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
           IF lo_val_front IS NOT BOUND.
             CONTINUE.
@@ -162,14 +173,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             delta_apply_to_table( io_val_front = lo_val_front
                                   iv_name      = lr_attri->name ).
             CONTINUE.
-          ENDIF.
-
-          IF lr_attri->custom_mapper_back IS BOUND.
-            lo_val_front = lo_val_front->map( lr_attri->custom_mapper_back ).
-          ENDIF.
-
-          IF lr_attri->custom_filter_back IS BOUND.
-            lo_val_front = lo_val_front->filter( lr_attri->custom_filter_back ).
           ENDIF.
 
           TRY.
@@ -485,6 +488,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_get_val_ref.
 
+    " The dynamic ASSIGN below is resolved FRESH on every call, on purpose -
+    " do not cache the returned references (maintainer decision, 2026-08).
+    " The name->ref mapping is not stable enough to cache: apps create and
+    " re-point REF TO data attributes at runtime, dissolve( ) rebuilds
+    " mt_attri, and app code in main( ) may swap a dref target between any
+    " two calls. A cached reference then points at the old, detached data
+    " object and fails SILENTLY - the bind reads or writes a copy, values go
+    " stale without an exception, and that class of defect has only ever
+    " been found by users on real systems (see #1937 for how differently
+    " ASSIGN behaves across releases). The repeated dynamic ASSIGNs are the
+    " price of staying correct; O(n) work per roundtrip is the cheap side
+    " of that trade.
     FIELD-SYMBOLS <attri> TYPE any.
 
     IF iv_path IS INITIAL.
@@ -688,6 +703,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_update_entry_refs.
 
+    " The nested loops below resolve every reference through
+    " attri_get_val_ref( ) - a dynamic ASSIGN per lookup, up to O(n^2) of
+    " them per roundtrip. That cost is deliberate: see the comment in
+    " attri_get_val_ref for why a name->ref cache here goes stale silently
+    " (runtime-created attributes, refs re-pointed between roundtrips) and
+    " must not be introduced.
+
     " Declared once at method level: both CASE branches below fill and read
     " these, so an inline DATA(...) in only the first branch would read as if
     " they belonged to that branch alone.
@@ -838,13 +860,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the
         " attribute unmapped after a refresh
-        lr_attri->bind               = lr_old->bind.
-        lr_attri->name_client        = lr_old->name_client.
-        lr_attri->custom_mapper      = lr_old->custom_mapper.
-        lr_attri->custom_mapper_back = lr_old->custom_mapper_back.
-        lr_attri->custom_filter      = lr_old->custom_filter.
-        lr_attri->custom_filter_back = lr_old->custom_filter_back.
-        lr_attri->check_json         = lr_old->check_json.
+        lr_attri->bind          = lr_old->bind.
+        lr_attri->name_client   = lr_old->name_client.
+        lr_attri->custom_mapper = lr_old->custom_mapper.
+        lr_attri->custom_filter = lr_old->custom_filter.
+        lr_attri->check_json    = lr_old->check_json.
       ENDIF.
     ENDLOOP.
 
@@ -892,15 +912,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lo_row_d) = io_delta->slice( |/{ lv_idx_str }| ).
-      DATA(lt_fld) = lo_row_d->members( `/` ).
+      " no slice( ) per row: slicing walks and copies the WHOLE delta tree
+      " for every changed row (O(rows^2) on a mass edit such as a
+      " select-all toggle). members( ) and the typed get_* calls below are
+      " keyed reads on the sorted node table, so the row is addressed by
+      " its full path instead
+      DATA(lv_row_path) = |/{ lv_idx_str }|.
+      DATA(lt_fld) = io_delta->members( lv_row_path ).
       LOOP AT lt_fld INTO DATA(lv_fld).
         FIELD-SYMBOLS <comp> TYPE any.
         ASSIGN COMPONENT lv_fld OF STRUCTURE <delta_row> TO <comp>.
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
-        delta_apply_field( io_row_d = lo_row_d
+        delta_apply_field( io_delta = io_delta
+                           iv_path  = |{ lv_row_path }/{ lv_fld }|
                            is_cell  = VALUE #( name  = iv_table
                                                row   = lv_tabix
                                                field = lv_fld )
@@ -915,18 +941,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <comp> TYPE any.
     ASSIGN ir_comp->* TO <comp>.
 
-    DATA(lv_path) = |/{ is_cell-field }|.
-
+    " iv_path addresses the cell in the caller's delta tree directly - the
+    " scalar branches below are keyed reads, so no per-row sub-tree has to
+    " be sliced off first. Only the two rare non-scalar branches still
+    " slice, and only the one component they need
     TRY.
-        CASE io_row_d->get_node_type( lv_path ).
+        CASE io_delta->get_node_type( iv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            <comp> = io_row_d->get_boolean( lv_path ).
+            <comp> = io_delta->get_boolean( iv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-object.
             " either a nested table delta (marked by __delta) or a
             " structure component shipped as a whole value
-            DATA(lo_sub) = io_row_d->slice( lv_path ).
+            DATA(lo_sub) = io_delta->slice( iv_path ).
             IF lo_sub->exists( `/__delta` ) = abap_true.
               FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
               ASSIGN ir_comp->* TO <sub_tab>.
@@ -944,14 +972,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
           WHEN z2ui5_if_ajson_types=>node_type-array.
             " a whole sub-table value replaced a nested delta on the client
-            io_row_d->slice( lv_path )->to_abap( EXPORTING iv_corresponding = abap_true
+            io_delta->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
                                                  IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
             " numbers intentionally go through get_string: the raw JSON text
             " converts losslessly into any numeric target type, while
             " get_number would round through a binary float first
-            <comp> = io_row_d->get_string( lv_path ).
+            <comp> = io_delta->get_string( iv_path ).
         ENDCASE.
 
       CATCH cx_root.

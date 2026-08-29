@@ -21,9 +21,10 @@
 //             on the next scheduled run unless the mirror repos are renamed too,
 //             and their interfaces sit in the signature of z2ui5_if_client~_bind
 
+import { fileURLToPath } from "url";
 import { walk, baseName, dirName } from "./lib/walk.mjs";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 // directories whose names this gate does not judge, with the reason shown on a
 // finding so the exemption is never a silent hole

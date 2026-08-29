@@ -25,40 +25,16 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// The developer tools' bug report - the whole session state as one blob.` && |\n| &&
-             `//` && |\n| &&
-             `// Split out of devtools/DeveloperTools.js, and rebuilt on the tab` && |\n| &&
-             `// registry: the export used to carry a hand-written list of sections in` && |\n| &&
-             `// its own order, with its own titles, which is how it came to name` && |\n| &&
-             `// sections ("ROUNDTRIP HISTORY", "PREVIOUS REQUEST") that match no tab -` && |\n| &&
-             `// its own truncation hint told the reader to open a tab that does not` && |\n| &&
-             `// exist. Now devtools/Tabs.js decides what is exported and what a` && |\n| &&
-             `// section is called, and this module only assembles and ships it.` && |\n| &&
-             `//` && |\n| &&
-             `// Pasting a report into a GitHub issue is the last step of most bug` && |\n| &&
-             `// reports, so the Markdown form is the primary product here, not an` && |\n| &&
-             `// afterthought: each section becomes a collapsed <details> block so a` && |\n| &&
-             `// long report stays readable in a comment, and the code fences keep XML` && |\n| &&
-             `// and JSON from being eaten by the markdown renderer.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  ["z2ui5/core/Lib", "z2ui5/devtools/Recorder", "z2ui5/devtools/Tabs"],` && |\n| &&
              `  (Lib, Recorder, Tabs) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Max characters per section; long ones are truncated so the export` && |\n| &&
-             `    // popup's TextArea still renders.` && |\n| &&
              `    const MAX_SECTION = 100000;` && |\n| &&
              `` && |\n| &&
-             `    // Where the running app's ABAP class source is placed among the tab` && |\n| &&
-             `    // sections. High up because it is usually the most useful context` && |\n| &&
-             `    // when sharing an error - a reader can see the class that produced` && |\n| &&
-             `    // it - but after the log and the history, which say what happened.` && |\n| &&
              `    const ABAP_SOURCE_ORDER = 55;` && |\n| &&
              `    const ABAP_SOURCE_TITLE = "ABAP SOURCE";` && |\n| &&
              `` && |\n| &&
-             `    // Assemble the plain-text report: every exported tab, in the` && |\n| &&
-             `    // registry's export order, plus the ABAP class source that was` && |\n| &&
-             `    // fetched asynchronously and passed in (empty when unavailable).` && |\n| &&
              `    function buildExport(abapSource) {` && |\n| &&
              `      const sections = [];` && |\n| &&
              `      const push = (title, content) => {` && |\n| &&
@@ -76,8 +52,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      const entries = Tabs.exportTabs().map((tab) => ({` && |\n| &&
              `        order: tab.exportOrder,` && |\n| &&
              `        title: Tabs.exportTitle(tab),` && |\n| &&
-             `        // Tabs.render is itself guarded, so one throwing source can never` && |\n| &&
-             `        // blank the report.` && |\n| &&
+             `` && |\n| &&
              `        body: Tabs.render(tab.key),` && |\n| &&
              `      }));` && |\n| &&
              `      if (abapSource) {` && |\n| &&
@@ -93,18 +68,16 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The same content as a GitHub-ready issue body.` && |\n| &&
              `    function buildMarkdown(abapSource) {` && |\n| &&
              `      const plain = buildExport(abapSource);` && |\n| &&
              `      const blocks = plain.split(/^===== (.+) =====$/m);` && |\n| &&
-             `      // split() yields [preamble, title, body, title, body, ...]` && |\n| &&
+             `` && |\n| &&
              `      const out = ["## abap2UI5 - Developer Tools export", ""];` && |\n| &&
              `      for (let i = 1; i < blocks.length; i += 2) {` && |\n| &&
              `        const title = blocks[i];` && |\n| &&
              `        const body = (blocks[i + 1] || "").trim();` && |\n| &&
              `        if (!body) continue;` && |\n| &&
-             `        // The environment block is what a reader needs first, so it is` && |\n| &&
-             `        // the one section that is not collapsed.` && |\n| &&
+             `` && |\n| &&
              `        const open = title === "ENVIRONMENT" ? " open" : "";` && |\n| &&
              `        const fence = title.includes("SOURCE") ? "abap" : "text";` && |\n| &&
              `        out.push(``<details${open}>``);` && |\n| &&
@@ -120,15 +93,11 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Stable, sortable file name stem for the generated downloads.` && |\n| &&
              `    function exportFileName(appName, extension) {` && |\n| &&
              `      const stamp = new Date().toISOString().replace(/[:.]/g, "-");` && |\n| &&
              `      return ``${appName || "abap2ui5"}_${stamp}.${extension}``;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Hand a generated text file to the browser. A copy to the clipboard` && |\n| &&
-             `    // is fine for a short report, but a full export with payloads` && |\n| &&
-             `    // belongs in a file that can be attached to an issue.` && |\n| &&
              `    function downloadText(fileName, content, mimeType) {` && |\n| &&
              `      try {` && |\n| &&
              `        const blob = new Blob([content], {` && |\n| &&
@@ -141,15 +110,13 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `        document.body.appendChild(anchor);` && |\n| &&
              `        anchor.click();` && |\n| &&
              `        document.body.removeChild(anchor);` && |\n| &&
-             `        // Release the object url once the download has been handed over.` && |\n| &&
+             `` && |\n| &&
              `        setTimeout(() => URL.revokeObjectURL(url), 0);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools Report: download failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Say "Copied" on the button that was pressed and put its label back.` && |\n| &&
-             `    // A copy that leaves no trace looks like a copy that did not happen.` && |\n| &&
              `    function confirmOnButton(oButton) {` && |\n| &&
              `      const original = oButton.getText();` && |\n| &&
              `      oButton.setText("Copied");` && |\n| &&
@@ -158,9 +125,6 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      }, 1500);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Show the whole export in a stretched popup: a read-through TextArea` && |\n| &&
-             `    // for the eye, and the four ways it leaves the browser. Markdown is` && |\n| &&
-             `    // the emphasized one because an issue comment is where it is going.` && |\n| &&
              `    function openDialog(appName, abapSource) {` && |\n| &&
              `      const text = buildExport(abapSource);` && |\n| &&
              `      sap.ui.require(` && |\n| &&
@@ -172,21 +136,18 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `            rows: 25,` && |\n| &&
              `            growing: false,` && |\n| &&
              `          });` && |\n| &&
-             `          // Set the value explicitly (not only via the constructor) so a` && |\n| &&
-             `          // large payload is applied reliably after the control exists.` && |\n| &&
+             `` && |\n| &&
              `          area.setValue(text);` && |\n| &&
              `          const dialog = new Dialog({` && |\n| &&
              `            title: "abap2UI5 - Developer Tools Export",` && |\n| &&
              `            stretch: true,` && |\n| &&
              `            content: [area],` && |\n| &&
-             `            // The ``buttons`` aggregation, not beginButton/endButton: UI5` && |\n| &&
-             `            // ignores those two as soon as ``buttons`` is filled.` && |\n| &&
+             `` && |\n| &&
              `            buttons: [` && |\n| &&
              `              new Button({` && |\n| &&
              `                text: "Copy as Markdown",` && |\n| &&
              `                type: "Emphasized",` && |\n| &&
-             `                // Confirm on the button itself: this dialog is modal, so` && |\n| &&
-             `                // a MessageToast behind it would be invisible.` && |\n| &&
+             `` && |\n| &&
              `                press: (oEvent) => {` && |\n| &&
              `                  copyMarkdown(abapSource);` && |\n| &&
              `                  confirmOnButton(oEvent.getSource());` && |\n| &&
@@ -199,10 +160,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `                  confirmOnButton(oEvent.getSource());` && |\n| &&
              `                },` && |\n| &&
              `              }),` && |\n| &&
-             `              // Two files, because they answer different questions: the` && |\n| &&
-             `              // report is what a human reads, the history JSON is what` && |\n| &&
-             `              // makes a bug reproducible (it carries the recorded` && |\n| &&
-             `              // request/response bodies when payload recording was on).` && |\n| &&
+             `` && |\n| &&
              `              new Button({` && |\n| &&
              `                text: "Download Report",` && |\n| &&
              `                press: () => downloadText(exportFileName(appName, "txt"), text),` && |\n| &&
@@ -228,9 +186,6 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The one-click path from the Overview tab: the finished issue body` && |\n| &&
-             `    // on the clipboard, without going through the export popup first.` && |\n| &&
-             `    // Returns a short result message for the caller to show.` && |\n| &&
              `    function copyMarkdown(abapSource) {` && |\n| &&
              `      try {` && |\n| &&
              `        Lib.copyToClipboard(buildMarkdown(abapSource));` && |\n| &&

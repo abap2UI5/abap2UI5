@@ -58,15 +58,14 @@
  *
  *   node .github/scripts/samples-md-gate.mjs      (npm run check:samples-md)
  */
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+import path from 'path';
+import { read as ecoRead, REPOS } from './lib-ecosystem.mjs';
+
+const repoEntry = (name) => REPOS.find((e) => e.org === 'abap2UI5' && e.repo === name);
 
 const CATALOGUES = ['samples', 'samples-controls', 'samples-stack'];
 const FILE = 'SAMPLES.md';
-const raw = (repo) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/${FILE}`;
 
 /* ------------------------------------------------------- the two readers */
 
@@ -224,22 +223,22 @@ const notes = [];
 const read = [];
 
 for (const repo of CATALOGUES) {
-  const local = path.join(ROOT, '..', repo, FILE);
+  /* lib-ecosystem.read - a catalogue whose SAMPLES.md is gone upstream is
+   * a finding (its readers would answer "there are no samples"), not a
+   * skipped note; an unreachable repository stays a note. */
   let text;
   let from;
-  if (fs.existsSync(local)) {
-    text = fs.readFileSync(local, 'utf8');
-    from = 'checkout';
+  const entry = repoEntry(repo);
+  const got = entry ? await ecoRead(entry, FILE) : { note: 'not on the ecosystem list' };
+  if (got.text !== undefined) {
+    text = got.text;
+    from = got.from;
+  } else if (got.missing) {
+    problems.push(`${repo}/${FILE}: gone upstream - its readers would answer "no samples"`);
+    continue;
   } else {
-    try {
-      const res = await fetch(raw(repo), { signal: AbortSignal.timeout(15000) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      text = await res.text();
-      from = 'github';
-    } catch (err) {
-      notes.push(`${repo}: not read (${err.message})`);
-      continue;
-    }
+    notes.push(`${repo}: not read (${got.note})`);
+    continue;
   }
 
   const result = checkCatalogue(repo, text);

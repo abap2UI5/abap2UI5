@@ -10,10 +10,11 @@
 // compares a system against a tag and finds the frontend stamped with a
 // version the repository never released.
 
+import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const INTERFACE = "src/02/z2ui5_if_app.intf.abap";
 

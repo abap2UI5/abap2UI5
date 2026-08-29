@@ -39,55 +39,16 @@
 
 import { readFileSync } from "fs";
 import { join } from "path";
+import { fileURLToPath } from "url";
 import { walk } from "./lib/walk.mjs";
+// The statement splitter shared with the extended-check gate. It keeps
+// trailing comments inside the statement text; nothing here is decided by a
+// pseudo-comment, and a comment cannot look like a RAISE, so that is harmless.
+import { statements } from "./lib/abap-statements.mjs";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const EXCLUDED = [/^src\/99\//, /^src\/00\/01\//, /^src\/00\/02\//];
-
-// Statement splitter: the same shape the extended-check gate uses. Comments
-// are skipped rather than kept - nothing here is decided by a pseudo-comment.
-function statements(source) {
-  const out = [];
-  let code = [];
-  let start = 0;
-  let line = 0;
-
-  for (const raw of source.split("\n")) {
-    line += 1;
-    if (/^\*/.test(raw)) continue; // full-line comment
-    if (code.length === 0) {
-      if (raw.trim() === "" || raw.trim().startsWith('"')) continue;
-      start = line;
-    }
-    code.push(raw);
-
-    let quote = null;
-    let end = -1;
-    for (let i = 0; i < raw.length; i += 1) {
-      const c = raw[i];
-      if (quote) {
-        if (c === quote) quote = null;
-        continue;
-      }
-      if (c === "`" || c === "'") {
-        quote = c;
-        continue;
-      }
-      if (c === '"') break; // rest of the line is a comment
-      if (c === ".") {
-        end = i;
-        break;
-      }
-    }
-    if (end >= 0) {
-      out.push({ start, text: code.join("\n") });
-      code = [];
-    }
-  }
-  if (code.length > 0) out.push({ start, text: code.join("\n") });
-  return out;
-}
 
 const files = walk(ROOT, "src")
   .filter(f => f.endsWith(".abap"))

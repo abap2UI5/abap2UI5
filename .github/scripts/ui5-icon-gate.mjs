@@ -41,10 +41,11 @@
 // nothing in EVERY release - the name is `text-formatting`. The gate compares
 // lower-cased for the same reason.
 
+import { fileURLToPath } from "url";
 import { readdirSync, readFileSync, statSync } from "fs";
 import { join } from "path";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const FLOOR = "1.71";
 
@@ -123,7 +124,21 @@ for (const scan of SCAN) {
 }
 
 for (const [dir, reason] of EXEMPT) console.log(`exempt: ${dir} - ${reason}`);
+// a KNOWN entry has to still be TRUE - the file exists and carries the icon.
+// Without this, a fixed or deleted case stays listed forever and the list
+// stops meaning anything (same policy as toolchain-gate's EXCEPTIONS and
+// frontend-module-gate's allow list: stale entries are findings).
 for (const [file, icon, fix] of KNOWN) {
+  let stillThere = false;
+  try {
+    stillThere = readFileSync(join(ROOT, file), "utf8").includes(`sap-icon://${icon}`);
+  } catch {
+    /* file gone - stale either way */
+  }
+  if (!stillThere) {
+    findings.push(`KNOWN entry is stale: ${file} no longer uses sap-icon://${icon} - drop it from this file`);
+    continue;
+  }
   console.log(`known (exempt): ${file} uses sap-icon://${icon} - the 1.71 name is ${fix}`);
 }
 

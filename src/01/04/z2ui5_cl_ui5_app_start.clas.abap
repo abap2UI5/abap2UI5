@@ -81,6 +81,11 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " (rule 5), and what a start page does with its own popup is not
     CONSTANTS c_event_system TYPE string VALUE `OPEN_SYSTEM`.
     CONSTANTS c_event_close  TYPE string VALUE `CLOSE_POPUP`.
+    " lives in the abap2UI5-setup repository, resolved dynamically (listed
+    " in dynamic-name-gate's EXTERNAL). ONE constant for both the render
+    " check and the CREATE - the same name used to exist in two spellings
+    " here, which is how a rename gets one of them wrong
+    CONSTANTS c_class_icf_config TYPE string VALUE `Z2UI5_CL_APP_ICF_CONFIG`.
 
     " the class name input of step 4 - the only control on the page that is
     " addressed from the outside, because the cursor is put into it on start
@@ -239,8 +244,19 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     CASE client->get_event( ).
 
       WHEN cs_event-set_config.
-        CREATE OBJECT li_app_config TYPE (`Z2UI5_CL_APP_ICF_CONFIG`).
-        client->nav_app_call( li_app_config ).
+        " the button is only rendered when the class exists (see
+        " reset_button_state) - but the EVENT can arrive without it: a
+        " draft restored from before a deletion, Back/Forward, a hand-built
+        " request. That must degrade to a message, not to a 500 on the
+        " framework's own start page (same guard shape as on_event_check)
+        TRY.
+            CREATE OBJECT li_app_config TYPE (c_class_icf_config).
+            client->nav_app_call( li_app_config ).
+          CATCH cx_root ##CATCH_ALL.
+            client->message_box_display(
+                text = `The configuration app is not installed on this system`
+                type = `error` ).
+        ENDTRY.
 
       WHEN c_event_system.
         render_system_popup( ).
@@ -389,7 +405,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                  tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
                  press   = client->_event( c_event_system ) ).
 
-    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( c_class_icf_config ).
       header_icon( toolbar = toolbar
                    icon    = `sap-icon://settings`
                    tooltip = `Configuration`

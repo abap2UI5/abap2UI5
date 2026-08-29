@@ -57,6 +57,7 @@
 //
 // Run: node .github/scripts/downport-operand-gate.mjs   (npm run check:downport)
 
+import { fileURLToPath } from "url";
 import { readFileSync } from "node:fs";
 import { walk } from "./lib/walk.mjs";
 // The detector itself is in lib/ because the backlog probe for the upstream
@@ -65,7 +66,7 @@ import { walk } from "./lib/walk.mjs";
 // repository does not enforce.
 import { BUILTINS, CALL, stripNoise, positions } from "./lib/downport-operands.mjs";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const EXCLUDED = [/^src\/99\//, /^src\/00\/01\//, /^src\/00\/02\//];
 

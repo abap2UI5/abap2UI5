@@ -20,10 +20,11 @@
  *
  * Run: node .github/scripts/spec-inventory-gate.mjs   (npm run check:specs)
  */
+import { fileURLToPath } from "url";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SPECS = join(ROOT, "node", "tests");
 const INVENTORY = "docs/agents/test-inventory.md";
 

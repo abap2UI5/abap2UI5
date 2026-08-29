@@ -45,6 +45,9 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           npm-ci: "true"
+          # the downport below clones the three pinned git dependencies -
+          # cache them instead of re-cloning on every monthly run
+          deps: "true"
 
       # The measurement runs against the transpiled tree, and the transpiler's
       # source maps point back at the .clas.abap - which is what lets a

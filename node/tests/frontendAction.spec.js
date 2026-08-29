@@ -49,6 +49,17 @@ function load({ sandbox, requires = {} } = {}) {
     toText: (val) => (val == null ? "" : String(val)),
     whenRendered: (_control, _owner, fn) => fn(),
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
+    // same shape as the real validator (core/Lib.js): empty and malformed
+    // values are unsafe, data:/blob:/http(s) pass - relative URLs resolve
+    isSafeDownloadURL: (url) => {
+      if (!url) return false;
+      try {
+        const p = new URL(url, "http://localhost:3000");
+        return ["data:", "blob:", "http:", "https:"].includes(p.protocol);
+      } catch {
+        return false;
+      }
+    },
   };
   const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
   // the VIEW_SLOTS display/updateModel hook routes into actions/Slots; the
@@ -76,7 +87,11 @@ function load({ sandbox, requires = {} } = {}) {
         ui: {
           require: Object.assign(
             (vDep, fnCb) => {
-              if (Array.isArray(vDep) && vDep[0] === "sap/m/MessageToast" && fnCb)
+              if (
+                Array.isArray(vDep) &&
+                vDep[0] === "sap/m/MessageToast" &&
+                fnCb
+              )
                 fnCb(MessageToast);
               if (typeof vDep === "string") return requires[vDep] ?? null;
               return null;
@@ -141,7 +156,9 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "Action triggered on item: {0}",
       "Franchise Store",
     ]);
-    expect(calls).toEqual([["toast.show", "Action triggered on item: Franchise Store"]]);
+    expect(calls).toEqual([
+      ["toast.show", "Action triggered on item: Franchise Store"],
+    ]);
   });
 
   test("substitutes a value-first template ({0} ...) and multiple placeholders", () => {
@@ -340,7 +357,12 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
 
   test("POPUP.setWithinArea releases the area on an empty argument", () => {
     const { FrontendAction, calls } = load();
-    FrontendAction.execute(null, ["CONTROL_GLOBAL", "POPUP", "setWithinArea", ""]);
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "POPUP",
+      "setWithinArea",
+      "",
+    ]);
     expect(calls).toEqual([["popup.setWithinArea", null]]);
   });
 
@@ -355,7 +377,9 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "withinArea",
     ]);
     expect(calls).toHaveLength(0);
-    expect(errors).toEqual(["CONTROL_GLOBAL: 'POPUP.setWithinArea' not available"]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'POPUP.setWithinArea' not available",
+    ]);
   });
 
   test("rejects a non-whitelisted object or method", () => {
@@ -576,8 +600,11 @@ test.describe("ICON_POOL (registering an icon collection)", () => {
   test("registers the collection, resolving the module path to a URL", () => {
     const { FrontendAction, fonts } = withIconPool();
     FrontendAction.execute(null, [
-      "CONTROL_GLOBAL", "ICON_POOL", "registerFont",
-      "SAP-icons-TNT", "sap/tnt/themes/base/fonts/",
+      "CONTROL_GLOBAL",
+      "ICON_POOL",
+      "registerFont",
+      "SAP-icons-TNT",
+      "sap/tnt/themes/base/fonts/",
     ]);
     expect(fonts.length).toEqual(1);
     expect(fonts[0].fontFamily).toEqual("SAP-icons-TNT");
@@ -589,26 +616,38 @@ test.describe("ICON_POOL (registering an icon collection)", () => {
   test("an absolute URL is passed through untouched", () => {
     const { FrontendAction, fonts } = withIconPool();
     FrontendAction.execute(null, [
-      "CONTROL_GLOBAL", "ICON_POOL", "registerFont",
-      "MyFont", "https://example.org/fonts/",
+      "CONTROL_GLOBAL",
+      "ICON_POOL",
+      "registerFont",
+      "MyFont",
+      "https://example.org/fonts/",
     ]);
     expect(fonts[0].fontURI).toEqual("https://example.org/fonts/");
   });
 
   test("the same collection is registered once, not on every roundtrip", () => {
     const { FrontendAction, fonts } = withIconPool();
-    const call = () => FrontendAction.execute(null, [
-      "CONTROL_GLOBAL", "ICON_POOL", "registerFont",
-      "SAP-icons-TNT", "sap/tnt/themes/base/fonts/",
-    ]);
-    call(); call(); call();
+    const call = () =>
+      FrontendAction.execute(null, [
+        "CONTROL_GLOBAL",
+        "ICON_POOL",
+        "registerFont",
+        "SAP-icons-TNT",
+        "sap/tnt/themes/base/fonts/",
+      ]);
+    call();
+    call();
+    call();
     expect(fonts.length).toEqual(1);
   });
 
   test("a missing fontURI is reported instead of registering a broken font", () => {
     const { FrontendAction, fonts, errors } = withIconPool();
     FrontendAction.execute(null, [
-      "CONTROL_GLOBAL", "ICON_POOL", "registerFont", "SAP-icons-TNT",
+      "CONTROL_GLOBAL",
+      "ICON_POOL",
+      "registerFont",
+      "SAP-icons-TNT",
     ]);
     expect(fonts.length).toEqual(0);
     expect(errors.join(" ")).toContain("fontURI");
@@ -642,7 +681,12 @@ test.describe("CONTROL_BY_ID", () => {
       indexOfItem: (o) => items.indexOf(o),
       expand: (i) => calls.push(["expand", i]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "myTree", "", "expandSelected"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "myTree",
+      "",
+      "expandSelected",
+    ]);
     expect(calls).toEqual([["expand", [2, 0]]]);
   });
 
@@ -652,7 +696,12 @@ test.describe("CONTROL_BY_ID", () => {
       getSelectedIndices: () => [1, 4],
       collapse: (i) => calls.push(["collapse", i]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "myTable", "", "collapseSelected"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "myTable",
+      "",
+      "collapseSelected",
+    ]);
     expect(calls).toEqual([["collapse", [1, 4]]]);
   });
 
@@ -666,7 +715,12 @@ test.describe("CONTROL_BY_ID", () => {
       indexOfItem: (o) => (o === kept ? 0 : -1),
       expand: (i) => calls.push(["expand", i]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "myTree", "", "expandSelected"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "myTree",
+      "",
+      "expandSelected",
+    ]);
     expect(calls).toEqual([["expand", [0]]]);
   });
 
@@ -679,7 +733,12 @@ test.describe("CONTROL_BY_ID", () => {
       indexOfItem: () => -1,
       expand: (i) => calls.push(["expand", i]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "myTree", "", "expandSelected"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "myTree",
+      "",
+      "expandSelected",
+    ]);
     expect(calls).toEqual([]);
     expect(errors).toEqual([]);
   });
@@ -687,7 +746,12 @@ test.describe("CONTROL_BY_ID", () => {
   test("expandSelected on a control with no selection says so", () => {
     const { FrontendAction, calls, controls, errors } = load();
     controls.notATree = { expand: (i) => calls.push(["expand", i]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "notATree", "", "expandSelected"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "notATree",
+      "",
+      "expandSelected",
+    ]);
     expect(calls).toEqual([]);
     expect(errors.join(" ")).toContain("no selection");
   });
@@ -733,7 +797,11 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, calls, controls } = load();
       const pages = carousel(calls, controls);
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/2",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "car/pages/2",
       ]);
       expect(calls).toEqual([["setActivePage", pages[2]]]);
     });
@@ -742,7 +810,11 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, calls, controls } = load();
       const pages = carousel(calls, controls);
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/0",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "car/pages/0",
       ]);
       expect(calls).toEqual([["setActivePage", pages[0]]]);
     });
@@ -770,9 +842,24 @@ test.describe("CONTROL_BY_ID", () => {
     test("a string property keeps 'X' and 'true' as text, not as booleans", () => {
       const { FrontendAction, calls, controls } = load();
       labelled(calls, controls, "string");
-      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setText", "X"]);
-      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setText", "true"]);
-      expect(calls).toEqual([["setText", "X"], ["setText", "true"]]);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "lbl",
+        "",
+        "setText",
+        "X",
+      ]);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "lbl",
+        "",
+        "setText",
+        "true",
+      ]);
+      expect(calls).toEqual([
+        ["setText", "X"],
+        ["setText", "true"],
+      ]);
     });
 
     test("the ABAP boolean contract is untouched where the property is not a string", () => {
@@ -780,9 +867,24 @@ test.describe("CONTROL_BY_ID", () => {
       labelled(calls, controls, "string");
       // setVisible is not declared in the property map, so nothing overrides
       // the inference: "X" is still true and "" still false
-      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setVisible", "X"]);
-      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setVisible", " "]);
-      expect(calls).toEqual([["setVisible", true], ["setVisible", false]]);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "lbl",
+        "",
+        "setVisible",
+        "X",
+      ]);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "lbl",
+        "",
+        "setVisible",
+        " ",
+      ]);
+      expect(calls).toEqual([
+        ["setVisible", true],
+        ["setVisible", false],
+      ]);
     });
 
     test("a plain id still resolves exactly as before", () => {
@@ -793,9 +895,15 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, calls, controls } = load();
       const page2 = { id: "page2" };
       controls.page2 = page2;
-      controls.SplitApp = { toDetail: (ctrl) => calls.push(["toDetail", ctrl]) };
+      controls.SplitApp = {
+        toDetail: (ctrl) => calls.push(["toDetail", ctrl]),
+      };
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "SplitApp", "", "toDetail", "page2",
+        "CONTROL_BY_ID",
+        "SplitApp",
+        "",
+        "toDetail",
+        "page2",
       ]);
       expect(calls).toEqual([["toDetail", page2]]);
     });
@@ -804,7 +912,11 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, calls, errors, controls } = load();
       carousel(calls, controls);
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/9",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "car/pages/9",
       ]);
       expect(calls).toEqual([["setActivePage", null]]);
       expect(errors.join(" ")).toContain("3 item(s)");
@@ -814,7 +926,11 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, calls, errors, controls } = load();
       carousel(calls, controls);
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "car/footer/0",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "car/footer/0",
       ]);
       expect(errors.join(" ")).toContain("no multiple aggregation");
     });
@@ -823,7 +939,11 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, errors, controls } = load();
       controls.car = { setActivePage: () => {} };
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "nosuch/pages/0",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "nosuch/pages/0",
       ]);
       expect(errors.join(" ")).toContain("nosuch");
     });
@@ -855,9 +975,15 @@ test.describe("CONTROL_BY_ID", () => {
   test("rejects the GENERIC reflection mutators by exact name", () => {
     const { FrontendAction, calls, errors, controls } = load();
     const generic = [
-      "setAggregation", "addAggregation", "insertAggregation",
-      "removeAggregation", "removeAllAggregation", "destroyAggregation",
-      "setAssociation", "addAssociation", "removeAssociation",
+      "setAggregation",
+      "addAggregation",
+      "insertAggregation",
+      "removeAggregation",
+      "removeAllAggregation",
+      "destroyAggregation",
+      "setAssociation",
+      "addAssociation",
+      "removeAssociation",
       "removeAllAssociation",
     ];
     controls.x = {};
@@ -877,8 +1003,12 @@ test.describe("CONTROL_BY_ID", () => {
     // Calendar.removeAllSelectedDates has no bindable alternative - the
     // control writes the user's selection into that aggregation itself).
     const named = [
-      "removeAllSelectedDates", "removeAllItems", "removeAllContent",
-      "destroySpecialDates", "destroyItems", "removeItem",
+      "removeAllSelectedDates",
+      "removeAllItems",
+      "removeAllContent",
+      "destroySpecialDates",
+      "destroyItems",
+      "removeItem",
     ];
     controls.cal = {};
     for (const m of named) controls.cal[m] = () => calls.push([m]);
@@ -896,8 +1026,20 @@ test.describe("CONTROL_BY_ID", () => {
     controls.feed = {
       enablePostButton: (b) => calls.push(["enablePostButton", b]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "feed", "", "enablePostButton", "X"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "feed", "", "enablePostButton", " "]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "feed",
+      "",
+      "enablePostButton",
+      "X",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "feed",
+      "",
+      "enablePostButton",
+      " ",
+    ]);
     expect(calls).toEqual([
       ["enablePostButton", true],
       ["enablePostButton", false],
@@ -906,17 +1048,33 @@ test.describe("CONTROL_BY_ID", () => {
 
   test("infers arg types for an unlisted method (X/space->bool, else string)", () => {
     const { FrontendAction, calls, controls } = load();
-    controls.c = { setValueState: (...a) => calls.push(["setValueState", ...a]) };
+    controls.c = {
+      setValueState: (...a) => calls.push(["setValueState", ...a]),
+    };
     // a genuine string arg passes through; only the ABAP bool tokens convert
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "c", "", "setValueState", "Error"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "c",
+      "",
+      "setValueState",
+      "Error",
+    ]);
     expect(calls).toEqual([["setValueState", "Error"]]);
   });
 
   test("a listed method still wins over inference (explicit kinds)", () => {
     const { FrontendAction, calls, controls } = load();
     // setHiddenInPopin is listed as ["object"] -> arg is JSON.parsed, not left a string
-    controls.t = { setHiddenInPopin: (a) => calls.push(["setHiddenInPopin", a]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "t", "", "setHiddenInPopin", '["High"]']);
+    controls.t = {
+      setHiddenInPopin: (a) => calls.push(["setHiddenInPopin", a]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "t",
+      "",
+      "setHiddenInPopin",
+      '["High"]',
+    ]);
     expect(calls).toEqual([["setHiddenInPopin", ["High"]]]);
   });
 
@@ -1040,7 +1198,13 @@ test.describe("CONTROL_BY_ID", () => {
   test("open passes the optional page key through (ViewSettingsDialog)", () => {
     const { FrontendAction, calls, controls } = load();
     controls.vsd = { open: (page) => calls.push(["open", page]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "vsd", "", "open", "filter"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "vsd",
+      "",
+      "open",
+      "filter",
+    ]);
     expect(calls).toEqual([["open", "filter"]]);
   });
 
@@ -1052,8 +1216,21 @@ test.describe("CONTROL_BY_ID", () => {
     const page2 = { getId: () => "v1--page2" };
     controls.page2 = page2;
     controls.NavCon = { to: (...a) => calls.push(["to", ...a]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2", "fade"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "NavCon",
+      "",
+      "to",
+      "page2",
+      "fade",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "NavCon",
+      "",
+      "to",
+      "page2",
+    ]);
     expect(calls).toEqual([
       ["to", "v1--page2", "fade"],
       ["to", "v1--page2"],
@@ -1065,7 +1242,14 @@ test.describe("CONTROL_BY_ID", () => {
     const step2 = { id: "STEP2" };
     controls.STEP2 = step2;
     controls.wiz = { goToStep: (s, b) => calls.push(["goToStep", s, b]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "wiz", "", "goToStep", "STEP2", "X"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "wiz",
+      "",
+      "goToStep",
+      "STEP2",
+      "X",
+    ]);
     expect(calls).toEqual([["goToStep", step2, true]]);
   });
 
@@ -1076,7 +1260,13 @@ test.describe("CONTROL_BY_ID", () => {
     const anchor = { getDomRef: () => ({ tagName: "BUTTON" }) };
     controls.anchorBtn = anchor;
     controls.HiddenDP = { openBy: (ref) => calls.push(["openBy", ref]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "HiddenDP", "", "openBy", "anchorBtn"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "HiddenDP",
+      "",
+      "openBy",
+      "anchorBtn",
+    ]);
     expect(calls).toEqual([["openBy", anchor]]);
   });
 
@@ -1085,7 +1275,13 @@ test.describe("CONTROL_BY_ID", () => {
     const anchor = { getDomRef: () => null };
     controls.anchorBtn = anchor;
     controls.HiddenDP = { openBy: (ref) => calls.push(["openBy", ref]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "HiddenDP", "", "openBy", "anchorBtn"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "HiddenDP",
+      "",
+      "openBy",
+      "anchorBtn",
+    ]);
     expect(calls).toEqual([["openBy", anchor]]);
   });
 
@@ -1098,7 +1294,13 @@ test.describe("CONTROL_BY_ID", () => {
       openBy: (ref) => calls.push(["openBy", ref]),
       close: () => calls.push(["close"]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "theMenu", "", "toggleBy", "anchorBtn"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "theMenu",
+      "",
+      "toggleBy",
+      "anchorBtn",
+    ]);
     expect(calls).toEqual([["openBy", anchor]]);
   });
 
@@ -1110,7 +1312,13 @@ test.describe("CONTROL_BY_ID", () => {
       openBy: (ref) => calls.push(["openBy", ref]),
       close: () => calls.push(["close"]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "theMenu", "", "toggleBy", "anchorBtn"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "theMenu",
+      "",
+      "toggleBy",
+      "anchorBtn",
+    ]);
     expect(calls).toEqual([["close"]]);
   });
 
@@ -1118,8 +1326,16 @@ test.describe("CONTROL_BY_ID", () => {
     const { FrontendAction, calls, controls } = load();
     const page2 = { id: "carPage2" };
     controls.carPage2 = page2;
-    controls.carousel = { setActivePage: (p) => calls.push(["setActivePage", p]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "carousel", "", "setActivePage", "carPage2"]);
+    controls.carousel = {
+      setActivePage: (p) => calls.push(["setActivePage", p]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "carousel",
+      "",
+      "setActivePage",
+      "carPage2",
+    ]);
     expect(calls).toEqual([["setActivePage", page2]]);
   });
 
@@ -1154,8 +1370,20 @@ test.describe("CONTROL_BY_ID", () => {
   test("setExpanded casts the ABAP bool ('X'/'')", () => {
     const { FrontendAction, calls, controls } = load();
     controls.panel = { setExpanded: (b) => calls.push(["expand", b]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "panel", "", "setExpanded", "X"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "panel", "", "setExpanded", ""]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "panel",
+      "",
+      "setExpanded",
+      "X",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "panel",
+      "",
+      "setExpanded",
+      "",
+    ]);
     expect(calls).toEqual([
       ["expand", true],
       ["expand", false],
@@ -1169,9 +1397,27 @@ test.describe("CONTROL_BY_ID", () => {
       removeStyleClass: (c) => calls.push(["remove", c]),
       toggleStyleClass: (c) => calls.push(["toggle", c]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "addStyleClass", "myClass"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "removeStyleClass", "myClass"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "toggleStyleClass", "myClass"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "dlg",
+      "",
+      "addStyleClass",
+      "myClass",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "dlg",
+      "",
+      "removeStyleClass",
+      "myClass",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "dlg",
+      "",
+      "toggleStyleClass",
+      "myClass",
+    ]);
     expect(calls).toEqual([
       ["add", "myClass"],
       ["remove", "myClass"],
@@ -1189,8 +1435,20 @@ test.describe("CONTROL_BY_ID", () => {
       toDetail: (p) => calls.push(["toDetail", p]),
       toMaster: (p) => calls.push(["toMaster", p]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "toDetail", "detailDetail"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "toMaster", "master2"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "split",
+      "",
+      "toDetail",
+      "detailDetail",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "split",
+      "",
+      "toMaster",
+      "master2",
+    ]);
     expect(calls).toEqual([
       ["toDetail", detail],
       ["toMaster", master],
@@ -1214,13 +1472,21 @@ test.describe("CONTROL_BY_ID", () => {
   test("setMode passes the SplitAppMode string through", () => {
     const { FrontendAction, calls, controls } = load();
     controls.split = { setMode: (m) => calls.push(["setMode", m]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "setMode", "StretchCompressMode"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "split",
+      "",
+      "setMode",
+      "StretchCompressMode",
+    ]);
     expect(calls).toEqual([["setMode", "StretchCompressMode"]]);
   });
 
   test("navigateBack stays a no-arg call (QuickView/QuickViewCard)", () => {
     const { FrontendAction, calls, controls } = load();
-    controls.qv = { navigateBack: (...a) => calls.push(["navigateBack", a.length]) };
+    controls.qv = {
+      navigateBack: (...a) => calls.push(["navigateBack", a.length]),
+    };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "qv", "", "navigateBack"]);
     expect(calls).toEqual([["navigateBack", 0]]);
   });
@@ -1232,7 +1498,9 @@ test.describe("BINDING_CALL", () => {
       filter: (f) => calls.push(["filter", f]),
       sort: (s) => calls.push(["sort", s]),
     };
-    controls.idList = { getBinding: (agg) => (agg === "items" ? binding : null) };
+    controls.idList = {
+      getBinding: (agg) => (agg === "items" ? binding : null),
+    };
     return binding;
   }
 
@@ -1347,10 +1615,19 @@ test.describe("BINDING_CALL", () => {
     const { FrontendAction, calls, controls } = load();
     withListBinding(controls, calls);
     const json = JSON.stringify([
-      [["CATEGORY", "EQ", "Accessories"], ["CATEGORY", "EQ", "Laptops"]],
+      [
+        ["CATEGORY", "EQ", "Accessories"],
+        ["CATEGORY", "EQ", "Laptops"],
+      ],
       [["SUPPLIER_NAME", "EQ", "Technocom"]],
     ]);
-    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", json]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      json,
+    ]);
     expect(calls).toHaveLength(1);
     const [name, filters] = calls[0];
     expect(name).toBe("filter");
@@ -1360,15 +1637,35 @@ test.describe("BINDING_CALL", () => {
     expect(root.path).toHaveLength(2);
     expect(root.path[0].operator).toBe(false); // OR inside the group
     expect(root.path[0].path).toHaveLength(2);
-    expect(root.path[0].path[0]).toMatchObject({ path: "CATEGORY", operator: "EQ", value1: "Accessories" });
-    expect(root.path[1].path[0]).toMatchObject({ path: "SUPPLIER_NAME", operator: "EQ", value1: "Technocom" });
+    expect(root.path[0].path[0]).toMatchObject({
+      path: "CATEGORY",
+      operator: "EQ",
+      value1: "Accessories",
+    });
+    expect(root.path[1].path[0]).toMatchObject({
+      path: "SUPPLIER_NAME",
+      operator: "EQ",
+      value1: "Technocom",
+    });
   });
 
   test("empty compound groups clear the filter; empty inner groups are skipped", () => {
     const { FrontendAction, calls, controls } = load();
     withListBinding(controls, calls);
-    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[]"]);
-    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[[],[]]"]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "[]",
+    ]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "[[],[]]",
+    ]);
     expect(calls).toEqual([
       ["filter", []],
       ["filter", []],
@@ -1379,10 +1676,19 @@ test.describe("BINDING_CALL", () => {
     const { FrontendAction, calls, errors, controls } = load();
     withListBinding(controls, calls);
     FrontendAction.execute(null, [
-      "BINDING_CALL", "idList", "items", "filter",
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
       JSON.stringify([[["NAME", "DROP TABLE", "x"]]]),
     ]);
-    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[not json"]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "[not json",
+    ]);
     expect(calls).toHaveLength(0);
     expect(errors).toHaveLength(2);
   });
@@ -1408,7 +1714,12 @@ test.describe("BIND_ELEMENT", () => {
     const { FrontendAction, views } = load();
     const bound = [];
     views.POPOVER = { bindElement: (p) => bound.push(p) };
-    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
+    FrontendAction.execute(null, [
+      "BIND_ELEMENT",
+      "POPOVER",
+      "5",
+      "/T_PRODUCTS",
+    ]);
     expect(bound).toEqual(["/T_PRODUCTS/5"]);
   });
 
@@ -1422,8 +1733,15 @@ test.describe("BIND_ELEMENT", () => {
 
   test("logs and no-ops when the slot view is missing", () => {
     const { FrontendAction, errors } = load();
-    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
-    expect(errors.some((e) => String(e).includes("no view for slot"))).toBe(true);
+    FrontendAction.execute(null, [
+      "BIND_ELEMENT",
+      "POPOVER",
+      "5",
+      "/T_PRODUCTS",
+    ]);
+    expect(errors.some((e) => String(e).includes("no view for slot"))).toBe(
+      true,
+    );
   });
 });
 
@@ -1758,7 +2076,6 @@ test.describe("FILTER_BAR_VARIANT_INIT (classic FilterBar + variant management)"
   });
 });
 
-
 test.describe("CONTROL_BY_ID setAsyncURLHandler (MessagePopover URL policy)", () => {
   // the control takes a live callback, so the wire carries a POLICY NAME and
   // the client installs the matching built-in validator
@@ -1896,9 +2213,16 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
   test.describe("scope", () => {
     test("the scoped registration wins while its slot is open", () => {
       const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPOVER", "POPOVER",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE_POPOVER",
+        "POPOVER",
       ]);
 
       // popover closed -> the page-level command
@@ -1919,11 +2243,15 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     test("the innermost open slot wins", () => {
       const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
       for (const [event, scope] of [
-        ["SAVE", ""], ["SAVE_NEST", "NEST"], ["SAVE_POPOVER", "POPOVER"],
+        ["SAVE", ""],
+        ["SAVE_NEST", "NEST"],
+        ["SAVE_POPOVER", "POPOVER"],
       ]) {
         FrontendAction.execute(
           oController,
-          ["KEYBOARD_SHORTCUT", "Ctrl+S", event, scope].filter((a, i) => i < 3 || a),
+          ["KEYBOARD_SHORTCUT", "Ctrl+S", event, scope].filter(
+            (a, i) => i < 3 || a,
+          ),
         );
       }
       views.NEST = {};
@@ -1934,9 +2262,16 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
     test("a scoped registration with no open slot falls back to the unscoped one", () => {
       const { FrontendAction, doc, fired, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPUP", "POPUP",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE_POPUP",
+        "POPUP",
       ]);
       expect(doc.press("s", { ctrlKey: true })).toBe(true);
       expect(fired).toEqual([["SAVE"]]);
@@ -1944,12 +2279,22 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
     test("unregistering one scope leaves the other alone", () => {
       const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPOVER", "POPOVER",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
       ]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "", "POPOVER",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE_POPOVER",
+        "POPOVER",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "",
+        "POPOVER",
       ]);
       views.POPOVER = {};
       expect(doc.press("s", { ctrlKey: true })).toBe(true);
@@ -1958,7 +2303,11 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
     test("removing the last scope stops swallowing the browser default", () => {
       const { FrontendAction, doc, fired, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
       FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", ""]);
       // Ctrl+S must save the PAGE again, not silently do nothing
       expect(doc.press("s", { ctrlKey: true })).toBe(false);
@@ -1970,30 +2319,51 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     // never enters a framework slot. A control id is therefore a scope too,
     // active while that control is open.
     test("a control-id scope wins while that control is open", () => {
-      const { FrontendAction, doc, fired, controls, oController } = loadWithDoc();
+      const { FrontendAction, doc, fired, controls, oController } =
+        loadWithDoc();
       let open = false;
       controls.popoverCommand = { isOpen: () => open };
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "PSAVE", "popoverCommand",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "PSAVE",
+        "popoverCommand",
       ]);
 
-      doc.press("s", { ctrlKey: true });          // closed -> the page command
+      doc.press("s", { ctrlKey: true }); // closed -> the page command
       open = true;
-      doc.press("s", { ctrlKey: true });          // open -> the popover's own
+      doc.press("s", { ctrlKey: true }); // open -> the popover's own
       open = false;
-      doc.press("s", { ctrlKey: true });          // closed again
+      doc.press("s", { ctrlKey: true }); // closed again
       expect(fired).toEqual([["SAVE"], ["PSAVE"], ["SAVE"]]);
     });
 
     test("a control scope beats a slot scope - it is the more specific statement", () => {
-      const { FrontendAction, doc, fired, controls, views, oController } = loadWithDoc();
+      const { FrontendAction, doc, fired, controls, views, oController } =
+        loadWithDoc();
       controls.dlg = { isOpen: () => true };
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SLOT", "POPOVER",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
       ]);
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "CTRL", "dlg"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SLOT",
+        "POPOVER",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "CTRL",
+        "dlg",
+      ]);
       views.POPOVER = {};
       doc.press("s", { ctrlKey: true });
       expect(fired).toEqual([["CTRL"]]);
@@ -2001,9 +2371,16 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
     test("a control scope whose control is gone falls back to the unscoped one", () => {
       const { FrontendAction, doc, fired, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "PSAVE", "nosuchcontrol",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "PSAVE",
+        "nosuchcontrol",
       ]);
       expect(doc.press("s", { ctrlKey: true })).toBe(true);
       expect(fired).toEqual([["SAVE"]]);
@@ -2012,14 +2389,22 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
   test("fires the registered event and swallows the browser default", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
-    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
     expect(doc.press("s", { ctrlKey: true })).toBe(true);
     expect(fired).toEqual([["SAVE"]]);
   });
 
   test("ignores a combination that was not registered", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
-    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
     expect(doc.press("s")).toBe(false);
     expect(doc.press("d", { ctrlKey: true })).toBe(false);
     expect(doc.press("s", { ctrlKey: true, shiftKey: true })).toBe(false);
@@ -2046,7 +2431,11 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
   test("re-registering rebinds, an empty event name removes", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
-    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
     FrontendAction.execute(oController, [
       "KEYBOARD_SHORTCUT",
       "Ctrl+S",
@@ -2063,7 +2452,11 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
   test("a bare modifier press is no shortcut", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
-    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
     expect(doc.press("Control", { ctrlKey: true })).toBe(false);
     expect(fired).toEqual([]);
   });
@@ -2274,10 +2667,21 @@ test.describe("SET_FAVICON (browser tab icon)", () => {
     expect(doc.head).toEqual([{ rel: "shortcut icon", href: "/new.png" }]);
   });
 
-  test("a missing argument clears the href instead of writing 'undefined'", () => {
-    const { FrontendAction, doc } = loadWithDoc("icon");
+  test("a missing argument is refused - the existing link keeps its href", () => {
+    const { FrontendAction, doc, errors } = loadWithDoc("icon");
     FrontendAction.execute(null, ["SET_FAVICON"]);
-    expect(doc.head).toEqual([{ rel: "icon", href: "" }]);
+    // the URL validator treats an empty value as unsafe, so nothing is
+    // touched (and in particular the string "undefined" is never written)
+    expect(doc.head).toEqual([{ rel: "icon", href: "old" }]);
+    expect(errors[0]).toContain("SET_FAVICON");
+  });
+
+  test("a javascript: URL is refused and logged", () => {
+    const { FrontendAction, doc, errors } = loadWithDoc("icon");
+
+    FrontendAction.execute(null, ["SET_FAVICON", "javascript:alert(1)"]);
+    expect(doc.head).toEqual([{ rel: "icon", href: "old" }]);
+    expect(errors[0]).toContain("refused unsafe URL");
   });
 
   test("reports a failing DOM instead of throwing", () => {
@@ -2383,7 +2787,14 @@ test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
     const begin = navContainerStub([products], nav, "begin");
     const mid = navContainerStub([detail], nav, "mid");
     const endCol = navContainerStub([end], nav, "end");
-    return { nav, products, begin, mid, endCol, fcl: fclStub(begin, mid, endCol) };
+    return {
+      nav,
+      products,
+      begin,
+      mid,
+      endCol,
+      fcl: fclStub(begin, mid, endCol),
+    };
   }
 
   // the defect this kind exists for, asserted on the stub itself so the
@@ -2406,7 +2817,11 @@ test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
     controls.dynamicPageId = env.products;
     controls.fcl = env.fcl;
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "fcl", "", "to", "dynamicPageId",
+      "CONTROL_BY_ID",
+      "fcl",
+      "",
+      "to",
+      "dynamicPageId",
     ]);
     expect(env.nav).toEqual([["begin", "v1--dynamicPageId", undefined]]);
   });
@@ -2416,7 +2831,11 @@ test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
     controls.dynamicPageId = pageStub("v1--dynamicPageId");
     controls.fcl = { to: (...a) => calls.push(["to", ...a]) };
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "fcl", "", "to", "dynamicPageId",
+      "CONTROL_BY_ID",
+      "fcl",
+      "",
+      "to",
+      "dynamicPageId",
     ]);
     expect(calls).toEqual([["to", "v1--dynamicPageId"]]);
   });
@@ -2427,7 +2846,12 @@ test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
     controls.dynamicPageId = env.products;
     controls.fcl = env.fcl;
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "fcl", "", "to", "dynamicPageId", "flip",
+      "CONTROL_BY_ID",
+      "fcl",
+      "",
+      "to",
+      "dynamicPageId",
+      "flip",
     ]);
     expect(env.nav).toEqual([["begin", "v1--dynamicPageId", "flip"]]);
   });
@@ -2440,7 +2864,13 @@ test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
     const page2 = pageStub("v1--page2");
     controls.page2 = page2;
     controls.NavCon = navContainerStub([page2], nav, "nav");
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "NavCon",
+      "",
+      "to",
+      "page2",
+    ]);
     // what the old cast produced, run through NavContainer's own
     // normalisation - the two must be indistinguishable
     controls.NavCon.to(page2);
@@ -2458,7 +2888,11 @@ test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
       to: (...a) => calls.push(["to", ...a]),
     };
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "nav", "", "to", "nav/pages/1",
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "to",
+      "nav/pages/1",
     ]);
     expect(calls).toEqual([["to", "v1--p1"]]);
   });
@@ -2522,7 +2956,11 @@ test.describe("page-id navigation (CONTROL_BY_ID 'backToPage')", () => {
     controls.nav = env.navCon;
     env.navCon.to("mainView--wizardReviewPage");
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "nav", "", "backToPage", "wizardContentPage",
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "backToPage",
+      "wizardContentPage",
     ]);
     expect(env.nav).toEqual([
       ["nav", "mainView--wizardReviewPage", undefined],
@@ -2536,7 +2974,11 @@ test.describe("page-id navigation (CONTROL_BY_ID 'backToPage')", () => {
     controls.wizardContentPage = pageStub("mainView--wizardContentPage");
     controls.nav = { backToPage: (...a) => calls.push(["backToPage", ...a]) };
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "nav", "", "backToPage", "wizardContentPage",
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "backToPage",
+      "wizardContentPage",
     ]);
     expect(calls).toEqual([["backToPage", "mainView--wizardContentPage"]]);
   });
@@ -2549,7 +2991,11 @@ test.describe("page-id navigation (CONTROL_BY_ID 'backToPage')", () => {
       backToPage: (...a) => calls.push(["backToPage", ...a]),
     };
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "nav", "", "backToPage", "nav/pages/0",
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "backToPage",
+      "nav/pages/0",
     ]);
     expect(calls).toEqual([["backToPage", "v1--p0"]]);
   });
@@ -2560,7 +3006,11 @@ test.describe("page-id navigation (CONTROL_BY_ID 'backToPage')", () => {
     const { FrontendAction, calls, errors, controls } = load();
     controls.nav = { backToPage: (...a) => calls.push(["backToPage", ...a]) };
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "nav", "", "backToPage", "nosuch",
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "backToPage",
+      "nosuch",
     ]);
     expect(errors.join(" ")).toContain("nosuch");
     expect(calls).toEqual([["backToPage", "nosuch"]]);
@@ -2589,16 +3039,28 @@ function badgedButtonStub(aLog) {
     state,
     setBadgeMinValue: (iMin) => {
       // Reproduces the control's own loose comparison, as above.
-      // eslint-disable-next-line eqeqeq
-      if (iMin && !isNaN(iMin) && iMin >= 1 && iMin != state.min && iMin <= state.max) {
+      if (
+        iMin &&
+        !isNaN(iMin) &&
+        iMin >= 1 &&
+        // eslint-disable-next-line eqeqeq
+        iMin != state.min &&
+        iMin <= state.max
+      ) {
         state.min = iMin;
         aLog.push(["min", iMin]);
       } else aLog.push(["min-rejected", iMin]);
     },
     setBadgeMaxValue: (iMax) => {
       // As above.
-      // eslint-disable-next-line eqeqeq
-      if (iMax && !isNaN(iMax) && iMax <= 9999 && iMax != state.max && iMax >= state.min) {
+      if (
+        iMax &&
+        !isNaN(iMax) &&
+        iMax <= 9999 &&
+        // eslint-disable-next-line eqeqeq
+        iMax != state.max &&
+        iMax >= state.min
+      ) {
         state.max = iMax;
         aLog.push(["max", iMax]);
       } else aLog.push(["max-rejected", iMax]);
@@ -2613,7 +3075,10 @@ test.describe("badge bounds (CONTROL_BY_ID setBadgeMinValue/setBadgeMaxValue)", 
     const btn = badgedButtonStub(log);
     btn.setBadgeMinValue("9");
     btn.setBadgeMaxValue("50");
-    expect(log).toEqual([["min", "9"], ["max-rejected", "50"]]);
+    expect(log).toEqual([
+      ["min", "9"],
+      ["max-rejected", "50"],
+    ]);
   });
 
   test("min 9 / max 50 is accepted - both arrive as numbers", () => {
@@ -2621,12 +3086,23 @@ test.describe("badge bounds (CONTROL_BY_ID setBadgeMinValue/setBadgeMaxValue)", 
     const log = [];
     controls.BadgedButton = badgedButtonStub(log);
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "BadgedButton", "", "setBadgeMinValue", "9",
+      "CONTROL_BY_ID",
+      "BadgedButton",
+      "",
+      "setBadgeMinValue",
+      "9",
     ]);
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "BadgedButton", "", "setBadgeMaxValue", "50",
+      "CONTROL_BY_ID",
+      "BadgedButton",
+      "",
+      "setBadgeMaxValue",
+      "50",
     ]);
-    expect(log).toEqual([["min", 9], ["max", 50]]);
+    expect(log).toEqual([
+      ["min", 9],
+      ["max", 50],
+    ]);
     expect(controls.BadgedButton.state).toEqual({ min: 9, max: 50 });
   });
 
@@ -2637,10 +3113,18 @@ test.describe("badge bounds (CONTROL_BY_ID setBadgeMinValue/setBadgeMaxValue)", 
       setBadgeMaxValue: (v) => calls.push(["max", v, typeof v]),
     };
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "b", "", "setBadgeMinValue", "2",
+      "CONTROL_BY_ID",
+      "b",
+      "",
+      "setBadgeMinValue",
+      "2",
     ]);
     FrontendAction.execute(null, [
-      "CONTROL_BY_ID", "b", "", "setBadgeMaxValue", "500",
+      "CONTROL_BY_ID",
+      "b",
+      "",
+      "setBadgeMaxValue",
+      "500",
     ]);
     expect(calls).toEqual([
       ["min", 2, "number"],

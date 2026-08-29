@@ -25,10 +25,11 @@
  * in a paragraph elsewhere is not a command a reader can find, and this gate
  * would otherwise be satisfied by a mention that helps nobody.
  */
+import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const CHAPTER = "## Build & Validation";
 
 /* Scripts deliberately not in the chapter, each with the reason. */

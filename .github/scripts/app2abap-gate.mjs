@@ -53,7 +53,22 @@ const treeState = () => {
  * that unchanged. */
 const contentOf = (paths) => {
   const out = new Map();
-  for (const path of paths) {
+  const list = [...paths];
+  if (list.length === 0) return out;
+  // one git process for the whole list instead of one per path - a dirty
+  // working tree used to spawn O(n) processes here. A path that is gone
+  // makes the batched call fail; those are hashed one by one below.
+  try {
+    const hashes = execFileSync("git", ["hash-object", "--stdin-paths"], {
+      encoding: "utf8",
+      input: list.join("\n") + "\n",
+    }).trim().split("\n");
+    list.forEach((path, i) => out.set(path, hashes[i]));
+    return out;
+  } catch {
+    /* fall through to the per-path form */
+  }
+  for (const path of list) {
     try {
       out.set(path, execFileSync("git", ["hash-object", "--", path], { encoding: "utf8" }).trim());
     } catch {

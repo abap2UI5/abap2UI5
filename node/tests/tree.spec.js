@@ -41,6 +41,11 @@ function load({ trees = {}, treeStates = {} } = {}) {
           const at = list.indexOf(fn);
           if (at !== -1) list.splice(at, 1);
         },
+        hookCallback(owner, name, method) {
+          const bound = owner[method].bind(owner);
+          this.registerCallback(name, bound);
+          return () => this.unregisterCallback(name, bound);
+        },
       },
       "z2ui5/core/ViewSlots": {
         byIdOfOwner: (owner, id) => {

@@ -25,14 +25,9 @@ CLASS z2ui5_cl_ui5f_timer_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that fires its ``finished`` event once ``delayMS``` && |\n| &&
-             `// milliseconds after rendering - the backend binds the event to trigger` && |\n| &&
-             `// time-driven roundtrips (auto-refresh, polling). With checkRepeat the` && |\n| &&
-             `// timer re-arms itself after every firing.` && |\n| &&
-             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  // OBSOLETE: replaced by the frontend event cs_event-start_timer - kept for backward compatibility.` && |\n| &&
              `  return Control.extend("z2ui5.cc.Timer", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
@@ -70,12 +65,10 @@ CLASS z2ui5_cl_ui5f_timer_js IMPLEMENTATION.
              `      const repeat = this.getProperty("checkRepeat");` && |\n| &&
              `      const delay = this.getProperty("delayMS");` && |\n| &&
              `      this._timerId = setTimeout(() => {` && |\n| &&
-             `        // The control might have been destroyed during the delay.` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        if (!repeat) this.setProperty("checkActive", false, true);` && |\n| &&
              `        this.fireFinished();` && |\n| &&
-             `        // For repeating timers, queue the next iteration. Re-check destroy` && |\n| &&
-             `        // again because fireFinished may have triggered teardown.` && |\n| &&
+             `` && |\n| &&
              `        if (repeat && !Lib.isDestroyed(this)) {` && |\n| &&
              `          this.delayedCall();` && |\n| &&
              `        }` && |\n| &&

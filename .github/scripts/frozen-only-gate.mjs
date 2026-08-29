@@ -50,11 +50,12 @@
  *
  * Run: node .github/scripts/frozen-only-gate.mjs   (npm run check:frozen-only)
  */
+import { fileURLToPath } from "url";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { walk } from "./lib/walk.mjs";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const MARKER = "FROZEN-ONLY:";
 const SCOPE = [/^src\/00\//, /^src\/01\//, /^src\/02\//];
 

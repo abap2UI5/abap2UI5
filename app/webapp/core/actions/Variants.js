@@ -74,8 +74,20 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
   // leave the initialise call to the smart control, which then finds the
   // anchor in place. Only when no control id was given does this wait for the
   // registration list and call initialise itself (nobody else will).
+  // One live wait chain per (svmId, controlId): the action is not marked
+  // one-shot, so a backend that repeats it per response used to start a NEW
+  // 5-second retry chain on every roundtrip - all of them polling the same
+  // ids, and after a rebuild resolving them in the NEW view and re-wiring
+  // there. The key clears when the chain reaches any terminal state, so a
+  // later re-issue (after a rebuild replaced the controls) starts fresh.
+  const activeInits = new Set();
+
   function evSmartVariantInit(oController, args) {
     const [, svmId, controlId] = args;
+    const key = `${svmId}|${controlId || ""}`;
+    if (activeInits.has(key)) return;
+    activeInits.add(key);
+    const finish = () => activeInits.delete(key);
     let tries = 0;
     const run = () => {
       const oSVM = ViewSlots.resolveById(svmId);
@@ -89,12 +101,14 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
         Lib.logError(
           `SMART_VARIANT_INIT: '${controlId ? `${svmId}' / '${controlId}` : svmId}' not found`,
         );
+        finish();
         return;
       }
       if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {
         Lib.logError(
           `SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'`,
         );
+        finish();
         return;
       }
       let target = control;
@@ -112,13 +126,20 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
           Lib.logError(
             `SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'`,
           );
+          finish();
           return;
         }
         target = ViewSlots.resolveById(registered[0].getControl());
-        if (!target) return;
+        if (!target) {
+          finish();
+          return;
+        }
       }
       anchorPersoControl(oSVM, target);
       ensureInitialised(oSVM, target, 0);
+      // terminal for THIS chain: ensureInitialised has its own bounded
+      // retries and its own idempotence guards (wrapper.bInitialized)
+      finish();
     };
 
     run();

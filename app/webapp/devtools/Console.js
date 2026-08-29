@@ -193,12 +193,24 @@ sap.ui.define([], () => {
     if ((depth || 0) >= MAX_DEPTH) return "[...]";
     try {
       // A plain stringify covers arrays and objects; the replacer keeps a
-      // circular graph (a UI5 control reaches its parent) from throwing.
+      // circular graph (a UI5 control reaches its parent) from throwing -
+      // and it is ALSO where the depth cap has to live: stringify walks the
+      // graph itself, so the `depth` parameter above never counted anything
+      // and MAX_DEPTH was dead code while a console.log(oModel.getData())
+      // serialized a multi-MB model in full before the 2000-char cut. The
+      // parent map answers "how deep is this node" without a second walk.
       const seen = new WeakSet();
-      return JSON.stringify(value, (key, val) => {
+      const nodeDepth = new WeakMap();
+      return JSON.stringify(value, function replace(key, val) {
         if (typeof val === "object" && val !== null) {
           if (seen.has(val)) return "[Circular]";
+          const parent =
+            typeof this === "object" && this !== null
+              ? nodeDepth.get(this) || 0
+              : 0;
+          if (parent >= MAX_DEPTH) return "[...]";
           seen.add(val);
+          nodeDepth.set(val, parent + 1);
         }
         if (isErrorLike(val)) return val.stack || String(val);
         return val;

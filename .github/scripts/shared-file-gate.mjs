@@ -44,6 +44,9 @@ import { fileURLToPath } from 'url';
  * now GENERATES its copy from the same two functions — see the entry for
  * `app-guide-deviations.mjs` below. */
 import { applyGuideDeviations, guideBody } from '../shared/app-guide-deviations.mjs';
+import { read as ecoRead, REPOS } from './lib-ecosystem.mjs';
+
+const repoEntry = (name) => REPOS.find((e) => e.org === 'abap2UI5' && e.repo === name);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -489,20 +492,44 @@ for (const entry of SHARED) {
     let theirs;
     let from;
 
+    /* lib-ecosystem.read, not a hand fetch: it checks a sibling CHECKOUT
+     * first (so a checkout with the copy deleted no longer falls back to
+     * the still-published GitHub main and reads green), and it tells a
+     * deleted file apart from an unreachable repository via the sentinel
+     * probe - a consumer that dropped its copy is exactly the drift this
+     * gate exists for, and the old reader reported it as "not compared". */
     let text;
-    if (fs.existsSync(local)) {
-      text = fs.readFileSync(local, 'utf8');
-      from = 'checkout';
+    const entry2 = repoEntry(repo);
+    let got;
+    if (entry2) {
+      got = await ecoRead(entry2, consumerFile);
     } else {
-      try {
-        const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        text = await res.text();
-        from = 'github';
-      } catch (err) {
-        notes.push(`${repo}: not compared (${err.message})`);
-        continue;
+      /* a consumer OFF the ecosystem list (the generated `frontend` channel
+       * repository) keeps the plain reader: checkout first, then raw main.
+       * It loses the deleted-vs-unreachable distinction, which is the price
+       * of not putting a generated repository on a list about source
+       * repositories. */
+      if (fs.existsSync(local)) {
+        got = { text: fs.readFileSync(local, 'utf8'), from: 'checkout' };
+      } else {
+        try {
+          const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          got = { text: await res.text(), from: 'github' };
+        } catch (err) {
+          got = { note: err.message };
+        }
       }
+    }
+    if (got.text !== undefined) {
+      text = got.text;
+      from = got.from;
+    } else if (got.missing) {
+      problems.push(`${repo}/${consumerFile}: declared a consumer of ${entry.file}, but the copy is gone upstream`);
+      continue;
+    } else {
+      notes.push(`${repo}: not compared (${got.note})`);
+      continue;
     }
     try {
       theirs = entry.section ? comparable(entry.section(text, repo)) : normalise(text);

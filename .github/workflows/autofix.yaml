@@ -226,6 +226,9 @@ jobs:
         uses: ./.github/actions/setup
         with:
           npm-ci: "true"
+          # the abaplint fixes run against the three pinned git dependencies
+          # (via check/downport) - cache them instead of re-cloning
+          deps: "true"
           # only app2abap needs the Fiori project's own dependencies
           app-npm-ci: ${{ steps.plan.outputs.app2abap }}
 

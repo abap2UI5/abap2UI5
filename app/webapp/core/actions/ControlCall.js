@@ -760,8 +760,13 @@ sap.ui.define(
         }
         kinds = null;
       }
+      // slot first, registry fallback - the SAME rule resolveControl
+      // applies to argument controls. The target used to be slot-ONLY when
+      // `view` was set, so a fully-qualified id (the form UI5 messages
+      // return from getControlIds()) resolved fine as an argument and
+      // reported "not callable" as the target of the very same call.
       const control = view
-        ? ViewSlots.byId(view.toUpperCase(), id)
+        ? (ViewSlots.byId(view.toUpperCase(), id) ?? ViewSlots.resolveById(id))
         : ViewSlots.resolveById(id);
       // toggleBy is not a real control method: open the control anchored to
       // the anchor control if it is closed, close it if it is already open

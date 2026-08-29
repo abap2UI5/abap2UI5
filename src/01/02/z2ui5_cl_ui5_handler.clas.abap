@@ -689,12 +689,17 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " just stored
       " ... and keep the nav_mode_sent latch: block-carrying requests are
       " app-start-shaped today (main_end re-sends the mode anyway), but a
-      " wiped latch would cost a redundant ROUTER/sync if that ever changes
+      " wiped latch would cost a redundant ROUTER/sync if that ever changes.
+      " comp_data is kept for the same reason as the location trio: the
+      " launchpad ComponentData travels on its own session cadence, so a
+      " block-carrying request WITHOUT it must not wipe what the draft
+      " stored - the IF below only overwrites when the request carries one
       mo_action->mo_app->ms_session = VALUE #( s_ui5         = ms_request-s_front-s_ui5
                                                s_device      = ms_request-s_front-s_device
                                                origin        = ms_request-s_front-origin
                                                pathname      = ms_request-s_front-pathname
                                                search        = ms_request-s_front-search
+                                               comp_data     = mo_action->mo_app->ms_session-comp_data
                                                nav_mode_sent = mo_action->mo_app->ms_session-nav_mode_sent ).
       IF ms_request-s_front-o_comp_data IS BOUND.
         TRY.

@@ -243,6 +243,12 @@ sap.ui.define(
 
     // Copy text to the clipboard, preferring the async clipboard API with a
     // fallback to the legacy textarea + execCommand approach.
+    // Async clipboard API FIRST, execCommand fallback second - the inverse
+    // of core/ErrorView.js, deliberately: Lib serves ordinary app features
+    // on pages that are usually secure origins, where the async API is the
+    // reliable one. ErrorView prefers execCommand because it must also work
+    // on the insecure on-prem HTTP origins where navigator.clipboard does
+    // not exist - and a fatal-error overlay is exactly where that matters.
     function copyToClipboard(textToCopy) {
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(textToCopy).catch((err) => {
@@ -532,6 +538,22 @@ sap.ui.define(
       oRm.close("span");
     }
 
+    // The renderer of a companion control that renders NOTHING (not even a
+    // placeholder span - it lives outside the visible tree entirely). One
+    // shared spec instead of the same literal in every cc/ module; UI5 copies
+    // the spec into the control's own renderer class, so sharing is safe.
+    const EMPTY_RENDERER = { apiVersion: 2, render() {} };
+
+    // The init/exit pair every companion control repeats: register the bound
+    // hook method as a shared-state callback and hand back the unregister.
+    //   init() { this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl"); }
+    //   exit() { this._unhook(); }
+    function hookCallback(owner, callbackName, method) {
+      const bound = owner[method].bind(owner);
+      registerCallback(callbackName, bound);
+      return () => unregisterCallback(callbackName, bound);
+    }
+
     // Event arguments are whatever the UI5 expression grammar produced for
     // them. Most are strings or numbers, but a UI5 event parameter is quite
     // often a CONTROL or an ARRAY OF CONTROLS -
@@ -663,6 +685,8 @@ sap.ui.define(
       isRootModelSlot,
       effectiveSizeLimit,
       renderInvisibleSpan,
+      EMPTY_RENDERER,
+      hookCallback,
       normalizeEventArgs,
     };
   },

@@ -4,8 +4,9 @@ const { loadModule } = require("./loadModule");
 
 // Tests the real app/webapp/cc/UITableExt.js. The control reads the active
 // filters/sorters of a sap.ui.table before a roundtrip (onBeforeRoundtrip)
-// and re-applies them afterwards (onAfterRoundtrip), so a view rebuild does
-// not drop the column filter/sort state.
+// and re-applies them after the re-render (onAfterRendering - only there
+// does the rebuilt binding exist), so a view rebuild does not drop the
+// column filter/sort state.
 //
 // Two behaviors are pinned here:
 //   1. Preservation: when the table binding was replaced (e.g. a fresh view
@@ -30,7 +31,7 @@ function controlStub() {
 
 function load() {
   const errors = [];
-  const callbacks = { onBeforeRoundtrip: [], onAfterRoundtrip: [] };
+  const callbacks = { onBeforeRoundtrip: [], onAfterRendering: [] };
   const z2ui5 = {};
   // The currently resolvable MAIN-view table; tests set it via setTable.
   let currentTable = null;
@@ -42,7 +43,13 @@ function load() {
       (callbacks[name] = callbacks[name] || []).push(fn);
     },
     unregisterCallback: (name, fn) => {
-      if (callbacks[name]) callbacks[name] = callbacks[name].filter((f) => f !== fn);
+      if (callbacks[name])
+        callbacks[name] = callbacks[name].filter((f) => f !== fn);
+    },
+    hookCallback(owner, name, method) {
+      const bound = owner[method].bind(owner);
+      this.registerCallback(name, bound);
+      return () => this.unregisterCallback(name, bound);
     },
     // Simulate an already-rendered control: run the work immediately.
     whenRendered: (_control, _owner, fn) => fn(),
@@ -128,10 +135,12 @@ test.describe("callback registration", () => {
     const ext = makeExt(env);
     ext.init();
     expect(env.callbacks.onBeforeRoundtrip).toHaveLength(1);
-    expect(env.callbacks.onAfterRoundtrip).toHaveLength(1);
+    // the re-apply pass hooks onAfterRENDERING, not onAfterRoundtrip: the
+    // latter fires right after the request dispatch, before any rebuild
+    expect(env.callbacks.onAfterRendering).toHaveLength(1);
     ext.exit();
     expect(env.callbacks.onBeforeRoundtrip).toHaveLength(0);
-    expect(env.callbacks.onAfterRoundtrip).toHaveLength(0);
+    expect(env.callbacks.onAfterRendering).toHaveLength(0);
   });
 });
 
@@ -161,13 +170,41 @@ test.describe("filter preservation across a binding rebuild", () => {
   });
 
   const displayCases = [
-    { name: "EQ", filter: { sPath: "C", sOperator: "EQ", oValue1: "Bob" }, display: "Bob" },
-    { name: "NE", filter: { sPath: "C", sOperator: "NE", oValue1: "Bob" }, display: "!Bob" },
-    { name: "GT", filter: { sPath: "C", sOperator: "GT", oValue1: "5" }, display: ">5" },
-    { name: "Contains", filter: { sPath: "C", sOperator: "Contains", oValue1: "ab" }, display: "*ab*" },
-    { name: "StartsWith", filter: { sPath: "C", sOperator: "StartsWith", oValue1: "ab" }, display: "^ab" },
-    { name: "EndsWith", filter: { sPath: "C", sOperator: "EndsWith", oValue1: "ab" }, display: "ab$" },
-    { name: "BT", filter: { sPath: "C", sOperator: "BT", oValue1: "1", oValue2: "9" }, display: "1...9" },
+    {
+      name: "EQ",
+      filter: { sPath: "C", sOperator: "EQ", oValue1: "Bob" },
+      display: "Bob",
+    },
+    {
+      name: "NE",
+      filter: { sPath: "C", sOperator: "NE", oValue1: "Bob" },
+      display: "!Bob",
+    },
+    {
+      name: "GT",
+      filter: { sPath: "C", sOperator: "GT", oValue1: "5" },
+      display: ">5",
+    },
+    {
+      name: "Contains",
+      filter: { sPath: "C", sOperator: "Contains", oValue1: "ab" },
+      display: "*ab*",
+    },
+    {
+      name: "StartsWith",
+      filter: { sPath: "C", sOperator: "StartsWith", oValue1: "ab" },
+      display: "^ab",
+    },
+    {
+      name: "EndsWith",
+      filter: { sPath: "C", sOperator: "EndsWith", oValue1: "ab" },
+      display: "ab$",
+    },
+    {
+      name: "BT",
+      filter: { sPath: "C", sOperator: "BT", oValue1: "1", oValue2: "9" },
+      display: "1...9",
+    },
   ];
 
   for (const { name, filter, display } of displayCases) {

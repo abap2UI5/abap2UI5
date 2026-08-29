@@ -36,6 +36,14 @@ on:
       - '.github/workflows/codeql.yaml'
   push:
     branches: [main]
+    # same scope as the pull-request leg - a push that touches none of the
+    # analyzed JS has nothing new to analyze, and the monthly schedule below
+    # already covers the query pack moving under unchanged code
+    paths:
+      - 'app/webapp/**'
+      - '.github/scripts/**'
+      - 'tools/**'
+      - '.github/workflows/codeql.yaml'
   schedule:
     # 07:23 on the 3rd - off the hour and off the 1st, where every scheduled
     # workflow on GitHub queues at once.

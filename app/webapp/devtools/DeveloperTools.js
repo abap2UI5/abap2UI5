@@ -645,7 +645,7 @@ sap.ui.define(
 
       // The control itself renders nothing - it just provides the dialog
       // API.
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
     });
 
     // The lifecycle around this control - creation, the Ctrl+F12

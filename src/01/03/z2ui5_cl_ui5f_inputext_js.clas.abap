@@ -30,26 +30,6 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
              `  (Input, InputRenderer, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // A sap.m.Input that carries the HTML ``inputmode`` of its inner <input> as` && |\n| &&
-             `    // a bindable PROPERTY. It is a sap.m.Input in every other respect: the` && |\n| &&
-             `    // renderer is sap.m.InputRenderer unchanged, and with the property empty` && |\n| &&
-             `    // the control writes nothing at all, so value binding, suggestions, value` && |\n| &&
-             `    // state, events and the rendered DOM are the ones the app already knows.` && |\n| &&
-             `    //` && |\n| &&
-             `    // ``inputmode`` asks the on-screen keyboard for a layout without changing` && |\n| &&
-             `    // what the field IS - ``numeric`` gives a digit pad on a field that still` && |\n| &&
-             `    // takes any text, and ``none`` keeps the soft keyboard DOWN while the field` && |\n| &&
-             `    // goes on taking input, which is what a barcode scanner needs. UI5 has no` && |\n| &&
-             `    // property for it, so the only other way to set it is to write the` && |\n| &&
-             `    // attribute onto the DOM - and every re-render throws that DOM away. Here` && |\n| &&
-             `    // the mode is part of what the control IS: it is written on every` && |\n| &&
-             `    // rendering, so nothing can lose it and no follow-up action has to arrive` && |\n| &&
-             `    // in the right order.` && |\n| &&
-             `` && |\n| &&
-             `    // The complete inputmode keyword list of the HTML standard. An unknown` && |\n| &&
-             `    // value is refused rather than written, because a browser silently falls` && |\n| &&
-             `    // back to its default for a keyword it does not know - which on screen` && |\n| &&
-             `    // looks exactly like the property having had no effect at all.` && |\n| &&
              `    const HTML_MODES = new Set([` && |\n| &&
              `      "decimal",` && |\n| &&
              `      "email",` && |\n| &&
@@ -64,12 +44,6 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
              `    return Input.extend("z2ui5.cc.InputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
-             `          // The HTML inputmode: "none" hides the soft keyboard, "numeric",` && |\n| &&
-             `          // "decimal", "tel", ... restore it with that layout. Empty leaves` && |\n| &&
-             `          // the field exactly as sap.m.Input rendered it - so a BOUND mode can` && |\n| &&
-             `          // switch the behaviour off again without the app having to restore` && |\n| &&
-             `          // anything, and that is the point of the property: "keyboard on/off"` && |\n| &&
-             `          // is a plain model update, with no action travelling at all.` && |\n| &&
              `          inputMode: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
@@ -77,11 +51,6 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Written WITHOUT invalidating: the mode is one DOM attribute and UI5` && |\n| &&
-             `      // renders nothing from it, so a bound mode must not cost a re-render of` && |\n| &&
-             `      // the input (and of its suggestion popup) on every toggle. The write` && |\n| &&
-             `      // below reaches the live DOM directly; onAfterRendering covers the case` && |\n| &&
-             `      // where there is no DOM yet.` && |\n| &&
              `      setInputMode(val) {` && |\n| &&
              `        this.setProperty("inputMode", val, true);` && |\n| &&
              `        this._applyInputMode();` && |\n| &&
@@ -90,28 +59,19 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
              `` && |\n| &&
              `      onAfterRendering(...args) {` && |\n| &&
              `        Input.prototype.onAfterRendering.apply(this, args);` && |\n| &&
-             `        // What sap.m.Input rendered on the fresh DOM, remembered per` && |\n| &&
-             `        // rendering. Today it renders no inputmode, so clearing the property` && |\n| &&
-             `        // takes the attribute off; should a release start rendering one, an` && |\n| &&
-             `        // empty property still leaves that release's own field behind rather` && |\n| &&
-             `        // than a field this control stripped an attribute from.` && |\n| &&
+             `` && |\n| &&
              `        const dom = this.getFocusDomRef();` && |\n| &&
              `        this._renderedMode = dom ? dom.getAttribute("inputmode") : null;` && |\n| &&
              `        this._applyInputMode();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // the mode to write, "" when unset; an unknown one is logged once and` && |\n| &&
-             `      // treated as unset` && |\n| &&
              `      _htmlMode() {` && |\n| &&
              `        const raw = this.getInputMode();` && |\n| &&
              `        if (!raw) return "";` && |\n| &&
-             `        // HTML compares the attribute case-insensitively and an ABAP caller` && |\n| &&
-             `        // writes ``NUMERIC`` as readily as ``numeric``, so normalize before the` && |\n| &&
-             `        // lookup rather than refuse a value the browser would have taken.` && |\n| &&
+             `` && |\n| &&
              `        const mode = String(raw).trim().toLowerCase();` && |\n| &&
              `        if (HTML_MODES.has(mode)) return mode;` && |\n| &&
-             `        // _applyInputMode runs on every rendering, and a bad mode must not` && |\n| &&
-             `        // fill the log with the same line` && |\n| &&
+             `` && |\n| &&
              `        if (this._refusedMode !== mode) {` && |\n| &&
              `          this._refusedMode = mode;` && |\n| &&
              `          Lib.logError(` && |\n| &&
@@ -123,8 +83,6 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _applyInputMode() {` && |\n| &&
-             `        // the inner <input>, which is what carries the attribute - not the` && |\n| &&
-             `        // control's outer DOM root` && |\n| &&
              `        const dom = this.getFocusDomRef();` && |\n| &&
              `        if (!dom) return;` && |\n| &&
              `        const mode = this._htmlMode();` && |\n| &&

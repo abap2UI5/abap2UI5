@@ -281,12 +281,12 @@ const builds = branches.map((b) => {
   // "standard_x/../../.." would otherwise delete outside of tools/out,
   // before rename-bsp ever validates it.
   if (!/^[A-Za-z0-9_#]+$/.test(b)) {
-    console.error(`Ungueltiger Branch-Name '${b}' - erlaubt sind nur [A-Za-z0-9_#]`);
+    console.error(`Invalid branch name '${b}' - only [A-Za-z0-9_#] is allowed`);
     process.exit(1);
   }
   const build = BUILDERS[b] ?? renamedBuilder(b);
   if (!build) {
-    console.error(`Unbekannter Branch '${b}' - erlaubt: ${Object.keys(BUILDERS).join(", ")}, standard_<name>, standard_v2_<name> (<name> auch als #ns#name)`);
+    console.error(`Unknown branch '${b}' - allowed: ${Object.keys(BUILDERS).join(", ")}, standard_<name>, standard_v2_<name> (<name> auch als #ns#name)`);
     process.exit(1);
   }
   return build;

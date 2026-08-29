@@ -218,15 +218,20 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result)  TYPE ty_s_sel_tab_type.
 
+    " depth guards the mutual recursion between these two (an include whose
+    " expansion reaches itself would otherwise be an unbounded stack) - same
+    " idea as cv_chain_max in z2ui5_cx_ui5_util_error
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
         !type         TYPE REF TO cl_abap_datadescr
+        depth         TYPE i DEFAULT 0
       RETURNING
         VALUE(result) TYPE abap_component_tab.
 
     CLASS-METHODS expand_components
       IMPORTING
         val           TYPE abap_component_tab
+        depth         TYPE i DEFAULT 0
       RETURNING
         VALUE(result) TYPE abap_component_tab.
 
@@ -528,11 +533,16 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE xstring.
 
+    " read_description defaults to off: filling it costs one repository
+    " read PER implementing class (SEO_CLASS_READ / XCO) and the one
+    " framework caller - user-exit discovery, once per HTTP request - only
+    " ever reads the classname
     CLASS-METHODS rtti_get_classes_impl_intf
       IMPORTING
-        val           TYPE clike
+        val              TYPE clike
+        read_description TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(result) TYPE ty_t_classes.
+        VALUE(result)    TYPE ty_t_classes.
 
     " abap_true for values that can be rendered into a text without a
     " conversion dump - the elementary types. Anything structured (struct,
@@ -596,6 +606,19 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     CLASS-DATA mt_attri_cache TYPE HASHED TABLE OF ty_s_attri_cache WITH UNIQUE KEY absolute_name.
 
+    " answers of rtti_check_class_exists, per roll area - the repository
+    " lookup behind it is not free and the same names are asked again on
+    " every render (the start page alone asks up to seven per roundtrip).
+    " A class created at runtime after a negative answer is the one caller
+    " this cache can mislead, within one roll area only - same trade as
+    " gv_check_cloud below
+    TYPES:
+      BEGIN OF ty_s_class_exists,
+        name   TYPE string,
+        exists TYPE abap_bool,
+      END OF ty_s_class_exists.
+    CLASS-DATA gt_class_exists TYPE HASHED TABLE OF ty_s_class_exists WITH UNIQUE KEY name.
+
     CLASS-DATA gv_check_cloud TYPE abap_bool.
 
     CLASS-DATA gv_check_cloud_cached TYPE abap_bool.
@@ -606,15 +629,17 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     CLASS-METHODS rtti_get_classes_intf_cloud
       IMPORTING
-        val           TYPE clike
+        val              TYPE clike
+        read_description TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(result) TYPE ty_t_classes.
+        VALUE(result)    TYPE ty_t_classes.
 
     CLASS-METHODS rtti_get_classes_intf_std
       IMPORTING
-        val           TYPE clike
+        val              TYPE clike
+        read_description TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(result) TYPE ty_t_classes.
+        VALUE(result)    TYPE ty_t_classes.
 
     " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
     CLASS-METHODS rtti_get_dtel_texts_by_ddic
@@ -1026,6 +1051,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_check_class_exists.
 
+    " cached per name - see gt_class_exists at the declaration
+    DATA lv_name TYPE string.
+    lv_name = to_upper( val ).
+
+    READ TABLE gt_class_exists REFERENCE INTO DATA(lr_hit) WITH TABLE KEY name = lv_name.
+    IF sy-subrc = 0.
+      result = lr_hit->exists.
+      RETURN.
+    ENDIF.
+
     TRY.
         cl_abap_classdescr=>describe_by_name( EXPORTING  p_name         = val
                                               EXCEPTIONS type_not_found = 1 ).
@@ -1036,14 +1071,23 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
+    INSERT VALUE #( name   = lv_name
+                    exists = result ) INTO TABLE gt_class_exists.
+
   ENDMETHOD.
 
   METHOD rtti_check_ref_data.
 
     TRY.
+        " a kind comparison, not a CAST probe: the cast raised
+        " CX_SY_MOVE_CAST_ERROR for every NON-reference value, and the
+        " non-reference is the COMMON case on this path (every value routed
+        " through conv_copy_ref_data asks) - deciding a type question by
+        " exception is orders of magnitude more expensive than comparing.
+        " cl_abap_refdescr covers data and object references alike, and so
+        " does kind_ref
         DATA(lo_typdescr) = cl_abap_typedescr=>describe_by_data( val ).
-        DATA(lo_ref) = CAST cl_abap_refdescr( lo_typdescr ) ##NEEDED.
-        result = abap_true.
+        result = xsdbool( lo_typdescr->kind = cl_abap_typedescr=>kind_ref ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -1085,15 +1129,26 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDIF.
     DATA(sdescr) = CAST cl_abap_structdescr( type_desc ).
     DATA(comps) = sdescr->get_components( ).
-    result = expand_components( comps ).
+    result = expand_components( val   = comps
+                                depth = depth ).
 
   ENDMETHOD.
 
   METHOD expand_components.
 
+    " see the declaration: bounded so a cyclic include chain surfaces as a
+    " readable error instead of a stack-overflow dump. 16 nested include
+    " levels is far beyond any real DDIC structure
+    IF depth > 16.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `RTTI_INCLUDE_RECURSION - include expansion exceeded 16 levels (cyclic include?)`.
+    ENDIF.
+
     LOOP AT val REFERENCE INTO DATA(lr_comp).
       IF lr_comp->as_include = abap_true.
-        DATA(lt_incl) = rtti_get_t_attri_by_include( lr_comp->type ).
+        DATA(lt_incl) = rtti_get_t_attri_by_include( type  = lr_comp->type
+                                                     depth = depth + 1 ).
         APPEND LINES OF lt_incl TO result.
       ELSE.
         APPEND lr_comp->* TO result.
@@ -1175,8 +1230,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     FIELD-SYMBOLS <unassign> TYPE any.
 
+    " IS ASSIGNED, not sy-subrc: on some releases (7.40 SP7, #1937) a
+    " successful ASSIGN does not reset sy-subrc, so a stale 4 from an
+    " earlier statement read as "not assigned" and vice versa. The symbol
+    " is declared fresh in this method and assigned exactly once, so no
+    " UNASSIGN is needed before the test
     ASSIGN val->* TO <unassign>.
-    IF sy-subrc <> 0.
+    IF <unassign> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
     result = <unassign>.
@@ -1187,8 +1247,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     FIELD-SYMBOLS <unassign> TYPE any.
 
+    " same reasoning as unassign_data directly above
     ASSIGN val->* TO <unassign>.
-    IF sy-subrc <> 0.
+    IF <unassign> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
     result = <unassign>.
@@ -1844,9 +1905,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD rtti_get_classes_impl_intf.
 
     IF check_abap_cloud( ).
-      result = rtti_get_classes_intf_cloud( val ).
+      result = rtti_get_classes_intf_cloud( val              = val
+                                            read_description = read_description ).
     ELSE.
-      result = rtti_get_classes_intf_std( val ).
+      result = rtti_get_classes_intf_std( val              = val
+                                          read_description = read_description ).
     ENDIF.
 
   ENDMETHOD.
@@ -1890,8 +1953,17 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     LOOP AT lt_implementation_names INTO implementation_name.
 
-      ls_class-classname   = implementation_name.
-      ls_class-description = rtti_get_class_descr_on_cloud( implementation_name ).
+      CLEAR ls_class.
+      ls_class-classname = implementation_name.
+      IF read_description = abap_true.
+        " a class the XCO layer cannot describe (deleted mid-list, locked)
+        " keeps its slot with a blank description - one broken implementer
+        " must not hide every other one from the caller
+        TRY.
+            ls_class-description = rtti_get_class_descr_on_cloud( implementation_name ).
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+      ENDIF.
       INSERT ls_class INTO TABLE result.
     ENDLOOP.
 
@@ -1947,32 +2019,40 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     LOOP AT lt_impl REFERENCE INTO lr_impl.
 
-      CLEAR <class>.
+      CLEAR ls_class.
+      ls_class-classname = lr_impl->clsname.
 
-      ls_clskey-clsname = lr_impl->clsname.
+      IF read_description = abap_true.
 
-      lv_fm = `SEO_CLASS_READ`.
-      CALL FUNCTION lv_fm
-        EXPORTING
-          clskey        = ls_clskey
-        IMPORTING
-          class         = <class>
-        EXCEPTIONS
-          error_message = 1
-          OTHERS        = 2.
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error.
+        CLEAR <class>.
+        ls_clskey-clsname = lr_impl->clsname.
+
+        lv_fm = `SEO_CLASS_READ`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            clskey        = ls_clskey
+          IMPORTING
+            class         = <class>
+          EXCEPTIONS
+            error_message = 1
+            OTHERS        = 2.
+        " a class the repository cannot read (deleted mid-list, inactive,
+        " locked) keeps its slot with a blank description. This used to
+        " RAISE, which turned ONE broken implementer into an empty result
+        " for the caller - and the framework caller swallows that into
+        " "no user exit configured anywhere", the #2564 damage picture,
+        " with no error to point at
+        IF sy-subrc = 0.
+          ASSIGN
+            COMPONENT `DESCRIPT`
+            OF STRUCTURE <class>
+            TO <description>.
+          ASSERT sy-subrc = 0.
+          ls_class-description = <description>.
+        ENDIF.
+
       ENDIF.
 
-      ASSIGN
-        COMPONENT `DESCRIPT`
-        OF STRUCTURE <class>
-        TO <description>.
-      ASSERT sy-subrc = 0.
-
-      CLEAR ls_class.
-      ls_class-classname   = lr_impl->clsname.
-      ls_class-description = <description>.
       INSERT
         ls_class
         INTO TABLE result.
@@ -2441,12 +2521,19 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     CLEAR messages.
     is_row = abap_false.
 
-    DATA(lt_meta) = msg_get_rap_meta( val ).
+    " the meta block is built LAZILY: msg_get_rap_meta walks the row's
+    " components three times over (element/action/tky scans), and the
+    " common row in a RAP response table carries neither a filled %MSG nor
+    " a %FAIL - building the block up front threw that work away per row
+    DATA lv_meta_built TYPE abap_bool.
+    DATA lt_meta TYPE ty_t_name_value.
 
     ASSIGN COMPONENT `%MSG` OF STRUCTURE val TO FIELD-SYMBOL(<msg>).
     IF sy-subrc = 0.
       is_row = abap_true.
       IF <msg> IS NOT INITIAL.
+        lt_meta = msg_get_rap_meta( val ).
+        lv_meta_built = abap_true.
         TRY.
             DATA(lt_one) = msg_get_t( <msg> ).
             LOOP AT lt_one ASSIGNING FIELD-SYMBOL(<m>).
@@ -2463,6 +2550,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       is_row = abap_true.
       ASSIGN COMPONENT `CAUSE` OF STRUCTURE <fail> TO FIELD-SYMBOL(<cause>).
       IF sy-subrc = 0.
+        IF lv_meta_built = abap_false.
+          lt_meta = msg_get_rap_meta( val ).
+        ENDIF.
         DATA lv_cause TYPE i.
         lv_cause = <cause>.
         DATA(lv_text) = msg_get_rap_fail_text( lv_cause ).

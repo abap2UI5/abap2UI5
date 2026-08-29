@@ -10,6 +10,25 @@ CLASS ltcl_test_app IMPLEMENTATION.
 ENDCLASS.
 
 
+" deliberately WITHOUT if_serializable_object - the probe for
+" check_raise_new, which must refuse it at bind time (a bound filter is
+" serialized into the draft with mt_attri, and the transpiler does not
+" enforce serializability, so bind time is the only place the suite can
+" prove the refusal)
+CLASS ltcl_bad_filter DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_filter.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_bad_filter IMPLEMENTATION.
+  METHOD z2ui5_if_ajson_filter~keep_node.
+    rv_keep = abap_true.
+  ENDMETHOD.
+ENDCLASS.
+
+
 CLASS ltcl_test_client DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION LONG.
 
@@ -72,6 +91,9 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_keeps_rows FOR TESTING RAISING cx_static_check.
+    METHODS test_omit_filters_serial  FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_filter_not_serial FOR TESTING RAISING cx_static_check.
+    METHODS test_omit_initial_db_save FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_ui5_client DEFINITION LOCAL FRIENDS ltcl_test_client.
@@ -875,6 +897,101 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = ``
         act = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) )->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_omit_filters_serial.
+
+    " every filter the framework itself hands into a binding is serialized
+    " into the draft with mt_attri, so all three local classes have to pass
+    " the same contract check that check_raise_new applies to a caller's
+    " filter. CALL TRANSFORMATION under the transpiler does not enforce
+    " if_serializable_object, so this check IS what the suite can prove -
+    " a real system enforces it at db_save
+    DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+    DATA li_paths TYPE REF TO z2ui5_if_ajson_filter.
+
+    li_omit = NEW lcl_empty_filter_keep_rows( ).
+    cl_abap_unit_assert=>assert_true(
+        z2ui5_cl_ui5_util_context=>rtti_check_serializable( li_omit ) ).
+
+    li_paths = NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ) ).
+    cl_abap_unit_assert=>assert_true(
+        z2ui5_cl_ui5_util_context=>rtti_check_serializable( li_paths ) ).
+
+    cl_abap_unit_assert=>assert_true(
+        z2ui5_cl_ui5_util_context=>rtti_check_serializable(
+            NEW lcl_and_filter( ii_first  = li_paths
+                                ii_second = li_omit ) ) ).
+
+    " and the probe class is really refused by the same check - otherwise
+    " test_bind_filter_not_serial proves nothing
+    cl_abap_unit_assert=>assert_false(
+        z2ui5_cl_ui5_util_context=>rtti_check_serializable( NEW ltcl_bad_filter( ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_bind_filter_not_serial.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lo_app TYPE REF TO ltcl_test_app.
+    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+
+    li_client ?= mo_client.
+    lo_app ?= mo_action->mo_app->mo_app.
+
+    TRY.
+        li_client->_bind( val           = lo_app->mv_name
+                          custom_filter = NEW ltcl_bad_filter( ) ).
+        cl_abap_unit_assert=>fail(
+            `a non-serializable custom_filter must be refused at bind time - serialized into the draft it fails only at db_save on a real system` ).
+      CATCH z2ui5_cx_ui5_util_error INTO lx.
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `serializable` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD test_omit_initial_db_save.
+
+    " _bind( omit_initial ) -> db_save -> db_load: the filter object rides
+    " on mt_attri into the draft (main_attri_db_save_srtti clears only DATA
+    " references), so the cycle only survives with serializable filter
+    " classes. Under the transpiler the serializer does not enforce that -
+    " what this proves everywhere is that the cycle keeps the app state and
+    " the binding metadata intact with the filter in place
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lo_app TYPE REF TO ltcl_test_app.
+    DATA lo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA lo_cont_db TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA lo_app_db TYPE REF TO ltcl_test_app.
+
+    li_client ?= mo_client.
+    lo_cont = mo_action->mo_app.
+    lo_app ?= lo_cont->mo_app.
+    lo_app->mv_name = `kept across the draft`.
+
+    li_client->_bind( val          = lo_app->mv_name
+                      omit_initial = abap_true ).
+
+    lo_cont->ms_draft-id = `TEST_OMIT_INITIAL_DRAFT`.
+    lo_cont->db_save( ).
+    z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
+
+    lo_cont_db = z2ui5_cl_ui5_app_cont=>db_load( `TEST_OMIT_INITIAL_DRAFT` ).
+    lo_app_db ?= lo_cont_db->mo_app.
+
+    cl_abap_unit_assert=>assert_equals( exp = `kept across the draft`
+                                        act = lo_app_db->mv_name ).
+
+    " the binding metadata came back with the draft
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    lr_attri = REF #( lo_cont_db->mt_attri->*[ name = `MV_NAME` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_bound( lr_attri ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lr_attri->bind ).
 
   ENDMETHOD.
 

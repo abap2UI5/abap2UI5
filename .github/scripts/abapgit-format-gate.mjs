@@ -50,11 +50,12 @@
 // (frozen) are excluded from lint on purpose - flagging their historical
 // trailing blanks would produce ~100 findings nobody is allowed to fix.
 
+import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { walk } from "./lib/walk.mjs";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const findings = [];
 const add = (file, rule, message) => findings.push({ file, rule, message });

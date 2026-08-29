@@ -25,12 +25,9 @@ CLASS z2ui5_cl_ui5f_history_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that rewrites the query string of the current browser` && |\n| &&
-             `// URL (history.replaceState) from its bound ``search`` property - no page` && |\n| &&
-             `// reload, no new history entry.` && |\n| &&
-             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
-             `  // OBSOLETE: app state in the URL is handled by the framework now (set_push_state) - kept for backward compatibility.` && |\n| &&
+             `` && |\n| &&
              `  return Control.extend("z2ui5.cc.History", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
@@ -40,23 +37,20 @@ CLASS z2ui5_cl_ui5f_history_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `    setSearch(val) {` && |\n| &&
-             `      // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
-             `      // (rewriting the URL) is what actually matters.` && |\n| &&
              `      this.setProperty("search", val, true);` && |\n| &&
              `      try {` && |\n| &&
              `        const search = Lib.toText(val);` && |\n| &&
-             `        // Pass the existing state object along instead of null so we do` && |\n| &&
-             `        // not clobber state someone else stored on the history entry.` && |\n| &&
+             `` && |\n| &&
              `        history.replaceState(` && |\n| &&
              `          history.state,` && |\n| &&
              `          "",` && |\n| &&
-             `          ``${window.location.pathname}${search}``,` && |\n| &&
+             `          ``${window.location.pathname}${search}${window.location.hash}``,` && |\n| &&
              `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("History.setSearch: replaceState failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `    renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

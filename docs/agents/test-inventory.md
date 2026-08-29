@@ -39,6 +39,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `cc/Scrolling.js` | `scrolling.spec.js` | — |
 | `cc/LPTitle.js` | `lpTitle.spec.js` | — |
 | `cc/Favicon.js` | `favicon.spec.js` | — |
+| `cc/Info.js` | `info.spec.js` | the one-shot armed in `init()` (a renderer-armed version re-fired `finished` per render and closed a rebuild loop), the retry while the device model has not propagated yet, and empty UI5 fields when `oConfig` is missing |
 | `cc/History.js` | `history.spec.js` | — |
 | `cc/Timer.js` | `timer.spec.js` | the arm-from-the-renderer flag, the one-shot that disarms itself, the repeating re-arm and both destroy re-checks, over a stub clock |
 | `cc/Tree.js` | `tree.spec.js` | the per-`tree_id` snapshot, the guard that will not overwrite a valid one, and the restore-once-per-(snapshot, binding) rule that keeps a theme change from collapsing the user's expansions |
@@ -58,11 +59,13 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `devtools/DeveloperTools.fragment.xml` against the control that backs it | `devtoolsFragment.spec.js` | a handler the fragment names that the controller does not have, or a bound property nothing seeds, is not a syntax error anywhere and fails as a dead button on somebody's system |
 | `core/ErrorView.js` | `errorView.spec.js` | — |
 | `core/FrontendAction.js` incl. the composed `core/actions/` dispatch | `frontendAction.spec.js` | — |
+| the URL-shaped handlers of `core/actions/Browser.js` through the REAL `core/Lib.js` validators | `browserActions.spec.js` | `DOWNLOAD_B64_FILE`'s protocol guard, active-`data:`-MIME block and filename sanitizer; `OPEN_NEW_TAB`'s same-origin guard and cleared `window.opener`; `URLHELPER`'s CR/LF header-injection block and the `REDIRECT` protocol guard |
 | the action runners and the legacy `eF()`-string parsing in `core/actions/LegacyCustomJs.js` | `actionRunner.spec.js` | — |
 | `controller/View1.controller.js` event handling, the after-render phase (model push by MODEL presence, per-response router sync) and the `core/actions/Slots.js` model fan-out | `view1Events.spec.js` | — |
 | `core/Server.js` timeout handling | `serverTimeout.spec.js` | — |
 | `core/Server.js` request sequencing | `serverRequestSeq.spec.js` | — |
 | `core/Server.js` session-constant location cadence | `serverLocation.spec.js` | — |
+| `core/Server.js` error routing outside the inner handlers (`readHttp`'s outer catch, `showRenderError`) | `serverRenderError.spec.js` | — |
 | `core/Session.js` | `session.spec.js` | — |
 | `core/ScrollFocus.js` focus-info capture | `focusInfo.spec.js` | — |
 | `core/ScrollFocus.js` UI5-element resolution | `scrollFocus.spec.js` | incl. the pre-1.106 fallback for scroll/focus capture |

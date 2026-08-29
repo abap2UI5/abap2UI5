@@ -66,6 +66,11 @@ function loadDevTools({ search = "" } = {}) {
         },
       },
       "z2ui5/devtools/DeveloperTools": DeveloperTools,
+      // exit() stops a pick that may still be running (its capture
+      // listeners would survive the teardown otherwise)
+      "z2ui5/devtools/Picker": {
+        stop: () => recorderCalls.push("picker:stop"),
+      },
       "z2ui5/devtools/Recorder": {
         install: () => recorderCalls.push("install"),
         uninstall: () => recorderCalls.push("uninstall"),
@@ -232,11 +237,14 @@ test.describe("exit", () => {
     expect(h.callbacks.onErrorDetails.length).toBe(0);
     expect(dialog.destroyed).toBe(true);
     expect(h.globals.developerTools).toBe(null);
+    // picker:stop is part of the teardown: a pick still running at exit
+    // would leave its document capture listeners behind
     expect(h.recorderCalls).toEqual([
       "install",
       "console:install",
       "console:uninstall",
       "uninstall",
+      "picker:stop",
     ]);
   });
 
@@ -257,7 +265,11 @@ test.describe("exit", () => {
     h.DevTools.exit();
     // the teardown is unconditional on purpose - both uninstalls are
     // idempotent, so a partially failed install still gets cleaned up
-    expect(h.recorderCalls).toEqual(["console:uninstall", "uninstall"]);
+    expect(h.recorderCalls).toEqual([
+      "console:uninstall",
+      "uninstall",
+      "picker:stop",
+    ]);
     expect(h.listeners.length).toBe(0);
   });
 });

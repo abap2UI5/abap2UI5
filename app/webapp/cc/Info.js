@@ -60,6 +60,20 @@ sap.ui.define(
         },
       },
 
+      // One-shot like cc/Geolocation: the pending flag is set ONCE in
+      // init(), not by the renderer on every render. The renderer version
+      // re-fired `finished` per render, and an app that answers the event
+      // with a roundtrip that rebuilds the view closes a loop
+      // (render -> finished -> roundtrip -> rebuild -> render). The values
+      // are session-constant, so once is also all the event can ever say.
+      init() {
+        this._pendingInfo = true;
+      },
+
+      exit() {
+        this._pendingInfo = false;
+      },
+
       // Follows the shared rendering pattern (see core/Lib.js): the renderer
       // only marks the work, onAfterRendering reads the device info and
       // fires the event.
@@ -113,7 +127,6 @@ sap.ui.define(
         apiVersion: 2,
         render(oRm, oControl) {
           Lib.renderInvisibleSpan(oRm, oControl);
-          oControl._pendingInfo = true;
         },
       },
     });

@@ -7,6 +7,29 @@ const { defineConfig, devices } = require('@playwright/test');
  * @typedef {{ ui5Src?: string, ui5Theme?: string }} Z2UI5TestOptions
  */
 
+/* The UI5 build the three default browser legs boot for the fixture-based
+   specs (example, roundtrip - see tests/e2e/fixtures.js). Pinned for the
+   same reason node/setup/fetch-deps.mjs pins its git dependencies by sha: the
+   backend page hardcodes the EVERGREEN CDN bootstrap, so a UI5 release could
+   turn a green pull request red without any change in this repository - and
+   `retries: 2` then hid the flake instead of naming it. Bump deliberately
+   (edit here, run the suite), or override for one run via UI5_E2E_SRC.
+
+   The version MUST be the FINAL patch of a RETIRED minor line: the CDN
+   serves only the newest patch of each line and drops the rest, so a pin
+   into a still-moving line (1.136.0 while the LTS line was at .20) 404s
+   and every leg times out - that is how this comment learned it. Same
+   reason the 1.71 leg pins 1.71.80, the last 1.71 patch ever. `npm view
+   @openui5/sap.ui.core versions` shows where each line ended.
+
+   The specs that create their own pages (error-view, nav-back-forward,
+   lib-sanitizer, focus-after-enable) bypass the fixture's rewrite and still
+   boot the evergreen build - the ui5-1.71 project comment below describes
+   how to port one onto the shared page fixture. */
+const PINNED_UI5_SRC =
+  process.env.UI5_E2E_SRC ||
+  'https://sdk.openui5.org/1.144.0/resources/sap-ui-core.js';
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -45,17 +68,17 @@ module.exports = defineConfig(
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], ui5Src: PINNED_UI5_SRC },
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'], ui5Src: PINNED_UI5_SRC },
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { ...devices['Desktop Safari'], ui5Src: PINNED_UI5_SRC },
     },
 
     /* Pinned OpenUI5 1.71 gate: the oldest supported release, run as an

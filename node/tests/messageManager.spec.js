@@ -38,6 +38,11 @@ function load() {
       if (callbacks[name])
         callbacks[name] = callbacks[name].filter((f) => f !== fn);
     },
+    hookCallback(owner, name, method) {
+      const bound = owner[method].bind(owner);
+      this.registerCallback(name, bound);
+      return () => this.unregisterCallback(name, bound);
+    },
     getMessaging: () => messaging,
   };
   const ViewSlots = {

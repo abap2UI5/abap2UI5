@@ -64,10 +64,16 @@ const problems = [];
 const notes = [];
 let checked = 0;
 
+/* All reads in flight at once - the loop below consumes settled results in
+ * list order, so the report stays deterministic. Awaiting inside the loop
+ * made this gate's runtime the SUM of the round trips. */
+const prefetchPkg = new Map(REPOS.map((entry) => [entry, read(entry, 'package.json')]));
+const prefetchNvmrc = new Map(REPOS.map((entry) => [entry, read(entry, '.nvmrc')]));
+
 for (const entry of REPOS) {
   const { repo } = entry;
 
-  const pkg = await read(entry, 'package.json');
+  const pkg = await prefetchPkg.get(entry);
   if (pkg.note) { notes.push(`${repo}: not checked (${pkg.note})`); continue; }
   if (pkg.missing) {
     problems.push(`${repo}: no package.json (read from ${pkg.from}) — it is on the ecosystem list, so it is expected to have one`);
@@ -104,7 +110,7 @@ for (const entry of REPOS) {
    * repository with only the first still lets `nvm use` land on whatever was
    * already loaded, which is how a Node 20 shell runs a Node 22 test suite and
    * blames the suite. */
-  const nvmrc = await read(entry, '.nvmrc');
+  const nvmrc = await prefetchNvmrc.get(entry);
   if (nvmrc.note) {
     notes.push(`${repo}: .nvmrc not checked (${nvmrc.note})`);
   } else if (nvmrc.missing) {

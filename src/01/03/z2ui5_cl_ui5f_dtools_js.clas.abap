@@ -25,27 +25,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// The developer tools dialog.` && |\n| &&
-             `//` && |\n| &&
-             `// Only the dialog: which group is selected, which sub-view inside it,` && |\n| &&
-             `// and getting the right string into the editor. What a tab IS lives in` && |\n| &&
-             `// devtools/Tabs.js, the report in devtools/Report.js, the ABAP class in` && |\n| &&
-             `// devtools/AbapSource.js, and the lifecycle (Ctrl+F12, auto open,` && |\n| &&
-             `// teardown) in devtools/DevTools.js.` && |\n| &&
-             `//` && |\n| &&
-             `// The structure this renders is six groups, not twenty-two flat tabs:` && |\n| &&
-             `//` && |\n| &&
-             `//   Overview     which app, which roundtrip, is anything broken` && |\n| &&
-             `//   Problems     Error / Log` && |\n| &&
-             `//   Roundtrips   History / Request / Response / Actions / the two diffs` && |\n| &&
-             `//   View & Data  slot x aspect, plus the picked control` && |\n| &&
-             `//   System       Environment / Registry / ABAP Source` && |\n| &&
-             `//   Search       one term across every other tab at once` && |\n| &&
-             `//` && |\n| &&
-             `// The tab KEYS underneath are unchanged, because they are a` && |\n| &&
-             `// compatibility surface: "?z2ui5-devtools=HISTORY" and the remembered` && |\n| &&
-             `// last tab in sessionStorage both store them.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/Control",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
@@ -80,23 +60,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Fragment id under which the developer tools dialog's controls are` && |\n| &&
-             `    // registered; used to resolve controls by their id instead of by` && |\n| &&
-             `    // content position.` && |\n| &&
              `    const FRAGMENT_ID = "z2ui5DeveloperTools";` && |\n| &&
              `` && |\n| &&
-             `    // The sub-view the tools were last on. Reopening where you were` && |\n| &&
-             `    // working is what makes them usable across a debugging session -` && |\n| &&
-             `    // landing on the same place every time means re-navigating after` && |\n| &&
-             `    // every close. In sessionStorage, so it survives a reload too.` && |\n| &&
              `    const LAST_TAB_KEY = "z2ui5.devtools.lastTab";` && |\n| &&
              `` && |\n| &&
-             `    // Where the tools open when nothing else is known. Used to be the raw` && |\n| &&
-             `    // response JSON, which answers no question anybody arrives with.` && |\n| &&
              `    const DEFAULT_TAB = "OVERVIEW";` && |\n| &&
              `` && |\n| &&
-             `    // How long a one-line result (Apply, Report a Bug) stays under the` && |\n| &&
-             `    // action bar before it clears itself.` && |\n| &&
              `    const STATUS_MS = 6000;` && |\n| &&
              `` && |\n| &&
              `    function readLastTab() {` && |\n| &&
@@ -110,15 +79,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    function writeLastTab(tabKey) {` && |\n| &&
              `      try {` && |\n| &&
              `        window.sessionStorage?.setItem(LAST_TAB_KEY, tabKey);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        // storage unavailable - the memory is then per dialog instance` && |\n| &&
-             `      }` && |\n| &&
+             `      } catch {}` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The sub-view to open on. A remembered or requested key that no` && |\n| &&
-             `    // longer resolves - stored by an older version, a typo in the URL` && |\n| &&
-             `    // parameter, or a popup that has since closed - falls back to its` && |\n| &&
-             `    // group's first available view, and only then to the default.` && |\n| &&
              `    function resolveTab(tabKey) {` && |\n| &&
              `      if (Tabs.isEnabled(Tabs.get(tabKey))) return tabKey;` && |\n| &&
              `      if (Tabs.isKnown(tabKey)) {` && |\n| &&
@@ -128,32 +91,18 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      return DEFAULT_TAB;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Preload the sap.ui.codeeditor modules used by the fragment. On older` && |\n| &&
-             `    // UI5 releases (e.g. 1.71) Fragment.load still processes the XML with` && |\n| &&
-             `    // the sync strategy, so an unloaded CodeEditor would be fetched via` && |\n| &&
-             `    // synchronous XHR and executed with eval - which a Content-Security-` && |\n| &&
-             `    // Policy without 'unsafe-eval' blocks. Requiring the modules` && |\n| &&
-             `    // asynchronously up front makes the sync lookup a cache hit.` && |\n| &&
              `    function preloadCodeEditor() {` && |\n| &&
              `      return new Promise((resolve) => {` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ["sap/ui/codeeditor/library", "sap/ui/codeeditor/CodeEditor"],` && |\n| &&
              `          () => resolve(),` && |\n| &&
-             `          // On failure continue anyway and let Fragment.load surface the` && |\n| &&
-             `          // real error.` && |\n| &&
+             `` && |\n| &&
              `          () => resolve(),` && |\n| &&
              `        );` && |\n| &&
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `      // Navigation` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `      // The single place a sub-view becomes the shown one. Every entry` && |\n| &&
-             `      // point routes through here: the group tabs, the two selectors,` && |\n| &&
-             `      // show(initialTab), the pick that returns, the payload toggle.` && |\n| &&
              `      renderTab(tabKey, oModel) {` && |\n| &&
              `        const key = resolveTab(tabKey);` && |\n| &&
              `        const tab = Tabs.get(key);` && |\n| &&
@@ -163,26 +112,15 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        data.selectedGroup = tab.group;` && |\n| &&
              `        writeLastTab(key);` && |\n| &&
              `` && |\n| &&
-             `        // The two selectors of View & Data. The slot list is rebuilt on` && |\n| &&
-             `        // every selection because a popup opens and closes underneath` && |\n| &&
-             `        // the tools while they are open.` && |\n| &&
              `        const slots = Tabs.enabledSlots().map((slot) => ({` && |\n| &&
              `          key: slot.key,` && |\n| &&
              `          text: slot.label,` && |\n| &&
              `        }));` && |\n| &&
              `        data.slots = slots;` && |\n| &&
-             `        // The picked control is in this group but is not about a slot, so` && |\n| &&
-             `        // it keeps whichever slot was being looked at rather than` && |\n| &&
-             `        // resetting it, and hides the selector instead of pointing it at` && |\n| &&
-             `        // an unrelated slot.` && |\n| &&
+             `` && |\n| &&
              `        data.selectedSlot = tab.slot || data.selectedSlot || "MAIN";` && |\n| &&
              `        data.showSlotBar = Boolean(tab.slot) && slots.length > 1;` && |\n| &&
              `` && |\n| &&
-             `        // In View & Data the sub-view bar is the ASPECTS of the selected` && |\n| &&
-             `        // slot - never every tab of the group, which would put all five` && |\n| &&
-             `        // slots' aspects in one row and bring back the flat list this` && |\n| &&
-             `        // regrouping exists to remove. The picked control is appended` && |\n| &&
-             `        // because it belongs to the group rather than to a slot.` && |\n| &&
              `        let views;` && |\n| &&
              `        if (tab.group === "VIEWDATA") {` && |\n| &&
              `          views = Tabs.aspectsOfSlot(data.selectedSlot).concat(` && |\n| &&
@@ -197,8 +135,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        }));` && |\n| &&
              `        data.showViewBar = data.views.length > 1;` && |\n| &&
              `` && |\n| &&
-             `        // Group flags drive the action bar. Plain booleans, never an` && |\n| &&
-             `        // expression binding in the fragment (AGENTS.md rule 13).` && |\n| &&
              `        data.isOverview = tab.group === "OVERVIEW";` && |\n| &&
              `        data.isRoundtrips = tab.group === "ROUNDTRIPS";` && |\n| &&
              `        data.isViewData = tab.group === "VIEWDATA";` && |\n| &&
@@ -210,28 +146,18 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          typeof AppState.state.lastError?.onRetry === "function";` && |\n| &&
              `        data.recordPayloads = Recorder.isRecordingPayloads();` && |\n| &&
              `        data.openOnError = Console.isAlertOnError();` && |\n| &&
-             `        // Refreshed per selection, not only on open: a timer or a late` && |\n| &&
-             `        // rejection can log while the dialog stands open.` && |\n| &&
+             `` && |\n| &&
              `        data.problemCount = this.problemCount();` && |\n| &&
              `` && |\n| &&
              `        if (tab.kind === "search") {` && |\n| &&
-             `          // The result is rendered from the term in the dialog model; a` && |\n| &&
-             `          // fresh open shows the "(enter a search term)" prompt.` && |\n| &&
              `          this.displayEditor(oModel, Tabs.search(data.searchTerm), "text");` && |\n| &&
-             `          // Set after displayEditor, which derives the templating toggle` && |\n| &&
-             `          // from the content - a hit inside a templated view XML carries` && |\n| &&
-             `          // the "xmlns:template" that would otherwise offer the toggle` && |\n| &&
-             `          // over a list of search hits.` && |\n| &&
+             `` && |\n| &&
              `          data.isTemplating = false;` && |\n| &&
              `          oModel.refresh();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (tab.kind === "source") {` && |\n| &&
-             `          // The editor-only controls have to be cleared here as well -` && |\n| &&
-             `          // this branch does not go through displayEditor, so arriving` && |\n| &&
-             `          // from a view tab would leave Apply / Reset on screen over a` && |\n| &&
-             `          // framed ABAP class.` && |\n| &&
              `          data.canApply = false;` && |\n| &&
              `          data.isTemplating = false;` && |\n| &&
              `          data.templatingSource = false;` && |\n| &&
@@ -245,8 +171,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          tab.kind,` && |\n| &&
              `          Tabs.renderTemplated(key),` && |\n| &&
              `        );` && |\n| &&
-             `        // A view tab is editable: its XML can be rendered back into the` && |\n| &&
-             `        // slot without a roundtrip (devtools/LiveEdit.js).` && |\n| &&
+             `` && |\n| &&
              `        data.canApply = LiveEdit.canApply(key);` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
@@ -262,10 +187,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.renderTab(oSource.getSelectedKey(), oSource.getModel());` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Switching the slot keeps the aspect where that is possible -` && |\n| &&
-             `      // going from Main/Bindings to a popup should land on the popup's` && |\n| &&
-             `      // bindings, not throw the user back to its XML. Tabs.tabFor falls` && |\n| &&
-             `      // back when the new slot has no such aspect.` && |\n| &&
              `      onSlotSelect(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        const oModel = oSource.getModel();` && |\n| &&
@@ -273,12 +194,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.renderTab(Tabs.tabFor(oSource.getSelectedKey(), aspect), oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `      // Search` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `      // Enter / the magnifier of the Search tab's field: keep the term` && |\n| &&
-             `      // in the model and re-render the tab with the result.` && |\n| &&
              `      onSearch(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        const oModel = oSource.getModel();` && |\n| &&
@@ -286,22 +201,14 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.renderTab("SEARCH", oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `      // Content` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `      // Populates the dialog model so the right editor / source area is` && |\n| &&
-             `      // shown with the given content. ``xcontent`` is the post-templating` && |\n| &&
-             `      // variant that the "After Templating" toggle switches to.` && |\n| &&
              `      displayEditor(oModel, content, type, xcontent = "") {` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
              `        data.editor_visible = true;` && |\n| &&
              `        data.source_visible = false;` && |\n| &&
-             `        // Only the view tabs re-enable this (see renderTab) - every other` && |\n| &&
-             `        // view shows content that has no slot to be applied to.` && |\n| &&
+             `` && |\n| &&
              `        data.canApply = false;` && |\n| &&
              `        data.isTemplating = Boolean(content?.includes("xmlns:template"));` && |\n| &&
-             `        // the toggle always starts on the original source for this view` && |\n| &&
+             `` && |\n| &&
              `        data.templatingSource = false;` && |\n| &&
              `        data.value = content;` && |\n| &&
              `        data.previousValue = content;` && |\n| &&
@@ -314,25 +221,16 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        const oModel = oSource.getModel();` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
-             `        // Toggle between the original (previousValue) and the rendered` && |\n| &&
-             `        // DOM (xContent) representation.` && |\n| &&
+             `` && |\n| &&
              `        data.value = oSource.getPressed() ? data.xContent : data.previousValue;` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Show the ABAP source of the running app inside an iframe.` && |\n| &&
              `      showAbapSource(oModel) {` && |\n| &&
              `        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
-             `        // setContent (not a bare setProperty) so an already rendered` && |\n| &&
-             `        // iframe is replaced in the live DOM; a plain property set never` && |\n| &&
-             `        // reached the DOM once the control had rendered, leaving a stale` && |\n| &&
-             `        // class on screen after navigating to another app.` && |\n| &&
+             `` && |\n| &&
              `        contentControl?.setContent(AbapSource.iframeHtml());` && |\n| &&
              `` && |\n| &&
-             `        // Warm the source cache in the background so the ADT button can` && |\n| &&
-             `        // deep-link at the current event's line. Opening this view is the` && |\n| &&
-             `        // moment a developer is heading for the source, and the fetch must` && |\n| &&
-             `        // not block the switch - failures are swallowed by fetchSource.` && |\n| &&
              `        AbapSource.fetchSource();` && |\n| &&
              `` && |\n| &&
              `        if (!oModel) return;` && |\n| &&
@@ -346,12 +244,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        AbapSource.openInAdt();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `      // Actions` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `      // A one-line result under the action bar. The dialog is modal, so a` && |\n| &&
-             `      // MessageToast behind it would be invisible.` && |\n| &&
              `      showStatus(oModel, text) {` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
              `        data.statusText = text;` && |\n| &&
@@ -367,8 +259,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        }, STATUS_MS);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // The most common reason these tools are opened: the whole session` && |\n| &&
-             `      // state as a GitHub issue body, on the clipboard, in one press.` && |\n| &&
              `      async onReportBug(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
              `        const source = await AbapSource.fetchSource();` && |\n| &&
@@ -380,15 +270,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        Report.openDialog(AbapSource.appName(), await AbapSource.fetchSource());` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Put what is shown on the clipboard. A CodeEditor has no select-all` && |\n| &&
-             `      // affordance of its own, so copying a report used to mean dragging` && |\n| &&
-             `      // across thousands of lines - or going through Export, which builds` && |\n| &&
-             `      // everything rather than the one view being looked at.` && |\n| &&
              `      onCopyTab(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        Lib.copyToClipboard(oSource.getModel().getData().value || "");` && |\n| &&
-             `        // Confirm on the button itself and put the label back - the dialog` && |\n| &&
-             `        // is modal, so a toast behind it would be invisible.` && |\n| &&
+             `` && |\n| &&
              `        const original = oSource.getText();` && |\n| &&
              `        oSource.setText("Copied");` && |\n| &&
              `        setTimeout(() => {` && |\n| &&
@@ -396,13 +281,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        }, 1500);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // The Error view's actions mirror the ErrorView overlay: re-run the` && |\n| &&
-             `      // captured request, hard-reload, or log out (reusing ErrorView's own` && |\n| &&
-             `      // logout so the launchpad/fallback logic stays in one place).` && |\n| &&
              `      onErrorRetry() {` && |\n| &&
              `        const onRetry = AppState.state.lastError?.onRetry;` && |\n| &&
-             `        // Retrying re-runs the request, so don't bounce back to the error` && |\n| &&
-             `        // popup.` && |\n| &&
+             `` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
              `        this.close();` && |\n| &&
              `        if (typeof onRetry === "function") onRetry();` && |\n| &&
@@ -414,27 +295,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        ErrorView.handleLogout();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Tier 2 of the recorder: keeping request/response bodies is the` && |\n| &&
-             `      // expensive half of the history, so it is opt-in and switched here.` && |\n| &&
-             `      // Switching it OFF also drops what was already retained, so a` && |\n| &&
-             `      // developer can free the memory again without reloading the app.` && |\n| &&
-             `      // The current view is re-rendered because both diff views and the` && |\n| &&
-             `      // history report the flag's state.` && |\n| &&
              `      onToggleRecordPayloads(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        Recorder.setRecordingPayloads(oSource.getPressed());` && |\n| &&
              `        const oModel = oSource.getModel();` && |\n| &&
-             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n|.
-    result = result &&
+             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Pop the tools open on the Log as soon as anything logs at error` && |\n| &&
-             `      // level. Off by default - a modal dialog jumping up is the last` && |\n| &&
-             `      // thing a productive user needs - but in a test system it is the` && |\n| &&
-             `      // difference between noticing a broken roundtrip and not. The` && |\n| &&
-             `      // setting lives in devtools/Console.js, which is where the errors` && |\n| &&
-             `      // are and which both this dialog and the lifecycle facade can reach` && |\n| &&
-             `      // without importing each other.` && |\n| &&
              `      onToggleOpenOnError(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        Console.setAlertOnError(oSource.getPressed());` && |\n| &&
@@ -443,11 +310,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Pick a control on the screen and report what feeds it. The dialog` && |\n| &&
-             `      // has to get out of the way first (it is modal and covers the app),` && |\n| &&
-             `      // so it closes for the duration of the pick and reopens on the` && |\n| &&
-             `      // picked-control view with the result. Escape cancels and reopens` && |\n| &&
-             `      // on the view the user came from.` && |\n| &&
              `      onPickControl() {` && |\n| &&
              `        const previousTab = this.oDialog?.getModel()?.getData()?.selectedTab;` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
@@ -458,9 +320,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        });` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Render the edited XML back into its view slot. Local preview only` && |\n| &&
-             `      // - LiveEdit's result message says so, and it is shown under the` && |\n| &&
-             `      // action bar so the developer knows it landed.` && |\n| &&
              `      async onApplyXml(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
@@ -473,8 +332,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.showStatus(oModel, result);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Put the backend's original XML back into the editor. Does not` && |\n| &&
-             `      // re-render - press Apply for that.` && |\n| &&
              `      onResetXml(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
@@ -485,10 +342,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.showStatus(oModel, "");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // The help used to be a tab of its own, which put a page of prose` && |\n| &&
-             `      // in the same row as the twenty tabs that show live state. It is` && |\n| &&
-             `      // reached from the info icon in the footer now and opens in its own` && |\n| &&
-             `      // dialog, so it does not take the current view away.` && |\n| &&
              `      onShowHelp() {` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
@@ -518,28 +371,16 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `      // Lifecycle` && |\n| &&
-             `      // ----------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `      onClose() {` && |\n| &&
              `        this.close();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // sap.m.Dialog closes on Escape without routing through onClose;` && |\n| &&
-             `      // handle it ourselves (reject the default, run our close) so Escape` && |\n| &&
-             `      // behaves exactly like the Close button - including re-showing the` && |\n| &&
-             `      // error popup.` && |\n| &&
              `      onEscape(oPromise) {` && |\n| &&
              `        oPromise.reject();` && |\n| &&
              `        this.close();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Open the developer tools dialog. ``initialTab`` (a tab key, e.g.` && |\n| &&
-             `      // "ERROR") opens it directly on that view - used by the error` && |\n| &&
-             `      // popup's Details action; defaults to where the developer left off.` && |\n| &&
              `      async show(initialTab) {` && |\n| &&
-             `        // Guard against double-clicks while the fragment is still loading.` && |\n| &&
              `        if (this._showPending) return;` && |\n| &&
              `        this._showPending = true;` && |\n| &&
              `        try {` && |\n| &&
@@ -551,16 +392,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `              id: FRAGMENT_ID,` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
-             `          // If the user closed the app while the fragment was loading we` && |\n| &&
-             `          // must throw the freshly created dialog away.` && |\n| &&
+             `` && |\n| &&
              `          if (Lib.isDestroyed(this)) {` && |\n| &&
              `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          // A caller-named view wins (the error popup's Details jumps to` && |\n| &&
-             `          // ERROR); otherwise reopen where the developer left off.` && |\n| &&
              `          const requested =` && |\n| &&
              `            typeof initialTab === "string" && initialTab` && |\n| &&
              `              ? initialTab` && |\n| &&
@@ -568,11 +406,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `          const appName = AbapSource.appName();` && |\n| &&
              `          const oModel = new JSONModel({` && |\n| &&
-             `            // The dialog title always names the app the tools are looking` && |\n| &&
-             `            // at - every view below shows that app's data, and after a` && |\n| &&
-             `            // navigation the previous app's name is the first thing that` && |\n| &&
-             `            // would mislead. Assembled here rather than as an expression` && |\n| &&
-             `            // binding in the fragment (AGENTS.md rule 13).` && |\n| &&
              `            title: appName` && |\n| &&
              `              ? ``abap2UI5 - Developer Tools - ${appName}``` && |\n| &&
              `              : "abap2UI5 - Developer Tools",` && |\n| &&
@@ -591,13 +424,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            isErrorView: false,` && |\n| &&
              `            isSourceView: false,` && |\n| &&
              `            hasRetry: false,` && |\n| &&
-             `            canApply: false,` && |\n| &&
+             `            canApply: false,` && |\n|.
+    result = result &&
              `            isTemplating: false,` && |\n| &&
              `            templatingSource: false,` && |\n| &&
              `            statusText: "",` && |\n| &&
              `            hasStatusText: false,` && |\n| &&
-             `            // The count badge on the Problems tab: the reason to look` && |\n| &&
-             `            // there at all, visible without opening it.` && |\n| &&
+             `` && |\n| &&
              `            problemCount: this.problemCount(),` && |\n| &&
              `            recordPayloads: Recorder.isRecordingPayloads(),` && |\n| &&
              `            openOnError: Console.isAlertOnError(),` && |\n| &&
@@ -620,10 +453,6 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // What the Problems tab badge shows: a fatal error counts, and so` && |\n| &&
-             `      // does anything the log captured at error level. "" hides the badge` && |\n| &&
-             `      // - IconTabFilter renders a "0" otherwise, which reads as a problem` && |\n| &&
-             `      // in itself.` && |\n| &&
              `      problemCount() {` && |\n| &&
              `        const errors = (AppState.state.errors || []).length;` && |\n| &&
              `        const total = errors + (AppState.state.lastError ? 1 : 0);` && |\n| &&
@@ -632,27 +461,14 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      close() {` && |\n| &&
              `        if (!this.oDialog || !this.oDialog.isOpen()) return;` && |\n| &&
-             `        // When the dialog was opened from the error popup's Details` && |\n| &&
-             `        // action, closing it (Close or Escape) re-shows that popup so the` && |\n| &&
-             `        // user never ends up on the dismissed, broken app.` && |\n| &&
+             `` && |\n| &&
              `        const reopenError = this.reopenErrorOnClose;` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
-             `        // Keep the dialog (and its fragment controls, e.g. the` && |\n| &&
-             `        // CodeEditor) and reuse it on the next show(). Destroying and` && |\n| &&
-             `        // re-loading the fragment each time raced the close animation on` && |\n| &&
-             `        // older UI5 (1.71): the CodeEditor's fragment-scoped id survived` && |\n| &&
-             `        // long enough that the reload threw "adding element with` && |\n| &&
-             `        // duplicate id 'z2ui5DeveloperTools--developerToolsEditor'". The` && |\n| &&
-             `        // instance is destroyed once in exit() when the control itself` && |\n| &&
-             `        // goes away.` && |\n| &&
+             `` && |\n| &&
              `        this.oDialog.close();` && |\n| &&
              `        if (reopenError) ErrorView.reopenErrorDialog();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // The dialog is not an aggregation of this control, so destroy()` && |\n| &&
-             `      // alone would leave it (and its fragment controls) alive - clean it` && |\n| &&
-             `      // up when the control is destroyed (Component.exit). Never re-show` && |\n| &&
-             `      // the error popup while the app itself is being torn down.` && |\n| &&
              `      exit() {` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
              `        clearTimeout(this._statusTimer);` && |\n| &&
@@ -671,15 +487,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // The control itself renders nothing - it just provides the dialog` && |\n| &&
-             `      // API.` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
-             `    // The lifecycle around this control - creation, the Ctrl+F12` && |\n| &&
-             `    // shortcut, auto open and teardown - belongs to` && |\n| &&
-             `    // devtools/DevTools.js, which is the single entry point the framework` && |\n| &&
-             `    // calls. This module is only the dialog.` && |\n| &&
              `    return DeveloperTools;` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

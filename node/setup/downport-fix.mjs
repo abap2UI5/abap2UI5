@@ -17,11 +17,15 @@
  *   node node/setup/downport-fix.mjs syfixes
  *   node node/setup/downport-fix.mjs strip-trailing-ws
  *   node node/setup/downport-fix.mjs abaplint-path
+ *   node node/setup/downport-fix.mjs downport-config
+ *   node node/setup/downport-fix.mjs copy-src
+ *   node node/setup/downport-fix.mjs prepare-transpile
  */
-import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "url";
+import { readFileSync, writeFileSync, readdirSync, rmSync, cpSync } from "node:fs";
 import { join } from "node:path";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const DOWNPORT = join(ROOT, "node", "downport");
 
 function abapFiles(dir) {
@@ -86,6 +90,45 @@ const MODES = {
     }
     writeFileSync(file, after);
     console.log("abaplint-path: abaplint.jsonc glob rewritten to /src/**/*.*");
+  },
+
+  /* The remaining shell one-liners of the downport pipeline, for the same
+   * reason as the three modes above: `sed`, `rm -rf` and `cp -r` in
+   * package.json are what kept `npm run downport` (and with it `verify`)
+   * Linux-only. */
+
+  /* Derive the gitignored downport_run.jsonc from abap_702.jsonc: same
+   * rules, globs retargeted from src/ at node/downport/. Was a sed. */
+  "downport-config": () => {
+    const src = readFileSync(join(ROOT, ".github", "abaplint", "abap_702.jsonc"), "utf8");
+    const out = src.replaceAll("/../../src/", "/../../node/downport/");
+    writeFileSync(join(ROOT, ".github", "abaplint", "downport_run.jsonc"), out);
+    console.log("downport-config: downport_run.jsonc written");
+  },
+
+  /* Fresh copy of src/ into node/downport/. Was `rm -rf && cp -r`. */
+  "copy-src": () => {
+    rmSync(DOWNPORT, { recursive: true, force: true });
+    cpSync(join(ROOT, "src"), DOWNPORT, { recursive: true });
+    console.log("copy-src: src/ copied to node/downport/");
+  },
+
+  /* Clear node/output/ and drop the test-server sources into the downport
+   * tree so the transpiler folds them in. Was `rm -rf && cp`. */
+  "prepare-transpile": () => {
+    rmSync(join(ROOT, "node", "output"), { recursive: true, force: true });
+    let copied = 0;
+    for (const entry of readdirSync(join(ROOT, "node", "srv"))) {
+      if (entry.endsWith(".abap") || entry.endsWith(".clas.xml")) {
+        cpSync(join(ROOT, "node", "srv", entry), join(DOWNPORT, entry));
+        copied += 1;
+      }
+    }
+    if (copied === 0) {
+      console.error("prepare-transpile: no .abap/.clas.xml found in node/srv - nothing to fold in");
+      process.exit(1);
+    }
+    console.log(`prepare-transpile: node/output cleared, ${copied} node/srv file(s) copied`);
   },
 };
 

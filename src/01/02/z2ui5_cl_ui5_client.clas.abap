@@ -418,8 +418,11 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
             li_omit = NEW lcl_empty_filter_keep_rows( ).
           ENDIF.
           IF li_filter IS BOUND.
-            li_filter = z2ui5_cl_ajson_filter_lib=>create_and_filter(
-                            VALUE #( ( li_filter ) ( li_omit ) ) ).
+            " NOT the vendored create_and_filter: its class is not
+            " serializable and the combined ref ends up in the draft -
+            " see the local class
+            li_filter = NEW lcl_and_filter( ii_first  = li_filter
+                                            ii_second = li_omit ).
           ELSE.
             li_filter = li_omit.
           ENDIF.

@@ -122,7 +122,13 @@ sap.ui.define(
           Lib.runCallbacks(AppState.state.onAfterRendering);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
-          Server.responseError(e, "Unexpected Error Occurred - App Terminated");
+          // Server decides which overlay this failure gets: a view that could
+          // not load a sap.com module on openui5 shows the SDK hint, anything
+          // else the fatal overlay (see Server.showRenderError).
+          Server.showRenderError(
+            e,
+            "Unexpected Error Occurred - App Terminated",
+          );
         } finally {
           BusyIndicator.hide();
           AppState.state.isBusy = false;
@@ -329,6 +335,10 @@ sap.ui.define(
         oBody.ARGUMENTS = Lib.normalizeEventArgs(args);
 
         Server.roundtrip(oBody);
+        // "after roundtrip" means AFTER THE DISPATCH, not after the
+        // response: readHttp is fire-and-forget, so these callbacks run
+        // synchronously once the request went out. A hook that needs the
+        // response or the re-rendered view belongs on onAfterRendering.
         Lib.runCallbacks(AppState.state.onAfterRoundtrip);
       },
 
