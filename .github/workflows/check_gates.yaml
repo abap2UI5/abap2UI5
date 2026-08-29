@@ -67,8 +67,13 @@ jobs:
       - name: src/99 production code is frozen
         if: ${{ !cancelled() }}
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # on push: main the pull_request context is empty and the gate's
+          # origin/main...HEAD fallback diffs nothing (HEAD IS origin/main) -
+          # event.before/github.sha make the merge commit itself the range,
+          # so the push leg actually checks what this workflow's header
+          # promises it checks
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: node .github/scripts/frozen-paths-gate.mjs # npm run check:frozen
 
       # the 23 utility symbols that exist only because src/99 still calls them.
@@ -85,6 +90,22 @@ jobs:
       - name: src/ is clean under the extended check (SLIN / ATC)
         if: ${{ !cancelled() }}
         run: node .github/scripts/extended-check-gate.mjs # npm run check:atc
+
+      # a test class reading PRIVATE/PROTECTED members without LOCAL FRIENDS
+      # compiles here (the transpiler ignores visibility) and fails to
+      # activate in a real system. Plain Node over the working tree - it ran
+      # in abaplint.yaml behind the npm wrapper and a deps install it never
+      # needed, which is what this job exists to avoid
+      - name: test classes reach their subject legally
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/testclass-visibility-gate.mjs # npm run check_visibility
+
+      # a library named in abap_transpile.json without a sha pin in
+      # fetch-deps.mjs is cloned at floating HEAD - the silent state
+      # fetch-deps exists to rule out
+      - name: every transpiler library is pinned
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/transpile-pins-gate.mjs # npm run check:pins
 
       # one top-level catch renders the whole `previous` chain into the 500
       # body; a raise that inlines get_text( ) into its own message flattens

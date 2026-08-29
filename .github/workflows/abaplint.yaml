@@ -43,11 +43,6 @@ jobs:
 
       # Visibility of the class under test: abaplint does not check it and the
       # transpiler ignores it, so a missing LOCAL FRIENDS only shows up when
-      # the class pool is activated in a real system.
-      - name: Test classes reach their subject legally
-        if: ${{ !cancelled() }}
-        run: npm run check_visibility
-
       - name: ABAP Cloud
         if: ${{ !cancelled() }}
         run: npm run check:cloud

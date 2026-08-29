@@ -21,6 +21,12 @@
 // Run: node .github/scripts/assertion-gate.mjs
 
 import { globSync, readFileSync } from "fs";
+import { join } from "path";
+import { fileURLToPath } from "url";
+
+// cwd-independent on purpose: run from anywhere, this gate used to answer
+// "0 methods, all assert" from a foreign cwd - success over zero files
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const SKIP = [/^src\/00\/01\//, /^src\/00\/02\//, /^src\/99\//];
 
@@ -59,9 +65,9 @@ function bodiesOf(source) {
 const findings = [];
 let checked = 0;
 
-for (const file of globSync("src/**/*.testclasses.abap").sort()) {
+for (const file of globSync(join(ROOT, "src/**/*.testclasses.abap")).map((f) => f.slice(ROOT.length)).sort()) {
   if (SKIP.some((rx) => rx.test(file))) continue;
-  const source = readFileSync(file, "utf8");
+  const source = readFileSync(join(ROOT, file), "utf8");
   const tests = testMethodNames(source);
   const bodies = bodiesOf(source);
   for (const name of tests) {
@@ -84,6 +90,14 @@ if (findings.length) {
     "\nA test that only calls the code proves it does not dump, which is not what its name says."
     + "\nAssert the outcome, or delete the method - a passing report should mean something.",
   );
+  process.exit(1);
+}
+
+// a floor, not a formality: zero checked methods means the glob found
+// nothing (wrong tree, broken pattern), and success over nothing is the
+// worse answer - same reasoning as lib/abap-scan.mjs
+if (checked === 0) {
+  console.error("assertion gate: no FOR TESTING methods found - nothing was checked");
   process.exit(1);
 }
 

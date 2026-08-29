@@ -43,10 +43,15 @@ const problems = [];
 const notes = [];
 let checked = 0;
 
+/* All reads in flight at once - the loop below consumes settled results in
+ * list order, so the report stays deterministic. Awaiting inside the loop
+ * made this gate's runtime the SUM of the round trips. */
+const prefetch = new Map(REPOS.map((entry) => [entry, read(entry, 'package.json')]));
+
 for (const entry of REPOS) {
   const { repo } = entry;
 
-  const pkg = await read(entry, 'package.json');
+  const pkg = await prefetch.get(entry);
   if (pkg.note) { notes.push(`${repo}: not checked (${pkg.note})`); continue; }
   if (pkg.missing) {
     problems.push(`${repo}: no package.json (read from ${pkg.from})`

@@ -43,6 +43,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+import { read as ecoRead, REPOS } from './lib-ecosystem.mjs';
+
+const repoEntry = (name) => REPOS.find((e) => e.org === 'abap2UI5' && e.repo === name);
 
 /* How to read the truth out of each corpus repository.
  *
@@ -111,31 +114,28 @@ const CLAIMS = [
   },
 ];
 
-const raw = (repo, file) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/${file}`;
-
 const problems = [];
 const notes = [];
 
 /* Resolve each corpus once — several claims share one metric. */
 const truth = {};
 for (const [metric, spec] of Object.entries(CORPORA)) {
-  const local = path.join(ROOT, '..', spec.repo, spec.file);
+  /* lib-ecosystem.read - a catalogue file DELETED upstream is a finding
+   * (the count quoted here then points at nothing), not a skipped note;
+   * an unreachable repository stays a note. See shared-file-gate. */
   let text;
   let from;
-
-  if (fs.existsSync(local)) {
-    text = fs.readFileSync(local, 'utf8');
-    from = 'checkout';
+  const entry = repoEntry(spec.repo);
+  const got = entry ? await ecoRead(entry, spec.file) : { note: 'not on the ecosystem list' };
+  if (got.text !== undefined) {
+    text = got.text;
+    from = got.from;
+  } else if (got.missing) {
+    problems.push(`${metric}: ${spec.repo}/${spec.file} is gone upstream - the counts quoted here point at nothing`);
+    continue;
   } else {
-    try {
-      const res = await fetch(raw(spec.repo, spec.file), { signal: AbortSignal.timeout(15000) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      text = await res.text();
-      from = 'github';
-    } catch (err) {
-      notes.push(`${metric}: not resolved (${err.message})`);
-      continue;
-    }
+    notes.push(`${metric}: not resolved (${got.note})`);
+    continue;
   }
 
   const value = spec.read(text);

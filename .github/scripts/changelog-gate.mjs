@@ -32,10 +32,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+import { read as ecoRead, REPOS } from './lib-ecosystem.mjs';
 
 const DOCS_REPO = 'docs';
 const DOCS_FILE = 'docs/resources/changelog.md';
-const RAW = `https://raw.githubusercontent.com/abap2UI5/${DOCS_REPO}/main/${DOCS_FILE}`;
 
 /* changelog.txt: "2026-08-16 v1.143.0" followed by an underline of dashes. */
 const readChangelogTxt = (text) => {
@@ -73,22 +73,22 @@ if (ours.size === 0) {
   process.exit(1);
 }
 
+/* lib-ecosystem.read - the release-notes page DELETED upstream is a
+ * finding (the two documents can then disagree about the facts with nobody
+ * noticing), not a silent pass; an unreachable repository stays one. */
 let docsText = null;
 let from = '';
-const sibling = path.join(ROOT, '..', DOCS_REPO, DOCS_FILE);
-if (fs.existsSync(sibling)) {
-  docsText = fs.readFileSync(sibling, 'utf8');
-  from = 'checkout';
+const docsEntry = REPOS.find((e) => e.org === 'abap2UI5' && e.repo === DOCS_REPO);
+const got = await ecoRead(docsEntry, DOCS_FILE);
+if (got.text !== undefined) {
+  docsText = got.text;
+  from = got.from;
+} else if (got.missing) {
+  console.error(`changelog-gate: abap2UI5/${DOCS_REPO}/${DOCS_FILE} is gone upstream - the release-notes page this changelog is held to no longer exists`);
+  process.exit(1);
 } else {
-  try {
-    const res = await fetch(RAW, { signal: AbortSignal.timeout(15000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    docsText = await res.text();
-    from = 'github';
-  } catch (err) {
-    console.log(`changelog-gate: ${ours.size} release(s) here; abap2UI5/${DOCS_REPO} not reachable (${err.message}) - not compared`);
-    process.exit(0);
-  }
+  console.log(`changelog-gate: ${ours.size} release(s) here; abap2UI5/${DOCS_REPO} not reachable (${got.note}) - not compared`);
+  process.exit(0);
 }
 
 const theirs = readDocsPage(docsText);

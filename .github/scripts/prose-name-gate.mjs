@@ -18,10 +18,11 @@
 // AGENTS.md states the principle this implements: prose is a request, a gate is
 // a guarantee. Prose that names the code is code enough to check.
 
+import { fileURLToPath } from "url";
 import { readdirSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 // Where prose lives. Not src/ - that is dynamic-name-gate's job and it reads
 // ABAP, not markdown.
