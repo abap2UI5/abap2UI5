@@ -17,6 +17,10 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
         status_reason TYPE string,
       END OF ty_s_http_res.
 
+    " NO caller in this repository (client_call included) - this pair is
+    " outbound-HTTP utility surface vendored from abap-util for APP code and
+    " kept in the catalog sync. If a revision of the vendored copy drops
+    " unused methods, these two go together
     CLASS-METHODS client_create
       IMPORTING
         !destination  TYPE clike OPTIONAL
@@ -247,6 +251,18 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
             OTHERS = 1.
 
       CATCH cx_root INTO DATA(x).
+        " CLOSE on the failure path too: every throw between client_create
+        " and the success-path CLOSE above (a failing dynamic GET_CDATA /
+        " GET_STATUS, the RESPONSE assign) used to leave the ICM connection
+        " open for the lifetime of the work process
+        IF lo_client IS BOUND.
+          TRY.
+              CALL METHOD lo_client->(`CLOSE`)
+                EXCEPTIONS
+                  OTHERS = 1.
+            CATCH cx_root ##NO_HANDLER.
+          ENDTRY.
+        ENDIF.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.

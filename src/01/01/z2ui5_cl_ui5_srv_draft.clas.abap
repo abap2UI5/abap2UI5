@@ -99,6 +99,20 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
                                  timestampl        = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
                                  data              = model_xml ).
 
+    " MODIFY is an upsert on the key - guard the write the same way the read
+    " side is guarded: a row another user owns must not be overwritable by
+    " re-using its id (defense in depth; on the legitimate paths the id is
+    " always a fresh uuid, so this SELECT hits an empty row). Blank-owner
+    " legacy rows stay writable during the upgrade transition, like on the
+    " read side
+    SELECT SINGLE uname FROM z2ui5_t_01
+      WHERE id = @ls_db-id
+      INTO @DATA(lv_owner).
+    IF sy-subrc = 0 AND lv_owner IS NOT INITIAL AND lv_owner <> sy-uname.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
+    ENDIF.
+
     MODIFY z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -138,6 +152,11 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " bookmark id falls through to a fresh app start instead of erroring.
     " Legacy rows written before the UNAME column existed carry a blank owner
     " and stay readable during the upgrade transition (they expire in hours).
+    " REMOVAL CONDITION for the blank-owner tolerance (here, check_exists and
+    " count_entries): one release after every installation has passed a
+    " draft-expiry window on a version that writes UNAME - create( ) always
+    " fills it, so no new blank row can appear and cleanup( ) drains the old
+    " ones. Nothing enforces the date; this note is what keeps it findable
     IF result-uname IS NOT INITIAL AND result-uname <> sy-uname.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.

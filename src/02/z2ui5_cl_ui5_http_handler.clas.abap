@@ -62,6 +62,9 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
+    " NO caller in this repository - public API kept for app code that reads
+    " the raw request outside a roundtrip (rule 5 guards the signature).
+    " Candidate for the next deliberate API revision if it stays unused
     CLASS-METHODS get_request
       IMPORTING
         server        TYPE REF TO object OPTIONAL
@@ -134,6 +137,17 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    " minimal HTML-attribute escaping for the exit-supplied values the GET
+    " page interpolates into attribute positions (theme, src, t_add_config).
+    " An exit deriving one of them from the request (t_params reaches it) is
+    " otherwise a quote-breakout into the bootstrap script tag. The CSP value
+    " stays raw on purpose - it is a whole meta TAG, not an attribute
+    CLASS-METHODS _attr_escape
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -157,8 +171,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     CASE ms_req-method.
       WHEN `HEAD`.
+        " the session-terminate ping from the frontend (core/Server.js
+        " endSession). It used to RETURN before set_response( ), which sent
+        " the reply with status code 0 and none of the security headers -
+        " the exact state the WHEN OTHERS branch of set_response documents
+        " as the thing to prevent. An empty 200 through the normal tail
+        " keeps status and headers consistent with every other reply
         mo_server->set_session_stateful( 0 ).
-        RETURN.
+        ms_res = VALUE #( status_code   = 200
+                          status_reason = `OK` ).
       WHEN `POST`.
         " CSRF gate: only a POST can change state, so the check lives here.
         " Reading the config every POST is cheap (get_instance is cached);
@@ -168,10 +189,22 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
+        " behind a reverse proxy / web dispatcher that rewrites Host to the
+        " internal name, Origin still carries the EXTERNAL one - comparing
+        " against Host would then 403 every legitimate POST. The proxy puts
+        " the external authority into X-Forwarded-Host; prefer it when
+        " present (first entry - each hop may append its own)
+        DATA(lv_host) = mo_server->get_header_field( `x-forwarded-host` ).
+        IF lv_host IS INITIAL.
+          lv_host = mo_server->get_header_field( `host` ).
+        ELSE.
+          SPLIT lv_host AT `,` INTO lv_host DATA(lv_rest_hosts) ##NEEDED.
+        ENDIF.
+
         IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
                                  origin  = mo_server->get_header_field( `origin` )
                                  referer = mo_server->get_header_field( `referer` )
-                                 host    = mo_server->get_header_field( `host` ) ) = abap_true.
+                                 host    = lv_host ) = abap_true.
           ms_res = VALUE #( body          = `CSRF validation failed - cross-origin POST rejected`
                             status_code   = 403
                             status_reason = `Forbidden` ).
@@ -226,6 +259,32 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     SPLIT lv_val AT `#` INTO lv_val lv_rest.
 
     result = lv_val.
+
+  ENDMETHOD.
+
+  METHOD _attr_escape.
+
+    result = val.
+    " the common value carries none of these - skip the four copies then
+    IF result NA `&<"'`.
+      RETURN.
+    ENDIF.
+    result = replace( val  = result
+                      sub  = `&`
+                      with = `&amp;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `<`
+                      with = `&lt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `&quot;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `&#39;`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
@@ -339,11 +398,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |</script>\n| &&
                   |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./" \}' data-sap-ui-oninit="onInitComponent" \n| &&
                   |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
-                  |data-sap-ui-theme="{ ls_config-theme }" src="{ ls_config-src }"|.
+                  |data-sap-ui-theme="{ _attr_escape( ls_config-theme ) }" src="{ _attr_escape( ls_config-src ) }"|.
 
+    " built apart and appended once: result-body already carries the whole
+    " embedded preload here, so appending per config row re-copied ~400KB
+    " per entry. Name and value are both escaped - see _attr_escape
+    DATA(lv_add_config) = ``.
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
-      result-body = |{ result-body } { lr_config->n }='{ lr_config->v }'|.
+      lv_add_config = |{ lv_add_config } { _attr_escape( lr_config->n ) }='{ _attr_escape( lr_config->v ) }'|.
     ENDLOOP.
+    result-body = result-body && lv_add_config.
 
     result-body = result-body &&
                   | ></script></head>\n| &&

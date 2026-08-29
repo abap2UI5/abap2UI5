@@ -111,6 +111,11 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
+    " the character set xml_escape guards against, concatenated once per
+    " roll area instead of once per attribute (three CLASS-DATA reads and a
+    " template per call otherwise). Lazily filled on first use - a public
+    " class_constructor is the alternative and abap-check names it a trap
+    CLASS-DATA gv_escape_specials TYPE string.
 ENDCLASS.
 
 
@@ -206,10 +211,14 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     ENDIF.
 
     DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
-    DATA(attrs) = ``.
+    " same table-then-concat form as the children above, same reason: the
+    " template accumulator re-copied every attribute rendered so far on
+    " each further one, quadratic on attribute-heavy elements
+    DATA lt_attr TYPE string_table.
     LOOP AT t_pair INTO DATA(pair).
-      attrs = |{ attrs } { pair-n }="{ xml_escape( pair-v ) }"|.
+      INSERT | { pair-n }="{ xml_escape( pair-v ) }"| INTO TABLE lt_attr.
     ENDLOOP.
+    DATA(attrs) = concat_lines_of( lt_attr ).
 
     IF t_child IS INITIAL.
       result = |<{ qname }{ attrs }/>|.
@@ -227,11 +236,13 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " character is the COMMON case - that made every attribute value pay for
     " seven full copies. A value that does carry one still runs all seven
     " replaces below, unchanged
-    DATA(lv_specials) = `&<>"`
-        && z2ui5_cl_ui5_util_context=>cv_char_util_newline
-        && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
-        && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
-    IF val NA lv_specials.
+    IF gv_escape_specials IS INITIAL.
+      gv_escape_specials = `&<>"`
+          && z2ui5_cl_ui5_util_context=>cv_char_util_newline
+          && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
+          && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+    ENDIF.
+    IF val NA gv_escape_specials.
       result = val.
       RETURN.
     ENDIF.

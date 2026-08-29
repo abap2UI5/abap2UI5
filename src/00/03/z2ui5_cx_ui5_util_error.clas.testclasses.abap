@@ -7,6 +7,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_raise_with_prev   FOR TESTING RAISING cx_static_check.
     METHODS test_raise_with_cx     FOR TESTING RAISING cx_static_check.
     METHODS test_uuid_populated    FOR TESTING RAISING cx_static_check.
+    METHODS test_structured_val_no_dump FOR TESTING RAISING cx_static_check.
     METHODS test_chain_texts       FOR TESTING RAISING cx_static_check.
     METHODS test_cause_kept_by_val FOR TESTING RAISING cx_static_check.
     METHODS test_no_duplicate_text FOR TESTING RAISING cx_static_check.
@@ -38,7 +39,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error.
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
         cl_abap_unit_assert=>assert_bound( lx ).
-        cl_abap_unit_assert=>assert_not_initial( lx->ms_error-uuid ).
         " never an empty text - it would end up as a blank 500 body
         cl_abap_unit_assert=>assert_equals( exp = `UNKNOWN_ERROR`
                                             act = lx->get_text( ) ).
@@ -87,9 +87,40 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = `test`.
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        " lazy on purpose: the uuid's only reader is the 500-body renderer,
+        " so a raise that never reaches the top-level catch pays no dynamic
+        " uuid call - it is filled on first render
+        cl_abap_unit_assert=>assert_initial( lx->ms_error-uuid ).
+        DATA(lv_text) = z2ui5_cx_ui5_util_error=>get_text_full( lx ).
         cl_abap_unit_assert=>assert_not_initial( lx->ms_error-uuid ).
         cl_abap_unit_assert=>assert_equals( exp = 32
                                             act = strlen( lx->ms_error-uuid ) ).
+        cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS lx->ms_error-uuid ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_structured_val_no_dump.
+
+    " a caller may hand ANYTHING as val - a structure or a table must not
+    " crash the constructor itself (the MOVE to the text field sits inside
+    " a CATCH block, where a conversion error is not caught by its own
+    " TRY). The value degrades to the UNKNOWN_ERROR fallback instead
+    TYPES:
+      BEGIN OF ty_s_probe,
+        a TYPE i,
+        b TYPE string,
+      END OF ty_s_probe.
+    DATA ls_probe TYPE ty_s_probe.
+    ls_probe-a = 1.
+    ls_probe-b = `not printable as a whole`.
+
+    TRY.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING val = ls_probe.
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_equals( exp = `UNKNOWN_ERROR`
+                                            act = lx->get_text( ) ).
     ENDTRY.
 
   ENDMETHOD.
