@@ -488,6 +488,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_get_val_ref.
 
+    " The dynamic ASSIGN below is resolved FRESH on every call, on purpose -
+    " do not cache the returned references (maintainer decision, 2026-08).
+    " The name->ref mapping is not stable enough to cache: apps create and
+    " re-point REF TO data attributes at runtime, dissolve( ) rebuilds
+    " mt_attri, and app code in main( ) may swap a dref target between any
+    " two calls. A cached reference then points at the old, detached data
+    " object and fails SILENTLY - the bind reads or writes a copy, values go
+    " stale without an exception, and that class of defect has only ever
+    " been found by users on real systems (see #1937 for how differently
+    " ASSIGN behaves across releases). The repeated dynamic ASSIGNs are the
+    " price of staying correct; O(n) work per roundtrip is the cheap side
+    " of that trade.
     FIELD-SYMBOLS <attri> TYPE any.
 
     IF iv_path IS INITIAL.
@@ -690,6 +702,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD attri_update_entry_refs.
+
+    " The nested loops below resolve every reference through
+    " attri_get_val_ref( ) - a dynamic ASSIGN per lookup, up to O(n^2) of
+    " them per roundtrip. That cost is deliberate: see the comment in
+    " attri_get_val_ref for why a name->ref cache here goes stale silently
+    " (runtime-created attributes, refs re-pointed between roundtrips) and
+    " must not be introduced.
 
     " Declared once at method level: both CASE branches below fill and read
     " these, so an inline DATA(...) in only the first branch would read as if
