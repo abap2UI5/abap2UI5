@@ -21,6 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
+| [`linter-event-arg-shorthand`](items/linter-event-arg-shorthand.md) | 187 false positives across 125 of 637 ported classes the moment the corpus adopts the one-value shorthand — the rule extracts arguments from `t_arg = VALUE #( )` alone and has no case for `arg` | high | 2026-08-29 | abap2UI5/linter |
 | [`navcontainer-position-not-reissued`](items/navcontainer-position-not-reissued.md) | `control-state-lost-on-rebuild` judges only `set…( )` wires, so the containers whose position is moved by a NAVIGATION call (`to`, `backToPage`, `toDetail`, `toMaster`) are structurally outside it - and there the discriminator is not "the value is non-literal" but "a surviving bound field names a page id of that container" | medium | 2026-08-26 | abap2UI5/linter |
 
 ---
