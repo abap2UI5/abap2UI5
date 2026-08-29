@@ -66,7 +66,7 @@ sap.ui.define(
         dirtyControls.delete(this);
         this._applyDirtyState();
       },
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
     });
   },
 );

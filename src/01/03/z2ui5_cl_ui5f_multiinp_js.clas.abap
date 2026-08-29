@@ -90,18 +90,17 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        this._setControlBound = this.setControl.bind(this);` && |\n| &&
-             `        Lib.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
-             `        Lib.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        this._unhook();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onTokenUpdate(oEvent) {` && |\n| &&
              `        Lib.applyTokenUpdate(this, oEvent);` && |\n| &&
              `        this.fireChange();` && |\n| &&
              `      },` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `      // one suggestion row -> one Token, or null when this instance was not` && |\n| &&
              `      // configured for rows (which is what MultiInput expects for "no token")` && |\n| &&
              `      tokenFromRow(row) {` && |\n| &&
@@ -140,6 +139,9 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `        });` && |\n| &&
              `      },` && |\n| &&
              `      setControl() {` && |\n| &&
+             `        // Once claimed there is nothing left to do - skip the target lookup` && |\n| &&
+             `        // (byIdOfOwner walks the parent chain on every roundtrip) entirely.` && |\n| &&
+             `        if (this.getProperty("checkInit")) return;` && |\n| &&
              `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
              `          this,` && |\n| &&
              `          this.getProperty("MultiInputId"),` && |\n| &&

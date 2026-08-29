@@ -65,14 +65,13 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        this._setControlBound = this.setControl.bind(this);` && |\n| &&
              `        this._oInput = null;` && |\n| &&
              `        this._aPendingInnerControlsCreated = [];` && |\n| &&
              `        this._bInnerControlsCreated = false;` && |\n| &&
-             `        Lib.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
-             `        Lib.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        this._unhook();` && |\n| &&
              `        // Resolve any still-pending promises so awaiters don't hang.` && |\n| &&
              `        this._aPendingInnerControlsCreated.forEach((resolve) => resolve(null));` && |\n| &&
              `        this._aPendingInnerControlsCreated = [];` && |\n| &&
@@ -137,8 +136,11 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `          Lib.logError("SmartMultiInputExt.setRangeData failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `      setControl() {` && |\n| &&
+             `        // Once claimed there is nothing left to do - skip the target lookup` && |\n| &&
+             `        // (byIdOfOwner walks the parent chain on every roundtrip) entirely.` && |\n| &&
+             `        if (this.getProperty("checkInit")) return;` && |\n| &&
              `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
              `          this,` && |\n| &&
              `          this.getProperty("multiInputId"),` && |\n| &&

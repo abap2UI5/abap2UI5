@@ -58,7 +58,7 @@ CLASS z2ui5_cl_ui5f_favicon_js IMPLEMENTATION.
              `      link.href = href;` && |\n| &&
              `      document.head.appendChild(link);` && |\n| &&
              `    },` && |\n| &&
-             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `    renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

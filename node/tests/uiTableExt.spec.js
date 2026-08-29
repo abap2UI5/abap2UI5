@@ -44,6 +44,11 @@ function load() {
     unregisterCallback: (name, fn) => {
       if (callbacks[name]) callbacks[name] = callbacks[name].filter((f) => f !== fn);
     },
+    hookCallback(owner, name, method) {
+      const bound = owner[method].bind(owner);
+      this.registerCallback(name, bound);
+      return () => this.unregisterCallback(name, bound);
+    },
     // Simulate an already-rendered control: run the work immediately.
     whenRendered: (_control, _owner, fn) => fn(),
   };

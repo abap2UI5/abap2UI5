@@ -673,7 +673,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      // The control itself renders nothing - it just provides the dialog` && |\n| &&
              `      // API.` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
              `    // The lifecycle around this control - creation, the Ctrl+F12` && |\n| &&

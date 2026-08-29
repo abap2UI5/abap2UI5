@@ -63,6 +63,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `core/Server.js` timeout handling | `serverTimeout.spec.js` | — |
 | `core/Server.js` request sequencing | `serverRequestSeq.spec.js` | — |
 | `core/Server.js` session-constant location cadence | `serverLocation.spec.js` | — |
+| `core/Server.js` error routing outside the inner handlers (`readHttp`'s outer catch, `showRenderError`) | `serverRenderError.spec.js` | — |
 | `core/Session.js` | `session.spec.js` | — |
 | `core/ScrollFocus.js` focus-info capture | `focusInfo.spec.js` | — |
 | `core/ScrollFocus.js` UI5-element resolution | `scrollFocus.spec.js` | incl. the pre-1.106 fallback for scroll/focus capture |

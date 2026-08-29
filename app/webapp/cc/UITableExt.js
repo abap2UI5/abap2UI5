@@ -25,21 +25,24 @@ sap.ui.define(
       },
 
       init() {
-        this._beforeBound = () => {
-          this.readFilter();
-          this.readSort();
-        };
-        this._afterBound = () => {
-          this.setFilter();
-          this.setSort();
-        };
-        Lib.registerCallback("onBeforeRoundtrip", this._beforeBound);
-        Lib.registerCallback("onAfterRoundtrip", this._afterBound);
+        this._unhooks = [
+          Lib.hookCallback(this, "onBeforeRoundtrip", "readBackend"),
+          Lib.hookCallback(this, "onAfterRoundtrip", "applyBackend"),
+        ];
       },
 
       exit() {
-        Lib.unregisterCallback("onBeforeRoundtrip", this._beforeBound);
-        Lib.unregisterCallback("onAfterRoundtrip", this._afterBound);
+        this._unhooks.forEach((unhook) => unhook());
+      },
+
+      readBackend() {
+        this.readFilter();
+        this.readSort();
+      },
+
+      applyBackend() {
+        this.setFilter();
+        this.setSort();
       },
 
       _getTable() {
@@ -196,7 +199,7 @@ sap.ui.define(
           "UITableExt.setSort failed",
         );
       },
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
     });
   },
 );

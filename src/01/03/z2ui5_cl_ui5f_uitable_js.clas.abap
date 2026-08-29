@@ -52,21 +52,24 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        this._beforeBound = () => {` && |\n| &&
-             `          this.readFilter();` && |\n| &&
-             `          this.readSort();` && |\n| &&
-             `        };` && |\n| &&
-             `        this._afterBound = () => {` && |\n| &&
-             `          this.setFilter();` && |\n| &&
-             `          this.setSort();` && |\n| &&
-             `        };` && |\n| &&
-             `        Lib.registerCallback("onBeforeRoundtrip", this._beforeBound);` && |\n| &&
-             `        Lib.registerCallback("onAfterRoundtrip", this._afterBound);` && |\n| &&
+             `        this._unhooks = [` && |\n| &&
+             `          Lib.hookCallback(this, "onBeforeRoundtrip", "readBackend"),` && |\n| &&
+             `          Lib.hookCallback(this, "onAfterRoundtrip", "applyBackend"),` && |\n| &&
+             `        ];` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      exit() {` && |\n| &&
-             `        Lib.unregisterCallback("onBeforeRoundtrip", this._beforeBound);` && |\n| &&
-             `        Lib.unregisterCallback("onAfterRoundtrip", this._afterBound);` && |\n| &&
+             `        this._unhooks.forEach((unhook) => unhook());` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      readBackend() {` && |\n| &&
+             `        this.readFilter();` && |\n| &&
+             `        this.readSort();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      applyBackend() {` && |\n| &&
+             `        this.setFilter();` && |\n| &&
+             `        this.setSort();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getTable() {` && |\n| &&
@@ -223,7 +226,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `          "UITableExt.setSort failed",` && |\n| &&
              `        );` && |\n| &&
              `      },` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

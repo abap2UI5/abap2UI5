@@ -93,7 +93,7 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `        dirtyControls.delete(this);` && |\n| &&
              `        this._applyDirtyState();` && |\n| &&
              `      },` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

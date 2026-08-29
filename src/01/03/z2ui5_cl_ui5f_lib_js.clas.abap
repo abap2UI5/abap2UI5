@@ -560,6 +560,22 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      oRm.close("span");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // The renderer of a companion control that renders NOTHING (not even a` && |\n| &&
+             `    // placeholder span - it lives outside the visible tree entirely). One` && |\n| &&
+             `    // shared spec instead of the same literal in every cc/ module; UI5 copies` && |\n| &&
+             `    // the spec into the control's own renderer class, so sharing is safe.` && |\n| &&
+             `    const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n| &&
+             `` && |\n| &&
+             `    // The init/exit pair every companion control repeats: register the bound` && |\n| &&
+             `    // hook method as a shared-state callback and hand back the unregister.` && |\n| &&
+             `    //   init() { this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl"); }` && |\n| &&
+             `    //   exit() { this._unhook(); }` && |\n| &&
+             `    function hookCallback(owner, callbackName, method) {` && |\n| &&
+             `      const bound = owner[method].bind(owner);` && |\n| &&
+             `      registerCallback(callbackName, bound);` && |\n| &&
+             `      return () => unregisterCallback(callbackName, bound);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Event arguments are whatever the UI5 expression grammar produced for` && |\n| &&
              `    // them. Most are strings or numbers, but a UI5 event parameter is quite` && |\n| &&
              `    // often a CONTROL or an ARRAY OF CONTROLS -` && |\n| &&
@@ -691,6 +707,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      isRootModelSlot,` && |\n| &&
              `      effectiveSizeLimit,` && |\n| &&
              `      renderInvisibleSpan,` && |\n| &&
+             `      EMPTY_RENDERER,` && |\n| &&
+             `      hookCallback,` && |\n| &&
              `      normalizeEventArgs,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

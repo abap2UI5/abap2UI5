@@ -29,6 +29,6 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
         Lib.logError("History.setSearch: replaceState failed", e);
       }
     },
-    renderer: { apiVersion: 2, render() {} },
+    renderer: Lib.EMPTY_RENDERER,
   });
 });

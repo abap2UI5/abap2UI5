@@ -38,14 +38,13 @@ sap.ui.define(
       },
 
       init() {
-        this._setControlBound = this.setControl.bind(this);
         this._oInput = null;
         this._aPendingInnerControlsCreated = [];
         this._bInnerControlsCreated = false;
-        Lib.registerCallback("onAfterRendering", this._setControlBound);
+        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");
       },
       exit() {
-        Lib.unregisterCallback("onAfterRendering", this._setControlBound);
+        this._unhook();
         // Resolve any still-pending promises so awaiters don't hang.
         this._aPendingInnerControlsCreated.forEach((resolve) => resolve(null));
         this._aPendingInnerControlsCreated = [];
@@ -110,8 +109,11 @@ sap.ui.define(
           Lib.logError("SmartMultiInputExt.setRangeData failed", e);
         }
       },
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
       setControl() {
+        // Once claimed there is nothing left to do - skip the target lookup
+        // (byIdOfOwner walks the parent chain on every roundtrip) entirely.
+        if (this.getProperty("checkInit")) return;
         const input = ViewSlots.byIdOfOwner(
           this,
           this.getProperty("multiInputId"),

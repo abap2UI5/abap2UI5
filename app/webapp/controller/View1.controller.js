@@ -122,7 +122,13 @@ sap.ui.define(
           Lib.runCallbacks(AppState.state.onAfterRendering);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
-          Server.responseError(e, "Unexpected Error Occurred - App Terminated");
+          // Server decides which overlay this failure gets: a view that could
+          // not load a sap.com module on openui5 shows the SDK hint, anything
+          // else the fatal overlay (see Server.showRenderError).
+          Server.showRenderError(
+            e,
+            "Unexpected Error Occurred - App Terminated",
+          );
         } finally {
           BusyIndicator.hide();
           AppState.state.isBusy = false;

@@ -78,11 +78,10 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        this._setControlBound = this.setControl.bind(this);` && |\n| &&
-             `        Lib.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
-             `        Lib.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        this._unhook();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _readFile(file) {` && |\n| &&
@@ -111,8 +110,11 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `        this.fireRemove();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `      setControl() {` && |\n| &&
+             `        // Once claimed there is nothing left to do - skip the target lookup` && |\n| &&
+             `        // (byIdOfOwner walks the parent chain on every roundtrip) entirely.` && |\n| &&
+             `        if (this.getProperty("checkInit")) return;` && |\n| &&
              `        const uploadSet = ViewSlots.byIdOfOwner(` && |\n| &&
              `          this,` && |\n| &&
              `          this.getProperty("uploadSetId"),` && |\n| &&

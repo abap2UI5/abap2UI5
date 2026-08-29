@@ -44,7 +44,7 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
              `      this.setProperty("title", val, true);` && |\n| &&
              `      document.title = Lib.toText(val);` && |\n| &&
              `    },` && |\n| &&
-             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `    renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

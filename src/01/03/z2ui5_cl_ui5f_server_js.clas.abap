@@ -427,6 +427,13 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            seq,` && |\n|.
     result = result &&
              `          );` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          // readHttp is fire-and-forget (roundtrip/onRetry never await it), so` && |\n| &&
+             `          // anything thrown between the inner try/catches - header handling,` && |\n| &&
+             `          // session bookkeeping, the success handler - would otherwise reject` && |\n| &&
+             `          // this promise silently: busy indicator spinning forever, no overlay.` && |\n| &&
+             `          // A superseded request stays silent; the newer one owns the outcome.` && |\n| &&
+             `          if (!isStale()) this.responseError(e);` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
@@ -463,17 +470,31 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          // nothing left to do. The request stamp rides along so the display` && |\n| &&
              `          // guards compare against THIS response's request, not whatever is` && |\n| &&
              `          // newest by the time processing starts.` && |\n| &&
-             `          oController._processAfterRendering(reqSeq);` && |\n| &&
+             `          // Awaited so a rejection that escapes _processAfterRendering (its` && |\n| &&
+             `          // own catch handles everything inside the try) still lands in the` && |\n| &&
+             `          // catch below instead of an unhandled rejection.` && |\n| &&
+             `          await oController._processAfterRendering(reqSeq);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          AppState.state.isBusy = false;` && |\n| &&
              `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
-             `          const msg = e.message || "";` && |\n| &&
-             `          if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
-             `            this._checkSDKcompatibility(e);` && |\n| &&
-             `          } else {` && |\n| &&
-             `            this.responseError(e);` && |\n| &&
-             `          }` && |\n| &&
+             `          this.showRenderError(e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Route a render/view-load failure to the right overlay: an openui5` && |\n| &&
+             `      // script-load error gets the SDK hint (_checkSDKcompatibility), every` && |\n| &&
+             `      // other failure the fatal-error overlay. Shared by the catch above and` && |\n| &&
+             `      // View1._processAfterRendering's catch - the render phase is where a` && |\n| &&
+             `      // view actually fails to load a sap.com module, so without this hook` && |\n| &&
+             `      // there the SDK hint was unreachable (View1 caught the error first and` && |\n| &&
+             `      // showed only the generic overlay).` && |\n| &&
+             `      showRenderError(e, title) {` && |\n| &&
+             `        const msg = e?.message || "";` && |\n| &&
+             `        if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
+             `          this._checkSDKcompatibility(e);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          this.responseError(e, title);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

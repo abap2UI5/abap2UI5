@@ -52,12 +52,15 @@ sap.ui.define(
       },
 
       init() {
-        this._setBackendBound = this.setBackend.bind(this);
-        Lib.registerCallback("onBeforeRoundtrip", this._setBackendBound);
+        this._unhook = Lib.hookCallback(
+          this,
+          "onBeforeRoundtrip",
+          "setBackend",
+        );
       },
 
       exit() {
-        Lib.unregisterCallback("onBeforeRoundtrip", this._setBackendBound);
+        this._unhook();
       },
 
       onAfterRendering() {

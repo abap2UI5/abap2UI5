@@ -149,7 +149,13 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          Lib.runCallbacks(AppState.state.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
-             `          Server.responseError(e, "Unexpected Error Occurred - App Terminated");` && |\n| &&
+             `          // Server decides which overlay this failure gets: a view that could` && |\n| &&
+             `          // not load a sap.com module on openui5 shows the SDK hint, anything` && |\n| &&
+             `          // else the fatal overlay (see Server.showRenderError).` && |\n| &&
+             `          Server.showRenderError(` && |\n| &&
+             `            e,` && |\n| &&
+             `            "Unexpected Error Occurred - App Terminated",` && |\n| &&
+             `          );` && |\n| &&
              `        } finally {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          AppState.state.isBusy = false;` && |\n| &&

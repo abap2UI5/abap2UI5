@@ -73,11 +73,10 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `        // own rows and never touches auto-collected validation messages.` && |\n| &&
              `        this._added = new Map();` && |\n| &&
              `        this._ready = false;` && |\n| &&
-             `        this._setupBound = this.setup.bind(this);` && |\n| &&
-             `        Lib.registerCallback("onAfterRendering", this._setupBound);` && |\n| &&
+             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setup");` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
-             `        Lib.unregisterCallback("onAfterRendering", this._setupBound);` && |\n| &&
+             `        this._unhook();` && |\n| &&
              `        // remove this control's own rows from the message model, otherwise a` && |\n| &&
              `        // full view rebuild leaves them behind and re-adds a duplicate set` && |\n| &&
              `        if (this._added.size && this._messaging) {` && |\n| &&
@@ -85,7 +84,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        this._added.clear();` && |\n| &&
              `      },` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `` && |\n| &&
              `      setup() {` && |\n| &&
              `        if (this.getProperty("checkInit")) return;` && |\n| &&

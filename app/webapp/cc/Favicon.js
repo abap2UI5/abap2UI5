@@ -31,6 +31,6 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       link.href = href;
       document.head.appendChild(link);
     },
-    renderer: { apiVersion: 2, render() {} },
+    renderer: Lib.EMPTY_RENDERER,
   });
 });

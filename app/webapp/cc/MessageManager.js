@@ -46,11 +46,10 @@ sap.ui.define(
         // own rows and never touches auto-collected validation messages.
         this._added = new Map();
         this._ready = false;
-        this._setupBound = this.setup.bind(this);
-        Lib.registerCallback("onAfterRendering", this._setupBound);
+        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setup");
       },
       exit() {
-        Lib.unregisterCallback("onAfterRendering", this._setupBound);
+        this._unhook();
         // remove this control's own rows from the message model, otherwise a
         // full view rebuild leaves them behind and re-adds a duplicate set
         if (this._added.size && this._messaging) {
@@ -58,7 +57,7 @@ sap.ui.define(
         }
         this._added.clear();
       },
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
 
       setup() {
         if (this.getProperty("checkInit")) return;

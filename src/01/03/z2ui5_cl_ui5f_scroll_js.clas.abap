@@ -93,12 +93,15 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
-             `        Lib.registerCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
+             `        this._unhook = Lib.hookCallback(` && |\n| &&
+             `          this,` && |\n| &&
+             `          "onBeforeRoundtrip",` && |\n| &&
+             `          "setBackend",` && |\n| &&
+             `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      exit() {` && |\n| &&
-             `        Lib.unregisterCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
+             `        this._unhook();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _restoreScrollPosition(item) {` && |\n| &&
