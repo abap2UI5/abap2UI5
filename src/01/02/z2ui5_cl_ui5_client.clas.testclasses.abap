@@ -35,6 +35,9 @@ CLASS ltcl_test_client DEFINITION FINAL
   PRIVATE SECTION.
     DATA mo_client TYPE REF TO z2ui5_cl_ui5_client.
     DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
+    " typed handle on the app instance - _bind( ) resolves its argument as an
+    " ATTRIBUTE of the running app, so a local variable cannot stand in
+    DATA mo_test_app TYPE REF TO ltcl_test_app.
 
     METHODS setup.
 
@@ -94,6 +97,10 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_omit_filters_serial  FOR TESTING RAISING cx_static_check.
     METHODS test_bind_filter_not_serial FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_db_save FOR TESTING RAISING cx_static_check.
+    METHODS test_event_arg_shorthand  FOR TESTING RAISING cx_static_check.
+    METHODS test_event_arg_appends    FOR TESTING RAISING cx_static_check.
+    METHODS test_event_arg_empty      FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_path_alias      FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_ui5_client DEFINITION LOCAL FRIENDS ltcl_test_client.
@@ -121,6 +128,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     lo_http = NEW #( val = `` ).
     mo_action = NEW #( val = lo_http ).
     lo_test_app = NEW #( ).
+    mo_test_app = lo_test_app.
     mo_action->mo_app->mo_app = lo_test_app.
     mo_action->mo_app->mv_check_initialized = abap_false.
     mo_client = NEW #( action = mo_action ).
@@ -787,6 +795,92 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `BUTTON_PRESS`
                                         act = li_client->get_event( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_event_arg_shorthand.
+
+    " the whole contract of arg: the shorthand and the hand-written table
+    " constructor produce the SAME wire, so nothing downstream - the handler,
+    " get_event_arg( ), the linter rules that read these wires - can tell
+    " which spelling an app used
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = li_client->_event( val   = `PRESSED`
+                                 t_arg = VALUE #( ( `${AUTHOR}` ) ) )
+        act = li_client->_event( val = `PRESSED` arg = `${AUTHOR}` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_event_arg_appends.
+
+    " both parameters supplied: arg lands BEHIND the t_arg rows. Documented
+    " composition rather than a guess between two readings - and asserted so
+    " it stays that and does not silently become "arg wins"
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = li_client->_event( val   = `PRESSED`
+                                 t_arg = VALUE #( ( `first` ) ( `second` ) ) )
+        act = li_client->_event( val   = `PRESSED`
+                                 t_arg = VALUE #( ( `first` ) )
+                                 arg   = `second` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_event_arg_empty.
+
+    " read with IS SUPPLIED, not IS NOT INITIAL: an argument passed as empty
+    " on purpose is a filled slot. Were it dropped, every following position
+    " would shift - the defect class this wire has produced before
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = li_client->_event( val   = `PRESSED`
+                                 t_arg = VALUE #( ( `` ) ) )
+        act = li_client->_event( val = `PRESSED` arg = `` ) ).
+
+    " and the parameter left out is not the same as passed empty
+    cl_abap_unit_assert=>assert_differs(
+        exp = li_client->_event( `PRESSED` )
+        act = li_client->_event( val = `PRESSED` arg = `` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_bind_path_alias.
+
+    " _bind_path( ) is _bind( path = abap_true ) and nothing else
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = li_client->_bind( val  = mo_test_app->mv_name
+                                path = abap_true )
+        act = li_client->_bind_path( mo_test_app->mv_name ) ).
+
+    " and it really is the PATH, not the value - otherwise the assertion
+    " above would also hold for two calls that both return the wrong thing
+    cl_abap_unit_assert=>assert_equals(
+        exp = `/MV_NAME`
+        act = li_client->_bind_path( mo_test_app->mv_name ) ).
+
+    " the braces are exactly the difference the flag makes - the value form
+    " of the same attribute wraps the path, the path form hands it over bare
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{/MV_NAME}`
+        act = li_client->_bind( mo_test_app->mv_name ) ).
 
   ENDMETHOD.
 

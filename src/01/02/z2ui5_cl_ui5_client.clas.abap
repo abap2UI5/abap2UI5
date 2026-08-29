@@ -446,6 +446,17 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~_bind_path.
+
+    " delegate instead of repeating the _bind( ) call, same reason as
+    " _bind_edit right below: one behaviour, so the two spellings can never
+    " drift apart. Deliberately no further parameters - see the interface.
+    result = z2ui5_if_client~_bind( val  = val
+                                    path = abap_true ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~_bind_edit.
 
     " compatibility alias of _bind - delegate instead of repeating the call so
@@ -466,8 +477,18 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
+    " arg is folded into t_arg HERE, not in the event service: get_event( )
+    " then sees exactly the table a caller would have written by hand, so the
+    " two spellings cannot produce different wires. IS SUPPLIED rather than
+    " IS NOT INITIAL - an argument passed as empty on purpose is a filled
+    " slot, and dropping it would shift every following position.
+    DATA(lt_arg) = t_arg.
+    IF arg IS SUPPLIED.
+      APPEND CONV string( arg ) TO lt_arg.
+    ENDIF.
+
     result = mo_srv_event->get_event( val   = val
-                                      t_arg = t_arg
+                                      t_arg = lt_arg
                                       s_cnt = s_ctrl ).
 
   ENDMETHOD.
