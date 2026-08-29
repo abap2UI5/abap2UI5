@@ -37,10 +37,15 @@ export function roots() {
 /** Every `.abap` under a checkout's `src/`, as `{repo, rel, abs, text}`. */
 export function abapFiles({ repo, dir }) {
   const out = [];
+  /* `withFileTypes` rather than a `statSync` per entry: the kind comes from
+   * the same read that produced the name, instead of a second look at a path
+   * that was checked once and then used again. One syscall for the directory
+   * rather than one per name, and nothing between the check and the use. */
+  const byName = (a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
   const walk = (d) => {
-    for (const name of fs.readdirSync(d).sort()) {
-      const full = path.join(d, name);
-      if (fs.statSync(full).isDirectory()) walk(full);
+    for (const entry of fs.readdirSync(d, { withFileTypes: true }).sort(byName)) {
+      const full = path.join(d, entry.name);
+      if (entry.isDirectory()) walk(full);
       else if (full.endsWith('.abap')) {
         out.push({
           repo,

@@ -54,11 +54,28 @@ function publishedSha(branch) {
     return /abap2UI5\/abap2UI5@([0-9a-f]{40})/.exec(stamp)?.[1] ?? null;
 }
 
+// A delivery branch is a few megabytes of ABAP; half a gigabyte is headroom
+// that will not be reached, and a ceiling beats node's 1 MB default silently
+// truncating a tree this compares byte for byte.
+const MAX_ARCHIVE = 512 * 1024 * 1024;
+
 function checkout(branch) {
     const dir = join(reference, branch);
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
-    execFileSync("sh", ["-c", `git archive ${REMOTE}/${branch} | tar -x -C ${JSON.stringify(dir)}`], { cwd: core });
+    /* Two processes, no shell.
+     *
+     * The branch name comes from `process.argv` - the "[branch ...]" this
+     * file's own usage line names - and went UNQUOTED into an `sh -c` string, so
+     * `node tools/verify-branches.mjs "x; rm -rf ~"` ran the second half. The
+     * directory was quoted with `JSON.stringify`, which is JSON quoting and
+     * not shell quoting - inside double quotes a shell still expands `$foo`
+     * and a backtick.
+     *
+     * Piping the archive through in memory needs no shell at all, and an
+     * argument passed to `execFileSync` is an argument rather than syntax. */
+    const archive = execFileSync("git", ["archive", `${REMOTE}/${branch}`], { cwd: core, maxBuffer: MAX_ARCHIVE });
+    execFileSync("tar", ["-x", "-C", dir], { input: archive, maxBuffer: MAX_ARCHIVE });
     return dir;
 }
 

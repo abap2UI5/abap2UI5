@@ -247,8 +247,31 @@ function isAdditiveOptionalParams(oldSig, newSig) {
   const newHead = newSig.slice(0, newSig.length - newTail.length);
   if (!newHead.startsWith(`${oldHead} `)) return false;
   const appended = newHead.slice(oldHead.length);
-  // each appended parameter must be optional or carry a default
-  return /^(?: [a-z_0-9]+ type .+?(?: optional| default \S+))+$/.test(appended);
+  return appendedParamsAllOptional(appended);
+}
+
+// Each appended parameter must be optional or carry a default - walked one
+// parameter at a time rather than asked of the whole list at once.
+//
+// The list form was /^(?: [a-z_0-9]+ type .+?(?: optional| default \S+))+$/,
+// which nests a lazy `.+?` inside a `+`. The two can split the same text in
+// exponentially many ways, and on a signature that ALMOST matches the engine
+// tries all of them before reporting failure - so a method whose parameters
+// this gate cannot classify hangs the gate instead of failing it. CodeQL
+// names it js/redos.
+//
+// Same language, one parameter per step: each must end at ` optional` or a
+// default, and the next must begin where it stops.
+const APPENDED_PARAM = /^ [a-z_0-9]+ type .+?(?: optional| default \S+)(?= [a-z_0-9]+ type |$)/;
+function appendedParamsAllOptional(appended) {
+  let rest = appended;
+  if (!rest) return false;
+  while (rest) {
+    const m = APPENDED_PARAM.exec(rest);
+    if (!m) return false;
+    rest = rest.slice(m[0].length);
+  }
+  return true;
 }
 
 // The same rule for a public STRUCTURE TYPE: appending a component at the end
