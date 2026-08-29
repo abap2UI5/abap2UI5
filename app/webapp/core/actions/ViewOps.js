@@ -37,7 +37,14 @@ sap.ui.define(
       // resolve the model through MAIN for those slots and apply the effective
       // (largest) limit across them; popup/popover keep their own model/limit.
       const modelKey = Lib.isRootModelSlot(viewKey) ? "MAIN" : viewKey;
-      const model = ViewSlots.getView(modelKey)?.getModel();
+      // the TRACKED framework model, not blindly the default one: in switch
+      // mode the default slot holds the ODATA model and the app's bound
+      // tables live in the JSON model under http> - setting the limit on
+      // the wrong one made SET_SIZE_LIMIT a silent no-op there
+      const view = ViewSlots.getView(modelKey);
+      const model = view
+        ? (ViewSlots.trackedModel(view) ?? view.getModel())
+        : undefined;
       if (model) {
         const effective = Lib.effectiveSizeLimit(
           AppState.state.viewSizeLimits,
@@ -58,7 +65,16 @@ sap.ui.define(
         });
         const oView = ViewSlots.getView("MAIN");
         if (oView) {
-          oView.setModel(oModel, args[2] || undefined);
+          const name = args[2] || undefined;
+          // a framework-created OData model already sitting in that slot is
+          // replaced - destroy it, or each SET_ODATA_MODEL re-issue leaks a
+          // client (same marker discipline as actions/Slots displayMain)
+          const previous = oView.getModel(name);
+          oModel._z2ui5OwnedOData = true;
+          oView.setModel(oModel, name);
+          if (previous?._z2ui5OwnedOData && previous !== oModel) {
+            previous.destroy();
+          }
         } else {
           // No view to attach to - release the model instead of leaking it.
           oModel.destroy();

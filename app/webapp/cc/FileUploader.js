@@ -103,76 +103,93 @@ sap.ui.define(
         if (this._oHBox) this._oHBox.destroy();
       },
 
-      renderer: {
-        apiVersion: 2,
-        render(oRm, oControl) {
-          const directUpload = oControl.getProperty("checkDirectUpload");
-          const path = oControl.getProperty("path");
+      // Build the inner controls ONCE and update their properties per
+      // render - the renderer used to create (and destroy) all three on
+      // every pass, which violates the "renderers stay cheap and free of
+      // visible side effects" rule (core/Lib.js) and threw away the inner
+      // file input's selection and focus on every roundtrip that re-
+      // rendered the view. Create-once is the cc/CameraPicture pattern.
+      // checkDirectUpload changes the STRUCTURE (upload button yes/no,
+      // uploadOnChange is init-only on the inner control), so a toggle of
+      // it is the one case that rebuilds.
+      _ensureControls(directUpload) {
+        if (this._oHBox && this._builtDirectUpload === directUpload) return;
+        if (this._oHBox) this._oHBox.destroy();
+        this._builtDirectUpload = directUpload;
+        this.oUploadButton = null;
 
-          // Clean up controls from a previous render pass.
-          if (oControl._oHBox) oControl._oHBox.destroy();
-          oControl._oHBox = null;
-          oControl.oUploadButton = null;
-          oControl.oFileUploader = null;
-
-          if (!directUpload) {
-            oControl.oUploadButton = new Button({
-              text: oControl.getProperty("uploadButtonText"),
-              enabled: path !== "",
-              press: () => {
-                oControl.setProperty(
-                  "path",
-                  oControl.oFileUploader.getProperty("value"),
-                );
-                if (oControl._pendingFile) {
-                  oControl._readFile(oControl._pendingFile);
-                }
-              },
-            });
-          }
-
-          oControl.oFileUploader = new FileUploader({
-            tooltip: oControl.getProperty("tooltip"),
-            icon: oControl.getProperty("icon"),
-            iconOnly: oControl.getProperty("iconOnly"),
-            buttonOnly: oControl.getProperty("buttonOnly"),
-            buttonText: oControl.getProperty("buttonText"),
-            style: oControl.getProperty("style"),
-            fileType: oControl.getProperty("fileType"),
-            visible: oControl.getProperty("visible"),
-            uploadOnChange: directUpload,
-            multiple: oControl.getProperty("multiple"),
-            enabled: oControl.getProperty("enabled"),
-            value: path,
-            placeholder: oControl.getProperty("placeholder"),
-            change: (oEvent) => {
-              // Remember the selected file from the event's public "files"
-              // parameter (the inner file input is private API). It is
-              // consumed by the upload button press or, in direct-upload
-              // mode, by uploadComplete below.
-              const files = oEvent.getParameter("files");
-              oControl._pendingFile = files?.[0];
-              if (directUpload) return;
-              const value = oEvent.getSource().getProperty("value");
-              oControl.setProperty("path", value);
-              if (oControl.oUploadButton) {
-                oControl.oUploadButton.setEnabled(Boolean(value));
-              }
-            },
-            uploadComplete: (oEvent) => {
-              if (!directUpload) return;
-              const source = oEvent.getSource();
-              oControl.setProperty("path", source.getProperty("value"));
-              if (oControl._pendingFile) {
-                oControl._readFile(oControl._pendingFile);
+        if (!directUpload) {
+          this.oUploadButton = new Button({
+            text: this.getProperty("uploadButtonText"),
+            enabled: this.getProperty("path") !== "",
+            press: () => {
+              this.setProperty("path", this.oFileUploader.getProperty("value"));
+              if (this._pendingFile) {
+                this._readFile(this._pendingFile);
               }
             },
           });
+        }
 
-          oControl._oHBox = new HBox().addItem(oControl.oFileUploader);
-          if (oControl.oUploadButton) {
-            oControl._oHBox.addItem(oControl.oUploadButton);
-          }
+        this.oFileUploader = new FileUploader({
+          uploadOnChange: directUpload,
+          change: (oEvent) => {
+            // Remember the selected file from the event's public "files"
+            // parameter (the inner file input is private API). It is
+            // consumed by the upload button press or, in direct-upload
+            // mode, by uploadComplete below.
+            const files = oEvent.getParameter("files");
+            this._pendingFile = files?.[0];
+            if (directUpload) return;
+            const value = oEvent.getSource().getProperty("value");
+            this.setProperty("path", value);
+            if (this.oUploadButton) {
+              this.oUploadButton.setEnabled(Boolean(value));
+            }
+          },
+          uploadComplete: (oEvent) => {
+            if (!directUpload) return;
+            const source = oEvent.getSource();
+            this.setProperty("path", source.getProperty("value"));
+            if (this._pendingFile) {
+              this._readFile(this._pendingFile);
+            }
+          },
+        });
+
+        this._oHBox = new HBox().addItem(this.oFileUploader);
+        if (this.oUploadButton) {
+          this._oHBox.addItem(this.oUploadButton);
+        }
+      },
+
+      // Push the current property values into the inner controls - cheap,
+      // and UI5 only invalidates them when a value actually changed.
+      _syncControls() {
+        const u = this.oFileUploader;
+        u.setTooltip(this.getProperty("tooltip"));
+        u.setIcon(this.getProperty("icon"));
+        u.setIconOnly(this.getProperty("iconOnly"));
+        u.setButtonOnly(this.getProperty("buttonOnly"));
+        u.setButtonText(this.getProperty("buttonText"));
+        u.setStyle(this.getProperty("style"));
+        u.setFileType(this.getProperty("fileType"));
+        u.setVisible(this.getProperty("visible"));
+        u.setMultiple(this.getProperty("multiple"));
+        u.setEnabled(this.getProperty("enabled"));
+        u.setValue(this.getProperty("path"));
+        u.setPlaceholder(this.getProperty("placeholder"));
+        if (this.oUploadButton) {
+          this.oUploadButton.setText(this.getProperty("uploadButtonText"));
+          this.oUploadButton.setEnabled(this.getProperty("path") !== "");
+        }
+      },
+
+      renderer: {
+        apiVersion: 2,
+        render(oRm, oControl) {
+          oControl._ensureControls(oControl.getProperty("checkDirectUpload"));
+          oControl._syncControls();
           oRm.renderControl(oControl._oHBox);
         },
       },

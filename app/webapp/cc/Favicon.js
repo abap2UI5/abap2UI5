@@ -16,6 +16,11 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       // (updating the <link> tag) is what actually matters.
       this.setProperty("favicon", val, true);
       const href = Lib.toText(val);
+      // same guard as the SET_FAVICON action - see core/actions/Browser.js
+      if (!Lib.isSafeDownloadURL(href)) {
+        Lib.logError(`Favicon: refused unsafe URL "${href}"`);
+        return;
+      }
       // Match ANY icon link, not just rel="shortcut icon": a page that
       // declares the modern rel="icon" (or "icon shortcut") would otherwise
       // keep its own link and get a second, competing one appended on every

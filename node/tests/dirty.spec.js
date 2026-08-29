@@ -74,7 +74,12 @@ test("FLP: uses setDirtyFlag when Container AND ShellUIService exist", () => {
   const inst = instance();
   inst.setIsDirty(true);
   expect(calls).toEqual([true]);
-  expect(sandbox.window.onbeforeunload).toBe(undefined);
+  // The FLP branch actively CLEARS the unload prompt (null, not left
+  // untouched): ShellUIService arrives asynchronously, so an earlier
+  // setIsDirty(true) may have taken the standalone branch and armed the
+  // prompt - without the clear the FLP user keeps answering "leave page?"
+  // for a dirty state that is long gone.
+  expect(sandbox.window.onbeforeunload).toBe(null);
 
   inst.setIsDirty(false);
   expect(calls).toEqual([true, false]);

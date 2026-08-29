@@ -161,6 +161,20 @@ sap.ui.define(
       return Lib.getElementById(id);
     }
 
+    // The framework-owned JSON model as seen from a view or control: the
+    // DEFAULT model normally, the NAMED "http" model when the app switched
+    // the default slot to OData (SWITCH_DEFAULT_MODEL_PATH). Undefined when
+    // neither carries the _z2ui5Tracked marker. THE one resolver - five
+    // call sites used to answer "which model is the framework's" five
+    // different ways, and four of them silently picked the OData model in
+    // switch mode (SET_SIZE_LIMIT, scroll dirty-marking, the devtools
+    // bindings tab).
+    function trackedModel(owner) {
+      const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+      if (!owner?.getModel) return undefined;
+      return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
+    }
+
     // Returns the key of the slot a UI5 element belongs to, by walking up
     // the control tree until a live slot view is hit (innermost slot wins,
     // e.g. nested views). Undefined when the element is in no slot.
@@ -246,6 +260,7 @@ sap.ui.define(
       byIdOfOwner,
       resolveById,
       containingSlotKey,
+      trackedModel,
       destroy,
     };
   },

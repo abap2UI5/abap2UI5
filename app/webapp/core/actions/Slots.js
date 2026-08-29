@@ -71,13 +71,11 @@ sap.ui.define(
       return oModel;
     }
 
-    // The framework-owned JSON model on a slot's view: the DEFAULT model
-    // normally, but the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH put
-    // an OData model in the default slot. Returns undefined when neither model
-    // is ours (marked by _z2ui5Tracked).
+    // The framework-owned JSON model on a slot's view - the shared
+    // resolver lives on ViewSlots so cc/ and devtools/ modules reach it
+    // without importing this action module.
     function resolveTrackedModel(oView) {
-      const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
-      return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));
+      return ViewSlots.trackedModel(oView);
     }
 
     function createViewModel() {
@@ -241,10 +239,19 @@ sap.ui.define(
           serviceUrl: switchPath,
           annotationURI: mOptions.switchDefaultModelAnnoUri || "",
         });
+        // marks the OData client as FRAMEWORK-created, so the next MAIN
+        // rebuild may destroy it (displayMain) - an app-provided model via
+        // SET_ODATA_MODEL is never touched through this marker
+        oModel._z2ui5OwnedOData = true;
       } else {
         oModel = oViewModel;
       }
-      applyStoredSizeLimit("MAIN", oModel);
+      // the stored limit reaches BOTH models in switch mode: the tracked
+      // JSON model is what the app's SET_SIZE_LIMIT was about (its bound
+      // tables live there under http>), and the OData default model kept
+      // getting it as before
+      applyStoredSizeLimit("MAIN", oViewModel);
+      if (switchPath) applyStoredSizeLimit("MAIN", oModel);
 
       const oView = await XMLView.create({
         definition: xml,
@@ -307,7 +314,15 @@ sap.ui.define(
           // build may still be awaiting, which would let that stale build
           // slip past displayView's "a newer view took the slot" guard and
           // then crash THIS build on a duplicate id.
+          // the previous MAIN's framework-created OData default model does
+          // not die with the view (a model is no aggregation): without this
+          // every switch-mode rebuild leaked a full OData client - its
+          // $metadata request, caches and queues included. Only the model
+          // the framework itself created is destroyed (see the marker in
+          // displayView); dependent slots are already down at this point.
+          const oldMainDefault = ViewSlots.getView("MAIN")?.getModel?.();
           ViewSlots.destroy("MAIN");
+          if (oldMainDefault?._z2ui5OwnedOData) oldMainDefault.destroy();
           // A new MAIN view means a new screen, so the two STANDALONE slots
           // go with it. They live outside the MAIN control tree and would
           // otherwise float on top of a page they no longer belong to - a
@@ -384,7 +399,14 @@ sap.ui.define(
       // (destroying an empty slot is a no-op). MAIN tears down inside its
       // serialized build chain (see displayMain) - its slot may still be
       // claimed by an older awaiting build.
-      if (slotKey === "MAIN") return displayMain(xml, mOptions, seq);
+      if (slotKey === "MAIN") {
+        // remembered per display so a NON-roundtrip re-display of the same
+        // slot (devtools LiveEdit) can reuse them: a switch-mode MAIN
+        // re-displayed with empty options came back without its OData
+        // default model and looked broken in the preview
+        AppState.state.lastMainDisplayOptions = mOptions || {};
+        return displayMain(xml, mOptions, seq);
+      }
       ViewSlots.destroy(slotKey);
       if (slotKey === "POPUP") return displayFragment(xml, seq);
       if (slotKey === "POPOVER") {

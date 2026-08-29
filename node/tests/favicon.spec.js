@@ -1,23 +1,30 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadLib } = require("./loadLibModule");
 
 // cc/Favicon.js (obsolete, replaced by cs_event-set_favicon): sets the
 // browser tab icon from its bound `favicon` URL. The whole control is one
 // setter, and the one decision in it is which <link> to write: a page that
 // already declares an icon must have THAT link updated, not a second,
 // competing one appended - which of the two the browser then honours is up
-// to the browser. Also under test: the invalidation suppression (an empty
-// renderer means a re-render would achieve nothing) and Lib.toText, which is
-// what makes an unbound property an empty href rather than "undefined".
+// to the browser. Also under test: the URL guard (same validator as the
+// SET_FAVICON action - active schemes and empty values are refused), the
+// invalidation suppression (an empty renderer means a re-render would
+// achieve nothing) and Lib.toText, which turns an unbound property into ""
+// rather than "undefined".
 function load({ head = [] } = {}) {
   const links = head;
   const created = [];
 
+  // The REAL Lib: the control's URL guard is Lib.isSafeDownloadURL, and a
+  // hand-stub of it would just restate the expectation under test.
+  const { Lib, sandbox: libSandbox } = loadLib();
+
   const { module: FaviconDef, sandbox } = loadModule("cc/Favicon.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
-      "z2ui5/core/Lib": { toText: (v) => (v == null ? "" : String(v)) },
+      "z2ui5/core/Lib": Lib,
     },
     sandbox: {
       document: {
@@ -27,9 +34,8 @@ function load({ head = [] } = {}) {
           querySelector: (sel) => {
             expect(sel).toBe('link[rel~="icon"]');
             return (
-              links.find((l) =>
-                String(l.rel).split(/\s+/).includes("icon"),
-              ) ?? null
+              links.find((l) => String(l.rel).split(/\s+/).includes("icon")) ??
+              null
             );
           },
         },
@@ -52,7 +58,9 @@ function load({ head = [] } = {}) {
     return inst;
   };
 
-  return { instance, links, created };
+  // Lib.logError records into ITS sandbox's shared state - expose it so the
+  // refusal tests can assert the guard actually fired.
+  return { instance, links, created, errors: () => libSandbox.z2ui5.errors };
 }
 
 test("no icon link yet: one is created as rel='shortcut icon'", () => {
@@ -113,12 +121,32 @@ test("apple-touch-icon is not treated as the favicon link", () => {
   expect(links).toHaveLength(2);
 });
 
-test("an unset value writes an empty href, not the string 'undefined'", () => {
-  const { instance, links } = load();
+// The URL guard (Lib.isSafeDownloadURL, same as the SET_FAVICON action)
+// refuses an empty value: an unbound property must not touch the page's
+// icon links - and in particular never write the string "undefined".
+test("an unset value is refused - no link is written", () => {
+  const { instance, links, errors } = load();
 
   instance().setFavicon(undefined);
 
-  expect(links[0].href).toBe("");
+  expect(links).toHaveLength(0);
+  expect(errors()).toHaveLength(1);
+  expect(errors()[0].message).toContain("Favicon");
+});
+
+// An active scheme is refused and an existing icon link keeps its href.
+test("a javascript: URL is refused and logged", () => {
+  const existing = { rel: "icon", href: "/keep.png" };
+  const { instance, links, created, errors } = load({ head: [existing] });
+
+  instance().setFavicon("javascript:alert(1)");
+
+  expect(existing.href).toBe("/keep.png");
+  expect(created).toHaveLength(0);
+  expect(links).toHaveLength(1);
+  expect(
+    errors().some((e) => String(e.message).includes("refused unsafe URL")),
+  ).toBe(true);
 });
 
 test("the property is written with invalidation suppressed", () => {

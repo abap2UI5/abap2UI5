@@ -246,6 +246,13 @@ sap.ui.define(
 
     function evSetFavicon(oController, args) {
       const href = Lib.toText(args[1]);
+      // the one URL-consuming action that had no validator - no current
+      // browser executes javascript: in a <link rel=icon>, but consistency
+      // is what keeps the NEXT copy-paste of this shape safe
+      if (!Lib.isSafeDownloadURL(href)) {
+        Lib.logError(`SET_FAVICON: refused unsafe URL "${href}"`);
+        return;
+      }
       try {
         // Reuse the icon link the page already has instead of appending a
         // second one - which of two competing <link rel="icon"> elements the

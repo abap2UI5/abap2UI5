@@ -54,6 +54,12 @@ sap.ui.define(
             launchpad?.Container?.setDirtyFlag && launchpad.ShellUIService;
           if (hasFlpDirtyFlag) {
             launchpad.Container.setDirtyFlag(anyDirty);
+            // the branch is decided PER CALL, and ShellUIService arrives
+            // asynchronously (Component._initLaunchpad): a setIsDirty(true)
+            // before it resolved took the else branch and set the unload
+            // prompt - clear it here, or the FLP user keeps answering a
+            // "leave page?" dialog for a dirty state that is long gone
+            syncUnloadPrompt(false);
           } else {
             syncUnloadPrompt(anyDirty);
           }

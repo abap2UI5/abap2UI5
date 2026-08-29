@@ -13,7 +13,12 @@ const { loadModule } = require("./loadModule");
 // the custom-control contract from AGENTS.md rule 10 - log, never throw:
 // replaceState throws on a cross-origin or opaque-origin document, and a
 // throw here would take the whole rendering down with it.
-function load({ state = { keep: 1 }, pathname = "/sap/bc/z2ui5", throws = null } = {}) {
+function load({
+  state = { keep: 1 },
+  pathname = "/sap/bc/z2ui5",
+  hash = "",
+  throws = null,
+} = {}) {
   const calls = [];
   const errors = [];
 
@@ -35,7 +40,7 @@ function load({ state = { keep: 1 }, pathname = "/sap/bc/z2ui5", throws = null }
           if (throws) throw throws;
         },
       },
-      window: { location: { pathname } },
+      window: { location: { pathname, hash } },
     },
   });
 
@@ -92,6 +97,22 @@ test("a null value is the same empty query string", () => {
   instance().setSearch(null);
 
   expect(calls[0][2]).toBe("/x");
+});
+
+// The hash is kept: core/Router.js owns it, and in the FLP the front of it
+// is the SHELL's (#SO-action&/...). Rewriting the URL without it stranded
+// the launchpad, and with routing active it dropped the
+// #/app/<CLASS>/<DRAFT> route, so Back/Forward/Reload fell back to
+// ?app_start=.
+test("the current hash survives the rewrite", () => {
+  const { instance, calls } = load({
+    pathname: "/sap/bc/z2ui5",
+    hash: "#/app/Z2UI5_CL_DEMO/abc",
+  });
+
+  instance().setSearch("?a=1");
+
+  expect(calls[0][2]).toBe("/sap/bc/z2ui5?a=1#/app/Z2UI5_CL_DEMO/abc");
 });
 
 // AGENTS.md rule 10: a custom control logs and never throws. replaceState

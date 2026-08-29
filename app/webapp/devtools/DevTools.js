@@ -56,9 +56,10 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/devtools/Console",
     "z2ui5/devtools/DeveloperTools",
+    "z2ui5/devtools/Picker",
     "z2ui5/devtools/Recorder",
   ],
-  (AppState, Lib, Console, DeveloperTools, Recorder) => {
+  (AppState, Lib, Console, DeveloperTools, Picker, Recorder) => {
     "use strict";
 
     // Query parameter that opens the developer tools on page load, so a
@@ -193,6 +194,12 @@ sap.ui.define(
       publish(null);
       Console.uninstall();
       Recorder.uninstall();
+      // A pick still running at teardown left its three capture listeners
+      // (mousemove/click/keydown) on document, and the click one calls
+      // preventDefault + stopPropagation - the NEXT app was then dead for
+      // exactly one click, with nothing naming the cause. Idempotent when
+      // no pick is active.
+      Picker.stop();
     }
 
     return {

@@ -335,6 +335,10 @@ sap.ui.define(
         oBody.ARGUMENTS = Lib.normalizeEventArgs(args);
 
         Server.roundtrip(oBody);
+        // "after roundtrip" means AFTER THE DISPATCH, not after the
+        // response: readHttp is fire-and-forget, so these callbacks run
+        // synchronously once the request went out. A hook that needs the
+        // response or the re-rendered view belongs on onAfterRendering.
         Lib.runCallbacks(AppState.state.onAfterRoundtrip);
       },
 

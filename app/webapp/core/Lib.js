@@ -243,6 +243,12 @@ sap.ui.define(
 
     // Copy text to the clipboard, preferring the async clipboard API with a
     // fallback to the legacy textarea + execCommand approach.
+    // Async clipboard API FIRST, execCommand fallback second - the inverse
+    // of core/ErrorView.js, deliberately: Lib serves ordinary app features
+    // on pages that are usually secure origins, where the async API is the
+    // reliable one. ErrorView prefers execCommand because it must also work
+    // on the insecure on-prem HTTP origins where navigator.clipboard does
+    // not exist - and a fatal-error overlay is exactly where that matters.
     function copyToClipboard(textToCopy) {
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(textToCopy).catch((err) => {

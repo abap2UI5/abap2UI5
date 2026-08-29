@@ -20,10 +20,15 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
         const search = Lib.toText(val);
         // Pass the existing state object along instead of null so we do
         // not clobber state someone else stored on the history entry.
+        // The HASH is kept: core/Router.js is the hash's only owner, and
+        // in the FLP the front of it is the SHELL's (#SO-action&/...) -
+        // rewriting the URL without it stranded the launchpad, and with
+        // routing active it dropped the #/app/<CLASS>/<DRAFT> route, so
+        // Back/Forward/Reload fell back to ?app_start=.
         history.replaceState(
           history.state,
           "",
-          `${window.location.pathname}${search}`,
+          `${window.location.pathname}${search}${window.location.hash}`,
         );
       } catch (e) {
         Lib.logError("History.setSearch: replaceState failed", e);

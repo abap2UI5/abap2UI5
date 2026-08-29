@@ -20,6 +20,13 @@ function load({ controls = {}, domElements = {} } = {}) {
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": {
         byIdOfOwner: (_owner, id) => controls[id] ?? null,
+        // mirrors the real resolver (core/ViewSlots.js): only a model
+        // carrying the _z2ui5Tracked marker is the framework's
+        trackedModel: (owner) => {
+          const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+          if (!owner?.getModel) return undefined;
+          return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
+        },
       },
     },
     sandbox: {
@@ -61,7 +68,7 @@ test("setBackend captures via the scroll delegate and marks the delta path", () 
   const changed = new Set();
   const inst = makeInstance({ items });
   inst.getBindingInfo = () => ({ path: "/SCROLL" });
-  inst.getModel = () => ({ _z2ui5ChangedPaths: changed });
+  inst.getModel = () => ({ _z2ui5Tracked: true, _z2ui5ChangedPaths: changed });
 
   inst.setBackend();
 
@@ -78,7 +85,7 @@ test("an unchanged position is not marked dirty", () => {
   const changed = new Set();
   const inst = makeInstance({ items: [{ N: "tbl", V: 10 }] });
   inst.getBindingInfo = () => ({ path: "/SCROLL" });
-  inst.getModel = () => ({ _z2ui5ChangedPaths: changed });
+  inst.getModel = () => ({ _z2ui5Tracked: true, _z2ui5ChangedPaths: changed });
 
   inst.setBackend();
 

@@ -176,7 +176,16 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     } catch {
       return;
     }
-    for (const entry of entries) acceptEntry(entry);
+    // backwards, stopping at the watermark: getEntriesByName returns the
+    // browser's WHOLE buffer for this url (chronological), and after N
+    // roundtrips the loop was N accept calls per roundtrip for at most a
+    // handful of new entries at the tail
+    const fresh = [];
+    for (let i = entries.length - 1; i >= 0; i -= 1) {
+      if (entries[i].startTime <= lastEntryStart) break;
+      fresh.push(entries[i]);
+    }
+    for (let i = fresh.length - 1; i >= 0; i -= 1) acceptEntry(fresh[i]);
   }
 
   // Take the network observation belonging to a render that happened at
@@ -323,14 +332,18 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     payloadBytes = 0;
   }
 
-  // Serialized size of the request body. This is the one number the
-  // recorder cannot get for free: Resource Timing exposes no request body
-  // size, so the body is serialized a second time here (Server.readHttp
-  // does the first one for the actual send). It is a DELTA - only the model
-  // paths the user edited travel - so the common case is a few hundred
-  // bytes. Returns null if it cannot be serialized.
+  // Serialized size of the request body. Server.readHttp already computed
+  // it for the actual send and parks the NUMBER on shared state
+  // (lastRequestBytes) - reading it is free. The stringify below is only
+  // the fallback for a body that never went through readHttp: the body is
+  // usually a small delta, but buildDeltaFromPaths falls back to a WHOLE
+  // attribute for non-cell paths, and re-serializing a multi-MB table once
+  // per roundtrip in the render phase - with payload recording off - was
+  // the recorder's one measurable standing cost.
   function measureRequest(oBody) {
     if (!oBody) return null;
+    const known = AppState.state.lastRequestBytes;
+    if (typeof known === "number") return known;
     try {
       return JSON.stringify({ value: oBody }).length;
     } catch {

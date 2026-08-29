@@ -299,10 +299,15 @@ sap.ui.define(
             if (Lib.isValidContextId(AppState.state.contextId)) {
               headers["sap-contextid"] = AppState.state.contextId;
             }
+            const body = JSON.stringify({ value: oBody });
+            // one shared number, not recorder code: whoever wants the
+            // request size (the devtools recorder does) reads it here
+            // instead of serializing the body a second time
+            AppState.state.lastRequestBytes = body.length;
             response = await fetch(AppState.getGlobal("url"), {
               method: "POST",
               headers,
-              body: JSON.stringify({ value: oBody }),
+              body,
               signal,
             });
           } catch (e) {
