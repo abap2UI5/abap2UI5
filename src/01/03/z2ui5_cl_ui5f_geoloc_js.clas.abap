@@ -25,10 +25,7 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that reads the device position once after rendering` && |\n| &&
-             `// into its bindable properties (longitude, latitude, ...) and fires` && |\n| &&
-             `// ``finished`` so the backend can pick the values up.` && |\n| &&
-             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  const _GEO_PROPS = [` && |\n| &&
@@ -41,8 +38,6 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `    "heading",` && |\n| &&
              `  ];` && |\n| &&
              `` && |\n| &&
-             `  // Default getCurrentPosition timeout (ms). Shared by the ``timeout`` property` && |\n| &&
-             `  // default and the runtime fallback so the two cannot drift apart.` && |\n| &&
              `  const _DEFAULT_TIMEOUT_MS = 5000;` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.cc.Geolocation", {` && |\n| &&
@@ -90,9 +85,7 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `          allowPreventDefault: true,` && |\n| &&
              `          parameters: {},` && |\n| &&
              `        },` && |\n| &&
-             `        // Fired when the position could not be read, so a backend can` && |\n| &&
-             `        // react. The control never surfaces any UI itself - handling is` && |\n| &&
-             `        // delegated entirely to whoever binds this event.` && |\n| &&
+             `` && |\n| &&
              `        error: {` && |\n| &&
              `          parameters: {` && |\n| &&
              `            code: { type: "string" },` && |\n| &&
@@ -103,7 +96,6 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    callbackPosition({ coords }) {` && |\n| &&
-             `      // The control could be torn down while the geolocation API was busy.` && |\n| &&
              `      if (Lib.isDestroyed(this)) return;` && |\n| &&
              `      for (const prop of _GEO_PROPS) {` && |\n| &&
              `        this.setProperty(prop, Lib.toText(coords[prop]), true);` && |\n| &&
@@ -111,9 +103,6 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `      this.fireFinished();` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    // Reading the position failed (1 = permission denied, 2 = position` && |\n| &&
-             `    // unavailable, 3 = timeout). Log it and fire the ``error`` event so a` && |\n| &&
-             `    // backend can handle it; the control never surfaces UI on its own.` && |\n| &&
              `    callbackError(error) {` && |\n| &&
              `      if (Lib.isDestroyed(this)) return;` && |\n| &&
              `      Lib.logError(``Geolocation error (${error.code}): ${error.message}``);` && |\n| &&
@@ -141,8 +130,7 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `          this.callbackError.bind(this),` && |\n| &&
              `          {` && |\n| &&
              `            enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
-             `            // Guard against an empty or non-numeric property - NaN or 0` && |\n| &&
-             `            // would make getCurrentPosition fail immediately.` && |\n| &&
+             `` && |\n| &&
              `            timeout: Number(this.getProperty("timeout")) || _DEFAULT_TIMEOUT_MS,` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&

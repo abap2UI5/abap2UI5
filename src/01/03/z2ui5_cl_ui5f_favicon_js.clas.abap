@@ -25,11 +25,9 @@ CLASS z2ui5_cl_ui5f_favicon_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that sets the browser favicon from its bound` && |\n| &&
-             `// ``favicon`` URL (updates the existing <link> tag or creates one).` && |\n| &&
-             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
-             `  // OBSOLETE: replaced by the frontend event cs_event-set_favicon - kept for backward compatibility.` && |\n| &&
+             `` && |\n| &&
              `  return Control.extend("z2ui5.cc.Favicon", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
@@ -39,15 +37,14 @@ CLASS z2ui5_cl_ui5f_favicon_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `    setFavicon(val) {` && |\n| &&
-             `      // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
-             `      // (updating the <link> tag) is what actually matters.` && |\n| &&
              `      this.setProperty("favicon", val, true);` && |\n| &&
              `      const href = Lib.toText(val);` && |\n| &&
-             `      // Match ANY icon link, not just rel="shortcut icon": a page that` && |\n| &&
-             `      // declares the modern rel="icon" (or "icon shortcut") would otherwise` && |\n| &&
-             `      // keep its own link and get a second, competing one appended on every` && |\n| &&
-             `      // app start - which icon the browser then shows is up to it.` && |\n| &&
-             `      // ~= matches one entry of the whitespace-separated rel list.` && |\n| &&
+             `` && |\n| &&
+             `      if (!Lib.isSafeDownloadURL(href)) {` && |\n| &&
+             `        Lib.logError(``Favicon: refused unsafe URL "${href}"``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
              `      const existing = document.head.querySelector('link[rel~="icon"]');` && |\n| &&
              `      if (existing) {` && |\n| &&
              `        existing.href = href;` && |\n| &&

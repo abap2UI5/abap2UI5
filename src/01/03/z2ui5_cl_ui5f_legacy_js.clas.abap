@@ -28,39 +28,14 @@ CLASS z2ui5_cl_ui5f_legacy_js IMPLEMENTATION.
     result = `sap.ui.define(["z2ui5/core/Lib"], (Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  // ------------------------------------------------------------------` && |\n| &&
-             `  // The LEGACY follow-up-action wire formats, quarantined in one place.` && |\n| &&
-             `  // Every framework-generated action is a JSON array today (format A,` && |\n| &&
-             `  // handled in core/FrontendAction.js runCustom); what remains here is` && |\n| &&
-             `  // only reached by apps that pass raw JavaScript strings to` && |\n| &&
-             `  // follow_up_action:` && |\n| &&
-             `  //   Format B: a structured eF( ) call string - its argument list is` && |\n| &&
-             `  //             parsed manually (no eval / Function) so it runs under a` && |\n| &&
-             `  //             strict Content-Security-Policy without unsafe-eval, while` && |\n| &&
-             `  //             keeping object / array / string arguments intact.` && |\n| &&
-             `  //   Format C: a raw expression such as alert(123) - needs a CSP that` && |\n| &&
-             `  //             allows unsafe-eval, otherwise it is a no-op.` && |\n| &&
-             `  // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `  // The two quote characters the eF( ) argument parser below recognises.` && |\n| &&
              `  const CH_SQUOTE = "'";` && |\n| &&
              `  const CH_DQUOTE = '"';` && |\n| &&
              `` && |\n| &&
-             `  // Undo the escapes the backend applies to a single-quoted argument` && |\n| &&
-             `  // (z2ui5_cl_ui5_srv_event=>escape_js_string): backslash, quote AND the` && |\n| &&
-             `  // line breaks it rewrites to \n / \r - a raw newline would be a syntax` && |\n| &&
-             `  // error inside a JS string literal, so a multi-line argument only ever` && |\n| &&
-             `  // travels escaped. Decoding them in one pass keeps the order right: a` && |\n| &&
-             `  // literal backslash-n ("\\n" on the wire) stays text instead of turning` && |\n| &&
-             `  // into a line break.` && |\n| &&
              `  const EF_UNESCAPE = { n: "\n", r: "\r" };` && |\n| &&
              `  function unescapeEfString(body) {` && |\n| &&
              `    return body.replace(/\\(.)/g, (match, ch) => EF_UNESCAPE[ch] ?? ch);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Convert a single JS-literal argument (as produced by the backend` && |\n| &&
-             `  // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,` && |\n| &&
-             `  // JSON objects / arrays, numbers, booleans and null.` && |\n| &&
              `  function parseEfValue(token) {` && |\n| &&
              `    if (token === "") return undefined;` && |\n| &&
              `    const first = token[0];` && |\n| &&
@@ -82,9 +57,6 @@ CLASS z2ui5_cl_ui5f_legacy_js IMPLEMENTATION.
              `    return Number.isNaN(num) ? token : num;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Split the argument list of an eF( ) call into its top-level arguments,` && |\n| &&
-             `  // respecting nested (), {}, [] and quoted strings, and convert each one` && |\n| &&
-             `  // to a value.` && |\n| &&
              `  function parseEfArgs(str) {` && |\n| &&
              `    const args = [];` && |\n| &&
              `    let depth = 0;` && |\n| &&
@@ -118,8 +90,6 @@ CLASS z2ui5_cl_ui5f_legacy_js IMPLEMENTATION.
              `    return args;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Run one legacy snippet (formats B/C above). Never throws - a malformed` && |\n| &&
-             `  // app snippet must not break the response processing it rides on.` && |\n| &&
              `  function run(item, oController) {` && |\n| &&
              `    try {` && |\n| &&
              `      const snippet = item.trim();` && |\n| &&
@@ -128,9 +98,7 @@ CLASS z2ui5_cl_ui5f_legacy_js IMPLEMENTATION.
              `        oController.eF(...parseEfArgs(match[1]));` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      // A raw JavaScript expression - only runs when the CSP allows` && |\n| &&
-             `      // unsafe-eval.` && |\n| &&
-             `      // eslint-disable-next-line no-new-func` && |\n| &&
+             `` && |\n| &&
              `      Function("return " + item)();` && |\n| &&
              `    } catch (e) {` && |\n| &&
              `      Lib.logError("LegacyCustomJs: snippet execution failed", e);` && |\n| &&

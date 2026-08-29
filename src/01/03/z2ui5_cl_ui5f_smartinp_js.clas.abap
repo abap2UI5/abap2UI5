@@ -30,10 +30,6 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Invisible companion control for a SmartMultiInput (referenced via` && |\n| &&
-             `    // multiInputId): mirrors token updates and the select-option style` && |\n| &&
-             `    // range data into bindable properties so the backend can read and` && |\n| &&
-             `    // restore the input's state across roundtrips.` && |\n| &&
              `    return Control.extend("z2ui5.cc.SmartMultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -47,8 +43,6 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `            type: "object",` && |\n| &&
              `          },` && |\n| &&
              `          rangeData: {` && |\n| &&
-             `            // no defaultValue: an object default in the metadata is shared` && |\n| &&
-             `            // by reference across every instance of the control` && |\n| &&
              `            type: "object",` && |\n| &&
              `          },` && |\n| &&
              `          checkInit: {` && |\n| &&
@@ -72,7 +66,7 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
-             `        // Resolve any still-pending promises so awaiters don't hang.` && |\n| &&
+             `` && |\n| &&
              `        this._aPendingInnerControlsCreated.forEach((resolve) => resolve(null));` && |\n| &&
              `        this._aPendingInnerControlsCreated = [];` && |\n| &&
              `      },` && |\n| &&
@@ -80,15 +74,6 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `      onTokenUpdate(oEvent) {` && |\n| &&
              `        Lib.applyTokenUpdate(this, oEvent);` && |\n| &&
              `` && |\n| &&
-             `        // Mirror each range entry with the visible token text + long key` && |\n| &&
-             `        // so the backend has enough info to re-render the input later.` && |\n| &&
-             `        // NOTE: this pairs the i-th range entry with the i-th token by` && |\n| &&
-             `        // position, which assumes getRangeData() and getTokens() are index` && |\n| &&
-             `        // aligned. That holds only while every token is a range token; a` && |\n| &&
-             `        // mix of plain value tokens and range tokens would misalign the` && |\n| &&
-             `        // captions. The wrapped control is the SAPUI5-only sap.ui.comp` && |\n| &&
-             `        // SmartMultiInput, so a token-identity pairing needs verification` && |\n| &&
-             `        // against that control before it can replace the index pairing.` && |\n| &&
              `        const source = oEvent.getSource();` && |\n| &&
              `        const tokens = source.getTokens();` && |\n| &&
              `        const rangeData = source.getRangeData() || [];` && |\n| &&
@@ -107,9 +92,6 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `          const input = await this.inputInitialized();` && |\n| &&
              `          if (Lib.isDestroyed(this) || !input) return;` && |\n| &&
              `` && |\n| &&
-             `          // Convert the ABAP-style uppercase keys to the camelCase property` && |\n| &&
-             `          // names the smart multi input expects. "keyField" needs its capital` && |\n| &&
-             `          // F preserved.` && |\n| &&
              `          const normalizedRangeData = aRangeData.map((oRangeData) => {` && |\n| &&
              `            const out = {};` && |\n| &&
              `            for (const [key, value] of Object.entries(oRangeData)) {` && |\n| &&
@@ -121,8 +103,6 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `          });` && |\n| &&
              `          input.setRangeData(normalizedRangeData);` && |\n| &&
              `` && |\n| &&
-             `          // We need to set token text explicitly, as setRangeData does no` && |\n| &&
-             `          // recalculation.` && |\n| &&
              `          const inputTokens = input.getTokens() || [];` && |\n| &&
              `          for (const [index, token] of inputTokens.entries()) {` && |\n| &&
              `            const rangeItem = aRangeData[index];` && |\n| &&
@@ -138,8 +118,6 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `      setControl() {` && |\n| &&
-             `        // Once claimed there is nothing left to do - skip the target lookup` && |\n| &&
-             `        // (byIdOfOwner walks the parent chain on every roundtrip) entirely.` && |\n| &&
              `        if (this.getProperty("checkInit")) return;` && |\n| &&
              `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
              `          this,` && |\n| &&
@@ -155,8 +133,7 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `          Lib.logError("SmartMultiInputExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
-             `      // Returns a Promise that resolves once the smart multi input's inner` && |\n| &&
-             `      // controls exist - they are created lazily on first interaction.` && |\n| &&
+             `` && |\n| &&
              `      inputInitialized() {` && |\n| &&
              `        return new Promise((resolve) => {` && |\n| &&
              `          if (this._bInnerControlsCreated) {` && |\n| &&

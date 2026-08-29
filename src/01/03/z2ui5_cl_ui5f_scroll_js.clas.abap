@@ -30,10 +30,6 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Invisible control that saves the scroll positions of the controls` && |\n| &&
-             `    // listed in ``items`` into the model before each roundtrip and restores` && |\n| &&
-             `    // them after the next rendering.` && |\n| &&
-             `    // OBSOLETE: replaced by cs_event-scroll_to / cs_event-scroll_into_view - kept for backward compatibility.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Scrolling", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -56,7 +52,7 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `      _getScrollTop(item) {` && |\n| &&
              `        try {` && |\n| &&
              `          const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
-             `          // Some controls expose a scroll delegate; prefer it when available.` && |\n| &&
+             `` && |\n| &&
              `          const delegate = control?.getScrollDelegate?.();` && |\n| &&
              `          if (delegate) return delegate.getScrollTop();` && |\n| &&
              `          const element = this._getDomInnerElement(item.N);` && |\n| &&
@@ -71,13 +67,11 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `        const items = this.getProperty("items");` && |\n| &&
              `        if (!items) return;` && |\n| &&
              `        try {` && |\n| &&
-             `          // Resolve the binding path so we can mark only changed entries dirty.` && |\n| &&
              `          const bindingInfo = this.getBindingInfo("items");` && |\n| &&
              `          const bindingPath =` && |\n| &&
              `            bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
-             `          // Mark changed entries dirty on THIS control's own model - the same` && |\n| &&
-             `          // per-model set View1 ships as the delta - not a shared global set.` && |\n| &&
-             `          const changedPaths = this.getModel()?._z2ui5ChangedPaths;` && |\n| &&
+             `` && |\n| &&
+             `          const changedPaths = ViewSlots.trackedModel(this)?._z2ui5ChangedPaths;` && |\n| &&
              `          for (const [index, item] of items.entries()) {` && |\n| &&
              `            const scrollTop = this._getScrollTop(item);` && |\n| &&
              `            if (item.V !== scrollTop) {` && |\n| &&
@@ -130,7 +124,6 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `            const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
              `            if (!control) continue;` && |\n| &&
              `` && |\n| &&
-             `            // Restore immediately when rendered, otherwise once it is.` && |\n| &&
              `            Lib.whenRendered(control, this, () =>` && |\n| &&
              `              this._restoreScrollPosition(item),` && |\n| &&
              `            );` && |\n| &&

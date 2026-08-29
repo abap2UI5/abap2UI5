@@ -25,34 +25,27 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that keeps a WebSocket connection to an ABAP Push` && |\n| &&
-             `// Channel (APC) open and hands every inbound message to the backend: the` && |\n| &&
-             `// message text lands in the bound ``value`` property and the` && |\n| &&
-             `// ``received`` event triggers the roundtrip that lets the app process it.` && |\n| &&
-             `// Sending is deliberately NOT part of the control - an app publishes to the` && |\n| &&
-             `// AMC channel from ABAP, so consuming a push channel needs no app JavaScript.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
              `  (Control, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // A roundtrip already in flight makes View1.eB DROP the event (its` && |\n| &&
-             `    // isBusy guard), so everything the control reports is queued and` && |\n| &&
-             `    // delivered one item per roundtrip instead of being lost in a burst.` && |\n| &&
-             `    // This is the retry interval of the drain loop - it only runs while` && |\n| &&
-             `    // items are actually waiting.` && |\n| &&
              `    const DRAIN_RETRY_MS = 50;` && |\n| &&
+             `` && |\n| &&
+             `    const RECONNECT_BASE_MS = 500;` && |\n| &&
+             `    const RECONNECT_MAX_MS = 30000;` && |\n| &&
+             `    const MAX_CONNECT_ATTEMPTS = 5;` && |\n| &&
+             `` && |\n| &&
+             `    const MAX_QUEUE = 100;` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.Websocket", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
-             `          // APC path ("/sap/bc/apc/sap/z2ui5_apc_smp_2"), resolved against` && |\n| &&
-             `          // the current origin; a full ws:// or wss:// URL is taken as is.` && |\n| &&
              `          path: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
-             `          // Text of the message currently reported to the backend.` && |\n| &&
+             `` && |\n| &&
              `          value: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
@@ -61,7 +54,7 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `            type: "boolean",` && |\n| &&
              `            defaultValue: true,` && |\n| &&
              `          },` && |\n| &&
-             `          // false -> close the connection after the first message.` && |\n| &&
+             `` && |\n| &&
              `          checkRepeat: {` && |\n| &&
              `            type: "boolean",` && |\n| &&
              `            defaultValue: true,` && |\n| &&
@@ -72,13 +65,7 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `            allowPreventDefault: true,` && |\n| &&
              `            parameters: {},` && |\n| &&
              `          },` && |\n| &&
-             `          // Fired when the connection could not be opened or ended without` && |\n| &&
-             `          // the app asking for it, so a backend can react. ``code`` is the` && |\n| &&
-             `          // WebSocket close code ("1006" for a handshake that never` && |\n| &&
-             `          // completed - inactive ICF node, rejected authentication, unknown` && |\n| &&
-             `          // APC application) or "CONSTRUCT" when the constructor itself` && |\n| &&
-             `          // threw. The control never surfaces any UI on its own - handling` && |\n| &&
-             `          // is delegated entirely to whoever binds this event.` && |\n| &&
+             `` && |\n| &&
              `          error: {` && |\n| &&
              `            parameters: {` && |\n| &&
              `              code: { type: "string" },` && |\n| &&
@@ -89,13 +76,17 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      init() {` && |\n| &&
              `        this._queue = [];` && |\n| &&
+             `        this._failedAttempts = 0;` && |\n| &&
+             `        this._dropped = 0;` && |\n| &&
              `      },` && |\n| &&
-             `      // Every state change (checkActive toggled, path rebound) invalidates` && |\n| &&
-             `      // the control, so this single hook is where the connection is brought` && |\n| &&
-             `      // in line with the properties - no setter override needed.` && |\n| &&
+             `` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        const url = this._resolveUrl();` && |\n| &&
-             `        if (url !== this._url) this._disconnect();` && |\n| &&
+             `        if (url !== this._url) {` && |\n| &&
+             `          this._disconnect();` && |\n| &&
+             `` && |\n| &&
+             `          this._failedAttempts = 0;` && |\n| &&
+             `        }` && |\n| &&
              `        this._url = url;` && |\n| &&
              `        if (this.getProperty("checkActive")) {` && |\n| &&
              `          this._connect();` && |\n| &&
@@ -105,18 +96,20 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        clearTimeout(this._drainId);` && |\n| &&
+             `        clearTimeout(this._reconnectId);` && |\n| &&
              `        this._disconnect();` && |\n| &&
              `      },` && |\n| &&
              `      _resolveUrl() {` && |\n| &&
              `        const path = this.getProperty("path");` && |\n| &&
              `        if (!path) return "";` && |\n| &&
              `        if (/^wss?:\/\//i.test(path)) return path;` && |\n| &&
-             `        // https -> wss, http -> ws` && |\n| &&
+             `` && |\n| &&
              `        const origin = window.location.origin.replace(/^http/i, "ws");` && |\n| &&
              `        return path.charAt(0) === "/" ? origin + path : origin + "/" + path;` && |\n| &&
              `      },` && |\n| &&
              `      _connect() {` && |\n| &&
              `        if (this._ws || !this._url) return;` && |\n| &&
+             `        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;` && |\n| &&
              `        const url = this._url;` && |\n| &&
              `        let ws;` && |\n| &&
              `        try {` && |\n| &&
@@ -130,11 +123,12 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `        this._ws = ws;` && |\n| &&
              `        this._opened = false;` && |\n| &&
              `        ws.onopen = () => {` && |\n| &&
-             `          if (this._ws === ws) this._opened = true;` && |\n| &&
+             `          if (this._ws === ws) {` && |\n| &&
+             `            this._opened = true;` && |\n| &&
+             `            this._failedAttempts = 0;` && |\n| &&
+             `          }` && |\n| &&
              `        };` && |\n| &&
              `        ws.onmessage = (event) => {` && |\n| &&
-             `          // The control may have been torn down, or replaced by a newer` && |\n| &&
-             `          // connection, while this socket was still open.` && |\n| &&
              `          if (Lib.isDestroyed(this) || this._ws !== ws) return;` && |\n| &&
              `          if (typeof event.data !== "string") {` && |\n| &&
              `            Lib.logError("Websocket: ignored a non-text message");` && |\n| &&
@@ -144,14 +138,9 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `          this._report({ kind: "message", value: event.data });` && |\n| &&
              `        };` && |\n| &&
              `        ws.onerror = () => {` && |\n| &&
-             `          // The WebSocket error event carries no detail by specification -` && |\n| &&
-             `          // it is always followed by onclose, which is where the actual` && |\n| &&
-             `          // reason (the close code) becomes available and is reported.` && |\n| &&
              `          Lib.logError("Websocket: connection error on " + url);` && |\n| &&
              `        };` && |\n| &&
-             `        // A close the app asked for never gets here: _disconnect() drops the` && |\n| &&
-             `        // handlers first. So every close reaching this point is one the` && |\n| &&
-             `        // server or the network caused, and the backend should hear about it.` && |\n| &&
+             `` && |\n| &&
              `        ws.onclose = (event) => {` && |\n| &&
              `          if (this._ws !== ws) return;` && |\n| &&
              `          this._ws = null;` && |\n| &&
@@ -161,12 +150,39 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `            : "Connection to " + url + " could not be established";` && |\n| &&
              `          const message = event.reason ? cause + ": " + event.reason : cause;` && |\n| &&
              `          Lib.logError("Websocket (" + event.code + "): " + message);` && |\n| &&
+             `          if (!this._opened) {` && |\n| &&
+             `            this._failedAttempts += 1;` && |\n| &&
+             `            if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) {` && |\n| &&
+             `              Lib.logError(` && |\n| &&
+             `                "Websocket: " +` && |\n| &&
+             `                  MAX_CONNECT_ATTEMPTS +` && |\n| &&
+             `                  " failed connection attempts to " +` && |\n| &&
+             `                  url +` && |\n| &&
+             `                  " - giving up until path or checkActive changes",` && |\n| &&
+             `              );` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
              `          this._report({` && |\n| &&
              `            kind: "error",` && |\n| &&
              `            code: String(event.code),` && |\n| &&
              `            message: message,` && |\n| &&
              `          });` && |\n| &&
+             `          this._scheduleReconnect();` && |\n| &&
              `        };` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _scheduleReconnect() {` && |\n| &&
+             `        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;` && |\n| &&
+             `        const delay = Math.min(` && |\n| &&
+             `          RECONNECT_MAX_MS,` && |\n| &&
+             `          RECONNECT_BASE_MS * 2 ** this._failedAttempts,` && |\n| &&
+             `        );` && |\n| &&
+             `        clearTimeout(this._reconnectId);` && |\n| &&
+             `        this._reconnectId = setTimeout(() => {` && |\n| &&
+             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          if (!this.getProperty("checkActive")) return;` && |\n| &&
+             `          this._connect();` && |\n| &&
+             `        }, delay);` && |\n| &&
              `      },` && |\n| &&
              `      _disconnect() {` && |\n| &&
              `        const ws = this._ws;` && |\n| &&
@@ -182,16 +198,23 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `          Lib.logError("Websocket: close failed", err);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
-             `      // Queue one item for the backend and start draining. Messages and` && |\n| &&
-             `      // errors share the queue so they reach the app in the order they` && |\n| &&
-             `      // happened - an error after three messages is reported after them.` && |\n| &&
+             `` && |\n| &&
              `      _report(item) {` && |\n| &&
+             `        if (this._queue.length >= MAX_QUEUE) {` && |\n| &&
+             `          this._dropped += 1;` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            "Websocket: queue full (" +` && |\n| &&
+             `              MAX_QUEUE +` && |\n| &&
+             `              "), dropped " +` && |\n| &&
+             `              this._dropped +` && |\n| &&
+             `              " item(s) so far",` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        this._queue.push(item);` && |\n| &&
              `        this._drain();` && |\n| &&
              `      },` && |\n| &&
-             `      // Hand the oldest queued item to the backend and round-trip once.` && |\n| &&
-             `      // While the backend is busy nothing is consumed - the queue is retried` && |\n| &&
-             `      // until the event can actually get through, so nothing is dropped.` && |\n| &&
+             `` && |\n| &&
              `      _drain() {` && |\n| &&
              `        if (!this._queue.length) return;` && |\n| &&
              `        if (AppState.state.isBusy) {` && |\n| &&

@@ -25,31 +25,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// The developer tools' tab registry - ONE table that says what a tab is.` && |\n| &&
-             `//` && |\n| &&
-             `// Before this module the same fact was written down four times: a source` && |\n| &&
-             `// table (jsonSources / xmlSources / textSources), a hand-maintained list` && |\n| &&
-             `// of the tabs that had their own branch in renderTab, the scan list of` && |\n| &&
-             `// the cross-tab search, and the hand-written section list of the export.` && |\n| &&
-             `// They drifted, exactly as that arrangement invites: the search never` && |\n| &&
-             `// looked at the Model Diff or the picked control, and the export's` && |\n| &&
-             `// section titles ("ROUNDTRIP HISTORY") named tabs that do not exist, so` && |\n| &&
-             `// its own truncation hint pointed at nothing.` && |\n| &&
-             `//` && |\n| &&
-             `// Now every consumer reads this table:` && |\n| &&
-             `//` && |\n| &&
-             `//   the dialog   which sub-views a group offers, and what to render` && |\n| &&
-             `//   the search   every searchable tab, evaluated the way it renders` && |\n| &&
-             `//   the export   every exported tab, in exportOrder` && |\n| &&
-             `//` && |\n| &&
-             `// Adding a tab is one entry here. Nothing else has to be touched.` && |\n| &&
-             `//` && |\n| &&
-             `// The tab KEYS are a compatibility surface and deliberately unchanged:` && |\n| &&
-             `// "?z2ui5-devtools=HISTORY" and the remembered last tab in` && |\n| &&
-             `// sessionStorage both store them, and a key that stopped resolving would` && |\n| &&
-             `// silently reopen on the default tab. What changed is only how they are` && |\n| &&
-             `// GROUPED for display.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
@@ -61,50 +37,24 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `  (AppState, ViewSlots, Format, Inspect, Picker, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Slot readers - the developer tools' view onto ViewSlots` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `    function getModelJson(view) {` && |\n| &&
              `      const model = view?.getModel?.();` && |\n| &&
              `      return model?.getData?.();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // A model tab is only worth offering when the slot's model carries` && |\n| &&
-             `    // DATA - an app without bound attributes serves an empty object, and` && |\n| &&
-             `    // omitting the sub-view says "nothing here" more clearly than` && |\n| &&
-             `    // rendering {}.` && |\n| &&
              `    function hasModelData(slotKey) {` && |\n| &&
              `      const data = getModelJson(ViewSlots.getView(slotKey));` && |\n| &&
              `      return Boolean(data) && Object.keys(data).length > 0;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getViewContent(view) {` && |\n| &&
-             `      // Private member access (developer tools only): XMLView keeps the raw` && |\n| &&
-             `      // XML string as a pseudo property in mProperties, but does not declare` && |\n| &&
-             `      // it in its metadata - getProperty("viewContent") therefore throws and` && |\n| &&
-             `      // would abort the whole tab selection. Read the plain object instead.` && |\n| &&
              `      return view?.mProperties?.viewContent;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getRenderedContent(view) {` && |\n| &&
-             `      // Private member access (developer tools only): _xContent holds the` && |\n| &&
-             `      // view XML after XML templating ran; there is no public equivalent.` && |\n| &&
              `      return view?._xContent?.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The view XML a slot currently holds: the live view's own viewContent` && |\n| &&
-             `    // when UI5 kept it, else the source ViewSlots recorded when the slot was` && |\n| &&
-             `    // filled (a fragment or a ``definition``-built view keeps none).` && |\n| &&
-             `    //` && |\n| &&
-             `    // Read from the SLOT, never from the last response: a slot lives and dies` && |\n| &&
-             `    // by ViewSlots.setView/destroy, and both ways of tearing one down end up` && |\n| &&
-             `    // there - the backend's ["VIEW_SLOTS","destroy",...] action and the` && |\n| &&
-             `    // roundtrip-free frontend close (cs_event-popup_close / popover_close,` && |\n| &&
-             `    // which the backend formats as that very same action). Scraping the last` && |\n| &&
-             `    // response's display action instead made the frontend close look like a` && |\n| &&
-             `    // popup that was still open: no roundtrip happens, so the response that` && |\n| &&
-             `    // opened it stayed the current one.` && |\n| &&
              `    function getSlotXml(slotKey) {` && |\n| &&
              `      return (` && |\n| &&
              `        getViewContent(ViewSlots.getView(slotKey)) ||` && |\n| &&
@@ -117,14 +67,6 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return Boolean(getSlotXml(slotKey));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Groups - the five questions the tools are opened with` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // A group is a top-level tab. They are ordered the way a session` && |\n| &&
-             `    // runs: what is going on, what broke, what went over the wire, what` && |\n| &&
-             `    // the screen is made of, what the system underneath looks like -` && |\n| &&
-             `    // and last the cross-tab search, which is about all of them at once.` && |\n| &&
              `    const GROUPS = [` && |\n| &&
              `      { key: "OVERVIEW", label: "Overview" },` && |\n| &&
              `      { key: "PROBLEMS", label: "Problems" },` && |\n| &&
@@ -136,12 +78,6 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `` && |\n| &&
              `    const DEFAULT_GROUP = "OVERVIEW";` && |\n| &&
              `` && |\n| &&
-             `    // The View & Data group is TWO dimensions - which slot, and which` && |\n| &&
-             `    // aspect of it - rather than the eight flat tabs it used to be` && |\n| &&
-             `    // (VIEW / MODEL / POPUP / POPUP_MODEL / POPOVER / POPOVER_MODEL /` && |\n| &&
-             `    // NEST1 / NEST2, most of them greyed out most of the time). The slot` && |\n| &&
-             `    // is picked in one selector, the aspect in another, and only the` && |\n| &&
-             `    // combinations that actually exist are offered.` && |\n| &&
              `    const SLOTS = [` && |\n| &&
              `      { key: "MAIN", label: "Main" },` && |\n| &&
              `      { key: "POPUP", label: "Popup" },` && |\n| &&
@@ -150,40 +86,19 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      { key: "NEST2", label: "Nested 2" },` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
-             `    // Aspect order inside a slot: the XML is what the backend sent, the` && |\n| &&
-             `    // model is what fills it, the bindings are the check between the two.` && |\n| &&
              `    const ASPECTS = ["XML", "MODEL", "BINDINGS"];` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // The table` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Every entry:` && |\n| &&
-             `    //   key          stable identity (URL parameter, remembered last tab)` && |\n| &&
-             `    //   group        the top-level tab it appears under` && |\n| &&
-             `    //   label        its name in the sub-view selector` && |\n| &&
-             `    //   kind         "json" | "xml" | "text" | "source" - how it renders` && |\n| &&
-             `    //   produce()    the finished display string` && |\n| &&
-             `    //   rendered()   optional: the post-XML-templating variant (xml only)` && |\n| &&
-             `    //   enabled()    optional: false hides the sub-view entirely` && |\n| &&
-             `    //   slot/aspect  View & Data only - the two selector dimensions` && |\n| &&
-             `    //   exportOrder  position in the export; absent = not exported` && |\n| &&
-             `    //   exportTitle  section title; defaults to the upper-cased label` && |\n| &&
-             `    //   searchable   false keeps a tab out of the cross-tab search` && |\n| &&
              `    const TABS = [` && |\n| &&
-             `      // -------- Overview --------` && |\n| &&
              `      {` && |\n| &&
              `        key: "OVERVIEW",` && |\n| &&
              `        group: "OVERVIEW",` && |\n| &&
              `        label: "Overview",` && |\n| &&
              `        kind: "text",` && |\n| &&
              `        produce: () => Inspect.formatOverview(),` && |\n| &&
-             `        // Not exported and not searched: every line of it is a summary of` && |\n| &&
-             `        // a section the export already carries in full.` && |\n| &&
+             `` && |\n| &&
              `        searchable: false,` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // -------- Problems --------` && |\n| &&
              `      {` && |\n| &&
              `        key: "ERROR",` && |\n| &&
              `        group: "PROBLEMS",` && |\n| &&
@@ -202,7 +117,6 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        exportOrder: 30,` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // -------- Roundtrips --------` && |\n| &&
              `      {` && |\n| &&
              `        key: "HISTORY",` && |\n| &&
              `        group: "ROUNDTRIPS",` && |\n| &&
@@ -241,9 +155,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        label: "Model Diff",` && |\n| &&
              `        kind: "text",` && |\n| &&
              `        produce: () => Recorder.formatModelDiff(),` && |\n| &&
-             `        // Only in the export when it says something: without payload` && |\n| &&
-             `        // recording it is a one-line "switch it on" notice, and a report` && |\n| &&
-             `        // full of those reads as if the tools were broken.` && |\n| &&
+             `` && |\n| &&
              `        exportOrder: 50,` && |\n| &&
              `        inExport: () => Recorder.isRecordingPayloads(),` && |\n| &&
              `      },` && |\n| &&
@@ -257,8 +169,6 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        inExport: () => Recorder.isRecordingPayloads(),` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // -------- View & Data --------` && |\n| &&
-             `      // MAIN` && |\n| &&
              `      {` && |\n| &&
              `        key: "VIEW",` && |\n| &&
              `        group: "VIEWDATA",` && |\n| &&
@@ -297,7 +207,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        exportOrder: 92,` && |\n| &&
              `        exportTitle: "VIEW BINDINGS",` && |\n| &&
              `      },` && |\n| &&
-             `      // POPUP` && |\n| &&
+             `` && |\n| &&
              `      {` && |\n| &&
              `        key: "POPUP",` && |\n| &&
              `        group: "VIEWDATA",` && |\n| &&
@@ -308,9 +218,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        produce: () => Format.prettifyXml(getSlotXml("POPUP")),` && |\n| &&
              `        enabled: () => slotFilled("POPUP"),` && |\n| &&
              `        exportOrder: 100,` && |\n| &&
-             `        // Every slot has a sub-view called "XML", so the export title` && |\n| &&
-             `        // has to name the slot - the default (the label) would produce` && |\n| &&
-             `        // three sections called "XML".` && |\n| &&
+             `` && |\n| &&
              `        exportTitle: "POPUP",` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
@@ -337,7 +245,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        exportOrder: 102,` && |\n| &&
              `        exportTitle: "POPUP BINDINGS",` && |\n| &&
              `      },` && |\n| &&
-             `      // POPOVER` && |\n| &&
+             `` && |\n| &&
              `      {` && |\n| &&
              `        key: "POPOVER",` && |\n| &&
              `        group: "VIEWDATA",` && |\n| &&
@@ -375,8 +283,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        exportOrder: 112,` && |\n| &&
              `        exportTitle: "POPOVER BINDINGS",` && |\n| &&
              `      },` && |\n| &&
-             `      // The nested slots carry no model of their own - they inherit` && |\n| &&
-             `      // MAIN's by UI5 propagation, so only the XML is an aspect here.` && |\n| &&
+             `` && |\n| &&
              `      {` && |\n| &&
              `        key: "NEST1",` && |\n| &&
              `        group: "VIEWDATA",` && |\n| &&
@@ -405,10 +312,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        exportOrder: 121,` && |\n| &&
              `        exportTitle: "NEST2",` && |\n| &&
              `      },` && |\n| &&
-             `      // The picked control belongs to this group - going from a control` && |\n| &&
-             `      // on screen to the attribute that feeds it is the same question` && |\n| &&
-             `      // the bindings answer from the other end - but it is the one entry` && |\n| &&
-             `      // here that is NOT about a slot, so it hides the slot selector.` && |\n| &&
+             `` && |\n| &&
              `      {` && |\n| &&
              `        key: "PICK",` && |\n| &&
              `        group: "VIEWDATA",` && |\n| &&
@@ -422,36 +326,24 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        searchable: true,` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // -------- Search --------` && |\n| &&
-             `      // The cross-tab search as a tab of its own. It used to be a` && |\n| &&
-             `      // permanent field in the dialog's sub-header, and the result` && |\n|.
-    result = result &&
-             `      // silently replaced whatever tab was open underneath - which read` && |\n| &&
-             `      // as the tab's own content having changed. As a tab, entering and` && |\n| &&
-             `      // leaving the result is the same navigation as everywhere else.` && |\n| &&
              `      {` && |\n| &&
              `        key: "SEARCH",` && |\n| &&
              `        group: "SEARCH",` && |\n| &&
              `        label: "Search",` && |\n| &&
-             `        // Rendered by the dialog, not by produce(): the result depends` && |\n| &&
-             `        // on the entered term, which lives in the dialog model.` && |\n| &&
+             `` && |\n| &&
              `        kind: "search",` && |\n| &&
              `        produce: () => "",` && |\n| &&
-             `        // The search must not scan its own result.` && |\n| &&
+             `` && |\n| &&
              `        searchable: false,` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // -------- System --------` && |\n| &&
              `      {` && |\n| &&
              `        key: "ENV",` && |\n| &&
              `        group: "SYSTEM",` && |\n| &&
              `        label: "Environment",` && |\n| &&
              `        kind: "text",` && |\n| &&
              `        produce: () => Inspect.formatEnvironment(),` && |\n| &&
-             `        // First section of the export on purpose: versions, UI5` && |\n| &&
-             `        // distribution, launchpad and device are what a reader of a` && |\n| &&
-             `        // shared report needs before anything else, and asking for them` && |\n| &&
-             `        // is the standard first reply to a bug report.` && |\n| &&
+             `` && |\n| &&
              `        exportOrder: 10,` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
@@ -466,21 +358,15 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        key: "SOURCE",` && |\n| &&
              `        group: "SYSTEM",` && |\n| &&
              `        label: "ABAP Source",` && |\n| &&
-             `        // Not the code editor: the ADT endpoint renders the class itself,` && |\n| &&
-             `        // framed by the dialog (see devtools/AbapSource.js).` && |\n| &&
+             `` && |\n| &&
              `        kind: "source",` && |\n| &&
              `        produce: () => "",` && |\n| &&
-             `        // The class source travels in the export, but it is fetched` && |\n| &&
-             `        // asynchronously and passed in - Report.js places it, not this.` && |\n| &&
+             `` && |\n| &&
              `        searchable: false,` && |\n| &&
              `      },` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
              `    const byKey = new Map(TABS.map((tab) => [tab.key, tab]));` && |\n| &&
-             `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Lookup` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    function get(tabKey) {` && |\n| &&
              `      return byKey.get(tabKey);` && |\n| &&
@@ -495,8 +381,6 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        return tab.enabled ? Boolean(tab.enabled()) : true;` && |\n| &&
              `      } catch {` && |\n| &&
-             `        // A source that throws while deciding whether it has anything to` && |\n| &&
-             `        // show must not take the whole tab strip with it.` && |\n| &&
              `        return false;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -505,21 +389,15 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return get(tabKey)?.group || DEFAULT_GROUP;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The tabs of a group that have something to show right now, in` && |\n| &&
-             `    // table order.` && |\n| &&
              `    function enabledTabs(groupKey) {` && |\n| &&
              `      return TABS.filter((tab) => tab.group === groupKey && isEnabled(tab));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The tab a group opens on when it is selected without a specific` && |\n| &&
-             `    // sub-view - the first one that is enabled.` && |\n| &&
              `    function firstTabOf(groupKey) {` && |\n| &&
              `      const [first] = enabledTabs(groupKey);` && |\n| &&
              `      return first?.key || "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The slots that hold something, in SLOTS order. Drives the slot` && |\n| &&
-             `    // selector of View & Data; empty slots are not offered at all.` && |\n| &&
              `    function enabledSlots() {` && |\n| &&
              `      const available = new Set(` && |\n| &&
              `        enabledTabs("VIEWDATA")` && |\n| &&
@@ -529,39 +407,29 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return SLOTS.filter((slot) => available.has(slot.key));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The aspects available for one slot, in ASPECTS order.` && |\n| &&
              `    function aspectsOfSlot(slotKey) {` && |\n| &&
              `      return enabledTabs("VIEWDATA")` && |\n| &&
              `        .filter((tab) => tab.slot === slotKey)` && |\n| &&
              `        .sort((a, b) => ASPECTS.indexOf(a.aspect) - ASPECTS.indexOf(b.aspect));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The tab for a (slot, aspect) pair, falling back to the slot's` && |\n| &&
-             `    // first available aspect - switching from Popup/Model to a slot that` && |\n| &&
-             `    // has no model must land somewhere rather than nowhere.` && |\n| &&
              `    function tabFor(slotKey, aspect) {` && |\n| &&
              `      const aspects = aspectsOfSlot(slotKey);` && |\n| &&
              `      const exact = aspects.find((tab) => tab.aspect === aspect);` && |\n| &&
              `      return (exact || aspects[0])?.key || "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Content` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // The finished display string of a tab. Guarded: one broken source` && |\n| &&
-             `    // may not blank the dialog, and the message says which tab broke.` && |\n| &&
              `    function render(tabKey) {` && |\n| &&
              `      const tab = get(tabKey);` && |\n| &&
              `      if (!tab) return "";` && |\n| &&
              `      try {` && |\n| &&
              `        return tab.produce() ?? "";` && |\n| &&
-             `      } catch (e) {` && |\n| &&
+             `      } catch (e) {` && |\n|.
+    result = result &&
              `        return ``(${tab.label} could not be rendered: ${e?.message || e})``;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The post-XML-templating variant, for the tabs that have one.` && |\n| &&
              `    function renderTemplated(tabKey) {` && |\n| &&
              `      const tab = get(tabKey);` && |\n| &&
              `      if (!tab?.rendered) return "";` && |\n| &&
@@ -572,15 +440,10 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Every tab the cross-tab search looks at. A tab that is disabled` && |\n| &&
-             `    // right now holds nothing, so searching it would only cost time.` && |\n| &&
              `    function searchableTabs() {` && |\n| &&
              `      return TABS.filter((tab) => tab.searchable !== false && isEnabled(tab));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Every tab the export carries, in exportOrder. ``inExport`` is the` && |\n| &&
-             `    // second gate, for content that exists but says nothing worth` && |\n| &&
-             `    // shipping (a model diff without payload recording).` && |\n| &&
              `    function exportTabs() {` && |\n| &&
              `      return TABS.filter((tab) => {` && |\n| &&
              `        if (tab.exportOrder === undefined) return false;` && |\n| &&
@@ -597,17 +460,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return tab.exportTitle || tab.label.toUpperCase();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Cross-tab search` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Hits reported per tab. A term that matches a whole model would` && |\n| &&
-             `    // otherwise bury the tabs that matched it once.` && |\n| &&
              `    const MAX_HITS_PER_TAB = 20;` && |\n| &&
              `` && |\n| &&
-             `    // The name a hit is reported under. A View & Data tab needs its slot` && |\n| &&
-             `    // to be identifiable at all - three slots have a sub-view called` && |\n| &&
-             `    // "XML", and "[XML] 4 hits" would say nothing about where to look.` && |\n| &&
              `    function searchLabel(tab) {` && |\n| &&
              `      const group = GROUPS.find((entry) => entry.key === tab.group);` && |\n| &&
              `      const slot = SLOTS.find((entry) => entry.key === tab.slot);` && |\n| &&
@@ -617,13 +471,6 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return parts.join(" > ");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Search every tab at once and report which of them contain the term.` && |\n| &&
-             `    // With more than twenty views, "where does CUSTOMER appear?" is a` && |\n| &&
-             `    // question the dialog could not answer at all - the developer had to` && |\n| &&
-             `    // open each one and use the editor's own find.` && |\n| &&
-             `    //` && |\n| &&
-             `    // Tabs.render is guarded per tab, so one throwing source can never` && |\n| &&
-             `    // blank the whole result.` && |\n| &&
              `    function search(term) {` && |\n| &&
              `      const needle = String(term || "").toLowerCase();` && |\n| &&
              `      if (!needle) return "(enter a search term)";` && |\n| &&
@@ -681,7 +528,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      searchableTabs,` && |\n| &&
              `      exportTabs,` && |\n| &&
              `      exportTitle,` && |\n| &&
-             `      // exposed for the unit specs` && |\n| &&
+             `` && |\n| &&
              `      _internals: { TABS, getSlotXml, hasModelData, searchLabel },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

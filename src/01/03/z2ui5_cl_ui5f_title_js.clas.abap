@@ -25,11 +25,9 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that sets the browser tab title from its bound` && |\n| &&
-             `// ``title`` property.` && |\n| &&
-             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
-             `  // OBSOLETE: replaced by the frontend event cs_event-set_title - kept for backward compatibility.` && |\n| &&
+             `` && |\n| &&
              `  return Control.extend("z2ui5.cc.Title", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
@@ -39,8 +37,6 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `    setTitle(val) {` && |\n| &&
-             `      // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
-             `      // (setting the tab title) is what actually matters.` && |\n| &&
              `      this.setProperty("title", val, true);` && |\n| &&
              `      document.title = Lib.toText(val);` && |\n| &&
              `    },` && |\n| &&

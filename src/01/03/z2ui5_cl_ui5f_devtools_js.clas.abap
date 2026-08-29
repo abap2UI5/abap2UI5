@@ -25,88 +25,25 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Lifecycle facade of the developer tools - THE single entry point the` && |\n| &&
-             `// framework touches.` && |\n| &&
-             `//` && |\n| &&
-             `// Everything the developer tools need in order to exist lives here: the` && |\n| &&
-             `// Ctrl+F12 shortcut, the lazy creation of the dialog control, the` && |\n| &&
-             `// roundtrip recorder's install/uninstall, the "?z2ui5-devtools=" auto` && |\n| &&
-             `// open, and the handler that the fatal-error overlay's Details action` && |\n| &&
-             `// runs. None of that is in a framework module any more.` && |\n| &&
-             `//` && |\n| &&
-             `// The whole coupling to the framework is therefore:` && |\n| &&
-             `//` && |\n| &&
-             `//   Component.init()  ->  DevTools.install()` && |\n| &&
-             `//   Component.exit()  ->  DevTools.exit()` && |\n| &&
-             `//` && |\n| &&
-             `// and nothing else. No framework module names a developer-tools module,` && |\n| &&
-             `// no framework state field holds a developer-tools object, and` && |\n| &&
-             `// core/ErrorView.js reaches the Details action through the generic` && |\n| &&
-             `// ``onErrorDetails`` callback array (AppState) that this module registers` && |\n| &&
-             `// into - the overlay hides its Details button when nothing registered,` && |\n| &&
-             `// so removing this folder degrades the framework gracefully instead of` && |\n| &&
-             `// breaking it.` && |\n| &&
-             `//` && |\n| &&
-             `// LAZY here means the DIALOG CONTROL, not the modules. The dependencies` && |\n| &&
-             `// below are hard ``sap.ui.define`` deps on purpose, and moving them behind` && |\n| &&
-             `// ``sap.ui.require([...], cb)`` would not make the cold load smaller - it` && |\n| &&
-             `// would break the tools on every ICF deployment. Three separate reasons,` && |\n| &&
-             `// in the order they bite:` && |\n| &&
-             `//` && |\n| &&
-             `//  1. There is no second delivery path. On an ABAP system every frontend` && |\n| &&
-             `//     file arrives in ONE ``sap.ui.require.preload`` block inside the GET` && |\n| &&
-             `//     response (``z2ui5_cl_ui5f_preload``, generated from this folder), and` && |\n| &&
-             `//     the bootstrap sets ``resourceroots {"z2ui5": "./"}`` - the ICF node` && |\n| &&
-             `//     itself. A module dropped from that block is then fetched from the` && |\n| &&
-             `//     node, which answers every GET with the shell page: the loader gets` && |\n| &&
-             `//     ``text/html`` where it wanted a module, the define never runs and the` && |\n| &&
-             `//     require callback never fires. The tools would simply not open, with` && |\n| &&
-             `//     nothing naming the cause. That frontend files are NOT served as ICF` && |\n| &&
-             `//     resources at their raw URLs is AGENTS.md rule 18, and it is what` && |\n| &&
-             `//     makes lazy loading a delivery question rather than a loader one.` && |\n| &&
-             `//  2. Requiring lazily WITHOUT dropping them from the preload saves` && |\n| &&
-             `//     nothing that is being paid - the bytes have already travelled, and` && |\n| &&
-             `//     only the factory execution moves.` && |\n| &&
-             `//  3. Two of the three deps have to be eager anyway, and install() says` && |\n| &&
-             `//     why: a roundtrip history and a console capture are worth something` && |\n| &&
-             `//     only if they were collected BEFORE the problem, so they cannot wait` && |\n| &&
-             `//     for the first Ctrl+F12.` && |\n| &&
-             `//` && |\n| &&
-             `// Measured 2026-08-28: devtools/ is 32.7% of the preload's bytes, and at` && |\n| &&
-             `// best 23.2% of it could ever be deferred (everything except Console,` && |\n| &&
-             `// Recorder and this file). Making that real needs an on-demand delivery` && |\n| &&
-             `// path for a module the page did not receive - a design change to the` && |\n| &&
-             `// handler, not an edit here.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/devtools/Console",` && |\n| &&
              `    "z2ui5/devtools/DeveloperTools",` && |\n| &&
+             `    "z2ui5/devtools/Picker",` && |\n| &&
              `    "z2ui5/devtools/Recorder",` && |\n| &&
              `  ],` && |\n| &&
-             `  (AppState, Lib, Console, DeveloperTools, Recorder) => {` && |\n| &&
+             `  (AppState, Lib, Console, DeveloperTools, Picker, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Query parameter that opens the developer tools on page load, so a` && |\n| &&
-             `    // problem that happens during startup can be looked at at all - by` && |\n| &&
-             `    // then Ctrl+F12 is too late. "?z2ui5-devtools=1" opens the default` && |\n| &&
-             `    // tab, "?z2ui5-devtools=HISTORY" (any tab key) opens that one.` && |\n| &&
              `    const AUTO_OPEN_PARAM = "z2ui5-devtools";` && |\n| &&
              `` && |\n| &&
-             `    // The control instance, owned HERE rather than on AppState: the` && |\n| &&
-             `    // framework's state inventory has no business carrying a diagnostic` && |\n| &&
-             `    // object. It is still mirrored onto the z2ui5 global under its old` && |\n| &&
-             `    // name, because apps have been able to reach it there (the js_loader` && |\n| &&
-             `    // popup pokes at internals) and that should keep working.` && |\n| &&
              `    let instance = null;` && |\n| &&
              `    let boundKeydown = null;` && |\n| &&
              `    let errorDetailsHook = null;` && |\n| &&
              `` && |\n| &&
              `    function publish(value) {` && |\n| &&
-             `      // The public global facade is the supported way for a devtools` && |\n| &&
-             `      // module to expose something to apps (core/AppState.js documents` && |\n| &&
-             `      // getGlobal/setGlobal as exactly that).` && |\n| &&
              `      AppState.setGlobal("developerTools", value);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -126,10 +63,6 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      get().show(tabKey);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Auto open` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `    function searchParams() {` && |\n| &&
              `      try {` && |\n| &&
              `        return new URLSearchParams(window.location.search);` && |\n| &&
@@ -142,9 +75,6 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      return Boolean(searchParams()?.has(AUTO_OPEN_PARAM));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The requested tab key, or "" for "just open it". Deliberately` && |\n| &&
-             `    // tolerant: an unknown tab key falls back to the default tab in` && |\n| &&
-             `    // DeveloperTools.show().` && |\n| &&
              `    function autoOpenTab() {` && |\n| &&
              `      const value = searchParams()?.get(AUTO_OPEN_PARAM);` && |\n| &&
              `      if (value === null || value === undefined) return "";` && |\n| &&
@@ -152,15 +82,6 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      return key === "1" || key === "X" ? "" : key;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Install / exit` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // The fatal-error overlay's Details action. Registered as a plain` && |\n| &&
-             `    // callback so core/ErrorView.js needs no knowledge of this folder:` && |\n| &&
-             `    // it runs whatever is registered and hides the button when nothing` && |\n| &&
-             `    // is. Reopening the overlay when the dialog closes keeps the user` && |\n| &&
-             `    // from landing on the dismissed, broken app.` && |\n| &&
              `    function onErrorDetails() {` && |\n| &&
              `      const dialog = get();` && |\n| &&
              `      dialog.reopenErrorOnClose = true;` && |\n| &&
@@ -170,21 +91,10 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `    function install() {` && |\n| &&
              `      if (boundKeydown) return;` && |\n| &&
              `` && |\n| &&
-             `      // Start recording roundtrips right away - a history is only worth` && |\n| &&
-             `      // anything if it was collected BEFORE the problem happened, so it` && |\n| &&
-             `      // cannot wait for the first Ctrl+F12. Metadata only (kilobytes)` && |\n| &&
-             `      // unless the developer opts into payloads.` && |\n| &&
              `      Recorder.install();` && |\n| &&
              `` && |\n| &&
-             `      // Same reason as the recorder: a console message is only useful if` && |\n| &&
-             `      // it was captured BEFORE the problem, so this cannot wait for the` && |\n| &&
-             `      // first Ctrl+F12 either. Bounded ring of short strings.` && |\n| &&
              `      Console.install();` && |\n| &&
              `` && |\n| &&
-             `      // Console only announces an error when its "open on error" option` && |\n| &&
-             `      // is on (it owns that setting), so this handler is unconditional -` && |\n| &&
-             `      // except for the one guard that matters: never fight the user for` && |\n| &&
-             `      // the dialog when it is already open.` && |\n| &&
              `      Console.setOnError(() => {` && |\n| &&
              `        if (instance?.oDialog?.isOpen?.()) return;` && |\n| &&
              `        show("LOG");` && |\n| &&
@@ -210,9 +120,7 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `        Lib.unregisterCallback("onErrorDetails", errorDetailsHook);` && |\n| &&
              `        errorDetailsHook = null;` && |\n| &&
              `      }` && |\n| &&
-             `      // The dialog is not an aggregation of anything the component owns,` && |\n| &&
-             `      // so it would survive an FLP re-launch together with this module's` && |\n| &&
-             `      // state - destroy it explicitly.` && |\n| &&
+             `` && |\n| &&
              `      if (instance) {` && |\n| &&
              `        instance.destroy();` && |\n| &&
              `        instance = null;` && |\n| &&
@@ -220,6 +128,8 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      publish(null);` && |\n| &&
              `      Console.uninstall();` && |\n| &&
              `      Recorder.uninstall();` && |\n| &&
+             `` && |\n| &&
+             `      Picker.stop();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
@@ -229,7 +139,7 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      show,` && |\n| &&
              `      isAutoOpenRequested,` && |\n| &&
              `      autoOpenTab,` && |\n| &&
-             `      // exposed for the specs` && |\n| &&
+             `` && |\n| &&
              `      _peek: () => instance,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

@@ -25,14 +25,11 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that sets the Launchpad shell title and the` && |\n| &&
-             `// full-width mode when the app runs inside the FLP; does nothing when` && |\n| &&
-             `// running standalone.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
              `  (Control, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `    // OBSOLETE: replaced by the frontend event cs_event-set_title_launchpad - kept for backward compatibility.` && |\n| &&
+             `` && |\n| &&
              `    return Control.extend("z2ui5.cc.LPTitle", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -45,16 +42,13 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `      setTitle(val) {` && |\n| &&
-             `        // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
-             `        // (setting the shell title) is what actually matters.` && |\n| &&
              `        this.setProperty("title", val, true);` && |\n| &&
              `        try {` && |\n| &&
              `          const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n| &&
              `          if (!shell?.setTitle) return;` && |\n| &&
-             `          // Same normalization as the SET_TITLE_LAUNCHPAD frontend action:` && |\n| &&
-             `          // never hand undefined/null to the shell service.` && |\n| &&
+             `` && |\n| &&
              `          const result = shell.setTitle(Lib.toText(val));` && |\n| &&
-             `          // setTitle may return a Promise; report any async failure.` && |\n| &&
+             `` && |\n| &&
              `          if (result?.catch) {` && |\n| &&
              `            result.catch((e) =>` && |\n| &&
              `              Lib.logError("LPTitle: Launchpad Service setTitle failed", e),` && |\n| &&

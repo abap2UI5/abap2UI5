@@ -30,11 +30,6 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Invisible companion control for a sap.ui.table.Table (referenced via` && |\n| &&
-             `    // tableId): saves the user's filters and sort order before each` && |\n| &&
-             `    // roundtrip and re-applies them - including the column indicators -` && |\n| &&
-             `    // when the response rebuilt the table binding, which would otherwise` && |\n| &&
-             `    // lose them.` && |\n| &&
              `    const opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=" };` && |\n| &&
              `    const filterDisplayFns = {` && |\n| &&
              `      Contains: (v) => ``*${v ?? ""}*``,` && |\n| &&
@@ -54,7 +49,8 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `      init() {` && |\n| &&
              `        this._unhooks = [` && |\n| &&
              `          Lib.hookCallback(this, "onBeforeRoundtrip", "readBackend"),` && |\n| &&
-             `          Lib.hookCallback(this, "onAfterRoundtrip", "applyBackend"),` && |\n| &&
+             `` && |\n| &&
+             `          Lib.hookCallback(this, "onAfterRendering", "applyBackend"),` && |\n| &&
              `        ];` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -80,12 +76,9 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const table = this._getTable();` && |\n| &&
              `          const binding = table?.getBinding();` && |\n| &&
-             `          // Remember the binding object we read from so the re-apply pass` && |\n| &&
-             `          // can skip when that same binding is still in place (see` && |\n| &&
-             `          // _applyFilters).` && |\n| &&
+             `` && |\n| &&
              `          this._filterBinding = binding;` && |\n| &&
-             `          // Prefer the public getFilters API (UI5 >= 1.96); older releases` && |\n| &&
-             `          // only expose the private aFilters member.` && |\n| &&
+             `` && |\n| &&
              `          this.aFilters = binding?.getFilters` && |\n| &&
              `            ? binding.getFilters("Application")` && |\n| &&
              `            : binding?.aFilters;` && |\n| &&
@@ -98,20 +91,12 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        if (!aFilters) return;` && |\n| &&
              `        const binding = oTable.getBinding();` && |\n| &&
              `        if (!binding) return;` && |\n| &&
-             `        // The re-apply pass (onAfterRoundtrip) runs synchronously right` && |\n| &&
-             `        // after the request is dispatched, before the response can rebuild` && |\n| &&
-             `        // the table. When the binding is still the exact object we read the` && |\n| &&
-             `        // filters from, it already carries them and the column indicators` && |\n| &&
-             `        // are in sync - re-running binding.filter() would re-evaluate the` && |\n| &&
-             `        // whole client dataset for an identical result. Only re-apply when` && |\n| &&
-             `        // the binding was replaced (e.g. a fresh view build produced a new,` && |\n| &&
-             `        // unfiltered binding).` && |\n| &&
+             `` && |\n| &&
              `        if (binding === this._filterBinding) return;` && |\n| &&
              `        binding.filter(aFilters);` && |\n| &&
              `        const columns = oTable.getColumns();` && |\n| &&
              `` && |\n| &&
              `        for (const oFilter of aFilters) {` && |\n| &&
-             `          // Multi-filter? Pick the inner filter for the column lookup.` && |\n| &&
              `          let sProperty = oFilter.sPath;` && |\n| &&
              `          if (!sProperty && oFilter.aFilters?.[0]) {` && |\n| &&
              `            sProperty = oFilter.aFilters[0].sPath;` && |\n| &&
@@ -119,17 +104,15 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `          if (!sProperty) continue;` && |\n| &&
              `` && |\n| &&
              `          const operator = oFilter.sOperator;` && |\n| &&
-             `          // Pick the most meaningful value to display in the column header.` && |\n| &&
+             `` && |\n| &&
              `          let vValue = oFilter.oValue1;` && |\n| &&
              `          if (vValue === undefined) vValue = oFilter.oValue2;` && |\n| &&
              `          if (vValue === undefined && oFilter.aFilters?.[0]) {` && |\n| &&
              `            vValue = oFilter.aFilters[0].oValue1;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          // Choose how to format the column header label for this operator.` && |\n| &&
              `          let displayFn;` && |\n| &&
              `          if (operator === "BT") {` && |\n| &&
-             `            // "between" displays "from...to".` && |\n| &&
              `            displayFn = (v) => {` && |\n| &&
              `              const from = Lib.toText(v);` && |\n| &&
              `              const to = Lib.toText(oFilter.oValue2);` && |\n| &&
@@ -138,7 +121,6 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `          } else if (filterDisplayFns[operator]) {` && |\n| &&
              `            displayFn = filterDisplayFns[operator];` && |\n| &&
              `          } else {` && |\n| &&
-             `            // Fallback: optional operator prefix (e.g. "!" for NE) + value.` && |\n| &&
              `            const prefix = opSymbols[operator] || "";` && |\n| &&
              `            displayFn = (v) => ``${prefix}${Lib.toText(v)}``;` && |\n| &&
              `          }` && |\n| &&
@@ -157,9 +139,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const oTable = this._getTable();` && |\n| &&
              `          if (!oTable) return;` && |\n| &&
-             `          // whenRendered may defer applyFn to a later onAfterRendering, i.e.` && |\n| &&
-             `          // outside this try/catch. Guard the deferred call itself so a throw` && |\n| &&
-             `          // there is logged too (log, never throw) instead of escaping.` && |\n| &&
+             `` && |\n| &&
              `          Lib.whenRendered(oTable, this, () => {` && |\n| &&
              `            try {` && |\n| &&
              `              applyFn(oTable);` && |\n| &&
@@ -183,11 +163,9 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const table = this._getTable();` && |\n| &&
              `          const binding = table?.getBinding();` && |\n| &&
-             `          // Same binding reference the sort re-apply checks against (see` && |\n| &&
-             `          // _applySorters).` && |\n| &&
+             `` && |\n| &&
              `          this._sortBinding = binding;` && |\n| &&
-             `          // Private member access: ListBinding has no public getter for the` && |\n| &&
-             `          // active sorters (unlike getFilters for filters).` && |\n| &&
+             `` && |\n| &&
              `          this.aSorters = binding ? binding.aSorters : undefined;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("UITableExt.readSort failed", e);` && |\n| &&
@@ -198,10 +176,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        if (!aSorters) return;` && |\n| &&
              `        const binding = oTable.getBinding();` && |\n| &&
              `        if (!binding) return;` && |\n| &&
-             `        // Same redundancy guard as _applyFilters: skip the re-sort when the` && |\n| &&
-             `        // binding is unchanged since readSort - it still holds these sorters` && |\n| &&
-             `        // and re-running binding.sort() would re-sort the whole dataset for` && |\n| &&
-             `        // an identical result. Re-apply only after a binding rebuild.` && |\n| &&
+             `` && |\n| &&
              `        if (binding === this._sortBinding) return;` && |\n| &&
              `        binding.sort(aSorters);` && |\n| &&
              `` && |\n| &&
@@ -213,7 +188,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `              oCol.setSortOrder(` && |\n| &&
              `                sorter.bDescending ? "Descending" : "Ascending",` && |\n| &&
              `              );` && |\n| &&
-             `              // setSortIndex is only available on some column variants.` && |\n| &&
+             `` && |\n| &&
              `              if (oCol.setSortIndex) oCol.setSortIndex(index);` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&

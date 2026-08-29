@@ -30,10 +30,6 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Invisible companion control for a sap.m.upload.UploadSet (referenced` && |\n| &&
-             `    // via uploadSetId): reads every added file as a base64 data URL into` && |\n| &&
-             `    // the bindable fileData/fileName/... properties and reports removals,` && |\n| &&
-             `    // so the backend receives the file content without an upload endpoint.` && |\n| &&
              `    return Control.extend("z2ui5.cc.UploadSetExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -112,8 +108,6 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `      setControl() {` && |\n| &&
-             `        // Once claimed there is nothing left to do - skip the target lookup` && |\n| &&
-             `        // (byIdOfOwner walks the parent chain on every roundtrip) entirely.` && |\n| &&
              `        if (this.getProperty("checkInit")) return;` && |\n| &&
              `        const uploadSet = ViewSlots.byIdOfOwner(` && |\n| &&
              `          this,` && |\n| &&
@@ -122,10 +116,7 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `        if (!Lib.claimOnce(this, uploadSet)) return;` && |\n| &&
              `        try {` && |\n| &&
              `          uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));` && |\n| &&
-             `          // afterItemRemoved is @since 1.83; below that, adds keep working` && |\n| &&
-             `          // and the gap is reported instead of failing the whole setup` && |\n| &&
-             `          // (beforeItemRemoved is no substitute - it fires before the` && |\n| &&
-             `          // confirm dialog and would report cancelled removals)` && |\n| &&
+             `` && |\n| &&
              `          if (uploadSet.attachAfterItemRemoved) {` && |\n| &&
              `            uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));` && |\n| &&
              `          } else {` && |\n| &&

@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const acorn = require('acorn');
+const terser = require('terser');
 const abapClassTemplate = require('./abapClassTemplate');
 const xmlTemplate = require('./abapXMLTemplate');
 
@@ -30,18 +32,16 @@ function createFileInTargetDir(targetFilePath, content) {
     return fs.promises.writeFile(targetFilePath, content, 'utf-8');
 }
 
-// Function to format the content into an ABAP class method
-function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
-    const lines = content.split('\n');
-    const formattedLines = lines.map((line, index) => {
-        line = line.replace(/\s+$/, ''); // Remove trailing spaces
-
-        // Guard 1: the frontend source is embedded verbatim into an ABAP string
-        // constant, which abaplint checks with the 7bit_ascii rule. A non-ASCII
-        // byte (smart quote, ellipsis, arrow, ...) breaks generation/lint
-        // downstream with a confusing error, so fail here at the exact source
-        // line instead. Runtime non-ASCII must be built via String.fromCharCode
-        // / entity decoding (see AGENTS.md rule 14).
+// Guard 1: the frontend source is embedded into an ABAP string constant,
+// which abaplint checks with the 7bit_ascii rule. A non-ASCII byte (smart
+// quote, ellipsis, arrow, ...) breaks generation/lint downstream with a
+// confusing error, so fail here at the exact source line instead. Runtime
+// non-ASCII must be built via String.fromCharCode / entity decoding (see
+// AGENTS.md rule 14). For .js files this also runs BEFORE the comment strip
+// below reflows the code, so the reported line number is one the author can
+// find in app/webapp.
+function assertSevenBitAscii(content, className) {
+    content.split('\n').forEach((line, index) => {
         // The range IS ASCII, control characters included: this line is the
         // 7bit_ascii rule itself.
         // eslint-disable-next-line no-control-regex
@@ -52,6 +52,95 @@ function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
                 `(code ${nonAscii[0].codePointAt(0)}) - frontend source must be 7-bit ASCII: ${line.trim()}`,
             );
         }
+    });
+}
+
+// Both sides are re-minified with the same settings, so anything that is only
+// formatting disappears and only a changed program survives as a difference
+// (ported from tools/app2bsp/preload.js). `evaluate` folds constant
+// expressions identically on both sides, so the two prints are comparable.
+function assertSameProgram(before, after, relPath) {
+    const collapse = (code, label) => {
+        const result = terser.minify_sync(code, {
+            compress: { defaults: false, evaluate: true },
+            mangle: false,
+            format: { ascii_only: true },
+        });
+        if (result.error) {
+            throw new Error(`${relPath}: ${label} does not parse - ${result.error}`);
+        }
+        return result.code;
+    };
+    if (collapse(before, 'the source') !== collapse(after, 'the comment-stripped source')) {
+        throw new Error(
+            `${relPath}: stripping the comments changed the program - ` +
+            'a construct terser reprints differently; report it and embed this file unstripped.',
+        );
+    }
+}
+
+// The app's own Prettier (also what `npm run app2abap` formats app/webapp
+// with) - required from app/node_modules because the root has no prettier
+// of its own. Lazy so the error names the fix instead of failing the
+// require at import time when app deps are missing.
+let prettierModule = null;
+function appPrettier() {
+    if (!prettierModule) {
+        try {
+            prettierModule = require(path.join(__dirname, '../../app/node_modules/prettier'));
+        } catch {
+            throw new Error(
+                "comment strip needs the app toolchain - run 'npm --prefix app ci' first " +
+                '(npm run app2abap and check:app2abap install it for you)',
+            );
+        }
+    }
+    return prettierModule;
+}
+
+// The embedded copy of a .js file is a DELIVERY artefact - the readable
+// source lives in app/webapp, and nobody patches src/01/03 (AGENTS.md
+// rule 2). The comments are therefore pure payload on every ICF cold start,
+// and this codebase comments heavily; stripping them keeps the GET response
+// (and the src/01/03 diff noise per frontend change) roughly half the size.
+// Everything else stays: no compress, no mangle, no reprint - a browser
+// stack trace still shows the real identifiers and (near-)real lines.
+//
+// The comments are cut OUT OF THE ORIGINAL TEXT by position (acorn's
+// tokenizer reports where each one starts and ends), never by reprinting
+// the AST: a terser reprint escapes the real newlines inside multi-line
+// template literals into one giant line, which cannot be broken again and
+// blows the 255-char ABAP line cap (guard 2). Prettier then only tidies
+// the holes the cuts left (dangling indentation, runs of blank lines) with
+// the app's own config, and terser re-parses both sides once to prove the
+// PROGRAM did not change.
+async function stripJsComments(source, file, relPath) {
+    const comments = [];
+    try {
+        acorn.parse(source, {
+            ecmaVersion: 'latest',
+            onComment: (_isBlock, _text, start, end) => comments.push([start, end]),
+        });
+    } catch (e) {
+        throw new Error(`${relPath}: does not parse - ${e.message}`, { cause: e });
+    }
+    let code = source;
+    for (const [start, end] of comments.reverse()) {
+        code = code.slice(0, start) + code.slice(end);
+    }
+    const prettier = appPrettier();
+    const config = (await prettier.resolveConfig(file)) || {};
+    code = await prettier.format(code, { ...config, parser: 'babel' });
+    assertSameProgram(source, code, relPath);
+    return code;
+}
+
+// Function to format the content into an ABAP class method
+function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
+    assertSevenBitAscii(content, className);
+    const lines = content.split('\n');
+    const formattedLines = lines.map((line, index) => {
+        line = line.replace(/\s+$/, ''); // Remove trailing spaces
 
         let formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
         formattedLine = formattedLine.replace(/&&\s+$/, '&&'); // Remove trailing spaces after &&
@@ -309,12 +398,21 @@ async function main() {
         }
 
         for (const file of files) {
-            const sourceContent = await readFile(file);
+            let sourceContent = await readFile(file);
             console.log(`Source file content fetched successfully for ${file}.`);
 
             const className = classNameByFile.get(file);
             const relPath = path.relative(sourceDir, file).split(path.sep).join('/');
             const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html') || file.endsWith('.css');
+            // Only .js is stripped: the special files (.xml/.json/.html/.css)
+            // go in untouched - their comments are structure (fragment
+            // documentation, manifest annotations) and none of them is
+            // JavaScript for terser to reprint.
+            if (file.endsWith('.js')) {
+                // ASCII first, against the author's own line numbers
+                assertSevenBitAscii(sourceContent, className);
+                sourceContent = await stripJsComments(sourceContent, file, relPath);
+            }
             const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile, relPath);
 
             const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);
