@@ -415,7 +415,15 @@ Not about names or layout — these only show up when the app runs.
   The fix is in the backend, where this repository wants it anyway: seed the
   control's own default into the model (`recurrencepattern = 1`) instead of
   leaving the field initial. A view-side `{= ${X} || 1 }` fallback works too
-  and is the right shape only when no ABAP writes the row.
+  and is the right shape only when no ABAP writes the row — which is exactly
+  the sibling `sap.ui.unified.RecurringNonWorkingPeriod`, same setter
+  (`RecurringNonWorkingPeriod.js:145`), whose rows both ports only ever seed:
+  there the default rides in the binding. Measured on 1.151, both forms
+  verified: bound `0` throws, the expression renders `0` as `1` and leaves a
+  real `2` alone. An EMPTY bound table is safe either way here — unlike the
+  enum case above, a template with no row behind it leaves an `int` property at
+  its default rather than handing the setter a `""` (which `"" < 1` would have
+  rejected, so the difference is luck of the coercion, not of the design).
 
   This is the **type-level** twin of the empty-string trap: ABAP has no null,
   an unfilled `TYPE i` serialises as `0`, and `0` is out of range for every
