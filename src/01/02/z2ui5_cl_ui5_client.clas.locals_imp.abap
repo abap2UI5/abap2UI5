@@ -20,7 +20,14 @@ CLASS lcl_empty_filter_keep_rows DEFINITION FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ajson_filter.
-
+    " a bound filter is stored on mt_attri and serialized into the draft
+    " with the rest of the app state (z2ui5_cl_ui5_srv_bind->check_raise_new
+    " is the gate) - z2ui5_if_ajson_filter, unlike z2ui5_if_ajson_mapping,
+    " does not compose if_serializable_object, so every filter class the
+    " framework itself hands into a binding declares it here
+    INTERFACES if_serializable_object.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -73,11 +80,14 @@ CLASS lcl_initial_paths_filter DEFINITION FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ajson_filter.
+    " serialized into the draft when bound - see lcl_empty_filter_keep_rows
+    INTERFACES if_serializable_object.
 
     METHODS constructor
       IMPORTING
         it_paths TYPE string_table.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
     DATA mt_names TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
@@ -129,6 +139,61 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
       rv_keep = xsdbool( is_node-value <> '0' ).
     ELSE.
       rv_keep = xsdbool( is_node-value IS NOT INITIAL ).
+    ENDIF.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" The serializable AND combination of two filters, behind
+" z2ui5_if_client~_bind( omit_initial* ) when the caller supplied a filter of
+" their own: both have to pass.
+"
+" NOT the vendored z2ui5_cl_ajson_filter_lib=>create_and_filter: its filter
+" class does not implement if_serializable_object, and the combined ref is
+" stored on mt_attri and serialized into the draft - the vendored form
+" passed every check here (the transpiler does not enforce serializability)
+" and failed only at db_save on a real system, as an APP_SERIALIZATION_ERROR
+" naming nothing. Serializing this class serializes both member refs, so the
+" caller's own filter still has to be serializable - check_raise_new says so
+" at bind time.
+CLASS lcl_and_filter DEFINITION FINAL.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES if_serializable_object.
+
+    METHODS constructor
+      IMPORTING
+        ii_first  TYPE REF TO z2ui5_if_ajson_filter
+        ii_second TYPE REF TO z2ui5_if_ajson_filter.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    DATA mi_first  TYPE REF TO z2ui5_if_ajson_filter.
+    DATA mi_second TYPE REF TO z2ui5_if_ajson_filter.
+
+ENDCLASS.
+
+
+CLASS lcl_and_filter IMPLEMENTATION.
+
+  METHOD constructor.
+
+    mi_first  = ii_first.
+    mi_second = ii_second.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_ajson_filter~keep_node.
+
+    rv_keep = mi_first->keep_node( is_node  = is_node
+                                   iv_visit = iv_visit ).
+    IF rv_keep = abap_true.
+      rv_keep = mi_second->keep_node( is_node  = is_node
+                                      iv_visit = iv_visit ).
     ENDIF.
 
   ENDMETHOD.

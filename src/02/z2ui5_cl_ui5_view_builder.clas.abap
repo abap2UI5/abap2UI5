@@ -222,6 +222,20 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD xml_escape.
 
+    " one CA scan up front: replace( occ = 0 ) copies the whole string on
+    " every call even when nothing matches, and a value without any special
+    " character is the COMMON case - that made every attribute value pay for
+    " seven full copies. A value that does carry one still runs all seven
+    " replaces below, unchanged
+    DATA(lv_specials) = `&<>"`
+        && z2ui5_cl_ui5_util_context=>cv_char_util_newline
+        && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
+        && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+    IF val NA lv_specials.
+      result = val.
+      RETURN.
+    ENDIF.
+
     result = val.
     result = replace( val  = result
                       sub  = `&`

@@ -127,17 +127,9 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
                      ir_new      = ms_config-custom_mapper
                      iv_label    = `mappers` ).
 
-    check_same_impl( ir_existing = mr_attri->custom_mapper_back
-                     ir_new      = ms_config-custom_mapper_back
-                     iv_label    = `mappers back` ).
-
     check_same_impl( ir_existing = mr_attri->custom_filter
                      ir_new      = ms_config-custom_filter
                      iv_label    = `filters` ).
-
-    check_same_impl( ir_existing = mr_attri->custom_filter_back
-                     ir_new      = ms_config-custom_filter_back
-                     iv_label    = `filters back` ).
 
   ENDMETHOD.
 
@@ -153,12 +145,22 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD check_raise_new.
 
     " check the incoming config - mr_attri->custom_* is only filled
-    " afterwards by update_model_attri and is still initial here
-    check_serializable( ir_ref   = ms_config-custom_filter_back
-                        iv_label = `custom_filter_back` ).
+    " afterwards by update_model_attri and is still initial here.
+    " These are the refs that update_model_attri stores on mt_attri, which
+    " db_save serializes with the rest of the app state
+    " (main_attri_db_save_srtti clears only DATA references) - so a
+    " non-serializable implementation has to be refused here, at bind time
+    " and with a readable message, instead of surfacing later as an
+    " APP_SERIALIZATION_ERROR. z2ui5_if_ajson_mapping composes
+    " if_serializable_object, so the mapper check cannot fire today;
+    " z2ui5_if_ajson_filter does not, which makes the filter check the
+    " load-bearing one. This used to check the custom_*_back refs instead -
+    " refs nothing can set since _bind stopped evaluating them.
+    check_serializable( ir_ref   = ms_config-custom_filter
+                        iv_label = `custom_filter` ).
 
-    check_serializable( ir_ref   = ms_config-custom_mapper_back
-                        iv_label = `custom_mapper_back` ).
+    check_serializable( ir_ref   = ms_config-custom_mapper
+                        iv_label = `custom_mapper` ).
 
   ENDMETHOD.
 
@@ -254,13 +256,11 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD update_model_attri.
 
-    mr_attri->bind               = abap_true.
-    mr_attri->custom_filter      = ms_config-custom_filter.
-    mr_attri->custom_filter_back = ms_config-custom_filter_back.
-    mr_attri->custom_mapper      = ms_config-custom_mapper.
-    mr_attri->custom_mapper_back = ms_config-custom_mapper_back.
-    mr_attri->check_json         = ms_config-check_json.
-    mr_attri->name_client        = get_client_name( ).
+    mr_attri->bind          = abap_true.
+    mr_attri->custom_filter = ms_config-custom_filter.
+    mr_attri->custom_mapper = ms_config-custom_mapper.
+    mr_attri->check_json    = ms_config-check_json.
+    mr_attri->name_client   = get_client_name( ).
 
   ENDMETHOD.
 

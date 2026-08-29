@@ -64,6 +64,12 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   METHOD cleanup.
 
+    " Z2UI5_T_01 deliberately has NO secondary index (maintainer decision,
+    " 2026-08): the DELETE below and the COUNTs in count_entries* scan the
+    " table, but the table is kept small by this very cleanup (drafts expire
+    " after a few hours), and every write path (one INSERT per roundtrip)
+    " would pay for an index on TIMESTAMPL/UNAME on every click. Do not add
+    " one, and do not "optimize" these statements around the missing index.
     DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
