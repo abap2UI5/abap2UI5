@@ -14,13 +14,21 @@ const { defineConfig, devices } = require('@playwright/test');
    turn a green pull request red without any change in this repository - and
    `retries: 2` then hid the flake instead of naming it. Bump deliberately
    (edit here, run the suite), or override for one run via UI5_E2E_SRC.
+
+   The version MUST be the FINAL patch of a RETIRED minor line: the CDN
+   serves only the newest patch of each line and drops the rest, so a pin
+   into a still-moving line (1.136.0 while the LTS line was at .20) 404s
+   and every leg times out - that is how this comment learned it. Same
+   reason the 1.71 leg pins 1.71.80, the last 1.71 patch ever. `npm view
+   @openui5/sap.ui.core versions` shows where each line ended.
+
    The specs that create their own pages (error-view, nav-back-forward,
    lib-sanitizer, focus-after-enable) bypass the fixture's rewrite and still
    boot the evergreen build - the ui5-1.71 project comment below describes
    how to port one onto the shared page fixture. */
 const PINNED_UI5_SRC =
   process.env.UI5_E2E_SRC ||
-  'https://sdk.openui5.org/1.136.0/resources/sap-ui-core.js';
+  'https://sdk.openui5.org/1.144.0/resources/sap-ui-core.js';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
