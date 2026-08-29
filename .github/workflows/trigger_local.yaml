@@ -16,9 +16,17 @@ name: trigger_local
 # registered on abap2UI5/abap2UI5-local with write access (same pattern as
 # ACTION_KEY_FRONTEND for the frontend repository).
 
+# Scoped by paths: the sync copies nothing but src/ into abap2UI5-local, so
+# a push that does not touch src/ has nothing to deliver. workflow_dispatch
+# stays as the manual override, and the monthly update_input cron over there
+# is the safety net either way. Not a required check, so a paths filter is
+# safe here.
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - '.github/workflows/trigger_local.yaml'
   workflow_dispatch:
 
 permissions:

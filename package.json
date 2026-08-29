@@ -75,7 +75,7 @@
     "rename": "abaplint .github/abaplint/rename.jsonc --rename",
     "express": "node node/srv/express.mjs",
     "unit": "node node/setup/require-transpiled.mjs && node node/output/index.mjs",
-    "test": "npm run unit",
+    "test": "npm run unit && npm run check:js",
     "check:guide": "node .github/scripts/check-guide-api.mjs"
   },
   "repository": {
@@ -98,7 +98,7 @@
     "@abaplint/transpiler-cli": "^2.13.40",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
-    "@ui5/cli": "^4.0.57",
+    "@ui5/cli": "^4.0.62",
     "c8": "^12.0.0",
     "eslint": "^10.9.1",
     "express": "^5.2.1",

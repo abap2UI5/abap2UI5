@@ -55,8 +55,8 @@ const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*\.(yml|yaml)$/;
  *      (`UI5.yaml -> UI5_2X`) and which this file's header therefore has to
  *      keep explaining. It IS a pull-request check, so it goes with the branch
  *      protection change in the same pull request.
- *   3. `ABAP_702`, `auto_downport`, `auto_abaplint_fix`, `create_app2abap`,
- *      `trigger_local` - single-purpose workflows with few references each.
+ *   3. `ABAP_702`, `auto_downport`, `auto_abaplint_fix`, `trigger_local` -
+ *      single-purpose workflows with few references each.
  *   4. LAST - `check_gates`, `check_app2abap`, `frontend_check`,
  *      `frontend_deploy`. These are the required checks and the ones the
  *      documentation names most (`check_gates` alone is referenced ~50 times),
@@ -71,7 +71,6 @@ const GRANDFATHERED = new Set([
   'auto_downport.yaml',
   'check_app2abap.yaml',
   'check_gates.yaml',
-  'create_app2abap.yaml',
   'frontend_check.yaml',
   'frontend_deploy.yaml',
   'trigger_local.yaml',

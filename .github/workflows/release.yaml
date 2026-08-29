@@ -62,6 +62,9 @@ jobs:
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"
+        # verify runs check -> deps, which clones the three pinned git
+        # dependencies - cache them like every other verifying job
+        deps: "true"
 
     # Everything the tag claims, before anything is published. Catching a
     # mismatch here costs a minute; catching it afterwards costs a version

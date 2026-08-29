@@ -351,8 +351,8 @@ async function main() {
         await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`);
         console.log(`Preload XML created successfully at: ${preloadXmlPath}`);
     } catch (error) {
-        // Signal failure so CI (create_app2abap.yaml) does not treat a broken
-        // generation run as success and commit a partial src/01/03.
+        // Signal failure so CI (check_app2abap.yaml, autofix.yaml) does not
+        // treat a broken generation run as success and commit a partial src/01/03.
         console.error('Error:', error.message);
         process.exitCode = 1;
     }
