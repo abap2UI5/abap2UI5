@@ -33,7 +33,8 @@
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_parser_test", "method": "unicode_characters", "note": "CL_ABAP_CONV_IN_CE=>uccpi dynamic call not supported in NodeJS runtime"},
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_writer_test", "method": "set_timestampl", "note": "NodeJS timestamp precision is milliseconds, ABAP expects microseconds"},
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_abap_to_json", "method": "set_value_timestampl", "note": "NodeJS timestamp precision is milliseconds, ABAP expects microseconds"},
-      {"object": "Z2UI5_CL_UI5_SRV_MODEL", "class": "ltcl_test_app_root4", "method": "test_tab_ref_gen", "note": "S-RTTI serialization calls CL_ABAP_TYPEDESCR=>describe_by_name with a dynamic type name, not supported in NodeJS runtime"}
+      {"object": "Z2UI5_CL_UI5_SRV_MODEL", "class": "ltcl_test_app_root4", "method": "test_tab_ref_gen", "note": "S-RTTI serialization calls CL_ABAP_TYPEDESCR=>describe_by_name with a dynamic type name, not supported in NodeJS runtime"},
+      {"object": "Z2UI5_CL_UI5_CLIENT", "class": "ltcl_test_client", "method": "test_bind_tab_cell", "note": "_bind( tab / tab_index ) matches the cell by data reference, and the DOWNPORT this pipeline runs before transpiling lowers the table expression itab[ n ]-comp to READ TABLE ... INTO <wa> - a copy, so the reference never matches. Not a transpiler limit: it resolves the expression correctly, and the whole-row form REF #( itab[ n ] ) / ASSIGN itab[ n ] TO <row> keeps the reference through the downport too. The cell logic itself runs everywhere in Z2UI5_CL_UI5_SRV_BIND ltcl_test_main_cell"}
     ]
   }
 }

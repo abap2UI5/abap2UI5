@@ -12,6 +12,12 @@ Legend
 
 unreleased
 ----------
++ _bind( tab / tab_index ) - the cell binding - is documented and unit tested:
+  a row of an internal table bound as {/TAB/n/FIELD}, the ABAP 1-based row
+  number rendered 0-based. In DOWNPORTED code write the val argument over an
+  assigned row (ASSIGN tab[ n ] TO <row>, then val = <row>-comp): the
+  downport lowers tab[ n ]-comp to READ TABLE ... INTO, a copy, and the
+  reference match then fails
 + Frontend actions: expandSelected / collapseSelected on a tree table,
   setBadgeMinValue / setBadgeMaxValue, IconPool.registerFont for a custom
   icon font, and addCustomCurrencies
