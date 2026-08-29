@@ -238,7 +238,15 @@ const snap = JSON.parse(fs.readFileSync(SNAPSHOT, "utf8"));
 // reordered, every other clause byte-identical - as an addition instead. Any
 // other difference (a removed parameter, a changed type or default, a
 // reordering, a new MANDATORY parameter) stays a violation.
-const CLAUSE_TAIL = /(\s(?:exporting|changing|returning|raising)\s[\s\S]*)$/;
+// `preferred parameter x` is counted with the TRAILING clauses, not with the
+// importing list: it is a modifier naming an existing parameter, not a
+// parameter of its own, and it always trails the importing list. Left in the
+// head it made every method that has one unable to grow an optional parameter
+// - the appended parameter lands BEFORE the modifier, so the head no longer
+// starts with the old head and a compatible addition was reported as a rule-5
+// violation (`_event`, the first method to hit it). Changing WHICH parameter
+// is preferred still differs in the tail and stays a violation.
+const CLAUSE_TAIL = /(\s(?:exporting|changing|returning|raising|preferred parameter)\s[\s\S]*)$/;
 function isAdditiveOptionalParams(oldSig, newSig) {
   const oldTail = oldSig.match(CLAUSE_TAIL)?.[1] ?? "";
   const newTail = newSig.match(CLAUSE_TAIL)?.[1] ?? "";
