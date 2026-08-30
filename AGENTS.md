@@ -470,6 +470,17 @@ every run).
 smoke test (`test.yaml`, `test_node`), and the namespace-rename test
 (`abaplint.yaml`).
 
+**One dependency is patched in place.** `npm run downport` runs
+`node/setup/patch-abaplint-downport.mjs` first, which rewrites the installed
+abaplint's table-expression outline to keep the ROW reference
+(`READ TABLE ... ASSIGNING`) instead of copying it into a work area. Without it
+`_bind( tab / tab_index )` - the cell binding - is refused in every downported
+build. It is a temporary shim for a defect filed in `backlog/` against
+abaplint; the script says what to delete when the fix ships, and it FAILS the
+build rather than passing silently once its anchors stop matching.
+`test_bind_tab_cell` (in `z2ui5_cl_ui5_client`'s test class) is the canary that
+the shim still works.
+
 **Pinned git dependencies:** abaplint and the transpiler clone three upstream
 repos (steampunk API intersection, open-abap-core, express-icf-shim). These
 are pinned to fixed SHAs via `node node/setup/fetch-deps.mjs` (auto-run by

@@ -67,7 +67,7 @@
     "strip_trailing_ws": "node node/setup/downport-fix.mjs strip-trailing-ws",
     "abaplintpathfix": "node node/setup/downport-fix.mjs abaplint-path",
     "downport_config": "node node/setup/downport-fix.mjs downport-config",
-    "downport": "npm run deps && node node/setup/downport-fix.mjs copy-src && npm run downport_config && abaplint --fix .github/abaplint/downport_run.jsonc && npm run syfixes && npm run strip_trailing_ws",
+    "downport": "npm run deps && node node/setup/patch-abaplint-downport.mjs && node node/setup/downport-fix.mjs copy-src && npm run downport_config && abaplint --fix .github/abaplint/downport_run.jsonc && npm run syfixes && npm run strip_trailing_ws",
     "auto_downport": "npm run downport && cp -r node/downport/. src/ && cp -f .github/abaplint/abap_702.jsonc abaplint.jsonc && npm run abaplintpathfix",
     "auto_app2abap": "node tools/app2abap/trans2abap.js",
     "app2abap": "npm --prefix app run format && npm run auto_app2abap && npm run auto_abaplint",

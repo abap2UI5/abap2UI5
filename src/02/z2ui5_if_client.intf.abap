@@ -497,24 +497,23 @@ INTERFACE z2ui5_if_client
   "!                                copy of its value (a helper variable holding
   "!                                the same string is refused with
   "!                                BINDING_ERROR_TAB_CELL_LEVEL).
-  "!                                **Do not write the val argument as
-  "!                                `tab[ n ]-comp` in code that gets
-  "!                                DOWNPORTED** (the 7.02 build, and with it
-  "!                                the transpiled Node backend and the sample
-  "!                                corpora's e2e smoke): abaplint's downport
-  "!                                lowers a table expression READ AT COMPONENT
-  "!                                LEVEL to `READ TABLE ... INTO <wa>`, a copy,
-  "!                                and the cell is then refused. The same
-  "!                                expression on the WHOLE ROW keeps the
-  "!                                reference (`READ TABLE ... ASSIGNING`), so
-  "!                                assign the row first and bind its component
-  "!                                - `ASSIGN tab[ n ] TO <row>` (or `READ TABLE
-  "!                                tab INDEX n ASSIGNING <row>`, which is
-  "!                                7.02-native), then `val = <row>-comp`.
-  "!                                That form survives every target. Measured,
-  "!                                not assumed: the transpiler itself resolves
-  "!                                all of them correctly - it is the downport
-  "!                                that loses the reference.
+  "!                                One toolchain caveat, not an ABAP one: a
+  "!                                STOCK abaplint downport lowers a table
+  "!                                expression read at COMPONENT level to
+  "!                                `READ TABLE ... INTO <wa>` - a copy - and
+  "!                                the cell is then refused on code that is
+  "!                                correct at the v750 target. This repository
+  "!                                patches that lowering to `ASSIGNING`
+  "!                                (node/setup/patch-abaplint-downport.mjs,
+  "!                                filed upstream), so `tab[ n ]-comp` works
+  "!                                through every build here. An app downported
+  "!                                by an UNPATCHED abaplint has to assign the
+  "!                                row first - `ASSIGN tab[ n ] TO <row>`, then
+  "!                                `val = <row>-comp` - which the same rule
+  "!                                already lowers with ASSIGNING and which is
+  "!                                7.02-native. Measured, not assumed: the
+  "!                                transpiler resolves every form correctly;
+  "!                                only the downport loses the reference.
   "!                                What travels
   "!                                is still the whole table - this only writes
   "!                                a row-qualified path into the view, so the

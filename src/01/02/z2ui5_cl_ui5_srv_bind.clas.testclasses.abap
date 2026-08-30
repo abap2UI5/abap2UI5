@@ -279,12 +279,10 @@ ENDCLASS.
 " The row reference is taken as REF #( mt_tab[ n ] ) and dereferenced, NOT
 " the way bind_tab_cell( ) builds its own (ASSIGN <tab>[ idx ] + ASSIGN
 " COMPONENT), so the reference match is genuinely exercised rather than
-" satisfied by construction. That REF #( tab[ n ] ) spelling is also the one
-" that survives a downport, which is why it is the one the doc block on
-" z2ui5_if_client~_bind recommends. The form an APP writes when it is not
-" downported - the component itself as the val argument, mt_tab[ n ]-name -
-" is proved one level up on z2ui5_if_client~_bind and skipped in the
-" transpiled suite: see the skip note in node/setup/abap_transpile.json
+" satisfied by construction. The form an APP writes - the component itself
+" as the val argument, mt_tab[ n ]-name - is proved one level up on
+" z2ui5_if_client~_bind, where it doubles as the canary for the downport
+" patch that keeps it working (node/setup/patch-abaplint-downport.mjs)
 CLASS ltcl_test_main_cell DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 

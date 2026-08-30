@@ -1011,15 +1011,14 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " is the row COMPONENT, the table and the row number travel beside it.
     " ABAP counts rows from 1, the client path from 0.
     "
-    " This is the one place the app-facing form is proved, and it is skipped
-    " in the transpiled suite - not because the transpiler cannot do it (it
-    " resolves the expression correctly), but because the DOWNPORT that runs
-    " first lowers `tab[ n ]-comp` to `READ TABLE ... INTO <wa>`: a copy, so
-    " the reference this binding matches on never arrives. The whole-row
-    " expression keeps it (`READ TABLE ... ASSIGNING`), which is the spelling
-    " an app uses when its code is downported - see the doc block on
-    " z2ui5_if_client~_bind and the skip note in
-    " node/setup/abap_transpile.json. The cell logic itself is covered
+    " This is the one place the app-facing form is proved, and it is also the
+    " CANARY for node/setup/patch-abaplint-downport.mjs. Stock abaplint lowers
+    " `tab[ n ]-comp` to `READ TABLE ... INTO <wa>` - a copy, so the reference
+    " this binding matches on never arrives and the cell is refused. The patch
+    " makes the outline ASSIGNING, which is what the WRITE path of the same
+    " rule already emits; this test is green in the transpiled suite only
+    " because the patch is applied. If it starts failing, look at the patch
+    " before looking at the binding. The cell logic itself is covered
     " everywhere by ltcl_test_main_cell in z2ui5_cl_ui5_srv_bind
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lo_app TYPE REF TO ltcl_test_app.
