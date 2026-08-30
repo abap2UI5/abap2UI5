@@ -26,12 +26,13 @@ import globals from "globals";
 export default [
   {
     ignores: [
-      // Generated or vendored trees. build/ is written by
+      // Generated or vendored trees. tools/out/ is written by
       // `npm run frontend:build` and node/downport, node/output and
       // node/deps by the downport/transpile pipeline; app/ has its own
       // config and is linted by `npm --prefix app run lint`.
+      // (tools/out/ is git-ignored, but ESLint does not read .gitignore.)
       "app/**",
-      "build/**",
+      "tools/out/**",
       "node/downport/**",
       "node/output/**",
       "node/deps/**",

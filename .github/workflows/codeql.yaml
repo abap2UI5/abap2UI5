@@ -5,7 +5,7 @@ name: codeql
 # Three bodies of JS, and each of them reaches a system:
 #
 #   app/webapp/     the shipped frontend. Embedded verbatim into the ABAP
-#                   classes under src/01/03 and into the four build/ trees, so
+#                   classes under src/01/03 and into the four delivery trees, so
 #                   it runs in every user's browser against their backend. It
 #                   already handles untrusted input by design - the sanitizer
 #                   in core/Lib.js exists because message details reach the DOM
@@ -18,9 +18,11 @@ name: codeql
 # ui5lint and ESLint are style and API checks; neither models taint. Nothing
 # else in this repository looks for an injection path at all.
 #
-# Deliberately scoped by `paths`. `build/` and `src/01/03/` are generated from
-# `app/webapp/` and would triple every finding under a filename nobody may
-# edit; `node/output/` and `node/downport/` are transpiler output.
+# Deliberately scoped by `paths`. `src/01/03/` is generated from `app/webapp/`
+# and would double every finding under a filename nobody may edit;
+# `node/output/` and `node/downport/` are transpiler output. The four delivery
+# trees need no exclusion at all - since #2676 they are not committed here, but
+# built into the git-ignored `tools/out/`.
 #
 # Runs on pull requests (so a finding lands on the change that introduced it),
 # on pushes to main, and monthly - the query pack moves on its own schedule, so

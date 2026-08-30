@@ -27,6 +27,34 @@ import { join } from "node:path";
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SPECS = join(ROOT, "node", "tests");
 const INVENTORY = "docs/agents/test-inventory.md";
+const WEBAPP = join(ROOT, "app", "webapp");
+
+/*
+ * The THIRD direction, and the one the header above describes without
+ * checking: "the controls had no spec at all and the list is what would have
+ * said so". Spec -> inventory and inventory -> spec both compare the list
+ * against node/tests, so a module with no spec at all is invisible to both -
+ * it appears in neither set. Five modules were in exactly that state when this
+ * was added.
+ *
+ * A module is answered for when the inventory names its path, whether that row
+ * says a dedicated spec covers it or that it is exercised through a composed
+ * one. What is refused is silence. An uncovered module is recorded here, with
+ * why - the same shape as the KNOWN lists of the other gates, and a list that
+ * is meant to shrink.
+ */
+const NO_SPEC = new Map([
+  [
+    "cc/Title.js",
+    "a 30-line custom control that only renders a heading tag - the four "
+      + "controls with behaviour have specs (see the inventory)",
+  ],
+  [
+    "core/actions/Launchpad.js",
+    "every handler calls into sap/ushell, which does not exist outside the "
+      + "FLP shell; covered by the launchpad e2e leg instead",
+  ],
+]);
 
 const onDisk = readdirSync(SPECS)
   .filter((f) => f.endsWith(".spec.js"))
@@ -43,8 +71,30 @@ const named = new Set(text.match(/[A-Za-z0-9_.]+\.spec\.js/g) ?? []);
 const missing = onDisk.filter((f) => !named.has(f));
 const stale = [...named].filter((f) => !onDisk.includes(f)).sort();
 
-if (missing.length === 0 && stale.length === 0) {
-  console.log(`spec-inventory: ${onDisk.length} spec(s), all in ${INVENTORY} - OK`);
+/* Every frontend module, relative to app/webapp - the set the inventory is a
+ * statement about. */
+function modules(dir, prefix = "") {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) out.push(...modules(join(dir, entry.name), rel));
+    else if (entry.name.endsWith(".js")) out.push(rel);
+  }
+  return out;
+}
+
+const allModules = modules(WEBAPP);
+const uncovered = allModules.filter((m) => !text.includes(m) && !NO_SPEC.has(m));
+/* A NO_SPEC entry for a module that is now in the inventory is stale in the
+ * other direction: the list is meant to shrink, and an entry nobody removes
+ * after writing the spec is what makes it stop shrinking. */
+const excused = [...NO_SPEC.keys()].filter((m) => text.includes(m) || !allModules.includes(m)).sort();
+
+if (missing.length === 0 && stale.length === 0 && uncovered.length === 0 && excused.length === 0) {
+  console.log(
+    `spec-inventory: ${onDisk.length} spec(s) and ${allModules.length} module(s), `
+    + `all in ${INVENTORY} (${NO_SPEC.size} recorded without one) - OK`,
+  );
   process.exit(0);
 }
 
@@ -62,5 +112,23 @@ if (stale.length) {
   for (const f of stale) console.error(`    ${f}`);
   console.error("");
   console.error("  Drop the row - a reader following it finds nothing.");
+  console.error("");
+}
+if (uncovered.length) {
+  console.error("  frontend module(s) the inventory does not mention at all:");
+  for (const f of uncovered) console.error(`    app/webapp/${f}`);
+  console.error("");
+  console.error("  The list answers \"is this module covered?\", so a module");
+  console.error("  missing from it answers \"no spec\" by omission rather than");
+  console.error("  by anybody deciding that. Add a row naming what covers it -");
+  console.error("  a dedicated spec, or the composed spec that exercises it -");
+  console.error("  or record it in NO_SPEC in this script with the reason.");
+  console.error("");
+}
+if (excused.length) {
+  console.error("  NO_SPEC entry/entries that are no longer true:");
+  for (const f of excused) console.error(`    app/webapp/${f}`);
+  console.error("");
+  console.error("  The module is in the inventory now, or gone. Drop the entry.");
 }
 process.exit(1);

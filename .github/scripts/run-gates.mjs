@@ -32,8 +32,9 @@
  * stay in `verify` as their own commands - they are seconds each, so the
  * wrapper is noise, and their output is long enough to want its own place.
  */
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -130,20 +131,62 @@ const ONE_NODE_RUN = /^node \.github\/scripts\/[\w-]+\.mjs(?:\s+[^&|;<>]*)?$/;
 const failed = [];
 const started = Date.now();
 
-for (const gate of GATES) {
-  const result = spawnSync(
-    process.execPath,
-    [path.join(SCRIPTS, gate.script), ...(gate.args ?? [])],
-    { cwd: ROOT, encoding: "utf8" },
-  );
+/*
+ * Run the gates concurrently, and report them in GATES order regardless of the
+ * order they finish in.
+ *
+ * The header above is an argument about arithmetic - "~11 seconds of npm to do
+ * 1.7 seconds of checking" - and then spent the saved time serially. Four of
+ * these gates read from sibling repositories over the network with a 15-second
+ * per-request timeout (check:shared walks a whole list of them, and
+ * check:counts, check:mirrors and check:samples-md each do their own reads),
+ * so wall time is dominated by requests that are waiting, not computing. They
+ * parallelise perfectly because no gate reads what another writes: every one
+ * of them is a pure check.
+ *
+ * Output is buffered per child and printed after the join, in GATES order, so
+ * a failing run reads identically to the serial version - which matters, since
+ * reporting EVERY failure rather than the first is the whole point of this
+ * runner (and of check_gates.yaml's per-step `!cancelled()`).
+ */
+const CONCURRENCY = Math.min(8, Math.max(2, os.cpus().length));
 
+function runGate(gate) {
+  return new Promise((resolve) => {
+    const child = spawn(
+      process.execPath,
+      [path.join(SCRIPTS, gate.script), ...(gate.args ?? [])],
+      { cwd: ROOT },
+    );
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (d) => { stdout += d; });
+    child.stderr.on("data", (d) => { stderr += d; });
+    child.on("error", (error) => resolve({ gate, status: null, stdout, stderr, error }));
+    child.on("close", (status, signal) => resolve({ gate, status, stdout, stderr, signal }));
+  });
+}
+
+const results = new Array(GATES.length);
+let next = 0;
+await Promise.all(
+  Array.from({ length: Math.min(CONCURRENCY, GATES.length) }, async () => {
+    for (;;) {
+      const index = next++;
+      if (index >= GATES.length) return;
+      results[index] = await runGate(GATES[index]);
+    }
+  }),
+);
+
+for (const result of results) {
   // A gate killed by a signal, or one that could not be spawned at all, has
   // no exit code - that is a failure of this runner, not a clean verdict,
   // and it must not read as a pass.
   const ok = result.status === 0;
   if (!ok) {
-    failed.push(gate);
-    process.stdout.write(`\n─── ${gate.npm} ───\n`);
+    failed.push(result.gate);
+    process.stdout.write(`\n─── ${result.gate.npm} ───\n`);
     process.stdout.write(result.stdout ?? "");
     process.stderr.write(result.stderr ?? "");
     if (result.error) process.stdout.write(`${result.error.message}\n`);

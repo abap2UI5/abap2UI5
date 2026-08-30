@@ -39,6 +39,14 @@ on:
       - 'package-lock.json'
   workflow_dispatch:
 
+# The most expensive pull-request job in the repository - four delivery trees,
+# a renamed BSP variant and two abaplint passes, budgeted at 15 minutes - and
+# the only one that had no concurrency group, so a three-commit push burst ran
+# it three times to completion. Same shape as every other workflow here.
+concurrency:
+  group: frontend_check-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
