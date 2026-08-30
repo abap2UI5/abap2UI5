@@ -252,7 +252,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         TRY.
             CREATE OBJECT li_app_config TYPE (c_class_icf_config).
             client->nav_app_call( li_app_config ).
-          CATCH cx_root ##CATCH_ALL.
+          CATCH cx_root.
             client->message_box_display(
                 text = `The configuration app is not installed on this system`
                 type = `error` ).
@@ -293,7 +293,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         ms_home-link_enabled      = abap_true.
         ms_home-url               = get_app_url( ms_home-classname ).
 
-      CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
+      CATCH cx_root INTO DATA(lx).
         ms_home-class_value_state_text = lx->get_text( ).
         ms_home-class_value_state      = `Warning`.
         client->message_box_display( text = ms_home-class_value_state_text

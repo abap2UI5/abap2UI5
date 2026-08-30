@@ -365,16 +365,20 @@ function getAllFiles(dirPath, arrayOfFiles) {
 // Main function to read the source files and create new target files
 async function main() {
     try {
-        // Delete the target directory if it exists
-        fs.rmSync(targetDir, { recursive: true, force: true });
+        // Everything is generated into memory FIRST and written only once the
+        // whole set is built. The target directory used to be deleted as the
+        // very first statement, before a single guard had run - so a source
+        // file with a non-ASCII character, a class-name collision or an
+        // over-long line left src/01/03 wiped and half-regenerated in the
+        // contributor's working tree, and `git checkout src/01/03` was the
+        // only way back. The drift gate then reported the wreckage instead of
+        // the cause. Nothing below touches the filesystem until `outputs` is
+        // complete.
+        const outputs = [];
+        const emit = (filePath, content) => outputs.push({ filePath, content });
 
-        // Recreate the target directory
-        fs.mkdirSync(targetDir, { recursive: true });
-
-        // Create the initial XML file with BOM
-        const initialXMLFilePath = path.join(targetDir, 'package.devc.xml');
-        await createFileInTargetDir(initialXMLFilePath, initialXMLContent);
-        console.log(`Initial XML file created successfully at: ${initialXMLFilePath}`);
+        // The initial XML file with BOM
+        emit(path.join(targetDir, 'package.devc.xml'), initialXMLContent);
 
         // Sort so the generation order (and console log) is deterministic
         // regardless of the filesystem's readdir order.
@@ -416,13 +420,11 @@ async function main() {
             const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile, relPath);
 
             const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);
-            await createFileInTargetDir(targetFilePath, abapClassContent);
-            console.log(`Target file created successfully at: ${targetFilePath}`);
+            emit(targetFilePath, abapClassContent);
 
             const xmlContent = xmlTemplate(className, `abap2UI5 - ${path.basename(file)}`);
             const xmlFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.xml`);
-            await createFileInTargetDir(xmlFilePath, `\uFEFF${xmlContent}`);
-            console.log(`XML file created successfully at: ${xmlFilePath}`);
+            emit(xmlFilePath, `\uFEFF${xmlContent}`);
 
             // Collect the preload entry. index.html is the standalone dev
             // page and is not preloaded by the generated GET response.
@@ -442,15 +444,27 @@ async function main() {
         // localeCompare depends on the host locale/ICU build, and the sort
         // order is committed output (src/01/03).
         preloadEntries.sort((a, b) => (a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0));
-        const preloadFilePath = path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap');
-        await createFileInTargetDir(preloadFilePath, buildPreloadClass(preloadEntries));
-        console.log(`Preload class created successfully at: ${preloadFilePath}`);
-        const preloadXmlPath = path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml');
-        await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`);
-        console.log(`Preload XML created successfully at: ${preloadXmlPath}`);
+        emit(path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap'), buildPreloadClass(preloadEntries));
+        emit(
+            path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml'),
+            `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`,
+        );
+
+        // Every guard has passed and every byte is in hand - only now is the
+        // committed tree replaced.
+        fs.rmSync(targetDir, { recursive: true, force: true });
+        fs.mkdirSync(targetDir, { recursive: true });
+        for (const { filePath, content } of outputs) {
+            await createFileInTargetDir(filePath, content);
+            console.log(`Target file created successfully at: ${filePath}`);
+        }
+        console.log(`${outputs.length} file(s) written to ${targetDir}`);
     } catch (error) {
         // Signal failure so CI (check_app2abap.yaml, autofix.yaml) does not
-        // treat a broken generation run as success and commit a partial src/01/03.
+        // treat a broken generation run as success and commit a partial
+        // src/01/03. Since the write phase above is the last thing main( )
+        // does, a failure reported here also means the committed tree was
+        // never touched.
         console.error('Error:', error.message);
         process.exitCode = 1;
     }

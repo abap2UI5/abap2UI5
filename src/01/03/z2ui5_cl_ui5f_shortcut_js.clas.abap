@@ -147,8 +147,11 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evKeyboardSetMode(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
-             `        if (!oElement) return;` && |\n| &&
+             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
+             `        if (!oElement) {` && |\n| &&
+             `          Lib.logError(``KEYBOARD_SET_MODE: '${args[1]}' not found``);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (!dom) return;` && |\n| &&
              `        const input = dom.matches("input, textarea")` && |\n| &&

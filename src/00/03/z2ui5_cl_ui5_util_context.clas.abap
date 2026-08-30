@@ -965,7 +965,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     LOOP AT lt_tab REFERENCE INTO DATA(lr_row).
 
-      DATA(lv_value) = lt_mapping[ n = lr_row->option ]-v.
+      DATA(lv_value) = lt_mapping[ n = lr_row->option ]-v. "#EC CI_SORTSEQ
       REPLACE `{LOW}`  IN lv_value WITH lr_row->low.
       REPLACE `{HIGH}` IN lv_value WITH lr_row->high.
 
@@ -1270,7 +1270,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     DATA(lt_params) = url_param_get_tab( url ).
     DATA(lv_val) = c_trim_lower( val ).
-    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
+    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ). "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
@@ -1643,7 +1643,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDTRY.
 
     IF add_sel_field = abap_true
-        AND NOT line_exists( lt_comp[ name = sel_field_name ] ).
+        AND NOT line_exists( lt_comp[ name = sel_field_name ] ). "#EC CI_SORTSEQ
       DATA(lo_type_bool) = cl_abap_typedescr=>describe_by_name( `ABAP_BOOL` ).
       INSERT VALUE #( name = sel_field_name
                       type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.

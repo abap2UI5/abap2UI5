@@ -5,6 +5,7 @@ summary: on 7.40 SP7 a successful `ASSIGN` does not reset `sy-subrc`, so the tes
 priority: high
 state: open
 first_seen: 2026-08-17
+checked_upstream: 2026-08-30
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5 issue #1937 — every app on a 7.40 SP7 system ran into an endless loop; fixed by `41890d59` testing the field symbol instead
@@ -13,6 +14,17 @@ evidence:
 ---
 
 # Report a `sy-subrc` test used as the success check of an `ASSIGN`
+
+> **Upstream check 2026-08-30: nothing asks for this rule; the two open issues
+> in the area run the other way.**
+> [abaplint#1863](https://github.com/abaplint/abaplint/issues/1863) (*"check_subrc,
+> skip check if assigning and checking assigning, dynamic assignment"*) and
+> [abaplint#3090](https://github.com/abaplint/abaplint/issues/3090)
+> (*"check_subrc: Dead-end"*) both ask `check_subrc` to report **less** around
+> `ASSIGN` — they are about false positives from the existing rule. This item
+> asks for the opposite finding (the `sy-subrc` test itself is the defect,
+> `IS ASSIGNED` is the check), so it is a new rule rather than a comment on
+> those. Read #1863 before filing so the two are not confused.
 
 ## What happens
 

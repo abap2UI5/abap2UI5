@@ -110,10 +110,13 @@ repository's own classification of them and keeps the two verdicts that mean
 item, or that already name a filed request, drop out. What is left is raw
 stock, found without anybody deciding to look.
 
-It answers 1 candidate today, and that is the honest state rather than a
+It answers nothing today, and that is the honest state rather than a
 disappointment: the 2026-08 gap harvest filed six requests and all six shipped,
 so the mine is drained. The value is that it is now a standing watch — the next
-porting batch fills it again, and nobody has to remember to check.
+porting batch fills it again, and nobody has to remember to check. (The count
+itself is deliberately not written down here — `npm run backlog` prints it, and
+a number in prose is a number that goes stale, which this sentence proved by
+claiming one candidate long after the last one was cleared.)
 
 ## Measuring a proposed rule — `npm run backlog:probe`
 

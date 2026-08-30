@@ -31,6 +31,16 @@ const PROSE = [
   { dir: "docs", depth: 9, ext: [".md"] },
   { dir: ".claude", depth: 9, ext: [".md"] },
   { dir: ".github", depth: 9, ext: [".md"] },
+  // The two trees that were outside the scope while carrying the most
+  // unverified source references of any prose here.
+  //
+  // `backlog/` is the sharper of the two: an item is written to be pasted into
+  // ANOTHER project's tracker as it stands, so a name that no longer exists
+  // goes out to a maintainer who has no way to check it, under this project's
+  // name. `frontend/common/` is published onto abap2UI5/frontend's `main` and
+  // is the first page somebody installing the frontend reads.
+  { dir: "backlog", depth: 9, ext: [".md"] },
+  { dir: "frontend", depth: 9, ext: [".md"] },
 ];
 
 // A changelog is a record of the past, and an entry naming what a class was
@@ -65,6 +75,16 @@ const EXTERNAL = new Map([
 // this repository's to ship.
 const EXTERNAL_PATTERNS = [
   { re: /^Z2UI5_CL_(DEMO|SMP|SMPC|SMPS)_APP_/, why: "app classes of the sample repositories" },
+  // The rest of those repositories' namespaces, not just their app classes.
+  // `smp` is samples, `smpc` samples-controls, `smps` samples-stack, `dmo` the
+  // demo classes - whole prefixes this repository does not ship and cannot
+  // resolve. They became reachable when backlog/ came into scope: an item
+  // measures a proposed rule against the sample corpora, so it cites the
+  // classes it measured by name (a probe's site list is exactly that).
+  {
+    re: /^Z2UI5_(CL|CX|IF)_(DEMO|DMO|SMP|SMPC|SMPS)_/,
+    why: "the sample repositories' own namespaces - not this repository's to ship",
+  },
 ];
 
 // Names that no longer exist and are named ON PURPOSE, because the passage is

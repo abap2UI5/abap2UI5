@@ -51,8 +51,12 @@ The repository structure:
 - `tools/` - generators that build artefacts out of `app/webapp/` (embedded ABAP, BSP packaging, delivery branches)
 - `frontend/` - the non-generated parts of the delivery branches (ICF/BSP ABAP artefacts, common files)
 - `node/` - Node.js transpilation setup
+- `docs/` - documentation for contributors and agents (`docs/agents/` maps the directories, the workflows and the test inventory; `docs/removal-plan.md` is what to read before removing any compatibility symbol)
+- `backlog/` - findings that belong in ANOTHER repository of the ecosystem (abaplint, the transpiler, the linter). Found a defect that is not ours to fix? It goes here rather than getting lost - see [`backlog/README.md`](backlog/README.md)
+- `.claude/skills/` - task-scoped guidance (the ABAP and UI5 problem catalogues a green CI does not catch)
 - `.github/` - CI/CD workflows and configurations
 - `package.json` - Node.js dependencies and build scripts
+- `changelog.txt` - every user-visible change lands here under `unreleased` (the pull-request template asks for it)
 
 ## Development Environment Setup
 
@@ -68,15 +72,19 @@ cd abap2UI5
 git remote add upstream https://github.com/abap2UI5/abap2UI5.git
 ```
 
-### 2. Install Dependencies (Optional)
+### 2. Install Dependencies
 
-Only needed if you plan to run transpilation tests locally:
+Required for everything below: `npx abaplint`, `npm run check`, `npm run verify`
+and every `npm run check:*` gate come from these dependencies.
 
 ```bash
 npm install
 ```
 
-This installs the abaplint CLI (`@abaplint/cli`) and other tools automatically.
+This installs the abaplint CLI (`@abaplint/cli`) and the other tools
+automatically. The first `npm run check` additionally clones three pinned git
+dependencies into `node/deps/` (`node/setup/fetch-deps.mjs`), so it needs
+network access once; after that the checks run offline.
 
 ## ABAP Development with abapGit
 

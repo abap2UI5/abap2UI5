@@ -5,6 +5,7 @@ summary: it compiles to `INPUT.result`, which no call site ever sets, so `follow
 priority: high
 state: open
 first_seen: 2026-08-13
+checked_upstream: 2026-08-30
 upstream: abaplint/transpiler
 evidence:
   - 26 samples-controls ports red in the e2e nightly of 2026-08-13, the first after the corpus renamed its `_event_client( )` wires

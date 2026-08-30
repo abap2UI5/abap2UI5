@@ -111,7 +111,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      else showFn(sText);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const CONTROL_METHODS = {` && |\n| &&
+             `    const CONTROL_METHODS = Object.assign(Object.create(null), {` && |\n| &&
              `      to: ["pageId", "string"],` && |\n| &&
              `      back: [],` && |\n| &&
              `` && |\n| &&
@@ -153,7 +153,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      removeStyleClass: ["string"],` && |\n| &&
              `      toggleStyleClass: ["string"],` && |\n| &&
              `      setAsyncURLHandler: ["string"],` && |\n| &&
-             `    };` && |\n| &&
+             `    });` && |\n| &&
              `` && |\n| &&
              `    const URL_POLICIES = {` && |\n| &&
              `      ALLOW_ALL: () => true,` && |\n| &&
@@ -229,7 +229,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const GLOBAL_TARGETS = {` && |\n| &&
+             `    const GLOBAL_TARGETS = Object.assign(Object.create(null), {` && |\n| &&
              `      MESSAGE_TOAST: {` && |\n| &&
              `        get: () => MessageToast,` && |\n| &&
              `        methods: { show: ["string"] },` && |\n| &&
@@ -310,7 +310,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          addCustomCurrencies: ["object"],` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `    };` && |\n| &&
+             `    });` && |\n| &&
              `` && |\n| &&
              `    const AGG_ITEM = /^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;` && |\n| &&
              `` && |\n| &&
@@ -697,7 +697,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      binding.filter([new Filter(outer, true)]);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const BINDING_METHODS = {` && |\n| &&
+             `    const BINDING_METHODS = Object.assign(Object.create(null), {` && |\n| &&
              `      filter(binding, params) {` && |\n| &&
              `        const [path, operator, value1, value2] = params;` && |\n| &&
              `` && |\n| &&
@@ -727,7 +727,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
-             `    };` && |\n| &&
+             `    });` && |\n| &&
              `` && |\n| &&
              `    function evBindingCall(oController, args) {` && |\n| &&
              `      const [, id, aggregation, method] = args;` && |\n| &&

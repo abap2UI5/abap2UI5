@@ -115,6 +115,40 @@ for (const file of files) {
       });
     }
 
+    // The SAME finding, reached the other two ways. LOOP AT ... WHERE was the
+    // only shape this gate knew, so four production sequential reads shipped
+    // without the pragma while the repository's own precedent
+    // (z2ui5_cl_ui5_srv_model, the line_exists over mt_attri) carried it.
+    //
+    // Neither form can be decided perfectly from the text: whether a read is
+    // sequential depends on the table's key, which is declared elsewhere. Two
+    // scope decisions keep the rule honest rather than noisy:
+    //   - `WITH TABLE KEY` is exempt - that is a primary-key read, not a free
+    //     key, and it is the spelling used where a keyed table is meant.
+    //   - test classes are exempt. They hold 76 of the 86 matches in this
+    //     repository, almost all of them `lt_attri[ name = ... ]` inside an
+    //     assertion, where the finding says nothing about the shipped code.
+    //     Every recorded ATC incident came from production code.
+    // An intentional sequential read opts out the same way as the LOOP AT
+    // above: put "#EC CI_SORTSEQ on the statement.
+    if (!/testclasses/.test(file) && !/CI_SORTSEQ/i.test(flat)) {
+      if (/^\s*READ\s+TABLE\b/i.test(flat)
+        && /\bWITH\s+KEY\b/i.test(flat)
+        && !/\bWITH\s+TABLE\s+KEY\b/i.test(flat)) {
+        findings.push({
+          at,
+          rule: "sortseq",
+          message: 'READ TABLE ... WITH KEY is a sequential read - the extended check wants "#EC CI_SORTSEQ on the statement',
+        });
+      } else if (/\[\s*[A-Za-z_][\w-]*\s*=/.test(flat)) {
+        findings.push({
+          at,
+          rule: "sortseq",
+          message: 'a table expression keyed on a component is a sequential read - the extended check wants "#EC CI_SORTSEQ on the statement',
+        });
+      }
+    }
+
     if (/^\s*(FIND|REPLACE)\b/i.test(flat) && /\bREGEX\b/i.test(flat) && !/REGEX_POSIX/i.test(flat)) {
       findings.push({
         at,

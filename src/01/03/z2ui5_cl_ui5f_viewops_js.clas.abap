@@ -249,9 +249,14 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evWizardSetNextStep(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const wiz = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
-             `        const step = ViewSlots.byId("MAIN", args[2]);` && |\n| &&
-             `        const nextStep = ViewSlots.byId("MAIN", args[3]);` && |\n| &&
+             `        const wiz = ViewSlots.resolveById(args[1]);` && |\n| &&
+             `        const step = ViewSlots.resolveById(args[2]);` && |\n| &&
+             `        const nextStep = ViewSlots.resolveById(args[3]);` && |\n| &&
+             `        if (!wiz || !step) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``WIZARD_SET_NEXT_STEP: '${args[1]}' / '${args[2]}' not found``,` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
              `        if (wiz && step) wiz.discardProgress(step);` && |\n| &&
              `        if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
              `      } catch (e) {` && |\n| &&

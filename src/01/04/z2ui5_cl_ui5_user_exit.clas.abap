@@ -184,7 +184,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   METHOD init_context.
 
     context = CORRESPONDING #( http_info ).
-    context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ).
+    context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ). "#EC CI_SORTSEQ
 
   ENDMETHOD.
 

@@ -5,6 +5,7 @@ summary: '`line_exists( tab[ k = to_upper( x ) ] )` downports to `READ TABLE tab
 priority: high
 state: open
 first_seen: 2026-08-25
+checked_upstream: 2026-08-30
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5 issue #2664 — a 7.31 system dumped SYNTAX_ERROR on `Z2UI5_CL_UI5_CLIENT===========CCIMP` line 150, `"method TO_UPPER is unknown"`, taking down every app on the system
@@ -96,6 +97,19 @@ that lints the downported branch (`ABAP_702.yaml` in abap2UI5) passed it as
 well — abaplint does not model which operand positions accept a built-in
 function at which release. The defect is introduced by the downport, which
 makes the downport the place to repair it.
+
+## Read the probe count below as zero *because it was fixed*
+
+The generated block reports **0 sites**, and on its own that reads like an item
+with no evidence behind it — the opposite of what a probe is for. The zero is a
+consequence, not a finding: the one occurrence this item was written from
+(#2664, a `SYNTAX_ERROR` on a user's 7.02 system) was repaired in abap2UI5 by
+#2666 in the same change that added `npm run check:downport`, and that gate now
+keeps the count at zero here. The evidence for this item is the production
+incident in "Motivation", not the probe; what the probe still shows usefully is
+the **negative** — one construct of the same shape that is correct and must not
+be flagged. A run against the pre-#2666 tree would count the site, which is
+worth doing only if a reviewer asks for it.
 
 <!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 

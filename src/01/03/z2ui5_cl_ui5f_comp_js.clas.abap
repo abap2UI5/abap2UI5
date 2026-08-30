@@ -203,6 +203,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&
+             `        Server.reset();` && |\n| &&
+             `` && |\n| &&
              `        for (const key of Object.keys(AppState.state.timers)) {` && |\n| &&
              `          clearTimeout(AppState.state.timers[key]);` && |\n| &&
              `          delete AppState.state.timers[key];` && |\n| &&

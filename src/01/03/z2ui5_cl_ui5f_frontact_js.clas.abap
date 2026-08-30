@@ -51,7 +51,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const handlers = Object.assign(` && |\n| &&
-             `      {},` && |\n| &&
+             `      Object.create(null),` && |\n| &&
              `      ControlCall.handlers,` && |\n| &&
              `      Browser.handlers,` && |\n| &&
              `      Launchpad.handlers,` && |\n| &&

@@ -784,6 +784,19 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       mo_action->mo_app->ms_session-nav_mode_sent = mo_action->ms_next-s_nav-set_nav_routing.
     ENDIF.
 
+    " The app-state hash is the same kind of intent as the routing mode, and
+    " needs the same treatment: the frontend syncs the URL on EVERY response
+    " (View1 -> Router.sync), and Router reads a missing setAppStateActive as
+    " "clear the hash". So a flag that lives only on ms_next - which is
+    " per-request - held for exactly one response: opening a bookmarked
+    " z2ui5-xapp-state URL restored the draft, and the next event dropped the
+    " hash again. Re-assert what the app asked for unless this roundtrip
+    " already said something itself.
+    IF mo_action->ms_next-s_nav-set_app_state_active = abap_false
+        AND mo_action->mo_app->mv_app_state_active = abap_true.
+      mo_action->ms_next-s_nav-set_app_state_active = abap_true.
+    ENDIF.
+
     DATA(lo_front) = NEW z2ui5_cl_ui5_frontend( mo_action ).
 
     " the view-lifecycle calls leave first, in slot order
@@ -795,7 +808,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " later voided by a destroy (slot_reset) counts as no view.
     DATA(lv_model) = `{}`.
     DATA(lv_check_display) = xsdbool( line_exists( mo_action->ms_next-t_action_front[
-                                          method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ).
+                                          method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ). "#EC CI_SORTSEQ
     IF lv_check_display = abap_true.
       lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.

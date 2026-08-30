@@ -16,6 +16,20 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     " even when the app in between ran with a different one.
     DATA mv_nav_mode TYPE string.
 
+    " Whether THIS app wants its draft id carried in the URL hash
+    " (z2ui5-xapp-state), set via client->set_app_state_active( ) or
+    " follow_up_action( cs_event-set_app_state_active ). On the app - and
+    " therefore in its draft - for the same reason as mv_nav_mode above, and
+    " it has to be: the intent is re-asserted on every response, but
+    " ms_next-s_nav is per-request (z2ui5_cl_ui5_handler=>main clears it) and
+    " the frontend reads a missing setAppStateActive as "clear the hash"
+    " (app/webapp/core/Router.js). Held only on ms_next, the flag survived
+    " exactly one response: opening a bookmarked app-state URL restored the
+    " draft, and the first button click then wiped z2ui5-xapp-state from the
+    " address bar - the bookmark stopped tracking the app it was made for.
+    " main_end re-sends it, the way it re-sends mv_nav_mode.
+    DATA mv_app_state_active TYPE abap_bool.
+
     " What the browser told us about itself. It lives on the app - and
     " therefore in its draft - so the frontend sends it once per page load
     " instead of with every roundtrip. A draft reopened from a DIFFERENT
@@ -165,18 +179,20 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
         result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
         lo_model->main_attri_db_load( ).
         RETURN.
-      CATCH cx_root INTO DATA(x) ##NO_HANDLER.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     " chain the FIRST serialization failure - it names the attribute/type
     " that is not serializable and carries the source position of the
     " transformation that gave up; the retries fail for the same root cause
-    " or a follow-up one
+    " or a follow-up one.
+    " x_first is always bound here: the only path to this statement runs
+    " through the first CATCH, since every success above RETURNs
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
         val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
                    |Please check if all generic data references are public attributes of your class|
-        previous = COND #( WHEN x_first IS BOUND THEN x_first ELSE x ).
+        previous = x_first.
 
   ENDMETHOD.
 
@@ -218,8 +234,27 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     DATA(ls_db) = lo_db->read_draft( app->id_draft ).
     result = all_xml_parse( ls_db-data ).
 
+    " mo_app is assigned BEFORE the attribute load, and that ordering is the
+    " whole difference to db_load( ): the references are restored against the
+    " LIVE app instance the stack is navigating to, not against the one the
+    " draft deserialized into.
     result->mo_app = app.
     result->create_model( )->main_attri_db_load( ).
+
+    " Publish the container in the per-request buffer so a later db_load( ) of
+    " the same draft id hands back THIS object instead of parsing the draft a
+    " second time into a second container - two containers for one draft mean
+    " whoever reaches the other one mutates state nobody else sees.
+    " Only ever an insert: reading an EXISTING buffer entry here would be
+    " wrong, because a container that came from db_load( ) has its attributes
+    " restored against the deserialized app, and this method's caller needs
+    " them pointing at `app`. So the two loaders stay distinct in that
+    " direction on purpose - do not "simplify" this into a buffer lookup.
+    " mt_buffer has a UNIQUE KEY, so this insert is the whole "only if absent"
+    " logic: an id already in the buffer leaves the existing entry alone and
+    " sets sy-subrc = 4, which is the wanted outcome and not an error
+    INSERT VALUE #( id  = CONV string( app->id_draft )
+                    app = result ) INTO TABLE mt_buffer.
 
   ENDMETHOD.
 
