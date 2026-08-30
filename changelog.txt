@@ -12,6 +12,13 @@ Legend
 
 unreleased
 ----------
++ _bind( tab / tab_index ) - the cell binding - is documented and unit tested:
+  a row of an internal table bound as {/TAB/n/FIELD}, the ABAP 1-based row
+  number rendered 0-based
+! The downport keeps the ROW reference of a table expression read at
+  component level - it copied it into a work area, which broke the cell
+  binding in every downported build. Patched into the installed abaplint by
+  node/setup/patch-abaplint-downport.mjs until the upstream fix ships
 
 
 2026-08-30 v1.144.0

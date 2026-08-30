@@ -502,6 +502,59 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
+  "! @parameter tab               | bind ONE CELL of an internal table instead
+  "!                                of a whole attribute: pass the table here
+  "!                                and the row number in tab_index, and the
+  "!                                bound value as val - the row component
+  "!                                itself, e.g.
+  "!                                `_bind( val       = mt_emp[ 1 ]-name
+  "!                                        tab       = mt_emp
+  "!                                        tab_index = 1 )` -> `{/MT_EMP/0/NAME}`.
+  "!                                The cell is identified by REFERENCE: val
+  "!                                has to BE the component of that row, not a
+  "!                                copy of its value (a helper variable holding
+  "!                                the same string is refused with
+  "!                                BINDING_ERROR_TAB_CELL_LEVEL).
+  "!                                One toolchain caveat, not an ABAP one: a
+  "!                                STOCK abaplint downport lowers a table
+  "!                                expression read at COMPONENT level to
+  "!                                `READ TABLE ... INTO <wa>` - a copy - and
+  "!                                the cell is then refused on code that is
+  "!                                correct at the v750 target. This repository
+  "!                                patches that lowering to `ASSIGNING`
+  "!                                (node/setup/patch-abaplint-downport.mjs,
+  "!                                filed upstream), so `tab[ n ]-comp` works
+  "!                                through every build here. An app downported
+  "!                                by an UNPATCHED abaplint has to assign the
+  "!                                row first - `ASSIGN tab[ n ] TO <row>`, then
+  "!                                `val = <row>-comp` - which the same rule
+  "!                                already lowers with ASSIGNING and which is
+  "!                                7.02-native. Measured, not assumed: the
+  "!                                transpiler resolves every form correctly;
+  "!                                only the downport loses the reference.
+  "!                                What travels
+  "!                                is still the whole table - this only writes
+  "!                                a row-qualified path into the view, so the
+  "!                                model keeps the ARRAY shape while the view
+  "!                                addresses single rows. Use it where the
+  "!                                original model is an array but the view
+  "!                                repeats controls instead of binding an
+  "!                                aggregation (six statically written panels
+  "!                                over /Employee/0..5), which is otherwise
+  "!                                written as a series of flat attributes
+  "!                                (emp1_name, emp2_name, ...) and loses that
+  "!                                shape. For a REPEATING aggregation bind the
+  "!                                table itself (`items = _bind( mt_emp )`) and
+  "!                                keep the template's fields relative.
+  "! @parameter tab_index         | the row of tab to address, counted the ABAP
+  "!                                way from 1 - the client path is 0-based, so
+  "!                                tab_index = 1 renders as `/0/`. A row that
+  "!                                does not exist raises
+  "!                                BINDING_ERROR_TAB_CELL_LEVEL instead of
+  "!                                dumping, but note that writing the val
+  "!                                argument as `tab[ n ]` already dumps on the
+  "!                                ABAP side when row n is missing - seed the
+  "!                                table before building the view.
   "! @parameter omit_initial       | keep INITIAL fields out of the serialized
   "!                                model instead of sending them as `` / 0. An
   "!                                ABAP field is never absent - it is initial -

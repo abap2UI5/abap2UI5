@@ -2,6 +2,13 @@ CLASS ltcl_test_app DEFINITION FINAL.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
     DATA mv_name TYPE string ##NEEDED.
+
+    TYPES:
+      BEGIN OF ty_s_emp,
+        name TYPE string,
+        job  TYPE string,
+      END OF ty_s_emp.
+    DATA mt_emp TYPE STANDARD TABLE OF ty_s_emp WITH EMPTY KEY ##NEEDED.
 ENDCLASS.
 
 CLASS ltcl_test_app IMPLEMENTATION.
@@ -97,6 +104,8 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_omit_filters_serial  FOR TESTING RAISING cx_static_check.
     METHODS test_bind_filter_not_serial FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_db_save FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_tab_cell        FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_tab_cell_assign FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_shorthand  FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_appends    FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_empty      FOR TESTING RAISING cx_static_check.
@@ -1086,6 +1095,81 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_bound( lr_attri ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lr_attri->bind ).
+
+  ENDMETHOD.
+
+
+  METHOD test_bind_tab_cell.
+
+    " The CELL form of _bind, exactly as an app writes it: the bound value
+    " is the row COMPONENT, the table and the row number travel beside it.
+    " ABAP counts rows from 1, the client path from 0.
+    "
+    " This is the one place the app-facing form is proved, and it is also the
+    " CANARY for node/setup/patch-abaplint-downport.mjs. Stock abaplint lowers
+    " `tab[ n ]-comp` to `READ TABLE ... INTO <wa>` - a copy, so the reference
+    " this binding matches on never arrives and the cell is refused. The patch
+    " makes the outline ASSIGNING, which is what the WRITE path of the same
+    " rule already emits; this test is green in the transpiled suite only
+    " because the patch is applied. If it starts failing, look at the patch
+    " before looking at the binding. The cell logic itself is covered
+    " everywhere by ltcl_test_main_cell in z2ui5_cl_ui5_srv_bind
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lo_app TYPE REF TO ltcl_test_app.
+
+    li_client ?= mo_client.
+    lo_app ?= mo_action->mo_app->mo_app.
+    INSERT VALUE #( name = `Michael Adams`
+                    job  = `Scrum Master` ) INTO TABLE lo_app->mt_emp.
+    INSERT VALUE #( name = `John Miller`
+                    job  = `Product Owner` ) INTO TABLE lo_app->mt_emp.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{/MT_EMP/0/NAME}`
+        act = li_client->_bind( val       = lo_app->mt_emp[ 1 ]-name
+                                tab       = lo_app->mt_emp
+                                tab_index = 1 ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{/MT_EMP/1/JOB}`
+        act = li_client->_bind( val       = lo_app->mt_emp[ 2 ]-job
+                                tab       = lo_app->mt_emp
+                                tab_index = 2 ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_bind_tab_cell_assign.
+
+    " The same cell over an ASSIGNED row - the spelling the doc block on
+    " _bind recommends, and the only one that survives a downport: the
+    " whole-row table expression keeps its reference through it
+    " (READ TABLE ... ASSIGNING), the component-level one does not. So this
+    " test runs on every target, including this pipeline
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lo_app TYPE REF TO ltcl_test_app.
+    FIELD-SYMBOLS <emp> TYPE ltcl_test_app=>ty_s_emp.
+
+    li_client ?= mo_client.
+    lo_app ?= mo_action->mo_app->mo_app.
+    INSERT VALUE #( name = `Michael Adams`
+                    job  = `Scrum Master` ) INTO TABLE lo_app->mt_emp.
+    INSERT VALUE #( name = `John Miller`
+                    job  = `Product Owner` ) INTO TABLE lo_app->mt_emp.
+
+    ASSIGN lo_app->mt_emp[ 1 ] TO <emp>.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{/MT_EMP/0/NAME}`
+        act = li_client->_bind( val       = <emp>-name
+                                tab       = lo_app->mt_emp
+                                tab_index = 1 ) ).
+
+    ASSIGN lo_app->mt_emp[ 2 ] TO <emp>.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{/MT_EMP/1/JOB}`
+        act = li_client->_bind( val       = <emp>-job
+                                tab       = lo_app->mt_emp
+                                tab_index = 2 ) ).
 
   ENDMETHOD.
 
