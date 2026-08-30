@@ -1,7 +1,7 @@
 {
   "name": "abap2UI5",
   "private": true,
-  "version": "1.143.0",
+  "version": "1.144.0",
   "description": "Developing UI5 Apps Purely in ABAP.",
   "scripts": {
     "deps": "node node/setup/fetch-deps.mjs",

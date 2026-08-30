@@ -385,6 +385,52 @@ Not about names or layout — these only show up when the app runs.
   the bound table can be empty. A first render passes and the emptying fails,
   which is why nothing offline sees it.
 
+- **A numeric property can REJECT the ABAP-initial `0`, and every ABAP
+  structure sends one.** Sibling of the entry above with a different mechanism:
+  not a type check, a hand-written setter that validates its range.
+
+      Error: recurrencePattern must be >= 1
+        at u.setRecurrencePattern (…/sap/ui/unified/library-preload.js)
+        at c.updateProperty
+
+  `sap.ui.unified.RecurringCalendarAppointment.recurrencePattern` is
+  `{type: "int", defaultValue: 1}` and its setter throws for anything below 1
+  (`RecurringCalendarAppointment.js:163`, read in the OpenUI5 sources at
+  1.151). The ORIGINAL sample is correct and works:
+  `sap.m.sample.PlanningCalendarRecurringItem`'s `onCreateDialogSave` writes
+  the property only inside `if (oData.recurrenceType)`, so a non-recurring new
+  appointment carries no such key at all, the binding resolves to `undefined`
+  and the control keeps its default. A port cannot reproduce "no such key" —
+  `recurrencepattern TYPE i` serialises as `0` on every row — so the first
+  appointment created without a recurrence took the app down. Reported by a
+  user on 2026-08-29 from a Developer Tools export (UI5 1.150,
+  `abap2UI5/samples-controls` apps 548 and 555) and measured standalone on
+  OpenUI5 1.151: bound `0` throws while the view is created, bound `1` renders.
+
+  Note where the throw lands: `ManagedObject.updateProperty` rethrows anything
+  that is not a `FormatException`, so a validating setter kills the whole
+  render — the enum entry's blast radius, from a value that reads as perfectly
+  ordinary data.
+
+  The fix is in the backend, where this repository wants it anyway: seed the
+  control's own default into the model (`recurrencepattern = 1`) instead of
+  leaving the field initial. A view-side `{= ${X} || 1 }` fallback works too
+  and is the right shape only when no ABAP writes the row — which is exactly
+  the sibling `sap.ui.unified.RecurringNonWorkingPeriod`, same setter
+  (`RecurringNonWorkingPeriod.js:145`), whose rows both ports only ever seed:
+  there the default rides in the binding. Measured on 1.151, both forms
+  verified: bound `0` throws, the expression renders `0` as `1` and leaves a
+  real `2` alone. An EMPTY bound table is safe either way here — unlike the
+  enum case above, a template with no row behind it leaves an `int` property at
+  its default rather than handing the setter a `""` (which `"" < 1` would have
+  rejected, so the difference is luck of the coercion, not of the design).
+
+  This is the **type-level** twin of the empty-string trap: ABAP has no null,
+  an unfilled `TYPE i` serialises as `0`, and `0` is out of range for every
+  property whose setter demands `>= 1`. The tell is a property documented as an
+  interval or a count — `recurrencePattern`, and any control property whose
+  own setter is written by hand rather than generated.
+
 **Linter:** the expression-binding rule is decidable from the view text alone
 (`{=` in any attribute value) — but **deliberately not added**, and the scope
 line is worth stating once so it is not proposed again. `{= … }` is
@@ -425,6 +471,21 @@ enum binding there is. The linter's own comment above `deriveModel` closes it:
 statically, and inventing an empty string for it makes UI5's strict mode reject
 a perfectly good view."* It would need "is this component ever assigned
 anywhere in the class" — data flow over the ABAP, not the view.
+
+The **`0`-into-a-validating-setter** entry is *ready to move, but it needs data
+nobody has harvested yet*. The view side is decidable exactly like the enum
+one — an `int`-typed property inside an aggregation template, bound to a plain
+path with no fallback — but on its own that fires on every bound `int` in the
+corpus, and almost all of them are fine. What makes it decidable is the list of
+properties whose SETTER throws, and that is nowhere in `properties.json`
+(which carries `{"type": "int"}` for `recurrencePattern` and nothing else —
+not even the `defaultValue`). It is, however, in the sources the linter's
+`generate-metadata.mjs` already walks for `@since`/`@deprecated`: a
+`prototype.set<Property> = function` body containing a `throw` is a small,
+honest pattern to record alongside them, together with the bound it enforces.
+Until that column exists the rule cannot be written without over-reporting, so
+this stays prose — and the same harvest would give the enum case its own
+missing half.
 
 Second limit found on the way: `sap.m.ObjectStatus.state` is declared
 `type: "string"` in the metadata, because UI5 validates it at runtime against

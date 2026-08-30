@@ -450,11 +450,29 @@ INTERFACE z2ui5_if_client
   "! row/column and let the rest through
   "! (`${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`). It wins
   "! over the flag when both are set.
+  "!
+  "! @parameter arg | the ONE-VALUE spelling of t_arg: `arg = x` is exactly
+  "!                  `t_arg = VALUE #( ( x ) )`, byte for byte, and the
+  "!                  handler reads it back with the same `get_event_arg( )`.
+  "!                  It exists because the single argument is what most
+  "!                  wires carry - a row key, a `${$source>/...}`, one event
+  "!                  parameter - and there the table constructor is longer
+  "!                  than the value inside it. From two values on, t_arg is
+  "!                  the right parameter and stays it; arg deliberately does
+  "!                  not grow into arg2/arg3, which would only put the
+  "!                  positional numbering the table already spells out back
+  "!                  into the parameter names.
+  "!                  Passing both APPENDS arg behind the t_arg rows - a
+  "!                  defined composition, not a guess between two readings.
   METHODS _event
     IMPORTING
       val           TYPE clike                              OPTIONAL
       t_arg         TYPE string_table                       OPTIONAL
       s_ctrl        TYPE ty_s_event_control                  OPTIONAL
+      " appended rather than slotted next to t_arg, where it would read
+      " better: rule 5 allows a new optional parameter at the END of the
+      " list - inserting one reorders a public signature
+      arg           TYPE clike                              OPTIONAL
         PREFERRED PARAMETER val
     RETURNING
       VALUE(result) TYPE string.
@@ -608,6 +626,28 @@ INTERFACE z2ui5_if_client
       switch_default_model TYPE abap_bool                     DEFAULT abap_false
     RETURNING
       VALUE(result)        TYPE string.
+
+  "! The PATH form of _bind( ) under a name of its own: returns the model
+  "! PATH of val instead of its value - what a bound aggregation, a
+  "! binding_call filter/sorter and bindElement need. Identical to
+  "! `_bind( val = ... path = abap_true )`, byte for byte; it delegates
+  "! rather than repeat the call, so the two can never drift apart.
+  "!
+  "! It exists because the two forms of _bind( ) read nothing alike:
+  "! `_bind( t_products )` says what it does, `_bind( val = t_products
+  "! path = abap_true )` needs a named val and a boolean whose name and
+  "! value mean nothing to a reader who does not already know the method -
+  "! and path being the FIRST optional parameter is what forces `val =`
+  "! along with it.
+  "!
+  "! Deliberately ONE parameter. The moment a second is needed - tab /
+  "! tab_index for a row path, omit_initial, json, switch_default_model -
+  "! _bind( ) is the right call and path stays on it, undeprecated.
+  METHODS _bind_path
+    IMPORTING
+      val           TYPE data
+    RETURNING
+      VALUE(result) TYPE string.
 
   "! Schedule a frontend action to run after the backend response is processed.
   "! Two ways to call it: pass a frontend event as val (e.g. cs_event-set_title)

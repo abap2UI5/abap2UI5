@@ -19,6 +19,12 @@ unreleased
   component level - it copied it into a work area, which broke the cell
   binding in every downported build. Patched into the installed abaplint by
   node/setup/patch-abaplint-downport.mjs until the upstream fix ships
+
+
+2026-08-30 v1.144.0
+-------------------
++ client->_event( arg = ... ) is the one-value spelling of t_arg, and
+  client->_bind_path( ... ) the named form of _bind( path = abap_true )
 + Frontend actions: expandSelected / collapseSelected on a tree table,
   setBadgeMinValue / setBadgeMaxValue, IconPool.registerFont for a custom
   icon font, and addCustomCurrencies
