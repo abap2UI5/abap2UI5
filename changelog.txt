@@ -10,83 +10,9 @@ Legend
 
 
 
-unreleased
-----------
-+ _bind( tab / tab_index ) - the cell binding - is documented and unit tested:
-  a row of an internal table bound as {/TAB/n/FIELD}, the ABAP 1-based row
-  number rendered 0-based
-! The downport keeps the ROW reference of a table expression read at
-  component level - it copied it into a work area, which broke the cell
-  binding in every downported build. Patched into the installed abaplint by
-  node/setup/patch-abaplint-downport.mjs until the upstream fix ships
-* An exception outside _main( ) reaches the client as a 500 with the full
-  cause chain instead of a raw ICF dump: the ICF entry point had no TRY of
-  its own, so a failure in the request info, the exit context, the CSRF
-  gate's call into customer exit code or set_response( ) itself answered
-  with no body, no status and none of the security headers
-* The 500 handler no longer re-raises when the user exit is what failed -
-  reading check_hide_error_details runs inside a CATCH block, where a raise
-  is not caught by its own TRY and replaced the error report with a dump
-* client->_bind( ) takes over a custom_filter, custom_mapper or json= asked
-  for by a LATER bind of an attribute that is already bound. They were
-  dropped silently, and because the attribute is serialized into the draft
-  the order of the two calls in the first render decided the behaviour for
-  the whole session
-* The app-state hash survives the next event: set_app_state_active is
-  remembered on the app instead of on the request, so a bookmarked
-  z2ui5-xapp-state URL keeps tracking the app it was made for rather than
-  losing the hash on the first button press
-* The CSRF gate covers HEAD as well as POST - HEAD terminates the stateful
-  session and is a CORS-simple method, so it was the one state change a
-  cross-origin page could still reach
-* z2ui5_cl_ui5_http_handler=>get_request( ) fills path and t_params, not
-  only body and method - t_params is where app_start and every URL
-  parameter live
-* Frontend: the action dispatch tables are prototype-less, so an action or
-  method named `constructor` / `valueOf` / `toString` is rejected by the
-  whitelist instead of resolving to an Object.prototype member and being
-  called
-* Frontend: FILTER_BAR_VARIANT_INIT no longer stacks a new 5-second retry
-  chain per response, and neither variant-init chain outlives the app that
-  started it
-* Frontend: a component teardown aborts the in-flight roundtrip, so an FLP
-  re-launch cannot adopt the old response into the new session and end on
-  the fatal error overlay
-* Frontend: WIZARD_SET_NEXT_STEP and KEYBOARD_SET_MODE find their target in
-  a popup or nested view, and report a miss instead of doing nothing
-
-
 2026-08-30 v1.144.0
 -------------------
-+ client->_event( arg = ... ) is the one-value spelling of t_arg, and
-  client->_bind_path( ... ) the named form of _bind( path = abap_true )
-+ Frontend actions: expandSelected / collapseSelected on a tree table,
-  setBadgeMinValue / setBadgeMaxValue, IconPool.registerFont for a custom
-  icon font, and addCustomCurrencies
-! NavContainer to( ) takes a typed page id plus an optional transition name
-* NavContainer backToPage( ) was a silent no-op on a plain page id
-* Event arguments: an empty string arrives as an empty string, and a
-  date-valued argument travels as the LOCAL date instead of shifting a day
-  west of the system's timezone
-* client->get( )-t_model_skipped names the cells a model delta could not
-  convert, instead of dropping them without a trace
-* The page-location block is latched when its request is confirmed, not when
-  it is built, so an aborted first request no longer suppresses it for the
-  rest of the session
-* 7.02 / 7.31: a built-in function in a table-expression key no longer takes
-  the whole class pool down at compile time (report #2664)
-+ MultiInputExt: the suggestion-row half of addValidator
-! Developer tools: the cross-tab search moved onto a tab of its own
-! z2ui5_if_exit is renamed to z2ui5_if_ui5_exit. The old interface still
-  ships and is still looked up and called, so every existing exit keeps
-  working
-- BREAKING: z2ui5_if_types is retired to src/99 - every type it held now
-  sits on the object that uses it (ty_s_get / ty_s_event_control /
-  ty_s_name_value / ty_t_name_value / cs_device on z2ui5_if_client, the
-  three HTTP config types on z2ui5_if_ui5_exit, ty_s_draft on
-  z2ui5_cl_ui5_srv_draft). Nothing is deleted or reshaped: the interface
-  ships unchanged from the frozen package, so z2ui5_if_types=>... still
-  compiles, and every moved type is identical field for field
++ Various improvements for AIs
 
 
 2026-08-16 v1.143.0
