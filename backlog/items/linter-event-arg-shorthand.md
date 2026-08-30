@@ -3,7 +3,7 @@ target: abap2ui5-linter
 title: '`event-arg-out-of-range` counts only `t_arg`, so every `_event( arg = ... )` wire reads as sending zero arguments'
 summary: 187 false positives across 125 of 637 ported classes the moment the corpus adopts the one-value shorthand — the rule extracts arguments from `t_arg = VALUE #( )` alone and has no case for `arg`
 priority: high
-state: open
+state: done
 first_seen: 2026-08-29
 upstream: abap2UI5/linter
 evidence:
@@ -13,6 +13,14 @@ evidence:
 ---
 
 # `event-arg-out-of-range` does not know the `arg` shorthand
+
+> **Closed.** Fixed upstream in `abap2UI5/linter` ("Read abap2UI5's `arg`
+> shorthand in the two event-argument rules"): `checkEventArgs` counts an
+> `arg = x` as one more argument for the arity, and judges its literal for the
+> unresolved-brace check. The THIRD event-argument rule was missed in that pass
+> and closed on 2026-08-30 — `event-arg-js-callback` also read `t_arg` alone,
+> so a callback smuggled through the shorthand was invisible. The corpus sweep
+> this item was holding can proceed.
 
 ## What happens
 
