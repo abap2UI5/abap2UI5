@@ -38,7 +38,12 @@ const REPOS = [
   'mcp-server',
   'vscode-extension',
   'linter',
-  'docs',
+  /* Two repositories are named `docs` - this organisation's and cap2UI5's -
+   * and a workspace with the WRONG one checked out as ../docs made the
+   * toolchain gate report findings about a repository it was not reading.
+   * The identify check tells them apart before the checkout is trusted;
+   * mcp-server's repo-dirs carries the same check for the same collision. */
+  { org: 'abap2UI5', repo: 'docs', identify: { file: 'package.json', key: 'name', equals: 'abap2ui5-docs' } },
   'web-abap2UI5',
   /* Added 2026-08-28. It was missing, and the omission is what the rule is
    * about: `playground` is a source repository with an AGENTS.md, a test
@@ -99,7 +104,29 @@ export async function read(entry, file) {
     ? path.join(ROOT, file)
     : path.join(ROOT, '..', repo, file);
 
-  if (fs.existsSync(path.join(ROOT, '..', repo)) || repo === 'abap2UI5') {
+  /* A sibling directory carrying the right NAME is not yet the right
+   * REPOSITORY - `docs` exists in two organisations, and reading the wrong
+   * checkout produces findings about a repository the gate never saw. An
+   * entry may declare an identify check; a checkout that fails it is
+   * ignored in favour of the published main. A checkout where the identify
+   * file is absent or unreadable still counts - the check only ever rules
+   * OUT, so an older checkout keeps resolving (mcp-server's repo-dirs
+   * states the same rule for the same reason). */
+  const checkoutDir = repo === 'abap2UI5' ? ROOT : path.join(ROOT, '..', repo);
+  const identified = () => {
+    if (!entry.identify) return true;
+    try {
+      const value = JSON.parse(
+        fs.readFileSync(path.join(checkoutDir, entry.identify.file), 'utf8'),
+      )?.[entry.identify.key];
+      if (value === undefined) return true;
+      return String(value).toLowerCase() === String(entry.identify.equals).toLowerCase();
+    } catch {
+      return true;
+    }
+  };
+
+  if ((fs.existsSync(checkoutDir) && identified()) || repo === 'abap2UI5') {
     return fs.existsSync(local)
       ? { text: fs.readFileSync(local, 'utf8'), from: 'checkout' }
       : { missing: true, from: 'checkout' };
