@@ -277,7 +277,8 @@ for (const item of items) {
     problems.push(
       `${where}: open for ${ageInDays(item.meta.first_seen)} days with no \`checked_upstream:\`\n`
       + `    an item this old is a standing claim that nothing exists upstream. Search\n`
-      + `    ${item.meta.upstream || targets.get(item.meta.target)?.upstream || 'the upstream tracker'} and record the date, or file it and set \`state: filed\``,
+      + `    ${item.meta.upstream || targets.get(item.meta.target)?.upstream || 'the upstream tracker'} and record the date, or file it and set \`state: filed\`\n`
+      + `    after searching, add this line to the front matter:  checked_upstream: ${new Date().toISOString().slice(0, 10)}`,
     );
   }
   if (!(item.meta.evidence || []).length) {
@@ -465,6 +466,25 @@ if (stale.length) {
   const open = items.filter((i) => i.meta.state === 'open');
   const oldest = open.sort((a, b) => ageOf(b.meta.first_seen) - ageOf(a.meta.first_seen))[0];
   if (oldest) console.log(`  oldest open: ${oldest.id}, ${ageOf(oldest.meta.first_seen)} days`);
+}
+
+/* `checked_upstream:` is required once (above), but the search it records goes
+ * stale like any other. Re-checking is reported rather than gated, and
+ * deliberately so: the requirement above already fires on a tree nobody
+ * touched the day an item crosses UPSTREAM_CHECK_DAYS, and making the field
+ * itself expire would re-arm that every month - a red pull request on a
+ * calendar day, in a repository where the change under review has nothing to
+ * do with the backlog. Printed here it stays visible without holding anyone's
+ * work hostage, which is the same trade STALE_DAYS above makes. */
+const unchecked = items
+  .filter((i) => i.meta.state === 'open' && i.meta.checked_upstream
+    && ageOf(i.meta.checked_upstream) > UPSTREAM_CHECK_DAYS)
+  .sort((a, b) => ageOf(b.meta.checked_upstream) - ageOf(a.meta.checked_upstream));
+if (unchecked.length) {
+  console.log(`\n  ${unchecked.length} open item(s) whose upstream search is older than ${UPSTREAM_CHECK_DAYS} days:`);
+  for (const i of unchecked) {
+    console.log(`    ${i.id}  checked ${ageOf(i.meta.checked_upstream)} days ago  (${i.meta.upstream || TARGETS.find((x) => x.key === i.meta.target).upstream})`);
+  }
 }
 
 /* A probe result that predates the item it measures is a number about code

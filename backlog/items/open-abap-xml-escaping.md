@@ -3,8 +3,10 @@ target: open-abap
 title: '`CALL TRANSFORMATION id` must escape XML character data'
 summary: element values are written raw, so a model value containing `<` produces a draft the transpiled `CL_IXML` cannot parse back
 priority: high
-state: open
+state: filed
 first_seen: 2026-07-31
+checked_upstream: 2026-08-30
+filed: https://github.com/open-abap/open-abap-core/pull/1193
 upstream: open-abap/open-abap-core
 evidence:
   - user report 2026-07-31 — every round-trip of the samples-controls overview app on the Pages demo died with `Network error: ASSERTION_FAILED`
@@ -12,13 +14,18 @@ evidence:
   - worked around by a build-time patch applied by both transpiled builds ([`web/ci/patch_open_abap_xml.mjs`](https://github.com/abap2UI5/samples-controls/blob/main/web/ci/patch_open_abap_xml.mjs))
 ---
 
-> **Before filing: check whether it already is.** This item came over from
-> `samples-controls/pr/`, where it was headed *"Status: open upstream — filed
-> against open-abap/open-abap-core"* with **no link**, and the claim could not
-> be verified when the stock was assembled on 2026-08-17. Search the tracker,
-> record the date in `checked_upstream:`, and either set `state: filed` with
-> the url or file it fresh. A duplicate costs a maintainer more than a late
-> report does.
+> **It already was filed — the link this item was missing is
+> [open-abap/open-abap-core#1193](https://github.com/open-abap/open-abap-core/pull/1193).**
+> The item came over from `samples-controls/pr/` headed *"Status: open upstream
+> — filed against open-abap/open-abap-core"* with **no link**, so the claim
+> could not be verified when the stock was assembled on 2026-08-17 and the item
+> was carried as `open`. Searching the tracker on 2026-08-30 found the PR:
+> opened 2026-08-15 by `oblomov-dev`, titled *"CALL TRANSFORMATION id:
+> XML-escape character data"*, still open. So the stock spent two weeks
+> claiming nobody had filed this while a pull request was already waiting for
+> review — which is the exact failure the unverifiable claim above was written
+> to warn about, arriving from the other direction. **Do not file a second
+> one**; the item now tracks #1193 and goes when that merges.
 
 # `CALL TRANSFORMATION id` must escape XML character data
 

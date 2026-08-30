@@ -5,6 +5,7 @@ summary: `control-state-lost-on-rebuild` judges only `set…( )` wires, so the c
 priority: medium
 state: open
 first_seen: 2026-08-26
+checked_upstream: 2026-08-30
 upstream: abap2UI5/linter
 evidence:
   - samples-controls app 585 - measured through the framework's own app-state restore - `selected_key` (two-way bound to SideNavigation.selectedKey) survived as `root2` while the NavContainer returned to its `initialPage="page2"`, so the side nav highlighted one item and the content pane showed another
@@ -17,6 +18,15 @@ evidence:
 ---
 
 # A bound field names a page the rebuilt view no longer shows - the half `control-state-lost-on-rebuild` cannot reach
+
+> **Upstream check 2026-08-30: the gap is acknowledged there, not closed.**
+> [abap2UI5/linter#66](https://github.com/abap2UI5/linter/pull/66) — *"Say at
+> the collector why the navigation family is not in this rule"* — is merged and
+> records at the collector why `to( )` and its relatives sit outside
+> `control-state-lost-on-rebuild`. So the exclusion is deliberate and
+> documented; what is still missing is the check this item proposes. File it as
+> a pull request against that collector rather than as a fresh issue, and open
+> with #66 so the reviewer sees it is the follow-up to their own note.
 
 ## What already ships, and what this asks for
 

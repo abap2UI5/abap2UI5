@@ -5,6 +5,7 @@ summary: the framework's ajson path normalizes a JSON boolean `t_arg` to `X`/spa
 priority: medium
 state: open
 first_seen: 2026-08-25
+checked_upstream: 2026-08-30
 upstream: open-abap/open-abap-core
 evidence:
   - samples-controls app 421 (sap.m.sample.QuickViewCardScrollBar) hit it live during the 2026-08-22 e2e sweep - the afterNavigate `isTopPage` wire never flipped its flag under the transpiled backend, and the port had to transport the string tokens `top`/`sub` instead to be drivable on both runtimes

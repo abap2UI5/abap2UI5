@@ -5,6 +5,7 @@ summary: an ABAP identifier called `with`, `class`, `delete`, … is emitted as-
 priority: medium
 state: open
 first_seen: 2026-08-17
+checked_upstream: 2026-08-30
 upstream: abaplint/transpiler
 evidence:
   - abap2UI5 `e3d8889c` (#2351) — the importing parameter `with` of `c_replace_all` compiled to `let with = …` and took the unit job red
