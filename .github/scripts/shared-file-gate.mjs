@@ -357,6 +357,26 @@ if (manifestArg !== -1) {
       + ' than resolving whatever is on main',
   },
   {
+    /* The contract on the root `catalogue.json` each sample repository
+     * publishes. The three shapes deliberately differ (`repo` vs
+     * `repository`, `file` vs `path`, keywords as array vs string) and at
+     * least three consumers outside those repositories parse all three from
+     * GitHub main - mcp-server's examples.mjs, the vscode-extension's
+     * catalogue.ts, the playground's examples browser. Each repository's own
+     * `generate-catalogue.mjs --check` proves the file matches the TREE;
+     * this checker proves it still matches what the consumers parse, and
+     * pins the divergences so nobody unifies one side of them in passing.
+     *
+     * Whole file, no deviations: it identifies the repository from the
+     * catalogue itself. The framework does not publish a catalogue and does
+     * not run it - it is the source, the same trade check-app-rules makes. */
+    file: '.github/shared/check-catalogue-contract.mjs',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'scripts/check-catalogue-contract.mjs',
+    why: 'the shape contract on the three published catalogue.json files —'
+      + ' what mcp-server, the vscode-extension and the playground parse',
+  },
+  {
     file: '.github/shared/agents-metadata.md',
     consumers: ['samples', 'samples-controls', 'samples-stack'],
     consumerFile: 'AGENTS.md',
