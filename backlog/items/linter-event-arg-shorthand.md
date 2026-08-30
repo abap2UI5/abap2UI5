@@ -24,9 +24,19 @@ evidence:
 > `package.json` here pins `^0.5.1`, so `npm run check:abap2ui5` still runs the
 > rule without the fix. Nothing is broken today because this repository's own
 > app classes do not use the shorthand yet — the corpus that does is
-> samples-controls. **Delete this item when a release past 0.5.1 ships and
-> `bump-linter.yaml` pulls it in**; until then it records why the pinned
-> linter and the framework's own API disagree.
+> samples-controls.
+>
+> The pass behind #78 covered **two** of the three event-argument rules;
+> `event-arg-js-callback` read `t_arg` by the same literal and was missed, so a
+> JS callback smuggled through the shorthand stayed invisible. That third one is
+> closed in
+> [abap2UI5/linter#80](https://github.com/abap2UI5/linter/pull/80) — an
+> under-report rather than a false positive, so it does not change the count
+> above, but it belongs to the same release.
+>
+> **Delete this item when a release past 0.5.1 ships and `bump-linter.yaml`
+> pulls it in**; until then it records why the pinned linter and the framework's
+> own API disagree.
 
 ## What happens
 

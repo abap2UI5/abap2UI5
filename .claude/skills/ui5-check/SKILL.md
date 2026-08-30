@@ -460,8 +460,17 @@ What it must NOT do is fire on every enum binding: a property bound outside a
 template, or one whose table can never be emptied, is fine, and a rule that
 reported all of them would be routed around.
 
-**It was implemented against the linter on 2026-08-17 and reverted**, and the
-reason is worth keeping so nobody spends the afternoon again. The rule needs to
+**Linter: `enum-field-unset-on-insert` ships, and attacks this from the
+CONSTRUCTION side rather than from the binding side.** It reads the three seed
+shapes (an `INSERT`/`APPEND` of a `VALUE #( )` literal, the `t = VALUE #( ( … ) )`
+seed in `model_init`, a work-area row) and reports a field the row is built
+WITHOUT that the view binds to an enum-typed property. What it does not cover
+is a field filled by a LOOP, and a table emptied at RUNTIME rather than seeded
+short — those still need the data flow this entry describes below.
+
+The BINDING-side version of the same rule **was implemented against the linter
+on 2026-08-17 and reverted**, and the reason is worth keeping so nobody spends
+the afternoon again. The rule needs to
 know whether a bound field arrives as `""`, and nothing static answers it: the
 render model holds only what a seed sets, so an unassigned field is ABSENT —
 which is also what `omit_initial_paths` produces, i.e. the fix; and the model
@@ -472,8 +481,25 @@ statically, and inventing an empty string for it makes UI5's strict mode reject
 a perfectly good view."* It would need "is this component ever assigned
 anywhere in the class" — data flow over the ABAP, not the view.
 
-The **`0`-into-a-validating-setter** entry is *ready to move, but it needs data
-nobody has harvested yet*. The view side is decidable exactly like the enum
+**Linter: `validating-setter-out-of-range` ships (2026-08-30), and the harvest
+this entry asked for is what made it possible — with one correction that
+matters.** Recording "the setter throws" was too coarse to act on: 23
+properties throw somewhere in their setter, and for most of them the initial
+`0` is perfectly legal (`MonthPicker.setMonth` throws in a nested callback
+while 0 is January; `TimesRow.setIntervalMinutes` guards `>= 720`, and 0 makes
+its modulo NaN and throws nothing). Both would have been reported for the
+initial value. What is harvested instead is the LOWER BOUND, from the guard
+shape the defect actually has — an opening `if (<param> < N) throw` — which is
+exactly what makes an unfilled ABAP field illegal, and which is two properties
+in the whole snapshot. The same generator pass now also records `defaultValue`
+(only where it is `true`) and `widensAggregation`. The rule fires only on a
+target release from 1.149 on, and that is a property of the subject rather than
+a limitation: both properties carrying a bound are @since 1.149, so
+`member-too-new` reports and stops the walk below that floor — the user report
+this came from was on 1.150 too.
+
+The original analysis, kept because it is what the harvest was designed from:
+the entry was *ready to move, but it needed data nobody had harvested yet*. The view side is decidable exactly like the enum
 one — an `int`-typed property inside an aggregation template, bound to a plain
 path with no fallback — but on its own that fires on every bound `int` in the
 corpus, and almost all of them are fine. What makes it decidable is the list of
@@ -483,9 +509,11 @@ not even the `defaultValue`). It is, however, in the sources the linter's
 `generate-metadata.mjs` already walks for `@since`/`@deprecated`: a
 `prototype.set<Property> = function` body containing a `throw` is a small,
 honest pattern to record alongside them, together with the bound it enforces.
-Until that column exists the rule cannot be written without over-reporting, so
-this stays prose — and the same harvest would give the enum case its own
-missing half.
+That column exists now (`setterMin`), and the same harvest gave the boolean
+case its own rule: `absent-boolean-overrides-default`, which needs `defaultValue`
+plus a SECOND signal — the seed has to be inconsistent, some rows of the table
+setting the field and others not — because an unseeded boolean shipping `false`
+is correct almost everywhere and wrong only against a `true` default.
 
 Second limit found on the way: `sap.m.ObjectStatus.state` is declared
 `type: "string"` in the metadata, because UI5 validates it at runtime against

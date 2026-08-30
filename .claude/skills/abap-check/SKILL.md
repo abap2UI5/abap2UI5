@@ -180,7 +180,12 @@ imported; the app is gone.
   `src/99`, so `check:abapgit` remains this repository's gate for the rest of
   the round-trip family.
 - **Maximum statement length.** A single `result = VALUE #( … )` with a few
-  hundred rows exceeds it. `abap2UI5/samples-controls#38` (`ee28671`): the
+  hundred rows exceeds it. **Gate: none, and a character count is not one** —
+  written against the linter on 2026-08-30, measured, and deleted. A view
+  builder CHAIN is one statement by construction, so on the samples-controls
+  corpus the median over-limit statement was 23,000 characters and the longest
+  253,000, across 156 ports that all import fine. Length does not discriminate;
+  do not re-propose the rule without a threshold somebody has measured. `abap2UI5/samples-controls#38` (`ee28671`): the
   246-row catalog constructor of the overview app could not be imported at
   all. Split it — the second statement appends with `VALUE #( BASE result )`.
   No script decides this one; it is a character count over a whole statement
@@ -270,11 +275,14 @@ That is what turns one fix into the last one.
 ## 2. Activation — compiles here, syntax error there
 
 **Gate: this repo**, and it is the section with the widest hole. The private
-`class_constructor` is `check:abapgit`; `LOCAL FRIENDS` is
-`npm run check_visibility`. Neither is an abaplint rule — measured against
-2.120.24 with 73 rules on and a control probe (see above), both produce zero
-findings, which is why they are on the upstream shortlist rather than
-reimplemented here. Generic types on older releases are **abaplint —
+`class_constructor` is `check:abapgit` — and, since 2026-08-30, `abap2ui5lint`'s
+`class-constructor-visibility` as well, which is what carries it to a consumer
+whose only gate is `npx abap2ui5lint`. `LOCAL FRIENDS` is
+`npm run check_visibility` and stays here: it needs the test class and the main
+class read together, which the linter does not do. Neither is an abaplint rule
+— measured against 2.120.24 with 73 rules on and a control probe (see above),
+both produce zero findings, which is why they are on the upstream shortlist
+rather than reimplemented there. Generic types on older releases are **abaplint —
 `downport`, `fully_type_itabs`, `cloud_types`** where a repository enables
 them; the app-template core does, the sample repositories do not yet.
 
@@ -282,7 +290,7 @@ them; the app-template core does, the sample repositories do not yet.
 
 | Trap | Rule |
 |---|---|
-| **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit` |
+| **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit`, and by `abap2ui5lint`'s `class-constructor-visibility` |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 
 ### Generic types on older releases — the recurring one
@@ -323,7 +331,11 @@ the newest release. abaplint's default target accepts all of it.
   header's scope with a second group, since the default only binds to the
   lines *after* it. abaplint 2.120.24 accepts the construct without a finding
   (`check_syntax` on, control probe fired) — its VALUE grammar does not model
-  the one-assignment rule. **Gate: open** — upstream shortlist.
+  the one-assignment rule. **Gate: `abap2ui5lint`** —
+  `value-header-default-reassigned` (2026-08-30), which follows the
+  `source-line-too-long` precedent: for a consumer whose only gate is
+  `npx abap2ui5lint`, a class that does not activate is the most severe thing
+  this tool can find.
 
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
@@ -340,8 +352,11 @@ the newest release. abaplint's default target accepts all of it.
   declaration — measured on 2.120.24 with `check_syntax` and `downport` on at
   `syntax.version` v750: zero findings, control probe fired. Plain
   `INTO TABLE @DATA(…)` is fine from 7.40 on; it is only the combination with
-  `CORRESPONDING` that is late. **Gate: open** — on the upstream shortlist
-  (the `downport` rule or the version model), not reimplemented here.
+  `CORRESPONDING` that is late. **Gate: `abap2ui5lint`** —
+  `into-corresponding-inline-decl` (2026-08-30). Still worth having upstream in
+  the `downport` rule or the version model; the linter carries it meanwhile
+  because a systemless pipeline sees an activation error only when somebody
+  imports the transport.
 
 ### RAP and CDS (`abap2UI5/samples-stack`)
 
@@ -451,7 +466,9 @@ pitfalls".
   is the only one that matters: the CONV is the WHOLE right-hand side of an
   assignment (`<name> = CONV i( x ).`) into a name the same file declares
   `TYPE i` — a `DATA`/`CLASS-DATA` line or a typed parameter. That is
-  `redundant-conv-i` in `samples-controls`' `scripts/pattern-lint.mjs`.
+  `abap2ui5lint`'s `redundant-conv-i` — promoted out of `samples-controls`'
+  `scripts/pattern-lint.mjs` on 2026-08-30, scope boundaries and all, and
+  retired there.
 
   Two boundaries the rule keeps, both learned by getting them wrong first:
   a CONV inside a comparison (`COND #( WHEN CONV i( x ) < 14 …`) or an
