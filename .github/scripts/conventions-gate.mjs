@@ -17,11 +17,12 @@
  *   2. a repository with an AGENTS.md has a CLAUDE.md (§6)
  *   3. a repository carrying ABAP or generated trees has a .gitattributes (§6)
  *
- * The twelve workflow names that predate this are GRANDFATHERED by name.
- * Renaming a workflow renames its status check and its badge URL, so doing it
- * to twelve files at once is a change to make deliberately rather than as a
- * side effect of writing this gate. What the list buys immediately is that the
- * thirteenth cannot happen: a NEW workflow has to be named properly.
+ * The workflow names that predate this are GRANDFATHERED by name (the gate
+ * prints the current count). Renaming a workflow renames its status check and
+ * its badge URL, so doing it to the whole list at once is a change to make
+ * deliberately rather than as a side effect of writing this gate. What the
+ * list buys immediately is that the NEXT one cannot happen: a NEW workflow
+ * has to be named properly.
  *
  * The list only shrinks. An entry naming a file that no longer exists fails —
  * so a rename removes its exception in the same change, and the list cannot
@@ -44,8 +45,8 @@ const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*\.(yml|yaml)$/;
  *
  * They are being retired in stages rather than in one sweep, because renaming
  * a workflow retitles what branch protection requires and a repository that
- * renames twelve at once is a repository with twelve unrequirable checks until
- * somebody re-points every rule. The order follows the blast radius:
+ * renames the whole list at once is a repository with as many unrequirable
+ * checks until somebody re-points every rule. The order follows the blast radius:
  *
  *   1. DONE - the two that produce no pull-request check at all.
  *      `build_rename` (workflow_dispatch only) and `check_v2_sdk` (schedule +
