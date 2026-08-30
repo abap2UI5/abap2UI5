@@ -43,7 +43,6 @@ const NOT_A_RULE = new Map([
   ['ui5-check', 'a skill in this directory'],
   ['view-chain-layout', 'a skill in this directory'],
   ['samples-controls', 'the repository abap2UI5/samples-controls'],
-  ['redundant-conv-i', "a rule of samples-controls' own scripts/pattern-lint.mjs, not of the linter - SLIN's redundant-conversion finding, gated there because the corpus is where it appears"],
   ['clear-all', 'a UI5 icon name (sap-icon://clear-all)'],
   ['message-information', 'a UI5 icon name'],
   ['text-align', 'a CSS property named in a view example'],
@@ -60,10 +59,20 @@ const NOT_A_RULE = new Map([
  * Same semantics as a baseline entry: once the pin catches up the rule is
  * known, and an entry left behind here FAILS rather than lingering. */
 const PENDING = new Map([
-  // Empty, and it stayed empty for about an hour. `frozen-view-builder` was
-  // listed here while this repository pinned 0.1.1; the bump to 0.2.0 made the
-  // rule known, this gate reported the entry as stale on the same commit, and
-  // it came out. That is the mechanism working, not an accident of timing.
+  // Empty, and it has been twice now. `frozen-view-builder` was listed here
+  // while this repository pinned 0.1.1; the bump to 0.2.0 made the rule known,
+  // this gate reported the entry as stale on the same commit, and it came out.
+  // Five more were needed for about as long on 2026-08-30: #2686 recorded the
+  // staging entries abap2UI5/linter#80 had just closed, and the rules it names
+  // existed on that repository's main and in no published version. Moving the
+  // pin to that commit made them known and this gate asked for the entries
+  // back out on the spot — along with the NOT_A_RULE line for
+  // `redundant-conv-i`, which #80 had promoted out of samples-controls'
+  // pattern-lint into a real rule.
+  //
+  // That is the mechanism working, not an accident of timing: an entry here
+  // is an exemption the pin has not caught up with, and the loop below FAILS
+  // on it the moment it has.
 ]);
 
 const TOKEN = /`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`/g;
