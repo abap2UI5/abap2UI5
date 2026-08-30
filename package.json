@@ -92,7 +92,7 @@
   },
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
-    "@abap2ui5/linter": "github:abap2UI5/linter#f16f4cc92ee69c1702b0672357fc7ea51b570fc8",
+    "@abap2ui5/linter": "^0.6.0",
     "@abaplint/cli": "^2.120.32",
     "@abaplint/database-sqlite": "^2.13.40",
     "@abaplint/runtime": "^2.13.40",
