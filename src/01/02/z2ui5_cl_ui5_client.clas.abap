@@ -73,6 +73,9 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         " an empty argument list switches it ON - a single space is how an
         " app switches it off again, since an empty t_arg cannot say `false`
         mo_action->ms_next-s_nav-set_app_state_active = xsdbool( lv_arg <> ` ` ).
+        " and remember it on the app, so main_end can re-assert it on the
+        " next response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
+        mo_action->mo_app->mv_app_state_active = mo_action->ms_next-s_nav-set_app_state_active.
         RETURN.
     ENDCASE.
 
@@ -518,6 +521,9 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " writes - only that path needs the single-space encoding to squeeze
     " `false` through a string argument; a typed abap_bool does not
     mo_action->ms_next-s_nav-set_app_state_active = val.
+    " and remember it on the app, so main_end can re-assert it on the next
+    " response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
+    mo_action->mo_app->mv_app_state_active = val.
 
   ENDMETHOD.
 

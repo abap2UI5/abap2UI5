@@ -349,7 +349,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ir_attri->o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref_source ).
 
     READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
-         WITH KEY name = ir_attri->name_parent.
+         WITH KEY name = ir_attri->name_parent. "#EC CI_SORTSEQ
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
@@ -387,7 +387,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     LOOP AT ir_child_idx->* REFERENCE INTO DATA(lr_child_idx) "#EC CI_SORTSEQ
          WHERE name_parent = ir_attri->name.
       READ TABLE mt_attri->* REFERENCE INTO DATA(lr_child)
-           WITH KEY name = lr_child_idx->name.
+           WITH KEY name = lr_child_idx->name. "#EC CI_SORTSEQ
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.

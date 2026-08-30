@@ -37,6 +37,31 @@ CLASS ltcl_test_app IMPLEMENTATION.
 ENDCLASS.
 
 
+" A filter for the adopt tests. It declares if_serializable_object for the
+" same reason the framework's own filters do (see lcl_empty_filter_keep_rows
+" in z2ui5_cl_ui5_client.clas.locals_imp): z2ui5_if_ajson_filter does not
+" compose it, and check_serializable( ) refuses a filter that cannot be
+" written into the draft.
+CLASS ltcl_test_filter DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES if_serializable_object.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_test_filter IMPLEMENTATION.
+
+  METHOD z2ui5_if_ajson_filter~keep_node.
+
+    rv_keep = abap_true.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test_bind DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
@@ -48,6 +73,9 @@ CLASS ltcl_test_bind DEFINITION FINAL
     METHODS test_bind_path         FOR TESTING RAISING cx_static_check.
     METHODS test_attri_named_xx    FOR TESTING RAISING cx_static_check.
     METHODS test_bind_idempotent   FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_adopt_filter FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_adopt_json   FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_keeps_json   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -101,6 +129,74 @@ CLASS ltcl_test_bind IMPLEMENTATION.
                                         act = lv_bind ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_bind ).
+
+  ENDMETHOD.
+
+  METHOD test_bind_adopt_filter.
+
+    " a filter handed to a LATER _bind( ) of an already-bound attribute used
+    " to be dropped without a word: update_model_attri( ) runs on the new
+    " binding only, and check_raise_existing( ) sees no conflict because the
+    " stored attribute carries no filter to conflict with
+    DATA(lo_app_client) = NEW ltcl_test_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_app->mo_app = lo_app_client.
+
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
+
+    lo_bind->main( REF #( lo_app_client->mv_value ) ).
+
+    cl_abap_unit_assert=>assert_not_bound(
+        act = lo_bind->mr_attri->custom_filter
+        msg = `the plain first bind must not invent a filter` ).
+
+    DATA(lo_filter) = NEW ltcl_test_filter( ).
+    lo_bind->main( val    = REF #( lo_app_client->mv_value )
+                   config = VALUE #( custom_filter = lo_filter ) ).
+
+    cl_abap_unit_assert=>assert_bound(
+        act = lo_bind->mr_attri->custom_filter
+        msg = `the second bind's filter has to reach the attribute` ).
+
+  ENDMETHOD.
+
+  METHOD test_bind_adopt_json.
+
+    DATA(lo_app_client) = NEW ltcl_test_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_app->mo_app = lo_app_client.
+
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
+
+    lo_bind->main( REF #( lo_app_client->mv_value ) ).
+    lo_bind->main( val    = REF #( lo_app_client->mv_value )
+                   config = VALUE #( check_json = abap_true ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = lo_bind->mr_attri->check_json
+        msg = `check_json asked for by the second bind has to stick` ).
+
+  ENDMETHOD.
+
+  METHOD test_bind_keeps_json.
+
+    " the other direction: check_json only ever turns ON, so a later plain
+    " _bind( ) of the same attribute must not switch it off again
+    DATA(lo_app_client) = NEW ltcl_test_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_app->mo_app = lo_app_client.
+
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
+
+    lo_bind->main( val    = REF #( lo_app_client->mv_value )
+                   config = VALUE #( check_json = abap_true ) ).
+    lo_bind->main( REF #( lo_app_client->mv_value ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = lo_bind->mr_attri->check_json
+        msg = `a plain rebind must not clear check_json` ).
 
   ENDMETHOD.
 

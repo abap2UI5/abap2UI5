@@ -161,7 +161,14 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " is no element to attach to, and a duplicate name renders invalid XML
     ASSERT name IS NOT INITIAL OR t_child IS NOT INITIAL.
     " b and v are mutually exclusive - b is checked with IS SUPPLIED because
-    " abap_false and "not passed" are the same character
+    " abap_false and "not passed" are the same character.
+    " "never neither" is asserted with IS SUPPLIED rather than IS NOT INITIAL
+    " so that a deliberately empty value ( a( n = `text` v = `` ) ) stays
+    " legal: what this refuses is a( n = `visible` ) with no value at all,
+    " which used to render visible="" - a working view that behaves wrongly,
+    " and the one invariant of the three in the ABAP Doc above that nothing
+    " checked
+    ASSERT v IS SUPPLIED OR b IS SUPPLIED.
     DATA(val) = v.
     IF b IS SUPPLIED.
       ASSERT v IS INITIAL.
@@ -169,12 +176,12 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     ENDIF.
 
     IF t_child IS INITIAL.
-      ASSERT NOT line_exists( t_pair[ n = n ] ).
+      ASSERT NOT line_exists( t_pair[ n = n ] ). "#EC CI_SORTSEQ
       APPEND VALUE #( n = n
                       v = val ) TO t_pair.
     ELSE.
       DATA(target) = t_child[ lines( t_child ) ].
-      ASSERT NOT line_exists( target->t_pair[ n = n ] ).
+      ASSERT NOT line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
       APPEND VALUE #( n = n
                       v = val ) TO target->t_pair.
     ENDIF.

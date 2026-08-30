@@ -372,7 +372,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " before the next runs, so a popup this roundtrip opens still opens.
     DATA(lv_main_displayed) = xsdbool( line_exists(
         mo_action->ms_next-t_action_front[ slot   = z2ui5_if_client=>cs_view-main
-                                           method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ).
+                                           method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ). "#EC CI_SORTSEQ
     IF lv_main_displayed = abap_true.
       DELETE mo_action->ms_next-t_action_front
              WHERE method = z2ui5_if_ui5_types=>cs_slot_action-destroy
@@ -620,7 +620,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " that is no MessageBox display method would be rejected there and the box
     " would not appear at all - a requested box is never dropped silently, it
     " falls back to a plain show( ) like the frontend used to do
-    IF NOT line_exists( ct_box_type[ table_line = result-type ] ).
+    IF NOT line_exists( ct_box_type[ table_line = result-type ] ). "#EC CI_SORTSEQ
       result-type = `show`.
     ENDIF.
 

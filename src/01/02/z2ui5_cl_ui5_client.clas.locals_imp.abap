@@ -47,7 +47,7 @@ CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
     " everything below mirrors the vendored lcl_empty_filter
     IF iv_visit = z2ui5_if_ajson_filter=>visit_type-value.
       IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
-        rv_keep = xsdbool( is_node-value <> '0' ).
+        rv_keep = xsdbool( is_node-value <> `0` ).
       ELSE.
         " string & bool & null
         rv_keep = xsdbool( is_node-value IS NOT INITIAL ).
@@ -105,7 +105,7 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
         SPLIT lv_name AT `/` INTO TABLE DATA(lt_parts).
         lv_name = VALUE #( lt_parts[ lines( lt_parts ) ] OPTIONAL ).
       ENDIF.
-      IF lv_name IS NOT INITIAL AND NOT line_exists( mt_names[ table_line = lv_name ] ).
+      IF lv_name IS NOT INITIAL AND NOT line_exists( mt_names[ table_line = lv_name ] ). "#EC CI_SORTSEQ
         INSERT lv_name INTO TABLE mt_names.
       ENDIF.
     ENDLOOP.
@@ -131,12 +131,12 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
     " TO_UPPER is unknown" (#2664). In a plain assignment the built-in is fine
     " on 7.02, so the variable is all it takes.
     DATA(lv_name) = to_upper( is_node-name ).
-    IF NOT line_exists( mt_names[ table_line = lv_name ] ).
+    IF NOT line_exists( mt_names[ table_line = lv_name ] ). "#EC CI_SORTSEQ
       RETURN.
     ENDIF.
 
     IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
-      rv_keep = xsdbool( is_node-value <> '0' ).
+      rv_keep = xsdbool( is_node-value <> `0` ).
     ELSE.
       rv_keep = xsdbool( is_node-value IS NOT INITIAL ).
     ENDIF.
