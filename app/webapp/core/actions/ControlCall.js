@@ -145,19 +145,19 @@ sap.ui.define(
     // control method -> kinds of its positional args. Args beyond the
     // declared kinds are dropped; trailing args the caller did not send are
     // not passed at all (so `open()` stays a true no-arg call).
-    // Object.create(null), not a plain literal, and the same for the two
-    // whitelists below and for the handler map in FrontendAction.js.
-    // These tables are indexed with a name that comes off the wire, and a
-    // plain object answers for every key Object.prototype has: with a method
-    // named "constructor" the CONTROL_METHODS lookup below returned a truthy
-    // value, skipped isSafeControlMethod( ) entirely and then invoked
+    // This table and the two whitelists below are prototype-less - see the
+    // Object.setPrototypeOf right after each one. They are indexed with a name
+    // that comes off the wire, and a plain object answers for every key
+    // Object.prototype has: with a method named "constructor" the
+    // CONTROL_METHODS lookup below returned a truthy value, skipped
+    // isSafeControlMethod( ) entirely and then invoked
     // control["constructor"](...); BINDING_METHODS["toString"] silently ran
     // Object.prototype.toString instead of logging "method not allowed".
     // Not a security boundary by this module's own model - the backend is
     // trusted - but it defeated the deny-list and turned a malformed payload
     // into a silent wrong call rather than the log line that says what
-    // happened. A prototype-less table has no keys but its own.
-    const CONTROL_METHODS = Object.assign(Object.create(null), {
+    // happened.
+    const CONTROL_METHODS = {
       // `pageId`, NOT `controlId`: the three containers that own a `to( )`
       // disagree about what the first argument may be. sap.m.NavContainer
       // normalises a Control to its id on its own first line, but
@@ -231,7 +231,15 @@ sap.ui.define(
       removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class
       toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class
       setAsyncURLHandler: ["string"], // sap.m.MessagePopover: name of a URL_POLICY below
-    });
+    };
+    // Prototype-less, but written as a plain literal on purpose: the
+    // abap2UI5 linter mirrors this set and finds it by the exact source text
+    // `const CONTROL_METHODS = {` in the embedded carrier (its
+    // scripts/check-upstream.mjs). Wrapping the literal in a call made that
+    // lookup miss, and the mirror check degraded to "SKIPPED, not verified" -
+    // a cross-repository check that stops checking without failing. Same
+    // effect, marker intact.
+    Object.setPrototypeOf(CONTROL_METHODS, null);
 
     // sap.m.MessagePopover.setAsyncURLHandler expects a live JS callback that
     // resolves a promise per message link - a shape no backend payload can
@@ -361,7 +369,7 @@ sap.ui.define(
     }
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
-    const GLOBAL_TARGETS = Object.assign(Object.create(null), {
+    const GLOBAL_TARGETS = {
       // The two message targets carry a `display` hook: the call is routed
       // through the local showToast/showBox instead of straight at the
       // global, so the option
@@ -505,7 +513,15 @@ sap.ui.define(
           addCustomCurrencies: ["object"], // MERGES: same shape, keeps the rest
         },
       },
-    });
+    };
+    // Prototype-less, but written as a plain literal on purpose: the
+    // abap2UI5 linter mirrors this set and finds it by the exact source text
+    // `const GLOBAL_TARGETS = {` in the embedded carrier (its
+    // scripts/check-upstream.mjs). Wrapping the literal in a call made that
+    // lookup miss, and the mirror check degraded to "SKIPPED, not verified" -
+    // a cross-repository check that stops checking without failing. Same
+    // effect, marker intact.
+    Object.setPrototypeOf(GLOBAL_TARGETS, null);
 
     // Cast one raw string argument to the kind the whitelist declared.
     // `view` (optional) is the slot the owning control was resolved in, so a
@@ -1081,7 +1097,7 @@ sap.ui.define(
       binding.filter([new Filter(outer, true)]); // AND across the groups
     }
 
-    const BINDING_METHODS = Object.assign(Object.create(null), {
+    const BINDING_METHODS = {
       filter(binding, params) {
         const [path, operator, value1, value2] = params;
         // A single param that starts with '[' is the compound groups JSON -
@@ -1118,7 +1134,15 @@ sap.ui.define(
           new Sorter(path, castArg("bool", descending), castArg("bool", group)),
         ]);
       },
-    });
+    };
+    // Prototype-less, but written as a plain literal on purpose: the
+    // abap2UI5 linter mirrors this set and finds it by the exact source text
+    // `const BINDING_METHODS = {` in the embedded carrier (its
+    // scripts/check-upstream.mjs). Wrapping the literal in a call made that
+    // lookup miss, and the mirror check degraded to "SKIPPED, not verified" -
+    // a cross-repository check that stops checking without failing. Same
+    // effect, marker intact.
+    Object.setPrototypeOf(BINDING_METHODS, null);
 
     // args: [_, id, aggregation, method, ...params]
     function evBindingCall(oController, args) {

@@ -111,7 +111,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      else showFn(sText);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const CONTROL_METHODS = Object.assign(Object.create(null), {` && |\n| &&
+             `    const CONTROL_METHODS = {` && |\n| &&
              `      to: ["pageId", "string"],` && |\n| &&
              `      back: [],` && |\n| &&
              `` && |\n| &&
@@ -153,7 +153,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      removeStyleClass: ["string"],` && |\n| &&
              `      toggleStyleClass: ["string"],` && |\n| &&
              `      setAsyncURLHandler: ["string"],` && |\n| &&
-             `    });` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    Object.setPrototypeOf(CONTROL_METHODS, null);` && |\n| &&
              `` && |\n| &&
              `    const URL_POLICIES = {` && |\n| &&
              `      ALLOW_ALL: () => true,` && |\n| &&
@@ -229,7 +231,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const GLOBAL_TARGETS = Object.assign(Object.create(null), {` && |\n| &&
+             `    const GLOBAL_TARGETS = {` && |\n| &&
              `      MESSAGE_TOAST: {` && |\n| &&
              `        get: () => MessageToast,` && |\n| &&
              `        methods: { show: ["string"] },` && |\n| &&
@@ -310,7 +312,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          addCustomCurrencies: ["object"],` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `    });` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    Object.setPrototypeOf(GLOBAL_TARGETS, null);` && |\n| &&
              `` && |\n| &&
              `    const AGG_ITEM = /^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;` && |\n| &&
              `` && |\n| &&
@@ -420,12 +424,12 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    function registerIconFont(fontFamily, fontURI) {` && |\n| &&
              `      const IconPool = sap.ui.require("sap/ui/core/IconPool");` && |\n| &&
              `      if (!IconPool) {` && |\n| &&
-             `        Lib.logError("ICON_POOL: sap/ui/core/IconPool is not loaded");` && |\n| &&
+             `        Lib.logError("ICON_POOL: sap/ui/core/IconPool is not loaded");` && |\n|.
+    result = result &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (!fontFamily || !fontURI) {` && |\n| &&
-             `        Lib.logError(` && |\n|.
-    result = result &&
+             `        Lib.logError(` && |\n| &&
              `          "ICON_POOL: registerFont needs a fontFamily AND a fontURI",` && |\n| &&
              `        );` && |\n| &&
              `        return;` && |\n| &&
@@ -697,7 +701,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      binding.filter([new Filter(outer, true)]);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const BINDING_METHODS = Object.assign(Object.create(null), {` && |\n| &&
+             `    const BINDING_METHODS = {` && |\n| &&
              `      filter(binding, params) {` && |\n| &&
              `        const [path, operator, value1, value2] = params;` && |\n| &&
              `` && |\n| &&
@@ -727,7 +731,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
-             `    });` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    Object.setPrototypeOf(BINDING_METHODS, null);` && |\n| &&
              `` && |\n| &&
              `    function evBindingCall(oController, args) {` && |\n| &&
              `      const [, id, aggregation, method] = args;` && |\n| &&

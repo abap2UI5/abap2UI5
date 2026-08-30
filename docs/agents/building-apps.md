@@ -439,9 +439,6 @@ The same tree, with the subtree held in a variable:
   (typed bindings, sorters) get the bare path via
   `client->_bind( val = t_items path = abap_true )`, e.g.
   `` v = |\{ path: '{ client->_bind( val = t_items path = abap_true ) }', sorter: \{ path: 'PRODUCT' \} \}| ``.
-  `client->_bind_path( t_items )` is the named spelling of exactly that call —
-  same result, and it reads as what it is where a binding-info string is being
-  assembled. Use whichever is clearer; there is no behavioural difference.
 - Typed/complex bindings pass through verbatim (braces escaped):
   `` v = |\{ path: 'PRICE', type: 'sap.ui.model.type.Float' \}| `` — note the
   `path:` uses the upper-cased ABAP field name.
@@ -486,12 +483,7 @@ The same tree, with the subtree held in a variable:
 - Wire: `)->a( n = `press` v = client->_event( `SAVE` ) )`.
 - Read in `on_event` via `CASE client->get_event( ).`.
 - **Pass values into an event** with `t_arg`; read them back with
-  `client->get_event_arg( )` (index only for position 2+). For the common case
-  of exactly one value, `arg` is the shorthand:
-  `client->_event( val = `ITEM_SELECT` arg = `${PRODUCT}` )` produces the same
-  wire as `t_arg = VALUE #( ( `${PRODUCT}` ) )` and is asserted byte-identical
-  to it in the framework's own tests. Pass one or the other, never both.
-  A value resolved
+  `client->get_event_arg( )` (index only for position 2+). A value resolved
   on the client must be `$`-prefixed — `` `${PRODUCT}` `` (row field),
   `` `$event.oSource.sId` `` (the pressed control's id),
   `` `${$parameters>/selected}` `` (an event parameter). A bare `{…}` arg is
@@ -558,34 +550,6 @@ The same tree, with the subtree held in a variable:
   Back/Forward buttons — the mode rides in `t_arg`: `cs_nav_mode-keep` (the
   default when `t_arg` is empty) restores the exact draft state,
   `cs_nav_mode-fresh` restarts clean. Works inside the Fiori Launchpad.
-- **Bookmarkable app state**: `client->set_app_state_active( abap_true )` puts
-  the current draft id into the URL hash, so a copied link reopens the app
-  where it was. The framework re-asserts it on every response of that app once
-  set, so `check_on_init` is the place to call it.
-- **Sticky session**: `client->set_session_stateful( abap_true )` keeps the
-  ABAP work process attached across roundtrips. Only for state that genuinely
-  cannot be serialized into the draft (an open cursor, a lock) — the default
-  stateless mode is what makes the framework scale, and a sticky app holds a
-  work process for as long as the user has it open.
-
-### What the request is telling you — `client->get( )`
-
-`client->get( )` returns the request context of the roundtrip being handled,
-which is where the answers to "what just happened" live rather than on
-individual methods:
-
-```abap
-DATA(ls_req) = client->get( ).
-" ls_req-event               the event name (get_event( ) is the shorthand)
-" ls_req-check_on_navigated  this roundtrip arrived by navigation
-" ls_req-s_device            what the browser said about itself
-" ls_req-t_model_skipped     model cells the delta refused to write back
-```
-
-`t_model_skipped` is the one worth knowing about: a value the client sent that
-could not be written into its ABAP field (a non-numeric string into an `i`,
-say) is reported there instead of silently vanishing, so an app that validates
-input can tell "the user typed nonsense" from "the user typed nothing".
 
 ## 8. Rules that keep apps portable
 
