@@ -164,8 +164,14 @@ sap.ui.define(
 
     function evKeyboardSetMode(oController, args) {
       try {
-        const oElement = ViewSlots.byId("MAIN", args[1]);
-        if (!oElement) return;
+        // resolveById, not byId("MAIN", ...): an input in a dialog or a
+        // nested view is not in the MAIN slot, and this used to no-op on it
+        // without even a log line
+        const oElement = ViewSlots.resolveById(args[1]);
+        if (!oElement) {
+          Lib.logError(`KEYBOARD_SET_MODE: '${args[1]}' not found`);
+          return;
+        }
         const dom = oElement.getDomRef();
         if (!dom) return;
         const input = dom.matches("input, textarea")

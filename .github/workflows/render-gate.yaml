@@ -46,9 +46,12 @@ jobs:
     timeout-minutes: 20
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-      with:
-        node-version: '22'
+    # The composite action, not a literal node-version: it reads .nvmrc and
+    # brings the npm cache with it, which this job wants most of all - it runs
+    # `npm ci` below on every src/** pull request and was doing it uncached.
+    # npm-ci stays off: the install step below adds the render runtime in the
+    # same command and has to stay one step.
+    - uses: ./.github/actions/setup
 
     # The linter comes from the lockfile like everywhere else; the render
     # runtime is added here only, and deliberately NOT saved - a devDependency

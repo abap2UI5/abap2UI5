@@ -117,6 +117,19 @@ function jsFiles(dir, out = []) {
 const DEFINE = /sap\.ui\.define\s*\(\s*\[([^\]]*)\]/g;
 const REQUIRE = /sap\.ui\.require\s*\(\s*["']([^"']+)["']\s*\)/g;
 
+/* `sap.ui.require` has a SECOND form - the asynchronous one, taking an array
+ * and a callback - and it was matched by neither regex above: not by REQUIRE,
+ * which wants a single string, and not by DEFINE, which wants the word
+ * `define`. So three live call sites were reviewed by nothing at all
+ * (core/actions/ControlCall.js twice, Component.js once). That is this gate's
+ * own stated failure mode, and its own anecdote above is about a grep that
+ * only matched one of two spellings. Same treatment as the probing form: the
+ * ids may be newer than the floor, they just have to be ids somebody checked.
+ * Deliberately not folded into DEFINE - a missing dependency there kills the
+ * whole component, while these resolve to undefined, and the two findings read
+ * differently. */
+const REQUIRE_ARRAY = /sap\.ui\.require\s*\(\s*\[([^\]]*)\]/g;
+
 /* Module ids reached through the probing `sap.ui.require("…")` form. These are
  * allowed to be NEWER than the floor (that is what the form is for) - what is
  * checked is that the id is one somebody verified against UI5, spelling
@@ -135,6 +148,15 @@ const ALLOWED_REQUIRE = new Set([
   'sap/ui/core/Messaging',         // @since 1.118
   'sap/ui/core/Theming',           // @since 1.118
   'sap/ushell/Container',          // the FLP shell, absent outside it by design
+  // Reached through the ARRAY form of sap.ui.require, which nothing matched
+  // until REQUIRE_ARRAY above existed. All five were already in the shipped
+  // frontend; they are listed here because they were reviewed, not because
+  // they are new.
+  'sap/m/MessageToast',            // @since 1.9.2
+  'sap/m/TextArea',                // @since 1.9.0
+  'sap/ui/codeeditor/CodeEditor',  // @since 1.46 - the developer tools' editor
+  'sap/ui/codeeditor/library',     // the same library's module, loaded with it
+  'sap/ushell/services/AppConfiguration', // FLP only, like sap/ushell/Container
 ]);
 
 const findings = [];
@@ -164,6 +186,14 @@ for (const file of jsFiles(SCAN)) {
     if (mod.startsWith('z2ui5/') || mod.startsWith('./') || mod.startsWith('../')) continue;
     required.add(mod);
     if (!ALLOWED_REQUIRE.has(mod)) requireFindings.push({ rel, mod });
+  }
+  for (const m of text.matchAll(REQUIRE_ARRAY)) {
+    for (const dep of m[1].matchAll(/["']([^"']+)["']/g)) {
+      const mod = dep[1];
+      if (mod.startsWith('z2ui5/') || mod.startsWith('./') || mod.startsWith('../')) continue;
+      required.add(mod);
+      if (!ALLOWED_REQUIRE.has(mod)) requireFindings.push({ rel, mod });
+    }
   }
   if (hit) files += 1;
 }

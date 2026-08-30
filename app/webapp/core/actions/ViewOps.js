@@ -308,9 +308,18 @@ sap.ui.define(
 
     function evWizardSetNextStep(oController, args) {
       try {
-        const wiz = ViewSlots.byId("MAIN", args[1]);
-        const step = ViewSlots.byId("MAIN", args[2]);
-        const nextStep = ViewSlots.byId("MAIN", args[3]);
+        // resolveById, not byId("MAIN", ...) - the rule this file states for
+        // the three handlers above holds here too: a Wizard inside a popup,
+        // popover or nested view is not in the MAIN slot, and the lookup
+        // silently found nothing there
+        const wiz = ViewSlots.resolveById(args[1]);
+        const step = ViewSlots.resolveById(args[2]);
+        const nextStep = ViewSlots.resolveById(args[3]);
+        if (!wiz || !step) {
+          Lib.logError(
+            `WIZARD_SET_NEXT_STEP: '${args[1]}' / '${args[2]}' not found`,
+          );
+        }
         if (wiz && step) wiz.discardProgress(step);
         if (step && nextStep) step.setNextStep(nextStep);
       } catch (e) {

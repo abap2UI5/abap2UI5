@@ -47,9 +47,9 @@ jobs:
     timeout-minutes: 30
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-      with:
-        node-version: '22'
+    # .nvmrc through the composite action rather than a literal '22' - the
+    # drift that action exists to end (see its description)
+    - uses: ./.github/actions/setup
 
     - name: Move @abap2ui5/linter to the latest published version
       id: pin

@@ -350,7 +350,11 @@ sap.ui.define(
       },
 
       async onExport() {
-        Report.openDialog(AbapSource.appName(), await AbapSource.fetchSource());
+        // the await is a network fetch to the ADT endpoint, so the dialog can
+        // be gone by the time it resolves - same guard its two siblings carry
+        const source = await AbapSource.fetchSource();
+        if (Lib.isDestroyed(this)) return;
+        Report.openDialog(AbapSource.appName(), source);
       },
 
       // Put what is shown on the clipboard. A CodeEditor has no select-all

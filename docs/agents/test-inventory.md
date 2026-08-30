@@ -59,6 +59,9 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `devtools/DeveloperTools.fragment.xml` against the control that backs it | `devtoolsFragment.spec.js` | a handler the fragment names that the controller does not have, or a bound property nothing seeds, is not a syntax error anywhere and fails as a dead button on somebody's system |
 | `core/ErrorView.js` | `errorView.spec.js` | — |
 | `core/FrontendAction.js` incl. the composed `core/actions/` dispatch | `frontendAction.spec.js` | — |
+| `core/actions/Shortcuts.js` | `frontendAction.spec.js` (through the dispatch) | the shortcut registry and `KEYBOARD_SET_MODE` — **no dedicated spec**: `normalizeShortcut` / `shortcutFromEvent` / the scope precedence are pure and untested directly |
+| `core/actions/Variants.js` | `frontendAction.spec.js` (through the dispatch) | `SMART_VARIANT_INIT` incl. the retry chain and its once-per-key guard; `FILTER_BAR_VARIANT_INIT` is **not** exercised |
+| `core/actions/ViewOps.js` | `frontendAction.spec.js` (through the dispatch), `focus-after-enable` e2e | `SET_FOCUS` and `START_TIMER` only — **the largest gap**: `SET_ODATA_MODEL`'s destroy handshake and `WIZARD_SET_NEXT_STEP` have no coverage at all |
 | the URL-shaped handlers of `core/actions/Browser.js` through the REAL `core/Lib.js` validators | `browserActions.spec.js` | `DOWNLOAD_B64_FILE`'s protocol guard, active-`data:`-MIME block and filename sanitizer; `OPEN_NEW_TAB`'s same-origin guard and cleared `window.opener`; `URLHELPER`'s CR/LF header-injection block and the `REDIRECT` protocol guard |
 | the action runners and the legacy `eF()`-string parsing in `core/actions/LegacyCustomJs.js` | `actionRunner.spec.js` | — |
 | `controller/View1.controller.js` event handling, the after-render phase (model push by MODEL presence, per-response router sync) and the `core/actions/Slots.js` model fan-out | `view1Events.spec.js` | — |

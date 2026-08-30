@@ -90,6 +90,11 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
               result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_nav-set_app_state_active = abap_true.
+              " on the app as well, not only on this request: ms_next is
+              " cleared per roundtrip, so a flag set only here survived one
+              " response and the next event wiped the app-state hash the
+              " bookmark was made of (see mv_app_state_active)
+              result->mo_app->mv_app_state_active = abap_true.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
               " normalize the chain like factory_by_frontend: id_prev must
               " point at the draft this restore was loaded from, not at

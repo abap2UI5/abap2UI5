@@ -43,6 +43,15 @@ runs:
       with:
         node-version-file: .nvmrc
         cache: ${{ inputs.cache == 'true' && 'npm' || '' }}
+        # BOTH lockfiles. `cache: npm` keys on the root package-lock.json
+        # alone, and three workflows (UI5_2X, check_app2abap, autofix) also run
+        # `npm --prefix app ci` over a 449 KB app/package-lock.json holding
+        # @ui5/cli, ui5-linter, prettier and eslint. Keyed on the root lock
+        # only, an app-lock bump reused a stale cache and a root-lock bump
+        # threw the app install away with it - wrong in both directions.
+        cache-dependency-path: |
+          package-lock.json
+          app/package-lock.json
 
     - if: inputs.npm-ci == 'true' || inputs.deps == 'true'
       shell: bash

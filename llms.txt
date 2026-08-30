@@ -49,7 +49,7 @@ Two audiences, two entry points:
 - [AGENTS.md](AGENTS.md): the complete briefing for changes to this
   repository - architecture, layered design, coding rules, validation
 - [Repository map](docs/agents/repository-map.md): what lives in which
-  directory outside src/ - app/, node/, tools/, build/, frontend/, .github/
+  directory outside src/ - app/, node/, tools/, frontend/, .github/
   and every gate script in it
 - [CI/CD workflows](docs/agents/ci-workflows.md): what every workflow does,
   grouped by purpose

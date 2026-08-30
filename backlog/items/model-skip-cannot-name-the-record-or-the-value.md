@@ -5,10 +5,11 @@ summary: '`client->get( )-t_model_skipped` locates a top-level cell exactly, but
 priority: medium
 state: open
 first_seen: 2026-08-27
+checked_upstream: 2026-08-30
 upstream: abap2UI5/abap2UI5
 evidence:
   - 'measured 2026-08-27 by writing the first consumer of the API (`ltcl_app_price_editor` / `ltcl_test_model_skipped` in `src/01/02/z2ui5_cl_ui5_client.clas.testclasses.abap`), driving the real path `model_json_parse` -> `ms_actual-t_model_skipped` -> `client->get( )`'
-  - '`delta_apply_field` recurses with `iv_table = |{ is_cell-name }-{ is_cell-field }|` (`z2ui5_cl_ui5_srv_model.clas.abap:916`) and does NOT propagate `is_cell-row`; inside, `row = lv_tabix` (:884) is the INNER table index. So `MT_PRODUCT-T_POS` row 1 does not say which `MT_PRODUCT` row owns that `T_POS`'
+  - '`delta_apply_field` recurses with `iv_table = |{ is_cell-name }-{ is_cell-field }|` (`z2ui5_cl_ui5_srv_model.clas.abap`, in `delta_apply_field`; line 965 on 2026-08-30) and does NOT propagate `is_cell-row`; inside, `row = lv_tabix` (same method, line 931) is the INNER table index. So `MT_PRODUCT-T_POS` row 1 does not say which `MT_PRODUCT` row owns that `T_POS`'
   - 'the entry is `name` / `row` / `field` only — the backend kept the old value and the browser holds the new one, so `''1,250.00'' is not a valid price` is not expressible; only `Price of ''Monitor'' was not accepted`'
   - 'samples-controls app 570 already solves the same problem BETTER by hand: it binds the price as `string`, validates in its own Save loop, and toasts `Not a number, the old price was kept - Notebook: ''1,250.00''` — quoting the value the API cannot reach'
   - 'app 093 did the same on 2026-08-26 (`salary TYPE string`), both citing `delta_apply_field`''s `CATCH cx_root ##NO_HANDLER` in their source comments — so as of today NO port in any corpus can produce a `t_model_skipped` entry at all, and the API has no producer to prove itself against'

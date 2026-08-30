@@ -43,6 +43,55 @@ for (const [prefix, known] of Object.entries(constants)) {
   }
 }
 
+// The other direction. The check above is one-way - it asks whether what the
+// guide NAMES exists - so a method added to the interface and never written up
+// is invisible to it. That is the direction that actually bit: `_bind_path( )`
+// and the `arg` shorthand shipped in 1.144.0 and reached the changelog, the
+// interface and the api snapshot, while the file every agent without web
+// access reads as the API reference did not mention them at all, and nothing
+// said so.
+//
+// A method is either named in the guide or recorded here with the reason it is
+// not. Same shape as agents-commands-gate's declared omissions - the point is
+// that leaving a method out becomes a decision somebody wrote down, instead of
+// the default.
+const UNDOCUMENTED = new Map([
+  ["view_model_update", "obsolete - view_display( ) re-sends the model"],
+  ["popup_model_update", "obsolete, as view_model_update"],
+  ["popover_model_update", "obsolete, as view_model_update"],
+  ["nest_view_model_update", "obsolete, as view_model_update"],
+  ["nest2_view_model_update", "obsolete, as view_model_update"],
+  ["_bind_edit", "compatibility-only alias of _bind( ), slated for removal"],
+  ["_event_nav_app_leave", "internal wiring of nav_app_leave( )"],
+  [
+    "nest_view_display",
+    "the nested-view family is named in section 7 as a capability; the per-slot"
+      + " methods follow view_display( ) exactly and would repeat it five times",
+  ],
+  ["nest_view_destroy", "as nest_view_display"],
+  ["nest2_view_display", "as nest_view_display"],
+  ["nest2_view_destroy", "as nest_view_display"],
+  ["view_destroy", "as nest_view_display - the slot form of popup_destroy( )"],
+  ["popover_destroy", "as nest_view_display"],
+  ["set_push_state", "browser-history detail of the routing block in section 7"],
+  ["get_app", "reaches another app instance on the stack - get_app_prev( ) is the documented case"],
+  ["check_app_prev_stack", "a stack predicate for get_app_prev( ), documented through it"],
+]);
+
+for (const m of methods) {
+  if (UNDOCUMENTED.has(m)) continue;
+  if (new RegExp(`client->${m}\\b`, "i").test(guide)) continue;
+  problems.push(
+    `client->${m} — on z2ui5_if_client but nowhere in the guide.`
+      + " Document it, or record why not in UNDOCUMENTED in this script",
+  );
+}
+for (const m of UNDOCUMENTED.keys()) {
+  if (!methods.has(m)) {
+    problems.push(`UNDOCUMENTED names client->${m}, which is not on the interface — drop the entry`);
+  }
+}
+
 const unique = [...new Set(problems)];
 if (unique.length) {
   console.error("check-guide-api: docs/agents/building-apps.md names API that does not exist:");
@@ -54,5 +103,6 @@ if (unique.length) {
   process.exit(1);
 }
 console.log(
-  `check-guide-api: every client method and cs_* constant the guide names exists (${methods.size} methods known) - OK`,
+  `check-guide-api: ${methods.size} client method(s) - every one the guide names exists, `
+  + `and every one on the interface is documented or recorded (${UNDOCUMENTED.size} recorded) - OK`,
 );

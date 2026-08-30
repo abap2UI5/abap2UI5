@@ -3,8 +3,10 @@ target: abap2ui5-linter
 title: '`event-arg-out-of-range` counts only `t_arg`, so every `_event( arg = ... )` wire reads as sending zero arguments'
 summary: 187 false positives across 125 of 637 ported classes the moment the corpus adopts the one-value shorthand — the rule extracts arguments from `t_arg = VALUE #( )` alone and has no case for `arg`
 priority: high
-state: done
+state: filed
 first_seen: 2026-08-29
+checked_upstream: 2026-08-30
+filed: https://github.com/abap2UI5/linter/pull/78
 upstream: abap2UI5/linter
 evidence:
   - measured on the swept samples-controls corpus, linter 0.5.1 — 187 `event-arg-out-of-range` errors in 125 failing files, every one of them on a wire that does send an argument
@@ -14,13 +16,27 @@ evidence:
 
 # `event-arg-out-of-range` does not know the `arg` shorthand
 
-> **Closed.** Fixed upstream in `abap2UI5/linter` ("Read abap2UI5's `arg`
-> shorthand in the two event-argument rules"): `checkEventArgs` counts an
-> `arg = x` as one more argument for the arity, and judges its literal for the
-> unresolved-brace check. The THIRD event-argument rule was missed in that pass
-> and closed on 2026-08-30 — `event-arg-js-callback` also read `t_arg` alone,
-> so a callback smuggled through the shorthand was invisible. The corpus sweep
-> this item was holding can proceed.
+> **Fixed upstream, not yet released.**
+> [abap2UI5/linter#78](https://github.com/abap2UI5/linter/pull/78) — *"Read
+> abap2UI5's `arg` shorthand in the two event-argument rules"* — is merged and
+> reports the same 187 false positives on the same corpus. It is **not in a
+> published version yet**: npm `latest` is 0.5.1 (cut by #65, before #78), and
+> `package.json` here pins `^0.5.1`, so `npm run check:abap2ui5` still runs the
+> rule without the fix. Nothing is broken today because this repository's own
+> app classes do not use the shorthand yet — the corpus that does is
+> samples-controls.
+>
+> The pass behind #78 covered **two** of the three event-argument rules;
+> `event-arg-js-callback` read `t_arg` by the same literal and was missed, so a
+> JS callback smuggled through the shorthand stayed invisible. That third one is
+> closed in
+> [abap2UI5/linter#80](https://github.com/abap2UI5/linter/pull/80) — an
+> under-report rather than a false positive, so it does not change the count
+> above, but it belongs to the same release.
+>
+> **Delete this item when a release past 0.5.1 ships and `bump-linter.yaml`
+> pulls it in**; until then it records why the pinned linter and the framework's
+> own API disagree.
 
 ## What happens
 

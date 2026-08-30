@@ -2,14 +2,20 @@ name: release
 # Cuts a release from one tag: the GitHub release for `X.Y.Z`, and the
 # `X.Y.Z-702` tag on the downported branch.
 #
-# Why this exists: releases were cut entirely by hand, and the cost of that is
-# visible in the ecosystem rather than in this repository. `z2ui5_cl_ui5_view_
-# builder` reached main on 2026-08-12; the newest release, 1.142.0, is from
-# 2026-07-21. So the samples, samples-controls, samples-stack, app-template and
-# the documentation all teach a builder that NO released version carries, and
-# abap2UI5/app-template cannot pin its abaplint dependency to a tag at all -
-# it has to resolve the framework from `main`. A release that is a chore gets
-# skipped; one that is a tag push does not.
+# Why this exists: releases were cut entirely by hand, and the cost of that was
+# visible in the ecosystem rather than in this repository.
+# `z2ui5_cl_ui5_view_builder` reached main on 2026-08-12 while the newest tag
+# was still 1.142.0 (2026-07-20), so for four days the samples,
+# samples-controls, samples-stack, app-template and the documentation all
+# taught a builder that NO released version carried, and abap2UI5/app-template
+# could not pin its abaplint dependency to a tag at all - it had to resolve the
+# framework from `main`. 1.143.0 closed that gap. A release that is a chore
+# gets skipped; one that is a tag push does not.
+#
+# No current version number is repeated here on purpose: it is a moving value
+# in a comment nothing checks, and the one that used to stand here went two
+# releases stale. `changelog.txt` and `npm run check:release` are where the
+# versions live.
 #
 # What it does NOT do is decide. It publishes what the tag points at, after
 # checking that the tree agrees with itself:

@@ -5,6 +5,7 @@ summary: deleting the current row from under the loop skips the next one — a w
 priority: high
 state: open
 first_seen: 2026-08-17
+checked_upstream: 2026-08-30
 upstream: abaplint/abaplint
 evidence:
   - found 2026-08-17 by an e2e interaction — `abap2UI5/samples-controls` app 352's `listClose` round-trip answered HTTP 500 with `TABLE_INVALID_INDEX`

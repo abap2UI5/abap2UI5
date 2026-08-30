@@ -5,6 +5,7 @@ summary: '`REF #( tab[ n ]-comp )` and `_bind( val = tab[ n ]-comp )` downport t
 priority: medium
 state: open
 first_seen: 2026-08-29
+checked_upstream: 2026-08-30
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5 `_bind( tab / tab_index )` — the cell binding matches the bound cell by data reference (`z2ui5_cl_ui5_srv_bind->bind_tab_cell`), so after the downport it refuses every cell written the natural way and the app gets BINDING_ERROR_TAB_CELL_LEVEL'
@@ -14,6 +15,16 @@ evidence:
 ---
 
 # Downport: outline a table expression with ASSIGNING, not INTO
+
+> **Upstream check 2026-08-30: nothing open on this.** The neighbouring
+> downport/table-expression reports are all closed —
+> [#2452](https://github.com/abaplint/abaplint/issues/2452) *"Downport: table
+> expression assignment fails"*, [#2335](https://github.com/abaplint/abaplint/issues/2335)
+> *"downport: table expressions and line_exists()"*,
+> [#1549](https://github.com/abaplint/abaplint/issues/1549) *"downport, table
+> expression via index"* — and none of them is the write-through case this item
+> is about. Worth reading #2452 first: it is the closest prior art and shows
+> the shape of report the maintainer acted on.
 
 ## What happens
 

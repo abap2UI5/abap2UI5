@@ -281,6 +281,8 @@ sap.ui.define(
         DevTools.exit();
 
         Server.endSession();
+        // and drop the module-scoped request state with it - see Server.reset
+        Server.reset();
 
         // Global state that would outlive the component (FLP keeps the page
         // alive): cancel any pending backend timer, empty the shortcut
