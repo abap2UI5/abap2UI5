@@ -72,6 +72,11 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        AppState.state.contextId = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      reset() {` && |\n| &&
+             `        this._abortInflight();` && |\n| &&
+             `        this._viewBuild = null;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      restoreFromRoute() {` && |\n| &&
              `        AppState.state.isBusy = true;` && |\n| &&
              `        BusyIndicator.show(0);` && |\n| &&

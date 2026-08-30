@@ -267,7 +267,9 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      async onExport() {` && |\n| &&
-             `        Report.openDialog(AbapSource.appName(), await AbapSource.fetchSource());` && |\n| &&
+             `        const source = await AbapSource.fetchSource();` && |\n| &&
+             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        Report.openDialog(AbapSource.appName(), source);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onCopyTab(oEvent) {` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            isViewData: false,` && |\n| &&
              `            isSearch: false,` && |\n| &&
              `            isErrorView: false,` && |\n| &&
-             `            isSourceView: false,` && |\n| &&
-             `            hasRetry: false,` && |\n| &&
-             `            canApply: false,` && |\n|.
+             `            isSourceView: false,` && |\n|.
     result = result &&
+             `            hasRetry: false,` && |\n| &&
+             `            canApply: false,` && |\n| &&
              `            isTemplating: false,` && |\n| &&
              `            templatingSource: false,` && |\n| &&
              `            statusText: "",` && |\n| &&

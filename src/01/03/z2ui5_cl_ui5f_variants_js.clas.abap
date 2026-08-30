@@ -68,6 +68,10 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `    const finish = () => activeInits.delete(key);` && |\n| &&
              `    let tries = 0;` && |\n| &&
              `    const run = () => {` && |\n| &&
+             `      if (Lib.isDestroyed(oController)) {` && |\n| &&
+             `        finish();` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      const oSVM = ViewSlots.resolveById(svmId);` && |\n| &&
              `      const control = controlId ? ViewSlots.resolveById(controlId) : null;` && |\n| &&
              `      if (!oSVM || (controlId && !control)) {` && |\n| &&
@@ -201,8 +205,17 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `` && |\n| &&
              `  function evFilterBarVariantInit(oController, args) {` && |\n| &&
              `    const [, svmId, filterBarId] = args;` && |\n| &&
+             `` && |\n| &&
+             `    const key = ``${svmId}|${filterBarId || ""}``;` && |\n| &&
+             `    if (activeInits.has(key)) return;` && |\n| &&
+             `    activeInits.add(key);` && |\n| &&
+             `    const finish = () => activeInits.delete(key);` && |\n| &&
              `    let tries = 0;` && |\n| &&
              `    const run = () => {` && |\n| &&
+             `      if (Lib.isDestroyed(oController)) {` && |\n| &&
+             `        finish();` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      const oSVM = ViewSlots.resolveById(svmId);` && |\n| &&
              `      const oFilterBar = ViewSlots.resolveById(filterBarId);` && |\n| &&
              `      if (!oSVM || !oFilterBar) {` && |\n| &&
@@ -213,6 +226,7 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `        Lib.logError(` && |\n| &&
              `          ``FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found``,` && |\n| &&
              `        );` && |\n| &&
+             `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (` && |\n| &&
@@ -222,16 +236,23 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `        Lib.logError(` && |\n| &&
              `          ``FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n| &&
              `        );` && |\n| &&
+             `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (typeof oFilterBar.registerFetchData !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``FILTER_BAR_VARIANT_INIT: no FilterBar for id '${filterBarId}'``,` && |\n| &&
              `        );` && |\n| &&
+             `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      if (oFilterBar[FILTER_BAR_WIRED]) return;` && |\n| &&
+             `      if (oFilterBar[FILTER_BAR_WIRED]) {` && |\n| &&
+             `        finish();` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      oFilterBar[FILTER_BAR_WIRED] = true;` && |\n| &&
+             `` && |\n| &&
+             `      finish();` && |\n| &&
              `` && |\n| &&
              `      registerFilterBarCallbacks(oFilterBar);` && |\n| &&
              `      attachFilterBarChange(oSVM, oFilterBar);` && |\n| &&

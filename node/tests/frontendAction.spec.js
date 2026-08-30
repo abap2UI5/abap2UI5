@@ -1845,7 +1845,13 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     // the control registers a moment later (its metadata arrived) - the
     // pending wait picks that up and starts the load flow nobody else would
     registered.push("smartFilterBar");
-    await new Promise((r) => setTimeout(r, 250));
+    // Poll for the outcome instead of sleeping a fixed 250ms. The retry runs
+    // on a real 100ms timer, and a fixed wait was the only wall-clock
+    // dependency in this suite: with `retries: 0` and `fullyParallel: true`
+    // (node/playwright-unit.config.js) a loaded runner turns a missed deadline
+    // into a hard failure rather than a slow pass. This returns as soon as the
+    // load flow has run, and only waits longer when the machine is busy.
+    await expect.poll(() => oSVM.initialised.length, { timeout: 5000 }).toBe(1);
     expect(oSVM.initialised).toEqual([{ id: "smartFilterBar" }]);
   });
 

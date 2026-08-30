@@ -126,6 +126,24 @@ sap.ui.define(
         AppState.state.contextId = null;
       },
 
+      // Drop everything this module holds ACROSS a component teardown. Both
+      // fields below are module-scoped, so on an FLP re-launch they outlived
+      // the component that started them:
+      //   _inflight - the old fetch resolves into the NEW session. isStale( )
+      //     does not catch it, because _requestSeq is module state too and no
+      //     newer request has gone out yet, so the response is adopted: its
+      //     sap-contextid becomes the new session's, then responseSuccess
+      //     reaches for the MAIN controller, finds null, and the app that just
+      //     started shows the fatal "App Terminated" overlay.
+      //   _viewBuild - a queued rebuild continuation calls removeAllPages( )
+      //     on an oApp that AppState.initGlobal( ) has since cleared.
+      // _abortInflight( ) existed for the other case (a newer request
+      // superseding older ones) and was never reachable from teardown.
+      reset() {
+        this._abortInflight();
+        this._viewBuild = null;
+      },
+
       // Restore the app state a matched hash route points at. Wired into
       // core/Router by Component.js and called when the browser Back/Forward
       // buttons (or a manual URL edit / bookmark) select a different route.
