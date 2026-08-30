@@ -56,14 +56,33 @@ const NOT_A_RULE = new Map([
   ['unit-tests', 'the abapGit round-trip rule name in this skill\'s own table'],
 ]);
 
-/* Rules that exist in a released linter this repository has NOT pinned yet.
- * Same semantics as a baseline entry: once the pin catches up the rule is
- * known, and an entry left behind here FAILS rather than lingering. */
+/* Rules that exist upstream but not in the linter this repository has pinned -
+ * either released under a version not pinned yet, or merged on the linter's
+ * main and not published at all. Same semantics either way: once the pin
+ * catches up the rule is known, and an entry left behind here FAILS rather
+ * than lingering.
+ *
+ * The second case is why the wording above says "upstream" rather than
+ * "released". #2686 documented seven rules the linter shipped on 2026-08-30,
+ * but npm `latest` is 0.5.1 (published 2026-08-27) and package.json pins
+ * `^0.5.1` - so five of those names were true statements about the linter and
+ * still unknown here, and check:skills went red on main for every pull
+ * request until they were listed. */
 const PENDING = new Map([
   // Empty, and it stayed empty for about an hour. `frozen-view-builder` was
   // listed here while this repository pinned 0.1.1; the bump to 0.2.0 made the
   // rule known, this gate reported the entry as stale on the same commit, and
   // it came out. That is the mechanism working, not an accident of timing.
+  //
+  // The 2026-08-30 round (#2686). Each of these ships in the linter's main and
+  // in no published version, so `bump-linter.yaml` removes them here as soon as
+  // a release past 0.5.1 lands - this gate fails on the entry the moment the
+  // pinned linter knows the rule.
+  ['class-constructor-visibility', 'linter main, unreleased - was check:abapgit only before'],
+  ['value-header-default-reassigned', 'linter main, unreleased - was an open gate before'],
+  ['into-corresponding-inline-decl', 'linter main, unreleased - was an open gate before'],
+  ['validating-setter-out-of-range', 'linter main, unreleased - fires on target release 1.149+'],
+  ['absent-boolean-overrides-default', 'linter main, unreleased - companion of the setter rule'],
 ]);
 
 const TOKEN = /`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`/g;
