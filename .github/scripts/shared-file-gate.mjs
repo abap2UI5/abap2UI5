@@ -55,6 +55,21 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
  * Deliberately a list rather than a directory convention: a file becoming
  * shared across repositories is a decision, and it should cost one line here
  * so that it is made rather than drifted into.
+ *
+ * Also a decision, made 2026-08-30 and recorded so it is not re-litigated
+ * file by file: the sample repositories' GENERATORS stay per-repository and
+ * are deliberately NOT on this list. generate-catalogue.mjs,
+ * generate-samples-md.mjs, generate-screenshots.mjs, check-keywords.mjs and
+ * scripts/lib/scan-samples.mjs look triplicated but are different programs
+ * sharing an idea - measured when this was written, each pair differs in
+ * more lines than the shorter file has (catalogue 227 diff lines over
+ * 119/127-line files, scan-samples 388 over 239/171), because each reads a
+ * different repository structure: a class-comment scan in samples, the
+ * meta/ sidecars in samples-controls, packages.json in samples-stack.
+ * One shared script would be three disjoint code paths in a trench coat.
+ * What the three genuinely share is their OUTPUT shape, and that is what is
+ * gated instead: check-catalogue-contract.mjs below pins the published
+ * catalogue.json contract each generator must keep emitting.
  */
 const SHARED = [
   {
