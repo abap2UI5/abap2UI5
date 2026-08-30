@@ -12,6 +12,10 @@ Legend
 
 unreleased
 ----------
+
+
+2026-08-30 v1.144.0
+-------------------
 + client->_event( arg = ... ) is the one-value spelling of t_arg, and
   client->_bind_path( ... ) the named form of _bind( path = abap_true )
 + Frontend actions: expandSelected / collapseSelected on a tree table,
