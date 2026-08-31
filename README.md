@@ -30,6 +30,7 @@
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
 * **Broad Compatibility** – Supports all ABAP releases from NW 7.02 to ABAP Cloud
 * **Easy Installation** – Install via abapGit – no extra app deployment needed
+* **Seamless Integration** – Runs in SAP Fiori Launchpads and on SAP BTP, right next to your RAP and Fiori Elements apps
 
 ## Quick Start
 
