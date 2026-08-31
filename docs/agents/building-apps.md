@@ -611,7 +611,7 @@ The same tree, with the subtree held in a variable:
   `npx --yes @abap2ui5/linter my_app.clas.abap` — also
   available as a GitHub Action and inside the VS Code extension.
 - **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents
-  the full loop without an SAP system: `capabilities` → `deploy_app` →
+  the full loop without a SAP system: `capabilities` → `deploy_app` →
   `build_backend` → `run_app` (headless screenshot + errors).
 - **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:
   F9 launches the class in an embedded preview against a real system.
