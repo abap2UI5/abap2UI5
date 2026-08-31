@@ -92,6 +92,11 @@ sap.ui.define(
     // so every comparison in this module runs on one canonical form.
     function appHashNormalized(sHash) {
       const app = appHashOf(sHash);
+      // a bare "/" is the EMPTY route (an app pushing its start URL, e.g. a
+      // ':section:' pattern without a section): navTo strips the slash and
+      // writes the empty hash, so the canonical form must be "" too - as "/"
+      // the write's own echo would escape the adopt-compare and round-trip
+      if (app === "/") return "";
       return app && !app.startsWith("/") ? `/${app}` : app;
     }
 

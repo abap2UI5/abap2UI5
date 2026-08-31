@@ -511,6 +511,30 @@ test("a blank setHashEvent unregisters, a destroyed controller stays silent", ()
   expect(fired).toEqual([]);
 });
 
+test("a listener push of the bare '/' writes the empty hash and its echo dies", () => {
+  // an app whose current route is the EMPTY pattern (a ':section:' route
+  // without a section) pushes "/": navTo strips the slash, the URL loses its
+  // app hash - and the echo of that write must be swallowed like any other,
+  // so both sides normalize to ""
+  const { Router, state, writes } = loadRouter({ state: { navRouting: false } });
+  const fired = [];
+  state.oController = { eB: (a) => fired.push(a) };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  Router.sync({ setPushState: "/detail/OneColumn", id: "D2" });
+  Router.sync({ setPushState: "/", id: "D3" });
+  expect(writes).toEqual([
+    { op: "set", hash: "detail/OneColumn", guard: "D1" },
+    { op: "set", hash: "", guard: "D1" },
+  ]);
+  expect(state.appHash).toBe("");
+  // the write's own echo - hasher hands back the empty hash
+  Router.onHashChanged("");
+  expect(fired).toEqual([]);
+  // browser Back to the detail entry still dispatches
+  Router.onHashChanged("/detail/OneColumn");
+  expect(fired).toEqual([["HASH_CHANGED"]]);
+});
+
 test("the app-state hash reaches the HashChanger slash-less too", () => {
   // hasher prepends the one canonical "/" - the live URL becomes
   // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes

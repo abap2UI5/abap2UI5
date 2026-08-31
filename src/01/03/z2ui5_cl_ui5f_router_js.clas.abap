@@ -62,6 +62,8 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `    function appHashNormalized(sHash) {` && |\n| &&
              `      const app = appHashOf(sHash);` && |\n| &&
+             `` && |\n| &&
+             `      if (app === "/") return "";` && |\n| &&
              `      return app && !app.startsWith("/") ? ``/${app}`` : app;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
