@@ -1,53 +1,49 @@
 #!/usr/bin/env node
 /*
- * check-framework-pin — the sample repositories compile against a RELEASE of
- * abap2UI5, and this is what says so.
+ * check-framework-pin — the sample repositories compile against abap2UI5's
+ * MAIN branch, and this is what says so.
  *
  * ONE SOURCE, and it is abap2UI5's `.github/shared/check-framework-pin.mjs`.
  * The repositories that run it carry it byte-equal; abap2UI5's
  * `npm run check:shared` is what notices when that did not happen.
  *
  * WHY: abaplint resolves a git dependency by URL, and without a `"branch"` key
- * it clones the DEFAULT branch. So every one of these configs was linting the
- * corpus against abap2UI5 main — the development tip — while every reader of
- * these samples has a release installed. Two failure directions, both silent:
+ * it clones the DEFAULT branch — an IMPLICIT state nothing reviews. This check
+ * makes the resolution explicit and uniform, and it exists for two incidents:
+ * a stale feature-branch `"branch"` key that survived its merge (the branch
+ * was deleted, the clone failed), and duplicate `"branch"` keys silently
+ * shadowing each other (JSON parsing takes the last one).
  *
- *   a sample uses API that only exists on main, CI is green, and the reader
- *   who copies it gets a syntax error. z2ui5_cl_ui5_view_builder is the case
- *   that happened: on main from 2026-08-12, not in a release until 1.143.0
- *   three weeks later.
- *
- *   the framework changes something on main, and nine workflows across three
- *   repositories go red overnight without a single commit in any of them.
- *
- * A release tag fixes both: the gate answers the question a reader actually
- * has. abaplint's `"branch"` is the only key it offers for this, and it feeds
- * `git clone --branch`, which takes a tag just as happily as a branch name.
- * (A `"tag"` key would be silently ignored — abaplint does not have one.)
+ * Until 2026-08-31 the policy asked for a RELEASE TAG here, answering "does
+ * the corpus compile for a reader who installed the release". That coupled
+ * every corpus merge that uses new framework API to a framework RELEASE — and
+ * the maintainer's release cadence is monthly while merges land daily (the
+ * hash_* API wave sat behind by-design red lint for what would have been
+ * weeks). So the configs resolve `main` now: merges gate on the framework as
+ * it IS, the nightly canaries keep watching the tip, and what a sample needs
+ * beyond the latest release stays documented in prose next to the sample
+ * ("needs abap2UI5 newer than x.y.z"). A framework change on main that
+ * reddens a corpus overnight is accepted as exactly that canary signal.
+ * abaplint's `"branch"` feeds `git clone --branch` (a branch or a tag, never
+ * a commit), so `main` is the closest checkable statement.
  *
  * Policy:
  *   1. Every abaplint config's abap2UI5 dependency carries a `"branch"` key.
- *      No key means the default branch, which is the drift this exists for.
+ *      No key means the default branch, which is the implicit drift this
+ *      exists for.
  *   2. Never two `"branch"` keys in one dependency entry. JSON parsing takes
  *      the LAST of duplicate keys, so a stale pin left NEXT to the intended
  *      one is invisible to every consumer that just parses the file.
- *   3. All configs name the SAME release, so a bump moves them together and
- *      one forgotten file cannot lint against a different framework than its
- *      neighbours. ALLOWED_BRANCHES carries the exceptions.
+ *   3. Every non-allowlisted config names `main` — explicit, identical, and a
+ *      feature-branch re-point that survives a merge fails here.
+ *      ALLOWED_BRANCHES carries the exceptions.
  *
  * The 702 exception: the downported build must resolve the framework against
  * its downported branch. abap2UI5 force-pushes `702` from main on every push
- * (auto_downport), so it is not a release pin — it is the only branch whose
- * content is v702-parseable at all, and main is not.
+ * (auto_downport), so it is the only branch whose content is v702-parseable
+ * at all, and main is not.
  *
  * Run:  node scripts/check-framework-pin.mjs              (offline, exit 1)
- *       node scripts/check-framework-pin.mjs --set 1.144.0 (move the pin)
- *
- * `--set` is here rather than in the bump workflow so the policy has ONE
- * implementation: which configs carry the release, which carry an allowlisted
- * branch, and what a release tag looks like are the same three answers whether
- * they are being checked or written. A workflow doing it with sed would be a
- * second, silent copy of that policy.
  */
 import fs from 'fs';
 import path from 'path';
@@ -56,10 +52,15 @@ import { fileURLToPath } from 'url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // config path (repo-relative) -> the branch value its abap2UI5 dependency must
-// carry INSTEAD of the release tag. Absent = must carry the release tag.
+// carry INSTEAD of main. Absent = must carry "main".
 const ALLOWED_BRANCHES = new Map([
   ['.github/abaplint/abap_702.jsonc', '702'],
 ]);
+
+// every non-allowlisted config resolves the framework here (see the header:
+// the release-tag policy ended 2026-08-31 — releases are monthly snapshots
+// and never gate a merge)
+const REQUIRED_BRANCH = 'main';
 
 /* The framework dependency, identified by its url VALUE rather than by a
  * substring of the entry.
@@ -71,7 +72,6 @@ const ALLOWED_BRANCHES = new Map([
  * was read as the framework and had its "branch" key checked as if it were.
  * Anchoring at the key and closing at the quote leaves only the framework. */
 const A2UI5_URL_RE = /"url"\s*:\s*"https:\/\/github\.com\/abap2UI5\/abap2UI5(?:\.git)?\/?"/i;
-const RELEASE_RE = /^\d+\.\d+\.\d+$/;
 
 let errors = 0;
 const err = (m) => { console.log(`ERROR ${m}`); errors++; };
@@ -113,35 +113,6 @@ function configFiles() {
   return files.filter((f) => fs.existsSync(path.join(ROOT, f)));
 }
 
-const SET = (() => {
-  const i = process.argv.indexOf('--set');
-  return i !== -1 ? process.argv[i + 1] : null;
-})();
-
-if (SET !== null) {
-  if (!RELEASE_RE.test(SET || '')) {
-    console.log(`ERROR --set wants a release tag (x.y.z), got ${JSON.stringify(SET)}`);
-    process.exit(1);
-  }
-  let written = 0;
-  for (const rel of configFiles()) {
-    if (ALLOWED_BRANCHES.has(rel)) continue;
-    const full = path.join(ROOT, rel);
-    const raw = fs.readFileSync(full, 'utf8');
-    /* Rewrite in the RAW text, not a parsed tree: these are .jsonc files whose
-     * comments carry the reasoning, and a parse/serialise round trip would
-     * drop every one of them. Anchored on the abap2UI5 url line so a `branch`
-     * belonging to another dependency is left alone. */
-    const next = raw.replace(
-      /("url"\s*:\s*"https:\/\/github\.com\/abap2UI5\/abap2UI5"\s*,\s*\n\s*"branch"\s*:\s*")[^"]*(")/,
-      `$1${SET}$2`,
-    );
-    if (next !== raw) { fs.writeFileSync(full, next); written++; }
-  }
-  console.log(`check-framework-pin: set ${written} config(s) to ${SET}`);
-}
-
-const releases = new Map();   // config -> release tag it names
 let checked = 0;
 
 for (const rel of configFiles()) {
@@ -159,7 +130,7 @@ for (const rel of configFiles()) {
       continue;
     }
     if (branches.length === 0) {
-      err(`${rel}: abap2UI5 dependency carries no "branch" key — abaplint then clones the DEFAULT branch, so this config lints against the framework's development tip instead of a release${expected ? `; this config wants "branch": ${JSON.stringify(expected)}` : ''}`);
+      err(`${rel}: abap2UI5 dependency carries no "branch" key — an implicit default is exactly the silent state this check forbids; this config wants "branch": ${JSON.stringify(expected ?? REQUIRED_BRANCH)}`);
       continue;
     }
 
@@ -170,11 +141,10 @@ for (const rel of configFiles()) {
       }
       continue;
     }
-    if (!RELEASE_RE.test(branch)) {
-      err(`${rel}: abap2UI5 dependency is pinned to ${JSON.stringify(branch)}, which is not a release tag (x.y.z) — only the allowlisted configs may name a branch`);
+    if (branch !== REQUIRED_BRANCH) {
+      err(`${rel}: abap2UI5 dependency is pinned to ${JSON.stringify(branch)} — the syntax builds resolve the framework's ${JSON.stringify(REQUIRED_BRANCH)} (releases are monthly snapshots and never gate a merge; a deliberate re-point must edit ALLOWED_BRANCHES in the same commit)`);
       continue;
     }
-    releases.set(rel, branch);
   }
 }
 
@@ -182,15 +152,8 @@ if (!checked) {
   err('no abap2UI5 dependency entry found in any abaplint config — did the dependency URL change? (this check would go blind)');
 }
 
-// --- 3. one release across the repository -----------------------------------
-const distinct = [...new Set(releases.values())];
-if (distinct.length > 1) {
-  err(`the configs name ${distinct.length} different releases (${distinct.join(', ')}) — a bump has to move all of them:\n`
-    + [...releases].map(([f, v]) => `        ${v}  ${f}`).join('\n'));
-}
-
 if (errors) {
   console.log(`check-framework-pin: ${errors} error(s).`);
   process.exit(1);
 }
-console.log(`check-framework-pin: ok (${checked} abap2UI5 dependency entr${checked === 1 ? 'y' : 'ies'}, release ${distinct[0] ?? 'none'}${ALLOWED_BRANCHES.size ? `, ${ALLOWED_BRANCHES.size} allowlisted branch pin(s)` : ''})`);
+console.log(`check-framework-pin: ok (${checked} abap2UI5 dependency entr${checked === 1 ? 'y' : 'ies'} on ${REQUIRED_BRANCH}${ALLOWED_BRANCHES.size ? `, ${ALLOWED_BRANCHES.size} allowlisted branch pin(s)` : ''})`);
