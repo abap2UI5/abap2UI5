@@ -28,7 +28,7 @@ nobody has to discover it twice.
 **Every numbered section below carries a `Gate:` line**, the same idea as the
 `Linter:` lines in `ui5-check` — but the answer here is rarely "a linter rule".
 Most of this is decided by a script in *this* repository, which means a
-consumer running nothing but `npx abap2ui5lint` is **not** covered by it. The
+consumer running nothing but `npx @abap2ui5/linter` is **not** covered by it. The
 line says which of the three it is, because that is the difference between a
 defect that cannot reach `main` and one that cannot reach `main` *here*:
 
@@ -175,7 +175,7 @@ imported; the app is gone.
   **Also gated outside this repository now**, which is what the samples case
   argues for: the abap2UI5 linter reports it as **`source-line-too-long`** (an
   error) on every app class it checks, so a consumer repo that runs nothing but
-  `npx abap2ui5lint` is covered too. Note what that does *not* replace — the
+  `npx @abap2ui5/linter` is covered too. Note what that does *not* replace — the
   linter reads app classes and views, not `.clas.xml` sidecars or `src/00` and
   `src/99`, so `check:abapgit` remains this repository's gate for the rest of
   the round-trip family.
@@ -277,7 +277,7 @@ That is what turns one fix into the last one.
 **Gate: this repo**, and it is the section with the widest hole. The private
 `class_constructor` is `check:abapgit` — and, since 2026-08-30, `abap2ui5lint`'s
 `class-constructor-visibility` as well, which is what carries it to a consumer
-whose only gate is `npx abap2ui5lint`. `LOCAL FRIENDS` is
+whose only gate is `npx @abap2ui5/linter`. `LOCAL FRIENDS` is
 `npm run check_visibility` and stays here: it needs the test class and the main
 class read together, which the linter does not do. Neither is an abaplint rule
 — measured against 2.120.24 with 73 rules on and a control probe (see above),
@@ -334,7 +334,7 @@ the newest release. abaplint's default target accepts all of it.
   the one-assignment rule. **Gate: `abap2ui5lint`** —
   `value-header-default-reassigned` (2026-08-30), which follows the
   `source-line-too-long` precedent: for a consumer whose only gate is
-  `npx abap2ui5lint`, a class that does not activate is the most severe thing
+  `npx @abap2ui5/linter`, a class that does not activate is the most severe thing
   this tool can find.
 
 ### Release-gated ABAP SQL — the syntax version switch does not gate it

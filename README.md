@@ -18,6 +18,7 @@
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
   <a href="https://abap2ui5.github.io/samples/">Samples</a> •
+  <a href="#ai-assistants">AI Assistants</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
