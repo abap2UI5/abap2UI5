@@ -507,7 +507,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run check:format` | The house-format gate — `.github/abaplint/auto_abaplint_fix.jsonc` with `--fix` left off, so the same rules that write the format decide whether it is there (indentation, keyword case, line length, parameter alignment, trailing whitespace, blank-line runs, space before colon/dot). `npm run auto_abaplint` is the fix (part of `verify`, gated in `abaplint.yaml`) |
 | `npm run check:commands` | Fail when an npm script is not named in this chapter — AGENTS.md is loaded into every session, so a command missing from the list here does not exist for the reader who needs it. Deliberate omissions are declared in the script with a reason (`.github/scripts/agents-commands-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:version` | Fail when `package.json`'s version and the `version` constant in `src/02/z2ui5_if_app.intf.abap` disagree — two files on purpose (one ships, one does not) and nothing but this holds them together (`.github/scripts/version-sync-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
-| `npm run check:conventions` | The rules in `.github/shared/CONVENTIONS.md` a script can decide — workflow file naming, the `CLAUDE.md` pointer, the npm-script names. This repository declares the ecosystem's conventions and broke most of them; the twelve workflow names that predate the rule are exceptions **by name** and the list only shrinks (`.github/scripts/conventions-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:conventions` | The rules in `.github/shared/CONVENTIONS.md` a script can decide — workflow file naming, the `CLAUDE.md` pointer, the npm-script names. This repository declares the ecosystem's conventions and broke most of them; the workflow names that predate the rule are exceptions **by name** and the list only shrinks (the gate prints the current count) (`.github/scripts/conventions-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:naming` | Fail when an object outside the public API (`src/02`) and the frozen package (`src/99`) carries no `ui5` / `ui5f` segment — abaplint's `object_naming` only checks the `Z2UI5_` prefix, so an object under `src/01` whose segment is anything but `ui5` / `ui5f` passes every lint otherwise (`.github/scripts/object-naming-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:dynamic` | Fail when a `Z2UI5_*` name written as a **string literal** (dynamic lookup, `CREATE OBJECT TYPE (name)`) resolves to no object in `src/` — nothing else resolves those, and a literal naming nothing reads as "not implemented" at runtime (`.github/scripts/dynamic-name-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:prose` | The same rule for **prose** — every `Z2UI5_*` name in the changelog, AGENTS.md, `docs/`, the skills and the README names an object this repository ships. A rename sweep fixes the code, because the code is what fails; prose has no compiler (`.github/scripts/prose-name-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
@@ -611,23 +611,24 @@ node/output/z2ui5_cl_ui5_http_handler.clas.mjs.map
 `c8` instruments the transpiled JS and maps back through that file — and the
 downporter rewrites the source on the way. One `DATA(ls_config) = …` becomes
 seven `DATA` declarations plus an assignment, `COND` becomes an `IF`, a string
-template becomes a concatenation. The measurable numbers:
+template becomes a concatenation. The measurable numbers (re-measured
+2026-08-30 — both files grow, so measure before citing):
 
 | | `src/02/…` | `node/downport/02/…` |
 |---|---:|---:|
-| the file | 529 lines | **598** lines |
-| `_http_get( )` starts at | 275 | **297** |
-| `_http_get( )` is | 75 lines | **91** lines |
+| the file | 669 lines | **743** lines |
+| `_http_get( )` starts at | 370 | **399** |
+| `_http_get( )` is | 88 lines | **105** lines |
 
-The 598 in the table above is the downported count — it never was `src/`'s.
+The right-hand column is the downported count — it never was `src/`'s.
 So the covered ranges are real, and reading them against `src/` shifts them by
-20-odd lines and growing: `_http_get( )` looked stone cold because the lines
-that ran are the *downport's* 297-387, which land somewhere else entirely in
-the source. The tests were fine all along.
+30-odd lines and growing: `_http_get( )` looked stone cold because the lines
+that ran were the *downport's* (297-387 at the time), which land somewhere
+else entirely in the source. The tests were fine all along.
 
-What this does **not** settle is whether 170/598 is the right statement
-coverage of the downported file; that needs a run, and the figure is only ever
-about that file. `npm run coverage -- --detail <file>` prints the cold ranges
+What this does **not** settle is whether the cold-line count of the downported
+file is the right statement coverage; that needs a run, and the figure is only
+ever about that file. `npm run coverage -- --detail <file>` prints the cold ranges
 against `node/downport/<rest>` and says so, which is why it reads that copy
 rather than the source.
 

@@ -50,8 +50,6 @@ const WANT_NVMRC = '22';
  * a pull request against. They are real findings, deliberately not fixed here.
  */
 const EXCEPTIONS = [
-  { repo: 'app-template', missing: ['.nvmrc'] },
-  { repo: 'web-abap2UI5', missing: ['.nvmrc', 'engines.node'] },
   { repo: 'custom-controls', missing: ['.nvmrc'] },
 ];
 
