@@ -28,7 +28,7 @@ nobody has to discover it twice.
 **Every numbered section below carries a `Gate:` line**, the same idea as the
 `Linter:` lines in `ui5-check` — but the answer here is rarely "a linter rule".
 Most of this is decided by a script in *this* repository, which means a
-consumer running nothing but `npx abap2ui5lint` is **not** covered by it. The
+consumer running nothing but `npx @abap2ui5/linter` is **not** covered by it. The
 line says which of the three it is, because that is the difference between a
 defect that cannot reach `main` and one that cannot reach `main` *here*:
 
@@ -165,7 +165,7 @@ imported; the app is gone.
   **Also gated outside this repository now**, which is what the samples case
   argues for: the abap2UI5 linter reports it as **`source-line-too-long`** (an
   error) on every app class it checks, so a consumer repo that runs nothing but
-  `npx abap2ui5lint` is covered too. Note what that does *not* replace — the
+  `npx @abap2ui5/linter` is covered too. Note what that does *not* replace — the
   linter reads app classes and views, not `.clas.xml` sidecars or `src/00` and
   `src/99`, so `check:abapgit` remains this repository's gate for the rest of
   the round-trip family.
