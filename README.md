@@ -23,6 +23,7 @@
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
 * **Broad Compatibility** – Supports all ABAP releases from NW 7.02 to ABAP Cloud
 * **Easy Installation** – Install via abapGit – no extra app deployment needed
+* **Launchpad-Ready** – Apps integrate into the SAP Fiori Launchpad ([webinar](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P))
 
 
 #### Quick Start
@@ -66,6 +67,12 @@ abap2UI5 is a **single-page app**. The browser loads a UI5 shell once, then talk
 ```
 
 You never touch JSON, HTTP, or JavaScript yourself. You implement `z2ui5_if_app~main`, build views with an ABAP XML view builder, and bind ABAP variables to UI5 controls — the framework handles serialization, sessions, and rendering.
+
+#### Enterprise Readiness
+* **Security** – Apps run entirely inside your SAP authentication and authorization: a single HTTP endpoint, standard SAP logon, no separate user store
+* **Stability** – Every commit is CI-tested against NW 7.02, Standard ABAP and ABAP Cloud, backed by unit tests and automated browser tests
+* **No Lock-In** – MIT license, unlimited users, no per-user fees; apps are plain ABAP classes in your system – versioned, transported and tested like any other ABAP code
+* **Support** – Community support via Slack and GitHub, commercial options listed in [SUPPORT.md](SUPPORT.md)
 
 #### References
 * Fiori-type Apps built 100% with ABAP [(Logali Group - 23.04.2026)](https://logaligroup.com/magia-en-el-servidor-local-apps-tipo-fiori-creadas-100-con-codigo-abap/)
