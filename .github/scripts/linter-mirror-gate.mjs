@@ -35,9 +35,18 @@
  *   exit 2 from it means the sources could not be read, not that they drifted.
  *   That is a skip, not a failure.
  *
+ * RELEASES NEVER GATE A MERGE (maintainer decision, 2026-08-31): when the
+ * INSTALLED linter reports drift, the fix may already sit on the linter's
+ * main and only wait for the monthly release. The gate then clones the
+ * linter's main and runs ITS check-upstream against this tree: green there
+ * means "fixed upstream, pending release" — a note, not a failure. Red on
+ * main too is the real drift this gate exists for, and stays a failure. A
+ * clone that cannot happen (offline) keeps the conservative red.
+ *
  *   node .github/scripts/linter-mirror-gate.mjs     (npm run check:mirrors)
  */
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
@@ -71,7 +80,35 @@ if (run.status === 2) {
   process.exit(0);
 }
 if (run.status !== 0) {
+  /* The installed RELEASE drifted — but releases never gate a merge. Ask the
+   * linter's MAIN the same question: green there means the fix is already
+   * upstream and only waits for the monthly release + dep bump. */
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'linter-main-'));
+  const clone = spawnSync('git', [
+    'clone', '--depth', '1', '--quiet',
+    'https://github.com/abap2UI5/linter', tmp,
+  ], { encoding: 'utf8' });
+  let mainStatus = null;
+  if (clone.status === 0 && fs.existsSync(path.join(tmp, 'scripts', 'check-upstream.mjs'))) {
+    const onMain = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'check-upstream.mjs'), '--local', ROOT], { encoding: 'utf8' });
+    mainStatus = onMain.status;
+  }
+  fs.rmSync(tmp, { recursive: true, force: true });
+
+  if (mainStatus === 0) {
+    console.log('\nlinter-mirror: the INSTALLED @abap2ui5/linter drifted, but the linter\'s MAIN');
+    console.log('already matches this tree — fixed upstream, PENDING the monthly linter');
+    console.log('release and the dep bump here. Not a failure: releases never gate a merge.');
+    process.exit(0);
+  }
+
   console.error(`\nlinter-mirror: @abap2ui5/linter mirrors something this change moved (exit ${run.status}).`);
+  if (mainStatus === null) {
+    console.error('(the linter\'s main could not be cloned to check whether a fix is already');
+    console.error('upstream — offline? — so the conservative answer stands.)');
+  } else {
+    console.error('The linter\'s MAIN drifts too, so no fix is on its way on its own.');
+  }
   console.error('The linter is not a dependency of this repository, so nothing else notices:');
   console.error('its weekly upstream-sync would file an issue days from now, against a');
   console.error('repository whose users hit it first. Fix it in the linter alongside this');
