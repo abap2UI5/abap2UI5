@@ -85,6 +85,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_route_no_route    FOR TESTING RAISING cx_static_check.
     METHODS test_app_state_hash    FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_resent   FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_mode_hop_default FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_push  FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_same  FOR TESTING RAISING cx_static_check.
     METHODS test_nested_display_push FOR TESTING RAISING cx_static_check.
@@ -1186,6 +1187,43 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
         act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_nav_mode_hop_default.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " A navigation hop into an app WITHOUT a mode of its own says DEFAULT
+    " explicitly: the app's initial mode would travel as empty = "no change",
+    " and the PREVIOUS app's KEEP/FRESH would keep writing
+    " '#/app/<CLASS>/<DRAFT>' for an app that never opted in - seen live on
+    " the samples overview after nav_app_leave from a routed sample.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->mo_action->ms_actual-check_on_navigated = abap_true.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `*"setNavRouting":"DEFAULT"*`
+        act = system_actions_of( lo_handler ) ).
+
+    " while a hop into an app WITH a mode - its own, or the one a called app
+    " inherits from its caller (z2ui5_cl_ui5_action) - still sends that mode
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
+    lo_handler->mo_action->ms_actual-check_on_navigated = abap_true.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `*"setNavRouting":"KEEP"*`
+        act = system_actions_of( lo_handler ) ).
 
   ENDMETHOD.
 
