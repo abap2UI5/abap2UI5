@@ -780,6 +780,23 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
            OR mo_action->mo_app->mv_nav_mode <> mo_action->mo_app->ms_session-nav_mode_sent ).
       mo_action->ms_next-s_nav-set_nav_routing = mo_action->mo_app->mv_nav_mode.
     ENDIF.
+
+    " An app WITHOUT a mode of its own must still turn routing OFF after a
+    " navigation hop: its initial mv_nav_mode travels as empty = "no change",
+    " so the PREVIOUS app's KEEP/FRESH stayed live and every response here
+    " kept writing '#/app/<CLASS>/<DRAFT>' for an app that never opted in
+    " (seen live: the samples overview kept its draft route after
+    " nav_app_leave from a routed sample). The mode follows the app - like a
+    " manifest - so the hop says DEFAULT explicitly; a called app that
+    " should keep routing INHERITS the caller's mode before this runs (see
+    " z2ui5_cl_ui5_action), and a fresh page load needs nothing because the
+    " frontend state starts clean (AppState.reset on component init).
+    IF mo_action->ms_next-s_nav-set_nav_routing IS INITIAL
+        AND mo_action->mo_app->mv_nav_mode IS INITIAL
+        AND mo_action->ms_actual-check_on_navigated = abap_true.
+      mo_action->ms_next-s_nav-set_nav_routing = z2ui5_if_client=>cs_nav_mode-default.
+    ENDIF.
+
     IF mo_action->ms_next-s_nav-set_nav_routing IS NOT INITIAL.
       mo_action->mo_app->ms_session-nav_mode_sent = mo_action->ms_next-s_nav-set_nav_routing.
     ENDIF.
