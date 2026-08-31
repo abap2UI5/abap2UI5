@@ -187,6 +187,14 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `          if (app) updateAppRoute(mOptions, ID, app);` && |\n| &&
              `` && |\n| &&
              `          if (!mOptions.setPushState) return;` && |\n| &&
+             `` && |\n| &&
+             `          if (state.currentDraftId) {` && |\n| &&
+             `            navTo(` && |\n| &&
+             `              patternFor(state.currentApp, state.currentDraftId) +` && |\n| &&
+             `                mOptions.setPushState,` && |\n| &&
+             `            );` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (mOptions.setPushState) {` && |\n| &&

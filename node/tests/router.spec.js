@@ -371,23 +371,51 @@ test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
   expect(standalone.pushes).toEqual(["/sap/z2ui5#/app/X/D1?pos=42"]);
 });
 
-test("set_push_state survives the app-state cleanup when routing is on", () => {
-  // with routing enabled hasher's cached hash holds the app route, so the
-  // trailing replaceHash("") cleanup would count as a change and wipe both
-  // the route and the suffix pushed a moment earlier - sync must stop after
-  // the push
-  const { Router, writes, pushes } = loadRouter({
+test("set_push_state in KEEP mode pushes the route through the HashChanger", () => {
+  // history.pushState writes the URL bar but not hasher's cached hash: the
+  // next browser Back landed exactly on the cached value, hasher read "no
+  // change", and the restore roundtrip never fired - the one Back the push
+  // exists for. In KEEP mode the suffix therefore rides behind the CURRENT
+  // draft's route, pushed via setHash so hasher's cache follows; the entry
+  // below keeps the pre-event draft (the updateAppRoute skip) and is what
+  // Back restores. Nothing goes through history.pushState, and sync still
+  // stops before the trailing replaceHash("") cleanup that would wipe the
+  // pushed hash.
+  const { Router, state, writes, pushes } = loadRouter({
     state: { navRouting: true, navMode: "KEEP", currentApp: CALLER },
     hash: `app/${CALLER}/D1`,
     href: `https://host/sap/z2ui5#/app/${CALLER}/D1`,
   });
-  Router.sync({
-    setPushState: "?pos=42",
-    APP: CALLER,
-    setNavRouting: "KEEP",
-    id: "D1",
+  state.oResponse = { APP: CALLER };
+  Router.sync({ setPushState: "/Page2", id: "D2" });
+  expect(pushes).toEqual([]);
+  expect(writes).toEqual([
+    { op: "set", hash: `app/${CALLER}/D2/Page2`, guard: "D2" },
+  ]);
+  // the entry below the push still names D1, so its echo must not be
+  // swallowed: a D1 route differs from the current draft and restores
+  expect(Router.draftOf(`#/app/${CALLER}/D1`)).toBe("D1");
+  expect(state.currentDraftId).toBe("D2");
+});
+
+test("set_push_state in FRESH mode keeps the legacy history push", () => {
+  // a suffix behind a draft-less route would PARSE as a draft id, so FRESH
+  // stays on history.pushState - Back is inert there by design (a FRESH
+  // route restarts the app on every entry anyway), and the trailing
+  // replaceHash("") cleanup stays skipped
+  const { Router, state, writes, pushes } = loadRouter({
+    state: {
+      navRouting: true,
+      navMode: "FRESH",
+      currentApp: CALLER,
+      currentDraftId: null,
+    },
+    hash: `app/${CALLER}`,
+    href: `https://host/sap/z2ui5#/app/${CALLER}`,
   });
-  expect(pushes).toEqual([`/sap/z2ui5#/app/${CALLER}/D1?pos=42`]);
+  state.oResponse = { APP: CALLER };
+  Router.sync({ setPushState: "?pos=42", id: "D2" });
+  expect(pushes).toEqual([`/sap/z2ui5#/app/${CALLER}?pos=42`]);
   expect(writes.filter((w) => w.hash === "")).toEqual([]);
 });
 

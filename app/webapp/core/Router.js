@@ -323,6 +323,26 @@ sap.ui.define(
           if (app) updateAppRoute(mOptions, ID, app);
           // Routing owns the app-state hash; skip the legacy handling below.
           if (!mOptions.setPushState) return;
+          // In KEEP mode the suffix is pushed as a real ROUTE through the
+          // HashChanger, not via history.pushState: pushState writes the URL
+          // bar but not hasher's cached hash, so the next browser Back lands
+          // exactly on the cached value, hasher reads "no change", and the
+          // restore roundtrip never fires - the one Back the push exists
+          // for. Through setHash the cache follows the push, the echo
+          // parses to the CURRENT draft and dies in onHashChanged's guard,
+          // and Back reaches the pre-event draft the entry below kept (the
+          // updateAppRoute skip above). Forward restores this draft, with
+          // the suffix riding behind it for the app to read. FRESH carries
+          // no draft id, so a suffix there would PARSE as one - it stays on
+          // the legacy push below, where Back is inert by design (a FRESH
+          // route restarts the app either way).
+          if (state.currentDraftId) {
+            navTo(
+              patternFor(state.currentApp, state.currentDraftId) +
+                mOptions.setPushState,
+            );
+            return;
+          }
         }
 
         if (mOptions.setPushState) {
