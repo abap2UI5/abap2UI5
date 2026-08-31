@@ -24,7 +24,17 @@ const result = await promisify(execFile)(
   ["ui5lint", "--format", "json"],
   { cwd: appDir, maxBuffer: 64 * 1024 * 1024 },
 ).catch((e) => e);
-if (result.stdout === undefined) throw result;
+// A crashed linter reports itself, rather than dying in JSON.parse. execFile's
+// error object carries stdout as "" - not undefined - whenever the child ran
+// but wrote no JSON (a missing binary, an internal crash, a banner on stdout),
+// so the `=== undefined` guard let an empty string through and the gate failed
+// with "Unexpected end of JSON input" while the real reason sat unread in
+// stderr.
+if (!result.stdout || !result.stdout.trim()) {
+  console.error("ui5lint produced no JSON output - it did not run to completion:");
+  console.error(result.stderr || result.message || result);
+  process.exit(1);
+}
 
 const files = JSON.parse(result.stdout);
 const errors = files.reduce((sum, f) => sum + f.errorCount, 0);

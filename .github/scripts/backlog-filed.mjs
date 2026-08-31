@@ -25,9 +25,17 @@ import { fileURLToPath } from 'url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ITEMS = path.join(ROOT, 'backlog', 'items');
 
+/* The api.github.com address for a `filed:` url, or null when the value is
+ * not a github.com issue or pull request address.
+ *
+ * Anchored at the scheme and closed after the number: the unanchored form
+ * accepted any string that merely CONTAINED such a path -
+ * `https://example.com/?x=github.com/a/b/pull/1` - and built a request from
+ * it, and its `[^/]+` owner and repository segments accepted `..`, which
+ * fetch then resolved away into a different endpoint entirely. */
 const API = (url) => {
-  const m = /github\.com\/([^/]+)\/([^/]+)\/(pull|issues)\/(\d+)/.exec(url);
-  if (!m) return null;
+  const m = /^https:\/\/github\.com\/([\w.-]+)\/([\w.-]+)\/(pull|issues)\/(\d+)(?:[/?#]|$)/.exec(url);
+  if (!m || /^\.+$/.test(m[1]) || /^\.+$/.test(m[2])) return null;
   const kind = m[3] === 'pull' ? 'pulls' : 'issues';
   return `https://api.github.com/repos/${m[1]}/${m[2]}/${kind}/${m[4]}`;
 };

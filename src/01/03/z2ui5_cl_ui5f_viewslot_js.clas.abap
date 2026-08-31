@@ -25,31 +25,17 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Access layer for the five view slots of the multi-view architecture` && |\n| &&
-             `// (main view, two nested views, popup, popover). The live view and` && |\n| &&
-             `// controller instances are internal state owned by core/AppState; this` && |\n| &&
-             `// module is the one place that knows which slot is which - lookups,` && |\n| &&
-             `// in-slot control resolution (byId) and teardown go through here instead` && |\n| &&
-             `// of touching AppState.state.oView / oViewPopup / ... directly.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  ["sap/ui/core/Fragment", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
              `  (Fragment, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // ``key``    short slot name used in frontend event args and as the` && |\n| &&
-             `    //           request's S_SCROLL keys` && |\n| &&
-             `    // ``prop`` / ``controllerProp``  AppState fields holding the live instances` && |\n| &&
-             `    // ``fragmentId``  only on the fragment-based slots (popup/popover): the` && |\n| &&
-             `    //               id their inner controls are registered under, and the` && |\n| &&
-             `    //               marker that the slot must be close()d before destroy` && |\n| &&
              `    const slots = [` && |\n| &&
              `      {` && |\n| &&
              `        key: "MAIN",` && |\n| &&
-             `        // holds its own JSON model - NEST/NEST2 are inserted into` && |\n| &&
-             `        // the MAIN control tree and inherit theirs by UI5 propagation` && |\n| &&
+             `` && |\n| &&
              `        ownsModel: true,` && |\n| &&
-             `        // ...and they die with it: destroy() routes these through the same` && |\n| &&
-             `        // teardown before MAIN goes down (see there)` && |\n| &&
+             `` && |\n| &&
              `        dependentSlots: ["NEST", "NEST2"],` && |\n| &&
              `        prop: "oView",` && |\n| &&
              `        controllerProp: "oController",` && |\n| &&
@@ -66,8 +52,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "POPUP",` && |\n| &&
-             `        // holds its own JSON model - opened standalone, outside the MAIN` && |\n| &&
-             `        // control tree` && |\n| &&
+             `` && |\n| &&
              `        ownsModel: true,` && |\n| &&
              `        prop: "oViewPopup",` && |\n| &&
              `        controllerProp: "oControllerPopup",` && |\n| &&
@@ -75,8 +60,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "POPOVER",` && |\n| &&
-             `        // holds its own JSON model - opened standalone, outside the MAIN` && |\n| &&
-             `        // control tree` && |\n| &&
+             `` && |\n| &&
              `        ownsModel: true,` && |\n| &&
              `        prop: "oViewPopover",` && |\n| &&
              `        controllerProp: "oControllerPopover",` && |\n| &&
@@ -84,27 +68,17 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
-             `    // Constant-time lookups for the frequently used resolutions (byId,` && |\n| &&
-             `    // getView run on every roundtrip and scroll/focus capture)` && |\n| &&
-             `    // instead of a linear find() per call.` && |\n| &&
              `    const slotsByKey = new Map(slots.map((s) => [s.key, s]));` && |\n| &&
              `` && |\n| &&
              `    function byKey(key) {` && |\n| &&
              `      return slotsByKey.get(key);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Live view (or fragment) instance of a slot, undefined when not open.` && |\n| &&
              `    function getView(key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      return slot ? AppState.state[slot.prop] : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Fill a slot. ``xml`` is the view XML the slot was built from; it is` && |\n| &&
-             `    // recorded next to the live instance because neither a Fragment nor an` && |\n| &&
-             `    // XMLView created from a ``definition`` keeps its source (mProperties.` && |\n| &&
-             `    // viewContent stays empty), and the developer tools have no other way` && |\n| &&
-             `    // back to it. Recorded HERE and dropped in destroy(), so the record` && |\n| &&
-             `    // follows the slot itself - not the response that happened to fill it.` && |\n| &&
              `    function setView(key, view, xml) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      if (!slot) return;` && |\n| &&
@@ -113,27 +87,15 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      attachSharedModels(view);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The XML a slot currently holds, undefined once it was torn down.` && |\n| &&
              `    function getViewXml(key) {` && |\n| &&
              `      return slotXmlStore()[key];` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The record lives on AppState (so an app restart resets it with` && |\n| &&
-             `    // everything else); create it on first use so a state object that` && |\n| &&
-             `    // predates the field still works.` && |\n| &&
              `    function slotXmlStore() {` && |\n| &&
              `      if (!AppState.state.slotXml) AppState.state.slotXml = {};` && |\n| &&
              `      return AppState.state.slotXml;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Attach the models every slot shares: the one device model (created` && |\n| &&
-             `    // once in Component.js, never destroyed) and the central UI5 message` && |\n| &&
-             `    // model, plus register the view for automatic validation-message` && |\n| &&
-             `    // collection (handleValidation). Done HERE - the single funnel every` && |\n| &&
-             `    // successful display path goes through, and the module that also owns` && |\n| &&
-             `    // destroy() - so attach and the unregister in destroy() stay symmetric:` && |\n| &&
-             `    // a display path that destroys a view on an error guard never reached` && |\n| &&
-             `    // setView, so nothing was registered and nothing leaks.` && |\n| &&
              `    function attachSharedModels(view) {` && |\n| &&
              `      if (!view) return;` && |\n| &&
              `      if (AppState.state.oDeviceModel) {` && |\n| &&
@@ -146,14 +108,11 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Controller instance serving a slot (created once in App.controller).` && |\n| &&
              `    function getController(key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      return slot ? AppState.state[slot.controllerProp] : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Returns the key of the slot whose controller is ``controller`` -` && |\n| &&
-             `    // i.e. which slot an event handler was invoked for.` && |\n| &&
              `    function keyOfController(controller) {` && |\n| &&
              `      if (!controller) return undefined;` && |\n| &&
              `      const slot = slots.find(` && |\n| &&
@@ -162,9 +121,6 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return slot ? slot.key : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Resolve a control id inside a slot: views resolve via view.byId, the` && |\n| &&
-             `    // fragment slots via their fragment id. Returns undefined when the slot` && |\n| &&
-             `    // is not open or the id is unknown there.` && |\n| &&
              `    function byId(key, id) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      if (!slot) return undefined;` && |\n| &&
@@ -174,11 +130,6 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return view.byId(id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Resolve a control id the backend named (popover openBy, message box` && |\n| &&
-             `    // dependentOn) to its control: search every open slot first - the ids` && |\n| &&
-             `    // apps use are the local ids they wrote in the XML, which resolve inside` && |\n| &&
-             `    // their view/fragment - then fall back to the global UI5 registry for a` && |\n| &&
-             `    // fully-qualified id. Returns null when nothing matches.` && |\n| &&
              `    function resolveById(id) {` && |\n| &&
              `      if (!id) return null;` && |\n| &&
              `      for (const slot of slots) {` && |\n| &&
@@ -188,9 +139,12 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return Lib.getElementById(id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Returns the key of the slot a UI5 element belongs to, by walking up` && |\n| &&
-             `    // the control tree until a live slot view is hit (innermost slot wins,` && |\n| &&
-             `    // e.g. nested views). Undefined when the element is in no slot.` && |\n| &&
+             `    function trackedModel(owner) {` && |\n| &&
+             `      const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
+             `      if (!owner?.getModel) return undefined;` && |\n| &&
+             `      return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function containingSlotKey(element) {` && |\n| &&
              `      let current = element;` && |\n| &&
              `      while (current) {` && |\n| &&
@@ -202,38 +156,16 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Resolve a control id in the SAME slot as ``owner`` - an invisible` && |\n| &&
-             `    // companion control (Tree, Focus, Scrolling, MultiInputExt, ...) authored` && |\n| &&
-             `    // in that slot's view next to the control it drives. Preferred over` && |\n| &&
-             `    // resolveById for companions: it resolves the target in the companion's` && |\n| &&
-             `    // own slot, so a same local id in another open slot (e.g. a dialog) is` && |\n| &&
-             `    // never picked by accident, and it works when the companion sits in a` && |\n| &&
-             `    // popup/popover/nested view - not only in MAIN. Falls back to MAIN when` && |\n| &&
-             `    // the owner is not attached to a slot yet.` && |\n| &&
              `    function byIdOfOwner(owner, id) {` && |\n| &&
              `      return byId(containingSlotKey(owner) ?? "MAIN", id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Shared teardown: close (popup/popover only), destroy and clear the` && |\n| &&
-             `    // slot. Safe to call for slots that are not open.` && |\n| &&
              `    function destroy(key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      if (!slot) return;` && |\n| &&
-             `      // The nested views live INSIDE the MAIN control tree, so MAIN's` && |\n| &&
-             `      // view.destroy() below would cascade to their controls anyway - but` && |\n| &&
-             `      // the slot references and the messaging registration would stay` && |\n| &&
-             `      // behind, leaving getView("NEST") truthy long after an app switch` && |\n| &&
-             `      // (stale shortcut slot scopes, developer tools showing the previous` && |\n| &&
-             `      // app's nest XML). Route the dependent slots through this same` && |\n| &&
-             `      // teardown first, BEFORE the open-check: it keeps unregisterObject` && |\n| &&
-             `      // symmetric to attachSharedModels and clears a stale nest reference` && |\n| &&
-             `      // even when MAIN itself is already gone.` && |\n| &&
+             `` && |\n| &&
              `      for (const dep of slot.dependentSlots ?? []) destroy(dep);` && |\n| &&
-             `      // Drop the recorded XML BEFORE the empty-slot exit below: a slot whose` && |\n| &&
-             `      // live instance is already gone (an app restart reset AppState, a` && |\n| &&
-             `      // fragment load that failed after recording) must not keep a stale` && |\n| &&
-             `      // source behind - the developer tools read "is this slot filled" off` && |\n| &&
-             `      // this record.` && |\n| &&
+             `` && |\n| &&
              `      delete slotXmlStore()[key];` && |\n| &&
              `      const view = AppState.state[slot.prop];` && |\n| &&
              `      if (!view) return;` && |\n| &&
@@ -245,8 +177,6 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
-             `        // Drop the validation registration attachSharedModels added, so` && |\n| &&
-             `        // the messaging facade holds no stale entry for the destroyed view.` && |\n| &&
              `        Lib.getMessaging?.()?.unregisterObject(view);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
@@ -273,6 +203,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      byIdOfOwner,` && |\n| &&
              `      resolveById,` && |\n| &&
              `      containingSlotKey,` && |\n| &&
+             `      trackedModel,` && |\n| &&
              `      destroy,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

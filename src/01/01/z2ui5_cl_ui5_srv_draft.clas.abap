@@ -5,6 +5,16 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
 
     TYPES ty_s_db TYPE z2ui5_t_01.
 
+    TYPES:
+      "! The four draft ids an app carries between roundtrips - what create( )
+      "! is given and what read_info( ) hands back.
+      BEGIN OF ty_s_draft,
+        id                TYPE string,
+        id_prev           TYPE string,
+        id_prev_app       TYPE string,
+        id_prev_app_stack TYPE string,
+      END OF ty_s_draft.
+
     METHODS count_entries
       RETURNING
         VALUE(result) TYPE i.
@@ -15,7 +25,7 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
 
     METHODS create
       IMPORTING
-        draft     TYPE z2ui5_if_types=>ty_s_draft
+        draft     TYPE ty_s_draft
         model_xml TYPE clike.
 
     METHODS read_draft
@@ -28,7 +38,7 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
       IMPORTING
         id            TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_s_draft.
+        VALUE(result) TYPE ty_s_draft.
 
     METHODS check_exists
       IMPORTING
@@ -54,7 +64,13 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   METHOD cleanup.
 
-    DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+    " Z2UI5_T_01 deliberately has NO secondary index (maintainer decision,
+    " 2026-08): the DELETE below and the COUNTs in count_entries* scan the
+    " table, but the table is kept small by this very cleanup (drafts expire
+    " after a few hours), and every write path (one INSERT per roundtrip)
+    " would pay for an index on TIMESTAMPL/UNAME on every click. Do not add
+    " one, and do not "optimize" these statements around the missing index.
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
     " z2ui5_cl_ui5_user_exit=>set_config_http_post already guarantees a positive
@@ -82,6 +98,20 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
                                  uname             = sy-uname
                                  timestampl        = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
                                  data              = model_xml ).
+
+    " MODIFY is an upsert on the key - guard the write the same way the read
+    " side is guarded: a row another user owns must not be overwritable by
+    " re-using its id (defense in depth; on the legitimate paths the id is
+    " always a fresh uuid, so this SELECT hits an empty row). Blank-owner
+    " legacy rows stay writable during the upgrade transition, like on the
+    " read side
+    SELECT SINGLE uname FROM z2ui5_t_01
+      WHERE id = @ls_db-id
+      INTO @DATA(lv_owner).
+    IF sy-subrc = 0 AND lv_owner IS NOT INITIAL AND lv_owner <> sy-uname.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
+    ENDIF.
 
     MODIFY z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
@@ -122,6 +152,11 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " bookmark id falls through to a fresh app start instead of erroring.
     " Legacy rows written before the UNAME column existed carry a blank owner
     " and stay readable during the upgrade transition (they expire in hours).
+    " REMOVAL CONDITION for the blank-owner tolerance (here, check_exists and
+    " count_entries): one release after every installation has passed a
+    " draft-expiry window on a version that writes UNAME - create( ) always
+    " fills it, so no new blank row can appear and cleanup( ) drains the old
+    " ones. Nothing enforces the date; this note is what keeps it findable
     IF result-uname IS NOT INITIAL AND result-uname <> sy-uname.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.

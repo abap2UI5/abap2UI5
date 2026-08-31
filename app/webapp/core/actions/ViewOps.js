@@ -37,7 +37,14 @@ sap.ui.define(
       // resolve the model through MAIN for those slots and apply the effective
       // (largest) limit across them; popup/popover keep their own model/limit.
       const modelKey = Lib.isRootModelSlot(viewKey) ? "MAIN" : viewKey;
-      const model = ViewSlots.getView(modelKey)?.getModel();
+      // the TRACKED framework model, not blindly the default one: in switch
+      // mode the default slot holds the ODATA model and the app's bound
+      // tables live in the JSON model under http> - setting the limit on
+      // the wrong one made SET_SIZE_LIMIT a silent no-op there
+      const view = ViewSlots.getView(modelKey);
+      const model = view
+        ? (ViewSlots.trackedModel(view) ?? view.getModel())
+        : undefined;
       if (model) {
         const effective = Lib.effectiveSizeLimit(
           AppState.state.viewSizeLimits,
@@ -58,7 +65,16 @@ sap.ui.define(
         });
         const oView = ViewSlots.getView("MAIN");
         if (oView) {
-          oView.setModel(oModel, args[2] || undefined);
+          const name = args[2] || undefined;
+          // a framework-created OData model already sitting in that slot is
+          // replaced - destroy it, or each SET_ODATA_MODEL re-issue leaks a
+          // client (same marker discipline as actions/Slots displayMain)
+          const previous = oView.getModel(name);
+          oModel._z2ui5OwnedOData = true;
+          oView.setModel(oModel, name);
+          if (previous?._z2ui5OwnedOData && previous !== oModel) {
+            previous.destroy();
+          }
         } else {
           // No view to attach to - release the model instead of leaking it.
           oModel.destroy();
@@ -292,9 +308,18 @@ sap.ui.define(
 
     function evWizardSetNextStep(oController, args) {
       try {
-        const wiz = ViewSlots.byId("MAIN", args[1]);
-        const step = ViewSlots.byId("MAIN", args[2]);
-        const nextStep = ViewSlots.byId("MAIN", args[3]);
+        // resolveById, not byId("MAIN", ...) - the rule this file states for
+        // the three handlers above holds here too: a Wizard inside a popup,
+        // popover or nested view is not in the MAIN slot, and the lookup
+        // silently found nothing there
+        const wiz = ViewSlots.resolveById(args[1]);
+        const step = ViewSlots.resolveById(args[2]);
+        const nextStep = ViewSlots.resolveById(args[3]);
+        if (!wiz || !step) {
+          Lib.logError(
+            `WIZARD_SET_NEXT_STEP: '${args[1]}' / '${args[2]}' not found`,
+          );
+        }
         if (wiz && step) wiz.discardProgress(step);
         if (step && nextStep) step.setNextStep(nextStep);
       } catch (e) {

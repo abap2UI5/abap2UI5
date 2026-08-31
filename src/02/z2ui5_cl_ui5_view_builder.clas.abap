@@ -87,15 +87,15 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
   PROTECTED SECTION.
     TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH EMPTY KEY.
     TYPES:
-      BEGIN OF ty_s_pair,
+      BEGIN OF ty_s_name_value,
         n TYPE string,
         v TYPE string,
-      END OF ty_s_pair.
-    TYPES ty_t_pair TYPE STANDARD TABLE OF ty_s_pair WITH EMPTY KEY.
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
     DATA name    TYPE string.
     DATA prefix  TYPE string.
-    DATA t_pair  TYPE ty_t_pair.
+    DATA t_pair  TYPE ty_t_name_value.
     DATA t_child TYPE ty_t_node.
     DATA parent  TYPE REF TO z2ui5_cl_ui5_view_builder.
     DATA root    TYPE REF TO z2ui5_cl_ui5_view_builder.
@@ -111,6 +111,11 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
+    " the character set xml_escape guards against, concatenated once per
+    " roll area instead of once per attribute (three CLASS-DATA reads and a
+    " template per call otherwise). Lazily filled on first use - a public
+    " class_constructor is the alternative and abap-check names it a trap
+    CLASS-DATA gv_escape_specials TYPE string.
 ENDCLASS.
 
 
@@ -156,7 +161,14 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " is no element to attach to, and a duplicate name renders invalid XML
     ASSERT name IS NOT INITIAL OR t_child IS NOT INITIAL.
     " b and v are mutually exclusive - b is checked with IS SUPPLIED because
-    " abap_false and "not passed" are the same character
+    " abap_false and "not passed" are the same character.
+    " "never neither" is asserted with IS SUPPLIED rather than IS NOT INITIAL
+    " so that a deliberately empty value ( a( n = `text` v = `` ) ) stays
+    " legal: what this refuses is a( n = `visible` ) with no value at all,
+    " which used to render visible="" - a working view that behaves wrongly,
+    " and the one invariant of the three in the ABAP Doc above that nothing
+    " checked
+    ASSERT v IS SUPPLIED OR b IS SUPPLIED.
     DATA(val) = v.
     IF b IS SUPPLIED.
       ASSERT v IS INITIAL.
@@ -164,12 +176,12 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     ENDIF.
 
     IF t_child IS INITIAL.
-      ASSERT NOT line_exists( t_pair[ n = n ] ).
+      ASSERT NOT line_exists( t_pair[ n = n ] ). "#EC CI_SORTSEQ
       APPEND VALUE #( n = n
                       v = val ) TO t_pair.
     ELSE.
       DATA(target) = t_child[ lines( t_child ) ].
-      ASSERT NOT line_exists( target->t_pair[ n = n ] ).
+      ASSERT NOT line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
       APPEND VALUE #( n = n
                       v = val ) TO target->t_pair.
     ENDIF.
@@ -206,10 +218,14 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     ENDIF.
 
     DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
-    DATA(attrs) = ``.
+    " same table-then-concat form as the children above, same reason: the
+    " template accumulator re-copied every attribute rendered so far on
+    " each further one, quadratic on attribute-heavy elements
+    DATA lt_attr TYPE string_table.
     LOOP AT t_pair INTO DATA(pair).
-      attrs = |{ attrs } { pair-n }="{ xml_escape( pair-v ) }"|.
+      INSERT | { pair-n }="{ xml_escape( pair-v ) }"| INTO TABLE lt_attr.
     ENDLOOP.
+    DATA(attrs) = concat_lines_of( lt_attr ).
 
     IF t_child IS INITIAL.
       result = |<{ qname }{ attrs }/>|.
@@ -221,6 +237,22 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
 
   METHOD xml_escape.
+
+    " one CA scan up front: replace( occ = 0 ) copies the whole string on
+    " every call even when nothing matches, and a value without any special
+    " character is the COMMON case - that made every attribute value pay for
+    " seven full copies. A value that does carry one still runs all seven
+    " replaces below, unchanged
+    IF gv_escape_specials IS INITIAL.
+      gv_escape_specials = `&<>"`
+          && z2ui5_cl_ui5_util_context=>cv_char_util_newline
+          && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
+          && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+    ENDIF.
+    IF val NA gv_escape_specials.
+      result = val.
+      RETURN.
+    ENDIF.
 
     result = val.
     result = replace( val  = result

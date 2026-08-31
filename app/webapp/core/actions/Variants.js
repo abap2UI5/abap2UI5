@@ -74,10 +74,32 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
   // leave the initialise call to the smart control, which then finds the
   // anchor in place. Only when no control id was given does this wait for the
   // registration list and call initialise itself (nobody else will).
+  // One live wait chain per (svmId, controlId): the action is not marked
+  // one-shot, so a backend that repeats it per response used to start a NEW
+  // 5-second retry chain on every roundtrip - all of them polling the same
+  // ids, and after a rebuild resolving them in the NEW view and re-wiring
+  // there. The key clears when the chain reaches any terminal state, so a
+  // later re-issue (after a rebuild replaced the controls) starts fresh.
+  const activeInits = new Set();
+
   function evSmartVariantInit(oController, args) {
     const [, svmId, controlId] = args;
+    const key = `${svmId}|${controlId || ""}`;
+    if (activeInits.has(key)) return;
+    activeInits.add(key);
+    const finish = () => activeInits.delete(key);
     let tries = 0;
     const run = () => {
+      // The chain outlives the view it was started for: while it is still
+      // POLLING there is no control to check isDestroyed on, so an app switch
+      // or an FLP teardown left it running for the rest of its 5 seconds -
+      // and because ids repeat across views, it could then resolve and wire
+      // the NEXT app's controls. Every other timer-shaped handler checks the
+      // controller first (see ViewOps evStartTimer); this one now does too.
+      if (Lib.isDestroyed(oController)) {
+        finish();
+        return;
+      }
       const oSVM = ViewSlots.resolveById(svmId);
       const control = controlId ? ViewSlots.resolveById(controlId) : null;
       if (!oSVM || (controlId && !control)) {
@@ -89,12 +111,14 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
         Lib.logError(
           `SMART_VARIANT_INIT: '${controlId ? `${svmId}' / '${controlId}` : svmId}' not found`,
         );
+        finish();
         return;
       }
       if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {
         Lib.logError(
           `SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'`,
         );
+        finish();
         return;
       }
       let target = control;
@@ -112,13 +136,20 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
           Lib.logError(
             `SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'`,
           );
+          finish();
           return;
         }
         target = ViewSlots.resolveById(registered[0].getControl());
-        if (!target) return;
+        if (!target) {
+          finish();
+          return;
+        }
       }
       anchorPersoControl(oSVM, target);
       ensureInitialised(oSVM, target, 0);
+      // terminal for THIS chain: ensureInitialised has its own bounded
+      // retries and its own idempotence guards (wrapper.bInitialized)
+      finish();
     };
 
     run();
@@ -238,8 +269,21 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
 
   function evFilterBarVariantInit(oController, args) {
     const [, svmId, filterBarId] = args;
+    // Same two guards as evSmartVariantInit above, and for the same reasons -
+    // this handler has the identical poll-and-retry shape and had neither.
+    // FILTER_BAR_WIRED is not a substitute for the dedup: it is set only once
+    // BOTH controls resolve, so while the view is still building every
+    // re-issued action stacked another concurrent 5-second chain.
+    const key = `${svmId}|${filterBarId || ""}`;
+    if (activeInits.has(key)) return;
+    activeInits.add(key);
+    const finish = () => activeInits.delete(key);
     let tries = 0;
     const run = () => {
+      if (Lib.isDestroyed(oController)) {
+        finish();
+        return;
+      }
       const oSVM = ViewSlots.resolveById(svmId);
       const oFilterBar = ViewSlots.resolveById(filterBarId);
       if (!oSVM || !oFilterBar) {
@@ -251,6 +295,7 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
         Lib.logError(
           `FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found`,
         );
+        finish();
         return;
       }
       if (
@@ -260,16 +305,25 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
         Lib.logError(
           `FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'`,
         );
+        finish();
         return;
       }
       if (typeof oFilterBar.registerFetchData !== "function") {
         Lib.logError(
           `FILTER_BAR_VARIANT_INIT: no FilterBar for id '${filterBarId}'`,
         );
+        finish();
         return;
       }
-      if (oFilterBar[FILTER_BAR_WIRED]) return;
+      if (oFilterBar[FILTER_BAR_WIRED]) {
+        finish();
+        return;
+      }
       oFilterBar[FILTER_BAR_WIRED] = true;
+      // past this point the bar is marked wired, so a later re-issue returns
+      // at the check above - the key has done its job and is released here
+      // rather than inside the async withPersonalizableInfo callback below
+      finish();
 
       registerFilterBarCallbacks(oFilterBar);
       attachFilterBarChange(oSVM, oFilterBar);

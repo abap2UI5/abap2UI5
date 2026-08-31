@@ -145,9 +145,48 @@ sap.ui.define(
     // control method -> kinds of its positional args. Args beyond the
     // declared kinds are dropped; trailing args the caller did not send are
     // not passed at all (so `open()` stays a true no-arg call).
+    // This table and the two whitelists below are prototype-less - see the
+    // Object.setPrototypeOf right after each one. They are indexed with a name
+    // that comes off the wire, and a plain object answers for every key
+    // Object.prototype has: with a method named "constructor" the
+    // CONTROL_METHODS lookup below returned a truthy value, skipped
+    // isSafeControlMethod( ) entirely and then invoked
+    // control["constructor"](...); BINDING_METHODS["toString"] silently ran
+    // Object.prototype.toString instead of logging "method not allowed".
+    // Not a security boundary by this module's own model - the backend is
+    // trusted - but it defeated the deny-list and turned a malformed payload
+    // into a silent wrong call rather than the log line that says what
+    // happened.
     const CONTROL_METHODS = {
-      to: ["controlId", "string"], // target page + optional transitionName
+      // `pageId`, NOT `controlId`: the three containers that own a `to( )`
+      // disagree about what the first argument may be. sap.m.NavContainer
+      // normalises a Control to its id on its own first line, but
+      // sap.f.FlexibleColumnLayout.to and sap.m.SplitContainer.to PROBE the
+      // columns with `getPage( sPageId )`, which compares `aPages[i].getId()
+      // == pageId` - a Control never equals an id string, so every probe
+      // misses and the trailing `else` navigates the LAST column instead of
+      // the one that owns the page. Measured on samples-controls app 578,
+      // whose begin column never moved. Handing over the RESOLVED control's
+      // id serves all three: NavContainer would compute exactly that id
+      // itself, and the two probing containers finally match.
+      to: ["pageId", "string"], // target page + optional transitionName
       back: [],
+      // Same `pageId` kind as `to`, and MEASURED the same way (2026-08-27,
+      // samples-controls app 101 on the live Node backend). Unlike `to`,
+      // sap.m.NavContainer.backToPage does NOT rescue a raw id:
+      // `_backTo` normalises only a Control (`if (sRequestedPageId instanceof
+      // Control) sRequestedPageId = sRequestedPageId.getId()`), then hands the
+      // value to `_findClosestPreviousPageInfo`, which walks `_pageStack` and
+      // compares `info.id === sRequestedPreviousPageId` - strict, no prefixing.
+      // Every `_pageStack` entry was pushed as `page.getId()`, so it carries
+      // the view prefix the backend never sees. The unlisted-method path used
+      // to hand over the raw ABAP literal, which therefore matched nothing:
+      // UI5 logged "Cannot navigate backToPage('wizardContentPage') because
+      // target page was not found among the previous pages." and `_backTo`
+      // returned without navigating - a SILENT miss, the review page stayed up
+      // and app 101's four "Edit" links and its Cancel/Submit legs did nothing.
+      // Resolving to `mainView--wizardContentPage` navigates.
+      backToPage: ["pageId"],
       toDetail: ["controlId"], // sap.m.SplitApp/SplitContainer: show a detail page
       toMaster: ["controlId"], // sap.m.SplitApp/SplitContainer: show a master page
       backDetail: [], // sap.m.SplitApp/SplitContainer: back in the detail stack
@@ -168,11 +207,23 @@ sap.ui.define(
       setActivePage: ["controlId"], // sap.m.Carousel
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
+      expandSelected: [], // NOT a UI5 method: expand the tree's selected nodes
+      collapseSelected: [], // NOT a UI5 method: collapse the tree's selected nodes
       setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)
       setSticky: ["object"], // sap.m.ListBase/sap.m.Table: JSON array of sap.m.Sticky keys
       setSelectedSection: ["controlIdOrNull"], // sap.uxap.ObjectPageLayout: an EMPTY argument clears the association
       setSelectedItem: ["controlIdOrNull"], // sap.m.List/sap.m.Select/...: an EMPTY argument clears the selection
       setP13nData: ["object"], // sap.m.p13n.*Panel: JSON array of the panel's items
+
+      // sap.m.Button badge bounds. The `int` kind is load-bearing, not
+      // decoration: both setters compare the incoming value against the
+      // STORED bound (`iMax >= this._badgeMinValue`), so an undeclared
+      // numeric string makes the second comparison a STRING comparison -
+      // "50" >= "9" is false - and the setter drops the value into an `else`
+      // whose only effect is a Log.warning. min 9 / max 50 is the smallest
+      // pair that breaks (samples-controls app 249 drives both).
+      setBadgeMinValue: ["int"], // below this value the badge stays hidden
+      setBadgeMaxValue: ["int"], // above this value the badge reads "999+"
 
       css: ["string", "string"], // NOT a UI5 method: set one CSS property on the control's own DOM node
       enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of `enabled`
@@ -181,6 +232,14 @@ sap.ui.define(
       toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class
       setAsyncURLHandler: ["string"], // sap.m.MessagePopover: name of a URL_POLICY below
     };
+    // Prototype-less, but written as a plain literal on purpose: the
+    // abap2UI5 linter mirrors this set and finds it by the exact source text
+    // `const CONTROL_METHODS = {` in the embedded carrier (its
+    // scripts/check-upstream.mjs). Wrapping the literal in a call made that
+    // lookup miss, and the mirror check degraded to "SKIPPED, not verified" -
+    // a cross-repository check that stops checking without failing. Same
+    // effect, marker intact.
+    Object.setPrototypeOf(CONTROL_METHODS, null);
 
     // sap.m.MessagePopover.setAsyncURLHandler expects a live JS callback that
     // resolves a promise per message link - a shape no backend payload can
@@ -380,6 +439,23 @@ sap.ui.define(
         get: () => BusyIndicator,
         methods: { show: ["int"], hide: [] },
       },
+      // A UI5 icon collection outside the default SAP-icons font - sap.tnt's
+      // SAP-icons-TNT is the common one - resolves only once something has
+      // called IconPool.registerFont({ fontFamily, fontURI }). In a normal UI5
+      // app that call sits in the Component's init. An abap2UI5 app has no
+      // Component of its own, and IconPool is a module-level SINGLETON rather
+      // than a control, so CONTROL_BY_ID cannot address it and no global target
+      // reached it: a sap-icon://SAP-icons-TNT/... URI rendered no glyph at
+      // all, silently (samples-controls app 350).
+      //
+      // Two positional arguments rather than the config object UI5 takes,
+      // because that is what a t_arg can carry; the hook assembles it.
+      ICON_POOL: {
+        get: () => sap.ui.require("sap/ui/core/IconPool"),
+        methods: { registerFont: ["string", "string"] },
+        display: (oController, method, aArgs) =>
+          registerIconFont(aArgs[0], aArgs[1]),
+      },
       // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a
       // hard dependency (it 404s on 1.71 and kills the whole component load).
       // Resolve it lazily: on modern UI5 the core has it loaded, on 1.71 the
@@ -412,25 +488,40 @@ sap.ui.define(
         },
         methods: { announce: ["string", "string"] },
       },
-      // sap/ui/core/Formatting (@since 1.120) carries the global formatting
+      // sap/base/i18n/Formatting (@since 1.120) carries the global formatting
       // configuration. Custom currencies are the case an app cannot express
       // otherwise: the digit count of a currency code is neither a control
       // property nor something a per-binding formatter can register for the
       // standard sap.ui.model.type.Currency. The payload is a JSON object -
       // data the backend owns anyway. Lazy-require like THEMING.
       // The two are NOT interchangeable and the difference is silent: set
-      // REPLACES the whole registration, add ADDS one code to it. An app
+      // REPLACES the whole registration, add MERGES codes into it. An app
       // that registers currencies as it loads more data and reaches for
       // `set` drops the ones it registered before - and the symptom is a
       // wrong digit count in a table, never an error.
+      // Both names are the module's own and were WRONG here until 2026-08-23:
+      // the target read `sap/ui/core/Formatting`, which is not a module in any
+      // UI5 release (Core.js loads the base one), so the require returned
+      // undefined and every call logged "not available" and did nothing; and
+      // the second method was spelled `addCustomCurrency`, which the module
+      // does not have either - it is addCustomCurrencies, taking the same map
+      // as set. Found through samples-controls app 196.
       FORMATTING: {
-        get: () => sap.ui.require("sap/ui/core/Formatting"),
+        get: () => sap.ui.require("sap/base/i18n/Formatting"),
         methods: {
           setCustomCurrencies: ["object"], // REPLACES: { CODE: { digits: n }, ... }
-          addCustomCurrency: ["string", "object"], // ADDS one: code, { digits: n }
+          addCustomCurrencies: ["object"], // MERGES: same shape, keeps the rest
         },
       },
     };
+    // Prototype-less, but written as a plain literal on purpose: the
+    // abap2UI5 linter mirrors this set and finds it by the exact source text
+    // `const GLOBAL_TARGETS = {` in the embedded carrier (its
+    // scripts/check-upstream.mjs). Wrapping the literal in a call made that
+    // lookup miss, and the mirror check degraded to "SKIPPED, not verified" -
+    // a cross-repository check that stops checking without failing. Same
+    // effect, marker intact.
+    Object.setPrototypeOf(GLOBAL_TARGETS, null);
 
     // Cast one raw string argument to the kind the whitelist declared.
     // `view` (optional) is the slot the owning control was resolved in, so a
@@ -491,6 +582,26 @@ sap.ui.define(
           return raw === "true" || raw === "X" || raw === true;
         case "controlId":
           return resolveControl(raw, view);
+        case "pageId": {
+          // Like `controlId`, but hands the container the resolved control's
+          // ID rather than the control. Only for methods whose UI5 signature
+          // is a page ID and which do NOT normalise a Control themselves -
+          // see the `to` entry in CONTROL_METHODS for the measurement. The
+          // resolution step is what makes this safe: the rendered id carries
+          // the view prefix the backend never sees, so passing the raw ABAP
+          // literal instead would break every existing navigation.
+          const page = resolveControl(raw, view);
+          if (page && typeof page.getId === "function") return page.getId();
+          // No control under that id. Today the container absorbs this
+          // silently (it just navigates its last column and logs a UI5
+          // warning nobody reads), so name it here; the raw value is still
+          // handed over, which is the best effort an already-qualified id
+          // needs and is never worse than the `undefined` this used to pass.
+          Lib.logError(
+            `CONTROL_CALL: no control '${raw}' for the page argument`,
+          );
+          return raw;
+        }
         case "controlIdOrNull":
           // an ASSOCIATION cannot be data-bound, so clearing one
           // (setSelectedSection(null), setSelectedItem(null)) can only travel
@@ -545,15 +656,48 @@ sap.ui.define(
       return raw;
     }
 
+    // The one case where inference is provably wrong: a string-typed property.
+    // castArgAuto has to map ""/" " to false - that is how an ABAP boolean
+    // travels - which leaves the EMPTY STRING with no spelling at all, so every
+    // string setter on the unlisted path can be given any value except "".
+    // UI5 then hides the failure instead of reporting it: validateProperty does
+    // not reject a boolean for a string property, it casts implicitly
+    // (`oValue = "" + oValue`), so setText("") arrives as setText(false) and
+    // renders the four characters "false" - no error, no warning, and a
+    // screenshot that reads like a typo rather than a type bug.
+    //
+    // The control and the method are both known here, so UI5's own declaration
+    // can settle it instead of a guess: for a setXxx whose property is declared
+    // `string`, pass the raw value through untouched. Everything else keeps the
+    // inference, so the "X"/space boolean contract is untouched.
+    function setsStringProperty(control, method) {
+      if (!control || typeof method !== "string" || !/^set[A-Z]/.test(method))
+        return false;
+      const prop = control.getMetadata?.()?.getAllProperties?.()[
+        method.charAt(3).toLowerCase() + method.slice(4)
+      ];
+      return !!prop && prop.type === "string";
+    }
+
     // kinds whose EMPTY value is meaningful (null), so a missing trailing
     // argument still has to be passed: the backend wire drops a trailing empty
     // t_arg entry, and "clear this association" is exactly a call whose only
     // argument is empty.
     const NULLABLE_KINDS = ["controlIdOrNull"];
 
-    function castArgs(kinds, rawArgs, view) {
+    // `target` (optional) is the { control, method } the call will land on -
+    // only the CONTROL_BY_ID path can supply it, and it is only consulted on
+    // the inferred branch.
+    function castArgs(kinds, rawArgs, view, target) {
       // kinds === null: unlisted-but-allowed method, infer each arg's type
-      if (kinds === null) return rawArgs.map((raw) => castArgAuto(raw));
+      if (kinds === null) {
+        // a setXxx takes its value first, and that is the only position a
+        // declared property type can speak for
+        const keepString = setsStringProperty(target?.control, target?.method);
+        return rawArgs.map((raw, i) =>
+          i === 0 && keepString ? raw : castArgAuto(raw),
+        );
+      }
       // only cast args the caller actually sent - padding missing trailing
       // args would turn open() into open(undefined) and ints into NaN. The one
       // exception is a nullable kind (see above): pad it so the call carries
@@ -564,6 +708,59 @@ sap.ui.define(
       return kinds
         .slice(0, count)
         .map((kind, i) => castArg(kind, rawArgs[i], view));
+    }
+
+    // Collections already registered in this session. UI5 tolerates a repeat
+    // registerFont but Log.warning's on it, and a port issuing this from its
+    // init branch would do so on every single round-trip.
+    const registeredIconFonts = new Set();
+
+    function registerIconFont(fontFamily, fontURI) {
+      const IconPool = sap.ui.require("sap/ui/core/IconPool");
+      if (!IconPool) {
+        Lib.logError("ICON_POOL: sap/ui/core/IconPool is not loaded");
+        return;
+      }
+      if (!fontFamily || !fontURI) {
+        Lib.logError(
+          "ICON_POOL: registerFont needs a fontFamily AND a fontURI",
+        );
+        return;
+      }
+      if (registeredIconFonts.has(fontFamily)) return;
+      /* fontURI is a MODULE PATH in every real use ('sap/tnt/themes/base/fonts/'),
+       * and resolving it through sap.ui.require.toUrl is what makes the
+       * registration survive a different mount point - it is also what the UI5
+       * samples pass. Anything that already looks like a URL is left alone. */
+      const uri = /^(?:[a-z]+:)?\/\//i.test(fontURI)
+        ? fontURI
+        : sap.ui.require.toUrl(fontURI);
+      IconPool.registerFont({ fontFamily, fontURI: uri });
+      registeredIconFonts.add(fontFamily);
+    }
+
+    // The selected rows of a tree, as the row INDICES its expand()/collapse()
+    // take. Two shapes, because the two tree controls disagree:
+    //   sap.ui.table.TreeTable - getSelectedIndices() gives them directly
+    //   sap.m.Tree             - getSelectedItems() + indexOfItem() per item
+    // Returns null when the control is neither, so the caller can say so
+    // rather than silently doing nothing. An index of -1 (an item the tree no
+    // longer holds) is dropped: expand(-1) is not a smaller mistake than
+    // expand(undefined).
+    function selectedIndicesOf(control) {
+      if (typeof control.getSelectedIndices === "function") {
+        return control.getSelectedIndices();
+      }
+      if (
+        typeof control.getSelectedItems === "function" &&
+        typeof control.indexOfItem === "function"
+      ) {
+        return control
+          .getSelectedItems()
+          .map((item) => control.indexOfItem(item))
+          .filter((i) => i >= 0);
+      }
+      return null;
     }
 
     // Run fn once the openBy/toggleBy anchor is in the DOM. A control anchor
@@ -591,8 +788,13 @@ sap.ui.define(
         }
         kinds = null;
       }
+      // slot first, registry fallback - the SAME rule resolveControl
+      // applies to argument controls. The target used to be slot-ONLY when
+      // `view` was set, so a fully-qualified id (the form UI5 messages
+      // return from getControlIds()) resolved fine as an argument and
+      // reported "not callable" as the target of the very same call.
       const control = view
-        ? ViewSlots.byId(view.toUpperCase(), id)
+        ? (ViewSlots.byId(view.toUpperCase(), id) ?? ViewSlots.resolveById(id))
         : ViewSlots.resolveById(id);
       // toggleBy is not a real control method: open the control anchored to
       // the anchor control if it is closed, close it if it is already open
@@ -635,6 +837,40 @@ sap.ui.define(
           return;
         }
         el.style.setProperty(prop, String(args[5] ?? ""));
+        return;
+      }
+      // expandSelected / collapseSelected are not UI5 methods either. Both
+      // trees take INDICES (`expand(int|int[])`, `collapse(int|int[])`), and
+      // only sap.ui.table.TreeTable can hand them over: it has
+      // getSelectedIndices(). sap.m.Tree offers getSelectedItems() plus
+      // indexOfItem(), so the mapping is a LOOP - and a loop written into an
+      // event argument needs a JS callback, which UI5's ExpressionParser has
+      // no grammar for (no `function` keyword, `{` is the object-literal nud),
+      // so `.getSelectedItems().map(function (o) { ... })` does not fail on that
+      // argument, it takes the WHOLE handler down and every argument with it.
+      // The loop therefore lives here, which is the same reason `css` does:
+      // the app has no spelling for it at all. It stays a thin executor - no
+      // decision is made, the selection is read and handed straight back to
+      // the control's own method.
+      if (method === "expandSelected" || method === "collapseSelected") {
+        const op = method === "expandSelected" ? "expand" : "collapse";
+        if (!control || typeof control[op] !== "function") {
+          Lib.logError(
+            `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
+          );
+          return;
+        }
+        const indices = selectedIndicesOf(control);
+        if (indices === null) {
+          Lib.logError(
+            `CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection`,
+          );
+          return;
+        }
+        // an empty selection is not an error: nothing selected, nothing to
+        // expand. Calling expand([]) would be a no-op anyway, but skipping it
+        // keeps a stray re-render off a tree the user did not touch.
+        if (indices.length) control[op](indices);
         return;
       }
       // setAsyncURLHandler takes a FUNCTION, so the argument names a policy
@@ -694,7 +930,9 @@ sap.ui.define(
         );
         return;
       }
-      control[method](...castArgs(kinds, args.slice(4), view));
+      control[method](
+        ...castArgs(kinds, args.slice(4), view, { control, method }),
+      );
     }
 
     // args: [_, object, method, ...params]. `ctx` is the action context the
@@ -897,6 +1135,14 @@ sap.ui.define(
         ]);
       },
     };
+    // Prototype-less, but written as a plain literal on purpose: the
+    // abap2UI5 linter mirrors this set and finds it by the exact source text
+    // `const BINDING_METHODS = {` in the embedded carrier (its
+    // scripts/check-upstream.mjs). Wrapping the literal in a call made that
+    // lookup miss, and the mirror check degraded to "SKIPPED, not verified" -
+    // a cross-repository check that stops checking without failing. Same
+    // effect, marker intact.
+    Object.setPrototypeOf(BINDING_METHODS, null);
 
     // args: [_, id, aggregation, method, ...params]
     function evBindingCall(oController, args) {

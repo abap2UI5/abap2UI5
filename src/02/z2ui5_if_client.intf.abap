@@ -28,13 +28,6 @@ INTERFACE z2ui5_if_client
       END OF orientation,
     END OF cs_device.
 
-  TYPES:
-    BEGIN OF ty_s_name_value,
-      n TYPE string,
-      v TYPE string,
-    END OF ty_s_name_value.
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-
   CONSTANTS:
     BEGIN OF cs_event,
 
@@ -101,8 +94,180 @@ INTERFACE z2ui5_if_client
       popover TYPE string VALUE `POPOVER`,
     END OF cs_view.
 
+  TYPES:
+    BEGIN OF ty_s_name_value,
+      n TYPE string,
+      v TYPE string,
+    END OF ty_s_name_value.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
+  TYPES:
+    "! One table cell of this roundtrip's delta that could NOT be applied. The
+    "! value DID arrive from the client, it just would not convert into the
+    "! ABAP component behind the cell - `1,250.00` or `12.50 EUR` into a
+    "! packed price, text into an integer. Such a cell is SKIPPED, never
+    "! raised on: one unconvertible cell must not kill a delta that carries
+    "! many good ones. This is the trace of that skip, and the only way an app
+    "! can find out it happened - the browser still shows what the user typed,
+    "! because the client model was updated before the roundtrip.
+    "! Read it unconditionally at the top of main( ), NOT inside a Save
+    "! branch: the delta travels with whatever roundtrip follows the edit,
+    "! which need not be the press the app is interested in. The list is
+    "! per-roundtrip - the next request sees an empty one.
+    "!
+    "! The entry names the cell but does NOT carry the value that was
+    "! refused, so an app can say which field was not accepted and not what
+    "! the user typed. And reading the trace alone pushes no model, so the
+    "! browser goes on showing the refused text until the app writes
+    "! something.
+    "! See z2ui5_cl_ui5_srv_model=>delta_apply_field, which fills it.
+    BEGIN OF ty_s_model_skip,
+      " the bound attribute that holds the table, spelled as the app declared
+      " it (`MT_PRODUCTS`). A cell of a NESTED table names the path to it,
+      " parent first (`MT_TREE-NODES`).
+      "
+      " NOT the path _bind( ) hands the view: that is `{/MT_PRODUCTS}`, and
+      " nothing public converts one spelling into the other. A consumer
+      " matching on this has to carry the ABAP attribute name as a literal,
+      " which a rename breaks silently
+      name  TYPE string,
+      " 1-based ABAP row index in the table `name` ends at. For a NESTED cell
+      " that is the index of the INNER table - the parent row is not recorded,
+      " so the field is named but the record owning it cannot be identified
+      row   TYPE i,
+      " the component inside the row (`PRICE`) - the ABAP name, not a label
+      field TYPE string,
+    END OF ty_s_model_skip.
+  TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH EMPTY KEY.
+
+  TYPES:
+    "! Everything the frontend sent with this roundtrip - the return type of
+    "! get( ). s_draft and s_config are written out here rather than named
+    "! separately, the way s_device, s_focus, s_scroll and s_ui5 already are:
+    "! nothing outside this structure has ever used them as a type.
+    BEGIN OF ty_s_get,
+      event                  TYPE string,
+      t_event_arg            TYPE string_table,
+      check_launchpad_active TYPE abap_bool,
+      check_on_navigated     TYPE abap_bool,
+      BEGIN OF s_draft,
+        id                TYPE string,
+        id_prev           TYPE string,
+        id_prev_app       TYPE string,
+        id_prev_app_stack TYPE string,
+      END OF s_draft,
+      BEGIN OF s_config,
+        origin   TYPE string,
+        pathname TYPE string,
+        search   TYPE string,
+        hash     TYPE string,
+      END OF s_config,
+      t_comp_params          TYPE ty_t_name_value,
+      r_event_data           TYPE REF TO data,
+      BEGIN OF s_device,
+        system      TYPE string,
+        orientation TYPE string,
+        BEGIN OF browser,
+          name    TYPE string,
+          version TYPE string,
+        END OF browser,
+        BEGIN OF os,
+          name    TYPE string,
+          version TYPE string,
+        END OF os,
+        BEGIN OF resize,
+          width  TYPE i,
+          height TYPE i,
+        END OF resize,
+        BEGIN OF support,
+          touch   TYPE abap_bool,
+          pointer TYPE abap_bool,
+          retina  TYPE abap_bool,
+        END OF support,
+      END OF s_device,
+      BEGIN OF s_focus,
+        id              TYPE string,
+        selection_start TYPE i,
+        selection_end   TYPE i,
+      END OF s_focus,
+      BEGIN OF s_scroll,
+        BEGIN OF main,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF main,
+        BEGIN OF nest,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF nest,
+        BEGIN OF nest2,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF nest2,
+        BEGIN OF popup,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF popup,
+        BEGIN OF popover,
+          id TYPE string,
+          x  TYPE i,
+          y  TYPE i,
+        END OF popover,
+      END OF s_scroll,
+      BEGIN OF s_ui5,
+        version         TYPE string,
+        build_timestamp TYPE string,
+        gav             TYPE string,
+        theme           TYPE string,
+      END OF s_ui5,
+      BEGIN OF _s_nav,
+        check_leave TYPE abap_bool,
+        check_call  TYPE abap_bool,
+      END OF _s_nav,
+      " The table cells this roundtrip's delta could not apply - empty in
+      " the normal case. Only a value that actually ARRIVED and failed to
+      " convert is listed; a field the client never sent is not an error.
+      " An app that writes back what the user edited reads this to tell the
+      " user which cell was refused (and to stay in edit mode) instead of
+      " reporting a success the model does not carry. The scalar-attribute
+      " path is unaffected - a value that will not convert into a non-table
+      " attribute still raises JSON_PARSING_ERROR, as it always has.
+      " It sits AFTER the internal _s_nav block rather than next to the other
+      " t_* members because the API gate only accepts a component APPENDED at
+      " the end of a public structure as compatible (api-snapshot.mjs,
+      " isAdditiveTypeComponents) - an insertion in the middle is a rule-5
+      " violation
+      t_model_skipped        TYPE ty_t_model_skip,
+    END OF ty_s_get.
+
+  TYPES:
+    "! The per-wire options of _event( ) - see the documentation on the method
+    "! for what each one decides.
+    BEGIN OF ty_s_event_control,
+      check_allow_multi_req TYPE abap_bool,
+      " cancel the control's built-in default for this event before the
+      " roundtrip (oEvent.preventDefault(), e.g. sap.tnt NavigationListItem
+      " press without the automatic item selection); the event itself is
+      " still sent, so the backend decides what happens instead
+      check_prevent_default TYPE abap_bool,
+      " the same veto, but decided PER FIRING instead of per wire: a client
+      " expression that is evaluated when the event fires and cancels the
+      " default only when it is truthy, e.g.
+      "   `${$parameters>/column}.getId() CS 'COL_DATE'` in UI5 terms:
+      "   `${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`
+      " so ONE wire can protect one row/column and let the rest through.
+      " Wins over check_prevent_default when both are set; the event is sent
+      " in either case, exactly as with the flag
+      prevent_default_expr  TYPE string,
+    END OF ty_s_event_control.
+
   CONSTANTS:
-    "! Hash-based app routing modes (see set_nav_routing). The mode decides how
+    "! Hash-based app routing modes, switched on with
+    "! follow_up_action( cs_event-set_nav_routing ) - the set_nav_routing( )
+    "! METHOD this used to name was removed in 1.143.0. The mode decides how
     "! much of the running app the URL hash carries, and therefore what the
     "! browser Back/Forward buttons (and a reload / bookmark) restore:
     "!  default - no routing: the hash is left untouched, exactly as before this
@@ -198,7 +363,7 @@ INTERFACE z2ui5_if_client
 
   METHODS get
     RETURNING
-      VALUE(result) TYPE z2ui5_if_types=>ty_s_get.
+      VALUE(result) TYPE ty_s_get.
 
   "! The name of the event that triggered this roundtrip - empty when no
   "! event is being handled (e.g. on the initial call). Shortcut for
@@ -285,11 +450,29 @@ INTERFACE z2ui5_if_client
   "! row/column and let the rest through
   "! (`${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`). It wins
   "! over the flag when both are set.
+  "!
+  "! @parameter arg | the ONE-VALUE spelling of t_arg: `arg = x` is exactly
+  "!                  `t_arg = VALUE #( ( x ) )`, byte for byte, and the
+  "!                  handler reads it back with the same `get_event_arg( )`.
+  "!                  It exists because the single argument is what most
+  "!                  wires carry - a row key, a `${$source>/...}`, one event
+  "!                  parameter - and there the table constructor is longer
+  "!                  than the value inside it. From two values on, t_arg is
+  "!                  the right parameter and stays it; arg deliberately does
+  "!                  not grow into arg2/arg3, which would only put the
+  "!                  positional numbering the table already spells out back
+  "!                  into the parameter names.
+  "!                  Passing both APPENDS arg behind the t_arg rows - a
+  "!                  defined composition, not a guess between two readings.
   METHODS _event
     IMPORTING
       val           TYPE clike                              OPTIONAL
       t_arg         TYPE string_table                       OPTIONAL
-      s_ctrl        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
+      s_ctrl        TYPE ty_s_event_control                  OPTIONAL
+      " appended rather than slotted next to t_arg, where it would read
+      " better: rule 5 allows a new optional parameter at the END of the
+      " list - inserting one reorders a public signature
+      arg           TYPE clike                              OPTIONAL
         PREFERRED PARAMETER val
     RETURNING
       VALUE(result) TYPE string.
@@ -319,6 +502,59 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
+  "! @parameter tab               | bind ONE CELL of an internal table instead
+  "!                                of a whole attribute: pass the table here
+  "!                                and the row number in tab_index, and the
+  "!                                bound value as val - the row component
+  "!                                itself, e.g.
+  "!                                `_bind( val       = mt_emp[ 1 ]-name
+  "!                                        tab       = mt_emp
+  "!                                        tab_index = 1 )` -> `{/MT_EMP/0/NAME}`.
+  "!                                The cell is identified by REFERENCE: val
+  "!                                has to BE the component of that row, not a
+  "!                                copy of its value (a helper variable holding
+  "!                                the same string is refused with
+  "!                                BINDING_ERROR_TAB_CELL_LEVEL).
+  "!                                One toolchain caveat, not an ABAP one: a
+  "!                                STOCK abaplint downport lowers a table
+  "!                                expression read at COMPONENT level to
+  "!                                `READ TABLE ... INTO <wa>` - a copy - and
+  "!                                the cell is then refused on code that is
+  "!                                correct at the v750 target. This repository
+  "!                                patches that lowering to `ASSIGNING`
+  "!                                (node/setup/patch-abaplint-downport.mjs,
+  "!                                filed upstream), so `tab[ n ]-comp` works
+  "!                                through every build here. An app downported
+  "!                                by an UNPATCHED abaplint has to assign the
+  "!                                row first - `ASSIGN tab[ n ] TO <row>`, then
+  "!                                `val = <row>-comp` - which the same rule
+  "!                                already lowers with ASSIGNING and which is
+  "!                                7.02-native. Measured, not assumed: the
+  "!                                transpiler resolves every form correctly;
+  "!                                only the downport loses the reference.
+  "!                                What travels
+  "!                                is still the whole table - this only writes
+  "!                                a row-qualified path into the view, so the
+  "!                                model keeps the ARRAY shape while the view
+  "!                                addresses single rows. Use it where the
+  "!                                original model is an array but the view
+  "!                                repeats controls instead of binding an
+  "!                                aggregation (six statically written panels
+  "!                                over /Employee/0..5), which is otherwise
+  "!                                written as a series of flat attributes
+  "!                                (emp1_name, emp2_name, ...) and loses that
+  "!                                shape. For a REPEATING aggregation bind the
+  "!                                table itself (`items = _bind( mt_emp )`) and
+  "!                                keep the template's fields relative.
+  "! @parameter tab_index         | the row of tab to address, counted the ABAP
+  "!                                way from 1 - the client path is 0-based, so
+  "!                                tab_index = 1 renders as `/0/`. A row that
+  "!                                does not exist raises
+  "!                                BINDING_ERROR_TAB_CELL_LEVEL instead of
+  "!                                dumping, but note that writing the val
+  "!                                argument as `tab[ n ]` already dumps on the
+  "!                                ABAP side when row n is missing - seed the
+  "!                                table before building the view.
   "! @parameter omit_initial       | keep INITIAL fields out of the serialized
   "!                                model instead of sending them as `` / 0. An
   "!                                ABAP field is never absent - it is initial -
@@ -391,6 +627,28 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
+  "! The PATH form of _bind( ) under a name of its own: returns the model
+  "! PATH of val instead of its value - what a bound aggregation, a
+  "! binding_call filter/sorter and bindElement need. Identical to
+  "! `_bind( val = ... path = abap_true )`, byte for byte; it delegates
+  "! rather than repeat the call, so the two can never drift apart.
+  "!
+  "! It exists because the two forms of _bind( ) read nothing alike:
+  "! `_bind( t_products )` says what it does, `_bind( val = t_products
+  "! path = abap_true )` needs a named val and a boolean whose name and
+  "! value mean nothing to a reader who does not already know the method -
+  "! and path being the FIRST optional parameter is what forces `val =`
+  "! along with it.
+  "!
+  "! Deliberately ONE parameter. The moment a second is needed - tab /
+  "! tab_index for a row path, omit_initial, json, switch_default_model -
+  "! _bind( ) is the right call and path stays on it, undeprecated.
+  METHODS _bind_path
+    IMPORTING
+      val           TYPE data
+    RETURNING
+      VALUE(result) TYPE string.
+
   "! Schedule a frontend action to run after the backend response is processed.
   "! Two ways to call it: pass a frontend event as val (e.g. cs_event-set_title)
   "! with its arguments in t_arg and the framework builds the event call; or pass
@@ -426,7 +684,7 @@ INTERFACE z2ui5_if_client
   "! slashes) resolves exactly as before.
   "! cs_event-control_global - call a whitelisted method on a global object
   "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING, POPUP,
-  "! INVISIBLE_MESSAGE, FORMATTING): t_arg = object, method, params.
+  "! INVISIBLE_MESSAGE, FORMATTING, ICON_POOL): t_arg = object, method, params.
   "! POPUP-setWithinArea confines every popup to the control whose id is
   "! passed (sap.ui.core.Popup.setWithinArea, needs UI5 &gt;= 1.89) instead of
   "! to the window; an EMPTY argument releases the restriction again.
@@ -437,13 +695,30 @@ INTERFACE z2ui5_if_client
   "! backend made.
   "! FORMATTING-setCustomCurrencies registers currency codes the standard
   "! sap.ui.model.type.Currency does not know, or overrides their digit count
-  "! (sap.ui.core.Formatting, needs UI5 &gt;= 1.120):
+  "! (sap/base/i18n/Formatting, needs UI5 &gt;= 1.120):
   "! t_arg = JSON object, e.g. \{"BGN4":\{"digits":4\}\}. It REPLACES the whole
-  "! registration - addCustomCurrency ADDS a single code to it instead
-  "! (t_arg = code, JSON object). Reaching for the wrong one is silent: an
+  "! registration - addCustomCurrencies MERGES codes into it instead
+  "! (t_arg = the same map). Reaching for the wrong one is silent: an
   "! app that registers currencies as it loads more data and calls
   "! setCustomCurrencies drops what it registered before, and the symptom is
   "! a wrong digit count in a table, never an error.
+  "! What this reaches is the FORMATTING configuration, not a control that has
+  "! already formatted: a control caching its NumberFormat at init( ) - among
+  "! them sap.ui.unified.Currency - keeps the digit count it was built with,
+  "! because it implements no localization-change hook. A BOUND
+  "! sap.ui.model.type.Currency does implement one and re-formats.
+  "! ICON_POOL-registerFont makes an icon collection outside the default
+  "! SAP-icons font resolvable - sap.tnt&apos;s SAP-icons-TNT is the common one:
+  "! t_arg = fontFamily, fontURI, e.g. `SAP-icons-TNT` /
+  "! `sap/tnt/themes/base/fonts/`. A normal UI5 app does this in its
+  "! Component&apos;s init; an abap2UI5 app has no Component of its own, and
+  "! IconPool is a module SINGLETON rather than a control, so no other wire
+  "! reaches it. Without the registration a sap-icon://SAP-icons-TNT/... URI
+  "! renders NO GLYPH and logs nothing. The fontURI is a module path in every
+  "! real use and is resolved through sap.ui.require.toUrl, so the registration
+  "! survives a different mount point; an absolute URL is passed through. Issue
+  "! it from the init branch - the same collection is registered only once per
+  "! session, so a repeat call costs nothing.
   "! cs_event-smart_variant_init - run the initialise( ) handshake sap.ui.comp
   "! variant management needs (a controller would call
   "! oSmartVariantManagement.initialise( fnCallback, oPersonalizableControl )).

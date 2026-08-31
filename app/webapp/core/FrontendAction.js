@@ -34,8 +34,12 @@ sap.ui.define(
     // controller state (eB, ...) receive the calling controller as first
     // argument.
     // ------------------------------------------------------------------
+    // Object.create(null) rather than {}: args[0] is an action name off the
+    // wire, and on a plain object handlers["valueOf"] resolves to a function
+    // from Object.prototype and gets CALLED as a handler. Same reasoning as
+    // the whitelists in core/actions/ControlCall.js.
     const handlers = Object.assign(
-      {},
+      Object.create(null),
       ControlCall.handlers,
       Browser.handlers,
       Launchpad.handlers,

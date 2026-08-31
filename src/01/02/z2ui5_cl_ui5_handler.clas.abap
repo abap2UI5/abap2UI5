@@ -519,7 +519,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " The exception itself only says WHAT went wrong. Which app, which event
     " and which draft it went wrong in is known here and nowhere above, so
     " annotate it on the way out - the top-level catch in
-    " z2ui5_cl_http_handler=>_main renders the whole chain, this frame
+    " z2ui5_cl_ui5_http_handler=>_main renders the whole chain, this frame
     " included, into the 500 body.
     TRY.
         main_begin( ).
@@ -689,12 +689,17 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " just stored
       " ... and keep the nav_mode_sent latch: block-carrying requests are
       " app-start-shaped today (main_end re-sends the mode anyway), but a
-      " wiped latch would cost a redundant ROUTER/sync if that ever changes
+      " wiped latch would cost a redundant ROUTER/sync if that ever changes.
+      " comp_data is kept for the same reason as the location trio: the
+      " launchpad ComponentData travels on its own session cadence, so a
+      " block-carrying request WITHOUT it must not wipe what the draft
+      " stored - the IF below only overwrites when the request carries one
       mo_action->mo_app->ms_session = VALUE #( s_ui5         = ms_request-s_front-s_ui5
                                                s_device      = ms_request-s_front-s_device
                                                origin        = ms_request-s_front-origin
                                                pathname      = ms_request-s_front-pathname
                                                search        = ms_request-s_front-search
+                                               comp_data     = mo_action->mo_app->ms_session-comp_data
                                                nav_mode_sent = mo_action->mo_app->ms_session-nav_mode_sent ).
       IF ms_request-s_front-o_comp_data IS BOUND.
         TRY.
@@ -761,7 +766,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " session: re-send the app's own mode whenever this roundtrip did not set
     " one itself, so an app that queued cs_event-set_nav_routing in check_on_init
     " stays routed in its chosen mode - even after the user visited another
-    " app that runs with a different one (see z2ui5_cl_ui5_app=>mv_nav_mode).
+    " app that runs with a different one (see z2ui5_cl_ui5_app_cont->mv_nav_mode).
     " NOT on every roundtrip though: the frontend keeps the mode in session
     " state, so a plain event roundtrip of the SAME app repeats no mode (it
     " would re-queue the ROUTER action for a constant). It has to travel
@@ -779,6 +784,19 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       mo_action->mo_app->ms_session-nav_mode_sent = mo_action->ms_next-s_nav-set_nav_routing.
     ENDIF.
 
+    " The app-state hash is the same kind of intent as the routing mode, and
+    " needs the same treatment: the frontend syncs the URL on EVERY response
+    " (View1 -> Router.sync), and Router reads a missing setAppStateActive as
+    " "clear the hash". So a flag that lives only on ms_next - which is
+    " per-request - held for exactly one response: opening a bookmarked
+    " z2ui5-xapp-state URL restored the draft, and the next event dropped the
+    " hash again. Re-assert what the app asked for unless this roundtrip
+    " already said something itself.
+    IF mo_action->ms_next-s_nav-set_app_state_active = abap_false
+        AND mo_action->mo_app->mv_app_state_active = abap_true.
+      mo_action->ms_next-s_nav-set_app_state_active = abap_true.
+    ENDIF.
+
     DATA(lo_front) = NEW z2ui5_cl_ui5_frontend( mo_action ).
 
     " the view-lifecycle calls leave first, in slot order
@@ -789,8 +807,9 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " from the collected view-lifecycle calls themselves: a display that was
     " later voided by a destroy (slot_reset) counts as no view.
     DATA(lv_model) = `{}`.
-    IF line_exists( mo_action->ms_next-t_action_front[
-                        method = z2ui5_if_ui5_types=>cs_slot_action-display ] ).
+    DATA(lv_check_display) = xsdbool( line_exists( mo_action->ms_next-t_action_front[
+                                          method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ). "#EC CI_SORTSEQ
+    IF lv_check_display = abap_true.
       lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
@@ -808,6 +827,20 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " (inherits the MAIN model by propagation - three-column samples) and a
     " popup left open across a roundtrip that rebuilt no view alike, without
     " spelling a derivable instruction into every model-carrying response.
+
+    " Remember what this response leaves the client holding: a display or a
+    " push leaves it on lv_model (a display whose model is `{}` leaves the
+    " fresh view's model empty, which `{}` says too), no push leaves it on
+    " the before-state. The next roundtrip of this app reads it back as its
+    " pre-main( ) snapshot (main_process) instead of serializing the model
+    " a second time.
+    IF lv_check_display = abap_true OR lv_model <> `{}`.
+      mo_action->mo_app->mv_model_client = lv_model.
+    ELSEIF mv_model_before_taken = abap_true.
+      mo_action->mo_app->mv_model_client = mv_model_before.
+    ELSE.
+      CLEAR mo_action->mo_app->mv_model_client.
+    ENDIF.
 
     " last of all, so the route reflects everything this roundtrip did - the
     " slots that were built and the model that was pushed into them. Queued
@@ -843,8 +876,16 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " deltas were applied (factory_by_frontend) and BEFORE main( ) runs -
     " what the client already knows must never trigger a push. Taken per
     " dispatch iteration, so after a nav_app_call/leave the snapshot belongs
-    " to the app main_end responds for.
-    mv_model_before       = mo_action->mo_app->model_json_stringify( ).
+    " to the app main_end responds for. The app's mv_model_client IS that
+    " snapshot whenever it is known: main_end wrote it as exactly what the
+    " client was left holding, and factory_by_frontend cleared it when this
+    " request's deltas touched the state it describes - so the full model
+    " serialization only runs when no stored string can stand in for it.
+    IF mo_action->mo_app->mv_model_client IS NOT INITIAL.
+      mv_model_before = mo_action->mo_app->mv_model_client.
+    ELSE.
+      mv_model_before = mo_action->mo_app->model_json_stringify( ).
+    ENDIF.
     mv_model_before_taken = abap_true.
 
     IF mo_action->mo_app->mv_check_sticky = abap_false.
@@ -852,7 +893,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ENDIF.
 
     " exceptions from main( ) are intentionally not caught here - they bubble up
-    " to the single top-level catch in z2ui5_cl_http_handler=>_main( ), which
+    " to the single top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which
     " turns them into a 500 response carrying the exception text
     IF mo_action->ms_actual-event = z2ui5_if_ui5_types=>cs_event_nav_app_leave.
       " no popup/popover teardown is queued here: the standalone slots die on

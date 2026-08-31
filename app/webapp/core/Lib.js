@@ -210,13 +210,23 @@ sap.ui.define(
     }
 
     // Join a control's own text with its ancestors' texts, outermost first
-    // ("Create New Site > Official Store"). The walk climbs getParent() and
-    // stops at the first ancestor that has no getText - for a menu item that
-    // is the Menu itself, so the result is exactly the item's breadcrumb
-    // (the `while (oItem instanceof MenuItem)` loop UI5 samples write in a
-    // controller). A control-tree walk cannot be expressed as a binding path,
-    // which is why it lives here and is reachable from an event argument via
-    // the controller's textPath().
+    // ("Create New Site > Official Store"), the `while (oItem instanceof
+    // MenuItem)` loop UI5 samples write in a controller. A control-tree walk
+    // cannot be expressed as a binding path, which is why it lives here and is
+    // reachable from an event argument via the controller's textPath().
+    //
+    // The walk climbs getParent() and BREAKS at the first ancestor that has no
+    // getText - it does not skip that ancestor and keep climbing. So the result
+    // is a breadcrumb only while every level in between is text-bearing, and
+    // whether that holds is a question about the control, not about this
+    // function. It notably does NOT hold for sap.m.Menu any more: since UI5
+    // 1.136 a Menu forwards its items aggregation into an internal
+    // sap.m.MenuWrapper (Menu.js, forwarding idSuffix "-menuWrapper"), the
+    // wrapper declares no text property and no getText, and it sits between
+    // every item and its parent item - so the walk stops after one hop and
+    // returns the leaf text alone. UI5's own sample loop breaks on the same
+    // wrapper, so that is upstream behaviour rather than a difference, but do
+    // not promise a menu breadcrumb on the strength of this helper.
     function getTextPath(control, separator) {
       const texts = [];
       let node = control;
@@ -233,6 +243,12 @@ sap.ui.define(
 
     // Copy text to the clipboard, preferring the async clipboard API with a
     // fallback to the legacy textarea + execCommand approach.
+    // Async clipboard API FIRST, execCommand fallback second - the inverse
+    // of core/ErrorView.js, deliberately: Lib serves ordinary app features
+    // on pages that are usually secure origins, where the async API is the
+    // reliable one. ErrorView prefers execCommand because it must also work
+    // on the insecure on-prem HTTP origins where navigator.clipboard does
+    // not exist - and a fatal-error overlay is exactly where that matters.
     function copyToClipboard(textToCopy) {
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(textToCopy).catch((err) => {
@@ -522,6 +538,22 @@ sap.ui.define(
       oRm.close("span");
     }
 
+    // The renderer of a companion control that renders NOTHING (not even a
+    // placeholder span - it lives outside the visible tree entirely). One
+    // shared spec instead of the same literal in every cc/ module; UI5 copies
+    // the spec into the control's own renderer class, so sharing is safe.
+    const EMPTY_RENDERER = { apiVersion: 2, render() {} };
+
+    // The init/exit pair every companion control repeats: register the bound
+    // hook method as a shared-state callback and hand back the unregister.
+    //   init() { this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl"); }
+    //   exit() { this._unhook(); }
+    function hookCallback(owner, callbackName, method) {
+      const bound = owner[method].bind(owner);
+      registerCallback(callbackName, bound);
+      return () => unregisterCallback(callbackName, bound);
+    }
+
     // Event arguments are whatever the UI5 expression grammar produced for
     // them. Most are strings or numbers, but a UI5 event parameter is quite
     // often a CONTROL or an ARRAY OF CONTROLS -
@@ -553,13 +585,52 @@ sap.ui.define(
       );
     }
 
+    /* A Date property carries a CALENDAR DAY the user picked in their own
+     * timezone, not a point on the timeline - UI5 fills DateRange.startDate,
+     * CalendarAppointment.startDate, DatePicker.dateValue and friends with
+     * LOCAL midnight of that day. JSON.stringify would take it through
+     * Date.prototype.toJSON -> toISOString(), which is UTC, so east of
+     * Greenwich the date part came out as the PREVIOUS day - a wrong day
+     * delivered with no error anywhere.
+     *
+     * Serialize the local parts instead, as an ISO local timestamp with no Z.
+     * That is the shape the framework already uses in the INBOUND direction
+     * (model/formatter.js builds a Date from local parts precisely so a
+     * date-only string does not shift), and an app reads the first ten
+     * characters as the day. Sending the instant plus an offset would also be
+     * recoverable, but it makes every consumer do arithmetic to recover a
+     * value that was never more than a calendar day.
+     *
+     * An INVALID Date is left alone deliberately: UI5 produces one for an
+     * empty optional date, and it must not become the string "Invalid Date" -
+     * the existing path yields null, which is what the curated formatter's
+     * DateCreateObject returns for a falsy input. */
+    function projectValue(value) {
+      // toString rather than `instanceof Date`: instanceof compares against
+      // ONE realm's constructor, so a Date that crossed a realm boundary (an
+      // iframe, or the vm sandbox the unit tests load this module in) is not
+      // recognized and silently keeps the UTC serialization this exists to
+      // avoid. The tag is realm-independent.
+      if (
+        Object.prototype.toString.call(value) === "[object Date]" &&
+        !isNaN(value)
+      ) {
+        const p = (n, w = 2) => String(n).padStart(w, "0");
+        return (
+          `${p(value.getFullYear(), 4)}-${p(value.getMonth() + 1)}-${p(value.getDate())}` +
+          `T${p(value.getHours())}:${p(value.getMinutes())}:${p(value.getSeconds())}`
+        );
+      }
+      return value;
+    }
+
     function projectControl(control) {
       const result = { ID: control.getId() };
       const properties = control.getMetadata().getAllProperties();
       for (const name in properties) {
         try {
           const value = control.getProperty(name);
-          if (value !== undefined) result[name] = value;
+          if (value !== undefined) result[name] = projectValue(value);
         } catch {
           // a property whose getter throws is simply not reported - the
           // remaining ones still have to reach the backend
@@ -614,6 +685,8 @@ sap.ui.define(
       isRootModelSlot,
       effectiveSizeLimit,
       renderInvisibleSpan,
+      EMPTY_RENDERER,
+      hookCallback,
       normalizeEventArgs,
     };
   },

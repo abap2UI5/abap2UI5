@@ -84,10 +84,16 @@ for (const name of probes) {
   };
 
   /* The block that goes into the item, i.e. into the issue. A table of
-   * sites, then what the detector deliberately did not count. */
+   * sites, then what the detector deliberately did not count.
+   *
+   * The backslash is escaped before the pipe: escaping only the pipe turns a
+   * cell that already ends in a backslash into `\\|`, an escaped backslash
+   * followed by a LIVE column separator, which breaks the row the escaping
+   * exists to keep intact. */
+  const cell = (s) => String(s ?? '').replace(/\\/g, '\\\\').replace(/\|/g, '\\|').trim();
   const table = (rows) => (rows.length
     ? ['| Repository | Where | |', '|---|---|---|',
-      ...rows.map((r) => `| ${r.repo} | \`${r.file}\`${r.line ? `:${r.line}` : ''} | ${(r.text || '').replace(/\|/g, '\\|').trim()} |`),
+      ...rows.map((r) => `| ${r.repo} | \`${r.file}\`${r.line ? `:${r.line}` : ''} | ${cell(r.text)} |`),
     ].join('\n')
     : '_none_');
 

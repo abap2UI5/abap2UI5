@@ -25,26 +25,11 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Invisible control that reads a value from browser storage` && |\n| &&
-             `// (session/local, see sap.ui.util.Storage) into its ``value`` property` && |\n| &&
-             `// and fires ``finished`` when the stored value differs from the current` && |\n| &&
-             `// one. The write side is handled by the STORE_DATA frontend action.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/core/Lib"],` && |\n| &&
              `  (Control, Storage, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Value equality for the stored payload. ``value`` is typed ``any``: a plain` && |\n| &&
-             `    // string for the common case, a structure or a table once an app binds` && |\n| &&
-             `    // one. A reference comparison reports EVERY object as different, because` && |\n| &&
-             `    // sap/ui/util/Storage JSON-round-trips what it stores and therefore hands` && |\n| &&
-             `    // back a fresh object on every read - the control would fire ``finished``` && |\n| &&
-             `    // on each render, the backend would answer with a re-render, and that` && |\n| &&
-             `    // fires again: an endless round-trip loop that made a structured value` && |\n| &&
-             `    // unusable. Compare by value instead. Key order is not significant (the` && |\n| &&
-             `    // stored copy went through JSON, the bound one comes from the model), and` && |\n| &&
-             `    // the payload is JSON by construction, so this covers every shape that` && |\n| &&
-             `    // can reach the property.` && |\n| &&
              `    function isSameValue(a, b) {` && |\n| &&
              `      if (a === b) return true;` && |\n| &&
              `      if (a === null || b === null) return false;` && |\n| &&
@@ -101,9 +86,6 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Follows the shared rendering pattern (see core/Lib.js): the renderer` && |\n| &&
-             `      // only marks the work, onAfterRendering reads the storage and fires` && |\n| &&
-             `      // the event.` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        if (!this._pendingRead) return;` && |\n| &&
              `        this._pendingRead = false;` && |\n| &&
@@ -123,17 +105,8 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // A key that holds nothing must leave the bound field ALONE. Reporting` && |\n| &&
-             `        // the empty string for it used to overwrite whatever the app had -` && |\n| &&
-             `        // and, worse, its TYPE: an app binding a structure got a plain "" on` && |\n| &&
-             `        // the very first render, which the next roundtrip could not parse back` && |\n| &&
-             `        // ("JSON_PARSING_ERROR ... Unsupported target for value [v]", because` && |\n| &&
-             `        // a string cannot land on a deep ABAP target). "Nothing is stored" is` && |\n| &&
-             `        // not a value, so there is nothing to report.` && |\n| &&
              `        if (stored === null || stored === undefined) return;` && |\n| &&
              `` && |\n| &&
-             `        // Only fire "finished" when the stored value differs from the` && |\n| &&
-             `        // current property to avoid feedback loops.` && |\n| &&
              `        if (!isSameValue(stored, value)) {` && |\n| &&
              `          this.setProperty("value", stored, true);` && |\n| &&
              `          this.fireFinished({ type, prefix, key, value: stored });` && |\n| &&

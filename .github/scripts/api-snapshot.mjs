@@ -208,7 +208,7 @@ function extract() {
       const m = entry.match(KIND_RE);
       if (!m) continue; // PUBLIC SECTION noise (e.g. pragmas)
       const kind = m[0].toLowerCase().replace(/\s+/g, "-");
-      const nameM = entry.slice(m[0].length).match(/^\s*:?\s*([a-z0-9_~\/]+)/i);
+      const nameM = entry.slice(m[0].length).match(/^\s*:?\s*([a-z0-9_~/]+)/i);
       if (!nameM) continue;
       api[`${f}#${kind}:${nameM[1].toLowerCase()}`] = norm(releaseNeutral(f, kind, nameM[1], entry));
     }
@@ -238,7 +238,15 @@ const snap = JSON.parse(fs.readFileSync(SNAPSHOT, "utf8"));
 // reordered, every other clause byte-identical - as an addition instead. Any
 // other difference (a removed parameter, a changed type or default, a
 // reordering, a new MANDATORY parameter) stays a violation.
-const CLAUSE_TAIL = /(\s(?:exporting|changing|returning|raising)\s[\s\S]*)$/;
+// `preferred parameter x` is counted with the TRAILING clauses, not with the
+// importing list: it is a modifier naming an existing parameter, not a
+// parameter of its own, and it always trails the importing list. Left in the
+// head it made every method that has one unable to grow an optional parameter
+// - the appended parameter lands BEFORE the modifier, so the head no longer
+// starts with the old head and a compatible addition was reported as a rule-5
+// violation (`_event`, the first method to hit it). Changing WHICH parameter
+// is preferred still differs in the tail and stays a violation.
+const CLAUSE_TAIL = /(\s(?:exporting|changing|returning|raising|preferred parameter)\s[\s\S]*)$/;
 function isAdditiveOptionalParams(oldSig, newSig) {
   const oldTail = oldSig.match(CLAUSE_TAIL)?.[1] ?? "";
   const newTail = newSig.match(CLAUSE_TAIL)?.[1] ?? "";
@@ -247,8 +255,31 @@ function isAdditiveOptionalParams(oldSig, newSig) {
   const newHead = newSig.slice(0, newSig.length - newTail.length);
   if (!newHead.startsWith(`${oldHead} `)) return false;
   const appended = newHead.slice(oldHead.length);
-  // each appended parameter must be optional or carry a default
-  return /^(?: [a-z_0-9]+ type .+?(?: optional| default \S+))+$/.test(appended);
+  return appendedParamsAllOptional(appended);
+}
+
+// Each appended parameter must be optional or carry a default - walked one
+// parameter at a time rather than asked of the whole list at once.
+//
+// The list form was /^(?: [a-z_0-9]+ type .+?(?: optional| default \S+))+$/,
+// which nests a lazy `.+?` inside a `+`. The two can split the same text in
+// exponentially many ways, and on a signature that ALMOST matches the engine
+// tries all of them before reporting failure - so a method whose parameters
+// this gate cannot classify hangs the gate instead of failing it. CodeQL
+// names it js/redos.
+//
+// Same language, one parameter per step: each must end at ` optional` or a
+// default, and the next must begin where it stops.
+const APPENDED_PARAM = /^ [a-z_0-9]+ type .+?(?: optional| default \S+)(?= [a-z_0-9]+ type |$)/;
+function appendedParamsAllOptional(appended) {
+  let rest = appended;
+  if (!rest) return false;
+  while (rest) {
+    const m = APPENDED_PARAM.exec(rest);
+    if (!m) return false;
+    rest = rest.slice(m[0].length);
+  }
+  return true;
 }
 
 // The same rule for a public STRUCTURE TYPE: appending a component at the end

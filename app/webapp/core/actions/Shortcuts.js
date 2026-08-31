@@ -113,6 +113,11 @@ sap.ui.define(
         try {
           const entry = shortcutEntry(shortcutFromEvent(oEvent));
           if (!entry) return;
+          // a registration whose controller died with its view (an app
+          // switch clears the registry, an in-app teardown does not) must
+          // not dispatch into a destroyed controller - same guard as
+          // ViewOps.evStartTimer
+          if (Lib.isDestroyed(entry.controller)) return;
           // the browser's own default for the combo (Ctrl+S saves the page,
           // Ctrl+D bookmarks it) must not fire alongside the app command
           oEvent.preventDefault();
@@ -159,8 +164,14 @@ sap.ui.define(
 
     function evKeyboardSetMode(oController, args) {
       try {
-        const oElement = ViewSlots.byId("MAIN", args[1]);
-        if (!oElement) return;
+        // resolveById, not byId("MAIN", ...): an input in a dialog or a
+        // nested view is not in the MAIN slot, and this used to no-op on it
+        // without even a log line
+        const oElement = ViewSlots.resolveById(args[1]);
+        if (!oElement) {
+          Lib.logError(`KEYBOARD_SET_MODE: '${args[1]}' not found`);
+          return;
+        }
         const dom = oElement.getDomRef();
         if (!dom) return;
         const input = dom.matches("input, textarea")

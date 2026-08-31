@@ -22,6 +22,9 @@ Two audiences, two entry points:
   popups, navigation, validation tooling
 - [Client API contract](src/02/z2ui5_if_client.intf.abap): every method an app
   can call, with inline documentation
+- [Client API reference](https://abap2ui5.github.io/docs/resources/api.html):
+  the same contract as a generated, searchable page — also fetchable as
+  [client-api.json](https://abap2ui5.github.io/docs/api/client-api.json)
 - [App interface](src/02/z2ui5_if_app.intf.abap): the one interface an app implements
 - [View builder](src/02/z2ui5_cl_ui5_view_builder.clas.abap): generic 1:1 UI5 XML builder
 - [Hello world](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap): smallest complete app
@@ -31,7 +34,7 @@ Two audiences, two entry points:
   lists every one of them with the words to search it by — ask it whether a
   sample already exists before writing an app from scratch
 - [samples-controls](https://github.com/abap2UI5/samples-controls) (formerly
-  ai-demokit): 416 gate-verified ports of the official UI5 demo kit samples,
+  ai-demokit): 622 gate-verified ports of the official UI5 demo kit samples,
   plus CAPABILITIES.md (what abap2UI5 can express)
 - [samples-stack](https://github.com/abap2UI5/samples-stack) (formerly
   samples-ext): abap2UI5 combined with OData, RAP, WebSockets, the Fiori
@@ -45,5 +48,12 @@ Two audiences, two entry points:
 
 - [AGENTS.md](AGENTS.md): the complete briefing for changes to this
   repository - architecture, layered design, coding rules, validation
+- [Repository map](docs/agents/repository-map.md): what lives in which
+  directory outside src/ - app/, node/, tools/, frontend/, .github/
+  and every gate script in it
+- [CI/CD workflows](docs/agents/ci-workflows.md): what every workflow does,
+  grouped by purpose
+- [JS unit spec inventory](docs/agents/test-inventory.md): which app/webapp
+  module has which spec under node/tests/
 - [CONTRIBUTING.md](CONTRIBUTING.md): human contributor workflow
 - [abaplint.jsonc](abaplint.jsonc): machine-checked code standards

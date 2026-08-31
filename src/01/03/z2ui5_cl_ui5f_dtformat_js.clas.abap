@@ -25,36 +25,14 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Value formatting for the developer tools - JSON and XML to display text.` && |\n| &&
-             `//` && |\n| &&
-             `// Split out of devtools/DeveloperTools.js so the tab registry` && |\n| &&
-             `// (devtools/Tabs.js) can produce finished text without depending on the` && |\n| &&
-             `// dialog control. That is what lets ONE table drive the tab strip, the` && |\n| &&
-             `// cross-tab search and the export: every consumer needs a string, and` && |\n| &&
-             `// none of them should have to know whether the value behind a tab` && |\n| &&
-             `// started life as an object or as an XML document.` && |\n| &&
-             `//` && |\n| &&
-             `// Both functions are total: they never throw and never return undefined.` && |\n| &&
-             `// A developer tool that dies on a value the app was happy to hold is` && |\n| &&
-             `// worse than useless, so a failure degrades to the plain string form.` && |\n| &&
-             `sap.ui.define([], () => {` && |\n| &&
+    result = `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  // toJson() pretty-prints with this many spaces per nesting level.` && |\n| &&
              `  const INDENT_UNIT = 3;` && |\n| &&
              `` && |\n| &&
-             `  // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
-             `  // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
-             `  // A replacer drops circular references (the z2ui5 global can hold them,` && |\n| &&
-             `  // e.g. via ComponentData) so the output stays useful JSON instead of` && |\n| &&
-             `  // throwing and degrading to a bare "[object Object]".` && |\n| &&
              `  function toJson(val) {` && |\n| &&
              `    const safe = val === undefined ? null : val;` && |\n| &&
-             `    // Track the ANCESTOR chain, not every object ever visited: a plain` && |\n| &&
-             `    // WeakSet of all seen objects would mislabel a value referenced twice in` && |\n| &&
-             `    // sibling branches (common in the live z2ui5 global) as "[Circular]".` && |\n| &&
-             `    // ``this`` inside the replacer is the object the key belongs to, so we can` && |\n| &&
-             `    // unwind the stack back to it before testing containment.` && |\n| &&
+             `` && |\n| &&
              `    const ancestors = [];` && |\n| &&
              `    try {` && |\n| &&
              `      return JSON.stringify(` && |\n| &&
@@ -75,13 +53,10 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `        INDENT_UNIT,` && |\n| &&
              `      );` && |\n| &&
              `    } catch {` && |\n| &&
-             `      // The developer tools must never crash the host app, so degrade to the` && |\n| &&
-             `      // plain string form if serialization still fails.` && |\n| &&
              `      return String(safe);` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // XSL stylesheet used by prettifyXml to reindent any XML string.` && |\n| &&
              `  const PRETTIFY_XSL = ``<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">` && |\n| &&
              `        <xsl:strip-space elements="*" />` && |\n| &&
              `        <xsl:template match="para[content-style][not(text())]">` && |\n| &&
@@ -95,8 +70,6 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `        <xsl:output indent="yes" />` && |\n| &&
              `      </xsl:stylesheet>``;` && |\n| &&
              `` && |\n| &&
-             `  // The XSLT processor and (de)serializers are expensive to construct, so` && |\n| &&
-             `  // we keep them as module-level singletons.` && |\n| &&
              `  const _xmlSerializer = new XMLSerializer();` && |\n| &&
              `  const _domParser = new DOMParser();` && |\n| &&
              `  let _xsltProcessor = null;` && |\n| &&
@@ -109,9 +82,6 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `    return _xsltProcessor;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Reformat an XML string with indentation. If anything goes wrong the` && |\n| &&
-             `  // original input is returned unchanged - the developer tools must never` && |\n| &&
-             `  // crash the host app.` && |\n| &&
              `  function prettifyXml(sourceXml) {` && |\n| &&
              `    if (!sourceXml) return "";` && |\n| &&
              `    try {` && |\n| &&
@@ -119,8 +89,7 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `      const resultDoc = getXsltProcessor().transformToDocument(xmlDoc);` && |\n| &&
              `      if (!resultDoc) return sourceXml;` && |\n| &&
              `      const resultXml = _xmlSerializer.serializeToString(resultDoc);` && |\n| &&
-             `      // The serializer escapes < and > inside text nodes; undo this so` && |\n| &&
-             `      // the output is browseable XML again.` && |\n| &&
+             `` && |\n| &&
              `      return resultXml.replace(/&gt;|&lt;/g, (match) =>` && |\n| &&
              `        match === "&gt;" ? ">" : "<",` && |\n| &&
              `      );` && |\n| &&

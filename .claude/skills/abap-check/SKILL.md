@@ -58,7 +58,11 @@ Four separate holes, worth knowing precisely:
   abaplint 2.120.24 with 73 rules active and `check_syntax` live: a `.clas.xml`
   with the BOM stripped, the terminating newline removed, CRLF line endings
   throughout **and** a raw apostrophe in `<DESCRIPT>` — four defects at once —
-  produces **zero** findings.
+  produces **zero** findings. One of the four has since been closed upstream:
+  `xml_bom` (2.120.32) flags a sidecar without the BOM and quick-fixes it in.
+  The other three still produce nothing — re-measured on 2.120.33 with the
+  three remaining defects in one sidecar, using `xml_bom` itself as the second
+  control probe.
 - **abaplint's `global.files` is not all of `src/`.** It covers `src/00`
   (with `noIssues`), `src/01` and `src/02` — `src/99` is never read at all.
 - **The transpiler ignores visibility.** Every ABAP member becomes a plain JS
@@ -101,13 +105,15 @@ it).
 
 **Verified gaps as of abaplint 2.120.24** — measured this way, control probe
 passed, nothing abap2UI5-specific about any of them, and therefore candidates
-to push upstream rather than to reimplement here:
+to push upstream rather than to reimplement here. The BOM half of the third row
+is the one that *was* pushed upstream: it is `xml_bom` since 2.120.32, and the
+row records what is left.
 
 | Case | Why it matters |
 |---|---|
 | `CLASS-METHODS class_constructor.` in a PRIVATE SECTION | ABAP requires the static constructor in the public section; the class pool does not activate. `constructor_visibility_public` sees only the instance constructor |
 | a test class calling a PRIVATE member without `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.` | same activation failure; it has reached users twice (`cadfb7ae`, #2146) |
-| the `.clas.xml` byte format — BOM, line endings, terminating newline, `&apos;` | abapGit re-serializes it differently on every pull, for everyone |
+| the `.clas.xml` byte format — line endings, terminating newline, `&apos;` (the BOM is `xml_bom` since 2.120.32, and on here) | abapGit re-serializes it differently on every pull, for everyone |
 | `INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` under `syntax.version` v750 | 7.55 syntax; every older system refuses the class — reached a user via `abap2UI5/samples` app 348 (section 2) |
 | a `VALUE` header default plus a per-row assignment of the same component | *"The component … was specified more than once"* — the system refuses the class; reached a user via `abap2UI5/samples-controls` app 241 (section 2) |
 
@@ -119,14 +125,18 @@ Gated by `npm run check:abapgit`
 (`.github/scripts/abapgit-format-gate.mjs`), over all of `src/`.
 
 **Gate: this repo**, for the whole family — BOM, EOF newline, line endings,
-tabs, `&apos;`, file names, sidecar pairing, `<CLSNAME>`, `<LANGU>`. Two halves
-reach further: the 255-character line is **linter — `source-line-too-long`**
-(an error on every app class it checks), and `<WITH_UNIT_TESTS>` plus
-`<CLSNAME>` are **abaplint — `local_testclass_consistency`, `xml_consistency`**
-(measured, both directions). Trailing whitespace is **abaplint —
-`whitespace_end`**, per repository and not everywhere; see below. Everything
-else in the table is this repository's script and nothing else, which is why a
-consumer repository can ship a BOM-less sidecar with a green CI.
+tabs, `&apos;`, file names, sidecar pairing, `<CLSNAME>`, `<LANGU>`. Three of
+them reach further: the 255-character line is **linter —
+`source-line-too-long`** (an error on every app class it checks),
+`<WITH_UNIT_TESTS>` plus `<CLSNAME>` are **abaplint —
+`local_testclass_consistency`, `xml_consistency`** (measured, both directions),
+and the BOM on an object's sidecar is **abaplint — `xml_bom`**, new in
+2.120.32 and on here in `abaplint.jsonc`, in the three target configs and in
+the autofix config, where its quick fix inserts the BOM rather than reporting
+it. Trailing whitespace is **abaplint — `whitespace_end`**, per repository and
+not everywhere; see below. Everything else in the table is this repository's
+script and nothing else — and a consumer repository that has not turned
+`xml_bom` on can still ship a BOM-less sidecar with a green CI.
 
 abapGit writes every file one specific way. Write it another way and it
 differs from what the system serializes back — permanently, on every pull, for
@@ -134,7 +144,7 @@ everyone.
 
 | Rule | What abapGit does | Where it bit us |
 |---|---|---|
-| `bom` | `.xml` starts with the UTF-8 BOM `EF BB BF`; `.abap` never does | `8e272492`, `54bce5b6` — both titled "fix abapgit diffs", both a `.clas.xml` written without the BOM. Again in `abap2UI5/samples` `bc1f3d2` across 15 sidecars at once |
+| `bom` | `.xml` starts with the UTF-8 BOM `EF BB BF`; `.abap` never does | `8e272492`, `54bce5b6` — both titled "fix abapgit diffs", both a `.clas.xml` written without the BOM. Again in `abap2UI5/samples` `bc1f3d2` across 15 sidecars at once. The first half is **abaplint — `xml_bom`** now (one XML per object, `getXMLFile( )`, with a quick fix); the second half — a `.abap` file that carries a BOM — has no rule anywhere and stays this script's |
 | `eof` | exactly one terminating `\n`, no blank line after it | `c7185c38` — `z2ui5_if_action.intf.xml` ended with `\ No newline at end of file` |
 | `crlf` | LF only, everywhere | `.gitattributes` used to normalize this and was deleted in `b62ea07`; the gate is what enforces it now |
 | `tab` | no tabs — the ABAP editor expands them, so the pulled source is not this file | — |
@@ -170,7 +180,12 @@ imported; the app is gone.
   `src/99`, so `check:abapgit` remains this repository's gate for the rest of
   the round-trip family.
 - **Maximum statement length.** A single `result = VALUE #( … )` with a few
-  hundred rows exceeds it. `abap2UI5/samples-controls#38` (`ee28671`): the
+  hundred rows exceeds it. **Gate: none, and a character count is not one** —
+  written against the linter on 2026-08-30, measured, and deleted. A view
+  builder CHAIN is one statement by construction, so on the samples-controls
+  corpus the median over-limit statement was 23,000 characters and the longest
+  253,000, across 156 ports that all import fine. Length does not discriminate;
+  do not re-propose the rule without a threshold somebody has measured. `abap2UI5/samples-controls#38` (`ee28671`): the
   246-row catalog constructor of the overview app could not be imported at
   all. Split it — the second statement appends with `VALUE #( BASE result )`.
   No script decides this one; it is a character count over a whole statement
@@ -260,11 +275,14 @@ That is what turns one fix into the last one.
 ## 2. Activation — compiles here, syntax error there
 
 **Gate: this repo**, and it is the section with the widest hole. The private
-`class_constructor` is `check:abapgit`; `LOCAL FRIENDS` is
-`npm run check_visibility`. Neither is an abaplint rule — measured against
-2.120.24 with 73 rules on and a control probe (see above), both produce zero
-findings, which is why they are on the upstream shortlist rather than
-reimplemented here. Generic types on older releases are **abaplint —
+`class_constructor` is `check:abapgit` — and, since 2026-08-30, `abap2ui5lint`'s
+`class-constructor-visibility` as well, which is what carries it to a consumer
+whose only gate is `npx @abap2ui5/linter`. `LOCAL FRIENDS` is
+`npm run check_visibility` and stays here: it needs the test class and the main
+class read together, which the linter does not do. Neither is an abaplint rule
+— measured against 2.120.24 with 73 rules on and a control probe (see above),
+both produce zero findings, which is why they are on the upstream shortlist
+rather than reimplemented there. Generic types on older releases are **abaplint —
 `downport`, `fully_type_itabs`, `cloud_types`** where a repository enables
 them; the app-template core does, the sample repositories do not yet.
 
@@ -272,7 +290,7 @@ them; the app-template core does, the sample repositories do not yet.
 
 | Trap | Rule |
 |---|---|
-| **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit` |
+| **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit`, and by `abap2ui5lint`'s `class-constructor-visibility` |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 
 ### Generic types on older releases — the recurring one
@@ -313,7 +331,11 @@ the newest release. abaplint's default target accepts all of it.
   header's scope with a second group, since the default only binds to the
   lines *after* it. abaplint 2.120.24 accepts the construct without a finding
   (`check_syntax` on, control probe fired) — its VALUE grammar does not model
-  the one-assignment rule. **Gate: open** — upstream shortlist.
+  the one-assignment rule. **Gate: `abap2ui5lint`** —
+  `value-header-default-reassigned` (2026-08-30), which follows the
+  `source-line-too-long` precedent: for a consumer whose only gate is
+  `npx @abap2ui5/linter`, a class that does not activate is the most severe thing
+  this tool can find.
 
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
@@ -330,8 +352,11 @@ the newest release. abaplint's default target accepts all of it.
   declaration — measured on 2.120.24 with `check_syntax` and `downport` on at
   `syntax.version` v750: zero findings, control probe fired. Plain
   `INTO TABLE @DATA(…)` is fine from 7.40 on; it is only the combination with
-  `CORRESPONDING` that is late. **Gate: open** — on the upstream shortlist
-  (the `downport` rule or the version model), not reimplemented here.
+  `CORRESPONDING` that is late. **Gate: `abap2ui5lint`** —
+  `into-corresponding-inline-decl` (2026-08-30). Still worth having upstream in
+  the `downport` rule or the version model; the linter carries it meanwhile
+  because a systemless pipeline sees an activation error only when somebody
+  imports the transport.
 
 ### RAP and CDS (`abap2UI5/samples-stack`)
 
@@ -433,7 +458,59 @@ pitfalls".
   `slider_value = CONV i( client->get_event_arg( ) )` in
   `abap2UI5/samples-controls`. abaplint's `value_conversion` /
   `unnecessary_pragma` do not cover it (measured on 2.120.24, control probe
-  fired), and the type inference makes it undecidable for a text-level gate.
+  fired).
+
+  **Now gated, and the earlier claim here was wrong.** This entry used to end
+  "the type inference makes it undecidable for a text-level gate". It is
+  undecidable in general and decidable for the shape SLIN actually flags, which
+  is the only one that matters: the CONV is the WHOLE right-hand side of an
+  assignment (`<name> = CONV i( x ).`) into a name the same file declares
+  `TYPE i` — a `DATA`/`CLASS-DATA` line or a typed parameter. That is
+  `abap2ui5lint`'s `redundant-conv-i` — promoted out of `samples-controls`'
+  `scripts/pattern-lint.mjs` on 2026-08-30, scope boundaries and all, and
+  retired there.
+
+  Two boundaries the rule keeps, both learned by getting them wrong first:
+  a CONV inside a comparison (`COND #( WHEN CONV i( x ) < 14 …`) or an
+  arithmetic expression (`CONV i( x ) + 1`) is load-bearing or at least
+  arguable and is NOT flagged — the first draft reported apps 350 and 353,
+  which SLIN itself had left alone. And a CONV inside a string template
+  (`|{ CONV i( x ) WIDTH = 2 }|`) is a real conversion.
+
+  What the gate is worth, measured: a user's system reported nine findings
+  (534, 546 ×2, 547 ×2, 548, 549, 566, 609) on 2026-08-23. The rule reproduced
+  all nine **and found four more the system run had not** — 356 once, 363
+  three times. A system run sees one package at a time; the gate sees the
+  corpus.
+- **An Open SQL literal is a host expression: `@( … )`.** In strict Open SQL
+  every value in a WHERE comparison is escaped, a literal included — bare
+  `WHERE id = \`TEST_COUNT_FOREIGN\`` becomes
+  `WHERE id = @( \`TEST_COUNT_FOREIGN\` )`. Fixed by a user on a real system
+  (2026-08-23, abap2UI5#2657) in `z2ui5_cl_ui5_srv_draft`'s test class; the
+  transpiled tests and abaplint both accepted it.
+
+  **Do not "fix" an internal table.** `DELETE lt_param WHERE n = \`app_start\``
+  is ITAB syntax, where `@( )` is neither needed nor valid, and a grep for
+  `WHERE <name> = <literal>` finds ten of those in this repository for the one
+  real case. The discriminator is the statement: `DELETE FROM <dbtab>` /
+  `SELECT … FROM <dbtab>` / `UPDATE` / `MODIFY` against a database table.
+  Measured after the fix: that one line was the only bare literal in Open SQL
+  across `src`.
+
+- **`GET REFERENCE OF … INTO x` is the old spelling; write `x = REF #( … )`.**
+  Same pull request, same reason — it is not released for ABAP Cloud, and
+  nothing on this side reports it: `check:cloud` and the transpiled unit run
+  are both green with it in place.
+
+  Still standing in `src` after that fix, and worth deciding on rather than
+  discovering later: four occurrences outside the upstream mirrors and the
+  frozen package — `src/00/03/z2ui5_cl_ui5_util_context.clas.abap:878` and
+  `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` at 325, 345 and 467. All four
+  take a field symbol or a formal parameter, which `REF #( )` expresses
+  directly. They were left alone deliberately: the pull request changed a test
+  class, and rewriting three production reference paths in the model is a
+  separate change with its own verification.
+
 - **A RAP handler names the entity by its BDEF alias.** Where the behavior
   definition declares `alias Ticket`, an event handler's
   `FOR ENTITY EVENT ... FOR z2ui5_r_smps_tck~TicketCreated` draws "The alias
@@ -450,6 +527,32 @@ pitfalls".
 - **ABAP Doc is parsed as HTML.** A literal `<`, `>` or `&` must be escaped as
   `&lt;`, `&gt;`, `&amp;`.
 
+**Not gated: the BUNDLE.** `check:atc` walks this repository's `src/` — that is
+its stated scope, and over `src/` it holds: every `FIND`/`REPLACE … REGEX` here
+carries `##REGEX_POSIX`, including the five in the vendored AJSON where the
+pragma sits on the statement's CONTINUATION line (a line-based grep reports
+those as missing; the gate flattens statements first, so it does not).
+
+`abap2UI5-local` is a different artefact. `trigger_local.yaml` copies these
+sources into that repository, where a script folds them into ONE class whose
+"Local Implementations" hold everything. A user's system run on
+`z2ui5_cl_abap2ui5_local` (2026-08-23) reported eight SLIN warnings against
+that folded include — POSIX regex twice, ABAP Doc position, `<CLASS>` not
+supported / not closed three times, a redundant `CONV string( )` — at character
+OFFSETS (`@16232`, `@38704`), not at lines in any file here. All four kinds are
+the families above, and all four are silenced in `src/` by a pragma, a
+`##REGEX_POSIX`, or an escape. **They come back after the fold**, so what the
+fold does to those annotations is the thing to establish; the sources on this
+side are clean and no change here would move them. The `<CLASS>` pair is worth
+looking at first: `<p class="shorttext synchronized">` is the standard ADT
+shorttext form, and a tag scanner that splits on whitespace reads the attribute
+name as a second tag — which would make it an artefact of the fold rather than
+of the doc comment.
+
+Not verified from here: `abap2UI5-local` was not attached to the session that
+wrote this, so the bundler itself was not read. What IS measured is that
+`src/` carries the annotations and that `check:atc` is green over it.
+
 ## 4. Downport and transpile — one source, three targets plus a JS runtime
 
 **Gate: this repo** — `npm run verify` builds all three targets and runs the
@@ -457,12 +560,33 @@ transpiled tests. Nothing here is a linter rule and nothing here should be: the
 downport is a build of this repository, not a property of somebody's app.
 
 **Backlog:** open-abap · transpiler-reserved-js-identifiers
+**Backlog:** abaplint · abaplint-downport-builtin-operand
 
 Every framework file is downported to 7.02 (`npm run auto_downport`) and
 transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
+- **Never put a 7.02 built-in function inside a table-expression key.** This is
+  the sharpest case in this section, because all four checks were green and a
+  user's system was not. `line_exists( mt_names[ table_line = to_upper( is_node-name ) ] )`
+  is valid at v750; the downport rewrites it to
+  `READ TABLE mt_names WITH KEY table_line = to_upper( is_node-name )`, carrying
+  the call over verbatim, and a `WITH KEY` operand is not a general expression
+  position before 7.40. A built-in function is only *read* as one where a string
+  expression is allowed, so 7.02/7.31 falls back to the only other reading of
+  `name( … )` — a functional method call — and the class pool dies with
+  `SYNTAX_ERROR`, "method TO_UPPER is unknown". That class is
+  `z2ui5_cl_ui5_client`, so every app on the system was down (#2664).
+  **Hoist the call into a variable on the line above**; a plain assignment IS an
+  expression position at 7.02, so the variable is the whole fix. Same for a
+  `WITH [TABLE] KEY` you write yourself and for an internal-table `WHERE`.
+  *Not* affected: a functional **method** call in those positions (that reading
+  is what 7.02 already applies), and the pre-7.02 built-ins — the same
+  downported method has `READ TABLE lt_parts INDEX lines( lt_parts )` ten lines
+  above the failure and the compiler accepted it.
+  **Gate:** `npm run check:downport` over `src/`, and the downport is asked to
+  hoist it upstream (backlog below).
 - **Do not let an inline `DATA(…)` take its type from an offset/length
   expression.** `DATA(lv_field) = ls_attri->name+9.` made abaplint's
   `definitions_top` infer `TYPE name`, which is no DDIC type at v702, and

@@ -35,11 +35,6 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `  (Control, Token, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Invisible companion control for a sap.m.MultiInput (referenced via` && |\n| &&
-             `    // MultiInputId): mirrors added/removed tokens into the bindable` && |\n| &&
-             `    // addedTokens/removedTokens properties and fires ``change`` so the` && |\n| &&
-             `    // backend sees every token update. Also installs a validator that` && |\n| &&
-             `    // turns free-text entries into tokens.` && |\n| &&
              `    return Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -59,6 +54,16 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `          removedTokens: {` && |\n| &&
              `            type: "object",` && |\n| &&
              `          },` && |\n| &&
+             `` && |\n| &&
+             `          TokenKeyCell: {` && |\n| &&
+             `            type: "int",` && |\n| &&
+             `            defaultValue: -1,` && |\n| &&
+             `          },` && |\n| &&
+             `` && |\n| &&
+             `          TokenTextCells: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
              `        },` && |\n| &&
              `        events: {` && |\n| &&
              `          change: {` && |\n| &&
@@ -69,19 +74,55 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        this._setControlBound = this.setControl.bind(this);` && |\n| &&
-             `        Lib.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
-             `        Lib.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        this._unhook();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onTokenUpdate(oEvent) {` && |\n| &&
              `        Lib.applyTokenUpdate(this, oEvent);` && |\n| &&
              `        this.fireChange();` && |\n| &&
              `      },` && |\n| &&
-             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
+             `` && |\n| &&
+             `      tokenFromRow(row) {` && |\n| &&
+             `        const keyIdx = this.getProperty("TokenKeyCell");` && |\n| &&
+             `        if (!(keyIdx >= 0)) return null;` && |\n| &&
+             `        const cells = typeof row.getCells === "function" ? row.getCells() : [];` && |\n| &&
+             `        const cellText = (i) => {` && |\n| &&
+             `          const c = cells[i];` && |\n| &&
+             `          return c && typeof c.getText === "function" ? c.getText() : undefined;` && |\n| &&
+             `        };` && |\n| &&
+             `        const key = cellText(keyIdx);` && |\n| &&
+             `        if (key === undefined) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``MultiInputExt: TokenKeyCell ${keyIdx} is not a text cell of the picked row``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return null;` && |\n| &&
+             `        }` && |\n| &&
+             `        const rest = String(this.getProperty("TokenTextCells") || "")` && |\n| &&
+             `          .split(",")` && |\n| &&
+             `          .map((s) => s.trim())` && |\n| &&
+             `          .filter((s) => s !== "")` && |\n| &&
+             `          .map(Number)` && |\n| &&
+             `          .map((i) => {` && |\n| &&
+             `            const v = cellText(i);` && |\n| &&
+             `            if (v === undefined) {` && |\n| &&
+             `              Lib.logError(` && |\n| &&
+             `                ``MultiInputExt: TokenTextCells entry ${i} is not a text cell of the picked row``,` && |\n| &&
+             `              );` && |\n| &&
+             `            }` && |\n| &&
+             `            return v;` && |\n| &&
+             `          })` && |\n| &&
+             `          .filter((v) => v !== undefined && v !== "");` && |\n| &&
+             `        return new Token({` && |\n| &&
+             `          key,` && |\n| &&
+             `          text: rest.length ? ``${key}(${rest.join(" ")})`` : key,` && |\n| &&
+             `        });` && |\n| &&
+             `      },` && |\n| &&
              `      setControl() {` && |\n| &&
+             `        if (this.getProperty("checkInit")) return;` && |\n| &&
              `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
              `          this,` && |\n| &&
              `          this.getProperty("MultiInputId"),` && |\n| &&
@@ -89,9 +130,12 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `        if (!Lib.claimOnce(this, input)) return;` && |\n| &&
              `        try {` && |\n| &&
              `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
-             `          // Custom validator: turn any free-text entry into a Token where` && |\n| &&
-             `          // both key and visible text equal the input string.` && |\n| &&
-             `          input.addValidator(({ text }) => new Token({ key: text, text }));` && |\n| &&
+             `` && |\n| &&
+             `          input.addValidator((args) => {` && |\n| &&
+             `            const row = args && args.suggestionObject;` && |\n| &&
+             `            if (row) return this.tokenFromRow(row);` && |\n| &&
+             `            return new Token({ key: args.text, text: args.text });` && |\n| &&
+             `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("MultiInputExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&

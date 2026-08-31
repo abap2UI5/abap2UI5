@@ -35,62 +35,19 @@
 
 import { readFileSync } from "fs";
 import { join } from "path";
+import { fileURLToPath } from "url";
 import { walk } from "./lib/walk.mjs";
+// The statement splitter is shared with exception-cause-gate. It keeps
+// comments rather than stripping them: the pseudo-comments this gate is about
+// ("#EC ...) live in exactly the trailing comment of the statement they
+// annotate.
+import { statements } from "./lib/abap-statements.mjs";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const EXCLUDED = [/^src\/99\//, /^src\/00\/01\//, /^src\/00\/02\//];
 
 const findings = [];
-
-// Split ABAP source into statements. Comments are kept, not stripped: the
-// pseudo-comments this gate is about ("#EC ...) live in exactly the trailing
-// comment of the statement they annotate.
-function statements(source) {
-  const out = [];
-  let code = [];
-  let start = 0;
-  let line = 0;
-
-  for (const raw of source.split("\n")) {
-    line += 1;
-    if (/^\*/.test(raw)) continue; // full-line comment: not part of any statement
-    if (code.length === 0) {
-      // Between statements, an indented `"` line is a comment of its own. Only
-      // once a statement is open can such a line be a continuation of it.
-      if (raw.trim() === "" || raw.trim().startsWith('"')) continue;
-      start = line;
-    }
-    code.push(raw);
-
-    // find the statement terminator: a period outside a string and outside the
-    // trailing comment
-    let quote = null;
-    let end = -1;
-    for (let i = 0; i < raw.length; i += 1) {
-      const c = raw[i];
-      if (quote) {
-        if (c === quote) quote = null;
-        continue;
-      }
-      if (c === "`" || c === "'") {
-        quote = c;
-        continue;
-      }
-      if (c === '"') break; // rest of the line is a comment
-      if (c === ".") {
-        end = i;
-        break;
-      }
-    }
-    if (end >= 0) {
-      out.push({ start, text: code.join("\n") });
-      code = [];
-    }
-  }
-  if (code.length > 0) out.push({ start, text: code.join("\n") });
-  return out;
-}
 
 const files = walk(ROOT, "src")
   .filter(f => f.endsWith(".abap"))
@@ -156,6 +113,40 @@ for (const file of files) {
         rule: "sortseq",
         message: 'LOOP AT ... WHERE is a sequential read - the extended check wants "#EC CI_SORTSEQ on the statement',
       });
+    }
+
+    // The SAME finding, reached the other two ways. LOOP AT ... WHERE was the
+    // only shape this gate knew, so four production sequential reads shipped
+    // without the pragma while the repository's own precedent
+    // (z2ui5_cl_ui5_srv_model, the line_exists over mt_attri) carried it.
+    //
+    // Neither form can be decided perfectly from the text: whether a read is
+    // sequential depends on the table's key, which is declared elsewhere. Two
+    // scope decisions keep the rule honest rather than noisy:
+    //   - `WITH TABLE KEY` is exempt - that is a primary-key read, not a free
+    //     key, and it is the spelling used where a keyed table is meant.
+    //   - test classes are exempt. They hold 76 of the 86 matches in this
+    //     repository, almost all of them `lt_attri[ name = ... ]` inside an
+    //     assertion, where the finding says nothing about the shipped code.
+    //     Every recorded ATC incident came from production code.
+    // An intentional sequential read opts out the same way as the LOOP AT
+    // above: put "#EC CI_SORTSEQ on the statement.
+    if (!/testclasses/.test(file) && !/CI_SORTSEQ/i.test(flat)) {
+      if (/^\s*READ\s+TABLE\b/i.test(flat)
+        && /\bWITH\s+KEY\b/i.test(flat)
+        && !/\bWITH\s+TABLE\s+KEY\b/i.test(flat)) {
+        findings.push({
+          at,
+          rule: "sortseq",
+          message: 'READ TABLE ... WITH KEY is a sequential read - the extended check wants "#EC CI_SORTSEQ on the statement',
+        });
+      } else if (/\[\s*[A-Za-z_][\w-]*\s*=/.test(flat)) {
+        findings.push({
+          at,
+          rule: "sortseq",
+          message: 'a table expression keyed on a component is a sequential read - the extended check wants "#EC CI_SORTSEQ on the statement',
+        });
+      }
     }
 
     if (/^\s*(FIND|REPLACE)\b/i.test(flat) && /\bREGEX\b/i.test(flat) && !/REGEX_POSIX/i.test(flat)) {

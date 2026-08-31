@@ -20,7 +20,7 @@ sample is gated, a snippet is a copy somebody has to keep in step.
   tool queries that catalogue (`examples { query: "value help f4" }`) and
   hands back the class to read. Its neighbour `capabilities` answers the other
   question — whether a UI5 *control* can be expressed at all — out of
-  samples-controls' 416 ports.
+  samples-controls' 622 ports.
 - Without it: [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)
   is the same catalogue as a page.
 
@@ -39,6 +39,30 @@ Quick orientation while it loads:
   anywhere. Apps built without it work perfectly until the day someone calls
   them from a navigation — the linter's `missing-view-display-on-navigated`
   covers the branch that exists but never displays.
+- **…and it is the only DISPLAY branch.** `check_on_init( )` being true implies
+  `check_on_navigated( )` is true — every path to a first `main( )` sets the
+  flag (`factory_first_start`, fresh start and draft restore alike,
+  `factory_system_startup`, `prepare_app_stack` for call and leave). So
+  `IF check_on_init( ). view_display( ). ELSEIF check_on_navigated( ).
+  view_display( ).` is a fork whose two arms do the same thing, and
+  `IF check_on_init( ) OR check_on_navigated( ).` is the same redundancy in
+  another spelling. Carry a `check_on_init( )` branch only for what must happen
+  ONCE — `model_init( )`, or a couple of control-state flags seeded inline — and
+  let an app with nothing to seed dispatch on `check_on_navigated( )` /
+  `check_on_event( )` alone.
+- **Ask the lifecycle with the call itself, never with `IS INITIAL`.** The
+  three `check_on_*( )` methods return `abap_bool`, so the branch is
+  `IF client->check_on_init( ).` — a predicative call, the way the sample corpus
+  and the documentation on `z2ui5_if_client` write it. Compounds keep the
+  shape (`` ELSEIF client->check_on_event( `LOCK` ). ``,
+  `IF client->check_on_navigated( ) AND mv_ready = abap_true.`) — but never
+  `IF client->check_on_init( ) OR client->check_on_navigated( ).`, whose `OR`
+  is redundant, see the display-branch rule above. `IS NOT INITIAL` asks a
+  boolean whether it is EMPTY, which is what that question means for a string,
+  and it is one more dialect an app author has to read. Only a NEGATIVE branch
+  is spelled out, as `= abap_false`: the corpus has no negated predicative
+  form. Every other `abap_bool` follows the same rule: `IF mv_flag = abap_false.`
+  and `DELETE lt_x WHERE flag = abap_false.`, never `IS INITIAL` on either.
 - PUBLIC attributes = serialized, browser-visible state. Bound data only;
   everything else PROTECTED.
 - Build views with `z2ui5_cl_ui5_view_builder`

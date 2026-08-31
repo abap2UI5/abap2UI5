@@ -3,7 +3,7 @@
 Self-contained, offline reference for AI assistants (and humans) **building
 apps with** abap2UI5. It is derived from the framework sources in this
 repository (`src/02/` public API, `z2ui5_cl_ui5_view_builder`, the
-hello-world app) and the conventions proven over the 416 ported UI5
+hello-world app) and the conventions proven over the 622 ported UI5
 demo-kit samples in
 [samples-controls](https://github.com/abap2UI5/samples-controls). The rendered
 documentation site is <https://abap2ui5.github.io/docs/> — this file exists so
@@ -20,7 +20,9 @@ framework calls its `main( client )` method on every HTTP roundtrip, and the
 app dispatches on why it was called: it has to put its view on screen
 (`check_on_navigated`, true on the first start and on every return into the
 app), or the user interacted with it (`check_on_event`), or it is running for
-the very first time and has one-time setup to do (`check_on_init`).
+the very first time and has one-time setup to do (`check_on_init`). The first
+two are the dispatcher; the third is a branch an app only carries when it has
+something to seed once.
 The app builds a UI5 XML view as a string, binds ABAP attributes into it,
 and registers named events. Between roundtrips the framework
 serializes the app object into a draft table and restores it — **every PUBLIC
@@ -133,6 +135,54 @@ an option**: without it the view is only ever built on `check_on_init`, so
 navigating away (`nav_app_call`) and back leaves the app blank — the
 framework fires `check_on_navigated`, nothing re-displays. Always re-run
 `view_display( )` there.
+
+**And it is the ONLY display branch — `check_on_init( )` is for one-time setup,
+never for displaying.** `check_on_init( )` being true implies
+`check_on_navigated( )` is true: all four ways an instance reaches its first
+`main( )` set the flag (`factory_first_start` for a fresh start and for a draft
+restore, `factory_system_startup`, and `prepare_app_stack` for both
+`nav_app_call` and `nav_app_leave`). So an `IF check_on_init( ). view_display( ).
+ELSEIF check_on_navigated( ). view_display( ).` fork decides nothing — both arms
+do the same thing — and `IF check_on_init( ) OR check_on_navigated( ).` is the
+same redundancy spelled differently. An app with nothing to seed carries no
+`check_on_init( )` branch at all:
+
+```abap
+    me->client = client.
+    IF client->check_on_navigated( ).
+      view_display( ).
+    ELSEIF client->check_on_event( ).
+      on_event( ).
+    ENDIF.
+```
+
+Keep `check_on_init( )` where it earns its place — a `model_init( )` call, or
+the one or two control-state flags an app seeds inline — and let
+`check_on_navigated( )` fall through to the display.
+
+Two more conventions, both about reading the source rather than running it:
+
+- **A mock table is a table — line its columns up.** In a `VALUE #( )` with
+  three or more rows and the same field list in each, pad every cell to the
+  width of its column (the last one stays unpadded, so no spaces pile up before
+  the closing `)`). Where a padded row would break the 255-character line limit,
+  wrap it instead — at the *same* field boundaries in every row, so the columns
+  still read down the page. Rows whose field list differs (an optional field, a
+  nested child table) have no column to align and are left alone.
+
+  ```abap
+  t_items = VALUE #(
+      ( title = `Fixed Item 1` icon = `sap-icon://employee` enabled = abap_true )
+      ( title = `Fixed Item 2` icon = `sap-icon://building` enabled = abap_true )
+      ( title = `Fixed Item 3` icon = `sap-icon://card`     enabled = abap_true ) ).
+  ```
+
+- **A call that fits on one line goes on one line.** Stacking parameters is for
+  calls that do not fit, not for calls that have two parameters:
+  `client->popover_display( xml = popup->stringify( ) by_id = by_id ).` is 71
+  characters and needs no second line. The view chain is the exception — it has
+  its own layout rules (see the `view-chain-layout` skill), and a wrapped
+  `t_arg` list stays wrapped.
 
 ## 3. The view builder — `z2ui5_cl_ui5_view_builder`
 
@@ -567,7 +617,7 @@ The same tree, with the subtree held in a variable:
   F9 launches the class in an embedded preview against a real system.
 - **Worked examples**, three catalogues with the same row shape, so one search
   reads all of them: curated apps for "has somebody built this pattern" in
-  [abap2UI5/samples](https://github.com/abap2UI5/samples), 416 gate-verified
+  [abap2UI5/samples](https://github.com/abap2UI5/samples), 622 gate-verified
   demo-kit ports for "how is this control expressed" in
   [samples-controls](https://github.com/abap2UI5/samples-controls) (`src/`), and
   apps that need something from your stack — OData, RAP, APC, the launchpad —

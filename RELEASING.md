@@ -69,6 +69,15 @@ changelog.
 4. **Watch the run.** It re-checks everything on the tagged commit, prints the
    release notes before publishing them, then creates both releases.
 
+5. **Open the matching section on the docs changelog page** —
+   `docs/resources/changelog.md` in [abap2UI5/docs](https://github.com/abap2UI5/docs)
+   needs a `## X.Y.Z` heading carrying the **same date** as the section you
+   wrote in step 1. This is not a courtesy: `npm run check:changelog` compares
+   the two and is part of `verify`, so until that page catches up **every pull
+   request in this repository fails**, including ones that have nothing to do
+   with the release. The two documents are deliberately different in what they
+   say; they may not differ about which releases exist or when they shipped.
+
 To rehearse without publishing, dispatch the workflow by hand from the Actions
 tab: same gates, same notes, no tag and no release.
 

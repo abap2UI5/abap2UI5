@@ -50,7 +50,7 @@ sap.ui.define(
         }
       },
 
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
     });
   },
 );

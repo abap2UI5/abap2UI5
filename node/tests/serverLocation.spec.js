@@ -60,9 +60,19 @@ function loadServer() {
       },
     },
   });
-  // capture what roundtrip hands to the HTTP layer instead of fetching
-  Server.readHttp = (oBody) => bodies.push(oBody);
-  return { Server, bodies };
+  // Capture what roundtrip hands to the HTTP layer instead of fetching. The
+  // real readHttp confirms the request's token once the response wins its
+  // stale guard - do the same here, so the latches advance exactly as they do
+  // in the browser. `drop` simulates a request that never got there.
+  let drop = false;
+  Server.readHttp = (oBody, token) => {
+    bodies.push(oBody);
+    if (!drop) Session.confirmSent(token);
+  };
+  const dropNext = (v = true) => {
+    drop = v;
+  };
+  return { Server, bodies, dropNext };
 }
 
 test("the first roundtrip carries the location, an event roundtrip omits it", () => {
@@ -93,4 +103,23 @@ test("an app-start-shaped request re-sends the location (route restore)", () => 
   expect(bodies[0].S_FRONT.ORIGIN).toBe("https://host");
   expect(bodies[1].S_FRONT.ORIGIN).toBe("https://host");
   expect(bodies[1].S_FRONT.SEARCH).toBe("?app_start=Z_MY_APP");
+});
+
+test("a dropped request does not latch the location - the next one re-sends it", () => {
+  const { Server, bodies, dropNext } = loadServer();
+
+  // an app started FROM a draft id: the location travels on a request that
+  // already carries that id, so the app-start-shaped re-send does not apply
+  dropNext();
+  Server.roundtrip({ ID: "DRAFT1" });
+  dropNext(false);
+  Server.roundtrip({ ID: "DRAFT1" });
+
+  expect(bodies[0].S_FRONT.ORIGIN).toBe("https://host");
+  // the first request never reached the backend, so the second still carries it
+  expect(bodies[1].S_FRONT.ORIGIN).toBe("https://host");
+  expect(bodies[1].S_FRONT.PATHNAME).toBe("/sap/bc/z2ui5");
+
+  Server.roundtrip({ ID: "DRAFT1" });
+  expect(bodies[2].S_FRONT.ORIGIN).toBeUndefined();
 });

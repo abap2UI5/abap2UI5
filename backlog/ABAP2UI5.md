@@ -15,6 +15,16 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`model-skip-cannot-name-the-record-or-the-value`](items/model-skip-cannot-name-the-record-or-the-value.md) | '`client->get( )-t_model_skipped` locates a top-level cell exactly, but a NESTED cell loses its parent row, and no entry carries the refused value — so the one message an app most wants to write, quoting what the user typed, is not expressible' | medium | 2026-08-27 | abap2UI5/abap2UI5 |
+
+---
+
 ## Deferred
 
 _a decision was made not to do this now, and why_
@@ -22,16 +32,6 @@ _a decision was made not to do this now, and why_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`frontend-action-named-api`](items/frontend-action-named-api.md) | 425 + 99 calls across 130 ports go through a positional argument table — deferred to a future dedicated ACTION OBJECT (maintainer decision 2026-08-11), and this item is the collected requirement for it | medium | 2026-08-11 | abap2UI5/abap2UI5 |
-
----
-
-## Raw stock
-
-_Candidates nobody has worked out yet — named in a skill, or found by `npm run backlog:mine`. Listed so they are visible, not so they can be filed: an item file has to be written first._
-
-| Candidate | Found in |
-|---|---|
-| **event-value-unreachable** (PROBE) — the value the original reads sits in an array / control reference on the event · 1 port(s): 109 | mined from samples-controls `meta/` (IMPROVISED, verdict PROBE) |
 
 ---
 

@@ -44,6 +44,9 @@ import { fileURLToPath } from 'url';
  * now GENERATES its copy from the same two functions — see the entry for
  * `app-guide-deviations.mjs` below. */
 import { applyGuideDeviations, guideBody } from '../shared/app-guide-deviations.mjs';
+import { read as ecoRead, REPOS } from './lib-ecosystem.mjs';
+
+const repoEntry = (name) => REPOS.find((e) => e.org === 'abap2UI5' && e.repo === name);
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -52,6 +55,21 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
  * Deliberately a list rather than a directory convention: a file becoming
  * shared across repositories is a decision, and it should cost one line here
  * so that it is made rather than drifted into.
+ *
+ * Also a decision, made 2026-08-30 and recorded so it is not re-litigated
+ * file by file: the sample repositories' GENERATORS stay per-repository and
+ * are deliberately NOT on this list. generate-catalogue.mjs,
+ * generate-samples-md.mjs, generate-screenshots.mjs, check-keywords.mjs and
+ * scripts/lib/scan-samples.mjs look triplicated but are different programs
+ * sharing an idea - measured when this was written, each pair differs in
+ * more lines than the shorter file has (catalogue 227 diff lines over
+ * 119/127-line files, scan-samples 388 over 239/171), because each reads a
+ * different repository structure: a class-comment scan in samples, the
+ * meta/ sidecars in samples-controls, packages.json in samples-stack.
+ * One shared script would be three disjoint code paths in a trench coat.
+ * What the three genuinely share is their OUTPUT shape, and that is what is
+ * gated instead: check-catalogue-contract.mjs below pins the published
+ * catalogue.json contract each generator must keep emitting.
  */
 const SHARED = [
   {
@@ -91,6 +109,47 @@ const SHARED = [
       const out = {};
       // each repository names its own object prefixes
       for (const k of Object.keys(rules).sort()) if (k !== 'object_naming') out[k] = rules[k];
+
+/* --manifest <consumer>: the whole-file entries that consumer carries, as
+ * `sourcePath<TAB>consumerPath` lines.
+ *
+ * This gate NOTICES drift; it has never been able to end it, because the fix
+ * lives in another repository and somebody has to go and make it. So the
+ * consumers pull instead: each one has a workflow that reads this manifest,
+ * fetches the named sources and opens a pull request against itself when a
+ * copy has moved. No cross-repository credentials anywhere — a repository
+ * updating its own file with its own token is the same shape as every other
+ * bump workflow in this organisation.
+ *
+ * Only entries compared as WHOLE FILES are listed. An entry with a `section`
+ * extractor shares a part of a file the consumer also owns the rest of — the
+ * app rule block inside its own abaplint.jsonc, a section of its own
+ * AGENTS.md — and copying the source over it would destroy what it owns.
+ * Those stay a gate-and-fix-by-hand affair, which is the honest answer for
+ * them.
+ *
+ * So is anything landing in the consumer's `.github/workflows/`, marked
+ * `sync: false`. `GITHUB_TOKEN` cannot be granted the `workflows` permission —
+ * this organisation already writes that down, in the linter's release
+ * workflow — so a pull request that touches a workflow file is REFUSED at the
+ * push, and the sync job fails on a message about permissions rather than
+ * about the file. Leaving those entries in would have turned the first real
+ * edit to a shared workflow into a red weekly job in three repositories at
+ * once. They are still gated: drift is reported, and a human carries it.
+ */
+const manifestArg = process.argv.indexOf('--manifest');
+if (manifestArg !== -1) {
+  const who = process.argv[manifestArg + 1];
+  if (!who) {
+    console.error('--manifest wants a consumer name, e.g. --manifest samples');
+    process.exit(2);
+  }
+  const rows = SHARED
+    .filter((e) => !e.section && e.sync !== false && e.consumers.includes(who))
+    .map((e) => `${e.file}\t${e.consumerFile ?? e.file}`);
+  console.log(rows.join('\n'));
+  process.exit(0);
+}
       return out;
     },
     mine: (text) => parseJsonc(text).rules,
@@ -243,32 +302,94 @@ const SHARED = [
       + ' in the repository that owns it',
   },
   {
-    /* The builder-chain formatter — the executable half of the
-     * `view-chain-layout` skill that heads this list. Two repositories run it;
-     * neither owned it. Both being byte-equal today is the state this gate
-     * makes checkable rather than a fact somebody re-verifies by hand.
-     *
-     * This repository does not run it: the framework formats its own chains
-     * with the linter's `chain-house-layout` rule, and its copy of the script
-     * is gone. The script's own header used to claim otherwise, naming a path
-     * that had not existed since — which is what an unchecked shared file
-     * looks like from the inside.
-     *
-     * It is scheduled for deletion. `view-chain-layout` says when: both
-     * consumers pin the linter at a version predating the rule, and the day
-     * that pin can move the script goes away and the rule replaces it. Until
-     * then it is a formatter two corpora format ABAP by, and one line here is
-     * a cheaper way to hold it than trusting that nobody edits one copy.
+    /* The workflow that pulls this whole list. It is shared like everything
+     * else, and therefore syncs itself - which is the right way round: the
+     * decision about how copies travel is the source repository's too. The
+     * obvious objection, that a broken sync workflow cannot fix itself, is
+     * true and is what `check:shared` is for; it reports the copy either way.
      */
-    file: '.github/shared/chain-format.mjs',
-    consumers: ['samples', 'samples-controls'],
-    consumerFile: 'scripts/chain-format.mjs',
-    /* The source carries no skip, so its side of the comparison is the file
-     * as it stands; only a consumer that declares one has anything cut. */
-    section: (text, side) => dropSandboxSkip(text, side),
-    mine: (text) => text,
-    why: 'the builder-chain formatter the two sample corpora are laid out by,'
-      + ' until the linter pin can move and the rule replaces it',
+    file: '.github/shared/sync-shared.yaml',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: '.github/workflows/sync-shared.yaml',
+    sync: false,
+    why: 'the workflow each consumer runs to pull its copies from here — and the'
+      + ' one file the pull it opens could never carry, being a workflow itself',
+  },
+  /* The workflows that RUN the shared scripts.
+   *
+   * `check-app-rules.mjs`, `check-family-nav`'s checker and
+   * `check-framework-pin.mjs` are all gated above, and the workflow files that
+   * invoke them were not — byte-identical in three repositories, three copies,
+   * nothing comparing them. So the script could not drift and its trigger,
+   * its permissions and its job name could, which is the same gap seen from
+   * the other side: a consumer that quietly stops running a shared check still
+   * passes every gate that check exists to feed.
+   *
+   * Measured 2026-08-28: all three sets were still identical, so this pins
+   * agreement that already held rather than declaring a new one. */
+  {
+    file: '.github/shared/check-app-rules.yaml',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: '.github/workflows/check-app-rules.yaml',
+    sync: false,
+    why: 'the workflow that runs the shared app-rules checker',
+  },
+  {
+    file: '.github/shared/check-family-nav.yaml',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: '.github/workflows/check-family-nav.yaml',
+    sync: false,
+    why: 'the workflow that runs the shared family-nav checker',
+  },
+  {
+    /* Two consumers, not three: samples-controls pins differently and runs
+     * `check-pins.yaml` instead, which is its own file and not this one. */
+    file: '.github/shared/check-framework-pin.yaml',
+    consumers: ['samples', 'samples-stack'],
+    consumerFile: '.github/workflows/check-framework-pin.yaml',
+    sync: false,
+    why: 'the workflow that runs the shared framework-pin checker',
+  },
+  {
+    file: '.github/shared/check-family-nav.mjs',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'scripts/check-family-nav.mjs',
+    section: familyNavBody,
+    mine: familyNavBody,
+    why: 'the checker body and the canonical wording its three copies share —'
+      + ' the file says "identical in all three copies" and nothing checked it',
+  },
+  {
+    /* Only the two HAND-MAINTAINED sample repositories. samples-controls has a
+     * check-pins of its own and a different policy: it pins the framework by
+     * commit SHA in A2UI5_PIN, which abaplint cannot consume — `"branch"` feeds
+     * `git clone --branch` and takes a branch or a tag, never a SHA. So the two
+     * gates are not copies of each other and must not be listed as such. */
+    file: '.github/shared/check-framework-pin.mjs',
+    consumers: ['samples', 'samples-stack'],
+    consumerFile: 'scripts/check-framework-pin.mjs',
+    why: 'the check that the abaplint configs pin abap2UI5 to a RELEASE rather'
+      + ' than resolving whatever is on main',
+  },
+  {
+    /* The contract on the root `catalogue.json` each sample repository
+     * publishes. The three shapes deliberately differ (`repo` vs
+     * `repository`, `file` vs `path`, keywords as array vs string) and at
+     * least three consumers outside those repositories parse all three from
+     * GitHub main - mcp-server's examples.mjs, the vscode-extension's
+     * catalogue.ts, the playground's examples browser. Each repository's own
+     * `generate-catalogue.mjs --check` proves the file matches the TREE;
+     * this checker proves it still matches what the consumers parse, and
+     * pins the divergences so nobody unifies one side of them in passing.
+     *
+     * Whole file, no deviations: it identifies the repository from the
+     * catalogue itself. The framework does not publish a catalogue and does
+     * not run it - it is the source, the same trade check-app-rules makes. */
+    file: '.github/shared/check-catalogue-contract.mjs',
+    consumers: ['samples', 'samples-controls', 'samples-stack'],
+    consumerFile: 'scripts/check-catalogue-contract.mjs',
+    why: 'the shape contract on the three published catalogue.json files —'
+      + ' what mcp-server, the vscode-extension and the playground parse',
   },
   {
     file: '.github/shared/agents-metadata.md',
@@ -280,6 +401,18 @@ const SHARED = [
     mine: (text) => metadataBlock(text),
   },
 ];
+
+/* The body of a family-nav checker: everything from its first `import` down.
+ *
+ * Above that line each repository owns three constants — SELF, PAGE_HTML,
+ * PAGE_CSS — and the file itself documents that as the only difference between
+ * the copies. Below it, the logic AND the canonical wording are meant to be
+ * identical in all three, which is the half worth comparing. */
+function familyNavBody(text) {
+  const at = text.search(/^import /m);
+  if (at === -1) throw new Error('no `import` line — the shared body starts at the first one');
+  return text.slice(at);
+}
 
 const METADATA_HEADING = '## Metadata: what goes on the class, and what goes beside it';
 
@@ -306,43 +439,6 @@ function metadataBlock(text) {
 const METADATA_EXTENSIONS = {
   'samples-controls': ['### In this repository'],
 };
-
-/* samples-controls' chain formatter skips one directory the other consumer's
- * does not, and the difference is real rather than drift.
- *
- * `src/zz_dev` is where abap2UI5/mcp-server's `deploy_app` writes the class an
- * agent is working on. It is gitignored scratch, but every script here walks
- * `src/` on the filesystem and the filesystem does not read `.gitignore`, so
- * the loop this ecosystem recommends to agents left four classes where the
- * gates look. samples-controls is the ONLY repository that happens to:
- * `deploy_app` resolves the samples-controls checkout and writes nowhere else
- * (mcp-server `lib/runtime.mjs`). Carrying the skip into `samples` would be a
- * branch that can never be taken, plus a `lib/src-tree.mjs` beside it that
- * exists to list nothing.
- *
- * So it is declared, the way `scripts/prose-absent.json` is left per
- * repository for the same reason: the shared thing is the program, and what
- * each repository excludes from its own tree is not. Removing the skip over
- * there fails this gate by name rather than passing quietly. */
-const SANDBOX_SKIP = {
-  'samples-controls': [
-    "import { isSkippedDir } from './lib/src-tree.mjs';\n",
-    '    if (isSkippedDir(e.name)) continue;\n',
-  ],
-};
-
-function dropSandboxSkip(text, side) {
-  const lines = SANDBOX_SKIP[side] ?? [];
-  return lines.reduce((s, line) => {
-    if (!s.includes(line)) {
-      throw new Error(
-        `declared sandbox skip is no longer in ${side}'s copy:\n      ${JSON.stringify(line)}\n`
-        + '      it was removed or rewritten — update SANDBOX_SKIP',
-      );
-    }
-    return s.split(line).join('');
-  }, text);
-}
 
 function dropSubsections(block, headings, side) {
   const lines = block.split('\n');
@@ -428,23 +524,47 @@ for (const entry of SHARED) {
   for (const repo of entry.consumers) {
     expected += 1;
     const local = path.join(ROOT, '..', repo, consumerFile);
-    let theirs = null;
-    let from = '';
+    let theirs;
+    let from;
 
-    let text = null;
-    if (fs.existsSync(local)) {
-      text = fs.readFileSync(local, 'utf8');
-      from = 'checkout';
+    /* lib-ecosystem.read, not a hand fetch: it checks a sibling CHECKOUT
+     * first (so a checkout with the copy deleted no longer falls back to
+     * the still-published GitHub main and reads green), and it tells a
+     * deleted file apart from an unreachable repository via the sentinel
+     * probe - a consumer that dropped its copy is exactly the drift this
+     * gate exists for, and the old reader reported it as "not compared". */
+    let text;
+    const entry2 = repoEntry(repo);
+    let got;
+    if (entry2) {
+      got = await ecoRead(entry2, consumerFile);
     } else {
-      try {
-        const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        text = await res.text();
-        from = 'github';
-      } catch (err) {
-        notes.push(`${repo}: not compared (${err.message})`);
-        continue;
+      /* a consumer OFF the ecosystem list (the generated `frontend` channel
+       * repository) keeps the plain reader: checkout first, then raw main.
+       * It loses the deleted-vs-unreachable distinction, which is the price
+       * of not putting a generated repository on a list about source
+       * repositories. */
+      if (fs.existsSync(local)) {
+        got = { text: fs.readFileSync(local, 'utf8'), from: 'checkout' };
+      } else {
+        try {
+          const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          got = { text: await res.text(), from: 'github' };
+        } catch (err) {
+          got = { note: err.message };
+        }
       }
+    }
+    if (got.text !== undefined) {
+      text = got.text;
+      from = got.from;
+    } else if (got.missing) {
+      problems.push(`${repo}/${consumerFile}: declared a consumer of ${entry.file}, but the copy is gone upstream`);
+      continue;
+    } else {
+      notes.push(`${repo}: not compared (${got.note})`);
+      continue;
     }
     try {
       theirs = entry.section ? comparable(entry.section(text, repo)) : normalise(text);

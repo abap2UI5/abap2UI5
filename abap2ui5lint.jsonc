@@ -60,10 +60,20 @@
     "non-released-api": false
   },
 
-  // No render gate: it needs @abap2ui5/render-runtime (~123 MB of UI5), and
-  // this repository already renders these very apps in a real browser through
-  // its own Playwright suite (`npm run check:js`, node/srv). Run it on demand
-  // with `npx abap2ui5lint` after `npm i -D @abap2ui5/render-runtime`.
+  // No render gate IN THIS CONFIG, because it would be paid for by every job:
+  // it needs @abap2ui5/render-runtime (~123 MB of UI5), the shared setup action
+  // runs `npm ci` for all of them, and most have nothing to do with views.
+  //
+  // It does run, though — `npm run check:render` turns it on against this same
+  // config, and render-gate.yaml installs the runtime and calls it. That was
+  // the gap: the argument for leaving it off used to be that node/srv's
+  // Playwright suite already loads these apps, which is true and is not the
+  // same test. The suite proves the shipped apps work end to end; the render
+  // gate proves every view a class BUILDS survives a real XMLView.create,
+  // which is the check this repository asks four other repositories to pass.
+  //
+  // Measured before it was wired up: 24 files, 5 documents rendered, 19 built
+  // in helper methods and skipped, no findings, 9.6 seconds.
   "render": false,
 
   "failOn": "warning"

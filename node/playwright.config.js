@@ -2,16 +2,33 @@
 const { defineConfig, devices } = require('@playwright/test');
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config({ path: path.resolve(__dirname, '.env') });
-
-/**
  * Custom project options (see tests/e2e/fixtures.js): ui5Src pins the UI5
  * bootstrap the served page boots with, ui5Theme the theme.
  * @typedef {{ ui5Src?: string, ui5Theme?: string }} Z2UI5TestOptions
  */
+
+/* The UI5 build the three default browser legs boot for the fixture-based
+   specs (example, roundtrip - see tests/e2e/fixtures.js). Pinned for the
+   same reason node/setup/fetch-deps.mjs pins its git dependencies by sha: the
+   backend page hardcodes the EVERGREEN CDN bootstrap, so a UI5 release could
+   turn a green pull request red without any change in this repository - and
+   `retries: 2` then hid the flake instead of naming it. Bump deliberately
+   (edit here, run the suite), or override for one run via UI5_E2E_SRC.
+
+   The version MUST be the FINAL patch of a RETIRED minor line: the CDN
+   serves only the newest patch of each line and drops the rest, so a pin
+   into a still-moving line (1.136.0 while the LTS line was at .20) 404s
+   and every leg times out - that is how this comment learned it. Same
+   reason the 1.71 leg pins 1.71.80, the last 1.71 patch ever. `npm view
+   @openui5/sap.ui.core versions` shows where each line ended.
+
+   The specs that create their own pages (error-view, nav-back-forward,
+   lib-sanitizer, focus-after-enable) bypass the fixture's rewrite and still
+   boot the evergreen build - the ui5-1.71 project comment below describes
+   how to port one onto the shared page fixture. */
+const PINNED_UI5_SRC =
+  process.env.UI5_E2E_SRC ||
+  'https://sdk.openui5.org/1.144.0/resources/sap-ui-core.js';
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -34,8 +51,9 @@ module.exports = defineConfig(
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  // CI: 'list' puts per-test detail in the job log, where the html report
-  // (written but not uploaded) would leave a failure opaque.
+  // CI: 'list' puts per-test detail in the job log; the html report and the
+  // first-retry trace below are uploaded by test.yaml's browser matrix when a
+  // leg fails, so a flake that only reproduces in CI can be opened afterwards.
   reporter: process.env.CI ? [['list'], ['html']] : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -50,17 +68,17 @@ module.exports = defineConfig(
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], ui5Src: PINNED_UI5_SRC },
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'], ui5Src: PINNED_UI5_SRC },
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: { ...devices['Desktop Safari'], ui5Src: PINNED_UI5_SRC },
     },
 
     /* Pinned OpenUI5 1.71 gate: the oldest supported release, run as an
@@ -89,26 +107,6 @@ module.exports = defineConfig(
         ui5Theme: 'sap_fiori_3',
       },
     },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
   /* Run your local dev server before starting the tests */

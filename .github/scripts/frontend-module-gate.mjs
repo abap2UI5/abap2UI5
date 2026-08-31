@@ -58,6 +58,8 @@ const ALLOWED = new Set([
   'sap/m/ComboBoxRenderer',
   'sap/m/Dialog',
   'sap/m/HBox',
+  'sap/m/Input',
+  'sap/m/InputRenderer',
   'sap/m/MessageBox',
   'sap/m/Text',
   'sap/m/Token',
@@ -96,12 +98,70 @@ function jsFiles(dir, out = []) {
   return out;
 }
 
-/* The dependency ARRAY only — `sap.ui.define([...])`. A `sap.ui.require("x")`
- * elsewhere in the file is the documented escape hatch and is not judged; that
- * asymmetry is the whole rule. */
+/* Two scopes, and the difference between them is the point.
+ *
+ * The dependency ARRAY — `sap.ui.define([...])` — must name a module the FLOOR
+ * has: a 404 there drops the whole component.
+ *
+ * The probing form — `sap.ui.require("x")` — is the documented escape hatch for
+ * a module NEWER than the floor, and its whole contract is that it returns
+ * undefined when the module is absent. That makes it silent in the one way the
+ * array is not: a MISSPELLED id behaves exactly like a module the release does
+ * not have. `sap/ui/core/Formatting` sat in ControlCall.js for weeks - no such
+ * module exists in any UI5 release, the require returned undefined on every
+ * one of them, and the custom-currency action logged "not available" and did
+ * nothing. Its unit test stubbed the same wrong id, so it passed.
+ *
+ * So the ids here are checked against a REVIEWED list too, exactly like the
+ * array - a new one costs a line and a look, which is all this gate ever does. */
 const DEFINE = /sap\.ui\.define\s*\(\s*\[([^\]]*)\]/g;
+const REQUIRE = /sap\.ui\.require\s*\(\s*["']([^"']+)["']\s*\)/g;
+
+/* `sap.ui.require` has a SECOND form - the asynchronous one, taking an array
+ * and a callback - and it was matched by neither regex above: not by REQUIRE,
+ * which wants a single string, and not by DEFINE, which wants the word
+ * `define`. So three live call sites were reviewed by nothing at all
+ * (core/actions/ControlCall.js twice, Component.js once). That is this gate's
+ * own stated failure mode, and its own anecdote above is about a grep that
+ * only matched one of two spellings. Same treatment as the probing form: the
+ * ids may be newer than the floor, they just have to be ids somebody checked.
+ * Deliberately not folded into DEFINE - a missing dependency there kills the
+ * whole component, while these resolve to undefined, and the two findings read
+ * differently. */
+const REQUIRE_ARRAY = /sap\.ui\.require\s*\(\s*\[([^\]]*)\]/g;
+
+/* Module ids reached through the probing `sap.ui.require("…")` form. These are
+ * allowed to be NEWER than the floor (that is what the form is for) - what is
+ * checked is that the id is one somebody verified against UI5, spelling
+ * included. */
+const ALLOWED_REQUIRE = new Set([
+  'sap/base/Log',
+  'sap/base/i18n/Formatting',      // @since 1.120
+  'sap/base/i18n/Localization',
+  'sap/m/Button',
+  'sap/m/Dialog',
+  'sap/m/Text',
+  'sap/ui/core/IconPool',          // every supported release; lazy so the
+                                   // ICON_POOL target reports "not available"
+                                   // instead of failing the component load
+  'sap/ui/core/InvisibleMessage',  // @since 1.78
+  'sap/ui/core/Messaging',         // @since 1.118
+  'sap/ui/core/Theming',           // @since 1.118
+  'sap/ushell/Container',          // the FLP shell, absent outside it by design
+  // Reached through the ARRAY form of sap.ui.require, which nothing matched
+  // until REQUIRE_ARRAY above existed. All five were already in the shipped
+  // frontend; they are listed here because they were reviewed, not because
+  // they are new.
+  'sap/m/MessageToast',            // @since 1.9.2
+  'sap/m/TextArea',                // @since 1.9.0
+  'sap/ui/codeeditor/CodeEditor',  // @since 1.46 - the developer tools' editor
+  'sap/ui/codeeditor/library',     // the same library's module, loaded with it
+  'sap/ushell/services/AppConfiguration', // FLP only, like sap/ushell/Container
+]);
 
 const findings = [];
+const requireFindings = [];
+const required = new Set();
 let files = 0;
 let declared = 0;
 const seen = new Set();
@@ -121,6 +181,20 @@ for (const file of jsFiles(SCAN)) {
       if (!ALLOWED.has(mod)) findings.push({ rel, mod });
     }
   }
+  for (const m of text.matchAll(REQUIRE)) {
+    const mod = m[1];
+    if (mod.startsWith('z2ui5/') || mod.startsWith('./') || mod.startsWith('../')) continue;
+    required.add(mod);
+    if (!ALLOWED_REQUIRE.has(mod)) requireFindings.push({ rel, mod });
+  }
+  for (const m of text.matchAll(REQUIRE_ARRAY)) {
+    for (const dep of m[1].matchAll(/["']([^"']+)["']/g)) {
+      const mod = dep[1];
+      if (mod.startsWith('z2ui5/') || mod.startsWith('./') || mod.startsWith('../')) continue;
+      required.add(mod);
+      if (!ALLOWED_REQUIRE.has(mod)) requireFindings.push({ rel, mod });
+    }
+  }
   if (hit) files += 1;
 }
 
@@ -128,6 +202,17 @@ console.log(
   `frontend-module: ${declared} dependency/dependencies in ${files} file(s), `
   + `${seen.size} UI5 module(s), floor ${FLOOR}`,
 );
+
+if (requireFindings.length) {
+  console.error(`\n${requireFindings.length} module id(s) reached through sap.ui.require("…") and not on the reviewed list:`);
+  for (const f of requireFindings) console.error(`  ${f.rel}  ${f.mod}`);
+  console.error(
+    '\n  This form returns undefined for a module that is absent - and for one'
+    + '\n  whose id is misspelled, identically and silently. Check the id against'
+    + '\n  the UI5 sources, then add it to ALLOWED_REQUIRE in this script.',
+  );
+  process.exit(1);
+}
 
 if (findings.length) {
   console.error(`\n${findings.length} UI5 module(s) declared in a sap.ui.define array and not on the ${FLOOR} list:`);
@@ -148,4 +233,8 @@ if (findings.length) {
  * that has stopped being true, and the next reader takes it for evidence. */
 const stale = [...ALLOWED].filter((m) => !seen.has(m));
 if (stale.length) console.log(`  allowed but not declared anywhere: ${stale.join(', ')}`);
-console.log(`every declared UI5 module exists on ${FLOOR} - OK`);
+const staleRequire = [...ALLOWED_REQUIRE].filter((m) => !required.has(m));
+if (staleRequire.length) console.log(`  allowed to be required but never required: ${staleRequire.join(', ')}`);
+console.log(
+  `every declared UI5 module exists on ${FLOOR}, and all ${required.size} probed module id(s) are reviewed - OK`,
+);

@@ -25,21 +25,29 @@ sap.ui.define(
       },
 
       init() {
-        this._beforeBound = () => {
-          this.readFilter();
-          this.readSort();
-        };
-        this._afterBound = () => {
-          this.setFilter();
-          this.setSort();
-        };
-        Lib.registerCallback("onBeforeRoundtrip", this._beforeBound);
-        Lib.registerCallback("onAfterRoundtrip", this._afterBound);
+        this._unhooks = [
+          Lib.hookCallback(this, "onBeforeRoundtrip", "readBackend"),
+          // onAfterRENDERING, not onAfterRoundtrip: the latter fires
+          // right after the request DISPATCH (see View1.eB), long before a
+          // rebuild could have produced the fresh unfiltered binding this
+          // re-apply exists for - the pass was unreachable there. After the
+          // rendering the new binding exists and the compare below decides.
+          Lib.hookCallback(this, "onAfterRendering", "applyBackend"),
+        ];
       },
 
       exit() {
-        Lib.unregisterCallback("onBeforeRoundtrip", this._beforeBound);
-        Lib.unregisterCallback("onAfterRoundtrip", this._afterBound);
+        this._unhooks.forEach((unhook) => unhook());
+      },
+
+      readBackend() {
+        this.readFilter();
+        this.readSort();
+      },
+
+      applyBackend() {
+        this.setFilter();
+        this.setSort();
       },
 
       _getTable() {
@@ -68,14 +76,13 @@ sap.ui.define(
         if (!aFilters) return;
         const binding = oTable.getBinding();
         if (!binding) return;
-        // The re-apply pass (onAfterRoundtrip) runs synchronously right
-        // after the request is dispatched, before the response can rebuild
-        // the table. When the binding is still the exact object we read the
-        // filters from, it already carries them and the column indicators
-        // are in sync - re-running binding.filter() would re-evaluate the
-        // whole client dataset for an identical result. Only re-apply when
-        // the binding was replaced (e.g. a fresh view build produced a new,
-        // unfiltered binding).
+        // The re-apply pass runs on onAfterRendering (see init), i.e. AFTER
+        // a response may have rebuilt the table. When the binding is still
+        // the exact object we read the filters from, it already carries
+        // them and the column indicators are in sync - re-running
+        // binding.filter() would re-evaluate the whole client dataset for
+        // an identical result. Only re-apply when the binding was replaced
+        // (a fresh view build produced a new, unfiltered binding).
         if (binding === this._filterBinding) return;
         binding.filter(aFilters);
         const columns = oTable.getColumns();
@@ -196,7 +203,7 @@ sap.ui.define(
           "UITableExt.setSort failed",
         );
       },
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
     });
   },
 );

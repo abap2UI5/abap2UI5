@@ -65,6 +65,13 @@ function withSlots(openKeys, model) {
     ],
     getView: (key) => views[key],
     destroy: () => {},
+    // mirrors the real resolver (core/ViewSlots.js): only a model
+    // carrying the _z2ui5Tracked marker is the framework's
+    trackedModel: (owner) => {
+      const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+      if (!owner?.getModel) return undefined;
+      return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
+    },
   };
   const { module: Slots } = loadModule("core/actions/Slots.js", {
     deps: {
@@ -161,9 +168,7 @@ test.describe("textPath (ancestor-text breadcrumb)", () => {
     const menu = { getParent: () => null }; // sap.m.Menu - no getText
     const parent = { getText: () => "Create New Site", getParent: () => menu };
     const item = { getText: () => "Official Store", getParent: () => parent };
-    expect(controller.textPath(item)).toBe(
-      "Create New Site > Official Store",
-    );
+    expect(controller.textPath(item)).toBe("Create New Site > Official Store");
     expect(controller.textPath(item, " | ")).toBe(
       "Create New Site | Official Store",
     );

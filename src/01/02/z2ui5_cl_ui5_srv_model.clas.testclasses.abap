@@ -274,7 +274,8 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
 
     DATA lr_value TYPE REF TO data.
-    GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
+*    GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
+    lr_value = REF #( lo_app_client->mv_value ).
 
     DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
 
@@ -1364,6 +1365,38 @@ CLASS ltcl_app_tree IMPLEMENTATION.
 ENDCLASS.
 
 
+CLASS ltcl_app_typed DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_pos,
+        qty TYPE i,
+      END OF ty_s_pos.
+    TYPES ty_t_pos TYPE STANDARD TABLE OF ty_s_pos WITH EMPTY KEY.
+
+    " a table whose cells are NOT all strings - the only shape in which a
+    " delta cell can fail to convert at all
+    TYPES:
+      BEGIN OF ty_s_row,
+        name  TYPE string,
+        price TYPE p LENGTH 9 DECIMALS 2,
+        t_pos TYPE ty_t_pos,
+      END OF ty_s_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA mt_tab TYPE ty_t_tab.
+ENDCLASS.
+
+
+CLASS ltcl_app_typed IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
 CLASS ltcl_test_delta_apply DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
   PRIVATE SECTION.
@@ -1374,6 +1407,18 @@ CLASS ltcl_test_delta_apply DEFINITION FINAL
     METHODS test_nested_mixed      FOR TESTING RAISING cx_static_check.
     METHODS test_struct_component  FOR TESTING RAISING cx_static_check.
     METHODS test_subtable_replace  FOR TESTING RAISING cx_static_check.
+
+    " the trace of a cell the delta could not apply - see
+    " z2ui5_if_client=>ty_s_model_skip
+    METHODS test_skip_cell_converts FOR TESTING RAISING cx_static_check.
+    METHODS test_skip_cell_refused  FOR TESTING RAISING cx_static_check.
+    METHODS test_skip_one_of_two    FOR TESTING RAISING cx_static_check.
+    METHODS test_skip_absent_field  FOR TESTING RAISING cx_static_check.
+    METHODS test_skip_nested_name   FOR TESTING RAISING cx_static_check.
+
+    METHODS typed_app_create
+      RETURNING
+        VALUE(result) TYPE REF TO ltcl_app_typed.
 
     METHODS tree_app_create
       RETURNING
@@ -1550,6 +1595,147 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
                                         act = lo_app->mt_tree[ 1 ]-nodes[ 1 ]-user ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lo_app->mt_tree[ 1 ]-nodes[ 1 ]-validated ).
+  ENDMETHOD.
+
+  METHOD typed_app_create.
+
+    result = NEW #( ).
+    result->mt_tab = VALUE #( ( name  = `Notebook`
+                                price = '1249.00'
+                                t_pos = VALUE #( ( qty = 1 ) ) )
+                              ( name  = `Monitor`
+                                price = '299.00' ) ).
+
+  ENDMETHOD.
+
+  METHOD test_skip_cell_converts.
+
+    DATA(lo_app) = typed_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " the accepted case - this is what proves the wire is alive and the
+    " refusal below is a conversion failure, not a dead binding
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"PRICE":"1250.00"}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TAB` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1250.00' )
+                                        act = CONV decfloat34( lo_app->mt_tab[ 1 ]-price ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD test_skip_cell_refused.
+
+    DATA(lo_app) = typed_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " the grouped thousands separator a locale-formatted Input sends
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"1":{"PRICE":"1,250.00"}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TAB` ).
+
+    " the cell is still SKIPPED - the old value stands and nothing raised
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '299.00' )
+                                        act = CONV decfloat34( lo_app->mt_tab[ 2 ]-price ) ).
+
+    " ... but it is no longer silent
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
+                                        act = lo_model->mt_skipped[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_model->mt_skipped[ 1 ]-row ).
+    cl_abap_unit_assert=>assert_equals( exp = `PRICE`
+                                        act = lo_model->mt_skipped[ 1 ]-field ).
+
+  ENDMETHOD.
+
+  METHOD test_skip_one_of_two.
+
+    DATA(lo_app) = typed_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " one bad cell must not take the good ones down with it
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"PRICE":"abc","NAME":"Laptop"},"1":{"PRICE":"350.00"}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TAB` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Laptop`
+                                        act = lo_app->mt_tab[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1249.00' )
+                                        act = CONV decfloat34( lo_app->mt_tab[ 1 ]-price ) ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '350.00' )
+                                        act = CONV decfloat34( lo_app->mt_tab[ 2 ]-price ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `PRICE`
+                                        act = lo_model->mt_skipped[ 1 ]-field ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_model->mt_skipped[ 1 ]-row ).
+
+  ENDMETHOD.
+
+  METHOD test_skip_absent_field.
+
+    DATA(lo_app) = typed_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " PRICE is simply not in this delta, and an unknown component is not one
+    " either - neither is an error, so neither may show up in the trace
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"NAME":"Ultrabook","NOT_A_COMPONENT":"x"}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TAB` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Ultrabook`
+                                        act = lo_app->mt_tab[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD test_skip_nested_name.
+
+    DATA(lo_app) = typed_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"T_POS":{"__delta":{"0":{"QTY":"seven"}}}}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TAB` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_app->mt_tab[ 1 ]-t_pos[ 1 ]-qty ).
+
+    " the trace names the nested table, parent first - not the outer one
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB-T_POS`
+                                        act = lo_model->mt_skipped[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_model->mt_skipped[ 1 ]-row ).
+    cl_abap_unit_assert=>assert_equals( exp = `QTY`
+                                        act = lo_model->mt_skipped[ 1 ]-field ).
+
   ENDMETHOD.
 
 ENDCLASS.

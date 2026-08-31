@@ -1,8 +1,23 @@
 name: auto_downport
 
+# Scoped by paths: the 702 branch is a function of src/, the 702 lint
+# config and the downport tooling - a docs-only push to main changed none
+# of its inputs and still rebuilt and force-pushed the branch. Not a
+# required check, so a paths filter is safe here (contrast check_gates.yaml,
+# where "a check that does not run cannot be required").
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'abaplint.jsonc'
+      - '.abapgit.xml'
+      - '.github/abaplint/**'
+      - 'node/setup/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/auto_downport.yaml'
+      - '.github/actions/**'
 
 concurrency:
   group: auto_downport
@@ -24,6 +39,9 @@ jobs:
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"
+        # auto_downport clones the three pinned git dependencies - cache
+        # them instead of re-cloning on every push to main
+        deps: "true"
 
     - run: npm run auto_downport
 

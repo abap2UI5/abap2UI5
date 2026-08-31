@@ -34,11 +34,8 @@ CLASS z2ui5_cl_ui5f_camsel_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (ComboBox, Item, ComboBoxRenderer, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `    // ComboBox pre-filled with the device's cameras (video inputs) so the` && |\n| &&
-             `    // user can pick which one the CameraPicture control should use.` && |\n| &&
+             `` && |\n| &&
              `    return ComboBox.extend("z2ui5.cc.CameraSelector", {` && |\n| &&
-             `      // init() is a UI5 lifecycle listener and must not return a value, so it` && |\n| &&
-             `      // cannot be async - kick off the (async) device enumeration separately.` && |\n| &&
              `      init() {` && |\n| &&
              `        ComboBox.prototype.init.call(this);` && |\n| &&
              `        this._loadCameras();` && |\n| &&
@@ -49,10 +46,9 @@ CLASS z2ui5_cl_ui5f_camsel_js IMPLEMENTATION.
              `          const md = navigator.mediaDevices;` && |\n| &&
              `          if (!md?.enumerateDevices) return;` && |\n| &&
              `          const devices = await md.enumerateDevices();` && |\n| &&
-             `          // The ComboBox may have been destroyed during the await.` && |\n| &&
+             `` && |\n| &&
              `          if (!devices || Lib.isDestroyed(this)) return;` && |\n| &&
              `          for (const device of devices) {` && |\n| &&
-             `            // Only video inputs are relevant.` && |\n| &&
              `            if (device.kind !== "videoinput") continue;` && |\n| &&
              `            this.addItem(` && |\n| &&
              `              new Item({ key: device.deviceId, text: device.label }),` && |\n| &&

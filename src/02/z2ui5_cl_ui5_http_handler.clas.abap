@@ -62,6 +62,9 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
+    " NO caller in this repository - public API kept for app code that reads
+    " the raw request outside a roundtrip (rule 5 guards the signature).
+    " Candidate for the next deliberate API revision if it stays unused
     CLASS-METHODS get_request
       IMPORTING
         server        TYPE REF TO object OPTIONAL
@@ -71,7 +74,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_req.
 
-    " CSRF defense (on by default; an app can opt out via z2ui5_if_exit~
+    " CSRF defense (on by default; an app can opt out via z2ui5_if_ui5_exit~
     " set_config_http_post -> check_csrf_active = abap_false). Pure and
     " side-effect free so it is unit-testable
     " without a server mock: the caller reads the header values off the
@@ -107,12 +110,12 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " and set_response (security headers) need it; without the cache the user
     " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
     " after init_context( ), so the exit always sees the current request context.
-    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_types=>ty_s_http_config.
+    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     CLASS-DATA sv_config_http_get_set TYPE abap_bool.
 
     CLASS-METHODS config_http_get
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_s_http_config.
+        VALUE(result) TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
@@ -125,12 +128,41 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    " The whole 500 response for an exception that reached one of the two
+    " top-level catches - main( ) and _main( ) share it. Everything it does is
+    " guarded, because it RUNS INSIDE A CATCH BLOCK and a raise there is not
+    " caught by its own TRY: it would replace the error report with an
+    " unhandled dump. Two things can fail here. Reading
+    " check_hide_error_details calls the user exit, which is arbitrary customer
+    " code and a plausible cause of the very exception being reported; and
+    " rendering the dump walks the exception chain. Both fall back rather than
+    " raise. Same belt-and-braces as z2ui5_cl_ui5_handler=>main around
+    " request_context_info( ) - an annotation that fails must not replace the
+    " error it was meant to describe.
+    CLASS-METHODS _error_response
+      IMPORTING
+        !val          TYPE REF TO cx_root
+        !method       TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
     " reduce an Origin/Referer/Host value to its bare host[:port] authority
     " (lower-cased, scheme and path/query/fragment stripped) for same-origin
     " comparison in _check_csrf_rejected
     CLASS-METHODS _csrf_host_authority
       IMPORTING
         val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " minimal HTML-attribute escaping for the exit-supplied values the GET
+    " page interpolates into attribute positions (theme, src, t_add_config).
+    " An exit deriving one of them from the request (t_params reaches it) is
+    " otherwise a quote-breakout into the bootstrap script tag. The CSP value
+    " stays raw on purpose - it is a whole meta TAG, not an attribute
+    CLASS-METHODS _attr_escape
+      IMPORTING
+        val           TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -141,46 +173,83 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD main.
 
-    " the one place the Layer 0 request type meets the public one - both are
-    " structurally identical, and the public signature stays free of
-    " z2ui5_cl_ui5_util_http (see z2ui5_if_types=>ty_s_http_req)
-    MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
+    " Outer top-level catch. _main( ) carries one of its own and is where a
+    " failing app lands, but four things run OUTSIDE it and used to be
+    " unprotected: get_req_info( ), init_context( ), the CSRF gate's call into
+    " the user exit - arbitrary customer code - and set_response( ) below.
+    " An exception in any of them left the ICF stack to dump: no body, no
+    " status code and none of the security headers, which is the exact state
+    " the WHEN OTHERS branch of set_response documents as the thing to prevent.
+    " set_response( ) sits after ENDTRY so it runs on both paths.
+    TRY.
+        " the one place the Layer 0 request type meets the public one - both are
+        " structurally identical, and the public signature stays free of
+        " z2ui5_cl_ui5_util_http (see ty_s_http_req above)
+        MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
 
-    " initialize the exit context and reset the per-request GET-config cache
-    " up front: the CSRF gate below already calls the user exit, and a
-    " rejected POST never reaches _main( ) - without this the exit would see
-    " the previous request's context and set_response( ) would emit the
-    " previous request's cached security headers ( _main( ) repeats both,
-    " harmlessly - they are idempotent )
-    z2ui5_cl_ui5_user_exit=>init_context( ms_req ).
-    CLEAR: ss_config_http_get, sv_config_http_get_set.
+        " initialize the exit context and reset the per-request GET-config cache
+        " up front: the CSRF gate below already calls the user exit, and a
+        " rejected POST never reaches _main( ) - without this the exit would see
+        " the previous request's context and set_response( ) would emit the
+        " previous request's cached security headers ( _main( ) repeats both,
+        " harmlessly - they are idempotent )
+        z2ui5_cl_ui5_user_exit=>init_context( ms_req ).
+        CLEAR: ss_config_http_get, sv_config_http_get_set.
 
-    CASE ms_req-method.
-      WHEN `HEAD`.
-        mo_server->set_session_stateful( 0 ).
-        RETURN.
-      WHEN `POST`.
-        " CSRF gate: only a POST can change state, so the check lives here.
-        " Reading the config every POST is cheap (get_instance is cached);
-        " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_ui5_user_exit=>
-        " set_config_http_post), so a cross-origin POST is rejected unless an
-        " app opts out via its own exit.
-        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
-        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        CASE ms_req-method.
+          WHEN `HEAD` OR `POST`.
+            " CSRF gate. It covers BOTH state-changing verbs: a POST runs the
+            " app, and the HEAD below terminates the stateful session. HEAD is
+            " a CORS-simple method, so any page can send it with credentials
+            " and the reply being opaque does not stop the call from executing
+            " - gating only the POST would have left the one state change a
+            " cross-origin page can still reach. Reading the config is cheap
+            " (get_instance is cached); check_csrf_active defaults to abap_true
+            " (seeded in z2ui5_cl_ui5_user_exit=>set_config_http_post), so a
+            " cross-origin request is rejected unless an app opts out via its
+            " own exit.
+            DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+            z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
-        IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
-                                 origin  = mo_server->get_header_field( `origin` )
-                                 referer = mo_server->get_header_field( `referer` )
-                                 host    = mo_server->get_header_field( `host` ) ) = abap_true.
-          ms_res = VALUE #( body          = `CSRF validation failed - cross-origin POST rejected`
-                            status_code   = 403
-                            status_reason = `Forbidden` ).
-        ELSE.
-          ms_res = _main( ms_req ).
-        ENDIF.
-      WHEN OTHERS.
-        ms_res = _main( ms_req ).
-    ENDCASE.
+            " behind a reverse proxy / web dispatcher that rewrites Host to the
+            " internal name, Origin still carries the EXTERNAL one - comparing
+            " against Host would then 403 every legitimate request. The proxy
+            " puts the external authority into X-Forwarded-Host; prefer it when
+            " present (first entry - each hop may append its own)
+            DATA(lv_host) = mo_server->get_header_field( `x-forwarded-host` ).
+            IF lv_host IS INITIAL.
+              lv_host = mo_server->get_header_field( `host` ).
+            ELSE.
+              SPLIT lv_host AT `,` INTO lv_host DATA(lv_rest_hosts) ##NEEDED.
+            ENDIF.
+
+            IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
+                                     origin  = mo_server->get_header_field( `origin` )
+                                     referer = mo_server->get_header_field( `referer` )
+                                     host    = lv_host ) = abap_true.
+              ms_res = VALUE #( body          = `CSRF validation failed - cross-origin request rejected`
+                                status_code   = 403
+                                status_reason = `Forbidden` ).
+            ELSEIF ms_req-method = `HEAD`.
+              " the session-terminate ping from the frontend (core/Server.js
+              " endSession). It used to RETURN before set_response( ), which
+              " sent the reply with status code 0 and none of the security
+              " headers. An empty 200 through the normal tail keeps status and
+              " headers consistent with every other reply
+              mo_server->set_session_stateful( 0 ).
+              ms_res = VALUE #( status_code   = 200
+                                status_reason = `OK` ).
+            ELSE.
+              ms_res = _main( ms_req ).
+            ENDIF.
+          WHEN OTHERS.
+            ms_res = _main( ms_req ).
+        ENDCASE.
+
+      CATCH cx_root INTO DATA(lx_fatal).
+        ms_res = _error_response( val    = lx_fatal
+                                  method = ms_req-method ).
+    ENDTRY.
 
     set_response( ).
 
@@ -226,6 +295,32 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     SPLIT lv_val AT `#` INTO lv_val lv_rest.
 
     result = lv_val.
+
+  ENDMETHOD.
+
+  METHOD _attr_escape.
+
+    result = val.
+    " the common value carries none of these - skip the four copies then
+    IF result NA `&<"'`.
+      RETURN.
+    ENDIF.
+    result = replace( val  = result
+                      sub  = `&`
+                      with = `&amp;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `<`
+                      with = `&lt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `&quot;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `&#39;`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
@@ -308,6 +403,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                        |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
                        |cccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_ccc" \};|.
 
+    " The tab title is a constant. It used to come from `cs_config-title`, and
+    " that field is still on the structure - it is simply no longer read. The
+    " tab title belongs to the running app, which sets it through
+    " cs_event-set_title at any point in its life; two mechanisms for one
+    " string meant the page and the app could disagree about what the tab says,
+    " and only one of them can react to what the app is actually showing. What
+    " is left here is the name the browser shows while UI5 boots, before any
+    " app can speak - and a page whose <title> is empty shows the URL.
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&
                   |<head>\n| &&
@@ -315,7 +418,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta charset="UTF-8">\n| &&
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
-                  |<title>{ ls_config-title }</title>\n| &&
+                  |<title>abap2UI5</title>\n| &&
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&
                   |        \}</style> \n| &&
@@ -331,11 +434,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |</script>\n| &&
                   |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./" \}' data-sap-ui-oninit="onInitComponent" \n| &&
                   |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
-                  |data-sap-ui-theme="{ ls_config-theme }" src="{ ls_config-src }"|.
+                  |data-sap-ui-theme="{ _attr_escape( ls_config-theme ) }" src="{ _attr_escape( ls_config-src ) }"|.
 
+    " built apart and appended once: result-body already carries the whole
+    " embedded preload here, so appending per config row re-copied ~400KB
+    " per entry. Name and value are both escaped - see _attr_escape
+    DATA(lv_add_config) = ``.
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
-      result-body = |{ result-body } { lr_config->n }='{ lr_config->v }'|.
+      lv_add_config = |{ lv_add_config } { _attr_escape( lr_config->n ) }='{ _attr_escape( lr_config->v ) }'|.
     ENDLOOP.
+    result-body = result-body && lv_add_config.
 
     result-body = result-body &&
                   | ></script></head>\n| &&
@@ -482,27 +590,56 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         ENDCASE.
 
       CATCH cx_root INTO DATA(lx).
-        " In hardened installations the exit sets check_hide_error_details, so
-        " the raw exception text (RTTI/class/DDIC names, dynamic-call failures,
-        " and the system/user context the full dump carries) is replaced by a
-        " generic message instead of leaking to the client.
-        " Default is abap_false -> the real reason is returned as before.
-        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
-        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
-
-        " the body is the only diagnostic the developer gets - the browser
-        " shows it in the fatal-error overlay and nothing of it survives the
-        " roundtrip anywhere else. Ship the FULL dump (whole previous chain
-        " with class, source position, kernel id and exception attributes),
-        " not just the outermost message: a MOVE_CAST or a failed dynamic
-        " call says nothing without the cause below it
-        result = VALUE #( body          = COND #( WHEN ls_config_post-check_hide_error_details = abap_true
-                                                  THEN `Internal Server Error`
-                                                  ELSE _error_body( val    = lx
-                                                                    method = is_req-method ) )
-                          status_code   = 500
-                          status_reason = `Internal Server Error` ).
+        result = _error_response( val    = lx
+                                  method = is_req-method ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD _error_response.
+
+    " In hardened installations the exit sets check_hide_error_details, so the
+    " raw exception text (RTTI/class/DDIC names, dynamic-call failures, and the
+    " system/user context the full dump carries) is replaced by a generic
+    " message instead of leaking to the client.
+    " Default is abap_false -> the real reason is returned as before.
+    DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+    TRY.
+        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+      CATCH cx_root ##NO_HANDLER.
+        " the exit is customer code and may be what failed in the first place.
+        " Falling through leaves check_hide_error_details at its abap_false
+        " default, which is the pre-exit behaviour: report the real reason
+    ENDTRY.
+
+    " the body is the only diagnostic the developer gets - the browser shows it
+    " in the fatal-error overlay and nothing of it survives the roundtrip
+    " anywhere else. Ship the FULL dump (whole previous chain with class,
+    " source position, kernel id and exception attributes), not just the
+    " outermost message: a MOVE_CAST or a failed dynamic call says nothing
+    " without the cause below it
+    DATA lv_body TYPE string.
+    IF ls_config_post-check_hide_error_details = abap_true.
+      lv_body = `Internal Server Error`.
+    ELSE.
+      TRY.
+          lv_body = _error_body( val    = val
+                                 method = method ).
+        CATCH cx_root.
+          " rendering the dump walks the chain and reads each entry's
+          " attributes; if that is what breaks, the outermost message is still
+          " worth more to the developer than a bare status code
+          TRY.
+              lv_body = |abap2UI5 - unhandled exception in a { method } request: { val->get_text( ) }|.
+            CATCH cx_root.
+              lv_body = `Internal Server Error`.
+          ENDTRY.
+      ENDTRY.
+    ENDIF.
+
+    result = VALUE #( body          = lv_body
+                      status_code   = 500
+                      status_reason = `Internal Server Error` ).
 
   ENDMETHOD.
 
@@ -521,8 +658,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                 req    = req
                                 res    = res ).
 
-    result-body   = lo_handler->mo_server->get_cdata( ).
-    result-method = lo_handler->mo_server->get_method( ).
+    " the same one-liner main( ) uses - get_req_info( ) fills all four fields.
+    " Reading only body and method left path and t_params blank, and t_params
+    " is where app_start and every other URL parameter lives: the two fields
+    " app code reading the raw request is most likely after
+    MOVE-CORRESPONDING lo_handler->mo_server->get_req_info( ) TO result.
 
   ENDMETHOD.
 

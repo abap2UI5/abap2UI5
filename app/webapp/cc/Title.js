@@ -17,6 +17,6 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       this.setProperty("title", val, true);
       document.title = Lib.toText(val);
     },
-    renderer: { apiVersion: 2, render() {} },
+    renderer: Lib.EMPTY_RENDERER,
   });
 });

@@ -52,7 +52,7 @@ sap.ui.define(
         // "../z2ui5_ccc/"), a sibling of THIS BSP. In the standalone HTTP
         // service there is no BSP for them to be a sibling of, so the backend
         // hands the absolute paths over on the global instead
-        // (z2ui5_cl_http_handler=>_http_get).
+        // (z2ui5_cl_ui5_http_handler=>_http_get).
         //
         // They have to be applied HERE and not in the page: the manifest
         // registers its own value while the component is being created, which
@@ -281,6 +281,8 @@ sap.ui.define(
         DevTools.exit();
 
         Server.endSession();
+        // and drop the module-scoped request state with it - see Server.reset
+        Server.reset();
 
         // Global state that would outlive the component (FLP keeps the page
         // alive): cancel any pending backend timer, empty the shortcut

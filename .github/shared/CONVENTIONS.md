@@ -22,6 +22,13 @@ first paragraph.
 | **Product** | Ships on its own release cycle to npm, Marketplace or an action. | `linter`, `vscode-extension`, `mcp-server` |
 | **Corpus** | A body of installable example code, installed on its own. | `samples`, `samples-controls`, `samples-stack` |
 
+These rules bind the `abap2UI5-addons` organisation as well as `abap2UI5`. They
+did not until 2026-08-20, and the drift that bought is the reason the sentence
+is here: eleven repositories with their own workflow naming, three different
+abaplint pins, no `check` script between them, not one scheduled run — and one
+that shipped for ten days against a class that exists in no repository, behind
+a green badge, because nothing re-ran its CI.
+
 Rules that follow from the role:
 
 - A channel repository carries a README whose first line says it is generated,
@@ -43,6 +50,12 @@ Rules that follow from the role:
   retitles every required status check at once, so rename only when the file is
   being reworked anyway, and say so in the pull request so branch protection
   can be moved with it.
+- Gated in `abap2UI5` by `npm run check:conventions`, with the names that
+  predate the rule listed as exceptions by name — including `UI5_2X.yaml`, the
+  file this section names as its own bad example. The list only shrinks: an
+  entry for a file that no longer exists fails, so a rename drops its exception
+  in the same change. What the gate buys today is that the next workflow is
+  named by the rule rather than by the exceptions around it.
 - The `name:` must be recognisable from the file name. It is what branch
   protection and the checks list show, so a reader who sees a red check has to
   be able to find the file it came from. `ci.yml` → `CI` and
@@ -66,8 +79,12 @@ Rules that follow from the role:
 
 - **Every repository has `check` and `test`.** They are the two names an
   outside developer types without reading anything first, and "Missing script"
-  is a bad first answer. `check` exists in all ten repositories as of
-  2026-08-18; before that it existed in five.
+  is a bad first answer. `check` exists in all twenty-two repositories as of
+  2026-08-28; it reached the ten `abap2UI5` ones on 2026-08-18, and the eleven
+  `abap2UI5-addons` ones when they were brought into these rules. `playground`
+  was the twenty-second, added on 2026-08-28: it had never been on the gate's
+  list, and it had no `check` at all — the rule holds only over the repositories
+  somebody remembered to enumerate.
 - `check` runs what CI runs on a pull request. A step that exists only in
   `package.json` is a step no pull request has to pass; a step that exists only
   in a workflow is one no contributor can run before pushing.
@@ -78,13 +95,16 @@ Rules that follow from the role:
   the failure this rule exists to prevent. Today: `vscode-extension` omits
   `test:web` (downloads VS Code web + chromium), `samples-controls` omits
   `gates:full` and the two downport lint configs, `web-abap2UI5` omits the
-  Playwright e2e run.
+  Playwright e2e run, `playground` and `linter` omit the Chromium download their
+  own tests then ask for by name, and `linter` also omits `codeql`, the
+  composite-action job and the publish-shaped `package` job.
 - `test` runs the repository's own tests. Where there is no separate test suite
   — the corpora are checked, not unit-tested — `test` is `npm run check`, so
   that the universal command still answers.
 - The first two rules are gated: `npm run check:scripts` in this repository
-  reads all ten `package.json` files (sibling checkout, else raw main, else say
-  so and pass) and fails naming any repository that has lost either script.
+  reads all twenty-two `package.json` files (sibling checkout, else raw main,
+  else say so and pass) and fails naming any repository that has lost either
+  script.
   Prose is not a thing that fails a pull request, which is why five of them
   drifted out of the rule before anyone noticed.
 - Namespaces use a colon: `check:chains`, `fmt:chains`, `bump:linter`. No
@@ -97,13 +117,31 @@ Rules that follow from the role:
 
 ## 4. Toolchain
 
-- `engines.node` is `>=22` and `.nvmrc` says `22`.
+- `engines.node` is `>=22` and `.nvmrc` says `22`. **Gated** since 2026-08-28 by
+  `npm run check:toolchain` in this repository, which reads every repository on
+  the list (sibling checkout, else raw `main`, else say so and pass). It was
+  written because this section was the only one nothing decided, and the cost
+  was measurable: **seven of the nine** repositories had no `.nvmrc`, and
+  `playground` declared neither it nor `engines` while its AGENTS.md asserted
+  "Node 22, matching the rest of the organisation" in prose. Drift that predates
+  the gate is named in its `EXCEPTIONS` list, which only shrinks.
 - `license` is set in every `package.json`; the LICENSE file is MIT and names
   the same holder across the organisation.
 - `@abaplint/cli` and `@abap2ui5/linter` are on the same version in every
-  repository that lints ABAP. A repository that pins deliberately (because it
-  must match what another repository syntax-checks with) says so in a comment
-  next to the pin.
+  repository that lints ABAP. A repository that pins deliberately — because it
+  must match what another repository syntax-checks with, or because the
+  dependency ends up inside a bundle a visitor downloads — **names the pin and
+  the reason in its own `AGENTS.md`**, the way §3 already asks for a `check`
+  step that is left out.
+
+  It said "in a comment next to the pin" until 2026-08-28, and that could never
+  be done: the pins live in `package.json`, and JSON has no comments. So the
+  one escape hatch the rule offers was impossible to take, and the divergence
+  went unrecorded instead — five different `@abaplint/cli` versions and four
+  different `@abap2ui5/linter` ranges across the nine repositories on the day
+  this sentence was rewritten, with no repository saying why. A rule whose
+  exception cannot be written down is a rule that gets ignored silently rather
+  than argued with.
 - `@abap2ui5/linter` and `@abap2ui5/render-runtime` ship from one tag and are
   installed on the same minor line. A runtime older than the snapshot the linter
   was built against serves controls the gate then judges by metadata it does not
@@ -133,7 +171,7 @@ never both hand-maintained and copied.
 | --- | --- | --- |
 | `README.md` | every repository | What it is, who it is for, how to start. Understandable in 30 seconds by someone who has never seen the project. |
 | `AGENTS.md` | every source repository | The single source of truth for agents. Opens with "Single source of truth for agents working on…". |
-| `CLAUDE.md` | every repository that has `AGENTS.md` | A pointer to `AGENTS.md`, nothing else. |
+| `CLAUDE.md` | every repository that has `AGENTS.md` | A pointer to `AGENTS.md`, nothing else. Gated in `abap2UI5` by `check:conventions`. Claude Code reads `CLAUDE.md` and nothing else by that name, so guidance without one is invisible to it. |
 | `CONTRIBUTING.md` | every source and corpus repository | How to propose a change, and what CI will check. |
 | `SECURITY.md` | every repository that ships code | Where to report a vulnerability. |
 | `CHANGELOG.md` | every product repository | Keep-a-Changelog format, `## Unreleased` on top. |
@@ -165,3 +203,49 @@ ABAP or generated trees.
 - Sample numbers are allocated per repository, not globally. The class prefix is
   what makes a number unique — prose names a sample by its class, never by its
   number alone.
+
+## 9. Which abap2UI5 a repository builds against
+
+Every repository outside the framework itself resolves abap2UI5 from somewhere,
+and the wrong default is the same everywhere: an unpinned git dependency clones
+the DEFAULT branch, so the repository silently builds against the development
+tip. That hides two defects at once — code that only works on `main` passes,
+and a framework change reddens repositories that did not change.
+
+Which pin a repository takes follows from what it is FOR, not from taste:
+
+| Purpose | Pins | Moved by |
+| --- | --- | --- |
+| **Teaches a reader** — documentation examples, the starter template, the hand-maintained corpora | the release **tag** | a weekly bump that re-runs the gates at the new release before opening the PR |
+| **Canary** — the generated corpus, the playground | a commit **SHA** | a weekly bump that proves the new pin, with a separate nightly run against `main` tip |
+| **Mirror** — the delivery and single-class builds | `main`, by push | the framework's own workflows; these repositories *are* the framework |
+
+Rules:
+
+- Nothing resolves the default branch implicitly. A repository that genuinely
+  wants `main` says so with a key and a comment, so it reads as a decision.
+- A repository that teaches pins the release its readers have. `main` is ahead
+  of that by design: `z2ui5_cl_ui5_view_builder` was on `main` from 2026-08-12
+  and in no release until 1.143.0 three weeks later, and for those three weeks
+  five repositories could teach an API no reader could install.
+- A pin nobody moves is its own defect. Every pin has a bump workflow that
+  re-runs that repository's gates at the new version *before* the pull request
+  exists, so a framework change that breaks a consumer fails in the bump rather
+  than on somebody's unrelated pull request.
+- One repository, one framework version. When several configs carry the pin,
+  a gate holds them equal — a forgotten config linting against a different
+  release is exactly the drift the pin was supposed to end.
+
+One consequence of the tooling, stated rather than hidden: abaplint's
+`"branch"` key feeds `git clone --branch`, which takes a branch name or a tag
+and **never** a commit SHA. A repository pinned by SHA therefore cannot express
+that pin to abaplint at all — and leaving the key off does not centralise the
+pin, it removes it, because abaplint then clones the default branch.
+
+So such a repository resolves the framework more than once, on purpose, and
+says which reference answers which question. `samples-controls` is the worked
+example: `A2UI5_PIN` (a SHA) for the transpiled backend and the e2e smoke, a
+release tag in the abaplint configs for whether the corpus compiles against the
+framework its readers installed, and `main` tip in the nightly e2e as the
+upstream canary. Three references is fine; three references where two are
+undeclared is not.

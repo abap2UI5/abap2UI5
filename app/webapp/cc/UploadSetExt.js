@@ -51,11 +51,10 @@ sap.ui.define(
       },
 
       init() {
-        this._setControlBound = this.setControl.bind(this);
-        Lib.registerCallback("onAfterRendering", this._setControlBound);
+        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");
       },
       exit() {
-        Lib.unregisterCallback("onAfterRendering", this._setControlBound);
+        this._unhook();
       },
 
       _readFile(file) {
@@ -84,8 +83,11 @@ sap.ui.define(
         this.fireRemove();
       },
 
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
       setControl() {
+        // Once claimed there is nothing left to do - skip the target lookup
+        // (byIdOfOwner walks the parent chain on every roundtrip) entirely.
+        if (this.getProperty("checkInit")) return;
         const uploadSet = ViewSlots.byIdOfOwner(
           this,
           this.getProperty("uploadSetId"),

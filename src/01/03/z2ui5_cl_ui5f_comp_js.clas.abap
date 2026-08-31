@@ -61,34 +61,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        // The global "z2ui5" object holds the shared state for the whole` && |\n| &&
-             `        // app; core/AppState owns it. initGlobal() creates the global if` && |\n| &&
-             `        // needed, resets the internal state to clean defaults and provides` && |\n| &&
-             `        // a fresh oConfig - so the base init() and all helpers can rely on` && |\n| &&
-             `        // a fully initialized global from here on.` && |\n| &&
              `        AppState.initGlobal();` && |\n| &&
              `` && |\n| &&
-             `        // Two sibling BSPs carry frontend artefacts the framework itself does` && |\n| &&
-             `        // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5_ccc` && |\n| &&
-             `        // (abap2UI5/customer-frontend-extension, the customer's own library).` && |\n| &&
-             `        // The two roots differ in one letter and are NOT the same BSP - each` && |\n| &&
-             `        // matches the ABAP prefix of its repository (z2ui5_cl_cci for the` && |\n| &&
-             `        // community controls, z2ui5_cl_ccc for the customer extension).` && |\n| &&
-             `        // Both are normally found through their reserved resourceRoot in` && |\n| &&
-             `        // manifest.json ("z2ui5_cci": "../z2ui5_cci/", "z2ui5_ccc":` && |\n| &&
-             `        // "../z2ui5_ccc/"), a sibling of THIS BSP. In the standalone HTTP` && |\n| &&
-             `        // service there is no BSP for them to be a sibling of, so the backend` && |\n| &&
-             `        // hands the absolute paths over on the global instead` && |\n| &&
-             `        // (z2ui5_cl_http_handler=>_http_get).` && |\n| &&
-             `        //` && |\n| &&
-             `        // They have to be applied HERE and not in the page: the manifest` && |\n| &&
-             `        // registers its own value while the component is being created, which` && |\n| &&
-             `        // is after everything the shell can run, so a registration made there` && |\n| &&
-             `        // is overwritten again. init() runs after manifest processing.` && |\n| &&
-             `        // Absent in BSP and Launchpad mode, where the manifest entries are` && |\n| &&
-             `        // right. Neither BSP is loaded from here - nothing is requested until` && |\n| &&
-             `        // a view actually names the namespace - so a system that has only one` && |\n| &&
-             `        // of them installed (or neither) never pays for the other.` && |\n| &&
              `        const ccResourceRoot = AppState.getGlobal("ccResourceRoot");` && |\n| &&
              `        if (ccResourceRoot) {` && |\n| &&
              `          sap.ui.loader.config({ paths: { z2ui5_cci: ccResourceRoot } });` && |\n| &&
@@ -102,33 +76,13 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `` && |\n| &&
              `        AppState.getGlobal("oConfig").ComponentData = this.getComponentData();` && |\n| &&
              `` && |\n| &&
-             `        // The date helpers are a public contract: apps use them via the` && |\n| &&
-             `        // z2ui5.Util global (XML view formatter strings) or via` && |\n| &&
-             `        // core:require of the z2ui5/Util module. Publish the global here -` && |\n| &&
-             `        // since the custom controls were split out of App.controller.js,` && |\n| &&
-             `        // nothing else loads the module eagerly anymore.` && |\n| &&
              `        AppState.setGlobal("Util", DateUtil);` && |\n| &&
              `` && |\n| &&
-             `        // The curated formatter module in the standard app layout` && |\n| &&
-             `        // (model/formatter.js): views wire it via core:require of` && |\n| &&
-             `        // z2ui5/model/formatter; the global keeps binding strings working` && |\n| &&
-             `        // on releases without core:require (< 1.74). It owns the date` && |\n| &&
-             `        // helpers - Util above is the thin legacy alias re-exporting them.` && |\n| &&
              `        AppState.setGlobal("Formatter", Formatter);` && |\n| &&
              `` && |\n| &&
              `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
-             `        // Warm-load the messaging module so Lib.getMessaging's synchronous` && |\n| &&
-             `        // sap.ui.require resolves it before the first view is displayed.` && |\n| &&
-             `        // On UI5 2.x sap/ui/core/Messaging is the only messaging API (the` && |\n| &&
-             `        // sap.ui.getCore().getMessageManager() fallback is gone), and` && |\n| &&
-             `        // nothing else pulls the module into the graph - without this the` && |\n| &&
-             `        // message> model and validation collection would silently no-op.` && |\n| &&
-             `        // Only attempt it where the module exists (1.118+): on older releases` && |\n| &&
-             `        // (e.g. 1.71) the require would 404 and make the ui5loader retry` && |\n| &&
-             `        // loudly via synchronous XHR; there Lib.getMessaging falls back to` && |\n| &&
-             `        // sap.ui.getCore().getMessageManager() instead.` && |\n| &&
              `        if (Lib.hasMessagingModule()) {` && |\n| &&
              `          sap.ui.require(` && |\n| &&
              `            ["sap/ui/core/Messaging"],` && |\n| &&
@@ -141,39 +95,20 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        this._initVersionInfo();` && |\n| &&
              `` && |\n| &&
              `        this._installUnloadListener();` && |\n| &&
-             `        // The developer tools own everything of their own: the Ctrl+F12` && |\n| &&
-             `        // shortcut, the dialog instance, the roundtrip recorder and the` && |\n| &&
-             `        // "?z2ui5-devtools=" auto open. This call and the exit() below are` && |\n| &&
-             `        // the framework's ENTIRE coupling to devtools/ - keep it that` && |\n| &&
-             `        // way (see the module header there).` && |\n| &&
+             `` && |\n| &&
              `        DevTools.install();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `        this._installRouterListener();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `      // Event listeners installed in init() and removed in exit()` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `      _installUnloadListener() {` && |\n| &&
              `        this._boundUnload = this._onUnload.bind(this);` && |\n| &&
-             `        // "pagehide", not "beforeunload": pagehide fires only after the` && |\n| &&
-             `        // navigation is committed (any "leave page?" prompt was answered),` && |\n| &&
-             `        // so tearing the app down here can neither swallow the cc/Dirty` && |\n| &&
-             `        // unsaved-changes prompt (destroying the app mid-beforeunload` && |\n| &&
-             `        // removed its window.onbeforeunload handler before the browser` && |\n| &&
-             `        // invoked it) nor kill the live session when the user chooses to` && |\n| &&
-             `        // stay. It is also the reliable event on iOS Safari, which never` && |\n| &&
-             `        // fired beforeunload dependably.` && |\n| &&
+             `` && |\n| &&
              `        this._unloadEvent = "pagehide";` && |\n| &&
              `        window.addEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installScrollListener() {` && |\n| &&
-             `        // Scroll events do not bubble, but they do trigger capture-phase` && |\n| &&
-             `        // listeners on ancestors - a single document-level listener observes` && |\n| &&
-             `        // every scrollable container. ScrollFocus.onScrollCapture records the` && |\n| &&
-             `        // last scrolled element per view slot for the S_SCROLL request info.` && |\n| &&
              `        this._boundScroll = (event) => ScrollFocus.onScrollCapture(event);` && |\n| &&
              `        document.addEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
@@ -182,46 +117,23 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installRouterListener() {` && |\n| &&
-             `        // Hash-based app routing (UI5 Router style), owned by core/Router.js.` && |\n| &&
-             `        // It sits on the HashChanger - the same engine` && |\n| &&
-             `        // sap.ui.core.routing.Router uses, and inside the FLP the shell's own` && |\n| &&
-             `        // one - so the native browser Back/Forward buttons and the launchpad` && |\n| &&
-             `        // back button drive navigation. Only apps that opted in via` && |\n| &&
-             `        // follow_up_action( cs_event-set_nav_routing ) act on it, so apps that manage their own` && |\n| &&
-             `        // hash are unaffected. Server does the actual restore roundtrip; it is` && |\n| &&
-             `        // injected here so the router stays free of a Server dependency.` && |\n| &&
              `        Router.init(() => Server.restoreFromRoute());` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `      // SAP Fiori Launchpad integration (only when running inside FLP)` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `      _initLaunchpad() {` && |\n| &&
              `        const Container = sap.ui.require("sap/ushell/Container");` && |\n| &&
-             `        if (!Container) return; // not running inside the launchpad -> nothing to do` && |\n| &&
+             `        if (!Container) return;` && |\n| &&
              `` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
              `        this._launchpad = launchpad;` && |\n| &&
              `        AppState.state.oLaunchpad = launchpad;` && |\n| &&
              `` && |\n| &&
-             `        // The FLP services load asynchronously. By the time they resolve, the` && |\n| &&
-             `        // component may already have been destroyed (e.g. user navigated away` && |\n| &&
-             `        // before the services were ready). setIfAlive guards against writing` && |\n| &&
-             `        // to a stale launchpad object in that case.` && |\n| &&
              `        const setIfAlive = (key, value) => {` && |\n| &&
              `          if (Lib.isAlive(this) && this._launchpad === launchpad) {` && |\n| &&
              `            launchpad[key] = value;` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
-             `        // ShellUIService is a UI5 service (factory` && |\n| &&
-             `        // sap.ushell.ui5service.ShellUIService, declared in manifest.json),` && |\n| &&
-             `        // not a Container service. Requesting it via Container.getServiceAsync` && |\n| &&
-             `        // resolves to sap/ushell/services/ShellUIService.js, which does not` && |\n| &&
-             `        // exist in the (ABAP) launchpad and fails with a 404. The component's` && |\n| &&
-             `        // getService() honors the manifest declaration and returns the` && |\n| &&
-             `        // correctly scoped instance.` && |\n| &&
              `        this.getService("ShellUIService")` && |\n| &&
              `          .then((s) => setIfAlive("ShellUIService", s))` && |\n| &&
              `          .catch((e) =>` && |\n| &&
@@ -261,21 +173,13 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getTheme() {` && |\n| &&
-             `        // sap/ui/core/Theming only exists since UI5 1.118, so it must not be` && |\n| &&
-             `        // a hard dependency of this module - older bootstraps (e.g. 1.108)` && |\n| &&
-             `        // would fail to load the component. On 1.118+ the core itself loads` && |\n| &&
-             `        // Theming, so the probing require finds it; otherwise fall back to` && |\n| &&
-             `        // the legacy Configuration API.` && |\n| &&
              `        try {` && |\n| &&
              `          const Theming = sap.ui.require("sap/ui/core/Theming");` && |\n| &&
              `          if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
-             `          /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
-             `             deliberate fallback for UI5 releases without sap/ui/core/Theming` && |\n| &&
-             `             (added in 1.118); the modern API is used in the branch above. */` && |\n| &&
+             `` && |\n| &&
              `          if (sap.ui.getCore) {` && |\n| &&
              `            return sap.ui.getCore().getConfiguration().getTheme();` && |\n| &&
              `          }` && |\n| &&
-             `          /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Component: reading theme failed", e);` && |\n| &&
              `        }` && |\n| &&
@@ -283,17 +187,10 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _onUnload(event) {` && |\n| &&
-             `        // pagehide with persisted = true means the page enters the browser's` && |\n| &&
-             `        // back/forward cache and may be shown again - keep the app alive.` && |\n| &&
              `        if (event?.persisted) return;` && |\n| &&
-             `        // destroy() runs exit(), which removes the unload listener (and every` && |\n| &&
-             `        // other one) - no need to remove it here too.` && |\n| &&
+             `` && |\n| &&
              `        this.destroy();` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
-             `      // Component teardown` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `      exit() {` && |\n| &&
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
@@ -302,17 +199,12 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        });` && |\n| &&
              `        Router.exit();` && |\n| &&
              `` && |\n| &&
-             `        // Drops the shortcut, the dialog instance and the recorded history -` && |\n| &&
-             `        // all of which are module-scoped and would otherwise outlive the` && |\n| &&
-             `        // component on an FLP re-launch.` && |\n| &&
              `        DevTools.exit();` && |\n| &&
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&
-             `        // Global state that would outlive the component (FLP keeps the page` && |\n| &&
-             `        // alive): cancel any pending backend timer, empty the shortcut` && |\n| &&
-             `        // registry so the module-scoped keydown listener becomes a no-op,` && |\n| &&
-             `        // and detach the device model's handlers from the Device singleton.` && |\n| &&
+             `        Server.reset();` && |\n| &&
+             `` && |\n| &&
              `        for (const key of Object.keys(AppState.state.timers)) {` && |\n| &&
              `          clearTimeout(AppState.state.timers[key]);` && |\n| &&
              `          delete AppState.state.timers[key];` && |\n| &&
@@ -323,12 +215,6 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          AppState.state.oDeviceModel = null;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // Robust launchpad teardown:` && |\n| &&
-             `        //  1. Clear the FLP dirty flag so it does not carry over into the` && |\n| &&
-             `        //     next app the user opens.` && |\n| &&
-             `        //  2. Detach the shared launchpad object so a subsequent re-launch` && |\n| &&
-             `        //     starts from a clean state and any still-pending init Promises` && |\n| &&
-             `        //     become no-ops via setIfAlive().` && |\n| &&
              `        try {` && |\n| &&
              `          this._launchpad?.Container?.setDirtyFlag?.(false);` && |\n| &&
              `        } catch (e) {` && |\n| &&

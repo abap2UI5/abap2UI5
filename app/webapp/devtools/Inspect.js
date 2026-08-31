@@ -157,7 +157,11 @@ sap.ui.define(
     }
 
     function modelAttributeCount(slotKey) {
-      const data = ViewSlots.getView(slotKey)?.getModel?.()?.getData?.();
+      // the TRACKED framework model - in switch mode the default model is
+      // the app's OData client and this read came back empty
+      const data = ViewSlots.trackedModel(
+        ViewSlots.getView(slotKey),
+      )?.getData?.();
       if (!data) return 0;
       return Object.keys(data).length;
     }
@@ -697,7 +701,8 @@ sap.ui.define(
     function formatSlotBindings(slotKey) {
       const view = ViewSlots.getView(slotKey);
       if (!view) return [];
-      const model = view.getModel?.();
+      // tracked resolver - see modelAttributeCount
+      const model = ViewSlots.trackedModel(view);
       const data = model?.getData?.();
       if (!data) return [];
       const out = [section(`Slot ${slotKey}`)];

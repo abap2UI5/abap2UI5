@@ -25,18 +25,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Read-only inspectors of the developer tools.` && |\n| &&
-             `//` && |\n| &&
-             `// Like devtools/Recorder.js this module is OUTSIDE the framework: it` && |\n| &&
-             `// only reads state other modules own (AppState, ViewSlots, the recorded` && |\n| &&
-             `// history) and renders it as text for a developer-tools tab. Nothing here` && |\n| &&
-             `// is wired into a framework code path, and nothing in the framework knows` && |\n| &&
-             `// this file exists.` && |\n| &&
-             `//` && |\n| &&
-             `// Everything renders to plain text rather than a control tree, because the` && |\n| &&
-             `// same string has to serve two consumers: the CodeEditor in the dialog and` && |\n| &&
-             `// the Export blob.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/Device",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
@@ -49,11 +38,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `  (Device, AppState, Lib, ScrollFocus, ViewSlots, Console, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Longest argument rendered inline in the action list; a view XML` && |\n| &&
-             `    // argument is thousands of characters and would bury the structure.` && |\n| &&
              `    const MAX_ARG_CHARS = 160;` && |\n| &&
              `` && |\n| &&
-             `    // Cap for the scraped event list - a generated view can bind hundreds.` && |\n| &&
              `    const MAX_SCRAPED_EVENTS = 200;` && |\n| &&
              `` && |\n| &&
              `    const LABEL_WIDTH = 24;` && |\n| &&
@@ -78,33 +64,18 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return ``${str.slice(0, max)}... (${str.length} chars)``;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Environment` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // The running theme, version-independently. sap/ui/core/Theming arrived` && |\n| &&
-             `    // in 1.118 and is the only API left in UI5 2.x; older releases expose` && |\n| &&
-             `    // it through the Configuration singleton.` && |\n| &&
              `    function getTheme() {` && |\n| &&
              `      const Theming = sap.ui.require("sap/ui/core/Theming");` && |\n| &&
              `      if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
-             `      /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
-             `       deliberate fallback for UI5 releases without sap/ui/core/Theming` && |\n| &&
-             `       (added in 1.118); the modern API is used in the branch above. */` && |\n| &&
+             `` && |\n| &&
              `      if (sap.ui.getCore) {` && |\n| &&
              `        const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
              `        if (config?.getTheme) return config.getTheme();` && |\n| &&
              `      }` && |\n| &&
-             `      /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `` && |\n| &&
              `      return "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The bootstrap <script> of the page. Both pages abap2UI5 can run on` && |\n| &&
-             `    // give it the id "sap-ui-bootstrap": the standalone app/webapp/index.html` && |\n| &&
-             `    // and the HTML the backend generates (z2ui5_cl_ui5_http_handler), whose` && |\n| &&
-             `    // ``src`` comes from the exit configuration. Which SDK URL a system is` && |\n| &&
-             `    // actually configured with is the first question when a view fails to` && |\n| &&
-             `    // load a control, and it is nowhere else to be seen.` && |\n| &&
              `    function bootstrapElement() {` && |\n| &&
              `      try {` && |\n| &&
              `        return document.getElementById("sap-ui-bootstrap");` && |\n| &&
@@ -114,15 +85,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function bootstrapAttr(el, name) {` && |\n| &&
-             `      // The bootstrap attributes are written camelCase in the page` && |\n| &&
-             `      // (data-sap-ui-compatVersion); getAttribute is case-insensitive for` && |\n| &&
-             `      // HTML elements, so the lower-case form finds them either way.` && |\n| &&
              `      return el?.getAttribute?.(``data-sap-ui-${name}``) || "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Where the UI5 loader resolves a module namespace to. Answers "is this` && |\n| &&
-             `    // app loading its own resources from the BSP, the standalone service or` && |\n| &&
-             `    // a sibling add-on BSP", which a wrong resourceroot silently breaks.` && |\n| &&
              `    function resourceUrl(namespace) {` && |\n| &&
              `      try {` && |\n| &&
              `        return sap.ui.require?.toUrl ? sap.ui.require.toUrl(namespace) : "";` && |\n| &&
@@ -131,9 +96,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Language and text direction, version-independently.` && |\n| &&
-             `    // sap/base/i18n/Localization arrived in 1.118 and is the only API left` && |\n| &&
-             `    // in UI5 2.x; older releases expose both through the Configuration.` && |\n| &&
              `    function getLocale() {` && |\n| &&
              `      const Localization = sap.ui.require("sap/base/i18n/Localization");` && |\n| &&
              `      if (Localization?.getLanguage) {` && |\n| &&
@@ -142,10 +104,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `          rtl: Boolean(Localization.getRTL?.()),` && |\n| &&
              `        };` && |\n| &&
              `      }` && |\n| &&
-             `      /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
-             `       deliberate fallback for UI5 releases without` && |\n| &&
-             `       sap/base/i18n/Localization (added in 1.118); the modern API is used` && |\n| &&
-             `       in the branch above. */` && |\n| &&
+             `` && |\n| &&
              `      if (sap.ui.getCore) {` && |\n| &&
              `        const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
              `        if (config?.getLanguage) {` && |\n| &&
@@ -155,13 +114,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `          };` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
-             `      /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `` && |\n| &&
              `      return { language: "", rtl: false };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Compact vs cozy decides control heights and is set on the body by the` && |\n| &&
-             `    // page (or by an app) - a layout that looks wrong in one density and` && |\n| &&
-             `    // right in the other is a classic, and invisible without this.` && |\n| &&
              `    function getContentDensity() {` && |\n| &&
              `      try {` && |\n| &&
              `        const classes = document.body?.classList;` && |\n| &&
@@ -173,10 +129,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return "(neither class set)";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // SAPUI5 and OpenUI5 ship different control libraries, and a view that` && |\n| &&
-             `    // works on one can fail to load a module on the other - so which one is` && |\n| &&
-             `    // running is a first-order fact when a view refuses to build. The` && |\n| &&
-             `    // distribution is visible in the version info's group/artefact id.` && |\n| &&
              `    function getDistribution(sUi5) {` && |\n| &&
              `      const gav = sUi5?.GAV || "";` && |\n| &&
              `      if (!gav) return "";` && |\n| &&
@@ -184,7 +136,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function modelAttributeCount(slotKey) {` && |\n| &&
-             `      const data = ViewSlots.getView(slotKey)?.getModel?.()?.getData?.();` && |\n| &&
+             `      const data = ViewSlots.trackedModel(` && |\n| &&
+             `        ViewSlots.getView(slotKey),` && |\n| &&
+             `      )?.getData?.();` && |\n| &&
              `      if (!data) return 0;` && |\n| &&
              `      return Object.keys(data).length;` && |\n| &&
              `    }` && |\n| &&
@@ -245,11 +199,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(line("Current draft id", state.currentDraftId));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("UI5"));` && |\n| &&
-             `      /* ui5lint-disable no-globals --` && |\n| &&
-             `       sap.ui.version is the only way to read the running UI5 version; there` && |\n| &&
-             `       is no injected/module equivalent (core/Lib.js reads it the same way). */` && |\n| &&
+             `` && |\n| &&
              `      out.push(line("Version", sap.ui.version));` && |\n| &&
-             `      /* ui5lint-enable no-globals */` && |\n| &&
+             `` && |\n| &&
              `      out.push(line("Distribution", getDistribution(sUi5)));` && |\n| &&
              `      out.push(line("Build timestamp", sUi5?.BUILDTIMESTAMP));` && |\n| &&
              `      out.push(line("Theme", getTheme()));` && |\n| &&
@@ -299,10 +251,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // How this page loaded UI5 and where it resolves resources from. Every` && |\n| &&
-             `    // value is read from the LIVE page, not from what the backend says it` && |\n| &&
-             `    // configured - which is the point: a proxy, a launchpad or a stale` && |\n| &&
-             `    // cached page can all make these differ from the configuration.` && |\n| &&
              `    function formatBootstrap() {` && |\n| &&
              `      const out = [section("UI5 bootstrap")];` && |\n| &&
              `      const el = bootstrapElement();` && |\n| &&
@@ -310,8 +258,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        out.push('  (no <script id="sap-ui-bootstrap"> on this page -');` && |\n| &&
              `        out.push("  UI5 was started some other way, e.g. by a launchpad)");` && |\n| &&
              `      } else {` && |\n| &&
-             `        // .src resolves relative to the page, so this is the absolute URL` && |\n| &&
-             `        // the browser actually fetched the SDK from.` && |\n| &&
              `        out.push(line("SDK source", el.src || bootstrapAttr(el, "src")));` && |\n| &&
              `        for (const [label, attr] of [` && |\n| &&
              `          ["Bootstrap theme", "theme"],` && |\n| &&
@@ -329,13 +275,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      }` && |\n| &&
              `` && |\n| &&
              `      out.push("");` && |\n| &&
-             `      // The resolved roots matter more than the declared ones: this is` && |\n| &&
-             `      // where a module request actually goes.` && |\n| &&
+             `` && |\n| &&
              `      out.push(line("Resource base", resourceUrl("")));` && |\n| &&
              `      out.push(line("z2ui5 root", resourceUrl("z2ui5")));` && |\n| &&
-             `      // The two sibling BSPs for community controls and the customer's own` && |\n| &&
-             `      // frontend extension. Reported only when the app set them up, since` && |\n| &&
-             `      // a system that has neither installed should not look misconfigured.` && |\n| &&
+             `` && |\n| &&
              `      const cci = AppState.getGlobal("ccResourceRoot");` && |\n| &&
              `      const ccc = AppState.getGlobal("cccResourceRoot");` && |\n| &&
              `      if (cci) out.push(line("z2ui5_cci root", cci));` && |\n| &&
@@ -343,15 +286,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The frontend block the framework puts on the wire - what an app reads` && |\n| &&
-             `    // as client->get( )-s_ui5 / -s_device / -s_focus / -s_scroll and what` && |\n| &&
-             `    // the start page's "System Information" popup shows of it. Rendered` && |\n| &&
-             `    // here from the LIVE producers (core/ScrollFocus.js), so it is what the` && |\n| &&
-             `    // NEXT roundtrip will send, not what the last one happened to carry.` && |\n| &&
-             `    //` && |\n| &&
-             `    // Focus and scroll are the interesting half: they travel on every` && |\n| &&
-             `    // roundtrip, they decide where the caret and the scroll position end up` && |\n| &&
-             `    // after a re-render, and nothing has ever shown them.` && |\n| &&
              `    function formatFrontendInfo() {` && |\n| &&
              `      const out = [section("Frontend info sent to the backend")];` && |\n| &&
              `      out.push("  (client->get( )-s_focus / -s_scroll, live for the next");` && |\n| &&
@@ -378,7 +312,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push("");` && |\n| &&
              `      let anyScroll = false;` && |\n| &&
              `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        // getScrollInfo keys by slot key and omits slots never scrolled` && |\n| &&
              `        const entry = scroll?.[slot.key];` && |\n| &&
              `        if (!entry) continue;` && |\n| &&
              `        anyScroll = true;` && |\n| &&
@@ -393,20 +326,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Registry - what the frontend currently has registered` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Backend event names bound in a view's XML. The framework binds an` && |\n| &&
-             `    // event as ``.eB(['NAME'])`` / ``.eF(['NAME'])`` (see the backend's` && |\n| &&
-             `    // get_event), so the names can be read back off the XML the slot was` && |\n| &&
-             `    // filled with. Best effort by design: this is a diagnostic listing, and` && |\n| &&
-             `    // a name it misses costs nothing but a shorter list.` && |\n| &&
              `    function scrapeEvents(xml) {` && |\n| &&
              `      if (!xml) return [];` && |\n| &&
              `      const found = new Set();` && |\n| &&
-             `      // eB / eBP / eF, then an optional array bracket, then the quoted` && |\n| &&
-             `      // event name - single, double or the XML-escaped apostrophe.` && |\n| &&
+             `` && |\n| &&
              `      const pattern =` && |\n| &&
              `        /\b(eB|eBP|eF)\s*\(\s*\[?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/g;` && |\n| &&
              `      let match = pattern.exec(xml);` && |\n| &&
@@ -424,8 +347,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      const out = [];` && |\n| &&
              `      for (const combo of combos) {` && |\n| &&
              `        const scopes = shortcuts[combo];` && |\n| &&
-             `        for (const scope of Object.keys(scopes)) {` && |\n|.
-    result = result &&
+             `        for (const scope of Object.keys(scopes)) {` && |\n| &&
              `          const entry = scopes[scope];` && |\n| &&
              `          out.push(` && |\n| &&
              `            ``  ${combo.padEnd(22)}${(scope || "(global)").padEnd(12)}`` +` && |\n| &&
@@ -485,10 +407,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Actions - the response's two action lists, readable` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `    function renderArg(arg) {` && |\n| &&
              `      if (arg === null) return "null";` && |\n| &&
              `      if (typeof arg === "object") {` && |\n| &&
@@ -506,11 +424,11 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      if (!Array.isArray(list) || !list.length) {` && |\n| &&
              `        out.push("  (none)");` && |\n| &&
              `        return out;` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `      list.forEach((item, index) => {` && |\n| &&
              `        const number = String(index + 1).padStart(3);` && |\n| &&
              `        if (!Array.isArray(item)) {` && |\n| &&
-             `          // legacy app-authored raw JS snippet, passed through untouched` && |\n| &&
              `          out.push(``${number}  [legacy JS] ${truncate(item, MAX_ARG_CHARS)}``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -536,18 +454,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Log - ONE timeline of everything the app logged` && |\n| &&
-             `    //` && |\n| &&
-             `    // These used to be three tabs: the framework's own error log, the` && |\n| &&
-             `    // console capture, and the backend messages. They are three views of` && |\n| &&
-             `    // the same timeline, and splitting them forced the developer to` && |\n| &&
-             `    // correlate three tabs by timestamp by hand - which is exactly the` && |\n| &&
-             `    // work a log is supposed to save. Merged and sorted by time, with the` && |\n| &&
-             `    // origin in a column, the sequence reads itself: a UI5 binding warning,` && |\n| &&
-             `    // then the toast the user saw, then the uncaught error that followed.` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `    const LEVEL_LABEL = {` && |\n| &&
              `      error: "ERROR",` && |\n| &&
              `      warn: "WARN ",` && |\n| &&
@@ -556,18 +462,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      debug: "DEBUG",` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // Column width of the origin marker. The longest is "rejection" at` && |\n| &&
-             `    // nine characters, so nine would leave no separating space.` && |\n| &&
              `    const SOURCE_WIDTH = 10;` && |\n| &&
              `` && |\n| &&
-             `    // Indent of a wrapped line (a stack trace) so it lines up under the` && |\n| &&
-             `    // message rather than under the timestamp.` && |\n| &&
              `    const CONTINUATION_INDENT = " ".repeat(23 + SOURCE_WIDTH);` && |\n| &&
              `` && |\n| &&
-             `    // The framework's own error log (Lib.logError) stores the caught error` && |\n| &&
-             `    // alongside the message, and that is where the STACK TRACE is - the one` && |\n| &&
-             `    // thing that says which line actually threw. Render it under its` && |\n| &&
-             `    // message rather than dropping it.` && |\n| &&
              `    function frameworkEntryText(entry) {` && |\n| &&
              `      if (entry.error === undefined) return entry.message;` && |\n| &&
              `      let detail;` && |\n| &&
@@ -584,8 +482,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return ``${entry.message}\n${detail}``;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // A message box carries its severity in the method name` && |\n| &&
-             `    // (MessageBox.error / .warning / .success); a toast has none.` && |\n| &&
              `    function messageLevel(message) {` && |\n| &&
              `      const method = String(message.method || "").toLowerCase();` && |\n| &&
              `      if (method === "error" || method === "alert") return "error";` && |\n| &&
@@ -599,9 +495,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        : "toast";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Everything, in one array, oldest first. Sorted by the ISO timestamp` && |\n| &&
-             `    // every source already carries - lexicographic order is chronological` && |\n| &&
-             `    // for ISO strings, so no date parsing is needed.` && |\n| &&
              `    function collectLog() {` && |\n| &&
              `      const out = [];` && |\n| &&
              `      for (const entry of AppState.state.errors || []) {` && |\n| &&
@@ -688,7 +581,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `          ``${label}  ${entry.source.padEnd(SOURCE_WIDTH)}``;` && |\n| &&
              `        const [first, ...rest] = String(entry.text).split("\n");` && |\n| &&
              `        lines.push(``${head}${first}``);` && |\n| &&
-             `        // a stack trace keeps its own lines, indented under its message` && |\n| &&
+             `` && |\n| &&
              `        for (const line of rest) {` && |\n| &&
              `          lines.push(``${CONTINUATION_INDENT}${line.trim()}``);` && |\n| &&
              `        }` && |\n| &&
@@ -703,12 +596,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return lines.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Bindings - model paths, and which of them the user edited` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Describe a model value the way a developer scanning for "why is this` && |\n| &&
-             `    // field empty" needs: type, size, and a short preview.` && |\n| &&
              `    function describeValue(value) {` && |\n| &&
              `      if (value === null) return "null";` && |\n| &&
              `      if (value === undefined) return "(absent)";` && |\n| &&
@@ -725,21 +612,19 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    function formatSlotBindings(slotKey) {` && |\n| &&
              `      const view = ViewSlots.getView(slotKey);` && |\n| &&
              `      if (!view) return [];` && |\n| &&
-             `      const model = view.getModel?.();` && |\n| &&
+             `` && |\n| &&
+             `      const model = ViewSlots.trackedModel(view);` && |\n| &&
              `      const data = model?.getData?.();` && |\n| &&
              `      if (!data) return [];` && |\n| &&
              `      const out = [section(``Slot ${slotKey}``)];` && |\n| &&
-             `      // The edited-path set the next roundtrip will ship as its delta.` && |\n| &&
-             `      // Slots.trackChanges parks it on the model itself; nothing surfaces` && |\n| &&
-             `      // it today, which is why "why was my edit not sent" is hard to answer.` && |\n| &&
+             `` && |\n| &&
              `      const changed = model._z2ui5ChangedPaths;` && |\n| &&
              `      const dirty = changed ? new Set(changed) : new Set();` && |\n| &&
              `      const keys = Object.keys(data).sort();` && |\n| &&
              `      if (!keys.length) out.push("  (model is empty)");` && |\n| &&
              `      for (const key of keys) {` && |\n| &&
              `        const path = ``/${key}``;` && |\n| &&
-             `        // a table edit is tracked on the deep path, so mark the attribute` && |\n| &&
-             `        // when any tracked path starts with it` && |\n| &&
+             `` && |\n| &&
              `        const isDirty = Array.from(dirty).some(` && |\n| &&
              `          (p) => p === path || p.startsWith(``${path}/``),` && |\n| &&
              `        );` && |\n| &&
@@ -758,20 +643,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Absolute model paths bound in a view's XML. Only the ABSOLUTE ones` && |\n| &&
-             `    // ("{/NAME}", "{path: '/NAME'}", "${/NAME}" inside an expression) can be` && |\n| &&
-             `    // checked against the model - a relative binding inside an aggregation` && |\n| &&
-             `    // template ("{COL}") resolves against the row context and says nothing` && |\n| &&
-             `    // on its own, so it is deliberately not collected.` && |\n| &&
-             `    //` && |\n| &&
-             `    // Returns the top-level ATTRIBUTE of each path ("/TAB/0/COL" -> "TAB"),` && |\n| &&
-             `    // because that is what client->_bind( ) creates and what the model has` && |\n| &&
-             `    // as a key.` && |\n| &&
              `    function scrapeBindingAttributes(xml) {` && |\n| &&
              `      if (!xml) return [];` && |\n| &&
              `      const found = new Set();` && |\n| &&
-             `      // a "/" directly after {, ${, a quote or a comma-separated path:` && |\n| &&
-             `      // covers {/A}, {path:'/A'}, {parts:['/A','/B']}, {= ${/A} > 1 }` && |\n| &&
+             `` && |\n| &&
              `      const pattern = /[{$'",:[\s]\/([A-Za-z_][A-Za-z0-9_]*)/g;` && |\n| &&
              `      let match = pattern.exec(xml);` && |\n| &&
              `      while (match !== null) {` && |\n| &&
@@ -781,10 +656,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return Array.from(found).sort();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The check that answers "why is my field empty": every absolute path` && |\n| &&
-             `    // the view binds, against the attributes the model actually carries. A` && |\n| &&
-             `    // renamed ABAP attribute, a typo, or a forgotten client->_bind( ) all` && |\n| &&
-             `    // land here, and nothing else in the tools makes them visible.` && |\n| &&
              `    function formatBindingCheck(slotKey, data) {` && |\n| &&
              `      const xml =` && |\n| &&
              `        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||` && |\n| &&
@@ -802,8 +673,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `            " client->_bind( ).",` && |\n| &&
              `        );` && |\n| &&
              `      }` && |\n| &&
-             `      // The other direction is worth one line, not a list: an unbound` && |\n| &&
-             `      // attribute is wasted payload, not a defect.` && |\n| &&
+             `` && |\n| &&
              `      const unused = Object.keys(data).filter((name) => !bound.includes(name));` && |\n| &&
              `      if (unused.length) {` && |\n| &&
              `        out.push("");` && |\n| &&
@@ -816,17 +686,13 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Serialized size of one model attribute. This is the number that` && |\n| &&
-             `    // explains a large response - and the ranking below turns "the response` && |\n| &&
-             `    // is 800 KB" into "/T_ITEMS is 92 % of it".` && |\n| &&
              `    function attributeSize(value) {` && |\n| &&
              `      try {` && |\n| &&
              `        const json = JSON.stringify(value);` && |\n| &&
              `        return json === undefined ? 0 : json.length;` && |\n| &&
              `      } catch {` && |\n| &&
              `        return 0;` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function formatBytes(bytes) {` && |\n| &&
@@ -842,8 +708,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      const total = sizes.reduce((sum, entry) => sum + entry.size, 0);` && |\n| &&
              `      if (!total) return [];` && |\n| &&
              `      const out = ["", ``  Model size: ${formatBytes(total)} serialized``];` && |\n| &&
-             `      // Only the heavy end is interesting; a long tail of small scalars` && |\n| &&
-             `      // would bury it.` && |\n| &&
+             `` && |\n| &&
              `      for (const entry of sizes.slice(0, 8)) {` && |\n| &&
              `        if (!entry.size) continue;` && |\n| &&
              `        const share = Math.round((entry.size * 100) / total);` && |\n| &&
@@ -858,10 +723,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The delta the NEXT roundtrip will actually put on the wire, built` && |\n| &&
-             `    // with the very function the framework uses for it` && |\n| &&
-             `    // (Lib.buildDeltaFromPaths). Answers "why does my change not arrive in` && |\n| &&
-             `    // the backend" BEFORE the roundtrip instead of after it.` && |\n| &&
              `    function formatPendingDelta(dirty, data) {` && |\n| &&
              `      if (!dirty.size) return [];` && |\n| &&
              `      const out = ["", "  Delta the next roundtrip will send:"];` && |\n| &&
@@ -878,11 +739,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ``slotKey`` restricts the report to one slot - the developer tools` && |\n| &&
-             `    // pick the slot in their own selector now, so a Bindings tab that` && |\n| &&
-             `    // always rendered every slot would repeat what the selector already` && |\n| &&
-             `    // said. Without it every model-owning slot is reported, which is what` && |\n| &&
-             `    // the export wants.` && |\n| &&
              `    function formatBindings(slotKey) {` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Model bindings"];` && |\n| &&
              `      out.push("");` && |\n| &&
@@ -896,7 +752,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      );` && |\n| &&
              `      let any = false;` && |\n| &&
              `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        // only the slots that own a model - the nested ones would repeat MAIN` && |\n| &&
              `        if (!slot.ownsModel) continue;` && |\n| &&
              `        if (slotKey && slot.key !== slotKey) continue;` && |\n| &&
              `        const lines = formatSlotBindings(slot.key);` && |\n| &&
@@ -908,17 +763,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // ABAP source helpers` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // 1-based line number where ``eventName`` first appears in the ABAP` && |\n| &&
-             `    // source, or 0 when it does not. Used to deep-link the ADT jump at the` && |\n| &&
-             `    // handler of the event the last roundtrip carried, instead of at the` && |\n| &&
-             `    // top of the class. Pure string work so it is unit-testable.` && |\n| &&
-             `    //` && |\n| &&
-             `    // Matched case-insensitively and only where the name is not part of a` && |\n| &&
-             `    // longer identifier, so ``SAVE`` does not hit ``SAVE_ALL``.` && |\n| &&
              `    function findEventLine(source, eventName) {` && |\n| &&
              `      if (!source || !eventName) return 0;` && |\n| &&
              `      const lines = source.split("\n");` && |\n| &&
@@ -937,28 +781,12 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return 0;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Error - the last fatal error the overlay showed` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Title + full text of the last fatal error, so the Error tab` && |\n| &&
-             `    // reproduces the ErrorView overlay's content. Empty when the app has` && |\n| &&
-             `    // not hit a fatal error this session.` && |\n| &&
              `    function formatError() {` && |\n| &&
              `      const err = AppState.state.lastError;` && |\n| &&
              `      if (!err) return "(no fatal error captured this session)";` && |\n| &&
              `      return err.title ? ``${err.title}\n\n${err.text}`` : err.text;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Overview - the landing tab` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Where the tools used to open: on the raw response JSON, which` && |\n| &&
-             `    // answers no question anybody arrives with. This is the replacement -` && |\n| &&
-             `    // which app, which roundtrip, is anything broken, and where to go` && |\n| &&
-             `    // next. Every line is a summary of a tab that holds the detail, and` && |\n| &&
-             `    // the pointer to that tab is part of the line.` && |\n| &&
              `    function formatOverview() {` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
              `      const responseFront = state.responseData?.S_FRONT;` && |\n| &&
@@ -974,8 +802,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `` && |\n| &&
              `      out.push(section("Status"));` && |\n| &&
              `` && |\n| &&
-             `      // The one line that decides whether this session is worth looking` && |\n| &&
-             `      // at at all, so it is first and it names the tab.` && |\n| &&
              `      out.push(` && |\n| &&
              `        line(` && |\n| &&
              `          "Fatal error",` && |\n| &&
@@ -999,7 +825,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      const last = records[records.length - 1];` && |\n| &&
              `      out.push(` && |\n| &&
              `        line(` && |\n| &&
-             `          "Roundtrips",` && |\n| &&
+             `          "Roundtrips",` && |\n|.
+    result = result &&
              `          last` && |\n| &&
              `            ? ``${records.length} recorded, last ${formatOverviewMs(last)}`` +` && |\n| &&
              `                " (Roundtrips > History)"` && |\n| &&
@@ -1016,11 +843,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      );` && |\n| &&
              `` && |\n| &&
              `      out.push(section("UI5"));` && |\n| &&
-             `      /* ui5lint-disable no-globals --` && |\n| &&
-             `       sap.ui.version is the only way to read the running UI5 version; there` && |\n| &&
-             `       is no injected/module equivalent (core/Lib.js reads it the same way). */` && |\n| &&
+             `` && |\n| &&
              `      out.push(line("Version", sap.ui.version));` && |\n| &&
-             `      /* ui5lint-enable no-globals */` && |\n| &&
+             `` && |\n| &&
              `      out.push(` && |\n| &&
              `        line(` && |\n| &&
              `          "Distribution",` && |\n| &&
@@ -1043,8 +868,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The timing of one roundtrip, in the shortest form that still says` && |\n| &&
-             `    // where the time went.` && |\n| &&
              `    function formatOverviewMs(record) {` && |\n| &&
              `      const parts = [];` && |\n| &&
              `      if (record.totalMs !== null && record.totalMs !== undefined) {` && |\n| &&
@@ -1057,13 +880,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return ``"${record.event || "(start)"}"${timing}``;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Help - what each tab answers, and the entry points` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Discoverability is the real barrier here: a tab that nobody knows` && |\n| &&
-             `    // exists helps nobody, and Ctrl+F12 is not guessable. Kept as text` && |\n| &&
-             `    // next to the tabs it describes so it cannot drift into a wiki.` && |\n| &&
              `    const HELP = [` && |\n| &&
              `      "abap2UI5 Developer Tools",` && |\n| &&
              `      "",` && |\n| &&
@@ -1180,7 +996,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      formatLog,` && |\n| &&
              `      formatBindings,` && |\n| &&
              `      findEventLine,` && |\n| &&
-             `      // exposed for the unit specs` && |\n| &&
+             `` && |\n| &&
              `      _internals: {` && |\n| &&
              `        scrapeEvents,` && |\n| &&
              `        scrapeBindingAttributes,` && |\n| &&

@@ -1,6 +1,6 @@
 ---
 name: view-chain-layout
-description: The layout rules for a z2ui5_cl_ui5_view_builder chain - one call per line, four spaces per tree level, the end( ) column, which factory( ) shape goes with which chain shape, blank lines, and the chain-format gate that checks them. Identical in abap2UI5, abap2UI5/samples and abap2UI5/samples-controls. Use when writing, reviewing or reformatting any view built with the builder, when a chain has drifted, and when chain-format, chain-indentation or chain-element-per-line fails.
+description: The layout rules for a z2ui5_cl_ui5_view_builder chain - one call per line, four spaces per tree level, the end( ) column, which factory( ) shape goes with which chain shape, blank lines, and the linter rule that checks them. Identical in abap2UI5, abap2UI5/samples, abap2UI5/samples-controls and abap2UI5/samples-stack. Use when writing, reviewing or reformatting any view built with the builder, when a chain has drifted, and when chain-house-layout fails.
 ---
 
 # The layout of a view-builder chain
@@ -15,7 +15,7 @@ tree a line sits, so it has to be true.
 after a survey found the two sample corpora following opposite conventions for
 the same builder.
 
-## The six rules
+## The seven rules
 
 1. **One call per line.** Every `ele( )`, `tag( )`, `a( )` and `end( )` opens
    its own line with `)->`. A control never shares its line with its own
@@ -32,6 +32,18 @@ the same builder.
    attribute block.
 6. **`stringify( )` is a standalone final statement** —
    `client->view_display( view->stringify( ) ).`, never nested in the chain.
+7. **A wrapped `t_arg` list hangs under its FIRST element.** When a
+   `_event( )` / `follow_up_action( )` argument table runs over several lines,
+   every continuation line starts in the column of the first `( … )` — not
+   under the `#` of `VALUE #(`, which is three columns to its left and the
+   drift this rule exists to stop:
+
+   ```abap
+   )->a( n = `close` v = client->follow_up_action( val   = client->cs_event-control_by_id
+                                                   t_arg = VALUE #( ( `notificationList` )
+                                                                    ( `removeItem` )
+                                                                    ( `$event.oSource.getId()` ) ) )
+   ```
 
 ```abap
 METHOD view_display.
@@ -115,30 +127,35 @@ and carries fixes, so `--fix` reformats a drifted chain. The rewrite only ever
 touches whitespace *between* chain segments and the indent of a continuation
 line that is not itself content, and it verifies that collapsing every run of
 code-whitespace leaves the source identical — **a layout fix can never change
-what the view builds.** Rules 5-6 and the blank lines stay reviewer-enforced.
+what the view builds.** Rules 5-7 and the blank lines stay reviewer-enforced.
 
 It is the linter's one **opt-in** rule (`OPT_IN` in its `findings.mjs`): it is
 not emitted at all until a config asks for it, because it encodes one house
 style — this one — and because its fixes span a whole chain, which would defer
 any other rule's fix inside the same chain to a second `--fix` pass.
 
-How to run it depends on the repository, and they are not yet the same:
+All four repositories run the rule itself. `scripts/chain-format.mjs`, which
+used to be the same algorithm written a second time, is gone:
 
 | | how |
 |---|---|
-| `abap2UI5` | `npm run check:abap2ui5` / `npm run fmt:chains` — the linter, enabled in `abap2ui5lint.jsonc` |
-| `abap2UI5/samples` | `npm run check:chains` / `npm run fmt:chains` — still `scripts/chain-format.mjs` |
-| `abap2UI5/samples-controls` | `npm run check:chains` / `npm run fmt:chains` — the same script; also the first step of `npm run gates` |
+| `abap2UI5` | `npm run check:abap2ui5` / `npm run fmt:chains` — enabled in `abap2ui5lint.jsonc` |
+| `abap2UI5/samples` | `npm run check:abap2ui5` / `npm run fmt:chains` — enabled in `abap2ui5lint.jsonc` |
+| `abap2UI5/samples-stack` | `npm run check:abap2ui5` / `npm run fmt:chains` — enabled in `abap2ui5lint.jsonc` |
+| `abap2UI5/samples-controls` | `npm run check:chains` / `npm run fmt:chains` — `abap2ui5lint-chains.jsonc`; also the first step of `npm run gates` |
 
-`scripts/chain-format.mjs` is the same algorithm as the rule, kept
-byte-identical in the two sample repositories. **It is meant to go away**: both
-repos pin the linter by SHA at a version that predates the rule, and bumping
-that pin also moves them onto the linter's new packaging, where the UI5 render
-runtime is a separate optional peer (`@abap2ui5/render-runtime`) rather than an
-optional dependency. Until that package resolves for them, bumping would take
-their render gate — 172 and 416 documents — down with it. So the script stays
-until the pin can move, and then it is deleted in the same change that adds
-`"chain-house-layout": "warning"` to their configs.
+samples-controls needs a config of its own because its corpus gate
+(`view-gates.mjs`) only sees files that have a meta sidecar, while the layout
+is a property of the source and has to cover the whole tree — including the
+fourteen hand-written `src/03` classes and the generated overview app. That
+config switches the property-gate rules off, because view-gates judges those
+against the sidecars and a second opinion here would only be a worse one.
+
+Two things that config must NOT do, both measured rather than assumed:
+`properties: false` looks like the obvious way to isolate the layout and takes
+the chain rules down with it — the check then passes everything, silently. And
+`chain-house-layout` is opt-in, so a `rules` entry is what turns it on; without
+one the run is green no matter how mangled the chain.
 
 Nothing else covers this, which is why the rule exists:
 

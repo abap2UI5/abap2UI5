@@ -25,98 +25,45 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Shared helper module of the z2ui5 frontend. core/AppState.js owns the` && |\n| &&
-             `// shared frontend state and documents the complete field inventory` && |\n| &&
-             `// (public contract vs. internal fields, plus their defaults); the helpers` && |\n| &&
-             `// here reach it via AppState.state instead of the z2ui5 global.` && |\n| &&
-             `//` && |\n| &&
-             `// Shared rendering pattern of the custom controls (Timer.js, Focus.js,` && |\n| &&
-             `// Scrolling.js, ...): the renderer only *marks* work by setting a` && |\n| &&
-             `// ``_pending*`` flag on the control instance, and onAfterRendering() consumes` && |\n| &&
-             `// the flag and performs the actual DOM work (focus, scrolling, timers, tree` && |\n| &&
-             `// state). Renderers must stay cheap and free of visible side effects` && |\n| &&
-             `// (rendering API v2); deferring to onAfterRendering also guarantees the` && |\n| &&
-             `// control's DOM exists.` && |\n| &&
-             `//` && |\n| &&
-             `// Nothing hash/route related belongs here: core/Router.js is the one module` && |\n| &&
-             `// that knows how a URL hash is split between the FLP shell and the running` && |\n| &&
-             `// app, and nothing else may reach for the hash directly.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  ["z2ui5/core/AppState", "sap/ui/core/Element"],` && |\n| &&
              `  (AppState, Element) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Resolve a control id to its sap.ui.core.Element via the global registry.` && |\n| &&
-             `    // Element.getElementById arrived in UI5 1.119; older bootstraps fall back` && |\n| &&
-             `    // to the deprecated sap.ui.getCore().byId. Returns null when the id is` && |\n| &&
-             `    // empty or does not resolve, so callers can treat "not found" uniformly.` && |\n| &&
              `    function getElementById(sId) {` && |\n| &&
              `      if (!sId) return null;` && |\n| &&
              `      if (Element.getElementById) return Element.getElementById(sId) || null;` && |\n| &&
-             `      /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
-             `       deliberate fallback for UI5 releases without Element.getElementById` && |\n| &&
-             `       (added in 1.119); the modern API is used in the branch above. */` && |\n| &&
+             `` && |\n| &&
              `      if (sap.ui.getCore) {` && |\n| &&
              `        const core = sap.ui.getCore();` && |\n| &&
              `        if (core?.byId) return core.byId(sId) || null;` && |\n| &&
              `      }` && |\n| &&
-             `      /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `` && |\n| &&
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Resolve the central UI5 messaging facade version-independently.` && |\n| &&
-             `    // sap/ui/core/Messaging arrived in 1.118 and is the only API left in` && |\n| &&
-             `    // UI5 2.x; older releases expose the same interface (getMessageModel,` && |\n| &&
-             `    // registerObject, unregisterObject) via the MessageManager singleton.` && |\n| &&
-             `    // Returns null when neither is available (bare test bootstraps).` && |\n| &&
              `    function getMessaging() {` && |\n| &&
              `      const Messaging = sap.ui.require("sap/ui/core/Messaging");` && |\n| &&
              `      if (Messaging) return Messaging;` && |\n| &&
-             `      /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
-             `       deliberate fallback for UI5 releases without sap/ui/core/Messaging` && |\n| &&
-             `       (added in 1.118); the modern API is used in the branch above. */` && |\n| &&
+             `` && |\n| &&
              `      if (sap.ui.getCore) {` && |\n| &&
              `        const core = sap.ui.getCore();` && |\n| &&
              `        if (core?.getMessageManager) return core.getMessageManager();` && |\n| &&
              `      }` && |\n| &&
-             `      /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `` && |\n| &&
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // True when the running UI5 ships the sap/ui/core/Messaging module (added` && |\n| &&
-             `    // in 1.118). Callers use it to skip warm-loading that module on older` && |\n| &&
-             `    // releases (e.g. 1.71) where an async require would 404 and make the` && |\n| &&
-             `    // ui5loader retry noisily via synchronous XHR. getMessaging()'s` && |\n| &&
-             `    // MessageManager fallback covers those releases instead.` && |\n| &&
-             `    //` && |\n| &&
-             `    // An UNREADABLE version means "modern", never "old": the legacy-free` && |\n| &&
-             `    // (UI5 2.x) build no longer ships the sap.ui.version global, so probing` && |\n| &&
-             `    // it there yields undefined on a 1.142 runtime. Answering "false" for` && |\n| &&
-             `    // that case is doubly wrong - legacy-free is the one runtime where` && |\n| &&
-             `    // sap/ui/core/Messaging is the ONLY messaging API, because the` && |\n| &&
-             `    // sap.ui.getCore().getMessageManager() fallback in getMessaging() is` && |\n| &&
-             `    // gone too. The warm-load in Component.init would then be skipped and` && |\n| &&
-             `    // getMessaging() would return null for good: no message> model, no` && |\n| &&
-             `    // handleValidation. Only a version we can read AND that is older than` && |\n| &&
-             `    // 1.118 may switch the warm-load off.` && |\n| &&
              `    function hasMessagingModule() {` && |\n| &&
-             `      /* ui5lint-disable no-globals --` && |\n| &&
-             `       sap.ui.version is the only way to read the running UI5 version; there` && |\n| &&
-             `       is no injected/module equivalent. Absent on the legacy-free build. */` && |\n| &&
              `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
-             `      /* ui5lint-enable no-globals */` && |\n| &&
+             `` && |\n| &&
              `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
              `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;` && |\n| &&
              `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Cap the error log so a long-running session cannot grow it unbounded.` && |\n| &&
              `    const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
-             `    // Append an entry to the shared error log and drop the oldest entry once` && |\n| &&
-             `    // the cap is reached. In the app the array always exists (AppState` && |\n| &&
-             `    // default); the guard keeps the helper usable standalone, e.g. in the` && |\n| &&
-             `    // Node specs that load this module with a bare AppState stub.` && |\n| &&
              `    function logError(message, error) {` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
              `      if (!state.errors) state.errors = [];` && |\n| &&
@@ -126,40 +73,23 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      if (state.errors.length > MAX_ERRORS) state.errors.shift();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // True when the object supports isDestroyed() and reports destroyed.` && |\n| &&
              `    function isDestroyed(obj) {` && |\n| &&
              `      if (!obj) return false;` && |\n| &&
-             `      // ManagedObject#isDestroyed( ) is @since 1.93 - on the 1.71 floor the` && |\n| &&
-             `      // method is absent and the guard would read "alive" for a destroyed` && |\n| &&
-             `      // control, so fall back to the flag every release carries` && |\n| &&
+             `` && |\n| &&
              `      if (typeof obj.isDestroyed === "function") return obj.isDestroyed();` && |\n| &&
              `      return Boolean(obj.bIsDestroyed);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // A companion control (MultiInputExt, UploadSetExt, ...) resolves its` && |\n| &&
-             `    // target after EVERY render - the onAfterRendering hook it registers in` && |\n| &&
-             `    // init() fires once per roundtrip - but may attach its handlers only` && |\n| &&
-             `    // once, or every roundtrip would add another listener. Returns true` && |\n| &&
-             `    // exactly once: the first render at which ``target`` actually resolved.` && |\n| &&
-             `    // The claim is recorded in the control's own ``checkInit`` property (set` && |\n| &&
-             `    // without invalidating, these controls render nothing).` && |\n| &&
              `    function claimOnce(owner, target) {` && |\n| &&
              `      if (!target || owner.getProperty("checkInit")) return false;` && |\n| &&
              `      owner.setProperty("checkInit", true, true);` && |\n| &&
              `      return true;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // True when the object exists and is not destroyed. Used to guard` && |\n| &&
-             `    // async continuations (await, FileReader, getUserMedia, ...) against` && |\n| &&
-             `    // controls or views that were torn down in the meantime.` && |\n| &&
              `    function isAlive(obj) {` && |\n| &&
              `      return Boolean(obj) && !isDestroyed(obj);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Helpers for managing the shared callback arrays (onBeforeRoundtrip,` && |\n| &&
-             `    // onAfterRendering, ...). Several custom controls register hooks here in` && |\n| &&
-             `    // init() and remove them in exit(). The arrays always exist in the app` && |\n| &&
-             `    // (AppState defaults); the guard keeps the helper standalone-safe.` && |\n| &&
              `    function registerCallback(name, fn) {` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
              `      if (!state[name]) state[name] = [];` && |\n| &&
@@ -172,9 +102,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      state[name] = state[name].filter((f) => f !== fn);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Read a File object as a data URL and hand the result to onLoaded.` && |\n| &&
-             `    // The callback is skipped when ``owner`` was destroyed while the` && |\n| &&
-             `    // FileReader was busy; read errors are logged under ``errorContext``.` && |\n| &&
              `    function readFileAsDataURL(file, owner, onLoaded, errorContext) {` && |\n| &&
              `      const reader = new FileReader();` && |\n| &&
              `      reader.onload = () => {` && |\n| &&
@@ -186,9 +113,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      reader.readAsDataURL(file);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Shared tokenUpdate handling for the multi-input extensions: map the` && |\n| &&
-             `    // added/removed UI5 tokens to plain objects and store them in the` && |\n| &&
-             `    // control's addedTokens/removedTokens properties.` && |\n| &&
              `    function applyTokenUpdate(control, oEvent) {` && |\n| &&
              `      const isRemoved = oEvent.getParameter("type") === "removed";` && |\n| &&
              `      const rawList =` && |\n| &&
@@ -201,9 +125,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      control.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Run every callback in ``callbacks`` (the shared callback arrays above),` && |\n| &&
-             `    // swallowing individual failures so one bad callback cannot break the` && |\n| &&
-             `    // whole event sequence.` && |\n| &&
              `    function runCallbacks(callbacks, ...args) {` && |\n| &&
              `      if (!callbacks) return;` && |\n| &&
              `      for (const fn of callbacks) {` && |\n| &&
@@ -216,14 +137,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Runs ``fn`` once ``control`` has a DOM reference: immediately when it is` && |\n| &&
-             `    // already rendered, otherwise once after its next rendering. The call` && |\n| &&
-             `    // is skipped when ``owner`` was destroyed in the meantime.` && |\n| &&
              `    function whenRendered(control, owner, fn) {` && |\n| &&
              `      if (control.getDomRef()) {` && |\n| &&
-             `        // Same owner-liveness guard as the deferred branch below: a caller` && |\n| &&
-             `        // resuming from an async continuation may reach here after its owner` && |\n| &&
-             `        // was torn down while the target control is still rendered.` && |\n| &&
              `        if (!isDestroyed(owner)) fn();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -236,19 +151,10 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      control.addEventDelegate(delegate);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Join a control's own text with its ancestors' texts, outermost first` && |\n| &&
-             `    // ("Create New Site > Official Store"). The walk climbs getParent() and` && |\n| &&
-             `    // stops at the first ancestor that has no getText - for a menu item that` && |\n| &&
-             `    // is the Menu itself, so the result is exactly the item's breadcrumb` && |\n| &&
-             `    // (the ``while (oItem instanceof MenuItem)`` loop UI5 samples write in a` && |\n| &&
-             `    // controller). A control-tree walk cannot be expressed as a binding path,` && |\n| &&
-             `    // which is why it lives here and is reachable from an event argument via` && |\n| &&
-             `    // the controller's textPath().` && |\n| &&
              `    function getTextPath(control, separator) {` && |\n| &&
              `      const texts = [];` && |\n| &&
              `      let node = control;` && |\n| &&
-             `      // the control tree is finite, but never loop forever on a cyclic or` && |\n| &&
-             `      // self-referencing parent` && |\n| &&
+             `` && |\n| &&
              `      for (let i = 0; node && i < 100; i++) {` && |\n| &&
              `        if (typeof node.getText !== "function") break;` && |\n| &&
              `        const text = node.getText();` && |\n| &&
@@ -258,8 +164,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return texts.join(separator || " > ");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Copy text to the clipboard, preferring the async clipboard API with a` && |\n| &&
-             `    // fallback to the legacy textarea + execCommand approach.` && |\n| &&
              `    function copyToClipboard(textToCopy) {` && |\n| &&
              `      if (navigator.clipboard?.writeText) {` && |\n| &&
              `        navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
@@ -291,32 +195,18 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Pure helpers - free of UI5 dependencies so the Node specs under` && |\n| &&
-             `    // node/tests/ can load this module with a stubbed sap.ui.define and` && |\n| &&
-             `    // test the real implementation instead of a copy.` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
              `    const SAFE_PROTOCOLS = ["http:", "https:"];` && |\n| &&
              `` && |\n| &&
-             `    // Normalizes any value for display: null and undefined become the empty` && |\n| &&
-             `    // string, everything else its string representation.` && |\n| &&
              `    function toText(val) {` && |\n| &&
              `      return val == null ? "" : String(val);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // True for a DOM element that carries a text caret.` && |\n| &&
              `    function isTextInput(el) {` && |\n| &&
              `      return (` && |\n| &&
              `        Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The caret of a text field as { start, end }, or null when the element` && |\n| &&
-             `    // is no text field or carries no selection. Input types without a text` && |\n| &&
-             `    // selection (number, date, ...) throw or return null on selectionStart -` && |\n| &&
-             `    // reporting that as 0 would later snap the cursor to the far left, so` && |\n| &&
-             `    // "no caret" has to stay distinguishable from "caret at 0".` && |\n| &&
              `    function readCaret(el) {` && |\n| &&
              `      if (!isTextInput(el)) return null;` && |\n| &&
              `      try {` && |\n| &&
@@ -329,10 +219,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Collapse a UI5 Device ``system`` flag object into a single label. The` && |\n| &&
-             `    // order matters - phone/tablet/combi are mutually exclusive with the` && |\n| &&
-             `    // desktop fallback. Shared by core/Session.js (request payload) and` && |\n| &&
-             `    // the Info control so both report the same value.` && |\n| &&
              `    function deriveSystemType(system) {` && |\n| &&
              `      if (!system) return "desktop";` && |\n| &&
              `      if (system.phone) return "phone";` && |\n| &&
@@ -341,8 +227,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return "desktop";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Shared first step of the URL validators below: resolve the URL against` && |\n| &&
-             `    // the current origin, log and return null when it is empty or malformed.` && |\n| &&
              `    function parseUrl(url) {` && |\n| &&
              `      if (!url) return null;` && |\n| &&
              `      try {` && |\n| &&
@@ -361,7 +245,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return false;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Returns true only if the URL is on the same origin and uses http/https.` && |\n| &&
              `    function isValidRedirectURL(url) {` && |\n| &&
              `      const parsed = parseUrl(url);` && |\n| &&
              `      if (!parsed) return false;` && |\n| &&
@@ -372,18 +255,11 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return hasSafeProtocol(parsed);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Returns true if the URL uses a safe (http/https) protocol. Unlike` && |\n| &&
-             `    // isValidRedirectURL this allows cross-origin targets, so it fits` && |\n| &&
-             `    // outbound redirects to external sites while still blocking dangerous` && |\n| &&
-             `    // schemes such as javascript:, data: or vbscript:.` && |\n| &&
              `    function isSafeRedirectProtocol(url) {` && |\n| &&
              `      const parsed = parseUrl(url);` && |\n| &&
              `      return parsed !== null && hasSafeProtocol(parsed);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Returns true for URLs that are safe as download targets: data: and` && |\n| &&
-             `    // blob: (generated content) plus http(s). Blocks javascript: and other` && |\n| &&
-             `    // active schemes, consistent with the redirect validators above.` && |\n| &&
              `    function isSafeDownloadURL(url) {` && |\n| &&
              `      const parsed = parseUrl(url);` && |\n| &&
              `      return (` && |\n| &&
@@ -394,21 +270,10 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
-             `    // missing value on the wire: an empty or - via string coercion of a` && |\n| &&
-             `    // JS ``undefined`` - the literal "undefined" makes the SAP Web Dispatcher /` && |\n| &&
-             `    // ICM log "invalid w3c session id" / "HttpExtractSID: SID wrong len: 9"` && |\n| &&
-             `    // on every roundtrip. Only forward a real, non-empty id.` && |\n| &&
              `    function isValidContextId(id) {` && |\n| &&
              `      return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Parse the path segments behind the attribute into (row, field) steps.` && |\n| &&
-             `    // Returns null when the segments do not follow the alternating` && |\n| &&
-             `    // <numeric row>/<field name> shape - the caller then ships the whole` && |\n| &&
-             `    // attribute. A non-numeric segment after a field (a struct member, e.g.` && |\n| &&
-             `    // attr/3/S_ADR/CITY) marks the field as leaf: the whole current value at` && |\n| &&
-             `    // row/field is shipped, which always covers the deeper edit too.` && |\n| &&
              `    function parseDeltaSteps(segs) {` && |\n| &&
              `      const steps = [];` && |\n| &&
              `      let i = 0;` && |\n| &&
@@ -424,40 +289,27 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `          return null;` && |\n| &&
              `        }` && |\n| &&
              `        i += 2;` && |\n| &&
-             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n|.
-    result = result &&
+             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
              `          steps.push({ row, field, leaf: true });` && |\n| &&
              `          return steps;` && |\n| &&
              `        }` && |\n| &&
-             `        // a numeric segment follows -> field is a nested table, walk deeper` && |\n| &&
+             `` && |\n| &&
              `        steps.push({ row, field, leaf: false });` && |\n| &&
              `      }` && |\n| &&
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Build the delta object sent to the backend. ``paths`` is the set of` && |\n| &&
-             `    // model paths that the user edited; ``model`` is the full view model data.` && |\n| &&
-             `    // Table edits become (recursively nested) __delta structures, so a cell` && |\n| &&
-             `    // edit in a nested/tree table ships only the changed cell instead of` && |\n| &&
-             `    // the whole outer table.` && |\n| &&
              `    function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
              `      const delta = {};` && |\n| &&
              `      for (const path of paths) {` && |\n| &&
-             `        // path looks like "/<attr>" or "/<attr>/<row>/<field>" with` && |\n| &&
-             `        // arbitrarily deep <row>/<subtable> repetitions for nested tables` && |\n| &&
              `        const parts = path.slice(1).split("/");` && |\n| &&
              `        const attr = parts[0];` && |\n| &&
              `        const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
              `        if (!steps) {` && |\n| &&
-             `          // Scalar or unrecognized shape -> ship the whole attribute. The` && |\n| &&
-             `          // full value always wins over any queued delta: both read the` && |\n| &&
-             `          // same current model data, so it is a superset of every delta.` && |\n| &&
              `          delta[attr] = modelData[attr];` && |\n| &&
              `          continue;` && |\n| &&
              `        }` && |\n| &&
-             `        // A full attribute queued by another path already carries every` && |\n| &&
-             `        // cell (both read the same current model data) - never downgrade` && |\n| &&
-             `        // it to a partial delta, regardless of Set iteration order.` && |\n| &&
+             `` && |\n| &&
              `        if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
              `        if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };` && |\n| &&
              `        let node = delta[attr];` && |\n| &&
@@ -468,14 +320,10 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `          const rowDelta = rows[row];` && |\n| &&
              `          model = model?.[Number(row)]?.[field];` && |\n| &&
              `          if (leaf) {` && |\n| &&
-             `            // The leaf value (cell, struct or whole sub-table) replaces any` && |\n| &&
-             `            // nested delta queued for the same field - it reads the same` && |\n| &&
-             `            // current model data and therefore carries those edits too.` && |\n| &&
              `            rowDelta[field] = model;` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
-             `          // Nested table step - a whole sub-value queued by another path` && |\n| &&
-             `          // already covers this deeper edit.` && |\n| &&
+             `` && |\n| &&
              `          if (field in rowDelta && !rowDelta[field]?.__delta) break;` && |\n| &&
              `          if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };` && |\n| &&
              `          node = rowDelta[field];` && |\n| &&
@@ -484,10 +332,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return delta;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Turns an HTML "details" snippet from the backend into safe HTML.` && |\n| &&
-             `    // Bullet lists are preserved; everything else is reduced to plain text.` && |\n| &&
-             `    // The DOM helpers are created lazily so loading this module does not` && |\n| &&
-             `    // require a DOM (the Node specs never call this function).` && |\n| &&
              `    let _msgParser = null;` && |\n| &&
              `    let _sanitizeEl = null;` && |\n| &&
              `    function sanitizeMessageDetails(html) {` && |\n| &&
@@ -496,8 +340,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        _sanitizeEl = document.createElement("div");` && |\n| &&
              `      }` && |\n| &&
              `      const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
-             `      // Only top-level list items: a nested <li>'s text is already part of` && |\n| &&
-             `      // its ancestor's textContent, so including it too would duplicate it.` && |\n| &&
+             `` && |\n| &&
              `      const items = Array.from(doc.querySelectorAll("li")).filter(` && |\n| &&
              `        (li) => !li.parentElement?.closest("li"),` && |\n| &&
              `      );` && |\n| &&
@@ -512,21 +355,12 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return _sanitizeEl.innerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The MAIN view and its two nested views (NEST, NEST2) share ONE JSON` && |\n| &&
-             `    // model: the nested views are inserted into the MAIN control tree and` && |\n| &&
-             `    // inherit its default model through UI5 model propagation instead of each` && |\n| &&
-             `    // creating their own. Popup and popover are opened standalone (outside the` && |\n| &&
-             `    // MAIN tree) and keep their own model.` && |\n| &&
              `    const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];` && |\n| &&
              `` && |\n| &&
              `    function isRootModelSlot(slotKey) {` && |\n| &&
              `      return ROOT_MODEL_SLOTS.includes(slotKey);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Effective JSONModel size limit for a slot. Because the root slots share a` && |\n| &&
-             `    // single model, a per-view limit collapses onto it - the largest requested` && |\n| &&
-             `    // limit across MAIN/NEST/NEST2 wins. Popup/popover keep their own limit.` && |\n| &&
-             `    // Returns undefined when nothing is stored, so callers keep the UI5 default.` && |\n| &&
              `    function effectiveSizeLimit(viewSizeLimits, slotKey) {` && |\n| &&
              `      if (!isRootModelSlot(slotKey)) return viewSizeLimits[slotKey];` && |\n| &&
              `      let max;` && |\n| &&
@@ -539,10 +373,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return max;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Render the invisible <span> placeholder shared by every marker custom` && |\n| &&
-             `    // control (Focus, Timer, Scrolling, Tree, Info, Geolocation, Storage): the` && |\n| &&
-             `    // real work happens in onAfterRendering (see the module header), so the` && |\n| &&
-             `    // renderer only needs a cheap hidden DOM anchor. apiVersion-2 renderer.` && |\n| &&
              `    function renderInvisibleSpan(oRm, oControl) {` && |\n| &&
              `      oRm.openStart("span", oControl);` && |\n| &&
              `      oRm.style("display", "none");` && |\n| &&
@@ -550,26 +380,14 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      oRm.close("span");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Event arguments are whatever the UI5 expression grammar produced for` && |\n| &&
-             `    // them. Most are strings or numbers, but a UI5 event parameter is quite` && |\n| &&
-             `    // often a CONTROL or an ARRAY OF CONTROLS -` && |\n| &&
-             `    // ViewSettingsDialog.confirm/filterItems, Menu.itemSelected/item,` && |\n| &&
-             `    // SinglePlanningCalendar.selectedDatesChange with its DateRange list. Those` && |\n| &&
-             `    // could not travel before: JSON.stringify walks a ManagedObject through its` && |\n| &&
-             `    // parent/aggregation graph and throws on the circular reference, so the` && |\n| &&
-             `    // whole roundtrip body failed to serialize. The expression grammar has no` && |\n| &&
-             `    // loop or lambda either, so an app could not project the array itself and` && |\n| &&
-             `    // was left parsing a display string (the localized ``filterString``) instead.` && |\n| &&
-             `    //` && |\n| &&
-             `    // Marshal them into plain data here: one object per control carrying its` && |\n| &&
-             `    // control id plus the values of its metadata PROPERTIES. Which properties` && |\n| &&
-             `    // exist is asked of the control's own metadata - nothing is interpreted,` && |\n| &&
-             `    // renamed or decided, so this stays the thin-executor contract. The` && |\n| &&
-             `    // backend receives it as the JSON string every object argument becomes in` && |\n| &&
-             `    // T_EVENT_ARG and parses it with ajson.` && |\n| &&
-             `    //` && |\n| &&
-             `    // Anything that is not a control is handed through untouched, so this is` && |\n| &&
-             `    // purely additive for every wire that works today.` && |\n| &&
+             `    const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n| &&
+             `` && |\n| &&
+             `    function hookCallback(owner, callbackName, method) {` && |\n| &&
+             `      const bound = owner[method].bind(owner);` && |\n| &&
+             `      registerCallback(callbackName, bound);` && |\n| &&
+             `      return () => unregisterCallback(callbackName, bound);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const MAX_ARG_DEPTH = 4;` && |\n| &&
              `` && |\n| &&
              `    function isManagedObject(value) {` && |\n| &&
@@ -581,21 +399,33 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function projectValue(value) {` && |\n| &&
+             `      if (` && |\n| &&
+             `        Object.prototype.toString.call(value) === "[object Date]" &&` && |\n| &&
+             `        !isNaN(value)` && |\n| &&
+             `      ) {` && |\n| &&
+             `        const p = (n, w = 2) => String(n).padStart(w, "0");` && |\n| &&
+             `        return (` && |\n| &&
+             `          ``${p(value.getFullYear(), 4)}-${p(value.getMonth() + 1)}-${p(value.getDate())}`` +` && |\n| &&
+             `          ``T${p(value.getHours())}:${p(value.getMinutes())}:${p(value.getSeconds())}``` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      return value;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function projectControl(control) {` && |\n| &&
              `      const result = { ID: control.getId() };` && |\n| &&
              `      const properties = control.getMetadata().getAllProperties();` && |\n| &&
              `      for (const name in properties) {` && |\n| &&
              `        try {` && |\n| &&
              `          const value = control.getProperty(name);` && |\n| &&
-             `          if (value !== undefined) result[name] = value;` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          // a property whose getter throws is simply not reported - the` && |\n| &&
-             `          // remaining ones still have to reach the backend` && |\n| &&
-             `        }` && |\n| &&
+             `          if (value !== undefined) result[name] = projectValue(value);` && |\n| &&
+             `        } catch {}` && |\n| &&
              `      }` && |\n| &&
              `      return result;` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    function normalizeEventArg(value, depth) {` && |\n| &&
              `      const level = depth || 0;` && |\n| &&
              `      if (level > MAX_ARG_DEPTH) return value;` && |\n| &&
@@ -606,9 +436,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return value;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Always returns a fresh top-level array: Server.roundtrip shifts` && |\n| &&
-             `    // oBody.ARGUMENTS, which must not reach the caller's own rest-parameter` && |\n| &&
-             `    // array.` && |\n| &&
              `    function normalizeEventArgs(args) {` && |\n| &&
              `      return args.map((arg) => normalizeEventArg(arg, 0));` && |\n| &&
              `    }` && |\n| &&
@@ -642,6 +469,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      isRootModelSlot,` && |\n| &&
              `      effectiveSizeLimit,` && |\n| &&
              `      renderInvisibleSpan,` && |\n| &&
+             `      EMPTY_RENDERER,` && |\n| &&
+             `      hookCallback,` && |\n| &&
              `      normalizeEventArgs,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

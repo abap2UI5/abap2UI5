@@ -35,10 +35,6 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Invisible control that reports the UI5 version/theme and the device` && |\n| &&
-             `    // info (system type, screen size, OS, browser) back to the backend via` && |\n| &&
-             `    // its bindable properties, then fires ``finished``.` && |\n| &&
-             `    // OBSOLETE: replaced by client.get().s_device / s_ui5 - kept for backward compatibility.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Info", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -87,30 +83,27 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Follows the shared rendering pattern (see core/Lib.js): the renderer` && |\n| &&
-             `      // only marks the work, onAfterRendering reads the device info and` && |\n| &&
-             `      // fires the event.` && |\n| &&
+             `      init() {` && |\n| &&
+             `        this._pendingInfo = true;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      exit() {` && |\n| &&
+             `        this._pendingInfo = false;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        if (!this._pendingInfo) return;` && |\n| &&
              `        try {` && |\n| &&
-             `          // The device model is created by Component.init(); it exposes` && |\n| &&
-             `          // system / resize / os / browser info. It reaches this control` && |\n| &&
-             `          // through model propagation, so on the very first rendering of a` && |\n| &&
-             `          // freshly built view it may not be attached yet - keep the pending` && |\n| &&
-             `          // flag in that case so the next rendering retries, instead of` && |\n| &&
-             `          // consuming it and never firing ``finished`` at all.` && |\n| &&
              `          const deviceModel = ViewSlots.getView("MAIN")?.getModel("device");` && |\n| &&
              `          const deviceData = deviceModel?.getData();` && |\n| &&
              `          if (!deviceData) return;` && |\n| &&
              `          this._pendingInfo = false;` && |\n| &&
              `` && |\n| &&
              `          const { system, resize, os, browser } = deviceData;` && |\n| &&
-             `          // Filled by Component._initVersionInfo (async, may not have` && |\n| &&
-             `          // resolved yet on the very first render).` && |\n| &&
+             `` && |\n| &&
              `          const ui5Info = AppState.getGlobal("oConfig")?.S_UI5;` && |\n| &&
              `          const ui5Version = ui5Info?.VERSION || "";` && |\n| &&
              `` && |\n| &&
-             `          // Single system-type label, same derivation as core/Session.js.` && |\n| &&
              `          const systemType = Lib.deriveSystemType(system);` && |\n| &&
              `` && |\n| &&
              `          const props = [` && |\n| &&
@@ -140,7 +133,6 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
              `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
-             `          oControl._pendingInfo = true;` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

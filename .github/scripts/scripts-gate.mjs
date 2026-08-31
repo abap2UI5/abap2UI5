@@ -27,63 +27,38 @@
  *
  *   node .github/scripts/scripts-gate.mjs        (npm run check:scripts)
  */
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { REPOS, read } from './lib-ecosystem.mjs';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-
-/* Every repository in the ecosystem that carries a package.json, this one
- * included - it is subject to its own rule, and reading it from disk rather
- * than exempting it is one line cheaper than the exemption.
- *
- * A list rather than a discovery call: the organisation also holds generated
- * channel repositories (`frontend`, `web-abap2UI5-build`) that have no
- * package.json and no contributor to type a command, and an API listing would
- * pull those in and then need an exclusion list anyway. */
-const REPOS = [
-  'abap2UI5',
-  'samples',
-  'samples-controls',
-  'samples-stack',
-  'app-template',
-  'mcp-server',
-  'vscode-extension',
-  'linter',
-  'docs',
-  'web-abap2UI5',
-];
+/* The ecosystem list AND the reader live in `lib-ecosystem.mjs`, because
+ * `toolchain-gate.mjs` needs both. Two hand-maintained copies of "which
+ * repositories the rules apply to" is exactly the drift both gates exist to
+ * catch — and two readers is how the same repository came to get two different
+ * answers: this gate reported `lock-manager: not checked (HTTP 404)` while the
+ * other one said the repository is not readable at all. One reader, one
+ * answer. */
 
 const REQUIRED = ['check', 'test'];
-
-const raw = (repo) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/package.json`;
 
 const problems = [];
 const notes = [];
 let checked = 0;
 
-for (const repo of REPOS) {
-  /* This repository is the checkout the gate runs in, not a sibling of it. */
-  const local = repo === 'abap2UI5'
-    ? path.join(ROOT, 'package.json')
-    : path.join(ROOT, '..', repo, 'package.json');
+/* All reads in flight at once - the loop below consumes settled results in
+ * list order, so the report stays deterministic. Awaiting inside the loop
+ * made this gate's runtime the SUM of the round trips. */
+const prefetch = new Map(REPOS.map((entry) => [entry, read(entry, 'package.json')]));
 
-  let text = null;
-  let from = '';
-  if (fs.existsSync(local)) {
-    text = fs.readFileSync(local, 'utf8');
-    from = 'checkout';
-  } else {
-    try {
-      const res = await fetch(raw(repo), { signal: AbortSignal.timeout(15000) });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      text = await res.text();
-      from = 'github';
-    } catch (err) {
-      notes.push(`${repo}: not checked (${err.message})`);
-      continue;
-    }
+for (const entry of REPOS) {
+  const { repo } = entry;
+
+  const pkg = await prefetch.get(entry);
+  if (pkg.note) { notes.push(`${repo}: not checked (${pkg.note})`); continue; }
+  if (pkg.missing) {
+    problems.push(`${repo}: no package.json (read from ${pkg.from})`
+      + ' — it is on the ecosystem list, so it is expected to have one');
+    continue;
   }
+  const { text, from } = pkg;
 
   let scripts;
   try {

@@ -46,6 +46,13 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     DATA mt_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
+    "! The table cells this parse could not apply - one entry per delta cell
+    "! whose value arrived and would not convert (see delta_apply_field). The
+    "! instance is created per roundtrip (z2ui5_cl_ui5_app_cont=>create_model),
+    "! so the list covers exactly one model parse; the caller hands it to the
+    "! app as client->get( )-t_model_skipped.
+    DATA mt_skipped TYPE z2ui5_if_client=>ty_t_model_skip.
+
     METHODS attri_update_entry_refs.
     METHODS attri_update_refs_children
       IMPORTING
@@ -103,6 +110,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS delta_apply_nodes
       IMPORTING
         io_delta TYPE REF TO z2ui5_if_ajson
+        iv_table TYPE string
       CHANGING
         ct_tab   TYPE STANDARD TABLE
       RAISING
@@ -110,11 +118,19 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     "! Apply one delta field value into the referenced row component. A
     "! single malformed cell (e.g. text into a numeric target) is skipped
-    "! here so it cannot abort the whole model batch.
+    "! here so it cannot abort the whole model batch - and the skip is
+    "! recorded in mt_skipped, because a cell that vanishes without a word is
+    "! what made a typed price disappear while the browser kept showing it.
+    "! is_cell IS the trace entry: it names the cell the caller resolved
+    "! (table path, 1-based row, component), so nothing has to be derived
+    "! again in the handler. Only a value that ARRIVED can be recorded here -
+    "! the caller reaches this method per member of the delta row, so an
+    "! absent field never becomes an entry.
     METHODS delta_apply_field
       IMPORTING
-        io_row_d TYPE REF TO z2ui5_if_ajson
+        io_delta TYPE REF TO z2ui5_if_ajson
         iv_path  TYPE string
+        is_cell  TYPE z2ui5_if_client=>ty_s_model_skip
         ir_comp  TYPE REF TO data
       RAISING
         z2ui5_cx_ajson_error.
@@ -138,6 +154,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
+          " the frontend sends only the DELTA, so most bound attributes have
+          " no node in the request model at all. slice( ) walks and copies
+          " the whole node tree per call (CP compare on every node); the
+          " keyed exists( ) lookup answers "nothing there" first, so the
+          " walk only runs for attributes the request actually carries -
+          " the same reasoning as the /value unwrap in
+          " z2ui5_cl_ui5_handler=>request_parse_body
+          IF model->exists( lr_attri->name_client ) = abap_false.
+            CONTINUE.
+          ENDIF.
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
           IF lo_val_front IS NOT BOUND.
             CONTINUE.
@@ -147,14 +173,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             delta_apply_to_table( io_val_front = lo_val_front
                                   iv_name      = lr_attri->name ).
             CONTINUE.
-          ENDIF.
-
-          IF lr_attri->custom_mapper_back IS BOUND.
-            lo_val_front = lo_val_front->map( lr_attri->custom_mapper_back ).
-          ENDIF.
-
-          IF lr_attri->custom_filter_back IS BOUND.
-            lo_val_front = lo_val_front->filter( lr_attri->custom_filter_back ).
           ENDIF.
 
           TRY.
@@ -184,7 +202,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD main_json_stringify.
     TRY.
 
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        " the result instance itself carries the upper-case mapping, so the
+        " common path below can convert an attribute straight into it - one
+        " ABAP->node conversion instead of a conversion into a scratch
+        " instance plus a node-by-node copy with per-node path rebasing
+        " (lcl_abap_to_json=>convert_ajson). Component names come out the
+        " same either way; the path leaf (name_client) is upper case by
+        " construction (attribute names come from RTTI), so the mapping is
+        " a no-op on it
+        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                       ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
         DATA(ajson_default) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                        ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
@@ -198,21 +225,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
              WHERE bind = abap_true
                    AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
                    AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
-
-          IF lr_attri->custom_mapper IS BOUND.
-            READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
-                 WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
-            IF sy-subrc = 0.
-              DATA(ajson) = lr_mapper_cache->ajson.
-            ELSE.
-              ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                   ii_custom_mapping = lr_attri->custom_mapper ) ).
-              INSERT VALUE #( mapper = lr_attri->custom_mapper
-                              ajson  = ajson ) INTO TABLE lt_mapper_cache.
-            ENDIF.
-          ELSE.
-            ajson = ajson_default.
-          ENDIF.
 
           TRY.
               DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
@@ -231,22 +243,49 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " decides the failure mode: an unparseable string raises here instead
           " of emitting broken JSON the frontend would choke on. No mapper runs
           " over it - the keys are the payload's own and must survive verbatim
+          " (an ajson value is copied node for node, the result's mapping does
+          " not touch it)
           IF lr_attri->check_json = abap_true.
             ajson_result->set( iv_path = lr_attri->name_client
                                iv_val  = z2ui5_cl_ajson=>parse( <val> ) ).
             CONTINUE.
           ENDIF.
 
-          ajson->set( iv_ignore_empty = abap_false
-                      iv_path         = `/`
-                      iv_val          = <val> ).
+          " a mapper or filter is attached to an ajson INSTANCE, so those
+          " attributes keep the scratch-instance detour the direct set cannot
+          " express: convert into the scratch, filter, copy into the result
+          IF lr_attri->custom_mapper IS BOUND OR lr_attri->custom_filter IS BOUND.
+            IF lr_attri->custom_mapper IS BOUND.
+              READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
+                   WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
+              IF sy-subrc = 0.
+                DATA(ajson) = lr_mapper_cache->ajson.
+              ELSE.
+                ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                                     ii_custom_mapping = lr_attri->custom_mapper ) ).
+                INSERT VALUE #( mapper = lr_attri->custom_mapper
+                                ajson  = ajson ) INTO TABLE lt_mapper_cache.
+              ENDIF.
+            ELSE.
+              ajson = ajson_default.
+            ENDIF.
 
-          IF lr_attri->custom_filter IS BOUND.
-            ajson = ajson->filter( lr_attri->custom_filter ).
+            ajson->set( iv_ignore_empty = abap_false
+                        iv_path         = `/`
+                        iv_val          = <val> ).
+
+            IF lr_attri->custom_filter IS BOUND.
+              ajson = ajson->filter( lr_attri->custom_filter ).
+            ENDIF.
+
+            ajson_result->set( iv_path = lr_attri->name_client
+                               iv_val  = ajson ).
+            CONTINUE.
           ENDIF.
 
-          ajson_result->set( iv_path = lr_attri->name_client
-                             iv_val  = ajson ).
+          ajson_result->set( iv_ignore_empty = abap_false
+                             iv_path         = lr_attri->name_client
+                             iv_val          = <val> ).
         ENDLOOP.
 
         result = ajson_result->stringify( ).
@@ -310,7 +349,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ir_attri->o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref_source ).
 
     READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
-         WITH KEY name = ir_attri->name_parent.
+         WITH KEY name = ir_attri->name_parent. "#EC CI_SORTSEQ
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
@@ -348,7 +387,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     LOOP AT ir_child_idx->* REFERENCE INTO DATA(lr_child_idx) "#EC CI_SORTSEQ
          WHERE name_parent = ir_attri->name.
       READ TABLE mt_attri->* REFERENCE INTO DATA(lr_child)
-           WITH KEY name = lr_child_idx->name.
+           WITH KEY name = lr_child_idx->name. "#EC CI_SORTSEQ
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
@@ -449,6 +488,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_get_val_ref.
 
+    " The dynamic ASSIGN below is resolved FRESH on every call, on purpose -
+    " do not cache the returned references (maintainer decision, 2026-08).
+    " The name->ref mapping is not stable enough to cache: apps create and
+    " re-point REF TO data attributes at runtime, dissolve( ) rebuilds
+    " mt_attri, and app code in main( ) may swap a dref target between any
+    " two calls. A cached reference then points at the old, detached data
+    " object and fails SILENTLY - the bind reads or writes a copy, values go
+    " stale without an exception, and that class of defect has only ever
+    " been found by users on real systems (see #1937 for how differently
+    " ASSIGN behaves across releases). The repeated dynamic ASSIGNs are the
+    " price of staying correct; O(n) work per roundtrip is the cheap side
+    " of that trade.
     FIELD-SYMBOLS <attri> TYPE any.
 
     IF iv_path IS INITIAL.
@@ -652,6 +703,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_update_entry_refs.
 
+    " The nested loops below resolve every reference through
+    " attri_get_val_ref( ) - a dynamic ASSIGN per lookup, up to O(n^2) of
+    " them per roundtrip. That cost is deliberate: see the comment in
+    " attri_get_val_ref for why a name->ref cache here goes stale silently
+    " (runtime-created attributes, refs re-pointed between roundtrips) and
+    " must not be introduced.
+
     " Declared once at method level: both CASE branches below fill and read
     " these, so an inline DATA(...) in only the first branch would read as if
     " they belonged to that branch alone.
@@ -802,13 +860,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the
         " attribute unmapped after a refresh
-        lr_attri->bind               = lr_old->bind.
-        lr_attri->name_client        = lr_old->name_client.
-        lr_attri->custom_mapper      = lr_old->custom_mapper.
-        lr_attri->custom_mapper_back = lr_old->custom_mapper_back.
-        lr_attri->custom_filter      = lr_old->custom_filter.
-        lr_attri->custom_filter_back = lr_old->custom_filter_back.
-        lr_attri->check_json         = lr_old->check_json.
+        lr_attri->bind          = lr_old->bind.
+        lr_attri->name_client   = lr_old->name_client.
+        lr_attri->custom_mapper = lr_old->custom_mapper.
+        lr_attri->custom_filter = lr_old->custom_filter.
+        lr_attri->check_json    = lr_old->check_json.
       ENDIF.
     ENDLOOP.
 
@@ -829,6 +885,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     delta_apply_nodes( EXPORTING io_delta = io_val_front->slice( `/__delta` )
+                                 iv_table = iv_name
                        CHANGING  ct_tab   = <delta_tab> ).
 
   ENDMETHOD.
@@ -855,16 +912,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lo_row_d) = io_delta->slice( |/{ lv_idx_str }| ).
-      DATA(lt_fld) = lo_row_d->members( `/` ).
+      " no slice( ) per row: slicing walks and copies the WHOLE delta tree
+      " for every changed row (O(rows^2) on a mass edit such as a
+      " select-all toggle). members( ) and the typed get_* calls below are
+      " keyed reads on the sorted node table, so the row is addressed by
+      " its full path instead
+      DATA(lv_row_path) = |/{ lv_idx_str }|.
+      DATA(lt_fld) = io_delta->members( lv_row_path ).
       LOOP AT lt_fld INTO DATA(lv_fld).
         FIELD-SYMBOLS <comp> TYPE any.
         ASSIGN COMPONENT lv_fld OF STRUCTURE <delta_row> TO <comp>.
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
-        delta_apply_field( io_row_d = lo_row_d
-                           iv_path  = |/{ lv_fld }|
+        delta_apply_field( io_delta = io_delta
+                           iv_path  = |{ lv_row_path }/{ lv_fld }|
+                           is_cell  = VALUE #( name  = iv_table
+                                               row   = lv_tabix
+                                               field = lv_fld )
                            ir_comp  = REF #( <comp> ) ).
       ENDLOOP.
     ENDLOOP.
@@ -876,21 +941,28 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <comp> TYPE any.
     ASSIGN ir_comp->* TO <comp>.
 
+    " iv_path addresses the cell in the caller's delta tree directly - the
+    " scalar branches below are keyed reads, so no per-row sub-tree has to
+    " be sliced off first. Only the two rare non-scalar branches still
+    " slice, and only the one component they need
     TRY.
-        CASE io_row_d->get_node_type( iv_path ).
+        CASE io_delta->get_node_type( iv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            <comp> = io_row_d->get_boolean( iv_path ).
+            <comp> = io_delta->get_boolean( iv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-object.
             " either a nested table delta (marked by __delta) or a
             " structure component shipped as a whole value
-            DATA(lo_sub) = io_row_d->slice( iv_path ).
+            DATA(lo_sub) = io_delta->slice( iv_path ).
             IF lo_sub->exists( `/__delta` ) = abap_true.
               FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
               ASSIGN ir_comp->* TO <sub_tab>.
               IF sy-subrc = 0.
+                " a nested row cell traces under the path to its own table,
+                " parent first - MT_TREE-NODES, not MT_TREE
                 delta_apply_nodes( EXPORTING io_delta = lo_sub->slice( `/__delta` )
+                                             iv_table = |{ is_cell-name }-{ is_cell-field }|
                                    CHANGING  ct_tab   = <sub_tab> ).
               ENDIF.
             ELSE.
@@ -900,18 +972,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
           WHEN z2ui5_if_ajson_types=>node_type-array.
             " a whole sub-table value replaced a nested delta on the client
-            io_row_d->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
+            io_delta->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
                                                  IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
             " numbers intentionally go through get_string: the raw JSON text
             " converts losslessly into any numeric target type, while
             " get_number would round through a binary float first
-            <comp> = io_row_d->get_string( iv_path ).
+            <comp> = io_delta->get_string( iv_path ).
         ENDCASE.
 
-      CATCH cx_root ##NO_HANDLER.
-        " skip just this cell - see the method comment
+      CATCH cx_root.
+        " Skip just this cell - see the method comment - but never silently:
+        " the value arrived and did not fit, and without this entry the old
+        " value stays in the model while the browser goes on showing what the
+        " user typed. Recording it is deliberately ALL that happens here;
+        " raising would let one bad cell kill a delta full of good ones,
+        " which is the whole reason the skip exists
+        APPEND is_cell TO mt_skipped.
     ENDTRY.
 
   ENDMETHOD.

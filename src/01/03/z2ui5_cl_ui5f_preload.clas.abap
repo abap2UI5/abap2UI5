@@ -46,6 +46,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/cc/Geolocation.js": function()\{{ z2ui5_cl_ui5f_geoloc_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/History.js": function()\{{ z2ui5_cl_ui5f_history_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Info.js": function()\{{ z2ui5_cl_ui5f_info_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/cc/InputExt.js": function()\{{ z2ui5_cl_ui5f_inputext_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/LPTitle.js": function()\{{ z2ui5_cl_ui5f_lptitle_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MessageManager.js": function()\{{ z2ui5_cl_ui5f_msgmgr_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MultiInputExt.js": function()\{{ z2ui5_cl_ui5f_multiinp_js=>get( ) }\},| && |\n| &&

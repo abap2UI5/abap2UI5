@@ -65,8 +65,13 @@ sap.ui.define(
       try {
         // seq undefined: this display belongs to no roundtrip, so the
         // superseded-request guard must not discard it (Slots.isSuperseded
-        // treats undefined as "not superseded").
-        await Slots.action("display", slotKey, xml, {}, undefined);
+        // treats undefined as "not superseded"). MAIN reuses the options of
+        // its last real display (switch-mode OData default model included) -
+        // an empty {} stripped them and broke the preview of exactly those
+        // apps.
+        const options =
+          slotKey === "MAIN" ? AppState.state.lastMainDisplayOptions || {} : {};
+        await Slots.action("display", slotKey, xml, options, undefined);
       } catch (e) {
         Lib.logError("DevTools LiveEdit: applying the edited XML failed", e);
         return `Could not build the view: ${e?.message || e}`;

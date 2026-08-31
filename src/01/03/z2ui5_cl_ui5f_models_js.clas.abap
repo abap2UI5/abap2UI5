@@ -30,40 +30,18 @@ CLASS z2ui5_cl_ui5f_models_js IMPLEMENTATION.
              `  (JSONModel, Device) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // The range set every {device>/media/range} binding reads. "Std" is UI5's` && |\n| &&
-             `    // own predefined set (Phone < 600px, Tablet < 1024px, Desktop above), the` && |\n| &&
-             `    // same thresholds the demo kit's media models use.` && |\n| &&
              `    const RANGE_SET = "Std";` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
-             `      // Creates a read-only JSON model that exposes the current device info` && |\n| &&
-             `      // (phone / tablet / desktop, orientation, ...) to the views.` && |\n| &&
-             `      //` && |\n| &&
-             `      // The model wraps the LIVE sap.ui.Device object, which mutates itself` && |\n| &&
-             `      // on resize and rotation - but a JSONModel only notifies its bindings` && |\n| &&
-             `      // when something tells it to, so without the handlers below a` && |\n| &&
-             `      // {device>/resize/width} binding renders the width at load time and` && |\n| &&
-             `      // never moves again. The handlers cost nothing at rest (Device fires` && |\n| &&
-             `      // them only on a real change) and keep every device binding live` && |\n| &&
-             `      // without a roundtrip, which is the point of having the model at all.` && |\n| &&
              `      createDeviceModel() {` && |\n| &&
              `        const oModel = new JSONModel(Device);` && |\n| &&
              `        oModel.setDefaultBindingMode("OneWay");` && |\n| &&
              `` && |\n| &&
-             `        // "Std" is predefined, so whoever touched Device.media first has` && |\n| &&
-             `        // usually initialised it already - and initialising it twice makes` && |\n| &&
-             `        // UI5 log "Range set Std has already been initialized" into every` && |\n| &&
-             `        // app start. Ask first; the call is still needed for the runtime` && |\n| &&
-             `        // that has not set it up yet.` && |\n| &&
              `        if (!Device.media.hasRangeSet(RANGE_SET)) {` && |\n| &&
              `          Device.media.initRangeSet(RANGE_SET);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        const refresh = () => {` && |\n| &&
-             `          // Device.media exposes methods only - there is no property a binding` && |\n| &&
-             `          // could address - so the current range NAME is published onto the` && |\n| &&
-             `          // model itself. It is the value a live breakpoint branch wants:` && |\n| &&
-             `          // class="{= ${device>/media/range} === 'Phone' ? 'a' : 'b' }".` && |\n| &&
              `          const oRange = Device.media.getCurrentRange(RANGE_SET);` && |\n| &&
              `          oModel.setProperty("/media/range", oRange ? oRange.name : "");` && |\n| &&
              `          oModel.refresh(true);` && |\n| &&
@@ -72,12 +50,8 @@ CLASS z2ui5_cl_ui5f_models_js IMPLEMENTATION.
              `        Device.resize.attachHandler(refresh);` && |\n| &&
              `        Device.orientation.attachHandler(refresh);` && |\n| &&
              `        Device.media.attachHandler(refresh, null, RANGE_SET);` && |\n| &&
-             `        refresh(); // seed /media/range before the first render` && |\n| &&
+             `        refresh();` && |\n| &&
              `` && |\n| &&
-             `        // Device is a global singleton, so the handlers above outlive the` && |\n| &&
-             `        // model unless destroy() detaches them - without this, every FLP` && |\n| &&
-             `        // re-launch would stack three more handlers, each retaining its` && |\n| &&
-             `        // model forever. Component.exit() calls destroy().` && |\n| &&
              `        oModel.destroy = function () {` && |\n| &&
              `          Device.resize.detachHandler(refresh);` && |\n| &&
              `          Device.orientation.detachHandler(refresh);` && |\n| &&

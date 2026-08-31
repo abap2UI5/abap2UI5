@@ -2,7 +2,7 @@ name: check_app2abap
 
 # Drift gate: a PR that changes app/webapp but forgets to regenerate the
 # embedded ABAP under src/01/03 (or leaves app/webapp un-prettier'd) would make
-# main briefly inconsistent until the post-merge create_app2abap bot PR lands.
+# main inconsistent (the fix is `npm run app2abap` locally or `/fix app2abap`).
 # Run the exact regeneration pipeline here and fail if anything it owns differs
 # from what was committed, so the drift is caught on the PR instead.
 
@@ -12,7 +12,30 @@ on:
       - 'app/webapp/**'
       - 'src/01/03/**'
       - 'tools/app2abap/**'
+      # `npm run app2abap` starts with `npm --prefix app run format`, so
+      # Prettier's version and its configuration decide the bytes that end up
+      # in src/01/03 just as much as the sources above do. A bump in app's
+      # lockfile or a rule change in .prettierrc reformats app/webapp and
+      # regenerates every carrier - and without these lines the gate that
+      # notices that would not have started. Same bug class the comments in
+      # render-gate.yaml (package-lock) and frontend_check.yaml (terser) name.
+      - 'app/package.json'
+      - 'app/package-lock.json'
+      - 'app/.prettierrc'
       - '.github/workflows/check_app2abap.yaml'
+  # A merge is not a state any pull request tested. Same pattern - paths
+  # repeated and all - as frontend_check.yaml. (The create_app2abap workflow
+  # that used to regenerate from main after every push is gone: with this
+  # gate green on the PR and on main it could only ever open an empty PR.)
+  push:
+    branches: [main]
+    paths:
+      - 'app/webapp/**'
+      - 'src/01/03/**'
+      - 'tools/app2abap/**'
+      - 'app/package.json'
+      - 'app/package-lock.json'
+      - 'app/.prettierrc'
 
 concurrency:
   group: check_app2abap-${{ github.ref }}

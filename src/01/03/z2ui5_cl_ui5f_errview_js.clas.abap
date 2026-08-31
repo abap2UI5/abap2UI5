@@ -25,51 +25,26 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// The unified fatal-error overlay. Shown via Server.responseError whenever` && |\n| &&
-             `// the app reaches an unrecoverable state - a failed roundtrip (network,` && |\n| &&
-             `// HTTP != 2xx, bad JSON, backend dump) or a client-side failure (invalid` && |\n| &&
-             `// view XML, post-render crash, missing SDK module). The only way out is a` && |\n| &&
-             `// restart, hence the Refresh / Logout actions. Built from raw DOM so it` && |\n| &&
-             `// still works when the UI5 core itself is in a broken state.` && |\n| &&
-             `sap.ui.define(["z2ui5/core/AppState"], (AppState) => {` && |\n| &&
+    result = `sap.ui.define(["z2ui5/core/AppState"], (AppState) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  // Errors longer than this are truncated before being shown to the user,` && |\n| &&
-             `  // so a stack trace from the backend cannot blow up the error overlay.` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `` && |\n| &&
-             `  // The friendly dialog shows only a short preview of the error text (the` && |\n| &&
-             `  // full text stays behind Details and in Copy); longer previews are cut.` && |\n| &&
              `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
              `` && |\n| &&
-             `  // The default headline of the fatal-error overlay. Also the first line of` && |\n| &&
-             `  // what Copy puts on the clipboard, so it must match what a registered` && |\n| &&
-             `  // details provider renders from AppState.state.lastError.` && |\n| &&
              `  const DEFAULT_TITLE = "Application Error - Please Restart The App";` && |\n| &&
              `` && |\n| &&
-             `  // The stylesheet that squares off the fatal-error dialog and lays out its` && |\n| &&
-             `  // messages. Injected once, on demand - the overlay is the one place that` && |\n| &&
-             `  // needs it and a fatal error must not depend on a stylesheet the app may` && |\n| &&
-             `  // never load.` && |\n| &&
              `  const STYLE_ID = "z2ui5ErrorViewStyle";` && |\n| &&
              `  const DIALOG_CLASS = "z2ui5ErrorDialog";` && |\n| &&
              `  const MESSAGE_CLASS = "z2ui5ErrorMessage";` && |\n| &&
              `  const HINT_CLASS = "z2ui5ErrorHint";` && |\n| &&
              `` && |\n| &&
-             `  // Remember the last dialog's inputs so reopenErrorDialog can re-show the` && |\n| &&
-             `  // popup after a details provider hands control back (see openErrorDetails).` && |\n| &&
              `  let lastDialogTitle = "";` && |\n| &&
              `  let lastDialogDetails = "";` && |\n| &&
              `  let lastDialogOptions = {};` && |\n| &&
              `` && |\n| &&
-             `  // The currently open friendly error dialog, so a second fatal error (or a` && |\n| &&
-             `  // reopenErrorDialog call) never stacks two of them.` && |\n| &&
              `  let friendlyDialog = null;` && |\n| &&
              `` && |\n| &&
-             `  // Decode the HTML entities that turn up in backend error pages. Non-ASCII` && |\n| &&
-             `  // replacements go through fromCharCode so this source file stays 7-bit ASCII` && |\n| &&
-             `  // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an` && |\n| &&
-             `  // already-encoded entity is not decoded twice.` && |\n| &&
              `  function decodeEntities(s) {` && |\n| &&
              `    return s` && |\n| &&
              `      .replace(/&nbsp;/gi, " ")` && |\n| &&
@@ -90,11 +65,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      .replace(/\s+/g, " ")` && |\n| &&
              `      .trim();` && |\n| &&
              `` && |\n| &&
-             `  // Pull just the meaningful message out of a SAP application-server error` && |\n| &&
-             `  // page: the error header (e.g. "500 Internal Server Error") and the message` && |\n| &&
-             `  // paragraphs (e.g. "Division by zero"). Everything else - page title, footer,` && |\n| &&
-             `  // copyright, the client-side clock <script> after "Server time:" - is noise` && |\n| &&
-             `  // and dropped. Returns "" when the text is not such a page.` && |\n| &&
              `  function extractServerError(html) {` && |\n| &&
              `    const parts = [];` && |\n| &&
              `    const rx = /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;` && |\n| &&
@@ -106,15 +76,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      .join(" - ");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // A framework 500 body is a sectioned plain-text dump built by` && |\n| &&
-             `  // z2ui5_cx_ui5_util_error=>get_text_full: a version header line, then` && |\n| &&
-             `  // ``--- error ---`` with the message chain (one message per line), then` && |\n| &&
-             `  // ``--- exception chain ---`` (a block per cause with class, source position,` && |\n| &&
-             `  // kernel id, attributes) and ``--- context ---``. The popup shows only the` && |\n| &&
-             `  // messages; the rest is one click away behind Details and in Copy, which` && |\n| &&
-             `  // both work on the untruncated text. Returns "" when the text is not such` && |\n| &&
-             `  // a dump - a network error, a client-side failure or an ABAP dump rendered` && |\n| &&
-             `  // as an HTML error page all keep the single-line preview below.` && |\n| &&
              `  const ERROR_SECTION_HEADER = "--- error ---";` && |\n| &&
              `` && |\n| &&
              `  function extractFrameworkMessages(text) {` && |\n| &&
@@ -125,7 +86,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    if (start < 0) return "";` && |\n| &&
              `    const messages = [];` && |\n| &&
              `    for (const line of lines.slice(start + 1)) {` && |\n| &&
-             `      // the next section header ends the block` && |\n| &&
              `      if (line.trim().startsWith("---")) break;` && |\n| &&
              `      const cleaned = cleanText(line);` && |\n| &&
              `      if (cleaned) messages.push(cleaned);` && |\n| &&
@@ -133,12 +93,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    return messages.join("\n");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Turn the raw error text into a preview for the friendly dialog: the` && |\n| &&
-             `  // framework's own messages when the body carries them, otherwise a` && |\n| &&
-             `  // one-glance line. Backend errors may also arrive as a whole HTML page (an` && |\n| &&
-             `  // ABAP dump rendered as a 500 error page): prefer the structured error` && |\n| &&
-             `  // message, else fall back to stripping script/style/title and the remaining` && |\n| &&
-             `  // tags. Rendered as plain text, so the stripped markup cannot execute.` && |\n| &&
              `  function buildErrorPreview(text) {` && |\n| &&
              `    if (!text) return "";` && |\n| &&
              `    let preview = extractFrameworkMessages(text);` && |\n| &&
@@ -158,18 +112,12 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      : preview;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Copy text to the clipboard, working both in a secure (HTTPS) context and` && |\n| &&
-             `  // over plain HTTP - the latter is common for on-premise ABAP systems, where` && |\n| &&
-             `  // the async navigator.clipboard API is unavailable. A hidden <textarea> plus` && |\n| &&
-             `  // the classic execCommand("copy") works everywhere, so try it first and only` && |\n| &&
-             `  // fall back to the async API when it did not copy. Returns nothing - copying` && |\n| &&
-             `  // is best-effort and must never throw out of a fatal-error dialog.` && |\n| &&
              `  function copyToClipboard(text) {` && |\n| &&
              `    const value = String(text == null ? "" : text);` && |\n| &&
              `    let copied;` && |\n| &&
              `    const textarea = document.createElement("textarea");` && |\n| &&
              `    textarea.value = value;` && |\n| &&
-             `    // Keep it out of view and out of the layout flow while it is selected.` && |\n| &&
+             `` && |\n| &&
              `    textarea.style.cssText =` && |\n| &&
              `      "position:fixed;top:-9999px;left:-9999px;opacity:0;";` && |\n| &&
              `    textarea.setAttribute("readonly", "");` && |\n| &&
@@ -188,12 +136,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // The dialog is deliberately square: a fatal error is not a regular popup,` && |\n| &&
-             `  // and the sharp frame plus the red rule in front of every message sets it` && |\n| &&
-             `  // apart from the app behind it. Colors come from the UI5 theme parameters` && |\n| &&
-             `  // (with a literal fallback), so the overlay follows the app theme instead of` && |\n| &&
-             `  // hard-coding one. Injected once and best-effort - a browser that refuses` && |\n| &&
-             `  // the stylesheet still gets the fully functional, just unstyled, dialog.` && |\n| &&
              `  const DIALOG_STYLES = ``` && |\n| &&
              `.${DIALOG_CLASS}.sapMDialog,` && |\n| &&
              `.${DIALOG_CLASS} .sapMDialogTitleGroup,` && |\n| &&
@@ -233,13 +175,9 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      style.id = STYLE_ID;` && |\n| &&
              `      style.textContent = DIALOG_STYLES;` && |\n| &&
              `      head.appendChild(style);` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      // Styling is cosmetic - never let it take the error dialog down.` && |\n| &&
-             `    }` && |\n| &&
+             `    } catch {}` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // addStyleClass comes from sap.ui.core.Control, but the fatal-error path` && |\n| &&
-             `  // must survive a half-broken core, so it is called defensively.` && |\n| &&
              `  function withClass(control, className) {` && |\n| &&
              `    if (control && typeof control.addStyleClass === "function") {` && |\n| &&
              `      control.addStyleClass(className);` && |\n| &&
@@ -248,15 +186,11 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function createContainer() {` && |\n| &&
-             `    // Always start from a fresh element: reusing a previous overlay would` && |\n| &&
-             `    // keep its keydown focus-trap listener alive and stack a duplicate on` && |\n| &&
-             `    // every further show() call.` && |\n| &&
              `    document.getElementById("serverErrorContainer")?.remove();` && |\n| &&
              `` && |\n| &&
              `    const container = document.createElement("div");` && |\n| &&
              `    container.id = "serverErrorContainer";` && |\n| &&
-             `    // Square frame, same as the friendly dialog above - the two are the same` && |\n| &&
-             `    // overlay to the user, one just renders without UI5.` && |\n| &&
+             `` && |\n| &&
              `    container.style.cssText = ``` && |\n| &&
              `      position: fixed;` && |\n| &&
              `      top: 50%;` && |\n| &&
@@ -277,44 +211,19 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    return container;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Whether anything can show a detailed view of this error. The overlay` && |\n| &&
-             `  // knows nothing about WHAT that is: ``onErrorDetails`` is a plain callback` && |\n| &&
-             `  // array (core/AppState.js) that a details provider registers into - in a` && |\n| &&
-             `  // standard install that is the in-app developer tools` && |\n| &&
-             `  // (devtools/DevTools.js). With nothing registered the Details button` && |\n| &&
-             `  // is left out entirely rather than being a no-op.` && |\n| &&
              `  function hasErrorDetails() {` && |\n| &&
              `    return (AppState.state.onErrorDetails || []).length > 0;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Run the registered details providers. Each is isolated: a provider that` && |\n| &&
-             `  // throws must not take the error overlay down with it - the fatal error is` && |\n| &&
-             `  // still recorded in AppState.state.lastError either way. Deliberately not` && |\n| &&
-             `  // via Lib.runCallbacks: this module imports nothing from core/Lib.js so it` && |\n| &&
-             `  // still works when the core failed to load.` && |\n| &&
              `  function openErrorDetails() {` && |\n| &&
              `    for (const fn of AppState.state.onErrorDetails || []) {` && |\n| &&
              `      if (!fn) continue;` && |\n| &&
              `      try {` && |\n| &&
              `        fn();` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        // provider failed - nothing more we can do here` && |\n| &&
-             `      }` && |\n| &&
+             `      } catch {}` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // The friendly UI5 error dialog shown first: the extracted error text so the` && |\n| &&
-             `  // cause is visible at a glance, with a Details action (handed to whatever` && |\n| &&
-             `  // registered as a details provider) and a Restart action (reload). Returns` && |\n| &&
-             `  // true when it was shown, false when UI5 could not render it so the caller` && |\n| &&
-             `  // falls back to the raw-DOM overlay. sap.m.Dialog/Button/Text are required` && |\n| &&
-             `  // lazily so ErrorView never hard-depends on a renderable core.` && |\n| &&
-             `  //` && |\n| &&
-             `  // A plain Dialog (not sap.m.MessageBox) is used on purpose: a fatal error` && |\n| &&
-             `  // leaves the app in a broken state, so the popup must not be dismissable` && |\n| &&
-             `  // with Escape - MessageBox always closes on Escape and offers no way to` && |\n| &&
-             `  // suppress it, whereas a Dialog with an escapeHandler that rejects stays` && |\n| &&
-             `  // open until the user picks an explicit action.` && |\n| &&
              `  function showFriendlyDialog(title, details, options = {}) {` && |\n| &&
              `    try {` && |\n| &&
              `      const Dialog = sap.ui.require("sap/m/Dialog");` && |\n| &&
@@ -324,35 +233,24 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      lastDialogTitle = title;` && |\n| &&
              `      lastDialogDetails = details;` && |\n| &&
              `      lastDialogOptions = options;` && |\n| &&
-             `      // Never stack two error popups (a second fatal error or a reopen).` && |\n| &&
+             `` && |\n| &&
              `      if (friendlyDialog) {` && |\n| &&
              `        friendlyDialog.destroy();` && |\n| &&
              `        friendlyDialog = null;` && |\n| &&
              `      }` && |\n| &&
              `      ensureDialogStyles();` && |\n| &&
-             `      // Show only the extracted error text; a short neutral fallback covers` && |\n| &&
-             `      // the rare case where nothing could be extracted.` && |\n| &&
+             `` && |\n| &&
              `      const message = buildErrorPreview(details) || "An error occurred.";` && |\n| &&
-             `      // A framework preview is one message per line: give each message its own` && |\n| &&
-             `      // Text so the dialog reads as a list of messages instead of a paragraph.` && |\n| &&
-             `      // Dialog.content stacks its controls vertically, so this needs no layout` && |\n| &&
-             `      // control - sap.m.Text is the only content type the dialog depends on,` && |\n| &&
-             `      // which is what keeps it renderable on a half-broken core.` && |\n| &&
+             `` && |\n| &&
              `      const content = message.split("\n").map((line) => {` && |\n| &&
              `        const text = new Text({ text: line });` && |\n| &&
-             `        // A single message can still carry its own indentation (a chain entry` && |\n| &&
-             `        // that slipped through), so keep whitespace. Set through the mutator` && |\n| &&
-             `        // and guarded: the property arrived in UI5 1.60 and a control without` && |\n| &&
-             `        // it must not take the whole dialog down (the catch below would drop` && |\n| &&
-             `        // the user to the raw overlay).` && |\n| &&
+             `` && |\n| &&
              `        if (typeof text.setRenderWhitespace === "function") {` && |\n| &&
              `          text.setRenderWhitespace(true);` && |\n| &&
              `        }` && |\n| &&
              `        return withClass(text, MESSAGE_CLASS);` && |\n| &&
              `      });` && |\n| &&
-             `      // Everything the popup left out - the exception chain, the source` && |\n| &&
-             `      // positions, the system context - is behind Details and in Copy. Say so,` && |\n| &&
-             `      // otherwise the shortened popup looks like all there is.` && |\n| &&
+             `` && |\n| &&
              `      if (String(details || "").trim() !== message) {` && |\n| &&
              `        content.push(` && |\n| &&
              `          withClass(` && |\n| &&
@@ -363,19 +261,13 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `          ),` && |\n| &&
              `        );` && |\n| &&
              `      }` && |\n| &&
-             `      // Restart is the primary action, so it also gets the initial focus.` && |\n| &&
+             `` && |\n| &&
              `      const restartButton = new Button({` && |\n| &&
              `        text: "Restart",` && |\n| &&
              `        type: "Emphasized",` && |\n| &&
              `        press: () => window.location.reload(),` && |\n| &&
              `      });` && |\n| &&
-             `      // Copy the full error text (not just the shown preview) to the clipboard` && |\n| &&
-             `      // so the user can paste it into a ticket or chat. What lands on the` && |\n| &&
-             `      // clipboard is exactly what the Developer Tools Error tab shows -` && |\n| &&
-             `      // headline, blank line, then the whole untruncated dump - so a pasted` && |\n| &&
-             `      // report is complete without opening Details first. Briefly flip the` && |\n| &&
-             `      // label to "Copied" as feedback, then restore it (guarding against a` && |\n| &&
-             `      // dialog that was closed in the meantime).` && |\n| &&
+             `` && |\n| &&
              `      const copyText = ``${title || DEFAULT_TITLE}\n\n${details}``;` && |\n| &&
              `      const copyButton = new Button({` && |\n| &&
              `        text: "Copy",` && |\n| &&
@@ -383,20 +275,13 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `          copyToClipboard(copyText);` && |\n| &&
              `          copyButton.setText("Copied");` && |\n| &&
              `          setTimeout(() => {` && |\n| &&
-             `            // deliberately the private flag, not Lib.isDestroyed: this module must` && |\n| &&
-             `            // work when the core failed to load, so it imports nothing from it` && |\n| &&
              `            if (!copyButton.bIsDestroyed) copyButton.setText("Copy");` && |\n| &&
              `          }, 1500);` && |\n| &&
              `        },` && |\n| &&
              `      });` && |\n| &&
-             `      // A failure that may never have reached the server (network blip,` && |\n| &&
-             `      // timeout) leaves the app state intact, so the caller hands over a` && |\n| &&
-             `      // retry that re-sends the exact same request. The raw overlay has` && |\n| &&
-             `      // offered it all along; the friendly dialog is what users actually` && |\n| &&
-             `      // see, so without this the retry was effectively unreachable and a` && |\n| &&
-             `      // dropped connection forced a full restart.` && |\n| &&
+             `` && |\n| &&
              `      const buttons = [];` && |\n| &&
-             `      // Only offered when a details provider registered - see hasErrorDetails.` && |\n| &&
+             `` && |\n| &&
              `      if (hasErrorDetails()) {` && |\n| &&
              `        buttons.push(` && |\n| &&
              `          new Button({` && |\n| &&
@@ -421,23 +306,15 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `        );` && |\n| &&
              `      }` && |\n| &&
              `      buttons.push(restartButton);` && |\n| &&
-             `      // sap.m.Dialog does not allow more than one begin/end button, so use the` && |\n| &&
-             `      // ``buttons`` aggregation to line up Details / Copy / Retry / Restart in` && |\n| &&
-             `      // the footer.` && |\n| &&
-             `      const dialog = new Dialog({` && |\n|.
-    result = result &&
+             `` && |\n| &&
+             `      const dialog = new Dialog({` && |\n| &&
              `        title: title || "Application Error",` && |\n| &&
              `        type: "Message",` && |\n| &&
              `        state: "Error",` && |\n| &&
              `        icon: "sap-icon://message-error",` && |\n| &&
-             `        // Without a width the message dialog sizes itself to the longest` && |\n| &&
-             `        // unbreakable run of the error text - a URL or a class name stretches` && |\n| &&
-             `        // it across the screen. A fixed content width keeps the box the same` && |\n| &&
-             `        // shape whatever the backend sent.` && |\n| &&
+             `` && |\n| &&
              `        contentWidth: "36rem",` && |\n| &&
-             `        // Escape must not dismiss the fatal-error popup: rejecting the escape` && |\n| &&
-             `        // promise keeps it open, so the only ways out are the explicit` && |\n| &&
-             `        // actions built above.` && |\n| &&
+             `` && |\n| &&
              `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
              `        content,` && |\n| &&
              `        buttons,` && |\n| &&
@@ -456,9 +333,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Re-show the friendly error dialog with the last error's content - called` && |\n| &&
-             `  // by a details provider when the user closes it, so they land back on the` && |\n| &&
-             `  // error popup instead of the broken app. No-op if UI5 cannot render it.` && |\n| &&
              `  function reopenErrorDialog() {` && |\n| &&
              `    return showFriendlyDialog(` && |\n| &&
              `      lastDialogTitle,` && |\n| &&
@@ -467,7 +341,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    );` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Logout via the launchpad if available; otherwise hit the SAP logoff URL.` && |\n| &&
              `  function handleLogout() {` && |\n| &&
              `    const fallback = () => {` && |\n| &&
              `      window.location.href = "/sap/public/bc/icf/logoff";` && |\n| &&
@@ -483,18 +356,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // showFriendlyDialog only succeeds when sap.m.Dialog/Button/Text are already` && |\n| &&
-             `  // loaded, because it resolves them with the synchronous sap.ui.require (which` && |\n| &&
-             `  // returns undefined for a not-yet-loaded module). This kicks off the async` && |\n| &&
-             `  // require for those three controls and retries the friendly popup once they` && |\n| &&
-             `  // arrive, so a fatal error raised before any Dialog was used - most notably a` && |\n| &&
-             `  // popover fragment that fails to render on the first roundtrip - still lands` && |\n| &&
-             `  // in the friendly UI5 popup instead of the raw-DOM overlay. Returns true when` && |\n| &&
-             `  // the async load was started (the caller must then NOT also show the raw` && |\n| &&
-             `  // overlay); false when async loading is unavailable, so the caller falls back` && |\n| &&
-             `  // right away. If the modules cannot be loaded (broken core) or still cannot` && |\n| &&
-             `  // render, the errback / retry paths show the raw overlay so the error is` && |\n| &&
-             `  // never swallowed.` && |\n| &&
              `  function loadFriendlyDialogAsync(title, details, options) {` && |\n| &&
              `    try {` && |\n| &&
              `      const require = sap?.ui?.require;` && |\n| &&
@@ -510,16 +371,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // ``response`` may be a string or an Error object; ``title`` overrides the` && |\n| &&
-             `  // default header text; ``options.onRetry`` adds a Retry action that removes` && |\n| &&
-             `  // the overlay and re-runs the failed request (offered by Server.readHttp` && |\n| &&
-             `  // for network/timeout failures, where the request may never have reached` && |\n| &&
-             `  // the server and app state is still intact).` && |\n| &&
              `  function show(response, title, options = {}) {` && |\n| &&
-             `    // V8 stacks start with "Error: <message>", but Firefox/SpiderMonkey` && |\n| &&
-             `    // stacks are frame lines only - prepend the message when the stack does` && |\n| &&
-             `    // not already carry it, so the overlay never shows a stack without the` && |\n| &&
-             `    // actual error text.` && |\n| &&
              `    const stack = response?.stack ? String(response.stack) : "";` && |\n| &&
              `    const message = String(response);` && |\n| &&
              `    const full = stack` && |\n| &&
@@ -527,46 +379,32 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `        ? stack` && |\n| &&
              `        : ``${message}\n${stack}``` && |\n| &&
              `      : message;` && |\n| &&
-             `    // Rendered via textContent, so the truncation marker is plain text (an` && |\n| &&
-             `    // HTML comment would show up literally).` && |\n| &&
+             `` && |\n| &&
              `    const errorMessage =` && |\n| &&
              `      full.length > ERROR_MAX_LENGTH` && |\n| &&
              `        ? ``${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``` && |\n| &&
              `        : full;` && |\n| &&
              `` && |\n| &&
-             `    // Record the fatal error so the Developer Tools Error tab can re-show it` && |\n| &&
-             `    // (title, text and the same Retry action) after the overlay is gone.` && |\n| &&
              `    AppState.state.lastError = {` && |\n| &&
              `      title: title || DEFAULT_TITLE,` && |\n| &&
              `      text: errorMessage,` && |\n| &&
              `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // Prefer a friendly UI5 dialog (the error text + Details / Restart, plus` && |\n| &&
-             `    // Retry when the caller offered one).` && |\n| &&
              `    if (showFriendlyDialog(title, errorMessage, options)) return;` && |\n| &&
              `` && |\n| &&
-             `    // Its modules were not loaded yet: load them asynchronously and retry, so` && |\n| &&
-             `    // the error still lands in the friendly popup first (see` && |\n| &&
-             `    // loadFriendlyDialogAsync). Only when async loading is unavailable do we` && |\n| &&
-             `    // fall through to the raw-DOM overlay immediately.` && |\n| &&
              `    if (loadFriendlyDialogAsync(title, errorMessage, options)) return;` && |\n| &&
              `` && |\n| &&
              `    showRawOverlay(title, errorMessage, options);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // The raw-DOM fatal overlay - the last-resort error display, built without` && |\n| &&
-             `  // UI5 so it still works when the core cannot render the friendly dialog.` && |\n| &&
              `  function showRawOverlay(title, errorMessage, options = {}) {` && |\n| &&
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
-             `    // Announce the overlay to assistive technology: without a dialog role` && |\n| &&
-             `    // and focus move, a screen-reader user is never told the app crashed.` && |\n| &&
              `    errorContainer.setAttribute("role", "alertdialog");` && |\n| &&
              `    errorContainer.setAttribute("aria-modal", "true");` && |\n| &&
              `    errorContainer.setAttribute("aria-labelledby", "serverErrorTitle");` && |\n| &&
              `` && |\n| &&
-             `    // Header bar with title and action buttons.` && |\n| &&
              `    const headerDiv = document.createElement("div");` && |\n| &&
              `    headerDiv.style.cssText =` && |\n| &&
              `      "padding: 0.75rem 1rem; background: #bb0000; color: white; display: flex; justify-content: space-between; align-items: center; gap: 1rem;";` && |\n| &&
@@ -583,12 +421,11 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    const actionsDiv = document.createElement("div");` && |\n| &&
              `    actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
              `` && |\n| &&
-             `    // The order the buttons are added is also the Tab order and the order the` && |\n| &&
-             `    // focus trap below cycles through.` && |\n| &&
              `    const addAction = (label, onClick) => {` && |\n| &&
              `      const button = document.createElement("button");` && |\n| &&
              `      button.type = "button";` && |\n| &&
-             `      button.textContent = label;` && |\n| &&
+             `      button.textContent = label;` && |\n|.
+    result = result &&
              `      button.style.cssText = btnStyle;` && |\n| &&
              `      button.addEventListener("click", onClick);` && |\n| &&
              `      actionsDiv.appendChild(button);` && |\n| &&
@@ -606,10 +443,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    headerDiv.appendChild(actionsDiv);` && |\n| &&
              `    errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
-             `    // Keep keyboard focus inside the overlay: Tab cycles through the action` && |\n| &&
-             `    // buttons instead of escaping into the broken page behind it. The button` && |\n| &&
-             `    // set is complete here (all appended above), so resolve first/last once` && |\n| &&
-             `    // rather than re-querying the DOM on every Tab press.` && |\n| &&
              `    const trapButtons = actionsDiv.querySelectorAll("button");` && |\n| &&
              `    const firstTrap = trapButtons[0];` && |\n| &&
              `    const lastTrap = trapButtons[trapButtons.length - 1];` && |\n| &&
@@ -624,16 +457,12 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
-             `    // The error text itself lives inside a sandboxed iframe so any HTML` && |\n| &&
-             `    // in the backend response cannot execute or affect the main page.` && |\n| &&
              `    const iframe = document.createElement("iframe");` && |\n| &&
              `    iframe.id = "errorIframe";` && |\n| &&
              `    iframe.style.cssText = "width: 100%; height: 100%; border: none; flex: 1;";` && |\n| &&
              `    iframe.setAttribute("sandbox", "allow-same-origin");` && |\n| &&
              `    errorContainer.appendChild(iframe);` && |\n| &&
              `` && |\n| &&
-             `    // textContent does not parse HTML, so the untrusted backend message` && |\n| &&
-             `    // cannot execute wherever this <pre> ends up.` && |\n| &&
              `    const createPre = (ownerDocument) => {` && |\n| &&
              `      const pre = ownerDocument.createElement("pre");` && |\n| &&
              `      pre.style.cssText =` && |\n| &&
@@ -647,15 +476,9 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      const target = contentDocument.body || contentDocument.documentElement;` && |\n| &&
              `      target.appendChild(createPre(contentDocument));` && |\n| &&
              `    } else {` && |\n| &&
-             `      // The sandboxed iframe document was not reachable (sandbox/timing` && |\n| &&
-             `      // edge). Never leave the fatal overlay empty: fall back to a plain` && |\n| &&
-             `      // <pre> in the container.` && |\n| &&
              `      errorContainer.appendChild(createPre(document));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Move focus into the dialog so keyboard and screen-reader users land on` && |\n| &&
-             `    // the primary action instead of the broken page behind the overlay.` && |\n| &&
-             `    // firstTrap is that button - the trap above resolved the complete set.` && |\n| &&
              `    if (firstTrap) firstTrap.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&

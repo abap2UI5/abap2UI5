@@ -28,17 +28,6 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
     result = `sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  // ------------------------------------------------------------------` && |\n| &&
-             `  // The session block of the request: what the backend only needs ONCE` && |\n| &&
-             `  // per page load (the UI5 build, the static device profile, the` && |\n| &&
-             `  // launchpad's ComponentData) plus the two device fields that stay live.` && |\n| &&
-             `  // The backend stores the full block with the draft` && |\n| &&
-             `  // (z2ui5_cl_ui5_handler=>session_merge), so every later roundtrip` && |\n| &&
-             `  // sends only the live fields - a few hundred bytes off every event.` && |\n| &&
-             `  // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `  // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the` && |\n| &&
-             `  // session, so resolve them once and reuse the cached block.` && |\n| &&
              `  let deviceStatic;` && |\n| &&
              `  function getDeviceStatic() {` && |\n| &&
              `    if (!deviceStatic) {` && |\n| &&
@@ -72,39 +61,12 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Sent until it has gone out COMPLETE, not just once: the version info` && |\n| &&
-             `  // is loaded asynchronously during component init, so the first roundtrip` && |\n| &&
-             `  // can fire before it exists. Repeating it costs the same bytes it used` && |\n| &&
-             `  // to cost every time, and stops as soon as there is something to store.` && |\n| &&
-             `  //` && |\n| &&
-             `  // A page load always starts by sending it again, which is what makes a` && |\n| &&
-             `  // draft reopened on a different device pick up THAT device instead of` && |\n| &&
-             `  // the one that created it.` && |\n| &&
              `  let sessionConfigSent = false;` && |\n| &&
              `` && |\n| &&
-             `  // The last-sent live device values. Orientation and resize are the two` && |\n| &&
-             `  // device fields that are NOT session-constant - but they change on a` && |\n| &&
-             `  // rotation or window resize, not per click, so they only travel when` && |\n| &&
-             `  // they differ from what was last sent. The backend stores every arrived` && |\n| &&
-             `  // value with the draft and treats an absent field as "unchanged".` && |\n| &&
              `  let liveSent = "";` && |\n| &&
              `` && |\n| &&
-             `  // What the request being BUILT carries. The latches above only advance in` && |\n| &&
-             `  // confirmSent( ), once that request won its stale guard (Server.readHttp)` && |\n| &&
-             `  // - a request may be aborted or superseded, and a latch advanced at build` && |\n| &&
-             `  // time would mark a value as known to the backend that never arrived` && |\n| &&
-             `  // there. Same protocol as the model delta's changed-paths clear. The` && |\n| &&
-             `  // token is PER REQUEST (takePending hands it to the roundtrip that` && |\n| &&
-             `  // carries the block): a retried request re-sends its own old body, so it` && |\n| &&
-             `  // must confirm what IT carried - not whatever was built last.` && |\n| &&
              `  let pending = null;` && |\n| &&
              `` && |\n| &&
-             `  // ``draftId`` mirrors Session.location's cadence: an app-start-shaped` && |\n| &&
-             `  // request (no draft id - page load, Back/Forward route restore, launchpad` && |\n| &&
-             `  // start) always re-sends the WHOLE block. Such a request may start a` && |\n| &&
-             `  // FRESH app whose backend session record is empty and has no draft to` && |\n| &&
-             `  // inherit from - without the block it would stay empty for good, since` && |\n| &&
-             `  // event roundtrips only send changes.` && |\n| &&
              `  function config(oConfig, draftId) {` && |\n| &&
              `    const live = getDeviceLive();` && |\n| &&
              `    const liveKey = JSON.stringify(live);` && |\n| &&
@@ -124,34 +86,25 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Claim the just-built block's confirmation token for the request that` && |\n| &&
-             `  // carries it.` && |\n| &&
              `  function takePending() {` && |\n| &&
              `    const p = pending;` && |\n| &&
              `    pending = null;` && |\n| &&
              `    return p;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // The carrying request won - what IT carried is now known to the backend.` && |\n| &&
              `  function confirmSent(p) {` && |\n| &&
              `    if (!p) return;` && |\n| &&
              `    if (p.config) sessionConfigSent = true;` && |\n| &&
-             `    liveSent = p.live;` && |\n| &&
+             `    if (p.live !== undefined) liveSent = p.live;` && |\n| &&
+             `    if (p.location) locationSent = true;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // The page location (origin, pathname, query) is session-constant like` && |\n| &&
-             `  // the block above, but travels on its own cadence: with every app-start-` && |\n| &&
-             `  // shaped request (no draft id - the backend parses ?app_start= from` && |\n| &&
-             `  // SEARCH only there, and a route restore via Back/Forward is exactly` && |\n| &&
-             `  // such a request) and on the page load's first roundtrip, so the backend` && |\n| &&
-             `  // can store it with the draft (z2ui5_cl_ui5_handler=>session_merge).` && |\n| &&
-             `  // Event roundtrips omit it. The hash is NOT part of this: it carries the` && |\n| &&
-             `  // live routing state and stays a per-request field (Server.roundtrip).` && |\n| &&
              `  let locationSent = false;` && |\n| &&
              `` && |\n| &&
              `  function location(draftId, search) {` && |\n| &&
              `    if (draftId && locationSent) return null;` && |\n| &&
-             `    locationSent = true;` && |\n| &&
+             `` && |\n| &&
+             `    pending = { ...pending, location: true };` && |\n| &&
              `    return {` && |\n| &&
              `      ORIGIN: window.location.origin,` && |\n| &&
              `      PATHNAME: window.location.pathname,` && |\n| &&

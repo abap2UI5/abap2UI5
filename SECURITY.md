@@ -42,6 +42,37 @@ Instead, please use the GitHub Security Advisory ["Report a Vulnerability"](http
 
 This policy applies to the abap2UI5 core framework (`src/` directory). For vulnerabilities in dependencies or related repositories, please report them to the respective maintainers.
 
+## Security Model
+
+The following are deliberate design decisions of the framework, not
+vulnerabilities. A report that reduces to one of them will be answered with
+this section - which is exactly why it exists here, where external reporters
+look first.
+
+- **A draft id is not a secret, and does not have to be.** It travels in
+  bookmark URLs and the clipboard app-state. Access to the serialized app
+  state is bound to the creating user (`UNAME` on `Z2UI5_T_01`, enforced
+  fail-closed on read, existence checks and the create/upsert path); a
+  leaked or guessed id degrades to a fresh app start for anyone else.
+- **App-start authorization is the app's job.** Any class implementing
+  `z2ui5_if_app` can be started via URL parameter or hash route; the
+  framework performs no `AUTHORITY-CHECK` of its own. An app that needs one
+  performs it in its `main( )` method.
+- **The backend response is trusted by the frontend.** `follow_up_action`
+  deliberately lets the ABAP app hand the browser JavaScript to execute;
+  every bound attribute is writable from the client by design. Whoever can
+  change ABAP app code can run code in the user's browser - that is the
+  product, not a flaw.
+- **Error details are visible by default.** The 500 body renders the full
+  exception chain (class names, source positions, kernel ids) for
+  diagnosability; hardened installations turn this off via the user exit
+  (`check_hide_error_details`). Host name, client and user are never part
+  of the body.
+- **The default CSP carries `unsafe-inline`/`unsafe-eval`** because UI5 1.71
+  requires them; an exit can replace the whole policy, including switching
+  to a real `Content-Security-Policy` response header via
+  `t_security_header`.
+
 ## Credit
 
 We appreciate responsible disclosure and will credit reporters in the security advisory (unless you prefer to remain anonymous).

@@ -20,11 +20,12 @@
 // A rename sweep is what makes this class of defect likely, and a rename sweep
 // is precisely when nobody rereads a string literal.
 
+import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { walk } from "./lib/walk.mjs";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 // Names that are meant to be absent here: they belong to other repositories and
 // the code around them asks first (rtti_check_class_exists) or is frozen. Each

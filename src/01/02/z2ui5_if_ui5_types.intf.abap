@@ -39,9 +39,7 @@ INTERFACE z2ui5_if_ui5_types
     BEGIN OF ty_s_bind_config,
       path_only            TYPE abap_bool,
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping,
-      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping,
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter,
-      custom_filter_back   TYPE REF TO z2ui5_if_ajson_filter,
       tab                  TYPE REF TO data,
       tab_index            TYPE i,
       switch_default_model TYPE abap_bool,
@@ -58,6 +56,12 @@ INTERFACE z2ui5_if_ui5_types
       srtti_data         TYPE string,
       check_dissolved    TYPE abap_bool,
       custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
+      " the *_back components are dead weight - nothing sets them since _bind
+      " stopped evaluating the custom_*_back parameters. They stay because
+      " ty_s_attri is serialized into the drafts (Z2UI5_T_01): removing them
+      " changes the asXML shape and would break every draft written before
+      " the upgrade during the transition window. Drop them with the next
+      " deliberate draft-format change
       custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
@@ -123,7 +127,7 @@ INTERFACE z2ui5_if_ui5_types
       " (see app/webapp/core/Router.js). Opt-in per APP via
       " follow_up_action( cs_event-set_nav_routing ) - the mode is remembered on the app,
       " travels in its draft and is re-sent whenever the frontend may not
-      " still hold it (see z2ui5_cl_ui5_app=>mv_nav_mode and the
+      " still hold it (see z2ui5_cl_ui5_app_cont->mv_nav_mode and the
       " nav_mode_sent latch in main_end). The value carries the MODE (see
       " z2ui5_if_client=>cs_nav_mode): 'KEEP' syncs the class AND its draft id
       " '#/app/<CLASS>/<DRAFT>' so Back/Forward restore the exact preserved
@@ -169,7 +173,7 @@ INTERFACE z2ui5_if_ui5_types
       " seven separate response fields.
       s_nav          TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
-      " concern - z2ui5_cl_http_handler reads it off the response record to
+      " concern - z2ui5_cl_ui5_http_handler reads it off the response record to
       " call set_session_stateful, and no frontend module ever looked at it.
       s_stateful     TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next.
@@ -281,6 +285,13 @@ INTERFACE z2ui5_if_ui5_types
       t_event_arg        TYPE string_table,
       check_on_navigated TYPE abap_bool,
       r_data             TYPE REF TO data,
+      " The table cells the incoming delta could not convert, collected by
+      " z2ui5_cl_ui5_srv_model while the model was parsed and handed on to
+      " the app through client->get( )-t_model_skipped. It belongs to THIS
+      " roundtrip only - the action is rebuilt per request and never
+      " serialized into the draft, so a trace can never outlive the edit
+      " that caused it
+      t_model_skipped    TYPE z2ui5_if_client=>ty_t_model_skip,
     END OF ty_s_actual.
 
 ENDINTERFACE.

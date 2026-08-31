@@ -126,6 +126,24 @@ sap.ui.define(
         AppState.state.contextId = null;
       },
 
+      // Drop everything this module holds ACROSS a component teardown. Both
+      // fields below are module-scoped, so on an FLP re-launch they outlived
+      // the component that started them:
+      //   _inflight - the old fetch resolves into the NEW session. isStale( )
+      //     does not catch it, because _requestSeq is module state too and no
+      //     newer request has gone out yet, so the response is adopted: its
+      //     sap-contextid becomes the new session's, then responseSuccess
+      //     reaches for the MAIN controller, finds null, and the app that just
+      //     started shows the fatal "App Terminated" overlay.
+      //   _viewBuild - a queued rebuild continuation calls removeAllPages( )
+      //     on an oApp that AppState.initGlobal( ) has since cleared.
+      // _abortInflight( ) existed for the other case (a newer request
+      // superseding older ones) and was never reachable from teardown.
+      reset() {
+        this._abortInflight();
+        this._viewBuild = null;
+      },
+
       // Restore the app state a matched hash route points at. Wired into
       // core/Router by Component.js and called when the browser Back/Forward
       // buttons (or a manual URL edit / bookmark) select a different route.
@@ -299,10 +317,15 @@ sap.ui.define(
             if (Lib.isValidContextId(AppState.state.contextId)) {
               headers["sap-contextid"] = AppState.state.contextId;
             }
+            const body = JSON.stringify({ value: oBody });
+            // one shared number, not recorder code: whoever wants the
+            // request size (the devtools recorder does) reads it here
+            // instead of serializing the body a second time
+            AppState.state.lastRequestBytes = body.length;
             response = await fetch(AppState.getGlobal("url"), {
               method: "POST",
               headers,
-              body: JSON.stringify({ value: oBody }),
+              body,
               signal,
             });
           } catch (e) {
@@ -399,6 +422,13 @@ sap.ui.define(
             },
             seq,
           );
+        } catch (e) {
+          // readHttp is fire-and-forget (roundtrip/onRetry never await it), so
+          // anything thrown between the inner try/catches - header handling,
+          // session bookkeeping, the success handler - would otherwise reject
+          // this promise silently: busy indicator spinning forever, no overlay.
+          // A superseded request stays silent; the newer one owns the outcome.
+          if (!isStale()) this.responseError(e);
         } finally {
           this._inflight.delete(superseder);
           cancel();
@@ -435,17 +465,31 @@ sap.ui.define(
           // nothing left to do. The request stamp rides along so the display
           // guards compare against THIS response's request, not whatever is
           // newest by the time processing starts.
-          oController._processAfterRendering(reqSeq);
+          // Awaited so a rejection that escapes _processAfterRendering (its
+          // own catch handles everything inside the try) still lands in the
+          // catch below instead of an unhandled rejection.
+          await oController._processAfterRendering(reqSeq);
         } catch (e) {
           BusyIndicator.hide();
           AppState.state.isBusy = false;
           Lib.logError("responseSuccess: unexpected error", e);
-          const msg = e.message || "";
-          if (msg.includes("openui5") && msg.includes("script load error")) {
-            this._checkSDKcompatibility(e);
-          } else {
-            this.responseError(e);
-          }
+          this.showRenderError(e);
+        }
+      },
+
+      // Route a render/view-load failure to the right overlay: an openui5
+      // script-load error gets the SDK hint (_checkSDKcompatibility), every
+      // other failure the fatal-error overlay. Shared by the catch above and
+      // View1._processAfterRendering's catch - the render phase is where a
+      // view actually fails to load a sap.com module, so without this hook
+      // there the SDK hint was unreachable (View1 caught the error first and
+      // showed only the generic overlay).
+      showRenderError(e, title) {
+        const msg = e?.message || "";
+        if (msg.includes("openui5") && msg.includes("script load error")) {
+          this._checkSDKcompatibility(e);
+        } else {
+          this.responseError(e, title);
         }
       },
 

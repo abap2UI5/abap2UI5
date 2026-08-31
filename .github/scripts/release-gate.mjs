@@ -22,10 +22,11 @@
 // anything is published. Everything it checks is decided from the files, so it
 // runs anywhere, including locally before pushing a tag.
 
+import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const CHANGELOG = "changelog.txt";
 const INTERFACE = "src/02/z2ui5_if_app.intf.abap";
 
@@ -37,8 +38,8 @@ const argTag = (() => {
 const problems = [];
 
 const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;
-const abap = (readFileSync(join(ROOT, INTERFACE), "utf8")
-  .match(/CONSTANTS\s+version\s+TYPE\s+string\s+VALUE\s+`([^`]+)`/i) || [, null])[1];
+const abap = readFileSync(join(ROOT, INTERFACE), "utf8")
+  .match(/CONSTANTS\s+version\s+TYPE\s+string\s+VALUE\s+`([^`]+)`/i)?.[1] ?? null;
 const changelog = readFileSync(join(ROOT, CHANGELOG), "utf8");
 
 /* Section headings are `YYYY-MM-DD vX.Y.Z` over a rule of hyphens. The rule is

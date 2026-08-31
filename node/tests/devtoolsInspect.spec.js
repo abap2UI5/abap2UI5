@@ -19,6 +19,9 @@ function fakeView({ xml, data, changedPaths } = {}) {
   const model = data
     ? {
         getData: () => data,
+        // the marker ViewSlots.trackedModel resolves on - the seeded model
+        // plays the framework-owned JSON model
+        _z2ui5Tracked: true,
         _z2ui5ChangedPaths: changedPaths ? new Set(changedPaths) : undefined,
       }
     : undefined;
@@ -111,6 +114,13 @@ function loadInspect({
         slots: SLOTS,
         getView: (key) => views[key],
         getViewXml: (key) => slotXml[key],
+        // mirrors the real resolver (core/ViewSlots.js): only a model
+        // carrying the _z2ui5Tracked marker is the framework's
+        trackedModel: (owner) => {
+          const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+          if (!owner?.getModel) return undefined;
+          return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
+        },
       },
       // Capture and rendering are split: Console hands over the entries,
       // Inspect merges them with the framework log and the backend
@@ -201,7 +211,10 @@ test.describe("Environment", () => {
 // A bootstrap <script> double. Both pages abap2UI5 runs on give it the id
 // "sap-ui-bootstrap"; getAttribute is case-insensitive on a real HTML
 // element, which is why the module looks the attributes up lower-cased.
-function fakeBootstrap(attrs = {}, src = "https://sdk.example.com/1.120.5/resources/sap-ui-core.js") {
+function fakeBootstrap(
+  attrs = {},
+  src = "https://sdk.example.com/1.120.5/resources/sap-ui-core.js",
+) {
   const lower = {};
   for (const key of Object.keys(attrs)) lower[key.toLowerCase()] = attrs[key];
   return {
@@ -218,7 +231,9 @@ test.describe("UI5 bootstrap", () => {
     const Inspect = loadInspect({ bootstrap: fakeBootstrap() });
     const out = Inspect.formatEnvironment();
     expect(out).toContain("UI5 bootstrap");
-    expect(out).toContain("https://sdk.example.com/1.120.5/resources/sap-ui-core.js");
+    expect(out).toContain(
+      "https://sdk.example.com/1.120.5/resources/sap-ui-core.js",
+    );
   });
 
   test("reports the bootstrap attributes that are set", () => {
@@ -253,7 +268,10 @@ test.describe("UI5 bootstrap", () => {
   test("resolves the roots a module request actually goes to", () => {
     const Inspect = loadInspect({
       bootstrap: fakeBootstrap(),
-      resourceUrls: { "": "/sap/bc/ui5_ui5/sap/z2ui5/", z2ui5: "/sap/bc/z2ui5/" },
+      resourceUrls: {
+        "": "/sap/bc/ui5_ui5/sap/z2ui5/",
+        z2ui5: "/sap/bc/z2ui5/",
+      },
     });
     const out = Inspect.formatEnvironment();
     expect(out).toContain("/sap/bc/ui5_ui5/sap/z2ui5/");
@@ -526,7 +544,12 @@ test.describe("Log - the merged timeline", () => {
     const Inspect = loadInspect({
       state: { errors: [{ ts: "2026-01-01T10:00:00.000Z", message: "x" }] },
       consoleEntries: [
-        { ts: "2026-01-01T10:00:01.000Z", level: "log", source: "console", text: "y" },
+        {
+          ts: "2026-01-01T10:00:01.000Z",
+          level: "log",
+          source: "console",
+          text: "y",
+        },
       ],
       records: [
         {
@@ -564,7 +587,9 @@ test.describe("Log - the merged timeline", () => {
   test("falls back to the string form for a non-Error throwable", () => {
     const Inspect = loadInspect({
       state: {
-        errors: [{ ts: "2026-01-01T10:00:00.000Z", message: "m", error: "plain" }],
+        errors: [
+          { ts: "2026-01-01T10:00:00.000Z", message: "m", error: "plain" },
+        ],
       },
     });
     expect(Inspect.formatLog()).toContain("plain");
@@ -590,9 +615,24 @@ test.describe("Log - the merged timeline", () => {
   test("counts the entries by level and reports dropped ones", () => {
     const Inspect = loadInspect({
       consoleEntries: [
-        { ts: "2026-01-01T10:00:00.000Z", level: "error", source: "console", text: "a" },
-        { ts: "2026-01-01T10:00:01.000Z", level: "warn", source: "console", text: "b" },
-        { ts: "2026-01-01T10:00:02.000Z", level: "warn", source: "console", text: "c" },
+        {
+          ts: "2026-01-01T10:00:00.000Z",
+          level: "error",
+          source: "console",
+          text: "a",
+        },
+        {
+          ts: "2026-01-01T10:00:01.000Z",
+          level: "warn",
+          source: "console",
+          text: "b",
+        },
+        {
+          ts: "2026-01-01T10:00:02.000Z",
+          level: "warn",
+          source: "console",
+          text: "c",
+        },
       ],
       consoleDropped: 7,
     });
@@ -779,8 +819,18 @@ test.describe("Overview", () => {
   test("counts what the log holds and points at it when it is loud", () => {
     const Inspect = loadInspect({
       consoleEntries: [
-        { ts: "2026-01-01T00:00:00.000Z", level: "error", source: "console", text: "boom" },
-        { ts: "2026-01-01T00:00:01.000Z", level: "warn", source: "ui5", text: "hm" },
+        {
+          ts: "2026-01-01T00:00:00.000Z",
+          level: "error",
+          source: "console",
+          text: "boom",
+        },
+        {
+          ts: "2026-01-01T00:00:01.000Z",
+          level: "warn",
+          source: "ui5",
+          text: "hm",
+        },
       ],
     });
     const out = Inspect.formatOverview();
@@ -797,8 +847,20 @@ test.describe("Overview", () => {
   test("summarises the last roundtrip", () => {
     const Inspect = loadInspect({
       records: [
-        { seq: 1, ts: "2026-01-01T00:00:00.000Z", event: "", totalMs: 900, backendMs: 800 },
-        { seq: 2, ts: "2026-01-01T00:00:02.000Z", event: "ON_SAVE", totalMs: 402, backendMs: 340 },
+        {
+          seq: 1,
+          ts: "2026-01-01T00:00:00.000Z",
+          event: "",
+          totalMs: 900,
+          backendMs: 800,
+        },
+        {
+          seq: 2,
+          ts: "2026-01-01T00:00:02.000Z",
+          event: "ON_SAVE",
+          totalMs: 402,
+          backendMs: 340,
+        },
       ],
     });
     const out = Inspect.formatOverview();

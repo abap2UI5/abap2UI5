@@ -34,3 +34,12 @@ test-results/
 
 # tools/build-branches.mjs output (generated deploy branches)
 tools/out/
+
+# Written INTO this checkout by abap2UI5/samples-controls' e2e build
+# (its scripts/e2e-build.mjs): the two abaplint/transpiler configs it
+# generates against this tree, and the open-abap-core clone it transpiles
+# against (patched locally for open-abap-xml-escaping). Generated, never
+# committed here - the sibling repository owns them.
+/e2e-downport.jsonc
+/e2e-transpile.json
+/node/open-abap-core/

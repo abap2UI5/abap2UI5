@@ -25,45 +25,23 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// The running app's ABAP class, reached from the browser.` && |\n| &&
-             `//` && |\n| &&
-             `// Split out of devtools/DeveloperTools.js: fetching the class source,` && |\n| &&
-             `// building the ADT deep link and framing the ADT endpoint are one` && |\n| &&
-             `// subject, and none of it needs the dialog. The source cache lives here` && |\n| &&
-             `// too - three callers want the same class text (the ABAP Source tab, the` && |\n| &&
-             `// ADT jump's line lookup and the export), and fetching it three times` && |\n| &&
-             `// would be three requests for one answer.` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  ["z2ui5/core/AppState", "z2ui5/devtools/Inspect"],` && |\n| &&
              `  (AppState, Inspect) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // { app, source } of the last fetch - the class name is part of it` && |\n| &&
-             `    // because a navigation swaps the app under the tools and the cached` && |\n| &&
-             `    // source would otherwise be attributed to the new one.` && |\n| &&
              `    let cache = null;` && |\n| &&
              `` && |\n| &&
-             `    // The class name of the running app, as the backend reported it in` && |\n| &&
-             `    // the last response. Empty before the first response arrived.` && |\n| &&
              `    function appName() {` && |\n| &&
              `      return AppState.state.responseData?.S_FRONT?.APP || "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The ADT REST endpoint that renders the running app's ABAP class` && |\n| &&
-             `    // source. Empty when the app class name is unknown (no response yet).` && |\n| &&
              `    function sourceUrl() {` && |\n| &&
              `      const name = appName();` && |\n| &&
              `      if (!name) return "";` && |\n| &&
              `      return ``${window.location.origin}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The ADT url, deep-linked at the handler of the event the last` && |\n| &&
-             `    // roundtrip carried when that is possible: the ADT source endpoint` && |\n| &&
-             `    // honours a "#start=<line>,<col>" anchor, and the event name is a` && |\n| &&
-             `    // literal in the class that handles it. Needs the source in the cache` && |\n| &&
-             `    // (the ABAP Source tab warms it); without it, or when the name is not` && |\n| &&
-             `    // found, the plain class url is returned - the jump is a shortcut,` && |\n| &&
-             `    // never a precondition.` && |\n| &&
              `    function adtUrl() {` && |\n| &&
              `      const url = sourceUrl();` && |\n| &&
              `      if (!url) return "";` && |\n| &&
@@ -73,36 +51,18 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
              `      return lineNumber ? ``${url}#start=${lineNumber},1`` : url;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Open the ABAP class source as a top-level document in a new browser` && |\n| &&
-             `    // tab. The ADT REST endpoint renders it with syntax highlighting and` && |\n| &&
-             `    // its own "Open in ABAP Development Tools" link; opening it top-level` && |\n| &&
-             `    // is what lets that link's adt:// navigation reach the desktop ADT.` && |\n| &&
-             `    // From inside the inline iframe the jump never worked - browsers` && |\n| &&
-             `    // suppress a custom-scheme navigation started in a subframe, and some` && |\n| &&
-             `    // systems block framing the ADT endpoint entirely (X-Frame-Options),` && |\n| &&
-             `    // so the preview is just blank there. noopener keeps the new tab from` && |\n| &&
-             `    // reaching back into window.opener.` && |\n| &&
              `    function openInAdt() {` && |\n| &&
-             `      // Stays synchronous: a window.open after an await is treated as an` && |\n| &&
-             `      // unrequested popup and blocked.` && |\n| &&
              `      const url = adtUrl();` && |\n| &&
              `      if (!url) return;` && |\n| &&
              `      window.open(url, "_blank", "noopener,noreferrer");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // The iframe markup for the inline preview, or "" when the class is` && |\n| &&
-             `    // unknown.` && |\n| &&
              `    function iframeHtml() {` && |\n| &&
              `      const url = sourceUrl();` && |\n| &&
              `      if (!url) return "";` && |\n| &&
              `      return ``<iframe src="${url}" style="width:100%;height:85vh;border:none;" />``;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Fetch the class source via the ADT REST endpoint. Returns the raw` && |\n| &&
-             `    // text, or "" when the class name is unknown or the request fails` && |\n| &&
-             `    // (the endpoint needs an authenticated, ADT-enabled session, which is` && |\n| &&
-             `    // not always available - the export must still work without it).` && |\n| &&
-             `    // Never throws.` && |\n| &&
              `    async function fetchSource() {` && |\n| &&
              `      const url = sourceUrl();` && |\n| &&
              `      if (!url) return "";` && |\n| &&
@@ -129,8 +89,7 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
              `      openInAdt,` && |\n| &&
              `      iframeHtml,` && |\n| &&
              `      fetchSource,` && |\n| &&
-             `      // exposed for the unit specs: the cache is the reason the deep link` && |\n| &&
-             `      // can resolve a line at all, so the specs seed and clear it` && |\n| &&
+             `` && |\n| &&
              `      _setCache: (value) => {` && |\n| &&
              `        cache = value;` && |\n| &&
              `      },` && |\n| &&

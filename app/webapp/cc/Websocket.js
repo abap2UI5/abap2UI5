@@ -16,6 +16,24 @@ sap.ui.define(
     // items are actually waiting.
     const DRAIN_RETRY_MS = 50;
 
+    // Reconnect policy for a connection the app did not close: exponential
+    // backoff starting here, capped there, and after MAX_CONNECT_ATTEMPTS
+    // consecutive failed handshakes the control stops trying until the app
+    // changes path/checkActive (each failure already fired `error`, so the
+    // backend heard about every one). Without this, an app that answers the
+    // error event with a view-rebuilding roundtrip re-entered _connect on
+    // every render - an unbounded reconnect storm against an inactive ICF
+    // node.
+    const RECONNECT_BASE_MS = 500;
+    const RECONNECT_MAX_MS = 30000;
+    const MAX_CONNECT_ATTEMPTS = 5;
+
+    // The queue is bounded like every other buffer in the frontend
+    // (Lib.MAX_ERRORS, Console.MAX_ENTRIES, Recorder.MAX_RECORDS): a fast
+    // APC channel against a busy backend otherwise grows it without limit,
+    // one item drained per roundtrip.
+    const MAX_QUEUE = 100;
+
     return Control.extend("z2ui5.cc.Websocket", {
       metadata: {
         properties: {
@@ -62,13 +80,20 @@ sap.ui.define(
       },
       init() {
         this._queue = [];
+        this._failedAttempts = 0;
+        this._dropped = 0;
       },
       // Every state change (checkActive toggled, path rebound) invalidates
       // the control, so this single hook is where the connection is brought
       // in line with the properties - no setter override needed.
       onAfterRendering() {
         const url = this._resolveUrl();
-        if (url !== this._url) this._disconnect();
+        if (url !== this._url) {
+          this._disconnect();
+          // a NEW target gets a fresh set of attempts - the give-up above
+          // is about hammering the same dead endpoint
+          this._failedAttempts = 0;
+        }
         this._url = url;
         if (this.getProperty("checkActive")) {
           this._connect();
@@ -78,6 +103,7 @@ sap.ui.define(
       },
       exit() {
         clearTimeout(this._drainId);
+        clearTimeout(this._reconnectId);
         this._disconnect();
       },
       _resolveUrl() {
@@ -90,6 +116,7 @@ sap.ui.define(
       },
       _connect() {
         if (this._ws || !this._url) return;
+        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;
         const url = this._url;
         let ws;
         try {
@@ -103,7 +130,10 @@ sap.ui.define(
         this._ws = ws;
         this._opened = false;
         ws.onopen = () => {
-          if (this._ws === ws) this._opened = true;
+          if (this._ws === ws) {
+            this._opened = true;
+            this._failedAttempts = 0;
+          }
         };
         ws.onmessage = (event) => {
           // The control may have been torn down, or replaced by a newer
@@ -134,12 +164,41 @@ sap.ui.define(
             : "Connection to " + url + " could not be established";
           const message = event.reason ? cause + ": " + event.reason : cause;
           Lib.logError("Websocket (" + event.code + "): " + message);
+          if (!this._opened) {
+            this._failedAttempts += 1;
+            if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) {
+              Lib.logError(
+                "Websocket: " +
+                  MAX_CONNECT_ATTEMPTS +
+                  " failed connection attempts to " +
+                  url +
+                  " - giving up until path or checkActive changes",
+              );
+            }
+          }
           this._report({
             kind: "error",
             code: String(event.code),
             message: message,
           });
+          this._scheduleReconnect();
         };
+      },
+      // Try again on our own timer, not only on the next render: a model-only
+      // response never re-renders, and the push channel used to stay silently
+      // dead until something else happened to rebuild the view.
+      _scheduleReconnect() {
+        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;
+        const delay = Math.min(
+          RECONNECT_MAX_MS,
+          RECONNECT_BASE_MS * 2 ** this._failedAttempts,
+        );
+        clearTimeout(this._reconnectId);
+        this._reconnectId = setTimeout(() => {
+          if (Lib.isDestroyed(this)) return;
+          if (!this.getProperty("checkActive")) return;
+          this._connect();
+        }, delay);
       },
       _disconnect() {
         const ws = this._ws;
@@ -159,6 +218,20 @@ sap.ui.define(
       // errors share the queue so they reach the app in the order they
       // happened - an error after three messages is reported after them.
       _report(item) {
+        if (this._queue.length >= MAX_QUEUE) {
+          // drop the NEW item and count it, the Console.getDropped shape -
+          // reordering or silently shifting the oldest would deliver a
+          // sequence the channel never sent
+          this._dropped += 1;
+          Lib.logError(
+            "Websocket: queue full (" +
+              MAX_QUEUE +
+              "), dropped " +
+              this._dropped +
+              " item(s) so far",
+          );
+          return;
+        }
         this._queue.push(item);
         this._drain();
       },

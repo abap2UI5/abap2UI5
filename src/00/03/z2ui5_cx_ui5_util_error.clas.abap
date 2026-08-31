@@ -84,7 +84,14 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     TRY.
         lo_root ?= val.
       CATCH cx_root.
-        lv_text = val.
+        " val was no exception reference - render it as the message text.
+        " Guarded: a structured val (a table, a struct) would make this
+        " MOVE dump, and a runtime error inside a CATCH block is not
+        " caught by its own TRY - the one class that must never be the
+        " crash itself. Such a val degrades to an empty text instead
+        IF z2ui5_cl_ui5_util_context=>rtti_check_printable( val ) = abap_true.
+          lv_text = val.
+        ENDIF.
     ENDTRY.
 
     " Keep the cause chain. The framework's dominant raise pattern hands the
@@ -98,7 +105,10 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
 
     ms_error-x_root = lo_root.
     ms_error-text   = lv_text.
-    ms_error-uuid   = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    " no uuid here: uuid_get_c32 is a dynamic CL_SYSTEM_UUID/GUID_CREATE
+    " call and its only reader is the 500-body renderer - it is filled
+    " lazily in get_text_full_entry, so a raise that never reaches the
+    " top-level catch pays nothing for it
 
   ENDMETHOD.
 
@@ -226,8 +236,14 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
 
     TRY.
         DATA(lx_own) = CAST z2ui5_cx_ui5_util_error( val ).
+        " computed on first render, not in the constructor - see there.
+        " cx_root, not just the cast error: a failing uuid lookup must not
+        " abort the rendering of the very error report it decorates
+        IF lx_own->ms_error-uuid IS INITIAL.
+          lx_own->ms_error-uuid = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+        ENDIF.
         result = result && lv_nl && |    id       : { lx_own->ms_error-uuid }|.
-      CATCH cx_sy_move_cast_error ##NO_HANDLER.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     DATA(lt_attri) = z2ui5_cl_ui5_util_context=>error_get_attributes( val ).
@@ -242,10 +258,13 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     " the runtime context of the failing request - what an issue report
-    " otherwise has to ask back for
+    " otherwise has to ask back for. Deliberately WITHOUT sy-host, sy-mandt
+    " and sy-uname: this body reaches the browser, and hostname, client and
+    " user are recon material (and an audit finding in hardened
+    " installations), while what a report actually needs is the release and
+    " the time - the server-side logs carry the rest
     result = `--- context ---` && lv_nl &&
-             |    system   : { sy-sysid } / client { sy-mandt } / host { sy-host } / release { sy-saprl }| && lv_nl &&
-             |    user     : { sy-uname } / language { sy-langu }| && lv_nl &&
+             |    system   : { sy-sysid } / release { sy-saprl }| && lv_nl &&
              |    time     : { sy-datum } { sy-uzeit }|.
 
   ENDMETHOD.

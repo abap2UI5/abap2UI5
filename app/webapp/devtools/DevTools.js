@@ -19,15 +19,47 @@
 // into - the overlay hides its Details button when nothing registered,
 // so removing this folder degrades the framework gracefully instead of
 // breaking it.
+//
+// LAZY here means the DIALOG CONTROL, not the modules. The dependencies
+// below are hard `sap.ui.define` deps on purpose, and moving them behind
+// `sap.ui.require([...], cb)` would not make the cold load smaller - it
+// would break the tools on every ICF deployment. Three separate reasons,
+// in the order they bite:
+//
+//  1. There is no second delivery path. On an ABAP system every frontend
+//     file arrives in ONE `sap.ui.require.preload` block inside the GET
+//     response (`z2ui5_cl_ui5f_preload`, generated from this folder), and
+//     the bootstrap sets `resourceroots {"z2ui5": "./"}` - the ICF node
+//     itself. A module dropped from that block is then fetched from the
+//     node, which answers every GET with the shell page: the loader gets
+//     `text/html` where it wanted a module, the define never runs and the
+//     require callback never fires. The tools would simply not open, with
+//     nothing naming the cause. That frontend files are NOT served as ICF
+//     resources at their raw URLs is AGENTS.md rule 18, and it is what
+//     makes lazy loading a delivery question rather than a loader one.
+//  2. Requiring lazily WITHOUT dropping them from the preload saves
+//     nothing that is being paid - the bytes have already travelled, and
+//     only the factory execution moves.
+//  3. Two of the three deps have to be eager anyway, and install() says
+//     why: a roundtrip history and a console capture are worth something
+//     only if they were collected BEFORE the problem, so they cannot wait
+//     for the first Ctrl+F12.
+//
+// Measured 2026-08-28: devtools/ is 32.7% of the preload's bytes, and at
+// best 23.2% of it could ever be deferred (everything except Console,
+// Recorder and this file). Making that real needs an on-demand delivery
+// path for a module the page did not receive - a design change to the
+// handler, not an edit here.
 sap.ui.define(
   [
     "z2ui5/core/AppState",
     "z2ui5/core/Lib",
     "z2ui5/devtools/Console",
     "z2ui5/devtools/DeveloperTools",
+    "z2ui5/devtools/Picker",
     "z2ui5/devtools/Recorder",
   ],
-  (AppState, Lib, Console, DeveloperTools, Recorder) => {
+  (AppState, Lib, Console, DeveloperTools, Picker, Recorder) => {
     "use strict";
 
     // Query parameter that opens the developer tools on page load, so a
@@ -162,6 +194,12 @@ sap.ui.define(
       publish(null);
       Console.uninstall();
       Recorder.uninstall();
+      // A pick still running at teardown left its three capture listeners
+      // (mousemove/click/keydown) on document, and the click one calls
+      // preventDefault + stopPropagation - the NEXT app was then dead for
+      // exactly one click, with nothing naming the cause. Idempotent when
+      // no pick is active.
+      Picker.stop();
     }
 
     return {

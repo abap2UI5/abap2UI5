@@ -26,8 +26,17 @@ name: test
 # that name reportable - a matrix leg's check name carries its parameter, so
 # `test_browser` could not be required if it were the matrix itself.
 
+# Pull requests AND pushes to main. The push leg is not redundant with the
+# pull-request one: `auto_downport`, `frontend_deploy` and
+# `trigger_local` all fire on `push: main` and rebuild or deploy from the
+# merged state, and a merge is not the state any pull request tested - two
+# individually green branches can merge into a red main. Without this leg the
+# first thing that touches the merge result is a deployment. Same pattern as
+# `frontend_check.yaml` and `render-gate.yaml`, which already had it.
 on:
   pull_request:
+  push:
+    branches: [main]
 
 concurrency:
   group: test-${{ github.ref }}
@@ -37,7 +46,45 @@ permissions:
   contents: read
 
 jobs:
+  # Doc-only changes (about one commit in five) skip the expensive jobs
+  # below: nothing in docs/, backlog/, .claude/, a *.md file or the
+  # changelog is an input to the transpile, the unit suites or the browser
+  # legs. This is a job-level `if`, NOT a paths-ignore on the trigger, on
+  # purpose: a job skipped by its condition still reports a check run
+  # (conclusion: skipped), which satisfies branch protection - a workflow
+  # that never triggers reports nothing and a required check would block the
+  # pull request forever ("a check that does not run cannot be required",
+  # see check_gates.yaml). Anything unclear - an unreadable base, an empty
+  # diff - counts as code, so the fail-open direction is "run the tests".
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+    - id: diff
+      env:
+        BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+      run: |
+        code=true
+        if [ -n "$BASE" ] && git cat-file -e "$BASE" 2>/dev/null; then
+          files=$(git diff --name-only "$BASE" "$HEAD")
+          echo "changed files:"
+          echo "$files"
+          if [ -n "$files" ] && ! echo "$files" | grep -qvE '^(docs/|backlog/|\.claude/|\.github/ISSUE_TEMPLATE/|LICENSE$|changelog\.txt$|llms\.txt$)|\.md$'; then
+            code=false
+          fi
+        fi
+        echo "code=$code" >> "$GITHUB_OUTPUT"
+        echo "code=$code"
+
   transpile:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -45,6 +92,10 @@ jobs:
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"
+        # downport clones the three pinned git dependencies; without the
+        # deps cache that is three fresh clones on the critical path of
+        # every job downstream of this one
+        deps: "true"
     - run: npm run downport
     - run: npm run auto_transpile
     # A tar, not the directory: the transpiler writes thousands of small
@@ -167,16 +218,39 @@ jobs:
     - name: Run browser tests against the transpiled backend
       run: cd node && npx playwright test --config=playwright.config.js --project=${{ matrix.project }}
 
+    # The config writes an html report and, on a retry, a trace - and until
+    # now neither left the runner, so a flake that only reproduces in CI left
+    # nothing behind but the list reporter's lines. `retries: 2` and
+    # `trace: 'on-first-retry'` mean the evidence is already on disk by the
+    # time the leg goes red; this is what makes it downloadable. Only on
+    # failure: a green run's report is noise nobody opens.
+    - name: Upload the Playwright report and traces
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: playwright-${{ matrix.project }}
+        path: |
+          node/playwright-report/
+          node/test-results/
+        retention-days: 7
+        if-no-files-found: ignore
+
   test_browser:
     # The required check. The matrix legs above are what actually runs; this
-    # job exists so branch protection has one stable name to require.
-    needs: browser
+    # job exists so branch protection has one stable name to require. On a
+    # doc-only change the legs are skipped and that counts as passed - the
+    # skip is the `changes` job's decision, not a leg quietly not reporting.
+    needs: [changes, browser]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
     - name: every browser leg passed
       run: |
+        if [ "${{ needs.browser.result }}" = "skipped" ] && [ "${{ needs.changes.outputs.code }}" = "false" ]; then
+          echo "doc-only change - browser legs skipped by the changes job"
+          exit 0
+        fi
         if [ "${{ needs.browser.result }}" != "success" ]; then
           echo "::error::a browser leg did not pass (${{ needs.browser.result }}) - see the browser (…) jobs"
           exit 1
@@ -186,6 +260,8 @@ jobs:
   test_unit_js:
     # The frontend unit specs run against app/webapp directly - no ABAP, so
     # no transpile to wait for.
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

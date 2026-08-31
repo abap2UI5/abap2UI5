@@ -17,19 +17,17 @@
 //
 //     node tools/check-pages.mjs [tree ...]
 //
-// Without arguments every built tree is checked: the four published branches
-// in build/ and everything an ad-hoc build has put into tools/out/. A named
-// tree is looked for in both.
+// Without arguments every tree a build has put into tools/out/ is checked;
+// a named tree is looked for there.
 
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
+import { Script } from "node:vm";
 
 const here = dirname(fileURLToPath(import.meta.url));
-// The same split as in build-branches.mjs: build/ is the committed tree of the
-// four branches, tools/out/ the gitignored scratch.
-const ROOTS = [join(here, "..", "build"), join(here, "out")];
+// The one place build-branches.mjs writes to: the gitignored tools/out/.
+const ROOTS = [join(here, "out")];
 
 const treeDir = (tree) => ROOTS.map((root) => join(root, tree)).find((dir) => existsSync(dir));
 
@@ -84,11 +82,13 @@ function checkTree(tree) {
             }
         });
         if (page.endsWith(".js")) {
+            // compiled in-process (same parser `node --check` used, minus a
+            // process start per page - ~56 pages x 2-3 trees was 100+ spawns).
+            // The SOURCE is the stored file, padding included, on purpose.
             try {
-                execFileSync(process.execPath, ["--check", file], { stdio: "pipe" });
+                new Script(content, { filename: page });
             } catch (error) {
-                const detail = String(error.stderr ?? "").split("\n").find((l) => l.includes("Error")) ?? "";
-                note(tree, `${page} is not valid JavaScript as stored (padding included) - ${detail.trim()}`);
+                note(tree, `${page} is not valid JavaScript as stored (padding included) - ${String(error).split("\n")[0]}`);
             }
         }
     }
@@ -111,7 +111,17 @@ if (trees.length === 0) {
     console.error("check-pages: nothing to check - run tools/build-branches.mjs first");
     process.exit(1);
 }
-for (const tree of trees) if (!checkTree(tree)) console.log(`${tree}: no BSP in this variant`);
+for (const tree of trees) {
+    if (checkTree(tree)) continue;
+    // a `standard*` tree without a BSP is not a variant without one - it is
+    // the BSP packaging silently missing from the one delivery that exists
+    // to carry it. Only the cloud variants legitimately have no WAPA pages.
+    if (tree.startsWith("standard")) {
+        note(tree, "no BSP found - a standard tree MUST carry the packaged BSP (src/02 with a .wapa.xml)");
+    } else {
+        console.log(`${tree}: no BSP in this variant`);
+    }
+}
 
 if (problems.length) {
     console.error(`\ncheck-pages: ${problems.length} problem(s)`);

@@ -65,7 +65,13 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_front-id.
 
     IF mo_http_post->ms_request-o_model->is_empty( ) = abap_false.
-      result->mo_app->model_json_parse( mo_http_post->ms_request-o_model ).
+      " what the delta could not convert travels on the action, not on the
+      " app: it describes THIS roundtrip, and the app object is what gets
+      " serialized into the draft
+      result->ms_actual-t_model_skipped = result->mo_app->model_json_parse( mo_http_post->ms_request-o_model ).
+      " the deltas just changed the state that string describes - drop it,
+      " so main_process falls back to a real serialization for its snapshot
+      CLEAR result->mo_app->mv_model_client.
     ENDIF.
 
     result->ms_actual-event       = mo_http_post->ms_request-s_front-event.
@@ -84,6 +90,11 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
               result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_nav-set_app_state_active = abap_true.
+              " on the app as well, not only on this request: ms_next is
+              " cleared per roundtrip, so a flag set only here survived one
+              " response and the next event wiped the app-state hash the
+              " bookmark was made of (see mv_app_state_active)
+              result->mo_app->mv_app_state_active = abap_true.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
               " normalize the chain like factory_by_frontend: id_prev must
               " point at the draft this restore was loaded from, not at
@@ -114,7 +125,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       CATCH cx_root INTO DATA(x).
         " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
         " non-existent class). Just raise with a readable text - the single
-        " top-level catch in z2ui5_cl_http_handler=>_main( ) turns it into a
+        " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ) turns it into a
         " 500 whose body carries this message for the frontend to display.
         " app_start is client-controlled, so strip it down to class-name-safe
         " characters before reflecting it into the error text - a real typo
@@ -238,7 +249,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     " routing is inherited by the app being navigated to, unless it already
     " chose a mode of its own - so enabling it once in the entry app is enough
-    " for the whole app stack (see z2ui5_cl_ui5_app=>mv_nav_mode)
+    " for the whole app stack (see z2ui5_cl_ui5_app_cont->mv_nav_mode)
     IF result->mo_app->mv_nav_mode IS INITIAL.
       result->mo_app->mv_nav_mode = mo_app->mv_nav_mode.
     ENDIF.

@@ -21,7 +21,27 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`linter-sapui5-metadata`](items/linter-sapui5-metadata.md) | a third resolve candidate plus an additive `--libs`, so `properties.json` can cover the `@sapui5/*` packages — without it the property and scope gates are blind wherever a control is SAPUI5-only | medium | 2026-08-11 | abap2UI5/linter |
+| [`navcontainer-position-not-reissued`](items/navcontainer-position-not-reissued.md) | `control-state-lost-on-rebuild` judges only `set…( )` wires, so the containers whose position is moved by a NAVIGATION call (`to`, `backToPage`, `toDetail`, `toMaster`) are structurally outside it - and there the discriminator is not "the value is non-literal" but "a surviving bound field names a page id of that container" | medium | 2026-08-26 | abap2UI5/linter |
+
+---
+
+## Filed upstream
+
+_an issue or PR exists; the item goes when it merges_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`linter-event-arg-shorthand`](items/linter-event-arg-shorthand.md) | 187 false positives across 125 of 637 ported classes the moment the corpus adopts the one-value shorthand — the rule extracts arguments from `t_arg = VALUE #( )` alone and has no case for `arg`<br><sub>https://github.com/abap2UI5/linter/pull/78</sub> | high | 2026-08-29 | abap2UI5/linter |
+
+---
+
+## Deferred
+
+_a decision was made not to do this now, and why_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`bound-aggregation-size-limit`](items/bound-aggregation-size-limit.md) | the 100-entry cap is normal UI5 behaviour and `cs_event-set_size_limit` already switches it — what is missing is the detection, because a port that forgets it renders truncated with no error anywhere and every gate stays green | medium | 2026-08-24 | abap2UI5/linter |
 
 ---
 

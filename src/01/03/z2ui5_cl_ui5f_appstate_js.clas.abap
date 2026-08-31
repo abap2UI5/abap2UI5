@@ -25,122 +25,11 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `/* ui5lint-disable no-project-globals -- this module owns the public` && |\n| &&
-             `   z2ui5 global facade; it is the single place that may touch it */` && |\n| &&
-             `// Owner of the shared frontend state. Historically all state lived as` && |\n| &&
-             `// plain properties on the global ``z2ui5`` object, written and lazily` && |\n| &&
-             `// created from many modules. This module is the single owner now:` && |\n| &&
-             `//` && |\n| &&
-             `//  - the PUBLIC fields stay plain properties on the global (they are a` && |\n| &&
-             `//    contract with apps and the backend-generated HTML); framework` && |\n| &&
-             `//    modules read/write them via getGlobal()/setGlobal() below,` && |\n| &&
-             `//  - every INTERNAL field lives in the private ``state`` object below;` && |\n| &&
-             `//    framework modules access it via the ``state`` export, and the global` && |\n| &&
-             `//    additionally exposes it through accessors so external consumers` && |\n| &&
-             `//    (apps poking at internals via the js_loader popup) keep working` && |\n| &&
-             `//    unchanged,` && |\n| &&
-             `//  - initGlobal() creates/resets everything in one place - no other` && |\n| &&
-             `//    module needs lazy ``if (!z2ui5.x) z2ui5.x = ...`` bootstrapping for` && |\n| &&
-             `//    the fields listed here.` && |\n| &&
-             `//` && |\n| &&
-             `// No other framework module may reference the z2ui5 global directly:` && |\n| &&
-             `// internal fields go through ``AppState.state``, public-contract fields` && |\n| &&
-             `// through ``AppState.getGlobal()/setGlobal()``.` && |\n| &&
-             `//` && |\n| &&
-             `// PUBLIC contract on the global (plain properties, not managed here):` && |\n| &&
-             `//   checkLocal        true when served by the backend GET page (backend HTML)` && |\n| &&
-             `//   url               backend endpoint for roundtrips (App.controller)` && |\n| &&
-             `//   oConfig           { S_UI5: version info, ComponentData } (Component)` && |\n| &&
-             `//   Util              PUBLIC date helpers for view formatters - apps rely on` && |\n| &&
-             `//                     this global and on the z2ui5/Util module (Component)` && |\n| &&
-             `//   Formatter         PUBLIC curated formatter module for view binding` && |\n| &&
-             `//                     strings (z2ui5/model/formatter, wired via` && |\n| &&
-             `//                     core:require; the global covers releases without` && |\n| &&
-             `//                     core:require); owns the date helpers Util` && |\n| &&
-             `//                     re-exports - grows via framework PRs only (Component)` && |\n| &&
-             `//   ccResourceRoot    absolute path of the custom-control BSP, set by the` && |\n| &&
-             `//                     backend GET page when there is no sibling BSP to` && |\n| &&
-             `//                     resolve "../z2ui5_cci/" against (backend HTML)` && |\n| &&
-             `//   cccResourceRoot   same for the customer frontend-extension BSP` && |\n| &&
-             `//                     ("../z2ui5_ccc/") (backend HTML)` && |\n| &&
-             `//   requestTimeoutMs  optional override for the roundtrip timeout (apps)` && |\n| &&
-             `//   <custom>          apps can register functions via the js_loader popup` && |\n| &&
-             `//                     and call them through the Z2UI5 frontend event` && |\n| &&
-             `//` && |\n| &&
-             `// INTERNAL field inventory (defaults in createState below) - writer in` && |\n| &&
-             `// parentheses:` && |\n| &&
-             `//` && |\n| &&
-             `// Views / controllers / UI5 objects` && |\n| &&
-             `//   oApp              sap.m.App hosting the main view (App.controller)` && |\n| &&
-             `//   oOwnerComponent, oDeviceModel (Component / App.controller)` && |\n| &&
-             `//   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover` && |\n| &&
-             `//                     the five view slots, written by ViewSlots.setView` && |\n| &&
-             `//   slotXml           the view XML each slot was filled with, per slot key -` && |\n| &&
-             `//                     recorded by ViewSlots.setView and dropped by` && |\n| &&
-             `//                     ViewSlots.destroy, so it tracks the slot itself no` && |\n| &&
-             `//                     matter who tore it down (backend action or a` && |\n| &&
-             `//                     roundtrip-free frontend close). The developer tools` && |\n| &&
-             `//                     read a slot's source from here: a fragment or a view` && |\n| &&
-             `//                     built from a ``definition`` keeps no viewContent of its` && |\n| &&
-             `//                     own` && |\n| &&
-             `//   oController, oControllerNest, oControllerNest2, oControllerPopup,` && |\n| &&
-             `//   oControllerPopover  controller instance per slot (App.controller)` && |\n| &&
-             `//   oLaunchpad        FLP services when running inside the launchpad, else` && |\n| &&
-             `//                     null (Component._initLaunchpad)` && |\n| &&
-             `//` && |\n| &&
-             `// Roundtrip state` && |\n| &&
-             `//   oBody             mirror of the current request payload - the body` && |\n| &&
-             `//                     itself travels as a parameter through` && |\n| &&
-             `//                     Server.roundtrip/readHttp; this record exists for` && |\n| &&
-             `//                     onBeforeRoundtrip hooks and the developer tools` && |\n| &&
-             `//                     (View1.eB / Server)` && |\n| &&
-             `//   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL,` && |\n| &&
-             `//                     APP, MODELPRESENT }` && |\n| &&
-             `//   renderedApp       class name of the last rendered app - an APP switch in` && |\n| &&
-             `//                     a response tears the standalone slots down implicitly` && |\n| &&
-             `//                     (View1._processAfterRendering)` && |\n| &&
-             `//   responseData      raw parsed response JSON (Server.readHttp); kept` && |\n| &&
-             `//                     besides oResponse because the developer tools render` && |\n| &&
-             `//                     the raw payload` && |\n| &&
-             `//   contextId         stateful session id, header transport (Server)` && |\n| &&
-             `//   isBusy            roundtrip in flight (View1.eB / Server)` && |\n| &&
-             `//   oSentModel        the JSON model whose edited-path set the in-flight` && |\n| &&
-             `//                     request carried; its own _z2ui5ChangedPaths is cleared` && |\n| &&
-             `//                     once that request wins (Server), so a stale response` && |\n| &&
-             `//                     never clears newer edits and edits made in a DIFFERENT` && |\n| &&
-             `//                     model (e.g. a popover) are never shipped against this one` && |\n| &&
-             `//   search            overrides location.search in S_FRONT; never written` && |\n| &&
-             `//                     by the framework itself, set externally (custom JS)` && |\n| &&
-             `//` && |\n| &&
-             `// Control / helper state` && |\n| &&
-             `//   errors            capped error log, see Lib.logError` && |\n| &&
-             `//   timers            single pending backend timer (actions/ViewOps)` && |\n| &&
-             `//   shortcuts         registered keyboard shortcuts, normalized combo ->` && |\n| &&
-             `//                     scope -> { event, controller }, the scope being a view` && |\n| &&
-             `//                     slot key or "" for unscoped (actions/Shortcuts). Dispatch takes the innermost OPEN` && |\n| &&
-             `//                     scope, so a popover-local shortcut shadows the page one` && |\n| &&
-             `//                     the way a UI5 CommandExecution in dependents does;` && |\n| &&
-             `//                     an app switch resets it, the document listener stays` && |\n| &&
-             `//   lastScrolled      last scrolled element per slot (ScrollFocus.onScrollCapture)` && |\n| &&
-             `//   viewSizeLimits    per-slot model size limits (actions/ViewOps)` && |\n| &&
-             `//   treeStates        tree binding state per tree_id across rebuilds (Tree control)` && |\n| &&
-             `//   lastError         the last fatal error shown by ErrorView (title/text/` && |\n| &&
-             `//                     onRetry), so a details view can re-show it` && |\n| &&
-             `//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,` && |\n| &&
-             `//   onBeforeEventFrontend, onErrorDetails  callback arrays, see` && |\n| &&
-             `//                     Lib.registerCallback. onErrorDetails is the extension` && |\n| &&
-             `//                     point behind the fatal-error overlay's Details action:` && |\n| &&
-             `//                     ErrorView runs whatever registered and hides the button` && |\n| &&
-             `//                     when nothing did (devtools/DevTools.js registers` && |\n| &&
-             `//                     the in-app developer tools there)` && |\n| &&
-             `sap.ui.define([], () => {` && |\n| &&
+    result = `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  // Fresh defaults for every internal field. Collections start out as` && |\n| &&
-             `  // empty containers so consumers can use them without existence checks.` && |\n| &&
              `  function createState() {` && |\n| &&
              `    return {` && |\n| &&
-             `      // Views / controllers / UI5 objects` && |\n| &&
              `      oApp: null,` && |\n| &&
              `      oOwnerComponent: null,` && |\n| &&
              `      oDeviceModel: null,` && |\n| &&
@@ -157,7 +46,6 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      slotXml: {},` && |\n| &&
              `      oLaunchpad: null,` && |\n| &&
              `` && |\n| &&
-             `      // Roundtrip state` && |\n| &&
              `      oBody: null,` && |\n| &&
              `      oResponse: null,` && |\n| &&
              `      renderedApp: null,` && |\n| &&
@@ -167,34 +55,12 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      oSentModel: null,` && |\n| &&
              `      search: null,` && |\n| &&
              `` && |\n| &&
-             `      // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).` && |\n| &&
-             `      // Owned by core/Router.js - see there for the route format and how the` && |\n| &&
-             `      // hash is split between the FLP shell and the app.` && |\n| &&
-             `      //  navRouting  once the running app enabled routing, the URL hash mirrors` && |\n| &&
-             `      //              the current app as a bookmarkable route and browser` && |\n| &&
-             `      //              Back/Forward navigate between apps via the hash.` && |\n| &&
-             `      //  navMode        routing mode (z2ui5_if_client=>cs_nav_mode): 'KEEP' keeps` && |\n| &&
-             `      //                 the app state (draft id in the route '#/app/<CLASS>/` && |\n| &&
-             `      //                 <DRAFT>', restored on Back/Forward), 'FRESH' routes by` && |\n| &&
-             `      //                 class only ('#/app/<CLASS>', always a fresh start).` && |\n| &&
-             `      //  currentApp     class name of the app currently rendered.` && |\n| &&
-             `      //  currentDraftId server draft id reflected in the current route - the` && |\n| &&
-             `      //                 app-state id in KEEP, null in FRESH. The routing guard` && |\n| &&
-             `      //                 compares an incoming hash route's draft id against it so` && |\n| &&
-             `      //                 our own hash writes do not re-trigger a navigation, and` && |\n| &&
-             `      //                 (KEEP) browser Back/Forward restore the exact draft.` && |\n| &&
-             `      //  navFromHash    the pending roundtrip was triggered by a browser` && |\n| &&
-             `      //                 Back/Forward (or manual hash edit) via the router, so` && |\n| &&
-             `      //                 the resulting render must NOT rewrite the hash: the` && |\n| &&
-             `      //                 browser is at a non-top history position and rewriting` && |\n| &&
-             `      //                 there drops the forward entries (Forward would break).` && |\n| &&
              `      navRouting: false,` && |\n| &&
              `      navMode: null,` && |\n| &&
              `      currentApp: null,` && |\n| &&
              `      currentDraftId: null,` && |\n| &&
              `      navFromHash: false,` && |\n| &&
              `` && |\n| &&
-             `      // Control / helper state` && |\n| &&
              `      errors: [],` && |\n| &&
              `      timers: {},` && |\n| &&
              `      shortcuts: {},` && |\n| &&
@@ -203,7 +69,6 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      treeStates: {},` && |\n| &&
              `      lastError: null,` && |\n| &&
              `` && |\n| &&
-             `      // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)` && |\n| &&
              `      onBeforeRoundtrip: [],` && |\n| &&
              `      onAfterRoundtrip: [],` && |\n| &&
              `      onAfterRendering: [],` && |\n| &&
@@ -214,33 +79,18 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `` && |\n| &&
              `  let state = createState();` && |\n| &&
              `` && |\n| &&
-             `  // Reset all internal fields to their defaults. The accessors installed` && |\n| &&
-             `  // by initGlobal() read through to the current ``state``, so a reset is` && |\n| &&
-             `  // immediately visible on the global.` && |\n| &&
              `  function reset() {` && |\n| &&
              `    state = createState();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Prepare the z2ui5 global for a component start:` && |\n| &&
-             `  //  - make sure the global exists (standalone there is no backend HTML` && |\n| &&
-             `  //    declaring it),` && |\n| &&
-             `  //  - start from a clean object when checkLocal === false,` && |\n| &&
-             `  //  - reset the internal state and expose it via accessors,` && |\n| &&
-             `  //  - provide a fresh oConfig for the bootstrap info.` && |\n| &&
-             `  // Idempotent: a re-init (e.g. FLP re-launch) redefines the accessors` && |\n| &&
-             `  // and starts from clean defaults again.` && |\n| &&
              `  function initGlobal() {` && |\n| &&
              `    if (typeof z2ui5 === "undefined" || z2ui5.checkLocal === false) {` && |\n| &&
-             `      // Assign via window - a bare ``z2ui5 = {}`` would throw a` && |\n| &&
-             `      // ReferenceError on an undeclared global in strict mode.` && |\n| &&
              `      window.z2ui5 = {};` && |\n| &&
              `    }` && |\n| &&
              `    reset();` && |\n| &&
              `    for (const name of Object.keys(state)) {` && |\n| &&
              `      const desc = Object.getOwnPropertyDescriptor(z2ui5, name);` && |\n| &&
-             `      // Preserve a value someone put on the global before we took over` && |\n| &&
-             `      // (plain data property only - accessors from a previous init` && |\n| &&
-             `      // already delegate to ``state``).` && |\n| &&
+             `` && |\n| &&
              `      if (desc && "value" in desc && desc.value !== undefined) {` && |\n| &&
              `        state[name] = desc.value;` && |\n| &&
              `      }` && |\n| &&
@@ -258,12 +108,6 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `    z2ui5.oConfig = {};` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Read/write a field on the public z2ui5 global facade - the PUBLIC` && |\n| &&
-             `  // contract fields listed in the header (checkLocal, url, oConfig, Util,` && |\n| &&
-             `  // requestTimeoutMs) and app-registered custom members (js_loader).` && |\n| &&
-             `  // Internal fields are accessed via the ``state`` export instead. Reads and` && |\n| &&
-             `  // writes go through the global on purpose: these fields are shared with` && |\n| &&
-             `  // apps and the backend-generated HTML.` && |\n| &&
              `  function getGlobal(name) {` && |\n| &&
              `    return window.z2ui5?.[name];` && |\n| &&
              `  }` && |\n| &&
@@ -278,7 +122,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `    reset,` && |\n| &&
              `    getGlobal,` && |\n| &&
              `    setGlobal,` && |\n| &&
-             `    // Live internal state - always the current object, also after reset().` && |\n| &&
+             `` && |\n| &&
              `    get state() {` && |\n| &&
              `      return state;` && |\n| &&
              `    },` && |\n| &&

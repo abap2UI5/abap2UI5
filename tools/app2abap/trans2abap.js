@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const acorn = require('acorn');
+const terser = require('terser');
 const abapClassTemplate = require('./abapClassTemplate');
 const xmlTemplate = require('./abapXMLTemplate');
 
@@ -30,18 +32,19 @@ function createFileInTargetDir(targetFilePath, content) {
     return fs.promises.writeFile(targetFilePath, content, 'utf-8');
 }
 
-// Function to format the content into an ABAP class method
-function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
-    const lines = content.split('\n');
-    const formattedLines = lines.map((line, index) => {
-        line = line.replace(/\s+$/, ''); // Remove trailing spaces
-
-        // Guard 1: the frontend source is embedded verbatim into an ABAP string
-        // constant, which abaplint checks with the 7bit_ascii rule. A non-ASCII
-        // byte (smart quote, ellipsis, arrow, ...) breaks generation/lint
-        // downstream with a confusing error, so fail here at the exact source
-        // line instead. Runtime non-ASCII must be built via String.fromCharCode
-        // / entity decoding (see AGENTS.md rule 14).
+// Guard 1: the frontend source is embedded into an ABAP string constant,
+// which abaplint checks with the 7bit_ascii rule. A non-ASCII byte (smart
+// quote, ellipsis, arrow, ...) breaks generation/lint downstream with a
+// confusing error, so fail here at the exact source line instead. Runtime
+// non-ASCII must be built via String.fromCharCode / entity decoding (see
+// AGENTS.md rule 14). For .js files this also runs BEFORE the comment strip
+// below reflows the code, so the reported line number is one the author can
+// find in app/webapp.
+function assertSevenBitAscii(content, className) {
+    content.split('\n').forEach((line, index) => {
+        // The range IS ASCII, control characters included: this line is the
+        // 7bit_ascii rule itself.
+        // eslint-disable-next-line no-control-regex
         const nonAscii = line.match(/[^\x00-\x7F]/);
         if (nonAscii) {
             throw new Error(
@@ -49,6 +52,95 @@ function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
                 `(code ${nonAscii[0].codePointAt(0)}) - frontend source must be 7-bit ASCII: ${line.trim()}`,
             );
         }
+    });
+}
+
+// Both sides are re-minified with the same settings, so anything that is only
+// formatting disappears and only a changed program survives as a difference
+// (ported from tools/app2bsp/preload.js). `evaluate` folds constant
+// expressions identically on both sides, so the two prints are comparable.
+function assertSameProgram(before, after, relPath) {
+    const collapse = (code, label) => {
+        const result = terser.minify_sync(code, {
+            compress: { defaults: false, evaluate: true },
+            mangle: false,
+            format: { ascii_only: true },
+        });
+        if (result.error) {
+            throw new Error(`${relPath}: ${label} does not parse - ${result.error}`);
+        }
+        return result.code;
+    };
+    if (collapse(before, 'the source') !== collapse(after, 'the comment-stripped source')) {
+        throw new Error(
+            `${relPath}: stripping the comments changed the program - ` +
+            'a construct terser reprints differently; report it and embed this file unstripped.',
+        );
+    }
+}
+
+// The app's own Prettier (also what `npm run app2abap` formats app/webapp
+// with) - required from app/node_modules because the root has no prettier
+// of its own. Lazy so the error names the fix instead of failing the
+// require at import time when app deps are missing.
+let prettierModule = null;
+function appPrettier() {
+    if (!prettierModule) {
+        try {
+            prettierModule = require(path.join(__dirname, '../../app/node_modules/prettier'));
+        } catch {
+            throw new Error(
+                "comment strip needs the app toolchain - run 'npm --prefix app ci' first " +
+                '(npm run app2abap and check:app2abap install it for you)',
+            );
+        }
+    }
+    return prettierModule;
+}
+
+// The embedded copy of a .js file is a DELIVERY artefact - the readable
+// source lives in app/webapp, and nobody patches src/01/03 (AGENTS.md
+// rule 2). The comments are therefore pure payload on every ICF cold start,
+// and this codebase comments heavily; stripping them keeps the GET response
+// (and the src/01/03 diff noise per frontend change) roughly half the size.
+// Everything else stays: no compress, no mangle, no reprint - a browser
+// stack trace still shows the real identifiers and (near-)real lines.
+//
+// The comments are cut OUT OF THE ORIGINAL TEXT by position (acorn's
+// tokenizer reports where each one starts and ends), never by reprinting
+// the AST: a terser reprint escapes the real newlines inside multi-line
+// template literals into one giant line, which cannot be broken again and
+// blows the 255-char ABAP line cap (guard 2). Prettier then only tidies
+// the holes the cuts left (dangling indentation, runs of blank lines) with
+// the app's own config, and terser re-parses both sides once to prove the
+// PROGRAM did not change.
+async function stripJsComments(source, file, relPath) {
+    const comments = [];
+    try {
+        acorn.parse(source, {
+            ecmaVersion: 'latest',
+            onComment: (_isBlock, _text, start, end) => comments.push([start, end]),
+        });
+    } catch (e) {
+        throw new Error(`${relPath}: does not parse - ${e.message}`, { cause: e });
+    }
+    let code = source;
+    for (const [start, end] of comments.reverse()) {
+        code = code.slice(0, start) + code.slice(end);
+    }
+    const prettier = appPrettier();
+    const config = (await prettier.resolveConfig(file)) || {};
+    code = await prettier.format(code, { ...config, parser: 'babel' });
+    assertSameProgram(source, code, relPath);
+    return code;
+}
+
+// Function to format the content into an ABAP class method
+function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
+    assertSevenBitAscii(content, className);
+    const lines = content.split('\n');
+    const formattedLines = lines.map((line, index) => {
+        line = line.replace(/\s+$/, ''); // Remove trailing spaces
 
         let formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
         formattedLine = formattedLine.replace(/&&\s+$/, '&&'); // Remove trailing spaces after &&
@@ -218,7 +310,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     " single-quoted string literal, inside the single <script> block that
     " defines onInitComponent (z2ui5_cl_http_handler=>_http_get). Its content
     " is arbitrary text and does carry apostrophes - a UI5 expression binding
-    " in a fragment (title="\{= \${/appName} ? 'a' : 'b' }") writes them, and so
+    " in a fragment (title="{= \${/appName} ? 'a' : 'b' }") writes them, and so
     " does a customer's own styles_css from the exit. An unescaped one ends the
     " literal early, which is a syntax error for the whole block: the browser
     " then never defines onInitComponent, the bootstrap call fails and the page
@@ -273,16 +365,20 @@ function getAllFiles(dirPath, arrayOfFiles) {
 // Main function to read the source files and create new target files
 async function main() {
     try {
-        // Delete the target directory if it exists
-        fs.rmSync(targetDir, { recursive: true, force: true });
+        // Everything is generated into memory FIRST and written only once the
+        // whole set is built. The target directory used to be deleted as the
+        // very first statement, before a single guard had run - so a source
+        // file with a non-ASCII character, a class-name collision or an
+        // over-long line left src/01/03 wiped and half-regenerated in the
+        // contributor's working tree, and `git checkout src/01/03` was the
+        // only way back. The drift gate then reported the wreckage instead of
+        // the cause. Nothing below touches the filesystem until `outputs` is
+        // complete.
+        const outputs = [];
+        const emit = (filePath, content) => outputs.push({ filePath, content });
 
-        // Recreate the target directory
-        fs.mkdirSync(targetDir, { recursive: true });
-
-        // Create the initial XML file with BOM
-        const initialXMLFilePath = path.join(targetDir, 'package.devc.xml');
-        await createFileInTargetDir(initialXMLFilePath, initialXMLContent);
-        console.log(`Initial XML file created successfully at: ${initialXMLFilePath}`);
+        // The initial XML file with BOM
+        emit(path.join(targetDir, 'package.devc.xml'), initialXMLContent);
 
         // Sort so the generation order (and console log) is deterministic
         // regardless of the filesystem's readdir order.
@@ -312,16 +408,23 @@ async function main() {
             const className = classNameByFile.get(file);
             const relPath = path.relative(sourceDir, file).split(path.sep).join('/');
             const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html') || file.endsWith('.css');
+            // Only .js is stripped: the special files (.xml/.json/.html/.css)
+            // go in untouched - their comments are structure (fragment
+            // documentation, manifest annotations) and none of them is
+            // JavaScript for terser to reprint.
+            if (file.endsWith('.js')) {
+                // ASCII first, against the author's own line numbers
+                assertSevenBitAscii(sourceContent, className);
+                sourceContent = await stripJsComments(sourceContent, file, relPath);
+            }
             const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile, relPath);
 
             const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);
-            await createFileInTargetDir(targetFilePath, abapClassContent);
-            console.log(`Target file created successfully at: ${targetFilePath}`);
+            emit(targetFilePath, abapClassContent);
 
             const xmlContent = xmlTemplate(className, `abap2UI5 - ${path.basename(file)}`);
             const xmlFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.xml`);
-            await createFileInTargetDir(xmlFilePath, `\uFEFF${xmlContent}`);
-            console.log(`XML file created successfully at: ${xmlFilePath}`);
+            emit(xmlFilePath, `\uFEFF${xmlContent}`);
 
             // Collect the preload entry. index.html is the standalone dev
             // page and is not preloaded by the generated GET response.
@@ -341,15 +444,27 @@ async function main() {
         // localeCompare depends on the host locale/ICU build, and the sort
         // order is committed output (src/01/03).
         preloadEntries.sort((a, b) => (a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0));
-        const preloadFilePath = path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap');
-        await createFileInTargetDir(preloadFilePath, buildPreloadClass(preloadEntries));
-        console.log(`Preload class created successfully at: ${preloadFilePath}`);
-        const preloadXmlPath = path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml');
-        await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`);
-        console.log(`Preload XML created successfully at: ${preloadXmlPath}`);
+        emit(path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap'), buildPreloadClass(preloadEntries));
+        emit(
+            path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml'),
+            `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`,
+        );
+
+        // Every guard has passed and every byte is in hand - only now is the
+        // committed tree replaced.
+        fs.rmSync(targetDir, { recursive: true, force: true });
+        fs.mkdirSync(targetDir, { recursive: true });
+        for (const { filePath, content } of outputs) {
+            await createFileInTargetDir(filePath, content);
+            console.log(`Target file created successfully at: ${filePath}`);
+        }
+        console.log(`${outputs.length} file(s) written to ${targetDir}`);
     } catch (error) {
-        // Signal failure so CI (create_app2abap.yaml) does not treat a broken
-        // generation run as success and commit a partial src/01/03.
+        // Signal failure so CI (check_app2abap.yaml, autofix.yaml) does not
+        // treat a broken generation run as success and commit a partial
+        // src/01/03. Since the write phase above is the last thing main( )
+        // does, a failure reported here also means the committed tree was
+        // never touched.
         console.error('Error:', error.message);
         process.exitCode = 1;
     }

@@ -37,6 +37,31 @@ CLASS ltcl_test_app IMPLEMENTATION.
 ENDCLASS.
 
 
+" A filter for the adopt tests. It declares if_serializable_object for the
+" same reason the framework's own filters do (see lcl_empty_filter_keep_rows
+" in z2ui5_cl_ui5_client.clas.locals_imp): z2ui5_if_ajson_filter does not
+" compose it, and check_serializable( ) refuses a filter that cannot be
+" written into the draft.
+CLASS ltcl_test_filter DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES if_serializable_object.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_test_filter IMPLEMENTATION.
+
+  METHOD z2ui5_if_ajson_filter~keep_node.
+
+    rv_keep = abap_true.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test_bind DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
@@ -48,6 +73,9 @@ CLASS ltcl_test_bind DEFINITION FINAL
     METHODS test_bind_path         FOR TESTING RAISING cx_static_check.
     METHODS test_attri_named_xx    FOR TESTING RAISING cx_static_check.
     METHODS test_bind_idempotent   FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_adopt_filter FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_adopt_json   FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_keeps_json   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -101,6 +129,74 @@ CLASS ltcl_test_bind IMPLEMENTATION.
                                         act = lv_bind ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_bind ).
+
+  ENDMETHOD.
+
+  METHOD test_bind_adopt_filter.
+
+    " a filter handed to a LATER _bind( ) of an already-bound attribute used
+    " to be dropped without a word: update_model_attri( ) runs on the new
+    " binding only, and check_raise_existing( ) sees no conflict because the
+    " stored attribute carries no filter to conflict with
+    DATA(lo_app_client) = NEW ltcl_test_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_app->mo_app = lo_app_client.
+
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
+
+    lo_bind->main( REF #( lo_app_client->mv_value ) ).
+
+    cl_abap_unit_assert=>assert_not_bound(
+        act = lo_bind->mr_attri->custom_filter
+        msg = `the plain first bind must not invent a filter` ).
+
+    DATA(lo_filter) = NEW ltcl_test_filter( ).
+    lo_bind->main( val    = REF #( lo_app_client->mv_value )
+                   config = VALUE #( custom_filter = lo_filter ) ).
+
+    cl_abap_unit_assert=>assert_bound(
+        act = lo_bind->mr_attri->custom_filter
+        msg = `the second bind's filter has to reach the attribute` ).
+
+  ENDMETHOD.
+
+  METHOD test_bind_adopt_json.
+
+    DATA(lo_app_client) = NEW ltcl_test_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_app->mo_app = lo_app_client.
+
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
+
+    lo_bind->main( REF #( lo_app_client->mv_value ) ).
+    lo_bind->main( val    = REF #( lo_app_client->mv_value )
+                   config = VALUE #( check_json = abap_true ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = lo_bind->mr_attri->check_json
+        msg = `check_json asked for by the second bind has to stick` ).
+
+  ENDMETHOD.
+
+  METHOD test_bind_keeps_json.
+
+    " the other direction: check_json only ever turns ON, so a later plain
+    " _bind( ) of the same attribute must not switch it off again
+    DATA(lo_app_client) = NEW ltcl_test_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_app->mo_app = lo_app_client.
+
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
+
+    lo_bind->main( val    = REF #( lo_app_client->mv_value )
+                   config = VALUE #( check_json = abap_true ) ).
+    lo_bind->main( REF #( lo_app_client->mv_value ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = lo_bind->mr_attri->check_json
+        msg = `a plain rebind must not clear check_json` ).
 
   ENDMETHOD.
 
@@ -267,4 +363,158 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
                                         act = lv_result ).
 
   ENDMETHOD.
+ENDCLASS.
+
+
+" The cell level of main( ) - a bound value addressed as one row of an
+" internal table (config-tab / config-tab_index) rather than as a whole
+" attribute. What is proved here is the path arithmetic (ABAP counts rows
+" from 1, the client path from 0) and the two refusals of bind_tab_cell( ),
+" which are the only places a wrong call is caught at all.
+"
+" The row reference is taken as REF #( mt_tab[ n ] ) and dereferenced, NOT
+" the way bind_tab_cell( ) builds its own (ASSIGN <tab>[ idx ] + ASSIGN
+" COMPONENT), so the reference match is genuinely exercised rather than
+" satisfied by construction. The form an APP writes - the component itself
+" as the val argument, mt_tab[ n ]-name - is proved one level up on
+" z2ui5_if_client~_bind, where it doubles as the canary for the downport
+" patch that keeps it working (node/setup/patch-abaplint-downport.mjs)
+CLASS ltcl_test_main_cell DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+        job  TYPE string,
+      END OF ty_s_row.
+
+    DATA mt_tab   TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    DATA mv_other TYPE string.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+    METHODS setup.
+    METHODS test_cell_row1        FOR TESTING RAISING cx_static_check.
+    METHODS test_cell_row2        FOR TESTING RAISING cx_static_check.
+    METHODS test_cell_path_only   FOR TESTING RAISING cx_static_check.
+    METHODS test_cell_bad_index   FOR TESTING RAISING cx_static_check.
+    METHODS test_cell_foreign_val FOR TESTING RAISING cx_static_check.
+
+    METHODS bind
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_bind.
+
+    "! The NAME component of one row, as a reference into the table itself
+    METHODS cell_name
+      IMPORTING
+        iv_index      TYPE i
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_main_cell IMPLEMENTATION.
+
+  METHOD setup.
+
+    CLEAR mt_tab.
+    INSERT VALUE #( name = `Michael Adams`
+                    job  = `Scrum Master` ) INTO TABLE mt_tab.
+    INSERT VALUE #( name = `John Miller`
+                    job  = `Product Owner` ) INTO TABLE mt_tab.
+
+  ENDMETHOD.
+
+  METHOD bind.
+
+    DATA(lo_app) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_app->mo_app = me.
+    result = NEW z2ui5_cl_ui5_srv_bind( lo_app ).
+
+  ENDMETHOD.
+
+  METHOD cell_name.
+
+    FIELD-SYMBOLS <row> TYPE ty_s_row.
+
+    DATA(lr_row) = REF #( mt_tab[ iv_index ] ).
+    ASSIGN lr_row->* TO <row>.
+    result = REF #( <row>-name ).
+
+  ENDMETHOD.
+
+  METHOD test_cell_row1.
+
+    DATA(lv_result) = bind( )->main( val    = cell_name( 1 )
+                                     config = VALUE #( tab       = REF #( mt_tab )
+                                                       tab_index = 1 ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/0/NAME}`
+                                        act = lv_result ).
+
+  ENDMETHOD.
+
+  METHOD test_cell_row2.
+
+    " the SECOND row - a path that is only right when the row index is
+    " actually resolved and shifted, not assumed to be the first
+    DATA(lv_result) = bind( )->main( val    = cell_name( 2 )
+                                     config = VALUE #( tab       = REF #( mt_tab )
+                                                       tab_index = 2 ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/1/NAME}`
+                                        act = lv_result ).
+
+  ENDMETHOD.
+
+  METHOD test_cell_path_only.
+
+    DATA(lv_result) = bind( )->main( val    = cell_name( 1 )
+                                     config = VALUE #( tab       = REF #( mt_tab )
+                                                       tab_index = 1
+                                                       path_only = abap_true ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `/MT_TAB/0/NAME`
+                                        act = lv_result ).
+
+  ENDMETHOD.
+
+  METHOD test_cell_bad_index.
+
+    " a row that does not exist: the ASSIGN leaves the row unassigned, and
+    " without the guard the next ASSIGN COMPONENT dumps GETWA_NOT_ASSIGNED
+    " instead of reporting the binding error
+    TRY.
+        bind( )->main( val    = cell_name( 1 )
+                       config = VALUE #( tab       = REF #( mt_tab )
+                                         tab_index = 3 ) ).
+        cl_abap_unit_assert=>fail( `a tab_index past the last row must raise the binding error` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_index).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_index->get_text( ) CS `BINDING_ERROR_TAB_CELL_LEVEL` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_cell_foreign_val.
+
+    " the cell is identified by REFERENCE - a value that is not a component
+    " of that row cannot be addressed, however equal it looks
+    mv_other = mt_tab[ 1 ]-name.
+
+    TRY.
+        bind( )->main( val    = REF #( mv_other )
+                       config = VALUE #( tab       = REF #( mt_tab )
+                                         tab_index = 1 ) ).
+        cl_abap_unit_assert=>fail( `a val that is not a component of the addressed row must raise the binding error` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_val).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_val->get_text( ) CS `BINDING_ERROR_TAB_CELL_LEVEL` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
 ENDCLASS.

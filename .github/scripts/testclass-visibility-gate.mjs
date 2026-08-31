@@ -16,7 +16,11 @@
 // developer cannot act on.
 
 import { globSync, readFileSync } from "fs";
-import { basename } from "path";
+import { basename, join } from "path";
+import { fileURLToPath } from "url";
+
+// cwd-independent on purpose - see assertion-gate.mjs, same failure mode
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const SECTIONS = { "PUBLIC SECTION": "PUBLIC", "PROTECTED SECTION": "PROTECTED", "PRIVATE SECTION": "PRIVATE" };
 
@@ -97,7 +101,9 @@ function currentLocalClass(lines, upto) {
 
 const findings = [];
 
-for (const testFile of globSync("src/**/*.clas.testclasses.abap").sort()) {
+let scanned = 0;
+for (const testFile of globSync(join(ROOT, "src/**/*.clas.testclasses.abap")).sort()) {
+  scanned += 1;
   const globalClass = basename(testFile, ".clas.testclasses.abap");
   let definition;
   try {
@@ -150,4 +156,10 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log("Test class visibility: no findings.");
+// zero scanned files means the glob found nothing - see assertion-gate.mjs
+if (scanned === 0) {
+  console.error("Test class visibility: no test classes found - nothing was checked");
+  process.exit(1);
+}
+
+console.log(`Test class visibility: no findings (${scanned} test class file(s)).`);

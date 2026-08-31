@@ -1,0 +1,45 @@
+name: check-framework-pin
+
+# The abaplint configs here resolve abap2UI5 as a git dependency, and abaplint
+# clones the DEFAULT branch unless a `"branch"` key says otherwise. So these
+# samples used to be linted against the framework's development tip while every
+# reader of them has a RELEASE installed - a gap that hides two defects, both
+# silent:
+#
+#   a sample uses API that exists only on main, this repository stays green,
+#   and the reader who copies it gets a syntax error. That is not theoretical:
+#   z2ui5_cl_ui5_view_builder was on main from 2026-08-12 and in no release
+#   until 1.143.0, three weeks later.
+#
+#   the framework changes something on main and the abaplint workflows here go
+#   red overnight, with no commit in this repository to explain it.
+#
+# The configs now name a release tag, and this gate is what keeps them naming
+# ONE - a bump has to move every config, and a forgotten file cannot quietly
+# lint against a different framework than its neighbours.
+#
+# Plain node, no dependencies, so it stays a few seconds and can run before any
+# install - which is also why `npm run check` puts it first.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-framework-pin-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-framework-pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: '22'
+    - run: node scripts/check-framework-pin.mjs

@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 // verify-branches.mjs
-// Compares the committed delivery trees in build/ against what is published in
-// abap2UI5/frontend today - file for file, byte for byte.
+// Compares the delivery trees a local build has put into tools/out/ against
+// what is published in abap2UI5/frontend today - file for file, byte for
+// byte. Run `npm run frontend:build` first; a branch with no build is
+// skipped with a note.
 //
-// Nothing is built here any more: build/ IS the tree frontend_deploy pushes,
-// and that it matches the sources is checked by frontend_check
-// (`npm run check:frontend`). What runs here is the other comparison - the
-// committed tree against the one that is out there. For that to work byte
-// for byte, the copy is stamped just as the deploy stamps it (README banner
-// and VERSION, see branch-stamp.mjs), and with the commit the published
-// branch was built from.
+// For the comparison to work byte for byte, the local copy is stamped just
+// as the deploy stamps it (README banner and VERSION, see branch-stamp.mjs),
+// and with the commit the published branch was built from.
 //
 // This is the acceptance test for the move of the frontend build into this
 // repository: the branches are an INSTALLATION SOURCE. People's abapGit repos
@@ -35,7 +33,7 @@ const core = join(here, "..");
 const out = join(here, "out");
 const reference = join(out, "_published");
 const stamped = join(out, "_stamped");
-const generated = join(core, "build");
+const generated = out;
 
 const REMOTE = "frontend-published";
 const REMOTE_URL = "https://github.com/abap2UI5/frontend.git";
@@ -56,11 +54,28 @@ function publishedSha(branch) {
     return /abap2UI5\/abap2UI5@([0-9a-f]{40})/.exec(stamp)?.[1] ?? null;
 }
 
+// A delivery branch is a few megabytes of ABAP; half a gigabyte is headroom
+// that will not be reached, and a ceiling beats node's 1 MB default silently
+// truncating a tree this compares byte for byte.
+const MAX_ARCHIVE = 512 * 1024 * 1024;
+
 function checkout(branch) {
     const dir = join(reference, branch);
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
-    execFileSync("sh", ["-c", `git archive ${REMOTE}/${branch} | tar -x -C ${JSON.stringify(dir)}`], { cwd: core });
+    /* Two processes, no shell.
+     *
+     * The branch name comes from `process.argv` - the "[branch ...]" this
+     * file's own usage line names - and went UNQUOTED into an `sh -c` string, so
+     * `node tools/verify-branches.mjs "x; rm -rf ~"` ran the second half. The
+     * directory was quoted with `JSON.stringify`, which is JSON quoting and
+     * not shell quoting - inside double quotes a shell still expands `$foo`
+     * and a backtick.
+     *
+     * Piping the archive through in memory needs no shell at all, and an
+     * argument passed to `execFileSync` is an argument rather than syntax. */
+    const archive = execFileSync("git", ["archive", `${REMOTE}/${branch}`], { cwd: core, maxBuffer: MAX_ARCHIVE });
+    execFileSync("tar", ["-x", "-C", dir], { input: archive, maxBuffer: MAX_ARCHIVE });
     return dir;
 }
 
@@ -101,7 +116,7 @@ let failed = false;
 
 for (const branch of branches) {
     if (!existsSync(join(generated, branch))) {
-        console.log(`${branch}: SKIPPED - build/${branch} does not exist (npm run frontend:build)`);
+        console.log(`${branch}: SKIPPED - tools/out/${branch} does not exist (npm run frontend:build)`);
         continue;
     }
     const expected = publishedSha(branch);
@@ -109,7 +124,7 @@ for (const branch of branches) {
         console.log(`${branch}: SKIPPED - published from ${expected.slice(0, 12)}, this tree is ${head.slice(0, 12)}`);
         continue;
     }
-    // The committed copy, stamped just as the deploy stamps it - otherwise
+    // The local build, stamped just as the deploy stamps it - otherwise
     // README banner and VERSION always differ, and the comparison would look
     // red where there is nothing.
     const built = join(stamped, branch);

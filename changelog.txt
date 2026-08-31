@@ -10,6 +10,11 @@ Legend
 
 
 
+2026-08-30 v1.144.0
+-------------------
++ Various improvements for AIs
+
+
 2026-08-16 v1.143.0
 -------------------
 + Various improvements for AIs

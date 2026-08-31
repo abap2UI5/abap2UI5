@@ -9,9 +9,11 @@
 // `ui5Theme` project options rewrite those attributes in the served HTML
 // before it reaches the browser; UI5 derives its resource root from the
 // script tag's src, so rewriting the bootstrap URL is enough - every later
-// module request follows it. Projects that set neither option get the page
-// untouched, so the default chromium/firefox/webkit projects behave exactly
-// as before.
+// module request follows it. A project that sets neither option gets the
+// page untouched. All four projects pin ui5Src now - the default legs to
+// the PINNED_UI5_SRC in ../../playwright.config.js (a moving evergreen CDN
+// could turn a green pull request red without any change here), the
+// ui5-1.71 leg to the oldest supported release.
 //
 // Offline runs: when the UI5 CDN is unreachable (sandboxed environments),
 // point UI5_PINNED_RESOURCES at a local OpenUI5 `resources/` directory of

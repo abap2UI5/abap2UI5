@@ -449,7 +449,7 @@ CLASS ltcl_rtti IMPLEMENTATION.
     ls_flags-flag_b = abap_false.
     ls_flags-other  = abap_true.
 
-    DATA(lt_found) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val    = ls_flags
+    DATA(lt_found) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val = ls_flags
                                                                prefix = `FLAG_` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
@@ -502,7 +502,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     DATA(lt_row) = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
-                                                CHANGING  tab = lt_row ).
+                                                CHANGING  tab    = lt_row ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_row ) ).
@@ -515,7 +515,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     DATA(lt_row) = get_rows( ).
 
-    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val         = `ada`
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val      = `ada`
                                                           ignore_case = abap_true
                                                 CHANGING  tab         = lt_row ).
 
@@ -535,7 +535,7 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     APPEND `NAME` TO lt_fields.
 
-    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val    = `London`
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
                                                           fields = lt_fields
                                                 CHANGING  tab    = lt_row ).
 
@@ -548,7 +548,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     DATA(lt_row) = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `Nobody`
-                                                CHANGING  tab = lt_row ).
+                                                CHANGING  tab    = lt_row ).
 
     cl_abap_unit_assert=>assert_initial( lt_row ).
 
@@ -563,7 +563,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     lt_str = VALUE #( ( `London` ) ( `Wilmslow` ) ( `New York` ) ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
-                                                CHANGING  tab = lt_str ).
+                                                CHANGING  tab    = lt_str ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_str ) ).
@@ -587,7 +587,7 @@ CLASS ltcl_itab IMPLEMENTATION.
     DATA(lt_row) = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_corresponding( EXPORTING val = lt_row
-                                                CHANGING  tab = lt_target ).
+                                                CHANGING  tab    = lt_target ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lt_target ) ).
@@ -655,9 +655,12 @@ CLASS ltcl_msg IMPLEMENTATION.
     DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `boom`  act = ls_box-text ).
-    cl_abap_unit_assert=>assert_equals( exp = `Error` act = ls_box-title ).
-    cl_abap_unit_assert=>assert_equals( exp = `error` act = ls_box-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `boom`
+                                        act = ls_box-text ).
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
+                                        act = ls_box-title ).
+    cl_abap_unit_assert=>assert_equals( exp = `error`
+                                        act = ls_box-type ).
     cl_abap_unit_assert=>assert_initial( ls_box-details ).
 
   ENDMETHOD.
@@ -674,7 +677,8 @@ CLASS ltcl_msg IMPLEMENTATION.
     DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `Warning` act = ls_box-title ).
+    cl_abap_unit_assert=>assert_equals( exp = `Warning`
+                                        act = ls_box-title ).
     cl_abap_unit_assert=>assert_equals(
         exp = `<ul><li>first</li><li>second</li></ul>`
         act = ls_box-details ).
@@ -694,17 +698,192 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 4 act = lines( lt_token ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `=X`    act = lt_token[ 1 ]-key ).
-    cl_abap_unit_assert=>assert_equals( exp = `1...9` act = lt_token[ 2 ]-key ).
-    cl_abap_unit_assert=>assert_equals( exp = `*A*`   act = lt_token[ 3 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lines( lt_token ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `=X`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `1...9`
+                                        act = lt_token[ 2 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `*A*`
+                                        act = lt_token[ 3 ]-key ).
     " an excluding row renders negated, not like its including twin
-    cl_abap_unit_assert=>assert_equals( exp = `!(=Y)` act = lt_token[ 4 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `!(=Y)`
+                                        act = lt_token[ 4 ]-key ).
 
     " tokens come back visible and editable so the UI5 MultiInput can render
     " and remove them
     cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-visible ).
     cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-editable ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" These methods are PRIVATE - they are internals of box_resolve's path, not
+" API - so the test class needs friendship. Neither abaplint's transpiler nor
+" the unit runner enforces visibility, which is why npm run check_visibility
+" exists and why this pair has to be here rather than discovered on activation.
+CLASS ltcl_msg_rap DEFINITION DEFERRED.
+CLASS z2ui5_cl_ui5_util_context DEFINITION LOCAL FRIENDS ltcl_msg_rap.
+
+" The RAP/message extraction family (msg_get_rap*, check_is_rap_struct).
+"
+" AGENTS.md names this class as the engine's real coverage gap - 35% of 3,175
+" lines - and this block is the part of it that needs no system at all: it
+" walks structures built from locally declared types, so it runs under the
+" transpiler like any other test. It is also on a production path every app
+" reaches, since client->message_box_display( ) over a BAPIRET2 or RAP result
+" comes through z2ui5_cl_ui5_frontend=>box_resolve into exactly these methods.
+CLASS ltcl_msg_rap DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    TYPES:
+      BEGIN OF ty_s_tky,
+        product_uuid TYPE string,
+        product_id   TYPE string,
+      END OF ty_s_tky.
+
+    TYPES:
+      BEGIN OF ty_s_nested,
+        BEGIN OF inner,
+          a TYPE string,
+          b TYPE string,
+        END OF inner,
+        c TYPE string,
+      END OF ty_s_nested.
+
+    TYPES:
+      BEGIN OF ty_s_plain,
+        name TYPE string,
+        city TYPE string,
+      END OF ty_s_plain.
+
+    METHODS test_fail_text_known      FOR TESTING RAISING cx_static_check.
+    METHODS test_fail_text_unknown    FOR TESTING RAISING cx_static_check.
+    METHODS test_fail_text_all_causes FOR TESTING RAISING cx_static_check.
+    METHODS test_flatten_pairs        FOR TESTING RAISING cx_static_check.
+    METHODS test_flatten_skips_empty  FOR TESTING RAISING cx_static_check.
+    METHODS test_flatten_nested       FOR TESTING RAISING cx_static_check.
+    METHODS test_flatten_not_a_struct FOR TESTING RAISING cx_static_check.
+    METHODS test_is_rap_struct_plain  FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_msg_rap IMPLEMENTATION.
+
+  METHOD test_fail_text_known.
+
+    " the cause codes are a RAP contract, so the mapping is asserted by value
+    cl_abap_unit_assert=>assert_equals( exp = `Entity not found`
+                                        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 1 ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Authorization failure`
+                                        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 3 ) ).
+
+    " 4 and 5 deliberately share one text - both are a concurrency conflict
+    cl_abap_unit_assert=>assert_equals(
+        exp = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 4 )
+        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 5 ) ).
+
+  ENDMETHOD.
+
+  METHOD test_fail_text_unknown.
+
+    " an unmapped cause still says something useful AND keeps the number, so
+    " a code the framework does not know yet can still be looked up
+    DATA(lv_text) = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 99 ).
+
+    cl_abap_unit_assert=>assert_char_cp( exp = `*99*`
+                                         act = lv_text ).
+
+    cl_abap_unit_assert=>assert_char_cp( exp = `*Operation failed*`
+                                         act = lv_text ).
+
+  ENDMETHOD.
+
+  METHOD test_fail_text_all_causes.
+
+    " every mapped cause renders a non-empty text that is not the fallback -
+    " one assert over the whole SWITCH, so a branch dropped by an edit shows
+    DATA lv_cause TYPE i.
+    DO 12 TIMES.
+      lv_cause = sy-index - 1.
+      DATA(lv_text) = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( lv_cause ).
+
+      cl_abap_unit_assert=>assert_not_initial(
+          act = lv_text
+          msg = |cause { lv_cause } renders no text| ).
+
+      cl_abap_unit_assert=>assert_false(
+          act = xsdbool( lv_text CS `cause code` )
+          msg = |cause { lv_cause } fell through to the ELSE branch| ).
+    ENDDO.
+
+  ENDMETHOD.
+
+  METHOD test_flatten_pairs.
+
+    " the key renders as NAME=VALUE pairs, comma separated - this is what a
+    " message ends up quoting to say WHICH entity failed
+    DATA(ls_tky) = VALUE ty_s_tky( product_uuid = `ABC-1`
+                                   product_id   = `4711` ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `PRODUCT_UUID=ABC-1, PRODUCT_ID=4711`
+        act = z2ui5_cl_ui5_util_context=>msg_get_rap_flatten( ls_tky ) ).
+
+  ENDMETHOD.
+
+  METHOD test_flatten_skips_empty.
+
+    " an initial component contributes nothing - not an empty pair and not a
+    " dangling separator
+    DATA(ls_tky) = VALUE ty_s_tky( product_id = `4711` ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `PRODUCT_ID=4711`
+        act = z2ui5_cl_ui5_util_context=>msg_get_rap_flatten( ls_tky ) ).
+
+  ENDMETHOD.
+
+  METHOD test_flatten_nested.
+
+    " a nested structure is flattened by the recursion, and its pairs join the
+    " outer ones in component order
+    DATA(ls_nested) = VALUE ty_s_nested( inner = VALUE #( a = `1`
+                                                          b = `2` )
+                                         c     = `3` ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `A=1, B=2, C=3`
+        act = z2ui5_cl_ui5_util_context=>msg_get_rap_flatten( ls_nested ) ).
+
+  ENDMETHOD.
+
+  METHOD test_flatten_not_a_struct.
+
+    " anything that is not a structure returns empty rather than dumping - the
+    " method is called on whatever a %TKY-shaped component turns out to hold
+    DATA(lv_scalar) = `not a structure`.
+
+    cl_abap_unit_assert=>assert_initial(
+        z2ui5_cl_ui5_util_context=>msg_get_rap_flatten( lv_scalar ) ).
+
+  ENDMETHOD.
+
+  METHOD test_is_rap_struct_plain.
+
+    " a structure with no %MSG / %FAIL / %OTHER component and no message table
+    " is not RAP-shaped: box_resolve has to fall through to the plain path
+    DATA(ls_plain) = VALUE ty_s_plain( name = `Ada`
+                                       city = `London` ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = z2ui5_cl_ui5_util_context=>check_is_rap_struct( ls_plain ) ).
 
   ENDMETHOD.
 

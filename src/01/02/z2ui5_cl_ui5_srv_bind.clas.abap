@@ -39,6 +39,10 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     METHODS check_raise_existing.
     METHODS check_raise_new.
 
+    " Take over the ms_config options an ALREADY-bound attribute does not
+    " carry yet. See the method body for what used to be dropped.
+    METHODS adopt_new_options.
+
   PRIVATE SECTION.
     " Raise when the same attribute is rebound with a different mapper/filter
     " implementation. iv_label names the kind for the error text.
@@ -127,17 +131,9 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
                      ir_new      = ms_config-custom_mapper
                      iv_label    = `mappers` ).
 
-    check_same_impl( ir_existing = mr_attri->custom_mapper_back
-                     ir_new      = ms_config-custom_mapper_back
-                     iv_label    = `mappers back` ).
-
     check_same_impl( ir_existing = mr_attri->custom_filter
                      ir_new      = ms_config-custom_filter
                      iv_label    = `filters` ).
-
-    check_same_impl( ir_existing = mr_attri->custom_filter_back
-                     ir_new      = ms_config-custom_filter_back
-                     iv_label    = `filters back` ).
 
   ENDMETHOD.
 
@@ -153,12 +149,22 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD check_raise_new.
 
     " check the incoming config - mr_attri->custom_* is only filled
-    " afterwards by update_model_attri and is still initial here
-    check_serializable( ir_ref   = ms_config-custom_filter_back
-                        iv_label = `custom_filter_back` ).
+    " afterwards by update_model_attri and is still initial here.
+    " These are the refs that update_model_attri stores on mt_attri, which
+    " db_save serializes with the rest of the app state
+    " (main_attri_db_save_srtti clears only DATA references) - so a
+    " non-serializable implementation has to be refused here, at bind time
+    " and with a readable message, instead of surfacing later as an
+    " APP_SERIALIZATION_ERROR. z2ui5_if_ajson_mapping composes
+    " if_serializable_object, so the mapper check cannot fire today;
+    " z2ui5_if_ajson_filter does not, which makes the filter check the
+    " load-bearing one. This used to check the custom_*_back refs instead -
+    " refs nothing can set since _bind stopped evaluating them.
+    check_serializable( ir_ref   = ms_config-custom_filter
+                        iv_label = `custom_filter` ).
 
-    check_serializable( ir_ref   = ms_config-custom_mapper_back
-                        iv_label = `custom_mapper_back` ).
+    check_serializable( ir_ref   = ms_config-custom_mapper
+                        iv_label = `custom_mapper` ).
 
   ENDMETHOD.
 
@@ -202,7 +208,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       " name_ref may be a synthetic child name that no longer maps to a row
       " (e.g. dissolve stopped at max depth); raise the binding error rather
       " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field
-      DATA(lr_ref_attri) = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] OPTIONAL ).
+      DATA(lr_ref_attri) = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] OPTIONAL ). "#EC CI_SORTSEQ
       IF lr_ref_attri IS NOT BOUND.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
@@ -213,6 +219,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     IF mr_attri->bind = abap_true.
       check_raise_existing( ).
+      adopt_new_options( ).
     ELSE.
       check_raise_new( ).
       update_model_attri( ).
@@ -252,15 +259,52 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD adopt_new_options.
+
+    " A second _bind( ) on an attribute that is ALREADY bound used to be a
+    " no-op for everything but the path: update_model_attri( ) - the only place
+    " custom_filter, custom_mapper and check_json are stored - runs on the
+    " new-binding branch alone. check_raise_existing( ) does not cover it
+    " either: it refuses two DIFFERENT implementations, and an option the
+    " stored attribute does not carry yet is not a conflict. So
+    "
+    "   client->_bind( mv_x ).
+    "   client->_bind( val = mv_x custom_filter = lo_filter ).
+    "
+    " dropped the filter silently - and because mt_attri is serialized into
+    " the draft, the order of the two calls in the first render decided the
+    " behaviour for the rest of the session. Adopt instead: an option that is
+    " not there yet is taken over, one that is there and differs was already
+    " refused above. Serializability is re-checked here for the same reason
+    " check_raise_new( ) checks it - these refs end up in the draft.
+    IF ms_config-custom_filter IS BOUND AND mr_attri->custom_filter IS NOT BOUND.
+      check_serializable( ir_ref   = ms_config-custom_filter
+                          iv_label = `custom_filter` ).
+      mr_attri->custom_filter = ms_config-custom_filter.
+    ENDIF.
+
+    IF ms_config-custom_mapper IS BOUND AND mr_attri->custom_mapper IS NOT BOUND.
+      check_serializable( ir_ref   = ms_config-custom_mapper
+                          iv_label = `custom_mapper` ).
+      mr_attri->custom_mapper = ms_config-custom_mapper.
+    ENDIF.
+
+    " check_json only ever turns ON: whether a value carries JSON is a property
+    " of the value, so one caller asking for it is enough and a later plain
+    " _bind( ) of the same attribute must not silently turn it off again
+    IF ms_config-check_json = abap_true.
+      mr_attri->check_json = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD update_model_attri.
 
-    mr_attri->bind               = abap_true.
-    mr_attri->custom_filter      = ms_config-custom_filter.
-    mr_attri->custom_filter_back = ms_config-custom_filter_back.
-    mr_attri->custom_mapper      = ms_config-custom_mapper.
-    mr_attri->custom_mapper_back = ms_config-custom_mapper_back.
-    mr_attri->check_json         = ms_config-check_json.
-    mr_attri->name_client        = get_client_name( ).
+    mr_attri->bind          = abap_true.
+    mr_attri->custom_filter = ms_config-custom_filter.
+    mr_attri->custom_mapper = ms_config-custom_mapper.
+    mr_attri->check_json    = ms_config-check_json.
+    mr_attri->name_client   = get_client_name( ).
 
   ENDMETHOD.
 

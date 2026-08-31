@@ -289,7 +289,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_multi_req.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp11 TYPE z2ui5_if_types=>ty_s_event_control.
+    DATA temp11 TYPE z2ui5_if_client=>ty_s_event_control.
     DATA lv_event TYPE string.
     DATA temp12 TYPE xsdboolean.
     lo_event = NEW #( ).
@@ -309,7 +309,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_prevent_default.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA ls_ctrl TYPE z2ui5_if_types=>ty_s_event_control.
+    DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
     lo_event = NEW #( ).
 
     CLEAR ls_ctrl.
@@ -348,7 +348,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_prevent_default_expr.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA ls_ctrl TYPE z2ui5_if_types=>ty_s_event_control.
+    DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
     lo_event = NEW #( ).
 
     CLEAR ls_ctrl.

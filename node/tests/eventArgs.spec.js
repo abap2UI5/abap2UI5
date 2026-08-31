@@ -34,6 +34,45 @@ function control(id, properties, { throwOn = null } = {}) {
   return self;
 }
 
+/* A Date property carries a CALENDAR DAY the user picked in their own zone -
+ * UI5 fills DateRange.startDate & co. with LOCAL midnight. Serialized through
+ * JSON.stringify it went out as toISOString(), i.e. UTC, so east of Greenwich
+ * the DAY was the previous one. These pin the local-parts projection, and the
+ * DST case is in because a fixed +offset would get it wrong. */
+test("a Date property travels as its LOCAL day, not as a UTC instant", () => {
+  const c = control("cal", { startDate: new Date(2018, 6, 9) });
+  const [out] = Lib.normalizeEventArgs([c]);
+  expect(out.startDate).toEqual("2018-07-09T00:00:00");
+});
+
+test("the local time of day survives too", () => {
+  const c = control("appt", { startDate: new Date(2018, 6, 9, 14, 5, 30) });
+  const [out] = Lib.normalizeEventArgs([c]);
+  expect(out.startDate).toEqual("2018-07-09T14:05:30");
+});
+
+test("a date on the other side of a DST change keeps its own day", () => {
+  // late January and late July differ by an hour wherever DST applies; both
+  // have to report the day the control holds
+  const winter = control("a", { d: new Date(2018, 0, 28) });
+  const summer = control("b", { d: new Date(2018, 6, 28) });
+  expect(Lib.normalizeEventArgs([winter])[0].d).toEqual("2018-01-28T00:00:00");
+  expect(Lib.normalizeEventArgs([summer])[0].d).toEqual("2018-07-28T00:00:00");
+});
+
+test("an INVALID Date is left to the existing path, reaching the wire as null", () => {
+  // UI5 produces one for an empty optional date. The projection must not turn
+  // it into the four words "Invalid Date" - it is left alone, and Date.toJSON
+  // yields null for it, which is what the curated formatter's
+  // DateCreateObject returns for a falsy input. Assert the WIRE, since that
+  // is where the contract lives: String() on any invalid Date says
+  // "Invalid Date" whether it was projected or not.
+  const c = control("dp", { dateValue: new Date("") });
+  const [out] = Lib.normalizeEventArgs([c]);
+  expect(typeof out.dateValue).not.toEqual("string");
+  expect(JSON.parse(JSON.stringify(out)).dateValue).toEqual(null);
+});
+
 test("a plain string argument is untouched", () => {
   expect(Lib.normalizeEventArgs(["A", "B"])).toEqual(["A", "B"]);
 });
