@@ -30,17 +30,20 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
   METHOD get_instance.
+    DATA lv_class_name TYPE string.
+          DATA lo_exit TYPE REF TO object.
 
     IF gi_me IS BOUND.
       ri_exit = gi_me.
       RETURN.
     ENDIF.
 
-    DATA(lv_class_name) = get_user_exit_class( ).
+
+    lv_class_name = get_user_exit_class( ).
 
     IF lv_class_name IS NOT INITIAL.
       TRY.
-          DATA lo_exit TYPE REF TO object.
+
           CREATE OBJECT lo_exit TYPE (lv_class_name).
 
           " Which interface the class implements decides how it is called, and
@@ -56,12 +59,16 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    gi_me = NEW z2ui5_cl_ui5_user_exit( ).
+    CREATE OBJECT gi_me TYPE z2ui5_cl_ui5_user_exit.
     ri_exit = gi_me.
 
   ENDMETHOD.
 
   METHOD get_user_exit_class.
+        DATA exit_classes TYPE z2ui5_cl_ui5_util_context=>ty_t_classes.
+        DATA exit_classes_dep TYPE z2ui5_cl_ui5_util_context=>ty_t_classes.
+        DATA temp1 TYPE string.
+        DATA temp2 TYPE z2ui5_cl_ui5_util_context=>ty_s_class_descr.
 
     TRY.
         " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user
@@ -71,13 +78,15 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " implements it, so every user exit in every system silently stopped
         " being found. A dynamic name is not a reference the compiler checks -
         " .github/scripts/dynamic-name-gate.mjs does it instead
-        DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
+
+        exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
 
         " The superseded interface is looked up too, for as long as it ships:
         " an exit written against Z2UI5_IF_EXIT is found exactly as before, and
         " a class implementing both appears in both lists - hence the dedup
         " below, and the cast order in get_instance that calls it once.
-        DATA(exit_classes_dep) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
+
+        exit_classes_dep = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
         APPEND LINES OF exit_classes_dep TO exit_classes.
 
         DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
@@ -90,13 +99,22 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         SORT exit_classes BY classname.
         DELETE ADJACENT DUPLICATES FROM exit_classes COMPARING classname.
 
-        r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
+
+        CLEAR temp1.
+
+        READ TABLE exit_classes INTO temp2 INDEX 1.
+        IF sy-subrc = 0.
+          temp1 = temp2-classname.
+        ENDIF.
+        r_class_name = temp1.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_exit~set_config_http_get.
+    DATA temp3 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp4 LIKE LINE OF temp3.
 
     " No title here: the page carries a constant <title> (see
     " z2ui5_cl_ui5_http_handler), and an app that wants its own tab title sets
@@ -134,14 +152,31 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " X-Frame-Options: SAMEORIGIN response header set below instead.
       |object-src 'none'; base-uri 'self'; "/>|.
 
-    cs_config-t_security_header = VALUE #(
-        ( n = `cache-control`          v = `no-cache, no-store, must-revalidate` )
-        ( n = `Pragma`                 v = `no-cache` )
-        ( n = `Expires`                v = `0` )
-        ( n = `X-Content-Type-Options` v = `nosniff` )
-        ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
-        ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
-        ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` ) ).
+
+    CLEAR temp3.
+
+    temp4-n = `cache-control`.
+    temp4-v = `no-cache, no-store, must-revalidate`.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-n = `Pragma`.
+    temp4-v = `no-cache`.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-n = `Expires`.
+    temp4-v = `0`.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-n = `X-Content-Type-Options`.
+    temp4-v = `nosniff`.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-n = `X-Frame-Options`.
+    temp4-v = `SAMEORIGIN`.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-n = `Referrer-Policy`.
+    temp4-v = `strict-origin-when-cross-origin`.
+    INSERT temp4 INTO TABLE temp3.
+    temp4-n = `Permissions-Policy`.
+    temp4-v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()`.
+    INSERT temp4 INTO TABLE temp3.
+    cs_config-t_security_header = temp3.
 
     IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_get( EXPORTING is_context = context
@@ -182,9 +217,18 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD init_context.
+    DATA temp5 TYPE z2ui5_if_ui5_exit=>ty_s_http_context-app_start.
+    DATA temp6 TYPE z2ui5_if_client=>ty_s_name_value.
 
-    context = CORRESPONDING #( http_info ).
-    context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ). "#EC CI_SORTSEQ
+    MOVE-CORRESPONDING http_info TO context.
+
+    CLEAR temp5.
+
+    READ TABLE http_info-t_params INTO temp6 WITH KEY n = `app_start`.
+    IF sy-subrc = 0.
+      temp5 = temp6-v.
+    ENDIF.
+    context-app_start = temp5. "#EC CI_SORTSEQ
 
   ENDMETHOD.
 

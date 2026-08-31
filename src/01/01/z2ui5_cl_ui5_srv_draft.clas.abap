@@ -70,34 +70,47 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " after a few hours), and every write path (one INSERT per roundtrip)
     " would pay for an index on TIMESTAMPL/UNAME on every click. Do not add
     " one, and do not "optimize" these statements around the missing index.
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+    DATA temp2 TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    DATA ls_config LIKE temp2.
+    DATA lv_n_hours_ago TYPE timestampl.
+    CLEAR temp2.
+
+    ls_config = temp2.
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
     " z2ui5_cl_ui5_user_exit=>set_config_http_post already guarantees a positive
     " expiry ( <= 0 falls back to its default ), so no second clamp here
-    DATA(lv_n_hours_ago) = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
+
+    lv_n_hours_ago = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
                                time    = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
                                seconds = c_seconds_per_hour * ls_config-draft_exp_time_in_hours ).
 
-    DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago ##SUBRC_OK.
+    DELETE FROM z2ui5_t_01 WHERE timestampl < lv_n_hours_ago ##SUBRC_OK.
     COMMIT WORK.
 
   ENDMETHOD.
 
   METHOD create.
+    DATA temp3 TYPE ty_s_db.
+    DATA ls_db LIKE temp3.
+    DATA lv_owner TYPE z2ui5_t_01-uname.
 
     IF draft-id IS INITIAL.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `Internal error - cannot persist a draft without an id`.
     ENDIF.
 
-    DATA(ls_db) = VALUE ty_s_db( id                = draft-id
-                                 id_prev           = draft-id_prev
-                                 id_prev_app       = draft-id_prev_app
-                                 id_prev_app_stack = draft-id_prev_app_stack
-                                 uname             = sy-uname
-                                 timestampl        = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
-                                 data              = model_xml ).
+
+    CLEAR temp3.
+    temp3-id = draft-id.
+    temp3-id_prev = draft-id_prev.
+    temp3-id_prev_app = draft-id_prev_app.
+    temp3-id_prev_app_stack = draft-id_prev_app_stack.
+    temp3-uname = sy-uname.
+    temp3-timestampl = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
+    temp3-data = model_xml.
+
+    ls_db = temp3.
 
     " MODIFY is an upsert on the key - guard the write the same way the read
     " side is guarded: a row another user owns must not be overwritable by
@@ -105,15 +118,16 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " always a fresh uuid, so this SELECT hits an empty row). Blank-owner
     " legacy rows stay writable during the upgrade transition, like on the
     " read side
-    SELECT SINGLE uname FROM z2ui5_t_01
-      WHERE id = @ls_db-id
-      INTO @DATA(lv_owner).
+
+    SELECT SINGLE uname FROM z2ui5_t_01 INTO lv_owner
+      WHERE id = ls_db-id
+      .
     IF sy-subrc = 0 AND lv_owner IS NOT INITIAL AND lv_owner <> sy-uname.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 
-    MODIFY z2ui5_t_01 FROM @ls_db.
+    MODIFY z2ui5_t_01 FROM ls_db.
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
@@ -127,16 +141,16 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     IF check_load_app = abap_true.
 
       " sy-subrc is checked after ENDIF, the pragma silences check_subrc here
-      SELECT SINGLE * FROM z2ui5_t_01
-        WHERE id = @id
-        INTO @result ##SUBRC_OK.
+      SELECT SINGLE * FROM z2ui5_t_01 INTO result
+        WHERE id = id
+         ##SUBRC_OK.
 
     ELSE.
 
-      SELECT SINGLE id, id_prev, id_prev_app, id_prev_app_stack, uname
-        FROM z2ui5_t_01
-        WHERE id = @id
-        INTO CORRESPONDING FIELDS OF @result ##SUBRC_OK.
+      SELECT SINGLE id id_prev id_prev_app id_prev_app_stack uname
+        FROM z2ui5_t_01 INTO CORRESPONDING FIELDS OF result
+        WHERE id = id
+         ##SUBRC_OK.
 
     ENDIF.
 
@@ -172,24 +186,31 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   METHOD read_info.
 
-    DATA(ls_db) = read( id             = id
+    DATA ls_db TYPE z2ui5_t_01.
+    ls_db = read( id             = id
                         check_load_app = abap_false ).
 
-    result = CORRESPONDING #( ls_db ).
+    MOVE-CORRESPONDING ls_db TO result.
 
   ENDMETHOD.
 
   METHOD check_exists.
 
-    SELECT SINGLE id, uname FROM z2ui5_t_01
-      WHERE id = @id
-      INTO @DATA(ls_row).
+    DATA: BEGIN OF ls_row,
+            id TYPE z2ui5_t_01-id,
+            uname TYPE z2ui5_t_01-uname,
+          END OF ls_row.
+    DATA temp1 TYPE xsdboolean.
+    SELECT SINGLE id uname FROM z2ui5_t_01 INTO ls_row
+      WHERE id = id
+      .
 
     " existence is owner-scoped (see read( )): a draft owned by another user
     " counts as non-existent here. Legacy blank-owner rows stay visible during
     " the upgrade transition.
-    result = xsdbool( sy-subrc = 0
-                      AND ( ls_row-uname IS INITIAL OR ls_row-uname = sy-uname ) ).
+
+    temp1 = boolc( sy-subrc = 0 AND ( ls_row-uname IS INITIAL OR ls_row-uname = sy-uname ) ).
+    result = temp1.
 
   ENDMETHOD.
 
@@ -197,9 +218,9 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
     " owner-scoped like read/check_exists ( blank owner = legacy rows from
     " before the UNAME column existed, tolerated during upgrade )
-    SELECT COUNT( * ) FROM z2ui5_t_01
-      WHERE uname = @sy-uname OR uname = @space
-      INTO @result.
+    SELECT COUNT( * ) FROM z2ui5_t_01 INTO result
+      WHERE uname = sy-uname OR uname = space
+      .
 
   ENDMETHOD.
 
@@ -210,7 +231,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " keeping up. Deliberately NOT owner-scoped, and deliberately only a count:
     " everything that reads draft CONTENT stays owner-bound ( see read( ) )
     SELECT COUNT( * ) FROM z2ui5_t_01                     "#EC CI_NOWHERE
-      INTO @result.
+      INTO result.
 
   ENDMETHOD.
 

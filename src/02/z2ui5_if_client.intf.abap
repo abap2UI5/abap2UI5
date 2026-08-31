@@ -99,7 +99,7 @@ INTERFACE z2ui5_if_client
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH DEFAULT KEY.
 
   TYPES:
     "! One table cell of this roundtrip's delta that could NOT be applied. The
@@ -138,7 +138,7 @@ INTERFACE z2ui5_if_client
       " the component inside the row (`PRICE`) - the ABAP name, not a label
       field TYPE string,
     END OF ty_s_model_skip.
-  TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH EMPTY KEY.
+  TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH DEFAULT KEY.
 
   TYPES:
     "! Everything the frontend sent with this roundtrip - the return type of

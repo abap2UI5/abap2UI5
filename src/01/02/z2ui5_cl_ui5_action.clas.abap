@@ -47,13 +47,13 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   METHOD constructor.
 
     mo_http_post = val.
-    mo_app = NEW #( ).
+    CREATE OBJECT mo_app.
 
   ENDMETHOD.
 
   METHOD factory_by_frontend.
 
-    result = NEW #( mo_http_post ).
+    CREATE OBJECT result EXPORTING VAL = mo_http_post.
 
     IF mo_http_post->mo_action->mo_app->mo_app IS BOUND.
       result->mo_app = mo_http_post->mo_action->mo_app.
@@ -80,9 +80,13 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory_first_start.
+              DATA temp20 TYPE REF TO z2ui5_cl_ui5_frontend.
+        DATA li_app TYPE REF TO z2ui5_if_app.
+        DATA x TYPE REF TO cx_root.
+        DATA lv_app_name LIKE mo_http_post->ms_request-s_control-app_start.
 
     TRY.
-        result = NEW #( mo_http_post ).
+        CREATE OBJECT result EXPORTING VAL = mo_http_post.
 
         IF mo_http_post->ms_request-s_control-app_start_draft IS NOT INITIAL.
           TRY.
@@ -108,21 +112,24 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
               " There is no client object yet at this point in the factory,
               " so the toast is queued directly through the action builder
               " message_toast_display( ) delegates to.
-              NEW z2ui5_cl_ui5_frontend( result )->msg_toast(
+
+              CREATE OBJECT temp20 TYPE z2ui5_cl_ui5_frontend EXPORTING ACTION = result.
+              temp20->msg_toast(
                   `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
           ENDTRY.
         ENDIF.
 
         result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
-        DATA li_app TYPE REF TO z2ui5_if_app.
+
         CREATE OBJECT li_app TYPE (mo_http_post->ms_request-s_control-app_start).
         result->mo_app->mo_app = li_app.
         li_app->id_draft = result->mo_app->ms_draft-id.
 
         result->ms_actual-check_on_navigated = abap_true.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
         " non-existent class). Just raise with a readable text - the single
         " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ) turns it into a
@@ -131,7 +138,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         " characters before reflecting it into the error text - a real typo
         " still shows for diagnostics, but a crafted value cannot smuggle
         " markup/script into the response body.
-        DATA(lv_app_name) = mo_http_post->ms_request-s_control-app_start.
+
+        lv_app_name = mo_http_post->ms_request-s_control-app_start.
         REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH `` ##REGEX_POSIX.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
@@ -177,6 +185,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory_stack_leave.
+    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+      DATA ls_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
 
     result = prepare_app_stack( ms_next-o_app_leave ).
 
@@ -187,7 +197,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
            result->ms_next-s_nav-nav_app_call_prev_app,
            result->ms_next-s_nav-nav_app_call_prev_id.
 
-    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
+
+    CREATE OBJECT lo_draft TYPE z2ui5_cl_ui5_srv_draft.
 
     " the leave target was never persisted (a fresh app instance) - it takes
     " over the current app's position in the stack
@@ -202,25 +213,36 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " exists, and read_info would raise NO_DRAFT_ENTRY and break back-navigation
     IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL
         AND lo_draft->check_exists( mo_app->ms_draft-id_prev_app_stack ) = abap_true.
-      DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
+
+      ls_draft = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
       result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
     ENDIF.
 
   ENDMETHOD.
 
   METHOD factory_system_startup.
+    DATA temp21 TYPE REF TO z2ui5_if_app.
 
-    result = NEW #( mo_http_post ).
+    CREATE OBJECT result EXPORTING VAL = mo_http_post.
 
     result->mo_app->ms_draft-id          = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
     result->mo_app->mo_app               = z2ui5_cl_ui5_app_start=>factory( ).
 
-    CAST z2ui5_if_app( result->mo_app->mo_app )->id_draft = result->mo_app->ms_draft-id.
+
+    temp21 ?= result->mo_app->mo_app.
+    temp21->id_draft = result->mo_app->ms_draft-id.
 
   ENDMETHOD.
 
   METHOD prepare_app_stack.
+      DATA temp22 LIKE LINE OF ms_next-s_action-t_custom.
+      DATA lr_action LIKE REF TO temp22.
+        DATA lv_dummy TYPE string.
+    DATA temp23 TYPE z2ui5_if_ui5_types=>ty_t_system_action.
+    DATA ls_front LIKE LINE OF ms_next-t_action_front.
+      DATA temp25 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
+      DATA temp26 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
 
     mo_app->db_save( ).
 
@@ -231,7 +253,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       val->id_draft = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     ENDIF.
 
-    result = NEW #( mo_http_post ).
+    CREATE OBJECT result EXPORTING VAL = mo_http_post.
     TRY.
         result->mo_app = z2ui5_cl_ui5_app_cont=>db_load_by_app( val ).
       CATCH cx_root.
@@ -284,12 +306,15 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       " a raw-JS entry can carry one, and it is not necessarily the FIRST
       " queued action - a toast or box queued before it sits in the same
       " table - so take the first entry that looks like the snippet.
-      LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action) "#EC CI_SORTSEQ
+
+
+      LOOP AT ms_next-s_action-t_custom REFERENCE INTO lr_action "#EC CI_SORTSEQ
            WHERE js IS NOT INITIAL.
         IF lr_action->js NS `.eB(['`.
           CONTINUE.
         ENDIF.
-        SPLIT lr_action->js AT `.eB(['` INTO DATA(lv_dummy)
+
+        SPLIT lr_action->js AT `.eB(['` INTO lv_dummy
               result->ms_actual-event.
         SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
         EXIT.
@@ -303,10 +328,13 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " view of its own (a popup-as-app). Its DISPLAYS do not: they describe
     " the screen being replaced. The called app's own displays still win
     " over a carried destroy through slot_reset( ).
-    result->ms_next-t_action_front = VALUE #(
-        FOR ls_front IN ms_next-t_action_front
-        WHERE ( method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
-        ( ls_front ) ).
+
+    CLEAR temp23.
+
+    LOOP AT ms_next-t_action_front INTO ls_front WHERE method = z2ui5_if_ui5_types=>cs_slot_action-destroy.
+      INSERT ls_front INTO TABLE temp23.
+    ENDLOOP.
+    result->ms_next-t_action_front = temp23.
 
     " The two standalone slots (POPUP/POPOVER) die on every app switch - they
     " live OUTSIDE the MAIN control tree, so they do not fall with the page
@@ -326,11 +354,17 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       DELETE result->ms_next-t_action_front
              WHERE slot = z2ui5_if_client=>cs_view-popup
                 OR slot = z2ui5_if_client=>cs_view-popover.
-      INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-popup
-                      method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
+
+      CLEAR temp25.
+      temp25-slot = z2ui5_if_client=>cs_view-popup.
+      temp25-method = z2ui5_if_ui5_types=>cs_slot_action-destroy.
+      INSERT temp25
              INTO TABLE result->ms_next-t_action_front.
-      INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-popover
-                      method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
+
+      CLEAR temp26.
+      temp26-slot = z2ui5_if_client=>cs_view-popover.
+      temp26-method = z2ui5_if_ui5_types=>cs_slot_action-destroy.
+      INSERT temp26
              INTO TABLE result->ms_next-t_action_front.
     ENDIF.
 

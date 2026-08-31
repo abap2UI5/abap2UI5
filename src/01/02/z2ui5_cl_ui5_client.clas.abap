@@ -35,9 +35,9 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD constructor.
 
     mo_action = action.
-    mo_srv_bind = NEW #( mo_action->mo_app ).
-    mo_srv_event = NEW #( ).
-    mo_action_front = NEW #( mo_action ).
+    CREATE OBJECT mo_srv_bind EXPORTING APP = mo_action->mo_app.
+    CREATE OBJECT mo_srv_event.
+    CREATE OBJECT mo_action_front EXPORTING ACTION = mo_action.
 
   ENDMETHOD.
 
@@ -49,7 +49,18 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " are collected here and leave as options of the single ROUTER/sync call
     " main_end( ) queues - never as actions of their own, which would make the
     " router run several times and fight over the same hash.
-    DATA(lv_arg) = VALUE string( t_arg[ 1 ] OPTIONAL ).
+    DATA temp84 TYPE string.
+    DATA temp85 TYPE string.
+    DATA lv_arg LIKE temp84.
+        DATA temp1 TYPE xsdboolean.
+    CLEAR temp84.
+
+    READ TABLE t_arg INTO temp85 INDEX 1.
+    IF sy-subrc = 0.
+      temp84 = temp85.
+    ENDIF.
+
+    lv_arg = temp84.
 
     CASE val.
       WHEN z2ui5_if_client=>cs_event-set_nav_routing.
@@ -72,7 +83,9 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
       WHEN z2ui5_if_client=>cs_event-set_app_state_active.
         " an empty argument list switches it ON - a single space is how an
         " app switches it off again, since an empty t_arg cannot say `false`
-        mo_action->ms_next-s_nav-set_app_state_active = xsdbool( lv_arg <> ` ` ).
+
+        temp1 = boolc( lv_arg <> ` ` ).
+        mo_action->ms_next-s_nav-set_app_state_active = temp1.
         " and remember it on the app, so main_end can re-assert it on the
         " next response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
         mo_action->mo_app->mv_app_state_active = mo_action->ms_next-s_nav-set_app_state_active.
@@ -105,52 +118,75 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~check_on_event.
+      DATA temp2 TYPE xsdboolean.
+      DATA temp3 TYPE xsdboolean.
 
     IF val IS NOT INITIAL.
-      result = xsdbool( mo_action->ms_actual-event = val ).
+
+      temp2 = boolc( mo_action->ms_actual-event = val ).
+      result = temp2.
     ELSE.
-      result = xsdbool( mo_action->ms_actual-event IS NOT INITIAL ).
+
+      temp3 = boolc( mo_action->ms_actual-event IS NOT INITIAL ).
+      result = temp3.
     ENDIF.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~get.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+        DATA lo_comp LIKE mo_action->mo_http_post->ms_request-s_front-o_comp_data.
+        DATA lo_params TYPE REF TO z2ui5_if_ajson.
+        DATA temp86 LIKE LINE OF lo_params->mt_json_tree.
+        DATA lr_comp LIKE REF TO temp86.
+          DATA temp87 TYPE z2ui5_if_client=>ty_s_name_value.
 
-    result = VALUE #( event                  = mo_action->ms_actual-event
-                      check_launchpad_active = mo_action->mo_http_post->ms_request-s_control-check_launchpad
-                      t_event_arg            = mo_action->ms_actual-t_event_arg
-                      s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
-                      check_on_navigated     = mo_action->ms_actual-check_on_navigated
-                      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
-                      s_device               = mo_action->mo_http_post->ms_request-s_front-s_device
-                      s_focus                = mo_action->mo_http_post->ms_request-s_front-s_focus
-                      s_scroll               = mo_action->mo_http_post->ms_request-s_front-s_scroll
-                      s_ui5                  = mo_action->mo_http_post->ms_request-s_front-s_ui5
-                      r_event_data           = mo_action->ms_actual-r_data
-                      t_model_skipped        = mo_action->ms_actual-t_model_skipped
-                      _s_nav-check_call      = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL )
-                      _s_nav-check_leave     = xsdbool( mo_action->ms_next-o_app_leave IS NOT INITIAL ) ).
+    CLEAR result.
+    result-event = mo_action->ms_actual-event.
+    result-check_launchpad_active = mo_action->mo_http_post->ms_request-s_control-check_launchpad.
+    result-t_event_arg = mo_action->ms_actual-t_event_arg.
+    MOVE-CORRESPONDING mo_action->mo_app->ms_draft TO result-s_draft.
+    result-check_on_navigated = mo_action->ms_actual-check_on_navigated.
+    MOVE-CORRESPONDING mo_action->mo_http_post->ms_request-s_front TO result-s_config.
+    result-s_device = mo_action->mo_http_post->ms_request-s_front-s_device.
+    result-s_focus = mo_action->mo_http_post->ms_request-s_front-s_focus.
+    result-s_scroll = mo_action->mo_http_post->ms_request-s_front-s_scroll.
+    result-s_ui5 = mo_action->mo_http_post->ms_request-s_front-s_ui5.
+    result-r_event_data = mo_action->ms_actual-r_data.
+    result-t_model_skipped = mo_action->ms_actual-t_model_skipped.
+
+    temp4 = boolc( mo_action->ms_next-o_app_call IS NOT INITIAL ).
+    result-_s_nav-check_call = temp4.
+
+    temp5 = boolc( mo_action->ms_next-o_app_leave IS NOT INITIAL ).
+    result-_s_nav-check_leave = temp5.
 
     TRY.
 
-        DATA(lo_comp) = mo_action->mo_http_post->ms_request-s_front-o_comp_data.
+
+        lo_comp = mo_action->mo_http_post->ms_request-s_front-o_comp_data.
         IF lo_comp IS NOT BOUND.
           RETURN.
         ENDIF.
-        DATA(lo_params) = lo_comp->slice( `/startupParameters/` ).
+
+        lo_params = lo_comp->slice( `/startupParameters/` ).
 
         IF lo_params IS NOT BOUND.
           RETURN.
         ENDIF.
+
+
         LOOP AT lo_params->mt_json_tree                 "#EC CI_SORTSEQ
-             REFERENCE INTO DATA(lr_comp)
+             REFERENCE INTO lr_comp
              WHERE name = `1`.
 
-          INSERT VALUE #( n = shift_left( val = shift_right( val = lr_comp->path
-                                                             sub = `/` )
-                                          sub = `/` )
-                          v = lr_comp->value ) INTO TABLE result-t_comp_params.
+
+          CLEAR temp87.
+          temp87-n = shift_left( val = shift_right( val = lr_comp->path sub = `/` ) sub = `/` ).
+          temp87-v = lr_comp->value.
+          INSERT temp87 INTO TABLE result-t_comp_params.
         ENDLOOP.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -166,9 +202,19 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~get_event_arg.
+        FIELD-SYMBOLS <temp88> LIKE LINE OF mo_action->ms_actual-t_event_arg.
+        DATA temp89 LIKE sy-tabix.
 
     TRY.
-        result = mo_action->ms_actual-t_event_arg[ v ].
+
+
+        temp89 = sy-tabix.
+        READ TABLE mo_action->ms_actual-t_event_arg INDEX v ASSIGNING <temp88>.
+        sy-tabix = temp89.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        result = <temp88>.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -176,10 +222,15 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~get_app.
+      DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_cont.
+      DATA temp90 TYPE REF TO z2ui5_if_app.
 
     IF id IS NOT INITIAL.
-      DATA(lo_app) = z2ui5_cl_ui5_app_cont=>db_load( id ).
-      result = CAST #( lo_app->mo_app ).
+
+      lo_app = z2ui5_cl_ui5_app_cont=>db_load( id ).
+
+      temp90 ?= lo_app->mo_app.
+      result = temp90.
     ELSE.
       result = get_if_app( ).
     ENDIF.
@@ -400,7 +451,10 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    DATA(li_filter) = custom_filter.
+    DATA li_filter LIKE custom_filter.
+          DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+    DATA temp91 TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
+    li_filter = custom_filter.
 
     " omit_initial wires ajson's empty filter into the slot the serializer
     " already evaluates (z2ui5_cl_ui5_srv_model->main_json_stringify), so an
@@ -408,24 +462,23 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " default. A caller-supplied filter is kept: both have to pass.
     IF omit_initial = abap_true OR omit_initial_paths IS NOT INITIAL.
       TRY.
-          DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+
           IF omit_initial_paths IS NOT INITIAL.
             " scoped: only the listed columns are dropped when initial, so a
             " boolean that must send abap_false survives
-            li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
+            CREATE OBJECT li_omit TYPE lcl_initial_paths_filter EXPORTING IT_PATHS = omit_initial_paths.
           ELSE.
             " NOT the vendored create_empty_filter: that one also drops a
             " table ROW whose fields are all initial, which reindexes the
             " client array against the backend table and corrupts the
             " write-back (whole-table and __delta) - see the local class
-            li_omit = NEW lcl_empty_filter_keep_rows( ).
+            CREATE OBJECT li_omit TYPE lcl_empty_filter_keep_rows.
           ENDIF.
           IF li_filter IS BOUND.
             " NOT the vendored create_and_filter: its class is not
             " serializable and the combined ref ends up in the draft -
             " see the local class
-            li_filter = NEW lcl_and_filter( ii_first  = li_filter
-                                            ii_second = li_omit ).
+            CREATE OBJECT li_filter TYPE lcl_and_filter EXPORTING ii_first = li_filter ii_second = li_omit.
           ELSE.
             li_filter = li_omit.
           ENDIF.
@@ -436,15 +489,17 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
+
+    CLEAR temp91.
+    temp91-path_only = path.
+    temp91-custom_filter = li_filter.
+    temp91-custom_mapper = custom_mapper.
+    temp91-tab = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( tab ).
+    temp91-tab_index = tab_index.
+    temp91-switch_default_model = switch_default_model.
+    temp91-check_json = json.
     result = mo_srv_bind->main( val    = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val )
-                                config = VALUE #(
-                                    path_only            = path
-                                    custom_filter        = li_filter
-                                    custom_mapper        = custom_mapper
-                                    tab                  = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( tab )
-                                    tab_index            = tab_index
-                                    switch_default_model = switch_default_model
-                                    check_json           = json ) ).
+                                config = temp91 ).
 
   ENDMETHOD.
 
@@ -485,9 +540,13 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " two spellings cannot produce different wires. IS SUPPLIED rather than
     " IS NOT INITIAL - an argument passed as empty on purpose is a filled
     " slot, and dropping it would shift every following position.
-    DATA(lt_arg) = t_arg.
+    DATA lt_arg LIKE t_arg.
+      DATA temp92 TYPE string.
+    lt_arg = t_arg.
     IF arg IS SUPPLIED.
-      APPEND CONV string( arg ) TO lt_arg.
+
+      temp92 = arg.
+      APPEND temp92 TO lt_arg.
     ENDIF.
 
     result = mo_srv_event->get_event( val   = val
@@ -529,28 +588,42 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~set_session_stateful.
+    DATA temp93 TYPE z2ui5_if_ui5_types=>ty_s_http_res-s_stateful-active.
+    DATA temp6 TYPE xsdboolean.
 
     IF mo_action->mo_app->mv_check_sticky = val.
       RETURN.
     ENDIF.
-    mo_action->ms_next-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
+
+    IF val = abap_true.
+      temp93 = 1.
+    ELSE.
+      temp93 = 0.
+    ENDIF.
+    mo_action->ms_next-s_stateful-active = temp93.
     mo_action->mo_app->mv_check_sticky = val.
 
-    mo_action->ms_next-s_stateful-switched = xsdbool( mo_action->ms_next-s_stateful-switched = abap_false ).
+
+    temp6 = boolc( mo_action->ms_next-s_stateful-switched = abap_false ).
+    mo_action->ms_next-s_stateful-switched = temp6.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~check_app_prev_stack.
 
-    result = xsdbool( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
+    DATA temp7 TYPE xsdboolean.
+    temp7 = boolc( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
+    result = temp7.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~check_on_init.
 
-    result = xsdbool( mo_action->mo_app->mv_check_initialized = abap_false ).
+    DATA temp8 TYPE xsdboolean.
+    temp8 = boolc( mo_action->mo_app->mv_check_initialized = abap_false ).
+    result = temp8.
 
   ENDMETHOD.
 
@@ -578,7 +651,9 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD get_if_app.
 
-    result = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+    DATA temp94 TYPE REF TO z2ui5_if_app.
+    temp94 ?= mo_action->mo_app->mo_app.
+    result = temp94.
 
   ENDMETHOD.
 

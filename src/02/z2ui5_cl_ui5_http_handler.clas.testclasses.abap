@@ -45,18 +45,27 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA temp1 TYPE xsdboolean.
     DATA temp2 TYPE xsdboolean.
     DATA temp3 TYPE xsdboolean.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+    DATA temp6 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_result-body ).
 
-    temp1 = xsdbool( ls_result-body CS `<!DOCTYPE html>` ).
+
+    temp4 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
+    temp1 = temp4.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
-    temp2 = xsdbool( ls_result-body CS `<html` ).
+
+    temp5 = boolc( ls_result-body CS `<html` ).
+    temp2 = temp5.
     cl_abap_unit_assert=>assert_true( temp2 ).
 
-    temp3 = xsdbool( ls_result-body CS `</html>` ).
+
+    temp6 = boolc( ls_result-body CS `</html>` ).
+    temp3 = temp6.
     cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
@@ -66,13 +75,19 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp4 TYPE xsdboolean.
     DATA temp5 TYPE xsdboolean.
+    DATA temp7 TYPE xsdboolean.
+    DATA temp8 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    temp4 = xsdbool( ls_result-body CS `sap-ui-bootstrap` ).
+
+    temp7 = boolc( ls_result-body CS `sap-ui-bootstrap` ).
+    temp4 = temp7.
     cl_abap_unit_assert=>assert_true( temp4 ).
 
-    temp5 = xsdbool( ls_result-body CS `z2ui5` ).
+
+    temp8 = boolc( ls_result-body CS `z2ui5` ).
+    temp5 = temp8.
     cl_abap_unit_assert=>assert_true( temp5 ).
 
   ENDMETHOD.
@@ -87,10 +102,13 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp7 TYPE xsdboolean.
+    DATA temp9 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    temp7 = xsdbool( ls_result-body CS `<title>abap2UI5</title>` ).
+
+    temp9 = boolc( ls_result-body CS `<title>abap2UI5</title>` ).
+    temp7 = temp9.
     cl_abap_unit_assert=>assert_true( temp7 ).
 
   ENDMETHOD.
@@ -100,6 +118,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp6 TYPE xsdboolean.
+    DATA temp10 TYPE xsdboolean.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
@@ -109,7 +128,9 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    temp6 = xsdbool( ls_result-body CS `S_FRONT` ).
+
+    temp10 = boolc( ls_result-body CS `S_FRONT` ).
+    temp6 = temp10.
     cl_abap_unit_assert=>assert_true( temp6 ).
 
   ENDMETHOD.
@@ -192,6 +213,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     DATA temp8 TYPE xsdboolean.
+    DATA temp11 TYPE xsdboolean.
 
     ls_req-method = `GET`.
 
@@ -200,7 +222,9 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    temp8 = xsdbool( ls_result-body CS `<!DOCTYPE html>` ).
+
+    temp11 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
+    temp8 = temp11.
     cl_abap_unit_assert=>assert_true( temp8 ).
 
   ENDMETHOD.
@@ -223,7 +247,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_inactive.
 
     " opt-out: with csrf disabled even a cross-origin request is allowed
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_false
                             origin  = `https://evil.example.com`
                             referer = ``
@@ -236,7 +261,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_same_origin.
 
     " same host authority (scheme/case ignored) -> allowed
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = `https://App.Corp:44300`
                             referer = ``
@@ -249,7 +275,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_cross_origin.
 
     " different host authority -> rejected
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = `https://evil.example.com`
                             referer = ``
@@ -262,7 +289,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_no_headers.
 
     " lenient: no Origin and no Referer -> allowed (proxies / old clients)
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = ``
                             referer = ``
@@ -275,7 +303,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_referer.
 
     " Origin absent -> fall back to Referer (with a path), cross-site -> rejected
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = ``
                             referer = `https://evil.example.com/attack?x=1`
@@ -301,23 +330,37 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA temp31 TYPE xsdboolean.
     DATA temp32 TYPE xsdboolean.
     DATA temp33 TYPE xsdboolean.
+    DATA lv_preload TYPE string.
+    DATA temp12 TYPE xsdboolean.
+    DATA temp13 TYPE xsdboolean.
+    DATA temp14 TYPE xsdboolean.
+    DATA temp15 TYPE xsdboolean.
 
     lv_css = `.a::after { content: 'x'; }` && |\n| && `.b { background: url("i\c.png"); }`.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_css
+
+    lv_preload = z2ui5_cl_ui5f_preload=>get( styles_css = lv_css
                                                   custom_js   = `` ).
 
-    temp30 = xsdbool( lv_preload CS `content: \'x\';` ).
+
+    temp12 = boolc( lv_preload CS `content: \'x\';` ).
+    temp30 = temp12.
     cl_abap_unit_assert=>assert_true( temp30 ).
 
-    temp31 = xsdbool( lv_preload CS `}\n.b` ).
+
+    temp13 = boolc( lv_preload CS `}\n.b` ).
+    temp31 = temp13.
     cl_abap_unit_assert=>assert_true( temp31 ).
 
-    temp32 = xsdbool( lv_preload CS `url("i\\c.png")` ).
+
+    temp14 = boolc( lv_preload CS `url("i\\c.png")` ).
+    temp32 = temp14.
     cl_abap_unit_assert=>assert_true( temp32 ).
 
     " and nothing raw survives next to the escaped copies
-    temp33 = xsdbool( lv_preload CS `content: 'x';` ).
+
+    temp15 = boolc( lv_preload CS `content: 'x';` ).
+    temp33 = temp15.
     cl_abap_unit_assert=>assert_false( temp33 ).
 
   ENDMETHOD.
@@ -338,12 +381,15 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA lv_rest   TYPE string.
     DATA lv_checked TYPE i.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = `.a { content: 'x'; }`
+    DATA lv_preload TYPE string.
+    DATA lv_line LIKE LINE OF lt_lines.
+    lv_preload = z2ui5_cl_ui5f_preload=>get( styles_css = `.a { content: 'x'; }`
                                                   custom_js   = `` ).
 
     SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
 
-    LOOP AT lt_lines INTO DATA(lv_line).
+
+    LOOP AT lt_lines INTO lv_line.
 
       IF lv_line NP `      "z2ui5/*": '*',`.
         CONTINUE.
