@@ -78,6 +78,12 @@ Everything in between is handled for you:
 
 Popups, navigation, messages, and frontend actions travel the same protocol – you never touch JSON, HTTP, or JavaScript. The architecture is described in [UI5 Over-the-Wire](https://abap2ui5.github.io/docs/technical/concept.html).
 
+## Enterprise Readiness
+* **Security** – Apps run entirely inside your SAP authentication and authorization: a single HTTP endpoint, standard SAP logon, no separate user store
+* **Stability** – Every commit is CI-tested against NW 7.02, Standard ABAP and ABAP Cloud, backed by unit tests and automated browser tests
+* **No Lock-In** – MIT license, unlimited users, no per-user fees; apps are plain ABAP classes in your system – versioned, transported and tested like any other ABAP code
+* **Support** – Community support via Slack and GitHub, commercial options listed in [SUPPORT.md](SUPPORT.md)
+
 ## AI Assistants
 
 abap2UI5 apps are a perfect fit for AI assistants: **one ABAP class and nothing else** – no service, no frontend project, no deployment pipeline. One file to write, hundreds of samples to learn from, and the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html) to verify the result without an SAP system.
