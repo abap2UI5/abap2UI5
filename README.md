@@ -23,7 +23,7 @@
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
 * **Broad Compatibility** – Supports all ABAP releases from NW 7.02 to ABAP Cloud
 * **Easy Installation** – Install via abapGit – no extra app deployment needed
-* **Launchpad-Ready** – Apps integrate into the SAP Fiori Launchpad ([webinar](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P))
+* **Launchpad-Ready** – Apps integrate into the SAP Fiori Launchpad ([guide](https://abap2ui5.github.io/docs/configuration/launchpad.html), [webinar](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P))
 
 
 #### Quick Start
