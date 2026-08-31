@@ -86,6 +86,10 @@ const UNDOCUMENTED = new Map([
   ["get", "PENDING the app-template mirror sync - the request context, incl. t_model_skipped"],
   ["set_app_state_active", "PENDING the app-template mirror sync - the bookmarkable app-state hash"],
   ["set_session_stateful", "PENDING the app-template mirror sync - the sticky-session switch"],
+  ["app_state_set_active", "PENDING the app-template mirror sync - the renamed set_app_state_active"],
+  ["app_state_get_href", "PENDING the app-template mirror sync - the app-state link, composed backend-side"],
+  ["hash_set", "PENDING the app-template mirror sync - HashChanger#setHash, the renamed set_push_state"],
+  ["hash_replace", "PENDING the app-template mirror sync - HashChanger#replaceHash, the no-entry twin"],
   ["get_app", "reaches another app instance on the stack - get_app_prev( ) is the documented case"],
   ["check_app_prev_stack", "a stack predicate for get_app_prev( ), documented through it"],
 ]);

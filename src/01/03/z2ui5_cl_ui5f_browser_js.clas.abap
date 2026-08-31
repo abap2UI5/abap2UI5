@@ -91,8 +91,8 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evHistoryBack() {` && |\n| &&
-             `      window.history.back();` && |\n| &&
+             `    function evHashBack(oController, args) {` && |\n| &&
+             `      Router.navBack(args ? args[1] : undefined);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evLocationReload(oController, args) {` && |\n| &&
@@ -272,7 +272,7 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      CLIPBOARD_APP_STATE: evClipboardAppState,` && |\n| &&
              `      DOWNLOAD_B64_FILE: evDownloadB64File,` && |\n| &&
              `      STORE_DATA: evStoreData,` && |\n| &&
-             `      HISTORY_BACK: evHistoryBack,` && |\n| &&
+             `      HASH_BACK: evHashBack,` && |\n| &&
              `      LOCATION_RELOAD: evLocationReload,` && |\n| &&
              `      SYSTEM_LOGOUT: evSystemLogout,` && |\n| &&
              `      OPEN_NEW_TAB: evOpenNewTab,` && |\n| &&

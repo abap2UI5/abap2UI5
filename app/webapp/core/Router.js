@@ -184,6 +184,23 @@ sap.ui.define(
       }
     }
 
+    // The UI5 onNavBack pattern (History.getPreviousHash), app-owned - the
+    // HASH_BACK frontend action lands here so the hash logic stays in this
+    // module. One real step back when this page load has pushed an app hash:
+    // the history entry is CONSUMED, and the resulting hashChanged
+    // round-trips the registered event like any browser Back. On a cold deep
+    // link there is no in-app entry to consume: with a fallback hash the app
+    // lands on that route via a REPLACE - deliberately NOT adopted, so the
+    // change dispatches the listener and the backend renders the fallback -
+    // and without one it behaves like the plain browser button.
+    function navBack(sFallback) {
+      if (!sFallback || AppState.state.hashPushCount > 0) {
+        window.history.back();
+        return;
+      }
+      navTo(sFallback, true);
+    }
+
     // ------------------------------------------------------------------
     // Route matched - the read side
     // ------------------------------------------------------------------
@@ -231,16 +248,16 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     // Register a named backend event for hash changes while the APP owns the
-    // hash (cs_event-set_hash_listener). The registration travels as a nav
+    // hash (cs_event-hash_attach_changed). The registration travels as a nav
     // OPTION on the response, not as a follow-up action, because sync( )
     // must already see it on the very response that registers: follow-ups
     // run AFTER the phase-2 sync, and a boot on a deep link (`#/Page2`)
     // would have its hash wiped by the app-state cleanup below before the
-    // registration ever ran. While registered, set_push_state writes the
+    // registration ever ran. While registered, hash_set writes the
     // hash as a real route through the HashChanger (see sync) and the
     // cleanup leaves the hash alone. The value is the event name; a blank
     // (single space) unregisters, empty means "no change" - the same
-    // encoding set_app_state_active uses. AppState's reset clears it on an
+    // encoding app_state_set_active uses. AppState's reset clears it on an
     // app switch. Applies with routing OFF only - a routed app's hash
     // belongs to the router, not to the app.
     function applyHashEvent(mOptions) {
@@ -348,7 +365,7 @@ sap.ui.define(
         state.navFromHash = false;
         return;
       }
-      if (mOptions.setPushState) return;
+      if (mOptions.setPushState || mOptions.setHashReplace) return;
 
       // Reflect the running app in the URL as a bookmarkable route. A forward
       // navigation done in the backend (client->nav_app_call,
@@ -383,7 +400,7 @@ sap.ui.define(
           const app = state.oResponse?.APP;
           if (app) updateAppRoute(mOptions, ID, app);
           // Routing owns the app-state hash; skip the legacy handling below.
-          if (!mOptions.setPushState) return;
+          if (!mOptions.setPushState && !mOptions.setHashReplace) return;
           // In KEEP mode the suffix is pushed as a real ROUTE through the
           // HashChanger, not via history.pushState: pushState writes the URL
           // bar but not hasher's cached hash, so the next browser Back lands
@@ -398,10 +415,21 @@ sap.ui.define(
           // the legacy push below, where Back is inert by design (a FRESH
           // route restarts the app either way).
           if (state.currentDraftId) {
-            navTo(
-              patternFor(state.currentApp, state.currentDraftId) +
-                mOptions.setPushState,
-            );
+            if (mOptions.setPushState) {
+              state.hashPushCount += 1;
+              navTo(
+                patternFor(state.currentApp, state.currentDraftId) +
+                  mOptions.setPushState,
+              );
+            } else {
+              // the replace twin: the same route+suffix write, in place -
+              // no new history entry, Back does not step through it
+              navTo(
+                patternFor(state.currentApp, state.currentDraftId) +
+                  mOptions.setHashReplace,
+                true,
+              );
+            }
             return;
           }
         }
@@ -415,6 +443,7 @@ sap.ui.define(
             // history.pushState below bypasses that cache). Adopt the value
             // first so the write's own echo dies in dispatchAppHashChange.
             state.appHash = appHashNormalized(mOptions.setPushState);
+            state.hashPushCount += 1;
             navTo(mOptions.setPushState);
             return;
           }
@@ -423,12 +452,29 @@ sap.ui.define(
           // alone would rewrite "#SO-action&/x" to "#x" and strand the
           // launchpad.
           const newUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setPushState}`;
+          state.hashPushCount += 1;
           history.pushState(null, "", newUrl);
           // The pushed hash IS the desired URL - stop here. The cleanup below
           // is a no-op while hasher's cached hash is empty (legacy mode), but
           // with routing on the cache holds the app route, so replaceHash("")
           // would count as a change and wipe both the route and the suffix
           // pushed one line above.
+          return;
+        }
+
+        if (mOptions.setHashReplace) {
+          if (state.hashEvent) {
+            // the replace twin of the push above: adopt first so the write's
+            // own echo dies, then write WITHOUT a new history entry - the
+            // router's navTo( ..., true ), e.g. an FCL navigation arrow
+            state.appHash = appHashNormalized(mOptions.setHashReplace);
+            navTo(mOptions.setHashReplace, true);
+            return;
+          }
+          // legacy replace: the same suffix-on-raw-hash URL as the legacy
+          // push, written in place
+          const replUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setHashReplace}`;
+          history.replaceState(null, "", replUrl);
           return;
         }
         // While a HASH_LISTENER owns the hash, the cleanup below must not
@@ -496,6 +542,7 @@ sap.ui.define(
       appOf,
       draftOf,
       navTo,
+      navBack,
       onHashChanged,
       sync,
     };

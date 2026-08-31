@@ -23,6 +23,7 @@ function load() {
   const opened = [];
 
   const historyBacks = [];
+  const navBacks = [];
   const documentStub = {
     createElement: (tag) => {
       const el = {
@@ -55,7 +56,9 @@ function load() {
         },
       },
       "sap/ui/util/Storage": function () {},
-      "z2ui5/core/Router": {},
+      "z2ui5/core/Router": {
+        navBack: (fallback) => navBacks.push(fallback),
+      },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/AppState": { state: {} },
     },
@@ -77,6 +80,7 @@ function load() {
   return {
     handlers: Browser.handlers,
     historyBacks,
+    navBacks,
     anchors,
     bodyOps,
     opened,
@@ -86,16 +90,23 @@ function load() {
   };
 }
 
-test.describe("HISTORY_BACK", () => {
-  test("steps the browser history back, nothing else", () => {
-    // the app-side window.history.go(-1) of a UI5 router app's back button;
-    // with a hash listener registered the resulting hash change round-trips
-    // like a real browser Back
-    const { handlers, historyBacks, opened, boxErrors } = load();
-    handlers.HISTORY_BACK({}, ["HISTORY_BACK"]);
-    expect(historyBacks).toEqual([1]);
+test.describe("HASH_BACK", () => {
+  test("hands the back decision to the router, nothing else", () => {
+    // the app-side onNavBack of a UI5 router app's back button: Router.navBack
+    // owns the whole go(-1)-or-fallback decision (only the router touches the
+    // hash), this handler only forwards
+    const { handlers, navBacks, historyBacks, opened, boxErrors } = load();
+    handlers.HASH_BACK({}, ["HASH_BACK"]);
+    expect(navBacks).toEqual([undefined]);
+    expect(historyBacks).toEqual([]);
     expect(opened).toEqual([]);
     expect(boxErrors).toEqual([]);
+  });
+
+  test("the optional fallback hash travels along", () => {
+    const { handlers, navBacks } = load();
+    handlers.HASH_BACK({}, ["HASH_BACK", "/home"]);
+    expect(navBacks).toEqual(["/home"]);
   });
 });
 

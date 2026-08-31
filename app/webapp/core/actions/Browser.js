@@ -94,11 +94,14 @@ sap.ui.define(
     // HISTORY_BACK: one step back in the browser history - the app-side
     // spelling of window.history.go(-1), which is how a UI5 router app's
     // back button leaves a full-screen page. With the app-owned hash
-    // routing (cs_event-set_hash_listener) the resulting hash change
+    // routing (cs_event-hash_attach_changed) the resulting hash change
     // round-trips like a browser Back, so the app lands exactly where the
-    // history says - no composed back target, no extra history entry.
-    function evHistoryBack() {
-      window.history.back();
+    // history says - no composed back target, no extra history entry. The
+    // optional second argument is a FALLBACK hash for the cold deep link
+    // (the UI5 onNavBack pattern); Router.navBack owns the whole decision,
+    // since only the router is allowed to touch the hash.
+    function evHashBack(oController, args) {
+      Router.navBack(args ? args[1] : undefined);
     }
 
     function evLocationReload(oController, args) {
@@ -314,7 +317,7 @@ sap.ui.define(
       CLIPBOARD_APP_STATE: evClipboardAppState,
       DOWNLOAD_B64_FILE: evDownloadB64File,
       STORE_DATA: evStoreData,
-      HISTORY_BACK: evHistoryBack,
+      HASH_BACK: evHashBack,
       LOCATION_RELOAD: evLocationReload,
       SYSTEM_LOGOUT: evSystemLogout,
       OPEN_NEW_TAB: evOpenNewTab,

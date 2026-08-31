@@ -43,9 +43,12 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
     currentApp: CALLER,
     currentDraftId: "D1",
     navFromHash: false,
+    hashPushCount: 0,
     ...stateOverrides,
   };
   const pushes = [];
+  const replaces = [];
+  const backs = [];
   const errors = [];
   const location = {
     href: href || "https://host/sap/z2ui5",
@@ -63,8 +66,14 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
       },
     },
     sandbox: {
-      window: { location },
-      history: { pushState: (a, b, url) => pushes.push(url) },
+      window: {
+        location,
+        history: { back: () => backs.push(1) },
+      },
+      history: {
+        pushState: (a, b, url) => pushes.push(url),
+        replaceState: (a, b, url) => replaces.push(url),
+      },
     },
   });
   return {
@@ -72,6 +81,8 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
     state,
     writes,
     pushes,
+    replaces,
+    backs,
     errors,
     setHash: (h) => {
       current = h;
@@ -535,6 +546,72 @@ test("a listener push of the bare '/' writes the empty hash and its echo dies", 
   expect(fired).toEqual([["HASH_CHANGED"]]);
 });
 
+test("a hash replace writes in place - no new entry, echo swallowed", () => {
+  // the router's navTo( ..., true ): an FCL navigation arrow rewrites the
+  // URL without adding a Back step - hashChanger.replaceHash, adopted first
+  // so the write's own echo dies like a push's would
+  const { Router, state, writes } = loadRouter({ state: { navRouting: false } });
+  const fired = [];
+  state.oController = { eB: (a) => fired.push(a) };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  Router.sync({ setPushState: "/detail/0/TwoColumnsMidExpanded", id: "D2" });
+  Router.sync({ setHashReplace: "/detail/0/MidColumnFullScreen", id: "D3" });
+  expect(writes).toEqual([
+    { op: "set", hash: "detail/0/TwoColumnsMidExpanded", guard: "D1" },
+    { op: "replace", hash: "detail/0/MidColumnFullScreen", guard: "D1" },
+  ]);
+  // only the PUSH counts as a consumable history entry
+  expect(state.hashPushCount).toBe(1);
+  Router.onHashChanged("/detail/0/MidColumnFullScreen");
+  expect(fired).toEqual([]);
+});
+
+test("navBack consumes a pushed entry and guards the cold deep link", () => {
+  const { Router, state, writes, backs } = loadRouter({
+    state: { navRouting: false },
+  });
+  const fired = [];
+  state.oController = { eB: (a) => fired.push(a) };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+
+  // cold deep link: nothing pushed this page load - the fallback replaces
+  // instead of leaving the app, and is deliberately NOT adopted, so the
+  // write's change dispatches the listener and the backend renders it
+  Router.navBack("/home");
+  expect(backs).toEqual([]);
+  expect(writes).toEqual([{ op: "replace", hash: "home", guard: "D1" }]);
+  Router.onHashChanged("/home");
+  expect(fired).toEqual([["HASH_CHANGED"]]);
+
+  // after a push there IS an in-app entry - one real, consumed history step
+  Router.sync({ setPushState: "/detail", id: "D2" });
+  Router.navBack("/home");
+  expect(backs).toEqual([1]);
+
+  // and without a fallback it always behaves like the browser button
+  Router.navBack();
+  expect(backs).toEqual([1, 1]);
+});
+
+test("a hash replace in KEEP mode replaces the route with the suffix", () => {
+  const { Router, state, writes } = loadRouter();
+  state.oResponse = { APP: CALLER };
+  Router.sync({ setHashReplace: "?pos=42", id: "D2" });
+  expect(writes).toEqual([
+    { op: "replace", hash: `app/${CALLER}/D2?pos=42`, guard: "D2" },
+  ]);
+  expect(state.hashPushCount).toBe(0);
+});
+
+test("a hash replace without listener or routing replaces the raw URL", () => {
+  const { Router, replaces, pushes } = loadRouter({
+    state: { navRouting: false },
+  });
+  Router.sync({ setHashReplace: "?pos=42", id: "D2" });
+  expect(pushes).toEqual([]);
+  expect(replaces).toEqual(["/sap/z2ui5#?pos=42"]);
+});
+
 test("the app-state hash reaches the HashChanger slash-less too", () => {
   // hasher prepends the one canonical "/" - the live URL becomes
   // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes
@@ -585,6 +662,7 @@ test("reads exactly the option names the backend writes", () => {
     "navAppCallPrevId",
     "setAppStateActive",
     "setHashEvent",
+    "setHashReplace",
     "setNavRouting",
     "setPushState",
   ]);
