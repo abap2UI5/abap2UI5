@@ -65,8 +65,27 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         mo_action->mo_app->mv_nav_mode           = lv_arg.
         RETURN.
 
-      WHEN z2ui5_if_client=>cs_event-set_push_state.
+      WHEN z2ui5_if_client=>cs_event-hash_set.
+        " same value as the obsolete cs_event-set_push_state - one branch
+        " serves both spellings
         mo_action->ms_next-s_nav-set_push_state = lv_arg.
+        RETURN.
+
+      WHEN z2ui5_if_client=>cs_event-hash_replace.
+        " HashChanger#replaceHash: the same write as hash_set, minus the
+        " history entry - the router's navTo( ..., true )
+        mo_action->ms_next-s_nav-hash_replace = lv_arg.
+        RETURN.
+
+      WHEN z2ui5_if_client=>cs_event-hash_attach_changed.
+        " app-owned hash routing: the event name registered for hash changes.
+        " Empty on the wire means "no change", so an unregister (no t_arg)
+        " travels as a single space - the app_state_set_active encoding. Not
+        " remembered on the app: the registration dies with an app switch,
+        " and an app asserts it in view_display( ), so every render carries it
+        mo_action->ms_next-s_nav-set_hash_listener = COND #( WHEN lv_arg IS INITIAL
+                                                             THEN ` `
+                                                             ELSE lv_arg ).
         RETURN.
 
       WHEN z2ui5_if_client=>cs_event-set_app_state_active.
@@ -506,24 +525,83 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_push_state.
+  METHOD z2ui5_if_client~hash_set.
 
-    " same field the cs_event-set_push_state branch of follow_up_action
-    " writes - the typed method just skips the string-argument detour
+    " same field the cs_event-hash_set branch of follow_up_action writes -
+    " the typed method just skips the string-argument detour
     mo_action->ms_next-s_nav-set_push_state = val.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_app_state_active.
+  METHOD z2ui5_if_client~hash_replace.
 
-    " same field the cs_event-set_app_state_active branch of follow_up_action
+    " HashChanger#replaceHash - hash_set minus the history entry
+    mo_action->ms_next-s_nav-hash_replace = val.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~set_push_state.
+
+    " obsolete spelling - delegates to keep exactly one write path
+    z2ui5_if_client~hash_set( val ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~app_state_set_active.
+
+    " same field the cs_event-app_state_set_active branch of follow_up_action
     " writes - only that path needs the single-space encoding to squeeze
     " `false` through a string argument; a typed abap_bool does not
     mo_action->ms_next-s_nav-set_app_state_active = val.
     " and remember it on the app, so main_end can re-assert it on the next
     " response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
     mo_action->mo_app->mv_app_state_active = val.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~set_app_state_active.
+
+    " obsolete spelling - delegates to keep exactly one write path
+    z2ui5_if_client~app_state_set_active( val ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~app_state_get_href.
+
+    " The absolute link to the CURRENT app state, composed the way the
+    " frontend's Router.hrefFor builds it - from the browser's OWN location
+    " (origin/pathname/search ride with the requests and are session-merged)
+    " plus this roundtrip's draft id. The split mirrors Router.splitHash: an
+    " app hash starts with '/', a shell hash never does, and inside the FLP
+    " the app part hangs behind '&/' - keeping the shell part is what makes
+    " the link land in this app instead of on the launchpad home page.
+    DATA(ls_front) = mo_action->mo_http_post->ms_request-s_front.
+    DATA(lv_state) = |z2ui5-xapp-state={ mo_action->mo_app->ms_draft-id }|.
+
+    DATA(lv_hash) = ls_front-hash.
+    IF lv_hash CS `#`.
+      lv_hash = substring_after( val = lv_hash
+                                 sub = `#` ).
+    ENDIF.
+
+    DATA lv_shell TYPE string.
+    IF lv_hash IS NOT INITIAL AND substring( val = lv_hash
+                                             len = 1 ) <> `/`.
+      FIND FIRST OCCURRENCE OF `&/` IN lv_hash MATCH OFFSET DATA(lv_offset).
+      IF sy-subrc = 0.
+        lv_shell = substring( val = lv_hash
+                              len = lv_offset ).
+      ENDIF.
+    ENDIF.
+
+    result = COND #( WHEN lv_shell IS INITIAL
+                     THEN |{ ls_front-origin }{ ls_front-pathname }{ ls_front-search }#/{ lv_state }|
+                     ELSE |{ ls_front-origin }{ ls_front-pathname }{ ls_front-search }#{ lv_shell }&/{ lv_state }| ).
 
   ENDMETHOD.
 

@@ -423,7 +423,9 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         set_opt_strings(
             json = li_opt
             opt  = VALUE #( ( name = `setPushState`      val = ls_nav-set_push_state )
+                            ( name = `setHashReplace`    val = ls_nav-hash_replace )
                             ( name = `setNavRouting`     val = ls_nav-set_nav_routing )
+                            ( name = `setHashEvent`      val = ls_nav-set_hash_listener )
                             ( name = `navAppCallPrevApp` val = ls_nav-nav_app_call_prev_app )
                             ( name = `navAppCallPrevId`  val = ls_nav-nav_app_call_prev_id ) ) ).
 

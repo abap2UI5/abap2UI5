@@ -36,6 +36,9 @@ export default [
       "node/downport/**",
       "node/output/**",
       "node/deps/**",
+      // the open-abap-core clone the e2e transpile checks out next to the
+      // outputs - git-ignored like them, and vendored code either way
+      "node/open-abap-core/**",
       "node/coverage/**",
       "tools/out/**",
       "node_modules/**",

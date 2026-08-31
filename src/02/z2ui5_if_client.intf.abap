@@ -55,7 +55,6 @@ INTERFACE z2ui5_if_client
       set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
-      clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
       store_data                TYPE string VALUE `STORE_DATA`,
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
 
@@ -69,11 +68,31 @@ INTERFACE z2ui5_if_client
       bind_element              TYPE string VALUE `BIND_ELEMENT`,
 
       "experimental
+      " the hash_* family - everything that reads, writes or observes the URL
+      " fragment, named after its UI5 original (sap/ui/core/routing/HashChanger):
+      " hash_set = setHash (a PUSHED history entry), hash_replace = replaceHash
+      " (no new entry), hash_back = one consumed step back with an optional
+      " fallback hash (the UI5 onNavBack pattern), hash_attach_changed =
+      " attachHashChanged (registers a backend event for foreign hash changes),
+      " hash_routing = the hash-based app routing modes (cs_nav_mode).
+      " app_state_set_active keeps the id of the CURRENT app state in the URL.
+      " hash_set / hash_routing / app_state_set_active share their wire value
+      " with their obsolete spellings below - both names reach the same branch
+      hash_set                  TYPE string VALUE `SET_PUSH_STATE`,
+      hash_replace              TYPE string VALUE `HASH_REPLACE`,
+      hash_back                 TYPE string VALUE `HASH_BACK`,
+      hash_attach_changed       TYPE string VALUE `HASH_ATTACH_CHANGED`,
+      hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
+      app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
+
+      "obsolet
       set_app_state_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
       set_push_state            TYPE string VALUE `SET_PUSH_STATE`,
       set_nav_routing           TYPE string VALUE `SET_NAV_ROUTING`,
-
-      "obsolet
+      " superseded by app_state_get_href( ) + cs_event-clipboard_copy: the
+      " backend composes the same link itself now (the browser location and
+      " the live hash ride with the requests), so the app can also SHOW it
+      clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
       nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
@@ -307,10 +326,57 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE abap_bool DEFAULT abap_true.
 
+  "! The app-state hash: while active, the URL carries the id of the CURRENT
+  "! app state (`#/z2ui5-xapp-state=&lt;id&gt;`), advanced on every roundtrip - a
+  "! reload, a bookmark or a shared link restores the exact state (the draft
+  "! the framework persists anyway is the state container, nothing extra is
+  "! stored). abap_false switches the URL tracking off again. Mutually
+  "! exclusive with hash_routing and hash_attach_changed - each claims the
+  "! whole app hash.
+  METHODS app_state_set_active
+    IMPORTING
+      val TYPE abap_bool DEFAULT abap_true.
+
+  "! The absolute URL of the CURRENT app state - the link that restores
+  "! exactly this roundtrip's state, FLP-safe: the shell hash of the page
+  "! survives in the link, so the recipient lands in this app instead of on
+  "! the launchpad home page. Composed from the browser's own location
+  "! (origin/pathname/search ride with the requests) plus this response's
+  "! draft id. The app owns the string: copy it with
+  "! cs_event-clipboard_copy, show it in an Input, mail it, render it as a
+  "! QR code. Supersedes the obsolete cs_event-clipboard_app_state.
+  METHODS app_state_get_href
+    RETURNING
+      VALUE(result) TYPE string.
+
+  "! HashChanger#setHash: write VAL as the app's URL hash - a PUSHED history
+  "! entry, so the browser Back button has a step to take. The 1:1
+  "! counterpart of a UI5 router's navTo. With cs_event-hash_attach_changed
+  "! registered the value is the WHOLE app hash (`/Page2`); without a
+  "! listener the legacy suffix behavior applies (see the obsolete
+  "! set_push_state, which this renames).
+  METHODS hash_set
+    IMPORTING
+      val TYPE string OPTIONAL.
+
+  "! HashChanger#replaceHash: write VAL as the app's URL hash WITHOUT a new
+  "! history entry - the UI5 router's navTo( ..., true ). What
+  "! FlexibleColumnLayout apps do when a NAVIGATION ARROW changes the
+  "! layout: the URL follows, but Back does not step through arrow drags.
+  METHODS hash_replace
+    IMPORTING
+      val TYPE string OPTIONAL.
+
+  "! obsolete spelling of app_state_set_active( ) - same behavior. It stays
+  "! in the interface so existing apps keep compiling.
   METHODS set_app_state_active
     IMPORTING
       val TYPE abap_bool DEFAULT abap_true.
 
+  "! obsolete spelling of hash_set( ) - same behavior ('push state' described
+  "! the old history.pushState implementation, which the HashChanger-backed
+  "! write replaced). It stays in the interface so existing apps keep
+  "! compiling.
   METHODS set_push_state
     IMPORTING
       val TYPE string OPTIONAL.
@@ -487,10 +553,11 @@ INTERFACE z2ui5_if_client
   "! one, and this one is a second name for half of it.
   "!
   "! The one difference is follow_up_action( )'s leading CASE, which claims
-  "! cs_event-set_nav_routing / set_push_state / set_app_state_active before
-  "! that branch. Those three are backend-side navigation options rather than
-  "! frontend handlers, so wiring one into a view attribute never dispatched
-  "! anything here either.
+  "! cs_event-hash_routing / hash_set / hash_replace / hash_attach_changed /
+  "! app_state_set_active (and their obsolete set_* spellings) before that
+  "! branch. Those are backend-side navigation options rather than frontend
+  "! handlers, so wiring one into a view attribute never dispatched anything
+  "! here either.
   "!
   "! It stays in the interface so existing apps keep compiling - rename the
   "! calls at your leisure.
@@ -759,6 +826,30 @@ INTERFACE z2ui5_if_client
   "! scope beats a slot scope (it is the more specific statement), then the
   "! innermost open slot wins. An empty event name removes the registration of
   "! THAT scope only.
+  "! cs_event-hash_attach_changed - APP-OWNED hash routing
+  "! (HashChanger#attachHashChanged), the 1:1 counterpart of a UI5 router's
+  "! own hash (`#/Page2`) for an app that does NOT use hash_routing:
+  "! t_arg = a backend event name. From then on hash_set( `/Page2` ) writes
+  "! that value as the whole app hash (a pushed history entry),
+  "! hash_replace( ) the same without a new entry, and a hash change the app
+  "! did not write itself - browser Back/Forward, a manual URL edit - fires
+  "! the registered event; the hash the browser now stands on arrives with
+  "! that request (and with every other one, a fresh deep-link start
+  "! included) in get( )-s_config-hash, so the app decides what to show.
+  "! While registered, the framework leaves the hash entirely alone. Calling
+  "! it without t_arg unregisters. The registration dies with an app switch -
+  "! register it in view_display( ), so every render (a draft restore
+  "! included) re-asserts it. Mutually exclusive with hash_routing (a routed
+  "! app's hash belongs to the router) and with app_state_set_active (both
+  "! claim the whole hash).
+  "! cs_event-hash_back - the UI5 onNavBack pattern: without t_arg one real
+  "! step back in the browser history (`window.history.go(-1)` - the step is
+  "! CONSUMED, and the resulting hash change fires the registered event).
+  "! With t_arg = a fallback hash it guards the cold deep link the way UI5's
+  "! recommended onNavBack does: when this page load never pushed an app
+  "! hash, there is no in-app step to take, so the fallback is written as a
+  "! REPLACE instead of falling out of the app - and the change fires the
+  "! registered event, which shows the fallback route.
   "! cs_event-binding_call - apply a declarative filter/sorter to an
   "! aggregation binding, the client-side equivalent of the UI5 controller
   "! pattern getBinding('items').filter(...); the model data stays untouched:

@@ -121,6 +121,11 @@ INTERFACE z2ui5_if_ui5_types
     BEGIN OF ty_s_nav,
       set_app_state_active  TYPE abap_bool,
       set_push_state        TYPE string,
+      " HashChanger#replaceHash (client->hash_replace): the same write as
+      " set_push_state minus the history entry - the router's replace-navTo.
+      " When both are set in one roundtrip the push wins (the frontend
+      " processes setPushState first)
+      hash_replace          TYPE string,
       " Hash-based app routing (UI5 Router style): when active, the frontend
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash
@@ -135,6 +140,14 @@ INTERFACE z2ui5_if_ui5_types
       " app fresh; 'DEFAULT' turns routing off again; an empty value means 'no
       " change' (a session keeps the mode it already has).
       set_nav_routing       TYPE string,
+      " App-owned hash routing (routing OFF, cs_event-hash_attach_changed): the
+      " backend event name the frontend round-trips when the hash changes
+      " under the app (browser Back/Forward, a manual edit). While registered,
+      " set_push_state pushes its value as the whole app hash through the
+      " HashChanger and the router's per-response hash cleanup stands down
+      " (see app/webapp/core/Router.js applyHashEvent). Empty = no change; a
+      " single space = unregister - the set_app_state_active encoding
+      set_hash_listener     TYPE string,
       " Forward app navigation via a backend nav_app_call: tells the frontend to
       " PUSH a new route history entry ('#/app/<CLASS>' of the called app) so the
       " browser Back button returns to the calling app - the routing equivalent

@@ -49,7 +49,12 @@ support case.
       predating raw-JS `follow_up_action( )`. Replacement:
       `follow_up_action( |history.back()| )`, or `nav_app_leave( )` for
       navigation inside the app. Frontend handler deleted with it; the only
-      caller, samples app 322, moved to the raw-JS form in the same change
+      caller, samples app 322, moved to the raw-JS form in the same change.
+      **Superseded by `cs_event-hash_back`** (app-owned hash routing, the
+      UI5 onNavBack pattern with an optional fallback hash): with
+      `hash_attach_changed` registered, a consumed history step round-trips
+      as the registered event, which raw JS could never wire — a REAL back,
+      not a composed target, is what makes the router ports 1:1
 - [x] `z2ui5_if_types` retired to `src/99` — every type it held now sits on the
       object that uses it (`ty_s_get` / `ty_s_event_control` / `ty_s_name_value`
       / `ty_t_name_value` / `cs_device` on `z2ui5_if_client`, the three HTTP

@@ -57,7 +57,13 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getHash() {` && |\n| &&
-             `      const app = appHashOf(hashChanger().getHash());` && |\n| &&
+             `      return appHashNormalized(hashChanger().getHash());` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function appHashNormalized(sHash) {` && |\n| &&
+             `      const app = appHashOf(sHash);` && |\n| &&
+             `` && |\n| &&
+             `      if (app === "/") return "";` && |\n| &&
              `      return app && !app.startsWith("/") ? ``/${app}`` : app;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -111,10 +117,21 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function navBack(sFallback) {` && |\n| &&
+             `      if (!sFallback || AppState.state.hashPushCount > 0) {` && |\n| &&
+             `        window.history.back();` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      navTo(sFallback, true);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function onHashChanged(sNewHash) {` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
              `` && |\n| &&
-             `      if (!state.navRouting) return;` && |\n| &&
+             `      if (!state.navRouting) {` && |\n| &&
+             `        dispatchAppHashChange(sNewHash);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `` && |\n| &&
              `      const route = parse(sNewHash);` && |\n| &&
              `      if (!route) return;` && |\n| &&
@@ -129,6 +146,26 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `      state.navFromHash = true;` && |\n| &&
              `      if (_fnNavigate) _fnNavigate();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function applyHashEvent(mOptions) {` && |\n| &&
+             `      if (!mOptions.setHashEvent) return;` && |\n| &&
+             `      const state = AppState.state;` && |\n| &&
+             `      const sEvent = String(mOptions.setHashEvent).trim();` && |\n| &&
+             `      state.hashEvent = sEvent || null;` && |\n| &&
+             `` && |\n| &&
+             `      state.appHash = appHashNormalized(getRawHash());` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function dispatchAppHashChange(sNewHash) {` && |\n| &&
+             `      const state = AppState.state;` && |\n| &&
+             `      if (!state.hashEvent) return;` && |\n| &&
+             `      const appHash = appHashNormalized(sNewHash);` && |\n| &&
+             `      if (appHash === state.appHash) return;` && |\n| &&
+             `      state.appHash = appHash;` && |\n| &&
+             `      const controller = state.oController;` && |\n| &&
+             `      if (!controller || Lib.isDestroyed(controller)) return;` && |\n| &&
+             `      controller.eB([state.hashEvent]);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function repointCallerEntry(mOptions, draftForRoute) {` && |\n| &&
@@ -163,7 +200,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `        state.navFromHash = false;` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      if (mOptions.setPushState) return;` && |\n| &&
+             `      if (mOptions.setPushState || mOptions.setHashReplace) return;` && |\n| &&
              `` && |\n| &&
              `      const route = patternFor(app, draftForRoute);` && |\n| &&
              `      if (mOptions.checkNavAppCall) {` && |\n| &&
@@ -180,21 +217,61 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      const ID = mOptions.id;` && |\n| &&
              `      try {` && |\n| &&
              `        applyMode(mOptions);` && |\n| &&
+             `        applyHashEvent(mOptions);` && |\n| &&
              `` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
              `        if (state.navRouting) {` && |\n| &&
              `          const app = state.oResponse?.APP;` && |\n| &&
              `          if (app) updateAppRoute(mOptions, ID, app);` && |\n| &&
              `` && |\n| &&
-             `          if (!mOptions.setPushState) return;` && |\n| &&
+             `          if (!mOptions.setPushState && !mOptions.setHashReplace) return;` && |\n| &&
+             `` && |\n| &&
+             `          if (state.currentDraftId) {` && |\n| &&
+             `            if (mOptions.setPushState) {` && |\n| &&
+             `              state.hashPushCount += 1;` && |\n| &&
+             `              navTo(` && |\n| &&
+             `                patternFor(state.currentApp, state.currentDraftId) +` && |\n| &&
+             `                  mOptions.setPushState,` && |\n| &&
+             `              );` && |\n| &&
+             `            } else {` && |\n| &&
+             `              navTo(` && |\n| &&
+             `                patternFor(state.currentApp, state.currentDraftId) +` && |\n| &&
+             `                  mOptions.setHashReplace,` && |\n| &&
+             `                true,` && |\n| &&
+             `              );` && |\n| &&
+             `            }` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (mOptions.setPushState) {` && |\n| &&
+             `          if (state.hashEvent) {` && |\n| &&
+             `            state.appHash = appHashNormalized(mOptions.setPushState);` && |\n| &&
+             `            state.hashPushCount += 1;` && |\n| &&
+             `            navTo(mOptions.setPushState);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
              `          const newUrl = ``${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setPushState}``;` && |\n| &&
+             `          state.hashPushCount += 1;` && |\n| &&
              `          history.pushState(null, "", newUrl);` && |\n| &&
              `` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (mOptions.setHashReplace) {` && |\n| &&
+             `          if (state.hashEvent) {` && |\n| &&
+             `            state.appHash = appHashNormalized(mOptions.setHashReplace);` && |\n| &&
+             `            navTo(mOptions.setHashReplace, true);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          const replUrl = ``${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setHashReplace}``;` && |\n| &&
+             `          history.replaceState(null, "", replUrl);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (state.hashEvent) return;` && |\n| &&
              `` && |\n| &&
              `        const newHash = mOptions.setAppStateActive` && |\n| &&
              `          ? ``/z2ui5-xapp-state=${ID || ""}``` && |\n| &&
@@ -233,6 +310,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      appOf,` && |\n| &&
              `      draftOf,` && |\n| &&
              `      navTo,` && |\n| &&
+             `      navBack,` && |\n| &&
              `      onHashChanged,` && |\n| &&
              `      sync,` && |\n| &&
              `    };` && |\n| &&

@@ -78,6 +78,11 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_routing      FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_routing_default FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_attach_changed  FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_replace         FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_set_alias       FOR TESTING RAISING cx_static_check.
+    METHODS test_app_state_get_href   FOR TESTING RAISING cx_static_check.
+    METHODS test_app_state_href_flp   FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_nav FOR TESTING RAISING cx_static_check.
@@ -474,6 +479,105 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
                                         act = mo_action->mo_app->mv_nav_mode ).
+
+  ENDMETHOD.
+
+  METHOD test_hash_attach_changed.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " registration travels as a nav option, no custom action queued
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_attach_changed
+                                 t_arg = VALUE #( ( `HASH_CHANGED` ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `HASH_CHANGED`
+                                        act = mo_action->ms_next-s_nav-set_hash_listener ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
+
+    " no argument unregisters - a single space, since the frontend reads an
+    " EMPTY option as "no change"
+    li_client->follow_up_action( z2ui5_if_client=>cs_event-hash_attach_changed ).
+
+    cl_abap_unit_assert=>assert_equals( exp = ` `
+                                        act = mo_action->ms_next-s_nav-set_hash_listener ).
+
+  ENDMETHOD.
+
+  METHOD test_hash_replace.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " the typed method and the constant reach the same nav option
+    li_client->hash_replace( `/detail/0/OneColumn` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `/detail/0/OneColumn`
+                                        act = mo_action->ms_next-s_nav-hash_replace ).
+
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_replace
+                                 t_arg = VALUE #( ( `/other` ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `/other`
+                                        act = mo_action->ms_next-s_nav-hash_replace ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
+
+  ENDMETHOD.
+
+  METHOD test_hash_set_alias.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " hash_set and the obsolete set_push_state write the same field
+    li_client->hash_set( `/Page2` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `/Page2`
+                                        act = mo_action->ms_next-s_nav-set_push_state ).
+
+    li_client->set_push_state( `/Page3` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `/Page3`
+                                        act = mo_action->ms_next-s_nav-set_push_state ).
+
+  ENDMETHOD.
+
+  METHOD test_app_state_get_href.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " standalone: no shell hash - the app hash carries the state id after
+    " exactly one slash, the format the restore path parses
+    mo_action->mo_http_post->ms_request-s_front-origin   = `https://host:443`.
+    mo_action->mo_http_post->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
+    mo_action->mo_http_post->ms_request-s_front-search   = `?sap-client=100`.
+    mo_action->mo_http_post->ms_request-s_front-hash     = `#/detail/1/OneColumn`.
+    mo_action->mo_app->ms_draft-id = `DRAFT1`.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://host:443/sap/bc/z2ui5?sap-client=100#/z2ui5-xapp-state=DRAFT1`
+        act = li_client->app_state_get_href( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_app_state_href_flp.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " inside the FLP the shell hash survives and the state id hangs behind
+    " '&/' - exactly the format Router.hrefFor writes, so the recipient
+    " lands in this app instead of on the launchpad home page
+    mo_action->mo_http_post->ms_request-s_front-origin   = `https://flp`.
+    mo_action->mo_http_post->ms_request-s_front-pathname = `/ui2/flp/FioriLaunchpad.html`.
+    mo_action->mo_http_post->ms_request-s_front-search   = ``.
+    mo_action->mo_http_post->ms_request-s_front-hash     = `#Z2UI5App-display?p=1&/old/route`.
+    mo_action->mo_app->ms_draft-id = `DRAFT2`.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://flp/ui2/flp/FioriLaunchpad.html#Z2UI5App-display?p=1&/z2ui5-xapp-state=DRAFT2`
+        act = li_client->app_state_get_href( ) ).
 
   ENDMETHOD.
 

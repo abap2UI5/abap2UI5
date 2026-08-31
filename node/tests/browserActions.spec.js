@@ -22,6 +22,8 @@ function load() {
   const bodyOps = [];
   const opened = [];
 
+  const historyBacks = [];
+  const navBacks = [];
   const documentStub = {
     createElement: (tag) => {
       const el = {
@@ -54,7 +56,9 @@ function load() {
         },
       },
       "sap/ui/util/Storage": function () {},
-      "z2ui5/core/Router": {},
+      "z2ui5/core/Router": {
+        navBack: (fallback) => navBacks.push(fallback),
+      },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/AppState": { state: {} },
     },
@@ -63,6 +67,7 @@ function load() {
       window: {
         // same origin the real Lib resolves against (loadLibModule)
         location: { origin: "http://localhost:3000", pathname: "/sap/z2ui5" },
+        history: { back: () => historyBacks.push(1) },
         open: (url, target) => {
           const win = { opener: "the-parent-window" };
           opened.push({ url, target, win });
@@ -74,6 +79,8 @@ function load() {
 
   return {
     handlers: Browser.handlers,
+    historyBacks,
+    navBacks,
     anchors,
     bodyOps,
     opened,
@@ -82,6 +89,26 @@ function load() {
     errors: () => (libSandbox.z2ui5.errors || []).map((e) => e.message),
   };
 }
+
+test.describe("HASH_BACK", () => {
+  test("hands the back decision to the router, nothing else", () => {
+    // the app-side onNavBack of a UI5 router app's back button: Router.navBack
+    // owns the whole go(-1)-or-fallback decision (only the router touches the
+    // hash), this handler only forwards
+    const { handlers, navBacks, historyBacks, opened, boxErrors } = load();
+    handlers.HASH_BACK({}, ["HASH_BACK"]);
+    expect(navBacks).toEqual([undefined]);
+    expect(historyBacks).toEqual([]);
+    expect(opened).toEqual([]);
+    expect(boxErrors).toEqual([]);
+  });
+
+  test("the optional fallback hash travels along", () => {
+    const { handlers, navBacks } = load();
+    handlers.HASH_BACK({}, ["HASH_BACK", "/home"]);
+    expect(navBacks).toEqual(["/home"]);
+  });
+});
 
 test.describe("DOWNLOAD_B64_FILE", () => {
   test("a javascript: URL is blocked before any anchor exists", () => {
