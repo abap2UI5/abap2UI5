@@ -84,7 +84,14 @@ sap.ui.define(
     // without one - re-add it so comparisons against the slash-prefixed
     // routes this router builds hold on both stacks.
     function getHash() {
-      const app = appHashOf(hashChanger().getHash());
+      return appHashNormalized(hashChanger().getHash());
+    }
+
+    // The same normalization for a hash string from anywhere - a hashChanged
+    // event's newHash, a raw location hash, an app's set_push_state value -
+    // so every comparison in this module runs on one canonical form.
+    function appHashNormalized(sHash) {
+      const app = appHashOf(sHash);
       return app && !app.startsWith("/") ? `/${app}` : app;
     }
 
@@ -185,8 +192,12 @@ sap.ui.define(
       const state = AppState.state;
 
       // Routing is opt-in per app (cs_event-set_nav_routing); until one
-      // enabled it, the hash belongs entirely to the app (set_push_state).
-      if (!state.navRouting) return;
+      // enabled it, the hash belongs entirely to the app (set_push_state,
+      // and - when the app registered one - the HASH_LISTENER event).
+      if (!state.navRouting) {
+        dispatchAppHashChange(sNewHash);
+        return;
+      }
 
       const route = parse(sNewHash);
       if (!route) return;
@@ -208,6 +219,50 @@ sap.ui.define(
       // drop the forward entries and break the Forward button).
       state.navFromHash = true;
       if (_fnNavigate) _fnNavigate();
+    }
+
+    // ------------------------------------------------------------------
+    // App-owned hash routing (routing OFF) - the setHashEvent option
+    // ------------------------------------------------------------------
+
+    // Register a named backend event for hash changes while the APP owns the
+    // hash (cs_event-set_hash_listener). The registration travels as a nav
+    // OPTION on the response, not as a follow-up action, because sync( )
+    // must already see it on the very response that registers: follow-ups
+    // run AFTER the phase-2 sync, and a boot on a deep link (`#/Page2`)
+    // would have its hash wiped by the app-state cleanup below before the
+    // registration ever ran. While registered, set_push_state writes the
+    // hash as a real route through the HashChanger (see sync) and the
+    // cleanup leaves the hash alone. The value is the event name; a blank
+    // (single space) unregisters, empty means "no change" - the same
+    // encoding set_app_state_active uses. AppState's reset clears it on an
+    // app switch. Applies with routing OFF only - a routed app's hash
+    // belongs to the router, not to the app.
+    function applyHashEvent(mOptions) {
+      if (!mOptions.setHashEvent) return;
+      const state = AppState.state;
+      const sEvent = String(mOptions.setHashEvent).trim();
+      state.hashEvent = sEvent || null;
+      // adopt the hash the browser stands on as the app's known value, so
+      // the first CHANGE - not the registration's own render - dispatches
+      state.appHash = appHashNormalized(getRawHash());
+    }
+
+    // A hash change while the app owns the hash: swallow the echo of the
+    // app's own set_push_state write, adopt the new value, round-trip the
+    // registered event on the CURRENT main controller (always the live one,
+    // so a rebuilt view needs no re-registration to stay dispatchable). The
+    // new hash needs no argument - S_FRONT.HASH rides on every request, so
+    // the backend reads it from s_config-hash.
+    function dispatchAppHashChange(sNewHash) {
+      const state = AppState.state;
+      if (!state.hashEvent) return;
+      const appHash = appHashNormalized(sNewHash);
+      if (appHash === state.appHash) return;
+      state.appHash = appHash;
+      const controller = state.oController;
+      if (!controller || Lib.isDestroyed(controller)) return;
+      controller.eB([state.hashEvent]);
     }
 
     // ------------------------------------------------------------------
@@ -316,6 +371,7 @@ sap.ui.define(
       const ID = mOptions.id;
       try {
         applyMode(mOptions);
+        applyHashEvent(mOptions);
 
         const state = AppState.state;
         if (state.navRouting) {
@@ -346,6 +402,17 @@ sap.ui.define(
         }
 
         if (mOptions.setPushState) {
+          if (state.hashEvent) {
+            // The app owns the hash AND listens for its changes: write the
+            // value as the real app hash through the HashChanger - a pushed
+            // history entry hasher's cache follows, so the next browser Back
+            // fires hashChanged instead of being read as "no change" (the
+            // history.pushState below bypasses that cache). Adopt the value
+            // first so the write's own echo dies in dispatchAppHashChange.
+            state.appHash = appHashNormalized(mOptions.setPushState);
+            navTo(mOptions.setPushState);
+            return;
+          }
           // The app pushes its own hash suffix. Build the new URL on the RAW
           // hash so the FLP shell hash survives - appending to the app hash
           // alone would rewrite "#SO-action&/x" to "#x" and strand the
@@ -359,6 +426,13 @@ sap.ui.define(
           // pushed one line above.
           return;
         }
+        // While a HASH_LISTENER owns the hash, the cleanup below must not
+        // touch it: with the app's value in hasher's cache a replaceHash("")
+        // counts as a change and would wipe the hash on the NEXT unrelated
+        // roundtrip (the legacy pushState only survived it because the cache
+        // was desynced). The listener and the app-state hash are mutually
+        // exclusive by construction - both claim the whole app hash.
+        if (state.hashEvent) return;
         // The live URL must match the format the copy link
         // (FrontendAction.evClipboardAppState) writes and the backend restore
         // path expects: the app-state id is read as a URL parameter of the

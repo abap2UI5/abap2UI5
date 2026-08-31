@@ -57,7 +57,10 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
     deps: {
       "sap/ui/core/routing/HashChanger": { getInstance: () => hashChanger },
       "z2ui5/core/AppState": { state },
-      "z2ui5/core/Lib": { logError: (msg, e) => errors.push({ msg, e }) },
+      "z2ui5/core/Lib": {
+        logError: (msg, e) => errors.push({ msg, e }),
+        isDestroyed: (o) => !!(o && o.destroyed),
+      },
     },
     sandbox: {
       window: { location },
@@ -419,6 +422,95 @@ test("set_push_state in FRESH mode keeps the legacy history push", () => {
   expect(writes.filter((w) => w.hash === "")).toEqual([]);
 });
 
+// ---------------------------------------------------------------------------
+// App-owned hash routing (HASH_LISTENER, routing off)
+// ---------------------------------------------------------------------------
+
+test("a registered hash listener turns set_push_state into a HashChanger push", () => {
+  // history.pushState bypasses hasher's cache, so the next browser Back
+  // landed exactly on the cached value and hasher read "no change" - the
+  // registered event never fired. With a listener the value is the whole
+  // app hash, pushed through setHash so the cache follows. The registration
+  // arrives as a nav OPTION (setHashEvent) so the very response that
+  // registers is already covered.
+  const { Router, state, writes, pushes } = loadRouter({
+    state: { navRouting: false },
+  });
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  Router.sync({ setPushState: "/Page2", id: "D2" });
+  expect(pushes).toEqual([]);
+  expect(writes).toEqual([{ op: "set", hash: "Page2", guard: "D1" }]);
+  expect(state.hashEvent).toBe("HASH_CHANGED");
+  expect(state.appHash).toBe("/Page2");
+});
+
+test("the listener fires on a foreign hash change and swallows its own echo", () => {
+  const { Router, state } = loadRouter({ state: { navRouting: false } });
+  const fired = [];
+  state.oController = { eB: (a) => fired.push(a) };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  Router.sync({ setPushState: "/Page2", id: "D2" });
+  // the echo of our own write - both spellings hasher hands back
+  Router.onHashChanged("Page2");
+  Router.onHashChanged("/Page2");
+  expect(fired).toEqual([]);
+  // browser Back to the entry without the hash
+  Router.onHashChanged("");
+  expect(fired).toEqual([["HASH_CHANGED"]]);
+  expect(state.appHash).toBe("");
+  // browser Forward to the pushed entry again
+  Router.onHashChanged("/Page2");
+  expect(fired).toEqual([["HASH_CHANGED"], ["HASH_CHANGED"]]);
+});
+
+test("a hash listener keeps the per-response cleanup off the hash", () => {
+  // with the app's value in hasher's cache, the trailing replaceHash("")
+  // would count as a change and wipe the hash on the NEXT unrelated
+  // roundtrip - sync must leave a listener-owned hash alone. The same
+  // response registering the listener is already covered (applyHashEvent
+  // runs before the cleanup), which is what a boot on a deep link needs.
+  const { Router, writes, pushes } = loadRouter({
+    state: { navRouting: false },
+  });
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  Router.sync({ id: "D2" });
+  expect(writes).toEqual([]);
+  expect(pushes).toEqual([]);
+});
+
+test("a deep-link boot adopts the hash it was opened on", () => {
+  // opening ?app_start=...#/Page2 cold: the first response registers the
+  // listener, applyHashEvent adopts the live hash as the known value - no
+  // dispatch for the boot hash itself, and the cleanup leaves it alone
+  const { Router, state, writes } = loadRouter({
+    state: { navRouting: false },
+    href: "https://host/sap/z2ui5#/Page2",
+  });
+  const fired = [];
+  state.oController = { eB: (a) => fired.push(a) };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  Router.onHashChanged("/Page2");
+  expect(fired).toEqual([]);
+  expect(writes).toEqual([]);
+});
+
+test("a blank setHashEvent unregisters, a destroyed controller stays silent", () => {
+  const { Router, state } = loadRouter({ state: { navRouting: false } });
+  const fired = [];
+  state.oController = { eB: (a) => fired.push(a), destroyed: false };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  // the controller died with its view mid-rebuild
+  state.oController.destroyed = true;
+  Router.onHashChanged("/Page2");
+  expect(fired).toEqual([]);
+  // a single space is the unregister encoding (empty means "no change")
+  state.oController.destroyed = false;
+  Router.sync({ setHashEvent: " ", id: "D2" });
+  expect(state.hashEvent).toBe(null);
+  Router.onHashChanged("/other");
+  expect(fired).toEqual([]);
+});
+
 test("the app-state hash reaches the HashChanger slash-less too", () => {
   // hasher prepends the one canonical "/" - the live URL becomes
   // "#/z2ui5-xapp-state=ABC", exactly the format the copy link writes
@@ -468,6 +560,7 @@ test("reads exactly the option names the backend writes", () => {
     "navAppCallPrevApp",
     "navAppCallPrevId",
     "setAppStateActive",
+    "setHashEvent",
     "setNavRouting",
     "setPushState",
   ]);

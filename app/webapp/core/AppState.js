@@ -162,11 +162,25 @@ sap.ui.define([], () => {
       //                 the resulting render must NOT rewrite the hash: the
       //                 browser is at a non-top history position and rewriting
       //                 there drops the forward entries (Forward would break).
+      //  hashEvent      app-owned hash routing (routing OFF): the backend
+      //                 event name the app registered via
+      //                 cs_event-set_hash_listener (core/Router.applyHashEvent,
+      //                 the setHashEvent nav option). While registered the
+      //                 hash belongs to the app: set_push_state pushes
+      //                 through the HashChanger and a hash change the app
+      //                 did not write itself round-trips this event on the
+      //                 current MAIN controller; the per-response cleanup
+      //                 leaves the hash alone. Dies with the app switch.
+      //  appHash        the app hash last written or dispatched under that
+      //                 listener - the echo guard, mirroring what
+      //                 currentDraftId does for the draft routes.
       navRouting: false,
       navMode: null,
       currentApp: null,
       currentDraftId: null,
       navFromHash: false,
+      hashEvent: null,
+      appHash: "",
 
       // Control / helper state
       errors: [],

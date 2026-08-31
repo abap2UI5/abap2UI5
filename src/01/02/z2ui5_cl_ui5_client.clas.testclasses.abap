@@ -78,6 +78,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_routing      FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_routing_default FOR TESTING RAISING cx_static_check.
+    METHODS test_set_hash_listener    FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_nav FOR TESTING RAISING cx_static_check.
@@ -474,6 +475,28 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
                                         act = mo_action->mo_app->mv_nav_mode ).
+
+  ENDMETHOD.
+
+  METHOD test_set_hash_listener.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " registration travels as a nav option, no custom action queued
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_hash_listener
+                                 t_arg = VALUE #( ( `HASH_CHANGED` ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `HASH_CHANGED`
+                                        act = mo_action->ms_next-s_nav-set_hash_listener ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
+
+    " no argument unregisters - a single space, since the frontend reads an
+    " EMPTY option as "no change"
+    li_client->follow_up_action( z2ui5_if_client=>cs_event-set_hash_listener ).
+
+    cl_abap_unit_assert=>assert_equals( exp = ` `
+                                        act = mo_action->ms_next-s_nav-set_hash_listener ).
 
   ENDMETHOD.
 

@@ -72,6 +72,7 @@ INTERFACE z2ui5_if_client
       set_app_state_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
       set_push_state            TYPE string VALUE `SET_PUSH_STATE`,
       set_nav_routing           TYPE string VALUE `SET_NAV_ROUTING`,
+      set_hash_listener         TYPE string VALUE `SET_HASH_LISTENER`,
 
       "obsolet
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
@@ -487,10 +488,10 @@ INTERFACE z2ui5_if_client
   "! one, and this one is a second name for half of it.
   "!
   "! The one difference is follow_up_action( )'s leading CASE, which claims
-  "! cs_event-set_nav_routing / set_push_state / set_app_state_active before
-  "! that branch. Those three are backend-side navigation options rather than
-  "! frontend handlers, so wiring one into a view attribute never dispatched
-  "! anything here either.
+  "! cs_event-set_nav_routing / set_push_state / set_app_state_active /
+  "! set_hash_listener before that branch. Those four are backend-side
+  "! navigation options rather than frontend handlers, so wiring one into a
+  "! view attribute never dispatched anything here either.
   "!
   "! It stays in the interface so existing apps keep compiling - rename the
   "! calls at your leisure.
@@ -759,6 +760,20 @@ INTERFACE z2ui5_if_client
   "! scope beats a slot scope (it is the more specific statement), then the
   "! innermost open slot wins. An empty event name removes the registration of
   "! THAT scope only.
+  "! cs_event-set_hash_listener - APP-OWNED hash routing, the 1:1 counterpart
+  "! of a UI5 router's own hash (`#/Page2`) for an app that does NOT use
+  "! set_nav_routing: t_arg = a backend event name. From then on
+  "! set_push_state( `/Page2` ) writes that value as the whole app hash (a
+  "! pushed history entry), and a hash change the app did not write itself -
+  "! browser Back/Forward, a manual URL edit - fires the registered event;
+  "! the hash the browser now stands on arrives with that request (and with
+  "! every other one, a fresh deep-link start included) in
+  "! get( )-s_config-hash, so the app decides what to show. While registered,
+  "! the framework leaves the hash entirely alone. Calling it without t_arg
+  "! unregisters. The registration dies with an app switch - register it in
+  "! view_display( ), so every render (a draft restore included) re-asserts
+  "! it. Mutually exclusive with set_nav_routing (a routed app's hash belongs
+  "! to the router) and with set_app_state_active (both claim the whole hash).
   "! cs_event-binding_call - apply a declarative filter/sorter to an
   "! aggregation binding, the client-side equivalent of the UI5 controller
   "! pattern getBinding('items').filter(...); the model data stays untouched:

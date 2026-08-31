@@ -60,6 +60,8 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      currentApp: null,` && |\n| &&
              `      currentDraftId: null,` && |\n| &&
              `      navFromHash: false,` && |\n| &&
+             `      hashEvent: null,` && |\n| &&
+             `      appHash: "",` && |\n| &&
              `` && |\n| &&
              `      errors: [],` && |\n| &&
              `      timers: {},` && |\n| &&

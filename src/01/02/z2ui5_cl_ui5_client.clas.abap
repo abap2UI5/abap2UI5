@@ -69,6 +69,17 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         mo_action->ms_next-s_nav-set_push_state = lv_arg.
         RETURN.
 
+      WHEN z2ui5_if_client=>cs_event-set_hash_listener.
+        " app-owned hash routing: the event name registered for hash changes.
+        " Empty on the wire means "no change", so an unregister (no t_arg)
+        " travels as a single space - the set_app_state_active encoding. Not
+        " remembered on the app: the registration dies with an app switch,
+        " and an app asserts it in view_display( ), so every render carries it
+        mo_action->ms_next-s_nav-set_hash_listener = COND #( WHEN lv_arg IS INITIAL
+                                                             THEN ` `
+                                                             ELSE lv_arg ).
+        RETURN.
+
       WHEN z2ui5_if_client=>cs_event-set_app_state_active.
         " an empty argument list switches it ON - a single space is how an
         " app switches it off again, since an empty t_arg cannot say `false`
