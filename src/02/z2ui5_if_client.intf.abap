@@ -52,6 +52,7 @@ INTERFACE z2ui5_if_client
       keyboard_shortcut         TYPE string VALUE `KEYBOARD_SHORTCUT`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
+      history_back              TYPE string VALUE `HISTORY_BACK`,
       set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       urlhelper                 TYPE string VALUE `URLHELPER`,

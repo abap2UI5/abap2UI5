@@ -22,6 +22,7 @@ function load() {
   const bodyOps = [];
   const opened = [];
 
+  const historyBacks = [];
   const documentStub = {
     createElement: (tag) => {
       const el = {
@@ -63,6 +64,7 @@ function load() {
       window: {
         // same origin the real Lib resolves against (loadLibModule)
         location: { origin: "http://localhost:3000", pathname: "/sap/z2ui5" },
+        history: { back: () => historyBacks.push(1) },
         open: (url, target) => {
           const win = { opener: "the-parent-window" };
           opened.push({ url, target, win });
@@ -74,6 +76,7 @@ function load() {
 
   return {
     handlers: Browser.handlers,
+    historyBacks,
     anchors,
     bodyOps,
     opened,
@@ -82,6 +85,19 @@ function load() {
     errors: () => (libSandbox.z2ui5.errors || []).map((e) => e.message),
   };
 }
+
+test.describe("HISTORY_BACK", () => {
+  test("steps the browser history back, nothing else", () => {
+    // the app-side window.history.go(-1) of a UI5 router app's back button;
+    // with a hash listener registered the resulting hash change round-trips
+    // like a real browser Back
+    const { handlers, historyBacks, opened, boxErrors } = load();
+    handlers.HISTORY_BACK({}, ["HISTORY_BACK"]);
+    expect(historyBacks).toEqual([1]);
+    expect(opened).toEqual([]);
+    expect(boxErrors).toEqual([]);
+  });
+});
 
 test.describe("DOWNLOAD_B64_FILE", () => {
   test("a javascript: URL is blocked before any anchor exists", () => {
