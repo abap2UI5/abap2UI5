@@ -54,7 +54,7 @@ jobs:
             echo "$changed" | sed 's/^/  /'
             echo ""
             echo "src/99 is kept only so downstream apps keep compiling."
-            echo "The XML view builder is being replaced by the ai-demokit"
+            echo "The XML view builder is being replaced by the samples-controls"
             echo "version; that work does not happen in this repository."
             echo "See AGENTS.md, 'Layered Design'."
             exit 1

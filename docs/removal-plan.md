@@ -51,7 +51,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       - Removing them also deletes the remap block in
         `z2ui5_cl_core_srv_event=>map_client_event` (~20 lines) that rewrites
         them onto `control_by_id` + method `to`.
-      - Zero usages in samples and ai-demokit (checked, incl. raw literals).
+      - Zero usages in samples and samples-controls (checked, incl. raw literals).
 - [ ] **`cs_event-image_editor_popup_close`** — `z2ui5_if_client.intf.abap:56`.
       Belongs to `z2ui5_cl_pop_image_editor`; goes when `src/99/02` goes.
 

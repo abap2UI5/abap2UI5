@@ -29,7 +29,7 @@ Quick orientation while it loads:
 - The app checks its own authorizations at the top of `main`.
 - Validate with the abap2UI5-linter
   (`npx --yes github:abap2UI5/linter <file>`); iterate without a SAP
-  system via the ai-mcp server (`deploy_app` → `build_backend` → `run_app`).
+  system via the mcp-server server (`deploy_app` → `build_backend` → `run_app`).
 - The API contract is `src/02/z2ui5_if_client.intf.abap` — when unsure about
   a method or a `cs_event` action, read it there; the `follow_up_action`
   abapdoc documents the full frontend-action catalog.
