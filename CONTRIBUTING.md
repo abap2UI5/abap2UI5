@@ -36,16 +36,27 @@ abap2UI5 is a framework for developing UI5 applications purely in ABAP, without 
 4. **ABAP Development Environment** - SE80, ADT, or your preferred ABAP editor
 
 **For Node.js Development (Optional):**
-5. **Node.js** - [Download Node.js](https://nodejs.org/) (only needed for transpilation testing)
+5. **Node.js 22 or newer** - [Download Node.js](https://nodejs.org/) (needed for
+   transpilation testing and for every `npm run` gate; `package.json` declares
+   `"engines": { "node": ">=22" }` and the CI toolchain is pinned to it). The
+   gates and the build pipeline are Node scripts on purpose: nothing in them
+   assumes a POSIX shell, so `npm run verify` runs on Linux, macOS and Windows
+   alike.
 
 ### Understanding the Project
 
 The repository structure:
 - `src/` - Core ABAP framework classes
-- `app/` - UI5 frontend source (`app/webapp/`) and frontend tooling
+- `app/` - the UI5 frontend as a Fiori project (`app/webapp/` plus `ui5.yaml` etc.)
+- `tools/` - generators that build artefacts out of `app/webapp/` (embedded ABAP, BSP packaging, delivery branches)
+- `frontend/` - the non-generated parts of the delivery branches (ICF/BSP ABAP artefacts, common files)
 - `node/` - Node.js transpilation setup
+- `docs/` - documentation for contributors and agents (`docs/agents/` maps the directories, the workflows and the test inventory; `docs/removal-plan.md` is what to read before removing any compatibility symbol)
+- `backlog/` - findings that belong in ANOTHER repository of the ecosystem (abaplint, the transpiler, the linter). Found a defect that is not ours to fix? It goes here rather than getting lost - see [`backlog/README.md`](backlog/README.md)
+- `.claude/skills/` - task-scoped guidance (the ABAP and UI5 problem catalogues a green CI does not catch)
 - `.github/` - CI/CD workflows and configurations
 - `package.json` - Node.js dependencies and build scripts
+- `changelog.txt` - every user-visible change lands here under `unreleased` (the pull-request template asks for it)
 
 ## Development Environment Setup
 
@@ -61,15 +72,19 @@ cd abap2UI5
 git remote add upstream https://github.com/abap2UI5/abap2UI5.git
 ```
 
-### 2. Install Dependencies (Optional)
+### 2. Install Dependencies
 
-Only needed if you plan to run transpilation tests locally:
+Required for everything below: `npx abaplint`, `npm run check`, `npm run verify`
+and every `npm run check:*` gate come from these dependencies.
 
 ```bash
 npm install
 ```
 
-This installs the abaplint CLI (`@abaplint/cli`) and other tools automatically.
+This installs the abaplint CLI (`@abaplint/cli`) and the other tools
+automatically. The first `npm run check` additionally clones three pinned git
+dependencies into `node/deps/` (`node/setup/fetch-deps.mjs`), so it needs
+network access once; after that the checks run offline.
 
 ## ABAP Development with abapGit
 
@@ -155,7 +170,7 @@ npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix
 # Fast inner loop: abaplint only (seconds)
 npm run check
 
-# Full gate before every PR: check -> downport -> transpile -> unit
+# Full gate before every PR (lint, gates, downport, transpile, unit + JS specs - see AGENTS.md)
 # (non-destructive - runs in node/downport/, never touches src/)
 npm run verify
 ```
@@ -196,7 +211,17 @@ Look for issues labeled:
 
 2. **Make Your Changes:**
    - **ABAP Changes:** Use abapGit workflow (recommended)
-   - **Frontend (`app/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend with `npm run app2abap`
+   - **Frontend (`app/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend in `src/01/03/` with `npm run app2abap` and commit it with your change — `npm run check:app2abap` is the gate that fails otherwise. The delivery trees are NOT committed: `npm run check:frontend` builds them into the git-ignored `tools/out/` to prove the build, and `frontend_deploy` builds and ships them from `main`
+
+     > This repository is the **only** place the frontend is edited.
+     > [abap2UI5/frontend](https://github.com/abap2UI5/frontend) publishes the
+     > same webapp as installable branches, but it is generated: every branch
+     > there is a tree built here from `app/webapp/`, delivered by
+     > `frontend_deploy` into `result/<branch>` on its `main` and fanned out
+     > from there by its `deliver` workflow, so a change made in that
+     > repository is silently discarded on the next delivery. Its `guard`
+     > workflow rejects manual pull requests for exactly that reason — see its
+     > [CONTRIBUTING.md](https://github.com/abap2UI5/frontend/blob/main/CONTRIBUTING.md).
 
 3. **Test Your Changes:**
    ```bash
@@ -212,6 +237,22 @@ Look for issues labeled:
    > only to produce the `702` branch in CI. `npm run verify` performs the
    > identical downport non-destructively in `node/downport/`.
 
+   Several of the gates are generators, and their failure message names the
+   script that fixes them. If you would rather not install the toolchain for
+   that, comment **`/fix`** on the pull request: CI runs all of them —
+   `npm run app2abap`, `npm run fmt:chains`, `npm run backlog`,
+   `npm run frontend:build` — and commits the result to your branch. Name a
+   subset to skip the rest (`/fix chains backlog`; `app2abap` is three of the
+   five minutes). `/fix abaplint` is the formatting pass on its own
+   (`npm run auto_abaplint`), which `app2abap` also ends in but only after
+   regenerating the whole embedded frontend first. Applying the `autofix`
+   label does the same thing as a bare `/fix`.
+
+   > `/fix` cannot push to a fork's branch, so on a pull request from a fork it
+   > answers with the command line to run locally instead. And because a commit
+   > made by CI does not start a new workflow run, push once more (or reopen the
+   > pull request) after it lands, so the checks judge the fixed tree.
+
 4. **Commit Your Changes:**
    ```bash
    git add .
@@ -223,10 +264,14 @@ Look for issues labeled:
    ```
 
 #### Commit Message Guidelines
-- Use [conventional commits](https://www.conventionalcommits.org/): `type: description`
-- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Keep first line under 50 characters
-- Add detailed description for complex changes
+The rule for the whole ecosystem is
+[`.github/shared/CONVENTIONS.md` section 7](.github/shared/CONVENTIONS.md#7-commits-and-pull-requests),
+and it binds this repository too: a subject in the imperative describing the
+**outcome**, not the mechanics. Do not repeat it here — this file used to ask
+for conventional commits under 50 characters while AGENTS.md asked for
+something else again and CONVENTIONS asked for a third thing, so a
+contributor reading two of the three got a rule the reviewer did not hold
+them to.
 
 ## Submitting Changes
 

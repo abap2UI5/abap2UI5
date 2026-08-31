@@ -31,6 +31,11 @@
 //                     core:require; the global covers releases without
 //                     core:require); owns the date helpers Util
 //                     re-exports - grows via framework PRs only (Component)
+//   ccResourceRoot    absolute path of the custom-control BSP, set by the
+//                     backend GET page when there is no sibling BSP to
+//                     resolve "../z2ui5_cci/" against (backend HTML)
+//   cccResourceRoot   same for the customer frontend-extension BSP
+//                     ("../z2ui5_ccc/") (backend HTML)
 //   requestTimeoutMs  optional override for the roundtrip timeout (apps)
 //   <custom>          apps can register functions via the js_loader popup
 //                     and call them through the Z2UI5 frontend event
@@ -42,7 +47,15 @@
 //   oApp              sap.m.App hosting the main view (App.controller)
 //   oOwnerComponent, oDeviceModel (Component / App.controller)
 //   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
-//                     the five view slots, see core/ViewSlots.js (View1)
+//                     the five view slots, written by ViewSlots.setView
+//   slotXml           the view XML each slot was filled with, per slot key -
+//                     recorded by ViewSlots.setView and dropped by
+//                     ViewSlots.destroy, so it tracks the slot itself no
+//                     matter who tore it down (backend action or a
+//                     roundtrip-free frontend close). The developer tools
+//                     read a slot's source from here: a fragment or a view
+//                     built from a `definition` keeps no viewContent of its
+//                     own
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
 //   oControllerPopover  controller instance per slot (App.controller)
 //   oLaunchpad        FLP services when running inside the launchpad, else
@@ -54,11 +67,14 @@
 //                     Server.roundtrip/readHttp; this record exists for
 //                     onBeforeRoundtrip hooks and the developer tools
 //                     (View1.eB / Server)
-//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }
+//   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL,
+//                     APP, MODELPRESENT }
+//   renderedApp       class name of the last rendered app - an APP switch in
+//                     a response tears the standalone slots down implicitly
+//                     (View1._processAfterRendering)
 //   responseData      raw parsed response JSON (Server.readHttp); kept
-//                     besides oResponse because it carries fields the
-//                     cooked record does not (e.g. S_FRONT.APP, used by
-//                     the developer tools)
+//                     besides oResponse because the developer tools render
+//                     the raw payload
 //   contextId         stateful session id, header transport (Server)
 //   isBusy            roundtrip in flight (View1.eB / Server)
 //   oSentModel        the JSON model whose edited-path set the in-flight
@@ -66,28 +82,30 @@
 //                     once that request wins (Server), so a stale response
 //                     never clears newer edits and edits made in a DIFFERENT
 //                     model (e.g. a popover) are never shipped against this one
-//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip
 //   search            overrides location.search in S_FRONT; never written
 //                     by the framework itself, set externally (custom JS)
 //
 // Control / helper state
 //   errors            capped error log, see Lib.logError
-//   timers            single pending backend timer (FrontendAction)
+//   timers            single pending backend timer (actions/ViewOps)
 //   shortcuts         registered keyboard shortcuts, normalized combo ->
 //                     scope -> { event, controller }, the scope being a view
-//                     slot key or "" for unscoped (FrontendAction.
-//                     KEYBOARD_SHORTCUT). Dispatch takes the innermost OPEN
+//                     slot key or "" for unscoped (actions/Shortcuts). Dispatch takes the innermost OPEN
 //                     scope, so a popover-local shortcut shadows the page one
 //                     the way a UI5 CommandExecution in dependents does;
 //                     an app switch resets it, the document listener stays
-//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
-//   viewSizeLimits    per-slot model size limits (FrontendAction)
+//   lastScrolled      last scrolled element per slot (ScrollFocus.onScrollCapture)
+//   viewSizeLimits    per-slot model size limits (actions/ViewOps)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
-//   developerTools         DeveloperTools instance (Component, Ctrl+F12)
 //   lastError         the last fatal error shown by ErrorView (title/text/
-//                     onRetry), so the DeveloperTools Error tab can re-show it
+//                     onRetry), so a details view can re-show it
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
-//   onBeforeEventFrontend  callback arrays, see Lib.registerCallback
+//   onBeforeEventFrontend, onErrorDetails  callback arrays, see
+//                     Lib.registerCallback. onErrorDetails is the extension
+//                     point behind the fatal-error overlay's Details action:
+//                     ErrorView runs whatever registered and hides the button
+//                     when nothing did (devtools/DevTools.js registers
+//                     the in-app developer tools there)
 sap.ui.define([], () => {
   "use strict";
 
@@ -109,20 +127,21 @@ sap.ui.define([], () => {
       oControllerNest2: null,
       oControllerPopup: null,
       oControllerPopover: null,
+      slotXml: {},
       oLaunchpad: null,
 
       // Roundtrip state
       oBody: null,
       oResponse: null,
+      renderedApp: null,
       responseData: null,
       contextId: null,
       isBusy: false,
       oSentModel: null,
-      checkNestAfter: false,
-      checkNestAfter2: false,
       search: null,
 
-      // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).
+      // Hash-based app routing (UI5 Router style, opt-in per app via
+      // follow_up_action( cs_event-set_nav_routing )).
       // Owned by core/Router.js - see there for the route format and how the
       // hash is split between the FLP shell and the app.
       //  navRouting  once the running app enabled routing, the URL hash mirrors
@@ -156,7 +175,6 @@ sap.ui.define([], () => {
       lastScrolled: {},
       viewSizeLimits: {},
       treeStates: {},
-      developerTools: null,
       lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)
@@ -164,6 +182,7 @@ sap.ui.define([], () => {
       onAfterRoundtrip: [],
       onAfterRendering: [],
       onBeforeEventFrontend: [],
+      onErrorDetails: [],
     };
   }
 

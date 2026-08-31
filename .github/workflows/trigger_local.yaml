@@ -1,19 +1,32 @@
 name: trigger_local
 
-# Keeps abap2UI5/abap2UI5-local in sync with this repository, analogous to
-# create_frontend for abap2UI5/frontend: every push to main refreshes the
-# input/ copy in abap2UI5-local and pushes it to its main branch via a
-# deploy key. That push then triggers the generate_702/standard/cloud
-# workflows over there, which rebuild the artifact branches. The monthly
-# update_input cron in abap2UI5-local remains as a safety net.
+# Keeps abap2UI5/abap2UI5-local in sync with this repository: every push to
+# main refreshes the input/ copy in abap2UI5-local and pushes it to its main
+# branch via a deploy key. That push then triggers the
+# generate_702/standard/cloud workflows over there, which rebuild the artifact
+# branches. The monthly update_input cron in abap2UI5-local remains as a
+# safety net.
+#
+# abap2UI5/frontend used to be kept in sync the same way (create_frontend,
+# which mirrored app/webapp into its main). It no longer is: the frontend
+# build lives here now, and frontend_deploy.yaml pushes finished branches
+# there instead of a source to build from.
 #
 # Requires the secret ACTION_KEY_LOCAL: the private half of a deploy key
 # registered on abap2UI5/abap2UI5-local with write access (same pattern as
 # ACTION_KEY_FRONTEND for the frontend repository).
 
+# Scoped by paths: the sync copies nothing but src/ into abap2UI5-local, so
+# a push that does not touch src/ has nothing to deliver. workflow_dispatch
+# stays as the manual override, and the monthly update_input cron over there
+# is the safety net either way. Not a required check, so a paths filter is
+# safe here.
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - '.github/workflows/trigger_local.yaml'
   workflow_dispatch:
 
 permissions:
@@ -30,24 +43,55 @@ jobs:
     timeout-minutes: 15
     steps:
     - name: Checkout abap2UI5 (this repo)
-      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         path: upstream
 
     - name: Checkout abap2UI5-local via deploy key
-      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/abap2UI5-local
         ref: main
         ssh-key: ${{ secrets.ACTION_KEY_LOCAL }}
         path: local
 
-    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+    # The one job that cannot use ./.github/actions/setup: both checkouts go
+    # into subdirectories (upstream/, local/), so there is no repository at
+    # the workspace root for a local action to be loaded from - and no
+    # package-lock.json there to key an npm cache on either.
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
         node-version: '22'
+
+    # The script this job runs belongs to the OTHER repository, and the step
+    # after this one runs it as bash, in this workflow, with ACTION_KEY_LOCAL
+    # already sitting in the checkout it came from. That is a write to
+    # abap2UI5-local choosing what executes here - so the script is pinned by
+    # content, and a change to it has to be acknowledged on this side too.
+    #
+    # Not moved into this repository instead: abap2UI5-local's own monthly
+    # update_input.yaml runs the same script, and one implementation of the
+    # refresh is what keeps the push-driven and scheduled paths identical.
+    # What was wrong was never where it lived, only that it could change
+    # unseen.
+    - name: The refresh script is the one this repository reviewed
+      run: |
+        set -euo pipefail
+        want=$(grep -v '^#' upstream/.github/pins/refresh_input.sha256 | tr -d '[:space:]')
+        got=$(sha256sum local/.github/scripts/refresh_input.sh | cut -d' ' -f1)
+        if [ "$want" != "$got" ]; then
+          echo "::error::abap2UI5-local's refresh_input.sh has changed."
+          echo "::error::  expected $want"
+          echo "::error::  found    $got"
+          echo "::error::This workflow executes that script with a deploy key in scope, so the"
+          echo "::error::change has to be read here as well. Review it, then update"
+          echo "::error::.github/pins/refresh_input.sha256 in this repository."
+          exit 1
+        fi
+        echo "refresh_input.sh matches the pinned hash ($got)"
 
     # Same refresh as update_input in abap2UI5-local (shared script kept
     # there), only running here so it happens on every upstream push
     # instead of once a month.
     - name: Refresh input, lint and push to abap2UI5-local main
-      run: bash local/.github/scripts/refresh_input.sh "$GITHUB_WORKSPACE/upstream/src"
+      run: bash local/.github/scripts/refresh_input.sh "$GITHUB_WORKSPACE/upstream/src" "$GITHUB_SHA"

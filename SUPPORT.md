@@ -6,7 +6,7 @@ Free, public, and where most questions get answered quickly:
 
 * **[Documentation](https://abap2ui5.github.io/docs/)** – Getting started, cookbook and technical reference
 * **[Samples](https://github.com/abap2UI5/samples)** – 350+ example apps to learn and copy from
-* **[Slack](https://communityinviter.com/apps/abapgit/abap)** – The abap2UI5 channel in the abapGit workspace, for questions and discussion
+* **[Slack](https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg)** – The abap2UI5 channel in the abapGit workspace, for questions and discussion
 * **[GitHub Issues](https://github.com/abap2UI5/abap2UI5/issues)** – Bug reports and feature requests
 
 Response times are best-effort – this is a community project. In practice, questions rarely stay unanswered for long.

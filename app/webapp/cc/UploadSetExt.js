@@ -51,11 +51,10 @@ sap.ui.define(
       },
 
       init() {
-        this._setControlBound = this.setControl.bind(this);
-        Lib.registerCallback("onAfterRendering", this._setControlBound);
+        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");
       },
       exit() {
-        Lib.unregisterCallback("onAfterRendering", this._setControlBound);
+        this._unhook();
       },
 
       _readFile(file) {
@@ -84,8 +83,11 @@ sap.ui.define(
         this.fireRemove();
       },
 
-      renderer: { apiVersion: 2, render() {} },
+      renderer: Lib.EMPTY_RENDERER,
       setControl() {
+        // Once claimed there is nothing left to do - skip the target lookup
+        // (byIdOfOwner walks the parent chain on every roundtrip) entirely.
+        if (this.getProperty("checkInit")) return;
         const uploadSet = ViewSlots.byIdOfOwner(
           this,
           this.getProperty("uploadSetId"),
@@ -93,7 +95,17 @@ sap.ui.define(
         if (!Lib.claimOnce(this, uploadSet)) return;
         try {
           uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));
-          uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));
+          // afterItemRemoved is @since 1.83; below that, adds keep working
+          // and the gap is reported instead of failing the whole setup
+          // (beforeItemRemoved is no substitute - it fires before the
+          // confirm dialog and would report cancelled removals)
+          if (uploadSet.attachAfterItemRemoved) {
+            uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));
+          } else {
+            Lib.logError(
+              "UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported",
+            );
+          }
         } catch (e) {
           Lib.logError("UploadSetExt.setControl: setup failed", e);
         }

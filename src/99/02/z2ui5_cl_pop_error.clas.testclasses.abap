@@ -27,7 +27,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_util_error.
 
-    DATA(lx) = NEW z2ui5_cx_a2ui5_error( val = `test error` ).
+    DATA(lx) = NEW z2ui5_cx_ui5_util_error( val = `test error` ).
     DATA(lo_pop) = z2ui5_cl_pop_error=>factory( lx ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
@@ -35,7 +35,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_custom.
 
-    DATA(lx) = NEW z2ui5_cx_a2ui5_error( val = `custom error` ).
+    DATA(lx) = NEW z2ui5_cx_ui5_util_error( val = `custom error` ).
     DATA(lo_pop) = z2ui5_cl_pop_error=>factory(
       x_root  = lx
       i_title = `My Error Title` ).
@@ -50,8 +50,16 @@ CLASS ltcl_test_roundtrip DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    DATA mo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA mi_client TYPE REF TO z2ui5_if_client.
+
+    METHODS popup_displayed_xml
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS popup_destroy_queued
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     METHODS client_create
       IMPORTING
@@ -70,18 +78,36 @@ ENDCLASS.
 
 CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
+  METHOD popup_displayed_xml.
+
+    result = VALUE #( mo_action->ms_next-t_action_front[
+                          slot   = z2ui5_if_client=>cs_view-popup
+                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ).
+
+  ENDMETHOD.
+
+
+  METHOD popup_destroy_queued.
+
+    result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
+                          slot   = z2ui5_if_client=>cs_view-popup
+                          method = z2ui5_if_ui5_types=>cs_slot_action-destroy ] ) ).
+
+  ENDMETHOD.
+
+
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_core_handler( `` ) ).
+    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_core_client( mo_action ).
+    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
 
   ENDMETHOD.
 
   METHOD roundtrip_event.
 
     client_create( io_app ).
-    io_app->check_initialized = abap_true.
+    mo_action->mo_app->mv_check_initialized = abap_true.
     mo_action->ms_actual-event = iv_event.
     io_app->main( mi_client ).
 
@@ -89,12 +115,12 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_init_displays_error.
 
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_a2ui5_error( `MY_ERROR_TEXT` ) ).
+    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_ui5_util_error( `MY_ERROR_TEXT` ) ).
     client_create( lo_pop ).
 
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    DATA(lv_xml) = mo_action->ms_next-s_set-s_popup-xml.
+    DATA(lv_xml) = popup_displayed_xml( ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `MY_ERROR_TEXT` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Error` ) ).
 
@@ -102,11 +128,11 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_confirm_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_a2ui5_error( `MY_ERROR_TEXT` ) ).
+    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_ui5_util_error( `MY_ERROR_TEXT` ) ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONFIRM` ).
 
-    cl_abap_unit_assert=>assert_true( mo_action->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_true( popup_destroy_queued( ) ).
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-o_app_leave ).
 
   ENDMETHOD.

@@ -1,0 +1,79 @@
+name: setup
+description: >
+  The Node toolchain every job in this repository starts from. One place for
+  the version, for the pinned action sha and for the three install
+  incantations that were otherwise copied into every workflow - and drifted
+  while they were copied (half the callers pinned actions/setup-node, half
+  tracked the v6 tag).
+
+  Checkout stays with the caller: a local action can only run once the
+  repository is on disk, so `actions/checkout` has to come first.
+
+  `trigger_local.yaml` cannot use this action - both of its checkouts go to
+  subdirectories, so there is no repository at the workspace root to load it
+  from. It therefore pins actions/setup-node itself, and that pin has to be
+  kept equal to the one below; they had already drifted a major version
+  apart, which is the drift this action exists to end.
+
+inputs:
+  cache:
+    description: >
+      Restore the npm cache. Needs a package-lock.json at the workspace root,
+      so a job that checks out into a subdirectory has to turn it off.
+    default: "true"
+  npm-ci:
+    description: "Install the root dependencies (npm ci)"
+    default: "false"
+  app-npm-ci:
+    description: "Install the dependencies of the Fiori project in app/ as well"
+    default: "false"
+  deps:
+    description: >
+      Fetch the abaplint dependencies (npm run deps). Needed by every abaplint
+      run; implies npm-ci, which has to have happened first.
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    # node-version-file, not a literal: `.nvmrc` is the one place the version
+    # is written, so a contributor with nvm/fnm lands on what CI runs instead
+    # of on whatever satisfies the `>=22` floor in package.json.
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version-file: .nvmrc
+        cache: ${{ inputs.cache == 'true' && 'npm' || '' }}
+        # BOTH lockfiles. `cache: npm` keys on the root package-lock.json
+        # alone, and three workflows (UI5_2X, check_app2abap, autofix) also run
+        # `npm --prefix app ci` over a 449 KB app/package-lock.json holding
+        # @ui5/cli, ui5-linter, prettier and eslint. Keyed on the root lock
+        # only, an app-lock bump reused a stale cache and a root-lock bump
+        # threw the app install away with it - wrong in both directions.
+        cache-dependency-path: |
+          package-lock.json
+          app/package-lock.json
+
+    - if: inputs.npm-ci == 'true' || inputs.deps == 'true'
+      shell: bash
+      run: npm ci
+
+    - if: inputs.app-npm-ci == 'true'
+      shell: bash
+      run: npm --prefix app ci
+
+    # The three dependencies are pinned by sha IN fetch-deps.mjs, so the file
+    # that names them is the cache key: it changes exactly when a pin is
+    # bumped. Without this every job that lints or downports re-clones all
+    # three, which is four jobs and twelve clones on an ordinary pull request.
+    # fetch-deps.mjs still runs on a hit - it is a ~50ms no-op when the
+    # checkout is already at the pinned sha, and it is what repairs a partial
+    # restore.
+    - if: inputs.deps == 'true'
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: node/deps
+        key: abap-deps-${{ runner.os }}-${{ hashFiles('node/setup/fetch-deps.mjs') }}
+
+    - if: inputs.deps == 'true'
+      shell: bash
+      run: npm run deps

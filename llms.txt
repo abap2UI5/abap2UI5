@@ -2,8 +2,14 @@
 
 > Framework for building SAP UI5 applications purely in ABAP - no JavaScript,
 > OData or RAP required. One ABAP class per app; the framework renders UI5 XML
-> views, binds ABAP data two-way and dispatches events over stateless HTTP
+> views, binds ABAP data and dispatches events over stateless HTTP
 > roundtrips. Supports NW 7.02 to ABAP Cloud, on-premise and cloud.
+
+If you arrived here from a web search rather than from this repository, the
+documentation site publishes its own, and it is the better map of the prose:
+https://abap2ui5.github.io/docs/llms.txt — every chapter with a one-line
+summary, plus https://abap2ui5.github.io/docs/llms-full.txt for all of it in
+one fetch. This file is the map of the CODE.
 
 Two audiences, two entry points:
 
@@ -16,14 +22,23 @@ Two audiences, two entry points:
   popups, navigation, validation tooling
 - [Client API contract](src/02/z2ui5_if_client.intf.abap): every method an app
   can call, with inline documentation
+- [Client API reference](https://abap2ui5.github.io/docs/resources/api.html):
+  the same contract as a generated, searchable page — also fetchable as
+  [client-api.json](https://abap2ui5.github.io/docs/api/client-api.json)
 - [App interface](src/02/z2ui5_if_app.intf.abap): the one interface an app implements
-- [View builder](src/02/z2ui5_cl_ai_xml.clas.abap): generic 1:1 UI5 XML builder
-- [Hello world](src/02/z2ui5_cl_app_hello_world.clas.abap): smallest complete app
+- [View builder](src/02/z2ui5_cl_ui5_view_builder.clas.abap): generic 1:1 UI5 XML builder
+- [Hello world](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap): smallest complete app
 - [Rendered documentation](https://abap2ui5.github.io/docs/): the human docs site
-- [Samples](https://github.com/abap2UI5/samples): curated example apps
-- [samples-controls](https://github.com/abap2UI5/samples-controls): ~280 gate-verified
-  ports of the official UI5 demo kit samples, plus CAPABILITIES.md (what
-  abap2UI5 can express)
+- [samples](https://github.com/abap2UI5/samples): 150 curated example apps, one
+  class each. [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)
+  lists every one of them with the words to search it by — ask it whether a
+  sample already exists before writing an app from scratch
+- [samples-controls](https://github.com/abap2UI5/samples-controls) (formerly
+  ai-demokit): 622 gate-verified ports of the official UI5 demo kit samples,
+  plus CAPABILITIES.md (what abap2UI5 can express)
+- [samples-stack](https://github.com/abap2UI5/samples-stack) (formerly
+  samples-ext): abap2UI5 combined with OData, RAP, WebSockets, the Fiori
+  Launchpad and more
 - [abap2UI5-linter](https://github.com/abap2UI5/linter): static +
   headless-render checks for app view code (CLI, GitHub Action, VS Code)
 - [mcp-server](https://github.com/abap2UI5/mcp-server): MCP server with the
@@ -33,5 +48,12 @@ Two audiences, two entry points:
 
 - [AGENTS.md](AGENTS.md): the complete briefing for changes to this
   repository - architecture, layered design, coding rules, validation
+- [Repository map](docs/agents/repository-map.md): what lives in which
+  directory outside src/ - app/, node/, tools/, frontend/, .github/
+  and every gate script in it
+- [CI/CD workflows](docs/agents/ci-workflows.md): what every workflow does,
+  grouped by purpose
+- [JS unit spec inventory](docs/agents/test-inventory.md): which app/webapp
+  module has which spec under node/tests/
 - [CONTRIBUTING.md](CONTRIBUTING.md): human contributor workflow
 - [abaplint.jsonc](abaplint.jsonc): machine-checked code standards

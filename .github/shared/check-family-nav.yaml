@@ -1,0 +1,38 @@
+name: check-family-nav
+
+# The bar at the top of the page and the card strip at the end of it are three
+# copies of the same markup, one per sample repository - abap2UI5/samples,
+# abap2UI5/samples-controls and abap2UI5/samples-stack. Copies drift, and the
+# way they drift is quiet: a subtitle reworded on one page only, a "you are
+# here" marker left on whichever page was copied from, a sibling dropped from
+# the footer, a link to an address that has since become a 404. None of that
+# breaks a build, and all of it is visible to every reader.
+#
+# The check is offline on purpose. Diffing the three against each other needs
+# the network, and then this repository goes red because github.com is having a
+# morning. It checks the canonical wording it carries itself instead - the same
+# strings in all three copies, so rewording one means editing three files. That
+# is the point, not a cost.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-family-nav-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-family-nav:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: '22'
+    - run: node scripts/check-family-nav.mjs

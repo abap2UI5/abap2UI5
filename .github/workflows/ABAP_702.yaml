@@ -8,7 +8,8 @@ on:
     types: [completed]
 
 concurrency:
-  group: ABAP_702-${{ github.ref }}
+  # the job always checks out the 702 branch, so all triggers coalesce
+  group: ABAP_702
   cancel-in-progress: true
 
 permissions:
@@ -20,13 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         ref: 702
-    - uses: actions/setup-node@v6
+    - uses: ./.github/actions/setup
       with:
-        node-version: '22'
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run deps
+        deps: "true"
     - run: npx abaplint .github/abaplint/abap_702.jsonc

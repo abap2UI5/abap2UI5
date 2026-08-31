@@ -8,6 +8,26 @@ const { loadLib } = require("./loadLibModule");
 
 const ORIGIN = "http://localhost:3000";
 
+test.describe("isDestroyed (async-continuation guard, 1.71 floor)", () => {
+  const { Lib } = loadLib();
+
+  test("prefers the isDestroyed() method where the release has it", () => {
+    expect(Lib.isDestroyed({ isDestroyed: () => true })).toBe(true);
+    // the method (@since 1.93) wins over a stray flag
+    expect(
+      Lib.isDestroyed({ isDestroyed: () => false, bIsDestroyed: true }),
+    ).toBe(false);
+  });
+
+  test("falls back to the bIsDestroyed flag on the 1.71 floor", () => {
+    // ManagedObject#isDestroyed() is absent there - without the fallback a
+    // destroyed control would read "alive" and the guards would misfire
+    expect(Lib.isDestroyed({ bIsDestroyed: true })).toBe(true);
+    expect(Lib.isDestroyed({})).toBe(false);
+    expect(Lib.isDestroyed(null)).toBe(false);
+  });
+});
+
 test.describe("isValidRedirectURL (same-origin http/https only)", () => {
   const { Lib } = loadLib();
 
@@ -241,6 +261,37 @@ test.describe("getMessaging (version-independent messaging facade)", () => {
     const { Lib, sandbox } = loadLib();
     sandbox.sap.ui.require = () => undefined;
     expect(Lib.getMessaging()).toBeNull();
+  });
+});
+
+test.describe("hasMessagingModule (warm-load gate for sap/ui/core/Messaging)", () => {
+  test("true from 1.118 on", () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.version = "1.142.0";
+    expect(Lib.hasMessagingModule()).toBe(true);
+  });
+
+  test("false below 1.118, where the module would 404", () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.version = "1.71.0";
+    expect(Lib.hasMessagingModule()).toBe(false);
+  });
+
+  // The legacy-free (UI5 2.x) build drops the sap.ui.version global, so the
+  // probe reads undefined on a 1.142 runtime. Answering "false" there would
+  // switch off the warm-load on the one build whose ONLY messaging API is
+  // sap/ui/core/Messaging - message> model and handleValidation would go
+  // silently dead. An unreadable version therefore means "modern".
+  test("true when the version global is absent (legacy-free build)", () => {
+    const { Lib, sandbox } = loadLib();
+    delete sandbox.sap.ui.version;
+    expect(Lib.hasMessagingModule()).toBe(true);
+  });
+
+  test("true when the version is unparsable", () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.version = "not-a-version";
+    expect(Lib.hasMessagingModule()).toBe(true);
   });
 });
 

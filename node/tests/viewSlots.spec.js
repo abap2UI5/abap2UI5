@@ -50,21 +50,15 @@ function load() {
   };
 }
 
-test.describe("key mappings", () => {
-  test("keyByParam maps response param keys to slot keys", () => {
+test.describe("slot table", () => {
+  test("exactly MAIN, POPUP and POPOVER carry a model of their own", () => {
+    // NEST and NEST2 are inserted into the MAIN control tree and inherit its
+    // model by UI5 propagation - giving them one of their own would detach
+    // them from the data every other view binds against
     const { ViewSlots } = load();
-    expect(ViewSlots.keyByParam("S_VIEW")).toBe("MAIN");
-    expect(ViewSlots.keyByParam("S_VIEW_NEST2")).toBe("NEST2");
-    expect(ViewSlots.keyByParam("S_POPUP")).toBe("POPUP");
-    expect(ViewSlots.keyByParam("UNKNOWN")).toBeUndefined();
-  });
-
-  test("paramByKey is the inverse of keyByParam for all slots", () => {
-    const { ViewSlots } = load();
-    for (const slot of ViewSlots.slots) {
-      expect(ViewSlots.paramByKey(slot.key)).toBe(slot.param);
-      expect(ViewSlots.keyByParam(slot.param)).toBe(slot.key);
-    }
+    expect(
+      ViewSlots.slots.filter((s) => s.ownsModel).map((s) => s.key),
+    ).toEqual(["MAIN", "POPUP", "POPOVER"]);
   });
 });
 
@@ -91,6 +85,13 @@ test.describe("view and controller access", () => {
       ["message", messageModel],
     ]);
     expect(registerCalls).toEqual([[view, true]]);
+  });
+
+  test("setView records the XML the slot was filled with", () => {
+    const { ViewSlots } = load();
+    ViewSlots.setView("POPUP", { setModel() {} }, "<Dialog/>");
+    expect(ViewSlots.getViewXml("POPUP")).toBe("<Dialog/>");
+    expect(ViewSlots.getViewXml("POPOVER")).toBeUndefined();
   });
 
   test("keyOfController finds the slot a controller serves", () => {
@@ -236,11 +237,87 @@ test.describe("destroy", () => {
     expect(z2ui5.oViewPopup).toBeUndefined();
   });
 
+  test("drops the recorded XML, whoever triggered the teardown", () => {
+    // The backend's ["VIEW_SLOTS","destroy","POPUP"] action and the
+    // roundtrip-free frontend close (cs_event-popup_close, which the backend
+    // formats as that same action) both land here - so the record cannot
+    // survive one of them and not the other.
+    const { ViewSlots } = load();
+    ViewSlots.setView("POPUP", { setModel() {}, destroy() {} }, "<Dialog/>");
+    ViewSlots.destroy("POPUP");
+    expect(ViewSlots.getViewXml("POPUP")).toBeUndefined();
+  });
+
+  test("drops the recorded XML of a slot whose view is already gone", () => {
+    // A fragment load that failed after recording, or a state reset that
+    // nulled the live instances: the record must not outlive the slot.
+    const { ViewSlots, z2ui5 } = load();
+    ViewSlots.setView("POPOVER", { setModel() {} }, "<Popover/>");
+    z2ui5.oViewPopover = null;
+    ViewSlots.destroy("POPOVER");
+    expect(ViewSlots.getViewXml("POPOVER")).toBeUndefined();
+  });
+
+  test("MAIN teardown drops the nests' recorded XML too", () => {
+    const { ViewSlots } = load();
+    ViewSlots.setView("MAIN", { setModel() {}, destroy() {} }, "<Page/>");
+    ViewSlots.setView("NEST", { setModel() {}, destroy() {} }, "<Nest/>");
+    ViewSlots.destroy("MAIN");
+    expect(ViewSlots.getViewXml("MAIN")).toBeUndefined();
+    expect(ViewSlots.getViewXml("NEST")).toBeUndefined();
+  });
+
   test("unregisters the view from the messaging facade before destroy", () => {
     const { ViewSlots, z2ui5, unregisterCalls } = load();
     const view = { destroy: () => {} };
     z2ui5.oView = view;
     ViewSlots.destroy("MAIN");
     expect(unregisterCalls).toEqual([view]);
+  });
+
+  test("MAIN teardown also destroys, unregisters and clears the nests", () => {
+    // The nested views sit inside the MAIN control tree - UI5 would destroy
+    // their controls with MAIN either way, but the slot references and the
+    // messaging registrations must not stay behind (an app switch replaces
+    // MAIN without an explicit nest destroy from the backend).
+    const { ViewSlots, z2ui5, unregisterCalls } = load();
+    const calls = [];
+    const mainView = { destroy: () => calls.push("MAIN") };
+    const nestView = { destroy: () => calls.push("NEST") };
+    const nest2View = { destroy: () => calls.push("NEST2") };
+    z2ui5.oView = mainView;
+    z2ui5.oViewNest = nestView;
+    z2ui5.oViewNest2 = nest2View;
+    ViewSlots.destroy("MAIN");
+    // nests leave first - their unregister needs the live view
+    expect(calls).toEqual(["NEST", "NEST2", "MAIN"]);
+    expect(z2ui5.oViewNest).toBeNull();
+    expect(z2ui5.oViewNest2).toBeNull();
+    expect(z2ui5.oView).toBeNull();
+    expect(unregisterCalls).toEqual([nestView, nest2View, mainView]);
+  });
+
+  test("clears a stale nest reference even when MAIN is already gone", () => {
+    const { ViewSlots, z2ui5 } = load();
+    const calls = [];
+    z2ui5.oViewNest = { destroy: () => calls.push("NEST") };
+    ViewSlots.destroy("MAIN");
+    expect(calls).toEqual(["NEST"]);
+    expect(z2ui5.oViewNest).toBeNull();
+  });
+
+  test("destroying a nest directly leaves MAIN and the other nest alone", () => {
+    const { ViewSlots, z2ui5 } = load();
+    const calls = [];
+    const mainView = { destroy: () => calls.push("MAIN") };
+    const nest2View = { destroy: () => calls.push("NEST2") };
+    z2ui5.oView = mainView;
+    z2ui5.oViewNest = { destroy: () => calls.push("NEST") };
+    z2ui5.oViewNest2 = nest2View;
+    ViewSlots.destroy("NEST");
+    expect(calls).toEqual(["NEST"]);
+    expect(z2ui5.oViewNest).toBeNull();
+    expect(z2ui5.oView).toBe(mainView);
+    expect(z2ui5.oViewNest2).toBe(nest2View);
   });
 });

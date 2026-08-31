@@ -1,0 +1,28 @@
+name: UI5_2X
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: UI5_2X-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  UI5_2X:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: ./.github/actions/setup
+      with:
+        app-npm-ci: "true"
+    - name: ui5lint (fails on any error)
+      run: npm run check:ui5
+    - name: eslint
+      run: cd app && npm run lint

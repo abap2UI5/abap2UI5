@@ -1,16 +1,40 @@
 {
   "global": {
-    // src/99 is deliberately NOT listed: the package is historical only (see
-    // AGENTS.md) - never analyzed, the repository must work identically with
-    // or without the folder
+    // src/99 is deliberately NOT listed in THIS strict ruleset: its frozen
+    // production code may not be changed to satisfy new rules (see AGENTS.md).
+    // The CI target configs (.github/abaplint/*) do syntax-lint it, and its
+    // test classes run in the transpiled unit suite.
+    // It had to be parsed here for as long as src/01 and src/02 named
+    // z2ui5_if_types - every consumer of that interface resolved through the
+    // frozen package. The types now sit on the objects that use them
+    // (z2ui5_if_client, z2ui5_if_ui5_exit, z2ui5_cl_ui5_srv_draft) and the
+    // interface itself is retired INTO src/99, where only src/99 resolves into
+    // it.
+    //
+    // ONE object in the frozen package is listed below on purpose:
+    // z2ui5_if_exit, the superseded name of z2ui5_if_ui5_exit. It is retired
+    // but not yet dead - z2ui5_cl_ui5_user_exit looks it up and calls it, so
+    // that no exit written against the old name breaks on the rename, and a
+    // src/01 class naming a type this parser cannot see is 37 unresolvable-type
+    // errors. Listing the one file keeps the rest of src/99 out, and the line
+    // goes when the interface does. Nothing else outside src/99 may point in.
     "files": [
       "/src/00/**/*.*",
       "/src/01/**/*.*",
       "/src/02/**/*.*",
+      "/src/99/z2ui5_if_exit.intf.*",
       "/src/*.*"
     ],
+    // Only the two mirrors are exempt: src/00/01 (AJSON) and src/00/02
+    // (S-RTTI) are vendored from upstream projects and may not be edited here,
+    // so a finding in them is a finding nobody in this repository may act on.
+    // src/00/03 is NOT a mirror - AGENTS.md says to edit it freely - and it
+    // used to be covered by a blanket "/src/00", which left the largest
+    // hand-written class in the repository (z2ui5_cl_ui5_util_context, 2.6k
+    // lines) as the one framework file no rule reached.
     "noIssues": [
-      "/src/00"
+      "/src/00/01",
+      "/src/00/02"
     ]
   },
   "dependencies": [
@@ -102,8 +126,8 @@
       "skip": [
         "Z2UI5_IF_APP",
         "Z2UI5_IF_CLIENT",
-        "Z2UI5_CL_CORE_ACTION",
-        "Z2UI5_CL_CORE_HANDLER"
+        "Z2UI5_CL_UI5_ACTION",
+        "Z2UI5_CL_UI5_HANDLER"
       ],
       "skipSharedMemory": true,
       "skipTestclasses": true
@@ -336,6 +360,7 @@
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
+    "xml_bom": true,
     "xml_consistency": true,
     "forbidden_void_type": {
       "check": [

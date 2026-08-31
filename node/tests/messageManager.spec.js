@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the real app/webapp/cc/MessageManager.js. The companion control keeps
-// the UI5 message manager in sync with its two-way bound `items` table (the
+// the UI5 message manager in sync with its bound `items` table (the
 // app's OWN messages): a reconcile adds the rows that are new, removes the
 // control's own rows that are gone, and never touches messages it did not add
 // (auto-collected binding validation).
@@ -37,6 +37,11 @@ function load() {
     unregisterCallback: (name, fn) => {
       if (callbacks[name])
         callbacks[name] = callbacks[name].filter((f) => f !== fn);
+    },
+    hookCallback(owner, name, method) {
+      const bound = owner[method].bind(owner);
+      this.registerCallback(name, bound);
+      return () => this.unregisterCallback(name, bound);
     },
     getMessaging: () => messaging,
   };
@@ -159,7 +164,7 @@ test.describe("MessageManager companion control", () => {
     expect(env.changeCount).toBe(1);
 
     // the same table again: nothing to add, nothing to remove. The table is
-    // two-way bound, so it arrives on EVERY roundtrip - firing change here
+    // bound, so it arrives on EVERY roundtrip - firing change here
     // would make an app that answers the event with a roundtrip loop.
     ext.setItems([{ MESSAGE: "A", TYPE: "Error", TARGET: "/X" }]);
     expect(env.changeCount).toBe(1);

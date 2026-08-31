@@ -2,16 +2,20 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real implementation shipped in app/webapp/core/Messages.js
-// (loaded via a stubbed sap.ui.define) instead of a local copy that could
-// drift. MessageBox / MessageToast / Lib are stubbed so the specs can
-// observe which display function a backend message ends up in.
+// Tests the MESSAGE_TOAST / MESSAGE_BOX display path shipped in
+// app/webapp/core/actions/ControlCall.js, driven through the same
+// CONTROL_GLOBAL dispatch a backend action arrives on. The options travel as
+// the call's last argument, a plain object already carrying the UI5 option
+// names: the backend sends only what the app set, so anything absent here is
+// absent because the app left it alone.
 
-function loadMessages() {
+function loadControlCall(sandbox) {
   const boxCalls = [];
   const toastCalls = [];
   const errors = [];
-  const boxFn = (name) => (text, params) => boxCalls.push({ name, text, params });
+  const ebCalls = [];
+  const boxFn = (name) => (text, params) =>
+    boxCalls.push({ name, text, params });
   const MessageBox = {
     show: boxFn("show"),
     alert: boxFn("alert"),
@@ -29,134 +33,149 @@ function loadMessages() {
   };
   const Lib = {
     logError: (message) => errors.push(message),
-    sanitizeMessageDetails: (html) => html,
+    sanitizeMessageDetails: (html) => `sanitized:${html}`,
+    whenRendered: (_control, _owner, fn) => fn(),
   };
   // ViewSlots.resolveById maps a control id to its element for the
   // dependentOn option. Only "knownId" resolves here.
   const elements = { knownId: { id: "knownId" } };
   const ViewSlots = {
     resolveById: (sId) => elements[sId] || null,
+    byId: () => null,
+    getView: () => null,
   };
-  // Stub sap.ui.core.Popup. toDockValue() looks dock positions up by their
-  // PascalCase key in Popup.Dock; newer UI5 spells the enum values in the
-  // same PascalCase form.
-  const Popup = {
-    Dock: {
-      BeginTop: "BeginTop",
-      BeginCenter: "BeginCenter",
-      BeginBottom: "BeginBottom",
-      CenterTop: "CenterTop",
-      CenterCenter: "CenterCenter",
-      CenterBottom: "CenterBottom",
-      EndTop: "EndTop",
-      EndCenter: "EndCenter",
-      EndBottom: "EndBottom",
+  const { module } = loadModule("core/actions/ControlCall.js", {
+    // MessageToast is no longer a define-dependency: the module requires it
+    // lazily at factory time (Popup.Dock capture order), so the stub arrives
+    // through a seeded sap.ui.require instead of the deps map
+    sandbox: {
+      ...(sandbox || {}),
+      sap: {
+        ui: {
+          require: (vDep, fnCb) => {
+            if (Array.isArray(vDep) && vDep[0] === "sap/m/MessageToast" && fnCb)
+              fnCb(MessageToast);
+            return null;
+          },
+        },
+      },
     },
-  };
-  const { module } = loadModule("core/Messages.js", {
     deps: {
       "sap/m/MessageBox": MessageBox,
-      "sap/m/MessageToast": MessageToast,
-      "sap/ui/core/Popup": Popup,
+      "sap/ui/core/BusyIndicator": {},
+      "sap/ui/model/Filter": function () {},
+      "sap/ui/model/FilterOperator": {},
+      "sap/ui/model/Sorter": function () {},
+      "z2ui5/core/Router": {},
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
     },
   });
-  return { Messages: module, boxCalls, toastCalls, errors, elements };
+  const oController = { eB: (...args) => ebCalls.push(args) };
+  // dispatch exactly like a backend action: the options object is the call's
+  // last argument and arrives already parsed
+  const dispatch = (target, method, text, mOptions) => {
+    const args = ["CONTROL_GLOBAL", target, method, text];
+    if (mOptions) args.push(mOptions);
+    module.handlers.CONTROL_GLOBAL(oController, args);
+  };
+  return { dispatch, boxCalls, toastCalls, errors, ebCalls, elements };
 }
 
-function showBox(msg) {
-  const env = loadMessages();
-  env.Messages.show("S_MSG_BOX", { S_MSG_BOX: msg }, null);
+function showBox(sType, mOptions) {
+  const env = loadControlCall();
+  env.dispatch("MESSAGE_BOX", sType, "boom", mOptions);
   return env;
 }
 
-test.describe("S_MSG_BOX type resolution", () => {
-  test("lowercase type calls the matching MessageBox method", () => {
-    const { boxCalls, errors } = showBox({ TEXT: "boom", TYPE: "error" });
+test.describe("message box type resolution", () => {
+  test("the type selects the matching MessageBox method", () => {
+    const { boxCalls, errors } = showBox("error");
     expect(boxCalls).toHaveLength(1);
     expect(boxCalls[0].name).toBe("error");
     expect(boxCalls[0].text).toBe("boom");
     expect(errors).toHaveLength(0);
   });
 
-  test("capitalized type falls back to the lowercase method", () => {
-    // The ABAP message formatter sends capitalized types ("Error",
-    // "Warning", ...) for multi-message boxes - these must still display.
-    const { boxCalls, errors } = showBox({ TEXT: "boom", TYPE: "Error" });
-    expect(boxCalls).toHaveLength(1);
-    expect(boxCalls[0].name).toBe("error");
-    expect(errors).toHaveLength(0);
-  });
-
-  test("unknown type falls back to show() and logs", () => {
-    const { boxCalls, errors } = showBox({ TEXT: "boom", TYPE: "garbage" });
-    expect(boxCalls).toHaveLength(1);
-    expect(boxCalls[0].name).toBe("show");
+  test("a type the whitelist does not carry is rejected", () => {
+    // the backend guarantees a MessageBox display method (falls back to
+    // `show` itself), so an unknown type can only be a forged payload - the
+    // CONTROL_GLOBAL whitelist rejects it like any other unlisted method
+    const { boxCalls, errors } = showBox("garbage");
+    expect(boxCalls).toHaveLength(0);
     expect(errors).toHaveLength(1);
     expect(errors[0]).toContain("garbage");
   });
+});
 
-  test("a type matching an enum member is not invoked as a function", () => {
-    // MessageBox.Action exists but is an enum object, not a display
-    // function - the lookup must skip it and fall back to show().
-    const { boxCalls } = showBox({ TEXT: "boom", TYPE: "Action" });
-    expect(boxCalls).toHaveLength(1);
-    expect(boxCalls[0].name).toBe("show");
-  });
-
-  test("a message without TEXT shows nothing", () => {
-    const { boxCalls } = showBox({ TYPE: "error" });
-    expect(boxCalls).toHaveLength(0);
-  });
-
-  test("contentWidth is forwarded when set", () => {
-    const { boxCalls } = showBox({
-      TEXT: "boom",
-      TYPE: "show",
-      CONTENTWIDTH: "20rem",
-    });
+test.describe("message box options", () => {
+  test("options are forwarded untouched", () => {
+    const { boxCalls } = showBox("show", { contentWidth: "20rem" });
     expect(boxCalls[0].params.contentWidth).toBe("20rem");
   });
 
-  test("empty contentWidth is not forwarded", () => {
-    const { boxCalls } = showBox({ TEXT: "boom", TYPE: "show" });
-    expect(boxCalls[0].params).not.toHaveProperty("contentWidth");
+  test("no options at all means a bare call - UI5 owns every default", () => {
+    const { boxCalls } = showBox("show");
+    expect(boxCalls[0].params).toBeUndefined();
+  });
+
+  test("details are sanitized", () => {
+    const { boxCalls } = showBox("show", { details: "<b>x</b>" });
+    expect(boxCalls[0].params.details).toBe("sanitized:<b>x</b>");
   });
 
   test("dependentOn resolves a control id to its element", () => {
-    const { boxCalls, elements } = showBox({
-      TEXT: "boom",
-      TYPE: "show",
-      DEPENDENTON: "knownId",
-    });
+    const { boxCalls, elements } = showBox("show", { dependentOn: "knownId" });
     expect(boxCalls[0].params.dependentOn).toBe(elements.knownId);
   });
 
   test("an unresolvable dependentOn id drops the option", () => {
-    const { boxCalls } = showBox({
-      TEXT: "boom",
-      TYPE: "show",
-      DEPENDENTON: "missingId",
-    });
-    expect(boxCalls[0].params).not.toHaveProperty("dependentOn");
+    // dependentOn was the only option, so dropping it leaves no options at
+    // all and the box falls back to the bare per-method call
+    const { boxCalls } = showBox("show", { dependentOn: "missingId" });
+    expect(boxCalls[0].params?.dependentOn).toBeUndefined();
+  });
+
+  test("onClose round-trips the event with the pressed action", () => {
+    const { boxCalls, ebCalls } = showBox("confirm", { onClose: "ANSWERED" });
+    boxCalls[0].params.onClose("OK");
+    // the pressed action rides OUTSIDE the event array - inside it, it would
+    // be shifted away with the array and never reach T_EVENT_ARG
+    expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
 });
 
-test.describe("S_MSG_TOAST", () => {
-  test("numeric duration string is parsed, garbage falls back to default", () => {
-    const env = loadMessages();
-    env.Messages.show(
-      "S_MSG_TOAST",
-      { S_MSG_TOAST: { TEXT: "hi", DURATION: "250" } },
-      null,
-    );
-    env.Messages.show(
-      "S_MSG_TOAST",
-      { S_MSG_TOAST: { TEXT: "ho", DURATION: "abc" } },
-      null,
-    );
+test.describe("message toast", () => {
+  test("options are forwarded untouched", () => {
+    const env = loadControlCall();
+    env.dispatch("MESSAGE_TOAST", "show", "hi", { duration: 250 });
+    expect(env.toastCalls[0].text).toBe("hi");
     expect(env.toastCalls[0].opts.duration).toBe(250);
-    expect(env.toastCalls[1].opts.duration).toBe(3000);
+  });
+
+  test("no options means a bare show() - UI5 applies its own defaults", () => {
+    const env = loadControlCall();
+    env.dispatch("MESSAGE_TOAST", "show", "hi");
+    expect(env.toastCalls[0].opts).toBeUndefined();
+  });
+
+  test("class lands on the toast DOM node, not in the options", () => {
+    // `class` is no MessageToast option: it is applied to the newest toast's
+    // DOM node afterwards, so passing it on would be an unknown option.
+    const added = [];
+    const toastEl = { classList: { add: (...c) => added.push(...c) } };
+    const env = loadControlCall({
+      document: { querySelectorAll: () => [toastEl] },
+    });
+    env.dispatch("MESSAGE_TOAST", "show", "hi", { class: "a b" });
+    expect(env.toastCalls[0].opts).toBeUndefined();
+    expect(added).toEqual(["a", "b"]);
+  });
+
+  test("onClose round-trips the event", () => {
+    const env = loadControlCall();
+    env.dispatch("MESSAGE_TOAST", "show", "hi", { onClose: "CLOSED" });
+    env.toastCalls[0].opts.onClose();
+    expect(env.ebCalls).toEqual([[["CLOSED"]]]);
   });
 });

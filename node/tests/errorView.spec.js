@@ -10,7 +10,11 @@ const { loadModule } = require("./loadModule");
 // node/tests/e2e/error-view.spec.js.
 
 function load({ ui5 = true } = {}) {
-  const state = { developerTools: null, lastError: null };
+  // A standard install registers a details provider (the in-app developer
+  // tools), so the default here does too - the Details button and the
+  // button order the tests below assert on are the normal case. The
+  // "no Details button" test clears it explicitly.
+  const state = { onErrorDetails: [() => {}], lastError: null };
   const AppState = { state };
   const reloads = [];
   const created = { dialogs: [] };
@@ -70,9 +74,19 @@ function load({ ui5 = true } = {}) {
       };
       inst.destroy = () => (inst.destroyed = true);
       inst.focus = () => {};
+      // The dialog and its message/hint texts are styled through style
+      // classes; record them so the tests can assert what got which.
+      inst.classes = [];
+      inst.addStyleClass = (c) => {
+        inst.classes.push(c);
+        return inst;
+      };
       // The Copy button flips its label via setText; mirror it into settings so
       // tests can observe the "Copied" feedback.
       inst.setText = (t) => (inst.settings.text = t);
+      // The message Text keeps its line breaks via setRenderWhitespace; mirror
+      // it the same way so the dialog test can assert it was set.
+      inst.setRenderWhitespace = (v) => (inst.settings.renderWhitespace = v);
       if (kind === "Dialog") created.dialogs.push(inst);
       return inst;
     };
@@ -124,7 +138,7 @@ function load({ ui5 = true } = {}) {
 }
 
 test.describe("ErrorView friendly dialog", () => {
-  test("records the fatal error for the DeveloperTools Error tab", () => {
+  test("records the fatal error so a details provider can re-show it", () => {
     const { ErrorView, state } = load();
     const onRetry = () => {};
     ErrorView.show("Boom happened", "My Title", { onRetry });
@@ -138,8 +152,14 @@ test.describe("ErrorView friendly dialog", () => {
     ErrorView.show("some backend dump");
     expect(created.dialogs).toHaveLength(1);
     const dlg = created.dialogs[0].settings;
-    // No "An unexpected error occurred" prefix - just the error text.
+    // No "An unexpected error occurred" prefix - just the error text, and
+    // nothing else: the whole error is shown, so there is no Details hint.
+    expect(dlg.content).toHaveLength(1);
     expect(dlg.content[0].settings.text).toBe("some backend dump");
+    // The squared-off styling is applied to the dialog and to the message.
+    expect(created.dialogs[0].classes).toEqual(["z2ui5ErrorDialog"]);
+    expect(dlg.content[0].classes).toEqual(["z2ui5ErrorMessage"]);
+    expect(dlg.contentWidth).toBe("36rem");
     // The footer uses the `buttons` aggregation: Details / Copy / Restart.
     const [detailsButton, copyButton, restartButton] = dlg.buttons;
     expect(detailsButton.settings.text).toBe("Details");
@@ -158,10 +178,21 @@ test.describe("ErrorView friendly dialog", () => {
     expect(copyButton.settings.text).toBe("Copy");
     copyButton.settings.press();
     // execCommand is unavailable in the stubbed DOM, so it falls back to the
-    // async clipboard API with the full (untruncated) error text.
-    expect(clipboardWrites).toEqual(["full backend dump"]);
+    // async clipboard API. The clipboard carries exactly what the Developer
+    // Tools Error tab shows: the headline, a blank line, then the full
+    // (untruncated) error text.
+    expect(clipboardWrites).toEqual([
+      "Application Error - Please Restart The App\n\nfull backend dump",
+    ]);
     // The label flips to "Copied" as feedback.
     expect(copyButton.settings.text).toBe("Copied");
+  });
+
+  test("Copy keeps a caller-supplied title as the headline", () => {
+    const { ErrorView, created, clipboardWrites } = load();
+    ErrorView.show("dump text", "Custom Error Title");
+    created.dialogs[0].settings.buttons[1].settings.press();
+    expect(clipboardWrites).toEqual(["Custom Error Title\n\ndump text"]);
   });
 
   test("Escape does not dismiss the fatal-error popup", () => {
@@ -203,6 +234,60 @@ test.describe("ErrorView friendly dialog", () => {
     expect(message).not.toContain("<");
   });
 
+  test("shows only the messages of a framework dump, one per line", () => {
+    const { ErrorView, state, created } = load();
+    // The 500 body built by z2ui5_cx_ui5_util_error=>get_text_full: version
+    // header, the `--- error ---` message chain, then the detail sections.
+    const dump = [
+      "abap2UI5 1.142.0 - unhandled exception in a POST request",
+      "",
+      "--- error ---",
+      "Request failed in app ZCL_MY_APP, event ONPRESS",
+      "Json parsing error: Not JSON @Line 1, Offset 1",
+      "",
+      "--- exception chain ---",
+      "[1] Z2UI5_CX_UI5_UTIL_ERROR",
+      "    position : CLASS=ZCL_MY_APP=====CP / line 42",
+      "",
+      "--- context ---",
+      "    user     : SMITH",
+    ].join("\n");
+    ErrorView.show(dump);
+    const content = created.dialogs[0].settings.content;
+    // Only the two messages, each one its own Text control.
+    const messages = content.filter((c) =>
+      c.classes.includes("z2ui5ErrorMessage"),
+    );
+    expect(messages.map((c) => c.settings.text)).toEqual([
+      "Request failed in app ZCL_MY_APP, event ONPRESS",
+      "Json parsing error: Not JSON @Line 1, Offset 1",
+    ]);
+    // sap.m.Text would collapse the whitespace of a message without this.
+    expect(messages[0].settings.renderWhitespace).toBe(true);
+    // The rest of the dump is not lost, just one click away - the popup says so.
+    const hint = content[content.length - 1];
+    expect(hint.classes).toEqual(["z2ui5ErrorHint"]);
+    expect(hint.settings.text).toBe(
+      "Choose Details for the full technical information.",
+    );
+    // Everything else stays behind Details / Copy - and the Error tab keeps
+    // the untruncated dump.
+    const shown = messages.map((c) => c.settings.text).join("\n");
+    expect(shown).not.toContain("abap2UI5");
+    expect(shown).not.toContain("position");
+    expect(shown).not.toContain("SMITH");
+    expect(state.lastError.text).toBe(dump);
+  });
+
+  test("keeps the single-line preview for a non-framework error", () => {
+    const { ErrorView, created } = load();
+    // No `--- error ---` section: a network failure is one line as before.
+    ErrorView.show("Network error: failed to fetch");
+    expect(created.dialogs[0].settings.content[0].settings.text).toBe(
+      "Network error: failed to fetch",
+    );
+  });
+
   test("truncates a long preview but keeps the full text for the Error tab", () => {
     const { ErrorView, state, created } = load();
     const long = "x".repeat(2000);
@@ -210,20 +295,49 @@ test.describe("ErrorView friendly dialog", () => {
     const message = created.dialogs[0].settings.content[0].settings.text;
     expect(message).toContain("...");
     expect(message.length).toBeLessThan(long.length);
-    // The DeveloperTools Error tab still gets the untruncated text.
+    // A details provider still gets the untruncated text.
     expect(state.lastError.text).toBe(long);
   });
 
-  test("Details closes the popup and opens the DeveloperTools on the Error tab", () => {
+  // The overlay knows nothing about WHO shows the details: it runs the
+  // registered onErrorDetails providers (devtools/DevTools.js is the
+  // one a standard install registers) and leaves the button out entirely
+  // when nothing registered.
+  test("Details runs the registered details providers and closes the popup", () => {
     const { ErrorView, state, created } = load();
-    const showCalls = [];
-    state.developerTools = { show: (tab) => showCalls.push(tab) };
+    const calls = [];
+    state.onErrorDetails = [() => calls.push("first"), () => calls.push("second")];
     ErrorView.show("dump");
     const dialog = created.dialogs[0];
     dialog.settings.buttons[0].settings.press(); // Details
     expect(dialog.open_called).toBe(false); // dialog was closed
-    expect(state.developerTools.reopenErrorOnClose).toBe(true);
-    expect(showCalls).toEqual(["ERROR"]);
+    expect(calls).toEqual(["first", "second"]);
+  });
+
+  test("no Details button when no provider registered", () => {
+    const { ErrorView, state, created } = load();
+    state.onErrorDetails = [];
+    ErrorView.show("dump");
+    const labels = created.dialogs[0].settings.buttons.map(
+      (b) => b.settings.text,
+    );
+    expect(labels).not.toContain("Details");
+    expect(labels).toContain("Copy");
+  });
+
+  test("a throwing provider does not take the overlay down", () => {
+    const { ErrorView, state, created } = load();
+    const calls = [];
+    state.onErrorDetails = [
+      () => {
+        throw new Error("provider broke");
+      },
+      () => calls.push("second"),
+    ];
+    ErrorView.show("dump");
+    created.dialogs[0].settings.buttons[0].settings.press();
+    // the second provider still runs
+    expect(calls).toEqual(["second"]);
   });
 
   test("offers Retry in the dialog when the caller passed one", () => {
@@ -270,7 +384,7 @@ test.describe("ErrorView friendly dialog", () => {
     const { ErrorView, created } = load();
     ErrorView.show("first dump", "First Title");
     expect(created.dialogs).toHaveLength(1);
-    // Closing (e.g. the DeveloperTools reopen flow) and reopening builds a
+    // Closing (e.g. the reopenErrorDialog flow) and reopening builds a
     // fresh dialog carrying the same title and text.
     created.dialogs[0].close();
     ErrorView.reopenErrorDialog();

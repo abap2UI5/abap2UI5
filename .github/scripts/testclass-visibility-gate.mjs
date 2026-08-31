@@ -6,7 +6,7 @@
 // transpiler enforces visibility. The transpiler ignores it altogether (every
 // member becomes a plain JS property), so `npm run unit` stays green on a class
 // pool that a real system rejects with a syntax error. That is exactly how
-// `ltcl_rtti` in z2ui5_cl_a2ui5_context reached main - it called the PRIVATE
+// `ltcl_rtti` in z2ui5_cl_ui5_util_context reached main - it called the PRIVATE
 // scan_flag_prefix( ) and had to be repaired after the fact.
 //
 // Deliberately limited to what can be decided from the source text alone:
@@ -14,12 +14,13 @@
 // is explicitly typed as the class under test. Anything reached dynamically or
 // through a helper type is out of scope - the gate must not produce findings a
 // developer cannot act on.
-//
-// src/99 is excluded: it is frozen (see check_frozen_paths.yaml) and no longer
-// linted or transpiled.
 
 import { globSync, readFileSync } from "fs";
-import { basename } from "path";
+import { basename, join } from "path";
+import { fileURLToPath } from "url";
+
+// cwd-independent on purpose - see assertion-gate.mjs, same failure mode
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 const SECTIONS = { "PUBLIC SECTION": "PUBLIC", "PROTECTED SECTION": "PROTECTED", "PRIVATE SECTION": "PRIVATE" };
 
@@ -100,8 +101,9 @@ function currentLocalClass(lines, upto) {
 
 const findings = [];
 
-for (const testFile of globSync("src/**/*.clas.testclasses.abap").sort()) {
-  if (testFile.startsWith("src/99/")) continue;
+let scanned = 0;
+for (const testFile of globSync(join(ROOT, "src/**/*.clas.testclasses.abap")).sort()) {
+  scanned += 1;
   const globalClass = basename(testFile, ".clas.testclasses.abap");
   let definition;
   try {
@@ -154,4 +156,10 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log("Test class visibility: no findings.");
+// zero scanned files means the glob found nothing - see assertion-gate.mjs
+if (scanned === 0) {
+  console.error("Test class visibility: no test classes found - nothing was checked");
+  process.exit(1);
+}
+
+console.log(`Test class visibility: no findings (${scanned} test class file(s)).`);

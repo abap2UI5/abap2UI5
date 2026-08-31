@@ -19,14 +19,14 @@ CLASS zcl_tst_nav_hub_keep IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ) IS NOT INITIAL.
+    IF client->check_on_init( ).
       view_display( ).
 
-    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
+    ELSEIF client->check_on_navigated( ).
       view_display( ).
 
-    ELSEIF client->check_on_event( ) IS NOT INITIAL.
-      CASE client->get( )-event.
+    ELSEIF client->check_on_event( ).
+      CASE client->get_event( ).
         WHEN `INC`.
           counter = counter + 1.
           view_display( ).
@@ -40,27 +40,30 @@ CLASS zcl_tst_nav_hub_keep IMPLEMENTATION.
 
 
   METHOD view_display.
-    DATA view TYPE REF TO z2ui5_cl_ai_xml.
-    DATA page TYPE REF TO z2ui5_cl_ai_xml.
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    client->set_nav_routing( client->cs_nav_mode-keep ).
+    client->follow_up_action( val   = client->cs_event-set_nav_routing
+                              t_arg = VALUE #( ( client->cs_nav_mode-keep ) ) ).
 
-    view = z2ui5_cl_ai_xml=>factory( ).
-    page = view->open( n = `View` ns = `mvc`
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
+    page = view->ele( n = `View` ns = `mvc`
         )->a( n = `xmlns`        v = `sap.m`
         )->a( n = `xmlns:mvc`    v = `sap.ui.core.mvc`
         )->a( n = `displayBlock` v = `true`
         )->a( n = `height`       v = `100%`
-        )->open( `Shell`
-        )->open( `Page`
-            )->a( n = `title` v = `NAV HUB KEEP` ).
+        )->ele( `Shell`
+            )->ele( `Page`
+                )->a( n = `title` v = `NAV HUB KEEP` ).
 
-    page->leaf( `Label` )->a( n = `text` v = `hubkeep-marker` ).
-    page->leaf( `Input` )->a( n = `value` v = client->_bind( input ) ).
-    page->leaf( `Button`
+    page->tag( `Label`
+        )->a( n = `text` v = `hubkeep-marker` ).
+    page->tag( `Input`
+        )->a( n = `value` v = client->_bind( input ) ).
+    page->tag( `Button`
         )->a( n = `text`  v = |increment ({ counter })|
         )->a( n = `press` v = client->_event( `INC` ) ).
-    page->leaf( `Button`
+    page->tag( `Button`
         )->a( n = `text`  v = `go-detail`
         )->a( n = `press` v = client->_event( `GO_DETAIL` ) ).
 

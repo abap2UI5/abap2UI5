@@ -1,8 +1,17 @@
 # AGENTS.md — AI Assistant Guide for abap2UI5
 
+> **Building an app WITH abap2UI5? Stop reading here.** Everything an app
+> needs — template, lifecycle, view builder, client API — is the
+> self-contained guide **`docs/agents/building-apps.md`** (also wired as the
+> `build-an-app` Claude Code skill; `llms.txt` indexes both audiences). The
+> rest of this file is for changing the framework itself.
+
 > This file follows the cross-tool AGENTS.md convention and is the single
-> agent instruction file of this repository — there is no separate
-> `CLAUDE.md`; Claude Code reads `AGENTS.md` natively.
+> agent instruction file of this repository. `CLAUDE.md` exists next to it and
+> is a pointer at this file, nothing more — CONVENTIONS §6 asks for one in
+> every repository that has an AGENTS.md, and `check:conventions` now enforces
+> it. This paragraph used to claim there was no CLAUDE.md, which made a
+> convention this repository OWNS false in the repository that declares it.
 
 ### Where knowledge lives
 
@@ -25,7 +34,7 @@ this file does not.
 
 abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no JavaScript, OData, or RAP required. It supports all ABAP releases from NW 7.02 to ABAP Cloud, running in both on-premise and cloud environments.
 
-**Current version:** 1.142.0 (defined in `src/02/z2ui5_if_app.intf.abap`)
+**Current version:** the `version` constant in `src/02/z2ui5_if_app.intf.abap` — read it there; a number repeated here is a number that goes stale (it did, at 1.142.0, and nothing caught it: `check:version` holds that constant to `package.json`, not to this file)
 **License:** MIT
 **Homepage:** https://abap2UI5.org
 **Language:** English — all code, comments, commit messages, PRs, issues, documentation, and communication must be in English.
@@ -35,12 +44,19 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | Repository | Purpose |
 |---|---|
 | [abap2UI5](https://github.com/abap2UI5/abap2UI5) | Core framework (this repo) |
-| [samples](https://github.com/abap2UI5/samples) | Sample applications and usage examples |
-| [docs](https://github.com/abap2UI5/docs) | Project documentation |
+| [samples](https://github.com/abap2UI5/samples) | Sample applications and usage examples — step 1 of the three sample catalogues |
+| [samples-controls](https://github.com/abap2UI5/samples-controls) (formerly ai-demokit) | Step 2: the official UI5 demo kit rebuilt with abap2UI5, one port per sample, gate-verified. Also carries `CAPABILITIES.md` — what abap2UI5 can express, each claim naming the port that proves it |
+| [samples-stack](https://github.com/abap2UI5/samples-stack) (formerly samples-ext) | Step 3: everything that needs more than an abap2UI5 installation — OData, RAP, WebSockets, the Fiori Launchpad. The dividing line against `samples` is that requirement, not the topic |
+| [docs](https://github.com/abap2UI5/docs) | Project documentation — the prose for **people**; it generates its own `llms.txt` for agents. `llms.txt` here is the map of the CODE, and the two are deliberately different things |
+| [linter](https://github.com/abap2UI5/linter) | `@abap2ui5/linter` — static + headless-render checks over an app class and the view its builder produces. A devDependency **here** (`abap2ui5lint.jsonc`, rule 21) and the destination of the `ui5-check` skill's `Linter:` lines |
+| [mcp-server](https://github.com/abap2UI5/mcp-server) | MCP server giving an agent the loop without an SAP system: search the catalogues, validate a view, deploy, build, run headless, screenshot |
+| [vscode-extension](https://github.com/abap2UI5/vscode-extension) | IDE support — lints while you type, `F9` runs a class against a real system, and registers the MCP servers into the editor |
 | [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of `src/00/03/` (see "Utilities") |
 | [app-template](https://github.com/abap2UI5/app-template) | Starter repo for app projects — gates, CI and agent setup preconfigured |
+| [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
+| [customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) | Template for a customer's **own** frontend artefacts (reuse library, icon font, CSS) in their own BSP — same mechanism under the reserved resourceRoot `z2ui5_ccc`. Both roots exist so nobody has to patch `index.html` / `manifest.json`, which are generated here and overwritten downstream |
 
-> **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle — read the in-repo guide **`docs/agents/building-apps.md`** (also wired as the `build-an-app` Claude Code skill; `llms.txt` indexes both audiences). The rendered docs site is <https://abap2ui5.github.io/docs/> — unreachable from many sandboxes, which is why the guide lives in-repo.
+> **Building apps?** See the routing note at the very top of this file — the guide is `docs/agents/building-apps.md`. The rendered docs site is <https://abap2ui5.github.io/docs/> — unreachable from many sandboxes, which is why the guide lives in-repo.
 
 ## Architecture
 
@@ -60,14 +76,14 @@ Browser (UI5 SPA)                          ABAP Backend
        │                                        │  4. Call app->main(client)
        │                                        │  5. App builds view / handles events
        │                                        │  6. Save new draft to DB
-       │←─── {S_FRONT, MODEL, VIEW XML} ────────│  7. Return JSON response
+       │←─ {S_FRONT: ID, APP, S_ACTION; MODEL} ─│  7. Return JSON response
        │                                        │
        │  (UI5 renders XML view, binds model)   │
        │──── POST (next event) ────────────────→│  ... repeat
 ```
 
 **Request JSON** contains `S_FRONT` (event name, draft ID, browser state) and `MODEL` (view model changes as deltas).
-**Response JSON** contains a new draft ID, view XML strings (if view changed), the full JSON model, messages, and follow-up actions.
+**Response JSON** contains a new draft ID, the app class name, and two action lists under `S_ACTION`: `T_SYSTEM` view-lifecycle calls (which carry any view XML) and `T_CUSTOM` follow-up actions (including messages). `MODEL` — the full JSON view model — travels only when something bound changed.
 
 #### Launchpad Special Case — Request Body Wrapping
 
@@ -92,7 +108,7 @@ result-s_control-check_launchpad = xsdbool(
     OR result-s_front-pathname CS `test/flpSandbox` ).
 ```
 
-Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclasses.abap` (`test_parse_body_with_wrapper` / `test_parse_body_no_wrapper`).
+Both scenarios are covered by unit tests in `z2ui5_cl_ui5_handler.clas.testclasses.abap` (`test_parse_body_with_wrapper` / `test_parse_body_no_wrapper`).
 
 #### Launchpad Special Case — The URL Hash
 
@@ -101,7 +117,7 @@ Inside the FLP the shell owns the front of the hash and only the remainder is th
 | Side | Owner |
 |---|---|
 | Frontend | `app/webapp/core/Router.js` — `splitHash()`; the **only** module allowed to touch the hash |
-| Backend | `z2ui5_cl_core_handler=>hash_get_app_part` — used by the route parser and the app-state parser |
+| Backend | `z2ui5_cl_ui5_handler=>hash_get_app_part` — used by the route parser and the app-state parser |
 
 Both modules carry the full explanation (hash layout, why the split keys off the leading `/` rather than the first `&/`, what breaks otherwise) in their header comments. Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
 
@@ -111,58 +127,60 @@ Both modules carry the full explanation (hash layout, why the split keys off the
 src/
 ├── 00/   Layer 0: Utilities (AJSON, S-RTTI, framework context/HTTP abstractions)
 ├── 01/   Layer 1: Core engine (handler, action, binding, model, events, draft service, embedded frontend)
-├── 02/   Layer 2: Public API (interfaces, HTTP handler, exit framework, z2ui5_cl_ai_xml view builder)
-└── 99/   HISTORY ONLY - ignore completely. Legacy XML view builder (z2ui5_cl_xml_view / _cc, superseded by z2ui5_cl_ai_xml in src/02/) + retired z2ui5_cl_util* classes (99/01) and popups (99/02). Zero in-repo consumers; ships only for existing downstream installations
+├── 02/   Layer 2: Public API (z2ui5_if_app / _client / _exit, z2ui5_cl_ui5_http_handler, z2ui5_cl_ui5_view_builder)
+└── 99/   FROZEN legacy code. Legacy XML view builder (z2ui5_cl_xml_view / _cc), the deprecated z2ui5_cl_http_handler shim, retired z2ui5_cl_util* classes (99/01) and popups (99/02). Ships so existing downstream installations keep compiling. Its test classes are the exception: they run in CI and guard the layer
 ```
 
-- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`), all but `_json_fltr` vendored from abap-util (see "Utilities"). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
-- **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
-- **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework and the generic XML view builder `z2ui5_cl_ai_xml` (migrated from [samples-controls](https://github.com/abap2UI5/samples-controls), the successor of the frozen `z2ui5_cl_xml_view`).
-- **Package `src/99/` — history only. Ignore it completely.** It has **zero consumers** anywhere in this repository — no framework code, no app, no test, no tooling references it. It is excluded from abaplint and from the transpiled test backend; the repository works identically if the folder is deleted (only the 702 downport still converts it, so the shipped 702 release stays compilable for downstream). It ships solely so **existing downstream installations** keep compiling on upgrade:
-  - **Package top level** — the legacy XML view builder (`z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`), superseded by the generic builder `z2ui5_cl_ai_xml` (`src/02/`, migrated from [samples-controls](https://github.com/abap2UI5/samples-controls)). All builder work happens in `z2ui5_cl_ai_xml`.
+- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_ui5_util_context`, `z2ui5_cl_ui5_util_http`, `z2ui5_cl_ui5_util_json_fl`, `z2ui5_cx_ui5_util_error`), all but `_json_fltr` vendored from abap-util (see "Utilities"). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
+- **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit). Those carry the `z2ui5_cl_ui5f_*` prefix (UI5 **f**rontend); the bare `z2ui5_cl_ui5_*` segment covers everything else the framework owns — hand-written ABAP-side helpers (`z2ui5_cl_ui5_view_builder`), the engine (`z2ui5_cl_ui5_handler`), and the shipped apps (`z2ui5_cl_ui5_app_start`, `z2ui5_cl_ui5_app_hi_world`). No `z2ui5_cl_app_*` object exists any more; that segment used to mean both a generated frontend artefact and a real ABAP app, which is what made it worth retiring.
+- **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Five objects: `z2ui5_if_app`, `z2ui5_if_client`, `z2ui5_if_ui5_exit`, `z2ui5_cl_ui5_http_handler` (the HTTP entry point) and the view builder `z2ui5_cl_ui5_view_builder`. `z2ui5_if_exit`, the **superseded** name of the exit interface, is retired to `src/99` — it still ships and is still called (see "Exit Pattern"), it is simply no longer part of the guarded contract. Recorded symbol for symbol in `.github/api-snapshot.json` (rule 5). **A type lives on the object that uses it** — `ty_s_get` and `ty_s_event_control` on `z2ui5_if_client` because `get( )` and `_event( )` are their only public appearance, the three HTTP-config types on `z2ui5_if_exit` for the same reason. The shared `z2ui5_if_types` that used to hold all of them is retired to `src/99`, unchanged and still shipping, so an app that names it keeps compiling; nothing in `src/00`–`src/02` resolves into it any more, which is what lets `abaplint.jsonc` leave the frozen package out of the strict ruleset.
+- **Package `src/99/` — frozen legacy code.** Its production code has **zero consumers** anywhere in this repository — no framework code, no app, no tooling references it (what remains are comments naming the old classes). It ships solely so **existing downstream installations** keep compiling on upgrade. Its **test classes are live**, though: they lint and run in the transpiled unit suite (`npm run unit`), guarding the layer against regressions — which is why they, unlike the production code, may change (they assert against core internals such as `t_action_front` and follow them when those move):
+  - **Package top level** — the legacy XML view builder (`z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`), superseded by `z2ui5_cl_ui5_view_builder` in `src/02/`, and the deprecated `z2ui5_cl_http_handler` shim that forwards to `z2ui5_cl_ui5_http_handler`. All builder work happens in `z2ui5_cl_ui5_view_builder`.
+  - **`z2ui5_if_exit`** — the superseded name of `z2ui5_if_ui5_exit`. The one object here that is still **called**: `z2ui5_cl_ui5_user_exit` looks it up alongside the current interface so that no exit written against the old name breaks (see "Exit Pattern"), and `abaplint.jsonc` lists this one file in the strict ruleset for that reason. Both go together when the transition ends.
+  - **`z2ui5_if_types`** — the shared type interface the public API used to name. Every type it holds now lives on the object that uses it (see Layer 2); this copy ships unchanged so a downstream app that names `z2ui5_if_types=>…` keeps compiling.
   - `src/99/01/` — the retired utility classes (see "Utilities").
   - `src/99/02/` — the obsolete built-in popup/dialog apps (`z2ui5_cl_pop_*`), replaced by the [popups addon](https://github.com/abap2UI5-addons/popups).
 
-  **For AI assistants this means: treat `src/99/` as if it did not exist.** Never read it, change it, reference it, answer questions from it, or add consumers on it. It is out of scope for every task, review and audit; the `check_frozen_paths` workflow enforces the no-change part.
+  **For AI assistants this means: never change the production code under `src/99/` or add consumers on it.** It is out of scope for reviews and audits. The `check_gates` workflow enforces the freeze; the `*.testclasses.abap` files and the abapGit `.clas.xml` sidecars are exempt from it, because the tests keep running in CI and must follow the core internals they assert on. Moving an object **out** of the package is also allowed — abapGit installs the repository, not the folder, so an object that relocates and keeps shipping breaks no downstream install. The gate refuses a deletion only when the object name exists nowhere else under `src/` afterwards **and** the object shipped in the latest release tag — an object added since that release has never reached an installation, so dropping it breaks nothing. Anything edited in place is refused either way.
 
 ### Utilities — the context class is the only door
 
 **This section is the single source of truth for how the framework reaches system and platform functionality. Everything about utilities is settled here; nowhere else in this file repeats it.**
 
-**Rule: every system- and environment-specific function is called through a method of `z2ui5_cl_a2ui5_context` (`src/00/03/`).** RTTI, conversions, UUID, messages, XML/transformations, timestamps, base64, database rollback, environment detection — framework code never calls `cl_abap_*`, a function module, or an environment-specific API directly. The dependency on every SAP standard object lives in exactly one class, which is what makes the framework portable across NW 7.02 / Standard ABAP / ABAP Cloud and transpilable to JS. Environment branching happens inside that class via `check_abap_cloud( )` and dynamic calls, so the framework compiles on every target.
+**Rule: every system- and environment-specific function is called through a method of `z2ui5_cl_ui5_util_context` (`src/00/03/`).** RTTI, conversions, UUID, messages, XML/transformations, timestamps, base64, database rollback, environment detection — framework code never calls `cl_abap_*`, a function module, or an environment-specific API directly. The dependency on every SAP standard object lives in exactly one class, which is what makes the framework portable across NW 7.02 / Standard ABAP / ABAP Cloud and transpilable to JS. Environment branching happens inside that class via `check_abap_cloud( )` and dynamic calls, so the framework compiles on every target.
 
 **When the function you need is missing, in this order:**
 
 1. **Look in [abap-util](https://github.com/abap-util/abap-util) first.** It is the master catalog and holds all utility methods, unit-tested and linted for all three targets.
-2. **If it exists there: copy it into `z2ui5_cl_a2ui5_context`** — with its private helper closure, renamed to this repo's namespace. Do not re-implement what the catalog already has.
-3. **If it does not exist: write a new method** directly in `z2ui5_cl_a2ui5_context`. There is no upstream-first step and nothing to coordinate — this copy leads, abap-util follows.
+2. **If it exists there: copy it into `z2ui5_cl_ui5_util_context`** — with its private helper closure, renamed to this repo's namespace. Do not re-implement what the catalog already has.
+3. **If it does not exist: write a new method** directly in `z2ui5_cl_ui5_util_context`. There is no upstream-first step and nothing to coordinate — this copy leads, abap-util follows.
 4. **Separately and periodically, an AI syncs back:** it compares the context class against abap-util and merges what was added or fixed here into the catalog, so the master stays the superset for every other project. It diffs method *bodies*, not just names — see [abap-util's AGENTS.md](https://github.com/abap-util/abap-util/blob/main/AGENTS.md).
 
 **Consequences of that process:**
-- **`z2ui5_cl_a2ui5_context` is not a read-only mirror — edit it freely.** Add methods, change existing ones, extract helpers, refactor. (Only the AJSON/S-RTTI mirrors in `src/00/01` and `src/00/02` are off-limits.)
-- **Keep what you add generic.** Framework-specific logic belongs in the core `z2ui5_cl_core_*` classes; the sync harvests this class into a catalog other projects consume.
-- **Symbols marked `FROZEN-ONLY`** in the class have no caller anywhere in `src/00`–`src/02`. They exist only because the shipped `src/99` package still calls them on real systems, and they go when `src/99` goes — do not add new callers on them.
+- **`z2ui5_cl_ui5_util_context` is not a read-only mirror — edit it freely.** Add methods, change existing ones, extract helpers, refactor. (Only the AJSON/S-RTTI mirrors in `src/00/01` and `src/00/02` are off-limits.)
+- **Keep what you add generic.** Framework-specific logic belongs in the core `z2ui5_cl_ui5_*` classes; the sync harvests this class into a catalog other projects consume.
+- **Symbols marked `FROZEN-ONLY`** in the class have no caller anywhere in `src/00`–`src/02`, and `npm run check:frozen-only` is what keeps that true. They exist only because the shipped `src/99` package still calls them on real systems, and they go when `src/99` goes — do not add new callers on them.
 
 **What is vendored, and what is legacy:**
 
 | Class | Status |
 |---|---|
-| `src/00/03/z2ui5_cl_a2ui5_context` | Vendored from `zabaputil_cl_util_context`, trimmed to the methods used here. **The one class to use and to extend** |
-| `src/00/03/z2ui5_cl_a2ui5_http` | Vendored from `zabaputil_cl_util_http`, copied as-is — leave it alone unless a fix is genuinely needed |
-| `src/00/03/z2ui5_cx_a2ui5_error` | Vendored from `zabaputil_cx_error`, copied as-is — same |
-| `src/00/03/z2ui5_cl_a2ui5_json_fltr` | Framework-owned, no abap-util master |
+| `src/00/03/z2ui5_cl_ui5_util_context` | Vendored from `zabaputil_cl_util_context`, trimmed to the methods used here. **The one class to use and to extend** |
+| `src/00/03/z2ui5_cl_ui5_util_http` | Vendored from `zabaputil_cl_util_http`, copied as-is — leave it alone unless a fix is genuinely needed |
+| `src/00/03/z2ui5_cx_ui5_util_error` | Vendored from `zabaputil_cx_error`, copied as-is — same |
+| `src/00/03/z2ui5_cl_ui5_util_json_fl` | Framework-owned, no abap-util master |
 | `src/99/01/z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` | **Legacy.** Superseded by the classes above. They must stay so downstream apps keep compiling, but must never be used, called from new code, or changed |
 
 abap2UI5 does **not** depend on abap-util at install time: abapGit has no dependency management, and abap2UI5 must stay "clone and go". Hence renamed copies instead of a dependency. The same principle applies in the other repos of the ecosystem — [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups) has its own `z2ui5_cl_popup_context` with its own namespace and method subset, and is the designated successor of the obsolete built-in popups in `src/99/02/`.
 
 ### Data Binding
 
-The framework provides **transparent two-way data binding** between ABAP variables and UI5 controls:
+The framework provides **transparent data binding** between ABAP variables and UI5 controls:
 
 | Method | Path Format | Direction | Use Case |
 |---|---|---|---|
-| `client->_bind(var)` | `{/attribute}` | ABAP ↔ UI (two-way) | Any bound data — input, display, tables |
-| `client->_bind_edit(var)` | `{/attribute}` | ABAP ↔ UI (two-way) | Obsolete alias of `_bind`, kept for compatibility |
+| `client->_bind(var)` | `{/attribute}` | ABAP ↔ UI | Any bound data — input, display, tables |
+| `client->_bind_edit(var)` | `{/attribute}` | ABAP ↔ UI | Obsolete alias of `_bind`, kept for compatibility |
 
 **How it works:**
 1. When you call `_bind(name)`, the framework discovers the ABAP attribute via RTTI and maps it to a UI5 model path `/name`
@@ -170,15 +188,23 @@ The framework provides **transparent two-way data binding** between ABAP variabl
 3. On inbound (browser → ABAP): the edited model paths are read back from the request `MODEL` container and written into the ABAP variables
 4. Table bindings use **delta updates** — only changed rows/cells are transferred
 
-> **Historical note:** two-way data used to live under a dedicated `XX/` view-model
+**Terminology: say "binding", never "one-way"/"two-way" binding.** There is only
+one kind of binding left — `_bind( )` — and it always carries values in both
+directions, so the qualifier distinguishes nothing and only suggests a second
+mode that no longer exists. Write "bound attribute", "the binding writes the
+value back", "the model delta". The one legitimate use of "one-way" is a real
+UI5 one-way model that is not `_bind( )` (the `device>` JSONModel, for example).
+
+> **Historical note:** writable data used to live under a dedicated `XX/` view-model
 > node (`_bind_edit` → `/XX/name`) so the frontend knew which subtree to transport
 > back, while `_bind` wrote read-only data to the root. Delta handling made that
 > separation obsolete: everything is now written to the root model the same way and
-> `_bind`/`_bind_edit` behave identically.
+> `_bind`/`_bind_edit` behave identically. That split is where the old
+> "one-way/two-way" wording came from — it has no meaning in the current framework.
 
 ### Session Persistence (Draft Service)
 
-App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_srv_draft`):
+App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_srv_draft`):
 - **Table `Z2UI5_T_01`** stores serialized app state (XML) keyed by UUID
 - Each roundtrip: load draft → restore app → call `main()` → save new draft with new UUID
 - Draft IDs chain via `id_prev` for back-navigation through the app stack
@@ -187,12 +213,12 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 
 ### Key Design Patterns
 
-- **Factory:** `z2ui5_cl_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
-- **Generic View Builder:** `z2ui5_cl_ai_xml=>factory()` + `open`/`leaf`/`a`/`shut`/`stringify` builds any UI5 XML view 1:1 (see `src/02/z2ui5_cl_ai_xml.clas.abap`)
+- **Factory:** `z2ui5_cl_ui5_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
+- **Generic View Builder:** `z2ui5_cl_ui5_view_builder=>factory()` + `ele`/`tag`/`a`/`end`/`stringify` builds any UI5 XML view 1:1 (see `src/02/z2ui5_cl_ui5_view_builder.clas.abap`)
 - **Event Routing:** `client->_event('ID')` registers; `client->check_on_event('ID')` checks
 - **App Navigation:** `client->nav_app_call(app)` pushes; `client->nav_app_leave()` pops (executed in a loop within one roundtrip)
 - **Multi-View:** Main view, nested views (nest/nest2), popups, and popovers simultaneously
-- **Exit Pattern:** `z2ui5_cl_exit` / `z2ui5_if_exit` for custom themes, CSP headers, etc.
+- **Exit Pattern:** `z2ui5_if_ui5_exit` (the public extension point) implemented by `z2ui5_cl_ui5_user_exit` for custom themes, CSP headers, etc. **Two interfaces are honoured during the rename:** `z2ui5_if_exit` is the superseded name and carries the same two methods, its types being references to the ones on `z2ui5_if_ui5_exit` rather than copies. It lives in `src/99` and is the **one** object of that package `abaplint.jsonc` lists in the strict ruleset by name — a `src/01` class naming a type the strict parser cannot see is 37 unresolvable-type errors, so the line stays until the interface goes. `get_user_exit_class( )` looks BOTH up and de-duplicates the class that implements both; `get_instance( )` casts to the current interface first, so such a class is called once, through `z2ui5_if_ui5_exit`. The shipped exit implements both, so a reference of either type still holds it. When `z2ui5_if_exit` goes, what goes with it is the second lookup, the second class-data reference and the two delegating methods — all in `z2ui5_cl_ui5_user_exit`.
 
 ### Building Apps
 
@@ -205,24 +231,24 @@ src/
 ├── 00/                        # Layer 0: Utilities
 │   ├── 01/                    #   AJSON — JSON serialization (mirrored, DO NOT MODIFY)
 │   ├── 02/                    #   S-RTTI — Runtime type information (mirrored, DO NOT MODIFY)
-│   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_a2ui5_context, _http, _json_fltr, z2ui5_cx_a2ui5_error) — vendored copies from abap-util (except _json_fltr)
+│   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_ui5_util_context, _http, _json_fltr, z2ui5_cx_ui5_util_error) — vendored copies from abap-util (except _json_fltr)
 ├── 01/                        # Layer 1: Core Engine
-│   ├── 01/                    #   Draft service (z2ui5_cl_core_srv_draft + z2ui5_t_01)
-│   ├── 02/                    #   Core classes (handler, client, action, app, srv_bind, srv_event, srv_model + z2ui5_if_core_types)
-│   └── 03/                    #   Embedded UI5 frontend (auto-generated, DO NOT EDIT)
-├── 02/                        # Layer 2: Public API
+│   ├── 01/                    #   Draft service (z2ui5_cl_ui5_srv_draft + z2ui5_t_01)
+│   ├── 02/                    #   Core classes (handler, client, action, action_front, app, srv_bind, srv_event, srv_model + z2ui5_if_ui5_types)
+│   ├── 03/                    #   Embedded UI5 frontend (auto-generated, DO NOT EDIT)
+│   └── 04/                    #   Shipped apps + default exit (z2ui5_cl_ui5_app_start, _app_hi_world, _user_exit)
+├── 02/                        # Layer 2: Public API (the whole contract - 5 objects)
 │   ├── z2ui5_if_app.intf.abap          # Main app interface (version constant)
 │   ├── z2ui5_if_client.intf.abap       # Client interaction methods
-│   ├── z2ui5_if_types.intf.abap        # Shared type definitions
-│   ├── z2ui5_if_exit.intf.abap         # Customization exit points
-│   ├── z2ui5_cl_http_handler.clas.abap # HTTP entry point
-│   ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
-│   ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
-│   ├── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
-│   └── z2ui5_cl_ai_xml.clas.abap       # Generic XML view builder (successor of z2ui5_cl_xml_view)
+│   ├── z2ui5_if_ui5_exit.intf.abap     # Customization exit points
+│   ├── z2ui5_cl_ui5_http_handler.clas.abap  # HTTP entry point
+│   └── z2ui5_cl_ui5_view_builder.clas.abap  # Generic XML view builder
 └── 99/                        # HISTORY ONLY - ignore completely, zero in-repo consumers
-    ├── z2ui5_cl_xml_view.clas.abap     # Legacy fluent view builder (~16K lines) - superseded by z2ui5_cl_ai_xml
-    ├── z2ui5_cl_xml_view_cc.clas.abap  # Legacy custom controls builder - superseded by z2ui5_cl_ai_xml
+    ├── z2ui5_if_types.intf.abap        # Retired shared types - every one of them now lives on its user
+    ├── z2ui5_if_exit.intf.abap         # Superseded name of z2ui5_if_ui5_exit - still shipped, still looked up
+    ├── z2ui5_cl_xml_view.clas.abap     # Legacy fluent view builder (~16K lines) - superseded by z2ui5_cl_ui5_view_builder
+    ├── z2ui5_cl_xml_view_cc.clas.abap  # Legacy custom controls builder - superseded by z2ui5_cl_ui5_view_builder
+    ├── z2ui5_cl_http_handler.clas.abap # Deprecated shim - forwards to z2ui5_cl_ui5_http_handler
     ├── 01/                    #   Retired z2ui5_cl_util* classes + z2ui5_t_91 (obsolete)
     └── 02/                    #   Built-in popups (z2ui5_cl_pop_*, formerly src/02/01/) (obsolete)
                                #   to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
@@ -232,22 +258,12 @@ src/
 
 ### Additional Directories
 
-| Directory | Purpose |
-|---|---|
-| `app/` | Frontend tooling (`package.json`, `ui5.yaml`, `eslint.config.mjs`, `.prettierrc`, `.editorconfig`) |
-| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, `Util.js` (the **public** date helpers exposed as the `z2ui5.Util` global), `cc/` with one file per custom control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`, resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and `core/` with the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }`), `AppState.js` (owner of the shared frontend state + the documented inventory of all `z2ui5.*` globals), `ViewSlots.js` (access layer for the five view slots — lookups, byId resolution and teardown), `Lib.js` (shared helper module), `FrontendAction.js` (the handlers behind the controller's `eF()` entry point), `Messages.js` (S_MSG_TOAST / S_MSG_BOX display), `ErrorView.js` (the fatal-error overlay), `Router.js` (hash routing — the only module allowed to touch the URL hash) and `DeveloperTools`; `model/models.js` holds the device model setup and `model/formatter.js` is the curated app-level formatter module (the `z2ui5.Formatter` global / `core:require` of `z2ui5/model/formatter`) that owns the date helpers and value formatters — `Util.js` is now a **deprecated** legacy alias re-exporting them |
-| `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern), plus the `zcl_tst_nav_*` test apps used by the browser navigation tests (copied into `node/downport/` during `auto_transpile`) |
-| `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
-| `node/tests/` | Playwright tests — browser tests in `e2e/` (`example.spec.js` shell smoke test, `roundtrip.spec.js` POST/draft wire contract, `lib-sanitizer.spec.js` XSS regression tests for `Lib.sanitizeMessageDetails`, `error-view.spec.js` fatal-error overlay accessibility/focus/Retry tests, `nav-back-forward.spec.js` browser history navigation; run via `node/playwright.config.js` against the dev server), plus JS unit specs (`*.spec.js` — see the spec-to-module mapping under "Testing" below) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `e2e/`) |
-| `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
-| `docs/agents/` | `building-apps.md` — the in-repo app-building guide (see "Building Apps"; gated by `npm run check:guide`) |
-| `docs/` | `removal-plan.md` — the standing checklist of everything obsolete: what replaces it, what breaks, and what has to happen first. Read it before removing any compatibility symbol, and tick the box in the same PR |
-| `.github/workflows/` | CI/CD workflows (see below) |
-| `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`); `testclass-visibility-gate.mjs` — fails when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS`; `api-snapshot.mjs` — records/compares the `src/02` public-API snapshot (rule 5); `check-guide-api.mjs` — fails when `docs/agents/building-apps.md` names a client method or `cs_*` constant the API does not have |
-| `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc`, `rename.jsonc` (namespace rename for the `build_rename` workflow, placeholder `zabap2ui5`) |
-| `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/` |
-| `.github/actions/` | `report-scheduled-failure` — composite action that opens/updates an issue when a scheduled workflow fails (used by `auto_abaplint_fix.yaml` and `mirror.yaml`) |
-| `.github/cleaner-profile.cfj` | ABAP Cleaner profile (SAP ABAP Cleaner tool configuration for automated code cleanup) |
+Everything outside `src/` — `app/` and its `webapp/` module inventory, `node/`,
+`docs/`, `.claude/skills/`, `backlog/`, `tools/`, `frontend/`,
+`.github/` and what each script and shared file in it is for — is
+**`docs/agents/repository-map.md`**. It is a lookup: an agent needs it once it
+knows it has to place a change, not before, and this file is loaded into every
+session. Two of its rows were the two longest lines in this file.
 
 ### Root Files
 
@@ -268,20 +284,38 @@ src/
 
 ### CI/CD Workflows (`.github/workflows/`)
 
-Grouped by purpose:
+What every workflow does, grouped by purpose, is
+**`docs/agents/ci-workflows.md`** — same reason as the directory map above: it
+is what a reader looks up when a check goes red, not what they have to know
+before they can start.
 
-| Group | Workflows | Purpose |
-|---|---|---|
-| **Frozen-path guard** | `check_frozen_paths.yaml` | Fails any PR that changes a file under `src/99/` — the package is history only (see "Layered Design") |
-| **API-contract guard** | `check_api_contract.yaml` | Fails any PR that removes or changes a public symbol of `src/02/` (rule 5); additions must be recorded in `.github/api-snapshot.json` via `node .github/scripts/api-snapshot.mjs --write` |
-| **Compatibility checks** | `ABAP_702.yaml`, `ABAP_STANDARD.yaml`, `ABAP_CLOUD.yaml` | Lint against each ABAP target environment |
-| **Frontend checks** | `UI5.yaml` | UI5 linter via `.github/scripts/ui5lint-gate.mjs`, zero-error policy (accepted findings are suppressed at the source) |
-| **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, JS unit specs + Playwright browser tests, namespace-rename test |
-| **Automation** | `auto_downport.yaml`, `auto_abaplint_fix.yaml`, `auto_abaplint_fix_pr.yaml` | Scheduled downporting and auto-formatting (open PRs) |
-| **Generation** | `create_app2abap.yaml`, `check_app2abap.yaml` | Regenerate `src/01/03/` from `app/webapp/` (`create_app2abap.yaml`); PR drift gate that fails when `app/webapp/` and `src/01/03/` are out of sync (`check_app2abap.yaml`) |
-| **Renamed variants** | `build_rename.yaml` | On demand (`workflow_dispatch`): rename all artifacts to a chosen namespace (max. 9 characters) via `abaplint --rename` with `.github/abaplint/rename.jsonc` and push the renamed sources to the branch `rename_<name>` (re-running updates the branch; no push without content changes) |
-| **Mirroring** | `mirror_ajson.yaml`, `mirror_srtti.yaml`, `mirror.yaml` | Sync `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI) from upstream repos; both are thin callers of the reusable `mirror.yaml` |
-| **Downstream sync** | `trigger_local.yaml`, `create_frontend.yaml` | On every push to `main`: `trigger_local.yaml` refreshes the `input/` copy in [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) and pushes it to its `main` via deploy key (secret `ACTION_KEY_LOCAL`), which rebuilds its artifact branches; `create_frontend.yaml` covers [frontend](https://github.com/abap2UI5/frontend) the same way |
+What is worth carrying without looking it up:
+
+- **The static gates are one job** (`check_gates.yaml`), one step per rule, each
+  `if: ${{ !cancelled() }}` — so a pull request that trips three of them reports
+  all three at once. `npm run gates` is the local half of the same behaviour.
+- **`src/99` is frozen and `src/02` is a contract**, and both are machine-checked
+  (rule 1, rule 5). A change that edits either fails the pull request.
+- **`src/01/03/` is generated from `app/webapp/`** and its drift gate runs on
+  the pull request, so a frontend change carries the regenerated tree with it
+  (rule 2). The delivery trees are not committed at all — `frontend_check`
+  builds them from the sources into the git-ignored `tools/out/`.
+- **The gates run on `push: main` as well as on pull requests.** A merge is not a
+  state any pull request tested, and `auto_downport`,
+  `frontend_deploy` and `trigger_local` all rebuild or deploy from it.
+- **Every job takes its toolchain from `.github/actions/setup`** — Node version,
+  pinned action sha, the `npm ci` / `app` / `deps` installs.
+
+Both downstream repositories are **generated, never edited**: the deploy writes
+over their content, so a change made there survives only until the next push to
+this `main` and then disappears without a trace. `app/webapp/` is edited here
+and nowhere else. [frontend](https://github.com/abap2UI5/frontend) enforces this
+with its `guard` workflow, which fails every manual pull request by default and
+only lets through changes to the docs it genuinely owns after a maintainer
+applies the `maintenance` label. Its `main` carries those docs plus the
+machine-written `result/<branch>` trees this repository delivers, and every
+published branch is fanned out from them by its `deliver` workflow — always
+exactly one commit ahead of `main` there, never edited in place.
 
 ## Language & Code Rules
 
@@ -313,17 +347,18 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
     PRIVATE SECTION.
   ENDCLASS.
   ```
-- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_a2ui5_error`; use `##NO_HANDLER` when intentionally ignoring
+- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_ui5_util_error`; use `##NO_HANDLER` when intentionally ignoring
   ```abap
   CATCH cx_root INTO DATA(x).
-    RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error EXPORTING val = x.
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error EXPORTING val = x.
 
   CATCH cx_root ##NO_HANDLER.
   ```
+  The exception handed over as `val` is chained as `previous` automatically, so the whole cause chain survives up to the single top-level catch, which renders it into the 500 body via `z2ui5_cx_ui5_util_error=>get_text_full` (chain entries with class, source position, kernel id and exception attributes). **Never inline a cause into a message** (`val = |MY_ERROR: { x->get_text( ) }|`) — that flattens it to one line and drops everything below; pass the message as `val` and the cause as `previous`. Reasoning at `z2ui5_cx_ui5_util_error`, and `npm run check:cause` is the gate — the rule was prose only until five raises in `z2ui5_cl_ui5_frontend` had broken it.
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
-- **Utility access:** every system- and environment-specific call goes through `z2ui5_cl_a2ui5_context` — never directly to `cl_abap_*` or a function module. Full rules in "Utilities — the context class is the only door"
+- **Utility access:** every system- and environment-specific call goes through `z2ui5_cl_ui5_util_context` — never directly to `cl_abap_*` or a function module. Full rules in "Utilities — the context class is the only door"
   ```abap
-  z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+  z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
   ```
 - **Prefer simple, transpile- and downport-friendly ABAP over clever constructs.** Every framework ABAP file is both **downported to 7.02** (`npm run auto_downport`) and **transpiled to JS** (`npm run auto_transpile`, for the Node unit and browser tests), so the plainest expression that does the job is the safest one — readability and pipeline-robustness win over brevity, and a little duplication is preferable to a hard-to-follow abstraction. In particular, avoid ref/deref gymnastics such as a helper that hands back `REF TO data` pointing into the caller's own structure (`REF #( <field-symbol> )` returned and dereferenced with `<ref>->*`): it compiles on every target but is hard to read and to reason about through the downport/transpile pipeline — prefer two straightforward `SPLIT` / `LOOP AT` / `ASSIGN COMPONENT` loops even if they overlap slightly. Rule of thumb: if `abaplint` and the transpiler pass but a reviewer would call the construct "clever", pick the plainer form.
 
@@ -339,6 +374,7 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 - No aliases, no STATICS, no BREAK-POINT, no DEFINE macros
 - `NEW #()` instead of `CREATE OBJECT`; `xsdbool()` for booleans (NEVER use `boolc()` — the downport pipeline converts `xsdbool` to `boolc` automatically); `line_exists()` instead of READ TABLE
 - Backtick string literals (`` ` ``) preferred over single quotes
+- An `abap_bool` is compared to `abap_true` / `abap_false` — never asked with `IS INITIAL` / `IS NOT INITIAL`, which is the question for a string. The app corpus goes one step further for the three `check_on_*( )` lifecycle methods and writes the predicative call itself (`IF client->check_on_init( ).`), a negative branch only as `= abap_false`; that rule and its reasons live in the `build-an-app` skill, and the apps under `node/srv` follow it like any other
 - `IS NOT` over `NOT ... IS`; `RETURNING` over `EXPORTING` for single outputs
 - No `EXPORT TO MEMORY`/`DATABASE`; no test seams; `lines()` instead of `DESCRIBE LINES`
 - No DB operations in loops; SQL uses `@` host variable escaping
@@ -348,9 +384,27 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. Known traps — avoid them up
+which flags things `npm run check` cannot see. The four traps a script can
+decide are gated by `npm run check:atc` — a **sequential read** over a standard
+table (wants `"#EC CI_SORTSEQ` on the statement), an empty
+`CATCH` block (wants `##NO_HANDLER`), POSIX regex (below) and a misplaced
+ABAP Doc block (below). "Sequential read" is all three spellings, not just the
+`LOOP AT ... WHERE` the gate started with: `READ TABLE ... WITH KEY` (not
+`WITH TABLE KEY`, which is a primary-key read) and a table expression keyed on
+a component — `line_exists( tab[ name = ... ] )` — are the same finding, and
+four of them shipped unannotated while the repository's own precedent carried
+the pragma. The rest need a reader. Known traps — avoid them up
 front, a green abaplint does not prove their absence:
 
+- **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE` (bit us in
+  `z2ui5_cl_ui5_srv_draft=>count_entries`).
+- **`CREATE OBJECT ... TYPE (name)` into a generic reference followed by a
+  `CAST`** is flagged as insecure object creation. Declare the typed reference
+  and create into it directly:
+  ```abap
+  DATA li_app TYPE REF TO z2ui5_if_app.
+  CREATE OBJECT li_app TYPE (lv_classname).
+  ```
 - **POSIX regex is deprecated.** `FIND/REPLACE ... REGEX` uses the POSIX
   standard; the PCRE replacement (`FIND PCRE`) only exists on >= 7.55 and this
   repo targets v750/7.02. Prefer plain string logic over regex where feasible;
@@ -358,13 +412,23 @@ front, a green abaplint does not prove their absence:
   statement (the established convention — the vendored AJSON code does the same).
 - **No redundant conversions.** Do not wrap a value in `CONV string( ... )`
   (or `CONV #( ... )`) when the source already has the target type — assign it
-  directly (bit us in `z2ui5_cl_core_action=>factory_first_start`, where
+  directly (bit us in `z2ui5_cl_ui5_action=>factory_first_start`, where
   `s_control-app_start` is already a `string`).
-- **ABAP Doc (`"!`) position:** a doc comment must sit directly before the one
+- **ABAP Doc (`"!`) position** — gated by `npm run check:atc` since it
+  recurred a third time (five findings on samples-stack's overview app from a
+  user's system, 2026-08-17): a doc comment must sit directly before the one
   declaration it documents. In a chained statement (`CONSTANTS: BEGIN OF ...`)
   that means *inside* the chain, directly before the element — a `"!` block
   before the chain keyword is "in the wrong position" (bit us on
   `z2ui5_if_client=>cs_nav_mode`).
+- **Never `"!` inside a parameter list** (same gate). A single parameter of a
+  `METHODS` statement is not a declaration of its own, so a `"!` block in
+  front of it (anywhere between `IMPORTING` and the final `.`) is "in the
+  wrong position". Document parameters in the method's own doc block, before
+  the `METHODS` keyword, with `"! @parameter <name> | <text>` (see
+  `z2ui5_cl_xml_view` for the house style; bit us on
+  `z2ui5_if_client~_bind( omit_initial )`). A plain `"` comment inside the
+  list stays legal — that is why the `"obsolete …` note on `path` has no `!`.
 - **ABAP Doc is parsed as HTML:** a literal `<`/`>`/`&` must be escaped as
   `&lt;`/`&gt;`/`&amp;` — a placeholder like `#/app/<CLASS>` is otherwise read
   as an unsupported, unclosed HTML tag; write `#/app/&lt;CLASS&gt;`.
@@ -376,14 +440,24 @@ Install dependencies: `npm install` (frontend gates additionally need
 
 ### Validation sequence
 
-Three commands, all **non-destructive** — they never modify `src/` or `abaplint.jsonc`:
+Three commands, all **non-destructive** — they never modify `src/` or
+`abaplint.jsonc`. (One nuance: `verify`'s final app2abap drift gate re-runs
+the `src/01/03/` generation in place — on an in-sync tree the output is
+byte-identical, and a difference is exactly the drift the gate exists to
+fail on.)
 
 ```bash
 npm run check        # Fast inner loop: abaplint only (seconds) — run this while iterating
-npm run verify       # Gate before every PR: abaplint -> testclass-visibility gate ->
-                     # standard/cloud abaplint targets -> downport -> transpile -> unit ->
-                     # JS unit specs -> frozen-path check -> guide-API check ->
-                     # curated-formatter scope gate
+npm run gates        # The 24 sub-second static gates in one process (~4s). Reports
+                     # EVERY failure, not just the first, and names the npm script
+                     # that reruns each one - the local half of what
+                     # check_gates.yaml's per-step `!cancelled()` does in CI
+npm run verify       # Gate before every PR (.github/scripts/run-verify.mjs):
+                     # runs ALL independent checks first (abaplint, gates,
+                     # chain layout, eslint, format, standard/cloud targets)
+                     # and reports every failure at once, then the dependent
+                     # pipeline in order - downport -> transpile -> unit ->
+                     # JS unit specs -> app2abap drift gate (matches CI)
 npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
                      # installs app/node_modules itself. Run when app/webapp/ changed
 ```
@@ -392,14 +466,25 @@ npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, esl
 tests from there, so the working tree stays exactly as you left it. Use
 `npm run check` for the tight edit/validate loop and `npm run verify` before
 opening a PR. Do **not** use `npm run auto_downport` for validation — see rule 9.
+The app2abap drift gate needs the frontend toolchain and installs
+`app/node_modules` itself when it is missing (only then — no reinstall on
+every run).
 
 **What `verify` still does not cover** (CI-only): the browser e2e tests
-(`test_browser.yaml` — needs browsers + the UI5 CDN), the express smoke test
-(`test_node.yaml`), the namespace-rename test (`test_rename.yaml`), the
-`src/01/03` drift gate (`check_app2abap.yaml` — run `npm run check:app2abap`
-after editing `app/webapp/`, note it regenerates via Prettier + abaplint fix),
-and the `src/02` API-contract gate (`check_api_contract.yaml` — run
-`npm run check:api`).
+(`test.yaml`, the `browser` matrix — needs browsers + the UI5 CDN), the express
+smoke test (`test.yaml`, `test_node`), and the namespace-rename test
+(`abaplint.yaml`).
+
+**One dependency is patched in place.** `npm run downport` runs
+`node/setup/patch-abaplint-downport.mjs` first, which rewrites the installed
+abaplint's table-expression outline to keep the ROW reference
+(`READ TABLE ... ASSIGNING`) instead of copying it into a work area. Without it
+`_bind( tab / tab_index )` - the cell binding - is refused in every downported
+build. It is a temporary shim for a defect filed in `backlog/` against
+abaplint; the script says what to delete when the fix ships, and it FAILS the
+build rather than passing silently once its anchors stop matching.
+`test_bind_tab_cell` (in `z2ui5_cl_ui5_client`'s test class) is the canary that
+the shim still works.
 
 **Pinned git dependencies:** abaplint and the transpiler clone three upstream
 repos (steampunk API intersection, open-abap-core, express-icf-shim). These
@@ -415,29 +500,68 @@ in untouched code as a possible upstream move only in that fallback case.
 | Command | Purpose |
 |---|---|
 | `npm run deps` | Fetch the three pinned git dependencies into `node/deps/` (auto-run by `check`/`downport`; `-- --print-latest` shows upstream HEADs for a pin bump) |
-| `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`, gated in `ABAP_STANDARD.yaml`; abaplint and the transpiler cannot see this) |
+| `npm run check_visibility` | Fail when a local test class reads a PRIVATE/PROTECTED member of the class under test without `LOCAL FRIENDS` (part of `verify`, gated in `check_gates.yaml`; abaplint and the transpiler cannot see this) |
+| `npm run check:abapgit` | The abapGit round-trip gate — byte format of every file under `src/` (BOM, LF, terminating newline, tabs, file-name case), sidecar/package completeness, `<CLSNAME>`/`<LANGU>`/`<WITH_UNIT_TESTS>` against the source, and `class_constructor` in the PUBLIC section. Covers `src/00` and `src/99`, which abaplint does not scan (part of `verify`, gated in `check_gates.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
+| `npm run check:atc` | The extended-check (SLIN/ATC) gate — a sequential read without `"#EC CI_SORTSEQ` (`LOOP AT … WHERE`, `READ TABLE … WITH KEY`, and a table expression keyed on a component — the last two in production code only, since test classes hold 76 of the 86 matches and none of them is shipped), an empty `CATCH` without `##NO_HANDLER`, `FIND`/`REPLACE … REGEX` without `##REGEX_POSIX`, and an ABAP Doc block that documents nothing (before a chain keyword, inside a parameter list, before a section end). Scoped to this repository's own ABAP (`src/00/01`, `src/00/02` are upstream mirrors, `src/99` is frozen). abaplint models none of these (part of `verify`, gated in `check_gates.yaml`; background in `.claude/skills/abap-check/SKILL.md`) |
+| `npm run check:cause` | Fail when a raise inside a `CATCH` inlines the caught exception's `get_text( )` into its own message instead of passing it as `previous` — that flattens the chain the single top-level catch renders into the 500 body (`.github/scripts/exception-cause-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:format` | The house-format gate — `.github/abaplint/auto_abaplint_fix.jsonc` with `--fix` left off, so the same rules that write the format decide whether it is there (indentation, keyword case, line length, parameter alignment, trailing whitespace, blank-line runs, space before colon/dot). `npm run auto_abaplint` is the fix (part of `verify`, gated in `abaplint.yaml`) |
+| `npm run check:commands` | Fail when an npm script is not named in this chapter — AGENTS.md is loaded into every session, so a command missing from the list here does not exist for the reader who needs it. Deliberate omissions are declared in the script with a reason (`.github/scripts/agents-commands-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:version` | Fail when `package.json`'s version and the `version` constant in `src/02/z2ui5_if_app.intf.abap` disagree — two files on purpose (one ships, one does not) and nothing but this holds them together (`.github/scripts/version-sync-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:conventions` | The rules in `.github/shared/CONVENTIONS.md` a script can decide — workflow file naming, the `CLAUDE.md` pointer, the npm-script names. This repository declares the ecosystem's conventions and broke most of them; the workflow names that predate the rule are exceptions **by name** and the list only shrinks (the gate prints the current count) (`.github/scripts/conventions-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:naming` | Fail when an object outside the public API (`src/02`) and the frozen package (`src/99`) carries no `ui5` / `ui5f` segment — abaplint's `object_naming` only checks the `Z2UI5_` prefix, so an object under `src/01` whose segment is anything but `ui5` / `ui5f` passes every lint otherwise (`.github/scripts/object-naming-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:dynamic` | Fail when a `Z2UI5_*` name written as a **string literal** (dynamic lookup, `CREATE OBJECT TYPE (name)`) resolves to no object in `src/` — nothing else resolves those, and a literal naming nothing reads as "not implemented" at runtime (`.github/scripts/dynamic-name-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:prose` | The same rule for **prose** — every `Z2UI5_*` name in the changelog, AGENTS.md, `docs/`, the skills and the README names an object this repository ships. A rename sweep fixes the code, because the code is what fails; prose has no compiler (`.github/scripts/prose-name-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:skills` | Fail when a linter rule id named in a skill's `Linter:` / `Gate:` line no longer exists — that is a claim about **another** repository, which renames and retires rules on its own schedule (`.github/scripts/skill-rule-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:scripts` | Fail when a repository of the ecosystem does not answer to `npm run check` and `npm test` — CONVENTIONS §3 as a program; five of ten answered "Missing script" until it existed (`.github/scripts/scripts-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:toolchain` | Fail when a repository of the ecosystem does not declare the same toolchain — `engines.node` `>=22`, `.nvmrc` `22`, a `license` — CONVENTIONS §4 as a program. It was the one section nothing decided, and seven of the nine repositories had no `.nvmrc` at all while `playground` asserted the version in prose and declared neither. Drift that predates the gate is named in its `EXCEPTIONS` list, which only shrinks (`.github/scripts/toolchain-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:shared` | Fail when a file this repository is the SOURCE of differs from the copy in a sibling repository (the list, and how each copy is compared, is the `.github/scripts/` row in `docs/agents/repository-map.md`) (`.github/scripts/shared-file-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:mirrors` | The other direction: `@abap2ui5/linter` hand-mirrors three closed sets defined here (the curated formatters, the frontend actions, the abapGit object layout) and is not a dependency of this repository, so a rename here is silent until its weekly sync files an issue days later (`.github/scripts/linter-mirror-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:counts` | Fail when a corpus size quoted in `llms.txt`, the app guide or the `build-an-app` skill disagrees with the owning repository's generated catalogue — those numbers are the reason an agent goes and looks (`.github/scripts/corpus-count-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:samples-md` | Fail when a generated `SAMPLES.md` row stops matching the format `abap2UI5/mcp-server` and `abap2UI5/docs` parse — three generators, two readers, none in the same repository, and a reader that stops matching answers "there are no samples for that" instead of failing (`.github/scripts/samples-md-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:changelog` | Fail when `changelog.txt` and the release-notes page in `abap2UI5/docs` disagree about which releases exist or when they shipped. The two are deliberately different documents; they may not differ about the facts (`.github/scripts/changelog-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:modules` | Fail when a `sap.ui.define` dependency array in `app/webapp/` names a UI5 module outside the reviewed 1.71 list — the floor 404s it and the ui5loader drops the WHOLE component (rule 12; `.github/scripts/frontend-module-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:eslint` | ESLint over the Node side of the repository — `.github/scripts/`, `tools/`, `node/`. `app/eslint.config.mjs` covers only `webapp/**`, so everything that BUILDS and CHECKS the frontend was uncovered; root `eslint.config.mjs` is the flat config (part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:render` | The linter's **render** half over this repository's own app classes — every view a class builds survives a real `XMLView.create`. Needs `@abap2ui5/render-runtime` (~123 MB), which is installed by `render-gate.yaml` / `bump-linter.yaml` and deliberately not a devDependency, so this is not part of `verify` |
+| `npm run backlog` | Regenerate the four backlog pages from `backlog/items/` and the skills' `**Backlog:**` lines; `check:backlog` is the `--check` half (see `backlog/README.md`) |
+| `npm run backlog:probe` | Run an item's `<id>.probe.mjs` over the sibling checkouts — measure a proposed rule against the code it would judge, so a proposal carries its own false-positive count instead of asking a maintainer to take the author's word for it |
+| `npm run backlog:mine` | Find candidates nobody wrote down: the `IMPROVISED` deviations in samples-controls' `meta/` sidecars are a record of what the framework could not express, kept weeks before anybody files anything |
+| `npm run backlog:filed` | Ask GitHub what happened to every item with `state: filed` — the backlog cannot see when its own claim about another repository stops being true. Reports; deletes nothing |
+| `npm run check:specs` | Fail when a spec under `node/tests/` is not in `docs/agents/test-inventory.md`, or the inventory names one that is gone — the list is how a reader finds out whether a frontend module is already covered, and one that quietly stops being complete answers "no spec" for a module that has one (`.github/scripts/spec-inventory-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:standard` / `check:cloud` | abaplint against the standard-ABAP / ABAP-Cloud target configs (part of `verify`) |
 | `npm run check:js` | JS unit specs for the real `app/webapp` modules, no browser needed (part of `verify`) |
 | `npm run check:frozen` | Fail when the branch touches the frozen `src/99/` (part of `verify`) |
+| `npm run check:frozen-only` | Fail when anything in `src/00`–`src/02` calls a symbol marked `FROZEN-ONLY` in `z2ui5_cl_ui5_util_context` — those 23 symbols exist only because the frozen `src/99` still calls them and go when it goes, so a framework caller turns one into a new blocker for that removal (`.github/scripts/frozen-only-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:icons` | Fail when a `sap-icon://` name under `src/` or `app/webapp/` is not in the UI5 1.71 icon font (`.github/scripts/ui5-icon-gate.mjs`; part of `verify`, gated in `check_gates.yaml`; see rule 21) |
 | `npm run check:ui5` | The ui5lint zero-error gate (`.github/scripts/ui5lint-gate.mjs`; part of `verify:full`, needs `app/node_modules`) |
-| `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5) |
+| `npm run check:api` | The `src/02` public-API contract gate — compares against `.github/api-snapshot.json` (see rule 5; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:guide` | Fail when `docs/agents/building-apps.md` names a client method or `cs_*` constant the API does not have (part of `verify`) |
-| `npm run check:formatter` | The curated-formatter scope gate — the exports of `app/webapp/model/formatter.js` must match the gate's justified manifest and the module must hardcode no ValueState/icon URI (see rule 19; part of `verify`, gated in `check_formatter_scope.yaml`) |
-| `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place) |
+| `npm run check:asserts` | Fail when a `FOR TESTING` method asserts nothing — it proves only that the code does not dump, while the report counts it as a passing test (`.github/scripts/assertion-gate.mjs`; part of `verify`, gated in `check_gates.yaml`). Same scope as `check:atc`: `src/00/01`, `src/00/02` are upstream mirrors and `src/99` is frozen |
+| `npm run check:downport` | Fail when a 7.02 built-in function (`to_upper( )`, `substring( )`, …) stands in a table-expression key, a `WITH KEY` operand or an internal-table `WHERE` — positions that only become general expression positions at 7.40, so the downported statement does not compile on 7.02/7.31 (`.github/scripts/downport-operand-gate.mjs`; part of `verify`, gated in `check_gates.yaml`; #2664). Same scope as `check:atc` |
+| `npm run check:pins` | Fail when a library in `node/setup/abap_transpile.json` has no sha pin in `node/setup/fetch-deps.mjs` — the transpiler would clone it at floating HEAD, the exact state the pins exist to rule out (`.github/scripts/transpile-pins-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:release` | The release-readiness gate — the tag, `package.json`, `z2ui5_if_app=>version` and `changelog.txt` all name the same version (`.github/scripts/release-gate.mjs`; run by `release.yaml` before anything is published, and by hand before tagging). Not part of `verify`: a normal commit is not a release |
+| `npm run blockers` | What still stands between this repository and `docs/removal-plan.md`, measured over sibling checkouts you point it at (`npm run blockers -- ../samples ../samples-controls ...`). Not a gate and not part of `verify` — the siblings are not checked out here. It exists because every blocker in that plan is a caller count in another repository, and a hand-measured count silently rots |
+| `npm run coverage` | What `npm run unit` covers, **per ABAP file** — the transpiler's source maps point back at the `.clas.abap`, so a JS coverage tool measures ABAP lines with ABAP line numbers. Needs the transpiled tree (`npm run downport && npm run auto_transpile`). A report, not a gate, and not part of `verify` — see "What the suite covers" |
+| `npm run check:abap2ui5` | The [abap2UI5-linter](https://github.com/abap2UI5/linter) over this repository's OWN app classes — the six under `src/01/04`/`src/02` plus the test-server apps in `node/srv`. They are what an app developer copies from, so the corpus shipped to be imitated is checked with the tool shipped for imitators. Its reason for being here is `chain-house-layout`, the builder-chain layout rule (one call per line, four spaces per level, the closing call in the column of the element it closes) — nothing else formats a chain, abaplint's `indentation` does not reach into one. `npm run fmt:chains` applies it. Config and the two rule decisions: `abap2ui5lint.jsonc` (part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:formatter` | The curated-formatter scope gate — the exports of `app/webapp/model/formatter.js` must match the gate's justified manifest and the module must hardcode no ValueState/icon URI (see rule 19; part of `verify`, gated in `check_gates.yaml`) |
+| `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place; installs `app/node_modules` when missing; part of `verify`) |
 | `npm run downport` | Downport `src/` into `node/downport/` for 7.02 compatibility (non-destructive; the step `verify` runs) |
 | `npm run auto_transpile` | Transpile the downported ABAP to JS into `node/output/` |
-| `npm run unit` | Run the transpiled unit tests |
+| `npm run unit` | Run the transpiled unit tests. **Needs the transpiled tree** (`npm run downport && npm run auto_transpile`) — it is generated, not committed, and `node/setup/require-transpiled.mjs` says so instead of letting node answer `MODULE_NOT_FOUND` on a file nobody wrote by hand. `test.yaml` never hits that: its `transpile` job builds the tree once and every downstream job unpacks it |
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
+| `npm run frontend:cloud` / `frontend:cloud_v2` / `frontend:standard` / `frontend:standard_v2` | Build ONE of the four delivery trees into `tools/out/` instead of all four (`npm run frontend:build` is all four). Thin wrappers around `frontend:build -- <branch>`, kept because the published frontend README (a shared file, `check:shared`) names them |
+| `npm run frontend:verify` | Compare a local build in `tools/out/` against what is published in `abap2UI5/frontend` **today** — file for file, byte for byte, stamped the way the deploy stamps them. Not the same question as `check:frontend`, which asks whether the sources still produce a valid build |
+| `npm run frontend:lint` | abaplint over `frontend/abap/cloud/` — the ICF/BSP handler sources this repository ships into the delivery branches (gated in `frontend_check.yaml`) |
+| `npm test` | `npm run unit` plus the JS unit specs (`check:js`) — the two suites that run without a browser, so the outside developer's first `npm test` covers the frontend modules too. CONVENTIONS §3 asks every repository in the ecosystem to answer to it (`npm run check:scripts` is the gate). It carries the same transpiled-tree prerequisite, which is the whole reason the guard exists: §3 calls these the two names an outside developer types without reading anything first, so what they answer on a fresh clone is the repository's first impression |
 | `npm run express` | Start dev server on port 3000 |
 | `npm run app2abap` | **Canonical** full regeneration pipeline: Prettier (`app` format) → generate → abaplint normalize. Use this after editing `app/webapp/` so only truly-changed `src/01/03/` files differ |
 | `npm run auto_app2abap` | Generate ABAP string constants from `app/webapp/` (raw, **un-normalized** — prefer `npm run app2abap` instead) |
 | `npm run auto_abaplint` | Run the auto-fix config directly |
 | `npm run rename` | Test namespace-rename transformation via abaplint |
 | `npm run auto_downport` | **CI only** — destructive variant that rewrites `src/` in place to produce the `702` branch. Never run this to validate work (rule 9) |
-| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` in `node/downport/` (compatibility step for 7.02 downport) |
-| `npm run strip_trailing_ws` | Strip trailing whitespace from all `node/downport/**/*.abap` files (runs as part of `downport`) |
+| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` in `node/downport/` (compatibility step for 7.02 downport; `node/setup/downport-fix.mjs`) |
+| `npm run strip_trailing_ws` | Strip trailing whitespace from all `node/downport/**/*.abap` files (runs as part of `downport`; `node/setup/downport-fix.mjs`) |
 | `npm run downport_config` | Generate the gitignored `.github/abaplint/downport_run.jsonc` from `abap_702.jsonc` (same rules, retargeted at `node/downport/`) |
-| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after the `auto_downport` copy |
+| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after the `auto_downport` copy (`node/setup/downport-fix.mjs`) |
 
 ### Frontend Tooling (`app/`)
 
@@ -455,12 +579,58 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 ### Testing
 
 - **Unit tests:** Embedded in source files as `.testclasses.abap`, run via abaplint transpiler in Node.js
-- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_core_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose two-way model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
-- **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `core/Router.js` (`router.spec.js`), `Component.js` unload wiring (`componentUnload.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `cc/Focus.js` (`focus.spec.js`), `cc/Dirty.js` (`dirty.spec.js`), `cc/MessageManager.js` (`messageManager.spec.js`), `core/Messages.js` (`messages.spec.js`), `core/DeveloperTools.js` (`developerTools.spec.js`), `core/ErrorView.js` (`errorView.spec.js`), `core/FrontendAction.js` (`frontendAction.spec.js`), `controller/View1.controller.js` event handling (`view1Events.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`), request sequencing (`serverRequestSeq.spec.js`), custom-JS handling (`serverCustomJs.spec.js`), focus-info capture (`serverFocusInfo.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`serverClosestElement.spec.js`), `model/formatter.js` (`formatter.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
+- **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by the `browser` matrix in `test.yaml`, against the shared `transpile` job's output), plus the pinned `ui5-1.71` project (Chromium, smoke + roundtrip specs against pinned OpenUI5 1.71 via the bootstrap rewrite in `node/tests/e2e/fixtures.js` — the executable part of the 1.71 rules, see the enforcement-status note). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_ui5_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
+- **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — **never test a copied function**. Which module has which spec is the inventory in **`docs/agents/test-inventory.md`**, held complete by `npm run check:specs`; it grows with every frontend change and was the longest line in this file. Run them without a browser: `npx playwright test -c node/playwright-unit.config.js` (`npm run check:js`)
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
 - **Never skip a test with `IF sy-sysid = ` + backtick-`ABC`.** `ABC` is the system ID of the Node runtime, so such a guard makes the method a silent no-op in `npm run unit` while it still runs in a real system — CI stays green over assertions nobody executes. A test that genuinely cannot run under the transpiler belongs in the `skip` list of `node/setup/abap_transpile.json` **with a note naming the missing runtime capability**; the runner then prints it as skipped instead of pretending it passed.
 - **A test class touching PRIVATE/PROTECTED members of the class under test needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** Neither abaplint nor the transpiler enforces visibility, so the class pool compiles here and fails on activation in a real system. Gated by `npm run check_visibility` (`.github/scripts/testclass-visibility-gate.mjs`).
 - **Test SICF handler:** `node/srv/zcl_sicf.clas.abap` is copied into `node/downport/` during `auto_transpile` so the Node runtime has a minimal HTTP entry point.
+- **Every `FOR TESTING` method has to assert something** — `npm run check:asserts`. A method that only calls the code proves it does not dump, and a green report cannot tell that apart from a proved behaviour. `z2ui5_cl_ui5_app_start`'s `test_first` was `factory( )` into a `##NEEDED` variable for as long as the class existed; it is now four tests over the model the first request renders. Judging an assertion's *quality* stays a review's job — the gate only asks whether one is there.
+
+#### What the suite covers
+
+`npm run coverage` answers it per ABAP file: the transpiler emits source maps back to the `.clas.abap`, so a JavaScript coverage tool measures ABAP lines with ABAP line numbers. Scoped to the engine — `src/00/01` and `src/00/02` are upstream mirrors, `src/99` is frozen, and the `src/01/03` frontend carriers are one method returning a JS/XML literal each, 100% by construction and two thirds of the line count, which would flatter the number without saying anything about the engine.
+
+**72.6% of the engine** (8,435 of 11,623 lines, 19 files) — measured by `coverage.yaml`, which runs `npm run coverage` monthly and writes the per-file table to its job summary, so the number here has a run behind it rather than a memory. It is a report and not a gate on purpose: a threshold is a number a build starts optimising for, while the useful question is always *which* file is low and whether that matters. Three are, and only one of them is a gap:
+
+| File | Lines | Why |
+|---|---|---|
+| `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` | 35% of 3,175 | **The real gap** — 2,056 uncovered lines, more than the rest of the engine's misses together. It is the door to everything utility-shaped (§ "Utilities"), and most of what it offers is called by *apps*, not by the engine the suite drives |
+| `src/02/z2ui5_cl_ui5_http_handler.clas.abap` | 28% of 606, **of the downported copy** | The ICF entry point. The transpiled suite comes in through `z2ui5_cl_ui5_handler` (94%) because there is no ICF request to make; the browser tests drive the rest through `zcl_sicf`. **The "`_http_get( )` is never executed" reading was an artefact, and it is now explained** — see below. Read the 28% as coverage of `node/downport/02/…`, never as a per-line statement about `src/02/…` |
+| `src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap` | 29% of 56 | A demo app. Its view is exercised by the browser tests, not by the unit suite |
+
+**Coverage line numbers are the DOWNPORT's, not `src/`'s.** This cost a while
+to see, because the two files share a basename and the report prints the
+`src/` path:
+
+```
+node/output/z2ui5_cl_ui5_http_handler.clas.mjs.map
+  sources: [ "../downport/02/z2ui5_cl_ui5_http_handler.clas.abap" ]
+```
+
+`c8` instruments the transpiled JS and maps back through that file — and the
+downporter rewrites the source on the way. One `DATA(ls_config) = …` becomes
+seven `DATA` declarations plus an assignment, `COND` becomes an `IF`, a string
+template becomes a concatenation. The measurable numbers (re-measured
+2026-08-30 — both files grow, so measure before citing):
+
+| | `src/02/…` | `node/downport/02/…` |
+|---|---:|---:|
+| the file | 669 lines | **743** lines |
+| `_http_get( )` starts at | 370 | **399** |
+| `_http_get( )` is | 88 lines | **105** lines |
+
+The right-hand column is the downported count — it never was `src/`'s.
+So the covered ranges are real, and reading them against `src/` shifts them by
+30-odd lines and growing: `_http_get( )` looked stone cold because the lines
+that ran were the *downport's* (297-387 at the time), which land somewhere
+else entirely in the source. The tests were fine all along.
+
+What this does **not** settle is whether the cold-line count of the downported
+file is the right statement coverage; that needs a run, and the figure is only
+ever about that file. `npm run coverage -- --detail <file>` prints the cold ranges
+against `node/downport/<rest>` and says so, which is why it reads that copy
+rather than the source.
 
 ## Key Files
 
@@ -470,25 +640,26 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 |---|---|
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
 | `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
-| `src/02/z2ui5_cl_ai_xml.clas.abap` | Generic XML view builder — the standard for all apps (migrated from samples-controls) |
-| `src/01/02/z2ui5_cl_core_handler.clas.abap` | Central request processor + main loop |
-| `src/01/02/z2ui5_cl_core_client.clas.abap` | Implements z2ui5_if_client |
+| `src/02/z2ui5_cl_ui5_view_builder.clas.abap` | Generic XML view builder — the standard for all apps |
+| `src/01/02/z2ui5_cl_ui5_handler.clas.abap` | Central request processor + main loop |
+| `src/01/02/z2ui5_cl_ui5_client.clas.abap` | Implements z2ui5_if_client |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
 
 **Reference files (consult as needed):**
 
 | File | Why |
 |---|---|
-| `src/02/z2ui5_if_types.intf.abap` | Shared type definitions |
-| `src/02/z2ui5_if_exit.intf.abap` | Customization exit points |
-| `src/02/z2ui5_cl_exit.clas.abap` | Default exit + user-exit class support |
-| `src/01/02/z2ui5_cl_core_action.clas.abap` | Event/action dispatcher |
-| `src/01/02/z2ui5_cl_core_app.clas.abap` | App lifecycle (create, load, serialize) |
-| `src/01/02/z2ui5_cl_core_srv_bind.clas.abap` | Data binding engine |
-| `src/01/02/z2ui5_cl_core_srv_model.clas.abap` | JSON model management |
-| `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
-| `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
-| `src/00/03/z2ui5_cl_a2ui5_context.clas.abap` | The single door to system/platform functionality — see "Utilities" |
+| `src/02/z2ui5_if_client.intf.abap` | The client API, and the types its methods return and take |
+| `src/02/z2ui5_if_ui5_exit.intf.abap` | Customization exit points (`z2ui5_if_exit` is its superseded name) |
+| `src/01/04/z2ui5_cl_ui5_user_exit.clas.abap` | Default exit + user-exit class support |
+| `src/01/02/z2ui5_cl_ui5_action.clas.abap` | Event/action dispatcher |
+| `src/01/02/z2ui5_cl_ui5_frontend.clas.abap` | Frontend action queues + response serialization (T_SYSTEM/T_CUSTOM, ROUTER/nav intent) |
+| `src/01/02/z2ui5_cl_ui5_app_cont.clas.abap` | App lifecycle (create, load, serialize) |
+| `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap` | Data binding engine |
+| `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` | JSON model management |
+| `src/01/02/z2ui5_cl_ui5_srv_event.clas.abap` | Event registration and payload assembly |
+| `src/01/01/z2ui5_cl_ui5_srv_draft.clas.abap` | Draft/session persistence |
+| `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` | The single door to system/platform functionality — see "Utilities" |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
 | `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
 | `app/webapp/core/Lib.js` | Shared frontend helpers |
@@ -496,14 +667,18 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 
 ## Commit Message Style
 
-Concise, capitalized or lowercase first word. Conventional commits preferred:
+**`.github/shared/CONVENTIONS.md` section 7 is the rule, and it binds this
+repository** (see the `.github/shared/` row in `docs/agents/repository-map.md`): a subject in the
+imperative describing the **outcome**, not the mechanics — "Hold the corpus
+counts to the corpora that own them", not "update script". Machine commits in
+pipeline repositories keep their verb prefix (`mirror:`, `transpile:`,
+`prepare:`, `build:`, `trigger:`, `deploy:`), and those prefixes mean the same
+thing in every repository.
 
-```
-feat: add new control method for FlexibleColumnLayout
-fix: correct binding path for nested table structures
-refactor: extract methods in core handler
-test: add unit tests for utility class
-```
+This section used to state a third rule of its own (conventional commits) while
+`CONTRIBUTING.md` stated a fourth, so of the three places a contributor might
+look, two disagreed with the one the reviewer holds them to. There is one now,
+and the copies point at it.
 
 ### Pull request titles
 
@@ -515,55 +690,97 @@ test: add unit tests for utility class
   renaming, restructuring) must not ride along in a PR titled for an
   unrelated fix — split it into its own PR so the history stays searchable.
 
+### Issues reported by users
+
+- **Never close an issue somebody else reported, and never let a merge close
+  it.** The reporter is the only one who can confirm the fix, because the
+  defect is on *their* system and ours is what shipped it. Merging a PR is
+  not the end of the report — activating the fix on the affected system is,
+  and only they can do that. So do not use a closing keyword (`Fixes #NNNN`,
+  `Closes #NNNN`, `Resolves #NNNN`) in a PR title, body or commit message:
+  GitHub acts on it at merge time and closes the issue without anybody
+  deciding to. Write `Report: #NNNN` or `See #NNNN` instead, which links the
+  two without the side effect. #2664 was closed exactly this way.
+- **A reply on an issue is written for the reporter, not as a record of the
+  analysis.** A few lines: what was actually wrong, what they do now, and
+  whether their own reading of it was right. The evidence, the ruled-out
+  alternatives and the reasoning belong in the PR body and in the code
+  comment at the fix — a reader who wants them follows the link. A long
+  answer buries the one sentence the reporter needs.
+
 ## Important Rules for AI Assistants
 
 These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, read `docs/agents/building-apps.md` instead (rendered docs site: <https://abap2ui5.github.io/docs/>).
 
-1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. `src/00/03/` is the opposite case: see "Utilities — the context class is the only door", which settles everything about utilities. **Ignore `src/99/` completely — the package is history only** (see "Layered Design"): never read it, change it, or add consumers on it. The view builder is `z2ui5_cl_ai_xml` in `src/02/`; all builder work happens there.
-2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
+1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. `src/00/03/` is the opposite case: see "Utilities — the context class is the only door", which settles everything about utilities. **Ignore `src/99/` completely — the package is history only** (see "Layered Design"): never read it, change it, or add consumers on it. The view builder is `z2ui5_cl_ui5_view_builder` in `src/02/`; all builder work happens there.
+2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` — see `tools/app2abap/trans2abap.js` and the `check_app2abap.yaml` drift gate). The **only** allowed way to update them is:
    - Change the source under `app/webapp/`
-   - Run **`npm run app2abap`** locally (or trigger the `create_app2abap.yaml` workflow). This single command runs the full pipeline in the correct order — `npm --prefix app run format` (Prettier) → `npm run auto_app2abap` (generate) → `npm run auto_abaplint` (normalize) — exactly as CI does. Running `auto_app2abap` on its own produces **un-normalized** ABAP that differs from the committed form in *every* `src/01/03/` file (alignment/whitespace drift); the `auto_abaplint` step reverts that drift so only the files whose `app/webapp/` source actually changed remain modified.
+   - Run **`npm run app2abap`** locally (or comment `/fix app2abap` on the pull request). This single command runs the full pipeline in the correct order — `npm --prefix app run format` (Prettier) → `npm run auto_app2abap` (generate) → `npm run auto_abaplint` (normalize) — exactly as CI does. Running `auto_app2abap` on its own produces **un-normalized** ABAP that differs from the committed form in *every* `src/01/03/` file (alignment/whitespace drift); the `auto_abaplint` step reverts that drift so only the files whose `app/webapp/` source actually changed remain modified.
    - Commit the regenerated `src/01/03/` files as the job produced them
-   - The `sap.ui.require.preload` mapping is **also generated**: `trans2abap.js` emits `z2ui5_cl_app_preload`, which `z2ui5_cl_http_handler` consumes. New files under `app/webapp/` are picked up automatically — never reintroduce a manually maintained preload list in the HTTP handler.
+   - The `sap.ui.require.preload` mapping is **also generated**: `trans2abap.js` emits `z2ui5_cl_ui5f_preload`, which `z2ui5_cl_ui5_http_handler` consumes. New files under `app/webapp/` are picked up automatically — never reintroduce a manually maintained preload list in the HTTP handler.
+   - **The embedded `.js` copies are comment-stripped.** `trans2abap.js` cuts the comments out of the original text by position (acorn) and lets Prettier tidy the holes — no compress, no mangle, no reprint, and a terser re-parse proves the program is unchanged. The mirror is a delivery artefact: the comments live in `app/webapp/`, and stripping them roughly halves the ICF `GET` payload. Do not expect `src/01/03/` to carry a frontend comment; the special files (`.xml`/`.json`/`.html`/`.css`) go in untouched.
    Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small fixes", no formatting changes, nothing. The job may be invoked, but the files must never be touched by hand or by any other means.
    - **Prettier governs all of `app/webapp/`** — do not add `// prettier-ignore` directives. Since every custom control lives in its own file, a header reflow only touches that control's small generated constant; just let `npm run app2abap` format and regenerate.
+   - **The delivery trees follow the same rule, one step further: they are not committed here at all.** `npm run frontend:build` builds them from `app/webapp/`, `frontend/` and `tools/` into the git-ignored `tools/out/`, `frontend_check` proves the build on every pull request, and `frontend_deploy` runs the same build on `main` and ships it into abap2UI5/frontend (`result/<branch>` on its `main`). Never edit a built tree — change the source; the only generated artefact a webapp change commits alongside it is `src/01/03/`.
 3. **Always run `npx abaplint`** before considering changes complete.
 4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP, and ABAP Cloud.
 5. **The public API (`src/02/`) is a stable contract — never change or remove existing public attributes, methods, or constants.** This folder is consumed directly by thousands of downstream apps. Specifically:
-   - Do not rename, remove, or change the signature of any method in `z2ui5_if_client`, `z2ui5_if_app`, `z2ui5_if_types`, or `z2ui5_if_exit`
+   - Do not rename, remove, or change the signature of any method in `z2ui5_if_client`, `z2ui5_if_app`, or `z2ui5_if_ui5_exit`
    - Do not remove or rename public `DATA`, `CONSTANTS`, or `TYPES` in any `src/02/` class or interface
    - Do not change the type or default value of existing parameters in any public method
    - Additive changes are allowed (new methods, new optional parameters, new constants)
    - When in doubt, add rather than change
-   - **Machine-enforced** by `check_api_contract.yaml`: every public `src/02` signature is recorded in `.github/api-snapshot.json`; a removed/changed signature fails the PR (revert it — never edit the snapshot to silence the gate), and an addition fails until you record it with `node .github/scripts/api-snapshot.mjs --write` and commit the snapshot alongside
+   - **No public signature may name a Layer 1 type.** A `z2ui5_if_ui5_types=>…` in a `src/02` signature makes an internal a de-facto public contract and blocks renaming it. The public class declares its own type instead — see `z2ui5_cl_ui5_http_handler=>ty_s_http_res`, which is structurally identical to the core's and meets it once, in `_http_post( )`, via `MOVE-CORRESPONDING`
+   - **Machine-enforced** by `check_gates.yaml`: every public `src/02` signature is recorded in `.github/api-snapshot.json`; a removed/changed signature fails the PR (revert it — never edit the snapshot to silence the gate), and an addition fails until you record it with `node .github/scripts/api-snapshot.mjs --write` and commit the snapshot alongside
+   - The recorded exceptions, all owner-approved; 1-4 come from the move to the `ui5` namespace, 5 from retiring the shared type interface and 6 from renaming the exit interface. Not a precedent for editing the snapshot on any other finding — 1 and 2 are `CHANGED`, 3 is the far heavier `REMOVED`:
+     1. `_http_post`/`_http_get`/`_main` moved from `z2ui5_if_core_types=>ty_s_http_res` to the handler's own `ty_s_http_res` when the core layer became `z2ui5_if_ui5_types`. The underscore methods had no caller outside the class's own test class
+     2. `_http_post`/`_main`/`get_request` and `z2ui5_cl_exit=>init_context` moved from `z2ui5_cl_a2ui5_http=>ty_s_http_req` to `z2ui5_if_types=>ty_s_http_req` when `src/00/03` became `z2ui5_cl_ui5_*`. Structure unchanged field for field, and `get_request`/`init_context` never assigned the whole record anyway (`CORRESPONDING #( )` and field-wise writes)
+     3. `z2ui5_cl_app_startup` → `z2ui5_cl_ui5_app_start` and `z2ui5_cl_app_hello_world` → `z2ui5_cl_ui5_app_hi_world` retired 17 public symbols under their old names. Unlike 1 and 2 this is a **name** change, not a type reference: a bookmarked `?app_start=z2ui5_cl_app_hello_world`, a launchpad tile pointing at either class, or downstream code naming them stops working with no fallback. Shipped deliberately without compatibility shims — if that turns out to be too sharp, the repo's own precedent is the `class` / `class_old` pair in `z2ui5_cl_ui5_app_start=>render_samples( )`
+     4. The `ui5`-rename restructuring itself, recorded in a change of its own so the blast radius is the whole diff rather than a footnote. The snapshot went from 100 keys to **70**, then to **80** once `z2ui5_if_types` came back into `src/02` (see "Layered Design"). Against the 100: 44 `REMOVED`, 14 unrecorded additions, 1 `CHANGED`. **38 of the 44 removals are relocations, not deletions** — the object still ships and downstream code still compiles, it simply left the folder the snapshot scans: `z2ui5_cl_http_handler` (10, now a deprecated shim forwarding to `z2ui5_cl_ui5_http_handler`) to `src/99`; `z2ui5_cl_ui5_app_start` (15) and `z2ui5_cl_ui5_app_hi_world` (2) to `src/01/04`; `z2ui5_if_types` (11) to `src/99` and back again, so of the 38 only 27 are still outside the snapshot. The other **6 are real**: `z2ui5_cl_exit` (4) became `src/01/04/z2ui5_cl_ui5_user_exit`, with no shim — apps extend the still-public `z2ui5_if_exit`, so only code naming the *class* breaks; and `z2ui5_if_app~check_initialized` / `~check_sticky` (2) were dropped as dead lifecycle mirrors (use `client->check_on_init( )` / `client->set_session_stateful( )`), which fails at compile time rather than at runtime. The 14 additions are `z2ui5_cl_ui5_http_handler` under its new name (11) plus `cs_device` / `ty_s_name_value` / `ty_t_name_value`, which `z2ui5_if_client` now owns. The 1 `CHANGED` is `z2ui5_if_client=>cs_event` and is a **false positive**: the constants were reordered, none added or removed — the gate compares a block byte for byte, and for a set of independently named constants the order carries no contract. Left as-is because the regeneration absorbs it; if a reorder ever fails a PR again, teach the gate to compare constants blocks as a set rather than editing the snapshot around it
+     5. `z2ui5_if_types` retired to `src/99` so every type sits on the object that uses it: 10 `REMOVED` (its own symbols leaving the scanned folder) and 4 `CHANGED` (`get( )`, `_event( )` and the two `z2ui5_if_exit` methods, which now name the type next to them instead of one in another interface). Nothing was deleted or reshaped — the interface ships unchanged from the frozen package, so `z2ui5_if_types=>ty_s_get` still compiles downstream, and each moved type is identical field for field, so a caller's own declarations stay compatible with the new signatures. Snapshot 80 keys to **75**
+     6. `z2ui5_if_exit` renamed to `z2ui5_if_ui5_exit` **without** an incompatibility: 5 `REMOVED` (the old interface's own symbols, leaving the scanned folder for `src/99`) against 5 additions under the new name. Every existing exit keeps working - the old interface ships unchanged and `z2ui5_cl_ui5_user_exit` still looks it up and calls it - and its three types are declared AS the ones on the new interface (`types ty_s_http_config type z2ui5_if_ui5_exit=>ty_s_http_config`) rather than repeated, so they cannot drift while the framework hands the same structure to both
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/cc/<Name>` of the custom controls (file location under `webapp/cc/` defines the ID), their properties and events (bound by existing app views), the controller methods `eB`/`eF`, the `z2ui5/Util` module and the `z2ui5.Util` global (public date helpers — **deprecated**, kept as a backward-compatible alias; new code and new helpers go through `z2ui5/model/formatter` / the `z2ui5.Formatter` global, which re-exports them). Additive changes only. View XML using the custom controls must declare `xmlns:z2ui5="z2ui5.cc"` (changed from `"z2ui5"` when the controls moved into `cc/`).
 8. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Shared frontend state is owned by `app/webapp/core/AppState.js`** — it documents the complete inventory of the `z2ui5.*` globals (public contract vs. internal fields) and provides the defaults for all internal fields. Framework modules must not reference the `z2ui5` global directly (ui5lint `no-project-globals`): internal fields are accessed via the `AppState.state` module export, public-contract fields via `AppState.getGlobal()/setGlobal()`. AppState itself is the only module that touches the global — it exposes the internal fields there via accessors so external consumers (apps via the js_loader popup, backend-generated HTML) keep working. Do not add new lazy `if (!z2ui5.x)` bootstrapping; add the field with its default to `AppState.createState()` instead.
 9. **Validate with `npm run verify`, never with `npm run auto_downport`.** `auto_downport` rewrites `src/` in place *and* overwrites `abaplint.jsonc`; it exists for exactly one purpose — producing the `702` branch in `auto_downport.yaml` — and will destroy uncommitted work if you run it to check your changes. `npm run downport` performs the identical downport into `node/downport/` and leaves the working tree untouched; `npm run verify` wraps it together with lint, transpile and unit tests.
 10. **Custom controls (`app/webapp/cc/`) delegate, they never decide** — a control exposes bindable **properties** and **events** and lets the backend drive the UI; it must not surface its own popups/toasts/dialogs (the `Geolocation` control fires an `error` event with code/message instead of showing a `MessageBox`). Lifecycle (UI5 2.x is strict): `init` and other lifecycle listeners **must not return a value** — never make them `async` (an async function returns a Promise → `_enforceNoReturnValue` FUTURE FATAL; kick the async work off in a separate helper, see `CameraSelector._loadCameras`). After every `await`, bail out when the control was destroyed (`Lib.isDestroyed`). Read the DOM defensively (guard a 0-size canvas, a missing `videoWidth`, an absent element) and **log, never throw** (`Lib.logError`). Prefer reusing a standard control or a binding over writing a new custom control at all.
-11. **Never "modernize" `WITH DEFAULT KEY` to `WITH EMPTY KEY` on a table that is passed to a classic function module** (or to any typed formal parameter) — the key is part of the table type, and an incompatible one makes the `CALL FUNCTION` fail at runtime, silently when it sits inside a `TRY … CATCH` / `EXCEPTIONS` guard. Reasoning and the concrete breakage: see the comment above `lt_impl` in `z2ui5_cl_a2ui5_context=>rtti_get_classes_intf_std`.
-12. **A module that exists only in newer UI5 must never be a hard `sap.ui.define([...])` dependency.** abap2UI5 supports OpenUI5 down to **1.71**; a dep the old release lacks 404s and the *whole component* fails to load (blank app). Resolve version-specific modules **lazily** with `sap.ui.require("…")` at the point of use and handle `undefined` gracefully (see `Component.js` Theming/Messaging probing, and the `THEMING` target in `FrontendAction.js`). Known post-1.71 modules: `sap/ui/core/Theming` and `sap/ui/core/Messaging` (both since 1.118). Before adding any `sap/ui/core/*` dependency, check its "available since" — if it is newer than 1.71, lazy-require it.
-13. **The app runs under a CSP without `'unsafe-eval'`-free assumptions — keep it eval-capable and avoid eval-only UI5 features.** The default CSP (in `z2ui5_cl_exit`) keeps `'unsafe-eval'` because the OpenUI5 **1.71** ui5loader evals module source; removing it breaks the 1.71 bootstrap with a CSP `EvalError`. Also do **not** use UI5 **expression binding** (`{= … }`) in framework-controlled XML/fragments — it is compiled with `eval`/`new Function`, so it fails wherever a stricter CSP applies; drive such state from a plain model property instead (see the DeveloperTools `closeEnabled` boolean).
-14. **`app/webapp/` source must be 7-bit ASCII.** Every frontend file is embedded verbatim into an ABAP class under `src/01/03/`, which abaplint checks with the `7bit_ascii` rule — a non-ASCII literal (`…`, `©`, `→`, a smart quote) breaks generation/lint. Use ASCII in source (`...` not `…`) and build any non-ASCII runtime string with `String.fromCharCode(...)` / entity decoding at run time, never as a literal.
+11. **Never "modernize" `WITH DEFAULT KEY` to `WITH EMPTY KEY` on a table that is passed to a classic function module** (or to any typed formal parameter) — the key is part of the table type, and an incompatible one makes the `CALL FUNCTION` fail at runtime, silently when it sits inside a `TRY … CATCH` / `EXCEPTIONS` guard. Reasoning and the concrete breakage: see the comment above `lt_impl` in `z2ui5_cl_ui5_util_context=>rtti_get_classes_intf_std`.
+12. **A module that exists only in newer UI5 must never be a hard `sap.ui.define([...])` dependency.** abap2UI5 supports OpenUI5 down to **1.71**; a dep the old release lacks 404s and the *whole component* fails to load (blank app). Resolve version-specific modules **lazily** with `sap.ui.require("…")` at the point of use and handle `undefined` gracefully (see `Component.js` Theming/Messaging probing, and the `THEMING` target in `core/actions/ControlCall.js`). Known post-1.71 modules: `sap/ui/core/Theming` and `sap/ui/core/Messaging` (both since 1.118). Before adding any `sap/ui/core/*` dependency, check its "available since" — if it is newer than 1.71, lazy-require it.
+13. **The app runs under a CSP without `'unsafe-eval'`-free assumptions — keep it eval-capable and avoid eval-only UI5 features.** The default CSP (in `z2ui5_cl_ui5_user_exit`) keeps `'unsafe-eval'` because the OpenUI5 **1.71** ui5loader evals module source; removing it breaks the 1.71 bootstrap with a CSP `EvalError`. Also do **not** use UI5 **expression binding** (`{= … }`) in framework-controlled XML/fragments — it is compiled with `eval`/`new Function`, so it fails wherever a stricter CSP applies; drive such state from a plain model property instead (see the DeveloperTools `closeEnabled` boolean).
+14. **`app/webapp/` source must be 7-bit ASCII.** Every frontend file is embedded into an ABAP class under `src/01/03/` (`.js` comment-stripped, everything else verbatim — see rule 2), which abaplint checks with the `7bit_ascii` rule — a non-ASCII literal (`…`, `©`, `→`, a smart quote) breaks generation/lint. Use ASCII in source (`...` not `…`) and build any non-ASCII runtime string with `String.fromCharCode(...)` / entity decoding at run time, never as a literal.
 
 15. **A generic aggregation-escape tag (`<ns:name>` — produced by `heading( ns )`, a literal `<footer>`, `_generic( name = … ns = … )`, …) must name an aggregation the parent actually has; otherwise UI5 resolves it as a *control class* and 404s** with `failed to load sap/<lib>/<name>.js` on any release lacking that control, killing the view. This is rule 12's failure mode for **controls/aggregations** rather than modules. Real 1.71 crashes fixed this way: `<footer>` on a `sap.m.Dialog` — the public `footer` aggregation only exists since **~1.110**, so use the **`buttons`** aggregation (since 1.21.1) for a Dialog footer (see `DeveloperTools.fragment.xml`); and (samples) `heading( `uxap` )` on a `sap.uxap.ObjectPageSection`, which has no `heading` aggregation. `heading( ns )` IS valid on a parent that has one (sap.f `DynamicPageTitle`); `sap.m.Page.footer` is fine. Before using an aggregation confirm the parent exposes it in the **oldest supported release (1.71)** — like modules, post-1.71 aggregations bite (Dialog `footer` ~1.110).
 16. **`sap.m.MessageBox` always closes on Escape and gives no way to suppress it.** For a popup that must NOT be Escape-dismissable — the fatal-error overlay (`ErrorView.js`), which would otherwise let the user Escape back into a broken app — build a `sap.m.Dialog` with `escapeHandler: (oPromise) => oPromise.reject()` instead of a MessageBox (keep the raw-DOM overlay as the fallback for a broken core). Only the explicit actions (Details / Restart) may then close it.
 17. **A dialog loaded from a fragment with a fixed `id` must be loaded once and reused across open/close — never destroyed on close and re-loaded on the next open.** On OpenUI5 1.71 the destroy races the dialog's close animation, so a fragment-scoped control id is still registered when the reload runs → `adding element with duplicate id 'z2ui5DeveloperTools--developerToolsEditor'`. Pattern (see `DeveloperTools.js`): `show()` reuses an existing `this.oDialog` and only re-seeds the model; `close()` just closes it (and reuses it next time); `exit()` is the sole place that destroys it.
-18. **Do not declare a physical resource in `manifest.json` that the ABAP deployment does not actually serve.** `sap.ui5/resources.css` made UI5 load `css/style.css` as a real `<link>`, which 404s on the ABAP system — frontend files are served through the module preload (`z2ui5_cl_app_preload`), not as ICF resources at their raw URLs. The placeholder `style.css` contained only a placeholder comment, so the entry was removed. If a real stylesheet is ever needed, serve it through the preload / HTTP handler, not a bare manifest `<link>`.
-19. **The frontend is a thin, data-driven executor — grow it through the declarative whitelists, not through new bespoke logic.** The backend drives frontend behavior by *data* (an event name plus positional args), and `FrontendAction.js` turns that data into UI5 calls through three declarative whitelists: `CONTROL_METHODS` (imperative methods on a control resolved by id — `to`, `open`, `scrollToIndex`, `expandToLevel`, …), `GLOBAL_TARGETS` (whitelisted methods on a global object — `MessageToast`, `MessageBox`, `BusyIndicator`, `Theming`), and `BINDING_METHODS` (aggregation-binding ops — `filter`/`sort`, built from paths + whitelisted `FILTER_OPERATORS`, never from code). **When a new need is "call a UI5 control / global / binding method", add a whitelist entry** (method name + its arg *kinds*, cast via `castArg`) — do **not** add a new hand-written `handlers` entry that re-implements the dispatch. Only add a new `handlers` function for a genuine *browser capability* that has no control-method equivalent (clipboard, history, download, storage, timer, focus/scroll/caret, audio, launchpad nav). Whichever you add, it stays a thin executor: resolve/cast args, guard the DOM, and `Lib.logError` on failure — **never** embed business decisions, thresholds, unit conversions, or app-specific branching — those belong in the backend model. This keeps the "delegate, never decide" contract (rule 10) at the action layer and keeps every payload data, not code — CSP-clean without `unsafe-eval` for the dispatch path.
-    **The curated formatter module (`app/webapp/model/formatter.js`) is the same rule for values**, and the only place the framework ships JS an app's view calls on its data. It is a **marshalling layer, not a formatting toolbox**: a function may only live there when it (1) formats exactly the one value handed to it, (2) cannot be done in ABAP at all — a JS `Date` for an object-typed property, an icon-font glyph of the loaded theme, a browser locale/theme artefact — and (3) contains no domain vocabulary (no hardcoded ValueState, no icon URI, no business status). The criteria and the precedent (`weightState` and the stock/delivery status pack were shipped and **removed** again) are in the module header; criteria 2 and 3 are machine-enforced by `npm run check:formatter` / `check_formatter_scope.yaml`, criterion 1 is reviewer-enforced. Adding a function there is an architectural decision, not a convenience — if ABAP can produce the finished value, the app computes it and the view binds it.
+18. **Do not declare a physical resource in `manifest.json` that the ABAP deployment does not actually serve.** `sap.ui5/resources.css` made UI5 load `css/style.css` as a real `<link>`, which 404s on the ABAP system — frontend files are served through the module preload (`z2ui5_cl_ui5f_preload`), not as ICF resources at their raw URLs. The placeholder `style.css` contained only a placeholder comment, so the entry was removed. If a real stylesheet is ever needed, serve it through the preload / HTTP handler, not a bare manifest `<link>`.
+19. **The frontend is a thin, data-driven executor — grow it through the declarative whitelists, not through new bespoke logic.** The backend drives frontend behavior by *data* (an event name plus positional args), and the action dispatch (`FrontendAction.js`, handlers in `core/actions/` — the whitelists live in `core/actions/ControlCall.js`) turns that data into UI5 calls through three declarative whitelists: `CONTROL_METHODS` (imperative methods on a control resolved by id — `to`, `open`, `scrollToIndex`, `expandToLevel`, …), `GLOBAL_TARGETS` (whitelisted methods on a global object — `MessageToast`, `MessageBox`, `BusyIndicator`, `Theming`), and `BINDING_METHODS` (aggregation-binding ops — `filter`/`sort`, built from paths + whitelisted `FILTER_OPERATORS`, never from code). **When a new need is "call a UI5 control / global / binding method", add a whitelist entry** (method name + its arg *kinds*, cast via `castArg`) — do **not** add a new hand-written handler that re-implements the dispatch. Only add a new handler (in the matching `core/actions/` domain module, merged into the dispatch by `FrontendAction.js`) for a genuine *browser capability* that has no control-method equivalent (clipboard, history, download, storage, timer, focus/scroll/caret, audio, launchpad nav). Whichever you add, it stays a thin executor: resolve/cast args, guard the DOM, and `Lib.logError` on failure — **never** embed business decisions, thresholds, unit conversions, or app-specific branching — those belong in the backend model. This keeps the "delegate, never decide" contract (rule 10) at the action layer and keeps every payload data, not code — CSP-clean without `unsafe-eval` for the dispatch path.
+    **The curated formatter module (`app/webapp/model/formatter.js`) is the same rule for values**, and the only place the framework ships JS an app's view calls on its data. It is a **marshalling layer, not a formatting toolbox**: a function may only live there when it (1) formats exactly the one value handed to it, (2) cannot be done in ABAP at all — a JS `Date` for an object-typed property, an icon-font glyph of the loaded theme, a browser locale/theme artefact — and (3) contains no domain vocabulary (no hardcoded ValueState, no icon URI, no business status). The criteria and the precedent (`weightState` and the stock/delivery status pack were shipped and **removed** again) are in the module header; criteria 2 and 3 are machine-enforced by `npm run check:formatter` / `check_gates.yaml`, criterion 1 is reviewer-enforced. Adding a function there is an architectural decision, not a convenience — if ABAP can produce the finished value, the app computes it and the view binds it.
+
+20. **A green `npm run verify` does not prove the repository still round-trips through abapGit — `npm run check:abapgit` does.** abaplint parses ABAP and has no model of abapGit's file format, and its `global.files` never reaches `src/99` at all, so a `.clas.xml` with the terminating newline removed and CRLF line endings throughout produces **zero** findings while differing from the system's serialization on every single pull (`8e272492`, `54bce5b6`, `c7185c38` — three "fix abapgit diffs" commits, all repaired only after someone pulled). The BOM is the one byte-level rule abaplint has: `xml_bom`, new in 2.120.32 and on here in `abaplint.jsonc`, in the standard/cloud/702 target configs (which do reach `src/99`) and in the autofix config, where its quick fix inserts the BOM. It reads the one XML abapGit writes per object, so an `.abap` file carrying a BOM is still the gate's finding and nobody else's. The transpiler ignores visibility, so a `class_constructor` outside the **PUBLIC SECTION** keeps `npm run unit` green and fails activation in a real system (why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily, #2547). **Never hand-edit a `.clas.xml`/`.intf.xml` to tidy it** — it is a serialization, not a config file; fix the object in a system and commit what abapGit writes. The full checklist, including the parts no gate can decide (`<DESCRIPTIONS>` following the components), is the `abap-check` skill in `.claude/skills/` — the catalogue for every ABAP problem a green CI misses, not just the abapGit ones.
+
+21. **An icon name must exist in the 1.71 icon font, and a control that only lays out inside a flex container must not sit in a `sap.m.Bar`.** Two silent 1.71 failures that look identical from the outside — the icon is simply not there, with nothing in abaplint, ui5lint or the browser console. (a) **Icon names:** an unknown `sap-icon://` name is not an error, `IconPool` finds nothing and the control renders without an icon. `sap-icon://information` — added to the font *after* 1.71 — left the developer tools' help button blank on the oldest supported release. Gated by `npm run check:icons` / `check_gates.yaml` against a snapshot of the 1.71 registry. Names resolve through `URI.parse( )`, which lower-cases the host part, so a camelCase name renders nothing in **every** release (`textFormatting` → the name is `text-formatting`). (b) **Toolbar-only controls in a bar:** `sap.m.ToolbarSpacer` and `sap.m.ToolbarSeparator` render a `<div>` and are laid out as intended only inside a `sap.m.Toolbar`. `sap.m.Bar` — what `Page.headerContent` (forwarded to `contentRight`) and `customHeader` end up as — became a flex container only after 1.71; before that a block-level child starts a **new line** and everything from there on is cut away by the container's `overflow:hidden` at the bar's 3rem. That swallowed two of the four header icons of the start page on 1.71 while newer releases showed all of them. Put only inline controls in a bar and group them with a margin class (reasoning at `z2ui5_cl_ui5_app_start=>render_header_toolbar`).
 
 > **Enforcement status — know which rules a green CI actually proves.** Rules
-> 1 (`src/99` part), 2, 3, 4, 5 and 14 are backed by CI gates, and rule 19's
-> curated-formatter half by `check_formatter_scope.yaml` (its criteria 2 and
-> 3 — "one value only" still needs a reader). **The
-> OpenUI5-1.71 compatibility cluster — rules 12, 13, 15, 16, 17, 18 — is
-> enforced by NOTHING automated**: the browser tests run against the latest
-> UI5 CDN build, never 1.71, and `manifest.json` (where `minUI5Version: 1.71`
-> lives) is excluded from ui5lint. A green CI therefore does **not** prove
-> 1.71 safety — these rules are reviewer-enforced, so check them manually on
-> every frontend change ("available since" of every module, aggregation and
-> control against 1.71) until a pinned-1.71 test project exists.
+> 1 (`src/99` part), 2, 3, 4, 5, 14, 20 and rule 21's icon half are backed by CI gates, and rule 19's
+> curated-formatter half by `check_gates.yaml` (its criteria 2 and
+> 3 — "one value only" still needs a reader). **The OpenUI5-1.71
+> compatibility cluster — rules 12, 13, 15, 16, 17, 18 — now has a partial
+> executable gate**: the `ui5-1.71` Playwright project (a `browser` matrix leg in `test.yaml`,
+> pinned build in `node/playwright.config.js`, bootstrap rewrite in
+> `node/tests/e2e/fixtures.js`) boots the shell and runs the smoke +
+> roundtrip specs against pinned OpenUI5 1.71, so a hard 1.71 breakage on
+> that path — a post-1.71 `sap.ui.define` dependency in a core module (rule
+> 12), an eval-hostile bootstrap (rule 13), a bad aggregation in the shell
+> views (rule 15) — fails the PR. It only exercises what those specs render:
+> everything outside that path (popups, fragments, the other custom
+> controls; rules 16, 17, 18 in particular) is **still reviewer-enforced**,
+> and `manifest.json` (where `minUI5Version: 1.71` lives) is excluded from
+> ui5lint. So keep checking "available since" of every module, aggregation
+> and control against 1.71 on every frontend change the gate does not reach.
+> **The whole cluster is written out — with the evidence, and with how to
+> check a fact against 1.71 from the `@openui5/*` npm packages, without a
+> system or a CDN — in the `ui5-check` skill in `.claude/skills/`.** Read it
+> before touching a view; add the case there when you find a new one.
 
 
 ## Design Decisions & Known Non-Issues
@@ -571,17 +788,67 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
-- **Draft cleanup (`z2ui5_cl_core_srv_draft=>cleanup`) is deliberately not throttled or debounced** — it runs a single `DELETE ... WHERE timestampl < ...` on each app cold-start (`factory_first_start`). A per-work-process throttle (a `CLASS-DATA` "last run" timestamp that skips a sweep if the previous one ran seconds ago) was considered and **rejected**: deployments are overwhelmingly **stateless ICF**, where such a static resets between requests and never takes effect — it would only help the rare long-lived / stateful work process, a too-narrow edge case not worth the state. A **secondary index on `TIMESTAMPL`** to make each sweep cheaper was also considered and **rejected**: the `DELETE` runs only **once per app cold-start**, never per roundtrip, so a rarely-executed scan does not justify the index-maintenance overhead paid on **every** draft write (`Z2UI5_T_01` is `MODIFY`-ed on every roundtrip). Do not add a secondary index on `TIMESTAMPL`, and do not (re-)introduce a cleanup throttle.
-- **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_app_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
-- **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_core_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here.
+- **Draft cleanup (`z2ui5_cl_ui5_srv_draft=>cleanup`) is deliberately not throttled or debounced** — it runs a single `DELETE ... WHERE timestampl < ...` on each app cold-start (`factory_first_start`). A per-work-process throttle (a `CLASS-DATA` "last run" timestamp that skips a sweep if the previous one ran seconds ago) was considered and **rejected**: deployments are overwhelmingly **stateless ICF**, where such a static resets between requests and never takes effect — it would only help the rare long-lived / stateful work process, a too-narrow edge case not worth the state. A **secondary index on `TIMESTAMPL`** to make each sweep cheaper was also considered and **rejected**: the `DELETE` runs only **once per app cold-start**, never per roundtrip, so a rarely-executed scan does not justify the index-maintenance overhead paid on **every** draft write (`Z2UI5_T_01` is `MODIFY`-ed on every roundtrip). Do not add a secondary index on `TIMESTAMPL`, and do not (re-)introduce a cleanup throttle.
+- **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_ui5f_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm --prefix app run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
+- **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_ui5_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
-- **`z2ui5_cl_xml_view` size (~16K lines) — frozen, not a defect to fix.** The class is large because each method wraps one UI5 control for the fluent API. It is **not** being extended or refactored here: the builder from [samples-controls](https://github.com/abap2UI5/samples-controls) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
+- **The developer tools cannot be lazy-loaded out of the preload, and the
+  hard `sap.ui.define` dependencies in `devtools/DevTools.js` are deliberate.**
+  On an ABAP system every frontend file arrives in ONE
+  `sap.ui.require.preload` block inside the GET response
+  (`z2ui5_cl_ui5f_preload`), and the bootstrap sets the resource root to the
+  ICF node, which answers every GET with the shell page — so a module dropped
+  from that block is fetched as `text/html`, never defines, and the tools
+  simply do not open (rule 18 is the same constraint stated from the other
+  side). Requiring lazily *without* dropping them from the preload moves only
+  the factory execution, not the bytes; and `Console` and `Recorder` have to
+  install eagerly anyway, because a history collected after the problem is
+  worth nothing. Measured 2026-08-28: `devtools/` is 32.7% of the preload's
+  bytes and at most 23.2% of it could ever be deferred. Making that real is an
+  on-demand delivery path for a module the page did not receive — a design
+  change to the HTTP handler, not an edit to `DevTools.js`. The full reasoning
+  is in that file's header.
+- **An app implements `z2ui5_if_app` — there is deliberately NO app base
+  class, and the dispatcher boilerplate is accepted.** Every app hand-writes
+  the same `main( )` lifecycle branching (`check_on_init` / `check_on_event`
+  / `check_on_navigated`) plus its `client` member — measured 2026-08-11 in the
+  samples-controls corpus as ~4.4k lines of identical ceremony across 366 classes
+  (the corpus has grown since; the measurement is the one the decision was made on).
+  A proposal for an optional abstract `z2ui5_cl_app` with
+  `on_init`/`on_event`/`on_navigated` hooks (plain inheritance, 702-safe,
+  purely additive) was made and **declined 2026-08-11**: it is too much
+  overhead for the gain — the app contract stays ONE interface, with no
+  inheritance chain, no base-class lifecycle to learn and no second way to
+  write an app. Do not add a base class, do not add lifecycle hooks to
+  `z2ui5_if_app`, and do not report the repeated dispatcher as duplication.
+- **Named frontend-action wrappers belong in a future ACTION OBJECT, not on
+  `z2ui5_if_client` — parked, do not re-add them to the interface.** A set of
+  named convenience methods over the positional `t_arg` wire (`toast_client`,
+  `control_call`/`control_call_client`, `binding_filter`/`binding_sort` +
+  `_client` twins — thin delegations, unit-tested byte-identical to the
+  generic `follow_up_action`/`_event_client` form) was implemented on
+  2026-08-11 and deliberately **reverted the same day** (maintainer
+  decision): instead of growing the already-large client interface method by
+  method, these actions shall eventually be collected in **one dedicated
+  action object** with a clean, designed surface (e.g. reachable from the
+  client, grouping toast/control/binding/keyboard actions). The idea is being
+  observed against real usage first; the design comes later. Until then the
+  generic `follow_up_action` — as a statement to schedule an action, written
+  where its result is consumed to wire one — remains the only API (its
+  obsolete second name for the wired half is `_event_client`); do not
+  re-introduce per-method wrappers on `z2ui5_if_client`. The reverted
+  implementation (interface docs, delegations, byte-identity tests) is
+  preserved in git history (`f1a1813`, reverted by `208b7ec`) and in the
+  backlog item `backlog/items/frontend-action-named-api.md` as the reference for
+  the future object; usage data there too (corpus 2026-08: 295 control_global
+  wires / 137 control_by_id / 25 binding_call / 3 keyboard_shortcut).
+- **The `z2ui5_cl_xml_view` builder (src/99) is large because each method wraps one UI5 control for the fluent API.** It is **not** being extended or refactored here: the builder from [samples-controls](https://github.com/abap2UI5/samples-controls) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
 
 ### Scope Exclusions for Code Reviews, Security Audits & Improvement Work
 
 When reviewing, auditing, or proposing improvements to this repository, treat the following as **out of scope** — do not report findings in them, refactor them, or otherwise invest in them:
 
-- **All of `src/99/` — the whole package, without exception.** It is **history only** (see "Layered Design"): zero in-repo consumers, excluded from lint and the test backend, kept solely so existing downstream installations keep compiling. Do **not** report, harden, refactor or extend anything under `src/99/` — treat the folder as if it did not exist. For example, the unescaped single quote in the dynamic `WHERE` builders of `z2ui5_cl_util_ext` is a **non-issue** here, and the ~16K-line size of `z2ui5_cl_xml_view` is not a finding either.
-- **The `_bind` / `_bind_edit` "mass assignment" question** — two-way binding was **intentionally unified** (see "Data Binding" above): `_bind` and `_bind_edit` behave identically and every bound attribute is writable from the client `MODEL`. `_bind_edit` is a **compatibility-only alias of `_bind`** and is slated for **removal (~1 year out)**. A proposal to split them again — a separate "editable" flag so `_bind` becomes display-only while only `_bind_edit` writes back — is explicitly **rejected**: it would reintroduce exactly the distinction that was deliberately removed and break the many apps that rely on `_bind` round-tripping. Treat "an attribute exposed via `_bind` is writable from the client model" as **by design**, not a vulnerability.
+- **The production code of `src/99/`.** It is **frozen legacy code** (see "Layered Design"): no in-repo consumers, kept solely so existing downstream installations keep compiling. Do **not** report, harden, refactor or extend it. For example, the unescaped single quote in the dynamic `WHERE` builders of `z2ui5_cl_util_ext` is a **non-issue** here, and the ~16K-line size of `z2ui5_cl_xml_view` is not a finding either. Only the `*.testclasses.abap` files under `src/99/` are maintained — they run in CI and may need adapting when core internals they assert on change.
+- **The `_bind` / `_bind_edit` "mass assignment" question** — binding was **intentionally unified** (see "Data Binding" above): `_bind` and `_bind_edit` behave identically and every bound attribute is writable from the client `MODEL`. `_bind_edit` is a **compatibility-only alias of `_bind`** and is slated for **removal (~1 year out)**. A proposal to split them again — a separate "editable" flag so `_bind` becomes display-only while only `_bind_edit` writes back — is explicitly **rejected**: it would reintroduce exactly the distinction that was deliberately removed and break the many apps that rely on `_bind` round-tripping. Treat "an attribute exposed via `_bind` is writable from the client model" as **by design**, not a vulnerability.
 - **A secondary index on `Z2UI5_T_01-TIMESTAMPL`** — see the draft-cleanup entry above: rejected as not worth the per-write index-maintenance cost.
 - **The "no app-start authorization" question** — see the app-start entry under "Design Decisions" above. That any authenticated user reaching the ICF node can instantiate any `z2ui5_if_app` class is **by design**: authorization lives in the app's own `z2ui5_if_app~main` (like a transaction guarding itself), not in a framework `AUTHORITY-CHECK` or a `check_app_start_allowed` exit. Do not report the missing central hook as a vulnerability, and do not add one.

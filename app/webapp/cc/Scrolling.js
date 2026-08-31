@@ -50,7 +50,11 @@ sap.ui.define(
             bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;
           // Mark changed entries dirty on THIS control's own model - the same
           // per-model set View1 ships as the delta - not a shared global set.
-          const changedPaths = this.getModel()?._z2ui5ChangedPaths;
+          // resolved through the shared tracked-model resolver: in switch
+          // mode this control's propagated DEFAULT model is the OData one,
+          // which has no change set - the scroll positions then never
+          // travelled
+          const changedPaths = ViewSlots.trackedModel(this)?._z2ui5ChangedPaths;
           for (const [index, item] of items.entries()) {
             const scrollTop = this._getScrollTop(item);
             if (item.V !== scrollTop) {
@@ -66,12 +70,15 @@ sap.ui.define(
       },
 
       init() {
-        this._setBackendBound = this.setBackend.bind(this);
-        Lib.registerCallback("onBeforeRoundtrip", this._setBackendBound);
+        this._unhook = Lib.hookCallback(
+          this,
+          "onBeforeRoundtrip",
+          "setBackend",
+        );
       },
 
       exit() {
-        Lib.unregisterCallback("onBeforeRoundtrip", this._setBackendBound);
+        this._unhook();
       },
 
       _restoreScrollPosition(item) {

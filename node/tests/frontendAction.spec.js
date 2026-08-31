@@ -2,11 +2,16 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the CONTROL_GLOBAL / CONTROL_BY_ID handlers in the real
-// app/webapp/core/FrontendAction.js (loaded via a stubbed sap.ui.define).
-// The focus is the whitelist boundary and the argument casting.
+// Tests the frontend action handlers (CONTROL_GLOBAL / CONTROL_BY_ID,
+// BINDING_CALL, variants, KEYBOARD_SHORTCUT, SET_FOCUS, timers, ...) through
+// the real FrontendAction.js merge of the core/actions/* modules (loaded via
+// a stubbed sap.ui.define). The focus is the whitelist boundary and the
+// argument casting.
 
-function load({ sandbox } = {}) {
+// `requires` seeds the sap.ui.require stub for targets that resolve their
+// global LAZILY by module id (ICON_POOL, THEMING), which the array form below
+// does not cover.
+function load({ sandbox, requires = {} } = {}) {
   const calls = [];
   const errors = [];
   const rec =
@@ -14,13 +19,22 @@ function load({ sandbox } = {}) {
     (...a) =>
       calls.push([name, ...a]);
   const MessageToast = { show: rec("toast.show") };
-  const MessageBox = { show: rec("box.show"), error: rec("box.error") };
+  const MessageBox = {
+    show: rec("box.show"),
+    alert: rec("box.alert"),
+    confirm: rec("box.confirm"),
+    information: rec("box.information"),
+    warning: rec("box.warning"),
+    error: rec("box.error"),
+    success: rec("box.success"),
+  };
   const BusyIndicator = { show: rec("busy.show"), hide: rec("busy.hide") };
   const Theming = { setTheme: rec("theme.set") };
   const Popup = { setWithinArea: rec("popup.setWithinArea") };
   const controls = {};
   const views = {};
   const ViewSlots = {
+    destroy: (key) => calls.push(["slots.destroy", key]),
     resolveById: (id) => controls[id] || null,
     byId: (_key, id) => controls[id] || null,
     getView: (key) => views[key] || null,
@@ -28,14 +42,32 @@ function load({ sandbox } = {}) {
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight
   // away (the specs treat the anchor as already rendered).
+  const Router = { sync: (...a) => calls.push(["router.sync", ...a]) };
   const Lib = {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
     toText: (val) => (val == null ? "" : String(val)),
     whenRendered: (_control, _owner, fn) => fn(),
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
+    // same shape as the real validator (core/Lib.js): empty and malformed
+    // values are unsafe, data:/blob:/http(s) pass - relative URLs resolve
+    isSafeDownloadURL: (url) => {
+      if (!url) return false;
+      try {
+        const p = new URL(url, "http://localhost:3000");
+        return ["data:", "blob:", "http:", "https:"].includes(p.protocol);
+      } catch {
+        return false;
+      }
+    },
   };
   const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
+  // the VIEW_SLOTS display/updateModel hook routes into actions/Slots; the
+  // stub records the routed calls and lets a test swap the behavior
+  const slotCalls = [];
+  const Slots = {
+    action: (...a) => slotCalls.push(a),
+  };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
   }
@@ -44,10 +76,37 @@ function load({ sandbox } = {}) {
   }
   const FilterOperator = new Proxy({}, { get: (_t, op) => op });
   const { module, sandbox: ctx } = loadModule("core/FrontendAction.js", {
+    // the domain modules under core/actions/ load for real - this spec
+    // exercises the composed dispatch exactly as it ships. MessageToast is
+    // not a define-dependency any more (lazy require, Popup.Dock capture
+    // order) - the stub arrives through the seeded sap.ui.require below.
+    autoLoad: true,
+    sandbox: {
+      ...(sandbox || {}),
+      sap: {
+        ui: {
+          require: Object.assign(
+            (vDep, fnCb) => {
+              if (
+                Array.isArray(vDep) &&
+                vDep[0] === "sap/m/MessageToast" &&
+                fnCb
+              )
+                fnCb(MessageToast);
+              if (typeof vDep === "string") return requires[vDep] ?? null;
+              return null;
+            },
+            // the real one roots a module path against the UI5 resource base;
+            // a recognizable prefix is all an assertion needs
+            { toUrl: (sPath) => `/resources/${sPath}` },
+          ),
+        },
+      },
+    },
     deps: {
       "sap/m/MessageBox": MessageBox,
-      "sap/m/MessageToast": MessageToast,
       "sap/ui/core/BusyIndicator": BusyIndicator,
+      "sap/ui/core/Popup": Popup,
       "sap/ui/core/Theming": Theming,
       "sap/ui/model/odata/v2/ODataModel": function () {},
       "sap/ui/model/Filter": Filter,
@@ -55,11 +114,12 @@ function load({ sandbox } = {}) {
       "sap/ui/model/Sorter": Sorter,
       "sap/m/library": {},
       "sap/ui/util/Storage": function () {},
+      "z2ui5/core/Router": Router,
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
+      "z2ui5/core/actions/Slots": Slots,
     },
-    sandbox,
   });
   return {
     FrontendAction: module,
@@ -70,6 +130,8 @@ function load({ sandbox } = {}) {
     AppState,
     Popup,
     ctx,
+    slotCalls,
+    Slots,
   };
 }
 
@@ -94,7 +156,9 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "Action triggered on item: {0}",
       "Franchise Store",
     ]);
-    expect(calls).toEqual([["toast.show", "Action triggered on item: Franchise Store"]]);
+    expect(calls).toEqual([
+      ["toast.show", "Action triggered on item: Franchise Store"],
+    ]);
   });
 
   test("substitutes a value-first template ({0} ...) and multiple placeholders", () => {
@@ -120,6 +184,87 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "only-one",
     ]);
     expect(calls).toEqual([["toast.show", "only-one and {1}"]]);
+  });
+
+  test("an options object rides as the last argument", () => {
+    // client->message_toast_display( ) sends the full option set. The backend
+    // embeds it as real JSON, so it arrives as an OBJECT while every template
+    // value is a string - that is what tells the two apart, no marker needed.
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "Saved!",
+      { duration: 250, class: "myCls" },
+    ]);
+    // `class` is no MessageToast option - it is stripped here and applied to
+    // the toast's DOM node instead (see actions/ControlCall showToast)
+    expect(calls).toEqual([["toast.show", "Saved!", { duration: 250 }]]);
+  });
+
+  test("a template and an options object survive each other", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} saved",
+      "Item A",
+      { duration: 250 },
+    ]);
+    expect(calls).toEqual([["toast.show", "Item A saved", { duration: 250 }]]);
+  });
+
+  test("the box type is the method, and it takes options too", () => {
+    const { FrontendAction, calls } = load();
+    const ebCalls = [];
+    const oController = { eB: (...a) => ebCalls.push(a) };
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "confirm",
+      "Delete?",
+      { onClose: "ANSWERED" },
+    ]);
+    expect(calls).toHaveLength(1);
+    const [name, text, opts] = calls[0];
+    expect([name, text]).toEqual(["box.confirm", "Delete?"]);
+    // the ONCLOSE event name was turned into the callback that round-trips
+    // the pressed action through eB (outside the event array - see
+    // actions/ControlCall showBox)
+    opts.onClose("OK");
+    expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
+  });
+
+  test("ROUTER/sync hands the whole options object to the router", () => {
+    // Router derives ONE outcome from all of it, so it gets the object as it
+    // came - the id rides along because the route carries the draft
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "ROUTER",
+      "sync",
+      { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
+    ]);
+    expect(calls).toEqual([
+      [
+        "router.sync",
+        { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
+      ],
+    ]);
+  });
+
+  test("an unlisted box type is rejected rather than shown", () => {
+    const { FrontendAction, calls, errors } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "notAMethod",
+      "x",
+    ]);
+    expect(calls).toEqual([]);
+    expect(errors[0]).toContain("not allowed");
   });
 
   test("MessageBox variants also accept a template", () => {
@@ -194,11 +339,11 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   });
 
   test("POPUP.setWithinArea resolves a control id and hands over the CONTROL", () => {
-    const { FrontendAction, calls, controls, Popup, ctx } = load();
+    // sap/ui/core/Popup is a hard dependency now (loading it registers the
+    // Popup.Dock enum MessageToast's dock validation needs)
+    const { FrontendAction, calls, controls } = load();
     const area = { id: "withinArea" };
     controls.withinArea = area;
-    ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Popup" ? Popup : null;
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "POPUP",
@@ -211,17 +356,20 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   });
 
   test("POPUP.setWithinArea releases the area on an empty argument", () => {
-    const { FrontendAction, calls, Popup, ctx } = load();
-    ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Popup" ? Popup : null;
-    FrontendAction.execute(null, ["CONTROL_GLOBAL", "POPUP", "setWithinArea", ""]);
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "POPUP",
+      "setWithinArea",
+      "",
+    ]);
     expect(calls).toEqual([["popup.setWithinArea", null]]);
   });
 
   test("POPUP.setWithinArea reports an older runtime instead of throwing", () => {
-    const { FrontendAction, calls, errors, ctx } = load();
+    const { FrontendAction, calls, errors, Popup } = load();
     // UI5 1.71 has sap/ui/core/Popup but not setWithinArea (@since 1.89)
-    ctx.sap.ui.require = () => ({});
+    delete Popup.setWithinArea;
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "POPUP",
@@ -229,7 +377,9 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "withinArea",
     ]);
     expect(calls).toHaveLength(0);
-    expect(errors).toEqual(["CONTROL_GLOBAL: 'POPUP.setWithinArea' not available"]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'POPUP.setWithinArea' not available",
+    ]);
   });
 
   test("rejects a non-whitelisted object or method", () => {
@@ -276,11 +426,74 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
+  test("VIEW_SLOTS routes destroy/display/updateModel to actions/Slots", () => {
+    // the view slots are the framework's own registry, not a UI5 global -
+    // destroy is ViewSlots' own method, display and updateModel live in
+    // actions/Slots, and the hook sends all three to Slots.action
+    const { FrontendAction, slotCalls } = load();
+    const oController = {};
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "destroy",
+      "POPUP",
+    ]);
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "display",
+      "POPOVER",
+      "<Popover/>",
+      { openById: "btn1" },
+    ]);
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "updateModel",
+    ]);
+    expect(slotCalls).toEqual([
+      ["destroy", "POPUP", undefined, {}, undefined],
+      // the XML is a positional argument of its own - it must NOT be read as
+      // a template value for the slot name
+      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }, undefined],
+      // no slot: the frontend picks the open ones itself
+      ["updateModel", undefined, undefined, {}, undefined],
+    ]);
+  });
+
+  test("the system phase threads the request stamp into the display", () => {
+    // the seq travels as the action CONTEXT (never shared state), so the
+    // slot display can discard a build a newer parallel request superseded
+    const { FrontendAction, slotCalls } = load();
+    FrontendAction.executeSystem(
+      null,
+      ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "POPUP", "<Dialog/>"],
+      { seq: 7 },
+    );
+    expect(slotCalls).toEqual([["display", "POPUP", "<Dialog/>", {}, 7]]);
+  });
+
+  test("an unlisted VIEW_SLOTS method is rejected", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute({}, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "wipe",
+      "POPUP",
+    ]);
+    expect(errors[0]).toContain("not allowed");
+  });
+
   test("FORMATTING.setCustomCurrencies parses its JSON payload", () => {
     const { FrontendAction, ctx } = load();
     const set = [];
+    // the module id is asserted, not assumed: this stub answered
+    // "sap/ui/core/Formatting" until 2026-08-23 - a module no UI5 release has -
+    // so the test passed while every real call resolved to undefined and did
+    // nothing. A stub that mirrors the code under test proves only that the two
+    // agree.
     ctx.sap.ui.require = (name) =>
-      name === "sap/ui/core/Formatting"
+      name === "sap/base/i18n/Formatting"
         ? { setCustomCurrencies: (v) => set.push(v) }
         : null;
     FrontendAction.execute(null, [
@@ -290,6 +503,154 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       '{"BGN4":{"digits":4},"WWWW":{"digits":5}}',
     ]);
     expect(set).toEqual([{ BGN4: { digits: 4 }, WWWW: { digits: 5 } }]);
+  });
+
+  test("FORMATTING asks for the module id UI5 actually ships", () => {
+    const { FrontendAction, ctx } = load();
+    const asked = [];
+    ctx.sap.ui.require = (name) => {
+      asked.push(name);
+      return { setCustomCurrencies: () => {} };
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "FORMATTING",
+      "setCustomCurrencies",
+      "{}",
+    ]);
+    // sap/base/i18n/Formatting is the one Formatting module in OpenUI5 and the
+    // one Core.js loads; sap/ui/core/Formatting does not exist
+    expect(asked).toContain("sap/base/i18n/Formatting");
+  });
+
+  test("a trailing object stays an ARGUMENT on a non-message target", () => {
+    // the options extraction applies to a `display` target only - everywhere
+    // else a trailing object is a declared argument kind and must reach the
+    // method as one
+    const { FrontendAction, ctx } = load();
+    const added = [];
+    ctx.sap.ui.require = (name) =>
+      name === "sap/base/i18n/Formatting"
+        ? { addCustomCurrencies: (...a) => added.push(a) }
+        : null;
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "FORMATTING",
+      "addCustomCurrencies",
+      { BGN4: { digits: 4 } },
+    ]);
+    expect(added).toEqual([[{ BGN4: { digits: 4 } }]]);
+  });
+});
+
+test.describe("executeSystem (the SYSTEM phase entry point)", () => {
+  test("returns the handler result so an async display can be awaited", async () => {
+    const { FrontendAction, Slots } = load();
+    Slots.action = (_m, _slot, xml) => Promise.resolve(`built:${xml}`);
+    const result = FrontendAction.executeSystem(null, [
+      "CONTROL_GLOBAL",
+      "VIEW_SLOTS",
+      "display",
+      "POPUP",
+      "<Dialog/>",
+    ]);
+    expect(await result).toBe("built:<Dialog/>");
+  });
+
+  test("does NOT swallow a failing display", () => {
+    // execute( ) logs and moves on; a broken view build has to reach
+    // _processAfterRendering and surface the fatal overlay instead
+    const { FrontendAction, Slots } = load();
+    Slots.action = () => {
+      throw new Error("malformed XML");
+    };
+    expect(() =>
+      FrontendAction.executeSystem(null, [
+        "CONTROL_GLOBAL",
+        "VIEW_SLOTS",
+        "display",
+        "POPUP",
+        "<broken",
+      ]),
+    ).toThrow("malformed XML");
+  });
+
+  test("an unknown system action is reported, not thrown", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.executeSystem(null, ["NO_SUCH_ACTION"]);
+    expect(errors[0]).toContain("unknown system action");
+  });
+});
+
+/* An icon collection outside the default SAP-icons font resolves only after
+ * IconPool.registerFont. A normal UI5 app does that in its Component's init;
+ * an abap2UI5 app has no Component, and IconPool is a module singleton no
+ * other target could reach - so the URI rendered no glyph, silently. */
+test.describe("ICON_POOL (registering an icon collection)", () => {
+  function withIconPool() {
+    const fonts = [];
+    const { FrontendAction, errors } = load({
+      requires: {
+        "sap/ui/core/IconPool": { registerFont: (cfg) => fonts.push(cfg) },
+      },
+    });
+    return { FrontendAction, fonts, errors };
+  }
+
+  test("registers the collection, resolving the module path to a URL", () => {
+    const { FrontendAction, fonts } = withIconPool();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "ICON_POOL",
+      "registerFont",
+      "SAP-icons-TNT",
+      "sap/tnt/themes/base/fonts/",
+    ]);
+    expect(fonts.length).toEqual(1);
+    expect(fonts[0].fontFamily).toEqual("SAP-icons-TNT");
+    // toUrl turned the module path into something rooted, not passed raw
+    expect(fonts[0].fontURI).not.toEqual("sap/tnt/themes/base/fonts/");
+    expect(fonts[0].fontURI).toContain("sap/tnt/themes/base/fonts/");
+  });
+
+  test("an absolute URL is passed through untouched", () => {
+    const { FrontendAction, fonts } = withIconPool();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "ICON_POOL",
+      "registerFont",
+      "MyFont",
+      "https://example.org/fonts/",
+    ]);
+    expect(fonts[0].fontURI).toEqual("https://example.org/fonts/");
+  });
+
+  test("the same collection is registered once, not on every roundtrip", () => {
+    const { FrontendAction, fonts } = withIconPool();
+    const call = () =>
+      FrontendAction.execute(null, [
+        "CONTROL_GLOBAL",
+        "ICON_POOL",
+        "registerFont",
+        "SAP-icons-TNT",
+        "sap/tnt/themes/base/fonts/",
+      ]);
+    call();
+    call();
+    call();
+    expect(fonts.length).toEqual(1);
+  });
+
+  test("a missing fontURI is reported instead of registering a broken font", () => {
+    const { FrontendAction, fonts, errors } = withIconPool();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "ICON_POOL",
+      "registerFont",
+      "SAP-icons-TNT",
+    ]);
+    expect(fonts.length).toEqual(0);
+    expect(errors.join(" ")).toContain("fontURI");
   });
 });
 
@@ -307,13 +668,113 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["scroll", 42]]);
   });
 
-  test("resolves a controlId argument to the control (to)", () => {
+  // sap.m.Tree and sap.ui.table.TreeTable both expand/collapse by INDEX, and
+  // only the table hands indices over (getSelectedIndices). The m.Tree route
+  // is getSelectedItems() + indexOfItem() - a loop, and a loop in an event
+  // argument needs a JS callback the UI5 expression grammar cannot parse at
+  // all, so the app has no spelling for this without the synthetic method.
+  test("expandSelected maps an m.Tree selection to indices", () => {
     const { FrontendAction, calls, controls } = load();
-    const page2 = { id: "page2" };
-    controls.page2 = page2;
-    controls.NavCon = { to: (ctrl) => calls.push(["to", ctrl]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
-    expect(calls).toEqual([["to", page2]]);
+    const items = [{ k: "a" }, { k: "b" }, { k: "c" }];
+    controls.myTree = {
+      getSelectedItems: () => [items[2], items[0]],
+      indexOfItem: (o) => items.indexOf(o),
+      expand: (i) => calls.push(["expand", i]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "myTree",
+      "",
+      "expandSelected",
+    ]);
+    expect(calls).toEqual([["expand", [2, 0]]]);
+  });
+
+  test("collapseSelected reads a TreeTable's indices directly", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.myTable = {
+      getSelectedIndices: () => [1, 4],
+      collapse: (i) => calls.push(["collapse", i]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "myTable",
+      "",
+      "collapseSelected",
+    ]);
+    expect(calls).toEqual([["collapse", [1, 4]]]);
+  });
+
+  // an index of -1 means the tree no longer holds that item; expand(-1) is not
+  // a smaller mistake than expand(undefined)
+  test("expandSelected drops an item the tree no longer holds", () => {
+    const { FrontendAction, calls, controls } = load();
+    const kept = { k: "a" };
+    controls.myTree = {
+      getSelectedItems: () => [kept, { k: "gone" }],
+      indexOfItem: (o) => (o === kept ? 0 : -1),
+      expand: (i) => calls.push(["expand", i]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "myTree",
+      "",
+      "expandSelected",
+    ]);
+    expect(calls).toEqual([["expand", [0]]]);
+  });
+
+  // nothing selected is not an error - and not a re-render of a tree the user
+  // did not touch either
+  test("expandSelected on an empty selection calls nothing", () => {
+    const { FrontendAction, calls, controls, errors } = load();
+    controls.myTree = {
+      getSelectedItems: () => [],
+      indexOfItem: () => -1,
+      expand: (i) => calls.push(["expand", i]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "myTree",
+      "",
+      "expandSelected",
+    ]);
+    expect(calls).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test("expandSelected on a control with no selection says so", () => {
+    const { FrontendAction, calls, controls, errors } = load();
+    controls.notATree = { expand: (i) => calls.push(["expand", i]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "notATree",
+      "",
+      "expandSelected",
+    ]);
+    expect(calls).toEqual([]);
+    expect(errors.join(" ")).toContain("no selection");
+  });
+
+  // sap.m.p13n.SelectionPanel/SortPanel/GroupPanel take their items through
+  // setP13nData() only - the panels expose no bindable aggregation for them -
+  // so seeding a p13n popup used to need hand-written custom JS. The `object`
+  // arg kind carries the whole item list as one JSON payload.
+  test("casts the setP13nData payload from JSON (p13n panels)", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.columnsPanel = {
+      setP13nData: (data) => calls.push(["setP13nData", data]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "columnsPanel",
+      "",
+      "setP13nData",
+      '[{"name":"key1","label":"City","visible":true}]',
+    ]);
+    expect(calls).toEqual([
+      ["setP13nData", [{ name: "key1", label: "City", visible: true }]],
+    ]);
   });
 
   // A control CLONED from an aggregation template has no id the backend can
@@ -336,7 +797,11 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, calls, controls } = load();
       const pages = carousel(calls, controls);
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/2",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "car/pages/2",
       ]);
       expect(calls).toEqual([["setActivePage", pages[2]]]);
     });
@@ -345,25 +810,113 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, calls, controls } = load();
       const pages = carousel(calls, controls);
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/0",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "car/pages/0",
       ]);
       expect(calls).toEqual([["setActivePage", pages[0]]]);
     });
 
+    /* castArgAuto has to map ""/" " to false - that is the ABAP boolean
+     * contract - which used to leave the EMPTY STRING unspellable on the
+     * unlisted-method path. UI5 does not reject a boolean for a string
+     * property, it casts it, so setText("") arrived as setText(false) and
+     * rendered the word "false". The declared property type settles it now. */
+    function labelled(calls, controls, type) {
+      controls.lbl = {
+        getMetadata: () => ({ getAllProperties: () => ({ text: { type } }) }),
+        setText: (v) => calls.push(["setText", v]),
+        setVisible: (v) => calls.push(["setVisible", v]),
+      };
+    }
+
+    test("an empty argument reaches a string property AS the empty string", () => {
+      const { FrontendAction, calls, controls } = load();
+      labelled(calls, controls, "string");
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "lbl", "", "setText", ""]);
+      expect(calls).toEqual([["setText", ""]]);
+    });
+
+    test("a string property keeps 'X' and 'true' as text, not as booleans", () => {
+      const { FrontendAction, calls, controls } = load();
+      labelled(calls, controls, "string");
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "lbl",
+        "",
+        "setText",
+        "X",
+      ]);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "lbl",
+        "",
+        "setText",
+        "true",
+      ]);
+      expect(calls).toEqual([
+        ["setText", "X"],
+        ["setText", "true"],
+      ]);
+    });
+
+    test("the ABAP boolean contract is untouched where the property is not a string", () => {
+      const { FrontendAction, calls, controls } = load();
+      labelled(calls, controls, "string");
+      // setVisible is not declared in the property map, so nothing overrides
+      // the inference: "X" is still true and "" still false
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "lbl",
+        "",
+        "setVisible",
+        "X",
+      ]);
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "lbl",
+        "",
+        "setVisible",
+        " ",
+      ]);
+      expect(calls).toEqual([
+        ["setVisible", true],
+        ["setVisible", false],
+      ]);
+    });
+
     test("a plain id still resolves exactly as before", () => {
+      // toDetail, not to: `to` takes the pageId kind now (see the
+      // page-id navigation describe below), and this test is about the
+      // plain-id vs "<id>/<aggregation>/<index>" resolution forms, which
+      // both kinds share.
       const { FrontendAction, calls, controls } = load();
       const page2 = { id: "page2" };
       controls.page2 = page2;
-      controls.NavCon = { to: (ctrl) => calls.push(["to", ctrl]) };
-      FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
-      expect(calls).toEqual([["to", page2]]);
+      controls.SplitApp = {
+        toDetail: (ctrl) => calls.push(["toDetail", ctrl]),
+      };
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        "SplitApp",
+        "",
+        "toDetail",
+        "page2",
+      ]);
+      expect(calls).toEqual([["toDetail", page2]]);
     });
 
     test("an out-of-range index is reported, not silently passed as undefined", () => {
       const { FrontendAction, calls, errors, controls } = load();
       carousel(calls, controls);
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "car/pages/9",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "car/pages/9",
       ]);
       expect(calls).toEqual([["setActivePage", null]]);
       expect(errors.join(" ")).toContain("3 item(s)");
@@ -373,7 +926,11 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, calls, errors, controls } = load();
       carousel(calls, controls);
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "car/footer/0",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "car/footer/0",
       ]);
       expect(errors.join(" ")).toContain("no multiple aggregation");
     });
@@ -382,7 +939,11 @@ test.describe("CONTROL_BY_ID", () => {
       const { FrontendAction, errors, controls } = load();
       controls.car = { setActivePage: () => {} };
       FrontendAction.execute(null, [
-        "CONTROL_BY_ID", "car", "", "setActivePage", "nosuch/pages/0",
+        "CONTROL_BY_ID",
+        "car",
+        "",
+        "setActivePage",
+        "nosuch/pages/0",
       ]);
       expect(errors.join(" ")).toContain("nosuch");
     });
@@ -411,6 +972,53 @@ test.describe("CONTROL_BY_ID", () => {
     expect(errors).toHaveLength(4);
   });
 
+  test("rejects the GENERIC reflection mutators by exact name", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    const generic = [
+      "setAggregation",
+      "addAggregation",
+      "insertAggregation",
+      "removeAggregation",
+      "removeAllAggregation",
+      "destroyAggregation",
+      "setAssociation",
+      "addAssociation",
+      "removeAssociation",
+      "removeAllAssociation",
+    ];
+    controls.x = {};
+    for (const m of generic) controls.x[m] = () => calls.push([m]);
+    for (const m of generic) {
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "x", "", m, "items"]);
+    }
+    expect(calls).toHaveLength(0);
+    expect(errors).toHaveLength(generic.length);
+  });
+
+  test("but the NAMED per-aggregation mutators that share their prefix are allowed", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    // the deny entries are "removeAllAggregation"/"destroy"/... by exact name,
+    // so these keep working: they detach or destroy children the control owns,
+    // the same footprint the long-allowed removeItem has (app 307's
+    // Calendar.removeAllSelectedDates has no bindable alternative - the
+    // control writes the user's selection into that aggregation itself).
+    const named = [
+      "removeAllSelectedDates",
+      "removeAllItems",
+      "removeAllContent",
+      "destroySpecialDates",
+      "destroyItems",
+      "removeItem",
+    ];
+    controls.cal = {};
+    for (const m of named) controls.cal[m] = () => calls.push([m]);
+    for (const m of named) {
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "cal", "", m]);
+    }
+    expect(calls).toEqual(named.map((m) => [m]));
+    expect(errors).toHaveLength(0);
+  });
+
   test("calls an unlisted but safe public method (generalized allowlist)", () => {
     const { FrontendAction, calls, controls } = load();
     // enablePostButton is NOT in CONTROL_METHODS, but it is a public, non-denied
@@ -418,8 +1026,20 @@ test.describe("CONTROL_BY_ID", () => {
     controls.feed = {
       enablePostButton: (b) => calls.push(["enablePostButton", b]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "feed", "", "enablePostButton", "X"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "feed", "", "enablePostButton", " "]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "feed",
+      "",
+      "enablePostButton",
+      "X",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "feed",
+      "",
+      "enablePostButton",
+      " ",
+    ]);
     expect(calls).toEqual([
       ["enablePostButton", true],
       ["enablePostButton", false],
@@ -428,17 +1048,33 @@ test.describe("CONTROL_BY_ID", () => {
 
   test("infers arg types for an unlisted method (X/space->bool, else string)", () => {
     const { FrontendAction, calls, controls } = load();
-    controls.c = { setValueState: (...a) => calls.push(["setValueState", ...a]) };
+    controls.c = {
+      setValueState: (...a) => calls.push(["setValueState", ...a]),
+    };
     // a genuine string arg passes through; only the ABAP bool tokens convert
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "c", "", "setValueState", "Error"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "c",
+      "",
+      "setValueState",
+      "Error",
+    ]);
     expect(calls).toEqual([["setValueState", "Error"]]);
   });
 
   test("a listed method still wins over inference (explicit kinds)", () => {
     const { FrontendAction, calls, controls } = load();
     // setHiddenInPopin is listed as ["object"] -> arg is JSON.parsed, not left a string
-    controls.t = { setHiddenInPopin: (a) => calls.push(["setHiddenInPopin", a]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "t", "", "setHiddenInPopin", '["High"]']);
+    controls.t = {
+      setHiddenInPopin: (a) => calls.push(["setHiddenInPopin", a]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "t",
+      "",
+      "setHiddenInPopin",
+      '["High"]',
+    ]);
     expect(calls).toEqual([["setHiddenInPopin", ["High"]]]);
   });
 
@@ -562,20 +1198,42 @@ test.describe("CONTROL_BY_ID", () => {
   test("open passes the optional page key through (ViewSettingsDialog)", () => {
     const { FrontendAction, calls, controls } = load();
     controls.vsd = { open: (page) => calls.push(["open", page]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "vsd", "", "open", "filter"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "vsd",
+      "",
+      "open",
+      "filter",
+    ]);
     expect(calls).toEqual([["open", "filter"]]);
   });
 
   test("to passes the optional transitionName (NavContainer animation)", () => {
+    // the first argument is the RESOLVED page's id (the pageId kind - see
+    // the page-id navigation describe at the end of this file); only the
+    // trailing transitionName is under test here
     const { FrontendAction, calls, controls } = load();
-    const page2 = { id: "page2" };
+    const page2 = { getId: () => "v1--page2" };
     controls.page2 = page2;
     controls.NavCon = { to: (...a) => calls.push(["to", ...a]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2", "fade"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "NavCon",
+      "",
+      "to",
+      "page2",
+      "fade",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "NavCon",
+      "",
+      "to",
+      "page2",
+    ]);
     expect(calls).toEqual([
-      ["to", page2, "fade"],
-      ["to", page2],
+      ["to", "v1--page2", "fade"],
+      ["to", "v1--page2"],
     ]);
   });
 
@@ -584,7 +1242,14 @@ test.describe("CONTROL_BY_ID", () => {
     const step2 = { id: "STEP2" };
     controls.STEP2 = step2;
     controls.wiz = { goToStep: (s, b) => calls.push(["goToStep", s, b]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "wiz", "", "goToStep", "STEP2", "X"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "wiz",
+      "",
+      "goToStep",
+      "STEP2",
+      "X",
+    ]);
     expect(calls).toEqual([["goToStep", step2, true]]);
   });
 
@@ -595,7 +1260,13 @@ test.describe("CONTROL_BY_ID", () => {
     const anchor = { getDomRef: () => ({ tagName: "BUTTON" }) };
     controls.anchorBtn = anchor;
     controls.HiddenDP = { openBy: (ref) => calls.push(["openBy", ref]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "HiddenDP", "", "openBy", "anchorBtn"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "HiddenDP",
+      "",
+      "openBy",
+      "anchorBtn",
+    ]);
     expect(calls).toEqual([["openBy", anchor]]);
   });
 
@@ -604,7 +1275,13 @@ test.describe("CONTROL_BY_ID", () => {
     const anchor = { getDomRef: () => null };
     controls.anchorBtn = anchor;
     controls.HiddenDP = { openBy: (ref) => calls.push(["openBy", ref]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "HiddenDP", "", "openBy", "anchorBtn"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "HiddenDP",
+      "",
+      "openBy",
+      "anchorBtn",
+    ]);
     expect(calls).toEqual([["openBy", anchor]]);
   });
 
@@ -617,7 +1294,13 @@ test.describe("CONTROL_BY_ID", () => {
       openBy: (ref) => calls.push(["openBy", ref]),
       close: () => calls.push(["close"]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "theMenu", "", "toggleBy", "anchorBtn"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "theMenu",
+      "",
+      "toggleBy",
+      "anchorBtn",
+    ]);
     expect(calls).toEqual([["openBy", anchor]]);
   });
 
@@ -629,7 +1312,13 @@ test.describe("CONTROL_BY_ID", () => {
       openBy: (ref) => calls.push(["openBy", ref]),
       close: () => calls.push(["close"]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "theMenu", "", "toggleBy", "anchorBtn"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "theMenu",
+      "",
+      "toggleBy",
+      "anchorBtn",
+    ]);
     expect(calls).toEqual([["close"]]);
   });
 
@@ -637,8 +1326,16 @@ test.describe("CONTROL_BY_ID", () => {
     const { FrontendAction, calls, controls } = load();
     const page2 = { id: "carPage2" };
     controls.carPage2 = page2;
-    controls.carousel = { setActivePage: (p) => calls.push(["setActivePage", p]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "carousel", "", "setActivePage", "carPage2"]);
+    controls.carousel = {
+      setActivePage: (p) => calls.push(["setActivePage", p]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "carousel",
+      "",
+      "setActivePage",
+      "carPage2",
+    ]);
     expect(calls).toEqual([["setActivePage", page2]]);
   });
 
@@ -673,8 +1370,20 @@ test.describe("CONTROL_BY_ID", () => {
   test("setExpanded casts the ABAP bool ('X'/'')", () => {
     const { FrontendAction, calls, controls } = load();
     controls.panel = { setExpanded: (b) => calls.push(["expand", b]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "panel", "", "setExpanded", "X"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "panel", "", "setExpanded", ""]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "panel",
+      "",
+      "setExpanded",
+      "X",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "panel",
+      "",
+      "setExpanded",
+      "",
+    ]);
     expect(calls).toEqual([
       ["expand", true],
       ["expand", false],
@@ -688,9 +1397,27 @@ test.describe("CONTROL_BY_ID", () => {
       removeStyleClass: (c) => calls.push(["remove", c]),
       toggleStyleClass: (c) => calls.push(["toggle", c]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "addStyleClass", "myClass"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "removeStyleClass", "myClass"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "toggleStyleClass", "myClass"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "dlg",
+      "",
+      "addStyleClass",
+      "myClass",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "dlg",
+      "",
+      "removeStyleClass",
+      "myClass",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "dlg",
+      "",
+      "toggleStyleClass",
+      "myClass",
+    ]);
     expect(calls).toEqual([
       ["add", "myClass"],
       ["remove", "myClass"],
@@ -708,8 +1435,20 @@ test.describe("CONTROL_BY_ID", () => {
       toDetail: (p) => calls.push(["toDetail", p]),
       toMaster: (p) => calls.push(["toMaster", p]),
     };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "toDetail", "detailDetail"]);
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "toMaster", "master2"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "split",
+      "",
+      "toDetail",
+      "detailDetail",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "split",
+      "",
+      "toMaster",
+      "master2",
+    ]);
     expect(calls).toEqual([
       ["toDetail", detail],
       ["toMaster", master],
@@ -733,13 +1472,21 @@ test.describe("CONTROL_BY_ID", () => {
   test("setMode passes the SplitAppMode string through", () => {
     const { FrontendAction, calls, controls } = load();
     controls.split = { setMode: (m) => calls.push(["setMode", m]) };
-    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "setMode", "StretchCompressMode"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "split",
+      "",
+      "setMode",
+      "StretchCompressMode",
+    ]);
     expect(calls).toEqual([["setMode", "StretchCompressMode"]]);
   });
 
   test("navigateBack stays a no-arg call (QuickView/QuickViewCard)", () => {
     const { FrontendAction, calls, controls } = load();
-    controls.qv = { navigateBack: (...a) => calls.push(["navigateBack", a.length]) };
+    controls.qv = {
+      navigateBack: (...a) => calls.push(["navigateBack", a.length]),
+    };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "qv", "", "navigateBack"]);
     expect(calls).toEqual([["navigateBack", 0]]);
   });
@@ -751,7 +1498,9 @@ test.describe("BINDING_CALL", () => {
       filter: (f) => calls.push(["filter", f]),
       sort: (s) => calls.push(["sort", s]),
     };
-    controls.idList = { getBinding: (agg) => (agg === "items" ? binding : null) };
+    controls.idList = {
+      getBinding: (agg) => (agg === "items" ? binding : null),
+    };
     return binding;
   }
 
@@ -866,10 +1615,19 @@ test.describe("BINDING_CALL", () => {
     const { FrontendAction, calls, controls } = load();
     withListBinding(controls, calls);
     const json = JSON.stringify([
-      [["CATEGORY", "EQ", "Accessories"], ["CATEGORY", "EQ", "Laptops"]],
+      [
+        ["CATEGORY", "EQ", "Accessories"],
+        ["CATEGORY", "EQ", "Laptops"],
+      ],
       [["SUPPLIER_NAME", "EQ", "Technocom"]],
     ]);
-    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", json]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      json,
+    ]);
     expect(calls).toHaveLength(1);
     const [name, filters] = calls[0];
     expect(name).toBe("filter");
@@ -879,15 +1637,35 @@ test.describe("BINDING_CALL", () => {
     expect(root.path).toHaveLength(2);
     expect(root.path[0].operator).toBe(false); // OR inside the group
     expect(root.path[0].path).toHaveLength(2);
-    expect(root.path[0].path[0]).toMatchObject({ path: "CATEGORY", operator: "EQ", value1: "Accessories" });
-    expect(root.path[1].path[0]).toMatchObject({ path: "SUPPLIER_NAME", operator: "EQ", value1: "Technocom" });
+    expect(root.path[0].path[0]).toMatchObject({
+      path: "CATEGORY",
+      operator: "EQ",
+      value1: "Accessories",
+    });
+    expect(root.path[1].path[0]).toMatchObject({
+      path: "SUPPLIER_NAME",
+      operator: "EQ",
+      value1: "Technocom",
+    });
   });
 
   test("empty compound groups clear the filter; empty inner groups are skipped", () => {
     const { FrontendAction, calls, controls } = load();
     withListBinding(controls, calls);
-    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[]"]);
-    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[[],[]]"]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "[]",
+    ]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "[[],[]]",
+    ]);
     expect(calls).toEqual([
       ["filter", []],
       ["filter", []],
@@ -898,10 +1676,19 @@ test.describe("BINDING_CALL", () => {
     const { FrontendAction, calls, errors, controls } = load();
     withListBinding(controls, calls);
     FrontendAction.execute(null, [
-      "BINDING_CALL", "idList", "items", "filter",
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
       JSON.stringify([[["NAME", "DROP TABLE", "x"]]]),
     ]);
-    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[not json"]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "[not json",
+    ]);
     expect(calls).toHaveLength(0);
     expect(errors).toHaveLength(2);
   });
@@ -927,7 +1714,12 @@ test.describe("BIND_ELEMENT", () => {
     const { FrontendAction, views } = load();
     const bound = [];
     views.POPOVER = { bindElement: (p) => bound.push(p) };
-    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
+    FrontendAction.execute(null, [
+      "BIND_ELEMENT",
+      "POPOVER",
+      "5",
+      "/T_PRODUCTS",
+    ]);
     expect(bound).toEqual(["/T_PRODUCTS/5"]);
   });
 
@@ -941,8 +1733,15 @@ test.describe("BIND_ELEMENT", () => {
 
   test("logs and no-ops when the slot view is missing", () => {
     const { FrontendAction, errors } = load();
-    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
-    expect(errors.some((e) => String(e).includes("no view for slot"))).toBe(true);
+    FrontendAction.execute(null, [
+      "BIND_ELEMENT",
+      "POPOVER",
+      "5",
+      "/T_PRODUCTS",
+    ]);
+    expect(errors.some((e) => String(e).includes("no view for slot"))).toBe(
+      true,
+    );
   });
 });
 
@@ -1046,7 +1845,13 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     // the control registers a moment later (its metadata arrived) - the
     // pending wait picks that up and starts the load flow nobody else would
     registered.push("smartFilterBar");
-    await new Promise((r) => setTimeout(r, 250));
+    // Poll for the outcome instead of sleeping a fixed 250ms. The retry runs
+    // on a real 100ms timer, and a fixed wait was the only wall-clock
+    // dependency in this suite: with `retries: 0` and `fullyParallel: true`
+    // (node/playwright-unit.config.js) a loaded runner turns a missed deadline
+    // into a hard failure rather than a slow pass. This returns as soon as the
+    // load flow has run, and only waits longer when the machine is busy.
+    await expect.poll(() => oSVM.initialised.length, { timeout: 5000 }).toBe(1);
     expect(oSVM.initialised).toEqual([{ id: "smartFilterBar" }]);
   });
 
@@ -1277,7 +2082,6 @@ test.describe("FILTER_BAR_VARIANT_INIT (classic FilterBar + variant management)"
   });
 });
 
-
 test.describe("CONTROL_BY_ID setAsyncURLHandler (MessagePopover URL policy)", () => {
   // the control takes a live callback, so the wire carries a POLICY NAME and
   // the client installs the matching built-in validator
@@ -1415,9 +2219,16 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
   test.describe("scope", () => {
     test("the scoped registration wins while its slot is open", () => {
       const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPOVER", "POPOVER",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE_POPOVER",
+        "POPOVER",
       ]);
 
       // popover closed -> the page-level command
@@ -1438,11 +2249,15 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     test("the innermost open slot wins", () => {
       const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
       for (const [event, scope] of [
-        ["SAVE", ""], ["SAVE_NEST", "NEST"], ["SAVE_POPOVER", "POPOVER"],
+        ["SAVE", ""],
+        ["SAVE_NEST", "NEST"],
+        ["SAVE_POPOVER", "POPOVER"],
       ]) {
         FrontendAction.execute(
           oController,
-          ["KEYBOARD_SHORTCUT", "Ctrl+S", event, scope].filter((a, i) => i < 3 || a),
+          ["KEYBOARD_SHORTCUT", "Ctrl+S", event, scope].filter(
+            (a, i) => i < 3 || a,
+          ),
         );
       }
       views.NEST = {};
@@ -1453,9 +2268,16 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
     test("a scoped registration with no open slot falls back to the unscoped one", () => {
       const { FrontendAction, doc, fired, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPUP", "POPUP",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE_POPUP",
+        "POPUP",
       ]);
       expect(doc.press("s", { ctrlKey: true })).toBe(true);
       expect(fired).toEqual([["SAVE"]]);
@@ -1463,12 +2285,22 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
     test("unregistering one scope leaves the other alone", () => {
       const { FrontendAction, doc, fired, views, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE_POPOVER", "POPOVER",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
       ]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "", "POPOVER",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE_POPOVER",
+        "POPOVER",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "",
+        "POPOVER",
       ]);
       views.POPOVER = {};
       expect(doc.press("s", { ctrlKey: true })).toBe(true);
@@ -1477,7 +2309,11 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
     test("removing the last scope stops swallowing the browser default", () => {
       const { FrontendAction, doc, fired, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
       FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", ""]);
       // Ctrl+S must save the PAGE again, not silently do nothing
       expect(doc.press("s", { ctrlKey: true })).toBe(false);
@@ -1489,30 +2325,51 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     // never enters a framework slot. A control id is therefore a scope too,
     // active while that control is open.
     test("a control-id scope wins while that control is open", () => {
-      const { FrontendAction, doc, fired, controls, oController } = loadWithDoc();
+      const { FrontendAction, doc, fired, controls, oController } =
+        loadWithDoc();
       let open = false;
       controls.popoverCommand = { isOpen: () => open };
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "PSAVE", "popoverCommand",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "PSAVE",
+        "popoverCommand",
       ]);
 
-      doc.press("s", { ctrlKey: true });          // closed -> the page command
+      doc.press("s", { ctrlKey: true }); // closed -> the page command
       open = true;
-      doc.press("s", { ctrlKey: true });          // open -> the popover's own
+      doc.press("s", { ctrlKey: true }); // open -> the popover's own
       open = false;
-      doc.press("s", { ctrlKey: true });          // closed again
+      doc.press("s", { ctrlKey: true }); // closed again
       expect(fired).toEqual([["SAVE"], ["PSAVE"], ["SAVE"]]);
     });
 
     test("a control scope beats a slot scope - it is the more specific statement", () => {
-      const { FrontendAction, doc, fired, controls, views, oController } = loadWithDoc();
+      const { FrontendAction, doc, fired, controls, views, oController } =
+        loadWithDoc();
       controls.dlg = { isOpen: () => true };
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "SLOT", "POPOVER",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
       ]);
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "CTRL", "dlg"]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SLOT",
+        "POPOVER",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "CTRL",
+        "dlg",
+      ]);
       views.POPOVER = {};
       doc.press("s", { ctrlKey: true });
       expect(fired).toEqual([["CTRL"]]);
@@ -1520,9 +2377,16 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
     test("a control scope whose control is gone falls back to the unscoped one", () => {
       const { FrontendAction, doc, fired, oController } = loadWithDoc();
-      FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
       FrontendAction.execute(oController, [
-        "KEYBOARD_SHORTCUT", "Ctrl+S", "PSAVE", "nosuchcontrol",
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "SAVE",
+      ]);
+      FrontendAction.execute(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        "PSAVE",
+        "nosuchcontrol",
       ]);
       expect(doc.press("s", { ctrlKey: true })).toBe(true);
       expect(fired).toEqual([["SAVE"]]);
@@ -1531,14 +2395,22 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
   test("fires the registered event and swallows the browser default", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
-    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
     expect(doc.press("s", { ctrlKey: true })).toBe(true);
     expect(fired).toEqual([["SAVE"]]);
   });
 
   test("ignores a combination that was not registered", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
-    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
     expect(doc.press("s")).toBe(false);
     expect(doc.press("d", { ctrlKey: true })).toBe(false);
     expect(doc.press("s", { ctrlKey: true, shiftKey: true })).toBe(false);
@@ -1565,7 +2437,11 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
   test("re-registering rebinds, an empty event name removes", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
-    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
     FrontendAction.execute(oController, [
       "KEYBOARD_SHORTCUT",
       "Ctrl+S",
@@ -1582,7 +2458,11 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
 
   test("a bare modifier press is no shortcut", () => {
     const { FrontendAction, doc, fired, oController } = loadWithDoc();
-    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE",
+    ]);
     expect(doc.press("Control", { ctrlKey: true })).toBe(false);
     expect(fired).toEqual([]);
   });
@@ -1591,6 +2471,157 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     const { FrontendAction, errors, oController } = loadWithDoc();
     FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+", "SAVE"]);
     expect(errors[0]).toContain("names no key");
+  });
+});
+
+test.describe("START_TIMER (backend timer liveness)", () => {
+  test("the fired timer dispatches only while the app is alive", () => {
+    // deterministic timers: capture the callback instead of waiting it out
+    const timers = [];
+    const { FrontendAction, AppState } = load({
+      sandbox: {
+        setTimeout: (fn, ms) => {
+          timers.push({ fn, ms });
+          return timers.length;
+        },
+        clearTimeout: () => {},
+      },
+    });
+    AppState.state.timers = {};
+    const ebCalls = [];
+    let destroyed = false;
+    const oController = {
+      isDestroyed: () => destroyed,
+      eB: (a) => ebCalls.push(a),
+    };
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    expect(timers[0].ms).toBe(1000);
+    timers[0].fn();
+    // alive: fired as a background event (ignore-busy flag set), slot freed
+    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(AppState.state.timers).toEqual({});
+
+    // re-armed, then the app is torn down (FLP close / re-launch): the
+    // pending timer must not fire the old app's event into the new session
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    destroyed = true;
+    timers[1].fn();
+    expect(ebCalls).toHaveLength(1);
+    expect(AppState.state.timers).toEqual({});
+  });
+});
+
+test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
+  // Minimal focus fixture: a control whose DOM accepts focus only while
+  // `focusable` is true - the disabled-input case of a view_model_update that
+  // re-enables a field in the same roundtrip (the control reports the new
+  // state, the DOM still carries the old disabled rendering).
+  function focusFixture({ focusable }) {
+    const body = {};
+    const doc = { body, activeElement: body };
+    const inner = {};
+    const applied = [];
+    const delegates = [];
+    let isFocusable = focusable;
+    const control = {
+      getDomRef: () => ({ contains: (el) => el === inner }),
+      getFocusInfo: () => ({}),
+      applyFocusInfo: (info) => {
+        applied.push(info);
+        if (isFocusable) doc.activeElement = inner;
+      },
+      addEventDelegate: (d) => delegates.push(d),
+      removeEventDelegate: (d) => {
+        const i = delegates.indexOf(d);
+        if (i >= 0) delegates.splice(i, 1);
+      },
+    };
+    return {
+      doc,
+      control,
+      applied,
+      delegates,
+      inner,
+      enable: () => {
+        isFocusable = true;
+      },
+    };
+  }
+
+  function loadWithFocus(fixture) {
+    const loaded = load({ sandbox: { document: fixture.doc } });
+    loaded.controls.inp = fixture.control;
+    return loaded;
+  }
+
+  test("applies focus + selection immediately when the DOM accepts it", () => {
+    const fx = focusFixture({ focusable: true });
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(fx.applied).toEqual([{ selectionStart: 0, selectionEnd: 4 }]);
+    expect(fx.doc.activeElement).toBe(fx.inner);
+    // the focus stuck, so no retry delegate may linger on the control
+    expect(fx.delegates).toEqual([]);
+  });
+
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  test("re-applies after the pending re-render when the DOM refused the focus", async () => {
+    const fx = focusFixture({ focusable: false });
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    // first attempt hit the still-disabled DOM: focus did not move, so a
+    // one-shot retry waits for the control's re-render
+    expect(fx.applied).toHaveLength(1);
+    expect(fx.doc.activeElement).toBe(fx.doc.body);
+    expect(fx.delegates).toHaveLength(1);
+    // UI5 re-renders the control with the new enabled state
+    fx.enable();
+    fx.delegates[0].onAfterRendering();
+    // the delegate is one-shot and the retry waits out the rendering task
+    expect(fx.delegates).toEqual([]);
+    expect(fx.applied).toHaveLength(1);
+    await tick();
+    expect(fx.applied).toHaveLength(2);
+    expect(fx.applied[1]).toEqual({ selectionStart: 0, selectionEnd: 4 });
+    expect(fx.doc.activeElement).toBe(fx.inner);
+  });
+
+  test("wins over UI5's own focus restore of a re-rendered trigger button", async () => {
+    // The press that triggered the roundtrip left the focus on the button;
+    // the re-render also rebuilt the button, so AFTER the retry delegate ran
+    // UI5's FocusHandler put the focus back on the button's NEW DOM node.
+    const fx = focusFixture({ focusable: false });
+    const { FrontendAction } = loadWithFocus(fx);
+    fx.doc.activeElement = { id: "btnUnlock" };
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(fx.delegates).toHaveLength(1);
+    fx.enable();
+    fx.delegates[0].onAfterRendering();
+    // UI5 focus restore, after all onAfterRendering delegates: same control,
+    // new DOM node
+    fx.doc.activeElement = { id: "btnUnlock" };
+    await tick();
+    // the deferred retry still moves the focus into the input
+    expect(fx.applied).toHaveLength(2);
+    expect(fx.doc.activeElement).toBe(fx.inner);
+  });
+
+  test("does not steal a focus the user moved elsewhere in between", async () => {
+    const fx = focusFixture({ focusable: false });
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(fx.delegates).toHaveLength(1);
+    // the user focused another field before the re-render fired
+    const otherField = { id: "otherField" };
+    fx.doc.activeElement = otherField;
+    fx.enable();
+    fx.delegates[0].onAfterRendering();
+    await tick();
+    expect(fx.applied).toHaveLength(1);
+    expect(fx.doc.activeElement).toBe(otherField);
+    expect(fx.delegates).toEqual([]);
   });
 });
 
@@ -1642,10 +2673,21 @@ test.describe("SET_FAVICON (browser tab icon)", () => {
     expect(doc.head).toEqual([{ rel: "shortcut icon", href: "/new.png" }]);
   });
 
-  test("a missing argument clears the href instead of writing 'undefined'", () => {
-    const { FrontendAction, doc } = loadWithDoc("icon");
+  test("a missing argument is refused - the existing link keeps its href", () => {
+    const { FrontendAction, doc, errors } = loadWithDoc("icon");
     FrontendAction.execute(null, ["SET_FAVICON"]);
-    expect(doc.head).toEqual([{ rel: "icon", href: "" }]);
+    // the URL validator treats an empty value as unsafe, so nothing is
+    // touched (and in particular the string "undefined" is never written)
+    expect(doc.head).toEqual([{ rel: "icon", href: "old" }]);
+    expect(errors[0]).toContain("SET_FAVICON");
+  });
+
+  test("a javascript: URL is refused and logged", () => {
+    const { FrontendAction, doc, errors } = loadWithDoc("icon");
+
+    FrontendAction.execute(null, ["SET_FAVICON", "javascript:alert(1)"]);
+    expect(doc.head).toEqual([{ rel: "icon", href: "old" }]);
+    expect(errors[0]).toContain("refused unsafe URL");
   });
 
   test("reports a failing DOM instead of throwing", () => {
@@ -1662,5 +2704,437 @@ test.describe("SET_FAVICON (browser tab icon)", () => {
     });
     FrontendAction.execute(null, ["SET_FAVICON", "/icon.png"]);
     expect(errors[0]).toContain("SET_FAVICON");
+  });
+});
+
+// ---------------------------------------------------------------------
+// `to` and the pageId argument kind.
+//
+// The three containers that own a `to( )` disagree about its first
+// argument. sap.m.NavContainer normalises a Control to its id
+// (NavContainer.js:782), but sap.f.FlexibleColumnLayout.to
+// (FlexibleColumnLayout.js:2873) and sap.m.SplitContainer.to probe their
+// columns with getPage( sPageId ), which compares `aPages[i].getId() ==
+// pageId` (NavContainer.js:485). A Control never equals an id string, so
+// every probe missed and the trailing `else` navigated the LAST column.
+// The stubs below are those three lines, so the spec fails the same way
+// the real controls did if the kind ever goes back to `controlId`.
+// ---------------------------------------------------------------------
+function pageStub(sId) {
+  return { getId: () => sId, name: sId };
+}
+
+function navContainerStub(aPages, aLog, sName) {
+  const oStub = {
+    getPages: () => aPages,
+    // NavContainer.js:485 - the id comparison the FCL/SplitContainer probes
+    // depend on
+    // Reproduces NavContainer's own loose comparison; tightening it here
+    // would stop the stub standing in for the control.
+    // eslint-disable-next-line eqeqeq
+    getPage: (pageId) => aPages.find((p) => p.getId() == pageId) || null,
+    // NavContainer.js:782 - normalises a Control to its id before doing
+    // anything else, which is why every plain NavContainer port worked
+    to: (vPageIdOrControl, sTransitionName) => {
+      const sId =
+        vPageIdOrControl && typeof vPageIdOrControl.getId === "function"
+          ? vPageIdOrControl.getId()
+          : vPageIdOrControl;
+      aLog.push([sName, sId, sTransitionName]);
+      oStub._pageStack.push(sId);
+    },
+    // NavContainer.js:1064 + :1201 verbatim. `_backTo` normalises a CONTROL
+    // (":1065 if (sRequestedPageId instanceof Control)") exactly like `to`
+    // does - but nothing normalises a raw STRING, and
+    // `_findClosestPreviousPageInfo` then compares
+    // "info.id === sRequestedPreviousPageId" against a stack whose entries
+    // were all pushed as `page.getId()`. An unprefixed literal matches no
+    // entry, so the method logs and returns WITHOUT navigating.
+    backToPage: (vPageIdOrControl) => {
+      const sId =
+        vPageIdOrControl && typeof vPageIdOrControl.getId === "function"
+          ? vPageIdOrControl.getId()
+          : vPageIdOrControl;
+      const i = oStub._pageStack.lastIndexOf(sId, oStub._pageStack.length - 2);
+      if (i < 0) {
+        // the miss is silent: UI5 Log.error's and returns `this`
+        aLog.push([sName, "MISSED", sId]);
+        return;
+      }
+      oStub._pageStack.length = i + 1;
+      aLog.push([sName, "back", sId]);
+    },
+  };
+  // the initial page is on the stack before any navigation, under its
+  // RENDERED id (NavContainer.js:493 `_ensurePageStackInitialized`)
+  oStub._pageStack = aPages.length ? [aPages[0].getId()] : [];
+  return oStub;
+}
+
+// FlexibleColumnLayout.js:2873 verbatim: begin, then mid, then the
+// unconditional else.
+function fclStub(oBegin, oMid, oEnd) {
+  return {
+    to: (sPageId, sTransitionName) => {
+      if (oBegin.getPage(sPageId)) oBegin.to(sPageId, sTransitionName);
+      else if (oMid.getPage(sPageId)) oMid.to(sPageId, sTransitionName);
+      else oEnd.to(sPageId, sTransitionName);
+    },
+  };
+}
+
+test.describe("page-id navigation (CONTROL_BY_ID 'to')", () => {
+  function fcl() {
+    const nav = [];
+    // the rendered ids carry the view prefix the backend never sees
+    const products = pageStub("v1--dynamicPageId");
+    const detail = pageStub("v1--midPage");
+    const end = pageStub("v1--endPage");
+    const begin = navContainerStub([products], nav, "begin");
+    const mid = navContainerStub([detail], nav, "mid");
+    const endCol = navContainerStub([end], nav, "end");
+    return {
+      nav,
+      products,
+      begin,
+      mid,
+      endCol,
+      fcl: fclStub(begin, mid, endCol),
+    };
+  }
+
+  // the defect this kind exists for, asserted on the stub itself so the
+  // spec states what the framework must not hand over any more
+  test("handing an FCL the CONTROL navigates the wrong column", () => {
+    const { nav, products, fcl: oFcl } = fcl();
+    oFcl.to(products);
+    // begin and mid probe with getPage( <Control> ) and miss, so the
+    // unconditional else runs the END column - which does not own the page
+    // either. That is the measured symptom on samples-controls app 578:
+    // "Navigation triggered to page with ID 'mainView--dynamicPageId', but
+    // this page is not known/aggregated by ... fcl-endColumnNav".
+    expect(nav).toEqual([["end", "v1--dynamicPageId", undefined]]);
+  });
+
+  test("a 'to' naming a begin-column page moves the BEGIN column", () => {
+    const { FrontendAction, controls } = load();
+    const env = fcl();
+    // the backend spells the id without the view prefix; the slot resolves it
+    controls.dynamicPageId = env.products;
+    controls.fcl = env.fcl;
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "fcl",
+      "",
+      "to",
+      "dynamicPageId",
+    ]);
+    expect(env.nav).toEqual([["begin", "v1--dynamicPageId", undefined]]);
+  });
+
+  test("the id handed over is the RESOLVED one, never the raw literal", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.dynamicPageId = pageStub("v1--dynamicPageId");
+    controls.fcl = { to: (...a) => calls.push(["to", ...a]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "fcl",
+      "",
+      "to",
+      "dynamicPageId",
+    ]);
+    expect(calls).toEqual([["to", "v1--dynamicPageId"]]);
+  });
+
+  test("the optional transition name still travels as the second argument", () => {
+    const { FrontendAction, controls } = load();
+    const env = fcl();
+    controls.dynamicPageId = env.products;
+    controls.fcl = env.fcl;
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "fcl",
+      "",
+      "to",
+      "dynamicPageId",
+      "flip",
+    ]);
+    expect(env.nav).toEqual([["begin", "v1--dynamicPageId", "flip"]]);
+  });
+
+  // the constraint the change was allowed under: NavContainer must observe
+  // exactly what it observed before
+  test("NavContainer sees the identical id it would have computed itself", () => {
+    const { FrontendAction, controls } = load();
+    const nav = [];
+    const page2 = pageStub("v1--page2");
+    controls.page2 = page2;
+    controls.NavCon = navContainerStub([page2], nav, "nav");
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "NavCon",
+      "",
+      "to",
+      "page2",
+    ]);
+    // what the old cast produced, run through NavContainer's own
+    // normalisation - the two must be indistinguishable
+    controls.NavCon.to(page2);
+    expect(nav).toEqual([
+      ["nav", "v1--page2", undefined],
+      ["nav", "v1--page2", undefined],
+    ]);
+  });
+
+  test("an aggregation item still addresses a page positionally", () => {
+    const { FrontendAction, calls, controls } = load();
+    const pages = [pageStub("v1--p0"), pageStub("v1--p1")];
+    controls.nav = {
+      getAggregation: (name) => (name === "pages" ? pages : null),
+      to: (...a) => calls.push(["to", ...a]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "to",
+      "nav/pages/1",
+    ]);
+    expect(calls).toEqual([["to", "v1--p1"]]);
+  });
+
+  // "must not silently swallow a miss": today the container absorbs an
+  // unknown page and only UI5 logs about it
+  test("a page id no control answers to is reported", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    controls.fcl = { to: (...a) => calls.push(["to", ...a]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "fcl", "", "to", "nosuch"]);
+    expect(errors.join(" ")).toContain("nosuch");
+    // still handed over: an already-qualified id must keep working
+    expect(calls).toEqual([["to", "nosuch"]]);
+  });
+});
+
+/* backToPage is the SAME defect as `to`, one method along, and it was left
+ * unmeasured when the `pageId` kind was introduced. Measured 2026-08-27 on
+ * samples-controls app 101 against the live Node backend: after
+ * `to( wizardReviewPage )` the stack reads
+ * ["mainView--wizardContentPage", "mainView--wizardReviewPage"], the port's
+ * "Edit" link fires backToPage("wizardContentPage"), and UI5 answers
+ *
+ *   Element sap.m.NavContainer#mainView--wizardNavContainer: Cannot navigate
+ *   backToPage('wizardContentPage') because target page was not found among
+ *   the previous pages.
+ *
+ * with the review page still on screen. The same call with the prefixed id
+ * navigates. Unlike the FCL case there is no wrong-target symptom - it is a
+ * pure no-op, which is why nothing caught it. */
+test.describe("page-id navigation (CONTROL_BY_ID 'backToPage')", () => {
+  function wizard() {
+    const nav = [];
+    // app 101's two pages, under the ids the view actually renders
+    const content = pageStub("mainView--wizardContentPage");
+    const review = pageStub("mainView--wizardReviewPage");
+    return {
+      nav,
+      content,
+      review,
+      navCon: navContainerStub([content, review], nav, "nav"),
+    };
+  }
+
+  // the defect, asserted on the stub itself
+  test("a RAW unprefixed id finds no stack entry and navigates nowhere", () => {
+    const { nav, navCon } = wizard();
+    navCon.to("mainView--wizardReviewPage");
+    navCon.backToPage("wizardContentPage");
+    expect(nav).toEqual([
+      ["nav", "mainView--wizardReviewPage", undefined],
+      ["nav", "MISSED", "wizardContentPage"],
+    ]);
+  });
+
+  test("the id handed over is the RESOLVED one, so the back leg lands", () => {
+    const { FrontendAction, controls } = load();
+    const env = wizard();
+    // the backend spells the id without the view prefix
+    controls.wizardContentPage = env.content;
+    controls.nav = env.navCon;
+    env.navCon.to("mainView--wizardReviewPage");
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "backToPage",
+      "wizardContentPage",
+    ]);
+    expect(env.nav).toEqual([
+      ["nav", "mainView--wizardReviewPage", undefined],
+      ["nav", "back", "mainView--wizardContentPage"],
+    ]);
+    expect(env.navCon._pageStack).toEqual(["mainView--wizardContentPage"]);
+  });
+
+  test("the resolved id is what reaches the method, never the raw literal", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.wizardContentPage = pageStub("mainView--wizardContentPage");
+    controls.nav = { backToPage: (...a) => calls.push(["backToPage", ...a]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "backToPage",
+      "wizardContentPage",
+    ]);
+    expect(calls).toEqual([["backToPage", "mainView--wizardContentPage"]]);
+  });
+
+  test("an aggregation item still addresses a page positionally", () => {
+    const { FrontendAction, calls, controls } = load();
+    const pages = [pageStub("v1--p0"), pageStub("v1--p1")];
+    controls.nav = {
+      getAggregation: (name) => (name === "pages" ? pages : null),
+      backToPage: (...a) => calls.push(["backToPage", ...a]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "backToPage",
+      "nav/pages/0",
+    ]);
+    expect(calls).toEqual([["backToPage", "v1--p0"]]);
+  });
+
+  // same escape hatch as `to`: a port that already spells the qualified id
+  // must keep working, and the miss must be named rather than swallowed
+  test("a page id no control answers to is reported and still handed over", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    controls.nav = { backToPage: (...a) => calls.push(["backToPage", ...a]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "nav",
+      "",
+      "backToPage",
+      "nosuch",
+    ]);
+    expect(errors.join(" ")).toContain("nosuch");
+    expect(calls).toEqual([["backToPage", "nosuch"]]);
+  });
+
+  // the zero-arg back-navigation entries stay zero-arg: `back` must not
+  // acquire an argument from this change
+  test("plain 'back' is still zero-arg", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.nav = { back: (...a) => calls.push(["back", ...a]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "nav", "", "back", "x"]);
+    expect(calls).toEqual([["back"]]);
+  });
+});
+
+// ---------------------------------------------------------------------
+// sap.m.Button badge bounds. Both setters compare the incoming value
+// against the STORED bound (Button.js:339 / :360), so two strings make
+// the comparison lexicographic - "50" >= "9" is false and the value is
+// dropped into an else whose only effect is a Log.warning. The stub is
+// those two guards, with the 1 / 9999 Button.init writes.
+// ---------------------------------------------------------------------
+function badgedButtonStub(aLog) {
+  const state = { min: 1, max: 9999 };
+  return {
+    state,
+    setBadgeMinValue: (iMin) => {
+      // Reproduces the control's own loose comparison, as above.
+      if (
+        iMin &&
+        !isNaN(iMin) &&
+        iMin >= 1 &&
+        // eslint-disable-next-line eqeqeq
+        iMin != state.min &&
+        iMin <= state.max
+      ) {
+        state.min = iMin;
+        aLog.push(["min", iMin]);
+      } else aLog.push(["min-rejected", iMin]);
+    },
+    setBadgeMaxValue: (iMax) => {
+      // As above.
+      if (
+        iMax &&
+        !isNaN(iMax) &&
+        iMax <= 9999 &&
+        // eslint-disable-next-line eqeqeq
+        iMax != state.max &&
+        iMax >= state.min
+      ) {
+        state.max = iMax;
+        aLog.push(["max", iMax]);
+      } else aLog.push(["max-rejected", iMax]);
+    },
+  };
+}
+
+test.describe("badge bounds (CONTROL_BY_ID setBadgeMinValue/setBadgeMaxValue)", () => {
+  // the defect, on the stub: strings are compared as strings
+  test("string bounds make the Button reject a valid pair", () => {
+    const log = [];
+    const btn = badgedButtonStub(log);
+    btn.setBadgeMinValue("9");
+    btn.setBadgeMaxValue("50");
+    expect(log).toEqual([
+      ["min", "9"],
+      ["max-rejected", "50"],
+    ]);
+  });
+
+  test("min 9 / max 50 is accepted - both arrive as numbers", () => {
+    const { FrontendAction, controls } = load();
+    const log = [];
+    controls.BadgedButton = badgedButtonStub(log);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "BadgedButton",
+      "",
+      "setBadgeMinValue",
+      "9",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "BadgedButton",
+      "",
+      "setBadgeMaxValue",
+      "50",
+    ]);
+    expect(log).toEqual([
+      ["min", 9],
+      ["max", 50],
+    ]);
+    expect(controls.BadgedButton.state).toEqual({ min: 9, max: 50 });
+  });
+
+  test("the values are numbers, not numeric strings", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.b = {
+      setBadgeMinValue: (v) => calls.push(["min", v, typeof v]),
+      setBadgeMaxValue: (v) => calls.push(["max", v, typeof v]),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "b",
+      "",
+      "setBadgeMinValue",
+      "2",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "b",
+      "",
+      "setBadgeMaxValue",
+      "500",
+    ]);
+    expect(calls).toEqual([
+      ["min", 2, "number"],
+      ["max", 500, "number"],
+    ]);
   });
 });

@@ -1,0 +1,14 @@
+# SHA-256 of abap2UI5-local's .github/scripts/refresh_input.sh, which
+# trigger_local.yaml executes IN THIS repository's workflow, with the
+# ACTION_KEY_LOCAL deploy key already materialised in the checkout it came
+# from. Whoever can write to abap2UI5-local can therefore choose what runs
+# here, and until this pin existed nothing noticed.
+#
+# The script legitimately lives over there - abap2UI5-local's own monthly
+# update_input.yaml runs the same one, and a single implementation of the
+# refresh is the point. What is fixed here is only that a CHANGE to it has to
+# be acknowledged on this side too: update this hash in the same pull request,
+# and the diff says a script this repository executes has moved.
+#
+#   sha256sum .github/scripts/refresh_input.sh   (in abap2UI5-local)
+3e5e7e199adcd86b3f75fca6270bac66cf334539de290c74a14d907a0a7872f7

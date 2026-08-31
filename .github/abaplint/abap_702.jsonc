@@ -26,6 +26,7 @@
       "parser_error": true,
       "superclass_final": true,
       "unknown_types": true,
+      "xml_bom": true,
       "xml_consistency": true
     }
   }

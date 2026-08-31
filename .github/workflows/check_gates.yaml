@@ -1,0 +1,258 @@
+name: check_gates
+
+# The static gates of this repository, in one job.
+#
+# Each of them is a Node script that reads the sources and decides one rule.
+# Together they run in under a second. As nine separate workflows they cost
+# nine runner starts, nine checkouts and nine toolchain setups - about two
+# minutes of CI and nine entries in the checks list - to do that one second
+# of work. This is the same set, on one runner.
+#
+# Every step is `if: ${{ !cancelled() }}`, which is the part that makes the
+# merge an improvement rather than a trade: a pull request that trips three
+# gates now reports all three in one log, instead of surfacing the next one
+# only after the previous has been fixed and pushed.
+#
+# The reasoning for each rule lives where the rule lives - in the script it
+# runs, and for the chain layout in abap2ui5lint.jsonc. That is deliberate:
+# a rule and its justification move together. The comments here say only what
+# is being checked.
+#
+# No paths filter, on purpose. Filtering saved nothing measurable at this
+# runtime, and a check that does not run cannot be required in the branch
+# protection - the filters were quietly making these gates unrequirable.
+
+# Pull requests AND pushes to main - a merge is not a state any pull request
+# tested, and the workflows that fire on `push: main` (auto_downport,
+# frontend_deploy, trigger_local) rebuild and deploy from it.
+# Same pattern as frontend_check.yaml.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: check_gates-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check_gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Full history: the frozen-path gate diffs against the merge base and
+      # reads the latest release tag to tell a never-shipped object from a
+      # delivered one.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # The chain-layout gate is the abap2UI5-linter, which is a dependency;
+      # the rest are plain Node and need nothing installed.
+      - uses: ./.github/actions/setup
+        with:
+          npm-ci: "true"
+
+      # Each gate is the npm script a developer runs locally - the trailing
+      # comment on every step names the command that reproduces it. The steps
+      # call the script files directly because the npm wrapper costs ~700ms
+      # per invocation (run-gates.mjs measures it), which was ~20s of this
+      # job's ~37s across 30 steps for ~2s of actual gate work. The two
+      # steps that run an installed binary (abap2ui5lint, eslint) keep their
+      # npm form - there the wrapper is what resolves the binary.
+
+      - name: src/99 production code is frozen
+        if: ${{ !cancelled() }}
+        env:
+          # on push: main the pull_request context is empty and the gate's
+          # origin/main...HEAD fallback diffs nothing (HEAD IS origin/main) -
+          # event.before/github.sha make the merge commit itself the range,
+          # so the push leg actually checks what this workflow's header
+          # promises it checks
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node .github/scripts/frozen-paths-gate.mjs # npm run check:frozen
+
+      # the 23 utility symbols that exist only because src/99 still calls them.
+      # A framework caller on one turns a symbol that goes WITH src/99 into a
+      # new blocker for removing it, and compiles, lints and transpiles green
+      - name: no live caller on a FROZEN-ONLY symbol
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/frozen-only-gate.mjs # npm run check:frozen-only
+
+      - name: src/ round-trips through abapGit
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/abapgit-format-gate.mjs # npm run check:abapgit
+
+      - name: src/ is clean under the extended check (SLIN / ATC)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/extended-check-gate.mjs # npm run check:atc
+
+      # a test class reading PRIVATE/PROTECTED members without LOCAL FRIENDS
+      # compiles here (the transpiler ignores visibility) and fails to
+      # activate in a real system. Plain Node over the working tree - it ran
+      # in abaplint.yaml behind the npm wrapper and a deps install it never
+      # needed, which is what this job exists to avoid
+      - name: test classes reach their subject legally
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/testclass-visibility-gate.mjs # npm run check_visibility
+
+      # a library named in abap_transpile.json without a sha pin in
+      # fetch-deps.mjs is cloned at floating HEAD - the silent state
+      # fetch-deps exists to rule out
+      - name: every transpiler library is pinned
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/transpile-pins-gate.mjs # npm run check:pins
+
+      # one top-level catch renders the whole `previous` chain into the 500
+      # body; a raise that inlines get_text( ) into its own message flattens
+      # that to one line and drops the position of the method that failed
+      - name: a raise inside a CATCH chains its cause
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/exception-cause-gate.mjs # npm run check:cause
+
+      - name: internal object names carry the ui5 segment
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/object-naming-gate.mjs # npm run check:naming
+
+      - name: dynamic name literals resolve to shipped objects
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/dynamic-name-gate.mjs # npm run check:dynamic
+
+      - name: prose names objects that exist
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/prose-name-gate.mjs # npm run check:prose
+
+      # the skills say which linter rule already decides a case - a claim about
+      # ANOTHER repository, where rule ids are renamed and retired on their own
+      # schedule and nothing here moves when they are
+      - name: rule ids named in the skills exist
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/skill-rule-gate.mjs # npm run check:skills
+
+      # a file that exists byte-identical in four repositories has one source,
+      # and it is here - the copies drift silently otherwise
+      - name: shared files match their source copy
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/shared-file-gate.mjs # npm run check:shared
+
+      # the OTHER direction of the same problem: @abap2ui5/linter hand-mirrors
+      # three closed sets defined here, and it is not a dependency of this
+      # repository, so a rename here is silent until its weekly sync files an
+      # issue days later - against a repository whose users hit it first
+      - name: the linter's copies of this repository's closed sets
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/linter-mirror-gate.mjs # npm run check:mirrors
+
+      # the rules in CONVENTIONS.md that a script can decide. This repository
+      # declares the organisation's conventions and broke most of them - the
+      # workflow naming rule names UI5_2X as its bad example, and UI5_2X.yaml
+      # is a file here. The twelve names that predate the rule are exceptions
+      # by name; the thirteenth cannot happen
+      - name: the conventions this repository declares
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/conventions-gate.mjs # npm run check:conventions
+
+      # AGENTS.md is loaded into every session, so a command missing from its
+      # command chapter does not exist for the reader: 21 were, including every
+      # cross-repository gate and every backlog command
+      - name: every npm script is documented in AGENTS.md
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/agents-commands-gate.mjs # npm run check:commands
+
+      # `npm run check` and `npm test` are the two commands somebody types
+      # before reading anything - five of the ten repositories answered
+      # "Missing script" until this gate went in
+      - name: every repository answers to check and test
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/scripts-gate.mjs # npm run check:scripts
+
+      # the section of CONVENTIONS one further down, and the only one nothing
+      # decided: seven of the nine repositories had no .nvmrc at all, while
+      # one of them asserted the version in prose
+      - name: every repository declares the same toolchain
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/toolchain-gate.mjs # npm run check:toolchain
+
+      # the corpus sizes this repository quotes at agents belong to other
+      # repositories - held to their generated catalogues, not to memory
+      - name: corpus counts match the corpora
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/corpus-count-gate.mjs # npm run check:counts
+
+      # the row format of the three generated SAMPLES.md catalogues is parsed by
+      # abap2UI5/mcp-server and abap2UI5/docs - three generators, two readers, none
+      # of them in the same repository, and a reader that stops matching answers
+      # "there are no samples for that" instead of failing
+      - name: every catalogue row can be read by both of its readers
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/samples-md-gate.mjs # npm run check:samples-md
+
+      # changelog.txt and the release notes page in abap2UI5/docs are both
+      # hand-written and deliberately differ in detail - they may not differ
+      # about which releases exist or when they shipped
+      - name: the changelog agrees with the published release notes
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/changelog-gate.mjs # npm run check:changelog
+
+      # the four backlogs are generated from backlog/items and the skills'
+      # **Backlog:** lines - a hand-edited page is the thing this replaced
+      - name: the backlog pages match their items
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/generate-backlog.mjs --check # npm run check:backlog
+
+      - name: the two version numbers agree
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/version-sync-gate.mjs # npm run check:version
+
+      - name: the chain's indent states the view's depth
+        if: ${{ !cancelled() }}
+        run: npm run check:abap2ui5
+
+      # app/eslint.config.mjs is scoped to webapp/**, so everything that BUILDS
+      # and CHECKS the frontend - these gates, tools/, node/ - was uncovered.
+      # Those scripts decide whether a pull request merges, and a typo in one
+      # of them failed as a crash in CI rather than as a finding
+      - name: the Node tooling lints
+        if: ${{ !cancelled() }}
+        run: npm run check:eslint
+
+      - name: public API unchanged (additions recorded)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/api-snapshot.mjs # npm run check:api
+
+      - name: the app guide names real API
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/check-guide-api.mjs # npm run check:guide
+
+      - name: every sap-icon:// name exists in UI5 1.71
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/ui5-icon-gate.mjs # npm run check:icons
+
+      # a sap.ui.define dependency the floor does not have 404s and takes the
+      # whole component with it - the app is blank, and nothing names the module
+      - name: every sap.ui.define dependency exists on the floor
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/frontend-module-gate.mjs # npm run check:modules
+
+      - name: curated formatters stay a marshalling layer, not app logic
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/formatter-scope-gate.mjs # npm run check:formatter
+
+      - name: every FOR TESTING method asserts something
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/assertion-gate.mjs # npm run check:asserts
+
+      # the inventory is how a reader finds out whether a frontend module is
+      # already covered; one that quietly stops being complete answers "no
+      # spec" for a module that has one
+      - name: every JS unit spec is in the inventory
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/spec-inventory-gate.mjs # npm run check:specs
+
+      - name: no built-in function in a 7.02 non-expression operand position
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/downport-operand-gate.mjs # npm run check:downport

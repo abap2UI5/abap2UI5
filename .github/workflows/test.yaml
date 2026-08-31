@@ -1,0 +1,273 @@
+name: test
+
+# The tests of this repository, in one workflow, over one transpile.
+#
+# All three test jobs run the SAME two commands before they can start:
+# `npm run downport` (copy src/, abaplint --fix the copy, strip whitespace)
+# and `npm run auto_transpile`. Identical inputs, identical output, and it
+# was happening three times on every pull request - the most expensive
+# non-browser work in the repository, paid for twice over.
+#
+# So `transpile` does it once and uploads node/output; everything downstream
+# downloads it. That matters most for `browser`: splitting the four Playwright
+# projects across four runners would otherwise have made it SIX transpiles per
+# pull request rather than three.
+#
+# The trade is honest and worth naming: the three test jobs used to transpile
+# concurrently, so moving it ahead of them adds one job start plus the tar
+# round trip - call it a minute - to the critical path. The browser matrix
+# takes back several times that, because chromium, firefox, webkit and the
+# 1.71 gate no longer wait for each other.
+#
+# Job ids are the ones the three previous workflows used (`test_unit`,
+# `test_node`, `test_browser`, `test_unit_js`) because a job id is the check
+# name, and a renamed check silently stops being the required one. The matrix
+# legs run under `browser`, and `test_browser` is the aggregate that keeps
+# that name reportable - a matrix leg's check name carries its parameter, so
+# `test_browser` could not be required if it were the matrix itself.
+
+# Pull requests AND pushes to main. The push leg is not redundant with the
+# pull-request one: `auto_downport`, `frontend_deploy` and
+# `trigger_local` all fire on `push: main` and rebuild or deploy from the
+# merged state, and a merge is not the state any pull request tested - two
+# individually green branches can merge into a red main. Without this leg the
+# first thing that touches the merge result is a deployment. Same pattern as
+# `frontend_check.yaml` and `render-gate.yaml`, which already had it.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Doc-only changes (about one commit in five) skip the expensive jobs
+  # below: nothing in docs/, backlog/, .claude/, a *.md file or the
+  # changelog is an input to the transpile, the unit suites or the browser
+  # legs. This is a job-level `if`, NOT a paths-ignore on the trigger, on
+  # purpose: a job skipped by its condition still reports a check run
+  # (conclusion: skipped), which satisfies branch protection - a workflow
+  # that never triggers reports nothing and a required check would block the
+  # pull request forever ("a check that does not run cannot be required",
+  # see check_gates.yaml). Anything unclear - an unreadable base, an empty
+  # diff - counts as code, so the fail-open direction is "run the tests".
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+    - id: diff
+      env:
+        BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+      run: |
+        code=true
+        if [ -n "$BASE" ] && git cat-file -e "$BASE" 2>/dev/null; then
+          files=$(git diff --name-only "$BASE" "$HEAD")
+          echo "changed files:"
+          echo "$files"
+          if [ -n "$files" ] && ! echo "$files" | grep -qvE '^(docs/|backlog/|\.claude/|\.github/ISSUE_TEMPLATE/|LICENSE$|changelog\.txt$|llms\.txt$)|\.md$'; then
+            code=false
+          fi
+        fi
+        echo "code=$code" >> "$GITHUB_OUTPUT"
+        echo "code=$code"
+
+  transpile:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+        # downport clones the three pinned git dependencies; without the
+        # deps cache that is three fresh clones on the critical path of
+        # every job downstream of this one
+        deps: "true"
+    - run: npm run downport
+    - run: npm run auto_transpile
+    # A tar, not the directory: the transpiler writes thousands of small
+    # files and the artifact API charges per file, which turned the upload
+    # into the slowest step of the job.
+    - name: Pack the transpiled output
+      run: tar -czf transpiled.tar.gz -C node output
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: transpiled
+        path: transpiled.tar.gz
+        retention-days: 1
+
+  test_unit:
+    needs: transpile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: transpiled
+    - run: tar -xzf transpiled.tar.gz -C node
+    - run: npm run unit
+
+  test_node:
+    needs: transpile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: transpiled
+    - run: tar -xzf transpiled.tar.gz -C node
+    - run: npm run express &
+    - name: Wait for server and verify response
+      run: |
+        for i in $(seq 1 30); do
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null) || true
+          if [ "$HTTP_CODE" != "000" ]; then
+            break
+          fi
+          sleep 1
+        done
+        if [ "$HTTP_CODE" = "000" ]; then
+          echo "::error::Server did not start within 30 seconds"
+          exit 1
+        fi
+        if [ "$HTTP_CODE" != "200" ]; then
+          echo "::error::Server returned HTTP $HTTP_CODE"
+          curl -s http://localhost:3000
+          exit 1
+        fi
+        BODY_LENGTH=$(curl -s http://localhost:3000 | wc -c)
+        if [ "$BODY_LENGTH" -lt 1000 ]; then
+          echo "::error::Response body too small ($BODY_LENGTH bytes), likely an error page"
+          curl -s http://localhost:3000
+          exit 1
+        fi
+        echo "Server started successfully (HTTP $HTTP_CODE, $BODY_LENGTH bytes)"
+
+  browser:
+    needs: transpile
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      # One engine failing is a fact about that engine - the other three
+      # still have to report, or a webkit-only break hides the state of
+      # chromium behind it.
+      fail-fast: false
+      matrix:
+        include:
+        - project: chromium
+          browser: chromium
+        - project: firefox
+          browser: firefox
+        - project: webkit
+          browser: webkit
+        # The pinned OpenUI5 1.71 gate: the oldest supported release, run as
+        # an executable check for the 1.71 compatibility rules (AGENTS.md
+        # rules 12, 13, 15-18) instead of reviewer lore. Chromium engine,
+        # different bootstrap - see playwright.config.js.
+        - project: ui5-1.71
+          browser: chromium
+    name: browser (${{ matrix.project }})
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: transpiled
+    - run: tar -xzf transpiled.tar.gz -C node
+    - name: Get Playwright version
+      id: playwright-version
+      run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+    # Keyed by engine as well as version: each leg installs only the browser
+    # it runs, so the three caches are different sets and one key for all of
+    # them would serve whichever leg wrote first.
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ steps.playwright-version.outputs.version }}
+    - name: Install Playwright browser
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+    - name: Install Playwright OS dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps ${{ matrix.browser }}
+    - name: Run browser tests against the transpiled backend
+      run: cd node && npx playwright test --config=playwright.config.js --project=${{ matrix.project }}
+
+    # The config writes an html report and, on a retry, a trace - and until
+    # now neither left the runner, so a flake that only reproduces in CI left
+    # nothing behind but the list reporter's lines. `retries: 2` and
+    # `trace: 'on-first-retry'` mean the evidence is already on disk by the
+    # time the leg goes red; this is what makes it downloadable. Only on
+    # failure: a green run's report is noise nobody opens.
+    - name: Upload the Playwright report and traces
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: playwright-${{ matrix.project }}
+        path: |
+          node/playwright-report/
+          node/test-results/
+        retention-days: 7
+        if-no-files-found: ignore
+
+  test_browser:
+    # The required check. The matrix legs above are what actually runs; this
+    # job exists so branch protection has one stable name to require. On a
+    # doc-only change the legs are skipped and that counts as passed - the
+    # skip is the `changes` job's decision, not a leg quietly not reporting.
+    needs: [changes, browser]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: every browser leg passed
+      run: |
+        if [ "${{ needs.browser.result }}" = "skipped" ] && [ "${{ needs.changes.outputs.code }}" = "false" ]; then
+          echo "doc-only change - browser legs skipped by the changes job"
+          exit 0
+        fi
+        if [ "${{ needs.browser.result }}" != "success" ]; then
+          echo "::error::a browser leg did not pass (${{ needs.browser.result }}) - see the browser (…) jobs"
+          exit 1
+        fi
+        echo "all browser legs passed"
+
+  test_unit_js:
+    # The frontend unit specs run against app/webapp directly - no ABAP, so
+    # no transpile to wait for.
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+    - name: Run JS unit tests
+      run: npm run check:js

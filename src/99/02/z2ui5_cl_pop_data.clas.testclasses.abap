@@ -63,7 +63,7 @@ CLASS ltcl_test_roundtrip DEFINITION FINAL
       END OF ty_s_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
-    DATA mo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA mi_client TYPE REF TO z2ui5_if_client.
 
     METHODS client_create
@@ -86,16 +86,16 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_core_handler( `` ) ).
+    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_core_client( mo_action ).
+    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
 
   ENDMETHOD.
 
   METHOD roundtrip_event.
 
     client_create( io_app ).
-    io_app->check_initialized = abap_true.
+    mo_action->mo_app->mv_check_initialized = abap_true.
     mo_action->ms_actual-event = iv_event.
     io_app->main( mi_client ).
 

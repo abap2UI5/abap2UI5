@@ -10,16 +10,16 @@
   ],
   "main": "webapp/index.html",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@sap/ux-ui5-tooling": "^1.27.0",
-    "@ui5/cli": "^4.0.57",
-    "@ui5/linter": "^1.23.1",
-    "eslint": "^10.6.0",
-    "globals": "^17.7.0",
-    "prettier": "^3.9.4"
+    "@sap/ux-ui5-tooling": "^1.30.0",
+    "@ui5/cli": "^4.0.62",
+    "@ui5/linter": "^1.23.5",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0",
+    "prettier": "^3.9.6"
   },
   "scripts": {
     "start": "fiori run --open \"test/flpSandbox.html?sap-ui-xx-viewCache=false#z2ui5-display\"",

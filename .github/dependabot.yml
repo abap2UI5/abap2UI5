@@ -1,0 +1,62 @@
+# Monthly dependency updates, opened as pull requests so check_gates decides
+# whether they are safe rather than a human reading a version number.
+#
+# Grouped one pull request per ecosystem: these manifests hold a handful of
+# build-time tools, and ten separate pull requests for them would be read by
+# nobody. A group that fails is bisected by dropping a line from it.
+#
+# The actions are pinned by commit SHA (see .github/actions/setup). Dependabot
+# understands that pinning and moves the SHA while keeping the version comment
+# next to it - which is exactly why the pins are maintainable at all.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+      # Monthly runs land on the 1st, so the weekday is whatever it falls on -
+      # the old Tuesday slot existed to stay clear of the Monday bump
+      # workflows in abap2UI5/linter's consumers, and that separation is no
+      # longer available. Roughly one month in seven the two will open pull
+      # requests against the same lockfile; that costs a rebase, not a build.
+      time: "06:30"
+    open-pull-requests-limit: 5
+    groups:
+      toolchain:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      toolchain-major:
+        patterns: ["*"]
+        update-types: ["major"]
+
+  # app/webapp is the UI5 source the frontend is built from; its own manifest
+  # carries the UI5 tooling, and a bump there changes build/ - which the
+  # frontend_check gate compares against the sources.
+  - package-ecosystem: npm
+    directory: /app
+    schedule:
+      interval: monthly
+      time: "06:30"
+    open-pull-requests-limit: 5
+    groups:
+      ui5-tooling:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      ui5-tooling-major:
+        patterns: ["*"]
+        update-types: ["major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+      time: "06:30"
+    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-major:
+        patterns: ["*"]
+        update-types: ["major"]

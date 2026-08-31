@@ -8,7 +8,6 @@
     },
     "title": "abap2UI5",
     "description": "Create UI5 apps purely in ABAP",
-    "resources": "resources.json",
     "sourceTemplate": {
       "id": "@sap/generator-fiori:basic",
       "version": "1.15.0",
@@ -36,14 +35,6 @@
   },
   "sap.ui": {
     "technology": "UI5",
-    "icons": {
-      "icon": "",
-      "favIcon": "",
-      "phone": "",
-      "phone@2": "",
-      "tablet": "",
-      "tablet@2": ""
-    },
     "deviceTypes": {
       "desktop": true,
       "tablet": true,
@@ -75,7 +66,8 @@
       "id": "App"
     },
     "resourceRoots": {
-      "z2ui5cc": "../z2ui5cc/"
+      "z2ui5_cci": "../z2ui5_cci/",
+      "z2ui5_ccc": "../z2ui5_ccc/"
     }
   },
   "sap.cloud": {
