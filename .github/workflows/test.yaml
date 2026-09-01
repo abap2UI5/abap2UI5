@@ -64,6 +64,7 @@ jobs:
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
+        persist-credentials: false
         fetch-depth: 0
     - id: diff
       env:
@@ -89,6 +90,8 @@ jobs:
     timeout-minutes: 15
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"
@@ -115,6 +118,8 @@ jobs:
     timeout-minutes: 10
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"
@@ -130,6 +135,8 @@ jobs:
     timeout-minutes: 10
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"
@@ -190,6 +197,8 @@ jobs:
     name: browser (${{ matrix.project }})
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"
@@ -266,6 +275,8 @@ jobs:
     timeout-minutes: 10
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"

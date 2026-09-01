@@ -34,7 +34,7 @@ METHOD z2ui5_if_client~follow_up_action.
     RETURN.
   ENDIF.
   ...
-  mo_action_front->queue_app_event( … ).                  " client->follow_up_action( … ).
+  mo_frontend->queue_app_event( … ).                    " client->follow_up_action( … ).
 ENDMETHOD.
 ```
 

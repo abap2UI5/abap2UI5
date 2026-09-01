@@ -80,6 +80,8 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_view_update_none  FOR TESTING RAISING cx_static_check.
     METHODS test_constructor       FOR TESTING RAISING cx_static_check.
     METHODS test_hash_app_part     FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_shell_part   FOR TESTING RAISING cx_static_check.
+    METHODS test_app_get_url       FOR TESTING RAISING cx_static_check.
     METHODS test_route_standalone  FOR TESTING RAISING cx_static_check.
     METHODS test_route_launchpad   FOR TESTING RAISING cx_static_check.
     METHODS test_route_no_route    FOR TESTING RAISING cx_static_check.
@@ -835,27 +837,110 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD test_hash_app_part.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-
     " standalone - the whole hash belongs to the app
     cl_abap_unit_assert=>assert_equals( exp = `/app/ZCL_X/D1`
-                                        act = lo_handler->hash_get_app_part( `#/app/ZCL_X/D1` ) ).
+                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `#/app/ZCL_X/D1` ) ).
 
     " launchpad - the shell owns everything before '&/'
     cl_abap_unit_assert=>assert_equals( exp = `app/ZCL_X/D1`
-                                        act = lo_handler->hash_get_app_part( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
+                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
 
     " ... including a shell hash that carries its own parameters
     cl_abap_unit_assert=>assert_equals( exp = `app/ZCL_X`
-                                        act = lo_handler->hash_get_app_part( `#Z2UI5-display?a=b&c=d&/app/ZCL_X` ) ).
+                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `#Z2UI5-display?a=b&c=d&/app/ZCL_X` ) ).
 
     " an app hash containing '&/' must not be split
     cl_abap_unit_assert=>assert_equals( exp = `/app/ZCL_X/D1?next=&/y`
-                                        act = lo_handler->hash_get_app_part( `#/app/ZCL_X/D1?next=&/y` ) ).
+                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `#/app/ZCL_X/D1?next=&/y` ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = lo_handler->hash_get_app_part( `` ) ).
+                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_hash_shell_part.
+
+    " launchpad - the shell part is everything before '&/'
+    cl_abap_unit_assert=>assert_equals(
+        exp = `Z2UI5-display`
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
+
+    " ... including a shell hash that carries its own parameters
+    cl_abap_unit_assert=>assert_equals(
+        exp = `Z2UI5-display?a=b&c=d`
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part( `#Z2UI5-display?a=b&c=d&/app/ZCL_X` ) ).
+
+    " standalone - the whole hash is the app's, so there is no shell part;
+    " the leading-'/' guard runs before the '&/' search, so an app hash
+    " carrying '&/' in a parameter fabricates no shell part either
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part( `#/app/ZCL_X/D1` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part( `#/app/ZCL_X/D1?next=&/y` ) ).
+
+    " a bare shell hash without an app part keeps nothing - same contract as
+    " Router.splitHash, whose shell is only ever cut at '&/'
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part( `#Z2UI5-display` ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part( `` ) ).
+
+    " ... unless the caller declares its input the RAW location hash, where
+    " the bare form is a launchpad intent and therefore ALL shell - the one
+    " provenance-dependent shape (see the parameter's comment). An app hash
+    " stays an app hash even then
+    cl_abap_unit_assert=>assert_equals(
+        exp = `Z2UI5-display`
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part(
+                  iv_hash             = `#Z2UI5-display`
+                  check_bare_is_shell = abap_true ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part(
+                  iv_hash             = `#/app/ZCL_X/D1`
+                  check_bare_is_shell = abap_true ) ).
+
+  ENDMETHOD.
+
+  METHOD test_app_get_url.
+
+    " the app-owned hash (route or app-state, leading `/`) must be dropped -
+    " the backend prefers it over app_start, so keeping it would re-open the
+    " current app instead of the requested one
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://h/p?app_start=zcl_new`
+        act = z2ui5_cl_ui5_handler=>app_get_url(
+                  classname = `ZCL_NEW`
+                  origin    = `https://h`
+                  pathname  = `/p`
+                  search    = ``
+                  hash      = `#/app/ZCL_OLD/DRAFT1` ) ).
+
+    " inside the FLP the shell part of the hash survives, only the app part
+    " after `&/` is cut
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://h/p?app_start=zcl_new#Shell-home`
+        act = z2ui5_cl_ui5_handler=>app_get_url(
+                  classname = `ZCL_NEW`
+                  origin    = `https://h`
+                  pathname  = `/p`
+                  search    = ``
+                  hash      = `#Shell-home&/app/ZCL_OLD/DRAFT1` ) ).
+
+    " a bare intent hash (FLP, no app part yet) is all shell and survives
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://h/p?app_start=zcl_new#Shell-home`
+        act = z2ui5_cl_ui5_handler=>app_get_url(
+                  classname = `ZCL_NEW`
+                  origin    = `https://h`
+                  pathname  = `/p`
+                  search    = ``
+                  hash      = `#Shell-home` ) ).
 
   ENDMETHOD.
 
@@ -1060,7 +1145,9 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_handler->mo_action->mo_app->mt_attri
                                                   app  = lo_app ).
-    lo_model->dissolve( ).
+    " main_attri_refresh runs the (private) dissolve pass - on this fresh,
+    " unbound model it is a pure dissolve, which is all the test needs
+    lo_model->main_attri_refresh( ).
     READ TABLE lo_handler->mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri)
          WITH KEY name = `CHECK_INIT`.
     IF sy-subrc <> 0.

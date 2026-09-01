@@ -105,27 +105,37 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
     cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
 
+    " The UI5 CDN hosts a default installation may bootstrap from or fall
+    " back to. Deliberately ONLY these: general-purpose CDNs (jsdelivr,
+    " cdnjs) used to ride along although nothing the framework ships loads
+    " from them, and every allowed script host is a host whose compromise is
+    " script execution in an authenticated SAP session. An exit that needs
+    " another host adds it - to the one directive that needs it.
+    DATA(lv_ui5_hosts) =
+      `ui5.sap.com *.ui5.sap.com ` &&
+      `sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com ` &&
+      `openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
+      `sdk.openui5.org *.sdk.openui5.org`.
+
     " 'unsafe-eval' is required by the OpenUI5 1.71 ui5loader (it evaluates
     " module source as a string); without it the 1.71 bootstrap fails with a
     " CSP EvalError. Modern UI5 does not use eval, so keeping it here only
     " affects older releases, and 'unsafe-inline' is already allowed so the
     " delta is marginal. Apps pinning a modern UI5 can drop it via their exit.
+    "
+    " script-src and style-src are EXPLICIT on purpose, not left to the
+    " default-src fallback: default-src carries data:/blob: for images,
+    " fonts and media, and a data: that falls through to script-src is a
+    " textbook CSP bypass (any HTML-injection foothold escalates to script
+    " execution via <script src="data:...">). The split keeps data:/blob:
+    " and the unsafe-* keywords each confined to the directives that need
+    " them.
     cs_config-content_security_policy =
       |<meta http-equiv="Content-Security-Policy" | &&
-      |content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
-      |ui5.sap.com *.ui5.sap.com | &&
-      |sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
-      |openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-      |sdk.openui5.org *.sdk.openui5.org | &&
-      |cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
-      |cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; | &&
-      |connect-src 'self' | &&
-      |  ui5.sap.com *.ui5.sap.com | &&
-      |  sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
-      |  openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-      |  sdk.openui5.org *.sdk.openui5.org | &&
-      |  cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
-      |  cdnjs.cloudflare.com *.cdnjs.cloudflare.com; | &&
+      |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
+      |script-src 'self' 'unsafe-inline' 'unsafe-eval' { lv_ui5_hosts }; | &&
+      |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
+      |connect-src 'self' { lv_ui5_hosts }; | &&
       |worker-src 'self' blob:; | &&
       " Hardening directives (no runtime cost for a UI5 app): block plugin
       " content and pin <base> to the app origin. NO frame-ancestors here:
@@ -134,14 +144,24 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " X-Frame-Options: SAMEORIGIN response header set below instead.
       |object-src 'none'; base-uri 'self'; "/>|.
 
+    " NO cache-control/Pragma/Expires here any more: the cache policy is
+    " per verb and set by z2ui5_cl_ui5_http_handler=>set_response (the GET
+    " shell revalidates via ETag/304, everything else stays no-store). An
+    " exit that adds its own cache-control entry to this table still wins -
+    " the table is applied after the handler's headers.
+    " NO Strict-Transport-Security either, deliberately: many on-premise
+    " systems serve plain HTTP, and HSTS belongs on the TLS terminator that
+    " knows the deployment - an exit behind HTTPS adds it here.
     cs_config-t_security_header = VALUE #(
-        ( n = `cache-control`          v = `no-cache, no-store, must-revalidate` )
-        ( n = `Pragma`                 v = `no-cache` )
-        ( n = `Expires`                v = `0` )
         ( n = `X-Content-Type-Options` v = `nosniff` )
         ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
         ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
-        ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` ) ).
+        ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` )
+        " sever cross-origin window references / cross-origin embedding of
+        " the shell - both are cheap, and X-Frame-Options above already
+        " forbids the framing case they would otherwise soften
+        ( n = `Cross-Origin-Opener-Policy`   v = `same-origin` )
+        ( n = `Cross-Origin-Resource-Policy` v = `same-origin` ) ).
 
     IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_get( EXPORTING is_context = context
@@ -166,6 +186,11 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " POSTs still has the escape hatch of setting it back to abap_false in its
     " own set_config_http_post.
     cs_config-check_csrf_active = abap_true.
+
+    " trusted by default so proxy/web-dispatcher setups work out of the box;
+    " an installation without such a proxy hardens the CSRF gate by setting
+    " it to abap_false (reasoning at the field in z2ui5_if_ui5_exit)
+    cs_config-check_trust_forwarded_host = abap_true.
 
     IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_post( EXPORTING is_context = context

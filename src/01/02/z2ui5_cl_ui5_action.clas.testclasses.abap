@@ -38,6 +38,8 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_stack_leave_fresh_target FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_ancestor_gone FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_mode_own_wins  FOR TESTING RAISING cx_static_check.
+    METHODS test_hop_clears_routing_req FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_ui5_action DEFINITION LOCAL FRIENDS ltcl_test.
@@ -53,7 +55,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action = NEW #( val = lo_http ).
 
     cl_abap_unit_assert=>assert_bound( lo_action ).
-    cl_abap_unit_assert=>assert_bound( lo_action->mo_http_post ).
+    cl_abap_unit_assert=>assert_bound( lo_action->mo_handler ).
     cl_abap_unit_assert=>assert_bound( lo_action->mo_app ).
 
   ENDMETHOD.
@@ -291,6 +293,67 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_called = lo_own->factory_stack_call( ).
 
     cl_abap_unit_assert=>assert_initial( lo_called->mo_app->mv_nav_mode ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_mode_own_wins.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_target TYPE REF TO ltcl_test_app.
+    DATA lo_target_core TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_called TYPE REF TO z2ui5_cl_ui5_action.
+
+    " the mode is only INHERITED where the called app has none of its own
+    " (prepare_app_stack) - an app that already chose a mode keeps it, so a
+    " routed caller cannot silently re-route an app that opted for FRESH
+    lo_target = NEW #( ).
+    lo_target_core = NEW #( ).
+    lo_target_core->mo_app = lo_target.
+    lo_target_core->ms_draft-id = `NAV_MODE_OWN_TARGET`.
+    lo_target_core->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-fresh.
+    lo_target_core->db_save( ).
+
+    lo_http = NEW #( val = `` ).
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app      = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `NAV_MODE_OWN_CALLER`.
+    lo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
+    lo_action->ms_next-o_app_call  = lo_target.
+
+    lo_called = lo_action->factory_stack_call( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
+                                        act = lo_called->mo_app->mv_nav_mode ).
+
+  ENDMETHOD.
+
+  METHOD test_hop_clears_routing_req.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_called TYPE REF TO z2ui5_cl_ui5_action.
+
+    " a caller that sets its own routing mode in the same roundtrip as the
+    " hop must not leak the explicit set_nav_routing request into the called
+    " app's response - main_end recomputes the mode to send from the CALLED
+    " app's mv_nav_mode (prepare_app_stack CLEARs exactly this one field) ...
+    lo_http = NEW #( val = `` ).
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app      = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `ROUTING_REQ_DRAFT`.
+
+    lo_action->ms_next-s_nav-set_nav_routing = z2ui5_if_client=>cs_nav_mode-keep.
+    lo_action->ms_next-s_nav-set_push_state  = `/caller-state`.
+    lo_action->ms_next-o_app_call            = NEW ltcl_test_app( ).
+
+    lo_called = lo_action->factory_stack_call( ).
+
+    cl_abap_unit_assert=>assert_initial( lo_called->ms_next-s_nav-set_nav_routing ).
+
+    " ... while the REST of the nav intent does carry over with the hop
+    cl_abap_unit_assert=>assert_equals( exp = `/caller-state`
+                                        act = lo_called->ms_next-s_nav-set_push_state ).
 
   ENDMETHOD.
 

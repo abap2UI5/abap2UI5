@@ -157,6 +157,22 @@ test("hrefFor keeps the FLP shell hash, so a copied link reopens the tile", () =
   );
 });
 
+test("hrefFor treats a bare intent hash as all shell", () => {
+  // opened from the tile, no app part yet: location.hash is the RAW hash,
+  // so the bare non-"/" form is a launchpad intent and must survive into
+  // the link - dropping it would land the recipient on the FLP home page.
+  // Mirrors the backend's hash_get_shell_part( check_bare_is_shell ).
+  const flp = loadRouter({ href: `https://host/flp#${FLP_SHELL}` });
+  expect(flp.Router.hrefFor("/z2ui5-xapp-state=ABC")).toBe(
+    `https://host/flp#${FLP_SHELL}&/z2ui5-xapp-state=ABC`,
+  );
+  // an empty hash still composes the standalone form
+  const empty = loadRouter({ href: "https://host/sap/z2ui5" });
+  expect(empty.Router.hrefFor("/z2ui5-xapp-state=ABC")).toBe(
+    "https://host/sap/z2ui5#/z2ui5-xapp-state=ABC",
+  );
+});
+
 // ---------------------------------------------------------------------------
 // 2. Route patterns
 // ---------------------------------------------------------------------------

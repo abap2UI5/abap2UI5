@@ -106,7 +106,14 @@ sap.ui.define(
     // would drop the shell hash and land the recipient on the FLP home page.
     function hrefFor(sAppHash) {
       const base = window.location.href.split("#")[0];
-      const shell = splitHash(window.location.hash).shell;
+      const raw = String(window.location.hash || "").replace(/^#/, "");
+      let shell = splitHash(raw).shell;
+      // location.hash is the RAW hash: a bare non-"/" form is a launchpad
+      // intent opened from the tile - ALL shell - even though splitHash
+      // (built for the inner-hash shape the HashChanger hands out) reads it
+      // as app. Dropping it would land the recipient on the FLP home page.
+      // Mirrors the backend's hash_get_shell_part( check_bare_is_shell ).
+      if (!shell && raw && !raw.startsWith("/")) shell = raw;
       if (!shell) return `${base}#${sAppHash}`;
       // Canonical launchpad spelling: the "/" of "&/" already opens the app
       // hash, so the app hash itself is appended without its leading slash.

@@ -3,10 +3,11 @@
  * agents-commands-gate — every npm script is documented where an agent looks
  * for one.
  *
- * AGENTS.md is loaded into every session, and its "Build & Validation" chapter
- * is the list of commands a reader is expected to work from. A script that is
- * not in it does not exist as far as that reader is concerned: they will not
- * run `npm run check:downport` before pushing, and they will re-derive by hand
+ * docs/agents/commands.md is the command inventory AGENTS.md points every
+ * session at (its "Build & Validation" chapter is now a compact pointer - the
+ * inventory itself moved out of the always-loaded file). A script that is not
+ * in it does not exist as far as that reader is concerned: they will not run
+ * `npm run check:downport` before pushing, and they will re-derive by hand
  * what `npm run backlog:probe` already answers.
  *
  * That is not hypothetical. Twenty-one scripts were missing when this gate was
@@ -21,32 +22,30 @@
  * than by remembering. Staying undocumented is still allowed - it just has to
  * be said here, with the reason, so that the omission is a decision.
  *
- * Scope: the "## Build & Validation" chapter only. A command named in passing
- * in a paragraph elsewhere is not a command a reader can find, and this gate
- * would otherwise be satisfied by a mention that helps nobody.
+ * Scope: docs/agents/commands.md, the whole file - it exists for nothing but
+ * this inventory. A command named in passing in a paragraph of some other
+ * document is not a command a reader can find, and this gate would otherwise
+ * be satisfied by a mention that helps nobody.
  */
 import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { join } from "path";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
-const CHAPTER = "## Build & Validation";
+const FILE = "docs/agents/commands.md";
 
-/* Scripts deliberately not in the chapter, each with the reason. */
+/* Scripts deliberately not in the inventory, each with the reason. */
 const UNDOCUMENTED = {};
 
 const scripts = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).scripts ?? {};
-const agents = readFileSync(join(ROOT, "AGENTS.md"), "utf8");
-
-const at = agents.indexOf(`\n${CHAPTER}\n`);
-if (at === -1) {
-  console.error(`agents-commands: no ${JSON.stringify(CHAPTER)} heading on a line of its own`);
-  console.error("  the chapter was renamed or removed - point this gate at the new one");
+let chapter;
+try {
+  chapter = readFileSync(join(ROOT, FILE), "utf8");
+} catch {
+  console.error(`agents-commands: ${FILE} is missing`);
+  console.error("  the command inventory was moved or removed - point this gate at the new place");
   process.exit(1);
 }
-let end = agents.indexOf("\n## ", at + 1);
-if (end === -1) end = agents.length;
-const chapter = agents.slice(at, end);
 
 /* A script counts as documented when the chapter names it in code formatting:
  * as its own command (`npm run x`, `npm x`) or as one alternative of a row
@@ -73,18 +72,18 @@ for (const name of Object.keys(UNDOCUMENTED)) {
 
 if (missing.length === 0 && stale.length === 0) {
   console.log(
-    `agents-commands: ${Object.keys(scripts).length} npm script(s), all named in "${CHAPTER}" - OK`,
+    `agents-commands: ${Object.keys(scripts).length} npm script(s), all named in ${FILE} - OK`,
   );
   process.exit(0);
 }
 
-console.log(`agents-commands: package.json and AGENTS.md disagree about which commands exist.`);
+console.log(`agents-commands: package.json and ${FILE} disagree about which commands exist.`);
 console.log("");
 if (missing.length > 0) {
-  console.log(`  not named in "${CHAPTER}":`);
+  console.log(`  not named in ${FILE}:`);
   for (const name of missing) console.log(`    npm run ${name}`);
   console.log("");
-  console.log("  Add a row to the chapter's command table saying what it does, or add it");
+  console.log("  Add a row to its command table saying what it does, or add it");
   console.log("  to UNDOCUMENTED in this script with the reason it stays out.");
   console.log("");
 }

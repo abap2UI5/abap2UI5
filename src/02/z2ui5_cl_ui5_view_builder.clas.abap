@@ -84,6 +84,24 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! Escape a value that must render as LITERAL text in an attribute: the
+    "! page bootstraps with complex binding syntax, so a curly brace in the
+    "! value - think a user-supplied search string - is otherwise parsed
+    "! by UI5 as a binding path (or an expression) instead of shown as text,
+    "! and can read arbitrary paths out of the view model. Backslash-escaping
+    "! the braces is UI5's own convention for literal text.
+    "! Deliberately NOT applied by a( ) itself: a deliberate binding in v -
+    "! client-&gt;_bind( ), an event, a template - is the builder's bread and
+    "! butter, and only the app knows which values are literals. Use it on
+    "! any user- or external-supplied string an app renders via a( v = ... ):
+    "!   )-&gt;a( n = `text` v = z2ui5_cl_ui5_view_builder=&gt;escape_literal( lv_input ) )
+    "! XML escaping is a separate concern and always applied on render.
+    CLASS-METHODS escape_literal
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
     TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH EMPTY KEY.
     TYPES:
@@ -295,6 +313,36 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
   METHOD stringify.
 
     result = root->render( ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_literal.
+
+    result = val.
+
+    " a value without a brace is never parsed as a binding, and UI5 leaves
+    " its backslashes alone too (the binding parser only unescapes strings
+    " it processes) - so it must leave here untouched: escaping the
+    " backslash in e.g. a Windows path would MAKE the value wrong
+    IF result NA `{}`.
+      RETURN.
+    ENDIF.
+
+    " a braced value IS processed by the binding parser, which then also
+    " unescapes - so the backslash has to be escaped first, then the braces
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `{`
+                      with = `\{`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `}`
+                      with = `\}`
+                      occ  = 0 ).
 
   ENDMETHOD.
 

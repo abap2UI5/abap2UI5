@@ -16,6 +16,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/abap2UI5/abap2UI5/actions/workflows/test.yaml"><img src="https://github.com/abap2UI5/abap2UI5/actions/workflows/test.yaml/badge.svg?branch=main" alt="test"></a>
+  <a href="https://github.com/abap2UI5/abap2UI5/actions/workflows/check_gates.yaml"><img src="https://github.com/abap2UI5/abap2UI5/actions/workflows/check_gates.yaml/badge.svg?branch=main" alt="check_gates"></a>
+  <a href="https://github.com/abap2UI5/abap2UI5/actions/workflows/abaplint.yaml"><img src="https://github.com/abap2UI5/abap2UI5/actions/workflows/abaplint.yaml/badge.svg?branch=main" alt="abaplint"></a>
+</p>
+
+<p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
   <a href="https://abap2ui5.github.io/samples/">Samples</a> •
   <a href="#ai-assistants">AI Assistants</a> •
@@ -81,7 +87,7 @@ Popups, navigation, messages, and frontend actions travel the same protocol – 
 
 ## Enterprise Readiness
 * **Security** – Apps run entirely inside your SAP authentication and authorization: a single HTTP endpoint, standard SAP logon, no separate user store
-* **Stability** – Every commit is CI-tested against NW 7.02, Standard ABAP and ABAP Cloud, backed by unit tests and automated browser tests
+* **Stability** – Every change is CI-tested against Standard ABAP and ABAP Cloud, and every merge is downported and linted against NW 7.02 before the `702` branch is published – backed by unit tests and automated browser tests
 * **No Lock-In** – MIT license, unlimited users, no per-user fees; apps are plain ABAP classes in your system – versioned, transported and tested like any other ABAP code
 * **Support** – Community support via Slack and GitHub, commercial options listed in [SUPPORT.md](SUPPORT.md)
 
@@ -147,8 +153,18 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 ## Get Involved
 We welcome all contributions! Here's how you can help:
 * [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report issues and provide feedback
-* [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Contribute code and documentation
+* [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Contribute code and documentation ([CONTRIBUTING.md](CONTRIBUTING.md) is the in-repo guide)
 * [LinkedIn](https://www.linkedin.com/company/abap2ui5) - Follow abap2UI5 for updates and community highlights
 * [Sponsor](https://abap2ui5.github.io/docs/resources/sponsor.html) - Sponsor our work to support ongoing innovation
+
+Developer quick start – three commands and you have the full CI gate locally:
+
+```bash
+npm ci               # the toolchain: abaplint, the gates, the transpiler
+npm run check        # fast lint while iterating (seconds)
+npm run verify       # the full pre-PR gate, exactly what CI runs
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete workflow.
 
 _Share your knowledge, hunt for bugs, submit a PR, give us a ⭐, or tell your colleagues about abap2UI5. Every contribution counts!_

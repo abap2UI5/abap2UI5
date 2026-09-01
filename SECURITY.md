@@ -7,7 +7,10 @@
 | Latest release | Yes |
 | Previous releases | No |
 
-We recommend always using the latest version of abap2UI5.
+We recommend always using the latest version of abap2UI5. "Latest release"
+is the newest entry on the [releases page](https://github.com/abap2UI5/abap2UI5/releases);
+an installation reads its own version from the `version` constant in
+`z2ui5_if_app`.
 
 ## Reporting a Vulnerability
 
@@ -42,6 +45,11 @@ Instead, please use the GitHub Security Advisory ["Report a Vulnerability"](http
 
 This policy applies to the abap2UI5 core framework (`src/` directory). For vulnerabilities in dependencies or related repositories, please report them to the respective maintainers.
 
+Note that the UI5 frontend under `app/webapp/` is **in scope here**, even
+though it looks like a separate deliverable: it is authored in this
+repository and vendored into `src/01/03/` as the embedded frontend every
+installation serves.
+
 ## Security Model
 
 The following are deliberate design decisions of the framework, not
@@ -64,14 +72,27 @@ look first.
   change ABAP app code can run code in the user's browser - that is the
   product, not a flaw.
 - **Error details are visible by default.** The 500 body renders the full
-  exception chain (class names, source positions, kernel ids) for
-  diagnosability; hardened installations turn this off via the user exit
+  exception chain (class names, source positions, kernel ids, and the
+  public attributes of every exception in the chain) for diagnosability;
+  hardened installations turn this off via the user exit
   (`check_hide_error_details`). Host name, client and user are never part
-  of the body.
+  of the body. Be aware that the attribute dump renders whatever a
+  customer's or SAP's exception classes carry - an installation whose
+  exceptions hold sensitive payloads belongs in the hardened camp.
 - **The default CSP carries `unsafe-inline`/`unsafe-eval`** because UI5 1.71
   requires them; an exit can replace the whole policy, including switching
   to a real `Content-Security-Policy` response header via
-  `t_security_header`.
+  `t_security_header`. `data:`/`blob:` sources are confined to the non-script
+  directives (an explicit `script-src` shadows the `default-src` fallback).
+- **The default bootstrap loads UI5 from a public CDN**
+  (`sdk.openui5.org`) so a fresh installation runs with zero configuration.
+  That makes the CDN a trusted party of the DEFAULT setup: it serves the
+  entire JS runtime into an authenticated SAP session, and no integrity
+  pinning is possible against a cachebuster URL. Productive installations
+  should repoint `cs_config-src` in their exit to an on-stack or otherwise
+  controlled UI5 (`/sap/public/bc/ui5_ui5/resources/sap-ui-core.js` on
+  systems that ship it) - the default CSP allows only the UI5 CDN hosts,
+  nothing else.
 
 ## Credit
 

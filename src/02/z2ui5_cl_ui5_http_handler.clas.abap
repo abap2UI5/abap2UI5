@@ -117,6 +117,27 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
+    " Per-work-process cache of the assembled GET shell. The body is a pure
+    " function of the embedded frontend (constant per class load) and the
+    " exit-supplied config parts, so it is rebuilt only when those parts
+    " change - a system whose exit answers per-user (theme by user) simply
+    " thrashes the key back to the rebuild that ran on every GET before the
+    " cache existed. sv_get_etag doubles as the ETag set_response sends with
+    " the page and compares against If-None-Match: it hashes the BODY, not
+    " the config, so a redeployed frontend (new embedded classes, same
+    " version constant) changes it even between releases - a version-only
+    " tag would 304 a browser into keeping a stale shell.
+    CLASS-DATA sv_get_cache_key  TYPE string.
+    CLASS-DATA sv_get_cache_body TYPE string.
+    CLASS-DATA sv_get_etag       TYPE string.
+
+    " a cache validator, not a cryptographic hash - see the method
+    CLASS-METHODS _get_body_etag
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
     " (see z2ui5_cx_ui5_util_error=>get_text_full). Only reached when the exit
@@ -215,8 +236,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             " internal name, Origin still carries the EXTERNAL one - comparing
             " against Host would then 403 every legitimate request. The proxy
             " puts the external authority into X-Forwarded-Host; prefer it when
-            " present (first entry - each hop may append its own)
-            DATA(lv_host) = mo_server->get_header_field( `x-forwarded-host` ).
+            " present (first entry - each hop may append its own). The header
+            " is client-suppliable, so an installation without such a proxy
+            " can stop trusting it via the exit (check_trust_forwarded_host)
+            DATA(lv_host) = COND string(
+                WHEN ls_config_post-check_trust_forwarded_host = abap_true
+                THEN mo_server->get_header_field( `x-forwarded-host` ) ).
             IF lv_host IS INITIAL.
               lv_host = mo_server->get_header_field( `host` ).
             ELSE.
@@ -371,6 +396,28 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     DATA(ls_config) = config_http_get( ).
 
+    " every config part the body is built from, length-prefixed so two
+    " different configs can never concatenate to the same key. The embedded
+    " frontend needs no key part: it is constant for the life of this class
+    " load, and the cache does not outlive it
+    DATA(lv_cache_key) = |{ strlen( ls_config-theme ) }:{ ls_config-theme }| &&
+                         |{ strlen( ls_config-src ) }:{ ls_config-src }| &&
+                         |{ strlen( ls_config-content_security_policy ) }:{ ls_config-content_security_policy }| &&
+                         |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }| &&
+                         |{ strlen( ls_config-custom_js ) }:{ ls_config-custom_js }|.
+    LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config_key).
+      lv_cache_key = lv_cache_key &&
+                     |{ strlen( lr_config_key->n ) }:{ lr_config_key->n }| &&
+                     |{ strlen( lr_config_key->v ) }:{ lr_config_key->v }|.
+    ENDLOOP.
+
+    IF sv_get_cache_body IS NOT INITIAL AND sv_get_cache_key = lv_cache_key.
+      result-body          = sv_get_cache_body.
+      result-status_code   = 200.
+      result-status_reason = `OK`.
+      RETURN.
+    ENDIF.
+
     DATA(lv_style_css) = COND string( WHEN ls_config-styles_css IS INITIAL
                                       THEN z2ui5_cl_ui5f_style_css=>get( )
                                       ELSE ls_config-styles_css ).
@@ -454,6 +501,44 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     result-status_code   = 200.
     result-status_reason = `OK`.
 
+    sv_get_cache_key  = lv_cache_key.
+    sv_get_cache_body = result-body.
+    sv_get_etag       = _get_body_etag( result-body ).
+
+  ENDMETHOD.
+
+  METHOD _get_body_etag.
+
+    " a cache VALIDATOR, not a cryptographic hash: two small modular
+    " accumulators over the UTF-8 bytes plus the byte count, in plain ABAP so
+    " the method downports to 7.02 and transpiles. It runs once per cache
+    " fill (see _http_get), never per request. On a stack where the byte
+    " conversion is unavailable the method answers empty and set_response
+    " skips ETag/304 - conditional GET degrades, nothing breaks.
+    DATA lv_xstr TYPE xstring.
+    TRY.
+        lv_xstr = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( val ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    DATA(lv_len) = xstrlen( lv_xstr ).
+    DATA lv_h1 TYPE i VALUE 5381.
+    DATA lv_h2 TYPE i VALUE 17.
+    DATA lv_byte TYPE i.
+    DATA lv_off TYPE i.
+    WHILE lv_off < lv_len.
+      lv_byte = lv_xstr+lv_off(1).
+      lv_h1 = ( lv_h1 * 33 + lv_byte ) MOD 65521.
+      lv_h2 = ( lv_h2 * 31 + lv_byte ) MOD 65519.
+      lv_off = lv_off + 1.
+    ENDWHILE.
+
+    " quoted, as the ETag header syntax demands; the version constant rides
+    " along so a release always changes the tag even if the two accumulators
+    " ever collided across it
+    result = |"{ z2ui5_if_app=>version }-{ lv_len }-{ lv_h1 }-{ lv_h2 }"|.
+
   ENDMETHOD.
 
   METHOD run.
@@ -467,6 +552,22 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_response.
+
+    " Conditional GET: the shell page travels with an ETag (a body hash, see
+    " _get_body_etag) and revalidation instead of no-store, so a browser that
+    " still holds the current page gets a bodyless 304 instead of the whole
+    " embedded frontend on every reload / FLP re-entry. Only the 200 shell -
+    " the roundtrip data itself always travels via POST, which stays no-store
+    " below, and an error body must never be revalidated into staying.
+    DATA(lv_etag_get) = ``.
+    IF ms_req-method = `GET` AND ms_res-status_code = 200 AND sv_get_etag IS NOT INITIAL.
+      lv_etag_get = sv_get_etag.
+      IF mo_server->get_header_field( `if-none-match` ) = sv_get_etag.
+        ms_res-status_code   = 304.
+        ms_res-status_reason = `Not Modified`.
+        CLEAR ms_res-body.
+      ENDIF.
+    ENDIF.
 
     mo_server->set_cdata( ms_res-body ).
 
@@ -500,6 +601,27 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         CATCH cx_root ##NO_HANDLER.
           " no compression support on this stack - the response stays plain
       ENDTRY.
+    ENDIF.
+
+    " Cache policy, per verb, BEFORE the exit's own headers below - so an
+    " exit that sets cache-control itself still wins. The GET shell carries
+    " no user or app data (everything the app shows travels via POST), so it
+    " may be stored but must be revalidated - the ETag above turns that into
+    " a 304. Every other response is roundtrip data, a 500 dump or a 403 and
+    " stays no-store, exactly the trio the exit default used to carry for
+    " ALL responses (z2ui5_cl_ui5_user_exit leaves it to this method now).
+    IF lv_etag_get IS NOT INITIAL.
+      mo_server->set_header_field( n = `cache-control`
+                                   v = `private, no-cache` ).
+      mo_server->set_header_field( n = `etag`
+                                   v = lv_etag_get ).
+    ELSE.
+      mo_server->set_header_field( n = `cache-control`
+                                   v = `no-cache, no-store, must-revalidate` ).
+      mo_server->set_header_field( n = `Pragma`
+                                   v = `no-cache` ).
+      mo_server->set_header_field( n = `Expires`
+                                   v = `0` ).
     ENDIF.
 
     DATA(ls_config) = config_http_get( ).

@@ -21,16 +21,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     METHODS main_attri_db_save_srtti.
     METHODS main_attri_db_load.
-    METHODS main_attri_db_load_resolve.
-
-    METHODS main_attri_db_load_table
-      IMPORTING
-        ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-
-    METHODS main_attri_db_load_dref
-      IMPORTING
-        ir_attri     TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        ir_child_idx TYPE REF TO ty_t_child_idx.
     METHODS main_attri_refresh.
 
     METHODS main_json_to_attri
@@ -41,8 +31,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    CONSTANTS max_dissolve_depth TYPE i VALUE 5.
-
     DATA mt_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
@@ -52,6 +40,22 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! so the list covers exactly one model parse; the caller hands it to the
     "! app as client->get( )-t_model_skipped.
     DATA mt_skipped TYPE z2ui5_if_client=>ty_t_model_skip.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+    CONSTANTS max_dissolve_depth TYPE i VALUE 5.
+
+    METHODS main_attri_db_load_resolve.
+
+    METHODS main_attri_db_load_table
+      IMPORTING
+        ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+
+    METHODS main_attri_db_load_dref
+      IMPORTING
+        ir_attri     TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        ir_child_idx TYPE REF TO ty_t_child_idx.
 
     METHODS attri_update_entry_refs.
     METHODS attri_update_refs_children
@@ -103,9 +107,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_name      TYPE string
       RAISING
         z2ui5_cx_ajson_error.
-
-  PROTECTED SECTION.
-  PRIVATE SECTION.
 
     METHODS delta_apply_nodes
       IMPORTING
@@ -421,6 +422,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
 
+          " a dref whose deref is a TABLE has exactly ONE dissolved child:
+          " diss_dref's non-struct branch creates the single `<name>->*` row
+          " (only a struct deref fans out into several children, and that
+          " case is the struct branch below). So the unconditional EXIT
+          " after the first hit states that fact - the loop can never have a
+          " second row to visit, it exists only to pair the WHERE filter
+          " with a no-match fallthrough
           LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
                WHERE name_ref IS INITIAL
                      AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
@@ -770,6 +778,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               CONTINUE.
             ENDIF.
 
+            " several dissolved struct attributes can address the SAME data
+            " object (a nested component and the ref target pointing at it).
+            " Of those candidates keep the one with the SHORTEST name - the
+            " outermost, least-nested spelling of the owner - as the
+            " canonical name_ref: a candidate replaces an already-set
+            " name_ref only when its own name is strictly shorter, so the
+            " children rewritten from it (attri_update_refs_children,
+            " `<name_ref>-<component>`) get the shortest stable paths too
             IF lr_attri->name_ref IS NOT INITIAL AND strlen( lr_attri->name_ref ) <= strlen( lr_attri_ref->name ).
               CONTINUE.
             ENDIF.

@@ -2,8 +2,6 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     DATA mo_app    TYPE REF TO z2ui5_cl_ui5_app_cont.
-    DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-    DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
 
     METHODS constructor
       IMPORTING
@@ -13,20 +11,6 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       IMPORTING
         val           TYPE REF TO data
         config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS main_cell
-      IMPORTING
-        val           TYPE data
-        config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS bind_tab_cell
-      IMPORTING
-        iv_name       TYPE string
-        iv_val        TYPE data
       RETURNING
         VALUE(result) TYPE string.
 
@@ -44,6 +28,23 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     METHODS adopt_new_options.
 
   PRIVATE SECTION.
+    DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
+
+    METHODS main_cell
+      IMPORTING
+        val           TYPE data
+        config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS bind_tab_cell
+      IMPORTING
+        iv_name       TYPE string
+        iv_val        TYPE data
+      RETURNING
+        VALUE(result) TYPE string.
+
     " Raise when the same attribute is rebound with a different mapper/filter
     " implementation. iv_label names the kind for the error text.
     METHODS check_same_impl
@@ -232,6 +233,9 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     ms_config = config.
 
+    " a SECOND srv_bind instance on purpose, not main( ) on me: main( )
+    " overwrites ms_config with its own config, and the finalize_path( )
+    " below still needs THIS call's config (switch_default_model/path_only)
     DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( mo_app ).
     result = lo_bind->main( val    = config-tab
                             config = VALUE #( path_only = abap_true ) ).

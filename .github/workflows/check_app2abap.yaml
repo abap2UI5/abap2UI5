@@ -51,21 +51,19 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup
         with:
           app-npm-ci: "true"
           npm-ci: "true"
 
-      - name: Regenerate embedded frontend
-        run: npm run app2abap
-
-      - name: Fail on drift
-        run: |
-          # stage first so newly generated (untracked) files count as drift too
-          git add -A -- app/webapp src/01/03
-          if ! git diff --cached --exit-code -- app/webapp src/01/03; then
-            echo "::error::app/webapp and src/01/03 are out of sync."
-            echo "Run 'npm run app2abap' locally and commit the regenerated src/01/03 (and any prettier changes)."
-            exit 1
-          fi
+      # The same gate a developer runs locally. Deliberately NOT the scoped
+      # `npm run app2abap` + `git diff -- app/webapp src/01/03` this workflow
+      # used to carry: app2abap ends in the unscoped autoformatter, and a diff
+      # limited to the two generated paths is blind to anything it rewrites
+      # elsewhere - app2abap-gate.mjs's header documents exactly that failure
+      # and measures BEFORE/AFTER instead.
+      - name: Regenerate and fail when app2abap changes anything
+        run: npm run check:app2abap

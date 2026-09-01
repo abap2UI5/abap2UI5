@@ -46,6 +46,8 @@ jobs:
     timeout-minutes: 20
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     # The composite action, not a literal node-version: it reads .nvmrc and
     # brings the npm cache with it, which this job wants most of all - it runs
     # `npm ci` below on every src/** pull request and was doing it uncached.
@@ -66,8 +68,24 @@ jobs:
         # range is what fails if that ever stops being true.
         npm i --no-save --no-audit --no-fund "@abap2ui5/render-runtime@$VER"
 
+    # version+engine-keyed browser cache, the same pattern as test.yaml's
+    # browser matrix - this job runs on every src/** pull request and was
+    # re-downloading the identical Chromium build each time
+    - name: Get Playwright version
+      id: playwright-version
+      run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-chromium-${{ steps.playwright-version.outputs.version }}
     - name: Chromium for the render gate
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps chromium
+    - name: Chromium OS dependencies (browser cached)
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
 
     - name: Every view this repository builds survives XMLView.create
       run: npm run check:render

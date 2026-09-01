@@ -21,6 +21,50 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_request.
 
+    " The two halves of the FLP hash split (see the method bodies) - public
+    " because z2ui5_cl_ui5_client->app_state_get_href needs the shell part;
+    " together with Router.splitHash they are the only owners of the rule.
+    CLASS-METHODS hash_get_app_part
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " check_bare_is_shell decides the one ambiguous shape: a hash with
+    " neither a leading '/' nor a '&/' separator. Coming from the FLP's
+    " HashChanger the shell was already stripped, so the bare form is an app
+    " hash and the canonical Router.splitHash answer is 'no shell' - the
+    " default. Coming from the RAW browser location (s_front-hash) the bare
+    " form is a launchpad intent, i.e. ALL shell - those callers pass
+    " abap_true. The caller knows its input's provenance; this parameter is
+    " what keeps that knowledge from becoming a second split implementation
+    CLASS-METHODS hash_get_shell_part
+      IMPORTING
+        iv_hash             TYPE string
+        check_bare_is_shell TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)       TYPE string.
+
+    " The absolute URL that starts the given app class via ?app_start=,
+    " composed from the browser's own location parts. Lives HERE, next to
+    " the hash owners, because its one subtle decision is a hash split:
+    " the app-owned part (route/app-state) must be dropped - the backend
+    " prefers it over app_start, so appending it verbatim would re-open the
+    " CURRENT app instead of the requested one - while the launchpad shell
+    " part has to survive, or the link lands on the FLP home page.
+    " (Moved out of z2ui5_cl_ui5_util_context: it knows app_start and FLP
+    " hash anatomy, which is framework vocabulary the generic utility
+    " catalog must not carry - see "Utilities" in AGENTS.md.)
+    CLASS-METHODS app_get_url
+      IMPORTING
+        !classname    TYPE clike
+        !origin       TYPE clike
+        !pathname     TYPE clike
+        !search       TYPE clike
+        !hash         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
     " Everything about the failing roundtrip that only this class knows:
@@ -136,12 +180,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
     METHODS parse_app_route_rest
-      IMPORTING
-        iv_hash       TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS hash_get_app_part
       IMPORTING
         iv_hash       TYPE string
       RETURNING
@@ -363,6 +401,71 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     result = substring( val = result
                         off = lv_off + 2 ).
+  ENDMETHOD.
+
+  METHOD hash_get_shell_part.
+    " The complement of hash_get_app_part: the part of a browser hash the
+    " launchpad SHELL owns - everything in front of '&/'
+    " ('#<SemanticObject>-<action>&/<app hash>'). Standalone, or when the
+    " hash is all app, there is no shell part and the result is empty.
+    " Same guard order as above, for the same reason: the leading-'/' check
+    " runs BEFORE the '&/' search, because an app hash may itself contain
+    " '&/' in a parameter and splitting on that would fabricate a shell part
+    " out of an app-owned prefix. Mirrors the shell half of Router.splitHash;
+    " z2ui5_cl_ui5_client->app_state_get_href keeps the shell part in the
+    " link it composes, so the recipient lands in this app instead of on the
+    " launchpad home page.
+    DATA(lv_hash) = iv_hash.
+
+    IF lv_hash IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    IF lv_hash(1) = `#`.
+      lv_hash = substring( val = lv_hash
+                           off = 1 ).
+      IF lv_hash IS INITIAL.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    IF lv_hash(1) = `/`.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_off) = find( val = lv_hash
+                         sub = `&/` ).
+    IF lv_off < 0.
+      " no separator: an inner hash reads as app (canonical, the default),
+      " a raw location hash as a bare launchpad intent - all shell. See the
+      " parameter's comment in the class definition
+      IF check_bare_is_shell = abap_true.
+        result = lv_hash.
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+    result = substring( val = lv_hash
+                        len = lv_off ).
+  ENDMETHOD.
+
+  METHOD app_get_url.
+
+    DATA(lt_param) = z2ui5_cl_ui5_util_context=>url_param_get_tab( search ).
+    DELETE lt_param WHERE n = `app_start`.
+    INSERT VALUE #( n = `app_start`
+                    v = to_lower( classname ) ) INTO TABLE lt_param.
+
+    " only the launchpad shell part of the hash survives into the link; the
+    " raw location hash is this caller's input, so a bare intent counts as
+    " shell (see hash_get_shell_part's parameter comment)
+    DATA(lv_shell) = hash_get_shell_part( iv_hash             = CONV string( hash )
+                                          check_bare_is_shell = abap_true ).
+    DATA(lv_hash) = COND string( WHEN lv_shell IS NOT INITIAL
+                                 THEN |#{ lv_shell }| ).
+
+    result = |{ origin }{ pathname }?| && z2ui5_cl_ui5_util_context=>url_param_create_url( lt_param ) && lv_hash.
+
   ENDMETHOD.
 
   METHOD request_app_start_draft.
@@ -898,6 +1001,17 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " client was left holding, and factory_by_frontend cleared it when this
     " request's deltas touched the state it describes - so the full model
     " serialization only runs when no stored string can stand in for it.
+    "
+    " Yes, on a delta roundtrip this is the FIRST of up to two full
+    " serializations (main_end runs the second one to compare or to render a
+    " display) - and that is the cheaper side of a real trade-off, not an
+    " oversight. The snapshot cannot move behind main( ) (it has to be the
+    " pre-main state, and whether main( ) will display is unknowable here),
+    " and every variant that drops it - keeping the stale stored string, or
+    " pushing unconditionally when none exists - turns the saved CPU pass
+    " into a FULL-MODEL PUSH on every edit roundtrip whose main( ) changed
+    " nothing bound, which is exactly the transfer the compare in main_end
+    " exists to suppress. Serializing twice beats shipping the model once.
     IF mo_action->mo_app->mv_model_client IS NOT INITIAL.
       mv_model_before = mo_action->mo_app->mv_model_client.
     ELSE.

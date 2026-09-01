@@ -1,4 +1,4 @@
-CLASS ltcl_test_action_front DEFINITION FINAL
+CLASS ltcl_test_frontend DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
@@ -36,7 +36,7 @@ CLASS ltcl_test_action_front DEFINITION FINAL
 ENDCLASS.
 
 
-CLASS ltcl_test_action_front IMPLEMENTATION.
+CLASS ltcl_test_frontend IMPLEMENTATION.
 
   METHOD setup.
 
