@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+! Shell ETag strengthened: a third position-weighted accumulator makes a same-version, same-length collision (which would 304 a browser into keeping a stale shell) implausible
 + New client API families for app-owned hash routing: the hash_* methods (set, replace, back, attach_changed, routing) and app_state_* (set_active, get_href)
 + Conditional GET for the shell: the response carries an ETag and repeat loads answer 304 Not Modified
 + New view builder helper z2ui5_cl_ui5_view_builder=>escape_literal for escaping a value into a view literal

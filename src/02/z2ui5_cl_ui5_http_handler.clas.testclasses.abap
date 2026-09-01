@@ -553,6 +553,8 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_cache_control_head      FOR TESTING RAISING cx_static_check.
     METHODS test_fwd_host_trusted        FOR TESTING RAISING cx_static_check.
     METHODS test_fwd_host_opt_out        FOR TESTING RAISING cx_static_check.
+    METHODS test_etag_equal_length       FOR TESTING RAISING cx_static_check.
+    METHODS test_etag_position_mix       FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -849,6 +851,41 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                         act = mo_mock->mv_status ).
     cl_abap_unit_assert=>assert_char_cp( act = mo_mock->mv_cdata
                                          exp = `*CSRF*` ).
+
+  ENDMETHOD.
+
+  METHOD test_etag_equal_length.
+
+    " the tag carries the version constant and the byte count, and both are
+    " EQUAL for two builds of the same release with a same-length shell - so
+    " the accumulators alone must separate two different bodies of equal
+    " length, or a redeploy 304s the browser into keeping the stale shell
+    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_body_etag( `<html>shell content A</html>` ).
+    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_body_etag( `<html>shell content B</html>` ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
+    cl_abap_unit_assert=>assert_not_initial( lv_tag_b ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
+                                         act = lv_tag_b ).
+
+    " and the same body twice is the same tag - a validator that drifts on
+    " its own input would kill every 304
+    cl_abap_unit_assert=>assert_equals(
+        exp = lv_tag_a
+        act = z2ui5_cl_ui5_http_handler=>_get_body_etag( `<html>shell content A</html>` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_etag_position_mix.
+
+    " same bytes, different order, equal length - a sum-style validator
+    " cannot tell them apart, the position-weighted accumulator must
+    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_body_etag( `abcdefgh` ).
+    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_body_etag( `hgfedcba` ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
+                                         act = lv_tag_b ).
 
   ENDMETHOD.
 
