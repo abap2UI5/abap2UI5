@@ -1,9 +1,9 @@
 ---
 target: abaplint
 title: 'Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table'
-summary: deleting the current row from under the loop skips the next one — a wrong answer where `sy-tabix` is stale, a short dump where it is 0; found eight times across four repositories
-priority: high
-state: open
+summary: deleting the current row from under the loop skips the next one — a wrong answer where `sy-tabix` is stale, a short dump where it is 0; found eight times across four repositories. The abap2UI5-linter now carries the rule (error) on its main track, so this stays parked as the upstream generalization
+priority: low
+state: deferred
 first_seen: 2026-08-17
 checked_upstream: 2026-08-30
 upstream: abaplint/abaplint
@@ -16,6 +16,25 @@ evidence:
 ---
 
 # Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table
+
+## Why deferred (2026-09-01)
+
+This item was written when abaplint looked like the only place the rule could
+live — the abap2UI5-linter reads app classes and their views, and this defect
+is about ABAP as a language. That stopped being true: the abap2UI5-linter's
+main track now carries a `delete-index-in-loop` rule as an **error**, with the
+scope this proposal specifies (anchored on the enclosing loop, the
+read-then-delete form excepted). Once this repository's pin catches up with a
+release that includes it, the ecosystem's own corpora are covered by the tool
+they already run.
+
+What remains is the **upstream generalization**: abaplint would carry the rule
+to every ABAP code base, not only ones linted as abap2UI5 apps — the vendored
+ajson site below is exactly the kind of code the abap2UI5-linter never reads.
+Parked rather than dropped: the body below is still the paste-ready proposal
+if somebody decides that filing is worth an abaplint maintainer's time, and
+the deferral is the decision not to do it now that the ecosystem itself is
+served.
 
 ## What happens
 
