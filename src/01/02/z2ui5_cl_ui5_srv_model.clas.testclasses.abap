@@ -2093,3 +2093,86 @@ CLASS ltcl_test_json_types IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+CLASS ltcl_test_restore_fail DEFINITION DEFERRED.
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_restore_fail.
+
+
+CLASS ltcl_test_restore_fail DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    DATA mr_tab TYPE REF TO data ##NEEDED.
+
+  PRIVATE SECTION.
+    " A dref whose stored data cannot be read back: the attribute is left
+    " CLEARED by main_attri_db_save_srtti, so a silent skip would run the app
+    " on an empty table with nothing raised anywhere - see the comment in
+    " main_attri_db_load_resolve.
+    METHODS restore_bound_raises   FOR TESTING RAISING cx_static_check.
+    METHODS restore_unbound_quiet  FOR TESTING RAISING cx_static_check.
+
+    METHODS attri_with_broken_data
+      IMPORTING
+        iv_bind       TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_attri.
+ENDCLASS.
+
+
+CLASS ltcl_test_restore_fail IMPLEMENTATION.
+
+  METHOD attri_with_broken_data.
+
+    " the dref itself carries the stored data (main_attri_db_save_srtti puts
+    " a table deref's payload on the PARENT), the dissolved child carries the
+    " bind flag - the shape a generically created table has
+    INSERT VALUE #( name       = `MR_TAB`
+                    type_kind  = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
+                    srtti_data = `this is not the serialized type` ) INTO TABLE result.
+
+    INSERT VALUE #( name        = `MR_TAB->*`
+                    name_parent = `MR_TAB`
+                    type_kind   = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+                    bind        = iv_bind ) INTO TABLE result.
+
+  ENDMETHOD.
+
+  METHOD restore_bound_raises.
+
+    DATA(lo_app) = NEW ltcl_test_restore_fail( ).
+    DATA(lt_attri) = attri_with_broken_data( abap_true ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    TRY.
+        lo_model->main_attri_db_load( ).
+        cl_abap_unit_assert=>fail( `A failed restore of BOUND data must not pass silently` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(x).
+        cl_abap_unit_assert=>assert_true( xsdbool( x->get_text( ) CS `APP_STATE_RESTORE_ERROR` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD restore_unbound_quiet.
+
+    DATA(lo_app) = NEW ltcl_test_restore_fail( ).
+    DATA(lt_attri) = attri_with_broken_data( abap_false ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " nothing reads it, so it keeps the lenient treatment
+    lo_model->main_attri_db_load( ).
+
+    " ...and the failure really happened: the payload is still sitting on the
+    " attribute (only a SUCCESSFUL restore clears it) and the reference the
+    " save cleared is still unbound
+    READ TABLE lt_attri INTO DATA(ls_attri) WITH KEY name = `MR_TAB`. "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_not_initial( ls_attri-srtti_data ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mr_tab ).
+
+  ENDMETHOD.
+
+ENDCLASS.
