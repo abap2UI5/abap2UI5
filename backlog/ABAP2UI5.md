@@ -15,16 +15,6 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-## Ready to file
-
-_nothing exists upstream yet — this is the stock_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`model-skip-cannot-name-the-record-or-the-value`](items/model-skip-cannot-name-the-record-or-the-value.md) | '`client->get( )-t_model_skipped` locates a top-level cell exactly, but a NESTED cell loses its parent row, and no entry carries the refused value — so the one message an app most wants to write, quoting what the user typed, is not expressible' | medium | 2026-08-27 | abap2UI5/abap2UI5 |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_
