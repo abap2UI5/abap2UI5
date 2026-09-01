@@ -514,6 +514,18 @@ The same tree, with the subtree held in a variable:
   (`Path not found @/1/wrapping`). Chain
   `parse( … )->to_abap_corresponding_only( )->to_abap( … )` and declare only
   the fields you actually use.
+- **Reading a JSON argument by path goes through `z2ui5_cl_ui5_json`** — the
+  released reader (nothing else portable exists: `/ui2/cl_json` is not
+  released for ABAP Cloud, `xco_cp_json` is missing on 7.02, and the vendored
+  ajson is framework-internal, which the linter's `non-released-api` rule
+  reports). `z2ui5_cl_ui5_json=>factory( lv_json )` parses once (invalid JSON
+  raises `z2ui5_cx_ui5_util_error`); then `get_string( `/order/id` )`,
+  `get_integer( )`, `get_boolean( )` read by path, `exists( )` tells an
+  absent value from an empty one, and `members( )` lists an object's keys or
+  an array's 1-based indices in document order — loop over them and build
+  each child path (`|/items/{ lv_idx }/name|`) to iterate. Read-only by
+  design; only the typed whole-structure mapping of the previous bullet
+  still needs the ajson chain.
 - Roundtrip-free client actions: `client->follow_up_action( val = … t_arg = … )`
   written where its RESULT is consumed — in a view attribute — runs a
   whitelisted frontend action without a server call (toast from a row value,

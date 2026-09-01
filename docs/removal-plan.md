@@ -310,7 +310,7 @@ ordinary and finding nothing released to do it with, so it reaches into
 so. Found by reading every `non-released-api` finding in `abap2UI5/samples`
 rather than by guessing; each entry names the callers that exist today.
 
-- [ ] **Parsing JSON.** An event argument arrives as a JSON string, and there
+- [x] **Parsing JSON.** An event argument arrives as a JSON string, and there
       is no released way to read it. `z2ui5_cl_ajson` is the mirrored library
       in `src/00/01` — synced from another project, and the same type this
       plan wants to stop handing app code through `custom_mapper` (§1).
@@ -318,6 +318,11 @@ rather than by guessing; each entry names the callers that exist today.
         (both now carry a directive naming this gap).
       - Neither alternative is portable: `/ui2/cl_json` is not released for
         ABAP Cloud, `xco_cp_json` does not exist on 7.02.
+      - **Closed by `z2ui5_cl_ui5_json` in `src/02`** — a read-only veneer
+        over the vendored ajson (`factory` from a JSON string,
+        `get_string`/`get_integer`/`get_boolean`/`exists` by path, `members`
+        for object/array iteration). The two sample callers migrate off the
+        directive on their next pass; building-apps.md documents the surface.
 - [ ] **A DDIC object to point a dynamic type at.** `src/02` releases no table
       or structure, so a sample demonstrating
       `CREATE DATA … TYPE STANDARD TABLE OF (name)` has to name the framework's

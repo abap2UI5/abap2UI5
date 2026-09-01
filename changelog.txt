@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
++ New released JSON reader z2ui5_cl_ui5_json for app code: factory( json ) + get_string/get_integer/get_boolean/exists by path and members( ) for iteration - closes the "no portable way to parse JSON" gap of the removal plan
 + A skipped delta cell (client->get( )-t_model_skipped) now records the refused raw value and, for a nested cell, the parent row index - two components appended to z2ui5_if_client=>ty_s_model_skip
 ! Shell ETag strengthened: a third position-weighted accumulator makes a same-version, same-length collision (which would 304 a browser into keeping a stale shell) implausible
 + New client API families for app-owned hash routing: the hash_* methods (set, replace, back, attach_changed, routing) and app_state_* (set_active, get_href)
