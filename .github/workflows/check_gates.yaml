@@ -208,6 +208,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/version-sync-gate.mjs # npm run check:version
 
+      # the blank-owner draft tolerance has a removal deadline a build can
+      # miss - the gate holds the tolerance present through the grace window
+      # and refuses it afterwards
+      - name: the draft owner binding keeps its deadline
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/draft-owner-gate.mjs # npm run check:draftowner
+
       - name: the chain's indent states the view's depth
         if: ${{ !cancelled() }}
         run: npm run check:abap2ui5

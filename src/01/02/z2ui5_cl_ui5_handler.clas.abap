@@ -898,6 +898,17 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " client was left holding, and factory_by_frontend cleared it when this
     " request's deltas touched the state it describes - so the full model
     " serialization only runs when no stored string can stand in for it.
+    "
+    " Yes, on a delta roundtrip this is the FIRST of up to two full
+    " serializations (main_end runs the second one to compare or to render a
+    " display) - and that is the cheaper side of a real trade-off, not an
+    " oversight. The snapshot cannot move behind main( ) (it has to be the
+    " pre-main state, and whether main( ) will display is unknowable here),
+    " and every variant that drops it - keeping the stale stored string, or
+    " pushing unconditionally when none exists - turns the saved CPU pass
+    " into a FULL-MODEL PUSH on every edit roundtrip whose main( ) changed
+    " nothing bound, which is exactly the transfer the compare in main_end
+    " exists to suppress. Serializing twice beats shipping the model once.
     IF mo_action->mo_app->mv_model_client IS NOT INITIAL.
       mv_model_before = mo_action->mo_app->mv_model_client.
     ELSE.

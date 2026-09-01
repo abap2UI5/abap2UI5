@@ -47,6 +47,7 @@
     "check:specs": "node .github/scripts/spec-inventory-gate.mjs",
     "check:downport": "node .github/scripts/downport-operand-gate.mjs",
     "check:pins": "node .github/scripts/transpile-pins-gate.mjs",
+    "check:draftowner": "node .github/scripts/draft-owner-gate.mjs",
     "blockers": "node .github/scripts/removal-blockers.mjs",
     "check:release": "node .github/scripts/release-gate.mjs",
     "coverage": "node .github/scripts/coverage-report.mjs",

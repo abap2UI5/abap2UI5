@@ -156,7 +156,10 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " count_entries): one release after every installation has passed a
     " draft-expiry window on a version that writes UNAME - create( ) always
     " fills it, so no new blank row can appear and cleanup( ) drains the old
-    " ones. Nothing enforces the date; this note is what keeps it findable
+    " ones. npm run check:draftowner enforces the deadline: it holds these
+    " tolerances present through the grace version and fails the build once
+    " a later release still ships them (the gate names its anchors - update
+    " it when this wording changes)
     IF result-uname IS NOT INITIAL AND result-uname <> sy-uname.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.

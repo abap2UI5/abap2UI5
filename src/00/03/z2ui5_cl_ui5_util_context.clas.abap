@@ -526,7 +526,9 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " back in the utility surface (FROZEN-ONLY until 2026-09): the GET-shell
+    " ETag hashes the page body's UTF-8 bytes, so the framework itself calls
+    " this again - see z2ui5_cl_ui5_http_handler=>_get_body_etag
     CLASS-METHODS conv_get_xstring_by_string
       IMPORTING
         val           TYPE string

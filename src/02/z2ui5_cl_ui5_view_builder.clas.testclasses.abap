@@ -11,6 +11,8 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS trailing_end_is_optional FOR TESTING.
     METHODS escape_attribute_value FOR TESTING.
     METHODS escape_whitespace_chars FOR TESTING.
+    METHODS escape_literal_braces FOR TESTING.
+    METHODS escape_literal_passthrough FOR TESTING.
     METHODS bool_parameter FOR TESTING.
 ENDCLASS.
 
@@ -174,6 +176,37 @@ CLASS ltcl_builder IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
       exp = `<Text text="line1&#xA;line2&#x9;end"/>` ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_literal_braces.
+
+    " a braced value is parsed by the UI5 binding parser, so literal text
+    " needs UI5's backslash escaping - the backslash itself first, because
+    " the parser unescapes the strings it processes
+    cl_abap_unit_assert=>assert_equals(
+      act = z2ui5_cl_ui5_view_builder=>escape_literal( `a {/PATH} b` )
+      exp = `a \{/PATH\} b` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = z2ui5_cl_ui5_view_builder=>escape_literal( `{= 1 > 0 }\x` )
+      exp = `\{= 1 > 0 \}\\x` ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_literal_passthrough.
+
+    " no brace means UI5 never parses the value, and its backslashes stay
+    " as they are - escaping them here would corrupt e.g. a Windows path
+    cl_abap_unit_assert=>assert_equals(
+      act = z2ui5_cl_ui5_view_builder=>escape_literal( `C:\temp\file` )
+      exp = `C:\temp\file` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = z2ui5_cl_ui5_view_builder=>escape_literal( `` )
+      exp = `` ).
 
   ENDMETHOD.
 

@@ -58,6 +58,15 @@ INTERFACE z2ui5_if_ui5_exit
       " blocked - the app's own roundtrips are always same-origin (the SPA
       " fetches its own backend).
       check_csrf_active        TYPE abap_bool,
+      " the CSRF gate compares Origin/Referer against the app's own host,
+      " and behind a reverse proxy / web dispatcher that host is the
+      " X-Forwarded-Host the proxy wrote - so it is trusted by default
+      " (seeded abap_true like check_csrf_active), or every request behind a
+      " proxy would 403 against the internal Host. The header is client-
+      " suppliable, though: an installation that is NOT behind a proxy that
+      " sets it hardens the gate by switching this to abap_false in its
+      " exit, so only the transport-level Host header is compared.
+      check_trust_forwarded_host TYPE abap_bool,
     END OF ty_s_http_config_post.
 
   METHODS set_config_http_get
