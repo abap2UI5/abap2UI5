@@ -263,6 +263,10 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      const oView = ViewSlots.getView(slotKey);` && |\n| &&
              `      if (!oView) return;` && |\n| &&
              `` && |\n| &&
+             `      const sSlotApp = ViewSlots.getViewApp(slotKey);` && |\n| &&
+             `      const sResponseApp = AppState.state.oResponse?.APP;` && |\n| &&
+             `      if (sSlotApp && sResponseApp && sSlotApp !== sResponseApp) return;` && |\n| &&
+             `` && |\n| &&
              `      const tracked = resolveTrackedModel(oView);` && |\n| &&
              `      if (tracked) {` && |\n| &&
              `        applyStoredSizeLimit(slotKey, tracked);` && |\n| &&

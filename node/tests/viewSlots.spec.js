@@ -94,6 +94,22 @@ test.describe("view and controller access", () => {
     expect(ViewSlots.getViewXml("POPOVER")).toBeUndefined();
   });
 
+  test("setView records the app that filled the slot", () => {
+    // A response carries the model of exactly one app, and the open slots
+    // need not all come from that one - an app called only to open a dialog
+    // leaves MAIN on the caller's view. This record is what says so
+    // (actions/Slots.updateModelIfRequired).
+    const { ViewSlots, z2ui5 } = load();
+    z2ui5.oResponse = { APP: "ZCL_LIST" };
+    ViewSlots.setView("MAIN", { setModel() {} }, "<mvc:View/>");
+    z2ui5.oResponse = { APP: "ZCL_LIST_POPUP" };
+    ViewSlots.setView("POPUP", { setModel() {} }, "<Dialog/>");
+
+    expect(ViewSlots.getViewApp("MAIN")).toBe("ZCL_LIST");
+    expect(ViewSlots.getViewApp("POPUP")).toBe("ZCL_LIST_POPUP");
+    expect(ViewSlots.getViewApp("POPOVER")).toBeUndefined();
+  });
+
   test("keyOfController finds the slot a controller serves", () => {
     const { ViewSlots, z2ui5 } = load();
     const controller = {};
@@ -246,6 +262,14 @@ test.describe("destroy", () => {
     ViewSlots.setView("POPUP", { setModel() {}, destroy() {} }, "<Dialog/>");
     ViewSlots.destroy("POPUP");
     expect(ViewSlots.getViewXml("POPUP")).toBeUndefined();
+  });
+
+  test("drops the recorded app alongside the XML", () => {
+    const { ViewSlots, z2ui5 } = load();
+    z2ui5.oResponse = { APP: "ZCL_LIST_POPUP" };
+    ViewSlots.setView("POPUP", { setModel() {}, destroy() {} }, "<Dialog/>");
+    ViewSlots.destroy("POPUP");
+    expect(ViewSlots.getViewApp("POPUP")).toBeUndefined();
   });
 
   test("drops the recorded XML of a slot whose view is already gone", () => {

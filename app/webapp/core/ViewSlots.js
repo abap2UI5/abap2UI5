@@ -83,6 +83,13 @@ sap.ui.define(
       if (!slot) return;
       AppState.state[slot.prop] = view;
       slotXmlStore()[key] = xml;
+      // ...and WHICH APP filled it, recorded the same way and for the same
+      // reason: a response carries the model of exactly one app, and the
+      // slots do not all belong to the same one. An app that is called only
+      // to open a dialog (client->nav_app_call to a popup app - the shape
+      // every z2ui5_cl_pop_* has) displays no main view, so MAIN keeps the
+      // CALLER's view while POPUP holds the callee's.
+      slotAppStore()[key] = AppState.state.oResponse?.APP;
       attachSharedModels(view);
     }
 
@@ -97,6 +104,17 @@ sap.ui.define(
     function slotXmlStore() {
       if (!AppState.state.slotXml) AppState.state.slotXml = {};
       return AppState.state.slotXml;
+    }
+
+    // The app that filled a slot, undefined once it was torn down (and for
+    // a slot filled before any response named an app).
+    function getViewApp(key) {
+      return slotAppStore()[key];
+    }
+
+    function slotAppStore() {
+      if (!AppState.state.slotApp) AppState.state.slotApp = {};
+      return AppState.state.slotApp;
     }
 
     // Attach the models every slot shares: the one device model (created
@@ -222,6 +240,7 @@ sap.ui.define(
       // source behind - the developer tools read "is this slot filled" off
       // this record.
       delete slotXmlStore()[key];
+      delete slotAppStore()[key];
       const view = AppState.state[slot.prop];
       if (!view) return;
       if (slot.fragmentId) {
@@ -253,6 +272,7 @@ sap.ui.define(
       slots,
       getView,
       getViewXml,
+      getViewApp,
       setView,
       getController,
       keyOfController,

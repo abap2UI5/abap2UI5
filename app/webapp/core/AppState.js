@@ -56,6 +56,11 @@
 //                     read a slot's source from here: a fragment or a view
 //                     built from a `definition` keeps no viewContent of its
 //                     own
+//   slotApp           the app class each slot was filled BY, per slot key -
+//                     recorded and dropped alongside slotXml. A response
+//                     carries the model of ONE app, so this is what says
+//                     which open slots it may be pushed into
+//                     (actions/Slots.updateModelIfRequired)
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
 //   oControllerPopover  controller instance per slot (App.controller)
 //   oLaunchpad        FLP services when running inside the launchpad, else
@@ -128,6 +133,7 @@ sap.ui.define([], () => {
       oControllerPopup: null,
       oControllerPopover: null,
       slotXml: {},
+      slotApp: {},
       oLaunchpad: null,
 
       // Roundtrip state

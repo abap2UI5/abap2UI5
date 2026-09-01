@@ -44,6 +44,16 @@ CLASS zcl_tst_popup_bind IMPLEMENTATION.
           ms_row = mt_tab[ 1 ].
           popup_display( ).
 
+        WHEN `ROW_SELECT_CALL`.
+          " the third shape, and the reported one: the row click hands over
+          " to a SEPARATE app that owns the dialog
+          DATA lo_popup_app TYPE REF TO zcl_tst_popup_app.
+          CREATE OBJECT lo_popup_app.
+          lo_popup_app->ms_data_row = VALUE #( app   = mt_tab[ 1 ]-application
+                                               class = mt_tab[ 1 ]-object
+                                               descr = mt_tab[ 1 ]-description ).
+          client->nav_app_call( lo_popup_app ).
+
         WHEN `ROW_SELECT_REBUILD`.
           " the same gesture from an app that RE-DISPLAYS the main view in
           " the same round-trip. A main display takes the standalone slots

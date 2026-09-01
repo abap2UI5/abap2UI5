@@ -86,3 +86,33 @@ test("keeps it when the same roundtrip rebuilds the main view too", async ({
   // ...and the rebuilt view is filled from the same full model
   expect(second.MODEL?.MT_TAB).toHaveLength(3);
 });
+
+// The reported shape, at the wire level: the row click hands over to a
+// SEPARATE app that owns the dialog (client->nav_app_call). The response then
+// names the CALLED app, carries only that app's model and displays no main
+// view - so the caller's table view stays on screen with a model that has
+// none of its binding paths. The frontend guard is what keeps it: a slot is
+// only pushed to by the app that filled it (actions/Slots, view1Events.spec).
+test("a called popup app answers with only its own model", async ({
+  request,
+}) => {
+  const first = await start(request);
+  const second = await fireRowSelect(
+    request,
+    first.S_FRONT.ID,
+    "ROW_SELECT_CALL",
+  );
+
+  expect(second.S_FRONT.APP).toBe("ZCL_TST_POPUP_APP");
+  expect(second.S_FRONT.APP).not.toBe(first.S_FRONT.APP);
+
+  // a popup, and no main view - the caller's view is still the one on screen
+  expect(slotAction(second, "display", "POPUP")).toBeDefined();
+  expect(slotAction(second, "display", "MAIN")).toBeUndefined();
+
+  // and the model that travels is the CALLEE's alone: the caller's table is
+  // not in it, which is exactly why it must not be pushed into MAIN
+  expect(second.MODEL).toBeDefined();
+  expect(second.MODEL).not.toHaveProperty("MT_TAB");
+  expect(second.MODEL?.MS_DATA_ROW?.CLASS).toBe("CL_APP_006");
+});
