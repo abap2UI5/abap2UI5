@@ -1,0 +1,93 @@
+name: removal-blockers
+
+# What still stands between this repository and docs/removal-plan.md, once a
+# month - the MEASUREMENT half of that plan's ratchet.
+#
+# Every blocker in the plan is a count of callers in ANOTHER repository, and
+# `npm run blockers` exists because a hand-measured count is right on the day
+# it is written and silently wrong afterwards (the plan once said "samples:
+# 336 classes use z2ui5_cl_xml_view" while the real number was 0). The script
+# cannot be a CI gate - the sibling repositories are not checked out here, and
+# making this repository's checks depend on four others would be worse than a
+# stale number - but a workflow CAN check them out on a schedule, so the
+# re-measuring stops depending on somebody remembering the command.
+#
+# A report, not a gate, like backlog-filed.yaml: it fails nothing over its
+# findings - a blocker count going up is a finding for a person, not for a
+# build. The whole output is the job summary, which is where a monthly run is
+# actually read. `workflow_dispatch` is there for the measurement that cannot
+# wait for the 5th.
+
+on:
+  schedule:
+    # 06:53 on the 5th - off the hour and off the 1st, where every scheduled
+    # workflow on GitHub queues at once (same reasoning as backlog-filed.yaml)
+    - cron: '53 6 5 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: removal-blockers
+  cancel-in-progress: false
+
+jobs:
+  removal-blockers:
+    # forks carry the removal plan too, and their schedule would measure
+    # repositories they do not maintain - same guard as every scheduled workflow
+    if: github.repository == 'abap2UI5/abap2UI5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write  # to report a failed scheduled run
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Node from .nvmrc via the composite action; the script is plain Node
+      # over the checkouts below - no install needed
+      - uses: ./.github/actions/setup
+
+      # The sibling repositories the plan's counts are ABOUT - the same four
+      # the script's own DEFAULTS name (removal-blockers.mjs). Read-only
+      # checkouts of public repositories; a fifth corpus is one more block.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: abap2UI5/samples
+          path: siblings/samples
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: abap2UI5/samples-controls
+          path: siblings/samples-controls
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: abap2UI5/samples-stack
+          path: siblings/samples-stack
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: abap2UI5/app-template
+          path: siblings/app-template
+          persist-credentials: false
+
+      - name: Count the callers behind every tracked obsolete symbol, into the job summary
+        run: |
+          set -o pipefail
+          npm run blockers --silent -- siblings/samples siblings/samples-controls siblings/samples-stack siblings/app-template | tee blockers.txt
+          {
+            echo "## \`npm run blockers\` - what still stands between this repository and docs/removal-plan.md"
+            echo
+            echo "Run on $(date -u +%Y-%m-%d). A zero row means: that blocker is gone - the plan can move."
+            echo
+            echo '```'
+            cat blockers.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Report scheduled failure as issue
+        if: failure() && github.event_name == 'schedule'
+        uses: ./.github/actions/report-scheduled-failure
