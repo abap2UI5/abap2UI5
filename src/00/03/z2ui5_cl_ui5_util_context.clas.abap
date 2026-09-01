@@ -516,9 +516,10 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " back in the utility surface (FROZEN-ONLY until 2026-09): the GET-shell
-    " ETag hashes the page body's UTF-8 bytes, so the framework itself calls
-    " this again - see z2ui5_cl_ui5_http_handler=>_get_body_etag
+    " back in the utility surface since 2026-09 - it used to carry the
+    " frozen-only marker (no framework caller, kept for src/99), but the
+    " GET-shell ETag hashes the page body's UTF-8 bytes, so the framework
+    " itself calls this again: see z2ui5_cl_ui5_http_handler=>_get_body_etag
     CLASS-METHODS conv_get_xstring_by_string
       IMPORTING
         val           TYPE string

@@ -20,7 +20,7 @@ unreleased
 ! CSP hardening: script-src and style-src are explicit, general-purpose CDN hosts dropped from the default policy
 ! Security response headers: Cross-Origin-Opener-Policy and Cross-Origin-Resource-Policy sent by default
 * Response header names and values are stripped of CR/LF (response splitting hardening)
-- z2ui5_cl_ui5_util_context=>app_get_url moved to z2ui5_cl_ui5_handler=>app_get_url (framework vocabulary left the generic utility class; a caller of the old spelling changes the class name only)
+- z2ui5_cl_ui5_util_context=>app_get_url moved to z2ui5_cl_ui5_handler=>app_get_url. A downstream caller of the old spelling gets a compile error until it renames the class (same signature; src/00 is not the guarded API, and the shipped legacy z2ui5_cl_util=>app_get_url keeps working)
 * App-state links and copied launchpad links keep a bare intent hash (opened from the tile, no app part yet) instead of landing the recipient on the FLP home page
 
 
