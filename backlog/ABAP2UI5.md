@@ -15,6 +15,16 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`on-demand-module-route-for-deferred-devtools`](items/on-demand-module-route-for-deferred-devtools.md) | 'The handler answers every GET with the shell, so a module dropped from the preload is unfetchable - deferring the ~23% of preload bytes the devtools could give up needs a whitelisted single-module GET route plus a frontend loader path, and the whitelist has to be GENERATED or it violates the no-manual-preload-list rule' | low | 2026-09-01 | abap2UI5/abap2UI5 |
+
+---
+
 ## Deferred
 
 _a decision was made not to do this now, and why_
