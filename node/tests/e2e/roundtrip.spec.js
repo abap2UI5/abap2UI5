@@ -182,6 +182,39 @@ test("renders the view, posts the input value and shows the message box", async 
   await expect(page.getByText("Your name is Browser")).toBeVisible();
 });
 
+test("ships only the edited path as the event roundtrip's MODEL delta, within budget", async ({
+  page,
+}) => {
+  // The delta-transfer contract as a test: View1.eB collects the edited model
+  // paths and Lib.buildDeltaFromPaths turns them into the request MODEL, so an
+  // event roundtrip must carry ONLY what the user changed - never the full
+  // view model (see the wire-format docs in app/webapp/core/Server.js).
+  await page.goto("/?app_start=z2ui5_cl_ui5_app_hi_world");
+
+  const input = page.locator("input").first();
+  await input.waitFor();
+  await input.fill("Payload");
+
+  const requestPromise = page.waitForRequest((r) => r.method() === "POST");
+  await page.getByRole("button", { name: "Post" }).click();
+  const request = await requestPromise;
+
+  const body = JSON.parse(request.postData() ?? "{}");
+  // exactly the one edited path, with the edited value - no other attribute
+  // may ride along (a second key here means the delta collection regressed
+  // into a full-model push)
+  expect(body.value.MODEL).toEqual({ NAME: "Payload" });
+
+  // ... and a byte budget on top, so the contract stays measurable when the
+  // app under test grows more bound attributes. Measured 2026-09-01: the
+  // MODEL part is 18 bytes, the whole POST body 380 bytes (S_FRONT rides
+  // along with hash/config). 256 is generous headroom for wire-format
+  // changes and still an order of magnitude under any full-model push of a
+  // real app.
+  const modelBytes = Buffer.byteLength(JSON.stringify(body.value.MODEL), "utf8");
+  expect(modelBytes).toBeLessThan(256);
+});
+
 test("does not append a dangling '#' to the URL after app start", async ({
   page,
 }) => {

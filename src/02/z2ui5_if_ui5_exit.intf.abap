@@ -43,11 +43,11 @@ INTERFACE z2ui5_if_ui5_exit
     "! What the backend decides per roundtrip - the changing parameter of
     "! set_config_http_post.
     BEGIN OF ty_s_http_config_post,
-      draft_exp_time_in_hours  TYPE i,
+      draft_exp_time_in_hours    TYPE i,
       " when set via the exit, framework errors answer with a generic 500
       " message instead of the raw exception text (avoids leaking internal
       " details to the client in hardened installations)
-      check_hide_error_details TYPE abap_bool,
+      check_hide_error_details   TYPE abap_bool,
       " a state-changing POST whose Origin/Referer header names a different
       " site than the app's own host is rejected with 403 (CSRF defense).
       " On by default: z2ui5_cl_ui5_user_exit=>set_config_http_post seeds abap_true
@@ -57,7 +57,16 @@ INTERFACE z2ui5_if_ui5_exit
       " some proxies) is allowed, so only an explicit cross-origin marker is
       " blocked - the app's own roundtrips are always same-origin (the SPA
       " fetches its own backend).
-      check_csrf_active        TYPE abap_bool,
+      check_csrf_active          TYPE abap_bool,
+      " the CSRF gate compares Origin/Referer against the app's own host,
+      " and behind a reverse proxy / web dispatcher that host is the
+      " X-Forwarded-Host the proxy wrote - so it is trusted by default
+      " (seeded abap_true like check_csrf_active), or every request behind a
+      " proxy would 403 against the internal Host. The header is client-
+      " suppliable, though: an installation that is NOT behind a proxy that
+      " sets it hardens the gate by switching this to abap_false in its
+      " exit, so only the transport-level Host header is compared.
+      check_trust_forwarded_host TYPE abap_bool,
     END OF ty_s_http_config_post.
 
   METHODS set_config_http_get

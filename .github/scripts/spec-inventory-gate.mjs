@@ -49,11 +49,6 @@ const NO_SPEC = new Map([
     "a 30-line custom control that only renders a heading tag - the four "
       + "controls with behaviour have specs (see the inventory)",
   ],
-  [
-    "core/actions/Launchpad.js",
-    "every handler calls into sap/ushell, which does not exist outside the "
-      + "FLP shell; covered by the launchpad e2e leg instead",
-  ],
 ]);
 
 const onDisk = readdirSync(SPECS)

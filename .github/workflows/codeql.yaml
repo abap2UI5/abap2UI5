@@ -30,11 +30,17 @@ name: codeql
 # it.
 
 on:
+  # the paths mirror the config.paths scope below - a body of JS the config
+  # analyzes but the filter omits is one whose own pull request is never
+  # analyzed, and .github/shared, node/srv and node/setup were exactly that
   pull_request:
     paths:
       - 'app/webapp/**'
       - '.github/scripts/**'
+      - '.github/shared/**'
       - 'tools/**'
+      - 'node/srv/**'
+      - 'node/setup/**'
       - '.github/workflows/codeql.yaml'
   push:
     branches: [main]
@@ -44,7 +50,10 @@ on:
     paths:
       - 'app/webapp/**'
       - '.github/scripts/**'
+      - '.github/shared/**'
       - 'tools/**'
+      - 'node/srv/**'
+      - 'node/setup/**'
       - '.github/workflows/codeql.yaml'
   schedule:
     # 07:23 on the 3rd - off the hour and off the 1st, where every scheduled
@@ -70,6 +79,8 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9

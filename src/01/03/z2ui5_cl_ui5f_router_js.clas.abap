@@ -69,7 +69,10 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `    function hrefFor(sAppHash) {` && |\n| &&
              `      const base = window.location.href.split("#")[0];` && |\n| &&
-             `      const shell = splitHash(window.location.hash).shell;` && |\n| &&
+             `      const raw = String(window.location.hash || "").replace(/^#/, "");` && |\n| &&
+             `      let shell = splitHash(raw).shell;` && |\n| &&
+             `` && |\n| &&
+             `      if (!shell && raw && !raw.startsWith("/")) shell = raw;` && |\n| &&
              `      if (!shell) return ``${base}#${sAppHash}``;` && |\n| &&
              `` && |\n| &&
              `      return ``${base}#${shell}${SHELL_SEPARATOR}${String(sAppHash).replace(/^\/+/, "")}``;` && |\n| &&

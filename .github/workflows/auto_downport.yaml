@@ -45,11 +45,23 @@ jobs:
 
     - run: npm run auto_downport
 
+    # Lint what is about to be pushed, with the config that governs it.
+    # auto_downport rewrote src/ in place and swapped abaplint.jsonc for the
+    # 702 profile, so a plain `npx abaplint` here IS the 702 lint of the
+    # exact tree the force-push below publishes. Without this the branch was
+    # published blind and ABAP_702.yaml only reported the breakage AFTER the
+    # 7.02 installation source had already moved.
+    - name: Lint the downported tree before publishing it
+      run: npx abaplint
+
+    # The Source-Commit trailer is the provenance release.yaml asserts on
+    # before tagging the 702 branch: it names the main commit this downport
+    # was built from, so a stale branch cannot be tagged as a release.
     - name: Commit and Push Changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add .
-        git diff --staged --quiet || git commit -m "Downport changes"
+        git diff --staged --quiet || git commit -m "Downport changes" -m "Source-Commit: $GITHUB_SHA"
         git checkout -b 702
         git push --force origin HEAD:702

@@ -10,6 +10,20 @@ Legend
 
 
 
+unreleased
+----------
++ New client API families for app-owned hash routing: the hash_* methods (set, replace, back, attach_changed, routing) and app_state_* (set_active, get_href)
++ Conditional GET for the shell: the response carries an ETag and repeat loads answer 304 Not Modified
++ New view builder helper z2ui5_cl_ui5_view_builder=>escape_literal for escaping a value into a view literal
++ New HTTP POST exit config flag check_trust_forwarded_host to stop trusting forwarded-host headers
+! Per-verb cache policy: the GET shell revalidates via ETag, POST responses stay no-store
+! CSP hardening: script-src and style-src are explicit, general-purpose CDN hosts dropped from the default policy
+! Security response headers: Cross-Origin-Opener-Policy and Cross-Origin-Resource-Policy sent by default
+* Response header names and values are stripped of CR/LF (response splitting hardening)
+- z2ui5_cl_ui5_util_context=>app_get_url moved to z2ui5_cl_ui5_handler=>app_get_url. A downstream caller of the old spelling gets a compile error until it renames the class (same signature; src/00 is not the guarded API, and the shipped legacy z2ui5_cl_util=>app_get_url keeps working)
+* App-state links and copied launchpad links keep a bare intent hash (opened from the tile, no app part yet) instead of landing the recipient on the FLP home page
+
+
 2026-08-30 v1.144.0
 -------------------
 + Various improvements for AIs

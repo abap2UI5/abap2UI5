@@ -24,6 +24,17 @@ INTERFACE z2ui5_if_ui5_types
       update_model TYPE string VALUE `updateModel`,
     END OF cs_slot_action.
 
+  " The other whitelisted global-call targets the backend queues actions
+  " against, spelled as the keys of GLOBAL_TARGETS in the frontend's
+  " app/webapp/core/actions/ControlCall.js dispatch - the same cross-repo
+  " wire contract as cs_slot_action-target above, so never a literal.
+  CONSTANTS:
+    BEGIN OF cs_global_target,
+      router        TYPE string VALUE `ROUTER`,
+      message_toast TYPE string VALUE `MESSAGE_TOAST`,
+      message_box   TYPE string VALUE `MESSAGE_BOX`,
+    END OF cs_global_target.
+
   TYPES:
     BEGIN OF ty_s_http_res,
       body          TYPE string,

@@ -549,10 +549,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " standalone: no shell hash - the app hash carries the state id after
     " exactly one slash, the format the restore path parses
-    mo_action->mo_http_post->ms_request-s_front-origin   = `https://host:443`.
-    mo_action->mo_http_post->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
-    mo_action->mo_http_post->ms_request-s_front-search   = `?sap-client=100`.
-    mo_action->mo_http_post->ms_request-s_front-hash     = `#/detail/1/OneColumn`.
+    mo_action->mo_handler->ms_request-s_front-origin   = `https://host:443`.
+    mo_action->mo_handler->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
+    mo_action->mo_handler->ms_request-s_front-search   = `?sap-client=100`.
+    mo_action->mo_handler->ms_request-s_front-hash     = `#/detail/1/OneColumn`.
     mo_action->mo_app->ms_draft-id = `DRAFT1`.
 
     cl_abap_unit_assert=>assert_equals(
@@ -569,14 +569,24 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " inside the FLP the shell hash survives and the state id hangs behind
     " '&/' - exactly the format Router.hrefFor writes, so the recipient
     " lands in this app instead of on the launchpad home page
-    mo_action->mo_http_post->ms_request-s_front-origin   = `https://flp`.
-    mo_action->mo_http_post->ms_request-s_front-pathname = `/ui2/flp/FioriLaunchpad.html`.
-    mo_action->mo_http_post->ms_request-s_front-search   = ``.
-    mo_action->mo_http_post->ms_request-s_front-hash     = `#Z2UI5App-display?p=1&/old/route`.
+    mo_action->mo_handler->ms_request-s_front-origin   = `https://flp`.
+    mo_action->mo_handler->ms_request-s_front-pathname = `/ui2/flp/FioriLaunchpad.html`.
+    mo_action->mo_handler->ms_request-s_front-search   = ``.
+    mo_action->mo_handler->ms_request-s_front-hash     = `#Z2UI5App-display?p=1&/old/route`.
     mo_action->mo_app->ms_draft-id = `DRAFT2`.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `https://flp/ui2/flp/FioriLaunchpad.html#Z2UI5App-display?p=1&/z2ui5-xapp-state=DRAFT2`
+        act = li_client->app_state_get_href( ) ).
+
+    " a bare intent hash (opened from the tile, no app part yet) is ALL
+    " shell and must survive - dropping it would compose FLP-URL#/state,
+    " which the launchpad cannot route back into this app
+    mo_action->mo_handler->ms_request-s_front-hash = `#Z2UI5App-display`.
+    mo_action->mo_app->ms_draft-id = `DRAFT3`.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://flp/ui2/flp/FioriLaunchpad.html#Z2UI5App-display&/z2ui5-xapp-state=DRAFT3`
         act = li_client->app_state_get_href( ) ).
 
   ENDMETHOD.

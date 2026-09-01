@@ -333,6 +333,23 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
     DATA(lv_n) = CONV string( n ).
     DATA(lv_v) = CONV string( v ).
+
+    " strip CR/LF from both halves before they reach the stack: header names
+    " and values are exit-suppliable (t_security_header), and an exit that
+    " derives one from the request would otherwise hand a response-splitting
+    " primitive to the client - the same reasoning as _attr_escape in
+    " z2ui5_cl_ui5_http_handler, applied to the header channel. The stack
+    " may reject embedded CRLF itself, but nothing here should depend on it
+    IF lv_n CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
+        OR lv_v CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
+      DATA(lv_cr) = CONV string( z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1) ).
+      DATA(lv_lf) = CONV string( z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf+1(1) ).
+      REPLACE ALL OCCURRENCES OF lv_cr IN lv_n WITH ``.
+      REPLACE ALL OCCURRENCES OF lv_lf IN lv_n WITH ``.
+      REPLACE ALL OCCURRENCES OF lv_cr IN lv_v WITH ``.
+      REPLACE ALL OCCURRENCES OF lv_lf IN lv_v WITH ``.
+    ENDIF.
+
     IF mo_server_onprem IS BOUND.
 
       DATA(object) = get_response_onprem( ).

@@ -25,6 +25,7 @@
     "check:counts": "node .github/scripts/corpus-count-gate.mjs",
     "check:samples-md": "node .github/scripts/samples-md-gate.mjs",
     "check:changelog": "node .github/scripts/changelog-gate.mjs",
+    "check:changelog-entry": "node .github/scripts/changelog-entry-gate.mjs",
     "backlog": "node .github/scripts/generate-backlog.mjs",
     "backlog:probe": "node .github/scripts/backlog-probe.mjs",
     "backlog:mine": "node .github/scripts/backlog-mine.mjs",
@@ -47,6 +48,7 @@
     "check:specs": "node .github/scripts/spec-inventory-gate.mjs",
     "check:downport": "node .github/scripts/downport-operand-gate.mjs",
     "check:pins": "node .github/scripts/transpile-pins-gate.mjs",
+    "check:draftowner": "node .github/scripts/draft-owner-gate.mjs",
     "blockers": "node .github/scripts/removal-blockers.mjs",
     "check:release": "node .github/scripts/release-gate.mjs",
     "coverage": "node .github/scripts/coverage-report.mjs",
@@ -93,10 +95,10 @@
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
     "@abap2ui5/linter": "^0.6.1",
-    "@abaplint/cli": "^2.120.32",
+    "@abaplint/cli": "^2.120.38",
     "@abaplint/database-sqlite": "^2.13.40",
-    "@abaplint/runtime": "^2.13.40",
-    "@abaplint/transpiler-cli": "^2.13.40",
+    "@abaplint/runtime": "^2.13.64",
+    "@abaplint/transpiler-cli": "^2.13.64",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@ui5/cli": "^4.0.62",
@@ -105,6 +107,6 @@
     "eslint": "^10.9.1",
     "express": "^5.2.1",
     "globals": "^17.11.0",
-    "terser": "^5.50.0"
+    "terser": "^5.51.2"
   }
 }

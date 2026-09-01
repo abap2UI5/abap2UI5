@@ -13,8 +13,6 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_url_param_case       FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_no_phantom FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_startup    FOR TESTING RAISING cx_static_check.
-    METHODS test_app_url_hash_app     FOR TESTING RAISING cx_static_check.
-    METHODS test_app_url_hash_shell   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -161,37 +159,6 @@ CLASS ltcl_test IMPLEMENTATION.
         act = z2ui5_cl_ui5_util_context=>url_param_get(
                   val = `app_start`
                   url = `?sap-startup-params=app_start%3dfoo` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_app_url_hash_app.
-
-    " the app-owned hash (route or app-state, leading `/`) must be dropped -
-    " the backend prefers it over app_start, so keeping it would re-open the
-    " current app instead of the requested one
-    cl_abap_unit_assert=>assert_equals(
-        exp = `https://h/p?app_start=zcl_new`
-        act = z2ui5_cl_ui5_util_context=>app_get_url(
-                  classname = `ZCL_NEW`
-                  origin    = `https://h`
-                  pathname  = `/p`
-                  search    = ``
-                  hash      = `#/app/ZCL_OLD/DRAFT1` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_app_url_hash_shell.
-
-    " inside the FLP the shell part of the hash survives, only the app part
-    " after `&/` is cut
-    cl_abap_unit_assert=>assert_equals(
-        exp = `https://h/p?app_start=zcl_new#Shell-home`
-        act = z2ui5_cl_ui5_util_context=>app_get_url(
-                  classname = `ZCL_NEW`
-                  origin    = `https://h`
-                  pathname  = `/p`
-                  search    = ``
-                  hash      = `#Shell-home&/app/ZCL_OLD/DRAFT1` ) ).
 
   ENDMETHOD.
 
