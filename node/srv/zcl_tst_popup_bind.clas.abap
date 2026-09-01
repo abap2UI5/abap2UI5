@@ -43,6 +43,15 @@ CLASS zcl_tst_popup_bind IMPLEMENTATION.
           " NO view_display( ) here - only the popup is displayed.
           ms_row = mt_tab[ 1 ].
           popup_display( ).
+
+        WHEN `ROW_SELECT_REBUILD`.
+          " the same gesture from an app that RE-DISPLAYS the main view in
+          " the same round-trip. A main display takes the standalone slots
+          " down, so the popup has to be re-opened after it - the order the
+          " app writes them in is the order they have to survive in
+          ms_row = mt_tab[ 1 ].
+          view_display( ).
+          popup_display( ).
       ENDCASE.
     ENDIF.
 

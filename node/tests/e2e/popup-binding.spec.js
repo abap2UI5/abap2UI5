@@ -41,11 +41,9 @@ async function start(request) {
   ).json();
 }
 
-async function fireRowSelect(request, id) {
+async function fireRowSelect(request, id, event = "ROW_SELECT") {
   return (
-    await request.post("/", {
-      data: frontBody({ ID: id, EVENT: "ROW_SELECT" }),
-    })
+    await request.post("/", { data: frontBody({ ID: id, EVENT: event }) })
   ).json();
 }
 
@@ -67,5 +65,24 @@ test("keeps the main view's table in the model when a popup opens", async ({
   expect(slotAction(second, "display", "MAIN")).toBeUndefined();
 
   // ...and the model it ships still describes the view underneath
+  expect(second.MODEL?.MT_TAB).toHaveLength(3);
+});
+
+test("keeps it when the same roundtrip rebuilds the main view too", async ({
+  request,
+}) => {
+  const first = await start(request);
+  const second = await fireRowSelect(
+    request,
+    first.S_FRONT.ID,
+    "ROW_SELECT_REBUILD",
+  );
+
+  // both slots ship, MAIN first - the frontend takes the standalone slots
+  // down with a MAIN rebuild, so a popup queued after it still opens
+  expect(slotAction(second, "display", "MAIN")).toBeDefined();
+  expect(slotAction(second, "display", "POPUP")).toBeDefined();
+
+  // ...and the rebuilt view is filled from the same full model
   expect(second.MODEL?.MT_TAB).toHaveLength(3);
 });
