@@ -323,13 +323,17 @@ rather than by guessing; each entry names the callers that exist today.
         `get_string`/`get_integer`/`get_boolean`/`exists` by path, `members`
         for object/array iteration). The two sample callers migrate off the
         directive on their next pass; building-apps.md documents the surface.
-- [ ] **A DDIC object to point a dynamic type at.** `src/02` releases no table
+- [x] **A DDIC object to point a dynamic type at.** `src/02` releases no table
       or structure, so a sample demonstrating
       `CREATE DATA … TYPE STANDARD TABLE OF (name)` has to name the framework's
       own draft table `z2ui5_t_01`.
       - Caller: `samples` `z2ui5_cl_smp_app_061`.
       - Cheap to close: one released structure with two fields would do, and
         it costs nothing to keep compatible.
+      - **Closed by `z2ui5_t_02` in `src/02`** — a released structure with two
+        string fields (`name`, `value`); the shape is pinned by
+        `ltcl_test_released_ddic` in `z2ui5_cl_ui5_json`'s test include. App
+        061 migrates off `z2ui5_t_01` on its next pass.
 
 ## 6. Documentation debt to clear alongside
 

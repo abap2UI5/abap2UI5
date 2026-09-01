@@ -526,6 +526,10 @@ The same tree, with the subtree held in a variable:
   each child path (`|/items/{ lv_idx }/name|`) to iterate. Read-only by
   design; only the typed whole-structure mapping of the previous bullet
   still needs the ajson chain.
+- **A dynamic type names `z2ui5_t_02`** — the released DDIC structure (two
+  string fields, `name`/`value`) for
+  `CREATE DATA … TYPE STANDARD TABLE OF ('Z2UI5_T_02')` and friends; the
+  framework's own tables (`z2ui5_t_01`) are internals and may change.
 - Roundtrip-free client actions: `client->follow_up_action( val = … t_arg = … )`
   written where its RESULT is consumed — in a view attribute — runs a
   whitelisted frontend action without a server call (toast from a row value,
