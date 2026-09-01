@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@sap/ux-ui5-tooling": "^1.30.0",
+    "@sap/ux-ui5-tooling": "^1.31.1",
     "@ui5/cli": "^4.0.62",
     "@ui5/linter": "^1.23.5",
     "eslint": "^10.9.1",
