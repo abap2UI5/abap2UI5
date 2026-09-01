@@ -48,6 +48,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     METHODS main_attri_db_load_resolve.
 
+    " Is anything the VIEW reads stored under this attribute - the attribute
+    " itself, or one of its dissolved children? Decides how loud a failed
+    " restore is (main_attri_db_load_resolve).
+    METHODS check_attri_bound
+      IMPORTING
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS main_attri_db_load_table
       IMPORTING
         ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
@@ -377,16 +386,73 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL.
+
+      " Resolving the attribute is allowed to fail quietly: a draft outlives
+      " the class it was taken from, so an attribute that was renamed or
+      " deleted since simply has no address any more. Nothing was stored for
+      " it either, so nothing is lost by skipping it.
       TRY.
           DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
           lr_attri->o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
-          IF lr_attri->srtti_data IS NOT INITIAL.
-            ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
-            <val> = z2ui5_cl_ui5_util_context=>xml_srtti_parse( lr_attri->srtti_data ).
-            CLEAR lr_attri->srtti_data.
-          ENDIF.
-        CATCH cx_root ##NO_HANDLER.
+        CATCH cx_root.
+          CONTINUE.
       ENDTRY.
+
+      IF lr_attri->srtti_data IS INITIAL.
+        CONTINUE.
+      ENDIF.
+
+      " Bringing the data BACK is a different matter, and it must not fail
+      " quietly. main_attri_db_save_srtti has just CLEARED the live reference
+      " (the data lives in srtti_data until this line puts it back), so a
+      " swallowed failure here leaves the running app holding an unbound
+      " reference and an empty table - with nothing raised, nothing logged
+      " and nothing to search for. The app renders the round-trip it is in
+      " correctly (main_end serializes the model BEFORE db_save) and comes
+      " back EMPTY on the next one, which reads as "the view lost its
+      " binding" rather than as the state failure it is.
+      "
+      " Where it surfaces: db_load restores a draft with no TRY of its own, so
+      " the round-trip that reads a draft it cannot bring back now answers with
+      " the framework's own 500 and the full exception chain - naming the
+      " attribute instead of rendering an empty view. all_xml_stringify, which
+      " restores in place right after saving, keeps its own recovery: it is
+      " written for a main_attri_db_load( ) that can raise and only takes its
+      " bare retry when the restore worked (`lv_restored`) - a branch that was
+      " unreachable while every failure was caught here.
+      "
+      " Scoped to attributes the VIEW is bound to - the attribute itself or
+      " one of its dissolved children (the data of a dref that dereferences
+      " to a table is stored on the PARENT, while the bind flag sits on the
+      " `<name>->*` child). Data no view reads keeps the lenient treatment:
+      " a scratch reference of an exotic type is no reason to end a session.
+      TRY.
+          ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+          <val> = z2ui5_cl_ui5_util_context=>xml_srtti_parse( lr_attri->srtti_data ).
+          CLEAR lr_attri->srtti_data.
+        CATCH cx_root INTO DATA(x).
+          IF check_attri_bound( lr_attri->name ) = abap_false.
+            CONTINUE.
+          ENDIF.
+          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+            EXPORTING
+              val      = |APP_STATE_RESTORE_ERROR - the data of attribute '{ lr_attri->name }' | &&
+                         |could not be restored from the draft|
+              previous = x.
+      ENDTRY.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD check_attri_bound.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+         WHERE bind = abap_true.
+      IF lr_attri->name = iv_name OR lr_attri->name_parent = iv_name.
+        result = abap_true.
+        RETURN.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.

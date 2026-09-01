@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* Data references restored from the draft no longer fail silently: when a view is bound to the data, a restore that cannot read it back raises APP_STATE_RESTORE_ERROR instead of running the app on a cleared reference - which showed as a view that renders once and comes back empty on the next round-trip
 + New released JSON reader z2ui5_cl_ui5_json for app code: factory( json ) + get_string/get_integer/get_boolean/exists by path and members( ) for iteration - closes the "no portable way to parse JSON" gap of the removal plan
 + New released DDIC structure z2ui5_t_02 (name/value, both string) - the object app code points a dynamic type at instead of naming the framework's internal draft table
 + A skipped delta cell (client->get( )-t_model_skipped) now records the refused raw value and, for a nested cell, the parent row index - two components appended to z2ui5_if_client=>ty_s_model_skip
