@@ -117,7 +117,7 @@ Inside the FLP the shell owns the front of the hash and only the remainder is th
 | Side | Owner |
 |---|---|
 | Frontend | `app/webapp/core/Router.js` — `splitHash()`; the **only** module allowed to touch the hash |
-| Backend | `z2ui5_cl_ui5_handler` — `hash_get_app_part` (used by the route parser and the app-state parser) and its complement `hash_get_shell_part` (used by `z2ui5_cl_ui5_client`'s `app_state_get_href`); one owner class, both directions of the same split |
+| Backend | `z2ui5_cl_ui5_handler` — `hash_get_app_part` (used by the route parser and the app-state parser) and its complement `hash_get_shell_part` (used by `z2ui5_cl_ui5_client`'s `app_state_get_href` and by the handler's own `app_get_url`); one owner class, both directions of the same split. The one provenance-dependent shape — a bare hash with neither a leading `/` nor a `&/` — is a declared PARAMETER of the split (`check_bare_is_shell`), never a caller-side re-implementation |
 
 Both modules carry the full explanation (hash layout, why the split keys off the leading `/` rather than the first `&/`, what breaks otherwise) in their header comments. Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
 

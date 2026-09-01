@@ -579,6 +579,16 @@ CLASS ltcl_test_client IMPLEMENTATION.
         exp = `https://flp/ui2/flp/FioriLaunchpad.html#Z2UI5App-display?p=1&/z2ui5-xapp-state=DRAFT2`
         act = li_client->app_state_get_href( ) ).
 
+    " a bare intent hash (opened from the tile, no app part yet) is ALL
+    " shell and must survive - dropping it would compose FLP-URL#/state,
+    " which the launchpad cannot route back into this app
+    mo_action->mo_handler->ms_request-s_front-hash = `#Z2UI5App-display`.
+    mo_action->mo_app->ms_draft-id = `DRAFT3`.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://flp/ui2/flp/FioriLaunchpad.html#Z2UI5App-display&/z2ui5-xapp-state=DRAFT3`
+        act = li_client->app_state_get_href( ) ).
+
   ENDMETHOD.
 
   METHOD test_follow_up_action.

@@ -594,7 +594,13 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     DATA(ls_front) = mo_action->mo_handler->ms_request-s_front.
     DATA(lv_state) = |z2ui5-xapp-state={ mo_action->mo_app->ms_draft-id }|.
 
-    DATA(lv_shell) = z2ui5_cl_ui5_handler=>hash_get_shell_part( ls_front-hash ).
+    " check_bare_is_shell: s_front-hash is the RAW location hash, so a bare
+    " '#So-action' (FLP intent, no app part yet) is all shell - without it
+    " the composed link would be FLP-URL#/state, which the launchpad cannot
+    " route back into this app
+    DATA(lv_shell) = z2ui5_cl_ui5_handler=>hash_get_shell_part(
+                         iv_hash             = ls_front-hash
+                         check_bare_is_shell = abap_true ).
 
     result = COND #( WHEN lv_shell IS INITIAL
                      THEN |{ ls_front-origin }{ ls_front-pathname }{ ls_front-search }#/{ lv_state }|

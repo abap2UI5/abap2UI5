@@ -81,6 +81,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_constructor       FOR TESTING RAISING cx_static_check.
     METHODS test_hash_app_part     FOR TESTING RAISING cx_static_check.
     METHODS test_hash_shell_part   FOR TESTING RAISING cx_static_check.
+    METHODS test_app_get_url       FOR TESTING RAISING cx_static_check.
     METHODS test_route_standalone  FOR TESTING RAISING cx_static_check.
     METHODS test_route_launchpad   FOR TESTING RAISING cx_static_check.
     METHODS test_route_no_route    FOR TESTING RAISING cx_static_check.
@@ -888,6 +889,58 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = ``
         act = z2ui5_cl_ui5_handler=>hash_get_shell_part( `` ) ).
+
+    " ... unless the caller declares its input the RAW location hash, where
+    " the bare form is a launchpad intent and therefore ALL shell - the one
+    " provenance-dependent shape (see the parameter's comment). An app hash
+    " stays an app hash even then
+    cl_abap_unit_assert=>assert_equals(
+        exp = `Z2UI5-display`
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part(
+                  iv_hash             = `#Z2UI5-display`
+                  check_bare_is_shell = abap_true ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = z2ui5_cl_ui5_handler=>hash_get_shell_part(
+                  iv_hash             = `#/app/ZCL_X/D1`
+                  check_bare_is_shell = abap_true ) ).
+
+  ENDMETHOD.
+
+  METHOD test_app_get_url.
+
+    " the app-owned hash (route or app-state, leading `/`) must be dropped -
+    " the backend prefers it over app_start, so keeping it would re-open the
+    " current app instead of the requested one
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://h/p?app_start=zcl_new`
+        act = z2ui5_cl_ui5_handler=>app_get_url(
+                  classname = `ZCL_NEW`
+                  origin    = `https://h`
+                  pathname  = `/p`
+                  search    = ``
+                  hash      = `#/app/ZCL_OLD/DRAFT1` ) ).
+
+    " inside the FLP the shell part of the hash survives, only the app part
+    " after `&/` is cut
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://h/p?app_start=zcl_new#Shell-home`
+        act = z2ui5_cl_ui5_handler=>app_get_url(
+                  classname = `ZCL_NEW`
+                  origin    = `https://h`
+                  pathname  = `/p`
+                  search    = ``
+                  hash      = `#Shell-home&/app/ZCL_OLD/DRAFT1` ) ).
+
+    " a bare intent hash (FLP, no app part yet) is all shell and survives
+    cl_abap_unit_assert=>assert_equals(
+        exp = `https://h/p?app_start=zcl_new#Shell-home`
+        act = z2ui5_cl_ui5_handler=>app_get_url(
+                  classname = `ZCL_NEW`
+                  origin    = `https://h`
+                  pathname  = `/p`
+                  search    = ``
+                  hash      = `#Shell-home` ) ).
 
   ENDMETHOD.
 

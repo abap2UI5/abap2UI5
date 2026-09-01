@@ -838,11 +838,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD get_app_url.
 
     DATA(ls_config) = client->get( )-s_config.
-    result = z2ui5_cl_ui5_util_context=>app_get_url( classname = classname
-                                                  origin       = ls_config-origin
-                                                  pathname     = ls_config-pathname
-                                                  search       = ls_config-search
-                                                  hash         = ls_config-hash ).
+    result = z2ui5_cl_ui5_handler=>app_get_url( classname = classname
+                                                origin    = ls_config-origin
+                                                pathname  = ls_config-pathname
+                                                search    = ls_config-search
+                                                hash      = ls_config-hash ).
 
   ENDMETHOD.
 
