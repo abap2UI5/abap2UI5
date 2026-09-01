@@ -524,6 +524,42 @@ Second limit found on the way: `sap.m.ObjectStatus.state` is declared
 `type: "string"` in the metadata, because UI5 validates it at runtime against
 `ValueState` **or** `IndicationColor`. Even a working rule would not see it.
 
+- **A curly brace in a value handed to `a( v = … )` is parsed as a BINDING,
+  never shown as text.** The page bootstraps with complex binding syntax, so
+  a `{` in an attribute value — think a user-supplied search string rendered
+  into a title — is resolved by UI5 as a binding path (or, as `{= … }`, an
+  expression) instead of displayed, and a crafted string can read arbitrary
+  paths out of the view model. The builder deliberately does **not** escape
+  inside `a( )` itself: a deliberate binding in `v` — `client->_bind( )`, an
+  event, a template — is its bread and butter, and only the app knows which
+  values are literals. So the app wraps any user- or external-supplied string
+  it renders via `a( v = … )` in `z2ui5_cl_ui5_view_builder=>escape_literal( )`,
+  which backslash-escapes the braces (UI5's own convention for literal text;
+  XML escaping is a separate concern and always applied on render). The
+  mechanism and the split of responsibility are documented at the method's
+  own ABAP Doc in `src/02/z2ui5_cl_ui5_view_builder.clas.abap` (#2698), and
+  the app guide carries the rule as "untrusted text needs escape_literal".
+
+**Linter:** **ready in shape, blocked on origin — staged so the scope argument
+is not lost.** The chain side is decidable: the linter already models `a( )`
+calls, so "a `v =` argument that is not a string literal or template, and not
+already wrapped in `escape_literal( )`" is a syntactic test. What no view-side
+test can see is the half that matters — whether that non-literal value carries
+user or external input (must be escaped) or IS a deliberate binding the app
+assembled in a variable (must NOT be: escaping it breaks the binding). The
+corpus assembles bindings in variables all the time, so reporting every bare
+variable at `v =` would drown its users and be switched off — the same wall
+as the reverted binding-side enum rule above: it needs "where was this value
+assigned from", data flow over the ABAP class, not the view. What a rule
+would need to decide it: per-argument origin tracking (literal / template /
+`_bind`-`_event` result / `escape_literal( )` result / anything else), plus a
+signal that separates request-derived values (the bound model fields a
+roundtrip writes back) from app-computed ones — the first is where the rule
+should start if it ever ships, because a value the client can write IS
+external input by definition. No rule id is minted here on purpose: the id
+comes with the rule, and a backticked id that resolves to nothing is exactly
+what check:skills exists to refuse.
+
 ---
 
 ## 5. Reading a bug report about a missing icon
