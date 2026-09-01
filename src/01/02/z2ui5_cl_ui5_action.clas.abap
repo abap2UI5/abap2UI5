@@ -1,11 +1,11 @@
 CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
-    DATA mo_http_post TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA mo_app       TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA mo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA mo_app     TYPE REF TO z2ui5_cl_ui5_app_cont.
 
-    DATA ms_actual    TYPE z2ui5_if_ui5_types=>ty_s_actual.
-    DATA ms_next      TYPE z2ui5_if_ui5_types=>ty_s_next.
+    DATA ms_actual  TYPE z2ui5_if_ui5_types=>ty_s_actual.
+    DATA ms_next    TYPE z2ui5_if_ui5_types=>ty_s_next.
 
     METHODS factory_system_startup
       RETURNING
@@ -46,48 +46,48 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   METHOD constructor.
 
-    mo_http_post = val.
+    mo_handler = val.
     mo_app = NEW #( ).
 
   ENDMETHOD.
 
   METHOD factory_by_frontend.
 
-    result = NEW #( mo_http_post ).
+    result = NEW #( mo_handler ).
 
-    IF mo_http_post->mo_action->mo_app->mo_app IS BOUND.
-      result->mo_app = mo_http_post->mo_action->mo_app.
+    IF mo_handler->mo_action->mo_app->mo_app IS BOUND.
+      result->mo_app = mo_handler->mo_action->mo_app.
     ELSE.
-      result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_http_post->ms_request-s_front-id ).
+      result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_handler->ms_request-s_front-id ).
     ENDIF.
 
     result->mo_app->ms_draft-id      = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-    result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_front-id.
+    result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_front-id.
 
-    IF mo_http_post->ms_request-o_model->is_empty( ) = abap_false.
+    IF mo_handler->ms_request-o_model->is_empty( ) = abap_false.
       " what the delta could not convert travels on the action, not on the
       " app: it describes THIS roundtrip, and the app object is what gets
       " serialized into the draft
-      result->ms_actual-t_model_skipped = result->mo_app->model_json_parse( mo_http_post->ms_request-o_model ).
+      result->ms_actual-t_model_skipped = result->mo_app->model_json_parse( mo_handler->ms_request-o_model ).
       " the deltas just changed the state that string describes - drop it,
       " so main_process falls back to a real serialization for its snapshot
       CLEAR result->mo_app->mv_model_client.
     ENDIF.
 
-    result->ms_actual-event       = mo_http_post->ms_request-s_front-event.
-    result->ms_actual-t_event_arg = mo_http_post->ms_request-s_front-t_event_arg.
+    result->ms_actual-event       = mo_handler->ms_request-s_front-event.
+    result->ms_actual-t_event_arg = mo_handler->ms_request-s_front-t_event_arg.
 
   ENDMETHOD.
 
   METHOD factory_first_start.
 
     TRY.
-        result = NEW #( mo_http_post ).
+        result = NEW #( mo_handler ).
 
-        IF mo_http_post->ms_request-s_control-app_start_draft IS NOT INITIAL.
+        IF mo_handler->ms_request-s_control-app_start_draft IS NOT INITIAL.
           TRY.
 
-              result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
+              result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_handler->ms_request-s_control-app_start_draft ).
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_nav-set_app_state_active = abap_true.
               " on the app as well, not only on this request: ms_next is
@@ -99,7 +99,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
               " normalize the chain like factory_by_frontend: id_prev must
               " point at the draft this restore was loaded from, not at
               " whatever id was serialized in a previous session
-              result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_control-app_start_draft.
+              result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_control-app_start_draft.
               result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
               RETURN.
             CATCH cx_root.
@@ -116,7 +116,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
         DATA li_app TYPE REF TO z2ui5_if_app.
-        CREATE OBJECT li_app TYPE (mo_http_post->ms_request-s_control-app_start).
+        CREATE OBJECT li_app TYPE (mo_handler->ms_request-s_control-app_start).
         result->mo_app->mo_app = li_app.
         li_app->id_draft = result->mo_app->ms_draft-id.
 
@@ -131,7 +131,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         " characters before reflecting it into the error text - a real typo
         " still shows for diagnostics, but a crafted value cannot smuggle
         " markup/script into the response body.
-        DATA(lv_app_name) = mo_http_post->ms_request-s_control-app_start.
+        DATA(lv_app_name) = mo_handler->ms_request-s_control-app_start.
         REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH `` ##REGEX_POSIX.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
@@ -210,7 +210,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   METHOD factory_system_startup.
 
-    result = NEW #( mo_http_post ).
+    result = NEW #( mo_handler ).
 
     result->mo_app->ms_draft-id          = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
@@ -231,7 +231,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       val->id_draft = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     ENDIF.
 
-    result = NEW #( mo_http_post ).
+    result = NEW #( mo_handler ).
     TRY.
         result->mo_app = z2ui5_cl_ui5_app_cont=>db_load_by_app( val ).
       CATCH cx_root.
@@ -323,15 +323,9 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     IF mo_app->mo_app IS BOUND
         AND z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( val )
           = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
-      DELETE result->ms_next-t_action_front
-             WHERE slot = z2ui5_if_client=>cs_view-popup
-                OR slot = z2ui5_if_client=>cs_view-popover.
-      INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-popup
-                      method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
-             INTO TABLE result->ms_next-t_action_front.
-      INSERT VALUE #( slot   = z2ui5_if_client=>cs_view-popover
-                      method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
-             INTO TABLE result->ms_next-t_action_front.
+      DATA(lo_frontend) = NEW z2ui5_cl_ui5_frontend( result ).
+      lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
+      lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popover ).
     ENDIF.
 
   ENDMETHOD.

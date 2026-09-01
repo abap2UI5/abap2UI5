@@ -257,10 +257,10 @@ CLASS ltcl_test_get_attri DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    METHODS test_first  FOR TESTING RAISING cx_static_check.
-    METHODS test_second FOR TESTING RAISING cx_static_check.
-    METHODS third_test  FOR TESTING RAISING cx_static_check.
-    METHODS test4       FOR TESTING RAISING cx_static_check.
+    METHODS test_val_ref_plain_attri     FOR TESTING RAISING cx_static_check.
+    METHODS test_val_ref_dref_deref      FOR TESTING RAISING cx_static_check.
+    METHODS test_val_ref_oref_child      FOR TESTING RAISING cx_static_check.
+    METHODS test_val_ref_oref_dref_deref FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -269,7 +269,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_get_attri.
 
 CLASS ltcl_test_get_attri IMPLEMENTATION.
 
-  METHOD test_first.
+  METHOD test_val_ref_plain_attri.
 
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
 
@@ -290,7 +290,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_second.
+  METHOD test_val_ref_dref_deref.
 
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
     CREATE DATA lo_app_client->mr_value.
@@ -307,7 +307,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD third_test.
+  METHOD test_val_ref_oref_child.
 
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
 
@@ -323,7 +323,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test4.
+  METHOD test_val_ref_oref_dref_deref.
 
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
     CREATE DATA lo_app_client->mo_app->mr_value.
@@ -715,6 +715,8 @@ CLASS ltcl_test_sample335 DEFINITION FINAL
 
 ENDCLASS.
 
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_sample335.
+
 
 CLASS ltcl_test_sample335 IMPLEMENTATION.
 
@@ -950,6 +952,8 @@ CLASS ltcl_test_attri_create DEFINITION FINAL
     METHODS test_int_kind         FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_attri_create.
+
 CLASS ltcl_test_attri_create IMPLEMENTATION.
 
   METHOD test_string_type_kind.
@@ -1005,6 +1009,8 @@ CLASS ltcl_test_json_stringify DEFINITION FINAL
     METHODS test_json_node     FOR TESTING RAISING cx_static_check.
     METHODS test_json_invalid  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
+
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_json_stringify.
 
 CLASS ltcl_test_json_stringify IMPLEMENTATION.
 
@@ -1143,6 +1149,8 @@ CLASS ltcl_test_json_to_attri DEFINITION FINAL
     METHODS test_skips_json      FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_json_to_attri.
+
 CLASS ltcl_test_json_to_attri IMPLEMENTATION.
 
   METHOD test_updates_bound.
@@ -1237,6 +1245,8 @@ CLASS ltcl_test_attri_refresh DEFINITION FINAL
     METHODS test_bindings_preserved FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_attri_refresh.
+
 CLASS ltcl_test_attri_refresh IMPLEMENTATION.
 
   METHOD test_bindings_preserved.
@@ -1273,6 +1283,8 @@ CLASS ltcl_test_entry_refs_children DEFINITION FINAL
     METHODS test_dref_children_name_ref FOR TESTING RAISING cx_static_check.
     METHODS test_second_dref_children   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
+
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_entry_refs_children.
 
 CLASS ltcl_test_entry_refs_children IMPLEMENTATION.
 
@@ -1424,6 +1436,8 @@ CLASS ltcl_test_delta_apply DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE REF TO ltcl_app_tree.
 ENDCLASS.
+
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_delta_apply.
 
 CLASS ltcl_test_delta_apply IMPLEMENTATION.
 
@@ -1785,6 +1799,8 @@ CLASS ltcl_test_two_tab_refs DEFINITION FINAL
     METHODS test_canonical_search   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_two_tab_refs.
+
 CLASS ltcl_test_two_tab_refs IMPLEMENTATION.
 
   METHOD test_both_get_name_ref.
@@ -1837,6 +1853,8 @@ CLASS ltcl_test_deep_nesting DEFINITION FINAL
     METHODS test_deep_struct_writeback FOR TESTING RAISING cx_static_check.
     METHODS test_deep_oref_writeback   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
+
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_deep_nesting.
 
 CLASS ltcl_test_deep_nesting IMPLEMENTATION.
 
@@ -1909,6 +1927,8 @@ CLASS ltcl_test_refresh_ext DEFINITION FINAL
     METHODS test_oref_after_null_refresh FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_refresh_ext.
+
 CLASS ltcl_test_refresh_ext IMPLEMENTATION.
 
   METHOD test_oref_after_null_refresh.
@@ -1954,6 +1974,8 @@ CLASS ltcl_test_json_types DEFINITION FINAL
     METHODS test_updates_integer FOR TESTING RAISING cx_static_check.
     METHODS test_multiple_attrs_same_var FOR TESTING RAISING cx_static_check.
 ENDCLASS.
+
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_json_types.
 
 CLASS ltcl_test_json_types IMPLEMENTATION.
 

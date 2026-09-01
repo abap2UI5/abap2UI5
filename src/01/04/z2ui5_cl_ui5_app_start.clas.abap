@@ -40,8 +40,10 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     METHODS reset_button_state.
 
     " home page - one method per section. These are public because they were
-    " shipped that way; new sections go into the private section below, which
-    " is where a page internal belongs (rule 5).
+    " shipped that way; new sections go into the private section below. This
+    " class is NOT part of the guarded API (it lives in src/01/04, outside
+    " the src/02 snapshot) - but it is a shipped demo app downstream apps
+    " copy from, so its public surface is kept small as a courtesy.
     METHODS render_start.
     METHODS render_header_toolbar
       IMPORTING page TYPE REF TO z2ui5_cl_ui5_view_builder.
@@ -72,13 +74,15 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
         press   TYPE string
         class   TYPE string DEFAULT `sapUiTinyMarginBeginEnd`.
 
-    " Building blocks of the SimpleForm rows above. Private on purpose: this
-    " class lives in the public src/02 package, so everything added to its
-    " public section joins the framework's stable API contract (rule 5).
+    " Building blocks of the SimpleForm rows above. Private on purpose: not
+    " because a contract guards them (the class sits in src/01/04, outside
+    " the API snapshot), but because this is the demo app developers copy
+    " from - a page internal published here gets imitated downstream.
 
     " the events of this class that no app has ever been given a name for.
-    " They stay private on purpose: cs_event is part of the public contract
-    " (rule 5), and what a start page does with its own popup is not
+    " They stay private on purpose: cs_event above is what downstream code
+    " and bookmarks already name (kept stable as a courtesy, not by the API
+    " gate), and what a start page does with its own popup is neither
     CONSTANTS c_event_system TYPE string VALUE `OPEN_SYSTEM`.
     CONSTANTS c_event_close  TYPE string VALUE `CLOSE_POPUP`.
     " lives in the abap2UI5-setup repository, resolved dynamically (listed

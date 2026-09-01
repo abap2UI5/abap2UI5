@@ -11,9 +11,9 @@
 | Directory | Purpose |
 |---|---|
 | `app/` | Frontend tooling (`package.json`, `ui5.yaml`, `eslint.config.mjs`, `.prettierrc`, `.editorconfig`) |
-| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, `Util.js` (the **public** date helpers exposed as the `z2ui5.Util` global), `cc/` with one file per custom control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`, resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and `core/` with the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }` — roundtrip, request sequencing, aborts), `Session.js` (the session-constant request block, sent once per page load, and the page-location send cadence), `ScrollFocus.js` (focus/caret + per-slot scroll capture for `S_FOCUS`/`S_SCROLL`), `AppState.js` (owner of the shared frontend state + the documented inventory of all `z2ui5.*` globals), `ViewSlots.js` (access layer for the five view slots — lookups, byId resolution and teardown), `Lib.js` (shared helper module), `FrontendAction.js` (the action registry/dispatcher behind the controller's `eF()` entry point and the response's action lists — the handlers live in `core/actions/`, one domain module each: `ControlCall.js` with the `CONTROL_GLOBAL`/`CONTROL_BY_ID`/`BINDING_CALL` whitelists and the message toast/box display hooks, `Slots.js` with the view-slot display machinery and model tracking, `Browser.js`, `Launchpad.js`, `Variants.js`, `Shortcuts.js`, `ViewOps.js`, and `LegacyCustomJs.js` with the legacy `eF()`-string parser), `Router.js` (hash routing — the only module allowed to touch the URL hash) and `ErrorView.js` (the fatal-error overlay); **`devtools/` is a SIBLING of `core/`, not a part of it** — it holds the **entire** in-app developer tools, which are deliberately **not** part of the framework, and the folder sits at the top level precisely because `core/` means framework: `DevTools.js` (the lifecycle facade and the framework's single entry point: shortcut, dialog instance, auto open, error-details provider), `DeveloperTools.js` + `.fragment.xml` (the dialog — six groups: Overview / Problems / Roundtrips / View & Data / System / Search, the last being the cross-tab search on a tab of its own), **`Tabs.js` (the tab registry — the ONE table that says what a tab is: its group, label, kind, producer, availability and export position; the tab strip, the search and the export are all driven from it, and adding a tab is one entry here)**, `Format.js` (the two value formatters, `toJson` / `prettifyXml`), `Report.js` (the bug report: the plain-text export, the GitHub-ready Markdown form and the downloads), `AbapSource.js` (the running app's ABAP class — the ADT source endpoint, the deep link at the line of the last event, the source cache), `Console.js` (in-app capture of UI5's log, uncaught errors/rejections and every `console.*` call, so the browser's own devtools do not have to be open), `Recorder.js` (roundtrip history behind the History / Model Diff / View Diff views; observes the framework only through the `onAfterRendering` callback array and the Resource Timing API), `Inspect.js` (the read-only reports behind the Overview / Log / Environment / Registry / Actions / Bindings views — the Log merges the framework error log, the console capture and the backend messages into one timeline), `Picker.js` (the control picker) and `LiveEdit.js` (roundtrip-free re-render of an edited view XML, through the same `actions/Slots.action` entry point the backend's `VIEW_SLOTS` action uses). The tab **keys** (`VIEW`, `HISTORY`, `POPUP_MODEL`, …) are a compatibility surface — `?z2ui5-devtools=<KEY>` and the remembered last tab in sessionStorage both store them, so a key may be added but never renamed. **No framework module carries developer-tools code, names a developer-tools module, or holds a developer-tools object — keep it that way:** `Component.js` calls `DevTools.install()` / `DevTools.exit()` and that is the whole footprint; `core/ErrorView.js` reaches the Details action through the generic `onErrorDetails` callback array (`AppState`) and hides the button when nothing registered, so deleting `devtools/` degrades the framework gracefully instead of breaking it; `model/models.js` holds the device model setup and `model/formatter.js` is the curated app-level formatter module (the `z2ui5.Formatter` global / `core:require` of `z2ui5/model/formatter`) that owns the date helpers and value formatters — `Util.js` is now a **deprecated** legacy alias re-exporting them |
-| `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern), plus the `zcl_tst_nav_*` test apps used by the browser navigation tests (copied into `node/downport/` during `auto_transpile`) |
-| `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
+| `app/webapp/` | UI5 frontend source — the full module inventory is its own section below: "The frontend module inventory" |
+| `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern), plus the test apps used by the browser tests: the `zcl_tst_nav_*` navigation apps and `zcl_tst_focus.clas.abap` (the SET_FOCUS-after-re-render app behind `focus-after-enable.spec.js`) — all copied into `node/downport/` during `auto_transpile` |
+| `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests), `fetch-deps.mjs` (materializes the three sha-pinned git dependencies under `node/deps/`), `downport-fix.mjs` (the portable in-place rewrites `npm run downport` applies — `syfixes`, `strip_trailing_ws`, `abaplintpathfix`), `patch-abaplint-downport.mjs` (temporary shim patching the installed abaplint so the downport keeps table-expression ROW references), `require-transpiled.mjs` (guard that tells `npm run unit`/`npm test` the transpiled tree is missing instead of letting node answer MODULE_NOT_FOUND) |
 | `node/tests/` | Playwright tests — browser tests in `e2e/` (`example.spec.js` shell smoke test, `roundtrip.spec.js` POST/draft wire contract, `lib-sanitizer.spec.js` XSS regression tests for `Lib.sanitizeMessageDetails`, `error-view.spec.js` fatal-error overlay accessibility/focus/Retry tests, `nav-back-forward.spec.js` browser history navigation, `focus-after-enable.spec.js` SET_FOCUS retry after a re-render; run via `node/playwright.config.js` against the dev server), plus JS unit specs (`*.spec.js` — see the spec-to-module mapping under "Testing" below) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `e2e/`) |
 | `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
 | `docs/agents/` | The reference material `AGENTS.md` points at rather than carries: `building-apps.md` — the in-repo app-building guide (gated by `npm run check:guide`, and mirrored into `app-template`'s `AGENTS.md`, which `npm run check:shared` holds to it); `repository-map.md` — this file; `ci-workflows.md` — what every workflow does; `test-inventory.md` — which frontend module has which JS unit spec |
@@ -29,6 +29,76 @@
 | `tools/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/`, named `z2ui5_cl_ui5f_*` and capped at 25 characters (`MAX_CLASS_NAME_LENGTH`) so the rename workflow's 10-character namespace still fits the 30-character ABAP limit. A file whose basename does not fit needs an entry in `CLASS_NAME_STEMS`; generation fails otherwise rather than truncating |
 | `.github/actions/` | `setup` — composite action every job starts from: the Node version, the pinned `actions/setup-node` sha and the `npm ci` / `npm --prefix app ci` / `npm run deps` installs, in one place instead of copied into every workflow (inputs `npm-ci`, `app-npm-ci`, `deps`, `cache`; `deps` implies `npm-ci`). Checkout stays with the caller — a local action needs the repository on disk first. `report-scheduled-failure` — opens/updates an issue when a scheduled workflow fails (used by `auto_abaplint_fix.yaml`, `vendor-mirror.yaml`, `check-v2-sdk.yaml` and `frontend_deploy.yaml`) |
 | `.github/cleaner-profile.cfj` | ABAP Cleaner profile (SAP ABAP Cleaner tool configuration for automated code cleanup) |
+
+## The frontend module inventory
+
+What lives in `app/webapp/` — the content of what used to be one ~5000-character
+table cell above, unchanged, in a container a reader can actually navigate.
+
+UI5 frontend source — `Component.js`, `index.html`, `manifest.json`,
+`controller/`, `view/`, `model/`, `css/`, `Util.js` (the **public** date
+helpers exposed as the `z2ui5.Util` global), `cc/` with one file per custom
+control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`,
+resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and
+`core/` with the internals: `Server.js` (the JSON POST client that wraps the
+body as `{ "value": <payload> }` — roundtrip, request sequencing, aborts),
+`Session.js` (the session-constant request block, sent once per page load,
+and the page-location send cadence), `ScrollFocus.js` (focus/caret + per-slot
+scroll capture for `S_FOCUS`/`S_SCROLL`), `AppState.js` (owner of the shared
+frontend state + the documented inventory of all `z2ui5.*` globals),
+`ViewSlots.js` (access layer for the five view slots — lookups, byId
+resolution and teardown), `Lib.js` (shared helper module),
+`FrontendAction.js` (the action registry/dispatcher behind the controller's
+`eF()` entry point and the response's action lists — the handlers live in
+`core/actions/`, one domain module each: `ControlCall.js` with the
+`CONTROL_GLOBAL`/`CONTROL_BY_ID`/`BINDING_CALL` whitelists and the message
+toast/box display hooks, `Slots.js` with the view-slot display machinery and
+model tracking, `Browser.js`, `Launchpad.js`, `Variants.js`, `Shortcuts.js`,
+`ViewOps.js`, and `LegacyCustomJs.js` with the legacy `eF()`-string parser),
+`Router.js` (hash routing — the only module allowed to touch the URL hash)
+and `ErrorView.js` (the fatal-error overlay).
+
+**`devtools/` is a SIBLING of `core/`, not a part of it** — it holds the
+**entire** in-app developer tools, which are deliberately **not** part of the
+framework, and the folder sits at the top level precisely because `core/`
+means framework: `DevTools.js` (the lifecycle facade and the framework's
+single entry point: shortcut, dialog instance, auto open, error-details
+provider), `DeveloperTools.js` + `.fragment.xml` (the dialog — six groups:
+Overview / Problems / Roundtrips / View & Data / System / Search, the last
+being the cross-tab search on a tab of its own), **`Tabs.js` (the tab
+registry — the ONE table that says what a tab is: its group, label, kind,
+producer, availability and export position; the tab strip, the search and the
+export are all driven from it, and adding a tab is one entry here)**,
+`Format.js` (the two value formatters, `toJson` / `prettifyXml`), `Report.js`
+(the bug report: the plain-text export, the GitHub-ready Markdown form and
+the downloads), `AbapSource.js` (the running app's ABAP class — the ADT
+source endpoint, the deep link at the line of the last event, the source
+cache), `Console.js` (in-app capture of UI5's log, uncaught
+errors/rejections and every `console.*` call, so the browser's own devtools
+do not have to be open), `Recorder.js` (roundtrip history behind the History
+/ Model Diff / View Diff views; observes the framework only through the
+`onAfterRendering` callback array and the Resource Timing API), `Inspect.js`
+(the read-only reports behind the Overview / Log / Environment / Registry /
+Actions / Bindings views — the Log merges the framework error log, the
+console capture and the backend messages into one timeline), `Picker.js`
+(the control picker) and `LiveEdit.js` (roundtrip-free re-render of an
+edited view XML, through the same `actions/Slots.action` entry point the
+backend's `VIEW_SLOTS` action uses). The tab **keys** (`VIEW`, `HISTORY`,
+`POPUP_MODEL`, …) are a compatibility surface — `?z2ui5-devtools=<KEY>` and
+the remembered last tab in sessionStorage both store them, so a key may be
+added but never renamed.
+
+**No framework module carries developer-tools code, names a developer-tools
+module, or holds a developer-tools object — keep it that way:**
+`Component.js` calls `DevTools.install()` / `DevTools.exit()` and that is the
+whole footprint; `core/ErrorView.js` reaches the Details action through the
+generic `onErrorDetails` callback array (`AppState`) and hides the button
+when nothing registered, so deleting `devtools/` degrades the framework
+gracefully instead of breaking it; `model/models.js` holds the device model
+setup and `model/formatter.js` is the curated app-level formatter module
+(the `z2ui5.Formatter` global / `core:require` of `z2ui5/model/formatter`)
+that owns the date helpers and value formatters — `Util.js` is now a
+**deprecated** legacy alias re-exporting them.
 
 ## Where the rest is
 

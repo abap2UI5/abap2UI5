@@ -555,11 +555,31 @@ The same tree, with the subtree held in a variable:
 - Call another app: `client->nav_app_call( NEW zcl_other_app( ) )`; return
   with `client->nav_app_leave( )` (or `client->get_app_prev( )` to hand data
   back). The framework keeps the app stack across roundtrips.
-- URL routing: `client->follow_up_action( val = z2ui5_if_client=>cs_event-set_nav_routing )`
+- URL routing: `client->follow_up_action( val = z2ui5_if_client=>cs_event-hash_routing )`
   in `check_on_init` makes the app bookmarkable and wires the browser
   Back/Forward buttons — the mode rides in `t_arg`: `cs_nav_mode-keep` (the
   default when `t_arg` is empty) restores the exact draft state,
   `cs_nav_mode-fresh` restarts clean. Works inside the Fiori Launchpad.
+  (`cs_event-set_nav_routing` is the obsolete spelling of the same wire
+  value — new code uses the `hash_*` names.)
+- The URL hash and the app state have named APIs of their own:
+  `client->hash_set( val )` writes `val` as the app's URL hash with a pushed
+  history entry (the UI5 router's `navTo`), `client->hash_replace( val )`
+  writes it without one (`navTo( ..., true )` — e.g. a layout arrow whose
+  drags must not become Back steps). `client->app_state_set_active( )`
+  keeps the id of the CURRENT app state in the URL on every roundtrip, so a
+  reload/bookmark/shared link restores the exact state;
+  `client->app_state_get_href( )` returns the absolute, FLP-safe link to
+  that state for the app to copy, show, mail or render as a QR code.
+  The matching `cs_event` constants for `follow_up_action( )` wires:
+  `hash_set` / `hash_replace` (the same two writes as frontend actions),
+  `hash_back` (one history step back with an optional fallback hash),
+  `hash_attach_changed` (registers a backend event that fires when the hash
+  changes under the app — Back/Forward, a manual edit; app-owned routing
+  with `hash_routing` off), `hash_routing` (the routing modes above) and
+  `app_state_set_active`. `hash_routing`, `hash_attach_changed` and
+  `app_state_set_active` are mutually exclusive — each claims the whole app
+  hash.
 
 ## 8. Rules that keep apps portable
 
