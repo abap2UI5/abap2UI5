@@ -29,11 +29,14 @@ npm run gates        # The static gates (run-gates.mjs, one sub-second Node
 npm run verify       # Gate before every PR (.github/scripts/run-verify.mjs):
                      # runs ALL independent checks first (abaplint, gates,
                      # chain layout, eslint, format, standard/cloud targets)
-                     # and reports every failure at once, then the dependent
-                     # pipeline in order - downport -> transpile -> unit ->
-                     # JS unit specs -> app2abap drift gate (matches CI)
-npm run verify:full  # verify + the frontend gates (ui5lint zero-error gate, eslint);
-                     # installs app/node_modules itself. Run when app/webapp/ changed
+                     # CONCURRENTLY - buffered per member, reported in order,
+                     # every failure at once - then the dependent pipeline
+                     # in order: downport -> transpile -> unit -> JS unit
+                     # specs -> app2abap drift gate (matches CI)
+npm run verify:full  # the same runner with --full: verify + the frontend gates
+                     # (ui5lint zero-error gate, the app eslint) as two more
+                     # members; installs app/node_modules itself when it is
+                     # missing. Run when app/webapp/ changed
 ```
 
 `npm run verify` downports into `node/downport/` and runs the transpiled unit

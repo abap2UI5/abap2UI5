@@ -64,7 +64,7 @@
     "check:cause": "node .github/scripts/exception-cause-gate.mjs",
     "gates": "node .github/scripts/run-gates.mjs",
     "verify": "node .github/scripts/run-verify.mjs",
-    "verify:full": "npm run verify && npm --prefix app ci && npm run check:ui5 && npm --prefix app run lint",
+    "verify:full": "node .github/scripts/run-verify.mjs --full",
     "syfixes": "node node/setup/downport-fix.mjs syfixes",
     "strip_trailing_ws": "node node/setup/downport-fix.mjs strip-trailing-ws",
     "abaplintpathfix": "node node/setup/downport-fix.mjs abaplint-path",
