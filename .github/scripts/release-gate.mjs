@@ -55,6 +55,20 @@ if (abap && pkg !== abap) {
   problems.push(`package.json says ${pkg}, ${INTERFACE} says ${abap} - run npm run check:version`);
 }
 
+/* The standing `unreleased` heading survives the release cut: the entries
+ * move under the version heading, the heading itself stays (empty) so the
+ * next change has a place to write to. changelog-gate.mjs enforces the same
+ * thing on every pull request; repeated here because a release must not be
+ * the change that removes it. */
+if (!/^unreleased\s*\n-{5,}\s*$/m.test(changelog)) {
+  problems.push(
+    `${CHANGELOG} has no \`unreleased\` heading.\n`
+    + `      Cutting a release moves the entries under the version heading but keeps\n`
+    + `      the heading itself - restore it above the newest release section:\n`
+    + `\n        unreleased\n        ----------\n`,
+  );
+}
+
 if (!released.has(pkg)) {
   problems.push(
     `${CHANGELOG} has no section for ${pkg}.\n`

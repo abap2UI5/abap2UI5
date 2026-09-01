@@ -25,6 +25,7 @@
     "check:counts": "node .github/scripts/corpus-count-gate.mjs",
     "check:samples-md": "node .github/scripts/samples-md-gate.mjs",
     "check:changelog": "node .github/scripts/changelog-gate.mjs",
+    "check:changelog-entry": "node .github/scripts/changelog-entry-gate.mjs",
     "backlog": "node .github/scripts/generate-backlog.mjs",
     "backlog:probe": "node .github/scripts/backlog-probe.mjs",
     "backlog:mine": "node .github/scripts/backlog-mine.mjs",

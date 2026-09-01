@@ -100,6 +100,7 @@ const GATES = [
 const NOT_A_VERIFY_GATE = {
   "check:ui5": "shells out to the UI5 linter - the same reason check:standard and check:cloud stay in `verify` as their own commands",
   "check:release": "release-time only: it judges a version bump against the changelog, not the working tree",
+  "check:changelog-entry": "CI-only: it judges a pull request's DIFF against a base ref the working tree does not have - check_gates.yaml passes BASE_REF on pull requests",
 };
 
 // One command, no && / | / ; - a chain (check:app2abap) is two runs and falls

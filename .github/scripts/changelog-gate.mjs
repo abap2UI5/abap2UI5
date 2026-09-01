@@ -65,7 +65,25 @@ if (!fs.existsSync(localTxt)) {
   process.exit(1);
 }
 
-const ours = readChangelogTxt(fs.readFileSync(localTxt, 'utf8'));
+const ourText = fs.readFileSync(localTxt, 'utf8');
+
+/* The standing `unreleased` heading. Entries accumulate under it between
+ * releases and the release cut moves them under a version heading - the
+ * heading itself stays, so the next pull request has a place to write to.
+ * The pull-request template, CONTRIBUTING.md, RELEASING.md and release.yaml
+ * all point contributors at that heading; the file went without one for a
+ * while and every one of those pointers dangled. This gate runs on every
+ * pull request, so a missing heading fails between releases, not at the
+ * release cut. */
+if (!/^unreleased\s*\n-{5,}\s*$/m.test(ourText)) {
+  console.error('changelog-gate: changelog.txt has no `unreleased` heading');
+  console.error('  The PR template, CONTRIBUTING.md and RELEASING.md all direct entries to it.');
+  console.error('  Restore it above the newest release section:\n');
+  console.error('    unreleased\n    ----------\n');
+  process.exit(1);
+}
+
+const ours = readChangelogTxt(ourText);
 if (ours.size === 0) {
   /* The format moved. Reporting that as "unreachable" would let this gate go
    * quiet exactly when the file it parses has changed shape. */

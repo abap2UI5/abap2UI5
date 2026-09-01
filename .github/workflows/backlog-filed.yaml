@@ -1,0 +1,65 @@
+name: backlog-filed
+
+# What GitHub says about every backlog item with `state: filed`, once a month.
+#
+# A `filed` item is a claim about another repository, and the backlog cannot
+# see when that claim stops being true - `npm run backlog:filed` exists for
+# exactly that, and no workflow ever ran it, so the answer depended on
+# somebody remembering the command (the failure mode the script's own header
+# describes: "pending merge" for six days after the PR had merged).
+#
+# A report, not a gate, like coverage.yaml: it deletes nothing and fails
+# nothing over its findings - removing a shipped item is the same human step
+# as creating one. The whole output is the job summary, which is where a
+# monthly run is actually read. `workflow_dispatch` is there for the check
+# that cannot wait for the 4th.
+
+on:
+  schedule:
+    # 06:43 on the 4th - off the hour and off the 1st, where every scheduled
+    # workflow on GitHub queues at once (same reasoning as coverage.yaml).
+    - cron: '43 6 4 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backlog-filed
+  cancel-in-progress: false
+
+jobs:
+  backlog-filed:
+    # forks carry the backlog too, and their schedule would report against
+    # items they do not maintain - same guard as every scheduled workflow
+    if: github.repository == 'abap2UI5/abap2UI5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write  # to report a failed scheduled run
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Node from .nvmrc via the composite action; the script is plain Node
+      # over backlog/items plus the GitHub API - no install needed
+      - uses: ./.github/actions/setup
+
+      - name: Ask GitHub about every filed item, into the job summary
+        run: |
+          set -o pipefail
+          npm run backlog:filed --silent | tee filed.txt
+          {
+            echo "## \`npm run backlog:filed\` - what happened to every filed backlog item"
+            echo
+            echo "Run on $(date -u +%Y-%m-%d). A MERGED row means: delete the item and run \`npm run backlog\`."
+            echo
+            echo '```'
+            cat filed.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Report scheduled failure as issue
+        if: failure() && github.event_name == 'schedule'
+        uses: ./.github/actions/report-scheduled-failure

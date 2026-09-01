@@ -51,7 +51,10 @@ changelog.
 
    The workflow reads exactly this section as the GitHub release notes, so what
    is written here is what everyone gets told changed. Keep the legend
-   (`+ added`, `* fixed`, `! changed`, `- removed`).
+   (`+ added`, `* fixed`, `! changed`, `- removed`), and keep the (now empty)
+   `unreleased` heading standing above the new section — the PR template
+   points every change at it, and `npm run check:release` /
+   `npm run check:changelog` fail without it.
 
 2. **Bump both version numbers** — `package.json` and the `version` constant in
    `src/02/z2ui5_if_app.intf.abap`. They are two files on purpose (one ships,
@@ -91,9 +94,15 @@ tab: same gates, same notes, no tag and no release.
   correct, not that it is a good moment.
 - **The 702 content.** `auto_downport` rebuilds the `702` branch from `main` on
   every push, so at tag time it already holds the downport of the released
-  commit. The release job only tags it. If that branch is stale — the downport
-  job failed, say — the `-702` release is stale with it, so check that
-  `auto_downport` ran green on the release commit before tagging.
+  commit. The release job only tags it — but it no longer tags it blind: the
+  downport commit carries a `Source-Commit:` trailer naming the `main` commit
+  it was built from, and the release job refuses to tag a `702` head whose
+  trailer does not name the release commit. A stale branch (the downport job
+  failed, or is still running) therefore fails the release with a message
+  saying to wait for `auto_downport`, instead of shipping a stale `-702`
+  release. Checking that `auto_downport` ran green before tagging is still
+  good manners; it is just no longer the only thing standing between a failed
+  downport and a wrong release.
 - **The addons.** `abap2UI5-addons/*` and the sample repositories are versioned
   on their own and are not touched here.
 

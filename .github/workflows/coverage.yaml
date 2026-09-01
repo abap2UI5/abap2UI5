@@ -42,6 +42,8 @@ jobs:
       issues: write  # to report a failed scheduled run
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
         with:
           npm-ci: "true"
@@ -69,9 +71,9 @@ jobs:
             echo '```'
             echo
             echo "A report, not a gate: the useful question is which file is low and"
-            echo "whether that matters, not whether a number cleared a bar. AGENTS.md,"
-            echo "section \"What the suite covers\", carries the reason for each of the"
-            echo "three low ones."
+            echo "whether that matters, not whether a number cleared a bar."
+            echo "docs/agents/commands.md, section \"What the suite covers\", carries"
+            echo "the reason for each of the three low ones."
           } >> "$GITHUB_STEP_SUMMARY"
 
       # The table, kept as a file as well: the job summary is not addressable

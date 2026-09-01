@@ -37,12 +37,25 @@ on:
     - cron: '11 6 * * 1'   # Mondays 06:11 UTC - before the three sample corpora
   workflow_dispatch:
 
+# No cancel-in-progress: this workflow opens a pull request, and a cancelled
+# run can have pushed the branch and not opened the PR. The group keeps a
+# hand dispatch and the Monday cron from doing it twice at once - same
+# pattern as auto_abaplint_fix.yaml.
+concurrency:
+  group: bump-linter
+
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   bump-linter:
+    # forks get the schedule too, and a fork has no business opening weekly
+    # bump PRs against itself - same guard as every other scheduled workflow
+    if: github.repository == 'abap2UI5/abap2UI5'
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write  # to report failed scheduled runs
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -80,8 +93,26 @@ jobs:
     # the render half, exactly as render-gate.yaml installs it
     - if: steps.pin.outputs.changed == 'true'
       run: npm i --no-save --no-audit --no-fund "@abap2ui5/render-runtime@${{ steps.pin.outputs.version }}"
-    - if: steps.pin.outputs.changed == 'true'
+    # version+engine-keyed browser cache, the same pattern as test.yaml's
+    # browser matrix - the Chromium download is the slowest part of the run
+    # and identical from one Monday to the next
+    - name: Get Playwright version
+      if: steps.pin.outputs.changed == 'true'
+      id: playwright-version
+      run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+    - name: Cache Playwright browsers
+      if: steps.pin.outputs.changed == 'true'
+      id: playwright-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-chromium-${{ steps.playwright-version.outputs.version }}
+    - name: Install Playwright browser
+      if: steps.pin.outputs.changed == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps chromium
+    - name: Install Playwright OS dependencies
+      if: steps.pin.outputs.changed == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
     - if: steps.pin.outputs.changed == 'true'
       run: npm run check:render
 
@@ -96,3 +127,7 @@ jobs:
           (${{ steps.pin.outputs.version }}). Both gates that consume it ran
           over the shipped app classes in the workflow that opened this PR -
           `check:abap2ui5` and `check:render`.
+
+    - name: Report scheduled failure as issue
+      if: failure() && github.event_name == 'schedule'
+      uses: ./.github/actions/report-scheduled-failure

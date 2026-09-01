@@ -68,6 +68,22 @@ import { resolve } from 'node:path';
 
 const BUNDLE = new URL('../../node_modules/@abaplint/cli/build/cli.js', import.meta.url);
 
+// The @abaplint/cli version the anchors below were last verified against
+// (the version in package-lock.json at the time). When a Dependabot bump
+// breaks an anchor, triage starts with the delta between this version and
+// the one now installed - not with re-deriving what the anchors ever matched.
+// Update it whenever the anchors are re-verified on a newer version.
+const VERIFIED_AGAINST = '@abaplint/cli 2.120.33';
+
+const installedVersion = () => {
+  try {
+    const pkg = new URL('../../node_modules/@abaplint/cli/package.json', import.meta.url);
+    return `@abaplint/cli ${JSON.parse(readFileSync(pkg, 'utf8')).version}`;
+  } catch {
+    return '@abaplint/cli (version unreadable)';
+  }
+};
+
 /* 1. the outline itself. Anchor and patch are whole statements including the
  *    template literal, so a reformat upstream misses rather than half-applies. */
 const OUTLINE_ANCHOR = `            const uniqueName = this.uniqueName(high.getFirstToken().getStart(), lowFile.getFilename(), highSyntax);
@@ -132,10 +148,12 @@ export function patchAbaplintDownport(bundle = fileURLToPath(BUNDLE)) {
     if (!src.includes(anchor)) {
       throw new Error(
         `patch-abaplint-downport: anchor not found (${note}).\n`
-        + '  Either abaplint changed the downport rule, or it SHIPPED the fix.\n'
+        + `  Anchors last verified against ${VERIFIED_AGAINST}; installed now: ${installedVersion()}.\n`
+        + '  Either abaplint changed the downport rule between those versions, or it SHIPPED the fix.\n'
         + '  Check abaplint/abaplint against backlog/items/abaplint-downport-table-expression-copy.md:\n'
         + '  if the fix is upstream, delete this script, its call in the `downport` npm script,\n'
-        + '  the call in samples-controls/scripts/e2e-build.mjs and the backlog item.');
+        + '  the call in samples-controls/scripts/e2e-build.mjs and the backlog item;\n'
+        + '  if only the bundle text moved, re-fit the anchors and bump VERIFIED_AGAINST.');
     }
     src = src.replace(anchor, patch);
     applied++;
