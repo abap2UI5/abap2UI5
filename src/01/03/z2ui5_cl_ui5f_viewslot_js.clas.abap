@@ -84,6 +84,8 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      if (!slot) return;` && |\n| &&
              `      AppState.state[slot.prop] = view;` && |\n| &&
              `      slotXmlStore()[key] = xml;` && |\n| &&
+             `` && |\n| &&
+             `      slotAppStore()[key] = AppState.state.oResponse?.APP;` && |\n| &&
              `      attachSharedModels(view);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -94,6 +96,15 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `    function slotXmlStore() {` && |\n| &&
              `      if (!AppState.state.slotXml) AppState.state.slotXml = {};` && |\n| &&
              `      return AppState.state.slotXml;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getViewApp(key) {` && |\n| &&
+             `      return slotAppStore()[key];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function slotAppStore() {` && |\n| &&
+             `      if (!AppState.state.slotApp) AppState.state.slotApp = {};` && |\n| &&
+             `      return AppState.state.slotApp;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function attachSharedModels(view) {` && |\n| &&
@@ -167,6 +178,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      for (const dep of slot.dependentSlots ?? []) destroy(dep);` && |\n| &&
              `` && |\n| &&
              `      delete slotXmlStore()[key];` && |\n| &&
+             `      delete slotAppStore()[key];` && |\n| &&
              `      const view = AppState.state[slot.prop];` && |\n| &&
              `      if (!view) return;` && |\n| &&
              `      if (slot.fragmentId) {` && |\n| &&
@@ -196,6 +208,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      slots,` && |\n| &&
              `      getView,` && |\n| &&
              `      getViewXml,` && |\n| &&
+             `      getViewApp,` && |\n| &&
              `      setView,` && |\n| &&
              `      getController,` && |\n| &&
              `      keyOfController,` && |\n| &&

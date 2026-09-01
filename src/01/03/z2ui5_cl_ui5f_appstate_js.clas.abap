@@ -44,6 +44,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      oControllerPopup: null,` && |\n| &&
              `      oControllerPopover: null,` && |\n| &&
              `      slotXml: {},` && |\n| &&
+             `      slotApp: {},` && |\n| &&
              `      oLaunchpad: null,` && |\n| &&
              `` && |\n| &&
              `      oBody: null,` && |\n| &&

@@ -349,6 +349,23 @@ sap.ui.define(
       const oView = ViewSlots.getView(slotKey);
       if (!oView) return;
 
+      // ...and only when the model BELONGS to it. A response carries the
+      // model of exactly one app - the attributes of the class that answered
+      // - while the open slots need not all come from that class: an app
+      // called only to open a dialog (nav_app_call to a popup app, the shape
+      // every z2ui5_cl_pop_* has) displays no main view, so MAIN still holds
+      // the CALLER's view. Pushing the callee's model into it replaced the
+      // caller's data with a model that does not contain its binding paths
+      // at all: the table behind the dialog rendered empty, and every
+      // `visible="{= !${/...} }"` over a now-missing path flipped the other
+      // way. It healed only if the caller re-displayed later, so it read as
+      // "opening the popup lost the binding".
+      // An unknown owner (a slot filled before any response named an app)
+      // keeps the old unconditional behaviour rather than going quiet.
+      const sSlotApp = ViewSlots.getViewApp(slotKey);
+      const sResponseApp = AppState.state.oResponse?.APP;
+      if (sSlotApp && sResponseApp && sSlotApp !== sResponseApp) return;
+
       // Reuse the existing model whenever it is ours: setData() keeps the
       // view's bindings alive and only refreshes what changed, while a new
       // model + setModel() destroys and recreates every binding - measured
