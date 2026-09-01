@@ -17,6 +17,7 @@ unreleased
 + New view builder helper z2ui5_cl_ui5_view_builder=>escape_literal for escaping a value into a view literal
 + New HTTP POST exit config flag check_trust_forwarded_host to stop trusting forwarded-host headers
 ! Per-verb cache policy: the GET shell revalidates via ETag, POST responses stay no-store
+! HEAD stays the session-terminate ping and deliberately answers no-store without the shell's ETag - now documented at the handler (no behavior change)
 ! CSP hardening: script-src and style-src are explicit, general-purpose CDN hosts dropped from the default policy
 ! Security response headers: Cross-Origin-Opener-Policy and Cross-Origin-Resource-Policy sent by default
 * Response header names and values are stripped of CR/LF (response splitting hardening)
