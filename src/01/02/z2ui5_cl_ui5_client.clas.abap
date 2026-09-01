@@ -16,6 +16,15 @@ CLASS z2ui5_cl_ui5_client DEFINITION PUBLIC FINAL.
     DATA mo_srv_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA mo_frontend  TYPE REF TO z2ui5_cl_ui5_frontend.
 
+    " Memo of get( )'s FLP startupParameters slice. The parameters are part
+    " of the parsed request, immutable for the whole roundtrip - while get( )
+    " is called once per lifecycle question an app asks - so the node-table
+    " walk in get( ) runs once and every later call copies the memo. The
+    " _s_nav-check_call/check_leave fields of the same structure stay LIVE
+    " per call on purpose: they answer for actions the app queued since.
+    DATA mt_comp_params     TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA mv_comp_params_set TYPE abap_bool.
+
     METHODS nav_app_set_id
       IMPORTING
         app           TYPE REF TO z2ui5_if_app
@@ -151,6 +160,17 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                       _s_nav-check_call      = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL )
                       _s_nav-check_leave     = xsdbool( mo_action->ms_next-o_app_leave IS NOT INITIAL ) ).
 
+    " the slice/walk below runs at most ONCE per roundtrip: the component
+    " data is part of the parsed request and cannot change until the next
+    " one, so the first get( ) fills the memo - including the common
+    " memoized-empty case (no FLP, no parameters) - and every later call
+    " only copies it
+    IF mv_comp_params_set = abap_true.
+      result-t_comp_params = mt_comp_params.
+      RETURN.
+    ENDIF.
+    mv_comp_params_set = abap_true.
+
     TRY.
 
         DATA(lo_comp) = mo_action->mo_handler->ms_request-s_front-o_comp_data.
@@ -178,10 +198,12 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
           INSERT VALUE #( n = shift_left( val = shift_right( val = lr_comp->path
                                                              sub = `/` )
                                           sub = `/` )
-                          v = lr_comp->value ) INTO TABLE result-t_comp_params.
+                          v = lr_comp->value ) INTO TABLE mt_comp_params.
         ENDLOOP.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
+
+    result-t_comp_params = mt_comp_params.
 
   ENDMETHOD.
 

@@ -115,6 +115,8 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_event_arg_appends    FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_empty      FOR TESTING RAISING cx_static_check.
     METHODS test_bind_path_alias      FOR TESTING RAISING cx_static_check.
+    METHODS test_get_comp_params_memo FOR TESTING RAISING cx_static_check.
+    METHODS test_get_nav_flags_live   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_ui5_client DEFINITION LOCAL FRIENDS ltcl_test_client.
@@ -1004,6 +1006,62 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MV_NAME}`
         act = li_client->_bind( mo_test_app->mv_name ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_get_comp_params_memo.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " FLP component data: one array per parameter name, first entry counts
+    mo_action->mo_handler->ms_request-s_front-o_comp_data =
+        CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+            `{"startupParameters":{"foo":["bar"],"qty":["7","8"]}}` ) ).
+
+    DATA(ls_get_1) = li_client->get( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( ls_get_1-t_comp_params ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `bar`
+        act = VALUE #( ls_get_1-t_comp_params[ n = `foo` ]-v OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `7`
+        act = VALUE #( ls_get_1-t_comp_params[ n = `qty` ]-v OPTIONAL ) ).
+
+    " the first call filled the memo (t_comp_params is immutable for the
+    " whole roundtrip, so the node-table walk must not run again) ...
+    cl_abap_unit_assert=>assert_true( mo_client->mv_comp_params_set ).
+    cl_abap_unit_assert=>assert_equals( exp = ls_get_1-t_comp_params
+                                        act = mo_client->mt_comp_params ).
+
+    " ... and the second call answers from it WITHOUT re-walking: with the
+    " source dropped, a re-walk would come back empty - the memo must not
+    CLEAR mo_action->mo_handler->ms_request-s_front-o_comp_data.
+    DATA(ls_get_2) = li_client->get( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = ls_get_1-t_comp_params
+                                        act = ls_get_2-t_comp_params ).
+
+  ENDMETHOD.
+
+
+  METHOD test_get_nav_flags_live.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " the memoized slice must not freeze the _s_nav flags of the same
+    " structure: they answer for actions queued since the previous get( )
+    DATA(ls_get_1) = li_client->get( ).
+    cl_abap_unit_assert=>assert_false( ls_get_1-_s_nav-check_call ).
+
+    mo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
+    DATA(ls_get_2) = li_client->get( ).
+
+    cl_abap_unit_assert=>assert_true( ls_get_2-_s_nav-check_call ).
 
   ENDMETHOD.
 
