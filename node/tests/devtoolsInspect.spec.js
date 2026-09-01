@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadLib } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
 // app/webapp/devtools/Inspect.js. Every inspector is a pure renderer
@@ -78,6 +79,21 @@ function loadInspect({
       return undefined;
     },
   };
+  // The sap global the sandbox exposes to Inspect - and, identically, to
+  // the REAL core/Lib the module now delegates its theme/locale probes to,
+  // so the locale tests keep driving the shipped probe implementation
+  // instead of a stub that would have to re-implement it.
+  const sapGlobal = {
+    ui: {
+      version: "1.120.5",
+      require: Object.assign(
+        (name) =>
+          name === "sap/base/i18n/Localization" ? locale : undefined,
+        { toUrl: (ns) => resourceUrls[ns] ?? `/resources/${ns}` },
+      ),
+    },
+  };
+  const { Lib } = loadLib({ sap: sapGlobal });
   const { module } = loadModule("devtools/Inspect.js", {
     deps: {
       "sap/ui/Device": {
@@ -89,21 +105,11 @@ function loadInspect({
         resize: { width: 1920, height: 1080 },
       },
       "z2ui5/core/AppState": AppState,
-      "z2ui5/core/Lib": {
-        deriveSystemType: () => "desktop",
-        logError() {},
-        // the real framework function the delta preview calls - a stub
-        // that mirrors its scalar behaviour is enough here, the function
-        // itself is covered by buildDeltaFromPaths.spec.js
-        buildDeltaFromPaths: (paths, data) => {
-          const delta = {};
-          for (const path of paths) {
-            const attr = path.slice(1).split("/")[0];
-            delta[attr] = data[attr];
-          }
-          return delta;
-        },
-      },
+      // the REAL core/Lib, loaded above with this spec's sap global - the
+      // theme/locale probes Inspect delegates to since they moved into Lib
+      // run for real here, and deriveSystemType/buildDeltaFromPaths are the
+      // shipped functions (each covered by its own spec as well)
+      "z2ui5/core/Lib": Lib,
       // The live producers of the frontend block that travels on every
       // roundtrip (client->get( )-s_focus / -s_scroll).
       "z2ui5/core/ScrollFocus": {
@@ -150,16 +156,7 @@ function loadInspect({
           id === "sap-ui-bootstrap" ? bootstrap || null : null,
         body: { classList: { contains: (c) => bodyClasses.includes(c) } },
       },
-      sap: {
-        ui: {
-          version: "1.120.5",
-          require: Object.assign(
-            (name) =>
-              name === "sap/base/i18n/Localization" ? locale : undefined,
-            { toUrl: (ns) => resourceUrls[ns] ?? `/resources/${ns}` },
-          ),
-        },
-      },
+      sap: sapGlobal,
     },
   });
   return module;
