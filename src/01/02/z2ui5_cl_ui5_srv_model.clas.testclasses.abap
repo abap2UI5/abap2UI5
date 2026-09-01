@@ -559,6 +559,103 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 ENDCLASS.
 
 
+CLASS ltcl_test_app_root5 DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PUBLIC SECTION.
+
+    DATA mr_elem  TYPE REF TO data.
+    DATA mv_value TYPE string.
+
+    METHODS test_elem_ref_gen     FOR TESTING RAISING cx_static_check.
+    METHODS test_search_no_descr  FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_app_root5 IMPLEMENTATION.
+
+  METHOD test_elem_ref_gen.
+
+    " the z2ui5_cl_smp_app_094 case: a REF TO data whose target is an
+    " ELEMENTARY value, not a table or a structure. The draft round trip used
+    " to clear the reference without capturing it, so the restore left the
+    " attribute initial - and `MR_ELEM->*` unresolvable, which is what put an
+    " unbound o_typedescr into mt_attri and dumped attri_search on the next
+    " render
+    DATA(lo_app) = NEW ltcl_test_app_root5( ).
+    CREATE DATA lo_app->mr_elem TYPE string.
+    FIELD-SYMBOLS <val> TYPE any.
+    ASSIGN lo_app->mr_elem->* TO <val>.
+    <val> = `ref data - working`.
+
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+
+    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mr_elem ).
+    cl_abap_unit_assert=>assert_equals( act = ls_attri->name
+                                        exp = `MR_ELEM->*` ).
+
+    " draft round trip: save into a new app instance and restore
+    lo_model->main_attri_db_save_srtti( ).
+
+    lo_app = NEW ltcl_test_app_root5( ).
+    lo_model = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                           app   = lo_app ).
+    lo_model->main_attri_db_load( ).
+
+    cl_abap_unit_assert=>assert_bound( act = lo_app->mr_elem
+                                       msg = `the elementary dref target was lost in the draft round trip` ).
+    ASSIGN lo_app->mr_elem->* TO <val>.
+    cl_abap_unit_assert=>assert_equals( act = <val>
+                                        exp = `ref data - working` ).
+
+    " every restored row carries its descriptor again - attri_search reads
+    " o_typedescr->absolute_name unguarded on every row the prefilter visits
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
+      cl_abap_unit_assert=>assert_bound( act = lr_attri->o_typedescr
+                                         msg = |o_typedescr missing for { lr_attri->name }| ).
+    ENDLOOP.
+
+    " and the next render finds the binding again instead of dumping
+    ls_attri = lo_model->main_attri_search( lo_app->mr_elem ).
+    cl_abap_unit_assert=>assert_equals( act = ls_attri->name
+                                        exp = `MR_ELEM->*` ).
+
+  ENDMETHOD.
+
+  METHOD test_search_no_descr.
+
+    " a row whose o_typedescr the restore could not re-resolve must not take
+    " the search down with it - attri_search read ->absolute_name on it
+    " unguarded, so one unreachable attribute dumped CX_SY_REF_IS_INITIAL on
+    " the first _bind( ) of the render instead of being passed over
+    DATA(lo_app) = NEW ltcl_test_app_root5( ).
+    lo_app->mv_value = `value`.
+
+    " same type_kind/kind as the searched value, so the row passes the WHERE
+    " prefilter and is the first one the loop reads - and no o_typedescr,
+    " which is what a swallowed ASSIGN failure in the restore leaves behind
+    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( REF #( lo_app->mv_value ) ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri(
+        ( name            = `MV_GONE`
+          check_dissolved = abap_true
+          type_kind       = lo_descr->type_kind
+          kind            = lo_descr->kind ) ).
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+
+    DATA(ls_attri) = lo_model->main_attri_search( REF #( lo_app->mv_value ) ).
+    cl_abap_unit_assert=>assert_equals( act = ls_attri->name
+                                        exp = `MV_VALUE` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test_diss_complex DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_diss_complex.
 

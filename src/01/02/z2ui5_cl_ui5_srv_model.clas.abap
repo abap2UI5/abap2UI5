@@ -450,7 +450,23 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             EXIT.
           ENDLOOP.
 
-        WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1 OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+        WHEN OTHERS.
+
+          " EVERY other target is captured whole - a structure, and an
+          " ELEMENTARY one such as `CREATE DATA mr_input TYPE string`. This
+          " branch read `WHEN struct1 OR struct2` and had no OTHERS, so an
+          " elementary target was captured by nothing while the loop below
+          " cleared its reference all the same: the restore found no
+          " srtti_data, left the attribute INITIAL, and `<name>->*` stopped
+          " resolving from there on. That is how a row of mt_attri ends up
+          " without o_typedescr (main_attri_db_load_resolve swallows the
+          " failed ASSIGN) and dumps attri_search on the NEXT render, one
+          " roundtrip after the app looked fine - z2ui5_cl_smp_app_094 in
+          " the samples repository is exactly that shape.
+          " Anything this cannot express raises out of here into
+          " z2ui5_cl_ui5_app_cont=>all_xml_stringify, which restores the
+          " cleared references and retries - a loud failure, where dropping
+          " the reference was a silent one
           lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
 
       ENDCASE.
@@ -562,13 +578,25 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " compare by name - descriptor instances are not stable in the
       " abaplint transpiler runtime; the data reference check below is
       " the definitive match, this is only a prefilter. Generated names
-      " of anonymous types (containing %) are not comparable either
-      DATA(lv_name_attri) = lr_attri->o_typedescr->absolute_name.
-      DATA(lv_name_val) = lo_datadescr->absolute_name.
-      IF lv_name_attri <> lv_name_val
-          AND lv_name_attri NS `%`
-          AND lv_name_val NS `%`.
-        CONTINUE.
+      " of anonymous types (containing %) are not comparable either.
+      " o_typedescr can be UNBOUND here: it is a REF TO cl_abap_typedescr,
+      " so it does not survive the draft round trip, and the restore
+      " (main_attri_db_load_resolve) re-resolves it through a dynamic ASSIGN
+      " whose failure it swallows on purpose - a row whose attribute cannot
+      " be reached right now keeps an initial descriptor. Reading
+      " ->absolute_name on it dumped CX_SY_REF_IS_INITIAL on the FIRST
+      " _bind( ) of the next render. Skipping only the prefilter, rather
+      " than the row, is what keeps that from hiding a match: the
+      " data-reference compare below still decides, and it needs no
+      " descriptor
+      IF lr_attri->o_typedescr IS BOUND.
+        DATA(lv_name_attri) = lr_attri->o_typedescr->absolute_name.
+        DATA(lv_name_val) = lo_datadescr->absolute_name.
+        IF lv_name_attri <> lv_name_val
+            AND lv_name_attri NS `%`
+            AND lv_name_val NS `%`.
+          CONTINUE.
+        ENDIF.
       ENDIF.
 
       TRY.
