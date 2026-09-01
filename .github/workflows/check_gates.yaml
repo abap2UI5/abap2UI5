@@ -228,6 +228,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/draft-owner-gate.mjs # npm run check:draftowner
 
+      # SECURITY.md claims the default CSP allows only the UI5 CDN hosts and
+      # that data:/blob: never reach script-src - claims about one method in
+      # z2ui5_cl_ui5_user_exit, where general-purpose CDNs once rode along
+      - name: the default CSP allows only the UI5 CDN hosts
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/csp-default-gate.mjs # npm run check:csp
+
       - name: the chain's indent states the view's depth
         if: ${{ !cancelled() }}
         run: npm run check:abap2ui5
