@@ -67,6 +67,28 @@ if (!/^unreleased\s*\n-{5,}\s*$/m.test(changelog)) {
     + `      the heading itself - restore it above the newest release section:\n`
     + `\n        unreleased\n        ----------\n`,
   );
+} else {
+  /* And the section under it has to be EMPTY at release time. The cut MOVES
+   * the entries under the version heading (RELEASING.md step 1); a cut that
+   * copies them instead leaves the same lines standing under `unreleased`,
+   * where the next release republishes them as its own news. */
+  const lines = changelog.split("\n");
+  const at = lines.findIndex(
+    (l, i) => /^unreleased\s*$/.test(l) && /^-{5,}\s*$/.test(lines[i + 1] ?? ""),
+  );
+  const leftover = [];
+  for (let i = at + 2; i < lines.length; i++) {
+    if (/^\d{4}-\d{2}-\d{2} v\d+\.\d+\.\d+\s*$/.test(lines[i])) break;
+    if (lines[i].trim()) leftover.push(lines[i].trim());
+  }
+  if (leftover.length) {
+    problems.push(
+      `${CHANGELOG} still has ${leftover.length} line(s) under \`unreleased\`:\n`
+      + leftover.map((l) => `        ${l}`).join("\n")
+      + `\n      The release cut MOVES the entries under the version heading - a copy\n`
+      + `      leaves them here and the next release publishes them a second time.`,
+    );
+  }
 }
 
 if (!released.has(pkg)) {
