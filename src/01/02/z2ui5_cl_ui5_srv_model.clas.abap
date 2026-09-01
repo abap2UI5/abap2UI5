@@ -108,12 +108,16 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! iv_row_parent carries the 1-based row index of the IMMEDIATE parent
+    "! into a nested-table recursion, so a skipped inner cell can name the
+    "! record that owns it (ty_s_model_skip-row_parent); 0 at the top level.
     METHODS delta_apply_nodes
       IMPORTING
-        io_delta TYPE REF TO z2ui5_if_ajson
-        iv_table TYPE string
+        io_delta      TYPE REF TO z2ui5_if_ajson
+        iv_table      TYPE string
+        iv_row_parent TYPE i OPTIONAL
       CHANGING
-        ct_tab   TYPE STANDARD TABLE
+        ct_tab        TYPE STANDARD TABLE
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -943,9 +947,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         ENDIF.
         delta_apply_field( io_delta = io_delta
                            iv_path  = |{ lv_row_path }/{ lv_fld }|
-                           is_cell  = VALUE #( name  = iv_table
-                                               row   = lv_tabix
-                                               field = lv_fld )
+                           is_cell  = VALUE #( name       = iv_table
+                                               row        = lv_tabix
+                                               field      = lv_fld
+                                               row_parent = iv_row_parent )
                            ir_comp  = REF #( <comp> ) ).
       ENDLOOP.
     ENDLOOP.
@@ -976,10 +981,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               ASSIGN ir_comp->* TO <sub_tab>.
               IF sy-subrc = 0.
                 " a nested row cell traces under the path to its own table,
-                " parent first - MT_TREE-NODES, not MT_TREE
-                delta_apply_nodes( EXPORTING io_delta = lo_sub->slice( `/__delta` )
-                                             iv_table = |{ is_cell-name }-{ is_cell-field }|
-                                   CHANGING  ct_tab   = <sub_tab> ).
+                " parent first - MT_TREE-NODES, not MT_TREE - and carries
+                " this row's index as its row_parent, so the skipped entry
+                " can name the record the inner table belongs to
+                delta_apply_nodes( EXPORTING io_delta      = lo_sub->slice( `/__delta` )
+                                             iv_table      = |{ is_cell-name }-{ is_cell-field }|
+                                             iv_row_parent = is_cell-row
+                                   CHANGING  ct_tab        = <sub_tab> ).
               ENDIF.
             ELSE.
               lo_sub->to_abap( EXPORTING iv_corresponding = abap_true
@@ -1005,7 +1013,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " user typed. Recording it is deliberately ALL that happens here;
         " raising would let one bad cell kill a delta full of good ones,
         " which is the whole reason the skip exists
-        APPEND is_cell TO mt_skipped.
+        DATA(ls_skip) = is_cell.
+        " quote the refused raw value in the entry - it is one keyed read
+        " away, and it is the half a user message actually needs (`'1,250.00'
+        " is not a valid price`). Guarded: this RUNS INSIDE A CATCH, and a
+        " node get_string cannot read (a structured value) must degrade to
+        " an empty value, never replace the trace with a dump
+        TRY.
+            ls_skip-value = io_delta->get_string( iv_path ).
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+        APPEND ls_skip TO mt_skipped.
     ENDTRY.
 
   ENDMETHOD.

@@ -65,15 +65,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getTheme() {` && |\n| &&
-             `      const Theming = sap.ui.require("sap/ui/core/Theming");` && |\n| &&
-             `      if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
-             `` && |\n| &&
-             `      if (sap.ui.getCore) {` && |\n| &&
-             `        const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
-             `        if (config?.getTheme) return config.getTheme();` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      return "";` && |\n| &&
+             `      return Lib.getTheme();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function bootstrapElement() {` && |\n| &&
@@ -97,25 +89,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getLocale() {` && |\n| &&
-             `      const Localization = sap.ui.require("sap/base/i18n/Localization");` && |\n| &&
-             `      if (Localization?.getLanguage) {` && |\n| &&
-             `        return {` && |\n| &&
-             `          language: Localization.getLanguage(),` && |\n| &&
-             `          rtl: Boolean(Localization.getRTL?.()),` && |\n| &&
-             `        };` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (sap.ui.getCore) {` && |\n| &&
-             `        const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
-             `        if (config?.getLanguage) {` && |\n| &&
-             `          return {` && |\n| &&
-             `            language: config.getLanguage(),` && |\n| &&
-             `            rtl: Boolean(config.getRTL?.()),` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      return { language: "", rtl: false };` && |\n| &&
+             `      return Lib.getLocale();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getContentDensity() {` && |\n| &&
@@ -424,8 +398,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      if (!Array.isArray(list) || !list.length) {` && |\n| &&
              `        out.push("  (none)");` && |\n| &&
              `        return out;` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
+             `      }` && |\n| &&
              `      list.forEach((item, index) => {` && |\n| &&
              `        const number = String(index + 1).padStart(3);` && |\n| &&
              `        if (!Array.isArray(item)) {` && |\n| &&
@@ -451,7 +424,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        ...renderActionList(sAction?.T_SYSTEM, "T_SYSTEM (view lifecycle)"),` && |\n| &&
              `      );` && |\n| &&
              `      out.push(...renderActionList(sAction?.T_CUSTOM, "T_CUSTOM (app)"));` && |\n| &&
-             `      return out.join("\n");` && |\n| &&
+             `      return out.join("\n");` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const LEVEL_LABEL = {` && |\n| &&
@@ -825,8 +799,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      const last = records[records.length - 1];` && |\n| &&
              `      out.push(` && |\n| &&
              `        line(` && |\n| &&
-             `          "Roundtrips",` && |\n|.
-    result = result &&
+             `          "Roundtrips",` && |\n| &&
              `          last` && |\n| &&
              `            ? ``${records.length} recorded, last ${formatOverviewMs(last)}`` +` && |\n| &&
              `                " (Roundtrips > History)"` && |\n| &&
@@ -852,7 +825,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `          getDistribution((AppState.getGlobal("oConfig") || {}).S_UI5),` && |\n| &&
              `        ),` && |\n| &&
              `      );` && |\n| &&
-             `      out.push(line("Theme", getTheme()));` && |\n| &&
+             `      out.push(line("Theme", getTheme()));` && |\n|.
+    result = result &&
              `` && |\n| &&
              `      out.push(section("View slots"));` && |\n| &&
              `      out.push(...formatSlots());` && |\n| &&

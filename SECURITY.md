@@ -92,7 +92,8 @@ look first.
   should repoint `cs_config-src` in their exit to an on-stack or otherwise
   controlled UI5 (`/sap/public/bc/ui5_ui5/resources/sap-ui-core.js` on
   systems that ship it) - the default CSP allows only the UI5 CDN hosts,
-  nothing else.
+  nothing else (`npm run check:csp` holds this claim, and the script-src
+  one above, to the shipped source).
 
 ## Credit
 

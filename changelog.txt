@@ -12,11 +12,16 @@ Legend
 
 unreleased
 ----------
++ New released JSON reader z2ui5_cl_ui5_json for app code: factory( json ) + get_string/get_integer/get_boolean/exists by path and members( ) for iteration - closes the "no portable way to parse JSON" gap of the removal plan
++ New released DDIC structure z2ui5_t_02 (name/value, both string) - the object app code points a dynamic type at instead of naming the framework's internal draft table
++ A skipped delta cell (client->get( )-t_model_skipped) now records the refused raw value and, for a nested cell, the parent row index - two components appended to z2ui5_if_client=>ty_s_model_skip
+! Shell ETag strengthened: a third position-weighted accumulator makes a same-version, same-length collision (which would 304 a browser into keeping a stale shell) implausible
 + New client API families for app-owned hash routing: the hash_* methods (set, replace, back, attach_changed, routing) and app_state_* (set_active, get_href)
 + Conditional GET for the shell: the response carries an ETag and repeat loads answer 304 Not Modified
 + New view builder helper z2ui5_cl_ui5_view_builder=>escape_literal for escaping a value into a view literal
 + New HTTP POST exit config flag check_trust_forwarded_host to stop trusting forwarded-host headers
 ! Per-verb cache policy: the GET shell revalidates via ETag, POST responses stay no-store
+! HEAD stays the session-terminate ping and deliberately answers no-store without the shell's ETag - now documented at the handler (no behavior change)
 ! CSP hardening: script-src and style-src are explicit, general-purpose CDN hosts dropped from the default policy
 ! Security response headers: Cross-Origin-Opener-Policy and Cross-Origin-Resource-Policy sent by default
 * Response header names and values are stripped of CR/LF (response splitting hardening)

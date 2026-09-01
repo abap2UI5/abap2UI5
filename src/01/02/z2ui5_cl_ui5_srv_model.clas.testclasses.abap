@@ -1427,6 +1427,7 @@ CLASS ltcl_test_delta_apply DEFINITION FINAL
     METHODS test_skip_one_of_two    FOR TESTING RAISING cx_static_check.
     METHODS test_skip_absent_field  FOR TESTING RAISING cx_static_check.
     METHODS test_skip_nested_name   FOR TESTING RAISING cx_static_check.
+    METHODS test_skip_nested_parent FOR TESTING RAISING cx_static_check.
 
     METHODS typed_app_create
       RETURNING
@@ -1618,7 +1619,8 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
                                 price = '1249.00'
                                 t_pos = VALUE #( ( qty = 1 ) ) )
                               ( name  = `Monitor`
-                                price = '299.00' ) ).
+                                price = '299.00'
+                                t_pos = VALUE #( ( qty = 2 ) ) ) ).
 
   ENDMETHOD.
 
@@ -1670,6 +1672,13 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
                                         act = lo_model->mt_skipped[ 1 ]-row ).
     cl_abap_unit_assert=>assert_equals( exp = `PRICE`
                                         act = lo_model->mt_skipped[ 1 ]-field ).
+
+    " the entry quotes what the user typed, raw - the half a message needs
+    cl_abap_unit_assert=>assert_equals( exp = `1,250.00`
+                                        act = lo_model->mt_skipped[ 1 ]-value ).
+    " a top-level cell has no parent row
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = lo_model->mt_skipped[ 1 ]-row_parent ).
 
   ENDMETHOD.
 
@@ -1749,6 +1758,47 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
                                         act = lo_model->mt_skipped[ 1 ]-row ).
     cl_abap_unit_assert=>assert_equals( exp = `QTY`
                                         act = lo_model->mt_skipped[ 1 ]-field ).
+
+    " ... and the record that owns the inner table, plus the refused value
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_model->mt_skipped[ 1 ]-row_parent ).
+    cl_abap_unit_assert=>assert_equals( exp = `seven`
+                                        act = lo_model->mt_skipped[ 1 ]-value ).
+
+  ENDMETHOD.
+
+  METHOD test_skip_nested_parent.
+
+    DATA(lo_app) = typed_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " a nested refusal under the SECOND outer row: row stays the inner
+    " table's index, row_parent names the outer record - the entry now
+    " locates MT_TAB[2]-T_POS[1]-QTY instead of "some T_POS somewhere"
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"1":{"T_POS":{"__delta":{"0":{"QTY":"many"}}}}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TAB` ).
+
+    " the old inner value stands
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_app->mt_tab[ 2 ]-t_pos[ 1 ]-qty ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB-T_POS`
+                                        act = lo_model->mt_skipped[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_model->mt_skipped[ 1 ]-row ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_model->mt_skipped[ 1 ]-row_parent ).
+    cl_abap_unit_assert=>assert_equals( exp = `QTY`
+                                        act = lo_model->mt_skipped[ 1 ]-field ).
+    cl_abap_unit_assert=>assert_equals( exp = `many`
+                                        act = lo_model->mt_skipped[ 1 ]-value ).
 
   ENDMETHOD.
 

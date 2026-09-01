@@ -56,6 +56,70 @@ sap.ui.define(
       return null;
     }
 
+    // Probe for the sap/ui/core/Theming module (since 1.118) - the ONLY way
+    // it may be reached (rule 12: a hard sap.ui.define dependency 404s on
+    // 1.71 and kills the whole component load). On modern UI5 the core has
+    // it loaded so the probing require finds it; on older releases it
+    // returns null and the caller falls back or reports "not available".
+    function getThemingModule() {
+      return sap.ui.require("sap/ui/core/Theming") || null;
+    }
+
+    // The running theme, version-independently. sap/ui/core/Theming is the
+    // only API left in UI5 2.x; older releases expose the theme through the
+    // Configuration singleton. Returns "" when neither answers (bare test
+    // bootstraps) - never throws, so a diagnostic caller cannot be the
+    // thing that breaks.
+    function getTheme() {
+      try {
+        const Theming = getThemingModule();
+        if (Theming?.getTheme) return Theming.getTheme();
+        /* ui5lint-disable no-globals, no-deprecated-api --
+         deliberate fallback for UI5 releases without sap/ui/core/Theming
+         (added in 1.118); the modern API is used in the branch above. */
+        if (sap.ui.getCore) {
+          const config = sap.ui.getCore().getConfiguration?.();
+          if (config?.getTheme) return config.getTheme();
+        }
+        /* ui5lint-enable no-globals, no-deprecated-api */
+      } catch (e) {
+        logError("Lib: reading theme failed", e);
+      }
+      return "";
+    }
+
+    // Language and text direction, version-independently - the same probe
+    // for sap/base/i18n/Localization (since 1.118, the only API left in
+    // UI5 2.x); older releases expose both through the Configuration.
+    function getLocale() {
+      try {
+        const Localization = sap.ui.require("sap/base/i18n/Localization");
+        if (Localization?.getLanguage) {
+          return {
+            language: Localization.getLanguage(),
+            rtl: Boolean(Localization.getRTL?.()),
+          };
+        }
+        /* ui5lint-disable no-globals, no-deprecated-api --
+         deliberate fallback for UI5 releases without
+         sap/base/i18n/Localization (added in 1.118); the modern API is used
+         in the branch above. */
+        if (sap.ui.getCore) {
+          const config = sap.ui.getCore().getConfiguration?.();
+          if (config?.getLanguage) {
+            return {
+              language: config.getLanguage(),
+              rtl: Boolean(config.getRTL?.()),
+            };
+          }
+        }
+        /* ui5lint-enable no-globals, no-deprecated-api */
+      } catch (e) {
+        logError("Lib: reading locale failed", e);
+      }
+      return { language: "", rtl: false };
+    }
+
     // True when the running UI5 ships the sap/ui/core/Messaging module (added
     // in 1.118). Callers use it to skip warm-loading that module on older
     // releases (e.g. 1.71) where an async require would 404 and make the
@@ -682,6 +746,9 @@ sap.ui.define(
       getElementById,
       getMessaging,
       hasMessagingModule,
+      getThemingModule,
+      getTheme,
+      getLocale,
       isRootModelSlot,
       effectiveSizeLimit,
       renderInvisibleSpan,

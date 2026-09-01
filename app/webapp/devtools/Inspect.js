@@ -55,21 +55,10 @@ sap.ui.define(
     // Environment
     // ------------------------------------------------------------------
 
-    // The running theme, version-independently. sap/ui/core/Theming arrived
-    // in 1.118 and is the only API left in UI5 2.x; older releases expose
-    // it through the Configuration singleton.
+    // The running theme, version-independently - the probe lives in
+    // core/Lib.js (getTheme), shared with Component.init's S_UI5 block.
     function getTheme() {
-      const Theming = sap.ui.require("sap/ui/core/Theming");
-      if (Theming?.getTheme) return Theming.getTheme();
-      /* ui5lint-disable no-globals, no-deprecated-api --
-       deliberate fallback for UI5 releases without sap/ui/core/Theming
-       (added in 1.118); the modern API is used in the branch above. */
-      if (sap.ui.getCore) {
-        const config = sap.ui.getCore().getConfiguration?.();
-        if (config?.getTheme) return config.getTheme();
-      }
-      /* ui5lint-enable no-globals, no-deprecated-api */
-      return "";
+      return Lib.getTheme();
     }
 
     // The bootstrap <script> of the page. Both pages abap2UI5 can run on
@@ -104,32 +93,10 @@ sap.ui.define(
       }
     }
 
-    // Language and text direction, version-independently.
-    // sap/base/i18n/Localization arrived in 1.118 and is the only API left
-    // in UI5 2.x; older releases expose both through the Configuration.
+    // Language and text direction, version-independently - the probe lives
+    // in core/Lib.js (getLocale), next to its theme twin.
     function getLocale() {
-      const Localization = sap.ui.require("sap/base/i18n/Localization");
-      if (Localization?.getLanguage) {
-        return {
-          language: Localization.getLanguage(),
-          rtl: Boolean(Localization.getRTL?.()),
-        };
-      }
-      /* ui5lint-disable no-globals, no-deprecated-api --
-       deliberate fallback for UI5 releases without
-       sap/base/i18n/Localization (added in 1.118); the modern API is used
-       in the branch above. */
-      if (sap.ui.getCore) {
-        const config = sap.ui.getCore().getConfiguration?.();
-        if (config?.getLanguage) {
-          return {
-            language: config.getLanguage(),
-            rtl: Boolean(config.getRTL?.()),
-          };
-        }
-      }
-      /* ui5lint-enable no-globals, no-deprecated-api */
-      return { language: "", rtl: false };
+      return Lib.getLocale();
     }
 
     // Compact vs cozy decides control heights and is set on the body by the

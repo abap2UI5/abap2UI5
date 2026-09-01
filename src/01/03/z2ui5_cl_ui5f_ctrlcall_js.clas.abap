@@ -288,7 +288,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      THEMING: {` && |\n| &&
-             `        get: () => sap.ui.require("sap/ui/core/Theming"),` && |\n| &&
+             `        get: () => Lib.getThemingModule(),` && |\n| &&
              `        methods: { setTheme: ["string"] },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

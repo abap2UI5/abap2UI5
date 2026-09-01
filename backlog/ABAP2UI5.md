@@ -21,7 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`model-skip-cannot-name-the-record-or-the-value`](items/model-skip-cannot-name-the-record-or-the-value.md) | '`client->get( )-t_model_skipped` locates a top-level cell exactly, but a NESTED cell loses its parent row, and no entry carries the refused value — so the one message an app most wants to write, quoting what the user typed, is not expressible' | medium | 2026-08-27 | abap2UI5/abap2UI5 |
+| [`on-demand-module-route-for-deferred-devtools`](items/on-demand-module-route-for-deferred-devtools.md) | 'The handler answers every GET with the shell, so a module dropped from the preload is unfetchable - deferring the ~23% of preload bytes the devtools could give up needs a whitelisted single-module GET route plus a frontend loader path, and the whitelist has to be GENERATED or it violates the no-manual-preload-list rule' | low | 2026-09-01 | abap2UI5/abap2UI5 |
 
 ---
 

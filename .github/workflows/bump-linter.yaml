@@ -30,6 +30,21 @@
 # would pay for through the shared `npm ci`). --no-save leaves package.json
 # AND package-lock.json untouched - verified, because this workflow commits
 # the lock and a runtime entry leaking into it would be committed with it.
+#
+# TWO THINGS RIDE WITH THE BUMP, NOT BEFORE IT - both validate against the
+# PIN, so landing them early fails the tree that carries them:
+#
+#   - skill text naming a NEW linter rule id. check:skills resolves every
+#     rule id the skills name against the pinned linter, so the id exists
+#     only from the bump commit on - put the skill edit in the same commit
+#     as the bump (push it onto this workflow's PR branch), or stage the id
+#     in skill-rule-gate.mjs's PENDING list, which is the one escape hatch
+#     and fails again the moment the pin catches up
+#   - NEW config keys in abap2ui5lint.jsonc (a cache switch, maxWarnings,
+#     render.pages, ...). The linter's config loader fails loudly on a key
+#     it does not know, so a key from a newer release breaks check:abap2ui5
+#     everywhere until the pin moves - config changes that need a new key
+#     go into the bump commit too
 name: bump-linter
 
 on:

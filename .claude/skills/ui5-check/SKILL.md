@@ -188,27 +188,32 @@ being an *aggregation*, it does not merely get dropped, so it is
   the `ui5-1.71` Playwright project rewrites the theme as well as the
   bootstrap.
 
-**Linter:** **still open, and the honest reason has sharpened.** The module half
-is decidable in principle — parse the `sap.ui.define` dependency array against a
-per-release module list — but it needs two things the linter does not have: the
-data file, and a reason to read **JavaScript at all**. Its input is app classes
-and view XML; `sap.ui.define` only appears in frontend modules, which are this
-repository's own `app/webapp/` and a consumer's custom controls. So this belongs
-in a gate here rather than in the view linter, unless the linter grows a
-frontend-module input — which nothing else is asking for. The theme half is
-configuration, not view content; **out of scope**, keep it as prose.
+**Linter:** **the module half is gated — in this repository, not in the
+linter.** `npm run check:modules` (`.github/scripts/frontend-module-gate.mjs`,
+gated in check_gates.yaml) holds every module named in a `sap.ui.define`
+dependency array under `app/webapp/` to a reviewed present-on-1.71 list, and
+both `sap.ui.require` forms (the probing string and the array-plus-callback)
+to a reviewed-id list of their own — that form returns `undefined` for a
+module the release lacks and for a misspelled id, identically and silently.
+It is a **ratchet**: the current exposure is zero, because everything
+version-sensitive is already resolved lazily (the `Theming` example above),
+and the gate is what keeps it zero. Deliberately a flat reviewed list rather
+than a per-release inventory — a new module costs one line and a look. An
+earlier revision of this section declared the gate not worth building, from a
+measurement that came out of a grep matching only single-line dependency
+arrays and undercounting by an order of magnitude; the gate's own header
+records that lesson, and the numbers are deliberately not repeated here —
+they rot, and that measurement already misled once.
 
-**Neither is being built, and the measurement is why** (2026-08-17). Across all
-55 `sap.ui.define` files in `app/webapp/`, exactly **seven** modules are
-declared in a dependency array — four of them z2ui5's own, and the three UI5
-ones (`sap/ui/core/Control`, `sap/ui/core/IconPool`, `sap/ui/Device`) all long
-predate 1.71. The current exposure is **zero**: everything version-sensitive is
-already resolved lazily, which is what the `Theming` example above shows. A
-rule or a gate would be a ratchet holding a state that holds itself, and the
-rule additionally wants a per-release module inventory nothing else needs. Do
-not re-propose it; if a future frontend module ever declares a post-1.71
-dependency, the blank screen it causes is described above and that is the
-cheaper cure.
+What the gate does NOT cover is the **consumer side**: it reads this
+repository's `app/webapp/` only, and the linter reads app classes and view
+XML — it has no JavaScript input at all — so a consumer repository's own
+frontend modules (custom controls) are checked by nothing. A linter-side rule
+would need that input plus a per-release module inventory; nothing else is
+asking for either, and the blank-screen failure mode is described above for
+whoever hits it there. The theme half (`sap_horizon` needing >= 1.102) is
+configuration, not view content; **out of scope** for the linter, kept as
+prose.
 
 ---
 
@@ -518,6 +523,42 @@ is correct almost everywhere and wrong only against a `true` default.
 Second limit found on the way: `sap.m.ObjectStatus.state` is declared
 `type: "string"` in the metadata, because UI5 validates it at runtime against
 `ValueState` **or** `IndicationColor`. Even a working rule would not see it.
+
+- **A curly brace in a value handed to `a( v = … )` is parsed as a BINDING,
+  never shown as text.** The page bootstraps with complex binding syntax, so
+  a `{` in an attribute value — think a user-supplied search string rendered
+  into a title — is resolved by UI5 as a binding path (or, as `{= … }`, an
+  expression) instead of displayed, and a crafted string can read arbitrary
+  paths out of the view model. The builder deliberately does **not** escape
+  inside `a( )` itself: a deliberate binding in `v` — `client->_bind( )`, an
+  event, a template — is its bread and butter, and only the app knows which
+  values are literals. So the app wraps any user- or external-supplied string
+  it renders via `a( v = … )` in `z2ui5_cl_ui5_view_builder=>escape_literal( )`,
+  which backslash-escapes the braces (UI5's own convention for literal text;
+  XML escaping is a separate concern and always applied on render). The
+  mechanism and the split of responsibility are documented at the method's
+  own ABAP Doc in `src/02/z2ui5_cl_ui5_view_builder.clas.abap` (#2698), and
+  the app guide carries the rule as "untrusted text needs escape_literal".
+
+**Linter:** **ready in shape, blocked on origin — staged so the scope argument
+is not lost.** The chain side is decidable: the linter already models `a( )`
+calls, so "a `v =` argument that is not a string literal or template, and not
+already wrapped in `escape_literal( )`" is a syntactic test. What no view-side
+test can see is the half that matters — whether that non-literal value carries
+user or external input (must be escaped) or IS a deliberate binding the app
+assembled in a variable (must NOT be: escaping it breaks the binding). The
+corpus assembles bindings in variables all the time, so reporting every bare
+variable at `v =` would drown its users and be switched off — the same wall
+as the reverted binding-side enum rule above: it needs "where was this value
+assigned from", data flow over the ABAP class, not the view. What a rule
+would need to decide it: per-argument origin tracking (literal / template /
+`_bind`-`_event` result / `escape_literal( )` result / anything else), plus a
+signal that separates request-derived values (the bound model fields a
+roundtrip writes back) from app-computed ones — the first is where the rule
+should start if it ever ships, because a value the client can write IS
+external input by definition. No rule id is minted here on purpose: the id
+comes with the rule, and a backticked id that resolves to nothing is exactly
+what check:skills exists to refuse.
 
 ---
 

@@ -527,8 +527,9 @@ pitfalls".
 - **ABAP Doc is parsed as HTML.** A literal `<`, `>` or `&` must be escaped as
   `&lt;`, `&gt;`, `&amp;`.
 
-**Not gated: the BUNDLE.** `check:atc` walks this repository's `src/` — that is
-its stated scope, and over `src/` it holds: every `FIND`/`REPLACE … REGEX` here
+**Not gated: the BUNDLE.**
+`check:atc` walks this repository's `src/` — that is its stated scope, and
+over `src/` it holds: every `FIND`/`REPLACE … REGEX` here
 carries `##REGEX_POSIX`, including the five in the vendored AJSON where the
 pragma sits on the statement's CONTINUATION line (a line-based grep reports
 those as missing; the gate flattens statements first, so it does not).

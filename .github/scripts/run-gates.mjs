@@ -74,6 +74,7 @@ const GATES = [
   { npm: "check:downport", script: "downport-operand-gate.mjs" },
   { npm: "check:pins", script: "transpile-pins-gate.mjs" },
   { npm: "check:draftowner", script: "draft-owner-gate.mjs" },
+  { npm: "check:csp", script: "csp-default-gate.mjs" },
   { npm: "check:api", script: "api-snapshot.mjs" },
 ];
 
@@ -98,7 +99,7 @@ const GATES = [
  * so that omission becomes a decision.
  */
 const NOT_A_VERIFY_GATE = {
-  "check:ui5": "shells out to the UI5 linter - the same reason check:standard and check:cloud stay in `verify` as their own commands",
+  "check:ui5": "shells out to the UI5 linter and needs app/node_modules - run-verify runs it as a member of its own in --full mode (npm run verify:full), the way check:standard and check:cloud are members of the default run",
   "check:release": "release-time only: it judges a version bump against the changelog, not the working tree",
   "check:changelog-entry": "CI-only: it judges a pull request's DIFF against a base ref the working tree does not have - check_gates.yaml passes BASE_REF on pull requests",
 };

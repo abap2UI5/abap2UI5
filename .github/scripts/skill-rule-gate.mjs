@@ -25,6 +25,15 @@
  * as "probably fine". It either resolves, or somebody writes one line saying
  * what it is.
  *
+ * The same discipline for the OTHER kind of claim those lines make: a
+ * `check:<name>` npm script named in a Gate:/Linter: paragraph has to exist
+ * in package.json (that claim is about THIS repository, and a script that
+ * does not exist enforces nothing), and a line that says a gate is "not
+ * being built" / "still open" / "not gated" while naming a check script
+ * that DOES exist is a claim that rotted the other way — the ui5-check
+ * module entry said exactly that about check:modules after the gate had
+ * shipped.
+ *
  *   node .github/scripts/skill-rule-gate.mjs        (npm run check:skills)
  */
 import fs from 'fs';
@@ -77,6 +86,16 @@ const PENDING = new Map([
 
 const TOKEN = /`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`/g;
 
+/* An npm-script claim: the colon form bare (`check:modules`) or any check
+ * script behind an explicit `npm run` (`npm run check_visibility`). The bare
+ * underscore form is deliberately NOT matched — `check_syntax` is an abaplint
+ * RULE id the skills also name, and only the `npm run` prefix separates a
+ * script claim from a rule one. */
+const SCRIPT_TOKEN = /`(?:npm run (check[:_][a-z0-9:_-]+)|(check:[a-z0-9:_-]+))`/g;
+/* The rotten-the-other-way claim: a gate declared missing on the same line
+ * as a check script that exists. */
+const STALE_CLAIM = /not (?:being )?built|still open|not gated/i;
+
 function markdownFiles(dir, out = []) {
   for (const name of fs.readdirSync(dir)) {
     const full = path.join(dir, name);
@@ -90,10 +109,14 @@ const { RULES } = await import(
   path.join(ROOT, 'node_modules', '@abap2ui5', 'linter', 'lib', 'findings.mjs')
 );
 const known = new Set(RULES);
+const scripts = new Set(Object.keys(
+  JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).scripts ?? {},
+));
 
 const problems = [];
 const seen = new Map(); // token -> first file that used it
 let checked = 0;
+let scriptChecked = 0;
 
 for (const file of markdownFiles(SKILLS)) {
   const rel = path.relative(ROOT, file);
@@ -108,6 +131,49 @@ for (const file of markdownFiles(SKILLS)) {
       + '    if it is a rule, it was renamed or retired — fix the line\n'
       + '    if it is not, add it to NOT_A_RULE in this script with what it is',
     );
+  }
+
+  /* The Gate:/Linter: paragraphs, line by line. A script named there is a
+   * claim about THIS repository's package.json; elsewhere in a skill a
+   * `npm run check:…` may legitimately belong to a sibling repository
+   * (samples-stack's check:abapdoc, samples-controls' check:chains), so the
+   * scope stays the lines whose whole point is "what decides this here". */
+  const lines = text.split('\n');
+  const inParagraph = new Set();
+  for (let i = 0; i < lines.length; i++) {
+    if (!/\*\*(Gate|Linter):/.test(lines[i])) continue;
+    for (let j = i; j < lines.length && lines[j].trim() !== ''; j++) inParagraph.add(j);
+  }
+  for (const i of inParagraph) {
+    for (const m of lines[i].matchAll(SCRIPT_TOKEN)) {
+      const name = m[1] ?? m[2];
+      scriptChecked += 1;
+      if (!scripts.has(name)) {
+        problems.push(
+          `${rel}:${i + 1}: the Gate:/Linter: line names \`${name}\`, which is no npm script here\n`
+          + '    the line is how a reader learns what is enforced, and a script that\n'
+          + '    does not exist enforces nothing — fix the name, or drop the claim',
+        );
+      }
+    }
+  }
+
+  /* The claim that rotted the other way: "not being built" / "still open" /
+   * "not gated" on the same line as a check script that EXISTS. Checked on
+   * every line, not only the Gate:/Linter: ones — the stale ui5-check claim
+   * sat in a follow-on paragraph. */
+  for (let i = 0; i < lines.length; i++) {
+    if (!STALE_CLAIM.test(lines[i])) continue;
+    for (const m of lines[i].matchAll(SCRIPT_TOKEN)) {
+      const name = m[1] ?? m[2];
+      if (scripts.has(name)) {
+        problems.push(
+          `${rel}:${i + 1}: claims a gate is missing on the same line as \`${name}\`,\n`
+          + '    which exists in package.json — the claim rotted; rewrite the line to\n'
+          + '    say what the gate covers and what actually remains open',
+        );
+      }
+    }
   }
 }
 
@@ -141,7 +207,8 @@ const rules = [...seen.keys()].filter((t) => known.has(t));
 console.log(
   `skill-rule: ${checked} token(s) in ${markdownFiles(SKILLS).length} skill file(s); `
   + `${rules.length} name a rule of the pinned linter (${RULES.length} known), `
-  + `${NOT_A_RULE.size} are not rules, ${PENDING.size} pending a pin bump`,
+  + `${NOT_A_RULE.size} are not rules, ${PENDING.size} pending a pin bump; `
+  + `${scriptChecked} npm-script claim(s) on Gate:/Linter: lines`,
 );
 
 if (problems.length) {

@@ -164,26 +164,12 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `              VERSION: info.version,` && |\n| &&
              `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
              `              GAV: info.gav,` && |\n| &&
-             `              THEME: this._getTheme(),` && |\n| &&
+             `              THEME: Lib.getTheme(),` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Component: VersionInfo load failed", e);` && |\n| &&
              `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _getTheme() {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const Theming = sap.ui.require("sap/ui/core/Theming");` && |\n| &&
-             `          if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
-             `` && |\n| &&
-             `          if (sap.ui.getCore) {` && |\n| &&
-             `            return sap.ui.getCore().getConfiguration().getTheme();` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("Component: reading theme failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `        return "";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _onUnload(event) {` && |\n| &&

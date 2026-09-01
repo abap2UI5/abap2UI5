@@ -260,7 +260,20 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
               " endSession). It used to RETURN before set_response( ), which
               " sent the reply with status code 0 and none of the security
               " headers. An empty 200 through the normal tail keeps status and
-              " headers consistent with every other reply
+              " headers consistent with every other reply.
+              "
+              " Deliberate conflation, worth stating: to HTTP, HEAD on this
+              " URL is "GET without a body" and should answer with the GET
+              " shell's headers (a cache may fold a HEAD reply into its
+              " stored GET entry). Here it is not - HEAD is repurposed as the
+              " terminate ping, and set_response( ) answers it through the
+              " no-store branch (no ETag, no revalidation), NOT with the
+              " shell's cache headers. That is the wanted behaviour: a
+              " terminate ping answered from a cache terminates nothing, and
+              " a no-store HEAD reply is what keeps intermediaries from
+              " updating their stored GET shell from it. Nothing but the
+              " framework's own frontend sends HEAD to this node, so the
+              " generic-client reading of HEAD has no consumer to serve.
               mo_server->set_session_stateful( 0 ).
               ms_res = VALUE #( status_code   = 200
                                 status_reason = `OK` ).
@@ -509,7 +522,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _get_body_etag.
 
-    " a cache VALIDATOR, not a cryptographic hash: two small modular
+    " a cache VALIDATOR, not a cryptographic hash: three modular
     " accumulators over the UTF-8 bytes plus the byte count, in plain ABAP so
     " the method downports to 7.02 and transpiles. It runs once per cache
     " fill (see _http_get), never per request. On a stack where the byte
@@ -522,22 +535,32 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
+    " Three accumulators, not two: with the version constant and the byte
+    " count equal (a redeployed frontend between releases), the two 16-bit
+    " accumulators alone left ~2^32 states - enough for a same-length
+    " collision to 304 a browser into keeping a stale shell. The third mixes
+    " with a larger modulus AND weighs every byte by its position, so a pair
+    " that collides in h1/h2 still separates in h3 unless it also collides
+    " under a structurally different mix - implausible for a cache
+    " validator's job, still no cryptographic claim
     DATA(lv_len) = xstrlen( lv_xstr ).
     DATA lv_h1 TYPE i VALUE 5381.
     DATA lv_h2 TYPE i VALUE 17.
+    DATA lv_h3 TYPE i VALUE 104729.
     DATA lv_byte TYPE i.
     DATA lv_off TYPE i.
     WHILE lv_off < lv_len.
       lv_byte = lv_xstr+lv_off(1).
       lv_h1 = ( lv_h1 * 33 + lv_byte ) MOD 65521.
       lv_h2 = ( lv_h2 * 31 + lv_byte ) MOD 65519.
+      lv_h3 = ( lv_h3 * 131 + lv_byte * ( lv_off MOD 251 + 1 ) ) MOD 1000003.
       lv_off = lv_off + 1.
     ENDWHILE.
 
     " quoted, as the ETag header syntax demands; the version constant rides
-    " along so a release always changes the tag even if the two accumulators
+    " along so a release always changes the tag even if the accumulators
     " ever collided across it
-    result = |"{ z2ui5_if_app=>version }-{ lv_len }-{ lv_h1 }-{ lv_h2 }"|.
+    result = |"{ z2ui5_if_app=>version }-{ lv_len }-{ lv_h1 }-{ lv_h2 }-{ lv_h3 }"|.
 
   ENDMETHOD.
 
@@ -559,6 +582,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " embedded frontend on every reload / FLP re-entry. Only the 200 shell -
     " the roundtrip data itself always travels via POST, which stays no-store
     " below, and an error body must never be revalidated into staying.
+    " GET exactly, not HEAD: HEAD of this URL is the session-terminate ping,
+    " deliberately answered no-store rather than as "GET without a body" -
+    " the reasoning sits at the HEAD branch in main( ).
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ms_res-status_code = 200 AND sv_get_etag IS NOT INITIAL.
       lv_etag_get = sv_get_etag.

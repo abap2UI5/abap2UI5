@@ -458,10 +458,11 @@ sap.ui.define(
       },
       // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a
       // hard dependency (it 404s on 1.71 and kills the whole component load).
-      // Resolve it lazily: on modern UI5 the core has it loaded, on 1.71 the
-      // require returns undefined and the dispatch reports "not available".
+      // Lib.getThemingModule is the shared lazy probe: on modern UI5 the
+      // core has the module loaded, on 1.71 it answers null and the
+      // dispatch reports "not available".
       THEMING: {
-        get: () => sap.ui.require("sap/ui/core/Theming"),
+        get: () => Lib.getThemingModule(),
         methods: { setTheme: ["string"] },
       },
       // sap/ui/core/Popup is a HARD dependency of this module on purpose:
