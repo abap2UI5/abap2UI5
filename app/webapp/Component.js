@@ -225,34 +225,12 @@ sap.ui.define(
               VERSION: info.version,
               BUILDTIMESTAMP: info.buildTimestamp,
               GAV: info.gav,
-              THEME: this._getTheme(),
+              THEME: Lib.getTheme(),
             };
           }
         } catch (e) {
           Lib.logError("Component: VersionInfo load failed", e);
         }
-      },
-
-      _getTheme() {
-        // sap/ui/core/Theming only exists since UI5 1.118, so it must not be
-        // a hard dependency of this module - older bootstraps (e.g. 1.108)
-        // would fail to load the component. On 1.118+ the core itself loads
-        // Theming, so the probing require finds it; otherwise fall back to
-        // the legacy Configuration API.
-        try {
-          const Theming = sap.ui.require("sap/ui/core/Theming");
-          if (Theming?.getTheme) return Theming.getTheme();
-          /* ui5lint-disable no-globals, no-deprecated-api --
-             deliberate fallback for UI5 releases without sap/ui/core/Theming
-             (added in 1.118); the modern API is used in the branch above. */
-          if (sap.ui.getCore) {
-            return sap.ui.getCore().getConfiguration().getTheme();
-          }
-          /* ui5lint-enable no-globals, no-deprecated-api */
-        } catch (e) {
-          Lib.logError("Component: reading theme failed", e);
-        }
-        return "";
       },
 
       _onUnload(event) {

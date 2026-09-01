@@ -54,6 +54,50 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function getThemingModule() {` && |\n| &&
+             `      return sap.ui.require("sap/ui/core/Theming") || null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getTheme() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const Theming = getThemingModule();` && |\n| &&
+             `        if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
+             `` && |\n| &&
+             `        if (sap.ui.getCore) {` && |\n| &&
+             `          const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
+             `          if (config?.getTheme) return config.getTheme();` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        logError("Lib: reading theme failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      return "";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getLocale() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const Localization = sap.ui.require("sap/base/i18n/Localization");` && |\n| &&
+             `        if (Localization?.getLanguage) {` && |\n| &&
+             `          return {` && |\n| &&
+             `            language: Localization.getLanguage(),` && |\n| &&
+             `            rtl: Boolean(Localization.getRTL?.()),` && |\n| &&
+             `          };` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (sap.ui.getCore) {` && |\n| &&
+             `          const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
+             `          if (config?.getLanguage) {` && |\n| &&
+             `            return {` && |\n| &&
+             `              language: config.getLanguage(),` && |\n| &&
+             `              rtl: Boolean(config.getRTL?.()),` && |\n| &&
+             `            };` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        logError("Lib: reading locale failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      return { language: "", rtl: false };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function hasMessagingModule() {` && |\n| &&
              `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
              `` && |\n| &&
@@ -380,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      oRm.close("span");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n| &&
+             `    const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    function hookCallback(owner, callbackName, method) {` && |\n| &&
              `      const bound = owner[method].bind(owner);` && |\n| &&
@@ -424,8 +469,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      return result;` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `    function normalizeEventArg(value, depth) {` && |\n| &&
              `      const level = depth || 0;` && |\n| &&
              `      if (level > MAX_ARG_DEPTH) return value;` && |\n| &&
@@ -466,6 +510,9 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      getElementById,` && |\n| &&
              `      getMessaging,` && |\n| &&
              `      hasMessagingModule,` && |\n| &&
+             `      getThemingModule,` && |\n| &&
+             `      getTheme,` && |\n| &&
+             `      getLocale,` && |\n| &&
              `      isRootModelSlot,` && |\n| &&
              `      effectiveSizeLimit,` && |\n| &&
              `      renderInvisibleSpan,` && |\n| &&
