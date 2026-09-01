@@ -519,7 +519,7 @@ The same tree, with the subtree held in a variable:
   released for ABAP Cloud, `xco_cp_json` is missing on 7.02, and the vendored
   ajson is framework-internal, which the linter's `non-released-api` rule
   reports). `z2ui5_cl_ui5_json=>factory( lv_json )` parses once (invalid JSON
-  raises `z2ui5_cx_ui5_util_error`); then `get_string( `/order/id` )`,
+  raises `z2ui5_cx_ui5_util_error`); then ``get_string( `/order/id` )``,
   `get_integer( )`, `get_boolean( )` read by path, `exists( )` tells an
   absent value from an empty one, and `members( )` lists an object's keys or
   an array's 1-based indices in document order — loop over them and build
