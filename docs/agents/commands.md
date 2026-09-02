@@ -64,22 +64,30 @@ build rather than passing silently once its anchors stop matching.
 `test_bind_tab_cell` (in `z2ui5_cl_ui5_client`'s test class) is the canary that
 the shim still works.
 
-**Three more, the same way.** `npm run auto_transpile` runs
+**Six more, the same way.** `npm run auto_transpile` runs
 `node/setup/patch-open-abap-core.mjs` and
 `node/setup/patch-abaplint-runtime-assign.mjs` first. The former patches the
-pinned open-abap-core checkout twice: `cl_abap_typedescr=>describe_by_name`
+pinned open-abap-core checkout four times: `cl_abap_typedescr=>describe_by_name`
 learns the absolute spelling of a type name (`\TYPE=STRING`,
 `\TYPE-POOL=ABAP\TYPE=ABAP_BOOL`, the spelling S-RTTI resolves a serialized
-component by), and the asXML writer of `CALL TRANSFORMATION id` escapes
+component by); the asXML writer of `CALL TRANSFORMATION id` escapes
 character values (a string CONTAINING markup - the S-RTTI payload of every
-draft with a generic data reference - came back truncated). The latter makes
-the installed `@abaplint/runtime` answer sy-subrc 4 for a dynamic ASSIGN
-through a component that does not exist, instead of a TypeError. Without the
-three no draft that carries a TYPE HANDLE table restores in the transpiled
-backend (`ltcl_test_app_root4->test_tab_ref_gen` was skipped for exactly
-that) and a host that swaps its sub-app's class crashes the restore. All
-three are filed in `backlog/`; each is idempotent and FAILS the transpile
-when the line it anchors on moves upstream.
+draft with a generic data reference - came back truncated); a line feed
+travels as `&#10;` (the parser strips every literal one, so a text area lost
+its line breaks across the draft); and the parser resolves `&amp;` last (it
+resolved it first and so double-unescaped an escaped payload inside an
+escaped value - `<b>` in a cell of a generic table came back as markup). The
+latter patches the installed `@abaplint/runtime` twice: a dynamic ASSIGN
+through a component that does not exist answers sy-subrc 4 instead of a
+TypeError, and one that reaches a PRIVATE attribute falls back to the
+transpiler's friends map - the asXML heap writer reads every attribute that
+way, and every mapper of `z2ui5_cl_ajson_mapping` has a private one, so no
+bound attribute with a `custom_mapper` survived a draft here. Without them no
+draft that carries a TYPE HANDLE table restores in the transpiled backend
+(`ltcl_test_app_root4->test_tab_ref_gen` was skipped for exactly that) and a
+host that swaps its sub-app's class crashes the restore. All are filed in
+`backlog/` (`open-abap-*`, `transpiler-*`); each is idempotent by marker and
+FAILS the transpile when the line it anchors on moves upstream.
 
 **Pinned git dependencies:** abaplint and the transpiler clone three upstream
 repos (steampunk API intersection, open-abap-core, express-icf-shim). These
@@ -176,6 +184,7 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 ## Testing
 
 - **Unit tests:** Embedded in source files as `.testclasses.abap`, run via abaplint transpiler in Node.js
+- **The structured suites:** the test includes of the engine's four state carriers (`z2ui5_cl_ui5_srv_model`, `z2ui5_cl_ui5_srv_bind`, `z2ui5_cl_ui5_app_cont`, `z2ui5_cl_ui5_handler`) end in one section per functionality, numbered in the order of a roundtrip (`ltcl_01_dissolve` … `ltcl_05_draft`; `ltcl_01_path` … `ltcl_03_options`; `ltcl_01_xml` … `ltcl_04_model`; `ltcl_01_request` … `ltcl_04_nav`), every section inheriting fixture, helpers and invariants from an abstract `ltcl_00_base`. **A new attribute form is one more attribute in the fixture** (`ltcl_app_shapes`, S01–S30, every form an app attribute can take); every section picks it up. The classes above the section header are the suite as it grew, one per incident: each carries an `OBSOLETE` note mapping its methods to the section that covers them, and is deleted once that mapping has been checked - add a new case to a section, not to an obsolete class. The `abap_transpile.json` skips name the section methods
 - **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by the `browser` matrix in `test.yaml`, against the shared `transpile` job's output), plus the pinned `ui5-1.71` project (Chromium, smoke + roundtrip specs against pinned OpenUI5 1.71 via the bootstrap rewrite in `node/tests/e2e/fixtures.js` — the executable part of the 1.71 rules, see the enforcement-status note). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action), browser history navigation (`nav-back-forward.spec.js`) and the shell smoke test (`example.spec.js`). The transpiled Node backend renders backend-built view XML (the historical "check_on_init always false" transpiler limitation is gone since the interface-attribute access goes through a typed variable — see the comment in `z2ui5_cl_ui5_client`'s `z2ui5_if_client~check_on_init`); `roundtrip.spec.js` asserts the full cycle: initial view XML, an event roundtrip whose model delta is applied before `on_event`, and — browser-level — filling the hello-world input and asserting the rendered message box
 - **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — **never test a copied function**. Which module has which spec is the inventory in **`docs/agents/test-inventory.md`**, held complete by `npm run check:specs`; it grows with every frontend change and was once the longest line in AGENTS.md. Run them without a browser: `npx playwright test -c node/playwright-unit.config.js` (`npm run check:js`)
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.

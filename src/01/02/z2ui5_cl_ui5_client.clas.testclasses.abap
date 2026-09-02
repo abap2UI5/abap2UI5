@@ -1,3 +1,14 @@
+" ---------------------------------------------------------------------------
+" The API contract of z2ui5_if_client as an app sees it: what each method
+" answers, what it queues, what it refuses. Where a case here also proves
+" the model underneath (a binding path, a cell, a mapper or filter across
+" the draft), the systematic coverage is in the structured suites of
+" z2ui5_cl_ui5_srv_bind (ltcl_01_path, ltcl_02_cell, ltcl_03_options) and
+" z2ui5_cl_ui5_srv_model (ltcl_01_dissolve to ltcl_05_draft); this file
+" keeps the call through the client as the app writes it - test_bind_tab_cell
+" doubles as the canary for the downport patch that keeps the cell form
+" working (node/setup/patch-abaplint-downport.mjs).
+" ---------------------------------------------------------------------------
 CLASS ltcl_test_app DEFINITION FINAL.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
