@@ -414,6 +414,12 @@ pitfalls".
 - **`LOOP AT … WHERE` over a standard table is a sequential read** and wants
   `"#EC CI_SORTSEQ` on the statement. Fifteen were annotated in the three
   sweeps above, and the gate found seven more that had accumulated since.
+  A LOOP that names a secondary key (`USING KEY … WHERE <key component> =`)
+  is a keyed read and wants no pragma; the gate skips it. The one such key in
+  the framework is `parent` on `z2ui5_if_ui5_types=>ty_t_attri` (2026-09) -
+  its component is written before the row is inserted and never through a
+  reference afterwards, which is the condition a secondary key component has
+  to meet.
 - **An empty `CATCH` block** wants `##NO_HANDLER` — that is how you say the
   empty handler is deliberate. `CATCH cx_root INTO DATA(x) ##NO_HANDLER.`
 - **`FIND`/`REPLACE … REGEX` is POSIX**, which is deprecated. `FIND PCRE` only

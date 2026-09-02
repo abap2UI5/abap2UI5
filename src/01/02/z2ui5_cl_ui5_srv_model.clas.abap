@@ -166,16 +166,29 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! again in the handler. Only a value that ARRIVED can be recorded here -
     "! the caller reaches this method per member of the delta row, so an
     "! absent field never becomes an entry.
+    " what delta_apply_field learnt about a COLUMN of the table it is
+    " writing: whether a nested table there is a standard one. Decided by
+    " the component's type, so once per column per delta, not per cell
+    TYPES:
+      BEGIN OF ty_s_col_kind,
+        field    TYPE string,
+        standard TYPE abap_bool,
+      END OF ty_s_col_kind.
+    TYPES ty_t_col_kind TYPE SORTED TABLE OF ty_s_col_kind WITH UNIQUE KEY field.
+
     "! ir_before is a scratch component of the SAME type as ir_comp, owned
     "! by the caller's work row - the old value is kept there while the
-    "! write may still be refused
+    "! write may still be refused. ct_col_kind is the caller's memory of
+    "! the table kinds per column (see ty_t_col_kind)
     METHODS delta_apply_field
       IMPORTING
-        io_delta  TYPE REF TO z2ui5_if_ajson
-        iv_path   TYPE string
-        is_cell   TYPE z2ui5_if_client=>ty_s_model_skip
-        ir_comp   TYPE REF TO data
-        ir_before TYPE REF TO data
+        io_delta    TYPE REF TO z2ui5_if_ajson
+        iv_path     TYPE string
+        is_cell     TYPE z2ui5_if_client=>ty_s_model_skip
+        ir_comp     TYPE REF TO data
+        ir_before   TYPE REF TO data
+      CHANGING
+        ct_col_kind TYPE ty_t_col_kind
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -249,6 +262,16 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         ir_ref        TYPE REF TO data
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    " the upper-case mapper every model serialization attaches: it holds
+    " no state of its own (an empty field mapping), so one instance serves
+    " every call instead of two objects per serialization. Created on the
+    " first call, not in a class constructor - see z2ui5_cl_ui5_frontend's
+    " box_resolve for why a static constructor is avoided here
+    CLASS-DATA gi_mapper_upper TYPE REF TO z2ui5_if_ajson_mapping.
+    CLASS-METHODS mapper_upper
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ajson_mapping.
 
     METHODS delta_apply_scalar
       IMPORTING
@@ -371,9 +394,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " construction (attribute names come from RTTI), so the mapping is
         " a no-op on it
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                       ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
-        DATA(ajson_default) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                       ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+                                       ii_custom_mapping = mapper_upper( ) ) ).
+        " the scratch instance for a filtered attribute without a mapper
+        " of its own - created when the first such attribute asks for it
+        DATA ajson_default TYPE REF TO z2ui5_if_ajson.
 
         TYPES: BEGIN OF ty_s_mapper_cache,
                  mapper TYPE REF TO z2ui5_if_ajson_mapping,
@@ -427,6 +451,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                 ajson  = ajson ) INTO TABLE lt_mapper_cache.
               ENDIF.
             ELSE.
+              IF ajson_default IS NOT BOUND.
+                ajson_default = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                          ii_custom_mapping = mapper_upper( ) ) ).
+              ENDIF.
               ajson = ajson_default.
             ENDIF.
 
@@ -679,10 +707,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " after the first hit states that fact - the loop can never have a
           " second row to visit, it exists only to pair the WHERE filter
           " with a no-match fallthrough
-          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
-               WHERE name_ref IS INITIAL
-                     AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-                     AND name_parent = lr_attri->name.
+          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) USING KEY parent
+               WHERE name_parent = lr_attri->name
+                     AND name_ref IS INITIAL
+                     AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
 
             DATA(lv_path_child) = |MO_APP->{ lr_attri_child->name }|.
             ASSIGN (lv_path_child) TO FIELD-SYMBOL(<val_ref>).
@@ -1165,7 +1193,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_update_refs_children.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) USING KEY parent
          WHERE name_parent = ir_attri->name.
       DATA(lv_name) = shift_left( val = lr_attri_child->name
                                   sub = |{ ir_attri->name }->| ).
@@ -1311,6 +1339,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <work_row> TYPE any.
     FIELD-SYMBOLS <before>   TYPE any.
     DATA lr_work_row TYPE REF TO data.
+    DATA lt_col_kind TYPE ty_t_col_kind.
 
     " ONE work row per table for the old values delta_apply_field keeps
     " aside - a select-all toggle over a thousand rows used to allocate a
@@ -1355,14 +1384,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
-        delta_apply_field( io_delta  = io_delta
-                           iv_path   = |{ lv_row_path }/{ lv_fld }|
-                           is_cell   = VALUE #( name       = iv_table
-                                                row        = lv_tabix
-                                                field      = lv_fld
-                                                row_parent = iv_row_parent )
-                           ir_comp   = REF #( <comp> )
-                           ir_before = REF #( <before> ) ).
+        delta_apply_field( EXPORTING io_delta    = io_delta
+                                     iv_path     = |{ lv_row_path }/{ lv_fld }|
+                                     is_cell     = VALUE #( name       = iv_table
+                                                            row        = lv_tabix
+                                                            field      = lv_fld
+                                                            row_parent = iv_row_parent )
+                                     ir_comp     = REF #( <comp> )
+                                     ir_before   = REF #( <before> )
+                           CHANGING  ct_col_kind = lt_col_kind ).
       ENDLOOP.
     ENDLOOP.
 
@@ -1408,6 +1438,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         result = xsdbool( lo_tab->table_kind = cl_abap_tabledescr=>tablekind_std ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD mapper_upper.
+
+    IF gi_mapper_upper IS NOT BOUND.
+      gi_mapper_upper = z2ui5_cl_ajson_mapping=>create_upper_case( ).
+    ENDIF.
+    result = gi_mapper_upper.
 
   ENDMETHOD.
 
@@ -1493,8 +1532,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             DATA(lv_sub_delta) = |{ iv_path }/__delta|.
             IF io_delta->exists( lv_sub_delta ) = abap_true.
               FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
-              " the table kind first, the ASSIGN second - see delta_apply_to_table
-              IF check_table_standard( ir_comp ) = abap_true.
+              " the table kind first, the ASSIGN second - see
+              " delta_apply_to_table. Asked once per COLUMN: the kind is a
+              " property of the component's type, the same in every row.
+              " That holds because a REF TO data column is not followed
+              " here (check_table_standard sees the reference itself and
+              " answers no) - a delta through such a column would have to
+              " ask per cell again
+              READ TABLE ct_col_kind REFERENCE INTO DATA(lr_col_kind)
+                   WITH TABLE KEY field = is_cell-field.
+              IF sy-subrc <> 0.
+                INSERT VALUE #( field    = is_cell-field
+                                standard = check_table_standard( ir_comp ) )
+                       INTO TABLE ct_col_kind REFERENCE INTO lr_col_kind.
+              ENDIF.
+              IF lr_col_kind->standard = abap_true.
                 ASSIGN ir_comp->* TO <sub_tab>.
               ENDIF.
               IF <sub_tab> IS ASSIGNED.

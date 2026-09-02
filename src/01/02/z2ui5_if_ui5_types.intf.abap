@@ -92,7 +92,14 @@ INTERFACE z2ui5_if_ui5_types
       type_kind          TYPE string,
       kind               TYPE string,
     END OF ty_s_attri.
-  TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
+  " the secondary key serves the two reads that walk a row's CHILDREN (the
+  " save of a generic reference, the alias pass) - a sequential scan of
+  " the whole table per parent otherwise. name_parent is written before a
+  " row is inserted and never through a reference afterwards, which is
+  " what a key component of a secondary key requires; name_ref, which the
+  " alias pass rewrites through references, must never join a key
+  TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name
+    WITH NON-UNIQUE SORTED KEY parent COMPONENTS name_parent.
 
   " One view-lifecycle call, as the backend collects it. It is kept typed
   " until main_end( ) rather than serialized on the spot: the calls have to

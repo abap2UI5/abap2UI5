@@ -139,7 +139,10 @@ for (const file of files) {
     const flat = stmt.text.replace(/\n/g, " ");
     const at = `${file}:${stmt.start}`;
 
-    if (/^\s*LOOP\s+AT\b/i.test(flat) && /\bWHERE\b/i.test(flat) && !/CI_SORTSEQ/i.test(flat)) {
+    // a LOOP that names a secondary key (USING KEY) reads through that key,
+    // which is what the check asks for - z2ui5_if_ui5_types=>ty_t_attri
+    // carries one for the child walks of the model service (2026-09)
+    if (/^\s*LOOP\s+AT\b/i.test(flat) && /\bWHERE\b/i.test(flat) && !/CI_SORTSEQ/i.test(flat) && !/\bUSING\s+KEY\b/i.test(flat)) {
       findings.push({
         at,
         rule: "sortseq",
