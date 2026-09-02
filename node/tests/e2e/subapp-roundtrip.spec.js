@@ -154,3 +154,30 @@ test("a popup app called from the sub-app leaves the host's view alone", async (
   expect(JSON.stringify(backA.MODEL)).toContain('"a-1"');
   expect(toasts(backA)).toEqual([]);
 });
+
+// Sample 212: the embedded sub-app opens a popup of its own while the host
+// holds the page. The response is the HOST's (its class, its model with the
+// sub-app's table inside), it displays the popup and leaves MAIN alone -
+// and closing it sends the destroy, nothing else.
+test("a popup opened from inside the embedded sub-app", async ({ request }) => {
+  const start = await post(request, { SEARCH: `?app_start=${HOST}` });
+
+  const opened = await post(request, {
+    ID: start.S_FRONT.ID,
+    EVENT: "ROW_POPUP",
+  });
+  expect(opened.S_FRONT.APP).toBe(HOST.toUpperCase());
+  expect(slotAction(opened, "display", "POPUP")).toBeDefined();
+  expect(slotAction(opened, "display", "MAIN")).toBeUndefined();
+  expect(slotAction(opened, "display", "POPUP")?.[3]).toContain("sub-app a");
+  expect(JSON.stringify(opened.MODEL)).toContain('"a-1"');
+  expect(toasts(opened)).toEqual([]);
+
+  const closed = await post(request, {
+    ID: opened.S_FRONT.ID,
+    EVENT: "POPUP_CLOSE",
+  });
+  expect(slotAction(closed, "destroy", "POPUP")).toBeDefined();
+  expect(slotAction(closed, "display", "MAIN")).toBeUndefined();
+  expect(toasts(closed)).toEqual([]);
+});

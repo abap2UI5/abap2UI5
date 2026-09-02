@@ -79,7 +79,27 @@ CLASS zcl_tst_sub_a IMPLEMENTATION.
 
     DATA lo_popup TYPE REF TO zcl_tst_popup_app.
 
+    DATA popup  TYPE REF TO z2ui5_cl_ui5_view_builder.
+
     CASE client->get_event( ).
+      WHEN `ROW_POPUP`.
+        " sample 212: the embedded sub-app opens a popup of its OWN while
+        " the host holds the page - the popup belongs to the host's draft
+        popup = z2ui5_cl_ui5_view_builder=>factory( ).
+        popup->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`      v = `sap.m`
+            )->a( n = `xmlns:core` v = `sap.ui.core`
+            )->ele( `Dialog`
+                )->a( n = `title` v = `sub-app a`
+                )->tag( `Input`
+                    )->a( n = `value` v = client->_bind( mv_table )
+                )->ele( `buttons`
+                    )->tag( `Button`
+                        )->a( n = `text`  v = `Close`
+                        )->a( n = `press` v = client->_event( `POPUP_CLOSE` ) ).
+        client->popup_display( popup->stringify( ) ).
+      WHEN `POPUP_CLOSE`.
+        client->popup_destroy( ).
       WHEN `SELECTION_CHANGE`.
         " the row click hands over to an app that only opens a popup
         CREATE OBJECT lo_popup.

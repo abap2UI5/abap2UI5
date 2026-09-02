@@ -467,12 +467,31 @@ CLASS ltcl_test_db_shapes IMPLEMENTATION.
     DATA(lr_attri) = lo_model->main_attri_search( lo_restored->mr_handle_tab ).
     cl_abap_unit_assert=>assert_equals( exp = lv_table_row
                                         act = lr_attri->name ).
+
+    " sample 335: the restored instance changes its data - through the
+    " HELPER's reference - before the next draft; the change has to reach
+    " the model of the roundtrip after that, and the references stay one
+    FIELD-SYMBOLS <row> TYPE any.
+    DATA ls_row TYPE ltcl_cont_app=>ty_s_row.
+    ASSIGN lo_restored->mo_inner->mr_shared->* TO <tab>.
+    ls_row-col1 = `appended after the restore`.
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_row TO <row>.
+    DATA(lv_changed) = lo_loaded->model_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_changed CS `"appended after the restore"` ) ).
+
     lo_loaded->ms_draft-id = `TEST_SHAPES_2`.
     lo_loaded->db_save( ).
     z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
     DATA(lo_second) = z2ui5_cl_ui5_app_cont=>db_load( `TEST_SHAPES_2` ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_before
+    cl_abap_unit_assert=>assert_equals( exp = lv_changed
                                         act = lo_second->model_json_stringify( ) ).
+    DATA lo_restored_2 TYPE REF TO ltcl_cont_app.
+    lo_restored_2 ?= lo_second->mo_app.
+    ASSIGN lo_restored_2->mr_handle_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <tab> ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_restored_2->mr_handle_tab = lo_restored_2->mo_inner->mr_shared ) ).
 
   ENDMETHOD.
 

@@ -2719,6 +2719,9 @@ CLASS ltcl_test_shapes DEFINITION FINAL
     METHODS dead_objects_stay_quiet  FOR TESTING RAISING cx_static_check.
     " S13: a dref chain keeps its data
     METHODS dref_chain_survives      FOR TESTING RAISING cx_static_check.
+    " S24 / sample 332: a CELL binding (tab + tab_index) into the helper's
+    " table, made on the instance the draft restored
+    METHODS cell_bind_after_restore  FOR TESTING RAISING cx_static_check.
 
     METHODS bind_all.
     METHODS bind
@@ -3137,6 +3140,42 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD cell_bind_after_restore.
+
+    bind_all( ).
+    roundtrip( ).
+
+    " the binder works on the container: the restored app and the restored
+    " attribute table, exactly what the next render's _bind( ) sees
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app   = mo_app.
+    lo_cont->mt_attri = mr_attri.
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( lo_cont ).
+
+    " row 1 of the helper's own table, the layout row of sample 332
+    DATA(lr_row) = REF #( mo_app->mo_inner->mt_own[ 1 ] ).
+    DATA(lv_path) = lo_bind->main( val    = REF #( lr_row->col1 )
+                                   config = VALUE #( tab       = REF #( mo_app->mo_inner->mt_own )
+                                                     tab_index = 1 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `{/MO_INNER_MT_OWN/0/COL1}`
+                                        act = lv_path ).
+
+    " ...and a cell of the runtime-built table behind the generic reference
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE any.
+    ASSIGN mo_app->mr_handle_tab->* TO <tab>.
+    READ TABLE <tab> INDEX 2 ASSIGNING <row>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO FIELD-SYMBOL(<cell>).
+    cl_abap_unit_assert=>assert_subrc( ).
+    lv_path = lo_bind->main( val    = REF #( <cell> )
+                             config = VALUE #( tab       = mo_app->mr_handle_tab
+                                               tab_index = 2 ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_path CP `{/*/1/COL1}` )
+                                      msg = |cell path after restore: { lv_path }| ).
+
+  ENDMETHOD.
+
   METHOD dref_chain_survives.
 
     FIELD-SYMBOLS <inner> TYPE REF TO data.
@@ -3546,6 +3585,7 @@ CLASS ltcl_app_samples DEFINITION FINAL
 
     DATA mt_data1 TYPE REF TO data.
     DATA mt_rows  TYPE ty_t_row.
+    DATA mr_rows  TYPE REF TO data.
 
     DATA:
       BEGIN OF ms_data,
@@ -3586,6 +3626,9 @@ CLASS ltcl_test_samples DEFINITION FINAL
     METHODS dates_initial_or_broken FOR TESTING RAISING cx_static_check.
     " the bound that lets a deep structure through must still end a cycle
     METHODS cyclic_object_ends      FOR TESTING RAISING cx_static_check.
+    " sample 199: rows the backend appends reach the client, and the client's
+    " copy of the table comes back with the same count
+    METHODS appended_rows_come_back FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -3596,7 +3639,7 @@ CLASS ltcl_test_samples IMPLEMENTATION.
     " sample 343: _bind( mt_data1 ) hands the REFERENCE over, not the table
     " behind it - refused with a message that says what to do instead
     DATA(lo_app) = NEW ltcl_app_samples( ).
-    CREATE DATA lo_app->mt_data1 TYPE ltcl_app_samples=>ty_t_row.
+    CREATE DATA lo_app->mt_data1 LIKE lo_app->mt_rows.
     DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
@@ -3657,6 +3700,52 @@ CLASS ltcl_test_samples IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( act = xsdbool( lv_deepest <= 5 )
                                       msg = |the cycle ran { lv_deepest } hops deep| ).
     cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_attri[ check_dissolved = abap_false ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD appended_rows_come_back.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA ls_row TYPE ltcl_app_samples=>ty_s_row.
+
+    DATA(lo_app) = NEW ltcl_app_samples( ).
+    " LIKE a data object, not TYPE a class-local type: the NodeJS runtime
+    " cannot CREATE DATA by the name of a type a local class declares
+    CREATE DATA lo_app->mr_rows LIKE lo_app->mt_rows.
+    ASSIGN lo_app->mr_rows->* TO <tab>.
+    ls_row-id = 1.
+    ls_row-descr = `first`.
+    INSERT ls_row INTO TABLE <tab>.
+
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+    DATA(lr_attri) = lo_model->main_attri_search( lo_app->mr_rows ).
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = `/MR_ROWS`.
+
+    " the backend appends two rows and ships the table...
+    ls_row-id = 2.
+    ls_row-descr = `second`.
+    INSERT ls_row INTO TABLE <tab>.
+    ls_row-id = 3.
+    ls_row-descr = `third`.
+    INSERT ls_row INTO TABLE <tab>.
+    DATA(lv_json) = lo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"third"` ) ).
+
+    " ...the client sends the whole table back with its next event, and the
+    " backend holds exactly what it shipped - 199 compares the count
+    CLEAR <tab>.
+    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
+    lo_model->main_json_to_attri( lo_front ).
+    ASSIGN lo_app->mr_rows->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( <tab> ) ).
+    READ TABLE <tab> INDEX 3 INTO ls_row.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = `third`
+                                        act = ls_row-descr ).
 
   ENDMETHOD.
 
