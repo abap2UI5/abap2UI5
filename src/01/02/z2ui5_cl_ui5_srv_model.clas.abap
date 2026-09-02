@@ -57,6 +57,16 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    " Re-create the cleared outer reference of a dref-to-dref chain so the
+    " child row's payload has somewhere to go (main_attri_db_load_resolve).
+    " Answers the reference to the parent attribute; raises when the parent
+    " cannot be reached or cannot take a generic data object.
+    METHODS dref_parent_recreate
+      IMPORTING
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
     METHODS main_attri_db_load_table
       IMPORTING
         ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
@@ -393,6 +403,25 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " it either, so nothing is lost by skipping it.
       TRY.
           DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          " ...with one exception: a row that CARRIES data and sits behind
+          " a reference the save cleared - a dref whose target is itself a
+          " dref (`MR_REF->*` holds the payload, `MR_REF` was cleared, so
+          " `MO_APP->MR_REF->*` has no address). The outer reference is
+          " re-created here so the inner one can be put back below; only a
+          " generic REF TO data parent can take the new object, a typed one
+          " fails the assignment and keeps the lenient treatment
+          IF lr_attri->srtti_data IS INITIAL OR lr_attri->name_parent IS INITIAL.
+            CONTINUE.
+          ENDIF.
+          TRY.
+              lr_ref = dref_parent_recreate( lr_attri->name_parent ).
+              lr_ref = attri_get_val_ref( lr_attri->name ).
+            CATCH cx_root.
+              CONTINUE.
+          ENDTRY.
+      ENDTRY.
+      TRY.
           lr_attri->o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
         CATCH cx_root.
           CONTINUE.
@@ -442,6 +471,23 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDTRY.
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD dref_parent_recreate.
+
+    FIELD-SYMBOLS <parent> TYPE any.
+    DATA lr_new TYPE REF TO data.
+
+    result = attri_get_val_ref( iv_name ).
+    ASSIGN result->* TO <parent>.
+    IF <parent> IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+    " a data object of type REF TO data - the outer reference points at it,
+    " the restore of the child row fills it
+    CREATE DATA lr_new TYPE REF TO data.
+    <parent> = lr_new.
 
   ENDMETHOD.
 

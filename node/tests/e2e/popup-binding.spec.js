@@ -116,3 +116,51 @@ test("a called popup app answers with only its own model", async ({
   expect(second.MODEL).not.toHaveProperty("MT_TAB");
   expect(second.MODEL?.MS_DATA_ROW?.CLASS).toBe("CL_APP_006");
 });
+
+// The popup app's OWN roundtrips while it is open - each one answers with
+// its model only, and never with a main view:
+//  - an event that changes the model and displays nothing (the framework
+//    pushes the change by itself),
+//  - a popup opening a second popup (the caller's table is two hops away),
+//  - and the way back, hop by hop, until the caller re-displays its view.
+test("a popup app's event without a display pushes only its own model", async ({
+  request,
+}) => {
+  const first = await start(request);
+  const called = await fireRowSelect(request, first.S_FRONT.ID, "ROW_SELECT_CALL");
+
+  const upper = await fireRowSelect(request, called.S_FRONT.ID, "UPPER");
+  expect(upper.S_FRONT.APP).toBe("ZCL_TST_POPUP_APP");
+  expect(slotAction(upper, "display", "MAIN")).toBeUndefined();
+  expect(slotAction(upper, "display", "POPUP")).toBeUndefined();
+  // the automatic push: a MODEL key with the changed value, nothing else
+  expect(upper.MODEL?.MS_DATA_ROW?.DESCR).toBe("LOGIN AND LOGOFF FROM RESOURCE");
+  expect(upper.MODEL).not.toHaveProperty("MT_TAB");
+});
+
+test("a popup opening a popup, and the way back to the caller", async ({
+  request,
+}) => {
+  const first = await start(request);
+  const called = await fireRowSelect(request, first.S_FRONT.ID, "ROW_SELECT_CALL");
+
+  // second hop: another instance of the popup app owns the POPUP slot now
+  const chained = await fireRowSelect(request, called.S_FRONT.ID, "NEXT");
+  expect(chained.S_FRONT.APP).toBe("ZCL_TST_POPUP_APP");
+  expect(slotAction(chained, "display", "POPUP")).toBeDefined();
+  expect(slotAction(chained, "display", "MAIN")).toBeUndefined();
+  expect(chained.MODEL?.MS_DATA_ROW?.CLASS).toBe("CHAIN");
+  expect(chained.MODEL).not.toHaveProperty("MT_TAB");
+
+  // one hop back: the first popup app again, still no main view
+  const back1 = await fireRowSelect(request, chained.S_FRONT.ID, "CLOSE");
+  expect(back1.S_FRONT.APP).toBe("ZCL_TST_POPUP_APP");
+  expect(slotAction(back1, "display", "MAIN")).toBeUndefined();
+  expect(JSON.stringify(back1.MODEL ?? {})).not.toContain("MT_TAB");
+
+  // and the last hop lands on the caller, which re-displays its table
+  const back2 = await fireRowSelect(request, back1.S_FRONT.ID, "CLOSE");
+  expect(back2.S_FRONT.APP).toBe(first.S_FRONT.APP);
+  expect(slotAction(back2, "display", "MAIN")).toBeDefined();
+  expect(back2.MODEL?.MT_TAB).toHaveLength(3);
+});

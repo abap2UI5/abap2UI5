@@ -2371,3 +2371,1090 @@ CLASS ltcl_test_restore_fail IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" The shape catalogue: one attribute per FORM an app attribute can take, and
+" the same invariants run over every row of mt_attri after every lifecycle
+" step. A new form is one more attribute here - every test below picks it
+" up. The forms and the numbering follow the test plan (S01-S24).
+" ---------------------------------------------------------------------------
+
+" a class that does NOT implement if_serializable_object: the view builder,
+" the client, any helper an app keeps in an attribute. It must come back
+" initial from the draft - and it must not fail the draft (S15)
+CLASS ltcl_shp_dead DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    DATA mv_text TYPE string.
+ENDCLASS.
+
+CLASS ltcl_shp_dead IMPLEMENTATION.
+ENDCLASS.
+
+
+" a serializable helper instance with data of its own, a dref that points at
+" the OUTER app's anonymous table (sample 339: mo_layout->mr_data) and a
+" chain to another instance of itself (S12, S14, S18)
+CLASS ltcl_shp_inner DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES if_serializable_object.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        col1 TYPE string,
+        col2 TYPE i,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA mv_inner  TYPE string.
+    DATA mt_own    TYPE ty_t_row.
+    DATA mr_shared TYPE REF TO data.
+    DATA mo_deeper TYPE REF TO ltcl_shp_inner.
+ENDCLASS.
+
+CLASS ltcl_shp_inner IMPLEMENTATION.
+ENDCLASS.
+
+
+CLASS ltcl_app_shapes DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        col1 TYPE string,
+        col2 TYPE i,
+      END OF ty_s_row.
+    TYPES ty_t_row    TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_sorted TYPE SORTED TABLE OF ty_s_row WITH UNIQUE KEY col1.
+    " the shape of the runtime-built line: a known row plus SELKZ
+    TYPES:
+      BEGIN OF ty_s_row_sel,
+        col1  TYPE string,
+        col2  TYPE i,
+        selkz TYPE abap_bool,
+      END OF ty_s_row_sel.
+
+    TYPES:
+      BEGIN OF ty_s_deep,
+        v1 TYPE string,
+        BEGIN OF l1,
+          v2 TYPE string,
+          BEGIN OF l2,
+            v3 TYPE string,
+            BEGIN OF l3,
+              v4 TYPE abap_bool,
+            END OF l3,
+          END OF l2,
+        END OF l1,
+      END OF ty_s_deep.
+
+    TYPES:
+      BEGIN OF ty_s_nested,
+        id      TYPE string,
+        t_items TYPE ty_t_row,
+      END OF ty_s_nested.
+    TYPES ty_t_nested TYPE STANDARD TABLE OF ty_s_nested WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_s_with_oref,
+        text  TYPE string,
+        o_obj TYPE REF TO ltcl_shp_inner,
+      END OF ty_s_with_oref.
+
+    TYPES:
+      BEGIN OF ty_s_with_dref,
+        text  TYPE string,
+        r_tab TYPE REF TO data,
+      END OF ty_s_with_dref.
+
+    TYPES:
+      BEGIN OF ty_s_row_ref,
+        id     TYPE string,
+        r_elem TYPE REF TO string,
+        o_obj  TYPE REF TO ltcl_shp_inner,
+      END OF ty_s_row_ref.
+    TYPES ty_t_row_ref TYPE STANDARD TABLE OF ty_s_row_ref WITH EMPTY KEY.
+
+    " S01 elementary
+    DATA mv_string TYPE string.
+    DATA mv_int    TYPE i.
+    DATA mv_packed TYPE p LENGTH 8 DECIMALS 2.
+    DATA mv_date   TYPE d.
+    DATA mv_time   TYPE t.
+    DATA mv_bool   TYPE abap_bool.
+    DATA mv_xstr   TYPE xstring.
+    " S02 flat structure, S03 four levels deep
+    DATA ms_flat   TYPE ty_s_row.
+    DATA ms_deep   TYPE ty_s_deep.
+    " S04 standard, S05 sorted, S06 elementary line, S07 nested table
+    DATA mt_std     TYPE ty_t_row.
+    DATA mt_sorted  TYPE ty_t_sorted.
+    DATA mt_strings TYPE string_table.
+    DATA mt_nested  TYPE ty_t_nested.
+    " S08 statically typed drefs
+    DATA mr_typed_tab   TYPE REF TO ty_t_row.
+    DATA mr_typed_struc TYPE REF TO ty_s_row.
+    DATA mr_typed_elem  TYPE REF TO string.
+    " S09 generic drefs created TYPE HANDLE (anonymous line type)
+    DATA mr_handle_tab   TYPE REF TO data.
+    DATA mr_handle_struc TYPE REF TO data.
+    " S10 generic dref, elementary target
+    DATA mr_elem TYPE REF TO data.
+    " S11 drefs INTO other attributes
+    DATA mr_alias_struc TYPE REF TO data.
+    DATA mr_alias_tab   TYPE REF TO data.
+    " S12 three drefs on ONE anonymous table - the third sits in mo_inner
+    DATA mr_shared_a TYPE REF TO data.
+    DATA mr_shared_b TYPE REF TO data.
+    " S13 a dref whose target is a dref
+    DATA mr_ref_ref TYPE REF TO data.
+    " S14 serializable instance (with a chain inside), S15 a dead one
+    DATA mo_inner TYPE REF TO ltcl_shp_inner.
+    DATA mo_dead  TYPE REF TO ltcl_shp_dead.
+    " S19 object as component, S20 dref as component - and both as cells
+    DATA ms_with_oref TYPE ty_s_with_oref.
+    DATA ms_with_dref TYPE ty_s_with_dref.
+    DATA mt_rows_ref  TYPE ty_t_row_ref.
+
+    METHODS fill.
+    METHODS get_protected
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+    " S23 - serialized with the rest, never dissolved, never bindable
+    DATA mv_protected TYPE string.
+    DATA mo_hidden    TYPE REF TO ltcl_shp_dead.
+ENDCLASS.
+
+
+CLASS ltcl_app_shapes IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD get_protected.
+    result = mv_protected.
+  ENDMETHOD.
+
+  METHOD fill.
+
+    FIELD-SYMBOLS <tab>   TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>   TYPE any.
+    FIELD-SYMBOLS <elem>  TYPE any.
+    DATA ls_sel TYPE ty_s_row_sel.
+
+    mv_string = `text`.
+    mv_int    = 42.
+    mv_packed = '1234.56'.
+    mv_date   = '20240115'.
+    mv_time   = '123045'.
+    mv_bool   = abap_true.
+    mv_xstr   = 'DEADBEEF'.
+
+    ms_flat = VALUE #( col1 = `flat` col2 = 1 ).
+    ms_deep-v1          = `v1`.
+    ms_deep-l1-v2       = `v2`.
+    ms_deep-l1-l2-v3    = `v3`.
+    ms_deep-l1-l2-l3-v4 = abap_true.
+
+    mt_std     = VALUE #( ( col1 = `a` col2 = 1 ) ( col1 = `b` col2 = 2 ) ).
+    mt_sorted  = VALUE #( ( col1 = `x` col2 = 9 ) ( col1 = `y` col2 = 8 ) ).
+    mt_strings = VALUE #( ( `one` ) ( `two` ) ).
+    mt_nested  = VALUE #( ( id = `n1` t_items = VALUE #( ( col1 = `n1a` col2 = 1 ) ) )
+                          ( id = `n2` t_items = VALUE #( ( col1 = `n2a` col2 = 2 ) ( col1 = `n2b` col2 = 3 ) ) ) ).
+
+    CREATE DATA mr_typed_tab.
+    mr_typed_tab->* = VALUE #( ( col1 = `typed` col2 = 7 ) ).
+    CREATE DATA mr_typed_struc.
+    mr_typed_struc->* = VALUE #( col1 = `typed-struc` col2 = 8 ).
+    CREATE DATA mr_typed_elem.
+    mr_typed_elem->* = `typed-elem`.
+
+    " the anonymous line type of a runtime-built table: the components of a
+    " known structure plus a field that exists in NO dictionary (SELKZ in
+    " the samples)
+    DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ms_flat ) ).
+    DATA(lt_comp) = lo_line->get_components( ).
+    APPEND VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( mv_bool ) ) ) TO lt_comp.
+    DATA(lo_struc) = cl_abap_structdescr=>create( lt_comp ).
+    DATA(lo_tab)   = cl_abap_tabledescr=>create( p_line_type  = lo_struc
+                                                 p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+
+    CREATE DATA mr_handle_tab TYPE HANDLE lo_tab.
+    ASSIGN mr_handle_tab->* TO <tab>.
+    ls_sel = VALUE #( col1 = `handle-row-1` selkz = abap_true ).
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_sel TO <row>.
+    ls_sel = VALUE #( col1 = `handle-row-2` ).
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_sel TO <row>.
+
+    CREATE DATA mr_handle_struc TYPE HANDLE lo_struc.
+    ASSIGN mr_handle_struc->* TO <row>.
+    ls_sel = VALUE #( col1 = `handle-struc` ).
+    MOVE-CORRESPONDING ls_sel TO <row>.
+
+    CREATE DATA mr_elem TYPE string.
+    ASSIGN mr_elem->* TO <elem>.
+    <elem> = `elem`.
+
+    mr_alias_struc = REF #( ms_flat ).
+    mr_alias_tab   = REF #( mt_std ).
+
+    " one data object, three references - two here, one in the helper
+    CREATE DATA mr_shared_a TYPE HANDLE lo_tab.
+    ASSIGN mr_shared_a->* TO <tab>.
+    ls_sel = VALUE #( col1 = `shared` ).
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_sel TO <row>.
+    mr_shared_b = mr_shared_a.
+
+    mo_inner = NEW #( ).
+    mo_inner->mv_inner  = `inner`.
+    mo_inner->mt_own    = VALUE #( ( col1 = `own` col2 = 5 ) ).
+    mo_inner->mr_shared = mr_shared_a.
+    mo_inner->mo_deeper = NEW #( ).
+    mo_inner->mo_deeper->mv_inner = `deeper`.
+
+    mo_dead = NEW #( ).
+    mo_dead->mv_text = `dead`.
+
+    ms_with_oref-text  = `with-oref`.
+    ms_with_oref-o_obj = NEW #( ).
+    ms_with_oref-o_obj->mv_inner = `in-struc`.
+
+    ms_with_dref-text = `with-dref`.
+    CREATE DATA ms_with_dref-r_tab TYPE HANDLE lo_tab.
+    ASSIGN ms_with_dref-r_tab->* TO <tab>.
+    ls_sel = VALUE #( col1 = `in-struc-tab` ).
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_sel TO <row>.
+
+    APPEND INITIAL LINE TO mt_rows_ref ASSIGNING FIELD-SYMBOL(<row_ref>).
+    <row_ref>-id = `r1`.
+    CREATE DATA <row_ref>-r_elem.
+    <row_ref>-r_elem->* = `cell-ref`.
+    <row_ref>-o_obj = NEW #( ).
+    <row_ref>-o_obj->mv_inner = `cell-obj`.
+
+    mv_protected = `protected`.
+    mo_hidden = NEW #( ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_shapes DEFINITION DEFERRED.
+CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_shapes.
+
+
+CLASS ltcl_test_shapes DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+
+    DATA mo_app   TYPE REF TO ltcl_app_shapes.
+    DATA mo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
+    DATA mr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+
+    " the names every bound row must keep across the lifecycle
+    DATA mt_bound TYPE string_table.
+
+    METHODS setup.
+
+    " L1: every form gets its rows
+    METHODS dissolve_rows_complete   FOR TESTING RAISING cx_static_check.
+    " L2: every bindable form is found, refs and aliases resolve to their owner
+    METHODS bind_search_every_form   FOR TESTING RAISING cx_static_check.
+    " L3: the model carries every bound row
+    METHODS json_every_bound_row     FOR TESTING RAISING cx_static_check.
+    " L5: save + restore in place (same instance, same roundtrip)
+    METHODS save_restore_in_place    FOR TESTING RAISING cx_static_check.
+    " L6/L8: save, XML roundtrip into a NEW instance, load, bind again
+    METHODS draft_roundtrip_new_inst FOR TESTING RAISING cx_static_check.
+    " S15/S23: the dead and the hidden object come back initial, quietly
+    METHODS dead_objects_stay_quiet  FOR TESTING RAISING cx_static_check.
+    " S13: a dref chain keeps its data
+    METHODS dref_chain_survives      FOR TESTING RAISING cx_static_check.
+
+    METHODS bind_all.
+    METHODS bind
+      IMPORTING
+        ir_val TYPE REF TO data.
+
+    " the draft roundtrip as the framework runs it: srtti save, asXML of the
+    " app AND of the attribute table, parse into fresh instances, load
+    METHODS roundtrip.
+
+    " the invariants (I1-I8 of the plan)
+    METHODS inv_descriptors_bound.
+    METHODS inv_rows_reachable.
+    METHODS inv_identity_shared.
+    METHODS inv_search_finds_bound.
+    METHODS inv_json_unchanged
+      IMPORTING
+        iv_before TYPE string.
+    METHODS inv_srtti_cleared.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_shapes IMPLEMENTATION.
+
+  METHOD setup.
+
+    mo_app = NEW #( ).
+    mo_app->fill( ).
+
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA mr_attri.
+    mr_attri->* = lt_attri.
+    mo_model = NEW #( attri = mr_attri
+                      app   = mo_app ).
+
+  ENDMETHOD.
+
+  METHOD bind.
+
+    DATA(lr_attri) = mo_model->main_attri_search( ir_val ).
+    lr_attri->bind = abap_true.
+    " a path the ajson writer accepts: no `-` and no `->` inside a segment
+    DATA(lv_path) = lr_attri->name.
+    REPLACE ALL OCCURRENCES OF `->*` IN lv_path WITH `_D`.
+    REPLACE ALL OCCURRENCES OF `->` IN lv_path WITH `_`.
+    REPLACE ALL OCCURRENCES OF `-` IN lv_path WITH `_`.
+    lr_attri->name_client = |/{ lv_path }|.
+    APPEND lr_attri->name TO mt_bound.
+
+  ENDMETHOD.
+
+  METHOD bind_all.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+
+    CLEAR mt_bound.
+
+    " S01
+    bind( REF #( mo_app->mv_string ) ).
+    bind( REF #( mo_app->mv_int ) ).
+    bind( REF #( mo_app->mv_packed ) ).
+    bind( REF #( mo_app->mv_date ) ).
+    bind( REF #( mo_app->mv_time ) ).
+    bind( REF #( mo_app->mv_bool ) ).
+    " S02/S03 - the structure and a leaf four levels down
+    bind( REF #( mo_app->ms_flat ) ).
+    bind( REF #( mo_app->ms_deep-l1-l2-l3-v4 ) ).
+    " S04-S07
+    bind( REF #( mo_app->mt_std ) ).
+    bind( REF #( mo_app->mt_sorted ) ).
+    bind( REF #( mo_app->mt_strings ) ).
+    bind( REF #( mo_app->mt_nested ) ).
+    " S08 - the dereferenced data, exactly what _bind( <fs> ) hands over
+    bind( mo_app->mr_typed_tab ).
+    bind( REF #( mo_app->mr_typed_struc->col1 ) ).
+    bind( mo_app->mr_typed_elem ).
+    " S09/S10
+    bind( mo_app->mr_handle_tab ).
+    bind( mo_model->attri_get_val_ref( `MR_HANDLE_STRUC->COL1` ) ).
+    bind( mo_app->mr_elem ).
+    " S12 - the shared table through the helper's reference
+    bind( mo_app->mo_inner->mr_shared ).
+    " S14 - data inside the helper and its chain
+    bind( REF #( mo_app->mo_inner->mv_inner ) ).
+    bind( REF #( mo_app->mo_inner->mt_own ) ).
+    bind( REF #( mo_app->mo_inner->mo_deeper->mv_inner ) ).
+    " S19/S20 - through the component
+    bind( REF #( mo_app->ms_with_oref-o_obj->mv_inner ) ).
+    ASSIGN mo_app->ms_with_dref-r_tab->* TO <tab>.
+    bind( REF #( <tab> ) ).
+
+  ENDMETHOD.
+
+  METHOD roundtrip.
+
+    mo_model->main_attri_db_save_srtti( ).
+
+    " the container serializes itself with the app AND mt_attri inside -
+    " o_typedescr is a REF TO cl_abap_typedescr and does not survive this,
+    " which is the state every restore starts from
+    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( mo_app ).
+    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( mr_attri->* ).
+
+    CLEAR mo_app.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
+                                          IMPORTING any = mo_app ).
+    CREATE DATA mr_attri.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
+                                          IMPORTING any = mr_attri->* ).
+
+    mo_model = NEW #( attri = mr_attri
+                      app   = mo_app ).
+    mo_model->main_attri_db_load( ).
+
+  ENDMETHOD.
+
+  METHOD inv_descriptors_bound.
+
+    " I1 - every row the restore could reach carries its descriptor again;
+    " the rows of a DEAD object are the documented exception (the object is
+    " gone, so its attributes have no address), and attri_search skips them
+    LOOP AT mr_attri->* REFERENCE INTO DATA(lr_attri).
+      IF lr_attri->name CP `MO_DEAD->*`.
+        CONTINUE.
+      ENDIF.
+      cl_abap_unit_assert=>assert_bound( act = lr_attri->o_typedescr
+                                         msg = |I1: no descriptor on { lr_attri->name }| ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD inv_rows_reachable.
+
+    " I3 - every row names data that exists on the instance
+    LOOP AT mr_attri->* REFERENCE INTO DATA(lr_attri).
+      IF lr_attri->name CP `MO_DEAD->*`.
+        CONTINUE.
+      ENDIF.
+      TRY.
+          DATA(lr_ref) = mo_model->attri_get_val_ref( lr_attri->name ).
+          cl_abap_unit_assert=>assert_bound( act = lr_ref
+                                             msg = |I3: { lr_attri->name } not reachable| ).
+        CATCH cx_root.
+          cl_abap_unit_assert=>fail( |I3: { lr_attri->name } not reachable| ).
+      ENDTRY.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD inv_identity_shared.
+
+    " I4 - references that shared a data object share ONE again (identity,
+    " not content: the 339 toasts compare content and would miss a copy)
+    cl_abap_unit_assert=>assert_bound( act = mo_app->mr_shared_a
+                                       msg = `I4: mr_shared_a lost` ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mr_shared_a = mo_app->mr_shared_b )
+                                      msg = `I4: mr_shared_a and mr_shared_b are two objects now` ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mr_shared_a = mo_app->mo_inner->mr_shared )
+                                      msg = `I4: the helper's mr_shared is a copy` ).
+    " ...and the aliases point INTO their owner again
+    DATA(lr_flat) = REF #( mo_app->ms_flat ).
+    DATA(lr_std)  = REF #( mo_app->mt_std ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mr_alias_struc = lr_flat )
+                                      msg = `I4: mr_alias_struc detached from ms_flat` ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mr_alias_tab = lr_std )
+                                      msg = `I4: mr_alias_tab detached from mt_std` ).
+
+  ENDMETHOD.
+
+  METHOD inv_search_finds_bound.
+
+    " I5 - the binding search answers with the same row for every bound
+    " attribute, on the instance as it is NOW
+    LOOP AT mt_bound INTO DATA(lv_name).
+      DATA(lr_ref) = mo_model->attri_get_val_ref( lv_name ).
+      DATA(lr_attri) = mo_model->main_attri_search( lr_ref ).
+      cl_abap_unit_assert=>assert_equals( act = lr_attri->name
+                                          exp = lv_name
+                                          msg = |I5: { lv_name } found as { lr_attri->name }| ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD inv_json_unchanged.
+
+    " I2/I6 - the model the next render ships is the model before the save
+    DATA(lv_after) = mo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_equals( act = lv_after
+                                        exp = iv_before
+                                        msg = `I2: the model changed across the draft` ).
+    LOOP AT mt_bound INTO DATA(lv_name).
+      DATA(lr_attri) = REF #( mr_attri->*[ name = lv_name ] ).
+      DATA(lv_key) = substring( val = lr_attri->name_client
+                                off = 1 ).
+      cl_abap_unit_assert=>assert_true( act = xsdbool( lv_after CS |"{ lv_key }"| )
+                                        msg = |I6: { lv_name } missing from the model| ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD inv_srtti_cleared.
+
+    " I8 - a successful restore leaves no payload behind
+    LOOP AT mr_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE srtti_data IS NOT INITIAL.
+      cl_abap_unit_assert=>fail( |I8: { lr_attri->name } still carries srtti_data| ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD dissolve_rows_complete.
+
+    mo_model->main_attri_refresh( ).
+
+    DATA(lt_expected) = VALUE string_table(
+        ( `MV_STRING` ) ( `MV_PACKED` ) ( `MV_XSTR` )
+        ( `MS_FLAT` ) ( `MS_FLAT-COL1` )
+        ( `MS_DEEP` ) ( `MS_DEEP-L1` ) ( `MS_DEEP-L1-L2` ) ( `MS_DEEP-L1-L2-L3` ) ( `MS_DEEP-L1-L2-L3-V4` )
+        ( `MT_STD` ) ( `MT_SORTED` ) ( `MT_STRINGS` ) ( `MT_NESTED` )
+        ( `MR_TYPED_TAB` ) ( `MR_TYPED_TAB->*` )
+        ( `MR_TYPED_STRUC` ) ( `MR_TYPED_STRUC->COL1` )
+        ( `MR_TYPED_ELEM` ) ( `MR_TYPED_ELEM->*` )
+        ( `MR_HANDLE_TAB` ) ( `MR_HANDLE_TAB->*` )
+        ( `MR_HANDLE_STRUC` ) ( `MR_HANDLE_STRUC->SELKZ` )
+        ( `MR_ELEM` ) ( `MR_ELEM->*` )
+        ( `MR_ALIAS_STRUC` ) ( `MR_ALIAS_STRUC->COL1` )
+        ( `MR_ALIAS_TAB` ) ( `MR_ALIAS_TAB->*` )
+        ( `MR_SHARED_A` ) ( `MR_SHARED_A->*` ) ( `MR_SHARED_B->*` )
+        ( `MR_REF_REF` )
+        ( `MO_INNER` ) ( `MO_INNER->MV_INNER` ) ( `MO_INNER->MT_OWN` )
+        ( `MO_INNER->MR_SHARED` ) ( `MO_INNER->MR_SHARED->*` )
+        ( `MO_INNER->MO_DEEPER` ) ( `MO_INNER->MO_DEEPER->MV_INNER` )
+        ( `MO_DEAD` ) ( `MO_DEAD->MV_TEXT` )
+        ( `MS_WITH_OREF-O_OBJ` ) ( `MS_WITH_OREF-O_OBJ->MV_INNER` )
+        ( `MS_WITH_DREF-R_TAB` ) ( `MS_WITH_DREF-R_TAB->*` )
+        ( `MT_ROWS_REF` ) ).
+
+    LOOP AT lt_expected INTO DATA(lv_name).
+      cl_abap_unit_assert=>assert_true( act = xsdbool( line_exists( mr_attri->*[ name = lv_name ] ) )
+                                        msg = |L1: no row for { lv_name }| ).
+    ENDLOOP.
+
+    " protected attributes are not dissolved - nothing can bind them
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ name = `MV_PROTECTED` ] ) ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ name = `MO_HIDDEN` ] ) ) ).
+
+    " the aliases know their owner
+    cl_abap_unit_assert=>assert_equals( exp = `MS_FLAT`
+                                        act = mr_attri->*[ name = `MR_ALIAS_STRUC` ]-name_ref ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_STD`
+                                        act = mr_attri->*[ name = `MR_ALIAS_TAB->*` ]-name_ref ).
+
+    " of three references to one table exactly ONE row is canonical
+    DATA(lv_canonical) = 0.
+    LOOP AT mr_attri->* TRANSPORTING NO FIELDS "#EC CI_SORTSEQ
+         WHERE ( name = `MR_SHARED_A->*` OR name = `MR_SHARED_B->*` OR name = `MO_INNER->MR_SHARED->*` )
+           AND name_ref IS INITIAL.
+      lv_canonical = lv_canonical + 1.
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lv_canonical
+                                        msg = `L1: the shared table needs exactly one canonical row` ).
+
+  ENDMETHOD.
+
+  METHOD bind_search_every_form.
+
+    bind_all( ).
+
+    " every bind landed on the row it names...
+    inv_search_finds_bound( ).
+
+    " ...and an alias binds as its OWNER: the binding path must be the one
+    " the model writes, and that is the owner's
+    DATA(lr_attri) = mo_model->main_attri_search( mo_app->mr_alias_struc ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_FLAT`
+                                        act = lr_attri->name ).
+    lr_attri = mo_model->main_attri_search( mo_app->mr_shared_b ).
+    DATA(lr_attri_a) = mo_model->main_attri_search( mo_app->mr_shared_a ).
+    cl_abap_unit_assert=>assert_equals( exp = lr_attri_a->name
+                                        act = lr_attri->name ).
+
+  ENDMETHOD.
+
+  METHOD json_every_bound_row.
+
+    bind_all( ).
+    DATA(lv_json) = mo_model->main_json_stringify( ).
+
+    LOOP AT mt_bound INTO DATA(lv_name).
+      DATA(lr_attri) = REF #( mr_attri->*[ name = lv_name ] ).
+      DATA(lv_key) = substring( val = lr_attri->name_client
+                                off = 1 ).
+      cl_abap_unit_assert=>assert_true( act = xsdbool( lv_json CS |"{ lv_key }"| )
+                                        msg = |L3: { lv_name } missing from the model| ).
+    ENDLOOP.
+
+    " a few values, to see the data and not only the keys
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"handle-row-1"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"elem"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"deeper"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"in-struc-tab"` ) ).
+
+  ENDMETHOD.
+
+  METHOD save_restore_in_place.
+
+    bind_all( ).
+    DATA(lv_before) = mo_model->main_json_stringify( ).
+
+    " what all_xml_stringify does around the container's serialization
+    mo_model->main_attri_db_save_srtti( ).
+    cl_abap_unit_assert=>assert_not_bound( act = mo_app->mr_handle_tab
+                                           msg = `L5: the save must detach the generic reference` ).
+    mo_model->main_attri_db_load( ).
+
+    inv_descriptors_bound( ).
+    inv_rows_reachable( ).
+    inv_identity_shared( ).
+    inv_search_finds_bound( ).
+    inv_json_unchanged( lv_before ).
+    inv_srtti_cleared( ).
+
+  ENDMETHOD.
+
+  METHOD draft_roundtrip_new_inst.
+
+    bind_all( ).
+    DATA(lv_before) = mo_model->main_json_stringify( ).
+
+    roundtrip( ).
+
+    inv_descriptors_bound( ).
+    inv_rows_reachable( ).
+    inv_identity_shared( ).
+    inv_search_finds_bound( ).
+    inv_json_unchanged( lv_before ).
+    inv_srtti_cleared( ).
+
+    " the data behind the rows, not only the rows
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mo_app->mr_handle_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <tab> ) ).
+    ASSIGN mo_app->ms_with_dref-r_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( <tab> ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `typed-elem`
+                                        act = mo_app->mr_typed_elem->* ).
+    cl_abap_unit_assert=>assert_equals( exp = `deeper`
+                                        act = mo_app->mo_inner->mo_deeper->mv_inner ).
+    cl_abap_unit_assert=>assert_equals( exp = `in-struc`
+                                        act = mo_app->ms_with_oref-o_obj->mv_inner ).
+    cl_abap_unit_assert=>assert_equals( exp = `cell-ref`
+                                        act = mo_app->mt_rows_ref[ 1 ]-r_elem->* ).
+    cl_abap_unit_assert=>assert_equals( exp = `cell-obj`
+                                        act = mo_app->mt_rows_ref[ 1 ]-o_obj->mv_inner ).
+    cl_abap_unit_assert=>assert_equals( exp = `protected`
+                                        act = mo_app->get_protected( ) ).
+
+    " L8 - the NEXT render binds again, and a second draft roundtrip on the
+    " restored instance is as clean as the first
+    DATA(lv_second) = mo_model->main_json_stringify( ).
+    roundtrip( ).
+    inv_descriptors_bound( ).
+    inv_identity_shared( ).
+    inv_search_finds_bound( ).
+    inv_json_unchanged( lv_second ).
+
+  ENDMETHOD.
+
+  METHOD dead_objects_stay_quiet.
+
+    bind_all( ).
+    roundtrip( ).
+
+    " S15 - not serializable, so gone; and nothing raised on the way
+    cl_abap_unit_assert=>assert_not_bound( mo_app->mo_dead ).
+    " the row it left behind carries no descriptor and is skipped by the
+    " search instead of dumping it (S17 leaves the same shape behind)
+    cl_abap_unit_assert=>assert_not_bound( mr_attri->*[ name = `MO_DEAD->MV_TEXT` ]-o_typedescr ).
+    DATA(lr_attri) = mo_model->main_attri_search( REF #( mo_app->mv_string ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MV_STRING`
+                                        act = lr_attri->name ).
+
+    " a refresh drops the orphan rows for good
+    mo_model->main_attri_refresh( ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ name = `MO_DEAD->MV_TEXT` ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD dref_chain_survives.
+
+    FIELD-SYMBOLS <inner> TYPE REF TO data.
+    FIELD-SYMBOLS <elem>  TYPE any.
+
+    " S13 - the value behind mr_ref_ref->*->* is data like any other; the
+    " dref save cleared the outer reference and never restored it. Built
+    " here and not in fill( ): the NodeJS runtime cannot CREATE DATA a
+    " REF TO data object, so this one test is skipped there (see
+    " node/setup/abap_transpile.json) while the catalogue stays runnable
+    CREATE DATA mo_app->mr_ref_ref TYPE REF TO data.
+    ASSIGN mo_app->mr_ref_ref->* TO <inner>.
+    CREATE DATA <inner> TYPE string.
+    ASSIGN <inner>->* TO <elem>.
+    <elem> = `ref-ref`.
+
+    bind( <inner> ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( mr_attri->*[ name = `MR_REF_REF->*->*` ] ) ) ).
+    roundtrip( ).
+
+    cl_abap_unit_assert=>assert_bound( act = mo_app->mr_ref_ref
+                                       msg = `S13: the outer reference was lost` ).
+    ASSIGN mo_app->mr_ref_ref->* TO <inner>.
+    cl_abap_unit_assert=>assert_bound( act = <inner>
+                                       msg = `S13: the inner reference was lost` ).
+    ASSIGN <inner>->* TO <elem>.
+    cl_abap_unit_assert=>assert_equals( exp = `ref-ref`
+                                        act = <elem> ).
+
+    inv_search_finds_bound( ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" Sample 338: a host holds its sub-app in a REF TO object and swaps it for an
+" instance of ANOTHER class between two roundtrips - the rows of the old
+" class stay in mt_attri with nothing to resolve to.
+" ---------------------------------------------------------------------------
+
+CLASS ltcl_shp_sub_a DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mt_table  TYPE REF TO data.
+    DATA mo_layout TYPE REF TO ltcl_shp_inner.
+    METHODS fill.
+ENDCLASS.
+
+CLASS ltcl_shp_sub_a IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD fill.
+    FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lv_selkz TYPE abap_bool.
+    DATA ls_line  TYPE ltcl_shp_inner=>ty_s_row.
+    " a runtime-built line type, like the samples: known components plus
+    " a field no dictionary has
+    DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_line ) ).
+    DATA(lt_comp) = lo_line->get_components( ).
+    APPEND VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) TO lt_comp.
+    DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
+                                               p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+    CREATE DATA mt_table TYPE HANDLE lo_tab.
+    ASSIGN mt_table->* TO <tab>.
+    ls_line-col1 = `a`.
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_line TO <row>.
+    mo_layout->mr_shared = mt_table.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_shp_sub_b DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mt_data TYPE REF TO data.
+    DATA mo_lay  TYPE REF TO ltcl_shp_inner.
+    METHODS fill.
+ENDCLASS.
+
+CLASS ltcl_shp_sub_b IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD fill.
+    FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lv_selkz TYPE abap_bool.
+    DATA ls_line  TYPE ltcl_shp_inner=>ty_s_row.
+    " a runtime-built line type, like the samples: known components plus
+    " a field no dictionary has
+    DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_line ) ).
+    DATA(lt_comp) = lo_line->get_components( ).
+    APPEND VALUE #( name = `SELKZ`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_selkz ) ) ) TO lt_comp.
+    DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
+                                               p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+    CREATE DATA mt_data TYPE HANDLE lo_tab.
+    ASSIGN mt_data->* TO <tab>.
+    ls_line-col1 = `b`.
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_line TO <row>.
+    mo_lay->mr_shared = mt_data.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_app_host DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_selectedkey TYPE string.
+    DATA mo_app         TYPE REF TO object.
+ENDCLASS.
+
+CLASS ltcl_app_host IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS ltcl_test_class_swap DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    METHODS swap_binds_without_dump FOR TESTING RAISING cx_static_check.
+    METHODS swap_survives_draft     FOR TESTING RAISING cx_static_check.
+
+    " the draft roundtrip; io_sub, when given, replaces the host's sub-app
+    " BEFORE the load - the state a restore against a host whose tab has
+    " switched runs into (db_load_by_app restores against the live instance)
+    METHODS roundtrip
+      IMPORTING
+        io_sub   TYPE REF TO object OPTIONAL
+      CHANGING
+        co_app   TYPE REF TO ltcl_app_host
+        cr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri
+        co_model TYPE REF TO z2ui5_cl_ui5_srv_model.
+ENDCLASS.
+
+
+CLASS ltcl_test_class_swap IMPLEMENTATION.
+
+  METHOD roundtrip.
+
+    co_model->main_attri_db_save_srtti( ).
+    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( co_app ).
+    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( cr_attri->* ).
+    CLEAR co_app.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
+                                          IMPORTING any = co_app ).
+    CREATE DATA cr_attri.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
+                                          IMPORTING any = cr_attri->* ).
+    IF io_sub IS BOUND.
+      co_app->mo_app = io_sub.
+    ENDIF.
+    co_model = NEW #( attri = cr_attri
+                      app   = co_app ).
+    co_model->main_attri_db_load( ).
+
+  ENDMETHOD.
+
+  METHOD swap_binds_without_dump.
+
+    " roundtrip 1: the host renders sub-app A and binds A's table
+    DATA(lo_host) = NEW ltcl_app_host( ).
+    DATA(lo_a) = NEW ltcl_shp_sub_a( ).
+    lo_a->mo_layout = NEW #( ).
+    lo_a->fill( ).
+    lo_host->mo_app = lo_a.
+    lo_host->mv_selectedkey = `1`.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_host ).
+    DATA(ls_bind) = lo_model->main_attri_search( REF #( lo_host->mv_selectedkey ) ).
+    ls_bind->bind = abap_true.
+    ls_bind->name_client = `/MV_SELECTEDKEY`.
+    ls_bind = lo_model->main_attri_search( lo_a->mt_table ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_APP->MT_TABLE->*`
+                                        act = ls_bind->name ).
+    ls_bind->bind = abap_true.
+    ls_bind->name_client = `/MO_APP_MT_TABLE`.
+
+    " roundtrip 2: the tab switched - the host holds sub-app B, whose
+    " attributes have OTHER names, when the draft is restored. The rows of
+    " A are still there, resolve to nothing, and keep no descriptor
+    DATA(lo_b) = NEW ltcl_shp_sub_b( ).
+    lo_b->mo_lay = NEW #( ).
+    lo_b->fill( ).
+    roundtrip( EXPORTING io_sub   = lo_b
+               CHANGING  co_app   = lo_host
+                         cr_attri = lr_attri
+                         co_model = lo_model ).
+    lo_host->mv_selectedkey = `2`.
+    cl_abap_unit_assert=>assert_not_bound( lr_attri->*[ name = `MO_APP->MO_LAYOUT->MV_INNER` ]-o_typedescr ).
+
+    " the host's own bind first - it walks the A rows of its own kind and
+    " used to dump on the first one without a descriptor
+    ls_bind = lo_model->main_attri_search( REF #( lo_host->mv_selectedkey ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MV_SELECTEDKEY`
+                                        act = ls_bind->name ).
+
+    " then B's table: not in mt_attri, so the search refreshes and finds it
+    ls_bind = lo_model->main_attri_search( lo_b->mt_data ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_APP->MT_DATA->*`
+                                        act = ls_bind->name ).
+
+    " the refresh dropped A's rows - nothing of the old class lingers
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lr_attri->*[ name = `MO_APP->MT_TABLE->*` ] ) ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lr_attri->*[ name = `MO_APP->MO_LAYOUT` ] ) ) ).
+
+  ENDMETHOD.
+
+  METHOD swap_survives_draft.
+
+    " the same switch, and then the draft roundtrip that follows it - the
+    " model must carry B's table, and the third roundtrip binds it again
+    DATA(lo_host) = NEW ltcl_app_host( ).
+    DATA(lo_a) = NEW ltcl_shp_sub_a( ).
+    lo_a->mo_layout = NEW #( ).
+    lo_a->fill( ).
+    lo_host->mo_app = lo_a.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_host ).
+    DATA(ls_bind) = lo_model->main_attri_search( lo_a->mt_table ).
+    ls_bind->bind = abap_true.
+    ls_bind->name_client = `/MO_APP_MT_TABLE`.
+
+    roundtrip( CHANGING co_app   = lo_host
+                        cr_attri = lr_attri
+                        co_model = lo_model ).
+
+    DATA(lo_b) = NEW ltcl_shp_sub_b( ).
+    lo_b->mo_lay = NEW #( ).
+    lo_b->fill( ).
+    lo_host->mo_app = lo_b.
+    ls_bind = lo_model->main_attri_search( lo_b->mt_data ).
+    ls_bind->bind = abap_true.
+    ls_bind->name_client = `/MO_APP_MT_DATA`.
+    DATA(lv_before) = lo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_before CS `"MO_APP_MT_DATA"` ) ).
+
+    roundtrip( CHANGING co_app   = lo_host
+                        cr_attri = lr_attri
+                        co_model = lo_model ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = lo_model->main_json_stringify( ) ).
+    DATA lo_b_restored TYPE REF TO ltcl_shp_sub_b.
+    lo_b_restored ?= lo_host->mo_app.
+    cl_abap_unit_assert=>assert_bound( lo_b_restored->mt_data ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_b_restored->mt_data = lo_b_restored->mo_lay->mr_shared )
+                                      msg = `the layout's reference is a copy after the restore` ).
+    ls_bind = lo_model->main_attri_search( lo_b_restored->mt_data ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_APP->MT_DATA->*`
+                                        act = ls_bind->name ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" Sample 339 with the sort order turned around: the canonical row of a shared
+" table is whichever of its rows sorts LAST in mt_attri. In 339 that is an
+" outer attribute (MT_TABLE_TMP->*); here the helper's reference sorts last
+" (MZ_INNER->MR_SHARED->*), so the payload lives on the NESTED object and
+" the outer references are re-pointed from there.
+" ---------------------------------------------------------------------------
+
+CLASS ltcl_app_shared_last DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mr_table     TYPE REF TO data.
+    DATA mr_table_tmp TYPE REF TO data.
+    DATA mz_inner     TYPE REF TO ltcl_shp_inner.
+ENDCLASS.
+
+CLASS ltcl_app_shared_last IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS ltcl_test_shared_last DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    METHODS canonical_in_nested_object FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_test_shared_last IMPLEMENTATION.
+
+  METHOD canonical_in_nested_object.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA ls_row TYPE ltcl_shp_inner=>ty_s_row.
+
+    DATA(lo_app) = NEW ltcl_app_shared_last( ).
+    lo_app->mz_inner = NEW #( ).
+    DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( lo_app->mz_inner->mt_own ) ).
+    CREATE DATA lo_app->mr_table TYPE HANDLE lo_tab.
+    ASSIGN lo_app->mr_table->* TO <tab>.
+    ls_row-col1 = `shared`.
+    INSERT ls_row INTO TABLE <tab>.
+    lo_app->mr_table_tmp = lo_app->mr_table.
+    lo_app->mz_inner->mr_shared = lo_app->mr_table.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+    DATA(ls_bind) = lo_model->main_attri_search( lo_app->mr_table ).
+    ls_bind->bind = abap_true.
+    ls_bind->name_client = `/MR_TABLE`.
+
+    " the canonical row is the nested one
+    cl_abap_unit_assert=>assert_initial( lr_attri->*[ name = `MZ_INNER->MR_SHARED->*` ]-name_ref ).
+    cl_abap_unit_assert=>assert_equals( exp = `MZ_INNER->MR_SHARED->*`
+                                        act = lr_attri->*[ name = `MR_TABLE->*` ]-name_ref ).
+    cl_abap_unit_assert=>assert_equals( exp = `MZ_INNER->MR_SHARED->*`
+                                        act = lr_attri->*[ name = `MR_TABLE_TMP->*` ]-name_ref ).
+
+    DATA(lv_before) = lo_model->main_json_stringify( ).
+
+    lo_model->main_attri_db_save_srtti( ).
+    " the payload sits on the nested object's reference
+    cl_abap_unit_assert=>assert_not_initial( lr_attri->*[ name = `MZ_INNER->MR_SHARED` ]-srtti_data ).
+    cl_abap_unit_assert=>assert_initial( lr_attri->*[ name = `MR_TABLE` ]-srtti_data ).
+
+    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( lo_app ).
+    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lr_attri->* ).
+    CLEAR lo_app.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
+                                          IMPORTING any = lo_app ).
+    CREATE DATA lr_attri.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
+                                          IMPORTING any = lr_attri->* ).
+    lo_model = NEW #( attri = lr_attri
+                      app   = lo_app ).
+    lo_model->main_attri_db_load( ).
+
+    cl_abap_unit_assert=>assert_bound( lo_app->mr_table ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_app->mr_table = lo_app->mr_table_tmp ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_app->mr_table = lo_app->mz_inner->mr_shared ) ).
+    ASSIGN lo_app->mr_table->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( <tab> ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = lo_model->main_json_stringify( ) ).
+    ls_bind = lo_model->main_attri_search( lo_app->mr_table ).
+    cl_abap_unit_assert=>assert_equals( exp = `MR_TABLE->*`
+                                        act = ls_bind->name ).
+
+  ENDMETHOD.
+
+ENDCLASS.

@@ -174,6 +174,55 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
     Slots.action("updateModel", undefined, undefined, {});
     expect(applied.map((a) => a.key)).toEqual(["MAIN"]);
   });
+
+  // the same guard for a POPOVER: a called app that opens one over the
+  // caller's screen owns that slot and nothing else
+  test("a popover opened by a called app is the only slot it pushes to", () => {
+    const model = { MS_ROW: { A: 1 } };
+    const { Slots, applied } = withSlots(["MAIN", "POPOVER"], model, {
+      slotApps: { MAIN: "ZCL_LIST", POPOVER: "ZCL_LIST_POPUP" },
+      responseApp: "ZCL_LIST_POPUP",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "POPOVER", data: model }]);
+  });
+
+  // the nested slots inherit MAIN's model and belong to whoever filled
+  // MAIN - a popup app's response leaves them alone with it
+  test("nested slots stay with the caller while a popup app answers", () => {
+    const model = { MS_ROW: { A: 1 } };
+    const { Slots, applied } = withSlots(["MAIN", "NEST", "NEST2", "POPUP"], model, {
+      slotApps: { MAIN: "ZCL_LIST", NEST: "ZCL_LIST", POPUP: "ZCL_LIST_POPUP" },
+      responseApp: "ZCL_LIST_POPUP",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "POPUP", data: model }]);
+  });
+
+  // a called app that takes the screen (displays MAIN itself) owns MAIN
+  // from then on - the record follows the display, so its pushes land
+  test("a called app that displayed MAIN pushes into it", () => {
+    const model = { MT_DETAIL: [] };
+    const { Slots, applied } = withSlots(["MAIN"], model, {
+      slotApps: { MAIN: "ZCL_DETAIL" },
+      responseApp: "ZCL_DETAIL",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "MAIN", data: model }]);
+  });
+
+  // ...and the caller's response after nav_app_leave, when it re-displayed
+  // MAIN, is pushed the same way: the record carries the caller again while
+  // the popup the callee left open (a self-closing dialog) is not touched
+  test("after a leave the caller owns MAIN again and only MAIN", () => {
+    const model = { MT_TAB: [1, 2, 3] };
+    const { Slots, applied } = withSlots(["MAIN", "POPUP"], model, {
+      slotApps: { MAIN: "ZCL_LIST", POPUP: "ZCL_LIST_POPUP" },
+      responseApp: "ZCL_LIST",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "MAIN", data: model }]);
+  });
 });
 
 test.describe("eBP (roundtrip with preventDefault)", () => {

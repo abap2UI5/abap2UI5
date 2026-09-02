@@ -28,6 +28,29 @@ CLASS zcl_tst_popup_app IMPLEMENTATION.
 
     me->client = client.
 
+    IF client->check_on_event( ).
+      CASE client->get_event( ).
+        WHEN `UPPER`.
+          " an event that changes the model and displays NOTHING: the
+          " framework pushes the changed model by itself, and that push
+          " belongs to this app's popup alone
+          ms_data_row-descr = to_upper( ms_data_row-descr ).
+        WHEN `NEXT`.
+          " a popup opening a popup: the chain hands over to another
+          " instance of this class (the caller's table is two hops away now)
+          DATA lo_next TYPE REF TO zcl_tst_popup_app.
+          CREATE OBJECT lo_next.
+          lo_next->ms_data_row = VALUE #( app   = `CHAIN`
+                                          class = `CHAIN`
+                                          descr = `second popup` ).
+          client->nav_app_call( lo_next ).
+        WHEN `CLOSE`.
+          client->popup_destroy( ).
+          client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+      ENDCASE.
+      RETURN.
+    ENDIF.
+
     IF client->check_on_init( ) = abap_false.
       RETURN.
     ENDIF.
@@ -45,6 +68,17 @@ CLASS zcl_tst_popup_app IMPLEMENTATION.
         )->a( n = `value` v = client->_bind( ms_data_row-class ) ).
     dialog->tag( `Input`
         )->a( n = `value` v = client->_bind( ms_data_row-descr ) ).
+
+    dialog->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = `Upper`
+            )->a( n = `press` v = client->_event( `UPPER` )
+        )->tag( `Button`
+            )->a( n = `text`  v = `Next`
+            )->a( n = `press` v = client->_event( `NEXT` )
+        )->tag( `Button`
+            )->a( n = `text`  v = `Close`
+            )->a( n = `press` v = client->_event( `CLOSE` ) ).
 
     client->popup_display( popup->stringify( ) ).
 

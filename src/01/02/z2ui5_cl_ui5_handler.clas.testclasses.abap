@@ -1443,3 +1443,197 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" nav_app_call to an app that only opens a popup (the z2ui5_cl_pop_* shape):
+" the response of the hop belongs to the CALLED app - its class name, its
+" model, its popup - and displays no main view. The caller's table view is
+" still on screen, and the frontend keeps it out of that model
+" (actions/Slots, view1Events.spec). What has to hold on THIS side of the
+" wire is pinned here: which app the response names, what its model carries,
+" and that a popup app with nothing bound sends no model at all.
+" ---------------------------------------------------------------------------
+
+" the popup app with a bound edit buffer
+CLASS ltcl_app_popup_bound DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+      END OF ty_s_row.
+    DATA ms_row TYPE ty_s_row.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_popup_bound IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      ms_row-name = `edit me`.
+      client->popup_display( |<Dialog><Input value="{ client->_bind( ms_row-name ) }"/></Dialog>| ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" the popup app that binds nothing (sample 340)
+CLASS ltcl_app_popup_silent DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_popup_silent IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      client->popup_display( `<Dialog/>` ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" the caller: a bound table on its main view, a row click that hands over
+CLASS ltcl_app_popup_caller DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    DATA mt_tab TYPE ty_t_row.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_popup_caller IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      mt_tab = VALUE #( ( name = `one` ) ( name = `two` ) ).
+      client->view_display( |<mvc:View><Table items="{ client->_bind( mt_tab ) }"/></mvc:View>| ).
+    ELSEIF client->check_on_navigated( ).
+      client->view_display( |<mvc:View><Table items="{ client->_bind( mt_tab ) }"/></mvc:View>| ).
+    ELSEIF client->check_on_event( `ROW_SELECT` ).
+      client->nav_app_call( NEW ltcl_app_popup_bound( ) ).
+    ELSEIF client->check_on_event( `ROW_SELECT_SILENT` ).
+      client->nav_app_call( NEW ltcl_app_popup_silent( ) ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_popup_call DEFINITION DEFERRED.
+CLASS z2ui5_cl_ui5_handler DEFINITION LOCAL FRIENDS ltcl_test_popup_call.
+
+
+CLASS ltcl_test_popup_call DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    METHODS popup_app_answers_alone   FOR TESTING RAISING cx_static_check.
+    METHODS silent_popup_app_no_model FOR TESTING RAISING cx_static_check.
+
+    " roundtrip 1: the caller's first render, saved as a draft
+    METHODS caller_started
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " roundtrip 2: the event on that draft, answered by whoever the hop ends on
+    METHODS event_on
+      IMPORTING
+        iv_id         TYPE string
+        iv_event      TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_handler.
+
+    METHODS check_display
+      IMPORTING
+        io_handler    TYPE REF TO z2ui5_cl_ui5_handler
+        iv_slot       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+ENDCLASS.
+
+
+CLASS ltcl_test_popup_call IMPLEMENTATION.
+
+  METHOD caller_started.
+
+    DATA(lo_handler) = NEW z2ui5_cl_ui5_handler( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_popup_caller( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->main_loop( ).
+
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
+                                                     iv_slot    = z2ui5_if_client=>cs_view-main ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"MT_TAB"` ) ).
+    result = lo_handler->ms_response-s_front-id.
+
+  ENDMETHOD.
+
+  METHOD event_on.
+
+    DATA(lv_payload) = `{"value":{"S_FRONT":{"ID":"` && iv_id && `","EVENT":"` && iv_event &&
+                       `","ORIGIN":"O","PATHNAME":"/","SEARCH":""}}}`.
+    result = NEW #( val = lv_payload ).
+    result->main_begin( ).
+    result->main_loop( ).
+
+  ENDMETHOD.
+
+  METHOD check_display.
+
+    result = xsdbool( line_exists( io_handler->mo_action->ms_next-t_action_front[
+                                       slot   = iv_slot
+                                       method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD popup_app_answers_alone.
+
+    DATA(lv_id) = caller_started( ).
+    DATA(lo_handler) = event_on( iv_id    = lv_id
+                                 iv_event = `ROW_SELECT` ).
+
+    " the response names the CALLED app...
+    DATA(lv_app) = lo_handler->ms_response-s_front-app.
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_app CS `POPUP_BOUND` )
+                                      msg = |the response names { lv_app }, not the popup app| ).
+    " ...displays its popup and no main view...
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
+                                                     iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
+    cl_abap_unit_assert=>assert_false( check_display( io_handler = lo_handler
+                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
+    " ...and ships ITS model, which knows nothing of the caller's table -
+    " the reason the frontend must not push it into the caller's view
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"MS_ROW"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"edit me"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lo_handler->ms_response-model CS `"MT_TAB"` ) ).
+
+  ENDMETHOD.
+
+  METHOD silent_popup_app_no_model.
+
+    DATA(lv_id) = caller_started( ).
+    DATA(lo_handler) = event_on( iv_id    = lv_id
+                                 iv_event = `ROW_SELECT_SILENT` ).
+
+    " a popup app with nothing bound: the popup opens, and no MODEL key
+    " travels at all - the caller's view keeps what it has
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-s_front-app CS `POPUP_SILENT` ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
+                                                     iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lo_handler->mv_response CS `"MODEL"` ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.
