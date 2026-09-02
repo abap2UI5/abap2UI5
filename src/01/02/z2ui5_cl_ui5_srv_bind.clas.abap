@@ -3,12 +3,9 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
   PUBLIC SECTION.
     DATA mo_app    TYPE REF TO z2ui5_cl_ui5_app_cont.
 
-    " io_model: the model service to search with - main_cell( ) hands its
-    " own to the inner instance so one render keeps ONE search index
     METHODS constructor
       IMPORTING
-        app      TYPE REF TO z2ui5_cl_ui5_app_cont
-        io_model TYPE REF TO z2ui5_cl_ui5_srv_model OPTIONAL.
+        app TYPE REF TO z2ui5_cl_ui5_app_cont.
 
     METHODS main
       IMPORTING
@@ -46,6 +43,16 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       IMPORTING
         val           TYPE data
         config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " The attribute half of main( ): the row the value lives in, its
+    " binding recorded or adopted, the path decorated by config. main_cell
+    " calls it for the table before it addresses the cell
+    METHODS bind_attri
+      IMPORTING
+        val           TYPE REF TO data
+        config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config
       RETURNING
         VALUE(result) TYPE string.
 
@@ -193,8 +200,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD constructor.
 
-    mo_app   = app.
-    mo_model = io_model.
+    mo_app = app.
 
   ENDMETHOD.
 
@@ -224,12 +230,16 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD main.
 
     IF z2ui5_cl_ui5_util_context=>check_bound_a_not_initial( config-tab ).
-
       result = main_cell( val    = val
                           config = config ).
-
-      RETURN.
+    ELSE.
+      result = bind_attri( val    = val
+                           config = config ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD bind_attri.
 
     ms_config = config.
 
@@ -261,15 +271,13 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD main_cell.
 
+    " the table first, as a bare path - bind_attri sets ms_config to that
+    " call's config, so THIS call's config (switch_default_model,
+    " path_only) is put in place afterwards for the cell and its
+    " decoration
+    result = bind_attri( val    = config-tab
+                         config = VALUE #( path_only = abap_true ) ).
     ms_config = config.
-
-    " a SECOND srv_bind instance on purpose, not main( ) on me: main( )
-    " overwrites ms_config with its own config, and the finalize_path( )
-    " below still needs THIS call's config (switch_default_model/path_only)
-    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( app      = mo_app
-                                               io_model = get_model( ) ).
-    result = lo_bind->main( val    = config-tab
-                            config = VALUE #( path_only = abap_true ) ).
 
     result = bind_tab_cell( iv_name = result
                             iv_val  = val ).

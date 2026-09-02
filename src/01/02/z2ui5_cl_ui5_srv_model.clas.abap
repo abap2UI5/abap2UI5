@@ -252,12 +252,36 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         ref       TYPE REF TO data,
         deref     TYPE REF TO data,
       END OF ty_s_resolved.
-    TYPES ty_t_resolved TYPE STANDARD TABLE OF ty_s_resolved WITH EMPTY KEY.
+    TYPES ty_t_resolved TYPE SORTED TABLE OF ty_s_resolved WITH UNIQUE KEY name.
 
     METHODS entry_refs_pair_table
       IMPORTING
         ir_res      TYPE REF TO ty_s_resolved
         it_resolved TYPE ty_t_resolved.
+
+    " Does the alias a row carries still hold - its owner reachable and
+    " pointing at the same data object? If not, the alias is dropped (with
+    " the children rewritten from it), and the pairing below finds the new
+    " owner, or none. An app that pointed a reference at ANOTHER attribute
+    " between two roundtrips used to keep the old name_ref forever: the
+    " restore of the next draft re-pointed the reference at the old owner,
+    " and the change was undone without a word
+    METHODS entry_refs_recheck
+      IMPORTING
+        ir_res      TYPE REF TO ty_s_resolved
+        it_resolved TYPE ty_t_resolved.
+
+    " Can this row be an ALIAS - a row that names another as its owner and
+    " is pointed at the owner's data object on the restore? Only the deref
+    " of a data reference (`<name>->*`) can: a reference can be re-pointed,
+    " a typed attribute cannot. Pairing a typed table as the alias of a
+    " reference (whichever sorts last used to win) left the restore trying
+    " to write a data reference into the typed attribute's parent
+    METHODS check_alias_capable
+      IMPORTING
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     METHODS entry_refs_pair_dref
       IMPORTING
@@ -563,6 +587,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         lr_attri->type_name = lr_attri->o_typedescr->absolute_name.
       ENDIF.
 
+      " A reference that is BOUND on the instance the draft is restored
+      " against is newer than the payload, and keeps its object: the draft
+      " was written when this app went onto the stack, the live instance
+      " came back through the callee's draft after the callee ran - and
+      " whatever the callee wrote through that reference is in the object,
+      " not in the payload (db_load_by_app). A fresh instance from the
+      " draft has every reference detached, so it always takes the payload;
+      " and the way back through get_app( id ) used to parse the same
+      " payload a second time into the object the first parse had built
+      ASSIGN lr_ref->* TO FIELD-SYMBOL(<live>).
+      IF <live> IS NOT INITIAL.
+        CLEAR lr_attri->srtti_data.
+        CONTINUE.
+      ENDIF.
+
       " Bringing the data BACK is a different matter, and it must not fail
       " quietly. main_attri_db_save_srtti has just CLEARED the live reference
       " (the data lives in srtti_data until this line puts it back), so a
@@ -652,6 +691,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
          WITH TABLE KEY name = ir_attri->name_parent.
     IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    " only a data reference can be pointed at the owner's object - the
+    " alias pass pairs no other row as an alias (check_alias_capable), and
+    " a draft that says otherwise is not followed into a typed attribute
+    IF lr_attri_parent->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
       RETURN.
     ENDIF.
 
@@ -1131,8 +1176,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <ref> TYPE any.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
-         WHERE check_dissolved = abap_true
-               AND name_ref IS INITIAL.
+         WHERE check_dissolved = abap_true.
       TRY.
           DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
@@ -1148,10 +1192,22 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         ASSIGN lr_ref->* TO <ref>.
         ls_resolved-deref = <ref>.
       ENDIF.
-      APPEND ls_resolved TO lt_resolved.
+      INSERT ls_resolved INTO TABLE lt_resolved.
     ENDLOOP.
 
+    " the aliases already known come first: one that no longer holds is
+    " dropped here and paired again below
     LOOP AT lt_resolved REFERENCE INTO DATA(lr_res).
+      IF lr_res->attri->name_ref IS NOT INITIAL.
+        entry_refs_recheck( ir_res      = lr_res
+                            it_resolved = lt_resolved ).
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT lt_resolved REFERENCE INTO lr_res.
+      IF lr_res->attri->name_ref IS NOT INITIAL.
+        CONTINUE.
+      ENDIF.
       CASE lr_res->type_kind.
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
           entry_refs_pair_table( ir_res      = lr_res
@@ -1166,6 +1222,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD entry_refs_pair_table.
 
+    IF check_alias_capable( ir_res->name ) = abap_false.
+      RETURN.
+    ENDIF.
+
     LOOP AT it_resolved REFERENCE INTO DATA(lr_other) "#EC CI_SORTSEQ
          WHERE type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
                AND ref = ir_res->ref
@@ -1175,6 +1235,46 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDIF.
       ir_res->attri->name_ref = lr_other->name.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD entry_refs_recheck.
+
+    DATA lv_holds TYPE abap_bool.
+
+    READ TABLE it_resolved REFERENCE INTO DATA(lr_owner)
+         WITH TABLE KEY name = ir_res->attri->name_ref.
+    IF sy-subrc = 0.
+      " a table row points at the owner's object; a data reference (the
+      " struct alias) dereferences to it
+      IF ir_res->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+        lv_holds = xsdbool( ir_res->deref IS BOUND AND ir_res->deref = lr_owner->ref ).
+      ELSE.
+        lv_holds = xsdbool( ir_res->ref = lr_owner->ref ).
+      ENDIF.
+    ENDIF.
+    IF lv_holds = abap_true.
+      RETURN.
+    ENDIF.
+
+    CLEAR ir_res->attri->name_ref.
+    " the children of a struct alias carry `<owner>-<component>` - gone
+    " with the owner; a new owner rewrites them (attri_update_refs_children)
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_child) USING KEY parent
+         WHERE name_parent = ir_res->name.
+      CLEAR lr_child->name_ref.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD check_alias_capable.
+
+    DATA(lv_len) = strlen( iv_name ).
+    IF lv_len < 3.
+      RETURN.
+    ENDIF.
+    DATA(lv_off) = lv_len - 3.
+    result = xsdbool( iv_name+lv_off(3) = `->*` ).
 
   ENDMETHOD.
 

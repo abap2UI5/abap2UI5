@@ -5676,6 +5676,10 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a helper created late, holding a reference INTO the app: bound after
     " the fact it binds as the owner, and the save keeps it that way
     METHODS late_alias_survives_save   FOR TESTING RAISING cx_static_check.
+    " a reference pointed at ANOTHER attribute between two roundtrips, and
+    " one of three shared references pointed at a table of its own: the
+    " draft follows the new targets, not the owners of the first pass
+    METHODS alias_repointed_survives   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -6236,6 +6240,72 @@ CLASS ltcl_05_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD alias_repointed_survives.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE any.
+    DATA ls_sel TYPE ltcl_app_shapes=>ty_s_row_sel.
+    DATA lr_own TYPE REF TO data.
+
+    " roundtrip 1: the alias into mt_std, the shared trio, as the fixture
+    " has them
+    bind_all( ).
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_reattach( ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_STD`
+                                        act = row( `MR_ALIAS_TAB->*` )-name_ref ).
+
+    " main( ) of roundtrip 2: the alias points INTO the helper's table now,
+    " the first of the shared references at a table of its own
+    mo_app->mr_alias_tab = REF #( mo_app->mo_inner->mt_own ).
+    DATA(lo_tab) = CAST cl_abap_tabledescr( z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( mo_app->mr_shared_b ) ).
+    CREATE DATA lr_own TYPE HANDLE lo_tab.
+    ASSIGN lr_own->* TO <tab>.
+    ls_sel-col1 = `own`.
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_sel TO <row>.
+    mo_app->mr_shared_a = lr_own.
+
+    " the render: the alias binds as its NEW owner, the parted reference
+    " as a row of its own
+    DATA(lr_alias) = bind( mo_app->mr_alias_tab ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_INNER->MT_OWN`
+                                        act = lr_alias->name ).
+    DATA(lr_own_row) = bind( mo_app->mr_shared_a ).
+    cl_abap_unit_assert=>assert_equals( exp = `MR_SHARED_A->*`
+                                        act = lr_own_row->name ).
+    DATA(lv_changed) = mo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_changed CS `"own"` ) ).
+
+    " the save: the rows say what the references say now - the typed table
+    " stays the owner, the reference the alias; the parted one carries a
+    " payload of its own
+    mo_model->main_attri_db_save_srtti( ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_INNER->MT_OWN`
+                                        act = row( `MR_ALIAS_TAB->*` )-name_ref ).
+    cl_abap_unit_assert=>assert_initial( row( `MO_INNER->MT_OWN` )-name_ref ).
+    cl_abap_unit_assert=>assert_initial( row( `MR_SHARED_A->*` )-name_ref ).
+    cl_abap_unit_assert=>assert_not_initial( row( `MR_SHARED_A` )-srtti_data ).
+    cl_abap_unit_assert=>assert_not_initial( row( `MR_SHARED_B` )-srtti_data ).
+    mo_model->main_attri_reattach( ).
+
+    " ...and the draft read into a new instance follows the new targets
+    roundtrip( ).
+    DATA(lr_own_tab) = REF #( mo_app->mo_inner->mt_own ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mr_alias_tab = lr_own_tab )
+                                      msg = `the restore pointed the alias at its old owner` ).
+    cl_abap_unit_assert=>assert_bound( mo_app->mr_shared_a ).
+    ASSIGN mo_app->mr_shared_a->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( <tab> ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( mo_app->mr_shared_a = mo_app->mr_shared_b ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_app->mr_shared_b = mo_app->mo_inner->mr_shared ) ).
+    inv_search_finds_bound( ).
+    inv_json_unchanged( lv_changed ).
+    inv_srtti_cleared( ).
+
+  ENDMETHOD.
 
   METHOD legacy_draft_no_type_name.
 

@@ -246,6 +246,17 @@ CLASS ltcl_app_dref_popup IMPLEMENTATION.
     ELSEIF client->check_on_event( `CLOSE` ).
       client->popup_destroy( ).
       client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+    ELSEIF client->check_on_event( `APPEND` ).
+      " the popup app writes INTO the caller's table and goes back to the
+      " caller it holds - the shape of a popup that edits its caller's data
+      ASSIGN mo_caller->mr_tab->* TO <tab>.
+      APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+      ASSIGN COMPONENT `NAME` OF STRUCTURE <row> TO <name>.
+      IF sy-subrc = 0.
+        <name> = `three`.
+      ENDIF.
+      client->popup_destroy( ).
+      client->nav_app_leave( mo_caller ).
     ENDIF.
   ENDMETHOD.
 
@@ -1833,6 +1844,9 @@ CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
     " a popup app handed its caller reads the caller's runtime-built table
     " while the caller is on the stack
     METHODS popup_reads_caller_table FOR TESTING RAISING cx_static_check.
+    " ...and what it writes into that table is what the caller shows on the
+    " way back through nav_app_leave( caller )
+    METHODS popup_writes_caller_table FOR TESTING RAISING cx_static_check.
 
     " roundtrip 1: the popup caller's first render, saved as a draft
     METHODS caller_started
@@ -1969,6 +1983,26 @@ CLASS ltcl_04_nav IMPLEMENTATION.
                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"one"` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"two"` ) ).
+
+  ENDMETHOD.
+
+  METHOD popup_writes_caller_table.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_dref_caller( ) ).
+    DATA(lo_popup) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                               iv_event = `OPEN` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_popup->ms_response-s_front-app CS `DREF_POPUP` ) ).
+
+    " the popup app appends a row to the caller's runtime-built table and
+    " leaves to the caller instance it holds: the caller renders three rows
+    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+                              iv_event = `APPEND` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `DREF_CALLER` ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_back
+                                                     iv_slot    = z2ui5_if_client=>cs_view-main ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"one"` ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"three"` )
+                                      msg = `the row the popup app appended was lost on the way back` ).
 
   ENDMETHOD.
 ENDCLASS.

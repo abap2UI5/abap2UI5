@@ -67,15 +67,7 @@ INTERFACE z2ui5_if_ui5_types
       srtti_data         TYPE string,
       check_dissolved    TYPE abap_bool,
       custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
-      " the *_back components are dead weight - nothing sets them since _bind
-      " stopped evaluating the custom_*_back parameters. They stay because
-      " ty_s_attri is serialized into the drafts (Z2UI5_T_01): removing them
-      " changes the asXML shape and would break every draft written before
-      " the upgrade during the transition window. Drop them with the next
-      " deliberate draft-format change
-      custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
-      custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
       " the bound string carries JSON - serialize it as a node, not as text
       check_json         TYPE abap_bool,
       o_typedescr        TYPE REF TO cl_abap_typedescr,
@@ -86,8 +78,14 @@ INTERFACE z2ui5_if_ui5_types
       " (z2ui5_cl_ui5_srv_model=>attri_search). Added 2026-09: a draft
       " written before carries no element for it and deserializes with an
       " empty name (asXML tolerates a MISSING component, never a surplus
-      " one - which is why the *_back components above cannot go the same
-      " way); the search then skips the prefilter for that row
+      " one); the search then skips the prefilter for that row.
+      " The same release DROPPED the custom_filter_back / custom_mapper_back
+      " components nothing had set for a long time - the one deliberate
+      " draft-format break: a draft written before it carries two surplus
+      " elements and does not deserialize any more. Drafts expire within
+      " hours (z2ui5_cl_ui5_srv_draft=>cleanup), so the window is the
+      " upgrade itself; a roundtrip on such a draft answers with the
+      " framework's error page once, the next start is a fresh app
       type_name          TYPE string,
       type_kind          TYPE string,
       kind               TYPE string,

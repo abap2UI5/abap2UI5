@@ -914,6 +914,9 @@ CLASS ltcl_02_db DEFINITION FINAL INHERITING FROM ltcl_00_base
     " two saves of one live instance, nothing ran in between: two drafts
     " that load to the same state, and the instance keeps its references
     METHODS two_drafts_one_instance   FOR TESTING RAISING cx_static_check.
+    " what a callee wrote through the caller's reference after the caller's
+    " save is what the way back keeps - the live object, not the payload
+    METHODS load_by_app_keeps_live_data FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1181,6 +1184,42 @@ CLASS ltcl_02_db IMPLEMENTATION.
                                         act = lo_second->model_json_stringify( ) ).
     check_restored( app_of( lo_first ) ).
     check_restored( app_of( lo_second ) ).
+
+  ENDMETHOD.
+
+  METHOD load_by_app_keeps_live_data.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE any.
+    DATA ls_row TYPE ltcl_cont_app=>ty_s_row.
+
+    bind_all( ).
+    mo_cont->db_save( ).
+
+    " after the save - the caller is on the stack - the callee appends a
+    " row through the helper's reference to the shared table
+    DATA(lr_live) = mo_user->mr_handle_tab.
+    ASSIGN mo_user->mo_inner->mr_shared->* TO <tab>.
+    ls_row-col1 = `appended by the callee`.
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_row TO <row>.
+
+    " the way back restores the draft against the live instance: the
+    " table is the live object with two rows, not the payload's copy with
+    " one, and the rows carry no payload any more
+    z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
+    DATA(lo_loaded) = z2ui5_cl_ui5_app_cont=>db_load_by_app( mo_user ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_user->mr_handle_tab = lr_live )
+                                      msg = `the payload replaced the live table` ).
+    ASSIGN mo_user->mr_handle_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <tab> ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_user->mr_handle_tab = mo_user->mr_shared ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_user->mr_handle_tab = mo_user->mo_inner->mr_shared ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_loaded->model_json_stringify( ) CS `"appended by the callee"` ) ).
+    LOOP AT lo_loaded->mt_attri->* TRANSPORTING NO FIELDS WHERE srtti_data IS NOT INITIAL. "#EC CI_SORTSEQ
+      cl_abap_unit_assert=>fail( `a payload stayed on the rows` ).
+    ENDLOOP.
 
   ENDMETHOD.
 ENDCLASS.
