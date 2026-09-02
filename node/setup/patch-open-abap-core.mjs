@@ -37,7 +37,7 @@
 // to a SHA that carries the upstream fix, delete that patch below (the file
 // once both are gone, together with its entry in `auto_transpile` in
 // package.json) and close the backlog item.
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 
@@ -45,11 +45,19 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const CORE = join(ROOT, "node", "deps", "open-abap-core", "src");
 
 function patch(label, file, marker, anchor, replacement) {
-  if (!existsSync(file)) {
-    console.error(`patch-open-abap-core: ${file} not found - run npm run deps first`);
-    process.exit(1);
+  // read, and report a missing file from the read itself - an existsSync
+  // ahead of it is a check-then-use the file can change between (CodeQL
+  // js/file-system-race), and says nothing the read's ENOENT does not
+  let source;
+  try {
+    source = readFileSync(file, "utf8");
+  } catch (e) {
+    if (e.code === "ENOENT") {
+      console.error(`patch-open-abap-core: ${file} not found - run npm run deps first`);
+      process.exit(1);
+    }
+    throw e;
   }
-  const source = readFileSync(file, "utf8");
   if (source.includes(marker)) {
     console.log(`patch-open-abap-core: ${label} already applied`);
     return;

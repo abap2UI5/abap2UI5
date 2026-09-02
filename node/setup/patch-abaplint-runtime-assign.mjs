@@ -43,7 +43,7 @@
 // reaches private attributes for block 2, delete the block, and when both
 // are gone delete this file, take it out of `auto_transpile` in
 // package.json and close the backlog items.
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 
@@ -51,12 +51,18 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const FILE = join(ROOT, "node_modules", "@abaplint", "runtime", "build", "src", "statements", "assign.js");
 const MARKER = "// abap2UI5 patch (node/setup/patch-abaplint-runtime-assign.mjs)";
 
-if (!existsSync(FILE)) {
-  console.error("patch-abaplint-runtime-assign: " + FILE + " not found - run npm ci first");
-  process.exit(1);
+// the read reports a missing file itself - an existsSync ahead of it is a
+// check-then-use the file can change between (CodeQL js/file-system-race)
+let source;
+try {
+  source = readFileSync(FILE, "utf8");
+} catch (e) {
+  if (e.code === "ENOENT") {
+    console.error("patch-abaplint-runtime-assign: " + FILE + " not found - run npm ci first");
+    process.exit(1);
+  }
+  throw e;
 }
-
-let source = readFileSync(FILE, "utf8");
 
 function apply(label, marker, anchor, patched) {
   if (source.includes(marker)) {
