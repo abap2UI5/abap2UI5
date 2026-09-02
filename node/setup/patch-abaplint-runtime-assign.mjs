@@ -2,8 +2,14 @@
 // for a path through a component that does not exist, instead of dying with
 // a TypeError on the segment after it.
 //
-// Runs against the INSTALLED @abaplint/runtime in this checkout, before the
-// transpiled suite and the express backend use it (npm run auto_transpile).
+// Runs against the INSTALLED @abaplint/runtime in this checkout, in every
+// npm script that loads that runtime: auto_transpile, unit and express.
+// The transpile alone was not enough - in CI the transpile is one job and
+// the unit and browser jobs are others, each with a fresh npm ci, so the
+// suite there ran against the unpatched runtime and died on the first
+// dynamic ASSIGN through a missing component (class_swap_before_load), while
+// a checkout that had transpiled once stayed green. Idempotent by marker,
+// so running it before every use costs a file read.
 // It is a temporary shim for a defect filed upstream as
 // `backlog/items/transpiler-dynamic-assign-missing-component.md`
 // (abaplint/transpiler); it goes away the moment the pinned runtime carries
@@ -41,8 +47,8 @@
 // Removing this: bump @abaplint/runtime in package.json to a version that
 // answers subrc 4 for block 1 and open-abap-core to one whose serializer
 // reaches private attributes for block 2, delete the block, and when both
-// are gone delete this file, take it out of `auto_transpile` in
-// package.json and close the backlog items.
+// are gone delete this file, take it out of `auto_transpile`, `unit` and
+// `express` in package.json and close the backlog items.
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
