@@ -178,6 +178,16 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     " re-entrancy latch of dissolve( ) - see the CATCH there
     DATA mv_dissolve_refreshing TYPE abap_bool.
 
+    "! Is the table behind the reference a STANDARD table - the only kind a
+    "! row delta can be written into by index. Asked BEFORE any ASSIGN to a
+    "! TYPE STANDARD TABLE field symbol: on a system that ASSIGN is the
+    "! runtime error ASSIGN_TYPE_CONFLICT for a sorted or hashed table.
+    METHODS check_table_standard
+      IMPORTING
+        ir_ref        TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS delta_apply_scalar
       IMPORTING
         io_delta TYPE REF TO z2ui5_if_ajson
@@ -1123,20 +1133,29 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
+    " a SORTED or HASHED table: the frontend has no notion of the table
+    " kind and ships the same 0-based row delta, but a row edit through an
+    " index is not a write this shape allows (a key write on a sorted
+    " table is a runtime error, a hashed table has no index at all). The
+    " edit used to vanish here with a bare RETURN - the browser kept
+    " showing what the user typed and nothing recorded that the backend
+    " had refused it. Now every cell lands in t_model_skipped, so the app
+    " can react (or bind a standard table, which the whole-table path
+    " always wrote back).
+    " Decided by RTTI, not by the ASSIGN below: on a system an ASSIGN of a
+    " sorted table to a TYPE STANDARD TABLE field symbol is the runtime
+    " error ASSIGN_TYPE_CONFLICT, not sy-subrc 4 - the transpiler answers
+    " with the subrc, which is how that version passed the suite (found by a
+    " user's system, 2026-09-02)
+    IF check_table_standard( lr_ref_d ) = abap_false.
+      delta_skip_nodes( io_delta = io_val_front->slice( `/__delta` )
+                        iv_table = iv_name ).
+      RETURN.
+    ENDIF.
+
     FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
     ASSIGN lr_ref_d->* TO <delta_tab>.
     IF sy-subrc <> 0.
-      " a SORTED or HASHED table: the frontend has no notion of the table
-      " kind and ships the same 0-based row delta, but a row edit through an
-      " index is not a write this shape allows (a key write on a sorted
-      " table is a runtime error, a hashed table has no index at all). The
-      " edit used to vanish here with a bare RETURN - the browser kept
-      " showing what the user typed and nothing recorded that the backend
-      " had refused it. Now every cell lands in t_model_skipped, so the app
-      " can react (or bind a standard table, which the whole-table path
-      " always wrote back)
-      delta_skip_nodes( io_delta = io_val_front->slice( `/__delta` )
-                        iv_table = iv_name ).
       RETURN.
     ENDIF.
 
@@ -1220,6 +1239,22 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_table_standard.
+
+    DATA lo_tab TYPE REF TO cl_abap_tabledescr.
+
+    TRY.
+        DATA(lo_type) = cl_abap_typedescr=>describe_by_data_ref( ir_ref ).
+        IF lo_type->kind <> cl_abap_typedescr=>kind_table.
+          RETURN.
+        ENDIF.
+        lo_tab ?= lo_type.
+        result = xsdbool( lo_tab->table_kind = cl_abap_tabledescr=>tablekind_std ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
   METHOD delta_apply_scalar.
 
     FIELD-SYMBOLS <comp> TYPE any.
@@ -1271,8 +1306,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD delta_apply_field.
 
-    FIELD-SYMBOLS <comp> TYPE any.
+    FIELD-SYMBOLS <comp>   TYPE any.
+    FIELD-SYMBOLS <before> TYPE any.
+    DATA lr_before TYPE REF TO data.
     ASSIGN ir_comp->* TO <comp>.
+
+    " the OLD value, kept aside: on a system a conversion that fails (`abc`
+    " into a packed field, `seven` into an integer) clears the target before
+    " it raises, and to_abap clears it before it fills - so "the cell is
+    " skipped and the old value stands" was only true in the transpiled
+    " suite, where the target survives a failed conversion. A user's system
+    " showed the refused cells at zero (2026-09-02); the copy below is what
+    " the trace entry promises
+    CREATE DATA lr_before LIKE <comp>.
+    ASSIGN lr_before->* TO <before>.
+    <before> = <comp>.
 
     " iv_path addresses the cell in the caller's delta tree directly - the
     " scalar branches below are keyed reads, so no per-row sub-tree has to
@@ -1290,8 +1338,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             DATA(lo_sub) = io_delta->slice( iv_path ).
             IF lo_sub->exists( `/__delta` ) = abap_true.
               FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
-              ASSIGN ir_comp->* TO <sub_tab>.
-              IF sy-subrc = 0.
+              " the table kind first, the ASSIGN second - see delta_apply_to_table
+              IF check_table_standard( ir_comp ) = abap_true.
+                ASSIGN ir_comp->* TO <sub_tab>.
+              ENDIF.
+              IF <sub_tab> IS ASSIGNED.
                 " a nested row cell traces under the path to its own table,
                 " parent first - MT_TREE-NODES, not MT_TREE - and carries
                 " this row's index as its row_parent, so the skipped entry
@@ -1330,6 +1381,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " user typed. Recording it is deliberately ALL that happens here;
         " raising would let one bad cell kill a delta full of good ones,
         " which is the whole reason the skip exists
+        <comp> = <before>.
         DATA(ls_skip) = is_cell.
         " quote the refused raw value in the entry - it is one keyed read
         " away, and it is the half a user message actually needs (`'1,250.00'

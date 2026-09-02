@@ -777,6 +777,26 @@ precisely because no gate will catch it.
   `7bit_ascii` rule applies. Build non-ASCII runtime strings at run time, never
   as a literal.
 
+### Two the transpiled suite cannot see — found by a user's unit-test run (2026-09-02)
+
+- **A failed conversion clears its target on a system.** `<comp> = 'abc'`
+  into a packed field, `'seven'` into an integer: the exception
+  (`CX_SY_CONVERSION_NO_NUMBER`) is catchable, but the target is already
+  initial when the handler runs - and `to_abap( )` clears its container before
+  it fills it. The transpiled runtime leaves the target untouched, so "the cell
+  is skipped and the old value stands" (`z2ui5_cl_ui5_srv_model=>delta_apply_field`)
+  held in `npm run unit` and three `z2ui5_cl_ui5_client` tests failed on a
+  system with the refused cells at zero. The rule: whenever a write may be
+  refused and the old value is promised, copy it aside first and put it back
+  in the handler - `main_json_to_attri` already did, the delta path now does.
+- **`ASSIGN dref->* TO <fs>` with a typed field symbol is a runtime error,
+  not sy-subrc 4.** A sorted table assigned to a `TYPE STANDARD TABLE` field
+  symbol dumps with `ASSIGN_TYPE_CONFLICT` on a system; the transpiler answers
+  sy-subrc 4, and `test_skip_sorted_table` was even skipped in Node with a note
+  saying the real system takes "the subrc branch". Decide the kind by RTTI
+  (`cl_abap_tabledescr->table_kind`) BEFORE the ASSIGN
+  (`z2ui5_cl_ui5_srv_model=>check_table_standard`); the skip entry is gone.
+
 ## 6. Blind spots — green, or red, for the wrong reason
 
 **Gate: none, and that is the definition.** An entry lands in this section
