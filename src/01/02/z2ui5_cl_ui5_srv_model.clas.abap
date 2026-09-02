@@ -202,6 +202,17 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_table      TYPE string
         iv_row_parent TYPE i DEFAULT 0.
 
+    "! The 1-based row index a delta key names, 0 for a key that names no
+    "! row: the key is client-supplied, so a garbled (non-numeric) one must
+    "! skip that row rather than dump the request, and a negative one
+    "! converts fine but READ TABLE INDEX -1 is an uncatchable runtime
+    "! error - the same skip
+    METHODS delta_row_index
+      IMPORTING
+        iv_key        TYPE string
+      RETURNING
+        VALUE(result) TYPE i.
+
     " re-entrancy latch of dissolve( ) - see the CATCH there
     DATA mv_dissolve_refreshing TYPE abap_bool.
 
@@ -639,7 +650,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDTRY.
 
     READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
-         WITH KEY name = ir_attri->name_parent. "#EC CI_SORTSEQ
+         WITH TABLE KEY name = ir_attri->name_parent.
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
@@ -683,15 +694,38 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     dissolve( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
-         WHERE name_ref IS INITIAL
-               AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+    " every data reference of the instance, resolved ONCE: the address of
+    " the reference variable is kept for the detach below, the target it
+    " points at is described and stored here. Two passes on purpose: a
+    " reference whose target is itself a reference (`MR_REF->*` holds the
+    " payload) is reached through its parent, which has to stay bound
+    " until every payload is taken
+    DATA lt_dref TYPE ty_t_ref_idx.
+    FIELD-SYMBOLS <dref>      TYPE any.
+    FIELD-SYMBOLS <val_deref> TYPE any.
 
-      " the deref is the reachability check as well: an unbound or
-      " unreachable reference has no `->*`
-      DATA(lv_path_deref) = |MO_APP->{ lr_attri->name }->*|.
-      ASSIGN (lv_path_deref) TO FIELD-SYMBOL(<val_deref>).
-      IF sy-subrc <> 0.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+         WHERE type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+
+      DATA(lv_path_dref) = |MO_APP->{ lr_attri->name }|.
+      " UNASSIGN + IS ASSIGNED, not sy-subrc - see main_attri_reattach
+      UNASSIGN <dref>.
+      ASSIGN (lv_path_dref) TO <dref>.
+      IF <dref> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
+      INSERT VALUE #( name = lr_attri->name
+                      ref  = REF #( <dref> ) ) INTO TABLE lt_dref.
+
+      " a payload only for a reference that OWNS its target - an alias
+      " (name_ref) is pointed at its owner again on the load - and that
+      " points at something
+      IF lr_attri->name_ref IS NOT INITIAL OR <dref> IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      UNASSIGN <val_deref>.
+      ASSIGN <dref>->* TO <val_deref>.
+      IF <val_deref> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
       DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data( <val_deref> ).
@@ -703,24 +737,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " a dref whose deref is a TABLE has exactly ONE dissolved child:
           " diss_dref's non-struct branch creates the single `<name>->*` row
           " (only a struct deref fans out into several children, and that
-          " case is the struct branch below). So the unconditional EXIT
-          " after the first hit states that fact - the loop can never have a
-          " second row to visit, it exists only to pair the WHERE filter
-          " with a no-match fallthrough
-          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) USING KEY parent
+          " case is the struct branch below). The child row IS the deref
+          " resolved above; the loop exists to pair the WHERE filter with a
+          " no-match fallthrough, so the unconditional EXIT states that it
+          " can never have a second row to visit. Only the REFERENCE is
+          " detached (below) - the table itself stays as it is, and
+          " main_attri_reattach hands it back to the live instance untouched
+          LOOP AT mt_attri->* TRANSPORTING NO FIELDS USING KEY parent
                WHERE name_parent = lr_attri->name
                      AND name_ref IS INITIAL
                      AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-
-            DATA(lv_path_child) = |MO_APP->{ lr_attri_child->name }|.
-            ASSIGN (lv_path_child) TO FIELD-SYMBOL(<val_ref>).
-            IF sy-subrc <> 0.
-              CONTINUE.
-            ENDIF.
-            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_ref> ).
-            " only the REFERENCE is detached (below, with every other one) -
-            " the table itself stays as it is, main_attri_reattach hands it
-            " back to the live instance untouched
+            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
             EXIT.
           ENDLOOP.
 
@@ -730,7 +757,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         WHEN OTHERS.
           " an ELEMENTARY deref (CREATE DATA mr TYPE string / i / ...) is
           " neither a table (one dissolved child, above) nor a structure and
-          " used to fall through this CASE: the loop below then cleared the
+          " used to fall through this CASE: the detach below then cleared the
           " reference and nothing ever restored it, so a bound `mr->*` was
           " gone after the first roundtrip - in memory and in the draft.
           " Same stringify as the struct branch, restored the same way by
@@ -745,21 +772,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_dref)  "#EC CI_SORTSEQ
-         WHERE type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
-
-      DATA(lv_path_dref) = |MO_APP->{ lr_attri_dref->name }|.
-      ASSIGN (lv_path_dref) TO FIELD-SYMBOL(<dref>).
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
-      " clearing the ref detaches the target data object from serialization;
-      " dereferencing and clearing the target itself is unnecessary (and was
-      " unreachable here anyway once the ref is cleared). The reference is
-      " kept aside for main_attri_reattach - the live instance gets the same
-      " object back instead of a parsed copy
+    " the detach, over the addresses resolved above. Clearing the ref
+    " detaches the target data object from serialization; dereferencing
+    " and clearing the target itself is unnecessary. The reference is kept
+    " aside for main_attri_reattach - the live instance gets the same
+    " object back instead of a parsed copy
+    LOOP AT lt_dref REFERENCE INTO DATA(lr_dref).
+      ASSIGN lr_dref->ref->* TO <dref>.
       IF <dref> IS BOUND.
-        INSERT VALUE #( name = lr_attri_dref->name
+        INSERT VALUE #( name = lr_dref->name
                         ref  = <dref> ) INTO TABLE mt_detached.
       ENDIF.
       CLEAR <dref>.
@@ -1349,17 +1370,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     DATA(lt_idx) = io_delta->members( iv_base ).
     LOOP AT lt_idx INTO DATA(lv_idx_str).
-      DATA lv_tabix TYPE i.
-      TRY.
-          " the delta key is a client-supplied row index; a garbled
-          " (non-numeric) key must skip that row, not dump the request
-          lv_tabix = CONV i( lv_idx_str ) + 1.
-        CATCH cx_root.
-          CONTINUE.
-      ENDTRY.
-      " a negative index converts fine but READ TABLE INDEX -1 is an
-      " uncatchable runtime error - same skip-the-row treatment
-      IF lv_tabix < 1.
+      DATA(lv_tabix) = delta_row_index( lv_idx_str ).
+      IF lv_tabix = 0.
         CONTINUE.
       ENDIF.
       FIELD-SYMBOLS <delta_row> TYPE any.
@@ -1402,12 +1414,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     DATA(lt_idx) = io_delta->members( iv_base ).
     LOOP AT lt_idx INTO DATA(lv_idx_str).
-      DATA lv_tabix TYPE i.
-      TRY.
-          lv_tabix = CONV i( lv_idx_str ) + 1.
-        CATCH cx_root.
-          CONTINUE.
-      ENDTRY.
+      DATA(lv_tabix) = delta_row_index( lv_idx_str ).
+      IF lv_tabix = 0.
+        CONTINUE.
+      ENDIF.
       DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
       DATA(lt_fld) = io_delta->members( lv_row_path ).
       LOOP AT lt_fld INTO DATA(lv_fld).
@@ -1425,19 +1435,22 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD check_table_standard.
-
-    DATA lo_tab TYPE REF TO cl_abap_tabledescr.
+  METHOD delta_row_index.
 
     TRY.
-        DATA(lo_type) = cl_abap_typedescr=>describe_by_data_ref( ir_ref ).
-        IF lo_type->kind <> cl_abap_typedescr=>kind_table.
-          RETURN.
-        ENDIF.
-        lo_tab ?= lo_type.
-        result = xsdbool( lo_tab->table_kind = cl_abap_tabledescr=>tablekind_std ).
-      CATCH cx_root ##NO_HANDLER.
+        result = CONV i( iv_key ) + 1.
+      CATCH cx_root.
+        result = 0.
     ENDTRY.
+    IF result < 1.
+      result = 0.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD check_table_standard.
+
+    result = z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ).
 
   ENDMETHOD.
 

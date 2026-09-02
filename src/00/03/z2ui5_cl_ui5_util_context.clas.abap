@@ -196,6 +196,15 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO cl_abap_typedescr.
 
+    "! Is the data object behind the reference a STANDARD table - false for
+    "! a sorted or hashed table, for anything that is no table, and for a
+    "! reference RTTI cannot describe
+    CLASS-METHODS rtti_check_table_standard
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS rtti_get_typedescr_by_data
       IMPORTING
         val           TYPE any
@@ -1653,6 +1662,22 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD rtti_get_typedescr_by_data_ref.
 
     result = cl_abap_typedescr=>describe_by_data_ref( val ).
+
+  ENDMETHOD.
+
+  METHOD rtti_check_table_standard.
+
+    DATA lo_tab TYPE REF TO cl_abap_tabledescr.
+
+    TRY.
+        DATA(lo_type) = cl_abap_typedescr=>describe_by_data_ref( val ).
+        IF lo_type->kind <> cl_abap_typedescr=>kind_table.
+          RETURN.
+        ENDIF.
+        lo_tab ?= lo_type.
+        result = xsdbool( lo_tab->table_kind = cl_abap_tabledescr=>tablekind_std ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
