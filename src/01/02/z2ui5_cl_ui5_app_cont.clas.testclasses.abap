@@ -1151,6 +1151,7 @@ CLASS ltcl_02_db IMPLEMENTATION.
   METHOD two_drafts_one_instance.
 
     DATA(lv_before) = bind_all( ).
+    DATA(lr_tab_before) = mo_user->mr_handle_tab.
 
     mo_cont->db_save( ).
     DATA(lv_id_1) = mo_cont->ms_draft-id.
@@ -1160,11 +1161,11 @@ CLASS ltcl_02_db IMPLEMENTATION.
     mo_cont->db_save( ).
     DATA(lv_id_2) = mo_cont->ms_draft-id.
 
-    " the live instance: its references back, no payload left on the rows,
-    " the model as before. Whether the reference is the object from before
-    " the save or one parsed from the payload is not asserted - both keep
-    " the three references one object, which check_restored does assert
+    " the live instance: its references back - the SAME objects, not a
+    " parsed copy - no payload left on the rows, the model as before
     check_restored( mo_user ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_user->mr_handle_tab = lr_tab_before )
+                                      msg = `the save replaced the live table by a copy` ).
     LOOP AT mo_cont->mt_attri->* TRANSPORTING NO FIELDS WHERE srtti_data IS NOT INITIAL. "#EC CI_SORTSEQ
       cl_abap_unit_assert=>fail( `a payload stayed on the live rows` ).
     ENDLOOP.

@@ -2825,7 +2825,7 @@ CLASS ltcl_test_shapes DEFINITION FINAL
     METHODS roundtrip.
 
     " the invariants (I1-I8 of the plan)
-    METHODS inv_descriptors_bound.
+    METHODS inv_types_known.
     METHODS inv_rows_reachable.
     METHODS inv_identity_shared.
     METHODS inv_search_finds_bound.
@@ -2935,17 +2935,31 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD inv_descriptors_bound.
+  METHOD inv_types_known.
 
-    " I1 - every row the restore could reach carries its descriptor again;
-    " the rows of a DEAD object are the documented exception (the object is
-    " gone, so its attributes have no address), and attri_search skips them
+    " I1 - every row knows its type across the draft: the absolute name
+    " travels as a string on the row (the search prefilters by it), while
+    " the descriptor object is rebuilt only where the restore parses a
+    " payload. A row without a name is a draft written before the name
+    " existed - not a state a roundtrip of THIS version may produce
     LOOP AT mr_attri->* REFERENCE INTO DATA(lr_attri).
-      IF lr_attri->name CP `MO_DEAD->*`.
+      cl_abap_unit_assert=>assert_not_initial( act = lr_attri->type_name
+                                               msg = |I1: no type name on { lr_attri->name }| ).
+      cl_abap_unit_assert=>assert_not_initial( act = lr_attri->type_kind
+                                               msg = |I1: no type kind on { lr_attri->name }| ).
+    ENDLOOP.
+    " ...and the payload rows carry their descriptor again
+    LOOP AT mt_bound INTO DATA(lv_name).
+      DATA(ls_row) = mr_attri->*[ name = lv_name ].
+      IF ls_row-name_parent IS INITIAL OR ls_row-name_ref IS NOT INITIAL.
         CONTINUE.
       ENDIF.
-      cl_abap_unit_assert=>assert_bound( act = lr_attri->o_typedescr
-                                         msg = |I1: no descriptor on { lr_attri->name }| ).
+      DATA(ls_parent) = mr_attri->*[ name = ls_row-name_parent ].
+      IF ls_parent-type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+        CONTINUE.
+      ENDIF.
+      cl_abap_unit_assert=>assert_bound( act = ls_parent-o_typedescr
+                                         msg = |I1: no descriptor on the restored { ls_parent-name }| ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -3145,7 +3159,7 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
                                            msg = `L5: the save must detach the generic reference` ).
     mo_model->main_attri_db_load( ).
 
-    inv_descriptors_bound( ).
+    inv_types_known( ).
     inv_rows_reachable( ).
     inv_identity_shared( ).
     inv_search_finds_bound( ).
@@ -3161,7 +3175,7 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
 
     roundtrip( ).
 
-    inv_descriptors_bound( ).
+    inv_types_known( ).
     inv_rows_reachable( ).
     inv_identity_shared( ).
     inv_search_finds_bound( ).
@@ -3205,7 +3219,7 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
     " restored instance is as clean as the first
     DATA(lv_second) = mo_model->main_json_stringify( ).
     roundtrip( ).
-    inv_descriptors_bound( ).
+    inv_types_known( ).
     inv_identity_shared( ).
     inv_search_finds_bound( ).
     inv_json_unchanged( lv_second ).
@@ -3972,9 +3986,20 @@ CLASS ltcl_00_base DEFINITION ABSTRACT
     " app AND of the attribute table, parse into fresh instances, load.
     " io_replace_app, when given, is put in as the app BEFORE the load - the
     " state of a restore against a live instance that changed meanwhile
+    " iv_legacy strips the TYPE_NAME elements from the attribute table's
+    " asXML - the draft a version before that component wrote
     METHODS roundtrip
       IMPORTING
-        io_replace_app TYPE REF TO ltcl_app_shapes OPTIONAL.
+        io_replace_app TYPE REF TO ltcl_app_shapes OPTIONAL
+        iv_legacy      TYPE abap_bool OPTIONAL.
+
+    " the asXML without every <iv_tag>...</iv_tag> element
+    METHODS xml_without_tag
+      IMPORTING
+        iv_xml        TYPE string
+        iv_tag        TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 
     " one row of mt_attri, by value - and by reference for a write
     METHODS row
@@ -3994,9 +4019,9 @@ CLASS ltcl_00_base DEFINITION ABSTRACT
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " the invariants - I1 descriptors, I3 reachable, I4 identity, I5 search,
+    " the invariants - I1 types known, I3 reachable, I4 identity, I5 search,
     " I2/I6 model unchanged, I8 payload cleared (numbering of the test plan)
-    METHODS inv_descriptors_bound.
+    METHODS inv_types_known.
     METHODS inv_rows_reachable.
     METHODS inv_identity_shared.
     METHODS inv_search_finds_bound.
@@ -4104,6 +4129,10 @@ CLASS ltcl_00_base IMPLEMENTATION.
     " which is the state every restore starts from
     DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( mo_app ).
     DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( mr_attri->* ).
+    IF iv_legacy = abap_true.
+      lv_attri_xml = xml_without_tag( iv_xml = lv_attri_xml
+                                      iv_tag = `TYPE_NAME` ).
+    ENDIF.
 
     CLEAR mo_app.
     z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
@@ -4117,6 +4146,28 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
     model_renew( ).
     mo_model->main_attri_db_load( ).
+
+  ENDMETHOD.
+
+  METHOD xml_without_tag.
+
+    " both spellings of the element: with a value, and the empty one
+    result = iv_xml.
+    DATA(lv_open)  = |<{ iv_tag }>|.
+    DATA(lv_close) = |</{ iv_tag }>|.
+    DO.
+      FIND FIRST OCCURRENCE OF lv_open IN result MATCH OFFSET DATA(lv_from).
+      IF sy-subrc <> 0.
+        EXIT.
+      ENDIF.
+      FIND FIRST OCCURRENCE OF lv_close IN result MATCH OFFSET DATA(lv_to).
+      IF sy-subrc <> 0 OR lv_to < lv_from.
+        EXIT.
+      ENDIF.
+      DATA(lv_end) = lv_to + strlen( lv_close ).
+      result = result(lv_from) && result+lv_end.
+    ENDDO.
+    REPLACE ALL OCCURRENCES OF |<{ iv_tag }/>| IN result WITH ``.
 
   ENDMETHOD.
 
@@ -4141,17 +4192,31 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD inv_descriptors_bound.
+  METHOD inv_types_known.
 
-    " I1 - every row the restore could reach carries its descriptor again;
-    " the rows of a DEAD object are the documented exception (the object is
-    " gone, so its attributes have no address), and attri_search skips them
+    " I1 - every row knows its type across the draft: the absolute name
+    " travels as a string on the row (the search prefilters by it), while
+    " the descriptor object is rebuilt only where the restore parses a
+    " payload. A row without a name is a draft written before the name
+    " existed - not a state a roundtrip of THIS version may produce
     LOOP AT mr_attri->* REFERENCE INTO DATA(lr_attri).
-      IF lr_attri->name CP `MO_DEAD->*`.
+      cl_abap_unit_assert=>assert_not_initial( act = lr_attri->type_name
+                                               msg = |I1: no type name on { lr_attri->name }| ).
+      cl_abap_unit_assert=>assert_not_initial( act = lr_attri->type_kind
+                                               msg = |I1: no type kind on { lr_attri->name }| ).
+    ENDLOOP.
+    " ...and the payload rows carry their descriptor again
+    LOOP AT mt_bound INTO DATA(lv_name).
+      DATA(ls_row) = mr_attri->*[ name = lv_name ].
+      IF ls_row-name_parent IS INITIAL OR ls_row-name_ref IS NOT INITIAL.
         CONTINUE.
       ENDIF.
-      cl_abap_unit_assert=>assert_bound( act = lr_attri->o_typedescr
-                                         msg = |I1: no descriptor on { lr_attri->name }| ).
+      DATA(ls_parent) = mr_attri->*[ name = ls_row-name_parent ].
+      IF ls_parent-type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+        CONTINUE.
+      ENDIF.
+      cl_abap_unit_assert=>assert_bound( act = ls_parent-o_typedescr
+                                         msg = |I1: no descriptor on the restored { ls_parent-name }| ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -4242,7 +4307,7 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD inv_all.
 
-    inv_descriptors_bound( ).
+    inv_types_known( ).
     inv_rows_reachable( ).
     inv_identity_shared( ).
     inv_search_finds_bound( ).
@@ -5598,6 +5663,9 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS interface_and_obj_table  FOR TESTING RAISING cx_static_check.
     " S13 - skipped in Node (CREATE DATA ... TYPE REF TO data)
     METHODS dref_chain_survives      FOR TESTING RAISING cx_static_check.
+    " a draft written before the rows carried their type name loads, binds
+    " and saves like one of this version
+    METHODS legacy_draft_no_type_name FOR TESTING RAISING cx_static_check.
     " the LIVE instance across two roundtrips, no draft read in between (a
     " sticky session): main( ) creates its references again - the same type,
     " and another one - and the next render, model and draft follow
@@ -6169,6 +6237,43 @@ CLASS ltcl_05_draft IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD legacy_draft_no_type_name.
+
+    bind_all( ).
+    DATA(lv_before) = mo_model->main_json_stringify( ).
+
+    " the asXML of the attribute table without its TYPE_NAME elements: what
+    " a draft in the table looks like across the upgrade
+    roundtrip( iv_legacy = abap_true ).
+    cl_abap_unit_assert=>assert_initial( act = row( `MV_STRING` )-type_name
+                                         msg = `the fixture still carries type names - nothing is proven` ).
+    cl_abap_unit_assert=>assert_initial( row( `MR_HANDLE_TAB->*` )-type_name ).
+    " the one kind of row the load resolves anyway - a payload row - gets
+    " its name on the way
+    cl_abap_unit_assert=>assert_not_initial( row( `MR_HANDLE_TAB` )-type_name ).
+
+    " everything but the type invariant holds: the data is back, the search
+    " finds every bound row without the prefilter, the model is the same
+    inv_rows_reachable( ).
+    inv_identity_shared( ).
+    inv_search_finds_bound( ).
+    inv_json_unchanged( lv_before ).
+    inv_srtti_cleared( ).
+
+    " the next draft of that instance: the same, the names still missing
+    " on the rows nothing re-created - a refresh is what writes them
+    roundtrip( ).
+    inv_rows_reachable( ).
+    inv_identity_shared( ).
+    inv_search_finds_bound( ).
+    inv_json_unchanged( lv_before ).
+    inv_srtti_cleared( ).
+    cl_abap_unit_assert=>assert_initial( row( `MV_STRING` )-type_name ).
+    mo_model->main_attri_refresh( ).
+    inv_all( lv_before ).
+
+  ENDMETHOD.
+
   METHOD live_recreated_same_type.
 
     FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
@@ -6212,10 +6317,14 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( xsdbool( lv_changed CS `"shared"` ) ).
 
     " the draft of roundtrip 2, restored in place: the new data, the three
-    " references one object again
+    " references one object again - and, with the save handing the same
+    " objects back, the very object main( ) created
+    DATA(lr_elem_2) = mo_app->mr_elem.
     mo_model->main_attri_db_save_srtti( ).
-    mo_model->main_attri_db_load( ).
+    mo_model->main_attri_reattach( ).
     inv_all( lv_changed ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_app->mr_shared_a = lr_new ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_app->mr_elem = lr_elem_2 ) ).
     ASSIGN mo_app->mr_shared_a->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( <tab> ) ).

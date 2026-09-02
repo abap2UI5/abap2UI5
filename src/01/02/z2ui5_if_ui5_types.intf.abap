@@ -79,6 +79,16 @@ INTERFACE z2ui5_if_ui5_types
       " the bound string carries JSON - serialize it as a node, not as text
       check_json         TYPE abap_bool,
       o_typedescr        TYPE REF TO cl_abap_typedescr,
+      " the absolute type name as a STRING, next to the descriptor it is
+      " taken from: the descriptor is an object reference and does not
+      " survive the draft, the name does - so the binding search can
+      " prefilter by type on a restored row without resolving it first
+      " (z2ui5_cl_ui5_srv_model=>attri_search). Added 2026-09: a draft
+      " written before carries no element for it and deserializes with an
+      " empty name (asXML tolerates a MISSING component, never a surplus
+      " one - which is why the *_back components above cannot go the same
+      " way); the search then skips the prefilter for that row
+      type_name          TYPE string,
       type_kind          TYPE string,
       kind               TYPE string,
     END OF ty_s_attri.
