@@ -59,30 +59,45 @@ INTERFACE z2ui5_if_ui5_types
 
   TYPES:
     BEGIN OF ty_s_attri,
-      name               TYPE string,
-      name_client        TYPE string,
-      name_parent        TYPE string,
-      name_ref           TYPE string,
-      bind               TYPE abap_bool,
-      srtti_data         TYPE string,
-      check_dissolved    TYPE abap_bool,
-      custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
-      " the *_back components are dead weight - nothing sets them since _bind
-      " stopped evaluating the custom_*_back parameters. They stay because
-      " ty_s_attri is serialized into the drafts (Z2UI5_T_01): removing them
-      " changes the asXML shape and would break every draft written before
-      " the upgrade during the transition window. Drop them with the next
-      " deliberate draft-format change
-      custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
-      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
-      custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
+      name            TYPE string,
+      name_client     TYPE string,
+      name_parent     TYPE string,
+      name_ref        TYPE string,
+      bind            TYPE abap_bool,
+      srtti_data      TYPE string,
+      check_dissolved TYPE abap_bool,
+      custom_filter   TYPE REF TO z2ui5_if_ajson_filter,
+      custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping,
       " the bound string carries JSON - serialize it as a node, not as text
-      check_json         TYPE abap_bool,
-      o_typedescr        TYPE REF TO cl_abap_typedescr,
-      type_kind          TYPE string,
-      kind               TYPE string,
+      check_json      TYPE abap_bool,
+      o_typedescr     TYPE REF TO cl_abap_typedescr,
+      " the absolute type name as a STRING, next to the descriptor it is
+      " taken from: the descriptor is an object reference and does not
+      " survive the draft, the name does - so the binding search can
+      " prefilter by type on a restored row without resolving it first
+      " (z2ui5_cl_ui5_srv_model=>attri_search). Added 2026-09: a draft
+      " written before carries no element for it and deserializes with an
+      " empty name (asXML tolerates a MISSING component, never a surplus
+      " one); the search then skips the prefilter for that row.
+      " The same release DROPPED the custom_filter_back / custom_mapper_back
+      " components nothing had set for a long time - the one deliberate
+      " draft-format break: a draft written before it carries two surplus
+      " elements and does not deserialize any more. Drafts expire within
+      " hours (z2ui5_cl_ui5_srv_draft=>cleanup), so the window is the
+      " upgrade itself; a roundtrip on such a draft answers with the
+      " framework's error page once, the next start is a fresh app
+      type_name       TYPE string,
+      type_kind       TYPE string,
+      kind            TYPE string,
     END OF ty_s_attri.
-  TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
+  " the secondary key serves the two reads that walk a row's CHILDREN (the
+  " save of a generic reference, the alias pass) - a sequential scan of
+  " the whole table per parent otherwise. name_parent is written before a
+  " row is inserted and never through a reference afterwards, which is
+  " what a key component of a secondary key requires; name_ref, which the
+  " alias pass rewrites through references, must never join a key
+  TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name
+    WITH NON-UNIQUE SORTED KEY parent COMPONENTS name_parent.
 
   " One view-lifecycle call, as the backend collects it. It is kept typed
   " until main_end( ) rather than serialized on the spot: the calls have to

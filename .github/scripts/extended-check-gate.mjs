@@ -24,6 +24,16 @@
 //                samples-stack's overview app from a user's system
 //                (2026-08-17). Upstream rule proposed - backlog:
 //                abaplint-abapdoc-block-placement.
+//   abapdoc_html "HTML tag <wa> is not supported in ABAP Doc" - ABAP Doc is
+//                parsed as HTML, so a placeholder or a field symbol written
+//                as <name> is an unsupported, unclosed tag. AGENTS.md said
+//                so in prose and three of them shipped in z2ui5_if_client
+//                (#2705), found by a user's system on 2026-09-02.
+//   handle_call  "No method can be specified in the current position" -
+//                CREATE DATA ... TYPE HANDLE takes a data object, not a
+//                method call; abaplint and the transpiler accept the call
+//                (found by a user's system on 2026-09-02, in a test class
+//                that was green through every gate).
 //
 // Why a gate and not prose: abaplint models none of these. They are checks of a
 // different tool, and prose in AGENTS.md did not stop the three "fix atc
@@ -98,16 +108,41 @@ function abapdocFindings(file, source) {
   });
 }
 
+// ABAP Doc is parsed as HTML. The tags it knows are the few below; anything
+// else between < and > - a field symbol, a placeholder like #/app/<CLASS> -
+// is "not supported" and "not closed" in a system, and the block renders
+// wrong. Escape it as &lt;name&gt;. Only complete tag-like tokens are read,
+// so a comparison (`a < b`) is not a finding.
+const ABAPDOC_TAGS = new Set(["p", "em", "strong", "ul", "ol", "li", "h1", "h2", "h3", "br"]);
+function abapdocHtmlFindings(file, source) {
+  source.split(/\r?\n/).forEach((line, i) => {
+    if (!/^\s*"!/.test(line)) return;
+    const tags = [...line.matchAll(/<\/?([A-Za-z_][A-Za-z0-9_-]*)>/g)];
+    for (const m of tags) {
+      if (ABAPDOC_TAGS.has(m[1].toLowerCase())) continue;
+      findings.push({
+        at: `${file}:${i + 1}`,
+        rule: "abapdoc_html",
+        message: `ABAP Doc is parsed as HTML - <${m[1]}> is an unsupported, unclosed tag there; write &lt;${m[1]}&gt;`,
+      });
+    }
+  });
+}
+
 for (const file of files) {
   const source = readFileSync(join(ROOT, file), "utf8");
   if (/\.(clas|intf)\.abap$/.test(file)) abapdocFindings(file, source);
+  abapdocHtmlFindings(file, source);
   const stmts = statements(source);
 
   stmts.forEach((stmt, index) => {
     const flat = stmt.text.replace(/\n/g, " ");
     const at = `${file}:${stmt.start}`;
 
-    if (/^\s*LOOP\s+AT\b/i.test(flat) && /\bWHERE\b/i.test(flat) && !/CI_SORTSEQ/i.test(flat)) {
+    // a LOOP that names a secondary key (USING KEY) reads through that key,
+    // which is what the check asks for - z2ui5_if_ui5_types=>ty_t_attri
+    // carries one for the child walks of the model service (2026-09)
+    if (/^\s*LOOP\s+AT\b/i.test(flat) && /\bWHERE\b/i.test(flat) && !/CI_SORTSEQ/i.test(flat) && !/\bUSING\s+KEY\b/i.test(flat)) {
       findings.push({
         at,
         rule: "sortseq",
@@ -147,6 +182,18 @@ for (const file of files) {
           message: 'a table expression keyed on a component is a sequential read - the extended check wants "#EC CI_SORTSEQ on the statement',
         });
       }
+    }
+
+    // the operand of TYPE HANDLE is a data object holding the descriptor -
+    // a method call there is a syntax error on a system, and nothing before
+    // a system objects: assign the descriptor to a variable first
+    const handle = /^\s*CREATE\s+DATA\b.*\bTYPE\s+HANDLE\s+(.+)$/i.exec(flat.replace(/\s*\.\s*$/, ""));
+    if (handle && /\(/.test(handle[1])) {
+      findings.push({
+        at,
+        rule: "handle_call",
+        message: "CREATE DATA ... TYPE HANDLE takes a data object - a method call here is a syntax error on a system; assign the descriptor to a variable first",
+      });
     }
 
     if (/^\s*(FIND|REPLACE)\b/i.test(flat) && /\bREGEX\b/i.test(flat) && !/REGEX_POSIX/i.test(flat)) {

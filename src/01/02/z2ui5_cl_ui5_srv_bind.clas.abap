@@ -15,6 +15,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
+  PRIVATE SECTION.
     METHODS get_client_name
       RETURNING
         VALUE(result) TYPE string.
@@ -27,21 +28,38 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     " carry yet. See the method body for what used to be dropped.
     METHODS adopt_new_options.
 
-  PRIVATE SECTION.
     DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
+    " one model service for the life of this bind service - the client
+    " keeps one bind service per render, so the search index the model
+    " builds on the first _bind( ) serves every _bind( ) of that render
+    DATA mo_model  TYPE REF TO z2ui5_cl_ui5_srv_model.
+
+    METHODS get_model
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
 
     METHODS main_cell
       IMPORTING
-        val           TYPE data
+        val           TYPE REF TO data
         config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " The attribute half of main( ): the row the value lives in, its
+    " binding recorded or adopted, the path decorated by config. main_cell
+    " calls it for the table before it addresses the cell
+    METHODS bind_attri
+      IMPORTING
+        val           TYPE REF TO data
+        config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config
       RETURNING
         VALUE(result) TYPE string.
 
     METHODS bind_tab_cell
       IMPORTING
         iv_name       TYPE string
-        iv_val        TYPE data
+        iv_val        TYPE REF TO data
       RETURNING
         VALUE(result) TYPE string.
 
@@ -114,7 +132,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       lr_ref_in = REF #( <ele> ).
 
       IF iv_val = lr_ref_in.
-        result = |{ iv_name }/{ shift_right( CONV string( ms_config-tab_index - 1 ) ) }/{ <comp>-name }|.
+        result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ <comp>-name }|.
         RETURN.
       ENDIF.
 
@@ -186,6 +204,16 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_model.
+
+    IF mo_model IS NOT BOUND.
+      mo_model = NEW z2ui5_cl_ui5_srv_model( attri = mo_app->mt_attri
+                                             app   = mo_app->mo_app ).
+    ENDIF.
+    result = mo_model.
+
+  ENDMETHOD.
+
   METHOD get_client_name.
 
     result = replace( val  = replace( val  = mr_attri->name
@@ -202,19 +230,20 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD main.
 
     IF z2ui5_cl_ui5_util_context=>check_bound_a_not_initial( config-tab ).
-
       result = main_cell( val    = val
                           config = config ).
-
-      RETURN.
+    ELSE.
+      result = bind_attri( val    = val
+                           config = config ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD bind_attri.
 
     ms_config = config.
 
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = mo_app->mt_attri
-                                                  app  = mo_app->mo_app ).
-
-    mr_attri = lo_model->main_attri_search( val ).
+    mr_attri = get_model( )->main_attri_search( val ).
 
     IF mr_attri->name_ref IS NOT INITIAL.
       " name_ref may be a synthetic child name that no longer maps to a row
@@ -242,14 +271,13 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD main_cell.
 
+    " the table first, as a bare path - bind_attri sets ms_config to that
+    " call's config, so THIS call's config (switch_default_model,
+    " path_only) is put in place afterwards for the cell and its
+    " decoration
+    result = bind_attri( val    = config-tab
+                         config = VALUE #( path_only = abap_true ) ).
     ms_config = config.
-
-    " a SECOND srv_bind instance on purpose, not main( ) on me: main( )
-    " overwrites ms_config with its own config, and the finalize_path( )
-    " below still needs THIS call's config (switch_default_model/path_only)
-    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( mo_app ).
-    result = lo_bind->main( val    = config-tab
-                            config = VALUE #( path_only = abap_true ) ).
 
     result = bind_tab_cell( iv_name = result
                             iv_val  = val ).

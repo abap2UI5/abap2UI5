@@ -291,6 +291,7 @@ them; the app-template core does, the sample repositories do not yet.
 | Trap | Rule |
 |---|---|
 | **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit`, and by `abap2ui5lint`'s `class-constructor-visibility` |
+| **`CREATE DATA … TYPE HANDLE` takes a data object, not a method call** | `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp ).` is "No method can be specified in the current position" on a system - the operand has to be a variable holding the descriptor. abaplint parses the call as an expression and the transpiler runs it, so a test class shipped this way through every gate and a user's system reported it (2026-09-02, `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model`). Gated by `check:atc` (`handle_call`): a `TYPE HANDLE` operand with a `(` in it |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 
 ### Generic types on older releases — the recurring one
@@ -413,6 +414,12 @@ pitfalls".
 - **`LOOP AT … WHERE` over a standard table is a sequential read** and wants
   `"#EC CI_SORTSEQ` on the statement. Fifteen were annotated in the three
   sweeps above, and the gate found seven more that had accumulated since.
+  A LOOP that names a secondary key (`USING KEY … WHERE <key component> =`)
+  is a keyed read and wants no pragma; the gate skips it. The one such key in
+  the framework is `parent` on `z2ui5_if_ui5_types=>ty_t_attri` (2026-09) -
+  its component is written before the row is inserted and never through a
+  reference afterwards, which is the condition a secondary key component has
+  to meet.
 - **An empty `CATCH` block** wants `##NO_HANDLER` — that is how you say the
   empty handler is deliberate. `CATCH cx_root INTO DATA(x) ##NO_HANDLER.`
 - **`FIND`/`REPLACE … REGEX` is POSIX**, which is deprecated. `FIND PCRE` only
@@ -435,7 +442,34 @@ pitfalls".
   it ends with). The rule itself is proposed upstream — backlog:
   abaplint-abapdoc-block-placement, with a measured probe.
 
+- **ABAP Doc is parsed as HTML.** A field symbol or a placeholder written as
+  `<wa>`, `<row>`, `<CLASS>` inside a `"!` block is "HTML tag not supported"
+  and "not closed" in a system, and the block renders wrong. Write
+  `&lt;wa&gt;`. AGENTS.md carried the rule as prose, and three of them still
+  shipped in `z2ui5_if_client` (#2705) until a user's system reported them
+  (2026-09-02) - so it is a gate now: `check:atc` (`abapdoc_html`) reads every
+  `"!` line for a complete tag-like token outside the tags ABAP Doc knows
+  (`p em strong ul ol li h1-h3 br`). A comparison `a < b` is not a token and
+  not a finding.
+
 **Not gated — a script cannot decide these:**
+
+- **`DATA( )` from a generic parameter** (`DATA(lv) = val` with
+  `val TYPE clike`) is "the fixed type STRING is used for the generic type
+  CLIKE": the inline declaration has to pick a type, and SLIN objects to the
+  pick. Declare the variable (`DATA lv TYPE string.`) and assign. Found by a
+  user's system in `z2ui5_cl_ui5_util_context=>url_param_get_tab` (2026-09-02).
+  Deciding it needs the parameter's type, which the statement does not carry.
+- **Re-raising a variable typed `cx_root`** (`CATCH cx_root INTO DATA(lx).
+  … RAISE EXCEPTION lx.`) in a method whose signature declares no exception is
+  "CX_STATIC_CHECK is not caught or declared in the RAISING clause" - the
+  static type could be one. When the point is to run code on the way out and
+  let the original exception travel on, use `CLEANUP` instead of
+  catch-and-re-raise; it runs on the way to the outer handler and touches
+  nothing (`z2ui5_cl_ui5_http_handler=>_http_post`, found by a user's system
+  2026-09-02). Not gated: whether the re-raise leaves the method depends on the
+  enclosing TRY blocks, and the same statement inside an outer `CATCH cx_root`
+  is fine (`z2ui5_cl_ui5_srv_model=>main_json_to_attri`).
 
 - **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE`
   (`z2ui5_cl_ui5_srv_draft=>count_entries_total`, `43515c97`). Whether the
@@ -502,14 +536,19 @@ pitfalls".
   nothing on this side reports it: `check:cloud` and the transpiled unit run
   are both green with it in place.
 
-  Still standing in `src` after that fix, and worth deciding on rather than
-  discovering later: four occurrences outside the upstream mirrors and the
-  frozen package — `src/00/03/z2ui5_cl_ui5_util_context.clas.abap:878` and
-  `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` at 325, 345 and 467. All four
-  take a field symbol or a formal parameter, which `REF #( )` expresses
-  directly. They were left alone deliberately: the pull request changed a test
-  class, and rewriting three production reference paths in the model is a
-  separate change with its own verification.
+  The three in `z2ui5_cl_ui5_srv_model` (the alias re-wiring on the load,
+  `attri_get_val_ref`) were rewritten in 2026-09 - and two of them came
+  back from a system as **"Unexpected operator REF"** the same day. `REF #( )`
+  infers the reference type from the TARGET, and the target of those two is
+  a field symbol `TYPE any` after a dynamic ASSIGN, which has no type to
+  infer from. Write `REF data( … )` (or the concrete `REF ty( … )`) whenever
+  the left side is generic; `REF #( )` only into a typed variable or
+  parameter. abaplint 2.120.38 accepts the generic form without a finding
+  (`check_syntax` on, default and cloud configs) - **Gate: open**. What is left
+  outside the upstream mirrors and the frozen package is the one in
+  `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` (`check_unassign_initial`'s
+  neighbourhood) - vendored from abap-util, so the rewrite belongs upstream
+  first.
 
 - **A RAP handler names the entity by its BDEF alias.** Where the behavior
   definition declares `alias Ticket`, an event handler's
@@ -748,6 +787,26 @@ precisely because no gate will catch it.
   embedded verbatim into an ABAP class under `src/01/03/`, where abaplint's
   `7bit_ascii` rule applies. Build non-ASCII runtime strings at run time, never
   as a literal.
+
+### Two the transpiled suite cannot see — found by a user's unit-test run (2026-09-02)
+
+- **A failed conversion clears its target on a system.** `<comp> = 'abc'`
+  into a packed field, `'seven'` into an integer: the exception
+  (`CX_SY_CONVERSION_NO_NUMBER`) is catchable, but the target is already
+  initial when the handler runs - and `to_abap( )` clears its container before
+  it fills it. The transpiled runtime leaves the target untouched, so "the cell
+  is skipped and the old value stands" (`z2ui5_cl_ui5_srv_model=>delta_apply_field`)
+  held in `npm run unit` and three `z2ui5_cl_ui5_client` tests failed on a
+  system with the refused cells at zero. The rule: whenever a write may be
+  refused and the old value is promised, copy it aside first and put it back
+  in the handler - `main_json_to_attri` already did, the delta path now does.
+- **`ASSIGN dref->* TO <fs>` with a typed field symbol is a runtime error,
+  not sy-subrc 4.** A sorted table assigned to a `TYPE STANDARD TABLE` field
+  symbol dumps with `ASSIGN_TYPE_CONFLICT` on a system; the transpiler answers
+  sy-subrc 4, and `test_skip_sorted_table` was even skipped in Node with a note
+  saying the real system takes "the subrc branch". Decide the kind by RTTI
+  (`cl_abap_tabledescr->table_kind`) BEFORE the ASSIGN
+  (`z2ui5_cl_ui5_srv_model=>check_table_standard`); the skip entry is gone.
 
 ## 6. Blind spots — green, or red, for the wrong reason
 

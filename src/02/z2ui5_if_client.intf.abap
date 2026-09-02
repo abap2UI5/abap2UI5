@@ -593,7 +593,7 @@ INTERFACE z2ui5_if_client
   "!                                One toolchain caveat, not an ABAP one: a
   "!                                STOCK abaplint downport lowers a table
   "!                                expression read at COMPONENT level to
-  "!                                `READ TABLE ... INTO <wa>` - a copy - and
+  "!                                `READ TABLE ... INTO &lt;wa&gt;` - a copy - and
   "!                                the cell is then refused on code that is
   "!                                correct at the v750 target. This repository
   "!                                patches that lowering to `ASSIGNING`
@@ -601,8 +601,8 @@ INTERFACE z2ui5_if_client
   "!                                filed upstream), so `tab[ n ]-comp` works
   "!                                through every build here. An app downported
   "!                                by an UNPATCHED abaplint has to assign the
-  "!                                row first - `ASSIGN tab[ n ] TO <row>`, then
-  "!                                `val = <row>-comp` - which the same rule
+  "!                                row first - `ASSIGN tab[ n ] TO &lt;row&gt;`, then
+  "!                                `val = &lt;row&gt;-comp` - which the same rule
   "!                                already lowers with ASSIGNING and which is
   "!                                7.02-native. Measured, not assumed: the
   "!                                transpiler resolves every form correctly;

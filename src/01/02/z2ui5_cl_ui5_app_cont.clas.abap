@@ -127,6 +127,14 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     METHODS create_model
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
+
+    " the draft's document, read and parsed into a new container - the
+    " half of a load that db_load and db_load_by_app share
+    CLASS-METHODS draft_parse
+      IMPORTING
+        iv_id         TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 ENDCLASS.
 
 
@@ -143,41 +151,35 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
     DATA(lo_model) = create_model( ).
 
-    DATA lv_restored TYPE abap_bool VALUE abap_true.
     DATA x_first TYPE REF TO cx_root.
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
-        lo_model->main_attri_db_load( ).
+        " the live instance gets its references BACK, not a parsed copy: the
+        " same objects the save detached, one assignment each instead of one
+        " S-RTTI parse per reference (which is what a fresh container from
+        " the draft has to pay, and what this instance never has to)
+        lo_model->main_attri_reattach( ).
         RETURN.
       CATCH cx_root INTO x_first.
-        " main_attri_db_save_srtti clears the serialized data references -
-        " restore them before the fallback below, otherwise the second
-        " attempt would persist the half-cleared app state
-        TRY.
-            lo_model->main_attri_db_load( ).
-          CATCH cx_root.
-            lv_restored = abap_false.
-        ENDTRY.
+        " main_attri_db_save_srtti detached the data references - put them
+        " back before the retry below, otherwise the second save would
+        " start from the half-cleared app state
+        lo_model->main_attri_reattach( ).
     ENDTRY.
 
-    " the bare retry is only safe when the restore worked - serializing the
-    " half-cleared state would SUCCEED and persist a draft with the cleared
-    " drefs missing, discovered only on a later restore
-    IF lv_restored = abap_true.
-      TRY.
-          result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
-          RETURN.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDIF.
-
+    " the one retry that can turn out differently: rows rebuilt from the
+    " instance as it is NOW (a reference created after the last dissolve
+    " has no row, so its anonymous target went into the asXML and failed
+    " there), then saved and serialized again. A bare second stringify of
+    " the same rows used to sit here - what the first attempt refused, the
+    " same attempt refuses again
     TRY.
         lo_model->main_attri_refresh( ).
         lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
-        lo_model->main_attri_db_load( ).
+        lo_model->main_attri_reattach( ).
         RETURN.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -212,10 +214,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( id ).
-    result = all_xml_parse( ls_db-data ).
-
+    result = draft_parse( id ).
     result->create_model( )->main_attri_db_load( ).
 
     INSERT VALUE #( id = lv_id app = result ) INTO TABLE mt_buffer.
@@ -230,9 +229,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( app->id_draft ).
-    result = all_xml_parse( ls_db-data ).
+    result = draft_parse( app->id_draft ).
 
     " mo_app is assigned BEFORE the attribute load, and that ordering is the
     " whole difference to db_load( ): the references are restored against the
@@ -292,6 +289,14 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   METHOD model_json_stringify.
 
     result = create_model( )->main_json_stringify( ).
+
+  ENDMETHOD.
+
+  METHOD draft_parse.
+
+    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
+    DATA(ls_db) = lo_db->read_draft( iv_id ).
+    result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.
 

@@ -384,7 +384,7 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. The four traps a script can
+which flags things `npm run check` cannot see. The six traps a script can
 decide are gated by `npm run check:atc` — a **sequential read** over a standard
 table (wants `"#EC CI_SORTSEQ` on the statement), an empty
 `CATCH` block (wants `##NO_HANDLER`), POSIX regex (below) and a misplaced
@@ -431,7 +431,20 @@ front, a green abaplint does not prove their absence:
   list stays legal — that is why the `"obsolete …` note on `path` has no `!`.
 - **ABAP Doc is parsed as HTML:** a literal `<`/`>`/`&` must be escaped as
   `&lt;`/`&gt;`/`&amp;` — a placeholder like `#/app/<CLASS>` is otherwise read
-  as an unsupported, unclosed HTML tag; write `#/app/&lt;CLASS&gt;`.
+  as an unsupported, unclosed HTML tag; write `#/app/&lt;CLASS&gt;`. Gated by
+  `npm run check:atc` since three `<wa>`/`<row>` shipped in `z2ui5_if_client`
+  past this very sentence (2026-09-02).
+- **`CREATE DATA … TYPE HANDLE` takes a data object.** A method call as the
+  operand (`TYPE HANDLE cl_abap_structdescr=>create( … )`) is a syntax error
+  on a system that abaplint and the transpiler both accept; assign the
+  descriptor to a variable first. Gated by `npm run check:atc`.
+- **No `DATA( )` from a generic parameter** (`DATA(lv) = val` with
+  `val TYPE clike`): SLIN reports the fixed type the inline declaration picks.
+  Declare the variable and assign. Not gated, the statement does not carry the
+  parameter's type.
+- **No catch-and-re-raise of a `cx_root` variable** in a method without a
+  RAISING clause — SLIN reads it as an undeclared `CX_STATIC_CHECK`. To run
+  code on the way out and let the exception travel on, use `CLEANUP`.
 
 ## Build & Validation
 
@@ -480,8 +493,8 @@ not something to know before starting.
 | `src/01/02/z2ui5_cl_ui5_action.clas.abap` | Event/action dispatcher |
 | `src/01/02/z2ui5_cl_ui5_frontend.clas.abap` | Frontend action queues + response serialization (T_SYSTEM/T_CUSTOM, ROUTER/nav intent) |
 | `src/01/02/z2ui5_cl_ui5_app_cont.clas.abap` | App lifecycle (create, load, serialize) |
-| `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap` | Data binding engine |
-| `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` | JSON model management |
+| `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap` | Data binding engine — a bound value to its client path, one service per render |
+| `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` | The attribute rows: dissolve, binding search, model out and in (row deltas), the draft save and restore of generic references |
 | `src/01/02/z2ui5_cl_ui5_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_ui5_srv_draft.clas.abap` | Draft/session persistence |
 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` | The single door to system/platform functionality — see "Utilities" |

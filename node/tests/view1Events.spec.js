@@ -43,7 +43,11 @@ function withRecordedEB() {
 // actions/Slots fans it out over the open model-owning slots itself.
 // Asserting the dispatch alone is not enough - what matters is that the data
 // actually lands in every open slot and in none of the others.
-function withSlots(openKeys, model) {
+// `slotApps` names the app each open slot was filled by and `responseApp` the
+// app the response belongs to - the pair the cross-app guard reads. Left out,
+// both are undefined and the guard stays out of the way, which is also the
+// real behaviour for a slot no response has claimed.
+function withSlots(openKeys, model, { slotApps = {}, responseApp } = {}) {
   const applied = [];
   const views = {};
   for (const key of openKeys) {
@@ -64,6 +68,7 @@ function withSlots(openKeys, model) {
       { key: "POPOVER", ownsModel: true },
     ],
     getView: (key) => views[key],
+    getViewApp: (key) => slotApps[key],
     destroy: () => {},
     // mirrors the real resolver (core/ViewSlots.js): only a model
     // carrying the _z2ui5Tracked marker is the framework's
@@ -79,7 +84,10 @@ function withSlots(openKeys, model) {
       "z2ui5/core/Lib": { effectiveSizeLimit: () => undefined },
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": {
-        state: { oResponse: { OVIEWMODEL: model }, viewSizeLimits: {} },
+        state: {
+          oResponse: { OVIEWMODEL: model, APP: responseApp },
+          viewSizeLimits: {},
+        },
       },
     },
   });
@@ -132,6 +140,88 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
     expect(set).toEqual([["/name", "typed"]]);
     // still pending - the popup's own next roundtrip ships it
     expect([...popup._z2ui5ChangedPaths]).toEqual(["/name"]);
+  });
+
+  // A response carries the model of ONE app. An app called only to open a
+  // dialog (nav_app_call to a popup app) displays no main view, so MAIN still
+  // holds the CALLER's view - and the callee's model does not contain the
+  // caller's binding paths at all. Pushing it there emptied the screen behind
+  // the dialog.
+  test("skips a slot the response's app did not fill", () => {
+    const model = { MS_ROW: { A: 1 } };
+    const { Slots, applied } = withSlots(["MAIN", "POPUP"], model, {
+      slotApps: { MAIN: "ZCL_LIST", POPUP: "ZCL_LIST_POPUP" },
+      responseApp: "ZCL_LIST_POPUP",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "POPUP", data: model }]);
+  });
+
+  test("pushes into every slot the responding app itself filled", () => {
+    const model = { MT_TAB: [] };
+    const { Slots, applied } = withSlots(["MAIN", "POPUP"], model, {
+      slotApps: { MAIN: "ZCL_LIST", POPUP: "ZCL_LIST" },
+      responseApp: "ZCL_LIST",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied.map((a) => a.key)).toEqual(["MAIN", "POPUP"]);
+  });
+
+  test("a slot with no recorded owner keeps the unconditional push", () => {
+    const { Slots, applied } = withSlots(["MAIN"], {}, {
+      responseApp: "ZCL_LIST_POPUP",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied.map((a) => a.key)).toEqual(["MAIN"]);
+  });
+
+  // the same guard for a POPOVER: a called app that opens one over the
+  // caller's screen owns that slot and nothing else
+  test("a popover opened by a called app is the only slot it pushes to", () => {
+    const model = { MS_ROW: { A: 1 } };
+    const { Slots, applied } = withSlots(["MAIN", "POPOVER"], model, {
+      slotApps: { MAIN: "ZCL_LIST", POPOVER: "ZCL_LIST_POPUP" },
+      responseApp: "ZCL_LIST_POPUP",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "POPOVER", data: model }]);
+  });
+
+  // the nested slots inherit MAIN's model and belong to whoever filled
+  // MAIN - a popup app's response leaves them alone with it
+  test("nested slots stay with the caller while a popup app answers", () => {
+    const model = { MS_ROW: { A: 1 } };
+    const { Slots, applied } = withSlots(["MAIN", "NEST", "NEST2", "POPUP"], model, {
+      slotApps: { MAIN: "ZCL_LIST", NEST: "ZCL_LIST", POPUP: "ZCL_LIST_POPUP" },
+      responseApp: "ZCL_LIST_POPUP",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "POPUP", data: model }]);
+  });
+
+  // a called app that takes the screen (displays MAIN itself) owns MAIN
+  // from then on - the record follows the display, so its pushes land
+  test("a called app that displayed MAIN pushes into it", () => {
+    const model = { MT_DETAIL: [] };
+    const { Slots, applied } = withSlots(["MAIN"], model, {
+      slotApps: { MAIN: "ZCL_DETAIL" },
+      responseApp: "ZCL_DETAIL",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "MAIN", data: model }]);
+  });
+
+  // ...and the caller's response after nav_app_leave, when it re-displayed
+  // MAIN, is pushed the same way: the record carries the caller again while
+  // the popup the callee left open (a self-closing dialog) is not touched
+  test("after a leave the caller owns MAIN again and only MAIN", () => {
+    const model = { MT_TAB: [1, 2, 3] };
+    const { Slots, applied } = withSlots(["MAIN", "POPUP"], model, {
+      slotApps: { MAIN: "ZCL_LIST", POPUP: "ZCL_LIST_POPUP" },
+      responseApp: "ZCL_LIST",
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([{ key: "MAIN", data: model }]);
   });
 });
 

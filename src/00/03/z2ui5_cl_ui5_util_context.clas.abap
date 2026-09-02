@@ -196,6 +196,15 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO cl_abap_typedescr.
 
+    "! Is the data object behind the reference a STANDARD table - false for
+    "! a sorted or hashed table, for anything that is no table, and for a
+    "! reference RTTI cannot describe
+    CLASS-METHODS rtti_check_table_standard
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS rtti_get_typedescr_by_data
       IMPORTING
         val           TYPE any
@@ -1305,7 +1314,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " the FIRST `?` only. A later `?` is a legal, unencoded character of a
     " value (`title=why?`) - cutting there dropped every parameter before
     " it, app_start included, and the shell fell back to the start page
-    DATA(lv_search) = val.
+    " declared, not inline: DATA( ) from a generic CLIKE parameter is
+    " "fixed type STRING used for generic type CLIKE" in the extended check
+    DATA lv_search TYPE string.
+    lv_search = val.
     IF lv_search CS `?`.
       lv_search = substring_after( val = lv_search
                                    sub = `?` ).
@@ -1650,6 +1662,22 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD rtti_get_typedescr_by_data_ref.
 
     result = cl_abap_typedescr=>describe_by_data_ref( val ).
+
+  ENDMETHOD.
+
+  METHOD rtti_check_table_standard.
+
+    DATA lo_tab TYPE REF TO cl_abap_tabledescr.
+
+    TRY.
+        DATA(lo_type) = cl_abap_typedescr=>describe_by_data_ref( val ).
+        IF lo_type->kind <> cl_abap_typedescr=>kind_table.
+          RETURN.
+        ENDIF.
+        lo_tab ?= lo_type.
+        result = xsdbool( lo_tab->table_kind = cl_abap_tabledescr=>tablekind_std ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 

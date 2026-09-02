@@ -138,4 +138,18 @@ test.describe("accessors and reset", () => {
     // Collections are fresh containers, not cleared old ones.
     expect(ctx.z2ui5.timers).not.toBe(timersBefore);
   });
+
+  test("reset forgets which app filled each slot", () => {
+    // a Back/Forward restore or an app switch starts from a clean slate:
+    // with no recorded owner the model push is unconditional again
+    // (actions/Slots.updateModelIfRequired), which is the pre-response
+    // behaviour and not a stale owner from the previous screen
+    const { AppState, ctx } = load();
+    AppState.initGlobal();
+    expect(ctx.z2ui5.slotApp).toEqual({});
+    AppState.state.slotApp.MAIN = "ZCL_LIST";
+    AppState.reset();
+    expect(AppState.state.slotApp).toEqual({});
+    expect(ctx.z2ui5.slotApp).toEqual({});
+  });
 });
