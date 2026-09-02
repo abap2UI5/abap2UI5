@@ -39,6 +39,19 @@
      * linter's own 0.2.0 changelog says so. */
     "frozen-view-builder": { "exclude": ["/src/99/"] },
 
+    /* The e2e host of sample 338 (node/srv/zcl_tst_host) opens its builder
+     * in one method and stringifies the page from an attribute in another,
+     * after a sub-app created BY NAME has built into it - the shape of the
+     * nested-view samples. The reconstruction replays only the methods that
+     * open a factory and emits a document where a known handle is
+     * stringified, so this class yields no document and no helper token:
+     * "no view reconstructed" instead of the skip its 19 dynamic
+     * neighbours get. Waived here, where the linter reports a stale waiver
+     * the moment the render comes back clean; the gap itself (a factory
+     * opened in one method, its handle stringified in another, is not
+     * statically reconstructable and should skip) belongs to the linter. */
+    "render-error": { "exclude": ["/node/srv/zcl_tst_host."] },
+
     // The reason the linter is a dependency here at all. It replaces
     // .github/scripts/chain-format-gate.mjs, which was this rule reimplemented
     // locally and kept byte-identical in three repositories by hand — the
