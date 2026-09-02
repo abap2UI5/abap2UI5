@@ -402,6 +402,57 @@ if (manifestArg !== -1) {
   },
 ];
 
+/* Files this repository owns that a downstream repository does not COPY but
+ * READS, straight out of a clone of this one.
+ *
+ * web-abap2UI5 clones abap2UI5 every night, downports it, transpiles it and
+ * publishes the result as the in-browser demo. It used to keep its own
+ * transcription of two of these files and paid for it twice: its nightly went
+ * red on 2026-08-03 and again on 2026-09-02, both times because a test landed
+ * here together with the `skip` entry saying it cannot run under the
+ * transpiler, and only the test reached the copy. It now reads both files out
+ * of the clone instead, which ends the drift — and creates a new obligation
+ * here: these paths, and the shape of what is at them, are an interface.
+ *
+ * Not part of SHARED above, because nothing is compared: there is no second
+ * copy to differ from. What can still break the consumer is this repository
+ * MOVING one of them or changing what it holds, and that is what these
+ * entries check — cheaply, locally, in the pull request that does it, rather
+ * than in somebody else's build the next morning.
+ *
+ * `shape` states the assumption the consumer actually makes, so renaming a
+ * key is caught as well as deleting the file. Keep it to that; a consumer
+ * asserting the CONTENT of a config here would be this repository's tail
+ * wagged by another repository's build, which is precisely what the entries
+ * are meant to avoid.
+ */
+const CONSUMED = [
+  {
+    file: 'node/setup/abap_transpile.json',
+    key: 'options.skip',
+    consumer: 'web-abap2UI5',
+    why: 'the unit tests that cannot run under the transpiler — declared here,'
+      + ' in the same commit as the test, and read from the clone by the'
+      + " nightly that transpiles these same sources",
+    shape: (text) => {
+      const skip = parseJsonc(text)?.options?.skip;
+      if (!Array.isArray(skip)) throw new Error('options.skip is not an array');
+    },
+  },
+  {
+    file: '.github/abaplint/abap_702.jsonc',
+    key: 'rules / syntax',
+    consumer: 'web-abap2UI5',
+    why: 'the downport rule set and syntax version — the consumer downports the'
+      + ' same sources and has to be judged by the same rules',
+    shape: (text) => {
+      const cfg = parseJsonc(text);
+      if (!cfg?.rules || typeof cfg.rules !== 'object') throw new Error('no rules object');
+      if (!cfg?.syntax?.version) throw new Error('no syntax.version');
+    },
+  },
+];
+
 /* The body of a family-nav checker: everything from its first `import` down.
  *
  * Above that line each repository owns three constants — SELF, PAGE_HTML,
@@ -593,8 +644,32 @@ for (const entry of SHARED) {
   }
 }
 
+/* The consumed-path check. Local and offline on purpose: it asks only whether
+ * THIS repository still holds up its end, which is a question this checkout
+ * can answer on its own. */
+for (const entry of CONSUMED) {
+  const source = path.join(ROOT, entry.file);
+  if (!fs.existsSync(source)) {
+    problems.push(
+      `${entry.file}: read directly from a clone by ${entry.consumer} (${entry.why}), and it is gone.\n`
+      + `    Moving it breaks that build on its next run. Restore the path, or move it and`
+      + ` update ${entry.consumer} in the same breath.`,
+    );
+    continue;
+  }
+  try {
+    entry.shape(fs.readFileSync(source, 'utf8'));
+  } catch (err) {
+    problems.push(
+      `${entry.file}: ${entry.consumer} reads ${entry.key} out of this file and ${err.message}.\n`
+      + `    ${entry.why}`,
+    );
+  }
+}
+
 console.log(
-  `shared-file: ${SHARED.length} shared file(s), compared against ${compared} of ${expected} copy/copies`,
+  `shared-file: ${SHARED.length} shared file(s), compared against ${compared} of ${expected} copy/copies`
+  + `; ${CONSUMED.length} path(s) read from a clone downstream`,
 );
 for (const n of notes) console.log(`  ${n}`);
 
