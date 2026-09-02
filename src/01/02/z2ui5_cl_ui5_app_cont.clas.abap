@@ -149,14 +149,18 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     TRY.
         lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
-        lo_model->main_attri_db_load( ).
+        " the live instance gets its references BACK, not a parsed copy: the
+        " same objects the save detached, one assignment each instead of one
+        " S-RTTI parse per reference (which is what a fresh container from
+        " the draft has to pay, and what this instance never has to)
+        lo_model->main_attri_reattach( ).
         RETURN.
       CATCH cx_root INTO x_first.
         " main_attri_db_save_srtti clears the serialized data references -
         " restore them before the fallback below, otherwise the second
         " attempt would persist the half-cleared app state
         TRY.
-            lo_model->main_attri_db_load( ).
+            lo_model->main_attri_reattach( ).
           CATCH cx_root.
             lv_restored = abap_false.
         ENDTRY.
@@ -177,7 +181,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
         lo_model->main_attri_refresh( ).
         lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
-        lo_model->main_attri_db_load( ).
+        lo_model->main_attri_reattach( ).
         RETURN.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.

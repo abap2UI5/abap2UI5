@@ -23,6 +23,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS main_attri_db_load.
     METHODS main_attri_refresh.
 
+    "! Put the data references main_attri_db_save_srtti detached back onto
+    "! the live instance - the SAME references, no parse. The counterpart of
+    "! main_attri_db_load for the instance that goes on rendering after its
+    "! draft was written: identity is kept by construction (the objects never
+    "! changed hands), and the S-RTTI payloads on the rows are cleared as a
+    "! load clears them. Only valid on the instance the save ran on.
+    METHODS main_attri_reattach.
+
     METHODS main_json_to_attri
       IMPORTING
         model TYPE REF TO z2ui5_if_ajson.
@@ -177,6 +185,54 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     " re-entrancy latch of dissolve( ) - see the CATCH there
     DATA mv_dissolve_refreshing TYPE abap_bool.
+
+    TYPES:
+      BEGIN OF ty_s_ref_idx,
+        name TYPE string,
+        ref  TYPE REF TO data,
+      END OF ty_s_ref_idx.
+    TYPES ty_t_ref_idx TYPE SORTED TABLE OF ty_s_ref_idx WITH UNIQUE KEY name.
+
+    " name -> data reference, as resolved the last time this INSTANCE walked
+    " the row (dissolve, the alias pass). A prefilter for the binding search
+    " and nothing else: every answer it suggests is confirmed by a fresh
+    " dynamic ASSIGN before it is returned, and a miss falls back to the
+    " full fresh scan - so a stale entry (an app that re-pointed a reference
+    " between two binds) costs one extra ASSIGN, never a wrong row. Lives as
+    " long as the instance: one render for the bind service, one save or
+    " load for the container
+    DATA mt_ref_idx TYPE ty_t_ref_idx.
+
+    " the references main_attri_db_save_srtti cleared, by attribute path -
+    " what main_attri_reattach puts back
+    DATA mt_detached TYPE ty_t_ref_idx.
+
+    METHODS ref_idx_put
+      IMPORTING
+        iv_name TYPE string
+        ir_ref  TYPE REF TO data.
+
+    " one dissolved row with its reference resolved - the alias pass pairs
+    " these instead of resolving on every compare
+    TYPES:
+      BEGIN OF ty_s_resolved,
+        name      TYPE string,
+        type_kind TYPE string,
+        attri     TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri,
+        ref       TYPE REF TO data,
+        deref     TYPE REF TO data,
+      END OF ty_s_resolved.
+    TYPES ty_t_resolved TYPE STANDARD TABLE OF ty_s_resolved WITH EMPTY KEY.
+
+    METHODS entry_refs_pair_table
+      IMPORTING
+        ir_res      TYPE REF TO ty_s_resolved
+        it_resolved TYPE ty_t_resolved.
+
+    METHODS entry_refs_pair_dref
+      IMPORTING
+        ir_res      TYPE REF TO ty_s_resolved
+        it_resolved TYPE ty_t_resolved.
 
     "! Is the table behind the reference a STANDARD table - the only kind a
     "! row delta can be written into by index. Asked BEFORE any ASSIGN to a
@@ -597,11 +653,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
          WHERE name_ref IS INITIAL
                AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
 
-      DATA(lv_path_ref) = |MO_APP->{ lr_attri->name }|.
-      ASSIGN (lv_path_ref) TO FIELD-SYMBOL(<ref>).
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
+      " the deref is the reachability check as well: an unbound or
+      " unreachable reference has no `->*`
       DATA(lv_path_deref) = |MO_APP->{ lr_attri->name }->*|.
       ASSIGN (lv_path_deref) TO FIELD-SYMBOL(<val_deref>).
       IF sy-subrc <> 0.
@@ -631,9 +684,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               CONTINUE.
             ENDIF.
             lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_ref> ).
-            CLEAR <val_ref>.
-            CLEAR <val_deref>.
-            CLEAR <ref>.
+            " only the REFERENCE is detached (below, with every other one) -
+            " the table itself stays as it is, main_attri_reattach hands it
+            " back to the live instance untouched
             EXIT.
           ENDLOOP.
 
@@ -668,9 +721,55 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDIF.
       " clearing the ref detaches the target data object from serialization;
       " dereferencing and clearing the target itself is unnecessary (and was
-      " unreachable here anyway once the ref is cleared)
+      " unreachable here anyway once the ref is cleared). The reference is
+      " kept aside for main_attri_reattach - the live instance gets the same
+      " object back instead of a parsed copy
+      IF <dref> IS BOUND.
+        INSERT VALUE #( name = lr_attri_dref->name
+                        ref  = <dref> ) INTO TABLE mt_detached.
+      ENDIF.
       CLEAR <dref>.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD main_attri_reattach.
+
+    FIELD-SYMBOLS <dref> TYPE any.
+
+    LOOP AT mt_detached REFERENCE INTO DATA(lr_detached).
+      DATA(lv_path) = |MO_APP->{ lr_detached->name }|.
+      " IS ASSIGNED after an UNASSIGN, not sy-subrc: a successful dynamic
+      " ASSIGN does not reset sy-subrc on every release (#1937), and inside
+      " this loop the symbol still points at the previous row's reference
+      " when the ASSIGN fails - see attri_get_val_ref
+      UNASSIGN <dref>.
+      ASSIGN (lv_path) TO <dref>.
+      IF <dref> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
+      <dref> = lr_detached->ref.
+    ENDLOOP.
+    CLEAR mt_detached.
+
+    " the payloads served their purpose in the draft; on the live rows they
+    " would only be stale by the next save, which writes them again
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE srtti_data IS NOT INITIAL.
+      CLEAR lr_attri->srtti_data.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD ref_idx_put.
+
+    READ TABLE mt_ref_idx REFERENCE INTO DATA(lr_idx) WITH TABLE KEY name = iv_name.
+    IF sy-subrc = 0.
+      lr_idx->ref = ir_ref.
+    ELSE.
+      INSERT VALUE #( name = iv_name
+                      ref  = ir_ref ) INTO TABLE mt_ref_idx.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -701,18 +800,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_get_val_ref.
 
-    " The dynamic ASSIGN below is resolved FRESH on every call, on purpose -
-    " do not cache the returned references (maintainer decision, 2026-08).
-    " The name->ref mapping is not stable enough to cache: apps create and
+    " The dynamic ASSIGN below is resolved FRESH on every call. The rule
+    " used to be "no cache at all" (maintainer decision, 2026-08); it was
+    " revised in 2026-09 to "a cache is a prefilter, never an answer", and
+    " the paragraph below is why the answer half must stay. The name->ref
+    " mapping is not stable enough to be an answer by itself: apps create and
     " re-point REF TO data attributes at runtime, dissolve( ) rebuilds
     " mt_attri, and app code in main( ) may swap a dref target between any
-    " two calls. A cached reference then points at the old, detached data
-    " object and fails SILENTLY - the bind reads or writes a copy, values go
-    " stale without an exception, and that class of defect has only ever
-    " been found by users on real systems (see #1937 for how differently
-    " ASSIGN behaves across releases). The repeated dynamic ASSIGNs are the
-    " price of staying correct; O(n) work per roundtrip is the cheap side
-    " of that trade.
+    " two calls. A reference taken from a cache then points at the old,
+    " detached data object and fails SILENTLY - the bind reads or writes a
+    " copy, values go stale without an exception, and that class of defect
+    " has only ever been found by users on real systems (see #1937 for how
+    " differently ASSIGN behaves across releases). So every read and write
+    " of a value goes through this method, and the one index the instance
+    " keeps (mt_ref_idx) is a PREFILTER for the binding search whose every
+    " hit is confirmed here before it counts - see attri_search.
     FIELD-SYMBOLS <attri> TYPE any.
 
     IF iv_path IS INITIAL.
@@ -755,6 +857,30 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           val = `NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST`.
     ENDIF.
 
+    " first the index: a row this instance resolved before that pointed at
+    " exactly this data object. The hit is confirmed by a fresh ASSIGN - an
+    " app that re-pointed the reference since is caught here, and the scan
+    " below then decides as if there had been no index
+    LOOP AT mt_ref_idx REFERENCE INTO DATA(lr_idx) WHERE ref = val. "#EC CI_SORTSEQ
+      READ TABLE mt_attri->* REFERENCE INTO DATA(lr_hit)
+           WITH TABLE KEY name = lr_idx->name.
+      IF sy-subrc <> 0 OR lr_hit->name_ref IS NOT INITIAL
+          OR lr_hit->type_kind <> lo_datadescr->type_kind
+          OR lr_hit->kind <> lo_datadescr->kind.
+        CONTINUE.
+      ENDIF.
+      TRY.
+          DATA(lr_fresh) = attri_get_val_ref( lr_hit->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+      lr_idx->ref = lr_fresh.
+      IF lr_fresh = val.
+        result = lr_hit.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL
                AND type_kind = lo_datadescr->type_kind
@@ -791,6 +917,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         CATCH cx_root.
           CONTINUE.
       ENDTRY.
+      ref_idx_put( iv_name = lr_attri->name
+                   ir_ref  = lr_ref ).
 
       IF lr_ref = val.
         result = lr_attri.
@@ -802,7 +930,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_create_new.
 
-    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( attri_get_val_ref( name ) ).
+    DATA(lr_ref) = attri_get_val_ref( name ).
+    ref_idx_put( iv_name = name
+                 ir_ref  = lr_ref ).
+    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
     result = VALUE z2ui5_if_ui5_types=>ty_s_attri( name         = name
                                                     o_typedescr = lo_descr
                                                     type_kind   = lo_descr->type_kind
@@ -941,91 +1072,91 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_update_entry_refs.
 
-    " The nested loops below resolve every reference through
-    " attri_get_val_ref( ) - a dynamic ASSIGN per lookup, up to O(n^2) of
-    " them per roundtrip. That cost is deliberate: see the comment in
-    " attri_get_val_ref for why a name->ref cache here goes stale silently
-    " (runtime-created attributes, refs re-pointed between roundtrips) and
-    " must not be introduced.
-
-    " Declared once at method level: both CASE branches below fill and read
-    " these, so an inline DATA(...) in only the first branch would read as if
-    " they belonged to that branch alone.
-    DATA lr_attri_ref     TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-    DATA lr_attri_ref_ref TYPE REF TO data.
+    " Every dissolved row is resolved ONCE here - one dynamic ASSIGN per
+    " row, fresh (see attri_get_val_ref for why a stored reference is no
+    " answer) - and the pairing runs over the resolved list: the same
+    " O(n^2) compare as before, on references instead of on ASSIGNs.
+    DATA lt_resolved TYPE ty_t_resolved.
+    FIELD-SYMBOLS <ref> TYPE any.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_true
                AND name_ref IS INITIAL.
-
       TRY.
           DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
           CONTINUE.
       ENDTRY.
+      ref_idx_put( iv_name = lr_attri->name
+                   ir_ref  = lr_ref ).
+      DATA(ls_resolved) = VALUE ty_s_resolved( name      = lr_attri->name
+                                               type_kind = lr_attri->type_kind
+                                               attri     = lr_attri
+                                               ref       = lr_ref ).
+      IF lr_attri->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+        ASSIGN lr_ref->* TO <ref>.
+        ls_resolved-deref = <ref>.
+      ENDIF.
+      APPEND ls_resolved TO lt_resolved.
+    ENDLOOP.
 
-      CASE lr_attri->type_kind.
-
+    LOOP AT lt_resolved REFERENCE INTO DATA(lr_res).
+      CASE lr_res->type_kind.
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-
-          LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
-               WHERE check_dissolved = abap_true
-                     AND name <> lr_attri->name
-                     AND name_ref IS INITIAL
-                     AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-
-            TRY.
-                lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
-              CATCH cx_root.
-                CONTINUE.
-            ENDTRY.
-
-            IF lr_ref <> lr_attri_ref_ref.
-              CONTINUE.
-            ENDIF.
-
-            lr_attri->name_ref = lr_attri_ref->name.
-          ENDLOOP.
-
+          entry_refs_pair_table( ir_res      = lr_res
+                                 it_resolved = lt_resolved ).
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
-
-          ASSIGN lr_ref->* TO FIELD-SYMBOL(<ref>).
-
-          LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
-               WHERE check_dissolved = abap_true
-                     AND name <> lr_attri->name
-                     AND name_ref IS INITIAL
-                     AND (    type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
-                           OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2 ).
-
-            TRY.
-                lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
-              CATCH cx_root.
-                CONTINUE.
-            ENDTRY.
-
-            IF <ref> <> lr_attri_ref_ref.
-              CONTINUE.
-            ENDIF.
-
-            " several dissolved struct attributes can address the SAME data
-            " object (a nested component and the ref target pointing at it).
-            " Of those candidates keep the one with the SHORTEST name - the
-            " outermost, least-nested spelling of the owner - as the
-            " canonical name_ref: a candidate replaces an already-set
-            " name_ref only when its own name is strictly shorter, so the
-            " children rewritten from it (attri_update_refs_children,
-            " `<name_ref>-<component>`) get the shortest stable paths too
-            IF lr_attri->name_ref IS NOT INITIAL AND strlen( lr_attri->name_ref ) <= strlen( lr_attri_ref->name ).
-              CONTINUE.
-            ENDIF.
-
-            lr_attri->name_ref = lr_attri_ref->name.
-            attri_update_refs_children( lr_attri ).
-          ENDLOOP.
-
+          entry_refs_pair_dref( ir_res      = lr_res
+                                it_resolved = lt_resolved ).
       ENDCASE.
+    ENDLOOP.
 
+  ENDMETHOD.
+
+  METHOD entry_refs_pair_table.
+
+    LOOP AT it_resolved REFERENCE INTO DATA(lr_other) "#EC CI_SORTSEQ
+         WHERE type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+               AND ref = ir_res->ref
+               AND name <> ir_res->name.
+      IF lr_other->attri->name_ref IS NOT INITIAL.
+        CONTINUE.
+      ENDIF.
+      ir_res->attri->name_ref = lr_other->name.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD entry_refs_pair_dref.
+
+    IF ir_res->deref IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    LOOP AT it_resolved REFERENCE INTO DATA(lr_other) "#EC CI_SORTSEQ
+         WHERE (    type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+                 OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2 )
+               AND ref = ir_res->deref
+               AND name <> ir_res->name.
+      IF lr_other->attri->name_ref IS NOT INITIAL.
+        CONTINUE.
+      ENDIF.
+
+      " several dissolved struct attributes can address the SAME data
+      " object (a nested component and the ref target pointing at it).
+      " Of those candidates keep the one with the SHORTEST name - the
+      " outermost, least-nested spelling of the owner - as the
+      " canonical name_ref: a candidate replaces an already-set
+      " name_ref only when its own name is strictly shorter, so the
+      " children rewritten from it (attri_update_refs_children,
+      " `<name_ref>-<component>`) get the shortest stable paths too
+      IF ir_res->attri->name_ref IS NOT INITIAL
+          AND strlen( ir_res->attri->name_ref ) <= strlen( lr_other->name ).
+        CONTINUE.
+      ENDIF.
+
+      ir_res->attri->name_ref = lr_other->name.
+      attri_update_refs_children( ir_res->attri ).
     ENDLOOP.
 
   ENDMETHOD.

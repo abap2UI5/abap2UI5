@@ -3,9 +3,12 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
   PUBLIC SECTION.
     DATA mo_app    TYPE REF TO z2ui5_cl_ui5_app_cont.
 
+    " io_model: the model service to search with - main_cell( ) hands its
+    " own to the inner instance so one render keeps ONE search index
     METHODS constructor
       IMPORTING
-        app TYPE REF TO z2ui5_cl_ui5_app_cont.
+        app      TYPE REF TO z2ui5_cl_ui5_app_cont
+        io_model TYPE REF TO z2ui5_cl_ui5_srv_model OPTIONAL.
 
     METHODS main
       IMPORTING
@@ -30,6 +33,14 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
   PRIVATE SECTION.
     DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
+    " one model service for the life of this bind service - the client
+    " keeps one bind service per render, so the search index the model
+    " builds on the first _bind( ) serves every _bind( ) of that render
+    DATA mo_model  TYPE REF TO z2ui5_cl_ui5_srv_model.
+
+    METHODS get_model
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
 
     METHODS main_cell
       IMPORTING
@@ -182,7 +193,18 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD constructor.
 
-    mo_app = app.
+    mo_app   = app.
+    mo_model = io_model.
+
+  ENDMETHOD.
+
+  METHOD get_model.
+
+    IF mo_model IS NOT BOUND.
+      mo_model = NEW z2ui5_cl_ui5_srv_model( attri = mo_app->mt_attri
+                                             app   = mo_app->mo_app ).
+    ENDIF.
+    result = mo_model.
 
   ENDMETHOD.
 
@@ -211,10 +233,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     ms_config = config.
 
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = mo_app->mt_attri
-                                                  app  = mo_app->mo_app ).
-
-    mr_attri = lo_model->main_attri_search( val ).
+    mr_attri = get_model( )->main_attri_search( val ).
 
     IF mr_attri->name_ref IS NOT INITIAL.
       " name_ref may be a synthetic child name that no longer maps to a row
@@ -247,7 +266,8 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " a SECOND srv_bind instance on purpose, not main( ) on me: main( )
     " overwrites ms_config with its own config, and the finalize_path( )
     " below still needs THIS call's config (switch_default_model/path_only)
-    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( mo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_ui5_srv_bind( app      = mo_app
+                                               io_model = get_model( ) ).
     result = lo_bind->main( val    = config-tab
                             config = VALUE #( path_only = abap_true ) ).
 
