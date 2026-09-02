@@ -122,7 +122,7 @@ test("a popup app called from the sub-app leaves the host's view alone", async (
   expect(slotAction(popup, "display", "POPUP")).toBeDefined();
   expect(slotAction(popup, "display", "MAIN")).toBeUndefined();
   expect(JSON.stringify(popup.MODEL ?? {})).not.toContain('"b-1"');
-  expect(popup.MODEL?.MS_DATA_ROW?.APP).toBe("SUB_B");
+  expect(popup.MODEL?.MS_DATA_ROW?.CLASS).toBe("ZCL_TST_SUB_B");
 
   // closing it brings the host back: it re-renders MAIN with B's table,
   // restored from the draft the hop saved - all three references one object
@@ -146,7 +146,7 @@ test("a popup app called from the sub-app leaves the host's view alone", async (
     EVENT: "SELECTION_CHANGE",
   });
   expect(popupA.S_FRONT.APP).toBe(POPUP);
-  expect(popupA.MODEL?.MS_DATA_ROW?.APP).toBe("SUB_A");
+  expect(popupA.MODEL?.MS_DATA_ROW?.CLASS).toBe("ZCL_TST_SUB_A");
   const backA = await post(request, {
     ID: popupA.S_FRONT.ID,
     EVENT: "CLOSE",
