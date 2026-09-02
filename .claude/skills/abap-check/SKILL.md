@@ -291,6 +291,7 @@ them; the app-template core does, the sample repositories do not yet.
 | Trap | Rule |
 |---|---|
 | **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit`, and by `abap2ui5lint`'s `class-constructor-visibility` |
+| **`CREATE DATA … TYPE HANDLE` takes a data object, not a method call** | `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp ).` is "No method can be specified in the current position" on a system - the operand has to be a variable holding the descriptor. abaplint parses the call as an expression and the transpiler runs it, so a test class shipped this way through every gate and a user's system reported it (2026-09-02, `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model`). Gated by `check:atc` (`handle_call`): a `TYPE HANDLE` operand with a `(` in it |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 
 ### Generic types on older releases — the recurring one
@@ -435,7 +436,34 @@ pitfalls".
   it ends with). The rule itself is proposed upstream — backlog:
   abaplint-abapdoc-block-placement, with a measured probe.
 
+- **ABAP Doc is parsed as HTML.** A field symbol or a placeholder written as
+  `<wa>`, `<row>`, `<CLASS>` inside a `"!` block is "HTML tag not supported"
+  and "not closed" in a system, and the block renders wrong. Write
+  `&lt;wa&gt;`. AGENTS.md carried the rule as prose, and three of them still
+  shipped in `z2ui5_if_client` (#2705) until a user's system reported them
+  (2026-09-02) - so it is a gate now: `check:atc` (`abapdoc_html`) reads every
+  `"!` line for a complete tag-like token outside the tags ABAP Doc knows
+  (`p em strong ul ol li h1-h3 br`). A comparison `a < b` is not a token and
+  not a finding.
+
 **Not gated — a script cannot decide these:**
+
+- **`DATA( )` from a generic parameter** (`DATA(lv) = val` with
+  `val TYPE clike`) is "the fixed type STRING is used for the generic type
+  CLIKE": the inline declaration has to pick a type, and SLIN objects to the
+  pick. Declare the variable (`DATA lv TYPE string.`) and assign. Found by a
+  user's system in `z2ui5_cl_ui5_util_context=>url_param_get_tab` (2026-09-02).
+  Deciding it needs the parameter's type, which the statement does not carry.
+- **Re-raising a variable typed `cx_root`** (`CATCH cx_root INTO DATA(lx).
+  … RAISE EXCEPTION lx.`) in a method whose signature declares no exception is
+  "CX_STATIC_CHECK is not caught or declared in the RAISING clause" - the
+  static type could be one. When the point is to run code on the way out and
+  let the original exception travel on, use `CLEANUP` instead of
+  catch-and-re-raise; it runs on the way to the outer handler and touches
+  nothing (`z2ui5_cl_ui5_http_handler=>_http_post`, found by a user's system
+  2026-09-02). Not gated: whether the re-raise leaves the method depends on the
+  enclosing TRY blocks, and the same statement inside an outer `CATCH cx_root`
+  is fine (`z2ui5_cl_ui5_srv_model=>main_json_to_attri`).
 
 - **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE`
   (`z2ui5_cl_ui5_srv_draft=>count_entries_total`, `43515c97`). Whether the

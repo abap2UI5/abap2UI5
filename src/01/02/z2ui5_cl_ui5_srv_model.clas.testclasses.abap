@@ -2654,7 +2654,11 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
                     type = CAST #( cl_abap_datadescr=>describe_by_data( mv_string ) ) ) TO lt_nested_comp.
     APPEND VALUE #( name = `T_ITEMS`
                     type = CAST #( cl_abap_datadescr=>describe_by_data( mt_std ) ) ) TO lt_nested_comp.
-    CREATE DATA mr_handle_nested TYPE HANDLE cl_abap_structdescr=>create( lt_nested_comp ).
+    " a variable as the handle: a method call in this position is a syntax
+    " error on a system ("No method can be specified in the current
+    " position"), which neither abaplint nor the transpiler model
+    DATA(lo_nested) = cl_abap_structdescr=>create( lt_nested_comp ).
+    CREATE DATA mr_handle_nested TYPE HANDLE lo_nested.
     ASSIGN mr_handle_nested->* TO <row>.
     ASSIGN COMPONENT `T_ITEMS` OF STRUCTURE <row> TO <tab>.
     IF sy-subrc = 0.

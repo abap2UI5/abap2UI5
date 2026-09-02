@@ -1305,7 +1305,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " the FIRST `?` only. A later `?` is a legal, unencoded character of a
     " value (`title=why?`) - cutting there dropped every parameter before
     " it, app_start included, and the shell fell back to the start page
-    DATA(lv_search) = val.
+    " declared, not inline: DATA( ) from a generic CLIKE parameter is
+    " "fixed type STRING used for generic type CLIKE" in the extended check
+    DATA lv_search TYPE string.
+    lv_search = val.
     IF lv_search CS `?`.
       lv_search = substring_after( val = lv_search
                                    sub = `?` ).

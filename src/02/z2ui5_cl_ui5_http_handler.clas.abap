@@ -708,16 +708,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " frontend never saw, with the state main( ) had left it in. The action
     " the request started with is put back and its queues cleared before
     " the exception travels on to _main( )'s single catch; the app's own
-    " state stays what main( ) made of it, like in any stateful ABAP session
+    " state stays what main( ) made of it, like in any stateful ABAP session.
+    " CLEANUP, not CATCH-and-RAISE: re-raising a variable typed cx_root is
+    " "CX_STATIC_CHECK not caught or declared" for the extended check (the
+    " static type could be one), while CLEANUP runs on the way out to the
+    " handler in _main( ) and lets the original exception pass untouched
     DATA(lo_action_before) = lo_post->mo_action.
     TRY.
         MOVE-CORRESPONDING lo_post->main( ) TO result.
-      CATCH cx_root INTO DATA(lx_main).
+      CLEANUP.
         IF so_sticky_handler IS BOUND.
           lo_post->mo_action = lo_action_before.
           CLEAR lo_post->mo_action->ms_next.
         ENDIF.
-        RAISE EXCEPTION lx_main.
     ENDTRY.
 
     TRY.
