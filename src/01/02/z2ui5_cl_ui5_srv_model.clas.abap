@@ -149,6 +149,9 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_table      TYPE string
         iv_row_parent TYPE i DEFAULT 0.
 
+    " re-entrancy latch of dissolve( ) - see the CATCH there
+    DATA mv_dissolve_refreshing TYPE abap_bool.
+
     METHODS delta_apply_scalar
       IMPORTING
         io_delta TYPE REF TO z2ui5_if_ajson
@@ -205,17 +208,40 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
 
-          lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
-                                 IMPORTING ev_container     = <val> ).
+          " to_abap clears the target before it fills it, so a refused value
+          " would leave the attribute initial - the trace below promises the
+          " OLD value stays. Kept aside for the one path that can refuse;
+          " only attributes the request actually carries get this far
+          DATA lr_before TYPE REF TO data.
+          CREATE DATA lr_before LIKE <val>.
+          FIELD-SYMBOLS <before> TYPE any.
+          ASSIGN lr_before->* TO <before>.
+          <before> = <val>.
 
-        CATCH cx_root INTO DATA(x).
-          " chain the cause instead of inlining its text: the parser error
-          " below carries the position/attributes that say WHICH value did
-          " not fit, and only the chain transports them to the client
-          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-            EXPORTING
-              val      = |JSON_PARSING_ERROR - attribute '{ lr_attri->name }' (model path '{ lr_attri->name_client }')|
-              previous = x.
+          TRY.
+              lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
+                                     IMPORTING ev_container     = <val> ).
+            CATCH cx_root INTO DATA(lx_refused).
+              <val> = <before>.
+              RAISE EXCEPTION lx_refused.
+          ENDTRY.
+
+        CATCH cx_root.
+          " A bound SCALAR (or a whole structure/table shipped as one value)
+          " the client sent in a form the ABAP type refuses - `1,250.00`
+          " typed into an Input bound to a packed field. This used to raise
+          " JSON_PARSING_ERROR and fail the whole roundtrip with the fatal
+          " overlay, while the same value in a table CELL was traced in
+          " t_model_skipped and the roundtrip went on. Same treatment now:
+          " the attribute is recorded (name = the attribute, row 0, no
+          " field), its old value stays, and the app decides what to tell
+          " the user - the reason the trace exists (see delta_apply_field)
+          DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name = lr_attri->name ).
+          TRY.
+              ls_skip-value = lo_val_front->get_string( `` ).
+            CATCH cx_root ##NO_HANDLER.
+          ENDTRY.
+          APPEND ls_skip TO mt_skipped.
       ENDTRY.
     ENDLOOP.
 
@@ -735,7 +761,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       TRY.
           dissolve_run( ).
         CATCH cx_root.
+          " main_attri_refresh dissolves again - a dissolve_run that keeps
+          " raising would recurse without end. One refresh per dissolve;
+          " the second failure ends the pass with what was resolved so far
+          IF mv_dissolve_refreshing = abap_true.
+            EXIT.
+          ENDIF.
+          mv_dissolve_refreshing = abap_true.
           main_attri_refresh( ).
+          mv_dissolve_refreshing = abap_false.
       ENDTRY.
 
     ENDDO.

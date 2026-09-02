@@ -182,6 +182,20 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      control.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function afterRoundtrip(owner, fn) {` && |\n| &&
+             `      if (!AppState.state.isBusy) {` && |\n| &&
+             `        fn();` && |\n| &&
+             `        return () => {};` && |\n| &&
+             `      }` && |\n| &&
+             `      const once = () => {` && |\n| &&
+             `        unregisterCallback("onAfterRendering", once);` && |\n| &&
+             `        if (isDestroyed(owner)) return;` && |\n| &&
+             `        fn();` && |\n| &&
+             `      };` && |\n| &&
+             `      registerCallback("onAfterRendering", once);` && |\n| &&
+             `      return () => unregisterCallback("onAfterRendering", once);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function runCallbacks(callbacks, ...args) {` && |\n| &&
              `      if (!callbacks) return;` && |\n| &&
              `      for (const fn of callbacks) {` && |\n| &&
@@ -410,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
              `      return _sanitizeEl.innerHTML;` && |\n| &&
-             `    }` && |\n| &&
+             `    }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];` && |\n| &&
              `` && |\n| &&
@@ -424,8 +439,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      for (const key of ROOT_MODEL_SLOTS) {` && |\n| &&
              `        const limit = viewSizeLimits[key];` && |\n| &&
              `        if (limit !== undefined && (max === undefined || limit > max)) {` && |\n| &&
-             `          max = limit;` && |\n|.
-    result = result &&
+             `          max = limit;` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      return max;` && |\n| &&
@@ -501,6 +515,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
              `      isControllerAlive,` && |\n| &&
+             `      afterRoundtrip,` && |\n| &&
              `      isAlive,` && |\n| &&
              `      claimOnce,` && |\n| &&
              `      isTextInput,` && |\n| &&

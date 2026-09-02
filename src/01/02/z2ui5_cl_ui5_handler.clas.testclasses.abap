@@ -80,6 +80,9 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS load_startup_app       FOR TESTING RAISING cx_static_check.
     METHODS test_dispatch_loop_guard FOR TESTING RAISING cx_static_check.
     METHODS test_leave_root_ends_roundtrip FOR TESTING RAISING cx_static_check.
+    METHODS test_sticky_keep_saves_draft FOR TESTING RAISING cx_static_check.
+    METHODS test_context_info_sanitized FOR TESTING RAISING cx_static_check.
+    METHODS test_app_start_encoded_slash FOR TESTING RAISING cx_static_check.
     METHODS test_request_parse     FOR TESTING RAISING cx_static_check.
     METHODS test_request_origin    FOR TESTING RAISING cx_static_check.
     METHODS test_request_launchpad FOR TESTING RAISING cx_static_check.
@@ -1131,6 +1134,74 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD test_sticky_keep_saves_draft.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
+
+    " a sticky app under KEEP routing: its draft id goes into the URL, so
+    " the draft has to exist for Back/Forward and a bookmark to restore it
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app          = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id     = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_check_sticky = abap_true.
+    lo_handler->mo_action->mo_app->mv_nav_mode     = z2ui5_if_client=>cs_nav_mode-keep.
+    DATA(lv_id_keep) = lo_handler->mo_action->mo_app->ms_draft-id.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_true( lo_draft->check_exists( lv_id_keep ) ).
+    cl_abap_unit_assert=>assert_true( lo_handler->mo_action->mo_app->mv_check_initialized ).
+
+    " a sticky app that asked for neither keeps skipping the serialization
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app          = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id     = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_check_sticky = abap_true.
+    DATA(lv_id_plain) = lo_handler->mo_action->mo_app->ms_draft-id.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_false( lo_draft->check_exists( lv_id_plain ) ).
+    cl_abap_unit_assert=>assert_true( lo_handler->mo_action->mo_app->mv_check_initialized ).
+
+  ENDMETHOD.
+
+  METHOD test_context_info_sanitized.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " the 500 body quotes app_start - client-controlled, so markup in it is
+    " stripped the way factory_first_start strips it
+    lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_control-app_start = `ZCL_X<script>alert(1)</script>`.
+
+    DATA(lv_info) = lo_handler->request_context_info( ).
+
+    cl_abap_unit_assert=>assert_char_cp( act = lv_info
+                                         exp = `*app_start ZCL_Xscriptalert1/script*` ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_info CS `<` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_app_start_encoded_slash.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_no_comp_data TYPE REF TO z2ui5_if_ajson.
+    lo_handler = NEW #( val = `` ).
+
+    " a percent-encoded namespace in the query is the class name it spells
+    cl_abap_unit_assert=>assert_equals(
+        exp = `/NS/ZCL_APP`
+        act = lo_handler->request_app_start( iv_search    = `?app_start=%2Fns%2Fzcl_app`
+                                             io_comp_data = lo_no_comp_data ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `ZCL_APP`
+        act = lo_handler->request_app_start( iv_search    = `?app_start=zcl_app`
+                                             io_comp_data = lo_no_comp_data ) ).
+
+  ENDMETHOD.
 
   METHOD test_leave_root_ends_roundtrip.
 

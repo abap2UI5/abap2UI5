@@ -1103,7 +1103,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         " cl_abap_refdescr covers data and object references alike, and so
         " does kind_ref
         DATA(lo_typdescr) = cl_abap_typedescr=>describe_by_data( val ).
-        result = xsdbool( lo_typdescr->kind = cl_abap_typedescr=>kind_ref ).
+        IF lo_typdescr->kind <> cl_abap_typedescr=>kind_ref.
+          RETURN.
+        ENDIF.
+        " kind_ref covers object references too, and the one caller that
+        " dereferences on a true answer (conv_copy_ref_data: `from->*`)
+        " cannot do that to an object reference - nav_app_leave( r_data =
+        " lo_object ) reached it. Only a reference to DATA answers true
+        DATA(lo_referenced) = CAST cl_abap_refdescr( lo_typdescr )->get_referenced_type( ).
+        result = xsdbool( lo_referenced->kind <> cl_abap_typedescr=>kind_class
+                      AND lo_referenced->kind <> cl_abap_typedescr=>kind_intf ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 

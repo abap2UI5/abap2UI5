@@ -15,6 +15,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_url_param_startup    FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_encoded    FOR TESTING RAISING cx_static_check.
     METHODS test_c_trim_mixed          FOR TESTING RAISING cx_static_check.
+    METHODS test_copy_ref_object       FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_question   FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_full_url   FOR TESTING RAISING cx_static_check.
 
@@ -138,6 +139,27 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = 1
         act = lines( z2ui5_cl_ui5_util_context=>url_param_get_tab( `?a=1&` ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_copy_ref_object.
+
+    " an OBJECT reference handed to nav_app_leave( r_data = ... ): not a data
+    " reference to dereference, copied as the value it is - the previous
+    " app gets a reference to a copy of the reference variable
+    DATA(lo_obj) = NEW z2ui5_cl_ui5_util_context( ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>rtti_check_ref_data( lo_obj ) ).
+
+    DATA lv_text TYPE string VALUE `x`.
+    DATA(lr_text) = REF #( lv_text ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_ref_data( lr_text ) ).
+
+    DATA(lr_copy) = z2ui5_cl_ui5_util_context=>conv_copy_ref_data( lo_obj ).
+    cl_abap_unit_assert=>assert_bound( lr_copy ).
+    FIELD-SYMBOLS <copy> TYPE any.
+    ASSIGN lr_copy->* TO <copy>.
+    cl_abap_unit_assert=>assert_equals( exp = lo_obj
+                                        act = <copy> ).
 
   ENDMETHOD.
 

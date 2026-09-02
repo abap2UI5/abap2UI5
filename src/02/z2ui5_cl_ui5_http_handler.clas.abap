@@ -699,7 +699,26 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " are structurally identical, so MOVE-CORRESPONDING carries every field
     " including s_stateful - and the public signature stays free of a Layer 1
     " type (see ty_s_http_res above).
-    MOVE-CORRESPONDING lo_post->main( ) TO result.
+    "
+    " A sticky handler answers the NEXT request from whatever action it
+    " holds when this one ends. main( ) replaces the action on every nav
+    " hop, so an exception mid-hop used to leave the CALLED app's action in
+    " place - the next request (factory_by_frontend ignores the id while
+    " the sticky container holds an app) then ran against an app the
+    " frontend never saw, with the state main( ) had left it in. The action
+    " the request started with is put back and its queues cleared before
+    " the exception travels on to _main( )'s single catch; the app's own
+    " state stays what main( ) made of it, like in any stateful ABAP session
+    DATA(lo_action_before) = lo_post->mo_action.
+    TRY.
+        MOVE-CORRESPONDING lo_post->main( ) TO result.
+      CATCH cx_root INTO DATA(lx_main).
+        IF so_sticky_handler IS BOUND.
+          lo_post->mo_action = lo_action_before.
+          CLEAR lo_post->mo_action->ms_next.
+        ENDIF.
+        RAISE EXCEPTION lx_main.
+    ENDTRY.
 
     TRY.
         IF lo_post->mo_action->mo_app->mv_check_sticky = abap_true.

@@ -58,6 +58,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      async _processAfterRendering(reqSeq) {` && |\n| &&
+             `        let superseded = false;` && |\n| &&
+             `` && |\n| &&
              `        const oResponse = AppState.state.oResponse;` && |\n| &&
              `        if (!oResponse || oResponse._processed) return;` && |\n| &&
              `        oResponse._processed = true;` && |\n| &&
@@ -83,6 +85,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            !Lib.isControllerAlive(this) ||` && |\n| &&
              `            oResponse !== AppState.state.oResponse` && |\n| &&
              `          ) {` && |\n| &&
+             `            superseded = true;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -101,12 +104,14 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            "Unexpected Error Occurred - App Terminated",` && |\n| &&
              `          );` && |\n| &&
              `        } finally {` && |\n| &&
-             `          BusyIndicator.hide();` && |\n| &&
-             `          AppState.state.isBusy = false;` && |\n| &&
+             `          if (!superseded) {` && |\n| &&
+             `            BusyIndicator.hide();` && |\n| &&
+             `            AppState.state.isBusy = false;` && |\n| &&
              `` && |\n| &&
-             `          this._runPendingCustomJs(oResponse);` && |\n| &&
+             `            this._runPendingCustomJs(oResponse);` && |\n| &&
              `` && |\n| &&
-             `          Router.dispatchPendingAppHash();` && |\n| &&
+             `            Router.dispatchPendingAppHash();` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

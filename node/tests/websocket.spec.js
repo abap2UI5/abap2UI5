@@ -204,6 +204,26 @@ test("checkRepeat=false closes the connection after the first message", () => {
   expect(sockets[0].closed).toBe(true);
 });
 
+test("checkRepeat=false stays closed across the next re-renders", () => {
+  const { makeInstance, sockets } = load();
+  const inst = makeInstance({ path: "/apc", checkRepeat: false });
+  inst.onAfterRendering();
+  sockets[0].onmessage({ data: "once" });
+  expect(sockets[0].closed).toBe(true);
+
+  // every roundtrip re-renders; "once" used to become "once per roundtrip"
+  inst.onAfterRendering();
+  inst.onAfterRendering();
+  expect(sockets).toHaveLength(1);
+
+  // the app asks again: checkActive toggled, or checkRepeat back on
+  inst._props.checkActive = false;
+  inst.onAfterRendering();
+  inst._props.checkActive = true;
+  inst.onAfterRendering();
+  expect(sockets).toHaveLength(2);
+});
+
 test("a non-text message is logged and ignored - never thrown", () => {
   const { makeInstance, sockets, errors } = load();
   const inst = makeInstance({ path: "/apc" });
