@@ -568,6 +568,9 @@ CLASS ltcl_app_samples DEFINITION FINAL
     TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
     DATA mt_rows TYPE ty_t_row.
+    " a reference INTO the nested structure below - what a leaf reached
+    " through it has to bind as
+    DATA mr_alias TYPE REF TO data.
 
     DATA:
       BEGIN OF ms_data,
@@ -1312,6 +1315,10 @@ CLASS ltcl_02_search DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS reference_itself_refused  FOR TESTING RAISING cx_static_check.
     " a leaf deeper than one dissolve pass reaches (sample 138)
     METHODS deep_leaf_found           FOR TESTING RAISING cx_static_check.
+    " a leaf two levels below a reference INTO a structure binds as the
+    " owner's leaf - the rows under a struct alias know their owner at
+    " every depth, not only at the first
+    METHODS alias_grandchild_as_owner FOR TESTING RAISING cx_static_check.
     " a row without a descriptor is passed over, not dumped on
     METHODS unreachable_row_skipped   FOR TESTING RAISING cx_static_check.
     " a value that is not there yet: the search dissolves, then refreshes
@@ -1399,6 +1406,30 @@ CLASS ltcl_02_search IMPLEMENTATION.
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
         cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `NO DATA REFERENCES` ) ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD alias_grandchild_as_owner.
+
+    DATA(lo_app) = NEW ltcl_app_samples( ).
+    lo_app->mr_alias = REF #( lo_app->ms_data ).
+    lo_app->ms_data-ms_data2-val = `two`.
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+
+    " the leaf reached THROUGH the reference is the owner's leaf
+    DATA(lr_leaf) = lo_model->attri_get_val_ref( `MR_ALIAS->MS_DATA2-VAL` ).
+    DATA(lr_attri) = lo_model->main_attri_search( lr_leaf ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_DATA-MS_DATA2-VAL`
+                                        act = lr_attri->name ).
+    " ...because every row under the alias names the owner's path
+    cl_abap_unit_assert=>assert_equals( exp = `MS_DATA-MS_DATA2`
+                                        act = lt_attri[ name = `MR_ALIAS->MS_DATA2` ]-name_ref ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_DATA-MS_DATA2-VAL`
+                                        act = lt_attri[ name = `MR_ALIAS->MS_DATA2-VAL` ]-name_ref ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_DATA-MS_DATA2-MS_DATA2-VAL`
+                                        act = lt_attri[ name = `MR_ALIAS->MS_DATA2-MS_DATA2-VAL` ]-name_ref ).
 
   ENDMETHOD.
 

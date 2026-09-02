@@ -89,6 +89,18 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       IMPORTING
         ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
+    " The rows BELOW a struct alias, any depth - `<alias>-><path>` - get
+    " `<owner>-<path>` as their name_ref (iv_to = the owner's name and a
+    " `-`), or none (iv_to initial). Recursive over the parent key: a
+    " component's components sit one level down under their own parent
+    " row. Used to stop at the first level, so a leaf two levels below the
+    " reference bound under its own path instead of the owner's
+    METHODS refs_below_set
+      IMPORTING
+        iv_parent TYPE string
+        iv_from   TYPE string
+        iv_to     TYPE string.
+
     METHODS attri_get_val_ref
       IMPORTING
         iv_path       TYPE clike
@@ -1263,12 +1275,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     CLEAR ir_res->attri->name_ref.
-    " the children of a struct alias carry `<owner>-<component>` - gone
-    " with the owner; a new owner rewrites them (attri_update_refs_children)
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_child) USING KEY parent
-         WHERE name_parent = ir_res->name.
-      CLEAR lr_child->name_ref.
-    ENDLOOP.
+    " the rows below a struct alias carry `<owner>-<path>` - gone with the
+    " owner; a new owner rewrites them (attri_update_refs_children)
+    refs_below_set( iv_parent = ir_res->name
+                    iv_from   = |{ ir_res->name }->|
+                    iv_to     = `` ).
 
   ENDMETHOD.
 
@@ -1319,11 +1330,25 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_update_refs_children.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) USING KEY parent
-         WHERE name_parent = ir_attri->name.
-      DATA(lv_name) = shift_left( val = lr_attri_child->name
-                                  sub = |{ ir_attri->name }->| ).
-      lr_attri_child->name_ref = |{ ir_attri->name_ref }-{ lv_name }|.
+    refs_below_set( iv_parent = ir_attri->name
+                    iv_from   = |{ ir_attri->name }->|
+                    iv_to     = |{ ir_attri->name_ref }-| ).
+
+  ENDMETHOD.
+
+  METHOD refs_below_set.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_child) USING KEY parent
+         WHERE name_parent = iv_parent.
+      IF iv_to IS INITIAL.
+        CLEAR lr_child->name_ref.
+      ELSE.
+        lr_child->name_ref = iv_to && shift_left( val = lr_child->name
+                                                  sub = iv_from ).
+      ENDIF.
+      refs_below_set( iv_parent = lr_child->name
+                      iv_from   = iv_from
+                      iv_to     = iv_to ).
     ENDLOOP.
 
   ENDMETHOD.
