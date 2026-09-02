@@ -3584,6 +3584,8 @@ CLASS ltcl_test_samples DEFINITION FINAL
     METHODS bind_reference_refused  FOR TESTING RAISING cx_static_check.
     METHODS deep_same_name_leaf     FOR TESTING RAISING cx_static_check.
     METHODS dates_initial_or_broken FOR TESTING RAISING cx_static_check.
+    " the bound that lets a deep structure through must still end a cycle
+    METHODS cyclic_object_ends      FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -3625,6 +3627,36 @@ CLASS ltcl_test_samples IMPLEMENTATION.
     DATA(lr_upper) = lo_model->main_attri_search( REF #( lo_app->ms_data-ms_data2-val ) ).
     cl_abap_unit_assert=>assert_equals( exp = `MS_DATA-MS_DATA2-VAL`
                                         act = lr_upper->name ).
+
+  ENDMETHOD.
+
+  METHOD cyclic_object_ends.
+
+    " a helper that points back at itself: every hop is one more `->`, and
+    " the dissolve stops after max_dissolve_depth of them instead of running
+    " until the pass limit - the rows it leaves are bindable up to there
+    DATA(lo_app) = NEW ltcl_app_shapes( ).
+    lo_app->mo_inner = NEW #( ).
+    lo_app->mo_inner->mv_inner  = `loop`.
+    lo_app->mo_inner->mo_deeper = lo_app->mo_inner.
+
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+    lo_model->main_attri_refresh( ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lt_attri[ name = `MO_INNER->MO_DEEPER->MO_DEEPER->MV_INNER` ] ) ) ).
+    DATA(lv_deepest) = 0.
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
+      DATA(lv_hops) = count( val = lr_attri->name
+                             sub = `->` ).
+      IF lv_hops > lv_deepest.
+        lv_deepest = lv_hops.
+      ENDIF.
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_deepest <= 5 )
+                                      msg = |the cycle ran { lv_deepest } hops deep| ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_attri[ check_dissolved = abap_false ] ) ) ).
 
   ENDMETHOD.
 

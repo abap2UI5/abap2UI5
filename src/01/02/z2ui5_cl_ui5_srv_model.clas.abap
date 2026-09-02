@@ -44,7 +44,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+    " how many REFERENCE hops (`->`) a dissolved name may carry - the bound
+    " that ends a cyclic object graph (an attribute pointing back at its
+    " owner). Structure nesting (`-`) is finite by itself and not counted
     CONSTANTS max_dissolve_depth TYPE i VALUE 5.
+    " how many passes one dissolve( ) makes at most - one pass per level, so
+    " this only has to exceed the deepest structure an app nests plus the
+    " reference hops above; sample 138 binds a leaf eight components down
+    CONSTANTS max_dissolve_passes TYPE i VALUE 25.
 
     METHODS main_attri_db_load_resolve.
 
@@ -887,9 +894,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " evaluates it once, before the loop. With an initially empty table that
     " single evaluation says "nothing pending" forever, so only the first
     " pass ran and nested components (MS_NESTED-INNER-DEEP1) were never
-    " resolved. DO ... TIMES also replaces the manual lv_depth counter -
-    " max_dissolve_depth still means what it says, 5 dissolve passes.
-    DO max_dissolve_depth TIMES.
+    " resolved. The pass count is NOT the cycle guard - that is the hop
+    " count per name in dissolve_run - it only has to be large enough for
+    " the deepest structure an app nests (five passes were not: a leaf
+    " eight components down, sample 138, was never reached and answered
+    " with BINDING_ERROR)
+    DO max_dissolve_passes TIMES.
 
       " EXIT, not RETURN - attri_update_entry_refs must still run for the
       " already dissolved rows, otherwise name_ref stays empty and the
@@ -1039,6 +1049,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF lr_attri->o_typedescr IS NOT BOUND.
         DATA(ls_entry) = attri_create_new( lr_attri->name ).
         lr_attri->o_typedescr = ls_entry-o_typedescr.
+      ENDIF.
+
+      " a reference more than max_dissolve_depth hops down stays a leaf: an
+      " object graph can be cyclic (an attribute pointing back at its owner,
+      " a helper holding the app), and every hop is another `->` in the name
+      IF lr_attri->o_typedescr->kind = z2ui5_cl_ui5_util_context=>cv_typedescr_kind_ref
+          AND count( val = lr_attri->name
+                     sub = `->` ) >= max_dissolve_depth.
+        CONTINUE.
       ENDIF.
 
       CASE lr_attri->o_typedescr->kind.

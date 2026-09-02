@@ -558,12 +558,17 @@ CLASS ltcl_test_db_shapes IMPLEMENTATION.
     " or a type change left behind
     DATA(lo_model) = lo_cont->create_model( ).
     lo_model->main_attri_db_save_srtti( ).
+    " the payload sits on the canonical row of the shared table - whichever
+    " of its references sorts last - and the error names that row
+    DATA lv_broken TYPE string.
     LOOP AT lo_cont->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL.
       " plain text, not malformed markup: a system answers either with a
       " catchable exception, the NodeJS parser ASSERTs on broken markup
       lr_attri->srtti_data = `this is not the serialized type`.
+      lv_broken = lr_attri->name.
     ENDLOOP.
+    cl_abap_unit_assert=>assert_not_initial( lv_broken ).
     DATA(lv_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lo_cont ).
     DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
     lo_db->create( draft     = lo_cont->ms_draft
@@ -575,7 +580,7 @@ CLASS ltcl_test_db_shapes IMPLEMENTATION.
         cl_abap_unit_assert=>fail( `a draft whose bound data cannot be restored must not load silently` ).
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
         cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `APP_STATE_RESTORE_ERROR` ) ).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `MR_HANDLE_TAB` ) ).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS lv_broken ) ).
     ENDTRY.
 
   ENDMETHOD.
