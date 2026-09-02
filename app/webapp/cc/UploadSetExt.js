@@ -1,11 +1,6 @@
 sap.ui.define(
-  [
-    "sap/ui/core/Control",
-    "z2ui5/core/Lib",
-    "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
-  ],
-  (Control, Lib, ViewSlots, AppState) => {
+  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
+  (Control, Lib, ViewSlots) => {
     "use strict";
 
     // Invisible companion control for a sap.m.upload.UploadSet (referenced
@@ -63,9 +58,9 @@ sap.ui.define(
       exit() {
         this._unhook();
         this._queue = [];
-        if (this._afterRoundtrip) {
-          Lib.unregisterCallback("onAfterRendering", this._afterRoundtrip);
-          this._afterRoundtrip = null;
+        if (this._cancelWait) {
+          this._cancelWait();
+          this._cancelWait = null;
         }
       },
 
@@ -97,28 +92,13 @@ sap.ui.define(
             this.setProperty("mediaType", file.type);
             this.setProperty("fileSize", String(file.size));
             this.fireChange();
-            this._whenRoundtripLanded(() => this._readNext());
+            this._cancelWait = Lib.afterRoundtrip(this, () => {
+              this._cancelWait = null;
+              this._readNext();
+            });
           },
           "UploadSetExt",
         );
-      },
-
-      // Runs `fn` once the roundtrip the change just started has landed -
-      // right away when it started none (no event bound to change), which
-      // is what state.isBusy says synchronously after fireChange.
-      _whenRoundtripLanded(fn) {
-        if (!AppState.state.isBusy) {
-          fn();
-          return;
-        }
-        const once = () => {
-          Lib.unregisterCallback("onAfterRendering", once);
-          this._afterRoundtrip = null;
-          if (Lib.isDestroyed(this)) return;
-          fn();
-        };
-        this._afterRoundtrip = once;
-        Lib.registerCallback("onAfterRendering", once);
       },
 
       onItemAdded(oEvent) {

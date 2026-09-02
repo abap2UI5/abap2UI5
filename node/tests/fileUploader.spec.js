@@ -32,7 +32,7 @@ function load() {
   const { readers, FakeFileReader } = makeFileReaderStub();
   // The real Lib (readFileAsDataURL, isDestroyed) with the FileReader global
   // stubbed inside Lib's own module sandbox.
-  const { Lib } = loadLib({ FileReader: FakeFileReader });
+  const { Lib, sandbox } = loadLib({ FileReader: FakeFileReader });
 
   class Button {
     constructor(settings) {
@@ -142,7 +142,7 @@ function load() {
     getSource: () => uploader,
   });
 
-  return { makeInstance, render, changeEvent, readers };
+  return { makeInstance, render, changeEvent, readers, state: sandbox.z2ui5 };
 }
 
 test("button mode renders uploader + Upload button, disabled while no file", () => {
@@ -195,6 +195,43 @@ test("pressing Upload reads the pending file and fires upload with the data URL"
 
   expect(inst._props.value).toBe("data:mock;base64,doc.txt");
   expect(inst.uploads).toBe(1);
+});
+
+test("with multiple, every selected file is read - one after the other", () => {
+  const { makeInstance, render, readers, state } = load();
+  const inst = makeInstance({ multiple: true });
+  render(inst);
+  const files = [{ name: "a.txt" }, { name: "b.txt" }, { name: "c.txt" }];
+  // the upload event starts a roundtrip - what View1.eB does synchronously
+  inst.fireUpload = () => {
+    inst.uploads++;
+    state.isBusy = true;
+  };
+
+  inst.oFileUploader.settings.value = "a.txt";
+  inst.oFileUploader.settings.change({
+    getParameter: (name) => (name === "files" ? files : null),
+    getSource: () => inst.oFileUploader,
+  });
+  inst.oUploadButton.settings.press();
+
+  // only files[0] was ever read before; now the rest wait in the queue
+  expect(readers).toHaveLength(1);
+  readers[0].finish();
+  expect(inst._props.value).toBe("data:mock;base64,a.txt");
+  expect(inst.uploads).toBe(1);
+  expect(readers).toHaveLength(1);
+
+  // the roundtrip lands: the next file follows
+  state.isBusy = false;
+  for (const fn of state.onAfterRendering) fn();
+  readers[1].finish();
+  expect(inst._props.value).toBe("data:mock;base64,b.txt");
+  state.isBusy = false;
+  for (const fn of state.onAfterRendering) fn();
+  readers[2].finish();
+  expect(inst._props.value).toBe("data:mock;base64,c.txt");
+  expect(inst.uploads).toBe(3);
 });
 
 test("direct-upload mode renders no button and reads on uploadComplete", () => {

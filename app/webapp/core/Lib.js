@@ -269,6 +269,28 @@ sap.ui.define(
     // Run every callback in `callbacks` (the shared callback arrays above),
     // swallowing individual failures so one bad callback cannot break the
     // whole event sequence.
+    // Runs `fn` once the roundtrip a control just started has landed - right
+    // away when it started none (state.isBusy is set synchronously by
+    // View1.eB, so the answer is known the moment the event was fired). A
+    // control that reports several files/values one roundtrip each hands
+    // the next one over from here; firing them back to back lost every one
+    // but the first on the busy guard. The one-shot hook takes itself off
+    // the onAfterRendering list again; `owner` destroyed meanwhile ends it.
+    // Returns a function that cancels the wait (for the owner's exit).
+    function afterRoundtrip(owner, fn) {
+      if (!AppState.state.isBusy) {
+        fn();
+        return () => {};
+      }
+      const once = () => {
+        unregisterCallback("onAfterRendering", once);
+        if (isDestroyed(owner)) return;
+        fn();
+      };
+      registerCallback("onAfterRendering", once);
+      return () => unregisterCallback("onAfterRendering", once);
+    }
+
     function runCallbacks(callbacks, ...args) {
       if (!callbacks) return;
       for (const fn of callbacks) {
@@ -752,6 +774,7 @@ sap.ui.define(
       logError,
       isDestroyed,
       isControllerAlive,
+      afterRoundtrip,
       isAlive,
       claimOnce,
       isTextInput,

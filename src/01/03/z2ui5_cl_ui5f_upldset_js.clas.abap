@@ -26,13 +26,8 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
+             `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.UploadSetExt", {` && |\n| &&
@@ -86,9 +81,9 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
              `        this._queue = [];` && |\n| &&
-             `        if (this._afterRoundtrip) {` && |\n| &&
-             `          Lib.unregisterCallback("onAfterRendering", this._afterRoundtrip);` && |\n| &&
-             `          this._afterRoundtrip = null;` && |\n| &&
+             `        if (this._cancelWait) {` && |\n| &&
+             `          this._cancelWait();` && |\n| &&
+             `          this._cancelWait = null;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -113,25 +108,13 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `            this.setProperty("mediaType", file.type);` && |\n| &&
              `            this.setProperty("fileSize", String(file.size));` && |\n| &&
              `            this.fireChange();` && |\n| &&
-             `            this._whenRoundtripLanded(() => this._readNext());` && |\n| &&
+             `            this._cancelWait = Lib.afterRoundtrip(this, () => {` && |\n| &&
+             `              this._cancelWait = null;` && |\n| &&
+             `              this._readNext();` && |\n| &&
+             `            });` && |\n| &&
              `          },` && |\n| &&
              `          "UploadSetExt",` && |\n| &&
              `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _whenRoundtripLanded(fn) {` && |\n| &&
-             `        if (!AppState.state.isBusy) {` && |\n| &&
-             `          fn();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const once = () => {` && |\n| &&
-             `          Lib.unregisterCallback("onAfterRendering", once);` && |\n| &&
-             `          this._afterRoundtrip = null;` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          fn();` && |\n| &&
-             `        };` && |\n| &&
-             `        this._afterRoundtrip = once;` && |\n| &&
-             `        Lib.registerCallback("onAfterRendering", once);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onItemAdded(oEvent) {` && |\n| &&

@@ -44,6 +44,7 @@ sap.ui.define(
       // response being processed belongs to (Server.responseSuccess); the
       // onAfterRendering entry above has none and falls back to the newest.
       async _processAfterRendering(reqSeq) {
+        let superseded = false;
         // The claim happens BEFORE the try: the MAIN rebuild is a system
         // action now, so slots render (and re-enter here via their own
         // onAfterRendering - possibly with a NESTED controller as `this`)
@@ -104,6 +105,10 @@ sap.ui.define(
             !Lib.isControllerAlive(this) ||
             oResponse !== AppState.state.oResponse
           ) {
+            // a NEWER request owns the busy state, the pending custom JS and
+            // the parked hash from here on (see the finally below) - this
+            // response only stops
+            superseded = true;
             return;
           }
           // A MODEL key in the response IS the model push - run it after the
@@ -133,17 +138,26 @@ sap.ui.define(
             "Unexpected Error Occurred - App Terminated",
           );
         } finally {
-          BusyIndicator.hide();
-          AppState.state.isBusy = false;
-          // Now that the view is rendered (and any busy indicator is gone),
-          // run the follow-up JS snippets the backend asked for. Doing it here
-          // - rather than as an early microtask - guarantees render-dependent
-          // actions like SET_FOCUS find their target control in the DOM.
-          this._runPendingCustomJs(oResponse);
-          // an app-hash change (Back/Forward under app-owned routing) that
-          // arrived while this roundtrip was in flight was parked by the
-          // router - deliver it now that the busy guard would let it through
-          Router.dispatchPendingAppHash();
+          // A superseded response (a Back/Forward restore or a parallel
+          // request replaced it while its views were still loading) leaves
+          // the busy protocol to the request that superseded it: hiding
+          // the indicator here ended the busy state the restore relied on
+          // and let a click dispatch a third request that aborted it, and
+          // running its custom JS (SET_FOCUS, toasts, timers) acted on a
+          // screen the newer response is about to replace.
+          if (!superseded) {
+            BusyIndicator.hide();
+            AppState.state.isBusy = false;
+            // Now that the view is rendered (and any busy indicator is gone),
+            // run the follow-up JS snippets the backend asked for. Doing it here
+            // - rather than as an early microtask - guarantees render-dependent
+            // actions like SET_FOCUS find their target control in the DOM.
+            this._runPendingCustomJs(oResponse);
+            // an app-hash change (Back/Forward under app-owned routing) that
+            // arrived while this roundtrip was in flight was parked by the
+            // router - deliver it now that the busy guard would let it through
+            Router.dispatchPendingAppHash();
+          }
         }
       },
 

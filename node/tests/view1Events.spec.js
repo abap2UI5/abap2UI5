@@ -209,11 +209,13 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const syncs = [];
     const hooks = [];
     const destroys = [];
-    const state = { onAfterRendering: [() => hooks.push("ran")] };
+    const busy = [];
+    const pendingHash = [];
+    const state = { onAfterRendering: [() => hooks.push("ran")], isBusy: true };
     const { module: ctrl } = loadModule("controller/View1.controller.js", {
       deps: {
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
-        "sap/ui/core/BusyIndicator": { hide: () => {} },
+        "sap/ui/core/BusyIndicator": { hide: () => busy.push("hide") },
         "sap/m/MessageBox": {},
         "z2ui5/core/Server": { _requestSeq: 1, responseError: () => {} },
         "z2ui5/core/Lib": {
@@ -223,20 +225,59 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           logError: () => {},
         },
         "z2ui5/core/FrontendAction": {
-          runSystem: () => {},
+          // a spec may replace the response mid-phase, the way a parallel
+          // request does while the system actions are still awaiting
+          runSystem: () => hooks.onRunSystem?.(),
           runCustom: () => {},
         },
         "z2ui5/core/actions/Slots": { action: (method) => pushes.push(method) },
         "z2ui5/core/ViewSlots": { destroy: (key) => destroys.push(key) },
         "z2ui5/core/Router": {
           sync: (o) => syncs.push(o),
-          dispatchPendingAppHash: () => {},
+          dispatchPendingAppHash: () => pendingHash.push("delivered"),
         },
         "z2ui5/core/AppState": { state },
       },
     });
-    return { ctrl, state, pushes, syncs, hooks, destroys };
+    return { ctrl, state, pushes, syncs, hooks, destroys, busy, pendingHash };
   }
+
+  test("a superseded response leaves busy, custom JS and the parked hash to the newer one", async () => {
+    const { ctrl, state, pushes, syncs, hooks, busy, pendingHash } = loadForAfterRendering();
+    state.oResponse = {
+      ID: "D1",
+      MODELPRESENT: true,
+      S_ACTION: { T_SYSTEM: [{}] },
+      _pendingCustomJs: [["TOAST"]],
+    };
+    // a newer request replaces the response while this one's system
+    // actions are still running
+    hooks.onRunSystem = () => {
+      state.oResponse = { ID: "D2", MODELPRESENT: false };
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    // nothing of this response reached the screen ...
+    expect(pushes).toEqual([]);
+    expect(syncs).toEqual([]);
+    // ... and it did not end the busy state the newer request relies on,
+    // ran no custom JS and delivered no parked hash - the newer response does
+    expect(busy).toEqual([]);
+    expect(state.isBusy).toBe(true);
+    expect(pendingHash).toEqual([]);
+  });
+
+  test("the winning response ends the busy state and delivers the parked hash", async () => {
+    const { ctrl, state, busy, pendingHash } = loadForAfterRendering();
+    state.oResponse = { ID: "D1", MODELPRESENT: false };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(busy).toEqual(["hide"]);
+    expect(state.isBusy).toBe(false);
+    expect(pendingHash).toEqual(["delivered"]);
+  });
 
   test("no actions at all: model push, router sync and hooks still run", async () => {
     const { ctrl, state, pushes, syncs, hooks } = loadForAfterRendering();

@@ -87,13 +87,33 @@ sap.ui.define(
         },
       },
 
-      _readFile(file) {
+      // `value` holds ONE file and every upload event is one roundtrip. With
+      // `multiple` the inner control hands over every selected file, and only
+      // files[0] was ever read - the rest were dropped without a word. They
+      // go one at a time now, the next after the previous roundtrip landed
+      // (Lib.afterRoundtrip), the way cc/UploadSetExt does it.
+      _readFiles(files) {
+        this._queue = (this._queue || []).concat(files);
+        if (!this._reading) this._readNext();
+      },
+
+      _readNext() {
+        const file = this._queue.shift();
+        if (!file) {
+          this._reading = false;
+          return;
+        }
+        this._reading = true;
         Lib.readFileAsDataURL(
           file,
           this,
           (result) => {
             this.setProperty("value", result);
             this.fireUpload();
+            this._cancelWait = Lib.afterRoundtrip(this, () => {
+              this._cancelWait = null;
+              this._readNext();
+            });
           },
           "FileUploader",
         );
@@ -101,6 +121,11 @@ sap.ui.define(
 
       exit() {
         if (this._oHBox) this._oHBox.destroy();
+        this._queue = [];
+        if (this._cancelWait) {
+          this._cancelWait();
+          this._cancelWait = null;
+        }
       },
 
       // Build the inner controls ONCE and update their properties per
@@ -124,8 +149,8 @@ sap.ui.define(
             enabled: this.getProperty("path") !== "",
             press: () => {
               this.setProperty("path", this.oFileUploader.getProperty("value"));
-              if (this._pendingFile) {
-                this._readFile(this._pendingFile);
+              if (this._pendingFiles?.length) {
+                this._readFiles(this._pendingFiles);
               }
             },
           });
@@ -134,12 +159,12 @@ sap.ui.define(
         this.oFileUploader = new FileUploader({
           uploadOnChange: directUpload,
           change: (oEvent) => {
-            // Remember the selected file from the event's public "files"
-            // parameter (the inner file input is private API). It is
+            // Remember the selected files from the event's public "files"
+            // parameter (the inner file input is private API). They are
             // consumed by the upload button press or, in direct-upload
             // mode, by uploadComplete below.
             const files = oEvent.getParameter("files");
-            this._pendingFile = files?.[0];
+            this._pendingFiles = files ? Array.from(files) : [];
             if (directUpload) return;
             const value = oEvent.getSource().getProperty("value");
             this.setProperty("path", value);
@@ -151,8 +176,8 @@ sap.ui.define(
             if (!directUpload) return;
             const source = oEvent.getSource();
             this.setProperty("path", source.getProperty("value"));
-            if (this._pendingFile) {
-              this._readFile(this._pendingFile);
+            if (this._pendingFiles?.length) {
+              this._readFiles(this._pendingFiles);
             }
           },
         });

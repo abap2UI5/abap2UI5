@@ -37,6 +37,46 @@ test.describe("isControllerAlive (slot-controller liveness)", () => {
   });
 });
 
+test.describe("afterRoundtrip (one value per roundtrip)", () => {
+  test("runs right away when no roundtrip is in flight", () => {
+    const state = { isBusy: false, onAfterRendering: [] };
+    const { Lib } = loadLib({ z2ui5: state });
+    let ran = 0;
+    Lib.afterRoundtrip({}, () => ran++);
+    expect(ran).toBe(1);
+    expect(state.onAfterRendering).toEqual([]);
+  });
+
+  test("waits for the roundtrip to land, once, and unhooks itself", () => {
+    const state = { isBusy: true, onAfterRendering: [] };
+    const { Lib } = loadLib({ z2ui5: state });
+    let ran = 0;
+    Lib.afterRoundtrip({}, () => ran++);
+    expect(ran).toBe(0);
+    expect(state.onAfterRendering).toHaveLength(1);
+    // the roundtrip lands (View1 runs the hooks)
+    for (const fn of state.onAfterRendering) fn();
+    expect(ran).toBe(1);
+    expect(state.onAfterRendering).toEqual([]);
+  });
+
+  test("a destroyed owner is not called, and the wait can be cancelled", () => {
+    const state = { isBusy: true, onAfterRendering: [] };
+    const { Lib } = loadLib({ z2ui5: state });
+    let ran = 0;
+    const owner = { bIsDestroyed: false };
+    Lib.afterRoundtrip(owner, () => ran++);
+    owner.bIsDestroyed = true;
+    for (const fn of state.onAfterRendering) fn();
+    expect(ran).toBe(0);
+    expect(state.onAfterRendering).toEqual([]);
+
+    const cancel = Lib.afterRoundtrip({}, () => ran++);
+    cancel();
+    expect(state.onAfterRendering).toEqual([]);
+  });
+});
+
 test.describe("isDestroyed (async-continuation guard, 1.71 floor)", () => {
   const { Lib } = loadLib();
 

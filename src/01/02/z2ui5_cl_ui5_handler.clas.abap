@@ -85,6 +85,10 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
 
     METHODS main_end.
 
+    "! the draft save at the end of main_end - a sticky app saves only when
+    "! a route or app-state link carries its draft id
+    METHODS main_end_save.
+
     METHODS response_abap_to_json
       IMPORTING
         val           TYPE z2ui5_if_ui5_types=>ty_s_response
@@ -362,6 +366,14 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     result = z2ui5_cl_ui5_util_context=>c_trim_upper(
         z2ui5_cl_ui5_util_context=>url_param_get( val = `app_start`
                                                url    = iv_search ) ).
+    " a namespaced class name carries slashes, and a client that
+    " percent-encodes the value (%2Fns%2Fclass) is well within the URL
+    " rules; url_param_get leaves values encoded, so the one encoding a
+    " class name can carry is unpacked here
+    result = replace( val  = result
+                      sub  = `%2F`
+                      with = `/`
+                      occ  = 0 ).
   ENDMETHOD.
 
   METHOD hash_get_app_part.
@@ -684,13 +696,19 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                           len = 300 ) && `...`.
     ENDIF.
 
+    " app_start is client-controlled and is reflected into the error body:
+    " the same class-name-safe strip as z2ui5_cl_ui5_action=>factory_first_start
+    " applies, so a crafted value cannot smuggle markup into the response
+    DATA(lv_app_start) = ms_request-s_control-app_start.
+    REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_start WITH `` ##REGEX_POSIX.
+
     result = |Request failed| &&
              COND #( WHEN lv_app   IS NOT INITIAL THEN | in app { lv_app }| ) &&
              COND #( WHEN lv_event IS NOT INITIAL THEN |, event { lv_event }|
                      ELSE |, no event (initial rendering)| ) &&
              COND #( WHEN lv_draft IS NOT INITIAL THEN |, draft { lv_draft }| ) &&
-             COND #( WHEN ms_request-s_control-app_start IS NOT INITIAL
-                     THEN |, app_start { ms_request-s_control-app_start }| ) &&
+             COND #( WHEN lv_app_start IS NOT INITIAL
+                     THEN |, app_start { lv_app_start }| ) &&
              COND #( WHEN lv_url IS NOT INITIAL THEN |, url { lv_url }| ).
 
   ENDMETHOD.
@@ -983,7 +1001,23 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     mv_response = response_abap_to_json( ms_response ).
 
+    main_end_save( ).
+
+  ENDMETHOD.
+
+  METHOD main_end_save.
+
     IF mo_action->mo_app->mv_check_sticky = abap_false.
+      mo_action->mo_app->db_save( ).
+    ELSEIF mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep
+        OR mo_action->mo_app->mv_app_state_active = abap_true.
+      " a sticky app whose route (KEEP) or app-state link carries this
+      " draft id: the id is written into the URL and into copied links
+      " either way, and without a saved draft every Back/Forward, reload or
+      " shared link landed in factory_first_start's CATCH - "bookmarked app
+      " state expired" and a fresh app. The draft is saved for exactly
+      " these two modes; a sticky app that asked for neither keeps skipping
+      " the serialization
       mo_action->mo_app->db_save( ).
     ELSE.
       " a sticky session skips the draft save, but the lifecycle latch must

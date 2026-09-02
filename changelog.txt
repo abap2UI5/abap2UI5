@@ -28,6 +28,16 @@ unreleased
 - z2ui5_cl_ui5_util_context=>app_get_url moved to z2ui5_cl_ui5_handler=>app_get_url. A downstream caller of the old spelling gets a compile error until it renames the class (same signature; src/00 is not the guarded API, and the shipped legacy z2ui5_cl_util=>app_get_url keeps working)
 * App-state links and copied launchpad links keep a bare intent hash (opened from the tile, no app part yet) instead of landing the recipient on the FLP home page
 - The corpus-count gate (npm run check:counts): a number about another repository's catalogue went red on main whenever that corpus grew by one app - too strict for what it protected. The counts in llms.txt and the build-an-app skill stay prose
+* A bound scalar the client sends in a form its ABAP type refuses (`1,250.00` into a packed field) is recorded in t_model_skipped (attribute name, row 0) and keeps its value, like a table cell - it used to raise JSON_PARSING_ERROR and fail the whole roundtrip
+* A sticky app under KEEP routing or with an active app-state link saves its draft, so Back/Forward, a reload and a shared link restore it instead of "bookmarked app state expired"
+* A failing roundtrip in a stateful session puts the request's starting action back on the sticky handler, so the next request no longer runs against a called app the frontend never saw
+* The 500 body strips app_start to class-name-safe characters, like the app-start error already did
+* A percent-encoded namespace in ?app_start= (%2Fns%2Fclass) resolves to the class it spells
+* nav_app_leave( r_data = an object reference ) copies the reference instead of dereferencing it as data
+* dissolve( ) refreshes once per pass - a persistently failing dissolve_run no longer recurses without end
+* A superseded response (a Back/Forward restore or a parallel request replaced it mid-render) leaves the busy state, its custom JS and the parked app hash to the newer request instead of ending them
+* Websocket with checkRepeat = false stays closed across re-renders - "once" no longer meant once per roundtrip
+* FileUploader with multiple reads every selected file, one roundtrip each (new Lib.afterRoundtrip, shared with UploadSetExt); only the first was read before
 * A row delta on a bound SORTED or HASHED table is recorded in t_model_skipped, one entry per cell, instead of vanishing silently
 * An app that only inherited its routing mode keeps it on a fresh route start (a reload, Back/Forward under FRESH): the explicit DEFAULT is sent on a navigation hop only
 * nav_app_leave( ) without a target on an empty app stack is a no-op instead of a navigation to the app itself

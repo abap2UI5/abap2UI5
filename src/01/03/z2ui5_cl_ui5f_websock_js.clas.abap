@@ -86,14 +86,18 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `          this._disconnect();` && |\n| &&
              `` && |\n| &&
              `          this._failedAttempts = 0;` && |\n| &&
+             `          this._doneAfterFirst = false;` && |\n| &&
              `        }` && |\n| &&
              `        this._url = url;` && |\n| &&
              `        const active = this.getProperty("checkActive");` && |\n| &&
              `` && |\n| &&
              `        if (active && this._wasInactive) {` && |\n| &&
              `          this._failedAttempts = 0;` && |\n| &&
+             `          this._doneAfterFirst = false;` && |\n| &&
              `        }` && |\n| &&
              `        this._wasInactive = !active;` && |\n| &&
+             `` && |\n| &&
+             `        if (this.getProperty("checkRepeat")) this._doneAfterFirst = false;` && |\n| &&
              `        if (active) {` && |\n| &&
              `          this._connect();` && |\n| &&
              `        } else {` && |\n| &&
@@ -116,6 +120,8 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `      _connect() {` && |\n| &&
              `        if (this._ws || !this._url) return;` && |\n| &&
              `        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;` && |\n| &&
+             `` && |\n| &&
+             `        if (this._doneAfterFirst) return;` && |\n| &&
              `        const url = this._url;` && |\n| &&
              `        let ws;` && |\n| &&
              `        try {` && |\n| &&
@@ -140,7 +146,10 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `            Lib.logError("Websocket: ignored a non-text message");` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          if (!this.getProperty("checkRepeat")) this._disconnect();` && |\n| &&
+             `          if (!this.getProperty("checkRepeat")) {` && |\n| &&
+             `            this._doneAfterFirst = true;` && |\n| &&
+             `            this._disconnect();` && |\n| &&
+             `          }` && |\n| &&
              `          this._report({ kind: "message", value: event.data });` && |\n| &&
              `        };` && |\n| &&
              `        ws.onerror = () => {` && |\n| &&

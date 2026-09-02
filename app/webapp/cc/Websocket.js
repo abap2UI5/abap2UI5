@@ -93,6 +93,7 @@ sap.ui.define(
           // a NEW target gets a fresh set of attempts - the give-up above
           // is about hammering the same dead endpoint
           this._failedAttempts = 0;
+          this._doneAfterFirst = false;
         }
         this._url = url;
         const active = this.getProperty("checkActive");
@@ -102,8 +103,11 @@ sap.ui.define(
         // trigger the contract above promises next to a path change
         if (active && this._wasInactive) {
           this._failedAttempts = 0;
+          this._doneAfterFirst = false;
         }
         this._wasInactive = !active;
+        // checkRepeat back on: the app wants to listen again
+        if (this.getProperty("checkRepeat")) this._doneAfterFirst = false;
         if (active) {
           this._connect();
         } else {
@@ -126,6 +130,12 @@ sap.ui.define(
       _connect() {
         if (this._ws || !this._url) return;
         if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) return;
+        // "close after the first message" (checkRepeat = false) has to hold
+        // past the next re-render: every roundtrip runs onAfterRendering,
+        // and reconnecting from there turned "once" into "once per
+        // roundtrip". A path change or a checkActive/checkRepeat toggle
+        // (above) is what asks for the next one
+        if (this._doneAfterFirst) return;
         const url = this._url;
         let ws;
         try {
@@ -152,7 +162,10 @@ sap.ui.define(
             Lib.logError("Websocket: ignored a non-text message");
             return;
           }
-          if (!this.getProperty("checkRepeat")) this._disconnect();
+          if (!this.getProperty("checkRepeat")) {
+            this._doneAfterFirst = true;
+            this._disconnect();
+          }
           this._report({ kind: "message", value: event.data });
         };
         ws.onerror = () => {
