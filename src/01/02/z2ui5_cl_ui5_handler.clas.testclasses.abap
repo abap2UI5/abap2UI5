@@ -50,51 +50,6 @@ CLASS ltcl_app_noop IMPLEMENTATION.
 
 ENDCLASS.
 
-CLASS ltcl_app_sticky DEFINITION FINAL.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-    DATA mv_init_log TYPE string.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-CLASS ltcl_app_sticky IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main.
-    " record per roundtrip whether the framework treated it as the init
-    " roundtrip - the sticky-latch test asserts the sequence
-    IF mv_init_log IS NOT INITIAL.
-      mv_init_log = mv_init_log && `|`.
-    ENDIF.
-    mv_init_log = mv_init_log && COND string( WHEN client->check_on_init( ) = abap_true
-                                              THEN `INIT`
-                                              ELSE `EVENT` ).
-  ENDMETHOD.
-
-ENDCLASS.
-
-" OBSOLETE - ltcl_test_handler_post: its tests moved unchanged, by name, into the
-" sections at the end of this file, to be deleted once the mapping is checked:
-"   ltcl_01_request:
-"     test_constructor, load_startup_app, test_request_parse, test_request_origin,
-"     test_request_launchpad, test_parse_body_with_wrapper, test_parse_body_no_wrapper,
-"     test_parse_body_model, test_parse_body_model_no_wrap, test_parse_body_config,
-"     test_parse_body_no_config, test_parse_body_arg_string, test_parse_body_arg_object,
-"     test_request_app_start, test_request_with_id, test_context_info_sanitized,
-"     test_app_start_encoded_slash, test_hash_app_part, test_hash_shell_part, test_app_get_url,
-"     test_route_standalone, test_route_launchpad, test_route_no_route, test_app_state_hash
-"   ltcl_02_response:
-"     test_response_json, test_response_no_model, test_response_actions_embedded,
-"     test_view_update_flag, test_view_update_popup, test_view_update_none,
-"     test_auto_update_push, test_auto_update_same, test_nested_display_push,
-"     test_auto_update_snapshot, test_model_client_stored, test_model_client_unchanged,
-"     test_snapshot_reuses_client, test_delta_drops_client, test_system_slot_order,
-"     test_system_last_wins, test_system_empty, test_system_destroy_only, test_session_stored,
-"     test_session_location, test_session_launchpad, test_session_from_draft,
-"     test_session_new_device
-"   ltcl_03_dispatch: test_dispatch_loop_guard, test_leave_root_ends_roundtrip, test_sticky_keep_saves_draft, test_nav_mode_resent, test_nav_mode_hop_default
-"   ltcl_00_base: slot_sequence, system_actions_of
-
 
 " ---------------------------------------------------------------------------
 " nav_app_call to an app that only opens a popup (the z2ui5_cl_pop_* shape):
@@ -297,27 +252,6 @@ CLASS ltcl_app_dref_caller IMPLEMENTATION.
 
 ENDCLASS.
 
-
-" OBSOLETE - ltcl_test_popup_call: its tests moved unchanged into ltcl_04_nav
-" (popup_app_answers_alone, silent_popup_app_no_model, way_back_reads_popup_app),
-" its helpers into ltcl_00_base (event_on, check_display) and ltcl_04_nav
-" (caller_started), to be deleted once the mapping is checked
-
-
-" ===========================================================================
-" THE STRUCTURED SUITE - one section per step of a roundtrip through the
-" handler:
-"
-"   ltcl_00_base      the helpers every section reads a response with
-"   ltcl_01_request   what the handler makes of the wire
-"   ltcl_02_response  what goes back - model rules, slots, session
-"   ltcl_03_dispatch  how main_loop runs an app
-"   ltcl_04_nav       nav_app_call and the way back
-"
-" The tests of ltcl_test_handler_post and ltcl_test_popup_call moved here
-" unchanged, by name - the map is in the OBSOLETE note where those classes
-" stood. What is new is in ltcl_04_nav.
-" ===========================================================================
 
 CLASS ltcl_00_base DEFINITION DEFERRED.
 CLASS ltcl_01_request DEFINITION DEFERRED.
