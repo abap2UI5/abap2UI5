@@ -2522,6 +2522,15 @@ CLASS ltcl_app_shapes DEFINITION FINAL
     DATA ms_with_oref TYPE ty_s_with_oref.
     DATA ms_with_dref TYPE ty_s_with_dref.
     DATA mt_rows_ref  TYPE ty_t_row_ref.
+    " S25 a table whose rows hold RTTI descriptors - abap_component_tab, the
+    " attribute every runtime-typed sample keeps (184, 190, 194, 199, 212)
+    DATA mt_comp TYPE abap_component_tab.
+    " S26 an anonymous STRUCTURE whose components are tables (194 ms_fixval)
+    DATA mr_handle_nested TYPE REF TO data.
+    " S27 a second helper over the same data as the first, and pointing at
+    " a TYPED table attribute of the app (334: two objects, one target;
+    " 347: the bound table aliased from inside a helper)
+    DATA mo_inner_2 TYPE REF TO ltcl_shp_inner.
 
     METHODS fill.
     METHODS get_protected
@@ -2583,8 +2592,13 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     " the samples)
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ms_flat ) ).
     DATA(lt_comp) = lo_line->get_components( ).
+    " c LENGTH 1, not abap_bool: a type-pool type carries a full absolute
+    " name (\TYPE-POOL=ABAP\TYPE=ABAP_BOOL) that S-RTTI resolves by name -
+    " fine on a system, unknown to the NodeJS runtime, which only answers
+    " for the built-in types by their anonymous names
+    DATA lv_flag TYPE c LENGTH 1.
     APPEND VALUE #( name = `SELKZ`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( mv_bool ) ) ) TO lt_comp.
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) TO lt_comp.
     DATA(lo_struc) = cl_abap_structdescr=>create( lt_comp ).
     DATA(lo_tab)   = cl_abap_tabledescr=>create( p_line_type  = lo_struc
                                                  p_table_kind = cl_abap_tabledescr=>tablekind_std ).
@@ -2625,8 +2639,27 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     mo_inner->mo_deeper = NEW #( ).
     mo_inner->mo_deeper->mv_inner = `deeper`.
 
+    mo_inner_2 = NEW #( ).
+    mo_inner_2->mv_inner  = `inner-2`.
+    mo_inner_2->mr_shared = REF #( mt_std ).
+
     mo_dead = NEW #( ).
     mo_dead->mv_text = `dead`.
+
+    mt_comp = lt_comp.
+
+    " a structure that exists at runtime only, with a table inside
+    DATA lt_nested_comp TYPE abap_component_tab.
+    APPEND VALUE #( name = `ID`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( mv_string ) ) ) TO lt_nested_comp.
+    APPEND VALUE #( name = `T_ITEMS`
+                    type = CAST #( cl_abap_datadescr=>describe_by_data( mt_std ) ) ) TO lt_nested_comp.
+    CREATE DATA mr_handle_nested TYPE HANDLE cl_abap_structdescr=>create( lt_nested_comp ).
+    ASSIGN mr_handle_nested->* TO <row>.
+    ASSIGN COMPONENT `T_ITEMS` OF STRUCTURE <row> TO <tab>.
+    IF sy-subrc = 0.
+      <tab> = mt_std.
+    ENDIF.
 
     ms_with_oref-text  = `with-oref`.
     ms_with_oref-o_obj = NEW #( ).
@@ -2773,6 +2806,10 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
     bind( REF #( mo_app->mo_inner->mv_inner ) ).
     bind( REF #( mo_app->mo_inner->mt_own ) ).
     bind( REF #( mo_app->mo_inner->mo_deeper->mv_inner ) ).
+    " S26 - the table inside the anonymous structure
+    bind( mo_model->attri_get_val_ref( `MR_HANDLE_NESTED->T_ITEMS` ) ).
+    " S27 - the typed table, reached through the second helper's reference
+    bind( REF #( mo_app->mo_inner_2->mv_inner ) ).
     " S19/S20 - through the component
     bind( REF #( mo_app->ms_with_oref-o_obj->mv_inner ) ).
     ASSIGN mo_app->ms_with_dref-r_tab->* TO <tab>.
@@ -2846,9 +2883,17 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
                                       msg = `I4: mr_shared_a and mr_shared_b are two objects now` ).
     cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mr_shared_a = mo_app->mo_inner->mr_shared )
                                       msg = `I4: the helper's mr_shared is a copy` ).
-    " ...and the aliases point INTO their owner again
+    " ...two helpers stay two objects (334)...
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mo_inner <> mo_app->mo_inner_2 )
+                                      msg = `I4: the two helpers collapsed into one object` ).
+    cl_abap_unit_assert=>assert_equals( exp = `inner-2`
+                                        act = mo_app->mo_inner_2->mv_inner ).
+    " ...and the aliases point INTO their owner again, the one inside the
+    " second helper included (347)
     DATA(lr_flat) = REF #( mo_app->ms_flat ).
     DATA(lr_std)  = REF #( mo_app->mt_std ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mo_inner_2->mr_shared = lr_std )
+                                      msg = `I4: the helper's alias of mt_std is a copy` ).
     cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mr_alias_struc = lr_flat )
                                       msg = `I4: mr_alias_struc detached from ms_flat` ).
     cl_abap_unit_assert=>assert_true( act = xsdbool( mo_app->mr_alias_tab = lr_std )
@@ -2922,7 +2967,9 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
         ( `MO_DEAD` ) ( `MO_DEAD->MV_TEXT` )
         ( `MS_WITH_OREF-O_OBJ` ) ( `MS_WITH_OREF-O_OBJ->MV_INNER` )
         ( `MS_WITH_DREF-R_TAB` ) ( `MS_WITH_DREF-R_TAB->*` )
-        ( `MT_ROWS_REF` ) ).
+        ( `MT_ROWS_REF` ) ( `MT_COMP` )
+        ( `MR_HANDLE_NESTED` ) ( `MR_HANDLE_NESTED->ID` ) ( `MR_HANDLE_NESTED->T_ITEMS` )
+        ( `MO_INNER_2` ) ( `MO_INNER_2->MR_SHARED` ) ).
 
     LOOP AT lt_expected INTO DATA(lv_name).
       cl_abap_unit_assert=>assert_true( act = xsdbool( line_exists( mr_attri->*[ name = lv_name ] ) )
@@ -3046,6 +3093,18 @@ CLASS ltcl_test_shapes IMPLEMENTATION.
                                         act = mo_app->mt_rows_ref[ 1 ]-o_obj->mv_inner ).
     cl_abap_unit_assert=>assert_equals( exp = `protected`
                                         act = mo_app->get_protected( ) ).
+    " S25 - the rows survive, the descriptors they held do not (an RTTI
+    " descriptor is not serializable), and neither fact is an error
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( mo_app->mt_comp ) ).
+    cl_abap_unit_assert=>assert_not_bound( mo_app->mt_comp[ 1 ]-type ).
+    " S26 - the table inside the anonymous structure
+    FIELD-SYMBOLS <nested> TYPE any.
+    ASSIGN mo_app->mr_handle_nested->* TO <nested>.
+    ASSIGN COMPONENT `T_ITEMS` OF STRUCTURE <nested> TO <tab>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <tab> ) ).
 
     " L8 - the NEXT render binds again, and a second draft roundtrip on the
     " restored instance is as clean as the first
@@ -3138,7 +3197,7 @@ CLASS ltcl_shp_sub_a IMPLEMENTATION.
   METHOD fill.
     FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row>  TYPE any.
-    DATA lv_selkz TYPE abap_bool.
+    DATA lv_selkz TYPE c LENGTH 1.
     DATA ls_line  TYPE ltcl_shp_inner=>ty_s_row.
     " a runtime-built line type, like the samples: known components plus
     " a field no dictionary has
@@ -3177,7 +3236,7 @@ CLASS ltcl_shp_sub_b IMPLEMENTATION.
   METHOD fill.
     FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row>  TYPE any.
-    DATA lv_selkz TYPE abap_bool.
+    DATA lv_selkz TYPE c LENGTH 1.
     DATA ls_line  TYPE ltcl_shp_inner=>ty_s_row.
     " a runtime-built line type, like the samples: known components plus
     " a field no dictionary has
@@ -3454,6 +3513,154 @@ CLASS ltcl_test_shared_last IMPLEMENTATION.
     ls_bind = lo_model->main_attri_search( lo_app->mr_table ).
     cl_abap_unit_assert=>assert_equals( exp = `MR_TABLE->*`
                                         act = ls_bind->name ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" Three of the small test samples as unit tests: 343 (binding a REF TO data
+" itself is refused), 138 (a leaf six levels down a structure whose
+" components all carry the same name) and 118 (date and time fields the
+" model has to ship as they are, initial or not)
+" ---------------------------------------------------------------------------
+
+CLASS ltcl_app_samples DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        id    TYPE i,
+        descr TYPE string,
+        adate TYPE d,
+        atime TYPE t,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA mt_data1 TYPE REF TO data.
+    DATA mt_rows  TYPE ty_t_row.
+
+    DATA:
+      BEGIN OF ms_data,
+        BEGIN OF ms_data2,
+          val TYPE string,
+          BEGIN OF ms_data2,
+            val TYPE string,
+            BEGIN OF ms_data2,
+              val TYPE string,
+              BEGIN OF ms_data2,
+                val TYPE string,
+                BEGIN OF ms_data2,
+                  val TYPE string,
+                  BEGIN OF ms_data2,
+                    val TYPE string,
+                  END OF ms_data2,
+                END OF ms_data2,
+              END OF ms_data2,
+            END OF ms_data2,
+          END OF ms_data2,
+        END OF ms_data2,
+        val2 TYPE string,
+      END OF ms_data.
+ENDCLASS.
+
+CLASS ltcl_app_samples IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS ltcl_test_samples DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS bind_reference_refused  FOR TESTING RAISING cx_static_check.
+    METHODS deep_same_name_leaf     FOR TESTING RAISING cx_static_check.
+    METHODS dates_initial_or_broken FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_test_samples IMPLEMENTATION.
+
+  METHOD bind_reference_refused.
+
+    " sample 343: _bind( mt_data1 ) hands the REFERENCE over, not the table
+    " behind it - refused with a message that says what to do instead
+    DATA(lo_app) = NEW ltcl_app_samples( ).
+    CREATE DATA lo_app->mt_data1 TYPE ltcl_app_samples=>ty_t_row.
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+    TRY.
+        lo_model->main_attri_search( REF #( lo_app->mt_data1 ) ).
+        cl_abap_unit_assert=>fail( `a reference itself must not be bindable` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `NO DATA REFERENCES` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD deep_same_name_leaf.
+
+    " sample 138: the leaf sits SEVEN components deep, every level named
+    " ms_data2 - deeper than one dissolve pass reaches, so the search has
+    " to keep dissolving until it gets there
+    DATA(lo_app) = NEW ltcl_app_samples( ).
+    lo_app->ms_data-ms_data2-ms_data2-ms_data2-ms_data2-ms_data2-ms_data2-val = `deep`.
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+    DATA(lr_attri) = lo_model->main_attri_search(
+        REF #( lo_app->ms_data-ms_data2-ms_data2-ms_data2-ms_data2-ms_data2-ms_data2-val ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_DATA-MS_DATA2-MS_DATA2-MS_DATA2-MS_DATA2-MS_DATA2-MS_DATA2-VAL`
+                                        act = lr_attri->name ).
+    " and a shallower leaf of the same name is a different row
+    DATA(lr_upper) = lo_model->main_attri_search( REF #( lo_app->ms_data-ms_data2-val ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_DATA-MS_DATA2-VAL`
+                                        act = lr_upper->name ).
+
+  ENDMETHOD.
+
+  METHOD dates_initial_or_broken.
+
+    " sample 118: rows whose date or time is initial, all zeros, or an
+    " empty string that was moved into the field - the model ships them,
+    " it does not fail the roundtrip over one of them
+    DATA(lo_app) = NEW ltcl_app_samples( ).
+    DATA ls_row TYPE ltcl_app_samples=>ty_s_row.
+    ls_row-id = 1.
+    ls_row-descr = `initial`.
+    APPEND ls_row TO lo_app->mt_rows.
+    ls_row-id = 2.
+    ls_row-descr = `zeros`.
+    ls_row-adate = '00000000'.
+    ls_row-atime = '000000'.
+    APPEND ls_row TO lo_app->mt_rows.
+    ls_row-id = 3.
+    ls_row-descr = `valid`.
+    ls_row-adate = '20240115'.
+    ls_row-atime = '123045'.
+    APPEND ls_row TO lo_app->mt_rows.
+    ls_row-id = 4.
+    ls_row-descr = `empty string moved in`.
+    ls_row-adate = ``.
+    ls_row-atime = ``.
+    APPEND ls_row TO lo_app->mt_rows.
+
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+    DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app->mt_rows ) ).
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = `/MT_ROWS`.
+
+    DATA(lv_json) = lo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"empty string moved in"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `2024-01-15` ) ).
 
   ENDMETHOD.
 

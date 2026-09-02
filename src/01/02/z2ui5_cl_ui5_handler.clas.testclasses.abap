@@ -1474,6 +1474,11 @@ CLASS ltcl_app_popup_bound IMPLEMENTATION.
     IF client->check_on_init( ).
       ms_row-name = `edit me`.
       client->popup_display( |<Dialog><Input value="{ client->_bind( ms_row-name ) }"/></Dialog>| ).
+    ELSEIF client->check_on_event( `CLOSE` ).
+      " the edit is done: close and hand control back (sample 501)
+      ms_row-name = `edited`.
+      client->popup_destroy( ).
+      client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
     ENDIF.
   ENDMETHOD.
 
@@ -1508,7 +1513,10 @@ CLASS ltcl_app_popup_caller DEFINITION FINAL.
         name TYPE string,
       END OF ty_s_row.
     TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-    DATA mt_tab TYPE ty_t_row.
+    DATA mt_tab        TYPE ty_t_row.
+    " what the popup app handed back (sample 500 reads the edited table
+    " out of the popup app with get_app_prev)
+    DATA mv_from_popup TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -1516,11 +1524,18 @@ ENDCLASS.
 CLASS ltcl_app_popup_caller IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+    DATA lo_prev TYPE REF TO ltcl_app_popup_bound.
     IF client->check_on_init( ).
       mt_tab = VALUE #( ( name = `one` ) ( name = `two` ) ).
       client->view_display( |<mvc:View><Table items="{ client->_bind( mt_tab ) }"/></mvc:View>| ).
     ELSEIF client->check_on_navigated( ).
-      client->view_display( |<mvc:View><Table items="{ client->_bind( mt_tab ) }"/></mvc:View>| ).
+      TRY.
+          lo_prev ?= client->get_app_prev( ).
+          mv_from_popup = lo_prev->ms_row-name.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+      client->view_display( |<mvc:View><Table items="{ client->_bind( mt_tab ) }"/>| &&
+                            |<Text text="{ client->_bind( mv_from_popup ) }"/></mvc:View>| ).
     ELSEIF client->check_on_event( `ROW_SELECT` ).
       client->nav_app_call( NEW ltcl_app_popup_bound( ) ).
     ELSEIF client->check_on_event( `ROW_SELECT_SILENT` ).
@@ -1541,6 +1556,7 @@ CLASS ltcl_test_popup_call DEFINITION FINAL
   PRIVATE SECTION.
     METHODS popup_app_answers_alone   FOR TESTING RAISING cx_static_check.
     METHODS silent_popup_app_no_model FOR TESTING RAISING cx_static_check.
+    METHODS way_back_reads_popup_app  FOR TESTING RAISING cx_static_check.
 
     " roundtrip 1: the caller's first render, saved as a draft
     METHODS caller_started
@@ -1618,6 +1634,27 @@ CLASS ltcl_test_popup_call IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"MS_ROW"` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"edit me"` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( lo_handler->ms_response-model CS `"MT_TAB"` ) ).
+
+  ENDMETHOD.
+
+  METHOD way_back_reads_popup_app.
+
+    " samples 500/501: the popup app closes and leaves, the caller comes
+    " back with check_on_navigated, reads the edit out of the popup app
+    " (get_app_prev) and re-displays its table - one roundtrip, and the
+    " response is the CALLER's again: its class, its main view, its model
+    DATA(lv_id) = caller_started( ).
+    DATA(lo_popup) = event_on( iv_id    = lv_id
+                               iv_event = `ROW_SELECT` ).
+    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+                              iv_event = `CLOSE` ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `POPUP_CALLER` ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_back
+                                                     iv_slot    = z2ui5_if_client=>cs_view-main ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"MT_TAB"` ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"edited"` )
+                                      msg = `the caller could not read the popup app back` ).
 
   ENDMETHOD.
 

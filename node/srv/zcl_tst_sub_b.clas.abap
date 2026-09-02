@@ -48,7 +48,7 @@ CLASS zcl_tst_sub_b IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE any.
     DATA ls_row   TYPE ty_s_row.
-    DATA lv_selkz TYPE abap_bool.
+    DATA lv_selkz TYPE c LENGTH 1.
     DATA lt_comp  TYPE abap_component_tab.
     DATA lo_line  TYPE REF TO cl_abap_structdescr.
     DATA lo_tab   TYPE REF TO cl_abap_tabledescr.

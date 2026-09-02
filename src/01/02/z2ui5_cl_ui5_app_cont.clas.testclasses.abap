@@ -299,7 +299,9 @@ CLASS ltcl_cont_app IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE any.
     DATA ls_row  TYPE ty_s_row.
-    DATA lv_flag TYPE abap_bool.
+    " c LENGTH 1, not abap_bool: the NodeJS runtime cannot resolve a
+    " type-pool type by its absolute name when S-RTTI rebuilds the line
+    DATA lv_flag TYPE c LENGTH 1.
 
     DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_row ) ).
     DATA(lt_comp) = lo_line->get_components( ).
