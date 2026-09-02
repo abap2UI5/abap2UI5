@@ -16,6 +16,7 @@ const { loadModule } = require("./loadModule");
 // The clock is a stub rather than a real setTimeout: a spec that waits for
 // wall-clock time is a spec that goes flaky on a loaded runner.
 function load() {
+  const errors = [];
   const clock = { pending: new Map(), next: 1 };
   const setTimeoutStub = (fn, delay) => {
     const id = clock.next++;
@@ -39,6 +40,7 @@ function load() {
       "z2ui5/core/Lib": {
         isDestroyed: (o) => o._destroyed === true,
         renderInvisibleSpan: () => {},
+        logError: (m) => errors.push(m),
       },
     },
     sandbox: { setTimeout: setTimeoutStub, clearTimeout: clearTimeoutStub },
@@ -57,7 +59,7 @@ function load() {
     return inst;
   }
 
-  return { instance, clock };
+  return { instance, clock, errors };
 }
 
 test("nothing is armed until the control renders", () => {
@@ -71,6 +73,20 @@ test("nothing is armed until the control renders", () => {
   inst.render();
   inst.onAfterRendering();
   expect(clock.pending.size).toBe(1);
+});
+
+test("a repeating timer with delayMS 0 fires once and is logged", () => {
+  const { instance, clock, errors } = load();
+  const inst = instance({ delayMS: 0, checkRepeat: true });
+  inst.render();
+  inst.onAfterRendering();
+  expect(clock.pending.size).toBe(1);
+  clock.tick();
+  expect(inst.fired).toBe(1);
+  // not re-armed - a zero-interval loop of roundtrips is never what was meant
+  expect(clock.pending.size).toBe(0);
+  expect(inst._props.checkActive).toBe(false);
+  expect(errors.some((m) => m.includes("delayMS 0"))).toBe(true);
 });
 
 test("the delay armed is the bound delayMS", () => {

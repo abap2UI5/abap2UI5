@@ -166,6 +166,32 @@ test("the renderer arms one restore pass and disarms setUpdate", () => {
   }
 });
 
+test("a control with a scroll delegate is restored through it, both axes", () => {
+  // sap.m.ScrollContainer.scrollTo(x, y) - the vertical position handed
+  // in as x scrolled the container sideways; the delegate (which is also
+  // where the position was read) takes x and y explicitly
+  const calls = [];
+  const delegate = {
+    getScrollTop: () => 0,
+    getScrollLeft: () => 17,
+    scrollTo: (x, y) => calls.push([x, y]),
+  };
+  const { makeInstance } = load({
+    controls: {
+      box: {
+        getScrollDelegate: () => delegate,
+        scrollTo: (x) => calls.push(["control", x]),
+        getDomRef: () => ({}),
+        getId: () => "box",
+      },
+    },
+  });
+  const inst = makeInstance({ items: [{ N: "box", V: 300 }] });
+  inst._pendingScroll = true;
+  inst.onAfterRendering();
+  expect(calls).toEqual([[17, 300]]);
+});
+
 test("onAfterRendering restores via scrollTo when available, else the DOM", () => {
   const scrolled = [];
   const { makeInstance } = load({

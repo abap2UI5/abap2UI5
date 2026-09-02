@@ -140,6 +140,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! Every cell of a delta the table shape refuses lands in mt_skipped -
+    "! the counterpart of delta_apply_nodes for a table that cannot be
+    "! addressed by index (see delta_apply_to_table)
+    METHODS delta_skip_nodes
+      IMPORTING
+        io_delta      TYPE REF TO z2ui5_if_ajson
+        iv_table      TYPE string
+        iv_row_parent TYPE i DEFAULT 0.
+
     METHODS delta_apply_scalar
       IMPORTING
         io_delta TYPE REF TO z2ui5_if_ajson
@@ -923,6 +932,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
     ASSIGN lr_ref_d->* TO <delta_tab>.
     IF sy-subrc <> 0.
+      " a SORTED or HASHED table: the frontend has no notion of the table
+      " kind and ships the same 0-based row delta, but a row edit through an
+      " index is not a write this shape allows (a key write on a sorted
+      " table is a runtime error, a hashed table has no index at all). The
+      " edit used to vanish here with a bare RETURN - the browser kept
+      " showing what the user typed and nothing recorded that the backend
+      " had refused it. Now every cell lands in t_model_skipped, so the app
+      " can react (or bind a standard table, which the whole-table path
+      " always wrote back)
+      delta_skip_nodes( io_delta = io_val_front->slice( `/__delta` )
+                        iv_table = iv_name ).
       RETURN.
     ENDIF.
 
@@ -974,6 +994,33 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                                field      = lv_fld
                                                row_parent = iv_row_parent )
                            ir_comp  = REF #( <comp> ) ).
+      ENDLOOP.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD delta_skip_nodes.
+
+    DATA(lt_idx) = io_delta->members( `/` ).
+    LOOP AT lt_idx INTO DATA(lv_idx_str).
+      DATA lv_tabix TYPE i.
+      TRY.
+          lv_tabix = CONV i( lv_idx_str ) + 1.
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+      DATA(lv_row_path) = |/{ lv_idx_str }|.
+      DATA(lt_fld) = io_delta->members( lv_row_path ).
+      LOOP AT lt_fld INTO DATA(lv_fld).
+        DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name        = iv_table
+                                                                 row        = lv_tabix
+                                                                 field      = lv_fld
+                                                                 row_parent = iv_row_parent ).
+        TRY.
+            ls_skip-value = io_delta->get_string( |{ lv_row_path }/{ lv_fld }| ).
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+        APPEND ls_skip TO mt_skipped.
       ENDLOOP.
     ENDLOOP.
 
@@ -1059,6 +1106,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                              iv_table      = |{ is_cell-name }-{ is_cell-field }|
                                              iv_row_parent = is_cell-row
                                    CHANGING  ct_tab        = <sub_tab> ).
+              ELSE.
+                " a nested SORTED/HASHED table - same refusal, same trace
+                " (see delta_apply_to_table)
+                delta_skip_nodes( io_delta      = lo_sub->slice( `/__delta` )
+                                  iv_table      = |{ is_cell-name }-{ is_cell-field }|
+                                  iv_row_parent = is_cell-row ).
               ENDIF.
             ELSE.
               lo_sub->to_abap( EXPORTING iv_corresponding = abap_true

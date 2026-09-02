@@ -266,7 +266,17 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      const tracked = resolveTrackedModel(oView);` && |\n| &&
              `      if (tracked) {` && |\n| &&
              `        applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
+             `` && |\n| &&
+             `        const pending = tracked._z2ui5ChangedPaths;` && |\n| &&
+             `        const keep = [];` && |\n| &&
+             `        if (pending?.size) {` && |\n| &&
+             `          for (const path of pending)` && |\n| &&
+             `            keep.push([path, tracked.getProperty(path)]);` && |\n| &&
+             `        }` && |\n| &&
              `        tracked.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
+             `        for (const [path, value] of keep) {` && |\n| &&
+             `          if (value !== undefined) tracked.setProperty(path, value);` && |\n| &&
+             `        }` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&

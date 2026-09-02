@@ -99,7 +99,23 @@ CLASS z2ui5_cl_ui5_json IMPLEMENTATION.
   METHOD get_integer.
 
     DATA(lv_path) = CONV string( path ).
-    result = mi_json->get_integer( lv_path ).
+    " a JSON number outside the range of an ABAP integer is "not a number"
+    " for this getter - 0 as documented, not an escaping
+    " CX_SY_CONVERSION_OVERFLOW. Decided on the raw text rather than by
+    " catching the overflow: the transpiled runtime does not raise it
+    TRY.
+        IF mi_json->get_node_type( lv_path ) <> z2ui5_if_ajson_types=>node_type-number.
+          RETURN.
+        ENDIF.
+        DATA lv_number TYPE decfloat34.
+        lv_number = mi_json->get_string( lv_path ).
+        IF lv_number > 2147483647 OR lv_number < -2147483648.
+          RETURN.
+        ENDIF.
+        result = mi_json->get_integer( lv_path ).
+      CATCH cx_root.
+        result = 0.
+    ENDTRY.
 
   ENDMETHOD.
 

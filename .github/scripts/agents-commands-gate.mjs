@@ -12,7 +12,7 @@
  *
  * That is not hypothetical. Twenty-one scripts were missing when this gate was
  * written - every cross-repository gate (check:shared, check:mirrors,
- * check:counts, check:prose, check:skills, check:samples-md, check:changelog),
+ * check:prose, check:skills, check:samples-md, check:changelog),
  * every backlog command, and five of the six frontend build commands. The list
  * had simply stopped being maintained, and nothing said so, because a
  * documentation table cannot notice what is absent from it.

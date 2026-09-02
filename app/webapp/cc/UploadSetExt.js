@@ -1,6 +1,11 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Control, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/core/AppState",
+  ],
+  (Control, Lib, ViewSlots, AppState) => {
     "use strict";
 
     // Invisible companion control for a sap.m.upload.UploadSet (referenced
@@ -52,12 +57,37 @@ sap.ui.define(
 
       init() {
         this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");
+        this._queue = [];
+        this._reading = false;
       },
       exit() {
         this._unhook();
+        this._queue = [];
+        if (this._afterRoundtrip) {
+          Lib.unregisterCallback("onAfterRendering", this._afterRoundtrip);
+          this._afterRoundtrip = null;
+        }
       },
 
+      // The properties hold ONE file, and each change starts one roundtrip.
+      // UploadSet fires afterItemAdded once per file of a multi-select, in
+      // one synchronous loop: every reader used to start at once, each
+      // onload overwrote the properties and fired change, and the busy guard
+      // (View1.eB) dropped every change but the first - three files picked,
+      // one arrived. So the files queue up and go one at a time, the next
+      // read only once the roundtrip of the previous change has landed.
       _readFile(file) {
+        this._queue.push(file);
+        if (!this._reading) this._readNext();
+      },
+
+      _readNext() {
+        const file = this._queue.shift();
+        if (!file) {
+          this._reading = false;
+          return;
+        }
+        this._reading = true;
         Lib.readFileAsDataURL(
           file,
           this,
@@ -67,9 +97,28 @@ sap.ui.define(
             this.setProperty("mediaType", file.type);
             this.setProperty("fileSize", String(file.size));
             this.fireChange();
+            this._whenRoundtripLanded(() => this._readNext());
           },
           "UploadSetExt",
         );
+      },
+
+      // Runs `fn` once the roundtrip the change just started has landed -
+      // right away when it started none (no event bound to change), which
+      // is what state.isBusy says synchronously after fireChange.
+      _whenRoundtripLanded(fn) {
+        if (!AppState.state.isBusy) {
+          fn();
+          return;
+        }
+        const once = () => {
+          Lib.unregisterCallback("onAfterRendering", once);
+          this._afterRoundtrip = null;
+          if (Lib.isDestroyed(this)) return;
+          fn();
+        };
+        this._afterRoundtrip = once;
+        Lib.registerCallback("onAfterRendering", once);
       },
 
       onItemAdded(oEvent) {

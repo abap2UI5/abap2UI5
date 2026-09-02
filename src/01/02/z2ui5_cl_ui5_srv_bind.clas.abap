@@ -92,6 +92,17 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
           val = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range`.
     ENDIF.
 
+    " a table of an elementary line type (string_table) has no components
+    " to bind a cell of; rtti_get_t_attri_by_any would answer that with a
+    " raw CX_SY_MOVE_CAST_ERROR instead of the binding error it is
+    DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <row> ).
+    IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+        AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `BINDING_ERROR_TAB_CELL_LEVEL - the row of the bound table is not a structure`.
+    ENDIF.
+
     DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 

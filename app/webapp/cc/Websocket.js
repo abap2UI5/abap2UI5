@@ -95,7 +95,16 @@ sap.ui.define(
           this._failedAttempts = 0;
         }
         this._url = url;
-        if (this.getProperty("checkActive")) {
+        const active = this.getProperty("checkActive");
+        // checkActive switched back on is the app asking for a new attempt
+        // (the ICF node was activated meanwhile) - the give-up is about
+        // hammering the same dead endpoint unasked, and this is the second
+        // trigger the contract above promises next to a path change
+        if (active && this._wasInactive) {
+          this._failedAttempts = 0;
+        }
+        this._wasInactive = !active;
+        if (active) {
           this._connect();
         } else {
           this._disconnect();

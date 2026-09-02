@@ -21,7 +21,7 @@
  * Deliberately NOT checked: the text of an entry, and how many entries a
  * version has. That difference is the point of having two files.
  *
- * Resolution follows shared-file-gate and corpus-count-gate: a sibling
+ * Resolution follows shared-file-gate: a sibling
  * checkout first, then raw.githubusercontent, and when neither is reachable
  * the gate says so and passes. A gate that cannot see the other side must not
  * fail a pull request over it.

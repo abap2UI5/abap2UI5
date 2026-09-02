@@ -14,6 +14,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_url_param_no_phantom FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_startup    FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_encoded    FOR TESTING RAISING cx_static_check.
+    METHODS test_c_trim_mixed          FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_question   FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_full_url   FOR TESTING RAISING cx_static_check.
 
@@ -137,6 +138,18 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = 1
         act = lines( z2ui5_cl_ui5_util_context=>url_param_get_tab( `?a=1&` ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_c_trim_mixed.
+
+    DATA(lv_tab) = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `x`
+        act = z2ui5_cl_ui5_util_context=>c_trim( |{ lv_tab } { lv_tab } x { lv_tab } { lv_tab }| ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `a b`
+        act = z2ui5_cl_ui5_util_context=>c_trim( `  a b  ` ) ).
 
   ENDMETHOD.
 

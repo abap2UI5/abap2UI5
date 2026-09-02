@@ -520,7 +520,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " the view builder's xml_escape builds its control-character set with it
     CLASS-METHODS conv_get_string_by_xstring
       IMPORTING
         val           TYPE xstring
@@ -924,12 +924,20 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD c_trim.
 
-    result = shift_left( shift_right( CONV string( val ) ) ).
-    result = shift_right( val = result
-                          sub = cv_char_util_horizontal_tab ).
-    result = shift_left( val = result
-                         sub = cv_char_util_horizontal_tab ).
-    result = shift_left( shift_right( result ) ).
+    result = CONV string( val ).
+    " spaces and tabs alternate at either end (`\t \tx`) - one pass of each
+    " leaves the inner layer standing, so strip until nothing changes
+    DO 10 TIMES.
+      DATA(lv_before) = result.
+      result = shift_left( shift_right( result ) ).
+      result = shift_right( val = result
+                            sub = cv_char_util_horizontal_tab ).
+      result = shift_left( val = result
+                           sub = cv_char_util_horizontal_tab ).
+      IF result = lv_before.
+        EXIT.
+      ENDIF.
+    ENDDO.
 
   ENDMETHOD.
 
