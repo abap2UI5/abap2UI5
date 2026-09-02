@@ -134,6 +134,7 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
     " template per call otherwise). Lazily filled on first use - a public
     " class_constructor is the alternative and abap-check names it a trap
     CLASS-DATA gv_escape_specials TYPE string.
+    CLASS-DATA gv_escape_controls TYPE string.
 ENDCLASS.
 
 
@@ -262,10 +263,16 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " seven full copies. A value that does carry one still runs all seven
     " replaces below, unchanged
     IF gv_escape_specials IS INITIAL.
+      " the XML-illegal control characters as one string, so the CA scan
+      " stays a single statement; built from their UTF-8 bytes through the
+      " context class (the one door to the codepage API)
+      gv_escape_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring(
+          CONV xstring( `0102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
       gv_escape_specials = `&<>"`
           && z2ui5_cl_ui5_util_context=>cv_char_util_newline
           && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
-          && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+          && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
+          && gv_escape_controls.
     ENDIF.
     IF val NA gv_escape_specials.
       result = val.
@@ -306,6 +313,28 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
                       sub  = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
                       with = `&#x9;`
                       occ  = 0 ).
+
+    " what is left of the control range is illegal in XML 1.0 outright -
+    " U+0000-U+0008, U+000B, U+000C, U+000E-U+001F cannot even be written
+    " as character references, and UI5's XMLView parser rejects the whole
+    " document over one such byte (a form feed or record separator out of a
+    " legacy long text blanks the view). They carry no meaning in an
+    " attribute value, so they are dropped. Only reached for a value that
+    " passed the CA scan above - see gv_escape_specials
+    IF result CA gv_escape_controls.
+      " one replace per character, no regex: [[:cntrl:]] is not a class every
+      " runtime this code runs on knows (the transpiled one left every byte
+      " in place), and this branch is the rare one
+      DATA(lv_off) = 0.
+      DATA(lv_len) = strlen( gv_escape_controls ).
+      WHILE lv_off < lv_len.
+        result = replace( val  = result
+                          sub  = gv_escape_controls+lv_off(1)
+                          with = ``
+                          occ  = 0 ).
+        lv_off = lv_off + 1.
+      ENDWHILE.
+    ENDIF.
 
   ENDMETHOD.
 

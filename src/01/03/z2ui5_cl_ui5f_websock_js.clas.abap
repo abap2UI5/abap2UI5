@@ -88,7 +88,13 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `          this._failedAttempts = 0;` && |\n| &&
              `        }` && |\n| &&
              `        this._url = url;` && |\n| &&
-             `        if (this.getProperty("checkActive")) {` && |\n| &&
+             `        const active = this.getProperty("checkActive");` && |\n| &&
+             `` && |\n| &&
+             `        if (active && this._wasInactive) {` && |\n| &&
+             `          this._failedAttempts = 0;` && |\n| &&
+             `        }` && |\n| &&
+             `        this._wasInactive = !active;` && |\n| &&
+             `        if (active) {` && |\n| &&
              `          this._connect();` && |\n| &&
              `        } else {` && |\n| &&
              `          this._disconnect();` && |\n| &&

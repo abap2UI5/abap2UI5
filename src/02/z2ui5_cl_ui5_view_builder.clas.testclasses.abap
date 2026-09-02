@@ -11,6 +11,7 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS trailing_end_is_optional FOR TESTING.
     METHODS escape_attribute_value FOR TESTING.
     METHODS escape_whitespace_chars FOR TESTING.
+    METHODS escape_control_chars FOR TESTING.
     METHODS escape_literal_braces FOR TESTING.
     METHODS escape_literal_passthrough FOR TESTING.
     METHODS bool_parameter FOR TESTING.
@@ -179,6 +180,25 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD escape_control_chars.
+
+    " a form feed (U+000C) and a record separator (U+001E) out of a legacy
+    " long text: illegal in XML 1.0 even as a character reference, the whole
+    " view failed at the parser - they are dropped, the legal whitespace
+    " next to them still becomes its character reference
+    DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `0C1E` ) ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n   = `text`
+                v = |a{ lv_ctrl }b{ z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab }c| ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="ab&#x9;c"/>` ).
+
+  ENDMETHOD.
 
   METHOD escape_literal_braces.
 

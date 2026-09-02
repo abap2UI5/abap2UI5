@@ -26,8 +26,13 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.UploadSetExt", {` && |\n| &&
@@ -75,12 +80,30 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `` && |\n| &&
              `      init() {` && |\n| &&
              `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
+             `        this._queue = [];` && |\n| &&
+             `        this._reading = false;` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
+             `        this._queue = [];` && |\n| &&
+             `        if (this._afterRoundtrip) {` && |\n| &&
+             `          Lib.unregisterCallback("onAfterRendering", this._afterRoundtrip);` && |\n| &&
+             `          this._afterRoundtrip = null;` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _readFile(file) {` && |\n| &&
+             `        this._queue.push(file);` && |\n| &&
+             `        if (!this._reading) this._readNext();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _readNext() {` && |\n| &&
+             `        const file = this._queue.shift();` && |\n| &&
+             `        if (!file) {` && |\n| &&
+             `          this._reading = false;` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        this._reading = true;` && |\n| &&
              `        Lib.readFileAsDataURL(` && |\n| &&
              `          file,` && |\n| &&
              `          this,` && |\n| &&
@@ -90,9 +113,25 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `            this.setProperty("mediaType", file.type);` && |\n| &&
              `            this.setProperty("fileSize", String(file.size));` && |\n| &&
              `            this.fireChange();` && |\n| &&
+             `            this._whenRoundtripLanded(() => this._readNext());` && |\n| &&
              `          },` && |\n| &&
              `          "UploadSetExt",` && |\n| &&
              `        );` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _whenRoundtripLanded(fn) {` && |\n| &&
+             `        if (!AppState.state.isBusy) {` && |\n| &&
+             `          fn();` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const once = () => {` && |\n| &&
+             `          Lib.unregisterCallback("onAfterRendering", once);` && |\n| &&
+             `          this._afterRoundtrip = null;` && |\n| &&
+             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `          fn();` && |\n| &&
+             `        };` && |\n| &&
+             `        this._afterRoundtrip = once;` && |\n| &&
+             `        Lib.registerCallback("onAfterRendering", once);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onItemAdded(oEvent) {` && |\n| &&

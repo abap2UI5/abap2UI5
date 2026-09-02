@@ -101,6 +101,13 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `      _restoreScrollPosition(item) {` && |\n| &&
              `        try {` && |\n| &&
              `          const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
+             `` && |\n| &&
+             `          const delegate = control?.getScrollDelegate?.();` && |\n| &&
+             `          if (delegate?.scrollTo) {` && |\n| &&
+             `            const left = delegate.getScrollLeft?.() ?? 0;` && |\n| &&
+             `            delegate.scrollTo(left, item.V);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
              `          if (control?.scrollTo) {` && |\n| &&
              `            control.scrollTo(item.V);` && |\n| &&
              `            return;` && |\n| &&

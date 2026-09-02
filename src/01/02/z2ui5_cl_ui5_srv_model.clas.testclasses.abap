@@ -1456,8 +1456,11 @@ CLASS ltcl_app_typed DEFINITION FINAL
         ts    TYPE timestamp,
       END OF ty_s_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    " the one table shape a row delta cannot be applied to
+    TYPES ty_t_sorted TYPE SORTED TABLE OF ty_s_row WITH UNIQUE KEY name.
 
     DATA mt_tab TYPE ty_t_tab.
+    DATA mt_sorted TYPE ty_t_sorted.
 ENDCLASS.
 
 
@@ -1489,6 +1492,7 @@ CLASS ltcl_test_delta_apply DEFINITION FINAL
     METHODS test_skip_absent_field  FOR TESTING RAISING cx_static_check.
     METHODS test_skip_nested_name   FOR TESTING RAISING cx_static_check.
     METHODS test_skip_nested_parent FOR TESTING RAISING cx_static_check.
+    METHODS test_skip_sorted_table  FOR TESTING RAISING cx_static_check.
 
     METHODS typed_app_create
       RETURNING
@@ -1759,6 +1763,35 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
                                         act = lo_app->mt_tab[ 1 ]-dt ).
     cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-tm ).
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD test_skip_sorted_table.
+
+    DATA(lo_app) = typed_app_create( ).
+    INSERT VALUE #( name = `Monitor` price = '299.00' ) INTO TABLE lo_app->mt_sorted.
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " a sorted table cannot take a row delta - the edit used to vanish with
+    " nothing recorded; now every cell of it is traced
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"PRICE":"1250.00","NAME":"Screen"}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_SORTED` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '299.00' )
+                                        act = CONV decfloat34( lo_app->mt_sorted[ 1 ]-price ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_SORTED`
+                                        act = lo_model->mt_skipped[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_model->mt_skipped[ 1 ]-row ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = xsdbool( line_exists( lo_model->mt_skipped[ field = `PRICE` value = `1250.00` ] ) ) ).
 
   ENDMETHOD.
 

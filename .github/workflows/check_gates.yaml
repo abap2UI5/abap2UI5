@@ -179,12 +179,6 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/toolchain-gate.mjs # npm run check:toolchain
 
-      # the corpus sizes this repository quotes at agents belong to other
-      # repositories - held to their generated catalogues, not to memory
-      - name: corpus counts match the corpora
-        if: ${{ !cancelled() }}
-        run: node .github/scripts/corpus-count-gate.mjs # npm run check:counts
-
       # the row format of the three generated SAMPLES.md catalogues is parsed by
       # abap2UI5/mcp-server and abap2UI5/docs - three generators, two readers, none
       # of them in the same repository, and a reader that stops matching answers

@@ -358,7 +358,28 @@ sap.ui.define(
       const tracked = resolveTrackedModel(oView);
       if (tracked) {
         applyStoredSizeLimit(slotKey, tracked);
+        // Edits this slot has not sent yet survive the push. Change tracking
+        // is per model, and a roundtrip from another slot (a MAIN timer
+        // tick, an unscoped shortcut, the hash listener) ships only that
+        // slot's edits - the winning response then fans its MODEL out into
+        // every open slot, and setData( ) alone overwrote what the user had
+        // typed into a dialog with the backend's stale value while the
+        // dialog's changed paths stayed pending: its next event shipped the
+        // already-reverted value. The model the winning request carried has
+        // its set cleared before this runs (Server.readHttp), so a non-empty
+        // set here is by definition unsent. Re-applied through setProperty,
+        // which fires no propertyChange - the paths stay pending and travel
+        // with this slot's own next roundtrip.
+        const pending = tracked._z2ui5ChangedPaths;
+        const keep = [];
+        if (pending?.size) {
+          for (const path of pending)
+            keep.push([path, tracked.getProperty(path)]);
+        }
         tracked.setData(AppState.state.oResponse?.OVIEWMODEL);
+        for (const [path, value] of keep) {
+          if (value !== undefined) tracked.setProperty(path, value);
+        }
         return;
       }
 

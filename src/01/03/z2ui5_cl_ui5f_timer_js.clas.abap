@@ -62,8 +62,15 @@ CLASS z2ui5_cl_ui5f_timer_js IMPLEMENTATION.
              `    delayedCall() {` && |\n| &&
              `      if (!this.getProperty("checkActive")) return;` && |\n| &&
              `      clearTimeout(this._timerId);` && |\n| &&
-             `      const repeat = this.getProperty("checkRepeat");` && |\n| &&
-             `      const delay = this.getProperty("delayMS");` && |\n| &&
+             `      let repeat = this.getProperty("checkRepeat");` && |\n| &&
+             `      const delay = Math.max(0, Number(this.getProperty("delayMS")) || 0);` && |\n| &&
+             `` && |\n| &&
+             `      if (repeat && delay === 0) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          "Timer: checkRepeat with delayMS 0 fires once - a repeating timer needs a delay",` && |\n| &&
+             `        );` && |\n| &&
+             `        repeat = false;` && |\n| &&
+             `      }` && |\n| &&
              `      this._timerId = setTimeout(() => {` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        if (!repeat) this.setProperty("checkActive", false, true);` && |\n| &&

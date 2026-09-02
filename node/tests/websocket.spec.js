@@ -130,6 +130,28 @@ test("no path or checkActive=false opens no connection", () => {
   expect(sockets).toHaveLength(0);
 });
 
+test("checkActive switched back on clears the give-up", () => {
+  const { makeInstance, sockets } = load();
+  const inst = makeInstance({ path: "/apc" });
+
+  // five failed attempts: the control gives up on this endpoint
+  for (let i = 0; i < 5; i++) {
+    inst.onAfterRendering();
+    sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
+  }
+  inst.onAfterRendering();
+  expect(sockets).toHaveLength(5);
+
+  // the ICF node was activated meanwhile and the app asks again by
+  // toggling checkActive - the contract names it next to a path change,
+  // and it used to do nothing
+  inst._props.checkActive = false;
+  inst.onAfterRendering();
+  inst._props.checkActive = true;
+  inst.onAfterRendering();
+  expect(sockets).toHaveLength(6);
+});
+
 test("toggling checkActive off closes, back on reconnects", () => {
   const { makeInstance, sockets } = load();
   const inst = makeInstance({ path: "/apc" });

@@ -5,6 +5,7 @@ CLASS ltcl_test_json DEFINITION FINAL
     METHODS test_get_string      FOR TESTING RAISING cx_static_check.
     METHODS test_get_integer     FOR TESTING RAISING cx_static_check.
     METHODS test_get_boolean     FOR TESTING RAISING cx_static_check.
+    METHODS test_get_integer_overflow FOR TESTING RAISING cx_static_check.
     METHODS test_exists          FOR TESTING RAISING cx_static_check.
     METHODS test_members_object  FOR TESTING RAISING cx_static_check.
     METHODS test_array_iteration FOR TESTING RAISING cx_static_check.
@@ -41,6 +42,18 @@ CLASS ltcl_test_json IMPLEMENTATION.
                                         act = lo_json->get_integer( `/label` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `7`
                                         act = lo_json->get_string( `/label` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_get_integer_overflow.
+
+    DATA(lo_json) = z2ui5_cl_ui5_json=>factory( `{"big":99999999999,"n":7}` ).
+
+    " out of range for an ABAP i: 0 as documented, never an escaping overflow
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = lo_json->get_integer( `/big` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = lo_json->get_integer( `/n` ) ).
 
   ENDMETHOD.
 

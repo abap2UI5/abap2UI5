@@ -22,7 +22,6 @@
     "check:toolchain": "node .github/scripts/toolchain-gate.mjs",
     "check:shared": "node .github/scripts/shared-file-gate.mjs",
     "check:mirrors": "node .github/scripts/linter-mirror-gate.mjs",
-    "check:counts": "node .github/scripts/corpus-count-gate.mjs",
     "check:samples-md": "node .github/scripts/samples-md-gate.mjs",
     "check:changelog": "node .github/scripts/changelog-gate.mjs",
     "check:changelog-entry": "node .github/scripts/changelog-entry-gate.mjs",

@@ -40,8 +40,17 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
     delayedCall() {
       if (!this.getProperty("checkActive")) return;
       clearTimeout(this._timerId);
-      const repeat = this.getProperty("checkRepeat");
-      const delay = this.getProperty("delayMS");
+      let repeat = this.getProperty("checkRepeat");
+      const delay = Math.max(0, Number(this.getProperty("delayMS")) || 0);
+      // a repeating timer with no delay is a loop of roundtrips as fast as
+      // the browser can schedule them - never what was meant, and nothing
+      // else in the chain could stop it. It fires once and says why
+      if (repeat && delay === 0) {
+        Lib.logError(
+          "Timer: checkRepeat with delayMS 0 fires once - a repeating timer needs a delay",
+        );
+        repeat = false;
+      }
       this._timerId = setTimeout(() => {
         // The control might have been destroyed during the delay.
         if (Lib.isDestroyed(this)) return;

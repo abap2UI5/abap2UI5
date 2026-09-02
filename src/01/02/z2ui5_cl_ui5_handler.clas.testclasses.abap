@@ -5,6 +5,24 @@ CLASS ltcl_app_nav_loop DEFINITION FINAL.
   PRIVATE SECTION.
 ENDCLASS.
 
+" a root app with a back button: leaves without naming a target
+CLASS ltcl_app_leave_root DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_main_calls TYPE i.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_leave_root IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    mv_main_calls = mv_main_calls + 1.
+    client->nav_app_leave( ).
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS ltcl_app_nav_loop IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
@@ -61,6 +79,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
   PRIVATE SECTION.
     METHODS load_startup_app       FOR TESTING RAISING cx_static_check.
     METHODS test_dispatch_loop_guard FOR TESTING RAISING cx_static_check.
+    METHODS test_leave_root_ends_roundtrip FOR TESTING RAISING cx_static_check.
     METHODS test_request_parse     FOR TESTING RAISING cx_static_check.
     METHODS test_request_origin    FOR TESTING RAISING cx_static_check.
     METHODS test_request_launchpad FOR TESTING RAISING cx_static_check.
@@ -1113,6 +1132,30 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD test_leave_root_ends_roundtrip.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_app TYPE REF TO ltcl_app_leave_root.
+
+    " nothing on the stack: the leave has nowhere to go and the roundtrip
+    " ends with this app - it used to hop to ITSELF (a second container
+    " chained to its own draft, main( ) run a second time)
+    lo_handler = NEW #( val = `` ).
+    lo_app = NEW #( ).
+    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    DATA(lo_action_before) = lo_handler->mo_action.
+
+    cl_abap_unit_assert=>assert_true( lo_handler->main_process( ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lo_action_before
+                                        act = lo_handler->mo_action ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_app->mv_main_calls ).
+    cl_abap_unit_assert=>assert_not_bound( lo_handler->mo_action->ms_next-o_app_leave ).
+
+  ENDMETHOD.
+
   METHOD test_auto_update_snapshot.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
@@ -1288,6 +1331,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     " '#/app/<CLASS>/<DRAFT>' for an app that never opted in - seen live on
     " the samples overview after nav_app_leave from a routed sample.
     lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_front-id          = `PREV_DRAFT`.
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->ms_actual-check_on_navigated = abap_true.
@@ -1297,6 +1341,19 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_char_cp(
         exp = `*"setNavRouting":"DEFAULT"*`
         act = system_actions_of( lo_handler ) ).
+
+    " a FRESH START (no draft id in the request) sets check_on_navigated
+    " too - a reload, or Back/Forward under FRESH routing re-creating an app
+    " that only inherited its mode - and must NOT switch routing off: the
+    " frontend is in the mode that produced the route
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->mo_action->ms_actual-check_on_navigated = abap_true.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
     " while a hop into an app WITH a mode - its own, or the one a called app
     " inherits from its caller (z2ui5_cl_ui5_action) - still sends that mode

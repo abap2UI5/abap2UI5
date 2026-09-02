@@ -33,7 +33,8 @@
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_parser_test", "method": "unicode_characters", "note": "CL_ABAP_CONV_IN_CE=>uccpi dynamic call not supported in NodeJS runtime"},
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_writer_test", "method": "set_timestampl", "note": "NodeJS timestamp precision is milliseconds, ABAP expects microseconds"},
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_abap_to_json", "method": "set_value_timestampl", "note": "NodeJS timestamp precision is milliseconds, ABAP expects microseconds"},
-      {"object": "Z2UI5_CL_UI5_SRV_MODEL", "class": "ltcl_test_app_root4", "method": "test_tab_ref_gen", "note": "S-RTTI serialization calls CL_ABAP_TYPEDESCR=>describe_by_name with a dynamic type name, not supported in NodeJS runtime"}
+      {"object": "Z2UI5_CL_UI5_SRV_MODEL", "class": "ltcl_test_app_root4", "method": "test_tab_ref_gen", "note": "S-RTTI serialization calls CL_ABAP_TYPEDESCR=>describe_by_name with a dynamic type name, not supported in NodeJS runtime"},
+      {"object": "Z2UI5_CL_UI5_SRV_MODEL", "class": "ltcl_test_delta_apply", "method": "test_skip_sorted_table", "note": "the NodeJS runtime does not enforce field-symbol typing - ASSIGN of a SORTED table to a TYPE STANDARD TABLE field symbol succeeds there and fails (sy-subrc 4) on a real system, which is the branch this test covers"}
     ]
   }
 }

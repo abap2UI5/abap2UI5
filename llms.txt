@@ -29,7 +29,7 @@ Two audiences, two entry points:
 - [View builder](src/02/z2ui5_cl_ui5_view_builder.clas.abap): generic 1:1 UI5 XML builder
 - [Hello world](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap): smallest complete app
 - [Rendered documentation](https://abap2ui5.github.io/docs/): the human docs site
-- [samples](https://github.com/abap2UI5/samples): 148 curated example apps, one
+- [samples](https://github.com/abap2UI5/samples): 150 curated example apps, one
   class each. [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)
   lists every one of them with the words to search it by — ask it whether a
   sample already exists before writing an app from scratch

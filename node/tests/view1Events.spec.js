@@ -83,7 +83,7 @@ function withSlots(openKeys, model) {
       },
     },
   });
-  return { Slots, applied };
+  return { Slots, applied, views };
 }
 
 test.describe("updateModel (one dispatch, every open model slot)", () => {
@@ -107,6 +107,31 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
     const { Slots, applied } = withSlots([], {});
     Slots.action("updateModel", undefined, undefined, {});
     expect(applied).toEqual([]);
+  });
+
+  test("a slot's unsent edits survive the push and stay pending", () => {
+    // the winning request shipped MAIN's edits (its set is cleared before
+    // the push - Server.readHttp); the popup's typed value is still pending
+    // and must not be overwritten by the backend's stale copy
+    const response = { name: "old", count: 1 };
+    const { Slots, views } = withSlots(["MAIN", "POPUP"], response);
+    const popup = views.POPUP.getModel();
+    let data = { name: "typed", count: 1 };
+    popup._z2ui5ChangedPaths = new Set(["/name"]);
+    popup.getProperty = (path) => data[path.slice(1)];
+    popup.setData = (next) => (data = { ...next });
+    const set = [];
+    popup.setProperty = (path, value) => {
+      set.push([path, value]);
+      data[path.slice(1)] = value;
+    };
+
+    Slots.action("updateModel", undefined, undefined, {});
+
+    expect(data).toEqual({ name: "typed", count: 1 });
+    expect(set).toEqual([["/name", "typed"]]);
+    // still pending - the popup's own next roundtrip ships it
+    expect([...popup._z2ui5ChangedPaths]).toEqual(["/name"]);
   });
 });
 

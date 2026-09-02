@@ -894,9 +894,17 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " should keep routing INHERITS the caller's mode before this runs (see
     " z2ui5_cl_ui5_action), and a fresh page load needs nothing because the
     " frontend state starts clean (AppState.reset on component init).
+    " Only a HOP says so - a request that carries a draft id. A fresh start
+    " (no id: a reload, or Back/Forward under FRESH routing re-creating an
+    " app that only INHERITED its mode) sets check_on_navigated as well, and
+    " an explicit DEFAULT there switched routing off for the rest of the
+    " session: the next event wiped '#/app/<CLASS>' and Back/Forward stopped
+    " navigating between the apps. The frontend already is in the mode that
+    " produced the route, so a fresh start leaves it alone.
     IF mo_action->ms_next-s_nav-set_nav_routing IS INITIAL
         AND mo_action->mo_app->mv_nav_mode IS INITIAL
-        AND mo_action->ms_actual-check_on_navigated = abap_true.
+        AND mo_action->ms_actual-check_on_navigated = abap_true
+        AND ms_request-s_front-id IS NOT INITIAL.
       mo_action->ms_next-s_nav-set_nav_routing = z2ui5_if_client=>cs_nav_mode-default.
     ENDIF.
 
@@ -1040,6 +1048,21 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     IF mo_action->mo_app->mv_check_sticky = abap_false.
       z2ui5_cl_ui5_util_context=>db_rollback( ).
+    ENDIF.
+
+    " a ROOT app leaving without a target: nav_app_leave( ) resolves the
+    " target through get_app( id_prev_app_stack ), and with nothing on the
+    " stack get_app( ) answers the CURRENT app - so the leave went to itself:
+    " a second container chained to its own draft (id_prev = its own id),
+    " main( ) run once more with check_on_navigated and no event, the draft
+    " parsed and saved twice. A leave with nowhere to go is the end of the
+    " roundtrip instead; check_app_prev_stack( ) is the question an app with
+    " a back button asks first. The intent stays recorded on ms_next (the
+    " shipped src/99 popups assert on it), only the hop is not taken
+    IF mo_action->ms_next-o_app_leave IS NOT INITIAL
+        AND mo_action->ms_next-o_app_leave = mo_action->mo_app->mo_app
+        AND mo_action->mo_app->ms_draft-id_prev_app_stack IS INITIAL.
+      CLEAR mo_action->ms_next-o_app_leave.
     ENDIF.
 
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL.

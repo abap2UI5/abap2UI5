@@ -84,6 +84,19 @@ sap.ui.define(
       _restoreScrollPosition(item) {
         try {
           const control = ViewSlots.byIdOfOwner(this, item.N);
+          // The position was captured through the scroll delegate where the
+          // control has one (_getScrollTop), so it is restored through the
+          // same delegate: ScrollEnablement.scrollTo(x, y) takes both axes.
+          // control.scrollTo is NOT one signature - sap.m.Page.scrollTo(y)
+          // but sap.m.ScrollContainer.scrollTo(x, y) - and a vertical
+          // position handed to the latter as its first argument scrolled
+          // the container sideways and left the vertical position at 0.
+          const delegate = control?.getScrollDelegate?.();
+          if (delegate?.scrollTo) {
+            const left = delegate.getScrollLeft?.() ?? 0;
+            delegate.scrollTo(left, item.V);
+            return;
+          }
           if (control?.scrollTo) {
             control.scrollTo(item.V);
             return;

@@ -27,6 +27,19 @@ unreleased
 * Response header names and values are stripped of CR/LF (response splitting hardening)
 - z2ui5_cl_ui5_util_context=>app_get_url moved to z2ui5_cl_ui5_handler=>app_get_url. A downstream caller of the old spelling gets a compile error until it renames the class (same signature; src/00 is not the guarded API, and the shipped legacy z2ui5_cl_util=>app_get_url keeps working)
 * App-state links and copied launchpad links keep a bare intent hash (opened from the tile, no app part yet) instead of landing the recipient on the FLP home page
+- The corpus-count gate (npm run check:counts): a number about another repository's catalogue went red on main whenever that corpus grew by one app - too strict for what it protected. The counts in llms.txt and the build-an-app skill stay prose
+* A row delta on a bound SORTED or HASHED table is recorded in t_model_skipped, one entry per cell, instead of vanishing silently
+* An app that only inherited its routing mode keeps it on a fresh route start (a reload, Back/Forward under FRESH): the explicit DEFAULT is sent on a navigation hop only
+* nav_app_leave( ) without a target on an empty app stack is a no-op instead of a navigation to the app itself
+* A cell binding on a table with an elementary line type raises the binding error instead of a raw CX_SY_MOVE_CAST_ERROR
+* z2ui5_cl_ui5_json=>get_integer answers 0 for a JSON number outside the integer range, as documented, instead of letting the overflow escape
+* c_trim strips alternating tab/space padding completely
+* The view builder drops the control characters XML 1.0 forbids outright (U+0000-U+0008, U+000B, U+000C, U+000E-U+001F) from attribute values - one such byte out of a legacy long text used to fail the whole view at the XML parser
+* A response model push no longer overwrites the unsent edits of an open popup/popover: the pending values are re-applied on top of the pushed data and travel with the popup's next event
+* UploadSetExt hands several files picked at once to the backend one after the other - each change waits for the roundtrip of the previous one instead of being dropped by the busy guard
+* Scrolling restores a sap.m.ScrollContainer through its scroll delegate (vertical), instead of scrollTo(x) moving it sideways
+* Websocket leaves its give-up state when checkActive is switched back on, as its contract says
+* Timer: a repeating timer with delayMS 0 fires once and logs, instead of a zero-interval loop of roundtrips
 * A table cell edit of a TYPE d / t / timestamp column arriving as a delta no longer corrupts the field: the ISO spelling ajson wrote (2024-01-15, 12:30:45, 2024-01-15T12:30:45Z) is parsed back, as the whole-attribute path always did
 * set_session_stateful over a nav_app_call hop: the switch compares against the state the request started in instead of toggling per app container, so two apps switching on in one roundtrip no longer leave a sticky app without a stateful session (next click: NO_DRAFT_ENTRY 500)
 * An anonymous elementary data reference (CREATE DATA mr TYPE string) bound via mr->* survives the draft save; it used to be cleared and never restored

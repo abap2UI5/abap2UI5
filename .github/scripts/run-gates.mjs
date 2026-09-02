@@ -60,7 +60,6 @@ const GATES = [
   { npm: "check:commands", script: "agents-commands-gate.mjs" },
   { npm: "check:scripts", script: "scripts-gate.mjs" },
   { npm: "check:toolchain", script: "toolchain-gate.mjs" },
-  { npm: "check:counts", script: "corpus-count-gate.mjs" },
   { npm: "check:samples-md", script: "samples-md-gate.mjs" },
   { npm: "check:changelog", script: "changelog-gate.mjs" },
   { npm: "check:backlog", script: "generate-backlog.mjs", args: ["--check"] },
@@ -142,7 +141,7 @@ const started = Date.now();
  * 1.7 seconds of checking" - and then spent the saved time serially. Four of
  * these gates read from sibling repositories over the network with a 15-second
  * per-request timeout (check:shared walks a whole list of them, and
- * check:counts, check:mirrors and check:samples-md each do their own reads),
+ * check:mirrors and check:samples-md each do their own reads),
  * so wall time is dominated by requests that are waiting, not computing. They
  * parallelise perfectly because no gate reads what another writes: every one
  * of them is a pure check.
