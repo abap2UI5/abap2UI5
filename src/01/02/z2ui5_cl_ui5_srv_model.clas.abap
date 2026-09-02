@@ -169,12 +169,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         z2ui5_cx_ajson_error.
 
     " what delta_apply_field learnt about a COLUMN of the table it is
-    " writing: whether a nested table there is a standard one. Decided by
-    " the component's type, so once per column per delta, not per cell
+    " writing: whether a nested table there is a standard one, and the type
+    " kind of a scalar there. Both are decided by the component's type, so
+    " once per column per delta, not per cell. Neither is a key component,
+    " so a write through the row reference is legal
     TYPES:
       BEGIN OF ty_s_col_kind,
-        field    TYPE string,
-        standard TYPE abap_bool,
+        field     TYPE string,
+        standard  TYPE abap_bool,
+        type_kind TYPE string,
       END OF ty_s_col_kind.
     TYPES ty_t_col_kind TYPE SORTED TABLE OF ty_s_col_kind WITH UNIQUE KEY field.
 
@@ -320,11 +323,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ajson_mapping.
 
+    "! iv_type_kind is the component's type kind, resolved by the caller
+    "! once per column (ty_t_col_kind) - it used to be asked per cell
     METHODS delta_apply_scalar
       IMPORTING
-        io_delta TYPE REF TO z2ui5_if_ajson
-        iv_path  TYPE string
-        ir_comp  TYPE REF TO data
+        io_delta     TYPE REF TO z2ui5_if_ajson
+        iv_path      TYPE string
+        ir_comp      TYPE REF TO data
+        iv_type_kind TYPE string
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -1617,7 +1623,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " Only the ISO spelling is unpacked here; any other text (a plain
     " `20240115`, an empty cleared value) keeps the direct assignment, so a
     " cell that never went through ajson's formatting stays as it was.
-    CASE z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ).
+    CASE iv_type_kind.
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date.
         IF strlen( lv_value ) >= 10 AND lv_value+4(1) = `-` AND lv_value+7(1) = `-`.
@@ -1650,6 +1656,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     FIELD-SYMBOLS <comp>   TYPE any.
     FIELD-SYMBOLS <before> TYPE any.
+    DATA lr_col_kind TYPE REF TO ty_s_col_kind.
     ASSIGN ir_comp->* TO <comp>.
 
     " the OLD value, kept aside: on a system a conversion that fails (`abc`
@@ -1686,7 +1693,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               " here (check_table_standard sees the reference itself and
               " answers no) - a delta through such a column would have to
               " ask per cell again
-              READ TABLE ct_col_kind REFERENCE INTO DATA(lr_col_kind)
+              READ TABLE ct_col_kind REFERENCE INTO lr_col_kind
                    WITH TABLE KEY field = is_cell-field.
               IF sy-subrc <> 0.
                 INSERT VALUE #( field    = is_cell-field
@@ -1725,9 +1732,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                                  IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
-            delta_apply_scalar( io_delta = io_delta
-                                iv_path  = iv_path
-                                ir_comp  = ir_comp ).
+            " the type kind once per COLUMN, like the table kind above: it
+            " is a property of the component's type, the same in every row
+            READ TABLE ct_col_kind REFERENCE INTO lr_col_kind
+                 WITH TABLE KEY field = is_cell-field.
+            IF sy-subrc <> 0.
+              INSERT VALUE #( field = is_cell-field )
+                     INTO TABLE ct_col_kind REFERENCE INTO lr_col_kind.
+            ENDIF.
+            IF lr_col_kind->type_kind IS INITIAL.
+              lr_col_kind->type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ).
+            ENDIF.
+            delta_apply_scalar( io_delta     = io_delta
+                                iv_path      = iv_path
+                                ir_comp      = ir_comp
+                                iv_type_kind = lr_col_kind->type_kind ).
         ENDCASE.
 
       CATCH cx_root.

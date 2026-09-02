@@ -678,15 +678,19 @@ sap.ui.define(
       // it today, which is why "why was my edit not sent" is hard to answer.
       const changed = model._z2ui5ChangedPaths;
       const dirty = changed ? new Set(changed) : new Set();
+      // a table edit is tracked on the deep path, so an attribute is dirty
+      // when any tracked path starts with it: the attribute is the first
+      // segment (`/TAB/0/COL` -> TAB, the rule buildDeltaFromPaths applies).
+      // Derived once - the loop below used to materialise the whole set
+      // and scan it per attribute, attributes x edited paths on every render
+      const dirtyAttrs = new Set(
+        Array.from(dirty, (p) => p.split("/")[1]).filter(Boolean),
+      );
       const keys = Object.keys(data).sort();
       if (!keys.length) out.push("  (model is empty)");
       for (const key of keys) {
         const path = `/${key}`;
-        // a table edit is tracked on the deep path, so mark the attribute
-        // when any tracked path starts with it
-        const isDirty = Array.from(dirty).some(
-          (p) => p === path || p.startsWith(`${path}/`),
-        );
+        const isDirty = dirtyAttrs.has(key);
         out.push(
           `  ${isDirty ? "*" : " "} ${path.padEnd(30)}${describeValue(data[key])}`,
         );

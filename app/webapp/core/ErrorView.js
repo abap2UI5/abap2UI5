@@ -428,6 +428,16 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     }
   }
 
+  // Forget the last dialog's inputs on a component teardown (Server.reset):
+  // the details are an error dump of up to 50 000 characters that otherwise
+  // stays referenced by this module for the life of the page. The open
+  // dialog, if any, is left alone - its own afterClose releases it.
+  function reset() {
+    lastDialogTitle = "";
+    lastDialogDetails = "";
+    lastDialogOptions = {};
+  }
+
   // Re-show the friendly error dialog with the last error's content - called
   // by a details provider when the user closes it, so they land back on the
   // error popup instead of the broken app. No-op if UI5 cannot render it.
@@ -631,5 +641,5 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     if (firstTrap) firstTrap.focus();
   }
 
-  return { show, handleLogout, reopenErrorDialog };
+  return { show, handleLogout, reopenErrorDialog, reset };
 });

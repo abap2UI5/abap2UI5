@@ -333,6 +333,12 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function reset() {` && |\n| &&
+             `    lastDialogTitle = "";` && |\n| &&
+             `    lastDialogDetails = "";` && |\n| &&
+             `    lastDialogOptions = {};` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function reopenErrorDialog() {` && |\n| &&
              `    return showFriendlyDialog(` && |\n| &&
              `      lastDialogTitle,` && |\n| &&
@@ -418,14 +424,14 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    const btnStyle =` && |\n| &&
              `      "padding: 0.375rem 0.875rem; background: white; color: #bb0000; border: 1px solid white; border-radius: 0; cursor: pointer; font: inherit; font-weight: bold; white-space: nowrap;";` && |\n| &&
              `` && |\n| &&
-             `    const actionsDiv = document.createElement("div");` && |\n| &&
+             `    const actionsDiv = document.createElement("div");` && |\n|.
+    result = result &&
              `    actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
              `` && |\n| &&
              `    const addAction = (label, onClick) => {` && |\n| &&
              `      const button = document.createElement("button");` && |\n| &&
              `      button.type = "button";` && |\n| &&
-             `      button.textContent = label;` && |\n|.
-    result = result &&
+             `      button.textContent = label;` && |\n| &&
              `      button.style.cssText = btnStyle;` && |\n| &&
              `      button.addEventListener("click", onClick);` && |\n| &&
              `      actionsDiv.appendChild(button);` && |\n| &&
@@ -482,7 +488,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    if (firstTrap) firstTrap.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { show, handleLogout, reopenErrorDialog };` && |\n| &&
+             `  return { show, handleLogout, reopenErrorDialog, reset };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

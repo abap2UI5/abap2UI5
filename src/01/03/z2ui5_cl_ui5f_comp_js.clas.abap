@@ -211,6 +211,9 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        this._launchpad = null;` && |\n| &&
              `` && |\n| &&
+             `        ScrollFocus.reset();` && |\n| &&
+             `        AppState.reset();` && |\n| &&
+             `` && |\n| &&
              `        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

@@ -75,6 +75,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `      reset() {` && |\n| &&
              `        this._abortInflight();` && |\n| &&
              `        this._viewBuild = null;` && |\n| &&
+             `` && |\n| &&
+             `        ErrorView.reset();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      restoreFromRoute() {` && |\n| &&

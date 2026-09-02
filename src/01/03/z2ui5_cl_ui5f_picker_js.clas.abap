@@ -40,6 +40,9 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `    let boundClick = null;` && |\n| &&
              `    let boundKey = null;` && |\n| &&
              `` && |\n| &&
+             `    let lastNode = null;` && |\n| &&
+             `    let frameId = 0;` && |\n| &&
+             `` && |\n| &&
              `    let lastPickReport = "";` && |\n| &&
              `` && |\n| &&
              `    function truncate(value, max) {` && |\n| &&
@@ -207,6 +210,13 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      boundMove = null;` && |\n| &&
              `      boundClick = null;` && |\n| &&
              `      boundKey = null;` && |\n| &&
+             `      if (frameId) {` && |\n| &&
+             `        cancelAnimationFrame(frameId);` && |\n| &&
+             `        frameId = 0;` && |\n| &&
+             `      }` && |\n| &&
+             `      lastNode = null;` && |\n| &&
+             `` && |\n| &&
+             `      onDone = null;` && |\n| &&
              `      removeOverlay();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -216,7 +226,13 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      onDone = callback;` && |\n| &&
              `` && |\n| &&
              `      boundMove = (event) => {` && |\n| &&
-             `        highlight(controlFromDom(event.target));` && |\n| &&
+             `        if (event.target === lastNode) return;` && |\n| &&
+             `        lastNode = event.target;` && |\n| &&
+             `        if (frameId) return;` && |\n| &&
+             `        frameId = requestAnimationFrame(() => {` && |\n| &&
+             `          frameId = 0;` && |\n| &&
+             `          if (active) highlight(controlFromDom(lastNode));` && |\n| &&
+             `        });` && |\n| &&
              `      };` && |\n| &&
              `      boundClick = (event) => {` && |\n| &&
              `        event.preventDefault();` && |\n| &&
@@ -231,15 +247,17 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        lastPickReport = report;` && |\n| &&
+             `        const done = onDone;` && |\n| &&
              `        stop();` && |\n| &&
-             `        if (onDone) onDone(report);` && |\n| &&
+             `        if (done) done(report);` && |\n| &&
              `      };` && |\n| &&
              `      boundKey = (event) => {` && |\n| &&
              `        if (event.key !== "Escape") return;` && |\n| &&
              `        event.preventDefault();` && |\n| &&
              `        event.stopPropagation();` && |\n| &&
+             `        const done = onDone;` && |\n| &&
              `        stop();` && |\n| &&
-             `        if (onDone) onDone(null);` && |\n| &&
+             `        if (done) done(null);` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
              `      document.addEventListener("mousemove", boundMove, true);` && |\n| &&

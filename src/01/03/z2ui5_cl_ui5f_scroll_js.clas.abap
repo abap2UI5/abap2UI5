@@ -43,19 +43,16 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _getDomInnerElement(id) {` && |\n| &&
-             `        const control = ViewSlots.byIdOfOwner(this, id);` && |\n| &&
+             `      _getDomInnerElement(control) {` && |\n| &&
              `        if (!control) return null;` && |\n| &&
              `        return document.getElementById(``${control.getId()}-inner``);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _getScrollTop(item) {` && |\n| &&
+             `      _getScrollTop(control) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
-             `` && |\n| &&
              `          const delegate = control?.getScrollDelegate?.();` && |\n| &&
              `          if (delegate) return delegate.getScrollTop();` && |\n| &&
-             `          const element = this._getDomInnerElement(item.N);` && |\n| &&
+             `          const element = this._getDomInnerElement(control);` && |\n| &&
              `          return element ? element.scrollTop : 0;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Scrolling._getScrollTop: failed", e);` && |\n| &&
@@ -73,7 +70,8 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `` && |\n| &&
              `          const changedPaths = ViewSlots.trackedModel(this)?._z2ui5ChangedPaths;` && |\n| &&
              `          for (const [index, item] of items.entries()) {` && |\n| &&
-             `            const scrollTop = this._getScrollTop(item);` && |\n| &&
+             `            const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
+             `            const scrollTop = this._getScrollTop(control);` && |\n| &&
              `            if (item.V !== scrollTop) {` && |\n| &&
              `              item.V = scrollTop;` && |\n| &&
              `              if (bindingPath && changedPaths) {` && |\n| &&
@@ -98,10 +96,8 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `        this._unhook();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _restoreScrollPosition(item) {` && |\n| &&
+             `      _restoreScrollPosition(control, item) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
-             `` && |\n| &&
              `          const delegate = control?.getScrollDelegate?.();` && |\n| &&
              `          if (delegate?.scrollTo) {` && |\n| &&
              `            const left = delegate.getScrollLeft?.() ?? 0;` && |\n| &&
@@ -112,7 +108,7 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `            control.scrollTo(item.V);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          const element = this._getDomInnerElement(item.N);` && |\n| &&
+             `          const element = this._getDomInnerElement(control);` && |\n| &&
              `          if (element) element.scrollTop = item.V;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Scrolling._restoreScrollPosition: failed", e);` && |\n| &&
@@ -132,7 +128,7 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `            if (!control) continue;` && |\n| &&
              `` && |\n| &&
              `            Lib.whenRendered(control, this, () =>` && |\n| &&
-             `              this._restoreScrollPosition(item),` && |\n| &&
+             `              this._restoreScrollPosition(control, item),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&

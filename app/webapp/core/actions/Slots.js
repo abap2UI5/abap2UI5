@@ -78,8 +78,10 @@ sap.ui.define(
       return ViewSlots.trackedModel(oView);
     }
 
-    function createViewModel() {
-      const data = AppState.state.oResponse?.OVIEWMODEL;
+    // The tracked framework model for a response's data - the ONE place
+    // that makes one (displayView's MAIN model included), so a policy on
+    // model creation applies to every slot or to none.
+    function createViewModel(data = AppState.state.oResponse?.OVIEWMODEL) {
       return trackChanges(new JSONModel(data));
     }
 
@@ -227,7 +229,7 @@ sap.ui.define(
 
     // Replace the main app view with the XML coming from the backend.
     async function displayView(xml, viewModel, reqSeq, mOptions = {}) {
-      const oViewModel = trackChanges(new JSONModel(viewModel));
+      const oViewModel = createViewModel(viewModel);
 
       const switchPath = mOptions.switchDefaultModelPath;
 
@@ -394,9 +396,16 @@ sap.ui.define(
             keep.push([path, tracked.getProperty(path)]);
         }
         tracked.setData(AppState.state.oResponse?.OVIEWMODEL);
-        for (const [path, value] of keep) {
-          if (value !== undefined) tracked.setProperty(path, value);
-        }
+        // Batched: JSONModel#setProperty ends in checkUpdate, and without
+        // the async flag every call sweeps ALL bindings synchronously - a
+        // dialog with N unsent fields paid N sweeps on top of setData's.
+        // Only the last write triggers the synchronous sweep; the earlier
+        // ones publish with it (the flag is on setProperty since 1.71).
+        keep.forEach(([path, value], i) => {
+          if (value !== undefined) {
+            tracked.setProperty(path, value, undefined, i < keep.length - 1);
+          }
+        });
         return;
       }
 

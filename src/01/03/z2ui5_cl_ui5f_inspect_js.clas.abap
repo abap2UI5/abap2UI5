@@ -594,14 +594,15 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `` && |\n| &&
              `      const changed = model._z2ui5ChangedPaths;` && |\n| &&
              `      const dirty = changed ? new Set(changed) : new Set();` && |\n| &&
+             `` && |\n| &&
+             `      const dirtyAttrs = new Set(` && |\n| &&
+             `        Array.from(dirty, (p) => p.split("/")[1]).filter(Boolean),` && |\n| &&
+             `      );` && |\n| &&
              `      const keys = Object.keys(data).sort();` && |\n| &&
              `      if (!keys.length) out.push("  (model is empty)");` && |\n| &&
              `      for (const key of keys) {` && |\n| &&
              `        const path = ``/${key}``;` && |\n| &&
-             `` && |\n| &&
-             `        const isDirty = Array.from(dirty).some(` && |\n| &&
-             `          (p) => p === path || p.startsWith(``${path}/``),` && |\n| &&
-             `        );` && |\n| &&
+             `        const isDirty = dirtyAttrs.has(key);` && |\n| &&
              `        out.push(` && |\n| &&
              `          ``  ${isDirty ? "*" : " "} ${path.padEnd(30)}${describeValue(data[key])}``,` && |\n| &&
              `        );` && |\n| &&
@@ -824,9 +825,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `          "Distribution",` && |\n| &&
              `          getDistribution((AppState.getGlobal("oConfig") || {}).S_UI5),` && |\n| &&
              `        ),` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(line("Theme", getTheme()));` && |\n|.
+             `      );` && |\n|.
     result = result &&
+             `      out.push(line("Theme", getTheme()));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("View slots"));` && |\n| &&
              `      out.push(...formatSlots());` && |\n| &&

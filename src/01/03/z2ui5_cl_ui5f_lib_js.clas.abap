@@ -42,13 +42,21 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    let messagingFacade = null;` && |\n| &&
              `    function getMessaging() {` && |\n| &&
+             `      if (messagingFacade) return messagingFacade;` && |\n| &&
              `      const Messaging = sap.ui.require("sap/ui/core/Messaging");` && |\n| &&
-             `      if (Messaging) return Messaging;` && |\n| &&
+             `      if (Messaging) {` && |\n| &&
+             `        messagingFacade = Messaging;` && |\n| &&
+             `        return Messaging;` && |\n| &&
+             `      }` && |\n| &&
              `` && |\n| &&
              `      if (sap.ui.getCore) {` && |\n| &&
              `        const core = sap.ui.getCore();` && |\n| &&
-             `        if (core?.getMessageManager) return core.getMessageManager();` && |\n| &&
+             `        if (core?.getMessageManager) {` && |\n| &&
+             `          messagingFacade = core.getMessageManager();` && |\n| &&
+             `          return messagingFacade;` && |\n| &&
+             `        }` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      return null;` && |\n| &&
@@ -416,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        (li) => !li.parentElement?.closest("li"),` && |\n| &&
              `      );` && |\n| &&
              `      if (items.length > 0) {` && |\n| &&
-             `        const safeItems = items.map((li) => {` && |\n| &&
+             `        const safeItems = items.map((li) => {` && |\n|.
+    result = result &&
              `          _sanitizeEl.textContent = li.textContent;` && |\n| &&
              `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
              `        });` && |\n| &&
@@ -424,8 +433,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
              `      return _sanitizeEl.innerHTML;` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];` && |\n| &&
              `` && |\n| &&

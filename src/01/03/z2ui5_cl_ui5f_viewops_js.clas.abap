@@ -45,11 +45,14 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
              `` && |\n| &&
              `      const isValidLimit = Number.isFinite(limit) && limit > 0;` && |\n| &&
+             `      const previous = AppState.state.viewSizeLimits[viewKey];` && |\n| &&
              `      if (isValidLimit) {` && |\n| &&
              `        AppState.state.viewSizeLimits[viewKey] = limit;` && |\n| &&
              `      } else {` && |\n| &&
              `        delete AppState.state.viewSizeLimits[viewKey];` && |\n| &&
              `      }` && |\n| &&
+             `` && |\n| &&
+             `      if (previous === AppState.state.viewSizeLimits[viewKey]) return;` && |\n| &&
              `` && |\n| &&
              `      const modelKey = Lib.isRootModelSlot(viewKey) ? "MAIN" : viewKey;` && |\n| &&
              `` && |\n| &&

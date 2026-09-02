@@ -117,6 +117,18 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
+    " The CSRF gate over THIS request: reads the headers the decision needs
+    " and hands them to _check_csrf_rejected. Split off so the reads happen
+    " only when the gate is active and only as far as the rule looks -
+    " origin, referer just when origin is absent, the host only when there
+    " is a source to compare it with. Each read is a dynamic call into the
+    " ICF request, and every POST used to pay all four up front
+    METHODS check_csrf_rejected_request
+      IMPORTING
+        is_config     TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     " Per-work-process cache of the assembled GET shell. The body is a pure
     " function of the embedded frontend (constant per class load) and the
     " exit-supplied config parts, so it is rebuilt only when those parts
@@ -232,26 +244,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
             z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
-            " behind a reverse proxy / web dispatcher that rewrites Host to the
-            " internal name, Origin still carries the EXTERNAL one - comparing
-            " against Host would then 403 every legitimate request. The proxy
-            " puts the external authority into X-Forwarded-Host; prefer it when
-            " present (first entry - each hop may append its own). The header
-            " is client-suppliable, so an installation without such a proxy
-            " can stop trusting it via the exit (check_trust_forwarded_host)
-            DATA(lv_host) = COND string(
-                WHEN ls_config_post-check_trust_forwarded_host = abap_true
-                THEN mo_server->get_header_field( `x-forwarded-host` ) ).
-            IF lv_host IS INITIAL.
-              lv_host = mo_server->get_header_field( `host` ).
-            ELSE.
-              SPLIT lv_host AT `,` INTO lv_host DATA(lv_rest_hosts) ##NEEDED.
-            ENDIF.
-
-            IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
-                                     origin  = mo_server->get_header_field( `origin` )
-                                     referer = mo_server->get_header_field( `referer` )
-                                     host    = lv_host ) = abap_true.
+            IF check_csrf_rejected_request( ls_config_post ) = abap_true.
               ms_res = VALUE #( body          = `CSRF validation failed - cross-origin request rejected`
                                 status_code   = 403
                                 status_reason = `Forbidden` ).
@@ -290,6 +283,48 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDTRY.
 
     set_response( ).
+
+  ENDMETHOD.
+
+  METHOD check_csrf_rejected_request.
+
+    IF is_config-check_csrf_active = abap_false.
+      RETURN.
+    ENDIF.
+
+    " prefer Origin, fall back to Referer - the same order as the rule
+    " below, so the second header is read only when the first is absent
+    DATA(lv_origin) = mo_server->get_header_field( `origin` ).
+    DATA lv_referer TYPE string.
+    IF lv_origin IS INITIAL.
+      lv_referer = mo_server->get_header_field( `referer` ).
+    ENDIF.
+    " nothing to compare -> the rule allows the request (lenient by design,
+    " see _check_csrf_rejected), so the host is not asked for either
+    IF lv_origin IS INITIAL AND lv_referer IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " behind a reverse proxy / web dispatcher that rewrites Host to the
+    " internal name, Origin still carries the EXTERNAL one - comparing
+    " against Host would then 403 every legitimate request. The proxy
+    " puts the external authority into X-Forwarded-Host; prefer it when
+    " present (first entry - each hop may append its own). The header
+    " is client-suppliable, so an installation without such a proxy
+    " can stop trusting it via the exit (check_trust_forwarded_host)
+    DATA(lv_host) = COND string(
+        WHEN is_config-check_trust_forwarded_host = abap_true
+        THEN mo_server->get_header_field( `x-forwarded-host` ) ).
+    IF lv_host IS INITIAL.
+      lv_host = mo_server->get_header_field( `host` ).
+    ELSE.
+      SPLIT lv_host AT `,` INTO lv_host DATA(lv_rest_hosts) ##NEEDED.
+    ENDIF.
+
+    result = _check_csrf_rejected( active  = abap_true
+                                   origin  = lv_origin
+                                   referer = lv_referer
+                                   host    = lv_host ).
 
   ENDMETHOD.
 

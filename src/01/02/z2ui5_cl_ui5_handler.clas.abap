@@ -853,12 +853,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ms_request-s_front-s_device = ls_device.
     ms_request-s_front-s_ui5    = mo_action->mo_app->ms_session-s_ui5.
 
-    IF mo_action->mo_app->ms_session-comp_data IS NOT INITIAL.
-      TRY.
-          ms_request-s_front-o_comp_data = z2ui5_cl_ajson=>parse( mo_action->mo_app->ms_session-comp_data ).
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDIF.
+    " the stored launchpad ComponentData is NOT parsed back into
+    " o_comp_data here: its only reader after the merge is
+    " z2ui5_cl_ui5_client=>get( ), which parses the session string itself
+    " when it needs it - every event roundtrip of an FLP session used to
+    " parse a tree nobody looked at (z2ui5_if_ui5_types names the contract)
 
   ENDMETHOD.
 

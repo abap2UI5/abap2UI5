@@ -89,8 +89,18 @@ sap.ui.define(
         let stored;
         try {
           const storageType = Storage.Type[type] || Storage.Type.session;
-          const storage = new Storage(storageType, prefix);
-          stored = storage.get(key);
+          // The wrapper is kept across renders and rebuilt only when type
+          // or prefix change: the read itself has to repeat (the write side
+          // is the STORE_DATA frontend action, with no hook to observe), but
+          // a fresh sap/ui/util/Storage per rerender was an allocation for
+          // nothing. Both inputs are re-read on every pass, so a rebound
+          // prefix still gets its own instance.
+          const storeKey = JSON.stringify([storageType, prefix]);
+          if (this._storeKey !== storeKey) {
+            this._store = new Storage(storageType, prefix);
+            this._storeKey = storeKey;
+          }
+          stored = this._store.get(key);
         } catch (e) {
           Lib.logError(`Storage: read failed for key '${key}'`, e);
           return;

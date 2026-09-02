@@ -242,6 +242,11 @@ INTERFACE z2ui5_if_ui5_types
         id          TYPE string,
         t_event_arg TYPE string_table,
         event       TYPE string,
+        " the launchpad ComponentData AS THE REQUEST CARRIED IT - bound on
+        " the page load's first roundtrip only. On an event roundtrip it
+        " stays unbound: the session keeps the data as a string
+        " (ty_s_session-comp_data), and z2ui5_cl_ui5_client=>get( ) parses
+        " that on demand instead of the handler parsing it per roundtrip
         o_comp_data TYPE REF TO z2ui5_if_ajson,
         origin      TYPE string,
         pathname    TYPE string,

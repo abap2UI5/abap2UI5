@@ -81,8 +81,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      return ViewSlots.trackedModel(oView);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function createViewModel() {` && |\n| &&
-             `      const data = AppState.state.oResponse?.OVIEWMODEL;` && |\n| &&
+             `    function createViewModel(data = AppState.state.oResponse?.OVIEWMODEL) {` && |\n| &&
              `      return trackChanges(new JSONModel(data));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -186,7 +185,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    async function displayView(xml, viewModel, reqSeq, mOptions = {}) {` && |\n| &&
-             `      const oViewModel = trackChanges(new JSONModel(viewModel));` && |\n| &&
+             `      const oViewModel = createViewModel(viewModel);` && |\n| &&
              `` && |\n| &&
              `      const switchPath = mOptions.switchDefaultModelPath;` && |\n| &&
              `` && |\n| &&
@@ -278,9 +277,12 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `            keep.push([path, tracked.getProperty(path)]);` && |\n| &&
              `        }` && |\n| &&
              `        tracked.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
-             `        for (const [path, value] of keep) {` && |\n| &&
-             `          if (value !== undefined) tracked.setProperty(path, value);` && |\n| &&
-             `        }` && |\n| &&
+             `` && |\n| &&
+             `        keep.forEach(([path, value], i) => {` && |\n| &&
+             `          if (value !== undefined) {` && |\n| &&
+             `            tracked.setProperty(path, value, undefined, i < keep.length - 1);` && |\n| &&
+             `          }` && |\n| &&
+             `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&

@@ -35,6 +35,15 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     " builds on the first _bind( ) serves every _bind( ) of that render
     DATA mo_model  TYPE REF TO z2ui5_cl_ui5_srv_model.
 
+    " the component names of the table the last cell bind addressed - a
+    " memo for bind_tab_cell, which used to describe the row type and copy
+    " the component table out of the RTTI cache for EVERY cell of the same
+    " table (six panels over /Employee/0..5 are dozens of cells per render).
+    " Keyed on the table reference: a bind against another table replaces
+    " it, and the service lives one render, so it cannot go stale
+    DATA mr_cell_tab   TYPE REF TO data.
+    DATA mt_cell_names TYPE string_table.
+
     METHODS get_model
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
@@ -121,18 +130,26 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
           val = `BINDING_ERROR_TAB_CELL_LEVEL - the row of the bound table is not a structure`.
     ENDIF.
 
-    DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
-    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+    IF mr_cell_tab <> ms_config-tab OR mt_cell_names IS INITIAL.
+      CLEAR mt_cell_names.
+      DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
+      LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+        APPEND <comp>-name TO mt_cell_names.
+      ENDLOOP.
+      mr_cell_tab = ms_config-tab.
+    ENDIF.
 
-      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+    LOOP AT mt_cell_names INTO DATA(lv_comp_name).
+
+      ASSIGN COMPONENT lv_comp_name OF STRUCTURE <row> TO <ele>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = |Binding Error - component '{ <comp>-name }' not found in the bound row|.
+          EXPORTING val = |Binding Error - component '{ lv_comp_name }' not found in the bound row|.
       ENDIF.
       lr_ref_in = REF #( <ele> ).
 
       IF iv_val = lr_ref_in.
-        result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ <comp>-name }|.
+        result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ lv_comp_name }|.
         RETURN.
       ENDIF.
 
@@ -248,9 +265,12 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     IF mr_attri->name_ref IS NOT INITIAL.
       " name_ref may be a synthetic child name that no longer maps to a row
       " (e.g. dissolve stopped at max depth); raise the binding error rather
-      " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field
-      DATA(lr_ref_attri) = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] OPTIONAL ). "#EC CI_SORTSEQ
-      IF lr_ref_attri IS NOT BOUND.
+      " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field.
+      " name is the table's unique primary key - a keyed read, spelled as
+      " one (a free-key table expression reads as a sequential access)
+      READ TABLE mo_app->mt_attri->* REFERENCE INTO DATA(lr_ref_attri)
+           WITH TABLE KEY name = mr_attri->name_ref.
+      IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = |Binding Error - referenced attribute '{ mr_attri->name_ref }' not found|.

@@ -205,14 +205,19 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " a known app is returned to: pop one level off the stack. Guard the
-    " ancestor stack draft with check_exists too - in a long-lived session the
-    " ancestor may have been purged by cleanup( ) while the leave target still
-    " exists, and read_info would raise NO_DRAFT_ENTRY and break back-navigation
-    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL
-        AND lo_draft->check_exists( mo_app->ms_draft-id_prev_app_stack ) = abap_true.
-      DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
-      result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
+    " a known app is returned to: pop one level off the stack. In a
+    " long-lived session the ancestor may have been purged by cleanup( )
+    " while the leave target still exists, and read_info then raises
+    " NO_DRAFT_ENTRY - caught here, the stack keeps what prepare_app_stack
+    " restored. One read: read( ) fails closed for exactly the cases a
+    " check_exists( ) in front of it answered false for (no row, a foreign
+    " owner), so the guard was a second SELECT on the same key per hop
+    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
+      TRY.
+          DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
+          result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
     ENDIF.
 
   ENDMETHOD.

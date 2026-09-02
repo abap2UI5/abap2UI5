@@ -142,6 +142,9 @@ sap.ui.define(
       reset() {
         this._abortInflight();
         this._viewBuild = null;
+        // the error overlay's module state is the same kind of survivor -
+        // the last error dump stays referenced across the teardown otherwise
+        ErrorView.reset();
       },
 
       // Restore the app state a matched hash route points at. Wired into

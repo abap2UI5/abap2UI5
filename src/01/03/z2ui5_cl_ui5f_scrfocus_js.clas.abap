@@ -150,12 +150,19 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      return Object.keys(out).length ? out : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function reset() {` && |\n| &&
+             `      _scrollCache.target = undefined;` && |\n| &&
+             `      _scrollCache.ui5El = undefined;` && |\n| &&
+             `      _scrollCache.slotKey = undefined;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return {` && |\n| &&
              `      getFocusInfo,` && |\n| &&
              `      getScrollInfo,` && |\n| &&
              `      onScrollCapture,` && |\n| &&
              `      closestUi5Element,` && |\n| &&
              `      focusTextInput,` && |\n| &&
+             `      reset,` && |\n| &&
              `      _scrollCache,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
