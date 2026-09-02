@@ -72,11 +72,17 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_front-id.
     result->mv_check_sticky_start    = result->mo_app->mv_check_sticky.
 
-    IF mo_handler->ms_request-o_model->is_empty( ) = abap_false.
+    " a request that carries a MODEL node names its path; one whose tree IS
+    " the model (the shape the tests hand in) names none and is read from
+    " the root - only a tree that is empty either way has nothing to apply
+    IF mo_handler->ms_request-model_path IS NOT INITIAL
+        OR mo_handler->ms_request-o_model->is_empty( ) = abap_false.
       " what the delta could not convert travels on the action, not on the
       " app: it describes THIS roundtrip, and the app object is what gets
       " serialized into the draft
-      result->ms_actual-t_model_skipped = result->mo_app->model_json_parse( mo_handler->ms_request-o_model ).
+      result->ms_actual-t_model_skipped = result->mo_app->model_json_parse(
+                                              io_model = mo_handler->ms_request-o_model
+                                              iv_path  = mo_handler->ms_request-model_path ).
       " the deltas just changed the state that string describes - drop it,
       " so main_process falls back to a real serialization for its snapshot
       CLEAR result->mo_app->mv_model_client.
@@ -205,14 +211,19 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " a known app is returned to: pop one level off the stack. Guard the
-    " ancestor stack draft with check_exists too - in a long-lived session the
-    " ancestor may have been purged by cleanup( ) while the leave target still
-    " exists, and read_info would raise NO_DRAFT_ENTRY and break back-navigation
-    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL
-        AND lo_draft->check_exists( mo_app->ms_draft-id_prev_app_stack ) = abap_true.
-      DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
-      result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
+    " a known app is returned to: pop one level off the stack. In a
+    " long-lived session the ancestor may have been purged by cleanup( )
+    " while the leave target still exists, and read_info then raises
+    " NO_DRAFT_ENTRY - caught here, the stack keeps what prepare_app_stack
+    " restored. One read: read( ) fails closed for exactly the cases a
+    " check_exists( ) in front of it answered false for (no row, a foreign
+    " owner), so the guard was a second SELECT on the same key per hop
+    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
+      TRY.
+          DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
+          result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
     ENDIF.
 
   ENDMETHOD.

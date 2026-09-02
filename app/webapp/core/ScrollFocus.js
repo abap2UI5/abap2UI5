@@ -183,6 +183,16 @@ sap.ui.define(
       return Object.keys(out).length ? out : undefined;
     }
 
+    // Drop the per-element resolution cache on a component teardown
+    // (Component.exit): getScrollInfo releases it on the next roundtrip,
+    // and after an exit there is none - the detached node and its control
+    // stayed referenced by this module until the next app's first scroll.
+    function reset() {
+      _scrollCache.target = undefined;
+      _scrollCache.ui5El = undefined;
+      _scrollCache.slotKey = undefined;
+    }
+
     // closestUi5Element and focusTextInput are pure resolution helpers,
     // exported (with the cache) for the unit specs.
     return {
@@ -191,6 +201,7 @@ sap.ui.define(
       onScrollCapture,
       closestUi5Element,
       focusTextInput,
+      reset,
       _scrollCache,
     };
   },

@@ -68,8 +68,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function buildMarkdown(abapSource) {` && |\n| &&
-             `      const plain = buildExport(abapSource);` && |\n| &&
+             `    function buildMarkdown(abapSource, plain = buildExport(abapSource)) {` && |\n| &&
              `      const blocks = plain.split(/^===== (.+) =====$/m);` && |\n| &&
              `` && |\n| &&
              `      const out = ["## abap2UI5 - Developer Tools export", ""];` && |\n| &&
@@ -149,7 +148,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `                type: "Emphasized",` && |\n| &&
              `` && |\n| &&
              `                press: (oEvent) => {` && |\n| &&
-             `                  copyMarkdown(abapSource);` && |\n| &&
+             `                  copyMarkdown(abapSource, text);` && |\n| &&
              `                  confirmOnButton(oEvent.getSource());` && |\n| &&
              `                },` && |\n| &&
              `              }),` && |\n| &&
@@ -186,9 +185,9 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function copyMarkdown(abapSource) {` && |\n| &&
+             `    function copyMarkdown(abapSource, plain) {` && |\n| &&
              `      try {` && |\n| &&
-             `        Lib.copyToClipboard(buildMarkdown(abapSource));` && |\n| &&
+             `        Lib.copyToClipboard(buildMarkdown(abapSource, plain));` && |\n| &&
              `        return "Bug report copied as Markdown - paste it into a GitHub issue.";` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools Report: markdown export failed", e);` && |\n| &&

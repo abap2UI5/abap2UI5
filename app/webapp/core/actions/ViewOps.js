@@ -31,11 +31,18 @@ sap.ui.define(
       const limit = hasLimit ? Number(args[1]) : NaN;
 
       const isValidLimit = Number.isFinite(limit) && limit > 0;
+      const previous = AppState.state.viewSizeLimits[viewKey];
       if (isValidLimit) {
         AppState.state.viewSizeLimits[viewKey] = limit;
       } else {
         delete AppState.state.viewSizeLimits[viewKey];
       }
+      // The action is not one-shot - an app that sends it from its render
+      // path re-sends it every roundtrip. When the stored limit did not
+      // change, neither did the effective one (the max over the root
+      // slots), and the forced refresh below would re-evaluate every
+      // binding of the model for nothing.
+      if (previous === AppState.state.viewSizeLimits[viewKey]) return;
 
       // MAIN and the two nested views share one root model via propagation, so
       // resolve the model through MAIN for those slots and apply the effective

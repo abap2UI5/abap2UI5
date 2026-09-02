@@ -20,19 +20,21 @@ sap.ui.define(
         },
       },
 
-      _getDomInnerElement(id) {
-        const control = ViewSlots.byIdOfOwner(this, id);
+      // The helpers below take the RESOLVED control, not the item's id:
+      // resolving an id is a parent-chain walk over the view slots
+      // (ViewSlots.byIdOfOwner), and each item used to be resolved two to
+      // four times per roundtrip - once per helper on the way down.
+      _getDomInnerElement(control) {
         if (!control) return null;
         return document.getElementById(`${control.getId()}-inner`);
       },
 
-      _getScrollTop(item) {
+      _getScrollTop(control) {
         try {
-          const control = ViewSlots.byIdOfOwner(this, item.N);
           // Some controls expose a scroll delegate; prefer it when available.
           const delegate = control?.getScrollDelegate?.();
           if (delegate) return delegate.getScrollTop();
-          const element = this._getDomInnerElement(item.N);
+          const element = this._getDomInnerElement(control);
           return element ? element.scrollTop : 0;
         } catch (e) {
           Lib.logError("Scrolling._getScrollTop: failed", e);
@@ -56,7 +58,8 @@ sap.ui.define(
           // travelled
           const changedPaths = ViewSlots.trackedModel(this)?._z2ui5ChangedPaths;
           for (const [index, item] of items.entries()) {
-            const scrollTop = this._getScrollTop(item);
+            const control = ViewSlots.byIdOfOwner(this, item.N);
+            const scrollTop = this._getScrollTop(control);
             if (item.V !== scrollTop) {
               item.V = scrollTop;
               if (bindingPath && changedPaths) {
@@ -81,9 +84,8 @@ sap.ui.define(
         this._unhook();
       },
 
-      _restoreScrollPosition(item) {
+      _restoreScrollPosition(control, item) {
         try {
-          const control = ViewSlots.byIdOfOwner(this, item.N);
           // The position was captured through the scroll delegate where the
           // control has one (_getScrollTop), so it is restored through the
           // same delegate: ScrollEnablement.scrollTo(x, y) takes both axes.
@@ -101,7 +103,7 @@ sap.ui.define(
             control.scrollTo(item.V);
             return;
           }
-          const element = this._getDomInnerElement(item.N);
+          const element = this._getDomInnerElement(control);
           if (element) element.scrollTop = item.V;
         } catch (e) {
           Lib.logError("Scrolling._restoreScrollPosition: failed", e);
@@ -122,7 +124,7 @@ sap.ui.define(
 
             // Restore immediately when rendered, otherwise once it is.
             Lib.whenRendered(control, this, () =>
-              this._restoreScrollPosition(item),
+              this._restoreScrollPosition(control, item),
             );
           }
         } catch (e) {

@@ -942,7 +942,14 @@ sap.ui.define(
     function evControlCall(oController, args, ctx) {
       const [, name, method] = args;
       const target = GLOBAL_TARGETS[name];
-      const kinds = target?.methods[method];
+      // an OWN property only: the per-target methods maps are plain
+      // literals, so a wire name like `constructor` resolved to
+      // Object.prototype's and passed as allowed - the outer map is
+      // prototype-less for exactly this reason (see GLOBAL_TARGETS)
+      const kinds =
+        target && Object.prototype.hasOwnProperty.call(target.methods, method)
+          ? target.methods[method]
+          : undefined;
       if (!kinds) {
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not allowed`);
         return;

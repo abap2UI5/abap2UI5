@@ -42,15 +42,28 @@ sap.ui.define(
     // UI5 2.x; older releases expose the same interface (getMessageModel,
     // registerObject, unregisterObject) via the MessageManager singleton.
     // Returns null when neither is available (bare test bootstraps).
+    // Memoised once resolved - both facades are singletons, and every slot
+    // attach and every slot teardown asks for it (a MAIN rebuild is five
+    // teardowns and a build), so the loader lookup ran ~6x per roundtrip.
+    // Only a truthy answer is kept: before Component.init's warm-load
+    // resolves, the module may legitimately not be there yet.
+    let messagingFacade = null;
     function getMessaging() {
+      if (messagingFacade) return messagingFacade;
       const Messaging = sap.ui.require("sap/ui/core/Messaging");
-      if (Messaging) return Messaging;
+      if (Messaging) {
+        messagingFacade = Messaging;
+        return Messaging;
+      }
       /* ui5lint-disable no-globals, no-deprecated-api --
        deliberate fallback for UI5 releases without sap/ui/core/Messaging
        (added in 1.118); the modern API is used in the branch above. */
       if (sap.ui.getCore) {
         const core = sap.ui.getCore();
-        if (core?.getMessageManager) return core.getMessageManager();
+        if (core?.getMessageManager) {
+          messagingFacade = core.getMessageManager();
+          return messagingFacade;
+        }
       }
       /* ui5lint-enable no-globals, no-deprecated-api */
       return null;

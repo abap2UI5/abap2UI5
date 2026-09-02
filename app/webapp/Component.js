@@ -292,6 +292,19 @@ sap.ui.define(
         }
         this._launchpad = null;
 
+        // Last: the scroll cache and the state itself. ScrollFocus keeps the
+        // DOM node and the control of the last scroll gesture until the NEXT
+        // roundtrip releases them, and there is no next roundtrip after an
+        // exit. AppState.reset( ) is what Lib.isControllerAlive documents as
+        // the end of a controller's life: the state is rebuilt with the slot
+        // fields null, so every guard on it (timers, shortcuts, variant
+        // polls, the hash dispatcher) answers "dead" between this teardown
+        // and the next launch - instead of the old state holding the five
+        // views, their controllers and the last response's model until
+        // initGlobal( ) ran for the next app, if it ever did.
+        ScrollFocus.reset();
+        AppState.reset();
+
         if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);
       },
     });

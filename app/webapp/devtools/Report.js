@@ -66,9 +66,12 @@ sap.ui.define(
       return sections.join("\n\n") || "(nothing to export)";
     }
 
-    // The same content as a GitHub-ready issue body.
-    function buildMarkdown(abapSource) {
-      const plain = buildExport(abapSource);
+    // The same content as a GitHub-ready issue body. `plain` is the text
+    // buildExport produced - handed in by the export popup, which already
+    // holds it, so the second build (every tab rendered again, the XSLT
+    // over every slot's XML, the formatted model) does not run a second
+    // time for the same string. The one-click path builds it here.
+    function buildMarkdown(abapSource, plain = buildExport(abapSource)) {
       const blocks = plain.split(/^===== (.+) =====$/m);
       // split() yields [preamble, title, body, title, body, ...]
       const out = ["## abap2UI5 - Developer Tools export", ""];
@@ -161,7 +164,7 @@ sap.ui.define(
                 // Confirm on the button itself: this dialog is modal, so
                 // a MessageToast behind it would be invisible.
                 press: (oEvent) => {
-                  copyMarkdown(abapSource);
+                  copyMarkdown(abapSource, text);
                   confirmOnButton(oEvent.getSource());
                 },
               }),
@@ -204,9 +207,9 @@ sap.ui.define(
     // The one-click path from the Overview tab: the finished issue body
     // on the clipboard, without going through the export popup first.
     // Returns a short result message for the caller to show.
-    function copyMarkdown(abapSource) {
+    function copyMarkdown(abapSource, plain) {
       try {
-        Lib.copyToClipboard(buildMarkdown(abapSource));
+        Lib.copyToClipboard(buildMarkdown(abapSource, plain));
         return "Bug report copied as Markdown - paste it into a GitHub issue.";
       } catch (e) {
         Lib.logError("DevTools Report: markdown export failed", e);

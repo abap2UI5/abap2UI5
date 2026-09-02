@@ -226,12 +226,21 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                visible="{/hasStatusText}"` &&
              `                class="sapUiTinyMarginBottom"` &&
              `            />` &&
+             `            <!-- A definite height from the viewport, not a percentage: the` &&
+             `                 editor sits in a VBox whose height is its content, so a` &&
+             `                 percentage resolves to nothing and ACE renders zero rows -` &&
+             `                 which is what the fixed 2000 x 10000 px it used to carry` &&
+             `                 worked around, at the price of ~130 laid-out rows whatever` &&
+             `                 the window shows and a permanent sideways scroller. The` &&
+             `                 dialog is stretched to the viewport; the subtraction covers` &&
+             `                 its header, the group tabs, the toolbar and the status line.` &&
+             `                 Full width: ACE scrolls sideways on its own. -->` &&
              `            <ce:CodeEditor` &&
              `                id="developerToolsEditor"` &&
              `                type="{/type}"` &&
              `                value="{/value}"` &&
-             `                height="2000px"` &&
-             `                width="10000px"` &&
+             `                height="calc(100vh - 17rem)"` &&
+             `                width="100%"` &&
              `                visible="{/editor_visible}"` &&
              `            />` &&
              `        </VBox>` &&

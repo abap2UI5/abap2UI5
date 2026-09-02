@@ -32,7 +32,11 @@ sap.ui.define(
 
     function shortcutToken(part) {
       const t = part.trim().toLowerCase();
-      return SHORTCUT_ALIASES[t] ?? t;
+      // own property only - `constructor` off the wire would otherwise
+      // resolve to Object.prototype's and become the token
+      return Object.prototype.hasOwnProperty.call(SHORTCUT_ALIASES, t)
+        ? SHORTCUT_ALIASES[t]
+        : t;
     }
 
     // "Ctrl+Shift+S" / "shift + CTRL + s" -> "ctrl+shift+s". Returns an empty

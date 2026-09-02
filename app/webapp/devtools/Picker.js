@@ -25,6 +25,10 @@ sap.ui.define(
     let boundMove = null;
     let boundClick = null;
     let boundKey = null;
+    // the DOM node under the cursor as of the last mousemove, and the frame
+    // a highlight is scheduled for - see boundMove
+    let lastNode = null;
+    let frameId = 0;
 
     // The report of the last successful pick, so the Picked Control tab
     // can be rendered from the registry like every other tab.
@@ -207,6 +211,15 @@ sap.ui.define(
       boundMove = null;
       boundClick = null;
       boundKey = null;
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+      lastNode = null;
+      // the finished callback closes over the developer-tools control -
+      // kept past the pick, it held a destroyed control across an FLP
+      // navigation. Callers take it before they call stop( )
+      onDone = null;
       removeOverlay();
     }
 
@@ -219,8 +232,18 @@ sap.ui.define(
       active = true;
       onDone = callback;
 
+      // mousemove fires at pointer rate, and each highlight is a control
+      // lookup plus a getBoundingClientRect( ) - a forced layout. Nothing
+      // to do while the pointer stays over the same node, and at most one
+      // lookup-and-measure per frame otherwise.
       boundMove = (event) => {
-        highlight(controlFromDom(event.target));
+        if (event.target === lastNode) return;
+        lastNode = event.target;
+        if (frameId) return;
+        frameId = requestAnimationFrame(() => {
+          frameId = 0;
+          if (active) highlight(controlFromDom(lastNode));
+        });
       };
       boundClick = (event) => {
         event.preventDefault();
@@ -238,15 +261,17 @@ sap.ui.define(
         // registry must be able to reach a tab's content without the
         // dialog handing it over.
         lastPickReport = report;
+        const done = onDone;
         stop();
-        if (onDone) onDone(report);
+        if (done) done(report);
       };
       boundKey = (event) => {
         if (event.key !== "Escape") return;
         event.preventDefault();
         event.stopPropagation();
+        const done = onDone;
         stop();
-        if (onDone) onDone(null);
+        if (done) done(null);
       };
 
       document.addEventListener("mousemove", boundMove, true);

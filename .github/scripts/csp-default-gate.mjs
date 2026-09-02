@@ -4,7 +4,7 @@
 // SECURITY.md makes both claims in prose ("the default CSP allows only the
 // UI5 CDN hosts, nothing else"), and z2ui5_cl_ui5_user_exit is where they are
 // either true or not: set_config_http_get builds the host list (lv_ui5_hosts)
-// and the content_security_policy string from it. General-purpose CDNs
+// and the content_security_policy string (gv_csp_default) from it. General-purpose CDNs
 // (jsdelivr, cdnjs) used to ride along in that policy although nothing the
 // framework ships loads from them - every allowed script host is a host whose
 // compromise is script execution in an authenticated SAP session - and
@@ -105,7 +105,11 @@ for (const host of declaredHosts) {
 
 // --- 2. + 3. the policy ----------------------------------------------------
 
-const cspStmt = statementLines("cs_config-content_security_policy =");
+/* The policy is assembled once per roll area into the class-side
+ * gv_csp_default (set_config_http_get runs on every request, and the string
+ * is a constant), and cs_config-content_security_policy is then assigned
+ * from it - so the statement that CARRIES the template is the constant's. */
+const cspStmt = statementLines("gv_csp_default =");
 if (!cspStmt) {
   console.log(`csp-default: the content_security_policy anchor no longer matches in ${SOURCE}`);
   console.log("");

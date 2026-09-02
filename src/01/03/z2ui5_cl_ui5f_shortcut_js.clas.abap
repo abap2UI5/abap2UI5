@@ -46,7 +46,10 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `` && |\n| &&
              `    function shortcutToken(part) {` && |\n| &&
              `      const t = part.trim().toLowerCase();` && |\n| &&
-             `      return SHORTCUT_ALIASES[t] ?? t;` && |\n| &&
+             `` && |\n| &&
+             `      return Object.prototype.hasOwnProperty.call(SHORTCUT_ALIASES, t)` && |\n| &&
+             `        ? SHORTCUT_ALIASES[t]` && |\n| &&
+             `        : t;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function normalizeShortcut(combo) {` && |\n| &&

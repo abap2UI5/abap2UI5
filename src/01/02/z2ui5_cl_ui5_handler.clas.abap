@@ -246,9 +246,19 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                                  THEN `/value` ).
 
     " the whole view model is transported back under the MODEL container
-    " (symmetric to the response); the frontend ships only the edited delta
-    result-o_model = lo_ajson->slice( lv_root && `/MODEL` ).
-    IF result-o_model IS NOT BOUND.
+    " (symmetric to the response); the frontend ships only the edited delta.
+    " The container is not sliced off: slice( ) walks every node of the
+    " parsed request (a CP compare per node - the sorted key is no help)
+    " and copies the whole subtree, and on a mass edit the model IS most of
+    " the request, so the delta was materialized twice. The root tree
+    " travels with the path of its MODEL node instead, and the model service
+    " reads the attributes below that path (z2ui5_if_ui5_types names the
+    " contract). The S_FRONT slice below still walks the tree once
+    DATA(lv_model_path) = lv_root && `/MODEL`.
+    IF lo_ajson->exists( lv_model_path ) = abap_true.
+      result-o_model    = lo_ajson.
+      result-model_path = lv_model_path.
+    ELSE.
       result-o_model = z2ui5_cl_ajson=>create_empty( ).
     ENDIF.
 
@@ -853,12 +863,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ms_request-s_front-s_device = ls_device.
     ms_request-s_front-s_ui5    = mo_action->mo_app->ms_session-s_ui5.
 
-    IF mo_action->mo_app->ms_session-comp_data IS NOT INITIAL.
-      TRY.
-          ms_request-s_front-o_comp_data = z2ui5_cl_ajson=>parse( mo_action->mo_app->ms_session-comp_data ).
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDIF.
+    " the stored launchpad ComponentData is NOT parsed back into
+    " o_comp_data here: its only reader after the merge is
+    " z2ui5_cl_ui5_client=>get( ), which parses the session string itself
+    " when it needs it - every event roundtrip of an FLP session used to
+    " parse a tree nobody looked at (z2ui5_if_ui5_types names the contract)
 
   ENDMETHOD.
 

@@ -98,8 +98,13 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
              `        let stored;` && |\n| &&
              `        try {` && |\n| &&
              `          const storageType = Storage.Type[type] || Storage.Type.session;` && |\n| &&
-             `          const storage = new Storage(storageType, prefix);` && |\n| &&
-             `          stored = storage.get(key);` && |\n| &&
+             `` && |\n| &&
+             `          const storeKey = JSON.stringify([storageType, prefix]);` && |\n| &&
+             `          if (this._storeKey !== storeKey) {` && |\n| &&
+             `            this._store = new Storage(storageType, prefix);` && |\n| &&
+             `            this._storeKey = storeKey;` && |\n| &&
+             `          }` && |\n| &&
+             `          stored = this._store.get(key);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
              `          return;` && |\n| &&

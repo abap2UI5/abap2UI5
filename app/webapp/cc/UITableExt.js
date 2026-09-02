@@ -40,23 +40,58 @@ sap.ui.define(
         this._unhooks.forEach((unhook) => unhook());
       },
 
+      // The table is resolved ONCE per pass here and handed down: every
+      // _getTable( ) is a parent-chain walk over the five view slots
+      // (ViewSlots.byIdOfOwner), and the two reads plus the two applies
+      // used to walk it four times per roundtrip.
       readBackend() {
-        this.readFilter();
-        this.readSort();
+        const table = this._getTable();
+        this.readFilter(table);
+        this.readSort(table);
       },
 
       applyBackend() {
-        this.setFilter();
-        this.setSort();
+        try {
+          const oTable = this._getTable();
+          if (!oTable) return;
+          // One deferral for both applies, and none while one is already
+          // waiting: whenRendered leaves a rendering delegate on a table
+          // without DOM (a collapsed tab, a closed popup) until it fires,
+          // and two of them per roundtrip piled up on such a table - all
+          // firing, and re-applying, on the eventual render. The callback
+          // reads the CURRENT filters/sorters when it runs, so the one
+          // pending deferral applies what the latest readBackend recorded.
+          if (this._applyPending) return;
+          this._applyPending = true;
+          Lib.whenRendered(oTable, this, () => {
+            this._applyPending = false;
+            this._applyGuarded(oTable, this.aFilters, "_applyFilters");
+            this._applyGuarded(oTable, this.aSorters, "_applySorters");
+          });
+        } catch (e) {
+          this._applyPending = false;
+          Lib.logError("UITableExt.applyBackend failed", e);
+        }
+      },
+
+      // The deferred half of applyBackend runs outside its try/catch (a
+      // later onAfterRendering); guard each apply on its own so a throw
+      // is logged (log, never throw) and the other apply still runs.
+      _applyGuarded(oTable, aValues, method) {
+        try {
+          this[method](oTable, aValues);
+        } catch (e) {
+          Lib.logError(`UITableExt.${method} failed`, e);
+        }
       },
 
       _getTable() {
         return ViewSlots.byIdOfOwner(this, this.getProperty("tableId"));
       },
 
-      readFilter() {
+      readFilter(oTable) {
         try {
-          const table = this._getTable();
+          const table = oTable ?? this._getTable();
           const binding = table?.getBinding();
           // Remember the binding object we read from so the re-apply pass
           // can skip when that same binding is still in place (see
@@ -162,9 +197,9 @@ sap.ui.define(
         );
       },
 
-      readSort() {
+      readSort(oTable) {
         try {
-          const table = this._getTable();
+          const table = oTable ?? this._getTable();
           const binding = table?.getBinding();
           // Same binding reference the sort re-apply checks against (see
           // _applySorters).

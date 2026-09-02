@@ -99,24 +99,30 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
                                  timestampl        = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
                                  data              = model_xml ).
 
-    " MODIFY is an upsert on the key - guard the write the same way the read
-    " side is guarded: a row another user owns must not be overwritable by
-    " re-using its id (defense in depth; on the legitimate paths the id is
-    " always a fresh uuid, so this SELECT hits an empty row). Blank-owner
-    " legacy rows stay writable during the upgrade transition, like on the
-    " read side
-    SELECT SINGLE uname FROM z2ui5_t_01
-      WHERE id = @ls_db-id
-      INTO @DATA(lv_owner).
-    IF sy-subrc = 0 AND lv_owner IS NOT INITIAL AND lv_owner <> sy-uname.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
-    ENDIF.
-
-    MODIFY z2ui5_t_01 FROM @ls_db.
+    " INSERT first; only a key that already exists asks who owns it. The
+    " write used to be a MODIFY guarded by a SELECT on every save - and on
+    " the legitimate paths the id is always a fresh uuid, so that SELECT hit
+    " an empty row on every user click, one database roundtrip for a
+    " collision that does not happen there. The guard itself is unchanged
+    " (defense in depth: a row another user owns must not be overwritable
+    " by re-using its id; blank-owner legacy rows stay writable during the
+    " upgrade transition, like on the read side) - it runs on the collision
+    " path now. A duplicate key answers sy-subrc 4 on every target, the
+    " transpiled runtime included (a UNIQUE constraint failure is 4 there)
+    INSERT z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
+      SELECT SINGLE uname FROM z2ui5_t_01
+        WHERE id = @ls_db-id
+        INTO @DATA(lv_owner).
+      IF sy-subrc = 0 AND lv_owner IS NOT INITIAL AND lv_owner <> sy-uname.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
+      ENDIF.
+      UPDATE z2ui5_t_01 FROM @ls_db.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
+      ENDIF.
     ENDIF.
     COMMIT WORK AND WAIT.
 

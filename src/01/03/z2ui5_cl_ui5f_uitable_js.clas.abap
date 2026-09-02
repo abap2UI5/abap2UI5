@@ -59,22 +59,44 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      readBackend() {` && |\n| &&
-             `        this.readFilter();` && |\n| &&
-             `        this.readSort();` && |\n| &&
+             `        const table = this._getTable();` && |\n| &&
+             `        this.readFilter(table);` && |\n| &&
+             `        this.readSort(table);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      applyBackend() {` && |\n| &&
-             `        this.setFilter();` && |\n| &&
-             `        this.setSort();` && |\n| &&
+             `        try {` && |\n| &&
+             `          const oTable = this._getTable();` && |\n| &&
+             `          if (!oTable) return;` && |\n| &&
+             `` && |\n| &&
+             `          if (this._applyPending) return;` && |\n| &&
+             `          this._applyPending = true;` && |\n| &&
+             `          Lib.whenRendered(oTable, this, () => {` && |\n| &&
+             `            this._applyPending = false;` && |\n| &&
+             `            this._applyGuarded(oTable, this.aFilters, "_applyFilters");` && |\n| &&
+             `            this._applyGuarded(oTable, this.aSorters, "_applySorters");` && |\n| &&
+             `          });` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          this._applyPending = false;` && |\n| &&
+             `          Lib.logError("UITableExt.applyBackend failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _applyGuarded(oTable, aValues, method) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          this[method](oTable, aValues);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError(``UITableExt.${method} failed``, e);` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getTable() {` && |\n| &&
              `        return ViewSlots.byIdOfOwner(this, this.getProperty("tableId"));` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      readFilter() {` && |\n| &&
+             `      readFilter(oTable) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const table = this._getTable();` && |\n| &&
+             `          const table = oTable ?? this._getTable();` && |\n| &&
              `          const binding = table?.getBinding();` && |\n| &&
              `` && |\n| &&
              `          this._filterBinding = binding;` && |\n| &&
@@ -159,9 +181,9 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      readSort() {` && |\n| &&
+             `      readSort(oTable) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const table = this._getTable();` && |\n| &&
+             `          const table = oTable ?? this._getTable();` && |\n| &&
              `          const binding = table?.getBinding();` && |\n| &&
              `` && |\n| &&
              `          this._sortBinding = binding;` && |\n| &&

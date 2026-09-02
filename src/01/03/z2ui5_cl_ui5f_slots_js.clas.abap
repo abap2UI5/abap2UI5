@@ -81,9 +81,17 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      return ViewSlots.trackedModel(oView);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function createViewModel() {` && |\n| &&
-             `      const data = AppState.state.oResponse?.OVIEWMODEL;` && |\n| &&
-             `      return trackChanges(new JSONModel(data));` && |\n| &&
+             `    function dataForSlot(slotKey, data) {` && |\n| &&
+             `      if (!data || Lib.isRootModelSlot(slotKey)) return data;` && |\n| &&
+             `      if (typeof structuredClone === "function") return structuredClone(data);` && |\n| &&
+             `      return JSON.parse(JSON.stringify(data));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function createViewModel(` && |\n| &&
+             `      slotKey = "MAIN",` && |\n| &&
+             `      data = AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
+             `    ) {` && |\n| &&
+             `      return trackChanges(new JSONModel(dataForSlot(slotKey, data)));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function isSuperseded(seq) {` && |\n| &&
@@ -91,7 +99,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    async function loadSlotFragment(slotKey, fragmentId, xml, seq) {` && |\n| &&
-             `      const oModel = createViewModel();` && |\n| &&
+             `      const oModel = createViewModel(slotKey);` && |\n| &&
              `      applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
              `      const oFragment = await Fragment.load({` && |\n| &&
              `        definition: xml,` && |\n| &&
@@ -186,7 +194,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    async function displayView(xml, viewModel, reqSeq, mOptions = {}) {` && |\n| &&
-             `      const oViewModel = trackChanges(new JSONModel(viewModel));` && |\n| &&
+             `      const oViewModel = createViewModel("MAIN", viewModel);` && |\n| &&
              `` && |\n| &&
              `      const switchPath = mOptions.switchDefaultModelPath;` && |\n| &&
              `` && |\n| &&
@@ -277,14 +285,19 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          for (const path of pending)` && |\n| &&
              `            keep.push([path, tracked.getProperty(path)]);` && |\n| &&
              `        }` && |\n| &&
-             `        tracked.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
-             `        for (const [path, value] of keep) {` && |\n| &&
-             `          if (value !== undefined) tracked.setProperty(path, value);` && |\n| &&
-             `        }` && |\n| &&
+             `        tracked.setData(` && |\n| &&
+             `          dataForSlot(slotKey, AppState.state.oResponse?.OVIEWMODEL),` && |\n| &&
+             `        );` && |\n| &&
+             `` && |\n| &&
+             `        keep.forEach(([path, value], i) => {` && |\n| &&
+             `          if (value !== undefined) {` && |\n| &&
+             `            tracked.setProperty(path, value, undefined, i < keep.length - 1);` && |\n| &&
+             `          }` && |\n| &&
+             `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const oModel = createViewModel();` && |\n| &&
+             `      const oModel = createViewModel(slotKey);` && |\n| &&
              `      applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
              `      oView.setModel(oModel);` && |\n| &&
              `    }` && |\n| &&

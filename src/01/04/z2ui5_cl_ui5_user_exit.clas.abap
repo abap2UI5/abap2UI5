@@ -24,6 +24,14 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     CLASS-DATA context          TYPE z2ui5_if_ui5_exit=>ty_s_http_context.
 
   PRIVATE SECTION.
+    " the default CSP meta tag, assembled once per roll area. This method
+    " runs on EVERY request - z2ui5_cl_ui5_http_handler=>set_response reads
+    " the security headers from the GET config on a POST as well - and the
+    " tag is a constant, so the seven-fragment template ran per roundtrip
+    " for the same string. Lazily filled on first use, not in a class
+    " constructor: a public class_constructor is what abap-check names a
+    " trap, and the view builder's gv_escape_specials takes the same road
+    CLASS-DATA gv_csp_default TYPE string.
 ENDCLASS.
 
 
@@ -72,15 +80,23 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " being found. A dynamic name is not a reference the compiler checks -
         " .github/scripts/dynamic-name-gate.mjs does it instead
         DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
-
-        " The superseded interface is looked up too, for as long as it ships:
-        " an exit written against Z2UI5_IF_EXIT is found exactly as before, and
-        " a class implementing both appears in both lists - hence the dedup
-        " below, and the cast order in get_instance that calls it once.
-        DATA(exit_classes_dep) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
-        APPEND LINES OF exit_classes_dep TO exit_classes.
-
         DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
+
+        " The superseded interface is looked up too, for as long as it ships -
+        " but only when the current one names nothing. Each lookup is a
+        " repository read (SEO_INTERFACE_IMPLEM_GET_ALL on standard ABAP, XCO
+        " on cloud), and gi_me does not outlive a request on stateless ICF, so
+        " both were paid on every request. An exit written against
+        " Z2UI5_IF_EXIT is still found exactly as before; a class implementing
+        " both is found under the current name (the cast order in
+        " get_instance calls it once, through that interface). A system that
+        " carries one class per interface - a configuration the class doc
+        " rules out, only one exit can be active - gets the current one
+        " instead of whichever sorted first across both lists.
+        IF lines( exit_classes ) = 0.
+          exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
+          DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
+        ENDIF.
 
         " only one user exit can be active, so the pick must not depend on the
         " order the class lookup happens to return (SEOCLASS select order on
@@ -88,7 +104,6 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " classes would otherwise silently run a different exit after a
         " transport or a system copy. Sorting makes it reproducible.
         SORT exit_classes BY classname.
-        DELETE ADJACENT DUPLICATES FROM exit_classes COMPARING classname.
 
         r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
       CATCH cx_root ##NO_HANDLER.
@@ -105,44 +120,47 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
     cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
 
-    " The UI5 CDN hosts a default installation may bootstrap from or fall
-    " back to. Deliberately ONLY these: general-purpose CDNs (jsdelivr,
-    " cdnjs) used to ride along although nothing the framework ships loads
-    " from them, and every allowed script host is a host whose compromise is
-    " script execution in an authenticated SAP session. An exit that needs
-    " another host adds it - to the one directive that needs it.
-    DATA(lv_ui5_hosts) =
-      `ui5.sap.com *.ui5.sap.com ` &&
-      `sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com ` &&
-      `openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
-      `sdk.openui5.org *.sdk.openui5.org`.
+    IF gv_csp_default IS INITIAL.
+      " The UI5 CDN hosts a default installation may bootstrap from or fall
+      " back to. Deliberately ONLY these: general-purpose CDNs (jsdelivr,
+      " cdnjs) used to ride along although nothing the framework ships loads
+      " from them, and every allowed script host is a host whose compromise is
+      " script execution in an authenticated SAP session. An exit that needs
+      " another host adds it - to the one directive that needs it.
+      DATA(lv_ui5_hosts) =
+        `ui5.sap.com *.ui5.sap.com ` &&
+        `sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com ` &&
+        `openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
+        `sdk.openui5.org *.sdk.openui5.org`.
 
-    " 'unsafe-eval' is required by the OpenUI5 1.71 ui5loader (it evaluates
-    " module source as a string); without it the 1.71 bootstrap fails with a
-    " CSP EvalError. Modern UI5 does not use eval, so keeping it here only
-    " affects older releases, and 'unsafe-inline' is already allowed so the
-    " delta is marginal. Apps pinning a modern UI5 can drop it via their exit.
-    "
-    " script-src and style-src are EXPLICIT on purpose, not left to the
-    " default-src fallback: default-src carries data:/blob: for images,
-    " fonts and media, and a data: that falls through to script-src is a
-    " textbook CSP bypass (any HTML-injection foothold escalates to script
-    " execution via <script src="data:...">). The split keeps data:/blob:
-    " and the unsafe-* keywords each confined to the directives that need
-    " them.
-    cs_config-content_security_policy =
-      |<meta http-equiv="Content-Security-Policy" | &&
-      |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
-      |script-src 'self' 'unsafe-inline' 'unsafe-eval' { lv_ui5_hosts }; | &&
-      |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
-      |connect-src 'self' { lv_ui5_hosts }; | &&
-      |worker-src 'self' blob:; | &&
-      " Hardening directives (no runtime cost for a UI5 app): block plugin
-      " content and pin <base> to the app origin. NO frame-ancestors here:
-      " browsers IGNORE that directive in a <meta> CSP (and log a console
-      " warning) - cross-origin framing is forbidden by the real
-      " X-Frame-Options: SAMEORIGIN response header set below instead.
-      |object-src 'none'; base-uri 'self'; "/>|.
+      " 'unsafe-eval' is required by the OpenUI5 1.71 ui5loader (it evaluates
+      " module source as a string); without it the 1.71 bootstrap fails with a
+      " CSP EvalError. Modern UI5 does not use eval, so keeping it here only
+      " affects older releases, and 'unsafe-inline' is already allowed so the
+      " delta is marginal. Apps pinning a modern UI5 can drop it via their exit.
+      "
+      " script-src and style-src are EXPLICIT on purpose, not left to the
+      " default-src fallback: default-src carries data:/blob: for images,
+      " fonts and media, and a data: that falls through to script-src is a
+      " textbook CSP bypass (any HTML-injection foothold escalates to script
+      " execution via <script src="data:...">). The split keeps data:/blob:
+      " and the unsafe-* keywords each confined to the directives that need
+      " them.
+      gv_csp_default =
+        |<meta http-equiv="Content-Security-Policy" | &&
+        |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
+        |script-src 'self' 'unsafe-inline' 'unsafe-eval' { lv_ui5_hosts }; | &&
+        |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
+        |connect-src 'self' { lv_ui5_hosts }; | &&
+        |worker-src 'self' blob:; | &&
+        " Hardening directives (no runtime cost for a UI5 app): block plugin
+        " content and pin <base> to the app origin. NO frame-ancestors here:
+        " browsers IGNORE that directive in a <meta> CSP (and log a console
+        " warning) - cross-origin framing is forbidden by the real
+        " X-Frame-Options: SAMEORIGIN response header set below instead.
+        |object-src 'none'; base-uri 'self'; "/>|.
+    ENDIF.
+    cs_config-content_security_policy = gv_csp_default.
 
     " NO cache-control/Pragma/Expires here any more: the cache policy is
     " per verb and set by z2ui5_cl_ui5_http_handler=>set_response (the GET
