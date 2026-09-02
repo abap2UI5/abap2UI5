@@ -14,10 +14,12 @@ const { loadLib } = require("./loadLibModule");
 //     nothing is delivered; items queue and drain one per retry, in order.
 function load({ isBusy = false, origin = "https://host.example" } = {}) {
   const errors = [];
-  // The real Lib so isDestroyed/renderInvisibleSpan are the shipped ones;
-  // only logError is replaced to capture the messages.
-  const Lib = { ...loadLib().Lib, logError: (m) => errors.push(m) };
+  // The real Lib so isDestroyed/renderInvisibleSpan/afterRoundtrip are the
+  // shipped ones; only logError is replaced to capture the messages. Lib
+  // and the control share ONE state object, the way they do in the app -
+  // afterRoundtrip decides on the same isBusy the control's drain sees.
   const state = { isBusy };
+  const Lib = { ...loadLib({ z2ui5: state }).Lib, logError: (m) => errors.push(m) };
   const sockets = [];
   let failConstruct = false;
   class FakeWebSocket {
@@ -31,13 +33,19 @@ function load({ isBusy = false, origin = "https://host.example" } = {}) {
       this.closed = true;
     }
   }
-  // Deterministic timers: the drain retry callbacks are captured and run by
-  // hand instead of waiting out the real 50ms interval.
+  // Deterministic timers: the drain's deferral (setTimeout 0) is captured
+  // and run by hand.
   const timers = [];
   let nextTimerId = 1;
   const runTimers = () => {
     const due = timers.splice(0);
     for (const t of due) t.fn();
+  };
+  // The roundtrip landing, as View1 runs it: the after-rendering hooks
+  // (where afterRoundtrip calls back) BEFORE the busy flag clears
+  const landRoundtrip = () => {
+    Lib.runCallbacks(state.onAfterRendering);
+    state.isBusy = false;
   };
   const { module: Websocket } = loadModule("cc/Websocket.js", {
     deps: {
@@ -93,6 +101,7 @@ function load({ isBusy = false, origin = "https://host.example" } = {}) {
     errors,
     state,
     runTimers,
+    landRoundtrip,
     timers,
     setFailConstruct: (v) => (failConstruct = v),
   };
@@ -302,34 +311,54 @@ test("a message reaching a destroyed control is dropped", () => {
   expect(inst._props.value).toBe("");
 });
 
-test("while the backend is busy nothing is delivered - the queue drains later", () => {
-  const { makeInstance, sockets, state, runTimers } = load({ isBusy: true });
+test("while the backend is busy nothing is delivered - the queue drains when the roundtrip lands", () => {
+  const { makeInstance, sockets, state, runTimers, landRoundtrip, timers } =
+    load({ isBusy: true });
   const inst = makeInstance({ path: "/apc" });
   inst.onAfterRendering();
 
   sockets[0].onmessage({ data: "first" });
   sockets[0].onmessage({ data: "second" });
 
-  // busy: queued, not delivered
+  // busy: queued, not delivered - and no timer polls for the flag, the
+  // control waits on the after-rendering hook
   expect(inst.received).toHaveLength(0);
+  expect(timers).toHaveLength(0);
+  expect(state.onAfterRendering).toHaveLength(1);
 
-  // backend free again: each retry tick delivers exactly one item, in order
-  state.isBusy = false;
+  // the roundtrip lands: the hook fires while the flag is still set, the
+  // deferred drain runs past the reset and delivers exactly one item
+  landRoundtrip();
+  expect(inst.received).toHaveLength(0);
   runTimers();
   expect(inst.received).toEqual(["first"]);
+  // the fired event started no roundtrip (nothing set the flag), so the
+  // next item follows on the next tick instead of waiting for one
   runTimers();
   expect(inst.received).toEqual(["first", "second"]);
 });
 
+test("an item fired while idle is delivered without waiting for a roundtrip", () => {
+  const { makeInstance, sockets, runTimers, timers } = load({ isBusy: false });
+  const inst = makeInstance({ path: "/apc" });
+  inst.onAfterRendering();
+
+  sockets[0].onmessage({ data: "now" });
+  expect(inst.received).toEqual(["now"]);
+  expect(timers).toHaveLength(0);
+  runTimers();
+  expect(inst.received).toEqual(["now"]);
+});
+
 test("messages and errors share the queue and keep their order", () => {
-  const { makeInstance, sockets, state, runTimers } = load({ isBusy: true });
+  const { makeInstance, sockets, runTimers, landRoundtrip } = load({ isBusy: true });
   const inst = makeInstance({ path: "/apc" });
   inst.onAfterRendering();
 
   sockets[0].onmessage({ data: "msg" });
   sockets[0].onclose({ code: 1006, reason: "" });
 
-  state.isBusy = false;
+  landRoundtrip();
   runTimers();
   expect(inst.received).toEqual(["msg"]);
   expect(inst.errorEvents).toHaveLength(0);
@@ -337,27 +366,27 @@ test("messages and errors share the queue and keep their order", () => {
   expect(inst.errorEvents).toHaveLength(1);
 });
 
-test("the drain timer firing after destroy is a silent no-op", () => {
-  const { makeInstance, sockets, state, runTimers } = load({ isBusy: true });
+test("the deferred drain firing after destroy is a silent no-op", () => {
+  const { makeInstance, sockets, runTimers, landRoundtrip } = load({ isBusy: true });
   const inst = makeInstance({ path: "/apc" });
   inst.onAfterRendering();
   sockets[0].onmessage({ data: "late" });
 
   inst._destroyed = true;
-  state.isBusy = false;
+  landRoundtrip();
   runTimers();
 
   expect(inst.received).toHaveLength(0);
 });
 
-test("exit() cancels a pending drain retry", () => {
-  const { makeInstance, sockets, timers } = load({ isBusy: true });
+test("exit() cancels a pending wait for the roundtrip", () => {
+  const { makeInstance, sockets, state } = load({ isBusy: true });
   const inst = makeInstance({ path: "/apc" });
   inst.onAfterRendering();
   sockets[0].onmessage({ data: "queued" });
-  expect(timers.length).toBeGreaterThan(0);
+  expect(state.onAfterRendering).toHaveLength(1);
 
   inst.exit();
 
-  expect(timers).toHaveLength(0);
+  expect(state.onAfterRendering).toHaveLength(0);
 });

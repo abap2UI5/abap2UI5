@@ -81,7 +81,12 @@ function withSlots(openKeys, model, { slotApps = {}, responseApp } = {}) {
   const { module: Slots } = loadModule("core/actions/Slots.js", {
     deps: {
       "z2ui5/core/Server": {},
-      "z2ui5/core/Lib": { effectiveSizeLimit: () => undefined },
+      "z2ui5/core/Lib": {
+        effectiveSizeLimit: () => undefined,
+        // the root slots share one model, a standalone slot gets a copy
+        // (Slots.dataForSlot) - the shipped helper's answer, as a stub
+        isRootModelSlot: (k) => k === "MAIN" || k === "NEST" || k === "NEST2",
+      },
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": {
         state: {
@@ -103,6 +108,22 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
       { key: "MAIN", data: model },
       { key: "POPOVER", data: model },
     ]);
+  });
+
+  test("a standalone slot binds a COPY of the data, MAIN the object itself", () => {
+    // JSONModel copies in neither its constructor nor setData( ), so MAIN
+    // and a dialog used to share one oData - MAIN's restored unsent edits
+    // showed up in the dialog, and a dialog edit changed MAIN's data behind
+    // its bindings (Slots.dataForSlot)
+    const model = { A: 1, T: [{ X: "row" }] };
+    const { Slots, applied } = withSlots(["MAIN", "POPUP"], model);
+    Slots.action("updateModel", undefined, undefined, {});
+    const main = applied.find((a) => a.key === "MAIN").data;
+    const popup = applied.find((a) => a.key === "POPUP").data;
+    expect(main).toBe(model);
+    expect(popup).not.toBe(model);
+    expect(popup).toEqual(model);
+    expect(popup.T).not.toBe(model.T);
   });
 
   test("skips the nested slots - they inherit MAIN's model", () => {
@@ -443,6 +464,7 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
         "z2ui5/core/Server": { _requestSeq: requestSeq },
         "z2ui5/core/Lib": {
           effectiveSizeLimit: () => undefined,
+          isRootModelSlot: (k) => k === "MAIN" || k === "NEST" || k === "NEST2",
           isAlive: () => true,
           logError: () => {},
         },

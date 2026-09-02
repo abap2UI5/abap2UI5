@@ -9,6 +9,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_buffer           FOR TESTING.
     METHODS test_overwrite        FOR TESTING.
     METHODS test_owner_binding    FOR TESTING.
+    METHODS test_owner_binding_write FOR TESTING RAISING cx_static_check.
     METHODS test_count_total      FOR TESTING.
 
   PROTECTED SECTION.
@@ -167,6 +168,41 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( lv_raised ).
 
     cl_abap_unit_assert=>assert_false( lo_draft->check_exists( `TEST_OWNER` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_owner_binding_write.
+
+    " the write side of the owner binding: create( ) inserts first and asks
+    " who owns the row only on a key collision - a foreign row must still
+    " be refused there, and stay as it was
+    DATA ls_db TYPE z2ui5_t_01.
+    ls_db-id    = `TEST_OWNER_WRITE`.
+    ls_db-uname = |{ sy-uname }_OTHER|.
+    ls_db-data  = `foreign state`.
+    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    COMMIT WORK.
+
+    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    lo_draft = NEW #( ).
+
+    DATA ls_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    ls_draft-id = `TEST_OWNER_WRITE`.
+    DATA lv_raised TYPE abap_bool.
+    TRY.
+        lo_draft->create( draft     = ls_draft
+                          model_xml = `overwrite attempt` ).
+      CATCH z2ui5_cx_ui5_util_error.
+        lv_raised = abap_true.
+    ENDTRY.
+    cl_abap_unit_assert=>assert_true( lv_raised ).
+
+    SELECT SINGLE data FROM z2ui5_t_01
+      WHERE id = @( `TEST_OWNER_WRITE` )
+      INTO @DATA(lv_data).
+    cl_abap_unit_assert=>assert_subrc( exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( exp = `foreign state`
+                                        act = lv_data ).
 
   ENDMETHOD.
 

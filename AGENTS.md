@@ -91,13 +91,14 @@ The frontend always sends the POST body as `{ "value": <payload> }` (see `app/we
 
 When the app runs inside the **SAP Fiori Launchpad** (FLP), requests may be routed through the FLP shell or an SAP Gateway proxy. In certain configurations this infrastructure strips the `value` envelope before the request reaches the ABAP ICF handler, so the payload arrives as a plain object without the `value` key.
 
-`request_parse_body` handles both cases defensively by computing a root prefix once (a keyed `exists` check instead of slicing/copying the whole tree just to unwrap it), then slicing the sub-containers relative to it:
+`request_parse_body` handles both cases defensively by computing a root prefix once (a keyed `exists` check instead of slicing/copying the whole tree just to unwrap it). The MODEL container is not sliced either: the request tree travels with the path of its MODEL node (`ty_s_request-model_path`) and the model service reads below that path, so the delta is not copied a second time; only the small S_FRONT container is sliced:
 ```abap
 DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
                              THEN `/value` ).
 " standalone: lv_root = `/value`   launchpad/gateway: lv_root = `` (empty)
-result-o_model = lo_ajson->slice( lv_root && `/MODEL` ).
-lo_ajson       = lo_ajson->slice( lv_root && `/S_FRONT` ).
+result-o_model    = lo_ajson.
+result-model_path = lv_root && `/MODEL`.
+lo_ajson          = lo_ajson->slice( lv_root && `/S_FRONT` ).
 ```
 
 The Launchpad context is detected afterwards from the parsed request fields:

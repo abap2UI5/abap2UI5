@@ -25,9 +25,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! load clears them. Only valid on the instance the save ran on.
     METHODS main_attri_reattach.
 
+    "! iv_prefix is the node the bound attributes sit below - the MODEL
+    "! path of the request tree (z2ui5_if_ui5_types=>ty_s_request-model_path),
+    "! so the request is read in place instead of its model being sliced
+    "! out; initial when `model` is the model itself
     METHODS main_json_to_attri
       IMPORTING
-        model TYPE REF TO z2ui5_if_ajson.
+        model     TYPE REF TO z2ui5_if_ajson
+        iv_prefix TYPE string OPTIONAL.
 
     METHODS main_json_stringify
       RETURNING
@@ -363,7 +368,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " walk only runs for attributes the request actually carries -
           " the same reasoning as the /value unwrap in
           " z2ui5_cl_ui5_handler=>request_parse_body
-          IF model->exists( lr_attri->name_client ) = abap_false.
+          DATA(lv_node) = iv_prefix && lr_attri->name_client.
+          IF model->exists( lv_node ) = abap_false.
             CONTINUE.
           ENDIF.
 
@@ -372,14 +378,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " attribute's sub-tree and no second copy of its __delta node.
           " Only a WHOLE value below is sliced, because to_abap( ) takes a
           " tree of its own
-          IF model->exists( |{ lr_attri->name_client }/__delta| ) = abap_true.
+          IF model->exists( |{ lv_node }/__delta| ) = abap_true.
             delta_apply_to_table( io_val_front = model
-                                  iv_path      = lr_attri->name_client
+                                  iv_path      = lv_node
                                   iv_name      = lr_attri->name ).
             CONTINUE.
           ENDIF.
 
-          lo_val_front = model->slice( lr_attri->name_client ).
+          lo_val_front = model->slice( lv_node ).
           IF lo_val_front IS NOT BOUND.
             CONTINUE.
           ENDIF.

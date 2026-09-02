@@ -11,10 +11,9 @@ sap.ui.define(
 
     // A roundtrip already in flight makes View1.eB DROP the event (its
     // isBusy guard), so everything the control reports is queued and
-    // delivered one item per roundtrip instead of being lost in a burst.
-    // This is the retry interval of the drain loop - it only runs while
-    // items are actually waiting.
-    const DRAIN_RETRY_MS = 50;
+    // delivered one item per roundtrip instead of being lost in a burst -
+    // the queue waits for the roundtrip to land (Lib.afterRoundtrip, see
+    // _scheduleDrain) instead of polling for it.
 
     // Reconnect policy for a connection the app did not close: exponential
     // backoff starting here, capped there, and after MAX_CONNECT_ATTEMPTS
@@ -116,6 +115,8 @@ sap.ui.define(
       },
       exit() {
         clearTimeout(this._drainId);
+        this._cancelWait?.();
+        this._cancelWait = null;
         clearTimeout(this._reconnectId);
         this._disconnect();
       },
@@ -278,12 +279,28 @@ sap.ui.define(
         }
         if (this._queue.length) this._scheduleDrain();
       },
+      // Wait for the roundtrip in flight to land instead of polling for it:
+      // a 50 ms retry timer used to wake the main thread up to twenty times
+      // a second for the whole roundtrip. Lib.afterRoundtrip calls back
+      // from the after-rendering hooks, which View1 runs BEFORE its finally
+      // clears the busy flag - a synchronous fireReceived from there would
+      // be dropped by eB's busy guard again - so the drain is deferred one
+      // macrotask past that (setTimeout 0). With no roundtrip in flight the
+      // hook calls back right away, and the same deferral lets the event
+      // the previous item fired start its roundtrip first: an event nobody
+      // answers with one leaves the flag clear, and the next item follows
+      // on the next tick instead of waiting for a roundtrip that never
+      // comes.
       _scheduleDrain() {
-        clearTimeout(this._drainId);
-        this._drainId = setTimeout(() => {
-          if (Lib.isDestroyed(this)) return;
-          this._drain();
-        }, DRAIN_RETRY_MS);
+        this._cancelWait?.();
+        this._cancelWait = Lib.afterRoundtrip(this, () => {
+          this._cancelWait = null;
+          clearTimeout(this._drainId);
+          this._drainId = setTimeout(() => {
+            if (Lib.isDestroyed(this)) return;
+            this._drain();
+          }, 0);
+        });
       },
       renderer: {
         apiVersion: 2,

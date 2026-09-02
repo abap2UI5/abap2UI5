@@ -237,7 +237,17 @@ INTERFACE z2ui5_if_ui5_types
 
   TYPES:
     BEGIN OF ty_s_request,
-      o_model TYPE REF TO z2ui5_if_ajson,
+      " the parsed request tree the view model is read from, and the path
+      " of its MODEL node in that tree (`/value/MODEL` standalone, `/MODEL`
+      " behind a launchpad proxy - see z2ui5_cl_ui5_handler=>request_parse_body).
+      " The model is NOT sliced out of the request: a slice walks and copies
+      " every node, and on a mass edit the model IS most of the request. A
+      " request without a MODEL node carries an empty tree and no path; a
+      " tree that is the model itself (the shape the tests hand in) carries
+      " no path either - the consumer prefixes what it reads with the path
+      " (z2ui5_cl_ui5_srv_model=>main_json_to_attri)
+      o_model    TYPE REF TO z2ui5_if_ajson,
+      model_path TYPE string,
       BEGIN OF s_front,
         id          TYPE string,
         t_event_arg TYPE string_table,

@@ -556,9 +556,13 @@ CLASS ltcl_01_request IMPLEMENTATION.
     lo_handler = NEW #( val = lv_payload ).
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
+    " the request tree itself, read below the path of its MODEL node - no
+    " slice (z2ui5_if_ui5_types=>ty_s_request-model_path)
     cl_abap_unit_assert=>assert_bound( ls_request-o_model ).
+    cl_abap_unit_assert=>assert_equals( exp = `/value/MODEL`
+                                        act = ls_request-model_path ).
     cl_abap_unit_assert=>assert_equals( exp = `test-value`
-                                        act = ls_request-o_model->get_string( `/NAME` ) ).
+                                        act = ls_request-o_model->get_string( ls_request-model_path && `/NAME` ) ).
   ENDMETHOD.
 
   METHOD test_parse_body_model_no_wrap.
@@ -573,8 +577,10 @@ CLASS ltcl_01_request IMPLEMENTATION.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_bound( ls_request-o_model ).
+    cl_abap_unit_assert=>assert_equals( exp = `/MODEL`
+                                        act = ls_request-model_path ).
     cl_abap_unit_assert=>assert_equals( exp = `test-value`
-                                        act = ls_request-o_model->get_string( `/NAME` ) ).
+                                        act = ls_request-o_model->get_string( ls_request-model_path && `/NAME` ) ).
   ENDMETHOD.
 
   METHOD test_parse_body_config.

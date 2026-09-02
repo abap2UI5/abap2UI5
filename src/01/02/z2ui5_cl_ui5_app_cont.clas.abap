@@ -80,9 +80,13 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     "! stored on this object on purpose: this object is serialized into the
     "! draft, and a trace that outlived its roundtrip would be handed to the
     "! app again after the next restore.
+    "! iv_path is the node of io_model the attributes sit below - the MODEL
+    "! path of a request tree (ty_s_request-model_path), or nothing when
+    "! io_model is the model itself
     METHODS model_json_parse
       IMPORTING
         io_model      TYPE REF TO z2ui5_if_ajson
+        iv_path       TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE z2ui5_if_client=>ty_t_model_skip.
 
@@ -281,7 +285,8 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   METHOD model_json_parse.
 
     DATA(lo_model) = create_model( ).
-    lo_model->main_json_to_attri( io_model ).
+    lo_model->main_json_to_attri( model     = io_model
+                                  iv_prefix = iv_path ).
     result = lo_model->mt_skipped.
 
   ENDMETHOD.

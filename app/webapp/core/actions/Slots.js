@@ -78,11 +78,33 @@ sap.ui.define(
       return ViewSlots.trackedModel(oView);
     }
 
+    // A standalone slot (POPUP, POPOVER) binds its OWN copy of the response
+    // data. JSONModel copies in neither its constructor nor setData( )
+    // (checked in 1.71.80), so MAIN and a dialog used to share one oData:
+    // trackChanges keeps the edited paths per model precisely so one slot's
+    // edits are not built against another's data - but the restore of
+    // MAIN's unsent edits (updateModelIfRequired) wrote them into the
+    // shared object and the dialog rendered them, and a setProperty in the
+    // dialog changed MAIN's data behind its bindings. The copy is
+    // structuredClone where the browser has it, else a JSON round trip -
+    // exact either way, the data came out of response.json( ). Cost: one
+    // copy of the model per push into an OPEN standalone slot, paid only
+    // while a dialog is open; MAIN and the nested views keep sharing one
+    // root model by design (UI5 propagation, see _pickModelForRoundtrip).
+    function dataForSlot(slotKey, data) {
+      if (!data || Lib.isRootModelSlot(slotKey)) return data;
+      if (typeof structuredClone === "function") return structuredClone(data);
+      return JSON.parse(JSON.stringify(data));
+    }
+
     // The tracked framework model for a response's data - the ONE place
-    // that makes one (displayView's MAIN model included), so a policy on
-    // model creation applies to every slot or to none.
-    function createViewModel(data = AppState.state.oResponse?.OVIEWMODEL) {
-      return trackChanges(new JSONModel(data));
+    // that makes one (displayView's MAIN model included), so the copy
+    // policy above applies to every slot or to none.
+    function createViewModel(
+      slotKey = "MAIN",
+      data = AppState.state.oResponse?.OVIEWMODEL,
+    ) {
+      return trackChanges(new JSONModel(dataForSlot(slotKey, data)));
     }
 
     // True when this response was superseded by a newer request while an
@@ -102,7 +124,7 @@ sap.ui.define(
     // newer request superseded this response - we must not open a dialog the
     // backend no longer knows about.
     async function loadSlotFragment(slotKey, fragmentId, xml, seq) {
-      const oModel = createViewModel();
+      const oModel = createViewModel(slotKey);
       applyStoredSizeLimit(slotKey, oModel);
       const oFragment = await Fragment.load({
         definition: xml,
@@ -229,7 +251,7 @@ sap.ui.define(
 
     // Replace the main app view with the XML coming from the backend.
     async function displayView(xml, viewModel, reqSeq, mOptions = {}) {
-      const oViewModel = createViewModel(viewModel);
+      const oViewModel = createViewModel("MAIN", viewModel);
 
       const switchPath = mOptions.switchDefaultModelPath;
 
@@ -395,7 +417,9 @@ sap.ui.define(
           for (const path of pending)
             keep.push([path, tracked.getProperty(path)]);
         }
-        tracked.setData(AppState.state.oResponse?.OVIEWMODEL);
+        tracked.setData(
+          dataForSlot(slotKey, AppState.state.oResponse?.OVIEWMODEL),
+        );
         // Batched: JSONModel#setProperty ends in checkUpdate, and without
         // the async flag every call sweeps ALL bindings synchronously - a
         // dialog with N unsent fields paid N sweeps on top of setData's.
@@ -411,7 +435,7 @@ sap.ui.define(
 
       // No framework-owned model on this slot at all: bind a fresh default
       // JSON model (keeps the previous behavior for that edge case).
-      const oModel = createViewModel();
+      const oModel = createViewModel(slotKey);
       applyStoredSizeLimit(slotKey, oModel);
       oView.setModel(oModel);
     }

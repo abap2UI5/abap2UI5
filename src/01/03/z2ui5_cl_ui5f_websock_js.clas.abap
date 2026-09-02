@@ -30,8 +30,6 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `  (Control, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const DRAIN_RETRY_MS = 50;` && |\n| &&
-             `` && |\n| &&
              `    const RECONNECT_BASE_MS = 500;` && |\n| &&
              `    const RECONNECT_MAX_MS = 30000;` && |\n| &&
              `    const MAX_CONNECT_ATTEMPTS = 5;` && |\n| &&
@@ -106,6 +104,8 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        clearTimeout(this._drainId);` && |\n| &&
+             `        this._cancelWait?.();` && |\n| &&
+             `        this._cancelWait = null;` && |\n| &&
              `        clearTimeout(this._reconnectId);` && |\n| &&
              `        this._disconnect();` && |\n| &&
              `      },` && |\n| &&
@@ -248,12 +248,17 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        if (this._queue.length) this._scheduleDrain();` && |\n| &&
              `      },` && |\n| &&
+             `` && |\n| &&
              `      _scheduleDrain() {` && |\n| &&
-             `        clearTimeout(this._drainId);` && |\n| &&
-             `        this._drainId = setTimeout(() => {` && |\n| &&
-             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `          this._drain();` && |\n| &&
-             `        }, DRAIN_RETRY_MS);` && |\n| &&
+             `        this._cancelWait?.();` && |\n| &&
+             `        this._cancelWait = Lib.afterRoundtrip(this, () => {` && |\n| &&
+             `          this._cancelWait = null;` && |\n| &&
+             `          clearTimeout(this._drainId);` && |\n| &&
+             `          this._drainId = setTimeout(() => {` && |\n| &&
+             `            if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `            this._drain();` && |\n| &&
+             `          }, 0);` && |\n| &&
+             `        });` && |\n| &&
              `      },` && |\n| &&
              `      renderer: {` && |\n| &&
              `        apiVersion: 2,` && |\n| &&

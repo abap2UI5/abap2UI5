@@ -80,15 +80,23 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " being found. A dynamic name is not a reference the compiler checks -
         " .github/scripts/dynamic-name-gate.mjs does it instead
         DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
-
-        " The superseded interface is looked up too, for as long as it ships:
-        " an exit written against Z2UI5_IF_EXIT is found exactly as before, and
-        " a class implementing both appears in both lists - hence the dedup
-        " below, and the cast order in get_instance that calls it once.
-        DATA(exit_classes_dep) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
-        APPEND LINES OF exit_classes_dep TO exit_classes.
-
         DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
+
+        " The superseded interface is looked up too, for as long as it ships -
+        " but only when the current one names nothing. Each lookup is a
+        " repository read (SEO_INTERFACE_IMPLEM_GET_ALL on standard ABAP, XCO
+        " on cloud), and gi_me does not outlive a request on stateless ICF, so
+        " both were paid on every request. An exit written against
+        " Z2UI5_IF_EXIT is still found exactly as before; a class implementing
+        " both is found under the current name (the cast order in
+        " get_instance calls it once, through that interface). A system that
+        " carries one class per interface - a configuration the class doc
+        " rules out, only one exit can be active - gets the current one
+        " instead of whichever sorted first across both lists.
+        IF lines( exit_classes ) = 0.
+          exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
+          DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
+        ENDIF.
 
         " only one user exit can be active, so the pick must not depend on the
         " order the class lookup happens to return (SEOCLASS select order on
@@ -96,7 +104,6 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " classes would otherwise silently run a different exit after a
         " transport or a system copy. Sorting makes it reproducible.
         SORT exit_classes BY classname.
-        DELETE ADJACENT DUPLICATES FROM exit_classes COMPARING classname.
 
         r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
       CATCH cx_root ##NO_HANDLER.
