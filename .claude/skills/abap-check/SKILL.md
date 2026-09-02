@@ -536,14 +536,12 @@ pitfalls".
   nothing on this side reports it: `check:cloud` and the transpiled unit run
   are both green with it in place.
 
-  Still standing in `src` after that fix, and worth deciding on rather than
-  discovering later: four occurrences outside the upstream mirrors and the
-  frozen package — `src/00/03/z2ui5_cl_ui5_util_context.clas.abap:878` and
-  `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` at 325, 345 and 467. All four
-  take a field symbol or a formal parameter, which `REF #( )` expresses
-  directly. They were left alone deliberately: the pull request changed a test
-  class, and rewriting three production reference paths in the model is a
-  separate change with its own verification.
+  The three in `z2ui5_cl_ui5_srv_model` (the alias re-wiring on the load,
+  `attri_get_val_ref`) were rewritten to `REF #( )` in 2026-09. What is left
+  outside the upstream mirrors and the frozen package is the one in
+  `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` (`check_unassign_initial`'s
+  neighbourhood) - vendored from abap-util, so the rewrite belongs upstream
+  first.
 
 - **A RAP handler names the entity by its BDEF alias.** Where the behavior
   definition declares `alias Ticket`, an event handler's

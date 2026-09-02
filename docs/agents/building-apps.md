@@ -571,6 +571,12 @@ The same tree, with the subtree held in a variable:
 - Call another app: `client->nav_app_call( NEW zcl_other_app( ) )`; return
   with `client->nav_app_leave( )` (or `client->get_app_prev( )` to hand data
   back). The framework keeps the app stack across roundtrips.
+- A called app that holds its caller (`NEW zcl_popup( app = me )`) may read
+  and write the caller's attributes through that reference, generic data
+  references included. What it writes survives the way back through
+  `client->nav_app_leave( mo_caller )`; a way back through
+  `client->nav_app_leave( client->get_app( id ) )` restores the caller from
+  its own draft, as it was when the call was made.
 - URL routing: `client->follow_up_action( val = z2ui5_if_client=>cs_event-hash_routing )`
   in `check_on_init` makes the app bookmarkable and wires the browser
   Back/Forward buttons — the mode rides in `t_arg`: `cs_nav_mode-keep` (the

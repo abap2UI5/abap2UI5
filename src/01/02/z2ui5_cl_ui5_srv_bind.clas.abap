@@ -132,7 +132,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       lr_ref_in = REF #( <ele> ).
 
       IF iv_val = lr_ref_in.
-        result = |{ iv_name }/{ shift_right( CONV string( ms_config-tab_index - 1 ) ) }/{ <comp>-name }|.
+        result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ <comp>-name }|.
         RETURN.
       ENDIF.
 

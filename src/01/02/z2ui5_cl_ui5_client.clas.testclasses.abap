@@ -1333,7 +1333,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " rule already emits; this test is green in the transpiled suite only
     " because the patch is applied. If it starts failing, look at the patch
     " before looking at the binding. The cell logic itself is covered
-    " everywhere by ltcl_test_main_cell in z2ui5_cl_ui5_srv_bind
+    " everywhere by ltcl_02_cell in z2ui5_cl_ui5_srv_bind
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lo_app TYPE REF TO ltcl_test_app.
 
