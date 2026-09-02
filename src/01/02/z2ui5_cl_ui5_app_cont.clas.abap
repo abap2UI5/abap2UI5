@@ -127,6 +127,14 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     METHODS create_model
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
+
+    " the draft's document, read and parsed into a new container - the
+    " half of a load that db_load and db_load_by_app share
+    CLASS-METHODS draft_parse
+      IMPORTING
+        iv_id         TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 ENDCLASS.
 
 
@@ -206,10 +214,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( id ).
-    result = all_xml_parse( ls_db-data ).
-
+    result = draft_parse( id ).
     result->create_model( )->main_attri_db_load( ).
 
     INSERT VALUE #( id = lv_id app = result ) INTO TABLE mt_buffer.
@@ -224,9 +229,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( app->id_draft ).
-    result = all_xml_parse( ls_db-data ).
+    result = draft_parse( app->id_draft ).
 
     " mo_app is assigned BEFORE the attribute load, and that ordering is the
     " whole difference to db_load( ): the references are restored against the
@@ -286,6 +289,14 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   METHOD model_json_stringify.
 
     result = create_model( )->main_json_stringify( ).
+
+  ENDMETHOD.
+
+  METHOD draft_parse.
+
+    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
+    DATA(ls_db) = lo_db->read_draft( iv_id ).
+    result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.
 

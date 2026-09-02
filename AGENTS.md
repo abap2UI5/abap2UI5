@@ -493,8 +493,8 @@ not something to know before starting.
 | `src/01/02/z2ui5_cl_ui5_action.clas.abap` | Event/action dispatcher |
 | `src/01/02/z2ui5_cl_ui5_frontend.clas.abap` | Frontend action queues + response serialization (T_SYSTEM/T_CUSTOM, ROUTER/nav intent) |
 | `src/01/02/z2ui5_cl_ui5_app_cont.clas.abap` | App lifecycle (create, load, serialize) |
-| `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap` | Data binding engine |
-| `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` | JSON model management |
+| `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap` | Data binding engine — a bound value to its client path, one service per render |
+| `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` | The attribute rows: dissolve, binding search, model out and in (row deltas), the draft save and restore of generic references |
 | `src/01/02/z2ui5_cl_ui5_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_ui5_srv_draft.clas.abap` | Draft/session persistence |
 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` | The single door to system/platform functionality — see "Utilities" |
