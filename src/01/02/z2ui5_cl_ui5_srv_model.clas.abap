@@ -685,13 +685,27 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " compare by name - descriptor instances are not stable in the
       " abaplint transpiler runtime; the data reference check below is
       " the definitive match, this is only a prefilter. Generated names
-      " of anonymous types (containing %) are not comparable either
-      DATA(lv_name_attri) = lr_attri->o_typedescr->absolute_name.
-      DATA(lv_name_val) = lo_datadescr->absolute_name.
-      IF lv_name_attri <> lv_name_val
-          AND lv_name_attri NS `%`
-          AND lv_name_val NS `%`.
-        CONTINUE.
+      " of anonymous types (containing %) are not comparable either.
+      " o_typedescr can be UNBOUND here: it is a REF TO cl_abap_typedescr,
+      " so it does not survive the draft round trip, and the restore
+      " (main_attri_db_load_resolve) re-resolves it through a dynamic ASSIGN
+      " whose failure it swallows on purpose - a row whose attribute cannot
+      " be reached right now keeps an initial descriptor (a host app that
+      " swapped its REF TO object sub-app for an instance of ANOTHER class
+      " leaves every row of the old class in that state). Reading
+      " ->absolute_name on it dumped CX_SY_REF_IS_INITIAL on the FIRST
+      " _bind( ) of the next render. Skipping only the prefilter, rather
+      " than the row, is what keeps that from hiding a match: the
+      " data-reference compare below still decides, and it needs no
+      " descriptor
+      IF lr_attri->o_typedescr IS BOUND.
+        DATA(lv_name_attri) = lr_attri->o_typedescr->absolute_name.
+        DATA(lv_name_val) = lo_datadescr->absolute_name.
+        IF lv_name_attri <> lv_name_val
+            AND lv_name_attri NS `%`
+            AND lv_name_val NS `%`.
+          CONTINUE.
+        ENDIF.
       ENDIF.
 
       TRY.

@@ -613,6 +613,51 @@ CLASS ltcl_test_app_root5 IMPLEMENTATION.
 ENDCLASS.
 
 
+CLASS ltcl_test_app_root6 DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+
+    DATA mv_value TYPE string.
+
+    METHODS test_search_no_descr FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_app_root6 IMPLEMENTATION.
+
+  METHOD test_search_no_descr.
+
+    " a row whose o_typedescr the restore could not re-resolve must not take
+    " the search down with it - attri_search read ->absolute_name on it
+    " unguarded, so one unreachable attribute dumped CX_SY_REF_IS_INITIAL on
+    " the first _bind( ) of the render instead of being passed over
+    DATA(lo_app) = NEW ltcl_test_app_root6( ).
+    lo_app->mv_value = `value`.
+
+    " same type_kind/kind as the searched value, so the row passes the WHERE
+    " prefilter and is the first one the loop reads - and no o_typedescr,
+    " which is what a swallowed ASSIGN failure in the restore leaves behind
+    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( REF #( lo_app->mv_value ) ).
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri(
+        ( name            = `MV_GONE`
+          check_dissolved = abap_true
+          type_kind       = lo_descr->type_kind
+          kind            = lo_descr->kind ) ).
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                 app   = lo_app ).
+
+    DATA(ls_attri) = lo_model->main_attri_search( REF #( lo_app->mv_value ) ).
+    cl_abap_unit_assert=>assert_equals( act = ls_attri->name
+                                        exp = `MV_VALUE` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test_diss_complex DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_diss_complex.
 

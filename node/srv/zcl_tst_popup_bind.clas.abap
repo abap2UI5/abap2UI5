@@ -34,6 +34,10 @@ CLASS zcl_tst_popup_bind IMPLEMENTATION.
       fill( ).
       view_display( ).
       RETURN.
+    ELSEIF client->check_on_navigated( ).
+      " the popup app handed control back - re-display the main view
+      view_display( ).
+      RETURN.
     ENDIF.
 
     IF client->check_on_event( ).
@@ -96,10 +100,12 @@ CLASS zcl_tst_popup_bind IMPLEMENTATION.
                 )->a( n = `title` v = `POPUP BIND` ).
 
     tab = page->ele( `Table`
-        )->a( n = `items` v = client->_bind_edit( mt_tab ) ).
+        )->a( n = `items` v = client->_bind( mt_tab ) ).
 
     tab->ele( `columns`
-        )->ele( `Column` )->ele( `Text` )->a( n = `text` v = `Application` ).
+        )->ele( `Column`
+            )->ele( `Text`
+                )->a( n = `text` v = `Application` ).
 
     cells = tab->ele( `items`
         )->ele( `ColumnListItem`
@@ -126,9 +132,9 @@ CLASS zcl_tst_popup_bind IMPLEMENTATION.
             )->a( n = `title` v = `Edit` ).
 
     dialog->tag( `Input`
-        )->a( n = `value` v = client->_bind_edit( ms_row-object ) ).
+        )->a( n = `value` v = client->_bind( ms_row-object ) ).
     dialog->tag( `Input`
-        )->a( n = `value` v = client->_bind_edit( ms_row-description ) ).
+        )->a( n = `value` v = client->_bind( ms_row-description ) ).
 
     dialog->ele( `buttons`
         )->tag( `Button`

@@ -42,9 +42,9 @@ CLASS zcl_tst_popup_app IMPLEMENTATION.
             )->a( n = `title` v = `Edit` ).
 
     dialog->tag( `Input`
-        )->a( n = `value` v = client->_bind_edit( ms_data_row-class ) ).
+        )->a( n = `value` v = client->_bind( ms_data_row-class ) ).
     dialog->tag( `Input`
-        )->a( n = `value` v = client->_bind_edit( ms_data_row-descr ) ).
+        )->a( n = `value` v = client->_bind( ms_data_row-descr ) ).
 
     client->popup_display( popup->stringify( ) ).
 
