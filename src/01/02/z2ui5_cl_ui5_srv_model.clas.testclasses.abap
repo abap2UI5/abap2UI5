@@ -4587,6 +4587,15 @@ CLASS ltcl_02_search IMPLEMENTATION.
   METHOD every_form_found.
 
     bind_all( ).
+
+    " every form landed on a row of its own, and each is found again
+    cl_abap_unit_assert=>assert_equals( exp = 27
+                                        act = lines( mt_bound ) ).
+    LOOP AT mt_bound INTO DATA(lv_name).
+      cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                          act = row( lv_name )-bind
+                                          msg = |{ lv_name } is not bound| ).
+    ENDLOOP.
     inv_search_finds_bound( ).
 
   ENDMETHOD.
