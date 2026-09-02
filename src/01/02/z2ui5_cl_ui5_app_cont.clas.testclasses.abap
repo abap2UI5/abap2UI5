@@ -911,6 +911,9 @@ CLASS ltcl_02_db DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS load_by_app_after_swap     FOR TESTING RAISING cx_static_check.
     " a container loaded by app is what a later db_load of the id answers
     METHODS load_by_app_fills_buffer   FOR TESTING RAISING cx_static_check.
+    " two saves of one live instance, nothing ran in between: two drafts
+    " that load to the same state, and the instance keeps its references
+    METHODS two_drafts_one_instance   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1144,6 +1147,41 @@ CLASS ltcl_02_db IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD two_drafts_one_instance.
+
+    DATA(lv_before) = bind_all( ).
+
+    mo_cont->db_save( ).
+    DATA(lv_id_1) = mo_cont->ms_draft-id.
+    " the next draft id, no main( ) in between - the shape of a navigation
+    " hop, which saves the caller and lets the callee read it right after
+    mo_cont->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    mo_cont->db_save( ).
+    DATA(lv_id_2) = mo_cont->ms_draft-id.
+
+    " the live instance: its references back, no payload left on the rows,
+    " the model as before. Whether the reference is the object from before
+    " the save or one parsed from the payload is not asserted - both keep
+    " the three references one object, which check_restored does assert
+    check_restored( mo_user ).
+    LOOP AT mo_cont->mt_attri->* TRANSPORTING NO FIELDS WHERE srtti_data IS NOT INITIAL. "#EC CI_SORTSEQ
+      cl_abap_unit_assert=>fail( `a payload stayed on the live rows` ).
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = mo_cont->model_json_stringify( ) ).
+
+    " both drafts load to that state
+    DATA(lo_first)  = load_fresh( lv_id_1 ).
+    DATA(lo_second) = load_fresh( lv_id_2 ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = lo_first->model_json_stringify( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = lo_second->model_json_stringify( ) ).
+    check_restored( app_of( lo_first ) ).
+    check_restored( app_of( lo_second ) ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 

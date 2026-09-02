@@ -1524,6 +1524,8 @@ CLASS ltcl_app_typed DEFINITION FINAL
         qty TYPE i,
       END OF ty_s_pos.
     TYPES ty_t_pos TYPE STANDARD TABLE OF ty_s_pos WITH EMPTY KEY.
+    " the nested shape a row delta cannot be applied to
+    TYPES ty_t_pos_sorted TYPE SORTED TABLE OF ty_s_pos WITH UNIQUE KEY qty.
 
     " a table whose cells are NOT all strings - the only shape in which a
     " delta cell can fail to convert at all
@@ -1532,6 +1534,7 @@ CLASS ltcl_app_typed DEFINITION FINAL
         name  TYPE string,
         price TYPE p LENGTH 9 DECIMALS 2,
         t_pos TYPE ty_t_pos,
+        t_sorted TYPE ty_t_pos_sorted,
         " the three kinds whose wire form is ISO text, not their ABAP form
         dt    TYPE d,
         tm    TYPE t,
@@ -4579,6 +4582,9 @@ CLASS ltcl_02_search DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS search_refreshes_late_obj FOR TESTING RAISING cx_static_check.
     " a value that belongs to no public attribute is a named error
     METHODS unknown_value_is_error    FOR TESTING RAISING cx_static_check.
+    " a value re-created in main( ) - a new object under the same name - is
+    " found as that name; the object it replaced belongs to nobody
+    METHODS recreated_value_found     FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -4730,6 +4736,63 @@ CLASS ltcl_02_search IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD recreated_value_found.
+
+    FIELD-SYMBOLS <elem> TYPE any.
+
+    " the first render binds the target of the generic reference and the
+    " helper's value
+    bind( mo_app->mr_elem ).
+    bind( REF #( mo_app->mo_inner->mv_inner ) ).
+    DATA(lr_old_elem)  = mo_app->mr_elem.
+    DATA(lo_old_inner) = mo_app->mo_inner.
+
+    " main( ) of the next roundtrip: CREATE DATA and CREATE OBJECT again -
+    " new objects under the same names, the old ones still alive in a local
+    CREATE DATA mo_app->mr_elem TYPE string.
+    ASSIGN mo_app->mr_elem->* TO <elem>.
+    <elem> = `elem-new`.
+    mo_app->mo_inner = NEW #( ).
+    mo_app->mo_inner->mv_inner = `inner-new`.
+
+    " the search answers with the rows, resolved against the NEW objects,
+    " and the binding they carried stays
+    DATA(lr_attri) = mo_model->main_attri_search( mo_app->mr_elem ).
+    cl_abap_unit_assert=>assert_equals( exp = `MR_ELEM->*`
+                                        act = lr_attri->name ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lr_attri->bind ).
+    lr_attri = mo_model->main_attri_search( REF #( mo_app->mo_inner->mv_inner ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_INNER->MV_INNER`
+                                        act = lr_attri->name ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lr_attri->bind ).
+
+    " the model reads the new objects
+    DATA(lv_model) = mo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_model CS `"elem-new"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_model CS `"inner-new"` ) ).
+
+    " the objects the render replaced are nobody's attribute any more: a
+    " named error, never the stale row
+    TRY.
+        mo_model->main_attri_search( lr_old_elem ).
+        cl_abap_unit_assert=>fail( `the replaced data object must not bind` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `BINDING_ERROR` ) ).
+    ENDTRY.
+    TRY.
+        mo_model->main_attri_search( REF #( lo_old_inner->mv_inner ) ).
+        cl_abap_unit_assert=>fail( `the replaced helper must not bind` ).
+      CATCH z2ui5_cx_ui5_util_error INTO lx.
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `BINDING_ERROR` ) ).
+    ENDTRY.
+
+    " ...and the refresh those misses ran left the bindings in place
+    inv_search_finds_bound( ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 
@@ -4965,6 +5028,10 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS delta_trace              FOR TESTING RAISING cx_static_check.
     " a table kind that takes no row delta
     METHODS delta_sorted_refused     FOR TESTING RAISING cx_static_check.
+    " a delta over many rows with a refused cell and a refused nested table
+    " in the middle: every good cell lands, the refused ones keep their
+    " values and are traced, nothing else is touched
+    METHODS delta_mass_edit          FOR TESTING RAISING cx_static_check.
 
     METHODS typed_app
       RETURNING
@@ -5415,6 +5482,82 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD delta_mass_edit.
+
+    DATA(lo_app) = NEW ltcl_app_typed( ).
+    DO 6 TIMES.
+      APPEND VALUE #( name     = |row-{ sy-index }|
+                      price    = sy-index * 100
+                      t_pos    = VALUE #( ( qty = sy-index ) )
+                      t_sorted = VALUE #( ( qty = 1 ) ) ) TO lo_app->mt_tab.
+    ENDDO.
+    DATA(lo_model) = typed_model( lo_app ).
+
+    " the select-all shape: one cell in every row - plus a price that does
+    " not convert in the third, a nested standard-table cell under the
+    " fourth and a nested SORTED table under the fifth
+    DATA(lv_json) = `{"__delta":{`.
+    DO 6 TIMES.
+      IF sy-index > 1.
+        lv_json = lv_json && `,`.
+      ENDIF.
+      lv_json = lv_json && |"{ sy-index - 1 }":\{"NAME":"edited-{ sy-index }"|.
+      CASE sy-index.
+        WHEN 3.
+          lv_json = lv_json && `,"PRICE":"1,250.00"`.
+        WHEN 4.
+          lv_json = lv_json && `,"T_POS":{"__delta":{"0":{"QTY":"9"}}}`.
+        WHEN 5.
+          lv_json = lv_json && `,"T_SORTED":{"__delta":{"0":{"QTY":"5"}}}`.
+        WHEN OTHERS.
+          lv_json = lv_json && |,"PRICE":"{ sy-index * 10 }.50"|.
+      ENDCASE.
+      lv_json = lv_json && `}`.
+    ENDDO.
+    lv_json = lv_json && `}}`.
+
+    lo_model->delta_apply_to_table( io_val_front = delta( lv_json )
+                                    iv_name      = `MT_TAB` ).
+
+    " every name landed, the good prices too
+    DO 6 TIMES.
+      cl_abap_unit_assert=>assert_equals( exp = |edited-{ sy-index }|
+                                          act = lo_app->mt_tab[ sy-index ]-name ).
+    ENDDO.
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '10.50' )
+                                        act = CONV decfloat34( lo_app->mt_tab[ 1 ]-price ) ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '60.50' )
+                                        act = CONV decfloat34( lo_app->mt_tab[ 6 ]-price ) ).
+    " the refused price keeps its value - the good name in the SAME row was
+    " written
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '300' )
+                                        act = CONV decfloat34( lo_app->mt_tab[ 3 ]-price ) ).
+    " the nested standard table took its cell, the nested sorted one did not
+    cl_abap_unit_assert=>assert_equals( exp = 9
+                                        act = lo_app->mt_tab[ 4 ]-t_pos[ 1 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_app->mt_tab[ 5 ]-t_sorted[ 1 ]-qty ).
+    " a cell the delta did not name is untouched, and no row came or went
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_app->mt_tab[ 2 ]-t_pos[ 1 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = 6
+                                        act = lines( lo_app->mt_tab ) ).
+
+    " exactly the two refusals are traced, each naming its cell
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ name  = `MT_TAB`
+                                                                                 row   = 3
+                                                                                 field = `PRICE`
+                                                                                 value = `1,250.00` ] ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ name       = `MT_TAB-T_SORTED`
+                                                                                 row        = 1
+                                                                                 row_parent = 5
+                                                                                 field      = `QTY`
+                                                                                 value      = `5` ] ) ) ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 
@@ -5455,6 +5598,16 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS interface_and_obj_table  FOR TESTING RAISING cx_static_check.
     " S13 - skipped in Node (CREATE DATA ... TYPE REF TO data)
     METHODS dref_chain_survives      FOR TESTING RAISING cx_static_check.
+    " the LIVE instance across two roundtrips, no draft read in between (a
+    " sticky session): main( ) creates its references again - the same type,
+    " and another one - and the next render, model and draft follow
+    METHODS live_recreated_same_type   FOR TESTING RAISING cx_static_check.
+    METHODS live_recreated_other_type  FOR TESTING RAISING cx_static_check.
+    " a save that no main( ) preceded changes neither the rows nor the data
+    METHODS save_without_main_is_noop  FOR TESTING RAISING cx_static_check.
+    " a helper created late, holding a reference INTO the app: bound after
+    " the fact it binds as the owner, and the save keeps it that way
+    METHODS late_alias_survives_save   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -6015,4 +6168,198 @@ CLASS ltcl_05_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD live_recreated_same_type.
+
+    FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>  TYPE any.
+    FIELD-SYMBOLS <elem> TYPE any.
+    DATA ls_sel TYPE ltcl_app_shapes=>ty_s_row_sel.
+    DATA lr_new TYPE REF TO data.
+
+    " roundtrip 1 on the live instance
+    bind_all( ).
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_db_load( ).
+
+    " main( ) of roundtrip 2: the three references to the shared table are
+    " pointed at a NEW table of the same line type, the elementary
+    " reference is created again - no draft was read, the rows stay
+    DATA(lo_tab) = CAST cl_abap_tabledescr( z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( mo_app->mr_shared_a ) ).
+    CREATE DATA lr_new TYPE HANDLE lo_tab.
+    ASSIGN lr_new->* TO <tab>.
+    ls_sel-col1 = `re-created`.
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    MOVE-CORRESPONDING ls_sel TO <row>.
+    mo_app->mr_shared_a = lr_new.
+    mo_app->mr_shared_b = lr_new.
+    mo_app->mo_inner->mr_shared = lr_new.
+    CREATE DATA mo_app->mr_elem TYPE string.
+    ASSIGN mo_app->mr_elem->* TO <elem>.
+    <elem> = `elem-2`.
+
+    " the render binds them again: the canonical row and the deref row as
+    " before, resolved against the new objects
+    DATA(lr_shared) = bind( mo_app->mo_inner->mr_shared ).
+    cl_abap_unit_assert=>assert_equals( exp = `MR_SHARED_B->*`
+                                        act = lr_shared->name ).
+    DATA(lr_elem) = bind( mo_app->mr_elem ).
+    cl_abap_unit_assert=>assert_equals( exp = `MR_ELEM->*`
+                                        act = lr_elem->name ).
+    DATA(lv_changed) = mo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_changed CS `"re-created"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_changed CS `"elem-2"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_changed CS `"shared"` ) ).
+
+    " the draft of roundtrip 2, restored in place: the new data, the three
+    " references one object again
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_db_load( ).
+    inv_all( lv_changed ).
+    ASSIGN mo_app->mr_shared_a->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( <tab> ) ).
+    ASSIGN mo_app->mr_elem->* TO <elem>.
+    cl_abap_unit_assert=>assert_equals( exp = `elem-2`
+                                        act = <elem> ).
+
+    " ...and read into a new instance
+    roundtrip( ).
+    inv_all( lv_changed ).
+    ASSIGN mo_app->mr_shared_a->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( <tab> ) ).
+
+  ENDMETHOD.
+
+  METHOD live_recreated_other_type.
+
+    FIELD-SYMBOLS <elem> TYPE any.
+
+    bind_all( ).
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_db_load( ).
+
+    " main( ) of roundtrip 2: the elementary reference is created again
+    " with ANOTHER type - the row MR_ELEM->* still describes a string
+    CREATE DATA mo_app->mr_elem TYPE i.
+    ASSIGN mo_app->mr_elem->* TO <elem>.
+    <elem> = 7.
+
+    " the render binds it: the row, not a dump on the stale description,
+    " described as what it is now, the binding it carried kept
+    DATA(lr_attri) = bind( mo_app->mr_elem ).
+    cl_abap_unit_assert=>assert_equals( exp = `MR_ELEM->*`
+                                        act = lr_attri->name ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>typekind_int
+                                        act = lr_attri->type_kind ).
+    DATA(lv_changed) = mo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_changed CS `"MR_ELEM_D":7` ) ).
+
+    " the draft of that roundtrip brings the integer back, as an integer
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_db_load( ).
+    inv_all( lv_changed ).
+    ASSIGN mo_app->mr_elem->* TO <elem>.
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = <elem> ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>typekind_int
+                                        act = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <elem> ) ).
+
+    roundtrip( ).
+    inv_all( lv_changed ).
+    ASSIGN mo_app->mr_elem->* TO <elem>.
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = <elem> ).
+
+  ENDMETHOD.
+
+  METHOD save_without_main_is_noop.
+
+    bind_all( ).
+    DATA(lv_before) = mo_model->main_json_stringify( ).
+
+    mo_model->main_attri_db_save_srtti( ).
+    DATA(lv_payloads_1) = 0.
+    LOOP AT mr_attri->* TRANSPORTING NO FIELDS WHERE srtti_data IS NOT INITIAL. "#EC CI_SORTSEQ
+      lv_payloads_1 = lv_payloads_1 + 1.
+    ENDLOOP.
+    mo_model->main_attri_db_load( ).
+    DATA(lt_rows) = mr_attri->*.
+
+    " a second save right away - nothing ran on the app in between
+    mo_model->main_attri_db_save_srtti( ).
+    DATA(lv_payloads_2) = 0.
+    LOOP AT mr_attri->* TRANSPORTING NO FIELDS WHERE srtti_data IS NOT INITIAL. "#EC CI_SORTSEQ
+      lv_payloads_2 = lv_payloads_2 + 1.
+    ENDLOOP.
+    mo_model->main_attri_db_load( ).
+
+    " the same payloads, the same rows: names, owners, bindings, client
+    " names, kinds - and the same model and data behind them
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_payloads_1 > 0 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_payloads_1
+                                        act = lv_payloads_2 ).
+    cl_abap_unit_assert=>assert_equals( exp = lines( lt_rows )
+                                        act = lines( mr_attri->* ) ).
+    LOOP AT lt_rows REFERENCE INTO DATA(lr_old).
+      DATA(lr_now) = row_ref( lr_old->name ).
+      cl_abap_unit_assert=>assert_equals( exp = lr_old->name_ref
+                                          act = lr_now->name_ref
+                                          msg = |name_ref of { lr_old->name } changed| ).
+      cl_abap_unit_assert=>assert_equals( exp = lr_old->name_parent
+                                          act = lr_now->name_parent ).
+      cl_abap_unit_assert=>assert_equals( exp = lr_old->bind
+                                          act = lr_now->bind ).
+      cl_abap_unit_assert=>assert_equals( exp = lr_old->name_client
+                                          act = lr_now->name_client ).
+      cl_abap_unit_assert=>assert_equals( exp = lr_old->type_kind
+                                          act = lr_now->type_kind ).
+    ENDLOOP.
+    inv_all( lv_before ).
+
+  ENDMETHOD.
+
+  METHOD late_alias_survives_save.
+
+    bind_all( ).
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_db_load( ).
+
+    " main( ): the chain grows by one helper that points INTO the app -
+    " created after the rows were dissolved, so no row knows it yet
+    DATA(lo_late) = NEW ltcl_shp_inner( ).
+    lo_late->mv_inner  = `late`.
+    lo_late->mr_shared = REF #( mo_app->mt_std ).
+    mo_app->mo_inner->mo_deeper->mo_deeper = lo_late.
+
+    " the render binds the helper's value and the table through its
+    " reference: the value as its own row, the table as the OWNER's
+    DATA(lr_value) = bind( REF #( lo_late->mv_inner ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_INNER->MO_DEEPER->MO_DEEPER->MV_INNER`
+                                        act = lr_value->name ).
+    DATA(lr_table) = mo_model->main_attri_search( lo_late->mr_shared ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_STD`
+                                        act = lr_table->name ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_STD`
+                                        act = row( `MO_INNER->MO_DEEPER->MO_DEEPER->MR_SHARED->*` )-name_ref ).
+    DATA(lv_changed) = mo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_changed CS `"late"` ) ).
+
+    " the save keeps the alias an alias: restored in place and from a new
+    " instance it points INTO mt_std again, not at a copy
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_db_load( ).
+    inv_all( lv_changed ).
+    DATA(lr_std) = REF #( mo_app->mt_std ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_app->mo_inner->mo_deeper->mo_deeper->mr_shared = lr_std ) ).
+
+    roundtrip( ).
+    inv_all( lv_changed ).
+    lr_std = REF #( mo_app->mt_std ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_app->mo_inner->mo_deeper->mo_deeper->mr_shared = lr_std ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `late`
+                                        act = mo_app->mo_inner->mo_deeper->mo_deeper->mv_inner ).
+
+  ENDMETHOD.
 ENDCLASS.

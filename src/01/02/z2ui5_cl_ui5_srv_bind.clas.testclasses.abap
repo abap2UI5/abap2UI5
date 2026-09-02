@@ -915,6 +915,10 @@ CLASS ltcl_02_cell DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS foreign_value_refused   FOR TESTING RAISING cx_static_check.
     " a table of strings has no component to bind a cell of
     METHODS elementary_row_refused  FOR TESTING RAISING cx_static_check.
+    " one render, one service: cells of two tables in turn, and a cell of
+    " the runtime-built table after main( ) created that table again
+    METHODS cells_of_two_tables     FOR TESTING RAISING cx_static_check.
+    METHODS cell_after_recreate     FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1024,6 +1028,76 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD cells_of_two_tables.
+
+    FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
+
+    DATA(lr_helper_row) = REF #( mo_app->mo_obj->mt_tab[ 1 ] ).
+    ASSIGN lr_helper_row->* TO <row>.
+
+    " app table, helper table, app table again - each answer names ITS table
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/0/NAME}`
+                                        act = bind( ir_val    = cell_name( 1 )
+                                                    is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
+                                                                         tab_index = 1 ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `{/MO_OBJ/MT_TAB/0/NAME}`
+                                        act = bind( ir_val    = REF #( <row>-name )
+                                                    is_config = VALUE #( tab       = REF #( mo_app->mo_obj->mt_tab )
+                                                                         tab_index = 1 ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/1/NAME}`
+                                        act = bind( ir_val    = cell_name( 2 )
+                                                    is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
+                                                                         tab_index = 2 ) ) ).
+    " the two tables hold equal rows (fill copies the one into the other):
+    " the helper's cell handed in with the APP's table is a foreign value,
+    " not a match by content
+    expect_bind_error( ir_val    = REF #( <row>-name )
+                       is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
+                                            tab_index = 1 )
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
+
+  ENDMETHOD.
+
+  METHOD cell_after_recreate.
+
+    FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>  TYPE any.
+    FIELD-SYMBOLS <name> TYPE any.
+
+    " a cell of the runtime-built table, as it is
+    ASSIGN mo_app->mr_tab->* TO <tab>.
+    ASSIGN <tab>[ 2 ] TO <row>.
+    ASSIGN COMPONENT `NAME` OF STRUCTURE <row> TO <name>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = `{/MR_TAB/*/1/NAME}`
+                                        act = bind( ir_val    = REF #( <name> )
+                                                    is_config = VALUE #( tab       = mo_app->mr_tab
+                                                                         tab_index = 2 ) ) ).
+    DATA(lr_old)      = mo_app->mr_tab.
+    DATA(lr_old_cell) = REF #( <name> ).
+
+    " main( ) creates the table again - a new object under the same name,
+    " one row - and binds a cell of it on the SAME service
+    DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( mo_app->mt_tab ) ).
+    CREATE DATA mo_app->mr_tab TYPE HANDLE lo_tab.
+    ASSIGN mo_app->mr_tab->* TO <tab>.
+    APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+    ASSIGN COMPONENT `NAME` OF STRUCTURE <row> TO <name>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <name> = `re-created`.
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MR_TAB/*/0/NAME}`
+                                        act = bind( ir_val    = REF #( <name> )
+                                                    is_config = VALUE #( tab       = mo_app->mr_tab
+                                                                         tab_index = 1 ) ) ).
+    " ...and a cell of the old table object is nobody's attribute
+    expect_bind_error( ir_val    = lr_old_cell
+                       is_config = VALUE #( tab       = lr_old
+                                            tab_index = 2 )
+                       iv_text   = `BINDING_ERROR` ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 

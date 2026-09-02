@@ -197,6 +197,96 @@ CLASS ltcl_app_popup_caller IMPLEMENTATION.
 ENDCLASS.
 
 
+" a popup app that is handed its CALLER (the `factory( app = me )` shape of
+" the samples) and reads the caller's runtime-built table through that
+" reference while the caller sits on the stack - saved a moment ago, its
+" generic references detached for the draft and put back
+CLASS ltcl_app_dref_caller DEFINITION DEFERRED.
+
+CLASS ltcl_app_dref_popup DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mo_caller      TYPE REF TO ltcl_app_dref_caller.
+    DATA mv_from_caller TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_dref_caller DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+      END OF ty_s_row.
+    " a table of a line type built at runtime - only S-RTTI carries it
+    " through the draft, so the save detaches it and the restore brings it
+    " back
+    DATA mr_tab TYPE REF TO data.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_dref_popup IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>  TYPE any.
+    FIELD-SYMBOLS <name> TYPE any.
+    IF client->check_on_init( ).
+      " the caller was saved by the hop that opened this app - its table
+      " has to be there to read
+      ASSIGN mo_caller->mr_tab->* TO <tab>.
+      ASSIGN <tab>[ 2 ] TO <row>.
+      ASSIGN COMPONENT `NAME` OF STRUCTURE <row> TO <name>.
+      IF sy-subrc = 0.
+        mv_from_caller = <name>.
+      ENDIF.
+      client->popup_display( |<Dialog><Text text="{ client->_bind( mv_from_caller ) }"/></Dialog>| ).
+    ELSEIF client->check_on_event( `CLOSE` ).
+      client->popup_destroy( ).
+      client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS ltcl_app_dref_caller IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE any.
+    DATA ls_row TYPE ty_s_row.
+    IF client->check_on_init( ).
+      " an anonymous line type from the components of a known one - what
+      " S-RTTI can rebuild without a type name (see ltcl_app_shapes)
+      DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_row ) ).
+      DATA(lt_comp) = lo_line->get_components( ).
+      DATA(lo_struc) = cl_abap_structdescr=>create( lt_comp ).
+      DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = lo_struc
+                                                 p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+      CREATE DATA mr_tab TYPE HANDLE lo_tab.
+      ASSIGN mr_tab->* TO <tab>.
+      ls_row-name = `one`.
+      APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+      MOVE-CORRESPONDING ls_row TO <row>.
+      ls_row-name = `two`.
+      APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
+      MOVE-CORRESPONDING ls_row TO <row>.
+      client->view_display( |<mvc:View><Table items="{ client->_bind( <tab> ) }"/></mvc:View>| ).
+    ELSEIF client->check_on_navigated( ).
+      ASSIGN mr_tab->* TO <tab>.
+      client->view_display( |<mvc:View><Table items="{ client->_bind( <tab> ) }"/></mvc:View>| ).
+    ELSEIF client->check_on_event( `OPEN` ).
+      DATA(lo_popup) = NEW ltcl_app_dref_popup( ).
+      lo_popup->mo_caller = me.
+      client->nav_app_call( lo_popup ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 " OBSOLETE - ltcl_test_popup_call: its tests moved unchanged into ltcl_04_nav
 " (popup_app_answers_alone, silent_popup_app_no_model, way_back_reads_popup_app),
 " its helpers into ltcl_00_base (event_on, check_display) and ltcl_04_nav
@@ -1740,6 +1830,9 @@ CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
     " a caller of class X calls an instance of class X: two drafts, two
     " responses, and the way back shows the outer's own values
     METHODS same_class_twice_in_stack FOR TESTING RAISING cx_static_check.
+    " a popup app handed its caller reads the caller's runtime-built table
+    " while the caller is on the stack
+    METHODS popup_reads_caller_table FOR TESTING RAISING cx_static_check.
 
     " roundtrip 1: the popup caller's first render, saved as a draft
     METHODS caller_started
@@ -1852,4 +1945,30 @@ CLASS ltcl_04_nav IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD popup_reads_caller_table.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_dref_caller( ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_start->ms_response-model CS `"two"` ) ).
+
+    " the hop saves the caller - its generic reference is detached for the
+    " draft and has to be back before the popup app runs
+    DATA(lo_popup) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                               iv_event = `OPEN` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_popup->ms_response-s_front-app CS `DREF_POPUP` ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_popup
+                                                     iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_popup->ms_response-model CS `"MV_FROM_CALLER":"two"` )
+                                      msg = `the popup app could not read the caller's table` ).
+
+    " the way back: the caller renders its table again, both rows
+    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+                              iv_event = `CLOSE` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `DREF_CALLER` ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_back
+                                                     iv_slot    = z2ui5_if_client=>cs_view-main ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"one"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"two"` ) ).
+
+  ENDMETHOD.
 ENDCLASS.
