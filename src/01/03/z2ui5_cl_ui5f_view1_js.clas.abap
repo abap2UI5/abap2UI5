@@ -79,7 +79,10 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            await this._runSystemActions(oResponse, seq);` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          if (Lib.isDestroyed(this) || oResponse !== AppState.state.oResponse) {` && |\n| &&
+             `          if (` && |\n| &&
+             `            !Lib.isControllerAlive(this) ||` && |\n| &&
+             `            oResponse !== AppState.state.oResponse` && |\n| &&
+             `          ) {` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -102,6 +105,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          AppState.state.isBusy = false;` && |\n| &&
              `` && |\n| &&
              `          this._runPendingCustomJs(oResponse);` && |\n| &&
+             `` && |\n| &&
+             `          Router.dispatchPendingAppHash();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -109,7 +114,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        const systemJs = oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `        if (!systemJs) return;` && |\n| &&
              `        for (const item of systemJs) {` && |\n| &&
-             `          if (Lib.isDestroyed(this) || seq !== Server._requestSeq) return;` && |\n| &&
+             `          if (!Lib.isControllerAlive(this) || seq !== Server._requestSeq)` && |\n| &&
+             `            return;` && |\n| &&
              `          await FrontendAction.runSystem(item, this, {` && |\n| &&
              `            seq,` && |\n| &&
              `            response: oResponse,` && |\n| &&
@@ -121,7 +127,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        const customJs = oResponse?._pendingCustomJs;` && |\n| &&
              `        if (oResponse) oResponse._pendingCustomJs = null;` && |\n| &&
              `        if (!customJs) return;` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        if (!Lib.isControllerAlive(this)) return;` && |\n| &&
              `        for (const item of customJs) {` && |\n| &&
              `          FrontendAction.runCustom(item, this);` && |\n| &&
              `        }` && |\n| &&

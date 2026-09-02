@@ -132,8 +132,23 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
              `` && |\n| &&
              `          input.addValidator((args) => {` && |\n| &&
-             `            const row = args && args.suggestionObject;` && |\n| &&
-             `            if (row) return this.tokenFromRow(row);` && |\n| &&
+             `            const picked = args && args.suggestionObject;` && |\n| &&
+             `            if (picked && typeof picked.getCells === "function") {` && |\n| &&
+             `              return this.tokenFromRow(picked);` && |\n| &&
+             `            }` && |\n| &&
+             `            if (picked) {` && |\n| &&
+             `              if (args.suggestedToken) return args.suggestedToken;` && |\n| &&
+             `              return new Token({` && |\n| &&
+             `                key:` && |\n| &&
+             `                  typeof picked.getKey === "function"` && |\n| &&
+             `                    ? picked.getKey()` && |\n| &&
+             `                    : args.text,` && |\n| &&
+             `                text:` && |\n| &&
+             `                  typeof picked.getText === "function"` && |\n| &&
+             `                    ? picked.getText()` && |\n| &&
+             `                    : args.text,` && |\n| &&
+             `              });` && |\n| &&
+             `            }` && |\n| &&
              `            return new Token({ key: args.text, text: args.text });` && |\n| &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&

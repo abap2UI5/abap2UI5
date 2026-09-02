@@ -80,7 +80,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `          this._filterBinding = binding;` && |\n| &&
              `` && |\n| &&
              `          this.aFilters = binding?.getFilters` && |\n| &&
-             `            ? binding.getFilters("Application")` && |\n| &&
+             `            ? binding.getFilters("Control")` && |\n| &&
              `            : binding?.aFilters;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("UITableExt.readFilter failed", e);` && |\n| &&

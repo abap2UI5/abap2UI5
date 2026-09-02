@@ -117,7 +117,7 @@ sap.ui.define(
           // switch clears the registry, an in-app teardown does not) must
           // not dispatch into a destroyed controller - same guard as
           // ViewOps.evStartTimer
-          if (Lib.isDestroyed(entry.controller)) return;
+          if (!Lib.isControllerAlive(entry.controller)) return;
           // the browser's own default for the combo (Ctrl+S saves the page,
           // Ctrl+D bookmarks it) must not fire alongside the app command
           oEvent.preventDefault();

@@ -108,7 +108,7 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `          const entry = shortcutEntry(shortcutFromEvent(oEvent));` && |\n| &&
              `          if (!entry) return;` && |\n| &&
              `` && |\n| &&
-             `          if (Lib.isDestroyed(entry.controller)) return;` && |\n| &&
+             `          if (!Lib.isControllerAlive(entry.controller)) return;` && |\n| &&
              `` && |\n| &&
              `          oEvent.preventDefault();` && |\n| &&
              `          entry.controller.eB([entry.event]);` && |\n| &&

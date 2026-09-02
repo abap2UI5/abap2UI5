@@ -288,10 +288,32 @@ sap.ui.define(
       if (!state.hashEvent) return;
       const appHash = appHashNormalized(sNewHash);
       if (appHash === state.appHash) return;
-      state.appHash = appHash;
       const controller = state.oController;
-      if (!controller || Lib.isDestroyed(controller)) return;
+      if (!controller || !Lib.isControllerAlive(controller)) return;
+      // A roundtrip in flight: View1.eB drops an ordinary event on its busy
+      // guard. The hash used to be adopted BEFORE that dispatch, so the drop
+      // was final - the URL said the new page, the app still showed the old
+      // one, and no later change re-dispatched it (Back during a click was
+      // enough). Park it instead; the roundtrip's end delivers it through
+      // dispatchPendingAppHash. Only the LAST change matters: a browser
+      // that went Back twice meanwhile lands on the second.
+      if (state.isBusy) {
+        state.pendingAppHash = sNewHash;
+        return;
+      }
+      state.pendingAppHash = null;
+      state.appHash = appHash;
       controller.eB([state.hashEvent]);
+    }
+
+    // The write side of the parking above: called once a roundtrip has
+    // landed (View1._processAfterRendering, after isBusy went false).
+    function dispatchPendingAppHash() {
+      const state = AppState.state;
+      const pending = state.pendingAppHash;
+      if (pending === null || pending === undefined) return;
+      state.pendingAppHash = null;
+      dispatchAppHashChange(pending);
     }
 
     // ------------------------------------------------------------------
@@ -551,6 +573,7 @@ sap.ui.define(
       navTo,
       navBack,
       onHashChanged,
+      dispatchPendingAppHash,
       sync,
     };
   },

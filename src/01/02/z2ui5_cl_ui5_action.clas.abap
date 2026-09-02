@@ -6,6 +6,13 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
 
     DATA ms_actual  TYPE z2ui5_if_ui5_types=>ty_s_actual.
     DATA ms_next    TYPE z2ui5_if_ui5_types=>ty_s_next.
+    " the sticky state the REQUEST started in - what set_session_stateful
+    " compares the end state against. It is a property of the request, not
+    " of an app container: a nav hop builds a fresh container (mv_check_sticky
+    " abap_false) while the ICF session is still whatever it was, so the
+    " value is taken from the container the request began with and carried
+    " through prepare_app_stack like the switch itself
+    DATA mv_check_sticky_start TYPE abap_bool.
 
     METHODS factory_system_startup
       RETURNING
@@ -63,6 +70,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     result->mo_app->ms_draft-id      = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_front-id.
+    result->mv_check_sticky_start    = result->mo_app->mv_check_sticky.
 
     IF mo_handler->ms_request-o_model->is_empty( ) = abap_false.
       " what the delta could not convert travels on the action, not on the
@@ -88,6 +96,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
           TRY.
 
               result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_handler->ms_request-s_control-app_start_draft ).
+              result->mv_check_sticky_start = result->mo_app->mv_check_sticky.
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_nav-set_app_state_active = abap_true.
               " on the app as well, not only on this request: ms_next is
@@ -275,6 +284,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " leak it into the called app's response
     CLEAR result->ms_next-s_nav-set_nav_routing.
     result->ms_next-s_stateful = ms_next-s_stateful.
+    result->mv_check_sticky_start = mv_check_sticky_start.
 
     IF ms_next-next_event IS NOT INITIAL.
       result->ms_actual-event = ms_next-next_event.

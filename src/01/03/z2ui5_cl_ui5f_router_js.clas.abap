@@ -165,10 +165,24 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      if (!state.hashEvent) return;` && |\n| &&
              `      const appHash = appHashNormalized(sNewHash);` && |\n| &&
              `      if (appHash === state.appHash) return;` && |\n| &&
-             `      state.appHash = appHash;` && |\n| &&
              `      const controller = state.oController;` && |\n| &&
-             `      if (!controller || Lib.isDestroyed(controller)) return;` && |\n| &&
+             `      if (!controller || !Lib.isControllerAlive(controller)) return;` && |\n| &&
+             `` && |\n| &&
+             `      if (state.isBusy) {` && |\n| &&
+             `        state.pendingAppHash = sNewHash;` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      state.pendingAppHash = null;` && |\n| &&
+             `      state.appHash = appHash;` && |\n| &&
              `      controller.eB([state.hashEvent]);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function dispatchPendingAppHash() {` && |\n| &&
+             `      const state = AppState.state;` && |\n| &&
+             `      const pending = state.pendingAppHash;` && |\n| &&
+             `      if (pending === null || pending === undefined) return;` && |\n| &&
+             `      state.pendingAppHash = null;` && |\n| &&
+             `      dispatchAppHashChange(pending);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function repointCallerEntry(mOptions, draftForRoute) {` && |\n| &&
@@ -315,6 +329,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      navTo,` && |\n| &&
              `      navBack,` && |\n| &&
              `      onHashChanged,` && |\n| &&
+             `      dispatchPendingAppHash,` && |\n| &&
              `      sync,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

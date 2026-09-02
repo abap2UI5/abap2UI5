@@ -559,6 +559,60 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 ENDCLASS.
 
 
+CLASS ltcl_test_app_root5 DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+
+    " an anonymous ELEMENTARY data object - CREATE DATA ... TYPE string.
+    " Neither a table nor a structure, so the dref save path used to skip
+    " it and the value was gone after the first db_save
+    DATA mr_value TYPE REF TO data.
+    METHODS test_elem_ref_survives FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_app_root5 IMPLEMENTATION.
+
+  METHOD test_elem_ref_survives.
+
+    DATA(lo_app) = NEW ltcl_test_app_root5( ).
+
+    CREATE DATA lo_app->mr_value TYPE string.
+    FIELD-SYMBOLS <value> TYPE string.
+    ASSIGN lo_app->mr_value->* TO <value>.
+    <value> = `abc`.
+
+    DATA(lt_attri) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mr_value ).
+    cl_abap_unit_assert=>assert_equals( exp = `MR_VALUE->*`
+                                        act = ls_attri->name ).
+
+    lo_model->main_attri_db_save_srtti( ).
+
+    " the reference is detached from the serialization by the save...
+    cl_abap_unit_assert=>assert_not_bound( lo_app->mr_value ).
+
+    " ...and comes back, value and all, on the load into a new instance
+    lo_app = NEW ltcl_test_app_root5( ).
+    lo_model = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                            app  = lo_app ).
+    lo_model->main_attri_db_load( ).
+
+    cl_abap_unit_assert=>assert_bound( lo_app->mr_value ).
+    ASSIGN lo_app->mr_value->* TO <value>.
+    cl_abap_unit_assert=>assert_equals( exp = `abc`
+                                        act = <value> ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test_diss_complex DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_test_diss_complex.
 
@@ -1396,6 +1450,10 @@ CLASS ltcl_app_typed DEFINITION FINAL
         name  TYPE string,
         price TYPE p LENGTH 9 DECIMALS 2,
         t_pos TYPE ty_t_pos,
+        " the three kinds whose wire form is ISO text, not their ABAP form
+        dt    TYPE d,
+        tm    TYPE t,
+        ts    TYPE timestamp,
       END OF ty_s_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
@@ -1423,6 +1481,9 @@ CLASS ltcl_test_delta_apply DEFINITION FINAL
     " the trace of a cell the delta could not apply - see
     " z2ui5_if_client=>ty_s_model_skip
     METHODS test_skip_cell_converts FOR TESTING RAISING cx_static_check.
+    " a d/t/timestamp cell arrives in the ISO spelling ajson wrote it in
+    METHODS test_cell_iso_date_time  FOR TESTING RAISING cx_static_check.
+    METHODS test_cell_plain_date     FOR TESTING RAISING cx_static_check.
     METHODS test_skip_cell_refused  FOR TESTING RAISING cx_static_check.
     METHODS test_skip_one_of_two    FOR TESTING RAISING cx_static_check.
     METHODS test_skip_absent_field  FOR TESTING RAISING cx_static_check.
@@ -1641,6 +1702,62 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1250.00' )
                                         act = CONV decfloat34( lo_app->mt_tab[ 1 ]-price ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD test_cell_iso_date_time.
+
+    DATA(lo_app) = typed_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " exactly what the model holds after the outbound serialization - a
+    " DatePicker with valueFormat yyyy-MM-dd edits the value in this form
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"DT":"2024-01-15","TM":"12:30:45","TS":"2024-01-15T12:30:45Z"}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TAB` ).
+
+    DATA lv_date TYPE d.
+    lv_date = '20240115'.
+    DATA lv_time TYPE t.
+    lv_time = '123045'.
+    DATA lv_ts TYPE timestamp.
+    lv_ts = '20240115123045'.
+    cl_abap_unit_assert=>assert_equals( exp = lv_date
+                                        act = lo_app->mt_tab[ 1 ]-dt ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_time
+                                        act = lo_app->mt_tab[ 1 ]-tm ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_ts
+                                        act = lo_app->mt_tab[ 1 ]-ts ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD test_cell_plain_date.
+
+    DATA(lo_app) = typed_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
+                                                  app  = lo_app ).
+
+    " a value that never went through ajson's formatting keeps the direct
+    " assignment, and a cleared cell clears the field
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"DT":"20240115","TM":""}}}` ) ).
+    lo_app->mt_tab[ 1 ]-tm = '120000'.
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TAB` ).
+
+    DATA lv_date TYPE d.
+    lv_date = '20240115'.
+    cl_abap_unit_assert=>assert_equals( exp = lv_date
+                                        act = lo_app->mt_tab[ 1 ]-dt ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-tm ).
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
   ENDMETHOD.

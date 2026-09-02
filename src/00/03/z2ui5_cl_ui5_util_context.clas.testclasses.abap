@@ -13,6 +13,9 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_url_param_case       FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_no_phantom FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_startup    FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_encoded    FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_question   FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_full_url   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -134,6 +137,56 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = 1
         act = lines( z2ui5_cl_ui5_util_context=>url_param_get_tab( `?a=1&` ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_param_encoded.
+
+    " a percent-encoded & or = inside a value is that value's own - only
+    " the sap-startup-params wrapper is decoded, nothing else is split
+    DATA(lt_params) = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?a=x%26y&b=1%3D2` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_params ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `x%26y`
+                                        act = lt_params[ n = `a` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `1%3D2`
+                                        act = lt_params[ n = `b` ]-v ).
+
+    " ...and a parameter AFTER the wrapper is still a parameter of its own
+    lt_params = z2ui5_cl_ui5_util_context=>url_param_get_tab(
+                    `?sap-startup-params=app_start%3Dfoo%26x%3D1&sap-ui-theme=dark` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `foo`
+                                        act = lt_params[ n = `app_start` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `1`
+                                        act = lt_params[ n = `x` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `dark`
+                                        act = lt_params[ n = `sap-ui-theme` ]-v ).
+
+  ENDMETHOD.
+
+  METHOD test_url_param_question.
+
+    " a literal ? in a value is legal and left unencoded by browsers - it
+    " must not cut away the parameters before it
+    DATA(lt_params) = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?app_start=zcl_x&title=why?` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `zcl_x`
+                                        act = lt_params[ n = `app_start` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `why?`
+                                        act = lt_params[ n = `title` ]-v ).
+
+  ENDMETHOD.
+
+  METHOD test_url_param_full_url.
+
+    " a request URI / full URL: the path before the query is not a parameter
+    cl_abap_unit_assert=>assert_equals(
+        exp = `zcl_x`
+        act = z2ui5_cl_ui5_util_context=>url_param_get(
+                  val = `app_start`
+                  url = `/sap/bc/z2ui5?app_start=zcl_x&b=2` ) ).
 
   ENDMETHOD.
 

@@ -140,6 +140,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    METHODS delta_apply_scalar
+      IMPORTING
+        io_delta TYPE REF TO z2ui5_if_ajson
+        iv_path  TYPE string
+        ir_comp  TYPE REF TO data
+      RAISING
+        z2ui5_cx_ajson_error.
+
 ENDCLASS.
 
 
@@ -452,6 +460,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1 OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
           lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
+
+        WHEN OTHERS.
+          " an ELEMENTARY deref (CREATE DATA mr TYPE string / i / ...) is
+          " neither a table (one dissolved child, above) nor a structure and
+          " used to fall through this CASE: the loop below then cleared the
+          " reference and nothing ever restored it, so a bound `mr->*` was
+          " gone after the first roundtrip - in memory and in the draft.
+          " Same stringify as the struct branch, restored the same way by
+          " main_attri_db_load_resolve. A deref that is itself a reference
+          " is left alone: S-RTTI cannot serialize it, and clearing it is
+          " what happened before
+          IF lo_descr->kind = z2ui5_cl_ui5_util_context=>cv_typedescr_kind_elem.
+            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
+          ENDIF.
 
       ENDCASE.
 
@@ -957,6 +979,55 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD delta_apply_scalar.
+
+    FIELD-SYMBOLS <comp> TYPE any.
+    ASSIGN ir_comp->* TO <comp>.
+
+    " numbers intentionally go through get_string: the raw JSON text
+    " converts losslessly into any numeric target type, while get_number
+    " would round through a binary float first
+    DATA(lv_value) = io_delta->get_string( iv_path ).
+
+    " Outbound, ajson writes a d as `2024-01-15`, a t as `12:30:00` and a
+    " timestamp as `2024-01-15T12:30:00Z` (its own format_date/_time/
+    " _timestamp), and the whole-attribute path (to_abap) parses those
+    " forms back. A delta cell assigned the raw text instead: the c->d
+    " conversion copies the first eight characters WITHOUT validation, so
+    " `2024-01-15` silently became `2024-01-` - no exception, no
+    " t_model_skipped entry, and the next serialization shipped garbage.
+    " Only the ISO spelling is unpacked here; any other text (a plain
+    " `20240115`, an empty cleared value) keeps the direct assignment, so a
+    " cell that never went through ajson's formatting stays as it was.
+    CASE z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ).
+
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date.
+        IF strlen( lv_value ) >= 10 AND lv_value+4(1) = `-` AND lv_value+7(1) = `-`.
+          lv_value = lv_value(4) && lv_value+5(2) && lv_value+8(2).
+        ENDIF.
+
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
+        IF strlen( lv_value ) >= 8 AND lv_value+2(1) = `:` AND lv_value+5(1) = `:`.
+          lv_value = lv_value(2) && lv_value+3(2) && lv_value+6(2).
+        ENDIF.
+
+      WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
+        " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
+        " ISO instant on the wire; the `T` at offset 10 is what tells it
+        " from a price. get_timestampl parses both spellings (Z, +hh:mm),
+        " and the p-to-p assignment drops the fraction a short timestamp
+        " does not carry
+        IF strlen( lv_value ) >= 19 AND lv_value+10(1) = `T`.
+          <comp> = io_delta->get_timestampl( iv_path ).
+          RETURN.
+        ENDIF.
+
+    ENDCASE.
+
+    <comp> = lv_value.
+
+  ENDMETHOD.
+
   METHOD delta_apply_field.
 
     FIELD-SYMBOLS <comp> TYPE any.
@@ -1000,10 +1071,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                                  IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
-            " numbers intentionally go through get_string: the raw JSON text
-            " converts losslessly into any numeric target type, while
-            " get_number would round through a binary float first
-            <comp> = io_delta->get_string( iv_path ).
+            delta_apply_scalar( io_delta = io_delta
+                                iv_path  = iv_path
+                                ir_comp  = ir_comp ).
         ENDCASE.
 
       CATCH cx_root.

@@ -117,6 +117,19 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      if (state.errors.length > MAX_ERRORS) state.errors.shift();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const CONTROLLER_FIELDS = [` && |\n| &&
+             `      "oController",` && |\n| &&
+             `      "oControllerNest",` && |\n| &&
+             `      "oControllerNest2",` && |\n| &&
+             `      "oControllerPopup",` && |\n| &&
+             `      "oControllerPopover",` && |\n| &&
+             `    ];` && |\n| &&
+             `    function isControllerAlive(oController) {` && |\n| &&
+             `      if (!oController) return false;` && |\n| &&
+             `      const state = AppState.state;` && |\n| &&
+             `      return CONTROLLER_FIELDS.some((field) => state[field] === oController);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function isDestroyed(obj) {` && |\n| &&
              `      if (!obj) return false;` && |\n| &&
              `` && |\n| &&
@@ -411,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      for (const key of ROOT_MODEL_SLOTS) {` && |\n| &&
              `        const limit = viewSizeLimits[key];` && |\n| &&
              `        if (limit !== undefined && (max === undefined || limit > max)) {` && |\n| &&
-             `          max = limit;` && |\n| &&
+             `          max = limit;` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      return max;` && |\n| &&
@@ -424,8 +438,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      oRm.close("span");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n|.
-    result = result &&
+             `    const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n| &&
              `` && |\n| &&
              `    function hookCallback(owner, callbackName, method) {` && |\n| &&
              `      const bound = owner[method].bind(owner);` && |\n| &&
@@ -487,6 +500,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return {` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
+             `      isControllerAlive,` && |\n| &&
              `      isAlive,` && |\n| &&
              `      claimOnce,` && |\n| &&
              `      isTextInput,` && |\n| &&

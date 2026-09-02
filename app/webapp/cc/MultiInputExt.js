@@ -127,8 +127,32 @@ sap.ui.define(
           // free-text entry becomes a Token whose key and visible text are
           // both the input string.
           input.addValidator((args) => {
-            const row = args && args.suggestionObject;
-            if (row) return this.tokenFromRow(row);
+            const picked = args && args.suggestionObject;
+            if (picked && typeof picked.getCells === "function") {
+              // a tabular suggestion ROW: a Token only once TokenKeyCell
+              // says which cell; an unconfigured instance stays inert
+              return this.tokenFromRow(picked);
+            }
+            if (picked) {
+              // a plain suggestionItems pick (a sap.ui.core.Item): MultiInput
+              // hands it over together with the Token it already built from
+              // the item's key and text (suggestedToken, 1.71 and 1.120
+              // alike). It used to go through tokenFromRow like a row and
+              // came back null - no token, no change event, the pick simply
+              // vanished. Return that Token; build it from the item when a
+              // release hands over none.
+              if (args.suggestedToken) return args.suggestedToken;
+              return new Token({
+                key:
+                  typeof picked.getKey === "function"
+                    ? picked.getKey()
+                    : args.text,
+                text:
+                  typeof picked.getText === "function"
+                    ? picked.getText()
+                    : args.text,
+              });
+            }
             return new Token({ key: args.text, text: args.text });
           });
         } catch (e) {

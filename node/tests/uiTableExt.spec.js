@@ -108,7 +108,11 @@ function makeBinding({ filters = [], sorters = [] } = {}) {
   const calls = { filter: 0, sort: 0, lastFilters: null, lastSorters: null };
   return {
     aSorters: sorters,
-    getFilters: () => filters,
+    // the real ListBinding answers the CONTROL filters (what the column
+    // filter row applies) only for "Control"; "Application" is the app's own
+    // binding filters, which the fixture leaves empty - asking for the wrong
+    // type reads [] and restores nothing after a rebuild
+    getFilters: (type) => (type === "Control" ? filters : []),
     filter(f) {
       calls.filter++;
       calls.lastFilters = f;
@@ -167,6 +171,31 @@ test.describe("filter preservation across a binding rebuild", () => {
     ]);
     expect(col.state.filterValue).toBe("Bob");
     expect(col.state.filtered).toBe(true);
+  });
+
+  test("reads the CONTROL filters - the ones the column filter row applies", () => {
+    // sap.ui.table.Column.filter( ) applies the row as FilterType.Control;
+    // "Application" (what was asked for) answers the app's binding filters,
+    // so on every release with getFilters (>= 1.96) nothing was restored
+    const env = load();
+    const ext = makeExt(env);
+    const col = makeColumn("NAME");
+    const asked = [];
+    const b0 = makeBinding();
+    b0.getFilters = (type) => {
+      asked.push(type);
+      return type === "Control"
+        ? [{ sPath: "NAME", sOperator: "EQ", oValue1: "Bob" }]
+        : [{ sPath: "APP", sOperator: "EQ", oValue1: "own" }];
+    };
+    env.setTable(makeTable(b0, [col]));
+
+    ext.readFilter();
+
+    expect(asked).toEqual(["Control"]);
+    expect(ext.aFilters).toEqual([
+      { sPath: "NAME", sOperator: "EQ", oValue1: "Bob" },
+    ]);
   });
 
   const displayCases = [

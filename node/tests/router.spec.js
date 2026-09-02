@@ -62,7 +62,7 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
       "z2ui5/core/AppState": { state },
       "z2ui5/core/Lib": {
         logError: (msg, e) => errors.push({ msg, e }),
-        isDestroyed: (o) => !!(o && o.destroyed),
+        isControllerAlive: (o) => !!(o && !o.destroyed),
       },
     },
     sandbox: {
@@ -488,6 +488,38 @@ test("the listener fires on a foreign hash change and swallows its own echo", ()
   // browser Forward to the pushed entry again
   Router.onHashChanged("/Page2");
   expect(fired).toEqual([["HASH_CHANGED"], ["HASH_CHANGED"]]);
+});
+
+test("a hash change during a roundtrip is parked and delivered when it lands", () => {
+  // the busy guard in View1.eB drops an ordinary event while a roundtrip is
+  // in flight; the hash used to be adopted BEFORE the dispatch, so Back
+  // during a click left the URL on Page2 and the app on Page1 for good
+  const { Router, state } = loadRouter({ state: { navRouting: false } });
+  const fired = [];
+  state.oController = { eB: (a) => fired.push(a) };
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  state.isBusy = true;
+  Router.onHashChanged("/Page2");
+  expect(fired).toEqual([]);
+  expect(state.appHash).toBe("");
+  expect(state.pendingAppHash).toBe("/Page2");
+  // a second change while still busy replaces the first - the browser is
+  // standing on the second one
+  Router.onHashChanged("/Page3");
+  expect(state.pendingAppHash).toBe("/Page3");
+  // nothing to deliver while still busy
+  Router.dispatchPendingAppHash();
+  expect(fired).toEqual([]);
+  expect(state.pendingAppHash).toBe("/Page3");
+  // the roundtrip landed (View1 calls this from its finally)
+  state.isBusy = false;
+  Router.dispatchPendingAppHash();
+  expect(fired).toEqual([["HASH_CHANGED"]]);
+  expect(state.appHash).toBe("/Page3");
+  expect(state.pendingAppHash).toBe(null);
+  // idempotent - a second delivery finds nothing parked
+  Router.dispatchPendingAppHash();
+  expect(fired).toEqual([["HASH_CHANGED"]]);
 });
 
 test("a hash listener keeps the per-response cleanup off the hash", () => {

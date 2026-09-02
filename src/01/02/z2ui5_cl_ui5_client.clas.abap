@@ -639,14 +639,18 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     mo_action->ms_next-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
     mo_action->mo_app->mv_check_sticky = val.
 
-    " a TOGGLE on purpose, not `= abap_true`: switched says "the state at the
-    " END of this roundtrip differs from the state at its start". Two calls
-    " in one roundtrip (on, then off - the early RETURN above lets only real
-    " changes through) cancel out to abap_false, and
-    " z2ui5_cl_ui5_http_handler=>set_response then skips its
-    " set_session_stateful call entirely - while `active` always carries the
-    " final state for the roundtrips where switched stays abap_true
-    mo_action->ms_next-s_stateful-switched = xsdbool( mo_action->ms_next-s_stateful-switched = abap_false ).
+    " switched says "the state at the END of this roundtrip differs from the
+    " state at its START", and z2ui5_cl_ui5_http_handler=>set_response calls
+    " the server's set_session_stateful only then - while `active` always
+    " carries the final state. Two calls in one roundtrip (on, then off)
+    " cancel out to abap_false. The start state is the REQUEST's
+    " (mv_check_sticky_start), not this container's: it used to be a toggle
+    " guarded by the container's own mv_check_sticky, and over a nav hop the
+    " called app runs in a fresh container, so app A switching on and app B
+    " switching on in the same roundtrip toggled back to abap_false - the
+    " session never went stateful, B was still marked sticky, its draft was
+    " never saved, and the next click was a NO_DRAFT_ENTRY 500
+    mo_action->ms_next-s_stateful-switched = xsdbool( val <> mo_action->mv_check_sticky_start ).
 
   ENDMETHOD.
 

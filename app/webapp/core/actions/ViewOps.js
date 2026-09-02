@@ -8,6 +8,10 @@ sap.ui.define(
   (ODataModel, Lib, ViewSlots, AppState) => {
     "use strict";
 
+    // how long a backend timer tick waits before asking again whether the
+    // roundtrip it collided with has landed (evStartTimer)
+    const TIMER_BUSY_RETRY_MS = 50;
+
     // ------------------------------------------------------------------
     // Actions against the running VIEWS and their models: focus, scrolling,
     // element binding, model size limits, the OData model switch, backend
@@ -130,18 +134,32 @@ sap.ui.define(
       const delay = Number(args[2]) || 0;
       const timers = AppState.state.timers;
       clearTimeout(timers[timerKey]);
-      timers[timerKey] = setTimeout(() => {
+      const fire = () => {
         delete timers[timerKey];
         // nothing cancels a pending timer on app teardown - an FLP close or
         // re-launch leaves it armed, so it must not fire the old app's event
         // into the new session
-        if (Lib.isDestroyed(oController)) return;
-        // dispatch as a background event (args[2] = ignore busy) - a timer
-        // firing while an ordinary roundtrip is in flight must not be
-        // swallowed by the busy guard, or a self-rescheduling poll chain
-        // dies on the first collision with a user click
+        if (!Lib.isControllerAlive(oController)) return;
+        // A roundtrip in flight (a Back/Forward restore, a hash-listener
+        // event, a popup's own event): the tick waits for it. It used to
+        // dispatch right away as a background event, and Server.readHttp
+        // treats every new request as superseding - it ABORTED the fetch in
+        // flight, whose response was then dropped as stale: the user's
+        // action was lost without any feedback. Re-arming into the same
+        // single slot keeps the poll chain alive (the reason the tick must
+        // not simply be swallowed by the busy guard) without taking the
+        // request down with it.
+        if (AppState.state.isBusy) {
+          timers[timerKey] = setTimeout(fire, TIMER_BUSY_RETRY_MS);
+          return;
+        }
+        // dispatch as a background event (args[2] = ignore busy): between
+        // the check above and the dispatch nothing can start a roundtrip,
+        // and the flag keeps a tick from being dropped by a busy guard that
+        // a stale state.isBusy would otherwise raise
         oController.eB([callbackEvent, false, true]);
-      }, delay);
+      };
+      timers[timerKey] = setTimeout(fire, delay);
     }
 
     // The three handlers below resolve their target with ViewSlots.resolveById
@@ -201,7 +219,7 @@ sap.ui.define(
             // all onAfterRendering delegates ran - focusing here would be
             // overridden right away.
             setTimeout(() => {
-              if (Lib.isDestroyed(oController)) return;
+              if (!Lib.isControllerAlive(oController)) return;
               // Only when the focus was not actively moved elsewhere in
               // between - a re-render at some arbitrary later point must
               // never steal the user's focus.

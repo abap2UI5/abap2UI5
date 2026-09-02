@@ -27,6 +27,17 @@ unreleased
 * Response header names and values are stripped of CR/LF (response splitting hardening)
 - z2ui5_cl_ui5_util_context=>app_get_url moved to z2ui5_cl_ui5_handler=>app_get_url. A downstream caller of the old spelling gets a compile error until it renames the class (same signature; src/00 is not the guarded API, and the shipped legacy z2ui5_cl_util=>app_get_url keeps working)
 * App-state links and copied launchpad links keep a bare intent hash (opened from the tile, no app part yet) instead of landing the recipient on the FLP home page
+* A table cell edit of a TYPE d / t / timestamp column arriving as a delta no longer corrupts the field: the ISO spelling ajson wrote (2024-01-15, 12:30:45, 2024-01-15T12:30:45Z) is parsed back, as the whole-attribute path always did
+* set_session_stateful over a nav_app_call hop: the switch compares against the state the request started in instead of toggling per app container, so two apps switching on in one roundtrip no longer leave a sticky app without a stateful session (next click: NO_DRAFT_ENTRY 500)
+* An anonymous elementary data reference (CREATE DATA mr TYPE string) bound via mr->* survives the draft save; it used to be cleared and never restored
+* _bind( omit_initial ) also omits an initial packed field with decimals (0.00) and an initial float (0.0E+00)
+* url_param_get / url_param_get_tab: only the sap-startup-params value is percent-decoded (an encoded & or = inside any other value stays that value's own), and a literal ? inside a value no longer cuts away the parameters before it
+* z2ui5_cl_ui5_json=>get_boolean answers abap_true only for a JSON boolean true, as documented (a number or a string used to read as true)
+* MultiInputExt: a pick from plain suggestionItems makes its Token again (it used to be routed through the row validator and vanished)
+* UITableExt: the column filter row is restored after a view rebuild on UI5 >= 1.96 as well (getFilters was asked for the Application filters, the column filter is a Control filter)
+* App-owned hash routing: a Back/Forward that lands while a roundtrip is in flight is delivered once the roundtrip landed, instead of being dropped by the busy guard for good
+* A backend timer tick that fires while a roundtrip is in flight waits for it instead of aborting it (Server.readHttp treats the newer request as superseding, and the user's action was lost silently)
+* The controller liveness guards (timers, shortcuts, variant polls, the render phase) use a real test - membership in the current app state - instead of isDestroyed( ), which no sap.ui.core.mvc.Controller ever answers; the old guards were dead code and a variant poll chain could resolve the next app's controls after an FLP teardown
 
 
 2026-08-30 v1.144.0

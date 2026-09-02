@@ -106,6 +106,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_keeps_rows FOR TESTING RAISING cx_static_check.
+    METHODS test_omit_initial_decimals FOR TESTING RAISING cx_static_check.
     METHODS test_omit_filters_serial  FOR TESTING RAISING cx_static_check.
     METHODS test_bind_filter_not_serial FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_db_save FOR TESTING RAISING cx_static_check.
@@ -1121,6 +1122,42 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD test_omit_initial_decimals.
+
+    " the "price" column the parameter is documented for: an initial
+    " p DECIMALS serializes as 0.00 and was kept by a compare against `0`
+    TYPES:
+      BEGIN OF ty_s_row,
+        name   TYPE string,
+        price  TYPE p LENGTH 9 DECIMALS 2,
+        weight TYPE f,
+        count  TYPE i,
+      END OF ty_s_row.
+
+    DATA(ls_row) = VALUE ty_s_row( name = `A` ).
+
+    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_ajson->set( iv_ignore_empty = abap_false
+                   iv_path         = `/row`
+                   iv_val          = ls_row ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{"row":{"name":"A"}}`
+        act = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) )->stringify( ) ).
+
+    " a non-zero value in the same spelling survives
+    ls_row-price = '0.01'.
+    lo_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_ajson->set( iv_ignore_empty = abap_false
+                   iv_path         = `/row`
+                   iv_val          = ls_row ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{"row":{"name":"A","price":0.01}}`
+        act = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) )->stringify( ) ).
+
+  ENDMETHOD.
 
   METHOD test_omit_initial_keeps_rows.
 

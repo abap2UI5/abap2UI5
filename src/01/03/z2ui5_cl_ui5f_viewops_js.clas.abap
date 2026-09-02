@@ -35,6 +35,8 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `  (ODataModel, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    const TIMER_BUSY_RETRY_MS = 50;` && |\n| &&
+             `` && |\n| &&
              `    const SMOOTH_SCROLL_MS = 300;` && |\n| &&
              `` && |\n| &&
              `    function evSetSizeLimit(oController, args) {` && |\n| &&
@@ -126,13 +128,19 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      const delay = Number(args[2]) || 0;` && |\n| &&
              `      const timers = AppState.state.timers;` && |\n| &&
              `      clearTimeout(timers[timerKey]);` && |\n| &&
-             `      timers[timerKey] = setTimeout(() => {` && |\n| &&
+             `      const fire = () => {` && |\n| &&
              `        delete timers[timerKey];` && |\n| &&
              `` && |\n| &&
-             `        if (Lib.isDestroyed(oController)) return;` && |\n| &&
+             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `` && |\n| &&
+             `        if (AppState.state.isBusy) {` && |\n| &&
+             `          timers[timerKey] = setTimeout(fire, TIMER_BUSY_RETRY_MS);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
              `        oController.eB([callbackEvent, false, true]);` && |\n| &&
-             `      }, delay);` && |\n| &&
+             `      };` && |\n| &&
+             `      timers[timerKey] = setTimeout(fire, delay);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
@@ -171,7 +179,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `            oElement.removeEventDelegate(delegate);` && |\n| &&
              `` && |\n| &&
              `            setTimeout(() => {` && |\n| &&
-             `              if (Lib.isDestroyed(oController)) return;` && |\n| &&
+             `              if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
              `` && |\n| &&
              `              if (!samePlace(document.activeElement)) return;` && |\n| &&
              `              applyFocus();` && |\n| &&
