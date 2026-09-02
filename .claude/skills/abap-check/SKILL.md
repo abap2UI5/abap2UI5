@@ -537,7 +537,14 @@ pitfalls".
   are both green with it in place.
 
   The three in `z2ui5_cl_ui5_srv_model` (the alias re-wiring on the load,
-  `attri_get_val_ref`) were rewritten to `REF #( )` in 2026-09. What is left
+  `attri_get_val_ref`) were rewritten in 2026-09 - and two of them came
+  back from a system as **"Unexpected operator REF"** the same day. `REF #( )`
+  infers the reference type from the TARGET, and the target of those two is
+  a field symbol `TYPE any` after a dynamic ASSIGN, which has no type to
+  infer from. Write `REF data( … )` (or the concrete `REF ty( … )`) whenever
+  the left side is generic; `REF #( )` only into a typed variable or
+  parameter. abaplint 2.120.38 accepts the generic form without a finding
+  (`check_syntax` on, default and cloud configs) - **Gate: open**. What is left
   outside the upstream mirrors and the frozen package is the one in
   `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` (`check_unassign_initial`'s
   neighbourhood) - vendored from abap-util, so the rewrite belongs upstream

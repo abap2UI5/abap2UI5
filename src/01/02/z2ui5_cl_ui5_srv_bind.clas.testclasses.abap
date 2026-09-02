@@ -549,8 +549,11 @@ CLASS ltcl_02_cell IMPLEMENTATION.
                                         act = bind( ir_val    = REF #( <name> )
                                                     is_config = VALUE #( tab       = mo_app->mr_tab
                                                                          tab_index = 2 ) ) ).
-    DATA(lr_old)      = mo_app->mr_tab.
-    DATA(lr_old_cell) = REF #( <name> ).
+    DATA lr_old_cell TYPE REF TO data.
+    DATA(lr_old) = mo_app->mr_tab.
+    " a typed target for the REF of a generic field symbol - REF #( ) into
+    " an inline declaration has no type to infer (see abap-check)
+    lr_old_cell = REF #( <name> ).
 
     " main( ) creates the table again - a new object under the same name,
     " one row - and binds a cell of it on the SAME service

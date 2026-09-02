@@ -718,8 +718,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " REF data( ), not REF #( ): the target is a field symbol TYPE any (the
+    " dynamic ASSIGN above), so # has no type to infer the reference from -
+    " a system refuses that with "Unexpected operator REF", abaplint does not
     ASSIGN lr_ref_source->* TO FIELD-SYMBOL(<source_value>).
-    <parent_ref> = REF #( <source_value> ).
+    <parent_ref> = REF data( <source_value> ).
 
   ENDMETHOD.
 
@@ -737,7 +740,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     IF <parent_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
-    <parent_ref> = REF #( <source_ref> ).
+    " REF data( ) into the generic target - see main_attri_db_load_table
+    <parent_ref> = REF data( <source_ref> ).
 
   ENDMETHOD.
 
