@@ -67,7 +67,6 @@ INTERFACE z2ui5_if_client
       binding_call              TYPE string VALUE `BINDING_CALL`,
       bind_element              TYPE string VALUE `BIND_ELEMENT`,
 
-      "experimental
       " the hash_* family - everything that reads, writes or observes the URL
       " fragment, named after its UI5 original (sap/ui/core/routing/HashChanger):
       " hash_set = setHash (a PUSHED history entry), hash_replace = replaceHash
@@ -77,7 +76,12 @@ INTERFACE z2ui5_if_client
       " hash_routing = the hash-based app routing modes (cs_nav_mode).
       " app_state_set_active keeps the id of the CURRENT app state in the URL.
       " hash_set / hash_routing / app_state_set_active share their wire value
-      " with their obsolete spellings below - both names reach the same branch
+      " with their obsolete spellings below - both names reach the same branch.
+      " The one-word comment right before the run is its LABEL on the
+      " documentation site (docs, scripts/lib/client-interface.mjs reads the
+      " first line of a comment run): keep it one line, keep it last.
+
+      "experimental
       hash_set                  TYPE string VALUE `SET_PUSH_STATE`,
       hash_replace              TYPE string VALUE `HASH_REPLACE`,
       hash_back                 TYPE string VALUE `HASH_BACK`,
@@ -85,14 +89,20 @@ INTERFACE z2ui5_if_client
       hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
 
-      "obsolet
+      " everything from here to END OF is kept for compatibility only and is
+      " NOT on the documentation site (its deprecations page names each one
+      " with its successor): the site's generator drops every member under a
+      " label that opens with "obsolete", so a run added here needs one
+
+      "obsolete - the hash_* / app_state_* spellings above replace these
       set_app_state_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
       set_push_state            TYPE string VALUE `SET_PUSH_STATE`,
       set_nav_routing           TYPE string VALUE `SET_NAV_ROUTING`,
-      " superseded by app_state_get_href( ) + cs_event-clipboard_copy: the
-      " backend composes the same link itself now (the browser location and
-      " the live hash ride with the requests), so the app can also SHOW it
+      "obsolete - superseded by app_state_get_href( ) + cs_event-clipboard_copy:
+      " the backend composes the same link itself now (the browser location
+      " and the live hash ride with the requests), so the app can also SHOW it
       clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
+      "obsolete
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
       nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
@@ -293,9 +303,9 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS:
     "! Hash-based app routing modes, switched on with
-    "! follow_up_action( cs_event-set_nav_routing ) - the set_nav_routing( )
-    "! METHOD this used to name was removed in 1.143.0. The mode decides how
-    "! much of the running app the URL hash carries, and therefore what the
+    "! follow_up_action( cs_event-hash_routing ), the mode as its t_arg. The
+    "! mode decides how much of the running app the URL hash carries, and
+    "! therefore what the
     "! browser Back/Forward buttons (and a reload / bookmark) restore:
     "!  default - no routing: the hash is left untouched, exactly as before this
     "!            feature. Back/Forward leave the abap2UI5 page (framework default).
@@ -352,7 +362,7 @@ INTERFACE z2ui5_if_client
   "! (origin/pathname/search ride with the requests) plus this response's
   "! draft id. The app owns the string: copy it with
   "! cs_event-clipboard_copy, show it in an Input, mail it, render it as a
-  "! QR code. Supersedes the obsolete cs_event-clipboard_app_state.
+  "! QR code.
   METHODS app_state_get_href
     RETURNING
       VALUE(result) TYPE string.
@@ -361,8 +371,8 @@ INTERFACE z2ui5_if_client
   "! entry, so the browser Back button has a step to take. The 1:1
   "! counterpart of a UI5 router's navTo. With cs_event-hash_attach_changed
   "! registered the value is the WHOLE app hash (`/Page2`); without a
-  "! listener the legacy suffix behavior applies (see the obsolete
-  "! set_push_state, which this renames).
+  "! listener VAL is APPENDED to the hash the page already has - a suffix
+  "! such as `&amp;my-app-state=detail`, written with history.pushState.
   METHODS hash_set
     IMPORTING
       val TYPE string OPTIONAL.
@@ -673,6 +683,7 @@ INTERFACE z2ui5_if_client
       "omit_initial / omit_initial_paths drop initial fields, json splices a
       "JSON node - and the ABAP side can shape the value before it is bound
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      "obsolete - the filter half of custom_mapper, see there
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
       tab                  TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
@@ -717,7 +728,7 @@ INTERFACE z2ui5_if_client
   "!
   "! Deliberately ONE parameter. The moment a second is needed - tab /
   "! tab_index for a row path, omit_initial, json, switch_default_model -
-  "! _bind( ) is the right call and path stays on it, undeprecated.
+  "! _bind( ) is the right call and path stays on it.
   METHODS _bind_path
     IMPORTING
       val           TYPE data
@@ -867,8 +878,7 @@ INTERFACE z2ui5_if_client
   "! Each of these events also works roundtrip-free when WIRED IN THE VIEW:
   "! write the same call where its result is consumed
   "! (`)->a( n = `press` v = client->follow_up_action( val = ... t_arg = ... ) )`)
-  "! and the action runs in the browser without a server call. That is what
-  "! the obsolete _event_client( ) did, and the only thing it did.
+  "! and the action runs in the browser without a server call.
   METHODS follow_up_action
     IMPORTING
       val           TYPE string
