@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+! z2ui5_if_client: the ABAP-Doc of what an app should write no longer names what it replaced (hash_set, app_state_get_href, follow_up_action, cs_nav_mode, _bind_path), and every member kept for compatibility only sits under a label that opens with "obsolete" - the tail run of cs_event as one-line labels, custom_filter on _bind - which is what the documentation site's client API page drops; the site's deprecations page is the one place that names them
 ! The draft format changes once: the attribute rows carry their absolute type name as a string (the binding search prefilters on it, so a restored draft no longer resolves every row), and the two custom_*_back components nothing had set since the _bind parameters stopped being evaluated are gone. A draft written before the upgrade does not deserialize any more - drafts expire within hours, a roundtrip on one answers with the error page once and the next start is a fresh app
 * A data reference pointed at ANOTHER attribute between two roundtrips keeps the new target across the draft: the alias pass re-checks every alias it knows and drops the ones that no longer hold, where it used to keep the first owner forever and the restore re-pointed the reference at it
 * Only the target of a data reference can be an alias of another attribute - a typed table attribute that shared a data object with a reference could be paired as the alias when it sorted first, and the restore then tried to write a data reference into its parent
