@@ -15,6 +15,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
+  PRIVATE SECTION.
     METHODS get_client_name
       RETURNING
         VALUE(result) TYPE string.
@@ -27,7 +28,6 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     " carry yet. See the method body for what used to be dropped.
     METHODS adopt_new_options.
 
-  PRIVATE SECTION.
     DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
     " one model service for the life of this bind service - the client
@@ -41,7 +41,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
 
     METHODS main_cell
       IMPORTING
-        val           TYPE data
+        val           TYPE REF TO data
         config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
@@ -59,7 +59,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     METHODS bind_tab_cell
       IMPORTING
         iv_name       TYPE string
-        iv_val        TYPE data
+        iv_val        TYPE REF TO data
       RETURNING
         VALUE(result) TYPE string.
 

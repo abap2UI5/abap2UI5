@@ -143,7 +143,6 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
     DATA(lo_model) = create_model( ).
 
-    DATA lv_restored TYPE abap_bool VALUE abap_true.
     DATA x_first TYPE REF TO cx_root.
 
     TRY.
@@ -156,27 +155,18 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
         lo_model->main_attri_reattach( ).
         RETURN.
       CATCH cx_root INTO x_first.
-        " main_attri_db_save_srtti clears the serialized data references -
-        " restore them before the fallback below, otherwise the second
-        " attempt would persist the half-cleared app state
-        TRY.
-            lo_model->main_attri_reattach( ).
-          CATCH cx_root.
-            lv_restored = abap_false.
-        ENDTRY.
+        " main_attri_db_save_srtti detached the data references - put them
+        " back before the retry below, otherwise the second save would
+        " start from the half-cleared app state
+        lo_model->main_attri_reattach( ).
     ENDTRY.
 
-    " the bare retry is only safe when the restore worked - serializing the
-    " half-cleared state would SUCCEED and persist a draft with the cleared
-    " drefs missing, discovered only on a later restore
-    IF lv_restored = abap_true.
-      TRY.
-          result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
-          RETURN.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDIF.
-
+    " the one retry that can turn out differently: rows rebuilt from the
+    " instance as it is NOW (a reference created after the last dissolve
+    " has no row, so its anonymous target went into the asXML and failed
+    " there), then saved and serialized again. A bare second stringify of
+    " the same rows used to sit here - what the first attempt refused, the
+    " same attempt refuses again
     TRY.
         lo_model->main_attri_refresh( ).
         lo_model->main_attri_db_save_srtti( ).

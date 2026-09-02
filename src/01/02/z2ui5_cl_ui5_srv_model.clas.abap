@@ -156,16 +156,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
-    "! Apply one delta field value into the referenced row component. A
-    "! single malformed cell (e.g. text into a numeric target) is skipped
-    "! here so it cannot abort the whole model batch - and the skip is
-    "! recorded in mt_skipped, because a cell that vanishes without a word is
-    "! what made a typed price disappear while the browser kept showing it.
-    "! is_cell IS the trace entry: it names the cell the caller resolved
-    "! (table path, 1-based row, component), so nothing has to be derived
-    "! again in the handler. Only a value that ARRIVED can be recorded here -
-    "! the caller reaches this method per member of the delta row, so an
-    "! absent field never becomes an entry.
     " what delta_apply_field learnt about a COLUMN of the table it is
     " writing: whether a nested table there is a standard one. Decided by
     " the component's type, so once per column per delta, not per cell
@@ -176,6 +166,16 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       END OF ty_s_col_kind.
     TYPES ty_t_col_kind TYPE SORTED TABLE OF ty_s_col_kind WITH UNIQUE KEY field.
 
+    "! Apply one delta field value into the referenced row component. A
+    "! single malformed cell (e.g. text into a numeric target) is skipped
+    "! here so it cannot abort the whole model batch - and the skip is
+    "! recorded in mt_skipped, because a cell that vanishes without a word is
+    "! what made a typed price disappear while the browser kept showing it.
+    "! is_cell IS the trace entry: it names the cell the caller resolved
+    "! (table path, 1-based row, component), so nothing has to be derived
+    "! again in the handler. Only a value that ARRIVED can be recorded here -
+    "! the caller reaches this method per member of the delta row, so an
+    "! absent field never becomes an entry.
     "! ir_before is a scratch component of the SAME type as ir_comp, owned
     "! by the caller's work row - the old value is kept there while the
     "! write may still be refused. ct_col_kind is the caller's memory of
@@ -615,11 +615,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " Where it surfaces: db_load restores a draft with no TRY of its own, so
       " the round-trip that reads a draft it cannot bring back now answers with
       " the framework's own 500 and the full exception chain - naming the
-      " attribute instead of rendering an empty view. all_xml_stringify, which
-      " restores in place right after saving, keeps its own recovery: it is
-      " written for a main_attri_db_load( ) that can raise and only takes its
-      " bare retry when the restore worked (`lv_restored`) - a branch that was
-      " unreachable while every failure was caught here.
+      " attribute instead of rendering an empty view. (all_xml_stringify never
+      " comes through here: the live instance gets its objects back by
+      " main_attri_reattach, which has nothing to parse and nothing to raise.)
       "
       " Scoped to attributes the VIEW is bound to - the attribute itself or
       " one of its dissolved children (the data of a dref that dereferences
@@ -700,31 +698,34 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " IS ASSIGNED, not sy-subrc, after a dynamic ASSIGN (#1937); the symbols
+    " are declared in this method, so a failed ASSIGN leaves them unassigned
     DATA(lv_parent_path) = |MO_APP->{ lr_attri_parent->name }|.
     ASSIGN (lv_parent_path) TO FIELD-SYMBOL(<parent_ref>).
-    IF sy-subrc <> 0.
+    IF <parent_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
 
     ASSIGN lr_ref_source->* TO FIELD-SYMBOL(<source_value>).
-    GET REFERENCE OF <source_value> INTO <parent_ref>.
+    <parent_ref> = REF #( <source_value> ).
 
   ENDMETHOD.
 
   METHOD main_attri_db_load_dref.
 
+    " IS ASSIGNED, not sy-subrc - see main_attri_db_load_table
     DATA(lv_source_path) = |MO_APP->{ ir_attri->name_ref }|.
     ASSIGN (lv_source_path) TO FIELD-SYMBOL(<source_ref>).
-    IF sy-subrc <> 0.
+    IF <source_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
 
     DATA(lv_target_path) = |MO_APP->{ ir_attri->name }|.
     ASSIGN (lv_target_path) TO FIELD-SYMBOL(<parent_ref>).
-    IF sy-subrc <> 0.
+    IF <parent_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
-    GET REFERENCE OF <source_ref> INTO <parent_ref>.
+    <parent_ref> = REF #( <source_ref> ).
 
   ENDMETHOD.
 
@@ -930,12 +931,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
 
-    GET REFERENCE OF <attri> INTO result.
-    IF result IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING
-          val = `ATTRI_GET_VAL_REF_ERROR`.
-    ENDIF.
+    result = REF #( <attri> ).
 
   ENDMETHOD.
 
@@ -1168,15 +1164,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_update_entry_refs.
 
-    " Every dissolved row is resolved ONCE here - one dynamic ASSIGN per
-    " row, fresh (see attri_get_val_ref for why a stored reference is no
-    " answer) - and the pairing runs over the resolved list: the same
-    " O(n^2) compare as before, on references instead of on ASSIGNs.
+    " Every row that can OWN or ALIAS a data object is resolved ONCE here -
+    " one dynamic ASSIGN per row, fresh (see attri_get_val_ref for why a
+    " stored reference is no answer) - and the pairing runs over the
+    " resolved list: the same O(n^2) compare as before, on references
+    " instead of on ASSIGNs. Tables and structures are owners, the deref
+    " of a reference an alias, the reference itself a struct alias; an
+    " elementary row is none of these, and the name_ref a struct alias's
+    " elementary children carry is written and dropped with the parent
+    " (attri_update_refs_children, entry_refs_recheck)
     DATA lt_resolved TYPE ty_t_resolved.
     FIELD-SYMBOLS <ref> TYPE any.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
-         WHERE check_dissolved = abap_true.
+         WHERE check_dissolved = abap_true
+               AND (    type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+                     OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
+                     OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+                     OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2 ).
       TRY.
           DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
@@ -1392,7 +1397,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     dissolve( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
-      READ TABLE lt_attri REFERENCE INTO DATA(lr_old) WITH KEY name = lr_attri->name. "#EC CI_SORTSEQ
+      READ TABLE lt_attri REFERENCE INTO DATA(lr_old) WITH TABLE KEY name = lr_attri->name.
       IF sy-subrc = 0.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the
