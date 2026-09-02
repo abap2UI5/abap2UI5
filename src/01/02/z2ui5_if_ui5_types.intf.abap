@@ -59,18 +59,18 @@ INTERFACE z2ui5_if_ui5_types
 
   TYPES:
     BEGIN OF ty_s_attri,
-      name               TYPE string,
-      name_client        TYPE string,
-      name_parent        TYPE string,
-      name_ref           TYPE string,
-      bind               TYPE abap_bool,
-      srtti_data         TYPE string,
-      check_dissolved    TYPE abap_bool,
-      custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
-      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
+      name            TYPE string,
+      name_client     TYPE string,
+      name_parent     TYPE string,
+      name_ref        TYPE string,
+      bind            TYPE abap_bool,
+      srtti_data      TYPE string,
+      check_dissolved TYPE abap_bool,
+      custom_filter   TYPE REF TO z2ui5_if_ajson_filter,
+      custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping,
       " the bound string carries JSON - serialize it as a node, not as text
-      check_json         TYPE abap_bool,
-      o_typedescr        TYPE REF TO cl_abap_typedescr,
+      check_json      TYPE abap_bool,
+      o_typedescr     TYPE REF TO cl_abap_typedescr,
       " the absolute type name as a STRING, next to the descriptor it is
       " taken from: the descriptor is an object reference and does not
       " survive the draft, the name does - so the binding search can
@@ -86,9 +86,9 @@ INTERFACE z2ui5_if_ui5_types
       " hours (z2ui5_cl_ui5_srv_draft=>cleanup), so the window is the
       " upgrade itself; a roundtrip on such a draft answers with the
       " framework's error page once, the next start is a fresh app
-      type_name          TYPE string,
-      type_kind          TYPE string,
-      kind               TYPE string,
+      type_name       TYPE string,
+      type_kind       TYPE string,
+      kind            TYPE string,
     END OF ty_s_attri.
   " the secondary key serves the two reads that walk a row's CHILDREN (the
   " save of a generic reference, the alias pass) - a sequential scan of

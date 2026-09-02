@@ -60,14 +60,14 @@ CLASS ltcl_app_typed DEFINITION FINAL
     " delta cell can fail to convert at all
     TYPES:
       BEGIN OF ty_s_row,
-        name  TYPE string,
-        price TYPE p LENGTH 9 DECIMALS 2,
-        t_pos TYPE ty_t_pos,
+        name     TYPE string,
+        price    TYPE p LENGTH 9 DECIMALS 2,
+        t_pos    TYPE ty_t_pos,
         t_sorted TYPE ty_t_pos_sorted,
         " the three kinds whose wire form is ISO text, not their ABAP form
-        dt    TYPE d,
-        tm    TYPE t,
-        ts    TYPE timestamp,
+        dt       TYPE d,
+        tm       TYPE t,
+        ts       TYPE timestamp,
       END OF ty_s_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
     " the one table shape a row delta cannot be applied to
