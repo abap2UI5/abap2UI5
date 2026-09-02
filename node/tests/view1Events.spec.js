@@ -193,6 +193,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
         "z2ui5/core/Server": { _requestSeq: 1, responseError: () => {} },
         "z2ui5/core/Lib": {
           isDestroyed: () => false,
+          isControllerAlive: () => true,
           runCallbacks: (arr) => (arr || []).forEach((f) => f()),
           logError: () => {},
         },
@@ -202,7 +203,10 @@ test.describe("_processAfterRendering (action-free responses)", () => {
         },
         "z2ui5/core/actions/Slots": { action: (method) => pushes.push(method) },
         "z2ui5/core/ViewSlots": { destroy: (key) => destroys.push(key) },
-        "z2ui5/core/Router": { sync: (o) => syncs.push(o) },
+        "z2ui5/core/Router": {
+          sync: (o) => syncs.push(o),
+          dispatchPendingAppHash: () => {},
+        },
         "z2ui5/core/AppState": { state },
       },
     });

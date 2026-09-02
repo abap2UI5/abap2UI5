@@ -163,7 +163,35 @@ sap.ui.define(
       if (state.errors.length > MAX_ERRORS) state.errors.shift();
     }
 
+    // True while `oController` is one of the slot controllers the CURRENT
+    // app state owns. This is the liveness test for a View1 controller,
+    // and isDestroyed( ) below is NOT: sap.ui.core.mvc.Controller is no
+    // ManagedObject - it has neither isDestroyed() nor bIsDestroyed on any
+    // release (checked on 1.71 and 1.144) - and the five controllers are
+    // created once per component (App.controller) and never destroyed, so
+    // isDestroyed( controller ) answered "alive" for a torn-down app and
+    // every guard on it was dead code: variant poll chains kept resolving
+    // the NEXT app's controls after an FLP teardown. What does end a
+    // controller's life is Component.exit -> AppState.reset( ): the state
+    // is rebuilt with the slot fields null and the next launch registers a
+    // fresh set. Membership in the current state is the test, so it holds
+    // across every release and needs no flag on the controller.
+    const CONTROLLER_FIELDS = [
+      "oController",
+      "oControllerNest",
+      "oControllerNest2",
+      "oControllerPopup",
+      "oControllerPopover",
+    ];
+    function isControllerAlive(oController) {
+      if (!oController) return false;
+      const state = AppState.state;
+      return CONTROLLER_FIELDS.some((field) => state[field] === oController);
+    }
+
     // True when the object supports isDestroyed() and reports destroyed.
+    // For a CONTROL (a ManagedObject). A controller is asked with
+    // isControllerAlive( ) above - see there for why this one cannot tell.
     function isDestroyed(obj) {
       if (!obj) return false;
       // ManagedObject#isDestroyed( ) is @since 1.93 - on the 1.71 floor the
@@ -723,6 +751,7 @@ sap.ui.define(
     return {
       logError,
       isDestroyed,
+      isControllerAlive,
       isAlive,
       claimOnce,
       isTextInput,

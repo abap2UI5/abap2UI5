@@ -174,6 +174,11 @@ sap.ui.define([], () => {
       //  appHash        the app hash last written or dispatched under that
       //                 listener - the echo guard, mirroring what
       //                 currentDraftId does for the draft routes.
+      //  pendingAppHash a hash change that arrived while a roundtrip was in
+      //                 flight (the busy guard would have dropped its
+      //                 event); the roundtrip's end dispatches it
+      //                 (Router.dispatchPendingAppHash). null = nothing
+      //                 parked.
       navRouting: false,
       navMode: null,
       currentApp: null,
@@ -181,6 +186,7 @@ sap.ui.define([], () => {
       navFromHash: false,
       hashEvent: null,
       appHash: "",
+      pendingAppHash: null,
       // How many app hashes this PAGE LOAD has pushed (listener, legacy and
       // KEEP-suffix pushes alike) - Router.navBack's stand-in for UI5's
       // History.getPreviousHash(): zero means a cold deep link with no

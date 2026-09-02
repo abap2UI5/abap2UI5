@@ -34,7 +34,9 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
             rv_keep = xsdbool( is_node-value <> `false` ).
           WHEN z2ui5_if_ajson_types=>node_type-number.
-            rv_keep = xsdbool( is_node-value <> `0` ).
+            " every spelling of zero (`0`, `0.00`, `0.0E+00`) is empty - see
+            " lcl_empty_filter_keep_rows in z2ui5_cl_ui5_client
+            rv_keep = xsdbool( is_node-value CN `0.-+Ee` ).
           WHEN z2ui5_if_ajson_types=>node_type-string.
             rv_keep = xsdbool( is_node-value <> `` ).
         ENDCASE.

@@ -46,11 +46,20 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_get_boolean.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory( `{"active":true,"closed":false}` ).
+    DATA(lo_json) = z2ui5_cl_ui5_json=>factory(
+        `{"active":true,"closed":false,"zero":0,"one":1,"word":"false","text":"abc","nil":null}` ).
 
     cl_abap_unit_assert=>assert_true( lo_json->get_boolean( `/active` ) ).
     cl_abap_unit_assert=>assert_false( lo_json->get_boolean( `/closed` ) ).
     cl_abap_unit_assert=>assert_false( lo_json->get_boolean( `/missing` ) ).
+
+    " "abap_false when missing or not true" - a number or a string is not
+    " true, whatever it says (ajson itself answers abap_true for all four)
+    cl_abap_unit_assert=>assert_false( lo_json->get_boolean( `/zero` ) ).
+    cl_abap_unit_assert=>assert_false( lo_json->get_boolean( `/one` ) ).
+    cl_abap_unit_assert=>assert_false( lo_json->get_boolean( `/word` ) ).
+    cl_abap_unit_assert=>assert_false( lo_json->get_boolean( `/text` ) ).
+    cl_abap_unit_assert=>assert_false( lo_json->get_boolean( `/nil` ) ).
 
   ENDMETHOD.
 

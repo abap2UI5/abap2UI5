@@ -49,6 +49,9 @@ function load({ sandbox, requires = {} } = {}) {
     toText: (val) => (val == null ? "" : String(val)),
     whenRendered: (_control, _owner, fn) => fn(),
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
+    // the controller fixtures answer their own liveness (see START_TIMER);
+    // the many specs that pass no controller at all run as "alive"
+    isControllerAlive: (o) => !(o?.isDestroyed && o.isDestroyed()),
     // same shape as the real validator (core/Lib.js): empty and malformed
     // values are unsafe, data:/blob:/http(s) pass - relative URLs resolve
     isSafeDownloadURL: (url) => {
@@ -2508,6 +2511,46 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     destroyed = true;
     timers[1].fn();
     expect(ebCalls).toHaveLength(1);
+    expect(AppState.state.timers).toEqual({});
+  });
+
+  test("a tick during a roundtrip waits for it instead of superseding it", () => {
+    // a background eB while a request is in flight makes Server.readHttp
+    // abort that request (newest wins) - the user's action was lost without
+    // feedback. The tick re-arms itself into the same slot until the
+    // roundtrip has landed, so the poll chain survives AND the request does
+    const timers = [];
+    const { FrontendAction, AppState } = load({
+      sandbox: {
+        setTimeout: (fn, ms) => {
+          timers.push({ fn, ms });
+          return timers.length;
+        },
+        clearTimeout: () => {},
+      },
+    });
+    AppState.state.timers = {};
+    const ebCalls = [];
+    const oController = { eB: (a) => ebCalls.push(a) };
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    AppState.state.isBusy = true;
+    timers[0].fn();
+    // not dispatched, re-armed with a short retry, slot still occupied
+    expect(ebCalls).toEqual([]);
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBeLessThan(1000);
+    expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
+
+    // still busy: keeps waiting
+    timers[1].fn();
+    expect(ebCalls).toEqual([]);
+    expect(timers).toHaveLength(3);
+
+    // the roundtrip landed: the next retry dispatches as a background event
+    AppState.state.isBusy = false;
+    timers[2].fn();
+    expect(ebCalls).toEqual([["POLL", false, true]]);
     expect(AppState.state.timers).toEqual({});
   });
 });

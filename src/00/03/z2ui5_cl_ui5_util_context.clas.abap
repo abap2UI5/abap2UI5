@@ -57,7 +57,18 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     CLASS-DATA cv_typedescr_typekind_struct2 TYPE c LENGTH 1 READ-ONLY.
 
+    " the three elementary kinds whose JSON form is not their ABAP form (ISO
+    " date/time strings, ISO timestamps) - what a delta cell must convert
+    " before assigning (see z2ui5_cl_ui5_srv_model=>delta_apply_scalar)
+    CLASS-DATA cv_typedescr_typekind_date    TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_time    TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_packed  TYPE c LENGTH 1 READ-ONLY.
+
     CLASS-DATA cv_typedescr_kind_struct      TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_kind_elem        TYPE c LENGTH 1 READ-ONLY.
 
     CLASS-DATA cv_typedescr_kind_ref         TYPE c LENGTH 1 READ-ONLY.
 
@@ -777,7 +788,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     cv_typedescr_typekind_oref       = cl_abap_typedescr=>typekind_oref.
     cv_typedescr_typekind_struct1    = cl_abap_typedescr=>typekind_struct1.
     cv_typedescr_typekind_struct2    = cl_abap_typedescr=>typekind_struct2.
+    cv_typedescr_typekind_date       = cl_abap_typedescr=>typekind_date.
+    cv_typedescr_typekind_time       = cl_abap_typedescr=>typekind_time.
+    cv_typedescr_typekind_packed     = cl_abap_typedescr=>typekind_packed.
     cv_typedescr_kind_struct         = cl_abap_typedescr=>kind_struct.
+    cv_typedescr_kind_elem           = cl_abap_typedescr=>kind_elem.
     cv_typedescr_kind_ref            = cl_abap_typedescr=>kind_ref.
     cv_objectdescr_public            = cl_abap_objectdescr=>public.
 
@@ -1269,36 +1284,46 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD url_param_get_tab.
 
-    DATA(lv_search) = replace( val  = val
-                               sub  = `%3D`
-                               with = `=`
-                               occ  = 0 ).
+    " a full URL or a request URI carries a path before its query: cut at
+    " the FIRST `?` only. A later `?` is a legal, unencoded character of a
+    " value (`title=why?`) - cutting there dropped every parameter before
+    " it, app_start included, and the shell fell back to the start page
+    DATA(lv_search) = val.
+    IF lv_search CS `?`.
+      lv_search = substring_after( val = lv_search
+                                   sub = `?` ).
+    ENDIF.
 
-    " RFC 3986 allows lowercase hex digits in percent-encodings, so decode
-    " %3d the same way as %3D (%26 contains no letters and needs no twin)
-    lv_search = replace( val  = lv_search
-                         sub  = `%3d`
-                         with = `=`
-                         occ  = 0 ).
-
-    lv_search = replace( val  = lv_search
-                         sub  = `%26`
-                         with = `&`
-                         occ  = 0 ).
-
-    lv_search = shift_left( val = lv_search
-                            sub = `?` ).
-
-    " prepend & before searching so sap-startup-params is also unwrapped
-    " when it is the first/only query parameter (typical FLP target mapping)
-    DATA(lv_search2) = substring_after( val = |&{ lv_search }|
+    " The FLP packs the target's own parameters into ONE value,
+    " sap-startup-params, with its `=` and `&` percent-encoded. Prepend &
+    " before searching so it is also unwrapped when it is the first/only
+    " query parameter (typical FLP target mapping). Only THAT value is
+    " decoded: decoding the whole query first tore every legitimately
+    " encoded `&` or `=` in any other value apart (`a=x%26y` became the
+    " two parameters a=x and y=), and app_get_url wrote the damage back
+    " into every generated link
+    DATA(lv_startup) = substring_after( val = |&{ lv_search }|
                                         sub = `&sap-startup-params=` ).
-    lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
-
-    lv_search2 = substring_after( val = lv_search
-                                  sub = `?` ).
-    IF lv_search2 IS NOT INITIAL.
-      lv_search = lv_search2.
+    IF lv_startup IS NOT INITIAL.
+      SPLIT lv_startup AT `&` INTO DATA(lv_packed) DATA(lv_rest).
+      lv_packed = replace( val  = lv_packed
+                           sub  = `%3D`
+                           with = `=`
+                           occ  = 0 ).
+      " RFC 3986 allows lowercase hex digits in percent-encodings, so decode
+      " %3d the same way as %3D (%26 contains no letters and needs no twin)
+      lv_packed = replace( val  = lv_packed
+                           sub  = `%3d`
+                           with = `=`
+                           occ  = 0 ).
+      lv_packed = replace( val  = lv_packed
+                           sub  = `%26`
+                           with = `&`
+                           occ  = 0 ).
+      lv_search = lv_packed.
+      IF lv_rest IS NOT INITIAL.
+        lv_search = |{ lv_packed }&{ lv_rest }|.
+      ENDIF.
     ENDIF.
 
     SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).

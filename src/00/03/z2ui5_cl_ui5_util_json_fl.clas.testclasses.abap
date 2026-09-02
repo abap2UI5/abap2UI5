@@ -22,6 +22,8 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_drops_empty_string   FOR TESTING RAISING cx_static_check.
     METHODS test_keeps_number         FOR TESTING RAISING cx_static_check.
     METHODS test_drops_zero           FOR TESTING RAISING cx_static_check.
+    METHODS test_drops_zero_decimals  FOR TESTING RAISING cx_static_check.
+    METHODS test_keeps_small_number   FOR TESTING RAISING cx_static_check.
     METHODS test_keeps_true           FOR TESTING RAISING cx_static_check.
     METHODS test_drops_false          FOR TESTING RAISING cx_static_check.
     METHODS test_keeps_filled_object  FOR TESTING RAISING cx_static_check.
@@ -80,6 +82,26 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_false( keep_node( iv_type  = z2ui5_if_ajson_types=>node_type-number
                                                   iv_value = `0` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_drops_zero_decimals.
+
+    " a packed field with decimals and a float serialize their zero with a
+    " fraction / an exponent - still initial
+    cl_abap_unit_assert=>assert_false( keep_node( iv_type  = z2ui5_if_ajson_types=>node_type-number
+                                                  iv_value = `0.00` ) ).
+    cl_abap_unit_assert=>assert_false( keep_node( iv_type  = z2ui5_if_ajson_types=>node_type-number
+                                                  iv_value = `0.0E+00` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_keeps_small_number.
+
+    cl_abap_unit_assert=>assert_true( keep_node( iv_type  = z2ui5_if_ajson_types=>node_type-number
+                                                 iv_value = `0.01` ) ).
+    cl_abap_unit_assert=>assert_true( keep_node( iv_type  = z2ui5_if_ajson_types=>node_type-number
+                                                 iv_value = `-1` ) ).
 
   ENDMETHOD.
 

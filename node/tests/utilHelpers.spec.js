@@ -8,6 +8,35 @@ const { loadLib } = require("./loadLibModule");
 
 const ORIGIN = "http://localhost:3000";
 
+test.describe("isControllerAlive (slot-controller liveness)", () => {
+  test("alive while the current state owns the controller, dead after a reset", () => {
+    // a sap.ui.core.mvc.Controller carries no destroyed flag on any release
+    // and the slot controllers are never destroyed - the one thing that ends
+    // their life is AppState.reset( ), which drops them from the state
+    const main = { eB() {} };
+    const popup = { eB() {} };
+    const state = { oController: main, oControllerPopup: popup };
+    const { Lib } = loadLib({ z2ui5: state });
+    expect(Lib.isControllerAlive(main)).toBe(true);
+    expect(Lib.isControllerAlive(popup)).toBe(true);
+    // a stray object that only LOOKS like a controller is not alive
+    expect(Lib.isControllerAlive({ eB() {} })).toBe(false);
+    expect(Lib.isControllerAlive(null)).toBe(false);
+    expect(Lib.isControllerAlive(undefined)).toBe(false);
+    // FLP teardown / re-launch: a fresh set is registered, the old one is dead
+    state.oController = { eB() {} };
+    state.oControllerPopup = null;
+    expect(Lib.isControllerAlive(main)).toBe(false);
+    expect(Lib.isControllerAlive(popup)).toBe(false);
+    expect(Lib.isControllerAlive(state.oController)).toBe(true);
+  });
+
+  test("isDestroyed cannot tell - a controller without any flag reads alive", () => {
+    const { Lib } = loadLib();
+    expect(Lib.isDestroyed({ eB() {} })).toBe(false);
+  });
+});
+
 test.describe("isDestroyed (async-continuation guard, 1.71 floor)", () => {
   const { Lib } = loadLib();
 

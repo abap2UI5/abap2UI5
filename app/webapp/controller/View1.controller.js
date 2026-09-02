@@ -95,12 +95,15 @@ sap.ui.define(
           // The app may have been torn down (reset / FLP re-launch) while the
           // pending views loaded; don't mutate history or fire onAfterRendering
           // hooks against a dead app (the custom-JS phase below guards the same
-          // way via isDestroyed). And a response a PARALLEL request replaced
+          // way via isControllerAlive). And a response a PARALLEL request replaced
           // mid-phase must not push its model or write its ids into the URL -
           // the push would read the NEWER response's data into this stale
           // render, and the sync would mix this draft id with the newer app.
           // The newer response runs its own push and sync.
-          if (Lib.isDestroyed(this) || oResponse !== AppState.state.oResponse) {
+          if (
+            !Lib.isControllerAlive(this) ||
+            oResponse !== AppState.state.oResponse
+          ) {
             return;
           }
           // A MODEL key in the response IS the model push - run it after the
@@ -137,6 +140,10 @@ sap.ui.define(
           // - rather than as an early microtask - guarantees render-dependent
           // actions like SET_FOCUS find their target control in the DOM.
           this._runPendingCustomJs(oResponse);
+          // an app-hash change (Back/Forward under app-owned routing) that
+          // arrived while this roundtrip was in flight was parked by the
+          // router - deliver it now that the busy guard would let it through
+          Router.dispatchPendingAppHash();
         }
       },
 
@@ -156,7 +163,8 @@ sap.ui.define(
           // response - the remaining actions would tear down or overwrite
           // what the newer response builds (the per-display guards check
           // the same stamp, but the synchronous teardowns do not).
-          if (Lib.isDestroyed(this) || seq !== Server._requestSeq) return;
+          if (!Lib.isControllerAlive(this) || seq !== Server._requestSeq)
+            return;
           await FrontendAction.runSystem(item, this, {
             seq,
             response: oResponse,
@@ -170,7 +178,7 @@ sap.ui.define(
         const customJs = oResponse?._pendingCustomJs;
         if (oResponse) oResponse._pendingCustomJs = null;
         if (!customJs) return;
-        if (Lib.isDestroyed(this)) return;
+        if (!Lib.isControllerAlive(this)) return;
         for (const item of customJs) {
           FrontendAction.runCustom(item, this);
         }

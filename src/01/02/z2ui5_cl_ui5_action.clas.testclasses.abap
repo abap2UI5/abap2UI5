@@ -40,6 +40,9 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_own_wins  FOR TESTING RAISING cx_static_check.
     METHODS test_hop_clears_routing_req FOR TESTING RAISING cx_static_check.
+    METHODS test_stateful_across_hop FOR TESTING RAISING cx_static_check.
+    METHODS test_stateful_cancels_out FOR TESTING RAISING cx_static_check.
+    METHODS test_stateful_start_sticky FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_ui5_action DEFINITION LOCAL FRIENDS ltcl_test.
@@ -293,6 +296,91 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_called = lo_own->factory_stack_call( ).
 
     cl_abap_unit_assert=>assert_initial( lo_called->mo_app->mv_nav_mode ).
+
+  ENDMETHOD.
+
+  METHOD test_stateful_across_hop.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_called TYPE REF TO z2ui5_cl_ui5_action.
+
+    " app A switches the session stateful and calls B in the same roundtrip,
+    " and B (the "stateful app" template) switches it on as well. The end
+    " state differs from the start state, so the response must carry the
+    " switch - B runs in a FRESH container, and a per-container toggle used
+    " to flip back to abap_false here (then B was sticky without a stateful
+    " session: no draft saved, next click NO_DRAFT_ENTRY)
+    lo_http = NEW #( val = `` ).
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app      = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
+
+    NEW z2ui5_cl_ui5_client( action = lo_action )->z2ui5_if_client~set_session_stateful( abap_true ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_action->ms_next-s_stateful-switched ).
+
+    lo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
+    lo_called = lo_action->factory_stack_call( ).
+
+    NEW z2ui5_cl_ui5_client( action = lo_called )->z2ui5_if_client~set_session_stateful( abap_true ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_called->ms_next-s_stateful-switched ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_called->ms_next-s_stateful-active ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_called->mo_app->mv_check_sticky ).
+
+  ENDMETHOD.
+
+  METHOD test_stateful_cancels_out.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_client TYPE REF TO z2ui5_cl_ui5_client.
+
+    " on, then off in one roundtrip: the end state equals the start state,
+    " so nothing is switched and the server call is skipped
+    lo_http = NEW #( val = `` ).
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_client = NEW #( action = lo_action ).
+
+    lo_client->z2ui5_if_client~set_session_stateful( abap_true ).
+    lo_client->z2ui5_if_client~set_session_stateful( abap_false ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = lo_action->ms_next-s_stateful-switched ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = lo_action->ms_next-s_stateful-active ).
+
+  ENDMETHOD.
+
+  METHOD test_stateful_start_sticky.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_client TYPE REF TO z2ui5_cl_ui5_client.
+
+    " a request that began in a stateful session (the sticky handler's
+    " container): switching off is a change, switching back on is not
+    lo_http = NEW #( val = `` ).
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app          = NEW ltcl_test_app( ).
+    lo_action->mo_app->mv_check_sticky = abap_true.
+    lo_action->mv_check_sticky_start   = abap_true.
+    lo_client = NEW #( action = lo_action ).
+
+    lo_client->z2ui5_if_client~set_session_stateful( abap_false ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_action->ms_next-s_stateful-switched ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = lo_action->ms_next-s_stateful-active ).
+
+    lo_client->z2ui5_if_client~set_session_stateful( abap_true ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = lo_action->ms_next-s_stateful-switched ).
 
   ENDMETHOD.
 

@@ -68,7 +68,7 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `    const finish = () => activeInits.delete(key);` && |\n| &&
              `    let tries = 0;` && |\n| &&
              `    const run = () => {` && |\n| &&
-             `      if (Lib.isDestroyed(oController)) {` && |\n| &&
+             `      if (!Lib.isControllerAlive(oController)) {` && |\n| &&
              `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -212,7 +212,7 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `    const finish = () => activeInits.delete(key);` && |\n| &&
              `    let tries = 0;` && |\n| &&
              `    const run = () => {` && |\n| &&
-             `      if (Lib.isDestroyed(oController)) {` && |\n| &&
+             `      if (!Lib.isControllerAlive(oController)) {` && |\n| &&
              `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&

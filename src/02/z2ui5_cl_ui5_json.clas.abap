@@ -106,7 +106,12 @@ CLASS z2ui5_cl_ui5_json IMPLEMENTATION.
   METHOD get_boolean.
 
     DATA(lv_path) = CONV string( path ).
-    result = mi_json->get_boolean( lv_path ).
+    " ajson's get_boolean answers abap_true for ANY non-empty value that is
+    " not a JSON boolean - the number 0, the string "false", "abc" - which
+    " is not what the contract above promises. Only a boolean node is asked
+    IF mi_json->get_node_type( lv_path ) = z2ui5_if_ajson_types=>node_type-boolean.
+      result = mi_json->get_boolean( lv_path ).
+    ENDIF.
 
   ENDMETHOD.
 

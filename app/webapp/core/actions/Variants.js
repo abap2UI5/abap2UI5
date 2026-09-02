@@ -96,7 +96,7 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
       // and because ids repeat across views, it could then resolve and wire
       // the NEXT app's controls. Every other timer-shaped handler checks the
       // controller first (see ViewOps evStartTimer); this one now does too.
-      if (Lib.isDestroyed(oController)) {
+      if (!Lib.isControllerAlive(oController)) {
         finish();
         return;
       }
@@ -280,7 +280,7 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
     const finish = () => activeInits.delete(key);
     let tries = 0;
     const run = () => {
-      if (Lib.isDestroyed(oController)) {
+      if (!Lib.isControllerAlive(oController)) {
         finish();
         return;
       }

@@ -26,7 +26,11 @@ function loadFrontendAction(deps = {}) {
       "z2ui5/core/actions/Variants": noHandlers,
       "z2ui5/core/actions/Shortcuts": noHandlers,
       "z2ui5/core/actions/ViewOps": noHandlers,
-      "z2ui5/core/Lib": { logError: () => {}, runCallbacks: () => {} },
+      "z2ui5/core/Lib": {
+        logError: () => {},
+        runCallbacks: () => {},
+        isControllerAlive: () => true,
+      },
       "z2ui5/core/AppState": { state: { onBeforeEventFrontend: [] } },
       ...deps,
     },

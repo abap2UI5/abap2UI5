@@ -63,9 +63,15 @@ sap.ui.define(
           // _applyFilters).
           this._filterBinding = binding;
           // Prefer the public getFilters API (UI5 >= 1.96); older releases
-          // only expose the private aFilters member.
+          // only expose the private aFilters member. The column filter row
+          // is applied by sap.ui.table.Column.filter( ) as FilterType.CONTROL
+          // (1.71 and 1.120 alike), and the private aFilters IS the control
+          // filter array - so the public call has to ask for "Control" too.
+          // "Application" answered the app's own binding filters (usually
+          // none), and on every release with getFilters the user's column
+          // filter was gone after a view rebuild while 1.71 kept it.
           this.aFilters = binding?.getFilters
-            ? binding.getFilters("Application")
+            ? binding.getFilters("Control")
             : binding?.aFilters;
         } catch (e) {
           Lib.logError("UITableExt.readFilter failed", e);

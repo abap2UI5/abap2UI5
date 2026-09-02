@@ -186,6 +186,44 @@ test("an unconfigured instance makes NO token from a suggestion row", () => {
   ).toBe(null);
 });
 
+// a plain suggestionItems pick: MultiInput hands the sap.ui.core.Item over
+// as suggestionObject TOGETHER with the Token it built from key and text
+const suggestionItem = (key, text) => ({ getKey: () => key, getText: () => text });
+
+test("a plain suggestionItems pick returns the Token MultiInput built", () => {
+  const target = inputStub();
+  const { makeInstance, Token } = load({ input: target });
+  const inst = makeInstance();
+  inst.setControl();
+
+  // it used to be routed through tokenFromRow like a row and came back
+  // null: no token, no change event, the pick vanished
+  const built = new Token({ key: "HT-1000", text: "Notebook" });
+  const created = target.validators[0]({
+    text: "Note",
+    suggestedToken: built,
+    suggestionObject: suggestionItem("HT-1000", "Notebook"),
+  });
+
+  expect(created).toBe(built);
+});
+
+test("a plain pick without a prebuilt Token is built from the item", () => {
+  const target = inputStub();
+  const { makeInstance, Token } = load({ input: target });
+  const inst = makeInstance();
+  inst.setControl();
+
+  const created = target.validators[0]({
+    text: "Note",
+    suggestionObject: suggestionItem("HT-1000", "Notebook"),
+  });
+
+  expect(created).toBeInstanceOf(Token);
+  expect(created.key).toBe("HT-1000");
+  expect(created.text).toBe("Notebook");
+});
+
 test("TokenKeyCell alone makes a Token keyed and titled by that cell", () => {
   const target = inputStub();
   const { makeInstance, Token } = load({ input: target });
