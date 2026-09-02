@@ -125,3 +125,65 @@ function patch(label, file, marker, anchor, replacement) {
   ];
   patch("asXML text escape", join(CORE, "kernel", "call_transformation", "kernel_call_transformation.clas.locals_imp.abap"), marker, anchor, lines.join("\n"));
 }
+
+// 3. asXML line feeds
+{
+  // the parser strips every literal LF from the document before it reads
+  // it (cl_ixml, `REPLACE ALL OCCURRENCES OF |\n| IN lv_xml WITH ||`), so
+  // a string with a line break came back as one line. Written as the
+  // character reference and resolved on the way back, it survives - a
+  // system keeps the LF of a text area across the draft
+  const markerOut = "* abap2UI5 patch 3a (node/setup/patch-open-abap-core.mjs)";
+  const anchorOut = "          REPLACE ALL OCCURRENCES OF '>' IN lv_escaped WITH '&gt;'.\n";
+  const linesOut = [
+    anchorOut.trimEnd(),
+    markerOut + ": a line feed as the",
+    "* character reference the parser resolves - it drops a literal one",
+    "          REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_escaped WITH '&#10;'.",
+    "",
+  ];
+  patch("asXML line feed out", join(CORE, "kernel", "call_transformation", "kernel_call_transformation.clas.locals_imp.abap"), markerOut, anchorOut, linesOut.join("\n"));
+
+  const markerIn = "* abap2UI5 patch 3b (node/setup/patch-open-abap-core.mjs)";
+  const anchorIn = "    REPLACE ALL OCCURRENCES OF '&apos;' IN rv_value WITH |'|.\n";
+  const linesIn = [
+    anchorIn.trimEnd(),
+    markerIn + ": the decimal character",
+    "* reference of a line feed, the one form of it that reaches the parser",
+    "    REPLACE ALL OCCURRENCES OF '&#10;' IN rv_value WITH cl_abap_char_utilities=>newline.",
+    "",
+  ];
+  patch("asXML line feed in", join(CORE, "ixml", "cl_ixml.clas.locals_imp.abap"), markerIn, anchorIn, linesIn.join("\n"));
+}
+
+// 4. asXML entity order on the way back
+{
+  // unescape_value resolves `&amp;` FIRST, so an escaped value that itself
+  // carries an escaped value (an S-RTTI payload with `&lt;` inside, written
+  // as `&amp;lt;`) is resolved twice and comes back as markup - the inner
+  // document then loses its text to the tags. A parser resolves each
+  // reference once; `&amp;` has to be the last replacement
+  const markerA = "* abap2UI5 patch 4a (node/setup/patch-open-abap-core.mjs)";
+  const anchorA = [
+    "    REPLACE ALL OCCURRENCES OF '&amp;' IN rv_value WITH '&'.",
+    "    REPLACE ALL OCCURRENCES OF '&lt;' IN rv_value WITH '<'.",
+    "",
+  ].join("\n");
+  const linesA = [
+    markerA + ": `&amp;` is resolved LAST,",
+    "* below - first, it turned `&amp;lt;` into `<`",
+    "    REPLACE ALL OCCURRENCES OF '&lt;' IN rv_value WITH '<'.",
+    "",
+  ];
+  patch("asXML entity order (remove)", join(CORE, "ixml", "cl_ixml.clas.locals_imp.abap"), markerA, anchorA, linesA.join("\n"));
+
+  const markerB = "* abap2UI5 patch 4b (node/setup/patch-open-abap-core.mjs)";
+  const anchorB = "    REPLACE ALL OCCURRENCES OF '&#10;' IN rv_value WITH cl_abap_char_utilities=>newline.\n";
+  const linesB = [
+    anchorB.trimEnd(),
+    markerB,
+    "    REPLACE ALL OCCURRENCES OF '&amp;' IN rv_value WITH '&'.",
+    "",
+  ];
+  patch("asXML entity order (append)", join(CORE, "ixml", "cl_ixml.clas.locals_imp.abap"), markerB, anchorB, linesB.join("\n"));
+}

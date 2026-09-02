@@ -12,6 +12,8 @@ evidence:
   - 'probed in node/output with z2ui5_cl_ui5_util_context: an S-RTTI payload (an XML document in a string, 1186 characters) serialized inside a structure and parsed back is 45 characters long; the same in place, without the outer roundtrip, is intact'
   - 'every abap2UI5 draft with a generic data reference carries such a payload (mt_attri-srtti_data), so in the transpiled backend no such draft restored - APP_STATE_RESTORE_ERROR on the next roundtrip'
   - 'shimmed locally by node/setup/patch-open-abap-core.mjs (patch 2), applied to the pinned checkout before abap_transpile: `&`, `<` and `>` are escaped in string and character values'
+  - 'same family, patch 4: lcl_escape=>unescape_value resolves `&amp;` before `&lt;`, so an escaped payload inside an escaped value (`&amp;lt;`) is resolved twice and its markup parsed as elements - `&amp;` must be the last replacement'
+  - 'same family, patch 3: the parser (cl_ixml, if_ixml_parser~parse) strips every literal LF from the document before reading it, so a string with a line break came back as one line; the writer now emits `&#10;` for a LF and the unescape resolves it - probed with a two-line string through z2ui5_cl_ui5_util_context=>xml_stringify / xml_parse: `a\nb` came back `ab`'
 ---
 
 # CALL TRANSFORMATION id and character values that contain markup
@@ -32,8 +34,27 @@ middle: a value with a `<` in it is cut at that point on the way back.
 original expression. Idempotent (marker comment), and it fails the transpile
 when the anchor lines move upstream.
 
+## The line feed (patch 3)
+
+The parser side has a second gap of the same kind: `if_ixml_parser~parse`
+removes every literal LF from the document before it tokenizes it, so a
+string value with a line break is one line after the roundtrip. Patch 3a
+writes a LF as `&#10;` in the same escaped branch, patch 3b lets
+`lcl_escape=>unescape_value` resolve that reference. A system keeps the LF
+of a text area across the draft; so does the transpiled backend now.
+
+## The entity order (patch 4)
+
+`lcl_escape=>unescape_value` resolves `&amp;` first. A value that is itself
+an escaped document - abap2UI5's S-RTTI payload of a table with a `<` in a
+cell, written as `&amp;lt;` - is resolved twice: `&amp;lt;` becomes `&lt;`
+becomes `<`, and the inner parse then reads the cell's text as markup. A
+parser resolves each reference once. Patch 4 moves `&amp;` to the end of the
+replacements. Found by `ltcl_05_draft->markup_survives`: `<b>tag</b>` in a
+row of a generic table came back as `tag`.
+
 ## Removing this
 
 Bump the open-abap-core pin in `node/setup/fetch-deps.mjs` to a SHA that
-escapes on the way out, delete patch 2 from
-`node/setup/patch-open-abap-core.mjs`, and close this item.
+escapes on the way out, keeps a LF and resolves `&amp;` last, delete patches
+2, 3 and 4 from `node/setup/patch-open-abap-core.mjs`, and close this item.
