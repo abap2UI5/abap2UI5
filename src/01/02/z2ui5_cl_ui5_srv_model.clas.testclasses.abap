@@ -3476,7 +3476,10 @@ CLASS ltcl_test_shared_last IMPLEMENTATION.
     ls_bind->bind = abap_true.
     ls_bind->name_client = `/MR_TABLE`.
 
-    " the canonical row is the nested one
+    " the canonical row is the nested one - and it is the row every one of
+    " the three references binds to
+    cl_abap_unit_assert=>assert_equals( exp = `MZ_INNER->MR_SHARED->*`
+                                        act = ls_bind->name ).
     cl_abap_unit_assert=>assert_initial( lr_attri->*[ name = `MZ_INNER->MR_SHARED->*` ]-name_ref ).
     cl_abap_unit_assert=>assert_equals( exp = `MZ_INNER->MR_SHARED->*`
                                         act = lr_attri->*[ name = `MR_TABLE->*` ]-name_ref ).
@@ -3511,7 +3514,7 @@ CLASS ltcl_test_shared_last IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = lv_before
                                         act = lo_model->main_json_stringify( ) ).
     ls_bind = lo_model->main_attri_search( lo_app->mr_table ).
-    cl_abap_unit_assert=>assert_equals( exp = `MR_TABLE->*`
+    cl_abap_unit_assert=>assert_equals( exp = `MZ_INNER->MR_SHARED->*`
                                         act = ls_bind->name ).
 
   ENDMETHOD.

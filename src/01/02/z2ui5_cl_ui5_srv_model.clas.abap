@@ -505,7 +505,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_attri_db_load_table.
 
-    DATA(lr_ref_source) = attri_get_val_ref( ir_attri->name_ref ).
+    " a row whose owner cannot be reached is skipped, like an unreachable
+    " row in main_attri_db_load_resolve: the draft outlives the class it was
+    " taken from, and a host that holds its sub-app in a REF TO object can
+    " have swapped it for an instance of another class (sample 338) - the
+    " rows of the old class name attributes the new one does not have
+    DATA lr_ref_source TYPE REF TO data.
+    TRY.
+        lr_ref_source = attri_get_val_ref( ir_attri->name_ref ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
     ir_attri->o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref_source ).
 
     READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
@@ -551,8 +561,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lr_child_ref) = attri_get_val_ref( lr_child->name ).
-      lr_child->o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_child_ref ).
+      " same leniency as main_attri_db_load_table: a child the instance
+      " does not have any more keeps no descriptor and is skipped
+      TRY.
+          DATA(lr_child_ref) = attri_get_val_ref( lr_child->name ).
+          lr_child->o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_child_ref ).
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
     ENDLOOP.
 
   ENDMETHOD.

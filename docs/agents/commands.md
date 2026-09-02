@@ -64,6 +64,23 @@ build rather than passing silently once its anchors stop matching.
 `test_bind_tab_cell` (in `z2ui5_cl_ui5_client`'s test class) is the canary that
 the shim still works.
 
+**Three more, the same way.** `npm run auto_transpile` runs
+`node/setup/patch-open-abap-core.mjs` and
+`node/setup/patch-abaplint-runtime-assign.mjs` first. The former patches the
+pinned open-abap-core checkout twice: `cl_abap_typedescr=>describe_by_name`
+learns the absolute spelling of a type name (`\TYPE=STRING`,
+`\TYPE-POOL=ABAP\TYPE=ABAP_BOOL`, the spelling S-RTTI resolves a serialized
+component by), and the asXML writer of `CALL TRANSFORMATION id` escapes
+character values (a string CONTAINING markup - the S-RTTI payload of every
+draft with a generic data reference - came back truncated). The latter makes
+the installed `@abaplint/runtime` answer sy-subrc 4 for a dynamic ASSIGN
+through a component that does not exist, instead of a TypeError. Without the
+three no draft that carries a TYPE HANDLE table restores in the transpiled
+backend (`ltcl_test_app_root4->test_tab_ref_gen` was skipped for exactly
+that) and a host that swaps its sub-app's class crashes the restore. All
+three are filed in `backlog/`; each is idempotent and FAILS the transpile
+when the line it anchors on moves upstream.
+
 **Pinned git dependencies:** abaplint and the transpiler clone three upstream
 repos (steampunk API intersection, open-abap-core, express-icf-shim). These
 are pinned to fixed SHAs via `node node/setup/fetch-deps.mjs` (auto-run by

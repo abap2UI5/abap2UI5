@@ -367,11 +367,16 @@ CLASS ltcl_test_db_shapes DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 
+    " binds and answers the name of the row the search chose - for three
+    " references to one data object that is the canonical row, not
+    " necessarily the one named after the reference handed in
     METHODS bind
       IMPORTING
-        io_cont TYPE REF TO z2ui5_cl_ui5_app_cont
-        ir_val  TYPE REF TO data
-        iv_path TYPE string.
+        io_cont       TYPE REF TO z2ui5_cl_ui5_app_cont
+        ir_val        TYPE REF TO data
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -391,6 +396,7 @@ CLASS ltcl_test_db_shapes IMPLEMENTATION.
     DATA(lr_attri) = lo_model->main_attri_search( ir_val ).
     lr_attri->bind        = abap_true.
     lr_attri->name_client = iv_path.
+    result = lr_attri->name.
 
   ENDMETHOD.
 
@@ -409,9 +415,9 @@ CLASS ltcl_test_db_shapes IMPLEMENTATION.
     bind( io_cont = lo_cont
           ir_val  = REF #( lo_user->mt_std )
           iv_path = `/MT_STD` ).
-    bind( io_cont = lo_cont
-          ir_val  = lo_user->mr_handle_tab
-          iv_path = `/MR_HANDLE_TAB` ).
+    DATA(lv_table_row) = bind( io_cont = lo_cont
+                               ir_val  = lo_user->mr_handle_tab
+                               iv_path = `/MR_HANDLE_TAB` ).
     bind( io_cont = lo_cont
           ir_val  = lo_user->mr_elem
           iv_path = `/MR_ELEM` ).
@@ -459,7 +465,7 @@ CLASS ltcl_test_db_shapes IMPLEMENTATION.
     " L8 - the next roundtrip binds the same rows and saves as cleanly
     DATA(lo_model) = lo_loaded->create_model( ).
     DATA(lr_attri) = lo_model->main_attri_search( lo_restored->mr_handle_tab ).
-    cl_abap_unit_assert=>assert_equals( exp = `MR_HANDLE_TAB->*`
+    cl_abap_unit_assert=>assert_equals( exp = lv_table_row
                                         act = lr_attri->name ).
     lo_loaded->ms_draft-id = `TEST_SHAPES_2`.
     lo_loaded->db_save( ).
@@ -554,7 +560,9 @@ CLASS ltcl_test_db_shapes IMPLEMENTATION.
     lo_model->main_attri_db_save_srtti( ).
     LOOP AT lo_cont->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL.
-      lr_attri->srtti_data = `<not the serialized type>`.
+      " plain text, not malformed markup: a system answers either with a
+      " catchable exception, the NodeJS parser ASSERTs on broken markup
+      lr_attri->srtti_data = `this is not the serialized type`.
     ENDLOOP.
     DATA(lv_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lo_cont ).
     DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
