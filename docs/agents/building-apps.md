@@ -555,6 +555,17 @@ The same tree, with the subtree held in a variable:
 - `client->message_toast_display( text )` and
   `client->message_box_display( text type title actions … )` for messages —
   never build your own toast/dialog for these.
+- **`message_box_display( text )` takes anything.** `text` is `TYPE any`, so
+  throw in what you have: a string, a BAPIRET2 / T100 / RAP / `symsg`
+  structure or table, a log object, an exception, an HTML string, a business
+  table, a nested structure or tree, an object, a number. Messages are
+  recognized first — they set the box's severity and title themselves and
+  several of them collapse into one box with a bullet list. Anything else is
+  rendered generically: a headline in the box (`Table with 12 entries`), the
+  data itself in the details. You do not pre-format anything and you do not
+  branch on what you have. The one case that shows no box at all is complex
+  data that is initial, so `message_box_display( lt_return )` after a call
+  that returned nothing stays silent, as it always has.
 - Bind popup data exactly like main-view data; changed bound data reaches
   an open popup automatically.
 - A popup or popover is closed automatically by anything that replaces the

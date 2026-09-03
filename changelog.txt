@@ -12,6 +12,8 @@ Legend
 
 unreleased
 ----------
++ client->message_box_display( ) shows whatever is thrown at it: messages are still recognized first (BAPIRET2, T100, RAP, symsg, log objects, exceptions - unchanged, severity and title come from the message), and everything that carries none of them is now rendered instead of dropped - a business table, a nested structure or tree, an object, a number, an HTML string (which moves into the details, where UI5 renders it as markup rather than showing the tags). The box gets a headline, the data goes into the details; complex data that is initial still shows nothing at all
+! A structure without a single message component no longer counts as a message: it used to reach the box as one blank line per row (an empty popup), and is now handed to the generic renderer
 ! The draft is written with one database statement per roundtrip instead of two: create( ) inserts first and asks who owns the row only when the key already exists (the SELECT that guarded a MODIFY on every save always hit an empty row on the legitimate paths, the id being a fresh uuid) - a foreign-owned id is still refused, and stays as it was
 ! The user exit is looked up once per request instead of twice: the superseded Z2UI5_IF_EXIT is asked for implementers only when Z2UI5_IF_UI5_EXIT names none, and a system that carries one class per interface now gets the current one instead of whichever sorted first across both lists
 ! The view model is read out of the parsed request in place: the request tree travels with the path of its MODEL node (ty_s_request-model_path) and the model service addresses the attributes below it, where the MODEL container used to be sliced out - a walk over every node of the request and a second copy of the whole delta on a mass edit

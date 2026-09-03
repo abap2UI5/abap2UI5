@@ -664,6 +664,7 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_box_single       FOR TESTING RAISING cx_static_check.
     METHODS test_box_multiple     FOR TESTING RAISING cx_static_check.
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
+    METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -737,6 +738,27 @@ CLASS ltcl_msg IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `<ul><li>first</li><li>second</li></ul>`
         act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_box_no_msg_skips.
+
+    " a business table has none of the message components, so the message
+    " formatter answers `skip` - it used to answer with one blank message
+    " per row, which is what put an empty popup on the screen. `skip` is
+    " what hands the data to ui5_data_box_format( )
+    TYPES:
+      BEGIN OF ty_s_row,
+        carrid TYPE string,
+        seats  TYPE i,
+      END OF ty_s_row.
+    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    lt_row = VALUE #( ( carrid = `LH` seats = 12 ) ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_row ).
+
+    cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
   ENDMETHOD.
 
@@ -939,6 +961,176 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
         act = z2ui5_cl_ui5_util_context=>check_is_rap_struct( ls_plain ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" The generic renderer behind client->message_box_display( ): what an app
+" throws in that is NOT a message. Every case here reached the box as
+" nothing at all before - a blank popup, or no popup.
+CLASS ltcl_data_box DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    TYPES:
+      BEGIN OF ty_s_row,
+        carrid TYPE string,
+        seats  TYPE i,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_s_node,
+        name  TYPE string,
+        nodes TYPE ty_t_row,
+      END OF ty_s_node.
+
+    METHODS test_text_plain      FOR TESTING RAISING cx_static_check.
+    METHODS test_text_html       FOR TESTING RAISING cx_static_check.
+    METHODS test_number          FOR TESTING RAISING cx_static_check.
+    METHODS test_table           FOR TESTING RAISING cx_static_check.
+    METHODS test_tree            FOR TESTING RAISING cx_static_check.
+    METHODS test_empty_table     FOR TESTING RAISING cx_static_check.
+    METHODS test_escapes_markup  FOR TESTING RAISING cx_static_check.
+    METHODS test_row_limit       FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_data_box IMPLEMENTATION.
+
+  METHOD test_text_plain.
+
+    " a character value is its own text and needs no details
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( `Hello World` ).
+
+    cl_abap_unit_assert=>assert_false( ls_box-skip ).
+    cl_abap_unit_assert=>assert_equals( exp = `Hello World`
+                                        act = ls_box-text ).
+    cl_abap_unit_assert=>assert_initial( ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_text_html.
+
+    " markup in the box TEXT would be shown as the tags it is written with,
+    " so it moves to the details ( a FormattedText in UI5 ) and the headline
+    " becomes the plain text behind it
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format(
+                       `<p>Order <strong>4711</strong> booked</p>` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Order 4711 booked`
+                                        act = ls_box-text ).
+    cl_abap_unit_assert=>assert_equals( exp = `<p>Order <strong>4711</strong> booked</p>`
+                                        act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_number.
+
+    " a number is shown as the number, not as a right-aligned char field
+    DATA lv_int TYPE i.
+
+    lv_int = 42.
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lv_int ).
+
+    cl_abap_unit_assert=>assert_false( ls_box-skip ).
+    cl_abap_unit_assert=>assert_equals( exp = `42`
+                                        act = ls_box-text ).
+
+  ENDMETHOD.
+
+  METHOD test_table.
+
+    " a business table: the headline counts, the details carry every row
+    " with its component names
+    DATA lt_row TYPE ty_t_row.
+
+    lt_row = VALUE #( ( carrid = `LH` seats = 12 ) ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
+
+    cl_abap_unit_assert=>assert_false( ls_box-skip ).
+    cl_abap_unit_assert=>assert_equals( exp = `Table with 1 entry`
+                                        act = ls_box-text ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `<ol><li><ul><li><strong>CARRID</strong>: LH</li>` &&
+              `<li><strong>SEATS</strong>: 12</li></ul></li></ol>`
+        act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_tree.
+
+    " a node with children below it - the recursion renders the nested table
+    " as a nested list instead of stopping at the first level
+    DATA ls_node TYPE ty_s_node.
+
+    ls_node = VALUE #( name  = `root`
+                       nodes = VALUE #( ( carrid = `LH` seats = 1 ) ) ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( ls_node ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Structure with 2 fields`
+                                        act = ls_box-text ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `<ul><li><strong>NAME</strong>: root</li>` &&
+              `<li><strong>NODES</strong>: <ol><li><ul>` &&
+              `<li><strong>CARRID</strong>: LH</li>` &&
+              `<li><strong>SEATS</strong>: 1</li>` &&
+              `</ul></li></ol></li></ul>`
+        act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_empty_table.
+
+    " an app that hands over the result of a call it just made expects no
+    " popup when the call returned nothing - the same silence an empty
+    " message table has always produced
+    DATA lt_row TYPE ty_t_row.
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
+
+    cl_abap_unit_assert=>assert_true( ls_box-skip ).
+
+  ENDMETHOD.
+
+  METHOD test_escapes_markup.
+
+    " a value that looks like markup is data, not markup - it must not be
+    " able to close the list the renderer is building
+    DATA lt_row TYPE ty_t_row.
+
+    lt_row = VALUE #( ( carrid = `</ul><script>` ) ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `<ol><li><ul><li><strong>CARRID</strong>: &lt;/ul&gt;&lt;script&gt;</li>` &&
+              `<li><strong>SEATS</strong>: 0</li></ul></li></ol>`
+        act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_row_limit.
+
+    " a dump is a diagnostic, not a report: the box stops after 100 rows and
+    " says how many it left out
+    DATA lt_row TYPE ty_t_row.
+
+    DO 105 TIMES.
+      INSERT VALUE #( seats = sy-index ) INTO TABLE lt_row.
+    ENDDO.
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Table with 105 entries`
+                                        act = ls_box-text ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_box-details CS `... 5 more entries` ) ).
 
   ENDMETHOD.
 

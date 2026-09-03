@@ -487,6 +487,14 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
+  "! Show a sap.m.MessageBox. `text` is TYPE any and takes whatever the app
+  "! has: a text, a message structure or table (BAPIRET2, T100, RAP,
+  "! symsg, a log object, an exception), an HTML string, a business table, a
+  "! nested structure or tree, an object, a number. Messages are recognized
+  "! first and set the box's severity and title themselves; everything else
+  "! is rendered - a headline in the box, the data itself in the details.
+  "! The one case that shows nothing at all is complex data that is initial
+  "! (an empty message table stays as silent as it always was).
   METHODS message_box_display
     IMPORTING
       text              TYPE any
