@@ -23,7 +23,7 @@
 
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
-  <a href="https://abap2ui5.github.io/samples/">Samples</a> •
+  <a href="https://abap2ui5.github.io/playground/samples/">Samples</a> •
   <a href="#ai-assistants">AI Assistants</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
@@ -57,7 +57,7 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
-Next stop: the [samples](https://abap2ui5.github.io/samples/) – hundreds of ready-to-run apps, from data binding basics to OData, RAP, and Launchpad integration – and the [docs](https://abap2ui5.github.io/docs/) for everything else.
+Next stop: the [sample catalogue](https://abap2ui5.github.io/playground/samples/) – hundreds of ready-to-run apps, from data binding basics to OData, RAP, and Launchpad integration, searchable by control and by the UI5 release your system runs, and most of them one click from running in the browser – and the [docs](https://abap2ui5.github.io/docs/) for everything else.
 
 ## How It Works
 
