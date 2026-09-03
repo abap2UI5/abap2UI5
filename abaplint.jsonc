@@ -302,6 +302,12 @@
       "severity": "Warning"
     },
     "reduce_string_templates": true,
+    // catches `x = CONV string( x )` only - SLIN's "Redundant conversion for
+    // type STRING" is wider (it fires on any CONV that is the whole
+    // right-hand side of an assignment, the operand's type notwithstanding),
+    // so this rule is a floor, not the gate for that finding. Measured on
+    // 2.120.38: 0 findings over src, control probe fired
+    "redundant_conversion": true,
     "release_idoc": true,
     "remove_descriptions": {
       "exclude": [],
