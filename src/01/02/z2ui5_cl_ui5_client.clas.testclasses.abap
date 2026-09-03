@@ -86,6 +86,8 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_box_display  FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_dependent FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_type     FOR TESTING RAISING cx_static_check.
+    METHODS test_message_box_data     FOR TESTING RAISING cx_static_check.
+    METHODS test_message_box_no_data  FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_routing      FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_routing_default FOR TESTING RAISING cx_static_check.
@@ -427,6 +429,52 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","error","Error occurred"]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_message_box_data.
+
+    " a business table carries no messages at all - it used to reach the box
+    " as one blank line per row. The whole point of the API is that an app
+    " hands over what it has without pre-formatting it
+    TYPES:
+      BEGIN OF ty_s_row,
+        carrid TYPE string,
+      END OF ty_s_row.
+    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+    lt_row = VALUE #( ( carrid = `LH` ) ).
+
+    li_client->message_box_display( lt_row ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","show","Table with 1 entry",` &&
+              `{"details":"<ol><li><ul><li><strong>CARRID</strong>: LH</li></ul></li></ol>",` &&
+              `"title":"Information"}]`
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_message_box_no_data.
+
+    " ...and an empty one still queues nothing: an app that shows the result
+    " of a call it just made must not get a popup when there was no result
+    TYPES:
+      BEGIN OF ty_s_row,
+        carrid TYPE string,
+      END OF ty_s_row.
+    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+
+    li_client->message_box_display( lt_row ).
+
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
 
   ENDMETHOD.
 

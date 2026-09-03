@@ -589,21 +589,36 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                              ( `success` ) ).
     ENDIF.
 
+    " MESSAGES FIRST. A BAPIRET2 table, a RAP response, a log object, an
+    " exception, a plain message structure - that is what most apps hand
+    " over, and the formatter is the one place that knows all of their
+    " shapes, their severity and their titles. Only when NOTHING in there is
+    " a message does the generic renderer below get a turn, so nothing about
+    " the message path changes for an app that was already using it
+    DATA(lv_is_msg) = abap_false.
     IF z2ui5_cl_ui5_util_context=>rtti_check_clike( text ) = abap_false.
       result = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( text ).
-      IF result-skip = abap_true.
-        RETURN.
-      ENDIF.
+      lv_is_msg = xsdbool( result-skip = abap_false ).
+    ENDIF.
+
+    IF lv_is_msg = abap_true.
       IF title IS NOT INITIAL.
         result-title = title.
       ENDIF.
     ELSE.
+      " no messages in there, or a character value, which is its own text:
+      " show the DATA. A table, a nested structure, a tree, an object, an
+      " HTML string, a number - the app throws in what it has and the box
+      " renders it rather than staying empty or not appearing at all
+      result = z2ui5_cl_ui5_util_context=>ui5_data_box_format( text ).
+      IF result-skip = abap_true.
+        RETURN.
+      ENDIF.
+
       " lowercased right here, so `Information` gets the same show-mapping
       " and default title as `information`
-      result = VALUE #( text    = text
-                        type    = to_lower( type )
-                        title   = title
-                        details = details ).
+      result-type  = to_lower( type ).
+      result-title = title.
 
       IF result-type = `information`.
         result-type = `show`.
@@ -611,6 +626,13 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
           result-title = `Information`.
         ENDIF.
       ENDIF.
+    ENDIF.
+
+    " the details the app passed fill the slot the resolver left empty -
+    " they never overwrite a rendering, which IS the data the app asked to
+    " see
+    IF result-details IS INITIAL.
+      result-details = details.
     ENDIF.
 
     " MessageBox display methods are lowercase (show, error, warning, ...) but

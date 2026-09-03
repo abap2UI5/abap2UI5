@@ -157,6 +157,21 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE ty_s_msg_box.
 
+    "! Everything a message box can be built from that is NOT a message.
+    "! ui5_msg_box_format( ) is asked first and answers `skip` when nothing
+    "! it was handed is a message - this is what runs then, so that a box
+    "! the app asked for always has something to show: a character value
+    "! (its own text, markup moved into the details), a number, a table, a
+    "! nested structure or tree, an object, a data reference. `text` gets a
+    "! one-line headline, `details` the data itself rendered as HTML.
+    "! Complex data that is initial answers `skip` - a call over an empty
+    "! table stays as silent as it is over an empty message table.
+    CLASS-METHODS ui5_data_box_format
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE ty_s_msg_box.
+
     CLASS-METHODS rtti_check_serializable
       IMPORTING
         val           TYPE REF TO object
@@ -777,6 +792,113 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     CLASS-METHODS msg_get_rap_fail_text
       IMPORTING
         cause         TYPE i
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " What a rendered box stays inside. A data dump is a diagnostic, not a
+    " report: a MessageBox that carries 10.000 rows or follows a reference
+    " graph until it runs out of stack helps nobody, and the roundtrip pays
+    " for every character of it. Both limits are announced in the output
+    " rather than applied silently.
+    CONSTANTS cv_data_max_rows  TYPE i VALUE 100.
+    CONSTANTS cv_data_max_depth TYPE i VALUE 5.
+    " the headline is one line of a MessageBox - what does not fit there is
+    " in the details anyway
+    CONSTANTS cv_data_max_text  TYPE i VALUE 200.
+
+    "! Render any value into the HTML fragment the box details show. Depth
+    "! is the recursion level, checked against cv_data_max_depth.
+    CLASS-METHODS data_render
+      IMPORTING
+        val           TYPE any
+        depth         TYPE i
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS data_render_tab
+      IMPORTING
+        val           TYPE any
+        depth         TYPE i
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS data_render_struc
+      IMPORTING
+        val           TYPE any
+        depth         TYPE i
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS data_render_oref
+      IMPORTING
+        val           TYPE any
+        depth         TYPE i
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS data_render_dref
+      IMPORTING
+        val           TYPE any
+        depth         TYPE i
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! One named value as a list item - the shape a component of a
+    "! structure and an attribute of an object both take.
+    CLASS-METHODS data_render_item
+      IMPORTING
+        name          TYPE clike
+        val           TYPE any
+        depth         TYPE i
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! The one line the box shows without the details being opened.
+    CLASS-METHODS data_get_headline
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Any elementary value as its text, and never an exception.
+    CLASS-METHODS data_get_string
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! The text of an exception object, empty for every other object.
+    CLASS-METHODS data_get_exc_text
+      IMPORTING
+        val           TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS html_get_list
+      IMPORTING
+        items         TYPE string_table
+        ordered       TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Escape what would otherwise be read as markup.
+    CLASS-METHODS html_escape
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Does this text carry HTML markup?
+    CLASS-METHODS html_check
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    "! HTML as the plain text behind it, capped at cv_data_max_text.
+    CLASS-METHODS html_get_plain
+      IMPORTING
+        val           TYPE clike
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1738,6 +1860,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD ui5_msg_box_format.
 
     DATA(lt_msg) = msg_get_t( val ).
+
+    " a structure that carries none of the message components maps to an
+    " entry with no text at all - that is not a message, it is data, and it
+    " used to reach the box as a popup with a blank line in it. Dropping it
+    " here is what lets `skip` mean "nothing in here is a message" and lets
+    " the caller fall back to ui5_data_box_format( )
+    DELETE lt_msg WHERE text IS INITIAL.
+
     DATA(lv_lines) = lines( lt_msg ).
 
     IF lv_lines = 0.
@@ -1763,6 +1893,365 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
     ENDLOOP.
     result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
+
+  ENDMETHOD.
+
+  METHOD ui5_data_box_format.
+
+    " a character value is its own text, whatever is in it - an empty one
+    " included, which is the shape message_box_display( lv_text ) has always
+    " had and is not this method's to change
+    IF rtti_check_clike( val ) = abap_true.
+      IF html_check( val ) = abap_true.
+        " markup in the box text would be shown as the tags it is written
+        " with - sap.m.MessageBox renders the text through a sap.m.Text and
+        " the DETAILS through a sap.m.FormattedText, so that is where HTML
+        " belongs. The plain text behind it stays as the headline
+        result-text    = html_get_plain( val ).
+        result-details = val.
+      ELSE.
+        result-text = val.
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+    " a number, a date, a hex value: shown the way the runtime writes it
+    IF rtti_check_printable( val ) = abap_true.
+      result-text = data_get_string( val ).
+      RETURN.
+    ENDIF.
+
+    " complex data that is initial stays silent. An app that hands over the
+    " result table of a call it just made expects no popup when the call
+    " returned nothing, and that expectation predates this method
+    IF val IS INITIAL.
+      result-skip = abap_true.
+      RETURN.
+    ENDIF.
+
+    result-text    = data_get_headline( val ).
+    result-details = data_render( val   = val
+                                  depth = 0 ).
+
+    IF result-text IS INITIAL AND result-details IS INITIAL.
+      result-skip = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD data_render.
+
+    " the recursion stops here rather than in every branch below, and says
+    " in the output that it did
+    IF depth > cv_data_max_depth.
+      result = `<em>...</em>`.
+      RETURN.
+    ENDIF.
+
+    CASE rtti_get_type_kind( val ).
+      WHEN cl_abap_datadescr=>typekind_table.
+        result = data_render_tab( val   = val
+                                  depth = depth ).
+      WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
+        result = data_render_struc( val   = val
+                                    depth = depth ).
+      WHEN cl_abap_datadescr=>typekind_oref.
+        result = data_render_oref( val   = val
+                                   depth = depth ).
+      WHEN cl_abap_datadescr=>typekind_dref.
+        result = data_render_dref( val   = val
+                                   depth = depth ).
+      WHEN OTHERS.
+        result = html_escape( data_get_string( val ) ).
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD data_render_tab.
+
+    DATA lt_item TYPE string_table.
+    DATA lv_no   TYPE i.
+
+    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
+
+    ASSIGN val TO <tab>.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
+      lv_no = lv_no + 1.
+      IF lv_no > cv_data_max_rows.
+        INSERT |<li><em>... { lines( <tab> ) - cv_data_max_rows } more entries</em></li>|
+               INTO TABLE lt_item.
+        EXIT.
+      ENDIF.
+      INSERT |<li>{ data_render( val   = <row>
+                                 depth = depth + 1 ) }</li>| INTO TABLE lt_item.
+    ENDLOOP.
+
+    result = html_get_list( items   = lt_item
+                            ordered = abap_true ).
+
+  ENDMETHOD.
+
+  METHOD data_render_struc.
+
+    DATA lt_item TYPE string_table.
+
+    FIELD-SYMBOLS <comp> TYPE any.
+
+    TRY.
+        DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
+      CATCH cx_root.
+        " a structure RTTI cannot describe still has a value - the caller
+        " keeps the headline, the details stay empty
+        RETURN.
+    ENDTRY.
+
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
+      DATA(lv_name) = CONV string( lr_attri->name ).
+      ASSIGN COMPONENT lv_name OF STRUCTURE val TO <comp>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      INSERT data_render_item( name  = lv_name
+                               val   = <comp>
+                               depth = depth ) INTO TABLE lt_item.
+    ENDLOOP.
+
+    result = html_get_list( lt_item ).
+
+  ENDMETHOD.
+
+  METHOD data_render_oref.
+
+    DATA lo_obj  TYPE REF TO object.
+    DATA lt_item TYPE string_table.
+
+    FIELD-SYMBOLS <comp> TYPE any.
+
+    TRY.
+        lo_obj = val.
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+    IF lo_obj IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    " an exception carries its own text, and that text is the whole story -
+    " its attributes are the placeholders that are already substituted in it
+    result = data_get_exc_text( lo_obj ).
+    IF result IS NOT INITIAL.
+      result = html_escape( result ).
+      RETURN.
+    ENDIF.
+
+    TRY.
+        DATA(lt_attri) = rtti_get_t_attri_by_oref( lo_obj ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    " the public state is what an object can show of itself; a constant is
+    " the type's, not this instance's, and a class attribute is nobody's
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)                  "#EC CI_SORTSEQ
+         WHERE visibility  = cv_objectdescr_public
+           AND is_constant = abap_false
+           AND is_class    = abap_false.
+      DATA(lv_name) = CONV string( lr_attri->name ).
+      ASSIGN lo_obj->(lv_name) TO <comp>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      INSERT data_render_item( name  = lv_name
+                               val   = <comp>
+                               depth = depth ) INTO TABLE lt_item.
+    ENDLOOP.
+
+    result = html_get_list( lt_item ).
+
+  ENDMETHOD.
+
+  METHOD data_render_dref.
+
+    DATA lr_data TYPE REF TO data.
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    TRY.
+        lr_data = val.
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+    IF lr_data IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    ASSIGN lr_data->* TO <val>.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    " a reference is no level of its own for the reader, but it is one for
+    " the recursion: a structure that points at itself would otherwise
+    " never reach the depth limit
+    result = data_render( val   = <val>
+                          depth = depth + 1 ).
+
+  ENDMETHOD.
+
+  METHOD data_render_item.
+
+    DATA(lv_val) = data_render( val   = val
+                                depth = depth + 1 ).
+
+    result = |<li><strong>{ html_escape( name ) }</strong>: { lv_val }</li>|.
+
+  ENDMETHOD.
+
+  METHOD data_get_headline.
+
+    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
+
+    CASE rtti_get_type_kind( val ).
+
+      WHEN cl_abap_datadescr=>typekind_table.
+        ASSIGN val TO <tab>.
+        DATA(lv_lines) = lines( <tab> ).
+        IF lv_lines = 1.
+          result = `Table with 1 entry`.
+        ELSE.
+          result = |Table with { lv_lines } entries|.
+        ENDIF.
+
+      WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
+        TRY.
+            DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
+            result = |Structure with { lines( lt_attri ) } fields|.
+          CATCH cx_root.
+            result = `Structure`.
+        ENDTRY.
+
+      WHEN cl_abap_datadescr=>typekind_oref.
+        DATA lo_obj TYPE REF TO object.
+        TRY.
+            lo_obj = val.
+            result = |Object { rtti_get_classname_by_ref( lo_obj ) }|.
+          CATCH cx_root.
+            result = `Object`.
+        ENDTRY.
+
+      WHEN OTHERS.
+        result = `Data`.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD data_get_string.
+
+    " the plain assignment is what turns an elementary value into its text
+    " - the same trick get_comp_str( ) uses. A value the runtime refuses to
+    " convert must not be the reason a box does not appear
+    TRY.
+        result = val.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    " a number reaches a character target right-aligned in the length its
+    " type needs (` 12` for an i on some runtimes), and a CHAR field brings
+    " its padding along - neither is what the value says
+    result = c_trim( result ).
+
+  ENDMETHOD.
+
+  METHOD data_get_exc_text.
+
+    TRY.
+        DATA(lx) = CAST cx_root( val ).
+        result = lx->get_text( ).
+      CATCH cx_root ##NO_HANDLER.
+        " not an exception, or one that cannot render itself
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD html_get_list.
+
+    IF items IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    IF ordered = abap_true.
+      result = `<ol>` && concat_lines_of( items ) && `</ol>`.
+    ELSE.
+      result = `<ul>` && concat_lines_of( items ) && `</ul>`.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD html_escape.
+
+    " the ampersand first: escaping it afterwards would hit the ones the
+    " two replacements below have just written
+    result = val.
+    REPLACE ALL OCCURRENCES OF `&` IN result WITH `&amp;`.
+    REPLACE ALL OCCURRENCES OF `<` IN result WITH `&lt;`.
+    REPLACE ALL OCCURRENCES OF `>` IN result WITH `&gt;`.
+
+  ENDMETHOD.
+
+  METHOD html_check.
+
+    " a closing tag is the one shape a business text does not produce by
+    " accident; the void elements are the ones that have none. CS ignores
+    " case, so `</DIV>` and `<BR/>` are covered with it
+    result = xsdbool( val CS `</`
+                   OR val CS `<br`
+                   OR val CS `<hr`
+                   OR val CS `<img` ).
+
+  ENDMETHOD.
+
+  METHOD html_get_plain.
+
+    DATA lv_rest TYPE string.
+    DATA lv_pos  TYPE i.
+
+    lv_rest = val.
+
+    " everything between < and > goes, and a blank takes its place so that
+    " `<td>a</td><td>b</td>` does not read as `ab`
+    WHILE lv_rest CS `<`.
+      lv_pos = sy-fdpos.
+      result = result && substring( val = lv_rest
+                                    len = lv_pos ) && ` `.
+      lv_rest = substring( val = lv_rest
+                           off = lv_pos ).
+      IF lv_rest CS `>`.
+        lv_pos = sy-fdpos + 1.
+        lv_rest = substring( val = lv_rest
+                             off = lv_pos ).
+      ELSE.
+        CLEAR lv_rest.
+      ENDIF.
+    ENDWHILE.
+
+    result = result && lv_rest.
+
+    " the entities the stripped text would otherwise show as written
+    REPLACE ALL OCCURRENCES OF `&nbsp;` IN result WITH ` `.
+    REPLACE ALL OCCURRENCES OF `&lt;` IN result WITH `<`.
+    REPLACE ALL OCCURRENCES OF `&gt;` IN result WITH `>`.
+    REPLACE ALL OCCURRENCES OF `&amp;` IN result WITH `&`.
+    CONDENSE result.
+
+    IF strlen( result ) > cv_data_max_text.
+      result = substring( val = result
+                          len = cv_data_max_text ) && `...`.
+    ENDIF.
 
   ENDMETHOD.
 
