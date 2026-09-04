@@ -317,29 +317,30 @@ if (manifestArg !== -1) {
   },
   /* The workflows that RUN the shared scripts.
    *
-   * `check-app-rules.mjs`, `check-family-nav`'s checker and
-   * `check-framework-pin.mjs` are all gated above, and the workflow files that
-   * invoke them were not — byte-identical in three repositories, three copies,
-   * nothing comparing them. So the script could not drift and its trigger,
-   * its permissions and its job name could, which is the same gap seen from
-   * the other side: a consumer that quietly stops running a shared check still
-   * passes every gate that check exists to feed.
+   * `check-app-rules.mjs` and `check-framework-pin.mjs` are both gated above,
+   * and the workflow files that invoke them were not — byte-identical in three
+   * repositories, three copies, nothing comparing them. So the script could not
+   * drift and its trigger, its permissions and its job name could, which is the
+   * same gap seen from the other side: a consumer that quietly stops running a
+   * shared check still passes every gate that check exists to feed.
    *
    * Measured 2026-08-28: all three sets were still identical, so this pins
-   * agreement that already held rather than declaring a new one. */
+   * agreement that already held rather than declaring a new one.
+   *
+   * `check-family-nav` was a third pair here and is gone (2026-09-04), with
+   * its two source files. The three sibling GitHub Pages sites it policed were
+   * retired on 2026-09-03 in favour of the one playground page: the checker
+   * guarded a nav block that told a reader of one page that the other two
+   * existed, and one page needs none of it. All three consumers deleted their
+   * copy in that change; this manifest kept declaring them, which is what the
+   * gate reported for a day - six findings that were the gate working, and a
+   * retirement finished on one side only. Do not re-add it without the pages. */
   {
     file: '.github/shared/check-app-rules.yaml',
     consumers: ['samples', 'samples-controls', 'samples-stack'],
     consumerFile: '.github/workflows/check-app-rules.yaml',
     sync: false,
     why: 'the workflow that runs the shared app-rules checker',
-  },
-  {
-    file: '.github/shared/check-family-nav.yaml',
-    consumers: ['samples', 'samples-controls', 'samples-stack'],
-    consumerFile: '.github/workflows/check-family-nav.yaml',
-    sync: false,
-    why: 'the workflow that runs the shared family-nav checker',
   },
   {
     /* Two consumers, not three: samples-controls pins differently and runs
@@ -349,15 +350,6 @@ if (manifestArg !== -1) {
     consumerFile: '.github/workflows/check-framework-pin.yaml',
     sync: false,
     why: 'the workflow that runs the shared framework-pin checker',
-  },
-  {
-    file: '.github/shared/check-family-nav.mjs',
-    consumers: ['samples', 'samples-controls', 'samples-stack'],
-    consumerFile: 'scripts/check-family-nav.mjs',
-    section: familyNavBody,
-    mine: familyNavBody,
-    why: 'the checker body and the canonical wording its three copies share —'
-      + ' the file says "identical in all three copies" and nothing checked it',
   },
   {
     /* Only the two HAND-MAINTAINED sample repositories. samples-controls has a
@@ -452,18 +444,6 @@ const CONSUMED = [
     },
   },
 ];
-
-/* The body of a family-nav checker: everything from its first `import` down.
- *
- * Above that line each repository owns three constants — SELF, PAGE_HTML,
- * PAGE_CSS — and the file itself documents that as the only difference between
- * the copies. Below it, the logic AND the canonical wording are meant to be
- * identical in all three, which is the half worth comparing. */
-function familyNavBody(text) {
-  const at = text.search(/^import /m);
-  if (at === -1) throw new Error('no `import` line — the shared body starts at the first one');
-  return text.slice(at);
-}
 
 const METADATA_HEADING = '## Metadata: what goes on the class, and what goes beside it';
 
