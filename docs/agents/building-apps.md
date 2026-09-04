@@ -562,10 +562,14 @@ The same tree, with the subtree held in a variable:
   recognized first — they set the box's severity and title themselves and
   several of them collapse into one box with a bullet list. Anything else is
   rendered generically: a headline in the box (`Table with 12 entries`), the
-  data itself in the details. You do not pre-format anything and you do not
-  branch on what you have. The one case that shows no box at all is complex
-  data that is initial, so `message_box_display( lt_return )` after a call
-  that returned nothing stays silent, as it always has.
+  data itself in the details — which abap2UI5 shows unfolded, so nothing of it
+  hides behind sap.m.MessageBox's "Show details" link. You do not pre-format
+  anything and you do not branch on what you have. The one case that shows no
+  box at all is complex data that is initial, so
+  `message_box_display( lt_return )` after a call that returned nothing stays
+  silent, as it always has. The sample `Z2UI5_CL_SMP_APP_502` in
+  [abap2UI5/samples](https://github.com/abap2UI5/samples) walks every one of
+  those cases with one button each.
 - Bind popup data exactly like main-view data; changed bound data reaches
   an open popup automatically.
 - A popup or popover is closed automatically by anything that replaces the

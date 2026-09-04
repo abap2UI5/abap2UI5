@@ -48,6 +48,14 @@ test("strips script tags", async () => {
   expect(result).toContain("hello");
 });
 
+test("drops a script inside a list item with its body", async () => {
+  // a leading <script> is parked in <head> by the HTML parser and never
+  // reaches the walk; one INSIDE the details does, and dropping only its tag
+  // would print its source as text
+  const result = await sanitize("<ul><li>a<script>alert(1)</script>b</li></ul>");
+  expect(result).toBe("<ul><li>ab</li></ul>");
+});
+
 test("drops elements with event-handler attributes", async () => {
   const result = await sanitize('<img src="x" onerror="alert(1)">click');
   expect(result).not.toContain("onerror");
@@ -72,11 +80,29 @@ test("neutralizes injected markup inside a list item", async () => {
   expect(result).toBe("<ul><li>item</li></ul>");
 });
 
-test("does not duplicate nested list items", async () => {
+test("keeps a nested list nested", async () => {
+  // The details are shown unfolded (ControlCall.expandBoxDetails), so this
+  // IS the content of the box. Folding a subtree into its parent's line -
+  // which taking each top-level item's textContent used to do - turned a
+  // rendered structure into one run-on sentence.
   const result = await sanitize(
     "<ul><li>parent<ul><li>child</li></ul></li></ul>",
   );
-  expect(result).toBe("<ul><li>parentchild</li></ul>");
+  expect(result).toBe("<ul><li>parent<ul><li>child</li></ul></li></ul>");
+});
+
+test("keeps the tags a rendered data box is built from", async () => {
+  // ul/ol/li/strong/em/p are what ui5_data_box_format( ) emits and what
+  // sap.m.FormattedText keeps when it renders the result
+  const result = await sanitize(
+    "<ol><li><strong>NAME</strong>: <em>value</em></li></ol>",
+  );
+  expect(result).toBe("<ol><li><strong>NAME</strong>: <em>value</em></li></ol>");
+});
+
+test("an element that is not whitelisted loses its tag, not its text", async () => {
+  const result = await sanitize("<div><span>kept</span></div>");
+  expect(result).toBe("kept");
 });
 
 test("escapes HTML special characters in plain text", async () => {

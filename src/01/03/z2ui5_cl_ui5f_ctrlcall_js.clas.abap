@@ -86,13 +86,30 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      else sap.ui.require(["sap/m/MessageToast"], doShow);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    let iBoxNo = 0;` && |\n| &&
+             `` && |\n| &&
+             `    function expandBoxDetails(sDialogId) {` && |\n| &&
+             `      const oDialog = Lib.getElementById(sDialogId);` && |\n| &&
+             `      const oLayout = oDialog?.getContent?.()[0];` && |\n| &&
+             `      if (!oLayout?.getItems) return;` && |\n| &&
+             `      for (const oItem of oLayout.getItems()) {` && |\n| &&
+             `        if (!oItem?.isA) continue;` && |\n| &&
+             `` && |\n| &&
+             `        if (oItem.isA("sap.m.FormattedText")) oItem.setVisible(true);` && |\n| &&
+             `        else if (oItem.isA("sap.m.Link")) oItem.setVisible(false);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function showBox(sType, sText, mOptions, oController) {` && |\n| &&
              `      const o = { ...(mOptions || {}) };` && |\n| &&
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
              `        o.onClose = (sAction) => oController.eB([sEvent], sAction);` && |\n| &&
              `      }` && |\n| &&
-             `      if (o.details) o.details = Lib.sanitizeMessageDetails(o.details);` && |\n| &&
+             `      if (o.details) {` && |\n| &&
+             `        o.details = Lib.sanitizeMessageDetails(o.details);` && |\n| &&
+             `        if (!o.id) o.id = ``z2ui5MessageBox${++iBoxNo}``;` && |\n| &&
+             `      }` && |\n| &&
              `      if (o.dependentOn) {` && |\n| &&
              `        const oDependentOn = ViewSlots.resolveById(o.dependentOn);` && |\n| &&
              `        if (oDependentOn) o.dependentOn = oDependentOn;` && |\n| &&
@@ -109,6 +126,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `` && |\n| &&
              `      if (Object.keys(o).length) showFn(sText, o);` && |\n| &&
              `      else showFn(sText);` && |\n| &&
+             `` && |\n| &&
+             `      if (o.details) expandBoxDetails(o.id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const CONTROL_METHODS = {` && |\n| &&
@@ -405,7 +424,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `` && |\n| &&
              `    function castArgs(kinds, rawArgs, view, target) {` && |\n| &&
              `      if (kinds === null) {` && |\n| &&
-             `        const keepString = setsStringProperty(target?.control, target?.method);` && |\n| &&
+             `        const keepString = setsStringProperty(target?.control, target?.method);` && |\n|.
+    result = result &&
              `        return rawArgs.map((raw, i) =>` && |\n| &&
              `          i === 0 && keepString ? raw : castArgAuto(raw),` && |\n| &&
              `        );` && |\n| &&
@@ -424,8 +444,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    function registerIconFont(fontFamily, fontURI) {` && |\n| &&
              `      const IconPool = sap.ui.require("sap/ui/core/IconPool");` && |\n| &&
              `      if (!IconPool) {` && |\n| &&
-             `        Lib.logError("ICON_POOL: sap/ui/core/IconPool is not loaded");` && |\n|.
-    result = result &&
+             `        Lib.logError("ICON_POOL: sap/ui/core/IconPool is not loaded");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (!fontFamily || !fontURI) {` && |\n| &&

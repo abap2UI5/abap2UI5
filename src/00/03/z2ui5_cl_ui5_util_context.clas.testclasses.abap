@@ -265,11 +265,29 @@ CLASS ltcl_string DEFINITION FINAL
     METHODS test_url_create        FOR TESTING RAISING cx_static_check.
     METHODS test_url_create_empty  FOR TESTING RAISING cx_static_check.
     METHODS test_url_roundtrip     FOR TESTING RAISING cx_static_check.
+    METHODS test_escape_html       FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_string IMPLEMENTATION.
+
+  METHOD test_escape_html.
+
+    " All five characters, and the ampersand FIRST: escaping it after the
+    " others would hit the ones they just wrote (`&lt;` would become
+    " `&amp;lt;`). The quote pair is what makes this the catalog's method
+    " rather than the three-character one this class used to carry - a value
+    " that lands in an attribute must not be able to close it.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `Tom &amp; Jerry &lt;b&gt; said &quot;it&#39;s fine&quot;`
+        act = z2ui5_cl_ui5_util_context=>c_escape_html( `Tom & Jerry <b> said "it's fine"` ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `nothing to escape`
+        act = z2ui5_cl_ui5_util_context=>c_escape_html( `nothing to escape` ) ).
+
+  ENDMETHOD.
 
   METHOD test_trim_spaces.
 

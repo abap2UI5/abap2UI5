@@ -600,31 +600,74 @@ sap.ui.define(
     }
 
     // Turns an HTML "details" snippet from the backend into safe HTML.
-    // Bullet lists are preserved; everything else is reduced to plain text.
+    //
+    // Safe by RECONSTRUCTION, not by removal: nothing of the parsed document
+    // is passed through: every text node is escaped through a DOM property
+    // and every element is re-emitted only if its tag is on this whitelist,
+    // without a single attribute. An element that is not on it contributes
+    // its children and nothing else, so a `<script>`/`<img onerror=...>`
+    // cannot survive in any shape.
+    //
+    // The whitelist is the intersection of what the backend produces
+    // (z2ui5_cl_ui5_util_context=>ui5_data_box_format) and what
+    // sap.m.FormattedText keeps when it renders the result.
+    const MSG_DETAIL_TAGS = new Set(["UL", "OL", "LI", "STRONG", "EM", "P"]);
+
+    // ... and these are dropped WITH their content - see sanitizeMessageNodes
+    const MSG_DROP_TAGS = new Set(["SCRIPT", "STYLE", "TEMPLATE"]);
+
     // The DOM helpers are created lazily so loading this module does not
     // require a DOM (the Node specs never call this function).
     let _msgParser = null;
     let _sanitizeEl = null;
+
+    function escapeMessageText(text) {
+      _sanitizeEl.textContent = text;
+      return _sanitizeEl.innerHTML;
+    }
+
+    // Walks the children of one node. Recursion is what keeps a NESTED list
+    // nested: the previous version collected the top-level <li>s and took
+    // each one's textContent, which folded a whole subtree - a table inside a
+    // structure inside a row - into one run-on line. That was invisible for
+    // as long as the details sat behind the "Show details" link and became
+    // the whole content of the box when they stopped.
+    function sanitizeMessageNodes(node) {
+      let out = "";
+      for (const child of node.childNodes) {
+        if (child.nodeType === 3) {
+          out += escapeMessageText(child.nodeValue);
+        } else if (child.nodeType === 1) {
+          const tag = child.tagName.toUpperCase();
+          if (MSG_DROP_TAGS.has(tag)) {
+            // what these carry is code, not text: dropping the ELEMENT the
+            // way an unknown tag is dropped would keep its body and print
+            // `alert(1)`. Where the parser puts them differs (a leading
+            // <script> lands in <head>, one inside a <li> does not), so the
+            // rule sits here rather than depending on that.
+            continue;
+          }
+          if (tag === "BR") {
+            out += "<br>";
+          } else if (MSG_DETAIL_TAGS.has(tag)) {
+            const name = tag.toLowerCase();
+            out += `<${name}>${sanitizeMessageNodes(child)}</${name}>`;
+          } else {
+            // not on the whitelist: the tag goes, what it wrapped stays
+            out += sanitizeMessageNodes(child);
+          }
+        }
+      }
+      return out;
+    }
+
     function sanitizeMessageDetails(html) {
       if (!_msgParser) {
         _msgParser = new DOMParser();
         _sanitizeEl = document.createElement("div");
       }
       const doc = _msgParser.parseFromString(html, "text/html");
-      // Only top-level list items: a nested <li>'s text is already part of
-      // its ancestor's textContent, so including it too would duplicate it.
-      const items = Array.from(doc.querySelectorAll("li")).filter(
-        (li) => !li.parentElement?.closest("li"),
-      );
-      if (items.length > 0) {
-        const safeItems = items.map((li) => {
-          _sanitizeEl.textContent = li.textContent;
-          return `<li>${_sanitizeEl.innerHTML}</li>`;
-        });
-        return `<ul>${safeItems.join("")}</ul>`;
-      }
-      _sanitizeEl.textContent = doc.body.textContent;
-      return _sanitizeEl.innerHTML;
+      return sanitizeMessageNodes(doc.body);
     }
 
     // The MAIN view and its two nested views (NEST, NEST2) share ONE JSON

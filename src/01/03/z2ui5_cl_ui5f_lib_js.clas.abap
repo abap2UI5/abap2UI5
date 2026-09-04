@@ -411,28 +411,49 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return delta;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const MSG_DETAIL_TAGS = new Set(["UL", "OL", "LI", "STRONG", "EM", "P"]);` && |\n| &&
+             `` && |\n| &&
+             `    const MSG_DROP_TAGS = new Set(["SCRIPT", "STYLE", "TEMPLATE"]);` && |\n| &&
+             `` && |\n| &&
              `    let _msgParser = null;` && |\n| &&
              `    let _sanitizeEl = null;` && |\n| &&
+             `` && |\n| &&
+             `    function escapeMessageText(text) {` && |\n| &&
+             `      _sanitizeEl.textContent = text;` && |\n| &&
+             `      return _sanitizeEl.innerHTML;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function sanitizeMessageNodes(node) {` && |\n| &&
+             `      let out = "";` && |\n|.
+    result = result &&
+             `      for (const child of node.childNodes) {` && |\n| &&
+             `        if (child.nodeType === 3) {` && |\n| &&
+             `          out += escapeMessageText(child.nodeValue);` && |\n| &&
+             `        } else if (child.nodeType === 1) {` && |\n| &&
+             `          const tag = child.tagName.toUpperCase();` && |\n| &&
+             `          if (MSG_DROP_TAGS.has(tag)) {` && |\n| &&
+             `            continue;` && |\n| &&
+             `          }` && |\n| &&
+             `          if (tag === "BR") {` && |\n| &&
+             `            out += "<br>";` && |\n| &&
+             `          } else if (MSG_DETAIL_TAGS.has(tag)) {` && |\n| &&
+             `            const name = tag.toLowerCase();` && |\n| &&
+             `            out += ``<${name}>${sanitizeMessageNodes(child)}</${name}>``;` && |\n| &&
+             `          } else {` && |\n| &&
+             `            out += sanitizeMessageNodes(child);` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      return out;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function sanitizeMessageDetails(html) {` && |\n| &&
              `      if (!_msgParser) {` && |\n| &&
              `        _msgParser = new DOMParser();` && |\n| &&
              `        _sanitizeEl = document.createElement("div");` && |\n| &&
              `      }` && |\n| &&
              `      const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
-             `` && |\n| &&
-             `      const items = Array.from(doc.querySelectorAll("li")).filter(` && |\n| &&
-             `        (li) => !li.parentElement?.closest("li"),` && |\n| &&
-             `      );` && |\n| &&
-             `      if (items.length > 0) {` && |\n| &&
-             `        const safeItems = items.map((li) => {` && |\n|.
-    result = result &&
-             `          _sanitizeEl.textContent = li.textContent;` && |\n| &&
-             `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
-             `        });` && |\n| &&
-             `        return ``<ul>${safeItems.join("")}</ul>``;` && |\n| &&
-             `      }` && |\n| &&
-             `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
-             `      return _sanitizeEl.innerHTML;` && |\n| &&
+             `      return sanitizeMessageNodes(doc.body);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];` && |\n| &&
