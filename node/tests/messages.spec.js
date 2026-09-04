@@ -14,8 +14,13 @@ function loadControlCall(sandbox) {
   const toastCalls = [];
   const errors = [];
   const ebCalls = [];
-  const boxFn = (name) => (text, params) =>
+  const boxFn = (name) => (text, params) => {
     boxCalls.push({ name, text, params });
+    // UI5 builds the dialog and its content synchronously inside show( ),
+    // before the opening animation - which is what lets showBox reach the
+    // details right after the call returns
+    if (params?.details) openDialog(params.id);
+  };
   const MessageBox = {
     show: boxFn("show"),
     alert: boxFn("alert"),
@@ -31,10 +36,33 @@ function loadControlCall(sandbox) {
   const MessageToast = {
     show: (text, opts) => toastCalls.push({ text, opts }),
   };
+  // The message boxes this stub "opens": showBox gives a box with details an
+  // id and reaches back for it through Lib.getElementById, exactly as it does
+  // against a real MessageBox - so the stub answers with the layout UI5
+  // builds, [message, "Show details" link, FormattedText(hidden)].
+  const dialogs = {};
+  const control = (type, visible) => ({
+    type,
+    visible,
+    isA: (sType) => sType === type,
+    setVisible(bVisible) {
+      this.visible = bVisible;
+    },
+  });
+  const openDialog = (sId) => {
+    const items = [
+      control("sap.m.Text", true),
+      control("sap.m.Link", true),
+      control("sap.m.FormattedText", false),
+    ];
+    dialogs[sId] = { items, getContent: () => [{ getItems: () => items }] };
+    return dialogs[sId];
+  };
   const Lib = {
     logError: (message) => errors.push(message),
     sanitizeMessageDetails: (html) => `sanitized:${html}`,
     whenRendered: (_control, _owner, fn) => fn(),
+    getElementById: (sId) => dialogs[sId] || null,
   };
   // ViewSlots.resolveById maps a control id to its element for the
   // dependentOn option. Only "knownId" resolves here.
@@ -79,7 +107,7 @@ function loadControlCall(sandbox) {
     if (mOptions) args.push(mOptions);
     module.handlers.CONTROL_GLOBAL(oController, args);
   };
-  return { dispatch, boxCalls, toastCalls, errors, ebCalls, elements };
+  return { dispatch, boxCalls, toastCalls, errors, ebCalls, elements, dialogs };
 }
 
 function showBox(sType, mOptions) {
@@ -122,6 +150,37 @@ test.describe("message box options", () => {
   test("details are sanitized", () => {
     const { boxCalls } = showBox("show", { details: "<b>x</b>" });
     expect(boxCalls[0].params.details).toBe("sanitized:<b>x</b>");
+  });
+
+  test("details are shown at once - no 'Show details' to click", () => {
+    // sap.m.MessageBox hides the details behind a link and has no option that
+    // opens them. What message_box_display( ) renders out of a table or a
+    // structure IS the message, so the box arrives with them unfolded.
+    const { boxCalls, dialogs } = showBox("show", { details: "<ul><li>x</li></ul>" });
+
+    const items = dialogs[boxCalls[0].params.id].items;
+    expect(items.find((i) => i.type === "sap.m.FormattedText").visible).toBe(true);
+    // ... and the link that would have revealed them is gone with them
+    expect(items.find((i) => i.type === "sap.m.Link").visible).toBe(false);
+  });
+
+  test("a box without details is not given an id and opens untouched", () => {
+    const { boxCalls } = showBox("show", { contentWidth: "20rem" });
+    expect(boxCalls[0].params.id).toBeUndefined();
+  });
+
+  test("an id the caller set is kept - the box stays in its own reach", () => {
+    const { boxCalls } = showBox("show", { details: "<p>x</p>", id: "myBox" });
+    expect(boxCalls[0].params.id).toBe("myBox");
+  });
+
+  test("a layout the expand does not recognize leaves the box alone", () => {
+    // a UI5 release that lays the details out differently must degrade to the
+    // collapsed box, not throw inside the display path
+    const env = loadControlCall();
+    env.dispatch("MESSAGE_BOX", "show", "boom", { details: "<p>x</p>" });
+    expect(env.errors).toEqual([]);
+    expect(env.boxCalls).toHaveLength(1);
   });
 
   test("dependentOn resolves a control id to its element", () => {

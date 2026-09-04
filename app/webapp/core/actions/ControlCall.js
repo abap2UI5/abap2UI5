@@ -93,6 +93,38 @@ sap.ui.define(
       else sap.ui.require(["sap/m/MessageToast"], doShow);
     }
 
+    // A message box whose details this module expands needs an id to be found
+    // by afterwards. MessageBox has no `id` option in the ABAP signature, so
+    // one is never sent from an app - but the check stays, because an id we
+    // overwrote would take the app's box out of its own reach.
+    let iBoxNo = 0;
+
+    // sap.m.MessageBox renders `details` as a VBox of
+    // [ message, "Show details" link, FormattedText(visible=false) ] and there
+    // is no option that opens it - the link's press handler is the only thing
+    // that sets the FormattedText visible. abap2UI5 shows the details
+    // straight away instead: what message_box_display( ) renders out of a
+    // table, a structure or a tree IS the message, and a rendering behind a
+    // link the user has to find first is not shown at all.
+    //
+    // Every call here is a public control API (getContent/getItems/setVisible
+    // /isA) over controls MessageBox built one statement earlier, and every
+    // step is guarded: a release that lays the box out differently leaves the
+    // details collapsed - the behaviour before this - rather than throwing.
+    function expandBoxDetails(sDialogId) {
+      const oDialog = Lib.getElementById(sDialogId);
+      const oLayout = oDialog?.getContent?.()[0];
+      if (!oLayout?.getItems) return;
+      for (const oItem of oLayout.getItems()) {
+        if (!oItem?.isA) continue;
+        // the details themselves - shown
+        if (oItem.isA("sap.m.FormattedText")) oItem.setVisible(true);
+        // ... and the link that would have revealed them has nothing left to
+        // do, so it does not stand under the text as a dead "Show details"
+        else if (oItem.isA("sap.m.Link")) oItem.setVisible(false);
+      }
+    }
+
     function showBox(sType, sText, mOptions, oController) {
       const o = { ...(mOptions || {}) };
       if (o.onClose) {
@@ -104,7 +136,10 @@ sap.ui.define(
         const sEvent = o.onClose;
         o.onClose = (sAction) => oController.eB([sEvent], sAction);
       }
-      if (o.details) o.details = Lib.sanitizeMessageDetails(o.details);
+      if (o.details) {
+        o.details = Lib.sanitizeMessageDetails(o.details);
+        if (!o.id) o.id = `z2ui5MessageBox${++iBoxNo}`;
+      }
       if (o.dependentOn) {
         // dependentOn (UI5 >= 1.124) ties the message box to an element's
         // lifecycle - the backend sends the control id, resolved here. A
@@ -128,6 +163,11 @@ sap.ui.define(
       // no option set -> the bare per-method call, so UI5 owns every default
       if (Object.keys(o).length) showFn(sText, o);
       else showFn(sText);
+
+      // after show( ): the dialog and its content exist from here on -
+      // MessageBox builds both synchronously and only the opening animation
+      // is deferred
+      if (o.details) expandBoxDetails(o.id);
     }
 
     // ------------------------------------------------------------------
