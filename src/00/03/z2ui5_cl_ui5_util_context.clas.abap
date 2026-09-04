@@ -388,6 +388,18 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    "! Escape what would otherwise be read as markup. Vendored from
+    "! abap-util's `c_escape_html`, name and body: this class used to carry a
+    "! private `html_escape` that did the same for `&`, `<` and `>` only,
+    "! which is a re-implementation of something the catalog already had -
+    "! and the next sync would have reported it as a second name for one
+    "! method rather than as a missing one.
+    CLASS-METHODS c_escape_html
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS url_param_get_tab
       IMPORTING
         val           TYPE clike
@@ -878,13 +890,6 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       IMPORTING
         items         TYPE string_table
         ordered       TYPE abap_bool DEFAULT abap_false
-      RETURNING
-        VALUE(result) TYPE string.
-
-    "! Escape what would otherwise be read as markup.
-    CLASS-METHODS html_escape
-      IMPORTING
-        val           TYPE clike
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1962,7 +1967,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         result = data_render_dref( val   = val
                                    depth = depth ).
       WHEN OTHERS.
-        result = html_escape( data_get_string( val ) ).
+        result = c_escape_html( data_get_string( val ) ).
     ENDCASE.
 
   ENDMETHOD.
@@ -2044,7 +2049,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " its attributes are the placeholders that are already substituted in it
     result = data_get_exc_text( lo_obj ).
     IF result IS NOT INITIAL.
-      result = html_escape( result ).
+      result = c_escape_html( result ).
       RETURN.
     ENDIF.
 
@@ -2107,7 +2112,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lv_val) = data_render( val   = val
                                 depth = depth + 1 ).
 
-    result = |<li><strong>{ html_escape( name ) }</strong>: { lv_val }</li>|.
+    result = |<li><strong>{ c_escape_html( name ) }</strong>: { lv_val }</li>|.
 
   ENDMETHOD.
 
@@ -2192,14 +2197,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD html_escape.
+  METHOD c_escape_html.
 
     " the ampersand first: escaping it afterwards would hit the ones the
-    " two replacements below have just written
+    " replacements below have just written
     result = val.
     REPLACE ALL OCCURRENCES OF `&` IN result WITH `&amp;`.
     REPLACE ALL OCCURRENCES OF `<` IN result WITH `&lt;`.
     REPLACE ALL OCCURRENCES OF `>` IN result WITH `&gt;`.
+    REPLACE ALL OCCURRENCES OF `"` IN result WITH `&quot;`.
+    REPLACE ALL OCCURRENCES OF `'` IN result WITH `&#39;`.
 
   ENDMETHOD.
 
