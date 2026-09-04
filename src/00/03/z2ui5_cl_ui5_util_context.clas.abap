@@ -1327,8 +1327,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_any.
 
-    DATA lo_struct TYPE REF TO cl_abap_structdescr.
-    DATA lo_type   TYPE REF TO cl_abap_typedescr.
+    DATA lo_struct        TYPE REF TO cl_abap_structdescr.
+    DATA lo_type          TYPE REF TO cl_abap_typedescr.
+    " declared, not CONV string( ) - see error_get_attributes
+    DATA lv_absolute_name TYPE string.
 
     TRY.
         lo_type = cl_abap_typedescr=>describe_by_data( val ).
@@ -1354,7 +1356,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     " descriptor instances are singletons per type, so the identity check
     " guards against absolute names reused by other (local/anonymous) types
-    DATA(lv_absolute_name) = CONV string( lo_struct->absolute_name ).
+    lv_absolute_name = lo_struct->absolute_name.
     READ TABLE mt_attri_cache REFERENCE INTO DATA(lr_cache)
          WITH TABLE KEY absolute_name = lv_absolute_name.
     IF sy-subrc = 0 AND lr_cache->o_struct = lo_struct.
@@ -1719,6 +1721,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD error_get_attributes.
 
+    " declared, NOT `DATA(lv_name) = CONV string( lr_attri->name )`: a CONV
+    " that is the whole right-hand side of an assignment is "Redundant
+    " conversion for type STRING" in SLIN - the assignment converts by
+    " itself. The variable stays a string on purpose: the RTTI name is a
+    " CHAR field whose trailing blanks have no business in the rendered name
+    DATA lv_name TYPE string.
+
     FIELD-SYMBOLS <comp> TYPE any.
 
     IF val IS NOT BOUND.
@@ -1743,7 +1752,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           CONTINUE.
       ENDCASE.
 
-      DATA(lv_name) = CONV string( lr_attri->name ).
+      lv_name = lr_attri->name.
       ASSIGN val->(lv_name) TO <comp>.
       IF sy-subrc <> 0.
         CONTINUE.
@@ -2003,6 +2012,8 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD data_render_struc.
 
     DATA lt_item TYPE string_table.
+    " declared, not CONV string( ) - see error_get_attributes
+    DATA lv_name TYPE string.
 
     FIELD-SYMBOLS <comp> TYPE any.
 
@@ -2015,7 +2026,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDTRY.
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
-      DATA(lv_name) = CONV string( lr_attri->name ).
+      lv_name = lr_attri->name.
       ASSIGN COMPONENT lv_name OF STRUCTURE val TO <comp>.
       IF sy-subrc <> 0.
         CONTINUE.
@@ -2033,6 +2044,8 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     DATA lo_obj  TYPE REF TO object.
     DATA lt_item TYPE string_table.
+    " declared, not CONV string( ) - see error_get_attributes
+    DATA lv_name TYPE string.
 
     FIELD-SYMBOLS <comp> TYPE any.
 
@@ -2065,7 +2078,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
          WHERE visibility  = cv_objectdescr_public
            AND is_constant = abap_false
            AND is_class    = abap_false.
-      DATA(lv_name) = CONV string( lr_attri->name ).
+      lv_name = lr_attri->name.
       ASSIGN lo_obj->(lv_name) TO <comp>.
       IF sy-subrc <> 0.
         CONTINUE.

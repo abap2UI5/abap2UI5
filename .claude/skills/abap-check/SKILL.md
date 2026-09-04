@@ -516,6 +516,40 @@ pitfalls".
   all nine **and found four more the system run had not** — 356 once, 363
   three times. A system run sees one package at a time; the gate sees the
   corpus.
+
+  **Same finding, `CONV string( )`, in THIS repository (2026-09-03).** A user's
+  system reported `z2ui5_cl_ui5_util_context->data_render_struc @16` —
+  *"Redundant conversion for type STRING"* on
+  `DATA(lv_name) = CONV string( lr_attri->name )`, an RTTI attribute name
+  inlined through a CONV. Three more of the identical shape sat in the same
+  class — `error_get_attributes`, `data_render_oref`, and
+  `rtti_get_t_attri_by_any`'s `CONV string( lo_struct->absolute_name )`. All
+  four are now a declared `DATA … TYPE string.` plus a plain assignment, which
+  keeps the string type (the RTTI name is a CHAR field whose trailing blanks
+  must not travel) without a conversion operator. That also retires the "a
+  redundant `CONV string( )`" line in the BUNDLE paragraph below, where it was
+  filed as a possible artefact of the fold: it was this code all along.
+
+  **The generic-parameter form is NOT this finding and has to stay.**
+  `DATA(lv_url) = CONV string( url )` with `url TYPE clike` is the prescribed
+  fix for the *"fixed type STRING for the generic type CLIKE"* trap above, and
+  no system run has ever reported one of the sixteen in `src`. The
+  discriminator is the operand: concretely typed → the assignment converts by
+  itself and the CONV is redundant; generic → the CONV has to be there, it is
+  what fixes the type. Two sites in `src` still have the flagged shape and were
+  left alone because no system run has named them:
+  `z2ui5_cl_ui5_util_http`'s `CONV string( …cv_char_util_cr_lf(1) )` pair, a
+  CHAR constant with an offset. Fix them when a run does.
+
+  **abaplint has a rule for this and it does not reach it.**
+  `redundant_conversion` reports only a CONV whose operand ALREADY has the
+  target type (`text = CONV string( text )`), not one whose target does.
+  Measured on 2.120.38 against the pre-fix file with the rule switched on: **0
+  findings**; the control probe (`lv_probe = CONV string( lv_probe )` in that
+  same method) fired immediately. The rule is on in `abaplint.jsonc` since this
+  fix — as a floor, not as the gate for this finding. What would decide this
+  one is `redundant-conv-i`'s shape generalized from `i` to any concrete type
+  with a concretely-typed operand, and that is not written yet.
 - **An Open SQL literal is a host expression: `@( … )`.** In strict Open SQL
   every value in a WHERE comparison is escaped, a literal included — bare
   `WHERE id = \`TEST_COUNT_FOREIGN\`` becomes
@@ -579,11 +613,14 @@ sources into that repository, where a script folds them into ONE class whose
 `z2ui5_cl_abap2ui5_local` (2026-08-23) reported eight SLIN warnings against
 that folded include — POSIX regex twice, ABAP Doc position, `<CLASS>` not
 supported / not closed three times, a redundant `CONV string( )` — at character
-OFFSETS (`@16232`, `@38704`), not at lines in any file here. All four kinds are
-the families above, and all four are silenced in `src/` by a pragma, a
+OFFSETS (`@16232`, `@38704`), not at lines in any file here. Three of the four
+kinds are the families above and are silenced in `src/` by a pragma, a
 `##REGEX_POSIX`, or an escape. **They come back after the fold**, so what the
 fold does to those annotations is the thing to establish; the sources on this
-side are clean and no change here would move them. The `<CLASS>` pair is worth
+side are clean and no change here would move them. The fourth, the redundant
+`CONV string( )`, turned out NOT to be a fold artefact — the same finding came
+back on 2026-09-03 with a location in this tree (`data_render_struc @16`, the
+entry above), and the four sites it named are fixed here. The `<CLASS>` pair is worth
 looking at first: `<p class="shorttext synchronized">` is the standard ADT
 shorttext form, and a tag scanner that splits on whitespace reads the attribute
 name as a second tag — which would make it an artefact of the fold rather than
