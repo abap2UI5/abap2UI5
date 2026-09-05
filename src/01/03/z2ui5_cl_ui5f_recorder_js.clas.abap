@@ -515,16 +515,17 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      "ACT = system/custom action counts. A '(no render)' row is a" +` && |\n| &&
              `        " roundtrip that never reached the render phase",` && |\n| &&
              `    );` && |\n| &&
+             `` && |\n| &&
+             `    lines.push(` && |\n| &&
+             `      "(error response, aborted request, or a parallel request whose" +` && |\n| &&
+             `        " result was discarded as stale).",` && |\n| &&
+             `    );` && |\n| &&
              `    if (list.some((record) => record.previousLoad)) {` && |\n| &&
              `      lines.push(` && |\n| &&
              `        "A '*' after the number marks a roundtrip of the PREVIOUS page" +` && |\n| &&
              `          " load, carried across the reload.",` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
-             `    lines.push(` && |\n| &&
-             `      "(error response, aborted request, or a parallel request whose" +` && |\n| &&
-             `        " result was discarded as stale).",` && |\n| &&
-             `    );` && |\n| &&
              `    return lines.join("\n");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
@@ -676,9 +677,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    if (!isRecordingPayloads()) {` && |\n| &&
              `      return (` && |\n| &&
              `        "View diff needs payload recording.\n\n" +` && |\n| &&
-             `        'Switch "Record Payloads" on in the dialog footer, then trigger at' +` && |\n| &&
-             `        " least two roundtrips that rebuild the view - the diff compares the\n" +` && |\n| &&
-             `        "view XML of the two most recently recorded rebuilds."` && |\n| &&
+             `        'Switch "Record Payloads" on in the Roundtrips action bar, then' +` && |\n| &&
+             `        " trigger at least two roundtrips that rebuild the view - the diff\n" +` && |\n| &&
+             `        "compares the view XML of the two most recently recorded rebuilds."` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -736,9 +737,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    if (!isRecordingPayloads()) {` && |\n| &&
              `      return (` && |\n| &&
              `        "Model diff needs payload recording.\n\n" +` && |\n| &&
-             `        'Switch "Record Payloads" on in the dialog footer, then trigger at' +` && |\n| &&
-             `        " least two roundtrips - the diff compares the MODEL of the two most\n" +` && |\n| &&
-             `        "recently recorded responses."` && |\n| &&
+             `        'Switch "Record Payloads" on in the Roundtrips action bar, then' +` && |\n| &&
+             `        " trigger at least two roundtrips - the diff compares the MODEL of\n" +` && |\n| &&
+             `        "the two most recently recorded responses."` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
              `    const pair = lastTwoResponses();` && |\n| &&

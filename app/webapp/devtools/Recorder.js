@@ -672,16 +672,20 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
       "ACT = system/custom action counts. A '(no render)' row is a" +
         " roundtrip that never reached the render phase",
     );
+    // The second half of that sentence, kept next to its first half: the
+    // optional '*' note below used to be pushed between the two, so the
+    // footnote read as a fragment on exactly the sessions that survived a
+    // reload.
+    lines.push(
+      "(error response, aborted request, or a parallel request whose" +
+        " result was discarded as stale).",
+    );
     if (list.some((record) => record.previousLoad)) {
       lines.push(
         "A '*' after the number marks a roundtrip of the PREVIOUS page" +
           " load, carried across the reload.",
       );
     }
-    lines.push(
-      "(error response, aborted request, or a parallel request whose" +
-        " result was discarded as stale).",
-    );
     return lines.join("\n");
   }
 
@@ -861,9 +865,9 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     if (!isRecordingPayloads()) {
       return (
         "View diff needs payload recording.\n\n" +
-        'Switch "Record Payloads" on in the dialog footer, then trigger at' +
-        " least two roundtrips that rebuild the view - the diff compares the\n" +
-        "view XML of the two most recently recorded rebuilds."
+        'Switch "Record Payloads" on in the Roundtrips action bar, then' +
+        " trigger at least two roundtrips that rebuild the view - the diff\n" +
+        "compares the view XML of the two most recently recorded rebuilds."
       );
     }
     // Only MAIN: it is the slot a roundtrip normally rebuilds, and a
@@ -928,9 +932,9 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     if (!isRecordingPayloads()) {
       return (
         "Model diff needs payload recording.\n\n" +
-        'Switch "Record Payloads" on in the dialog footer, then trigger at' +
-        " least two roundtrips - the diff compares the MODEL of the two most\n" +
-        "recently recorded responses."
+        'Switch "Record Payloads" on in the Roundtrips action bar, then' +
+        " trigger at least two roundtrips - the diff compares the MODEL of\n" +
+        "the two most recently recorded responses."
       );
     }
     const pair = lastTwoResponses();

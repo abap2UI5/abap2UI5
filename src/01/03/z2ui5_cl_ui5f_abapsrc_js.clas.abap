@@ -78,7 +78,8 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
              `      } catch {` && |\n| &&
              `        source = "";` && |\n| &&
              `      }` && |\n| &&
-             `      cache = { app: name, source };` && |\n| &&
+             `` && |\n| &&
+             `      if (source) cache = { app: name, source };` && |\n| &&
              `      return source;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

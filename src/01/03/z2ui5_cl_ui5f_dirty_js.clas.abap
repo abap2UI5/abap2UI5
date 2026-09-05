@@ -41,7 +41,7 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `        : null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.Dirty", {` && |\n| &&
+             `    const Dirty = Control.extend("z2ui5.cc.Dirty", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          isDirty: {` && |\n| &&
@@ -84,6 +84,13 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
+             `` && |\n| &&
+             `    Dirty.reset = function reset() {` && |\n| &&
+             `      dirtyControls.clear();` && |\n| &&
+             `      syncUnloadPrompt(false);` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    return Dirty;` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

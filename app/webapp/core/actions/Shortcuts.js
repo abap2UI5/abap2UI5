@@ -97,8 +97,13 @@ sap.ui.define(
     }
 
     function shortcutEntry(combo) {
-      const scopes = AppState.state.shortcuts[combo];
-      if (!scopes) return undefined;
+      // own entries only - see the registration for why a prototype name
+      // must not be looked up on the registry object
+      const shortcuts = AppState.state.shortcuts;
+      if (!Object.prototype.hasOwnProperty.call(shortcuts, combo)) {
+        return undefined;
+      }
+      const scopes = shortcuts[combo];
       for (const key of Object.keys(scopes)) {
         if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;
         if (scopeControlOpen(key)) return scopes[key];
@@ -151,6 +156,16 @@ sap.ui.define(
         ? raw.toUpperCase()
         : raw;
       const shortcuts = AppState.state.shortcuts;
+      // a combo that spells a property Object.prototype carries - `__proto__`,
+      // `constructor` - is no key combination, and shortcuts[combo] for it
+      // reaches the prototype: a scope written under `__proto__` landed on
+      // Object.prototype itself, for every object of the page
+      if (combo in Object.prototype) {
+        Lib.logError(
+          `KEYBOARD_SHORTCUT: '${args[1]}' is not a key combination`,
+        );
+        return;
+      }
       const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});
       if (!args[2]) {
         delete scopes[scope];

@@ -82,6 +82,27 @@ sap.ui.define(
 
       exit() {
         this._unhook();
+        this._pendingRestores?.clear();
+      },
+
+      // Restore `control` to `item.V` as soon as it has a DOM reference,
+      // with at most ONE wait per control: onAfterRendering runs again on
+      // every roundtrip, and a target that is not rendered yet collected
+      // one rendering delegate per pass - Lib.whenRendered drops only the
+      // delegate that fires, so the ones stacked behind it sit on a
+      // control that may never render at all. The pending map carries the
+      // LATEST item for the control, so the single wait restores the
+      // current position rather than the one it was registered with.
+      _restoreWhenRendered(control, item) {
+        if (!this._pendingRestores) this._pendingRestores = new Map();
+        const waiting = this._pendingRestores.has(control);
+        this._pendingRestores.set(control, item);
+        if (waiting) return;
+        Lib.whenRendered(control, this, () => {
+          const pending = this._pendingRestores.get(control);
+          this._pendingRestores.delete(control);
+          this._restoreScrollPosition(control, pending);
+        });
       },
 
       _restoreScrollPosition(control, item) {
@@ -123,9 +144,7 @@ sap.ui.define(
             if (!control) continue;
 
             // Restore immediately when rendered, otherwise once it is.
-            Lib.whenRendered(control, this, () =>
-              this._restoreScrollPosition(control, item),
-            );
+            this._restoreWhenRendered(control, item);
           }
         } catch (e) {
           Lib.logError("Scrolling.onAfterRendering: failed", e);

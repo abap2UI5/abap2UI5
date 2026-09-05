@@ -212,12 +212,13 @@ sap.ui.define(
           return;
         }
 
-        this.displayEditor(
-          oModel,
-          Tabs.render(key),
-          tab.kind,
-          Tabs.renderTemplated(key),
-        );
+        // The post-templating variant is NOT computed here: producing it
+        // means serializing and prettifying the whole rendered DOM of the
+        // view, and the toggle that shows it is only visible for a view
+        // that carries "xmlns:template" - which nearly no app does. Paying
+        // for it on every single sub-view selection bought nothing; it is
+        // computed on the first press instead (see onTemplatingPress).
+        this.displayEditor(oModel, Tabs.render(key), tab.kind);
         // A view tab is editable: its XML can be rendered back into the
         // slot without a roundtrip (devtools/LiveEdit.js).
         data.canApply = LiveEdit.canApply(key);
@@ -264,9 +265,11 @@ sap.ui.define(
       // ----------------------------------------------------------------
 
       // Populates the dialog model so the right editor / source area is
-      // shown with the given content. `xcontent` is the post-templating
-      // variant that the "After Templating" toggle switches to.
-      displayEditor(oModel, content, type, xcontent = "") {
+      // shown with the given content. The post-templating variant the
+      // "After Templating" toggle switches to is filled in lazily, on the
+      // first press - it is cleared here so a stale one from the previous
+      // sub-view can never be shown.
+      displayEditor(oModel, content, type) {
         const data = oModel.getData();
         data.editor_visible = true;
         data.source_visible = false;
@@ -278,7 +281,7 @@ sap.ui.define(
         data.templatingSource = false;
         data.value = content;
         data.previousValue = content;
-        data.xContent = xcontent;
+        data.xContent = "";
         data.type = type;
         oModel.refresh();
       },
@@ -288,8 +291,17 @@ sap.ui.define(
         const oModel = oSource.getModel();
         const data = oModel.getData();
         // Toggle between the original (previousValue) and the rendered
-        // DOM (xContent) representation.
-        data.value = oSource.getPressed() ? data.xContent : data.previousValue;
+        // DOM (xContent) representation. The rendered one is produced HERE,
+        // the first time it is asked for, and kept in the model for the
+        // next press - see displayEditor for why not on every selection.
+        if (oSource.getPressed()) {
+          if (!data.xContent) {
+            data.xContent = Tabs.renderTemplated(data.selectedTab);
+          }
+          data.value = data.xContent;
+        } else {
+          data.value = data.previousValue;
+        }
         oModel.refresh();
       },
 
@@ -361,16 +373,27 @@ sap.ui.define(
       // affordance of its own, so copying a report used to mean dragging
       // across thousands of lines - or going through Export, which builds
       // everything rather than the one view being looked at.
-      onCopyTab(oEvent) {
+      async onCopyTab(oEvent) {
         const oSource = oEvent.getSource();
-        Lib.copyToClipboard(oSource.getModel().getData().value || "");
+        const data = oSource.getModel().getData();
+        let text = data.value || "";
+        if (data.isSourceView) {
+          // The ABAP Source view shows the class in an IFRAME and never
+          // goes through displayEditor, so `value` still holds whatever
+          // sub-view was open before it - Copy put THAT on the clipboard
+          // and confirmed "Copied" over a framed ABAP class. Take the class
+          // text the way Report a Bug and Export take it; the fetch is
+          // cached and the view warmed it on arrival, so this is normally
+          // already in hand.
+          text = await AbapSource.fetchSource();
+          if (Lib.isDestroyed(oSource)) return;
+        }
+        Lib.copyToClipboard(text);
         // Confirm on the button itself and put the label back - the dialog
-        // is modal, so a toast behind it would be invisible.
-        const original = oSource.getText();
-        oSource.setText("Copied");
-        setTimeout(() => {
-          if (!Lib.isDestroyed(oSource)) oSource.setText(original);
-        }, 1500);
+        // is modal, so a toast behind it would be invisible. Report owns
+        // that feedback for the export popup's copy buttons; the same one
+        // serves here.
+        Report.confirmOnButton(oSource);
       },
 
       // The Error view's actions mirror the ErrorView overlay: re-run the
@@ -444,9 +467,41 @@ sap.ui.define(
           this.showStatus(oModel, "A roundtrip is running - try again.");
           return;
         }
-        const result = await LiveEdit.apply(data.selectedTab, data.value);
+        const tabKey = data.selectedTab;
+        // The backend's XML, read BEFORE this Apply overwrites the slot
+        // with the edit. On a second Apply this is still the FIRST one -
+        // backendXml hands the recorded original back - so an edit can
+        // never promote itself to the original.
+        const before = this.backendXml(tabKey);
+        const result = await LiveEdit.apply(tabKey, data.value);
         if (Lib.isDestroyed(this)) return;
+        if (!this._appliedXml) this._appliedXml = {};
+        this._appliedXml[tabKey] = {
+          original: before,
+          // What this Apply put there, so a later Reset can tell a slot
+          // that still holds the edit from one a roundtrip has replaced.
+          applied: Tabs.render(tabKey),
+        };
         this.showStatus(oModel, result);
+      },
+
+      // The XML the BACKEND delivered for a view sub-view - what Reset puts
+      // back. Normally that is simply what the slot holds, but Apply
+      // re-renders the slot FROM the editor: from the first Apply on the
+      // slot - and with it Tabs.render - answers the EDIT, and Reset handed
+      // the developer their own edit back as "the original". The pre-Apply
+      // XML recorded in onApplyXml is used instead, and only for as long as
+      // the slot still holds what Apply put there: once it does not, a real
+      // roundtrip has replaced the view and ITS XML is the original now.
+      backendXml(tabKey) {
+        const current = Tabs.render(tabKey);
+        const record = this._appliedXml?.[tabKey];
+        if (!record) return current;
+        if (record.applied !== current) {
+          delete this._appliedXml[tabKey];
+          return current;
+        }
+        return record.original;
       },
 
       // Put the backend's original XML back into the editor. Does not
@@ -454,7 +509,7 @@ sap.ui.define(
       onResetXml(oEvent) {
         const oModel = oEvent.getSource().getModel();
         const data = oModel.getData();
-        const xml = Tabs.render(data.selectedTab);
+        const xml = this.backendXml(data.selectedTab);
         data.value = xml;
         data.previousValue = xml;
         oModel.refresh();
@@ -632,6 +687,7 @@ sap.ui.define(
       exit() {
         this.reopenErrorOnClose = false;
         clearTimeout(this._statusTimer);
+        this._appliedXml = null;
         if (this.oDialog) {
           this.oDialog.close();
           this.oDialog.destroy();

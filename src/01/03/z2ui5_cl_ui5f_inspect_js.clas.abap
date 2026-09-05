@@ -64,10 +64,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return ``${str.slice(0, max)}... (${str.length} chars)``;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getTheme() {` && |\n| &&
-             `      return Lib.getTheme();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function bootstrapElement() {` && |\n| &&
              `      try {` && |\n| &&
              `        return document.getElementById("sap-ui-bootstrap");` && |\n| &&
@@ -86,10 +82,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      } catch {` && |\n| &&
              `        return "";` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getLocale() {` && |\n| &&
-             `      return Lib.getLocale();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getContentDensity() {` && |\n| &&
@@ -178,8 +170,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `` && |\n| &&
              `      out.push(line("Distribution", getDistribution(sUi5)));` && |\n| &&
              `      out.push(line("Build timestamp", sUi5?.BUILDTIMESTAMP));` && |\n| &&
-             `      out.push(line("Theme", getTheme()));` && |\n| &&
-             `      const locale = getLocale();` && |\n| &&
+             `` && |\n| &&
+             `      out.push(line("Theme", Lib.getTheme()));` && |\n| &&
+             `      const locale = Lib.getLocale();` && |\n| &&
              `      out.push(line("Language", locale.language));` && |\n| &&
              `      out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));` && |\n| &&
              `      out.push(line("Content density", getContentDensity()));` && |\n| &&
@@ -300,6 +293,14 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function slotXml(slotKey) {` && |\n| &&
+             `      return (` && |\n| &&
+             `        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||` && |\n| &&
+             `        ViewSlots.getViewXml(slotKey) ||` && |\n| &&
+             `        ""` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function scrapeEvents(xml) {` && |\n| &&
              `      if (!xml) return [];` && |\n| &&
              `      const found = new Set();` && |\n| &&
@@ -344,11 +345,13 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(timers.length ? ``  ${timers.join(", ")}`` : "  (none pending)");` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Framework callbacks registered"));` && |\n| &&
+             `` && |\n| &&
              `      for (const name of [` && |\n| &&
              `        "onBeforeRoundtrip",` && |\n| &&
              `        "onAfterRoundtrip",` && |\n| &&
              `        "onAfterRendering",` && |\n| &&
              `        "onBeforeEventFrontend",` && |\n| &&
+             `        "onErrorDetails",` && |\n| &&
              `      ]) {` && |\n| &&
              `        out.push(line(name, String((state[name] || []).length)));` && |\n| &&
              `      }` && |\n| &&
@@ -362,10 +365,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(section("Backend events bound in the current views"));` && |\n| &&
              `      let any = false;` && |\n| &&
              `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        const xml =` && |\n| &&
-             `          ViewSlots.getView(slot.key)?.mProperties?.viewContent ||` && |\n| &&
-             `          ViewSlots.getViewXml(slot.key);` && |\n| &&
-             `        const events = scrapeEvents(xml);` && |\n| &&
+             `        const events = scrapeEvents(slotXml(slot.key));` && |\n| &&
              `        if (!events.length) continue;` && |\n| &&
              `        any = true;` && |\n| &&
              `        out.push(``  [${slot.key}]``);` && |\n| &&
@@ -632,10 +632,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function formatBindingCheck(slotKey, data) {` && |\n| &&
-             `      const xml =` && |\n| &&
-             `        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||` && |\n| &&
-             `        ViewSlots.getViewXml(slotKey);` && |\n| &&
-             `      const bound = scrapeBindingAttributes(xml);` && |\n| &&
+             `      const bound = scrapeBindingAttributes(slotXml(slotKey));` && |\n| &&
              `      if (!bound.length) return [];` && |\n| &&
              `      const missing = bound.filter((name) => !(name in data));` && |\n| &&
              `      const out = [];` && |\n| &&
@@ -825,11 +822,11 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `          "Distribution",` && |\n| &&
              `          getDistribution((AppState.getGlobal("oConfig") || {}).S_UI5),` && |\n| &&
              `        ),` && |\n| &&
-             `      );` && |\n|.
-    result = result &&
-             `      out.push(line("Theme", getTheme()));` && |\n| &&
+             `      );` && |\n| &&
+             `      out.push(line("Theme", Lib.getTheme()));` && |\n| &&
              `` && |\n| &&
-             `      out.push(section("View slots"));` && |\n| &&
+             `      out.push(section("View slots"));` && |\n|.
+    result = result &&
              `      out.push(...formatSlots());` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Getting around"));` && |\n| &&

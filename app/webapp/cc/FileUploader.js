@@ -89,43 +89,38 @@ sap.ui.define(
 
       // `value` holds ONE file and every upload event is one roundtrip. With
       // `multiple` the inner control hands over every selected file, and only
-      // files[0] was ever read - the rest were dropped without a word. They
-      // go one at a time now, the next after the previous roundtrip landed
-      // (Lib.afterRoundtrip), the way cc/UploadSetExt does it.
+      // files[0] was ever read - the rest were dropped without a word. The
+      // sequential read queue is Lib.readFilesInTurn (cc/UploadSetExt uses
+      // the same one): all this control keeps is what to do with a file that
+      // finished reading.
       _readFiles(files) {
-        this._queue = (this._queue || []).concat(files);
-        if (!this._reading) this._readNext();
+        if (!this._reader) {
+          this._reader = Lib.readFilesInTurn(
+            this,
+            "FileUploader",
+            (_, result) => {
+              this.setProperty("value", result);
+              this.fireUpload();
+            },
+          );
+        }
+        this._reader.add(files);
       },
 
-      _readNext() {
-        const file = this._queue.shift();
-        if (!file) {
-          this._reading = false;
-          return;
-        }
-        this._reading = true;
-        Lib.readFileAsDataURL(
-          file,
-          this,
-          (result) => {
-            this.setProperty("value", result);
-            this.fireUpload();
-            this._cancelWait = Lib.afterRoundtrip(this, () => {
-              this._cancelWait = null;
-              this._readNext();
-            });
-          },
-          "FileUploader",
-        );
+      // Hand the remembered selection to the queue and FORGET it: the same
+      // set must only be read once. Pressing Upload a second time without
+      // picking a new file queued it again (and so did a second
+      // uploadComplete of the direct-upload path), so every file reached the
+      // backend twice.
+      _uploadPendingFiles() {
+        const files = this._pendingFiles;
+        this._pendingFiles = null;
+        if (files?.length) this._readFiles(files);
       },
 
       exit() {
         if (this._oHBox) this._oHBox.destroy();
-        this._queue = [];
-        if (this._cancelWait) {
-          this._cancelWait();
-          this._cancelWait = null;
-        }
+        if (this._reader) this._reader.cancel();
       },
 
       // Build the inner controls ONCE and update their properties per
@@ -149,9 +144,7 @@ sap.ui.define(
             enabled: this.getProperty("path") !== "",
             press: () => {
               this.setProperty("path", this.oFileUploader.getProperty("value"));
-              if (this._pendingFiles?.length) {
-                this._readFiles(this._pendingFiles);
-              }
+              this._uploadPendingFiles();
             },
           });
         }
@@ -176,9 +169,7 @@ sap.ui.define(
             if (!directUpload) return;
             const source = oEvent.getSource();
             this.setProperty("path", source.getProperty("value"));
-            if (this._pendingFiles?.length) {
-              this._readFiles(this._pendingFiles);
-            }
+            this._uploadPendingFiles();
           },
         });
 

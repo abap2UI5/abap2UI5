@@ -94,6 +94,19 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `` && |\n| &&
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
+             `        this._pendingRestores?.clear();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _restoreWhenRendered(control, item) {` && |\n| &&
+             `        if (!this._pendingRestores) this._pendingRestores = new Map();` && |\n| &&
+             `        const waiting = this._pendingRestores.has(control);` && |\n| &&
+             `        this._pendingRestores.set(control, item);` && |\n| &&
+             `        if (waiting) return;` && |\n| &&
+             `        Lib.whenRendered(control, this, () => {` && |\n| &&
+             `          const pending = this._pendingRestores.get(control);` && |\n| &&
+             `          this._pendingRestores.delete(control);` && |\n| &&
+             `          this._restoreScrollPosition(control, pending);` && |\n| &&
+             `        });` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _restoreScrollPosition(control, item) {` && |\n| &&
@@ -127,9 +140,7 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `            const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
              `            if (!control) continue;` && |\n| &&
              `` && |\n| &&
-             `            Lib.whenRendered(control, this, () =>` && |\n| &&
-             `              this._restoreScrollPosition(control, item),` && |\n| &&
-             `            );` && |\n| &&
+             `            this._restoreWhenRendered(control, item);` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Scrolling.onAfterRendering: failed", e);` && |\n| &&

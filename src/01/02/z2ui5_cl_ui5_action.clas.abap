@@ -46,6 +46,15 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
   PRIVATE SECTION.
+    " the requested app class as it may be quoted in an error text
+    METHODS app_start_safe
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " set by prepare_app_stack on the action it builds: whether the target
+    " came out of a persisted draft. Read by factory_stack_leave right
+    " after, which used to ask the database a third time for the same fact
+    DATA mv_stack_loaded TYPE abap_bool.
 ENDCLASS.
 
 
@@ -137,20 +146,22 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
         result->ms_actual-check_on_navigated = abap_true.
 
-      CATCH cx_root INTO DATA(x).
+      CATCH cx_sy_create_object_error INTO DATA(x_create).
         " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
         " non-existent class). Just raise with a readable text - the single
         " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ) turns it into a
         " 500 whose body carries this message for the frontend to display.
-        " app_start is client-controlled, so strip it down to class-name-safe
-        " characters before reflecting it into the error text - a real typo
-        " still shows for diagnostics, but a crafted value cannot smuggle
-        " markup/script into the response body.
-        DATA(lv_app_name) = mo_handler->ms_request-s_control-app_start.
-        REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH `` ##REGEX_POSIX.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val      = |The app '{ lv_app_name }' does not exist in the system.|
+            val      = |The app '{ app_start_safe( ) }' does not exist in the system.|
+            previous = x_create.
+      CATCH cx_root INTO DATA(x).
+        " anything else that failed on the way - the class exists. It used
+        " to be reported as "does not exist" too, which sent whoever read the
+        " 500 to check a class name that was right all along
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = |APP_START_ERROR - the app '{ app_start_safe( ) }' could not be started.|
             previous = x.
     ENDTRY.
 
@@ -205,8 +216,12 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
 
     " the leave target was never persisted (a fresh app instance) - it takes
-    " over the current app's position in the stack
-    IF lo_draft->check_exists( ms_next-o_app_leave->id_draft ) = abap_false.
+    " over the current app's position in the stack. Whether it was is what
+    " prepare_app_stack just found out: its load fails closed for exactly
+    " the cases check_exists( ) answered false for (no row, a foreign
+    " owner), so the SELECT that used to sit here was the third read of the
+    " same key per hop
+    IF result->mv_stack_loaded = abap_false.
       result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
       RETURN.
     ENDIF.
@@ -228,6 +243,17 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD app_start_safe.
+
+    " app_start is client-controlled and reflected into the error text:
+    " stripped to class-name-safe characters, so a real typo still shows for
+    " diagnostics while a crafted value cannot smuggle markup/script into
+    " the response body
+    result = mo_handler->ms_request-s_control-app_start.
+    REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN result WITH `` ##REGEX_POSIX.
+
+  ENDMETHOD.
+
   METHOD factory_system_startup.
 
     result = NEW #( mo_handler ).
@@ -246,17 +272,30 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     " val is always the ms_next-o_app_leave / ms_next-o_app_call reference
     " itself (see factory_stack_leave / factory_stack_call), so an already
-    " assigned draft id is kept as is
+    " assigned draft id is kept as is. An id minted HERE has no draft behind
+    " it: the load below used to run for it anyway - a guaranteed miss that
+    " ended in a NO_DRAFT_ENTRY exception on every nav_app_call of a fresh
+    " app, caught two lines further down
+    DATA(lv_minted) = abap_false.
     IF val->id_draft IS INITIAL.
       val->id_draft = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+      lv_minted = abap_true.
     ENDIF.
 
     result = NEW #( mo_handler ).
-    TRY.
-        result->mo_app = z2ui5_cl_ui5_app_cont=>db_load_by_app( val ).
-      CATCH cx_root.
-        result->mo_app->mo_app = val.
-    ENDTRY.
+    IF lv_minted = abap_true.
+      result->mo_app->mo_app = val.
+    ELSE.
+      " a persisted target is restored against the live instance. The
+      " fallback keeps an id whose draft is gone (purged by cleanup( ), a
+      " session that outlived it) running as a fresh instance, as before
+      TRY.
+          result->mo_app = z2ui5_cl_ui5_app_cont=>db_load_by_app( val ).
+          result->mv_stack_loaded = abap_true.
+        CATCH cx_root.
+          result->mo_app->mo_app = val.
+      ENDTRY.
+    ENDIF.
 
     " The browser told us about itself once, for this PAGE session - the
     " freshest copy always sits on the app running right now, so it is

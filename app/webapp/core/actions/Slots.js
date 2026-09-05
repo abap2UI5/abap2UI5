@@ -104,7 +104,17 @@ sap.ui.define(
       slotKey = "MAIN",
       data = AppState.state.oResponse?.OVIEWMODEL,
     ) {
-      return trackChanges(new JSONModel(dataForSlot(slotKey, data)));
+      const oModel = trackChanges(new JSONModel(dataForSlot(slotKey, data)));
+      // A model built from THIS response remembers the response record, so
+      // the model push the same response carries (updateModelIfRequired)
+      // knows the slot is already filled. The backend ships MODEL with every
+      // display, and the push used to land in the model just built from it:
+      // a full binding sweep on MAIN, and for a popup or popover a second
+      // deep copy of the whole model on every open.
+      if (data && data === AppState.state.oResponse?.OVIEWMODEL) {
+        oModel._z2ui5BuiltFrom = AppState.state.oResponse;
+      }
+      return oModel;
     }
 
     // True when this response was superseded by a newer request while an
@@ -263,10 +273,13 @@ sap.ui.define(
           serviceUrl: switchPath,
           annotationURI: mOptions.switchDefaultModelAnnoUri || "",
         });
-        // marks the OData client as FRAMEWORK-created, so the next MAIN
-        // rebuild may destroy it (displayMain) - an app-provided model via
-        // SET_ODATA_MODEL is never touched through this marker
-        oModel._z2ui5OwnedOData = true;
+        // records the OData client as FRAMEWORK-created, so the next MAIN
+        // rebuild destroys it (displayMain). SET_ODATA_MODEL records its
+        // clients in the same inventory and for the same reason: both are
+        // built by the framework from a service URL the app named, and
+        // neither dies with the view - what an app puts on a view itself
+        // is not in the inventory and is never touched
+        AppState.state.odataClients.add(oModel);
       } else {
         oModel = oViewModel;
       }
@@ -289,6 +302,9 @@ sap.ui.define(
       // switchPath); with an OData default model both must go.
       const discardBuild = () => {
         oView.destroy();
+        // ...and out of the inventory again: this build never reached the
+        // slot, so no later rebuild must find its client there
+        AppState.state.odataClients.delete(oModel);
         oModel.destroy();
         if (switchPath) oViewModel.destroy();
       };
@@ -338,15 +354,19 @@ sap.ui.define(
           // build may still be awaiting, which would let that stale build
           // slip past displayView's "a newer view took the slot" guard and
           // then crash THIS build on a duplicate id.
-          // the previous MAIN's framework-created OData default model does
-          // not die with the view (a model is no aggregation): without this
-          // every switch-mode rebuild leaked a full OData client - its
-          // $metadata request, caches and queues included. Only the model
-          // the framework itself created is destroyed (see the marker in
-          // displayView); dependent slots are already down at this point.
-          const oldMainDefault = ViewSlots.getView("MAIN")?.getModel?.();
+          // the previous MAIN's framework-created OData clients do not die
+          // with the view (a model is no aggregation): without this every
+          // switch-mode rebuild leaked a full OData client - its $metadata
+          // request, caches and queues included. EVERY tracked client goes,
+          // not just the one in the default slot: this used to inspect
+          // getModel() alone, so a NAMED SET_ODATA_MODEL client (see
+          // actions/ViewOps) survived the view that carried it and the next
+          // re-issue found nothing to destroy - the same leak, one model
+          // name over. Only clients the framework created are in the
+          // inventory; dependent slots are already down at this point.
           ViewSlots.destroy("MAIN");
-          if (oldMainDefault?._z2ui5OwnedOData) oldMainDefault.destroy();
+          for (const oClient of AppState.state.odataClients) oClient.destroy();
+          AppState.state.odataClients.clear();
           // A new MAIN view means a new screen, so the two STANDALONE slots
           // go with it. They live outside the MAIN control tree and would
           // otherwise float on top of a page they no longer belong to - a
@@ -398,6 +418,16 @@ sap.ui.define(
       // Never overwrite an OData default (switch mode) with a fresh JSON model.
       const tracked = resolveTrackedModel(oView);
       if (tracked) {
+        // built from this very response (createViewModel): it holds the data
+        // already, its pending set is empty and it has its size limit - the
+        // push would only sweep every binding again, and clone the whole
+        // model a second time for a standalone slot
+        if (
+          tracked._z2ui5BuiltFrom &&
+          tracked._z2ui5BuiltFrom === AppState.state.oResponse
+        ) {
+          return;
+        }
         applyStoredSizeLimit(slotKey, tracked);
         // Edits this slot has not sent yet survive the push. Change tracking
         // is per model, and a roundtrip from another slot (a MAIN timer
@@ -448,6 +478,14 @@ sap.ui.define(
     // context (FrontendAction.runSystem) - a display superseded by a newer
     // request discards its build instead of overwriting the newer view.
     function action(method, slotKey, xml, mOptions, seq) {
+      // The options are optional on the wire - a display that needs none
+      // (a popup, or the devtools' local re-render) carries no fourth
+      // argument at all. Normalized once, for every slot: MAIN was the
+      // only one that took care of it, while the POPOVER read
+      // mOptions.openById and the nested display destructured mOptions
+      // straight away, so exactly those two died on the shape MAIN
+      // tolerated.
+      const options = mOptions || {};
       if (method === "destroy") {
         ViewSlots.destroy(slotKey);
         return undefined;
@@ -475,15 +513,15 @@ sap.ui.define(
         // slot (devtools LiveEdit) can reuse them: a switch-mode MAIN
         // re-displayed with empty options came back without its OData
         // default model and looked broken in the preview
-        AppState.state.lastMainDisplayOptions = mOptions || {};
-        return displayMain(xml, mOptions, seq);
+        AppState.state.lastMainDisplayOptions = options;
+        return displayMain(xml, options, seq);
       }
       ViewSlots.destroy(slotKey);
       if (slotKey === "POPUP") return displayFragment(xml, seq);
       if (slotKey === "POPOVER") {
-        return displayPopover(xml, mOptions.openById, seq);
+        return displayPopover(xml, options.openById, seq);
       }
-      return displayNestedView(xml, slotKey, mOptions, seq);
+      return displayNestedView(xml, slotKey, options, seq);
     }
 
     // action is the module's entry point (the VIEW_SLOTS target);

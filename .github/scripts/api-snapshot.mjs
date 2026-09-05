@@ -195,8 +195,12 @@ const releaseNeutral = (file, kind, name, entry) =>
 function extract() {
   const api = {};
   for (const f of fs.readdirSync(SRC02).sort()) {
+    /* The class-pool MAIN sources only. A `.clas.testclasses.abap` ends in
+     * neither of these, so the class-pool includes - test classes, locals -
+     * are already out; the separate `.testclasses.abap` line that used to sit
+     * here could never fire, and reading it as the thing that kept test
+     * classes out of the snapshot was the risk. */
     if (!f.endsWith(".intf.abap") && !f.endsWith(".clas.abap")) continue;
-    if (f.endsWith(".testclasses.abap")) continue;
     const code = stripComments(fs.readFileSync(path.join(SRC02, f), "utf8"));
     const body = publicBody(f, code);
     const stmts = statements(body).flatMap(unchain);
@@ -254,7 +258,16 @@ function isAdditiveOptionalParams(oldSig, newSig) {
   const oldHead = oldSig.slice(0, oldSig.length - oldTail.length);
   const newHead = newSig.slice(0, newSig.length - newTail.length);
   if (!newHead.startsWith(`${oldHead} `)) return false;
-  const appended = newHead.slice(oldHead.length);
+  let appended = newHead.slice(oldHead.length);
+  // a method that had no importing parameter at all (parameterless, or
+  // returning-only) grows its first one WITH the keyword: `methods foo` to
+  // `methods foo importing x type y optional`. The keyword is no parameter,
+  // so it is taken off before the per-parameter walk - which read
+  // ` importing` as a parameter named importing without a type and reported
+  // the first optional parameter of such a method as a rule-5 violation
+  if (!/\simporting\s/.test(oldHead) && appended.startsWith(" importing ")) {
+    appended = appended.slice(" importing".length);
+  }
   return appendedParamsAllOptional(appended);
 }
 

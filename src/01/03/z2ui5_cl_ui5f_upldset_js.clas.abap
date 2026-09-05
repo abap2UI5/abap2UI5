@@ -75,46 +75,27 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `` && |\n| &&
              `      init() {` && |\n| &&
              `        this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");` && |\n| &&
-             `        this._queue = [];` && |\n| &&
-             `        this._reading = false;` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
-             `        this._queue = [];` && |\n| &&
-             `        if (this._cancelWait) {` && |\n| &&
-             `          this._cancelWait();` && |\n| &&
-             `          this._cancelWait = null;` && |\n| &&
-             `        }` && |\n| &&
+             `        if (this._reader) this._reader.cancel();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _readFile(file) {` && |\n| &&
-             `        this._queue.push(file);` && |\n| &&
-             `        if (!this._reading) this._readNext();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _readNext() {` && |\n| &&
-             `        const file = this._queue.shift();` && |\n| &&
-             `        if (!file) {` && |\n| &&
-             `          this._reading = false;` && |\n| &&
-             `          return;` && |\n| &&
+             `        if (!this._reader) {` && |\n| &&
+             `          this._reader = Lib.readFilesInTurn(` && |\n| &&
+             `            this,` && |\n| &&
+             `            "UploadSetExt",` && |\n| &&
+             `            (f, result) => {` && |\n| &&
+             `              this.setProperty("fileData", result);` && |\n| &&
+             `              this.setProperty("fileName", f.name);` && |\n| &&
+             `              this.setProperty("mediaType", f.type);` && |\n| &&
+             `              this.setProperty("fileSize", String(f.size));` && |\n| &&
+             `              this.fireChange();` && |\n| &&
+             `            },` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
-             `        this._reading = true;` && |\n| &&
-             `        Lib.readFileAsDataURL(` && |\n| &&
-             `          file,` && |\n| &&
-             `          this,` && |\n| &&
-             `          (result) => {` && |\n| &&
-             `            this.setProperty("fileData", result);` && |\n| &&
-             `            this.setProperty("fileName", file.name);` && |\n| &&
-             `            this.setProperty("mediaType", file.type);` && |\n| &&
-             `            this.setProperty("fileSize", String(file.size));` && |\n| &&
-             `            this.fireChange();` && |\n| &&
-             `            this._cancelWait = Lib.afterRoundtrip(this, () => {` && |\n| &&
-             `              this._cancelWait = null;` && |\n| &&
-             `              this._readNext();` && |\n| &&
-             `            });` && |\n| &&
-             `          },` && |\n| &&
-             `          "UploadSetExt",` && |\n| &&
-             `        );` && |\n| &&
+             `        this._reader.add([file]);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onItemAdded(oEvent) {` && |\n| &&

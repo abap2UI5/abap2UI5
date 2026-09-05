@@ -117,6 +117,16 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
+    " The exit's own security headers, guarded like the config read in
+    " _error_response. set_response runs AFTER the outer TRY of main( ), on
+    " the error path too, and config_http_get( ) latches its cache only once
+    " the exit returned: a GET whose set_config_http_get raised inside
+    " _http_get (a 500 by now) asked the exit a second time here, it raised
+    " again, and the ICF stack dumped with no body and no status; on a POST
+    " the GET exit ran here for the first time, unguarded. A raising exit now
+    " costs its headers, not the response.
+    METHODS set_response_exit_headers.
+
     " The CSRF gate over THIS request: reads the headers the decision needs
     " and hands them to _check_csrf_rejected. Split off so the reads happen
     " only when the gate is active and only as far as the rule looks -
@@ -129,26 +139,41 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " Per-work-process cache of the assembled GET shell. The body is a pure
-    " function of the embedded frontend (constant per class load) and the
-    " exit-supplied config parts, so it is rebuilt only when those parts
+    " Cache of the assembled GET shell, per internal session. The body is a
+    " pure function of the embedded frontend (constant per class load) and
+    " the exit-supplied config parts, so it is rebuilt only when those parts
     " change - a system whose exit answers per-user (theme by user) simply
     " thrashes the key back to the rebuild that ran on every GET before the
-    " cache existed. sv_get_etag doubles as the ETag set_response sends with
-    " the page and compares against If-None-Match: it hashes the BODY, not
-    " the config, so a redeployed frontend (new embedded classes, same
-    " version constant) changes it even between releases - a version-only
-    " tag would 304 a browser into keeping a stale shell.
+    " cache existed. CLASS-DATA dies with the internal session, and on
+    " stateless ICF (the overwhelming deployment) every GET IS a fresh
+    " session: the cache hits inside a stateful session only, everywhere
+    " else the miss path runs per page load - which is why nothing on it
+    " may cost more than the rebuild itself (see _get_etag).
+    " sv_get_etag doubles as the ETag set_response sends with the page and
+    " compares against If-None-Match: version constant, build hash of the
+    " embedded frontend and a digest of the cache key, so a redeployed
+    " frontend (new embedded classes, same version constant) changes it
+    " even between releases - a version-only tag would 304 a browser into
+    " keeping a stale shell.
     CLASS-DATA sv_get_cache_key  TYPE string.
     CLASS-DATA sv_get_cache_body TYPE string.
     CLASS-DATA sv_get_etag       TYPE string.
 
     " a cache validator, not a cryptographic hash - see the method
-    CLASS-METHODS _get_body_etag
+    CLASS-METHODS _get_etag
       IMPORTING
         val           TYPE string
       RETURNING
         VALUE(result) TYPE string.
+
+    " If-None-Match against the current tag, RFC 7232 weak comparison over a
+    " list - see the method
+    CLASS-METHODS _check_etag_match
+      IMPORTING
+        iv_header     TYPE string
+        iv_etag       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
@@ -207,13 +232,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD main.
 
     " Outer top-level catch. _main( ) carries one of its own and is where a
-    " failing app lands, but four things run OUTSIDE it and used to be
-    " unprotected: get_req_info( ), init_context( ), the CSRF gate's call into
-    " the user exit - arbitrary customer code - and set_response( ) below.
-    " An exception in any of them left the ICF stack to dump: no body, no
-    " status code and none of the security headers, which is the exact state
-    " the WHEN OTHERS branch of set_response documents as the thing to prevent.
-    " set_response( ) sits after ENDTRY so it runs on both paths.
+    " failing app lands, but three things run OUTSIDE it and used to be
+    " unprotected: get_req_info( ), init_context( ) and the CSRF gate's call
+    " into the user exit - arbitrary customer code. An exception in any of
+    " them left the ICF stack to dump: no body, no status code and none of
+    " the security headers - the state the WHEN OTHERS branch of _main( )
+    " exists to prevent. set_response( ) sits after ENDTRY so it runs on both
+    " paths; this TRY does not cover it, and its own call into the user exit
+    " (the security headers) is guarded where it happens.
     TRY.
         " the one place the Layer 0 request type meets the public one - both are
         " structurally identical, and the public signature stays free of
@@ -374,26 +400,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD _attr_escape.
 
     result = val.
-    " the common value carries none of these - skip the four copies then
-    IF result NA `&<"'`.
+    " the common value carries none of these - skip the copies then
+    IF result NA `&<>"'`.
       RETURN.
     ENDIF.
-    result = replace( val  = result
-                      sub  = `&`
-                      with = `&amp;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `<`
-                      with = `&lt;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `"`
-                      with = `&quot;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `'`
-                      with = `&#39;`
-                      occ  = 0 ).
+    " the one HTML escaper of the framework - this method used to carry its
+    " own four replacements, one drift away from the shared one
+    result = z2ui5_cl_ui5_util_context=>c_escape_html( result ).
 
   ENDMETHOD.
 
@@ -551,18 +564,28 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     sv_get_cache_key  = lv_cache_key.
     sv_get_cache_body = result-body.
-    sv_get_etag       = _get_body_etag( result-body ).
+    sv_get_etag       = _get_etag( lv_cache_key ).
 
   ENDMETHOD.
 
-  METHOD _get_body_etag.
+  METHOD _get_etag.
 
     " a cache VALIDATOR, not a cryptographic hash: three modular
-    " accumulators over the UTF-8 bytes plus the byte count, in plain ABAP so
-    " the method downports to 7.02 and transpiles. It runs once per cache
-    " fill (see _http_get), never per request. On a stack where the byte
-    " conversion is unavailable the method answers empty and set_response
-    " skips ETag/304 - conditional GET degrades, nothing breaks.
+    " accumulators over the UTF-8 bytes of the CACHE KEY plus its byte count,
+    " joined with the version constant and the build hash of the embedded
+    " frontend (z2ui5_cl_ui5f_preload=>build_hash, a digest of every
+    " embedded source computed once at generation time). It used to hash
+    " the assembled BODY instead - the same guarantee, but paid per page
+    " load: the cache in _http_get lives in CLASS-DATA and dies with the
+    " internal session, so on stateless ICF "once per cache fill" was every
+    " GET, ~700 KB through an interpreted byte loop before set_response
+    " could even decide on a 304. The key is the exit config the body is
+    " built from (a few KB), and the build hash carries what the body hash
+    " carried: a redeployed frontend between releases changes the tag with
+    " the version constant unchanged. Plain ABAP so the method downports to
+    " 7.02 and transpiles. On a stack where the byte conversion is
+    " unavailable the method answers empty and set_response skips ETag/304
+    " - conditional GET degrades, nothing breaks.
     DATA lv_xstr TYPE xstring.
     TRY.
         lv_xstr = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( val ).
@@ -570,14 +593,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    " Three accumulators, not two: with the version constant and the byte
-    " count equal (a redeployed frontend between releases), the two 16-bit
-    " accumulators alone left ~2^32 states - enough for a same-length
-    " collision to 304 a browser into keeping a stale shell. The third mixes
-    " with a larger modulus AND weighs every byte by its position, so a pair
-    " that collides in h1/h2 still separates in h3 unless it also collides
-    " under a structurally different mix - implausible for a cache
-    " validator's job, still no cryptographic claim
+    " Three accumulators, not two: with the version constant, the build
+    " hash and the byte count equal (two exit configs of the same length),
+    " the two 16-bit accumulators alone left ~2^32 states - enough for a
+    " same-length collision to 304 a browser into keeping a stale shell.
+    " The third mixes with a larger modulus AND weighs every byte by its
+    " position, so a pair that collides in h1/h2 still separates in h3
+    " unless it also collides under a structurally different mix -
+    " implausible for a cache validator's job, still no cryptographic claim
     DATA(lv_len) = xstrlen( lv_xstr ).
     DATA lv_h1 TYPE i VALUE 5381.
     DATA lv_h2 TYPE i VALUE 17.
@@ -592,10 +615,42 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       lv_off = lv_off + 1.
     ENDWHILE.
 
-    " quoted, as the ETag header syntax demands; the version constant rides
-    " along so a release always changes the tag even if the accumulators
-    " ever collided across it
-    result = |"{ z2ui5_if_app=>version }-{ lv_len }-{ lv_h1 }-{ lv_h2 }-{ lv_h3 }"|.
+    " quoted, as the ETag header syntax demands; the version constant and
+    " the build hash ride along so a release or a redeployed frontend always
+    " changes the tag even if the accumulators ever collided across it
+    result = |"{ z2ui5_if_app=>version }-{ z2ui5_cl_ui5f_preload=>build_hash }-{ lv_len }-{ lv_h1 }-{ lv_h2 }-{ lv_h3 }"|.
+
+  ENDMETHOD.
+
+  METHOD _check_etag_match.
+
+    " RFC 7232: If-None-Match is a LIST of validators, compared weakly - a
+    " proxy that recompresses the page weak-marks the tag (nginx gzip sends
+    " W/"tag" back), a browser may echo several, and `*` matches whatever is
+    " current. Apache mod_deflate (DeflateAlterETag AddSuffix, its default)
+    " instead appends `-gzip` INSIDE the quotes and passes the browser's
+    " echo through untouched, so that suffix is accepted too - no tag of
+    " this class ever carries it by itself. Exact string equality answered
+    " none of the four, and behind such a proxy the conditional GET quietly
+    " degraded to a full shell transfer on every reload for every user
+    IF iv_header IS INITIAL OR iv_etag IS INITIAL.
+      RETURN.
+    ENDIF.
+    DATA(lv_gzip) = substring( val = iv_etag
+                               len = strlen( iv_etag ) - 1 ) && `-gzip"`.
+    SPLIT iv_header AT `,` INTO TABLE DATA(lt_candidate).
+    LOOP AT lt_candidate INTO DATA(lv_candidate).
+      CONDENSE lv_candidate.
+      IF strlen( lv_candidate ) > 2 AND substring( val = lv_candidate
+                                                   len = 2 ) = `W/`.
+        lv_candidate = substring( val = lv_candidate
+                                  off = 2 ).
+      ENDIF.
+      IF lv_candidate = `*` OR lv_candidate = iv_etag OR lv_candidate = lv_gzip.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -611,8 +666,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD set_response.
 
-    " Conditional GET: the shell page travels with an ETag (a body hash, see
-    " _get_body_etag) and revalidation instead of no-store, so a browser that
+    " Conditional GET: the shell page travels with an ETag (see _get_etag)
+    " and revalidation instead of no-store, so a browser that
     " still holds the current page gets a bodyless 304 instead of the whole
     " embedded frontend on every reload / FLP re-entry. Only the 200 shell -
     " the roundtrip data itself always travels via POST, which stays no-store
@@ -623,7 +678,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ms_res-status_code = 200 AND sv_get_etag IS NOT INITIAL.
       lv_etag_get = sv_get_etag.
-      IF mo_server->get_header_field( `if-none-match` ) = sv_get_etag.
+      IF _check_etag_match( iv_header = mo_server->get_header_field( `if-none-match` )
+                            iv_etag   = sv_get_etag ) = abap_true.
         ms_res-status_code   = 304.
         ms_res-status_reason = `Not Modified`.
         CLEAR ms_res-body.
@@ -685,12 +741,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                    v = `0` ).
     ENDIF.
 
-    DATA(ls_config) = config_http_get( ).
-
-    LOOP AT ls_config-t_security_header INTO DATA(ls_header).
-      mo_server->set_header_field( n = ls_header-n
-                                   v = ls_header-v ).
-    ENDLOOP.
+    " the exit's own headers (see set_response_exit_headers)
+    set_response_exit_headers( ).
 
     mo_server->set_status( code   = ms_res-status_code
                            reason = ms_res-status_reason ).
@@ -714,6 +766,22 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                      v = lv_contextid ).
       ENDIF.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD set_response_exit_headers.
+
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    TRY.
+        ls_config = config_http_get( ).
+      CATCH cx_root ##NO_HANDLER.
+        " a raising exit costs its headers, not the response
+    ENDTRY.
+
+    LOOP AT ls_config-t_security_header INTO DATA(ls_header).
+      mo_server->set_header_field( n = ls_header-n
+                                   v = ls_header-v ).
+    ENDLOOP.
 
   ENDMETHOD.
 

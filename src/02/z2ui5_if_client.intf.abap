@@ -299,6 +299,14 @@ INTERFACE z2ui5_if_client
       " Wins over check_prevent_default when both are set; the event is sent
       " in either case, exactly as with the flag
       prevent_default_expr  TYPE string,
+      " quote EVERY argument of this wire as a string. An argument that
+      " starts with `$` or `{` (or an .eB( expression) is otherwise written
+      " raw, as live UI5 expression syntax - which is how `${$source>/KEY}`
+      " reaches the handler as the row's value. Data that may start with
+      " those characters (text a user typed, a key from a foreign system)
+      " would be EVALUATED by the client, so a wire that carries data rather
+      " than bindings sets this and gives up expressions for its arguments
+      check_arg_literal     TYPE abap_bool,
     END OF ty_s_event_control.
 
   CONSTANTS:
@@ -556,6 +564,14 @@ INTERFACE z2ui5_if_client
   "!                  into the parameter names.
   "!                  Passing both APPENDS arg behind the t_arg rows - a
   "!                  defined composition, not a guess between two readings.
+  "!                  An argument that starts with `$` or `{` (or an .eB(
+  "!                  expression) is written RAW, as live UI5 expression
+  "!                  syntax - that is how `${$source>/KEY}` reaches the
+  "!                  handler as the row's value. Data that may start with
+  "!                  those characters (text a user typed, a key from a
+  "!                  foreign system) is therefore evaluated, not passed:
+  "!                  set s_ctrl-check_arg_literal to have every argument of
+  "!                  the wire quoted as a string instead.
   METHODS _event
     IMPORTING
       val           TYPE clike                              OPTIONAL
@@ -675,7 +691,13 @@ INTERFACE z2ui5_if_client
   "!                                keys `sap.app`/`sap.card` are not valid ABAP
   "!                                field names, and a string is read as a
   "!                                manifest URL). Outbound only - see
-  "!                                z2ui5_cl_ui5_srv_model.
+  "!                                z2ui5_cl_ui5_srv_model. Ignored for a
+  "!                                CELL (tab supplied): whether a value is
+  "!                                JSON is decided on the table's bind.
+  "!                                custom_mapper, custom_filter and the
+  "!                                omit_initial pair are passed on to the
+  "!                                table there, like a _bind( ) of the
+  "!                                table itself would store them.
   METHODS _bind
     IMPORTING
       val                  TYPE data

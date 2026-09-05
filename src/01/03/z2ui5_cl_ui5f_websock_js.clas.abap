@@ -34,6 +34,8 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `    const RECONNECT_MAX_MS = 30000;` && |\n| &&
              `    const MAX_CONNECT_ATTEMPTS = 5;` && |\n| &&
              `` && |\n| &&
+             `    const CONNECT_STABLE_MS = 10000;` && |\n| &&
+             `` && |\n| &&
              `    const MAX_QUEUE = 100;` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.Websocket", {` && |\n| &&
@@ -129,15 +131,19 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `        } catch (err) {` && |\n| &&
              `          const message = "Cannot open " + url + ": " + (err.message || err);` && |\n| &&
              `          Lib.logError("Websocket: " + message, err);` && |\n| &&
+             `` && |\n| &&
+             `          this._countFailure(url);` && |\n| &&
              `          this._report({ kind: "error", code: "CONSTRUCT", message });` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        this._ws = ws;` && |\n| &&
              `        this._opened = false;` && |\n| &&
+             `        this._openedAt = 0;` && |\n| &&
              `        ws.onopen = () => {` && |\n| &&
              `          if (this._ws === ws) {` && |\n| &&
              `            this._opened = true;` && |\n| &&
-             `            this._failedAttempts = 0;` && |\n| &&
+             `` && |\n| &&
+             `            this._openedAt = Date.now();` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `        ws.onmessage = (event) => {` && |\n| &&
@@ -146,6 +152,8 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `            Lib.logError("Websocket: ignored a non-text message");` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
+             `` && |\n| &&
+             `          this._failedAttempts = 0;` && |\n| &&
              `          if (!this.getProperty("checkRepeat")) {` && |\n| &&
              `            this._doneAfterFirst = true;` && |\n| &&
              `            this._disconnect();` && |\n| &&
@@ -165,17 +173,14 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `            : "Connection to " + url + " could not be established";` && |\n| &&
              `          const message = event.reason ? cause + ": " + event.reason : cause;` && |\n| &&
              `          Lib.logError("Websocket (" + event.code + "): " + message);` && |\n| &&
-             `          if (!this._opened) {` && |\n| &&
-             `            this._failedAttempts += 1;` && |\n| &&
-             `            if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) {` && |\n| &&
-             `              Lib.logError(` && |\n| &&
-             `                "Websocket: " +` && |\n| &&
-             `                  MAX_CONNECT_ATTEMPTS +` && |\n| &&
-             `                  " failed connection attempts to " +` && |\n| &&
-             `                  url +` && |\n| &&
-             `                  " - giving up until path or checkActive changes",` && |\n| &&
-             `              );` && |\n| &&
-             `            }` && |\n| &&
+             `` && |\n| &&
+             `          if (` && |\n| &&
+             `            this._opened &&` && |\n| &&
+             `            Date.now() - this._openedAt >= CONNECT_STABLE_MS` && |\n| &&
+             `          ) {` && |\n| &&
+             `            this._failedAttempts = 0;` && |\n| &&
+             `          } else {` && |\n| &&
+             `            this._countFailure(url);` && |\n| &&
              `          }` && |\n| &&
              `          this._report({` && |\n| &&
              `            kind: "error",` && |\n| &&
@@ -184,6 +189,19 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `          });` && |\n| &&
              `          this._scheduleReconnect();` && |\n| &&
              `        };` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _countFailure(url) {` && |\n| &&
+             `        this._failedAttempts += 1;` && |\n| &&
+             `        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            "Websocket: " +` && |\n| &&
+             `              MAX_CONNECT_ATTEMPTS +` && |\n| &&
+             `              " failed connection attempts to " +` && |\n| &&
+             `              url +` && |\n| &&
+             `              " - giving up until path or checkActive changes",` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _scheduleReconnect() {` && |\n| &&

@@ -92,7 +92,9 @@ function filesIn(dir) {
     return found.sort();
 }
 
-function compare(branch, built, published) {
+// `branch` used to be a parameter here and was never read - the caller names
+// the branch in the report it prints around this.
+function compare(built, published) {
     const a = new Set(filesIn(published));
     const b = new Set(filesIn(built));
     const differences = [];
@@ -107,43 +109,57 @@ function compare(branch, built, published) {
     return differences;
 }
 
+function compareAll(branches, head) {
+    let failed = false;
+    for (const branch of branches) {
+        if (!existsSync(join(generated, branch))) {
+            console.log(`${branch}: SKIPPED - tools/out/${branch} does not exist (npm run frontend:build)`);
+            continue;
+        }
+        const expected = publishedSha(branch);
+        if (expected && expected !== head) {
+            console.log(`${branch}: SKIPPED - published from ${expected.slice(0, 12)}, this tree is ${head.slice(0, 12)}`);
+            continue;
+        }
+        // The local build, stamped just as the deploy stamps it - otherwise
+        // README banner and VERSION always differ, and the comparison would look
+        // red where there is nothing.
+        const built = join(stamped, branch);
+        rmSync(built, { recursive: true, force: true });
+        mkdirSync(built, { recursive: true });
+        cpSync(join(generated, branch), built, { recursive: true });
+        stamp(built, branch, expected);
+
+        const differences = compare(built, checkout(branch));
+        if (differences.length === 0) {
+            console.log(`${branch}: identical to the published branch`);
+        } else {
+            failed = true;
+            console.log(`${branch}: ${differences.length} difference(s)`);
+            for (const line of differences.slice(0, 20)) console.log(`    ${line}`);
+            if (differences.length > 20) console.log(`    ... and ${differences.length - 20} more`);
+        }
+    }
+    return failed;
+}
+
 const branches = process.argv.slice(2).length ? process.argv.slice(2) : DEFAULT;
 ensureRemote();
 git("fetch", "--quiet", REMOTE, ...branches);
 
-const head = git("rev-parse", "HEAD");
-let failed = false;
-
-for (const branch of branches) {
-    if (!existsSync(join(generated, branch))) {
-        console.log(`${branch}: SKIPPED - tools/out/${branch} does not exist (npm run frontend:build)`);
-        continue;
-    }
-    const expected = publishedSha(branch);
-    if (expected && expected !== head) {
-        console.log(`${branch}: SKIPPED - published from ${expected.slice(0, 12)}, this tree is ${head.slice(0, 12)}`);
-        continue;
-    }
-    // The local build, stamped just as the deploy stamps it - otherwise
-    // README banner and VERSION always differ, and the comparison would look
-    // red where there is nothing.
-    const built = join(stamped, branch);
-    rmSync(built, { recursive: true, force: true });
-    mkdirSync(built, { recursive: true });
-    cpSync(join(generated, branch), built, { recursive: true });
-    stamp(built, branch, expected);
-
-    const differences = compare(branch, built, checkout(branch));
-    if (differences.length === 0) {
-        console.log(`${branch}: identical to the published branch`);
-    } else {
-        failed = true;
-        console.log(`${branch}: ${differences.length} difference(s)`);
-        for (const line of differences.slice(0, 20)) console.log(`    ${line}`);
-        if (differences.length > 20) console.log(`    ... and ${differences.length - 20} more`);
-    }
+/* The two scratch trees are removed in a `finally`. They used to be removed
+ * after the loop, which is only reached when nothing throws - and the steps in
+ * there throw for ordinary reasons: a branch that does not exist upstream, a
+ * `git archive` that fails, a VERSION blob that is not there. What stayed
+ * behind then was a checkout of a published branch plus a stamped copy of the
+ * local build, both under tools/out/ - `_`-prefixed, so check-pages skips
+ * them, but the next run of THIS script would find a stale reference tree
+ * where it expects to write a fresh one. */
+let failed;
+try {
+    failed = compareAll(branches, git("rev-parse", "HEAD"));
+} finally {
+    rmSync(reference, { recursive: true, force: true });
+    rmSync(stamped, { recursive: true, force: true });
 }
-
-rmSync(reference, { recursive: true, force: true });
-rmSync(stamped, { recursive: true, force: true });
 if (failed) process.exit(1);

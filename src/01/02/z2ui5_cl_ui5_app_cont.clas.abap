@@ -185,7 +185,13 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
         result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
         lo_model->main_attri_reattach( ).
         RETURN.
-      CATCH cx_root ##NO_HANDLER.
+      CATCH cx_root.
+        " the retry's save detached the references again - put them back
+        " like the first CATCH does. The exception below ends THIS request,
+        " and in a sticky session the same instance serves the next one,
+        " whose main( ) then ran on an app whose data references were
+        " initial
+        lo_model->main_attri_reattach( ).
     ENDTRY.
 
     " chain the FIRST serialization failure - it names the attribute/type
@@ -233,6 +239,23 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
+    " the container this request already built for the draft, when its app
+    " IS the instance handed in. nav_app_leave( ) without a target resolves
+    " the caller through get_app( ), which parses the draft and buffers the
+    " container, and the stack hop then asked for the same draft again - the
+    " asXML parse of the caller's whole state twice per popup close and
+    " value-help return. The identity check is exactly what the comment
+    " below asks for: that container's references ARE restored against
+    " `app`, because `app` is the instance it deserialized. A buffered
+    " container around a DIFFERENT instance of the same id stays unusable
+    " here, as before
+    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf)
+         WITH TABLE KEY id = app->id_draft.
+    IF sy-subrc = 0 AND lr_buf->app->mo_app = app.
+      result = lr_buf->app.
+      RETURN.
+    ENDIF.
+
     result = draft_parse( app->id_draft ).
 
     " mo_app is assigned BEFORE the attribute load, and that ordering is the
@@ -249,12 +272,13 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " Only ever an insert: reading an EXISTING buffer entry here would be
     " wrong, because a container that came from db_load( ) has its attributes
     " restored against the deserialized app, and this method's caller needs
-    " them pointing at `app`. So the two loaders stay distinct in that
+    " them pointing at `app` - unless that deserialized app IS `app`, the
+    " one case answered at the top. So the two loaders stay distinct in that
     " direction on purpose - do not "simplify" this into a buffer lookup.
     " mt_buffer has a UNIQUE KEY, so this insert is the whole "only if absent"
     " logic: an id already in the buffer leaves the existing entry alone and
     " sets sy-subrc = 4, which is the wanted outcome and not an error
-    INSERT VALUE #( id  = CONV string( app->id_draft )
+    INSERT VALUE #( id  = app->id_draft
                     app = result ) INTO TABLE mt_buffer.
 
   ENDMETHOD.

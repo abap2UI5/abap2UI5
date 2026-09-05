@@ -398,9 +398,12 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_parse_body_no_config FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_arg_limit FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_sanitized FOR TESTING RAISING cx_static_check.
+    METHODS test_context_info_stale_action FOR TESTING RAISING cx_static_check.
+    METHODS test_request_app_start_ns FOR TESTING RAISING cx_static_check.
     METHODS test_app_start_encoded_slash FOR TESTING RAISING cx_static_check.
     METHODS test_hash_app_part FOR TESTING RAISING cx_static_check.
     METHODS test_hash_shell_part FOR TESTING RAISING cx_static_check.
@@ -677,6 +680,39 @@ CLASS ltcl_01_request IMPLEMENTATION.
                                         act = ls_request-s_front-t_event_arg[ 5 ] ).
   ENDMETHOD.
 
+  METHOD test_parse_body_arg_limit.
+    " one over the bound of object/array arguments is refused before the
+    " quadratic slice( ) per argument can run; the bound itself still parses
+    DATA lv_payload TYPE string.
+    DATA lv_args    TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+
+    DO 99 TIMES.
+      lv_args = lv_args && `[],`.
+    ENDDO.
+    " 101 arguments: the 99 arrays, one more array and a string
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":[` && lv_args && `[],"last"]}}}`.
+    lo_handler = NEW #( val = lv_payload ).
+    TRY.
+        ls_request = lo_handler->request_json_to_abap( lv_payload ).
+        cl_abap_unit_assert=>fail( `101 event arguments were accepted` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( act = lx->get_text( )
+                                             exp = `*EVENT_ARG_LIMIT_ERROR*` ).
+    ENDTRY.
+
+    " exactly 100 arguments - the bound itself - still parse, the object
+    " among them included
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":[` && lv_args && `{"KEY":"val"}]}}}`.
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    cl_abap_unit_assert=>assert_equals( exp = 100
+                                        act = lines( ls_request-s_front-t_event_arg ) ).
+  ENDMETHOD.
+
   METHOD test_request_app_start.
 
     DATA lv_payload TYPE string.
@@ -706,6 +742,45 @@ CLASS ltcl_01_request IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `ABC123`
                                         act = ls_request-s_front-id ).
+
+  ENDMETHOD.
+
+  METHOD test_context_info_stale_action.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " a sticky handler whose next body fails to parse still holds the
+    " previous roundtrip's action - its event must not annotate the failure
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action = NEW z2ui5_cl_ui5_action( lo_handler ).
+    lo_handler->mo_action->ms_actual-event = `PREVIOUS_EVENT`.
+
+    DATA(lv_info) = lo_handler->request_context_info( ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_info CS `PREVIOUS_EVENT` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS `request not parsed` ) ).
+
+    " once the body is parsed the event is this request's
+    lo_handler->mv_request_parsed = abap_true.
+    lv_info = lo_handler->request_context_info( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS `event PREVIOUS_EVENT` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_request_app_start_ns.
+
+    " a namespaced class in a launchpad startup parameter arrives as
+    " `-ns-class` (no slash survives the intent) and is the class it spells
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"CONFIG":{"ComponentData":{"startupParameters":{"app_start":["-ns-zcl_my_app"]}}}}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
+                                        act = ls_request-s_control-app_start ).
 
   ENDMETHOD.
 

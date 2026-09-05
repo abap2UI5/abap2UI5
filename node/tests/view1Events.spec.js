@@ -47,9 +47,17 @@ function withRecordedEB() {
 // app the response belongs to - the pair the cross-app guard reads. Left out,
 // both are undefined and the guard stays out of the way, which is also the
 // real behaviour for a slot no response has claimed.
-function withSlots(openKeys, model, { slotApps = {}, responseApp } = {}) {
+// `builtFrom` names the open slots whose model was built from THIS response
+// (Slots.createViewModel stamps the response record on it) - the push must
+// leave those alone, they hold the data already.
+function withSlots(
+  openKeys,
+  model,
+  { slotApps = {}, responseApp, builtFrom = [] } = {},
+) {
   const applied = [];
   const views = {};
+  const oResponse = { OVIEWMODEL: model, APP: responseApp };
   for (const key of openKeys) {
     // each open slot carries its own framework-owned (tracked) model; a
     // push must land as setData on exactly that model
@@ -57,6 +65,7 @@ function withSlots(openKeys, model, { slotApps = {}, responseApp } = {}) {
       _z2ui5Tracked: true,
       setData: (data) => applied.push({ key, data }),
     };
+    if (builtFrom.includes(key)) tracked._z2ui5BuiltFrom = oResponse;
     views[key] = { getModel: (name) => (name ? undefined : tracked) };
   }
   const ViewSlots = {
@@ -90,7 +99,7 @@ function withSlots(openKeys, model, { slotApps = {}, responseApp } = {}) {
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": {
         state: {
-          oResponse: { OVIEWMODEL: model, APP: responseApp },
+          oResponse,
           viewSizeLimits: {},
         },
       },
@@ -136,6 +145,30 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
     const { Slots, applied } = withSlots([], {});
     Slots.action("updateModel", undefined, undefined, {});
     expect(applied).toEqual([]);
+  });
+
+  test("a slot built from this response is not pushed to again", () => {
+    // the backend ships MODEL with every display; the model a display just
+    // built from it holds the data already - pushing it again was a full
+    // binding sweep on MAIN and a second whole-model clone per dialog open
+    const model = { A: 1 };
+    const { Slots, applied } = withSlots(["MAIN", "POPUP"], model, {
+      builtFrom: ["MAIN", "POPUP"],
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([]);
+  });
+
+  test("a slot built from an EARLIER response is still pushed to", () => {
+    // a popup left open across a roundtrip that rebuilt no view: its model
+    // came from the previous response and needs this one's data
+    const model = { A: 2 };
+    const { Slots, applied, views } = withSlots(["MAIN", "POPUP"], model, {
+      builtFrom: ["MAIN"],
+    });
+    views.POPUP.getModel()._z2ui5BuiltFrom = { OVIEWMODEL: { A: 1 } };
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied.map((a) => a.key)).toEqual(["POPUP"]);
   });
 
   test("a slot's unsent edits survive the push and stay pending", () => {
@@ -316,6 +349,10 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   // without any action is the COMMON case - it must still get its model
   // push, its hash sync and the after-render hooks.
   function loadForAfterRendering() {
+    // the request stamp lives on Server: a spec bumps it to dispatch a newer
+    // request mid-phase, which is what "superseded" means BEFORE that
+    // request's own response has landed
+    const server = { _requestSeq: 1, responseError: () => {} };
     const pushes = [];
     const syncs = [];
     const hooks = [];
@@ -328,7 +365,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
         "sap/ui/core/BusyIndicator": { hide: () => busy.push("hide") },
         "sap/m/MessageBox": {},
-        "z2ui5/core/Server": { _requestSeq: 1, responseError: () => {} },
+        "z2ui5/core/Server": server,
         "z2ui5/core/Lib": {
           isDestroyed: () => false,
           isControllerAlive: () => true,
@@ -350,7 +387,17 @@ test.describe("_processAfterRendering (action-free responses)", () => {
         "z2ui5/core/AppState": { state },
       },
     });
-    return { ctrl, state, pushes, syncs, hooks, destroys, busy, pendingHash };
+    return {
+      ctrl,
+      state,
+      server,
+      pushes,
+      syncs,
+      hooks,
+      destroys,
+      busy,
+      pendingHash,
+    };
   }
 
   test("a superseded response leaves busy, custom JS and the parked hash to the newer one", async () => {
@@ -377,6 +424,49 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(busy).toEqual([]);
     expect(state.isBusy).toBe(true);
     expect(pendingHash).toEqual([]);
+  });
+
+  // The display phase stops on the request STAMP, the phase-2 guard used to
+  // ask the response RECORD - and the record only flips once the newer
+  // request's response lands. In between (a Back/Forward restore is exactly
+  // that window) a response whose system actions were cut short still ran
+  // phase 2: it ended the busy state the restore relies on and let Router.sync
+  // consume the restore's navFromHash flag. ONE stamp answers both phases.
+  test("a response cut short by a newer REQUEST stops before phase 2", async () => {
+    const { ctrl, state, server, pushes, syncs, hooks, busy, pendingHash } =
+      loadForAfterRendering();
+    state.oResponse = {
+      ID: "D1",
+      MODELPRESENT: true,
+      S_ACTION: { T_SYSTEM: [{}] },
+      _pendingCustomJs: [["TOAST"]],
+    };
+    // the restore dispatches its request while the system actions run - the
+    // response record still points at THIS response, only the stamp moved
+    hooks.onRunSystem = () => {
+      server._requestSeq = 2;
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(state.oResponse.ID).toBe("D1");
+    expect(pushes).toEqual([]);
+    expect(syncs).toEqual([]);
+    expect(busy).toEqual([]);
+    expect(state.isBusy).toBe(true);
+    expect(pendingHash).toEqual([]);
+  });
+
+  // the same stamp is what the onAfterRendering entry falls back to, so a
+  // response processed without one is never read as superseded
+  test("no stamp handed in: the newest request is the response's own", async () => {
+    const { ctrl, state, syncs, busy } = loadForAfterRendering();
+    state.oResponse = { ID: "D1", S_ACTION: { T_SYSTEM: [{}] } };
+
+    await ctrl._processAfterRendering();
+
+    expect(syncs).toEqual([{ id: "D1" }]);
+    expect(busy).toEqual(["hide"]);
   });
 
   test("the winning response ends the busy state and delivers the parked hash", async () => {
@@ -443,6 +533,77 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   });
 });
 
+// A new roundtrip overrides every pending backend timer, and EVERY path that
+// starts one owes that cancel: View1.eB had the loop written out and
+// Server.restoreFromRoute (the Back/Forward restore) had nothing at all, so a
+// poll armed one screen back kept ticking into the restored app. One helper -
+// Lib.cancelPendingTimers - and it is the shipped one that runs here.
+test.describe("eB cancels the pending timers before it dispatches", () => {
+  function loadForDispatch() {
+    const cleared = [];
+    const state = { timers: {} };
+    const { Lib } = loadLib({
+      z2ui5: state,
+      clearTimeout: (handle) => cleared.push(handle),
+    });
+    const bodies = [];
+    const { module: ctrl } = loadModule("controller/View1.controller.js", {
+      deps: {
+        "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
+        "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+        "sap/m/MessageBox": { alert: () => {} },
+        "z2ui5/core/Server": { roundtrip: (oBody) => bodies.push(oBody) },
+        "z2ui5/core/Lib": Lib,
+        "z2ui5/core/FrontendAction": {},
+        "z2ui5/core/actions/Slots": {},
+        // no slot owns this controller: _pickModelForRoundtrip bails out and
+        // the request carries no model delta, which is not what is under test
+        "z2ui5/core/ViewSlots": { keyOfController: () => undefined },
+        "z2ui5/core/Router": {},
+        "z2ui5/core/AppState": { state },
+      },
+      sandbox: { navigator: { onLine: true } },
+    });
+    return { ctrl, state, cleared, bodies };
+  }
+
+  test("every armed timer is cleared and forgotten", () => {
+    const { ctrl, state, cleared, bodies } = loadForDispatch();
+    state.timers = { START_TIMER: 7, POLL: 9 };
+
+    ctrl.eB(["SAVE", false]);
+
+    expect(cleared).toEqual([7, 9]);
+    expect(state.timers).toEqual({});
+    expect(bodies).toHaveLength(1);
+  });
+
+  test("no timer armed: the dispatch is unaffected", () => {
+    const { ctrl, state, cleared, bodies } = loadForDispatch();
+
+    ctrl.eB(["SAVE", false]);
+
+    expect(cleared).toEqual([]);
+    expect(state.timers).toEqual({});
+    expect(bodies).toHaveLength(1);
+  });
+
+  // the drop-on-busy path returns BEFORE the cancel: the roundtrip in flight
+  // still owns those timers, and clearing them here would silence a poll the
+  // response is about to re-arm
+  test("an event dropped by the busy guard cancels nothing", () => {
+    const { ctrl, state, cleared, bodies } = loadForDispatch();
+    state.timers = { START_TIMER: 7 };
+    state.isBusy = true;
+
+    ctrl.eB(["SAVE", false]);
+
+    expect(cleared).toEqual([]);
+    expect(state.timers).toEqual({ START_TIMER: 7 });
+    expect(bodies).toEqual([]);
+  });
+});
+
 test.describe("a MAIN display takes the standalone slots with it", () => {
   // A new main view is a new screen: POPUP and POPOVER live OUTSIDE the MAIN
   // control tree, so nothing else closes them - a dialog of the previous
@@ -478,6 +639,8 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
         "z2ui5/core/AppState": {
           state: {
             viewSizeLimits: {},
+            // the shipped default - displayMain empties it on every rebuild
+            odataClients: new Set(),
             oApp: {
               removeAllPages: () => {},
               insertPage: (v) => pages.push(v),
@@ -518,5 +681,141 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
     await Slots.action("display", "MAIN", "<View/>", {}, 1);
 
     expect(destroyed).toEqual([]);
+  });
+});
+
+test.describe("framework-created OData clients die with the MAIN view", () => {
+  // A model is no aggregation, so it does NOT die with the view it sits on.
+  // The framework builds OData clients in two places - the switch-mode
+  // default model of a MAIN display (actions/Slots) and SET_ODATA_MODEL
+  // (actions/ViewOps) - and both record theirs in ONE inventory
+  // (AppState.state.odataClients) that the next MAIN rebuild empties. The
+  // rebuild used to inspect the default model alone, so a NAMED
+  // SET_ODATA_MODEL client survived its view and the next re-issue found
+  // nothing to destroy. The two modules are loaded on one shared state
+  // object here because that is the only place the leak is visible.
+  function loadODataOwnership() {
+    const clients = [];
+    const destroyed = [];
+    class ODataModel {
+      constructor({ serviceUrl }) {
+        this.serviceUrl = serviceUrl;
+        clients.push(this);
+      }
+      setSizeLimit() {}
+      destroy() {
+        destroyed.push(this);
+      }
+    }
+    function JSONModel() {
+      this.attachPropertyChange = () => {};
+      this.setSizeLimit = () => {};
+      this.destroy = () => {};
+    }
+    function makeView(id) {
+      const models = {};
+      return {
+        getId: () => id,
+        getModel: (name) => models[name],
+        setModel: (model, name) => {
+          models[name] = model;
+        },
+        destroy: () => {},
+      };
+    }
+    const state = {
+      oResponse: { OVIEWMODEL: { A: 1 }, APP: "ZCL_APP" },
+      viewSizeLimits: {},
+      odataClients: new Set(),
+      oApp: { removeAllPages: () => {}, insertPage: () => {} },
+    };
+    const openSlots = { MAIN: makeView("mainView") };
+    const shared = {
+      "sap/ui/model/odata/v2/ODataModel": ODataModel,
+      "z2ui5/core/Lib": {
+        effectiveSizeLimit: () => undefined,
+        isRootModelSlot: (k) => k === "MAIN",
+        isAlive: () => true,
+        logError: () => {},
+      },
+      "z2ui5/core/ViewSlots": {
+        slots: [{ key: "MAIN", ownsModel: true }],
+        getView: (key) => openSlots[key],
+        getController: () => undefined,
+        setView: (key, view) => (openSlots[key] = view),
+        destroy: (key) => delete openSlots[key],
+        trackedModel: () => undefined,
+      },
+      "z2ui5/core/AppState": { state },
+    };
+    const { module: Slots } = loadModule("core/actions/Slots.js", {
+      deps: {
+        ...shared,
+        "sap/ui/core/mvc/XMLView": {
+          // as UI5 does it: the `models` config lands as the DEFAULT model
+          // of the new view - which is where the switch-mode OData client
+          // ends up
+          create: async (cfg) => {
+            const view = makeView("mainView");
+            if (cfg.models) view.setModel(cfg.models);
+            return view;
+          },
+        },
+        "sap/ui/core/Fragment": {},
+        "sap/ui/model/json/JSONModel": JSONModel,
+        "z2ui5/core/Server": {},
+      },
+    });
+    const { module: ViewOps } = loadModule("core/actions/ViewOps.js", {
+      deps: shared,
+    });
+    return { Slots, ViewOps, state, clients, destroyed, openSlots };
+  }
+
+  const setOData = (ViewOps, url, name) =>
+    ViewOps.handlers.SET_ODATA_MODEL(null, ["SET_ODATA_MODEL", url, name]);
+
+  test("a NAMED SET_ODATA_MODEL client is destroyed on the next MAIN rebuild", async () => {
+    const { Slots, ViewOps, clients, destroyed } = loadODataOwnership();
+
+    setOData(ViewOps, "/sap/opu/odata/sap/ORDERS/", "orders");
+    expect(clients).toHaveLength(1);
+
+    await Slots.action("display", "MAIN", "<View/>", {}, undefined);
+
+    expect(destroyed).toEqual([clients[0]]);
+  });
+
+  test("the switch-mode default client is destroyed on the next MAIN rebuild", async () => {
+    const { Slots, clients, destroyed } = loadODataOwnership();
+
+    await Slots.action(
+      "display",
+      "MAIN",
+      "<View/>",
+      { switchDefaultModelPath: "/sap/opu/odata/sap/MAIN/" },
+      undefined,
+    );
+    expect(clients).toHaveLength(1);
+
+    await Slots.action("display", "MAIN", "<View/>", {}, undefined);
+
+    expect(destroyed).toEqual([clients[0]]);
+  });
+
+  test("a re-issue destroys the client it replaces, an app's own model never", () => {
+    const { ViewOps, state, clients, destroyed, openSlots } =
+      loadODataOwnership();
+    // a model the app itself put on the view is in no inventory
+    const appOwned = { destroy: () => destroyed.push(appOwned) };
+    openSlots.MAIN.setModel(appOwned, "app");
+
+    setOData(ViewOps, "/svc/one/", "orders");
+    setOData(ViewOps, "/svc/two/", "orders");
+    expect(destroyed).toEqual([clients[0]]);
+
+    setOData(ViewOps, "/svc/three/", "app");
+    expect(destroyed).toEqual([clients[0]]);
+    expect(state.odataClients.size).toBe(2);
   });
 });

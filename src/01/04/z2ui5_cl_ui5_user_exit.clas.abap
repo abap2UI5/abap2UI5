@@ -9,11 +9,11 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
 
     CLASS-METHODS get_instance
       RETURNING
-        VALUE(ri_exit) TYPE REF TO z2ui5_if_ui5_exit.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_exit.
 
     CLASS-METHODS get_user_exit_class
       RETURNING
-        VALUE(r_class_name) TYPE string.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
     CLASS-DATA gi_me            TYPE REF TO z2ui5_if_ui5_exit.
@@ -32,6 +32,13 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     " constructor: a public class_constructor is what abap-check names a
     " trap, and the view builder's gv_escape_specials takes the same road
     CLASS-DATA gv_csp_default TYPE string.
+
+    " the exit class the lookup named, instantiated and bound to the
+    " reference of the interface it implements - or a chained exception,
+    " never a silent fall-back to the shipped defaults (see there)
+    CLASS-METHODS exit_instantiate
+      IMPORTING
+        iv_class_name TYPE string.
 ENDCLASS.
 
 
@@ -40,32 +47,57 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   METHOD get_instance.
 
     IF gi_me IS BOUND.
-      ri_exit = gi_me.
+      result = gi_me.
       RETURN.
     ENDIF.
 
     DATA(lv_class_name) = get_user_exit_class( ).
 
     IF lv_class_name IS NOT INITIAL.
-      TRY.
-          DATA lo_exit TYPE REF TO object.
-          CREATE OBJECT lo_exit TYPE (lv_class_name).
-
-          " Which interface the class implements decides how it is called, and
-          " the cast is what asks the object rather than the class list. A
-          " class implementing BOTH lands in gi_user_exit and is therefore
-          " called once, through the current interface - never twice.
-          TRY.
-              gi_user_exit ?= lo_exit.
-            CATCH cx_sy_move_cast_error.
-              gi_user_exit_dep ?= lo_exit.
-          ENDTRY.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
+      exit_instantiate( lv_class_name ).
     ENDIF.
 
     gi_me = NEW z2ui5_cl_ui5_user_exit( ).
-    ri_exit = gi_me.
+    result = gi_me.
+
+  ENDMETHOD.
+
+  METHOD exit_instantiate.
+
+    " The lookup may legitimately name nothing - no exit installed, a
+    " runtime without a class repository - and the framework then runs on
+    " the shipped defaults. A class it DID name is a different matter: the
+    " installation configured an exit. When that class cannot be
+    " instantiated (a constructor that raises, an abstract or CREATE
+    " PRIVATE class, a class left inactive by a transport), the failure
+    " used to be swallowed here, and every request ran on the shipped
+    " defaults - error details visible, the public CDN bootstrap, the
+    " default CSP, forwarded-host trust, none of the exit's headers - with
+    " no log and no error page, while the start page still named the exit
+    " as installed. A hardening control that fails open silently is the
+    " one thing it must not do, so it fails closed: the cause is chained
+    " into the framework's exception, the handler's outer TRY turns it into
+    " a visible 500 on the first request (_error_response tolerates a
+    " raising get_instance), and gi_me stays unbound so the next request
+    " asks again instead of caching the failure.
+    TRY.
+        DATA lo_exit TYPE REF TO object.
+        CREATE OBJECT lo_exit TYPE (iv_class_name).
+
+        " Which interface the class implements decides how it is called, and
+        " the cast is what asks the object rather than the class list. A
+        " class implementing BOTH lands in gi_user_exit and is therefore
+        " called once, through the current interface - never twice.
+        TRY.
+            gi_user_exit ?= lo_exit.
+          CATCH cx_sy_move_cast_error.
+            gi_user_exit_dep ?= lo_exit.
+        ENDTRY.
+      CATCH cx_root INTO DATA(lx).
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = lx.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -93,9 +125,10 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " carries one class per interface - a configuration the class doc
         " rules out, only one exit can be active - gets the current one
         " instead of whichever sorted first across both lists.
+        " no self-exclusion on this list: the shipped exit implements
+        " z2ui5_if_ui5_exit only, so it is never in it
         IF lines( exit_classes ) = 0.
           exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
-          DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
         ENDIF.
 
         " only one user exit can be active, so the pick must not depend on the
@@ -105,7 +138,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " transport or a system copy. Sorting makes it reproducible.
         SORT exit_classes BY classname.
 
-        r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
+        result = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -227,7 +260,20 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   METHOD init_context.
 
     context = CORRESPONDING #( http_info ).
-    context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ). "#EC CI_SORTSEQ
+    " normalized the way request_app_start reads the parameter - trimmed,
+    " upper-cased, a percent-encoded namespace unpacked - so an exit keyed on
+    " the app (details hidden for one, a tighter CSP for another) is not
+    " bypassed by a case change or an encoded slash. It stays what the URL of
+    " THIS request says: empty on every POST (the SPA posts to the manifest
+    " URI) and when the app is named by the hash route, which never reaches
+    " the server - a hint for the page request, not the authority on what
+    " runs (see the interface doc)
+    context-app_start = z2ui5_cl_ui5_util_context=>c_trim_upper(
+        VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ) ). "#EC CI_SORTSEQ
+    context-app_start = replace( val  = context-app_start
+                                 sub  = `%2F`
+                                 with = `/`
+                                 occ  = 0 ).
 
   ENDMETHOD.
 

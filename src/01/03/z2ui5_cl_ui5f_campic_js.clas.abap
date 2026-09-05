@@ -254,8 +254,7 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `              text: "Camera",` && |\n| &&
              `` && |\n| &&
              `              press: () => {` && |\n| &&
-             `                oControl.firePress();` && |\n| &&
-             `                oControl.onPicture();` && |\n| &&
+             `                if (oControl.firePress()) oControl.onPicture();` && |\n| &&
              `              },` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&

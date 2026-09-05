@@ -31,20 +31,14 @@ CLASS z2ui5_cl_ui5f_liveedit_js IMPLEMENTATION.
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/devtools/Tabs",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Slots, AppState, Lib, ViewSlots) => {` && |\n| &&
+             `  (Slots, AppState, Lib, ViewSlots, Tabs) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const TAB_TO_SLOT = {` && |\n| &&
-             `      VIEW: "MAIN",` && |\n| &&
-             `      POPUP: "POPUP",` && |\n| &&
-             `      POPOVER: "POPOVER",` && |\n| &&
-             `      NEST1: "NEST",` && |\n| &&
-             `      NEST2: "NEST2",` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
              `    function slotOfTab(tabKey) {` && |\n| &&
-             `      return TAB_TO_SLOT[tabKey];` && |\n| &&
+             `      const tab = Tabs.get(tabKey);` && |\n| &&
+             `      return tab?.aspect === "XML" ? tab.slot : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function canApply(tabKey) {` && |\n| &&
@@ -88,21 +82,11 @@ CLASS z2ui5_cl_ui5f_liveedit_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function originalXml(tabKey) {` && |\n| &&
-             `      const slotKey = slotOfTab(tabKey);` && |\n| &&
-             `      if (!slotKey) return "";` && |\n| &&
-             `      return (` && |\n| &&
-             `        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||` && |\n| &&
-             `        ViewSlots.getViewXml(slotKey) ||` && |\n| &&
-             `        ""` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function isBusy() {` && |\n| &&
              `      return Boolean(AppState.state.isBusy);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    return { apply, canApply, slotOfTab, originalXml, isBusy };` && |\n| &&
+             `    return { apply, canApply, slotOfTab, isBusy };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

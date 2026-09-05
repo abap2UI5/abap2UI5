@@ -438,6 +438,10 @@ CLASS ltcl_02_db DEFINITION FINAL INHERITING FROM ltcl_00_base
     " what a callee wrote through the caller's reference after the caller's
     " save is what the way back keeps - the live object, not the payload
     METHODS load_by_app_keeps_live_data FOR TESTING RAISING cx_static_check.
+    " the container this request built for the draft is what a load by
+    " ITS app answers - no second parse; another instance of the same id
+    " is still restored on its own
+    METHODS load_by_app_same_instance  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -572,6 +576,27 @@ CLASS ltcl_02_db IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( <tab> ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lo_app_2->mr_handle_tab = lo_app_2->mo_inner->mr_shared ) ).
+
+  ENDMETHOD.
+
+  METHOD load_by_app_same_instance.
+
+    bind_all( ).
+    mo_cont->db_save( ).
+    z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
+
+    " what nav_app_leave( ) does without a target: get_app( ) parses the
+    " draft into a container, and the stack hop then loads BY that app
+    DATA(lo_loaded) = z2ui5_cl_ui5_app_cont=>db_load( mo_cont->ms_draft-id ).
+    DATA(lo_by_app) = z2ui5_cl_ui5_app_cont=>db_load_by_app( app_of( lo_loaded ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_by_app = lo_loaded )
+                                      msg = `the hop parsed the draft a second time` ).
+
+    " the live instance carries the same id but is not the buffered app
+    DATA(lo_other) = z2ui5_cl_ui5_app_cont=>db_load_by_app( mo_user ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lo_other = lo_loaded ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_other->mo_app = mo_user ) ).
+    check_restored( mo_user ).
 
   ENDMETHOD.
 

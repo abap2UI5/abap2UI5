@@ -12,6 +12,10 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
   PUBLIC SECTION.
 
+    " digest of every embedded frontend source, fixed at generation time -
+    " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
+    CONSTANTS build_hash TYPE string VALUE 'a1ffe172f0bebbe9'.
+
     CLASS-METHODS get
       IMPORTING
         styles_css    TYPE string
@@ -102,7 +106,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
     " Every non-.js resource in get( ) is embedded as a JavaScript
     " single-quoted string literal, inside the single <script> block that
-    " defines onInitComponent (z2ui5_cl_http_handler=>_http_get). Its content
+    " defines onInitComponent (z2ui5_cl_ui5_http_handler=>_http_get). Its content
     " is arbitrary text and does carry apostrophes - a UI5 expression binding
     " in a fragment (title="{= ${/appName} ? 'a' : 'b' }") writes them, and so
     " does a customer's own styles_css from the exit. An unescaped one ends the

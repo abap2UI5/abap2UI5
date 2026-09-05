@@ -97,7 +97,13 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
              `` && |\n| &&
              `        let stored;` && |\n| &&
              `        try {` && |\n| &&
-             `          const storageType = Storage.Type[type] || Storage.Type.session;` && |\n| &&
+             `          const typeKey = String(type || "").toLowerCase();` && |\n| &&
+             `          const storageType = Storage.Type[typeKey] || Storage.Type.session;` && |\n| &&
+             `          if (type && !Storage.Type[typeKey]) {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``Storage: unknown type '${type}', reading the session store``,` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
              `` && |\n| &&
              `          const storeKey = JSON.stringify([storageType, prefix]);` && |\n| &&
              `          if (this._storeKey !== storeKey) {` && |\n| &&

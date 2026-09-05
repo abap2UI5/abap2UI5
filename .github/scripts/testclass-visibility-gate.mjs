@@ -14,6 +14,14 @@
 // is explicitly typed as the class under test. Anything reached dynamically or
 // through a helper type is out of scope - the gate must not produce findings a
 // developer cannot act on.
+//
+// A MEMBER is not only a method. `TYPES` and `ALIASES` are declarations with a
+// visibility like any other, and a test class that names a PRIVATE type
+// (`zcl_x=>ty_s_row`) needs the same LOCAL FRIENDS statement as one that calls
+// a private method - the class pool does not activate without it either. The
+// gate recorded neither until 2026-09, which left the widest hole exactly where
+// it hurts most: the incident class this gate was WRITTEN for reaches a private
+// type, so a test class of that shape passed here and failed on a real system.
 
 import { globSync, readFileSync } from "fs";
 import { basename, join } from "path";
@@ -29,6 +37,7 @@ function parseVisibility(source) {
   const members = new Map();
   let section = null;
   let inDefinition = false;
+  let structDepth = 0;
   for (const raw of source.split("\n")) {
     const line = raw.trim().toUpperCase();
     if (!inDefinition) {
@@ -44,13 +53,38 @@ function parseVisibility(source) {
       section = SECTIONS[named];
       continue;
     }
-    const declared = line.match(/^(CLASS-METHODS|METHODS|CLASS-DATA|DATA|CONSTANTS|CLASS-EVENTS|EVENTS)\s+([A-Z_0-9]+)/);
+    /* A structured block - `TYPES: BEGIN OF ty_s_x, … END OF ty_s_x.` and the
+     * same shape for DATA/CONSTANTS. `BEGIN OF <name>` IS the member; its
+     * components are not, because they are only reachable through it. Reading
+     * them as members would put ordinary words (`NAME`, `REF`, `DATA`) into the
+     * map with the block's visibility, and an unrelated `->name` in some test
+     * class would become a finding nobody can act on. */
+    const begin = line.match(/^(?:(?:CLASS-)?(?:TYPES|DATA|CONSTANTS)\b(?:\s*:)?\s+)?BEGIN\s+OF\s+(?:ENUM\s+)?([A-Z_0-9]+)/);
+    if (begin) {
+      if (structDepth === 0 && section && !members.has(begin[1].toLowerCase())) {
+        members.set(begin[1].toLowerCase(), section);
+      }
+      structDepth += 1;
+      continue;
+    }
+    if (/^END\s+OF\b/.test(line)) {
+      if (structDepth > 0) structDepth -= 1;
+      continue;
+    }
+    if (structDepth > 0) continue;
+    /* TYPES and ALIASES are in this list for the reason the header gives: a
+     * private TYPE named by a test class is the same activation error as a
+     * private method called by one. The optional colon is what makes the FIRST
+     * element of a chain (`TYPES: ty_a TYPE i,`) a declaration here rather than
+     * a line the chained branch below has to guess at. */
+    const declared = line.match(/^(CLASS-METHODS|METHODS|CLASS-DATA|DATA|CONSTANTS|CLASS-EVENTS|EVENTS|TYPES|ALIASES)\b(?:\s*:)?\s+([A-Z_0-9]+)/);
     if (declared) {
       if (!members.has(declared[2].toLowerCase())) members.set(declared[2].toLowerCase(), section);
       continue;
     }
-    // continuation line of a chained declaration: `name TYPE ...` / `name FOR TESTING`
-    const chained = line.match(/^([A-Z_0-9]+)\s+(TYPE|LIKE|FOR TESTING|REDEFINITION|ABSTRACT|FINAL)\b/);
+    // continuation line of a chained declaration: `name TYPE ...` /
+    // `name FOR TESTING` / the ALIASES form `name FOR intf~name`
+    const chained = line.match(/^([A-Z_0-9]+)\s+(TYPE|LIKE|FOR|REDEFINITION|ABSTRACT|FINAL)\b/);
     if (chained && section && !members.has(chained[1].toLowerCase())) {
       members.set(chained[1].toLowerCase(), section);
     }
@@ -99,21 +133,13 @@ function currentLocalClass(lines, upto) {
   return current;
 }
 
-const findings = [];
-
-let scanned = 0;
-for (const testFile of globSync(join(ROOT, "src/**/*.clas.testclasses.abap")).sort()) {
-  scanned += 1;
-  const globalClass = basename(testFile, ".clas.testclasses.abap");
-  let definition;
-  try {
-    definition = readFileSync(testFile.replace(".clas.testclasses.abap", ".clas.abap"), "utf8");
-  } catch {
-    continue; // no class under test (e.g. an interface pool)
-  }
-
+/* One test class against its class under test. A function so the self-test
+ * below can put synthetic sources through the SAME code path the real scan
+ * uses - a self-test that exercised a copy of the logic would prove nothing
+ * about the gate. */
+function findingsFor(globalClass, definition, source) {
+  const found = [];
   const members = parseVisibility(definition);
-  const source = readFileSync(testFile, "utf8");
   const lines = source.split("\n");
   const friends = parseFriends(source, globalClass);
   const heirs = parseInheritingClasses(source, globalClass);
@@ -133,10 +159,107 @@ for (const testFile of globSync(join(ROOT, "src/**/*.clas.testclasses.abap")).so
         if (local === null) continue;
         if (friends.has(local)) continue;
         if (visibility === "PROTECTED" && heirs.has(local)) continue;
-        findings.push({ file: testFile, line: i + 1, local, member, visibility, globalClass });
+        found.push({ line: i + 1, local, member, visibility, globalClass });
       }
     }
   }
+  return found;
+}
+
+/* Self-test: the detection, on sources written for it, before the tree is
+ * scanned. A gate whose parser stops recognising a declaration goes SILENT -
+ * it reports "no findings" over a member map that has lost the member, which
+ * is the failure mode that let a private TYPE through for as long as this gate
+ * has existed. A green run over the tree cannot tell that apart from a clean
+ * tree; these cases can, and they cost microseconds.
+ *
+ * `expect` is `local:member` per finding, sorted. */
+const SELF_TEST = [
+  {
+    name: "private method, no LOCAL FRIENDS - the case this gate was written for",
+    definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n  PRIVATE SECTION.\n    CLASS-METHODS helper.\nENDCLASS.",
+    source: "CLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t. zcl_x=>helper( ). ENDMETHOD.\nENDCLASS.",
+    expect: ["ltcl:helper"],
+  },
+  {
+    name: "the same, with the LOCAL FRIENDS statement that repairs it",
+    definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n  PRIVATE SECTION.\n    CLASS-METHODS helper.\nENDCLASS.",
+    source: "CLASS zcl_x DEFINITION LOCAL FRIENDS ltcl.\nCLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t. zcl_x=>helper( ). ENDMETHOD.\nENDCLASS.",
+    expect: [],
+  },
+  {
+    name: "private TYPES - a type is a member, and naming one needs LOCAL FRIENDS too",
+    definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n  PRIVATE SECTION.\n    TYPES ty_row TYPE string.\nENDCLASS.",
+    source: "CLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t. DATA lv TYPE zcl_x=>ty_row. ENDMETHOD.\nENDCLASS.",
+    expect: ["ltcl:ty_row"],
+  },
+  {
+    name: "a private BEGIN OF block: the type is the member, its components are not",
+    definition: [
+      "CLASS zcl_x DEFINITION.",
+      "  PUBLIC SECTION.",
+      "    METHODS name.",
+      "  PRIVATE SECTION.",
+      "    TYPES:",
+      "      BEGIN OF ty_s_row,",
+      "        name TYPE string,",
+      "      END OF ty_s_row.",
+      "    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.",
+      "ENDCLASS.",
+    ].join("\n"),
+    source: "CLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t.\n    DATA lt TYPE zcl_x=>ty_t_row.\n    zcl_x=>name( ).\n  ENDMETHOD.\nENDCLASS.",
+    expect: ["ltcl:ty_t_row"],
+  },
+  {
+    name: "a chained private TYPES: every element of the chain is a member",
+    definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n  PRIVATE SECTION.\n    TYPES: ty_a TYPE i,\n           ty_b TYPE string.\nENDCLASS.",
+    source: "CLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t.\n    DATA la TYPE zcl_x=>ty_a.\n    DATA lb TYPE zcl_x=>ty_b.\n  ENDMETHOD.\nENDCLASS.",
+    expect: ["ltcl:ty_a", "ltcl:ty_b"],
+  },
+  {
+    name: "a private ALIASES declaration is a member as well",
+    definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n  PRIVATE SECTION.\n    ALIASES run FOR zif_x~run.\nENDCLASS.",
+    source: "CLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t. zcl_x=>run( ). ENDMETHOD.\nENDCLASS.",
+    expect: ["ltcl:run"],
+  },
+  {
+    name: "a PUBLIC type is nobody's business here",
+    definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    TYPES ty_row TYPE string.\n  PRIVATE SECTION.\nENDCLASS.",
+    source: "CLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t. DATA lv TYPE zcl_x=>ty_row. ENDMETHOD.\nENDCLASS.",
+    expect: [],
+  },
+];
+
+for (const testCase of SELF_TEST) {
+  const got = findingsFor("zcl_x", testCase.definition, testCase.source)
+    .map((f) => `${f.local}:${f.member}`)
+    .sort();
+  if (got.join(" ") !== [...testCase.expect].sort().join(" ")) {
+    console.error(`Test class visibility: the gate's own self-test failed - "${testCase.name}"`);
+    console.error(`  expected: ${testCase.expect.join(", ") || "(no finding)"}`);
+    console.error(`  got:      ${got.join(", ") || "(no finding)"}`);
+    console.error("");
+    console.error("The detection changed. Until this case passes again, a green run over src/");
+    console.error("says nothing - fix the parser, or the case if the expectation was wrong.");
+    process.exit(1);
+  }
+}
+
+const findings = [];
+
+let scanned = 0;
+for (const testFile of globSync(join(ROOT, "src/**/*.clas.testclasses.abap")).sort()) {
+  scanned += 1;
+  const globalClass = basename(testFile, ".clas.testclasses.abap");
+  let definition;
+  try {
+    definition = readFileSync(testFile.replace(".clas.testclasses.abap", ".clas.abap"), "utf8");
+  } catch {
+    continue; // no class under test (e.g. an interface pool)
+  }
+
+  const source = readFileSync(testFile, "utf8");
+  for (const f of findingsFor(globalClass, definition, source)) findings.push({ file: testFile, ...f });
 }
 
 if (findings.length > 0) {
@@ -162,4 +285,7 @@ if (scanned === 0) {
   process.exit(1);
 }
 
-console.log(`Test class visibility: no findings (${scanned} test class file(s)).`);
+console.log(
+  `Test class visibility: no findings (${scanned} test class file(s), `
+  + `${SELF_TEST.length} self-test case(s) passed).`,
+);

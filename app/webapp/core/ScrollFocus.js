@@ -35,12 +35,27 @@ sap.ui.define(
       return null;
     }
 
-    // Strip the owning view's "<viewId>--" prefix from a control id so the
-    // backend gets the id as the app declared it. Returns the id unchanged
-    // when it does not belong to that view.
-    function stripViewPrefix(fullId, view) {
+    // Strip the owning slot's id prefix from a control id so the backend
+    // gets the id as the app declared it. Returns the id unchanged when the
+    // control does not belong to that slot.
+    //
+    // The prefix comes from the slot's `fragmentId` where it has one (POPUP
+    // and POPOVER - see ViewSlots.slots), and only otherwise from the view
+    // id. A fragment's inner controls are registered under the FRAGMENT id
+    // ("popupId--input"), while the instance the slot holds is the fragment
+    // ROOT control, whose own id is something else entirely (an auto-
+    // generated "__dialog0", or "popupId--<rootId>"). Stripping that root
+    // id therefore matched nothing: the same control was reported as
+    // "input" in MAIN and as "popupId--input" in a dialog, and the
+    // SET_FOCUS / SCROLL_TO the app echoed back resolves through
+    // Fragment.byId, which prefixed the id a second time - so restoring
+    // focus or the scroll position in a popup silently found no control.
+    function stripSlotPrefix(fullId, slot) {
+      const view = ViewSlots.getView(slot.key);
       if (!view) return fullId;
-      const prefix = `${view.getId()}--`;
+      const prefix = slot.fragmentId
+        ? `${slot.fragmentId}--`
+        : `${view.getId()}--`;
       return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;
     }
 
@@ -70,7 +85,7 @@ sap.ui.define(
         const fullId = ui5El.getId();
         let id = fullId;
         for (const slot of ViewSlots.slots) {
-          const local = stripViewPrefix(fullId, ViewSlots.getView(slot.key));
+          const local = stripSlotPrefix(fullId, slot);
           if (local !== fullId) {
             id = local;
             break;
@@ -169,10 +184,7 @@ sap.ui.define(
           continue;
         }
 
-        const id = stripViewPrefix(
-          entry.control.getId(),
-          ViewSlots.getView(slot.key),
-        );
+        const id = stripSlotPrefix(entry.control.getId(), slot);
         out[slot.key] = {
           ID: id,
           X: entry.dom.scrollLeft || 0,

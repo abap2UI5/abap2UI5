@@ -34,6 +34,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `` && |\n| &&
              `  const MAX_DEPTH = 4;` && |\n| &&
              `` && |\n| &&
+             `  const MAX_ITEMS = 20;` && |\n| &&
+             `` && |\n| &&
              `  const RELOAD_KEY = "z2ui5.devtools.console";` && |\n| &&
              `  const RELOAD_MAX_ENTRIES = 40;` && |\n| &&
              `` && |\n| &&
@@ -54,6 +56,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  let onErrorEntry = null;` && |\n| &&
              `` && |\n| &&
              `  let capturing = false;` && |\n| &&
+             `` && |\n| &&
+             `  let pendingUi5Echo = null;` && |\n| &&
              `` && |\n| &&
              `  function push(level, source, text) {` && |\n| &&
              `    if (entries.length >= MAX_ENTRIES) {` && |\n| &&
@@ -161,6 +165,12 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `          if (parent >= MAX_DEPTH) return "[...]";` && |\n| &&
              `          seen.add(val);` && |\n| &&
              `          nodeDepth.set(val, parent + 1);` && |\n| &&
+             `          if (Array.isArray(val) && val.length > MAX_ITEMS) {` && |\n| &&
+             `            const head = val.slice(0, MAX_ITEMS);` && |\n| &&
+             `            head.push(``[... ${val.length - MAX_ITEMS} more]``);` && |\n| &&
+             `            nodeDepth.set(head, parent + 1);` && |\n| &&
+             `            return head;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `        if (isErrorLike(val)) return val.stack || String(val);` && |\n| &&
              `        return val;` && |\n| &&
@@ -184,7 +194,13 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    if (capturing) return;` && |\n| &&
              `    capturing = true;` && |\n| &&
              `    try {` && |\n| &&
-             `      push(level, "console", renderArgs(args));` && |\n| &&
+             `      const text = renderArgs(args);` && |\n| &&
+             `` && |\n| &&
+             `      const echo = pendingUi5Echo;` && |\n| &&
+             `      pendingUi5Echo = null;` && |\n| &&
+             `` && |\n| &&
+             `      if (echo && (text === echo || text.startsWith(``${echo} ``))) return;` && |\n| &&
+             `      push(level, "console", text);` && |\n| &&
              `    } catch {` && |\n| &&
              `    } finally {` && |\n| &&
              `      capturing = false;` && |\n| &&
@@ -206,6 +222,11 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `      const component = logEntry?.component ? ``[${logEntry.component}] `` : "";` && |\n| &&
              `      const details = logEntry?.details ? `` - ${logEntry.details}`` : "";` && |\n| &&
              `      push(level, "ui5", ``${component}${logEntry?.message || ""}${details}``);` && |\n| &&
+             `` && |\n| &&
+             `      pendingUi5Echo =` && |\n| &&
+             `        ``${logEntry?.date || ""} ${logEntry?.time || ""} `` +` && |\n| &&
+             `        ``${logEntry?.message || ""} - ${logEntry?.details || ""} `` +` && |\n| &&
+             `        ``${logEntry?.component || ""}``;` && |\n| &&
              `    } catch {}` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
@@ -300,6 +321,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    onRejection = null;` && |\n| &&
              `    onPageHide = null;` && |\n| &&
              `    onErrorEntry = null;` && |\n| &&
+             `    pendingUi5Echo = null;` && |\n| &&
              `    entries = [];` && |\n| &&
              `    dropped = 0;` && |\n| &&
              `  }` && |\n| &&
@@ -321,7 +343,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    getEntries,` && |\n| &&
              `    getDropped,` && |\n| &&
              `` && |\n| &&
-             `    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS },` && |\n| &&
+             `    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS, MAX_ITEMS },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

@@ -167,15 +167,74 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      state[name] = state[name].filter((f) => f !== fn);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function readFileAsDataURL(file, owner, onLoaded, errorContext) {` && |\n| &&
+             `    function readFileAsDataURL(file, owner, onLoaded, errorContext, onFailed) {` && |\n| &&
              `      const reader = new FileReader();` && |\n| &&
              `      reader.onload = () => {` && |\n| &&
              `        if (isDestroyed(owner)) return;` && |\n| &&
              `        onLoaded(reader.result);` && |\n| &&
              `      };` && |\n| &&
-             `      reader.onerror = () =>` && |\n| &&
+             `      reader.onerror = () => {` && |\n| &&
              `        logError(``${errorContext}: FileReader failed``, reader.error);` && |\n| &&
+             `        if (onFailed && !isDestroyed(owner)) onFailed();` && |\n| &&
+             `      };` && |\n| &&
              `      reader.readAsDataURL(file);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function readFilesInTurn(owner, errorContext, onFile) {` && |\n| &&
+             `      const queue = [];` && |\n| &&
+             `      let reading = false;` && |\n| &&
+             `      let cancelWait = null;` && |\n| &&
+             `` && |\n| &&
+             `      const readNext = () => {` && |\n| &&
+             `        const file = queue.shift();` && |\n| &&
+             `        if (!file || isDestroyed(owner)) {` && |\n| &&
+             `          reading = false;` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        reading = true;` && |\n| &&
+             `        const step = () => {` && |\n| &&
+             `          cancelWait = afterRoundtrip(owner, () => {` && |\n| &&
+             `            cancelWait = null;` && |\n| &&
+             `            readNext();` && |\n| &&
+             `          });` && |\n| &&
+             `        };` && |\n| &&
+             `        readFileAsDataURL(` && |\n| &&
+             `          file,` && |\n| &&
+             `          owner,` && |\n| &&
+             `          (result) => {` && |\n| &&
+             `            onFile(file, result);` && |\n| &&
+             `            step();` && |\n| &&
+             `          },` && |\n| &&
+             `          errorContext,` && |\n| &&
+             `` && |\n| &&
+             `          readNext,` && |\n| &&
+             `        );` && |\n| &&
+             `      };` && |\n| &&
+             `` && |\n| &&
+             `      return {` && |\n| &&
+             `        add(files) {` && |\n| &&
+             `          for (const file of files) queue.push(file);` && |\n| &&
+             `          if (!reading) readNext();` && |\n| &&
+             `        },` && |\n| &&
+             `` && |\n| &&
+             `        cancel() {` && |\n| &&
+             `          queue.length = 0;` && |\n| &&
+             `          reading = false;` && |\n| &&
+             `          if (cancelWait) {` && |\n| &&
+             `            cancelWait();` && |\n| &&
+             `            cancelWait = null;` && |\n| &&
+             `          }` && |\n| &&
+             `        },` && |\n| &&
+             `      };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function cancelPendingTimers() {` && |\n| &&
+             `      const timers = AppState.state.timers;` && |\n| &&
+             `      if (!timers) return;` && |\n| &&
+             `      for (const key in timers) {` && |\n| &&
+             `        clearTimeout(timers[key]);` && |\n| &&
+             `        delete timers[key];` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function applyTokenUpdate(control, oEvent) {` && |\n| &&
@@ -365,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `          field === "" ||` && |\n| &&
              `          !Number.isNaN(Number(field))` && |\n| &&
              `        ) {` && |\n| &&
-             `          return null;` && |\n| &&
+             `          return null;` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        i += 2;` && |\n| &&
              `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
@@ -424,8 +484,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function sanitizeMessageNodes(node) {` && |\n| &&
-             `      let out = "";` && |\n|.
-    result = result &&
+             `      let out = "";` && |\n| &&
              `      for (const child of node.childNodes) {` && |\n| &&
              `        if (child.nodeType === 3) {` && |\n| &&
              `          out += escapeMessageText(child.nodeValue);` && |\n| &&
@@ -552,6 +611,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      registerCallback,` && |\n| &&
              `      unregisterCallback,` && |\n| &&
              `      readFileAsDataURL,` && |\n| &&
+             `      readFilesInTurn,` && |\n| &&
+             `      cancelPendingTimers,` && |\n| &&
              `      applyTokenUpdate,` && |\n| &&
              `      runCallbacks,` && |\n| &&
              `      whenRendered,` && |\n| &&

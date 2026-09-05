@@ -49,14 +49,13 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
     METHODS cleanup.
 
   PROTECTED SECTION.
+  PRIVATE SECTION.
     METHODS read
       IMPORTING
         id             TYPE clike
         check_load_app TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result)  TYPE ty_s_db.
-
-  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -108,7 +107,12 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " by re-using its id; blank-owner legacy rows stay writable during the
     " upgrade transition, like on the read side) - it runs on the collision
     " path now. A duplicate key answers sy-subrc 4 on every target, the
-    " transpiled runtime included (a UNIQUE constraint failure is 4 there)
+    " transpiled runtime included (a UNIQUE constraint failure is 4 there).
+    " The blank-owner half of that guard is the FOURTH tolerance covered by
+    " the REMOVAL CONDITION in read( ) - the write side of the same fail-open
+    " branch, and the one that would otherwise outlive the three read
+    " tolerances unnoticed, since npm run check:draftowner only holds what it
+    " names. It names this branch too, so all four go in one change.
     INSERT z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
       SELECT SINGLE uname FROM z2ui5_t_01
@@ -158,10 +162,11 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " bookmark id falls through to a fresh app start instead of erroring.
     " Legacy rows written before the UNAME column existed carry a blank owner
     " and stay readable during the upgrade transition (they expire in hours).
-    " REMOVAL CONDITION for the blank-owner tolerance (here, check_exists and
-    " count_entries): one release after every installation has passed a
-    " draft-expiry window on a version that writes UNAME - create( ) always
-    " fills it, so no new blank row can appear and cleanup( ) drains the old
+    " REMOVAL CONDITION for the blank-owner tolerance (here, check_exists,
+    " count_entries and the collision guard in create( ) - four branches,
+    " three reads and one write): one release after every installation has
+    " passed a draft-expiry window on a version that writes UNAME - create( )
+    " always fills it, so no new blank row can appear and cleanup( ) drains the old
     " ones. npm run check:draftowner enforces the deadline: it holds these
     " tolerances present through the grace version and fails the build once
     " a later release still ships them (the gate names its anchors - update

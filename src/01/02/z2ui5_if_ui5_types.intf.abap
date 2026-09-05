@@ -65,6 +65,12 @@ INTERFACE z2ui5_if_ui5_types
       name_ref        TYPE string,
       bind            TYPE abap_bool,
       srtti_data      TYPE string,
+      " the S-RTTI descriptor of srtti_data as a document of its own, so the
+      " restore parses each once (z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair)
+      " instead of lexing one combined document twice. Added 2026-09: a draft
+      " written before carries no element for it, deserializes with an empty
+      " type, and is restored from the combined document as before
+      srtti_type      TYPE string,
       check_dissolved TYPE abap_bool,
       custom_filter   TYPE REF TO z2ui5_if_ajson_filter,
       custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping,

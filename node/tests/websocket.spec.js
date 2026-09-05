@@ -12,6 +12,9 @@ const { loadLib } = require("./loadLibModule");
 //     control was torn down must be a silent no-op.
 //   - the busy queue: while a roundtrip is in flight (AppState.state.isBusy)
 //     nothing is delivered; items queue and drain one per retry, in order.
+//   - the give-up budget: every way a connection can fail to become usable
+//     counts against MAX_CONNECT_ATTEMPTS, so no failure mode reconnects
+//     forever (see CONNECT_STABLE_MS in the control).
 function load({ isBusy = false, origin = "https://host.example" } = {}) {
   const errors = [];
   // The real Lib so isDestroyed/renderInvisibleSpan/afterRoundtrip are the
@@ -33,6 +36,10 @@ function load({ isBusy = false, origin = "https://host.example" } = {}) {
       this.closed = true;
     }
   }
+  // Deterministic clock: the control measures how long a socket stayed
+  // open (CONNECT_STABLE_MS), so the spec owns Date.now() and moves it by
+  // hand - a real clock would make "the socket lived long enough" a race.
+  let clock = 0;
   // Deterministic timers: the drain's deferral (setTimeout 0) is captured
   // and run by hand.
   const timers = [];
@@ -62,6 +69,7 @@ function load({ isBusy = false, origin = "https://host.example" } = {}) {
     sandbox: {
       WebSocket: FakeWebSocket,
       location: { origin },
+      Date: { now: () => clock },
       setTimeout: (fn) => {
         const id = nextTimerId++;
         timers.push({ id, fn });
@@ -104,6 +112,7 @@ function load({ isBusy = false, origin = "https://host.example" } = {}) {
     landRoundtrip,
     timers,
     setFailConstruct: (v) => (failConstruct = v),
+    advanceClock: (ms) => (clock += ms),
   };
 }
 
@@ -258,6 +267,21 @@ test("a throwing WebSocket constructor logs and fires the error event", () => {
   expect(inst.errorEvents[0].message).toContain("wss://host.example/apc");
 });
 
+test("a throwing constructor counts against the give-up budget", () => {
+  const { makeInstance, errors, setFailConstruct } = load();
+  setFailConstruct(true);
+  const inst = makeInstance({ path: "/apc" });
+
+  // the app answers each `error` with a view-rebuilding roundtrip, so every
+  // render re-enters _connect - the constructor throw used to leave the
+  // counter untouched and looped one roundtrip per render forever
+  for (let i = 0; i < 8; i++) inst.onAfterRendering();
+
+  expect(inst.errorEvents).toHaveLength(5);
+  expect(inst.errorEvents.every((e) => e.code === "CONSTRUCT")).toBe(true);
+  expect(errors.some((m) => m.includes("giving up"))).toBe(true);
+});
+
 test("an unrequested close is logged and reported with its close code", () => {
   const { makeInstance, sockets, errors } = load();
   const inst = makeInstance({ path: "/apc" });
@@ -282,6 +306,69 @@ test("a close after open reports 'was closed' and appends the reason", () => {
 
   expect(inst.errorEvents[0].message).toContain("was closed");
   expect(inst.errorEvents[0].message).toContain("server going down");
+});
+
+test("a handshake dropped at once counts as a failed attempt", () => {
+  const { makeInstance, sockets, errors, runTimers } = load();
+  const inst = makeInstance({ path: "/apc" });
+
+  // the server completes the handshake and closes the socket right away -
+  // an APC whose ON_START refuses, a proxy that cuts the connection. onopen
+  // used to reset the counter, so this reconnected every 500 ms with no
+  // backoff and one `error` event per drop for the life of the view
+  for (let i = 0; i < 5; i++) {
+    inst.onAfterRendering();
+    const ws = sockets[sockets.length - 1];
+    ws.onopen();
+    ws.onclose({ code: 1006, reason: "" });
+  }
+
+  inst.onAfterRendering();
+  runTimers();
+  expect(sockets).toHaveLength(5);
+  expect(errors.some((m) => m.includes("giving up"))).toBe(true);
+});
+
+test("a connection that stayed open hands the next attempt a clean budget", () => {
+  const { makeInstance, sockets, advanceClock } = load();
+  const inst = makeInstance({ path: "/apc" });
+
+  // four dropped handshakes - one attempt left in the budget
+  for (let i = 0; i < 4; i++) {
+    inst.onAfterRendering();
+    sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
+  }
+
+  // the fifth one is a real connection: it lives well past CONNECT_STABLE_MS
+  // before the server ends it
+  inst.onAfterRendering();
+  sockets[4].onopen();
+  advanceClock(30000);
+  sockets[4].onclose({ code: 1006, reason: "" });
+
+  inst.onAfterRendering();
+  expect(sockets).toHaveLength(6);
+});
+
+test("the first message clears the failure budget", () => {
+  const { makeInstance, sockets } = load();
+  const inst = makeInstance({ path: "/apc" });
+
+  for (let i = 0; i < 4; i++) {
+    inst.onAfterRendering();
+    sockets[sockets.length - 1].onclose({ code: 1006, reason: "" });
+  }
+
+  // the last attempt in the budget delivers a message - the proof the
+  // handshake alone cannot give - and is dropped again right after
+  inst.onAfterRendering();
+  sockets[4].onopen();
+  sockets[4].onmessage({ data: "PING" });
+  sockets[4].onclose({ code: 1006, reason: "" });
+
+  expect(inst.received).toEqual(["PING"]);
+  inst.onAfterRendering();
+  expect(sockets).toHaveLength(6);
 });
 
 test("exit() closes the socket and drops its handlers - no error event", () => {

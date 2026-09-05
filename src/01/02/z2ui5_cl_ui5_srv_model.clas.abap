@@ -42,10 +42,12 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     DATA mo_app   TYPE REF TO object.
 
     "! The table cells this parse could not apply - one entry per delta cell
-    "! whose value arrived and would not convert (see delta_apply_field). The
-    "! instance is created per roundtrip (z2ui5_cl_ui5_app_cont=>create_model),
-    "! so the list covers exactly one model parse; the caller hands it to the
-    "! app as client->get( )-t_model_skipped.
+    "! whose value would not convert (delta_apply_field's CATCH), whose column
+    "! takes no value of that shape at all (delta_check_refused), or whose row
+    "! sits in a table the delta cannot address (delta_skip_nodes: a sorted or
+    "! hashed table). The instance is created per roundtrip
+    "! (z2ui5_cl_ui5_app_cont=>create_model), so the list covers exactly one
+    "! model parse; the caller hands it to the app as client->get( )-t_model_skipped.
     DATA mt_skipped TYPE z2ui5_if_client=>ty_t_model_skip.
 
   PROTECTED SECTION.
@@ -63,7 +65,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS main_attri_db_load_resolve.
 
     " Is anything the VIEW reads stored under this attribute - the attribute
-    " itself, or one of its dissolved children? Decides how loud a failed
+    " itself, or one of its dissolved descendants at ANY depth (the bound row
+    " below a struct alias sits two levels down)? Decides how loud a failed
     " restore is (main_attri_db_load_resolve).
     METHODS check_attri_bound
       IMPORTING
@@ -77,7 +80,20 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     " cannot be reached or cannot take a generic data object.
     METHODS dref_parent_recreate
       IMPORTING
-        iv_name       TYPE string
+        iv_name TYPE string.
+
+    "! the S-RTTI payload of a row: type and data as two documents, so the
+    "! restore parses each once (see z2ui5_cl_ui5_util_context)
+    METHODS attri_srtti_store
+      IMPORTING
+        ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        iv_val   TYPE any.
+
+    "! the payload back into a data object - from the two documents, or from
+    "! the one combined document a draft written before 2026-09 carries
+    METHODS attri_srtti_parse
+      IMPORTING
+        is_attri      TYPE z2ui5_if_ui5_types=>ty_s_attri
       RETURNING
         VALUE(result) TYPE REF TO data.
 
@@ -115,6 +131,18 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS attri_search
       IMPORTING
         val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+
+    "! the scan of the binding search over the rows of the sought kind -
+    "! either the rows this instance has not resolved yet (iv_indexed =
+    "! abap_false) or the ones it has (abap_true), each confirmed by a fresh
+    "! ASSIGN and put into the index
+    METHODS attri_search_scan
+      IMPORTING
+        io_descr      TYPE REF TO cl_abap_typedescr
+        ir_val        TYPE REF TO data
+        iv_indexed    TYPE abap_bool
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
@@ -338,6 +366,35 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_type_kind TYPE string
       RAISING
         z2ui5_cx_ajson_error.
+
+    "! the column's kinds, resolved once per column into the caller's
+    "! memory (ty_t_col_kind) and answered from it after that
+    METHODS delta_col_kind
+      IMPORTING
+        is_cell     TYPE z2ui5_if_client=>ty_s_model_skip
+        ir_comp     TYPE REF TO data
+      EXPORTING
+        er_col_kind TYPE REF TO ty_s_col_kind
+      CHANGING
+        ct_col_kind TYPE ty_t_col_kind.
+
+    "! true when a cell of this column kind takes no value of this node
+    "! type at all - decided before anything is assigned, because the
+    "! assignment would not raise, it would dump (see delta_apply_field)
+    METHODS delta_check_refused
+      IMPORTING
+        iv_type_kind  TYPE string
+        iv_node_type  TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    "! one refused cell into mt_skipped, with the raw value when the node
+    "! carries one
+    METHODS delta_trace_skipped
+      IMPORTING
+        io_delta TYPE REF TO z2ui5_if_ajson
+        iv_path  TYPE string
+        is_cell  TYPE z2ui5_if_client=>ty_s_model_skip.
 
 ENDCLASS.
 
@@ -592,7 +649,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
           TRY.
-              lr_ref = dref_parent_recreate( lr_attri->name_parent ).
+              dref_parent_recreate( lr_attri->name_parent ).
               lr_ref = attri_get_val_ref( lr_attri->name ).
             CATCH cx_root.
               CONTINUE.
@@ -622,7 +679,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " payload a second time into the object the first parse had built
       ASSIGN lr_ref->* TO FIELD-SYMBOL(<live>).
       IF <live> IS NOT INITIAL.
-        CLEAR lr_attri->srtti_data.
+        CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
         CONTINUE.
       ENDIF.
 
@@ -650,8 +707,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " a scratch reference of an exotic type is no reason to end a session.
       TRY.
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
-          <val> = z2ui5_cl_ui5_util_context=>xml_srtti_parse( lr_attri->srtti_data ).
-          CLEAR lr_attri->srtti_data.
+          <val> = attri_srtti_parse( lr_attri->* ).
+          CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
         CATCH cx_root INTO DATA(x).
           IF check_attri_bound( lr_attri->name ) = abap_false.
             CONTINUE.
@@ -667,13 +724,34 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD attri_srtti_store.
+
+    z2ui5_cl_ui5_util_context=>xml_srtti_stringify_pair( EXPORTING data    = iv_val
+                                                         IMPORTING ev_type = ir_attri->srtti_type
+                                                                   ev_data = ir_attri->srtti_data ).
+
+  ENDMETHOD.
+
+  METHOD attri_srtti_parse.
+
+    IF is_attri-srtti_type IS NOT INITIAL.
+      result = z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair( iv_type = is_attri-srtti_type
+                                                                iv_data = is_attri-srtti_data ).
+    ELSE.
+      " one combined document, lexed twice - the format every draft carried
+      " until the type travelled on its own
+      result = z2ui5_cl_ui5_util_context=>xml_srtti_parse( is_attri-srtti_data ).
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD dref_parent_recreate.
 
     FIELD-SYMBOLS <parent> TYPE any.
     DATA lr_new TYPE REF TO data.
 
-    result = attri_get_val_ref( iv_name ).
-    ASSIGN result->* TO <parent>.
+    DATA(lr_parent) = attri_get_val_ref( iv_name ).
+    ASSIGN lr_parent->* TO <parent>.
     IF <parent> IS NOT INITIAL.
       RETURN.
     ENDIF.
@@ -686,17 +764,41 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD check_attri_bound.
 
+    " every bound row, and the chain of parents above it: the method used
+    " to look one level down only, while its promise (and the restore that
+    " decides on it) is about every dissolved child
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE bind = abap_true.
-      IF lr_attri->name = iv_name OR lr_attri->name_parent = iv_name.
-        result = abap_true.
-        RETURN.
-      ENDIF.
+      DATA(lv_name) = lr_attri->name.
+      WHILE lv_name IS NOT INITIAL.
+        IF lv_name = iv_name.
+          result = abap_true.
+          RETURN.
+        ENDIF.
+        READ TABLE mt_attri->* REFERENCE INTO DATA(lr_up)
+             WITH TABLE KEY name = lv_name.
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+        lv_name = lr_up->name_parent.
+      ENDWHILE.
     ENDLOOP.
 
   ENDMETHOD.
 
   METHOD main_attri_db_load_table.
+
+    " only the `<name>->*` row is the alias of a table. The row BELOW a
+    " struct alias - `<alias>->comp`, carrying `<owner>-comp` as name_ref
+    " for the binding search - is not one: the struct alias itself is
+    " re-pointed by main_attri_db_load_dref, and following its table
+    " component here re-pointed the reference at that component on every
+    " restore (the parent-is-dref guard below holds for both rows and
+    " cannot tell them apart) - a REF TO data at `{ id, t_items }` came
+    " back dereferencing to the table (2026-09-05)
+    IF check_alias_capable( ir_attri->name ) = abap_false.
+      RETURN.
+    ENDIF.
 
     " a row whose owner cannot be reached is skipped, like an unreachable
     " row in main_attri_db_load_resolve: the draft outlives the class it was
@@ -821,12 +923,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                WHERE name_parent = lr_attri->name
                      AND name_ref IS INITIAL
                      AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
+            attri_srtti_store( ir_attri = lr_attri
+                               iv_val   = <val_deref> ).
             EXIT.
           ENDLOOP.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1 OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-          lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
+          attri_srtti_store( ir_attri = lr_attri
+                             iv_val   = <val_deref> ).
 
         WHEN OTHERS.
           " an ELEMENTARY deref (CREATE DATA mr TYPE string / i / ...) is
@@ -839,7 +943,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " is left alone: S-RTTI cannot serialize it, and clearing it is
           " what happened before
           IF lo_descr->kind = z2ui5_cl_ui5_util_context=>cv_typedescr_kind_elem.
-            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
+            attri_srtti_store( ir_attri = lr_attri
+                               iv_val   = <val_deref> ).
           ENDIF.
 
       ENDCASE.
@@ -885,7 +990,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " would only be stale by the next save, which writes them again
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL.
-      CLEAR lr_attri->srtti_data.
+      CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1005,10 +1110,39 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
+    " the rows this instance has not resolved yet first: the index pass
+    " above compared every indexed row that could match already, and
+    " re-resolving the others - one dynamic ASSIGN each - on every miss made
+    " a form of k elementary attributes, bound in name order, pay k*k/2
+    " ASSIGNs per roundtrip instead of k (dissolve indexes tables, references
+    " and structures, the elementary rows only ever reach the index through
+    " this scan). Indexed rows are re-resolved only when that pass finds
+    " nothing - an app that re-pointed a reference since. Every hit is still
+    " confirmed by a fresh ASSIGN: the index stays a prefilter, never an
+    " answer
+    result = attri_search_scan( io_descr   = lo_datadescr
+                                ir_val     = val
+                                iv_indexed = abap_false ).
+    IF result IS INITIAL.
+      result = attri_search_scan( io_descr   = lo_datadescr
+                                  ir_val     = val
+                                  iv_indexed = abap_true ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD attri_search_scan.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL
-               AND type_kind = lo_datadescr->type_kind
-               AND kind = lo_datadescr->kind.
+               AND type_kind = io_descr->type_kind
+               AND kind = io_descr->kind.
+
+      " which rows this pass visits - see attri_search
+      READ TABLE mt_ref_idx WITH TABLE KEY name = lr_attri->name TRANSPORTING NO FIELDS.
+      IF xsdbool( sy-subrc = 0 ) <> iv_indexed.
+        CONTINUE.
+      ENDIF.
 
       " compare by name - descriptor instances are not stable in the
       " abaplint transpiler runtime; the data reference check below is
@@ -1022,7 +1156,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " written before the component existed) skips the prefilter, not the
       " row: the data-reference compare below still decides
       IF lr_attri->type_name IS NOT INITIAL.
-        DATA(lv_name_val) = lo_datadescr->absolute_name.
+        DATA(lv_name_val) = io_descr->absolute_name.
         IF lr_attri->type_name <> lv_name_val
             AND lr_attri->type_name NS `%`
             AND lv_name_val NS `%`.
@@ -1038,7 +1172,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ref_idx_put( iv_name = lr_attri->name
                    ir_ref  = lr_ref ).
 
-      IF lr_ref = val.
+      IF lr_ref = ir_val.
         result = lr_attri.
         RETURN.
       ENDIF.
@@ -1267,6 +1401,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       ir_res->attri->name_ref = lr_other->name.
+      " a typed attribute owns its table and is never an alias itself: the
+      " final answer. Among `->*` rows of other references the LAST in name
+      " order is kept (the loop runs on) - that is the one left without an
+      " owner when its own turn comes, every earlier one names it by then.
+      " A typed owner that sorts BEFORE the references used to lose to the
+      " later `->*` row: MR_A->* named MR_B->*, MR_B->* named the table,
+      " and the fresh-instance load resolved MR_A while MR_B was still
+      " initial - the miss was swallowed and mr_a came back unbound
+      " (2026-09-05)
+      IF check_alias_capable( lr_other->name ) = abap_false.
+        RETURN.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1491,6 +1637,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
     ASSIGN lr_ref_d->* TO <delta_tab>.
     IF sy-subrc <> 0.
+      " unreachable after the RTTI decision above on a system; the transpiler
+      " answers a type conflict with the subrc. Either way the rows are
+      " traced like the sorted-table case - a bare RETURN dropped the whole
+      " delta with nothing in t_model_skipped
+      delta_skip_nodes( io_delta = io_val_front
+                        iv_base  = lv_delta
+                        iv_table = iv_name ).
       RETURN.
     ENDIF.
 
@@ -1534,6 +1687,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       DATA(lt_fld) = io_delta->members( lv_row_path ).
       LOOP AT lt_fld INTO DATA(lv_fld).
         FIELD-SYMBOLS <comp> TYPE any.
+        " a component is addressed by NAME: a digit-only key addresses it
+        " by position on a system (and `0` the whole row), which is nothing
+        " the frontend ever sends - skipped like an unknown name
+        IF lv_fld CO `0123456789`.
+          CONTINUE.
+        ENDIF.
         ASSIGN COMPONENT lv_fld OF STRUCTURE <delta_row> TO <comp>.
         IF sy-subrc <> 0.
           CONTINUE.
@@ -1665,6 +1824,29 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     DATA lr_col_kind TYPE REF TO ty_s_col_kind.
     ASSIGN ir_comp->* TO <comp>.
 
+    " the column's kind first, asked once per COLUMN (a property of the
+    " component's type, the same in every row) and BEFORE anything is
+    " assigned: a reference column takes no value from the wire at all, and
+    " a table or a structure column takes no scalar. Both used to reach the
+    " assignments below, where a string into a REF TO data or an internal
+    " table is no class-based exception but a runtime error
+    " (OBJECTS_MOVE_NOT_SUPPORTED, a MOVE type conflict) - the CATCH that
+    " promises to skip just the cell never ran and the roundtrip dumped.
+    " Reachable without a crafted request: ajson ships a REF TO string cell
+    " as its plain value, so an Input bound to it sends a string back
+    delta_col_kind( EXPORTING is_cell     = is_cell
+                              ir_comp     = ir_comp
+                    IMPORTING er_col_kind = lr_col_kind
+                    CHANGING  ct_col_kind = ct_col_kind ).
+    DATA(lv_node_type) = io_delta->get_node_type( iv_path ).
+    IF delta_check_refused( iv_type_kind = lr_col_kind->type_kind
+                            iv_node_type = lv_node_type ) = abap_true.
+      delta_trace_skipped( io_delta = io_delta
+                           iv_path  = iv_path
+                           is_cell  = is_cell ).
+      RETURN.
+    ENDIF.
+
     " the OLD value, kept aside: on a system a conversion that fails (`abc`
     " into a packed field, `seven` into an integer) clears the target before
     " it raises, and to_abap clears it before it fills - so "the cell is
@@ -1681,7 +1863,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " be sliced off first. Only the two rare whole-value branches still
     " slice, and only the one component they need
     TRY.
-        CASE io_delta->get_node_type( iv_path ).
+        CASE lv_node_type.
 
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
             <comp> = io_delta->get_boolean( iv_path ).
@@ -1693,19 +1875,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             IF io_delta->exists( lv_sub_delta ) = abap_true.
               FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
               " the table kind first, the ASSIGN second - see
-              " delta_apply_to_table. Asked once per COLUMN: the kind is a
-              " property of the component's type, the same in every row.
-              " That holds because a REF TO data column is not followed
-              " here (check_table_standard sees the reference itself and
-              " answers no) - a delta through such a column would have to
-              " ask per cell again
-              READ TABLE ct_col_kind REFERENCE INTO lr_col_kind
-                   WITH TABLE KEY field = is_cell-field.
-              IF sy-subrc <> 0.
-                INSERT VALUE #( field    = is_cell-field
-                                standard = check_table_standard( ir_comp ) )
-                       INTO TABLE ct_col_kind REFERENCE INTO lr_col_kind.
-              ENDIF.
+              " delta_apply_to_table; decided per column in delta_col_kind.
+              " A REF TO data column never gets here: its kind is the
+              " reference, not a table, and it was refused above
               IF lr_col_kind->standard = abap_true.
                 ASSIGN ir_comp->* TO <sub_tab>.
               ENDIF.
@@ -1738,17 +1910,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                                  IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
-            " the type kind once per COLUMN, like the table kind above: it
-            " is a property of the component's type, the same in every row
-            READ TABLE ct_col_kind REFERENCE INTO lr_col_kind
-                 WITH TABLE KEY field = is_cell-field.
-            IF sy-subrc <> 0.
-              INSERT VALUE #( field = is_cell-field )
-                     INTO TABLE ct_col_kind REFERENCE INTO lr_col_kind.
-            ENDIF.
-            IF lr_col_kind->type_kind IS INITIAL.
-              lr_col_kind->type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ).
-            ENDIF.
             delta_apply_scalar( io_delta     = io_delta
                                 iv_path      = iv_path
                                 ir_comp      = ir_comp
@@ -1763,18 +1924,71 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " raising would let one bad cell kill a delta full of good ones,
         " which is the whole reason the skip exists
         <comp> = <before>.
-        DATA(ls_skip) = is_cell.
-        " quote the refused raw value in the entry - it is one keyed read
-        " away, and it is the half a user message actually needs (`'1,250.00'
-        " is not a valid price`). Guarded: this RUNS INSIDE A CATCH, and a
-        " node get_string cannot read (a structured value) must degrade to
-        " an empty value, never replace the trace with a dump
-        TRY.
-            ls_skip-value = io_delta->get_string( iv_path ).
-          CATCH cx_root ##NO_HANDLER.
-        ENDTRY.
-        APPEND ls_skip TO mt_skipped.
+        delta_trace_skipped( io_delta = io_delta
+                             iv_path  = iv_path
+                             is_cell  = is_cell ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD delta_col_kind.
+
+    FIELD-SYMBOLS <comp> TYPE any.
+
+    READ TABLE ct_col_kind REFERENCE INTO er_col_kind
+         WITH TABLE KEY field = is_cell-field.
+    IF sy-subrc = 0.
+      RETURN.
+    ENDIF.
+
+    ASSIGN ir_comp->* TO <comp>.
+    DATA(ls_col_kind) = VALUE ty_s_col_kind(
+        field     = is_cell-field
+        type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ) ).
+    " the table kind only where there is a table: check_table_standard on
+    " a REF TO data sees the reference itself and answers no - which is
+    " what keeps a delta from being followed through such a column
+    IF ls_col_kind-type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
+      ls_col_kind-standard = check_table_standard( ir_comp ).
+    ENDIF.
+    INSERT ls_col_kind INTO TABLE ct_col_kind REFERENCE INTO er_col_kind.
+
+  ENDMETHOD.
+
+  METHOD delta_check_refused.
+
+    " a reference column never takes a value from the wire; a table or a
+    " structure takes an object or an array - a nested delta, a whole
+    " value - and nothing else. Whatever the wire carries into an
+    " elementary column is left to the typed conversion behind the CATCH
+    IF iv_type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
+       OR iv_type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
+      result = abap_true.
+      RETURN.
+    ENDIF.
+    IF iv_type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+       AND iv_type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+       AND iv_type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+      RETURN.
+    ENDIF.
+    result = xsdbool( iv_node_type <> z2ui5_if_ajson_types=>node_type-object
+                      AND iv_node_type <> z2ui5_if_ajson_types=>node_type-array ).
+
+  ENDMETHOD.
+
+  METHOD delta_trace_skipped.
+
+    " quote the refused raw value in the entry - it is one keyed read
+    " away, and it is the half a user message actually needs (`'1,250.00'
+    " is not a valid price`). Guarded: this also RUNS INSIDE A CATCH, and a
+    " node get_string cannot read (a structured value) must degrade to an
+    " empty value, never replace the trace with a dump
+    DATA(ls_skip) = is_cell.
+    TRY.
+        ls_skip-value = io_delta->get_string( iv_path ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+    APPEND ls_skip TO mt_skipped.
 
   ENDMETHOD.
 

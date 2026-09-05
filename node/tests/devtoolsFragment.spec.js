@@ -140,7 +140,6 @@ function loadDialogModel() {
         apply: () => Promise.resolve("ok"),
         canApply: () => true,
         slotOfTab: () => "MAIN",
-        originalXml: () => "",
         isBusy: () => false,
       },
     },

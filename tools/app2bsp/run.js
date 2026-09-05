@@ -96,7 +96,11 @@ function buildWapaXml(pageNames) {
         '    <SECURITY>X</SECURITY>',
         '    <ORIGLANG>E</ORIGLANG>',
         '    <MODIFLANG>E</MODIFLANG>',
-        '    <TEXT>test</TEXT>',
+        // The BSP application's short text, as SE80 and the abapGit object list
+        // show it. It said `test` - a placeholder that shipped in every
+        // delivered standard branch and is what an installer sees next to the
+        // object they just pulled.
+        '    <TEXT>abap2UI5 frontend (generated)</TEXT>',
         '   </ATTRIBUTES>',
         '   <PAGES>',
         ...sorted.map(buildPageItem),

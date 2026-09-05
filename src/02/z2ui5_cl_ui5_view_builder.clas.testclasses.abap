@@ -14,6 +14,7 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS escape_control_chars FOR TESTING.
     METHODS escape_literal_braces FOR TESTING.
     METHODS escape_literal_passthrough FOR TESTING.
+    METHODS escape_literal_backslash FOR TESTING.
     METHODS bool_parameter FOR TESTING.
 ENDCLASS.
 
@@ -218,15 +219,31 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD escape_literal_passthrough.
 
-    " no brace means UI5 never parses the value, and its backslashes stay
-    " as they are - escaping them here would corrupt e.g. a Windows path
+    " neither brace nor backslash: nothing to escape
     cl_abap_unit_assert=>assert_equals(
-      act = z2ui5_cl_ui5_view_builder=>escape_literal( `C:\temp\file` )
-      exp = `C:\temp\file` ).
+      act = z2ui5_cl_ui5_view_builder=>escape_literal( `a plain text` )
+      exp = `a plain text` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = z2ui5_cl_ui5_view_builder=>escape_literal( `` )
       exp = `` ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_literal_backslash.
+
+    " UI5 unescapes a doubled backslash in EVERY string property, brace or
+    " not - so the backslash is escaped whenever present: a lone one comes
+    " back as itself (`C:\temp\file` renders unchanged), and a UNC path
+    " keeps both of its leading backslashes instead of losing one
+    cl_abap_unit_assert=>assert_equals(
+      act = z2ui5_cl_ui5_view_builder=>escape_literal( `C:\temp\file` )
+      exp = `C:\\temp\\file` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = z2ui5_cl_ui5_view_builder=>escape_literal( `\\server\share` )
+      exp = `\\\\server\\share` ).
 
   ENDMETHOD.
 

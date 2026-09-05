@@ -77,13 +77,24 @@ sap.ui.define(
         const oView = ViewSlots.getView("MAIN");
         if (oView) {
           const name = args[2] || undefined;
-          // a framework-created OData model already sitting in that slot is
-          // replaced - destroy it, or each SET_ODATA_MODEL re-issue leaks a
-          // client (same marker discipline as actions/Slots displayMain)
+          // The client is created HERE, so the framework owes its destroy:
+          // the app only names a service URL, it never hands us a model
+          // object. Recorded in the one inventory of framework-created
+          // OData clients (AppState.state.odataClients), which is what the
+          // next MAIN rebuild tears down - a NAMED client used to survive
+          // the view it was set on, and the next re-issue then found
+          // nothing to destroy and leaked a full client, $metadata request,
+          // caches and queues included.
           const previous = oView.getModel(name);
-          oModel._z2ui5OwnedOData = true;
           oView.setModel(oModel, name);
-          if (previous?._z2ui5OwnedOData && previous !== oModel) {
+          AppState.state.odataClients.add(oModel);
+          // ...and the one this replaces goes now, for the same reason -
+          // but only when the framework created it too.
+          if (
+            previous !== oModel &&
+            AppState.state.odataClients.has(previous)
+          ) {
+            AppState.state.odataClients.delete(previous);
             previous.destroy();
           }
         } else {
@@ -93,7 +104,9 @@ sap.ui.define(
       } catch (e) {
         Lib.logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
         // setModel (or the model construction) threw after the model opened
-        // its metadata request - release it so it does not leak.
+        // its metadata request - release it so it does not leak, and drop it
+        // from the inventory again so the next rebuild does not double-free.
+        AppState.state.odataClients.delete(oModel);
         oModel?.destroy?.();
       }
     }
@@ -174,9 +187,20 @@ sap.ui.define(
     // popup/popover/nested view are found, and falls back to the global
     // registry, so a fully-qualified id resolves too - ids that come from a
     // UI5 Message (getControlIds()) or any event carry the view prefix.
+    //
+    // An id that resolves to nothing is REPORTED, like every sibling handler
+    // in this module reports its own miss (BIND_ELEMENT, WIZARD_SET_NEXT_STEP,
+    // Z2UI5). The three used to return silently, which is the one failure an
+    // app cannot see from the outside: a focus that does not move and a view
+    // that does not scroll look exactly like a control that ignored the call.
+    function resolveTarget(action, id) {
+      const oElement = ViewSlots.resolveById(id);
+      if (!oElement) Lib.logError(`${action}: no control '${id}'`);
+      return oElement;
+    }
 
     function evSetFocus(oController, args) {
-      const oElement = ViewSlots.resolveById(args[1]);
+      const oElement = resolveTarget("SET_FOCUS", args[1]);
       if (!oElement) return;
 
       const applyFocus = () => {
@@ -253,7 +277,7 @@ sap.ui.define(
       // Native Element.scrollTo is only used as a fallback for controls
       // without a delegate.
       try {
-        const oElement = ViewSlots.resolveById(args[1]);
+        const oElement = resolveTarget("SCROLL_TO", args[1]);
         if (!oElement) return;
         const y = Number(args[2]) || 0;
         const x = Number(args[3]) || 0;
@@ -299,7 +323,7 @@ sap.ui.define(
       // Modern declarative scroll: bring a control into the viewport,
       // regardless of where the surrounding scroll container currently is.
       try {
-        const oElement = ViewSlots.resolveById(args[1]);
+        const oElement = resolveTarget("SCROLL_INTO_VIEW", args[1]);
         if (!oElement) return;
         const dom = oElement.getDomRef();
         if (!dom || !dom.scrollIntoView) return;

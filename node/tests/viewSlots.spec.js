@@ -370,3 +370,32 @@ test.describe("destroy", () => {
     expect(z2ui5.oViewNest2).toBe(nest2View);
   });
 });
+
+// core/Lib.js carries the list of AppState controller fields
+// (isControllerAlive) and this registry names one per slot; the two are the
+// same column written twice, so a slot added to one and not the other would
+// make its controller read as dead. Pinned here, with both real modules on
+// one state.
+test("every slot's controller field is one Lib.isControllerAlive knows", () => {
+  const state = {};
+  const appState = { state };
+  const { module: Lib } = loadModule("core/Lib.js", {
+    deps: {
+      "z2ui5/core/AppState": appState,
+      "sap/ui/core/Element": {},
+    },
+  });
+  const { module: ViewSlots } = loadModule("core/ViewSlots.js", {
+    deps: {
+      "sap/ui/core/Fragment": {},
+      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/AppState": appState,
+    },
+  });
+  expect(ViewSlots.slots.length).toBeGreaterThan(0);
+  for (const slot of ViewSlots.slots) {
+    const marker = { slot: slot.key };
+    state[slot.controllerProp] = marker;
+    expect(Lib.isControllerAlive(marker)).toBe(true);
+  }
+});

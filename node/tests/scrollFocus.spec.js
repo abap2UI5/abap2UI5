@@ -23,10 +23,22 @@ function fakeDomNode({
   };
 }
 
-function loadScrollFocus({ Element = {}, deps = {} } = {}) {
+function loadScrollFocus({ Element = {}, deps = {}, sandbox = {} } = {}) {
   return loadModule("core/ScrollFocus.js", {
     deps: { "sap/ui/core/Element": Element, ...deps },
+    sandbox,
   });
+}
+
+// The two fragment slots: their inner controls are registered under the
+// FRAGMENT id, while the instance the slot holds is the fragment ROOT
+// control, whose own id is an unrelated auto-generated one.
+const SLOTS_WITH_POPUP = [{ key: "MAIN" }, { key: "POPUP", fragmentId: "popupId" }];
+
+function slotViews(key) {
+  if (key === "MAIN") return { getId: () => "mainView" };
+  if (key === "POPUP") return { getId: () => "__dialog0" };
+  return undefined;
 }
 
 test("uses Element.closestTo when available", () => {
@@ -150,4 +162,69 @@ test("getScrollInfo keeps the scroll cache while its DOM node is connected", () 
   ScrollFocus.getScrollInfo();
 
   expect(ScrollFocus._scrollCache.target).toBe(scrolled);
+});
+
+// S_FOCUS / S_SCROLL must carry the id the app declared, in every slot.
+// The strip used to key off the slot view's own id, which for a fragment
+// slot is the dialog root and matches none of its inner controls: the same
+// control was reported as "input" in MAIN and as "popupId--input" in a
+// dialog, and the SET_FOCUS / SCROLL_TO the app echoed back was resolved
+// through Fragment.byId - prefixing it a second time, so nothing was found.
+
+test("getFocusInfo reports a control inside a popup fragment by its bare id", () => {
+  const input = { tagName: "INPUT" };
+  const control = {
+    getId: () => "popupId--input",
+    getFocusDomRef: () => input,
+  };
+  const { module: ScrollFocus } = loadScrollFocus({
+    Element: { closestTo: () => control },
+    deps: {
+      "z2ui5/core/ViewSlots": {
+        slots: SLOTS_WITH_POPUP,
+        getView: slotViews,
+      },
+      "z2ui5/core/Lib": {
+        isTextInput: () => false,
+        readCaret: () => null,
+        logError: () => {},
+      },
+    },
+    sandbox: { document: { activeElement: input } },
+  });
+
+  expect(ScrollFocus.getFocusInfo().ID).toBe("input");
+});
+
+test("getScrollInfo strips the view id in MAIN and the fragment id in POPUP", () => {
+  const list = { getId: () => "mainView--list" };
+  const table = { getId: () => "popupId--table" };
+  const { module: ScrollFocus } = loadScrollFocus({
+    deps: {
+      "z2ui5/core/ViewSlots": {
+        slots: SLOTS_WITH_POPUP,
+        getView: slotViews,
+      },
+      "z2ui5/core/AppState": {
+        state: {
+          lastScrolled: {
+            MAIN: {
+              control: list,
+              dom: { isConnected: true, scrollLeft: 0, scrollTop: 80 },
+            },
+            POPUP: {
+              control: table,
+              dom: { isConnected: true, scrollLeft: 12, scrollTop: 240 },
+            },
+          },
+        },
+      },
+      "z2ui5/core/Lib": { isAlive: () => true },
+    },
+  });
+
+  expect(ScrollFocus.getScrollInfo()).toEqual({
+    MAIN: { ID: "list", X: 0, Y: 80 },
+    POPUP: { ID: "table", X: 12, Y: 240 },
+  });
 });

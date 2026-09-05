@@ -46,7 +46,7 @@ function testMethodNames(source) {
     names.add(m[1].toLowerCase());
   }
   // the chained form: METHODS: a FOR TESTING, b FOR TESTING.
-  for (const chain of source.matchAll(/^\s*(?:CLASS-)?METHODS:\s*([\s\S]*?)\.\s*$/gim)) {
+  for (const chain of source.matchAll(/^\s*(?:CLASS-)?METHODS:\s*([\s\S]*?)\.\s*(?:".*)?$/gim)) {
     for (const part of chain[1].split(",")) {
       const named = part.match(/^\s*([\w~]+)[\s\S]*?\bFOR\s+TESTING\b/i);
       if (named) names.add(named[1].toLowerCase());
@@ -57,7 +57,8 @@ function testMethodNames(source) {
 
 function bodiesOf(source) {
   const bodies = new Map(); // lower-case name -> body text
-  const re = /^[ \t]*METHOD[ \t]+([\w~]+)[ \t]*\.[ \t]*$([\s\S]*?)^[ \t]*ENDMETHOD[ \t]*\.[ \t]*$/gim;
+  // a trailing comment after the period is still the same statement
+  const re = /^[ \t]*METHOD[ \t]+([\w~]+)[ \t]*\.[ \t]*(?:".*)?$([\s\S]*?)^[ \t]*ENDMETHOD[ \t]*\.[ \t]*$/gim;
   for (const m of source.matchAll(re)) bodies.set(m[1].toLowerCase(), m[2]);
   return bodies;
 }

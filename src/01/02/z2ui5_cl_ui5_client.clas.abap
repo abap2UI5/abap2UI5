@@ -60,13 +60,34 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " router run several times and fight over the same hash.
     DATA(lv_arg) = VALUE string( t_arg[ 1 ] OPTIONAL ).
 
+    " the WIRED form first: `v = client->follow_up_action( ... )` in a view
+    " attribute asks for an event wire and nothing else. The navigation
+    " options below are roundtrip actions; wired, they used to set their
+    " ms_next fields as a side effect of BUILDING the view and hand the
+    " attribute an empty string. (No unit test pins this branch: the NodeJS
+    " runtime answers IS SUPPLIED with false for a RETURNING parameter, so a
+    " consumed result is not detectable there - on a system it is.)
+    IF result IS SUPPLIED.
+      result = mo_srv_event->get_event_client( val   = val
+                                               view  = view
+                                               t_arg = t_arg ).
+      RETURN.
+    ENDIF.
+
     CASE val.
-      WHEN z2ui5_if_client=>cs_event-set_nav_routing.
+      " the current spelling; cs_event-set_nav_routing is the same value
+      WHEN z2ui5_if_client=>cs_event-hash_routing.
         " the mode is remembered on the app ( z2ui5_cl_ui5_app_cont->mv_nav_mode )
         " and re-sent when the frontend may not still hold it - main_end gates
         " the re-send on the nav_mode_sent latch; an app called via
         " nav_app_call inherits it, and a draft restored later still knows how
         " it was routed
+        " upper-cased at the one write point: the frontend upper-cases the
+        " mode before it compares, the backend compares it as written
+        " against cs_nav_mode (check_nav_app_call, the sticky main_end_save
+        " branch) - `keep` used to switch routing on in the browser and
+        " leave it off on the server
+        lv_arg = to_upper( lv_arg ).
         IF lv_arg IS INITIAL.
           lv_arg = z2ui5_if_client=>cs_nav_mode-keep.
         ENDIF.
@@ -97,7 +118,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                                              ELSE lv_arg ).
         RETURN.
 
-      WHEN z2ui5_if_client=>cs_event-set_app_state_active.
+      " the current spelling; cs_event-set_app_state_active is the same value
+      WHEN z2ui5_if_client=>cs_event-app_state_set_active.
         " an empty argument list switches it ON - a single space is how an
         " app switches it off again, since an empty t_arg cannot say `false`
         mo_action->ms_next-s_nav-set_app_state_active = xsdbool( lv_arg <> ` ` ).
@@ -106,16 +128,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         mo_action->mo_app->mv_app_state_active = mo_action->ms_next-s_nav-set_app_state_active.
         RETURN.
     ENDCASE.
-
-
-    IF result IS SUPPLIED.
-
-      result = mo_srv_event->get_event_client( val   = val
-                                               view  = view
-                                               t_arg = t_arg ).
-      RETURN.
-    ENDIF.
-
 
     IF val IS NOT INITIAL
         AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
@@ -464,34 +476,31 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " already evaluates (z2ui5_cl_ui5_srv_model->main_json_stringify), so an
     " initial field stays ABSENT from the model and the control keeps its own
     " default. A caller-supplied filter is kept: both have to pass.
+    " no TRY around the construction: the three local classes have no
+    " constructor that can raise, so the CATCH that used to sit here (falling
+    " back to the caller's filter) guarded nothing
     IF omit_initial = abap_true OR omit_initial_paths IS NOT INITIAL.
-      TRY.
-          DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
-          IF omit_initial_paths IS NOT INITIAL.
-            " scoped: only the listed columns are dropped when initial, so a
-            " boolean that must send abap_false survives
-            li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
-          ELSE.
-            " NOT the vendored create_empty_filter: that one also drops a
-            " table ROW whose fields are all initial, which reindexes the
-            " client array against the backend table and corrupts the
-            " write-back (whole-table and __delta) - see the local class
-            li_omit = NEW lcl_empty_filter_keep_rows( ).
-          ENDIF.
-          IF li_filter IS BOUND.
-            " NOT the vendored create_and_filter: its class is not
-            " serializable and the combined ref ends up in the draft -
-            " see the local class
-            li_filter = NEW lcl_and_filter( ii_first  = li_filter
-                                            ii_second = li_omit ).
-          ELSE.
-            li_filter = li_omit.
-          ENDIF.
-        CATCH cx_root.
-          " a filter that cannot be built must not kill the roundtrip - the
-          " model is then serialized as before (initial fields included)
-          li_filter = custom_filter.
-      ENDTRY.
+      DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+      IF omit_initial_paths IS NOT INITIAL.
+        " scoped: only the listed columns are dropped when initial, so a
+        " boolean that must send abap_false survives
+        li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
+      ELSE.
+        " NOT the vendored create_empty_filter: that one also drops a
+        " table ROW whose fields are all initial, which reindexes the
+        " client array against the backend table and corrupts the
+        " write-back (whole-table and __delta) - see the local class
+        li_omit = NEW lcl_empty_filter_keep_rows( ).
+      ENDIF.
+      IF li_filter IS BOUND.
+        " NOT the vendored create_and_filter: its class is not
+        " serializable and the combined ref ends up in the draft -
+        " see the local class
+        li_filter = NEW lcl_and_filter( ii_first  = li_filter
+                                        ii_second = li_omit ).
+      ELSE.
+        li_filter = li_omit.
+      ENDIF.
     ENDIF.
 
     result = mo_srv_bind->main( val    = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val )

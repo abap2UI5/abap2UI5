@@ -26,10 +26,13 @@ import { fileURLToPath } from "node:url";
 import { Script } from "node:vm";
 
 const here = dirname(fileURLToPath(import.meta.url));
-// The one place build-branches.mjs writes to: the gitignored tools/out/.
-const ROOTS = [join(here, "out")];
+// The one place build-branches.mjs writes to: the gitignored tools/out/. It
+// used to be searched as a LIST of candidate roots - one entry, walked with
+// map/find and flatMap/Set, from when a build could still land in .github/.
+// One root reads as one root.
+const OUT = join(here, "out");
 
-const treeDir = (tree) => ROOTS.map((root) => join(root, tree)).find((dir) => existsSync(dir));
+const treeDir = (tree) => (existsSync(join(OUT, tree)) ? join(OUT, tree) : null);
 
 const treesIn = (root) =>
     existsSync(root)
@@ -103,9 +106,7 @@ function checkTree(tree) {
     return true;
 }
 
-const trees = process.argv.slice(2).length
-    ? process.argv.slice(2)
-    : [...new Set(ROOTS.flatMap(treesIn))];
+const trees = process.argv.slice(2).length ? process.argv.slice(2) : treesIn(OUT);
 
 if (trees.length === 0) {
     console.error("check-pages: nothing to check - run tools/build-branches.mjs first");

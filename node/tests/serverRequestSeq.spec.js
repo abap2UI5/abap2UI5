@@ -54,6 +54,7 @@ function load() {
       "z2ui5/core/Lib": { isValidContextId: () => false },
       "z2ui5/core/Session": { confirmSent: () => {} },
       "z2ui5/core/AppState": appState,
+      "z2ui5/core/ErrorView": { reset: () => {} },
     },
     sandbox: {
       AbortSignal: { any: () => ({}), timeout: () => ({}) },
@@ -144,6 +145,23 @@ test("dispatching a newer request aborts the older one still in flight", async (
   );
   fetchCalls[1].resolve(okResponse("B"));
   await Promise.all([pA, pB]);
+});
+
+test("reset() makes the in-flight request stale BEFORE aborting it, so the abort is no timeout", async () => {
+  const { Server, fetchCalls, errors, controllers } = load();
+
+  const pA = Server.readHttp({}); // seq 1, controller[0]
+  Server.reset(); // the FLP teardown
+  expect(controllers[0].aborted).toBe(true);
+
+  // the aborted fetch rejects like a timeout would - a stale request's
+  // rejection is swallowed, it used to open the fatal timeout dialog over
+  // the app that was starting
+  fetchCalls[0].reject(
+    Object.assign(new Error("aborted"), { name: "AbortError" }),
+  );
+  await pA;
+  expect(errors).toHaveLength(0);
 });
 
 test("a superseded response keeps the pending delta paths so the newest request carries them", async () => {

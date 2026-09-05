@@ -35,25 +35,15 @@ export const BUILTINS = [
 export const CALL = new RegExp(`\\b(${BUILTINS.join("|")})\\s*\\(`, "i");
 
 /* Comments and string literals never hold an operand position, and both are
- * full of words that would otherwise match. */
-export function stripNoise(line) {
-  let out = "";
-  let quote = null;
-  for (let i = 0; i < line.length; i += 1) {
-    const c = line[i];
-    if (quote) {
-      if (c === quote) quote = null;
-      continue;
-    }
-    if (c === "`" || c === "'") {
-      quote = c;
-      continue;
-    }
-    if (c === '"') break; // rest of the line is a comment
-    out += c;
-  }
-  return out;
-}
+ * full of words that would otherwise match.
+ *
+ * Re-exported from the statement lexer rather than written here: this file
+ * carried its own loop, and that loop knew `'` and backtick and not `|`, so a
+ * `"` inside a string template ended the scan and everything after it on the
+ * line - the table-expression key, the WITH KEY operand, the WHERE - went
+ * unchecked. The lexer is the module that already gets `|...|` right, escapes
+ * and embedded `{ }` included. */
+export { stripNoise } from "./abap-statements.mjs";
 
 /* The three positions, each as the slice of the line that IS the position.
  * Line-scoped on purpose: a key or a WHERE operand split across lines still
@@ -76,7 +66,17 @@ export function positions(code) {
   // 3. the WHERE condition of an internal-table statement. LOOP AT / DELETE /
   //    MODIFY only - an ABAP SQL WHERE is a different position with different
   //    rules, and this gate has no evidence about it.
-  const where = /^\s*(?:LOOP\s+AT|DELETE|MODIFY)\b(?![^"]*\bFROM\b)[^"]*?\bWHERE\b(.*)$/i.exec(code);
+  //
+  //    The ABAP SQL half is excluded by the ONE spelling that carries it into
+  //    a WHERE: `DELETE FROM <dbtab> WHERE …`. This used to be a blanket
+  //    "no FROM anywhere on the line", which excluded the two internal-table
+  //    shapes that legitimately have one and left the position unchecked:
+  //    `MODIFY <itab> FROM <wa> TRANSPORTING … WHERE …` - the ONLY itab MODIFY
+  //    that takes a WHERE at all, so that alternative could never match - and
+  //    `LOOP AT <itab> FROM <idx> WHERE …`. Open SQL MODIFY has no WHERE clause
+  //    and Open SQL DELETE only reaches one through `DELETE FROM`, so the
+  //    narrow exclusion loses nothing and buys back both shapes.
+  const where = /^\s*(?:LOOP\s+AT|DELETE(?!\s+FROM\b)|MODIFY)\b[^"]*?\bWHERE\b(.*)$/i.exec(code);
   if (where) found.push({ where: "internal-table WHERE operand", text: where[1] });
 
   return found;

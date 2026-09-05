@@ -52,16 +52,10 @@ sap.ui.define(
 
       init() {
         this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl");
-        this._queue = [];
-        this._reading = false;
       },
       exit() {
         this._unhook();
-        this._queue = [];
-        if (this._cancelWait) {
-          this._cancelWait();
-          this._cancelWait = null;
-        }
+        if (this._reader) this._reader.cancel();
       },
 
       // The properties hold ONE file, and each change starts one roundtrip.
@@ -69,36 +63,24 @@ sap.ui.define(
       // one synchronous loop: every reader used to start at once, each
       // onload overwrote the properties and fired change, and the busy guard
       // (View1.eB) dropped every change but the first - three files picked,
-      // one arrived. So the files queue up and go one at a time, the next
-      // read only once the roundtrip of the previous change has landed.
+      // one arrived. Lib.readFilesInTurn owns that queue (cc/FileUploader
+      // uses the same one); what stays here is only what one finished file
+      // does to the bindable properties.
       _readFile(file) {
-        this._queue.push(file);
-        if (!this._reading) this._readNext();
-      },
-
-      _readNext() {
-        const file = this._queue.shift();
-        if (!file) {
-          this._reading = false;
-          return;
+        if (!this._reader) {
+          this._reader = Lib.readFilesInTurn(
+            this,
+            "UploadSetExt",
+            (f, result) => {
+              this.setProperty("fileData", result);
+              this.setProperty("fileName", f.name);
+              this.setProperty("mediaType", f.type);
+              this.setProperty("fileSize", String(f.size));
+              this.fireChange();
+            },
+          );
         }
-        this._reading = true;
-        Lib.readFileAsDataURL(
-          file,
-          this,
-          (result) => {
-            this.setProperty("fileData", result);
-            this.setProperty("fileName", file.name);
-            this.setProperty("mediaType", file.type);
-            this.setProperty("fileSize", String(file.size));
-            this.fireChange();
-            this._cancelWait = Lib.afterRoundtrip(this, () => {
-              this._cancelWait = null;
-              this._readNext();
-            });
-          },
-          "UploadSetExt",
-        );
+        this._reader.add([file]);
       },
 
       onItemAdded(oEvent) {

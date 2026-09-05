@@ -222,14 +222,24 @@ const problems = [];
 const notes = [];
 const read = [];
 
+/* All catalogue reads in flight at once - the loop below consumes settled
+ * results in list order, so the report stays deterministic. Awaiting inside
+ * the loop made this gate's wall time the SUM of the round trips, each with a
+ * 15-second timeout; toolchain-gate.mjs and scripts-gate.mjs carry the same
+ * pattern for the same reason.
+ *
+ * lib-ecosystem.read - a catalogue whose SAMPLES.md is gone upstream is a
+ * finding (its readers would answer "there are no samples"), not a skipped
+ * note; an unreachable repository stays a note. */
+const prefetch = new Map(CATALOGUES.map((repo) => {
+  const entry = repoEntry(repo);
+  return [repo, entry ? ecoRead(entry, FILE) : Promise.resolve({ note: 'not on the ecosystem list' })];
+}));
+
 for (const repo of CATALOGUES) {
-  /* lib-ecosystem.read - a catalogue whose SAMPLES.md is gone upstream is
-   * a finding (its readers would answer "there are no samples"), not a
-   * skipped note; an unreachable repository stays a note. */
   let text;
   let from;
-  const entry = repoEntry(repo);
-  const got = entry ? await ecoRead(entry, FILE) : { note: 'not on the ecosystem list' };
+  const got = await prefetch.get(repo);
   if (got.text !== undefined) {
     text = got.text;
     from = got.from;

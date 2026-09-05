@@ -550,7 +550,14 @@ test.describe("surviving a page reload", () => {
     expect(list.length).toBe(1);
     expect(list[0].event).toBe("BEFORE_RELOAD");
     expect(list[0].previousLoad).toBe(true);
-    expect(second.Recorder.formatHistory()).toContain("PREVIOUS page");
+    const text = second.Recorder.formatHistory();
+    expect(text).toContain("PREVIOUS page");
+    // the '*' footnote appears only on such a session, and it must not land
+    // between the two halves of the sentence above it
+    const lines = text.split("\n");
+    const first_half = lines.findIndex((line) => line.includes("ACT ="));
+    expect(lines[first_half + 1]).toContain("(error response");
+    expect(lines[first_half + 2]).toContain("A '*' after the number");
   });
 
   test("payloads never travel - only the metadata does", () => {

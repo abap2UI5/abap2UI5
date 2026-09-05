@@ -110,39 +110,28 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _readFiles(files) {` && |\n| &&
-             `        this._queue = (this._queue || []).concat(files);` && |\n| &&
-             `        if (!this._reading) this._readNext();` && |\n| &&
+             `        if (!this._reader) {` && |\n| &&
+             `          this._reader = Lib.readFilesInTurn(` && |\n| &&
+             `            this,` && |\n| &&
+             `            "FileUploader",` && |\n| &&
+             `            (_, result) => {` && |\n| &&
+             `              this.setProperty("value", result);` && |\n| &&
+             `              this.fireUpload();` && |\n| &&
+             `            },` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `        this._reader.add(files);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _readNext() {` && |\n| &&
-             `        const file = this._queue.shift();` && |\n| &&
-             `        if (!file) {` && |\n| &&
-             `          this._reading = false;` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        this._reading = true;` && |\n| &&
-             `        Lib.readFileAsDataURL(` && |\n| &&
-             `          file,` && |\n| &&
-             `          this,` && |\n| &&
-             `          (result) => {` && |\n| &&
-             `            this.setProperty("value", result);` && |\n| &&
-             `            this.fireUpload();` && |\n| &&
-             `            this._cancelWait = Lib.afterRoundtrip(this, () => {` && |\n| &&
-             `              this._cancelWait = null;` && |\n| &&
-             `              this._readNext();` && |\n| &&
-             `            });` && |\n| &&
-             `          },` && |\n| &&
-             `          "FileUploader",` && |\n| &&
-             `        );` && |\n| &&
+             `      _uploadPendingFiles() {` && |\n| &&
+             `        const files = this._pendingFiles;` && |\n| &&
+             `        this._pendingFiles = null;` && |\n| &&
+             `        if (files?.length) this._readFiles(files);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      exit() {` && |\n| &&
              `        if (this._oHBox) this._oHBox.destroy();` && |\n| &&
-             `        this._queue = [];` && |\n| &&
-             `        if (this._cancelWait) {` && |\n| &&
-             `          this._cancelWait();` && |\n| &&
-             `          this._cancelWait = null;` && |\n| &&
-             `        }` && |\n| &&
+             `        if (this._reader) this._reader.cancel();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _ensureControls(directUpload) {` && |\n| &&
@@ -157,9 +146,7 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `            enabled: this.getProperty("path") !== "",` && |\n| &&
              `            press: () => {` && |\n| &&
              `              this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
-             `              if (this._pendingFiles?.length) {` && |\n| &&
-             `                this._readFiles(this._pendingFiles);` && |\n| &&
-             `              }` && |\n| &&
+             `              this._uploadPendingFiles();` && |\n| &&
              `            },` && |\n| &&
              `          });` && |\n| &&
              `        }` && |\n| &&
@@ -180,9 +167,7 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `            if (!directUpload) return;` && |\n| &&
              `            const source = oEvent.getSource();` && |\n| &&
              `            this.setProperty("path", source.getProperty("value"));` && |\n| &&
-             `            if (this._pendingFiles?.length) {` && |\n| &&
-             `              this._readFiles(this._pendingFiles);` && |\n| &&
-             `            }` && |\n| &&
+             `            this._uploadPendingFiles();` && |\n| &&
              `          },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&

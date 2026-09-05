@@ -37,161 +37,166 @@
 // to a SHA that carries the upstream fix, delete that patch below (the file
 // once both are gone, together with its entry in `auto_transpile` in
 // package.json) and close the backlog item.
-import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+// The read / idempotence / anchor / replace / write routine, shared with the
+// two abaplint-side patch scripts next to this one - only the edit tables and
+// the two messages below are this shim's own.
+import { patchFile, PatchError, reportEdits } from "./lib/anchored-patch.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const CORE = join(ROOT, "node", "deps", "open-abap-core", "src");
 
-function patch(label, file, marker, anchor, replacement) {
-  // read, and report a missing file from the read itself - an existsSync
-  // ahead of it is a check-then-use the file can change between (CodeQL
-  // js/file-system-race), and says nothing the read's ENOENT does not
-  let source;
-  try {
-    source = readFileSync(file, "utf8");
-  } catch (e) {
-    if (e.code === "ENOENT") {
-      console.error(`patch-open-abap-core: ${file} not found - run npm run deps first`);
-      process.exit(1);
-    }
-    throw e;
-  }
-  if (source.includes(marker)) {
-    console.log(`patch-open-abap-core: ${label} already applied`);
-    return;
-  }
-  if (!source.includes(anchor)) {
-    console.error(`patch-open-abap-core: ${label} - anchor not found, the pinned open-abap-core changed, review the patch`);
-    process.exit(1);
-  }
-  writeFileSync(file, source.replace(anchor, replacement));
-  console.log(`patch-open-abap-core: ${label} applied to ${file}`);
-}
+const TYPEDESCR = join(CORE, "rtti", "cl_abap_typedescr.clas.abap");
+const TRANSFORMATION = join(CORE, "kernel", "call_transformation", "kernel_call_transformation.clas.locals_imp.abap");
+const IXML = join(CORE, "ixml", "cl_ixml.clas.locals_imp.abap");
 
 // 1. describe_by_name with an absolute name
-{
-  const marker = "* abap2UI5 patch 1 (node/setup/patch-open-abap-core.mjs)";
-  const anchor = "* note, p_name might be internal name, so check and skip these,";
-  const lines = [
-    marker + ": an ABSOLUTE type name of a",
-    "* built-in or dictionary type - the spelling S-RTTI resolves a serialized",
-    "* descriptor by - is looked up by its relative part, as a system does",
-    "    DATA lv_absolute TYPE string.",
-    "    DATA lv_offset   TYPE i.",
-    "    lv_absolute = p_name.",
-    "    IF lv_absolute CP '\\TYPE*' AND lv_absolute NA '%'.",
-    "      FIND FIRST OCCURRENCE OF '\\TYPE=' IN lv_absolute MATCH OFFSET lv_offset.",
-    "      IF sy-subrc = 0.",
-    "        lv_offset = lv_offset + 6.",
-    "        lv_absolute = lv_absolute+lv_offset.",
-    "        type = describe_by_name( lv_absolute ).",
-    "        RETURN.",
-    "      ENDIF.",
-    "    ENDIF.",
-    "",
-  ];
-  patch("describe_by_name", join(CORE, "rtti", "cl_abap_typedescr.clas.abap"), marker, anchor, lines.join("\n") + anchor);
-}
+const MARKER1 = "* abap2UI5 patch 1 (node/setup/patch-open-abap-core.mjs)";
+const ANCHOR1 = "* note, p_name might be internal name, so check and skip these,";
+const PATCH1 = [
+  MARKER1 + ": an ABSOLUTE type name of a",
+  "* built-in or dictionary type - the spelling S-RTTI resolves a serialized",
+  "* descriptor by - is looked up by its relative part, as a system does",
+  "    DATA lv_absolute TYPE string.",
+  "    DATA lv_offset   TYPE i.",
+  "    lv_absolute = p_name.",
+  "    IF lv_absolute CP '\\TYPE*' AND lv_absolute NA '%'.",
+  "      FIND FIRST OCCURRENCE OF '\\TYPE=' IN lv_absolute MATCH OFFSET lv_offset.",
+  "      IF sy-subrc = 0.",
+  "        lv_offset = lv_offset + 6.",
+  "        lv_absolute = lv_absolute+lv_offset.",
+  "        type = describe_by_name( lv_absolute ).",
+  "        RETURN.",
+  "      ENDIF.",
+  "    ENDIF.",
+  "",
+].join("\n") + ANCHOR1;
 
 // 2. asXML text escaping
-{
-  const marker = "* abap2UI5 patch 2 (node/setup/patch-open-abap-core.mjs)";
-  const anchor = [
-    "        IF lo_type->type_kind = cl_abap_typedescr=>typekind_string AND <ref> IS INITIAL.",
-    "          rv_xml = rv_xml && |<{ iv_name }/>|.",
-    "        ELSE.",
-    "          rv_xml = rv_xml &&",
-    "            |<{ iv_name }>| &&",
-    "            <ref> &&",
-    "            |</{ iv_name }>|.",
-    "        ENDIF.",
-  ].join("\n");
-  const lines = [
-    "        IF lo_type->type_kind = cl_abap_typedescr=>typekind_string AND <ref> IS INITIAL.",
-    "          rv_xml = rv_xml && |<{ iv_name }/>|.",
-    "        ELSEIF lo_type->type_kind = cl_abap_typedescr=>typekind_string",
-    "            OR lo_type->type_kind = cl_abap_typedescr=>typekind_char.",
-    marker + ": a character value is",
-    "* written ESCAPED, as a system writes it and as the parser reads it back",
-    "          DATA lv_escaped TYPE string.",
-    "          lv_escaped = <ref>.",
-    "          REPLACE ALL OCCURRENCES OF '&' IN lv_escaped WITH '&amp;'.",
-    "          REPLACE ALL OCCURRENCES OF '<' IN lv_escaped WITH '&lt;'.",
-    "          REPLACE ALL OCCURRENCES OF '>' IN lv_escaped WITH '&gt;'.",
-    "          rv_xml = rv_xml &&",
-    "            |<{ iv_name }>| &&",
-    "            lv_escaped &&",
-    "            |</{ iv_name }>|.",
-    "        ELSE.",
-    "          rv_xml = rv_xml &&",
-    "            |<{ iv_name }>| &&",
-    "            <ref> &&",
-    "            |</{ iv_name }>|.",
-    "        ENDIF.",
-  ];
-  patch("asXML text escape", join(CORE, "kernel", "call_transformation", "kernel_call_transformation.clas.locals_imp.abap"), marker, anchor, lines.join("\n"));
-}
+const MARKER2 = "* abap2UI5 patch 2 (node/setup/patch-open-abap-core.mjs)";
+const ANCHOR2 = [
+  "        IF lo_type->type_kind = cl_abap_typedescr=>typekind_string AND <ref> IS INITIAL.",
+  "          rv_xml = rv_xml && |<{ iv_name }/>|.",
+  "        ELSE.",
+  "          rv_xml = rv_xml &&",
+  "            |<{ iv_name }>| &&",
+  "            <ref> &&",
+  "            |</{ iv_name }>|.",
+  "        ENDIF.",
+].join("\n");
+const PATCH2 = [
+  "        IF lo_type->type_kind = cl_abap_typedescr=>typekind_string AND <ref> IS INITIAL.",
+  "          rv_xml = rv_xml && |<{ iv_name }/>|.",
+  "        ELSEIF lo_type->type_kind = cl_abap_typedescr=>typekind_string",
+  "            OR lo_type->type_kind = cl_abap_typedescr=>typekind_char.",
+  MARKER2 + ": a character value is",
+  "* written ESCAPED, as a system writes it and as the parser reads it back",
+  "          DATA lv_escaped TYPE string.",
+  "          lv_escaped = <ref>.",
+  "          REPLACE ALL OCCURRENCES OF '&' IN lv_escaped WITH '&amp;'.",
+  "          REPLACE ALL OCCURRENCES OF '<' IN lv_escaped WITH '&lt;'.",
+  "          REPLACE ALL OCCURRENCES OF '>' IN lv_escaped WITH '&gt;'.",
+  "          rv_xml = rv_xml &&",
+  "            |<{ iv_name }>| &&",
+  "            lv_escaped &&",
+  "            |</{ iv_name }>|.",
+  "        ELSE.",
+  "          rv_xml = rv_xml &&",
+  "            |<{ iv_name }>| &&",
+  "            <ref> &&",
+  "            |</{ iv_name }>|.",
+  "        ENDIF.",
+].join("\n");
 
-// 3. asXML line feeds
-{
-  // the parser strips every literal LF from the document before it reads
-  // it (cl_ixml, `REPLACE ALL OCCURRENCES OF |\n| IN lv_xml WITH ||`), so
-  // a string with a line break came back as one line. Written as the
-  // character reference and resolved on the way back, it survives - a
-  // system keeps the LF of a text area across the draft
-  const markerOut = "* abap2UI5 patch 3a (node/setup/patch-open-abap-core.mjs)";
-  const anchorOut = "          REPLACE ALL OCCURRENCES OF '>' IN lv_escaped WITH '&gt;'.\n";
-  const linesOut = [
-    anchorOut.trimEnd(),
-    markerOut + ": a line feed as the",
-    "* character reference the parser resolves - it drops a literal one",
-    "          REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_escaped WITH '&#10;'.",
-    "",
-  ];
-  patch("asXML line feed out", join(CORE, "kernel", "call_transformation", "kernel_call_transformation.clas.locals_imp.abap"), markerOut, anchorOut, linesOut.join("\n"));
+// 3. asXML line feeds: the parser strips every literal LF from the document
+//    before it reads it (cl_ixml, `REPLACE ALL OCCURRENCES OF |\n| IN lv_xml
+//    WITH ||`), so a string with a line break came back as one line. Written
+//    as the character reference and resolved on the way back, it survives - a
+//    system keeps the LF of a text area across the draft
+const MARKER3A = "* abap2UI5 patch 3a (node/setup/patch-open-abap-core.mjs)";
+const ANCHOR3A = "          REPLACE ALL OCCURRENCES OF '>' IN lv_escaped WITH '&gt;'.\n";
+const PATCH3A = [
+  ANCHOR3A.trimEnd(),
+  MARKER3A + ": a line feed as the",
+  "* character reference the parser resolves - it drops a literal one",
+  "          REPLACE ALL OCCURRENCES OF cl_abap_char_utilities=>newline IN lv_escaped WITH '&#10;'.",
+  "",
+].join("\n");
 
-  const markerIn = "* abap2UI5 patch 3b (node/setup/patch-open-abap-core.mjs)";
-  const anchorIn = "    REPLACE ALL OCCURRENCES OF '&apos;' IN rv_value WITH |'|.\n";
-  const linesIn = [
-    anchorIn.trimEnd(),
-    markerIn + ": the decimal character",
-    "* reference of a line feed, the one form of it that reaches the parser",
-    "    REPLACE ALL OCCURRENCES OF '&#10;' IN rv_value WITH cl_abap_char_utilities=>newline.",
-    "",
-  ];
-  patch("asXML line feed in", join(CORE, "ixml", "cl_ixml.clas.locals_imp.abap"), markerIn, anchorIn, linesIn.join("\n"));
-}
+const MARKER3B = "* abap2UI5 patch 3b (node/setup/patch-open-abap-core.mjs)";
+const ANCHOR3B = "    REPLACE ALL OCCURRENCES OF '&apos;' IN rv_value WITH |'|.\n";
+const PATCH3B = [
+  ANCHOR3B.trimEnd(),
+  MARKER3B + ": the decimal character",
+  "* reference of a line feed, the one form of it that reaches the parser",
+  "    REPLACE ALL OCCURRENCES OF '&#10;' IN rv_value WITH cl_abap_char_utilities=>newline.",
+  "",
+].join("\n");
 
-// 4. asXML entity order on the way back
-{
-  // unescape_value resolves `&amp;` FIRST, so an escaped value that itself
-  // carries an escaped value (an S-RTTI payload with `&lt;` inside, written
-  // as `&amp;lt;`) is resolved twice and comes back as markup - the inner
-  // document then loses its text to the tags. A parser resolves each
-  // reference once; `&amp;` has to be the last replacement
-  const markerA = "* abap2UI5 patch 4a (node/setup/patch-open-abap-core.mjs)";
-  const anchorA = [
-    "    REPLACE ALL OCCURRENCES OF '&amp;' IN rv_value WITH '&'.",
-    "    REPLACE ALL OCCURRENCES OF '&lt;' IN rv_value WITH '<'.",
-    "",
-  ].join("\n");
-  const linesA = [
-    markerA + ": `&amp;` is resolved LAST,",
-    "* below - first, it turned `&amp;lt;` into `<`",
-    "    REPLACE ALL OCCURRENCES OF '&lt;' IN rv_value WITH '<'.",
-    "",
-  ];
-  patch("asXML entity order (remove)", join(CORE, "ixml", "cl_ixml.clas.locals_imp.abap"), markerA, anchorA, linesA.join("\n"));
+// 4. asXML entity order on the way back: unescape_value resolves `&amp;`
+//    FIRST, so an escaped value that itself carries an escaped value (an
+//    S-RTTI payload with `&lt;` inside, written as `&amp;lt;`) is resolved
+//    twice and comes back as markup - the inner document then loses its text
+//    to the tags. A parser resolves each reference once; `&amp;` has to be
+//    the last replacement
+const MARKER4A = "* abap2UI5 patch 4a (node/setup/patch-open-abap-core.mjs)";
+const ANCHOR4A = [
+  "    REPLACE ALL OCCURRENCES OF '&amp;' IN rv_value WITH '&'.",
+  "    REPLACE ALL OCCURRENCES OF '&lt;' IN rv_value WITH '<'.",
+  "",
+].join("\n");
+const PATCH4A = [
+  MARKER4A + ": `&amp;` is resolved LAST,",
+  "* below - first, it turned `&amp;lt;` into `<`",
+  "    REPLACE ALL OCCURRENCES OF '&lt;' IN rv_value WITH '<'.",
+  "",
+].join("\n");
 
-  const markerB = "* abap2UI5 patch 4b (node/setup/patch-open-abap-core.mjs)";
-  const anchorB = "    REPLACE ALL OCCURRENCES OF '&#10;' IN rv_value WITH cl_abap_char_utilities=>newline.\n";
-  const linesB = [
-    anchorB.trimEnd(),
-    markerB,
-    "    REPLACE ALL OCCURRENCES OF '&amp;' IN rv_value WITH '&'.",
-    "",
-  ];
-  patch("asXML entity order (append)", join(CORE, "ixml", "cl_ixml.clas.locals_imp.abap"), markerB, anchorB, linesB.join("\n"));
+const MARKER4B = "* abap2UI5 patch 4b (node/setup/patch-open-abap-core.mjs)";
+const ANCHOR4B = "    REPLACE ALL OCCURRENCES OF '&#10;' IN rv_value WITH cl_abap_char_utilities=>newline.\n";
+const PATCH4B = [
+  ANCHOR4B.trimEnd(),
+  MARKER4B,
+  "    REPLACE ALL OCCURRENCES OF '&amp;' IN rv_value WITH '&'.",
+  "",
+].join("\n");
+
+/* One entry per FILE, edits in application order. Grouping by file is what
+ * lets 3a anchor on the line patch 2 inserts and 4b on the one 3b inserts:
+ * the text is carried in memory and written once at the end of the group. */
+export const FILES = [
+  { file: TYPEDESCR, edits: [{ label: "describe_by_name", applied: MARKER1, anchor: ANCHOR1, patch: PATCH1 }] },
+  {
+    file: TRANSFORMATION,
+    edits: [
+      { label: "asXML text escape", applied: MARKER2, anchor: ANCHOR2, patch: PATCH2 },
+      { label: "asXML line feed out", applied: MARKER3A, anchor: ANCHOR3A, patch: PATCH3A },
+    ],
+  },
+  {
+    file: IXML,
+    edits: [
+      { label: "asXML line feed in", applied: MARKER3B, anchor: ANCHOR3B, patch: PATCH3B },
+      { label: "asXML entity order (remove)", applied: MARKER4A, anchor: ANCHOR4A, patch: PATCH4A },
+      { label: "asXML entity order (append)", applied: MARKER4B, anchor: ANCHOR4B, patch: PATCH4B },
+    ],
+  },
+];
+
+try {
+  for (const group of FILES) {
+    reportEdits("patch-open-abap-core", group.file, patchFile({
+      file: group.file,
+      edits: group.edits,
+      missingFile: (file) => `patch-open-abap-core: ${file} not found - run npm run deps first`,
+      missingAnchor: (edit) =>
+        `patch-open-abap-core: ${edit.label} - anchor not found, `
+        + "the pinned open-abap-core changed, review the patch",
+    }));
+  }
+} catch (e) {
+  if (!(e instanceof PatchError)) throw e;
+  console.error(e.message);
+  process.exit(1);
 }

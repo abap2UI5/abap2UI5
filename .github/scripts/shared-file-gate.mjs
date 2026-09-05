@@ -109,47 +109,6 @@ const SHARED = [
       const out = {};
       // each repository names its own object prefixes
       for (const k of Object.keys(rules).sort()) if (k !== 'object_naming') out[k] = rules[k];
-
-/* --manifest <consumer>: the whole-file entries that consumer carries, as
- * `sourcePath<TAB>consumerPath` lines.
- *
- * This gate NOTICES drift; it has never been able to end it, because the fix
- * lives in another repository and somebody has to go and make it. So the
- * consumers pull instead: each one has a workflow that reads this manifest,
- * fetches the named sources and opens a pull request against itself when a
- * copy has moved. No cross-repository credentials anywhere — a repository
- * updating its own file with its own token is the same shape as every other
- * bump workflow in this organisation.
- *
- * Only entries compared as WHOLE FILES are listed. An entry with a `section`
- * extractor shares a part of a file the consumer also owns the rest of — the
- * app rule block inside its own abaplint.jsonc, a section of its own
- * AGENTS.md — and copying the source over it would destroy what it owns.
- * Those stay a gate-and-fix-by-hand affair, which is the honest answer for
- * them.
- *
- * So is anything landing in the consumer's `.github/workflows/`, marked
- * `sync: false`. `GITHUB_TOKEN` cannot be granted the `workflows` permission —
- * this organisation already writes that down, in the linter's release
- * workflow — so a pull request that touches a workflow file is REFUSED at the
- * push, and the sync job fails on a message about permissions rather than
- * about the file. Leaving those entries in would have turned the first real
- * edit to a shared workflow into a red weekly job in three repositories at
- * once. They are still gated: drift is reported, and a human carries it.
- */
-const manifestArg = process.argv.indexOf('--manifest');
-if (manifestArg !== -1) {
-  const who = process.argv[manifestArg + 1];
-  if (!who) {
-    console.error('--manifest wants a consumer name, e.g. --manifest samples');
-    process.exit(2);
-  }
-  const rows = SHARED
-    .filter((e) => !e.section && e.sync !== false && e.consumers.includes(who))
-    .map((e) => `${e.file}\t${e.consumerFile ?? e.file}`);
-  console.log(rows.join('\n'));
-  process.exit(0);
-}
       return out;
     },
     mine: (text) => parseJsonc(text).rules,
@@ -394,6 +353,53 @@ if (manifestArg !== -1) {
   },
 ];
 
+
+/* Answered from the list alone, before any read: this block sat INSIDE the
+ * app-rules section( ) callback above, so the manifest was printed only after
+ * the SKILL.md reads and a successful consumer abaplint.jsonc fetch - offline
+ * the ordinary gate report went to stdout with exit 0, and the consumers'
+ * sync-shared.yaml parsed it as file paths (2026-09-05). */
+/* --manifest <consumer>: the whole-file entries that consumer carries, as
+ * `sourcePath<TAB>consumerPath` lines.
+ *
+ * This gate NOTICES drift; it has never been able to end it, because the fix
+ * lives in another repository and somebody has to go and make it. So the
+ * consumers pull instead: each one has a workflow that reads this manifest,
+ * fetches the named sources and opens a pull request against itself when a
+ * copy has moved. No cross-repository credentials anywhere — a repository
+ * updating its own file with its own token is the same shape as every other
+ * bump workflow in this organisation.
+ *
+ * Only entries compared as WHOLE FILES are listed. An entry with a `section`
+ * extractor shares a part of a file the consumer also owns the rest of — the
+ * app rule block inside its own abaplint.jsonc, a section of its own
+ * AGENTS.md — and copying the source over it would destroy what it owns.
+ * Those stay a gate-and-fix-by-hand affair, which is the honest answer for
+ * them.
+ *
+ * So is anything landing in the consumer's `.github/workflows/`, marked
+ * `sync: false`. `GITHUB_TOKEN` cannot be granted the `workflows` permission —
+ * this organisation already writes that down, in the linter's release
+ * workflow — so a pull request that touches a workflow file is REFUSED at the
+ * push, and the sync job fails on a message about permissions rather than
+ * about the file. Leaving those entries in would have turned the first real
+ * edit to a shared workflow into a red weekly job in three repositories at
+ * once. They are still gated: drift is reported, and a human carries it.
+ */
+const manifestArg = process.argv.indexOf('--manifest');
+if (manifestArg !== -1) {
+  const who = process.argv[manifestArg + 1];
+  if (!who) {
+    console.error('--manifest wants a consumer name, e.g. --manifest samples');
+    process.exit(2);
+  }
+  const rows = SHARED
+    .filter((e) => !e.section && e.sync !== false && e.consumers.includes(who))
+    .map((e) => `${e.file}\t${e.consumerFile ?? e.file}`);
+  console.log(rows.join('\n'));
+  process.exit(0);
+}
+
 /* Files this repository owns that a downstream repository does not COPY but
  * READS, straight out of a clone of this one.
  *
@@ -531,6 +537,52 @@ const notes = [];
 let compared = 0;
 let expected = 0;
 
+/* One consumer copy, as lib-ecosystem's `read` answers: `{ text, from }`,
+ * `{ missing }` for a copy that is gone upstream, or `{ note }` for a
+ * repository that could not be reached at all.
+ *
+ * lib-ecosystem.read, not a hand fetch: it checks a sibling CHECKOUT first
+ * (so a checkout with the copy deleted no longer falls back to the still-
+ * published GitHub main and reads green), and it tells a deleted file apart
+ * from an unreachable repository via the sentinel probe - a consumer that
+ * dropped its copy is exactly the drift this gate exists for, and the old
+ * reader reported it as "not compared". */
+async function readConsumer(repo, consumerFile) {
+  const entry2 = repoEntry(repo);
+  if (entry2) return ecoRead(entry2, consumerFile);
+  /* a consumer OFF the ecosystem list (the generated `frontend` channel
+   * repository) keeps the plain reader: checkout first, then raw main.
+   * It loses the deleted-vs-unreachable distinction, which is the price
+   * of not putting a generated repository on a list about source
+   * repositories. */
+  const local = path.join(ROOT, '..', repo, consumerFile);
+  if (fs.existsSync(local)) return { text: fs.readFileSync(local, 'utf8'), from: 'checkout' };
+  try {
+    const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return { text: await res.text(), from: 'github' };
+  } catch (err) {
+    return { note: err.message };
+  }
+}
+
+/* All ~31 consumer reads in flight at once - the nested loop below consumes
+ * settled results in list order, so the report stays deterministic. Awaiting
+ * inside the loop made this gate's wall time the SUM of the round trips, each
+ * with a 15-second timeout; toolchain-gate.mjs and scripts-gate.mjs carry the
+ * same pattern for the same reason. Keyed by repository AND file, because two
+ * SHARED entries may name the same consumer. */
+const key = (repo, consumerFile) => `${repo}\u0000${consumerFile}`;
+const prefetch = new Map();
+for (const entry of SHARED) {
+  const consumerFile = entry.consumerFile || entry.file;
+  for (const repo of entry.consumers) {
+    if (!prefetch.has(key(repo, consumerFile))) {
+      prefetch.set(key(repo, consumerFile), readConsumer(repo, consumerFile));
+    }
+  }
+}
+
 for (const entry of SHARED) {
   const source = path.join(ROOT, entry.file);
   if (!fs.existsSync(source)) {
@@ -554,39 +606,11 @@ for (const entry of SHARED) {
 
   for (const repo of entry.consumers) {
     expected += 1;
-    const local = path.join(ROOT, '..', repo, consumerFile);
     let theirs;
     let from;
-
-    /* lib-ecosystem.read, not a hand fetch: it checks a sibling CHECKOUT
-     * first (so a checkout with the copy deleted no longer falls back to
-     * the still-published GitHub main and reads green), and it tells a
-     * deleted file apart from an unreachable repository via the sentinel
-     * probe - a consumer that dropped its copy is exactly the drift this
-     * gate exists for, and the old reader reported it as "not compared". */
     let text;
-    const entry2 = repoEntry(repo);
-    let got;
-    if (entry2) {
-      got = await ecoRead(entry2, consumerFile);
-    } else {
-      /* a consumer OFF the ecosystem list (the generated `frontend` channel
-       * repository) keeps the plain reader: checkout first, then raw main.
-       * It loses the deleted-vs-unreachable distinction, which is the price
-       * of not putting a generated repository on a list about source
-       * repositories. */
-      if (fs.existsSync(local)) {
-        got = { text: fs.readFileSync(local, 'utf8'), from: 'checkout' };
-      } else {
-        try {
-          const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          got = { text: await res.text(), from: 'github' };
-        } catch (err) {
-          got = { note: err.message };
-        }
-      }
-    }
+
+    const got = await prefetch.get(key(repo, consumerFile));
     if (got.text !== undefined) {
       text = got.text;
       from = got.from;

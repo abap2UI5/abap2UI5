@@ -27,7 +27,7 @@ deploy time. The `cloud_v2` branch applies the same bootstrap patch
 
 ```bash
 node tools/app2app_v2/build-legacy-free.mjs . app/webapp tools/out/_v2
-npm run frontend:build         # alle vier; einzeln: node tools/build-branches.mjs standard_v2
+npm run frontend:build         # all four; one on its own: node tools/build-branches.mjs standard_v2
 ```
 
 ## The only adaptations (everything else is 1:1)
@@ -48,7 +48,12 @@ Deployment identity stays `Z2UI5` — same name as the classic frontend, so the
 legacy-free variant is a drop-in replacement (install either `standard` or
 `standard_v2`, not both). Pass `--name Z2UI5_V2` to rename for a parallel
 install; with a rename the backend handler is still shared (`/sap/bc/z2ui5`)
-by default, `--own-backend` keeps an isolated one.
+by default. `--own-backend` gives the renamed BSP its own one instead: the
+ICF node stays `/sap/bc/<name>` and `src/01` is renamed with it, so the node
+and the `<NAME>_CL_LP_HANDLER` class the manifest points at are in the
+delivered tree. (Until 2026-09 only the manifest was repointed and `src/01`
+kept shipping the `z2ui5` node, so the flag produced a BSP whose backend did
+not exist.)
 
 > The classic frontend JS is already forward-compatible (no jQuery.sap, no
 > sync APIs, guarded `getCore()` fallbacks) — so no code changes are needed,

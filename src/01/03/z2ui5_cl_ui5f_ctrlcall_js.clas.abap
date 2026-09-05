@@ -75,7 +75,11 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      delete o.class;` && |\n| &&
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
-             `        o.onClose = () => oController.eB([sEvent]);` && |\n| &&
+             `` && |\n| &&
+             `        o.onClose = () => {` && |\n| &&
+             `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `          oController.eB([sEvent]);` && |\n| &&
+             `        };` && |\n| &&
              `      }` && |\n| &&
              `      const doShow = (MT) => {` && |\n| &&
              `        if (Object.keys(o).length) MT.show(sText, o);` && |\n| &&
@@ -104,7 +108,11 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      const o = { ...(mOptions || {}) };` && |\n| &&
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
-             `        o.onClose = (sAction) => oController.eB([sEvent], sAction);` && |\n| &&
+             `` && |\n| &&
+             `        o.onClose = (sAction) => {` && |\n| &&
+             `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `          oController.eB([sEvent], sAction);` && |\n| &&
+             `        };` && |\n| &&
              `      }` && |\n| &&
              `      if (o.details) {` && |\n| &&
              `        o.details = Lib.sanitizeMessageDetails(o.details);` && |\n| &&
@@ -302,8 +310,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      ICON_POOL: {` && |\n| &&
              `        get: () => sap.ui.require("sap/ui/core/IconPool"),` && |\n| &&
              `        methods: { registerFont: ["string", "string"] },` && |\n| &&
-             `        display: (oController, method, aArgs) =>` && |\n| &&
-             `          registerIconFont(aArgs[0], aArgs[1]),` && |\n| &&
+             `` && |\n| &&
+             `        display: (oController, method, aArgs, mOptions, ctx, oIconPool) =>` && |\n| &&
+             `          registerIconFont(oIconPool, aArgs[0], aArgs[1]),` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      THEMING: {` && |\n| &&
@@ -367,6 +376,11 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      return item;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function resolveControlOrNull(raw, view) {` && |\n| &&
+             `      if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
+             `      return resolveControl(raw, view) || null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function castArg(kind, raw, view) {` && |\n| &&
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
@@ -385,13 +399,11 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          return raw;` && |\n| &&
              `        }` && |\n| &&
              `        case "controlIdOrNull":` && |\n| &&
-             `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
-             `          return resolveControl(raw, view) || null;` && |\n| &&
+             `          return resolveControlOrNull(raw, view);` && |\n| &&
              `        case "anchor":` && |\n| &&
              `          return resolveControl(raw, view);` && |\n| &&
              `        case "within":` && |\n| &&
-             `          if (raw === "" || raw === undefined || raw === null) return null;` && |\n| &&
-             `          return resolveControl(raw, view) || null;` && |\n| &&
+             `          return resolveControlOrNull(raw, view);` && |\n| &&
              `        case "object":` && |\n| &&
              `          if (raw && typeof raw === "object") return raw;` && |\n| &&
              `          try {` && |\n| &&
@@ -412,7 +424,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function setsStringProperty(control, method) {` && |\n| &&
-             `      if (!control || typeof method !== "string" || !/^set[A-Z]/.test(method))` && |\n| &&
+             `      if (!control || typeof method !== "string" || !/^set[A-Z]/.test(method))` && |\n|.
+    result = result &&
              `        return false;` && |\n| &&
              `      const prop = control.getMetadata?.()?.getAllProperties?.()[` && |\n| &&
              `        method.charAt(3).toLowerCase() + method.slice(4)` && |\n| &&
@@ -424,8 +437,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `` && |\n| &&
              `    function castArgs(kinds, rawArgs, view, target) {` && |\n| &&
              `      if (kinds === null) {` && |\n| &&
-             `        const keepString = setsStringProperty(target?.control, target?.method);` && |\n|.
-    result = result &&
+             `        const keepString = setsStringProperty(target?.control, target?.method);` && |\n| &&
              `        return rawArgs.map((raw, i) =>` && |\n| &&
              `          i === 0 && keepString ? raw : castArgAuto(raw),` && |\n| &&
              `        );` && |\n| &&
@@ -441,12 +453,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `` && |\n| &&
              `    const registeredIconFonts = new Set();` && |\n| &&
              `` && |\n| &&
-             `    function registerIconFont(fontFamily, fontURI) {` && |\n| &&
-             `      const IconPool = sap.ui.require("sap/ui/core/IconPool");` && |\n| &&
-             `      if (!IconPool) {` && |\n| &&
-             `        Lib.logError("ICON_POOL: sap/ui/core/IconPool is not loaded");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
+             `    function registerIconFont(IconPool, fontFamily, fontURI) {` && |\n| &&
              `      if (!fontFamily || !fontURI) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          "ICON_POOL: registerFont needs a fontFamily AND a fontURI",` && |\n| &&
@@ -479,12 +486,127 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function whenAnchorRendered(anchor, oController, fn) {` && |\n| &&
-             `      if (anchor && typeof anchor.getDomRef === "function") {` && |\n| &&
-             `        Lib.whenRendered(anchor, oController, fn);` && |\n| &&
-             `      } else {` && |\n| &&
+             `      const guarded = () => {` && |\n| &&
+             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
              `        fn();` && |\n| &&
+             `      };` && |\n| &&
+             `      if (anchor && typeof anchor.getDomRef === "function") {` && |\n| &&
+             `        Lib.whenRendered(anchor, oController, guarded);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        guarded();` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
+             `` && |\n| &&
+             `    function pseudoToggleBy({ control, id, view, kinds, args, oController }) {` && |\n| &&
+             `      if (!control || typeof control.openBy !== "function") {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
+             `` && |\n| &&
+             `      whenAnchorRendered(anchor, oController, () => {` && |\n| &&
+             `        if (control.isOpen?.()) control.close();` && |\n| &&
+             `        else control.openBy(anchor);` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function pseudoOpenBy({ control, id, view, kinds, args, oController }) {` && |\n| &&
+             `      if (` && |\n| &&
+             `        !control ||` && |\n| &&
+             `        (typeof control.openBy !== "function" &&` && |\n| &&
+             `          typeof control.open !== "function")` && |\n| &&
+             `      ) {` && |\n| &&
+             `        Lib.logError(``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
+             `` && |\n| &&
+             `      whenAnchorRendered(anchor, oController, () => {` && |\n| &&
+             `        if (typeof control.openBy === "function") control.openBy(anchor);` && |\n| &&
+             `        else control.open(false, anchor, "begin top", "begin bottom", anchor);` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function pseudoCss({ control, id, args }) {` && |\n| &&
+             `      const prop = String(args[4] ?? "").toLowerCase();` && |\n| &&
+             `      if (!CSS_PROPERTIES.includes(prop)) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const el = control?.getDomRef?.();` && |\n| &&
+             `      if (!el) {` && |\n| &&
+             `        Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      el.style.setProperty(prop, String(args[5] ?? ""));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function pseudoExpandCollapse({ control, id, method }) {` && |\n| &&
+             `      const op = method === "expandSelected" ? "expand" : "collapse";` && |\n| &&
+             `      if (!control || typeof control[op] !== "function") {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const indices = selectedIndicesOf(control);` && |\n| &&
+             `      if (indices === null) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      if (indices.length) control[op](indices);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function pseudoSetAsyncURLHandler({ control, id, args }) {` && |\n| &&
+             `      const policy = String(args[4] ?? "").toUpperCase();` && |\n| &&
+             `      const isAllowed = URL_POLICIES[policy];` && |\n| &&
+             `      if (!isAllowed) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!control || typeof control.setAsyncURLHandler !== "function") {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      control.setAsyncURLHandler((config) => {` && |\n| &&
+             `        config?.promise?.resolve({` && |\n| &&
+             `          allowed: isAllowed(config.url),` && |\n| &&
+             `          id: config.id,` && |\n| &&
+             `        });` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function isRootPrototypeMethod(obj, method) {` && |\n| &&
+             `      let owner = obj;` && |\n| &&
+             `      while (` && |\n| &&
+             `        owner !== null &&` && |\n| &&
+             `        owner !== undefined &&` && |\n| &&
+             `        !Object.prototype.hasOwnProperty.call(owner, method)` && |\n| &&
+             `      ) {` && |\n| &&
+             `        owner = Object.getPrototypeOf(owner);` && |\n| &&
+             `      }` && |\n| &&
+             `      return !!owner && Object.getPrototypeOf(owner) === null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const PSEUDO_METHODS = Object.assign(Object.create(null), {` && |\n| &&
+             `      toggleBy: pseudoToggleBy,` && |\n| &&
+             `      openBy: pseudoOpenBy,` && |\n| &&
+             `      css: pseudoCss,` && |\n| &&
+             `      expandSelected: pseudoExpandCollapse,` && |\n| &&
+             `      collapseSelected: pseudoExpandCollapse,` && |\n| &&
+             `      setAsyncURLHandler: pseudoSetAsyncURLHandler,` && |\n| &&
+             `    });` && |\n| &&
              `` && |\n| &&
              `    function evControlCallById(oController, args) {` && |\n| &&
              `      const [, id, view, method] = args;` && |\n| &&
@@ -497,107 +619,16 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        kinds = null;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const control = view` && |\n| &&
-             `        ? (ViewSlots.byId(view.toUpperCase(), id) ?? ViewSlots.resolveById(id))` && |\n| &&
-             `        : ViewSlots.resolveById(id);` && |\n| &&
-             `` && |\n| &&
-             `      if (method === "toggleBy") {` && |\n| &&
-             `        if (!control || typeof control.openBy !== "function") {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
-             `` && |\n| &&
-             `        whenAnchorRendered(anchor, oController, () => {` && |\n| &&
-             `          if (control.isOpen?.()) control.close();` && |\n| &&
-             `          else control.openBy(anchor);` && |\n| &&
-             `        });` && |\n| &&
+             `      const control = resolveControl(id, view);` && |\n| &&
+             `      const pseudo = PSEUDO_METHODS[method];` && |\n| &&
+             `      if (pseudo) {` && |\n| &&
+             `        pseudo({ control, id, view, method, kinds, args, oController });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      if (method === "css") {` && |\n| &&
-             `        const prop = String(args[4] ?? "").toLowerCase();` && |\n| &&
-             `        if (!CSS_PROPERTIES.includes(prop)) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const el = control?.getDomRef?.();` && |\n| &&
-             `        if (!el) {` && |\n| &&
-             `          Lib.logError(``CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        el.style.setProperty(prop, String(args[5] ?? ""));` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (method === "expandSelected" || method === "collapseSelected") {` && |\n| &&
-             `        const op = method === "expandSelected" ? "expand" : "collapse";` && |\n| &&
-             `        if (!control || typeof control[op] !== "function") {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const indices = selectedIndicesOf(control);` && |\n| &&
-             `        if (indices === null) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (indices.length) control[op](indices);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (method === "setAsyncURLHandler") {` && |\n| &&
-             `        const policy = String(args[4] ?? "").toUpperCase();` && |\n| &&
-             `        const isAllowed = URL_POLICIES[policy];` && |\n| &&
-             `        if (!isAllowed) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!control || typeof control.setAsyncURLHandler !== "function") {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        control.setAsyncURLHandler((config) => {` && |\n| &&
-             `          config?.promise?.resolve({` && |\n| &&
-             `            allowed: isAllowed(config.url),` && |\n| &&
-             `            id: config.id,` && |\n| &&
-             `          });` && |\n| &&
-             `        });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (method === "openBy") {` && |\n| &&
-             `        if (` && |\n| &&
-             `          !control ||` && |\n| &&
-             `          (typeof control.openBy !== "function" &&` && |\n| &&
-             `            typeof control.open !== "function")` && |\n| &&
-             `        ) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
-             `` && |\n| &&
-             `        whenAnchorRendered(anchor, oController, () => {` && |\n| &&
-             `          if (typeof control.openBy === "function") control.openBy(anchor);` && |\n| &&
-             `          else control.open(false, anchor, "begin top", "begin bottom", anchor);` && |\n| &&
-             `        });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!control || typeof control[method] !== "function") {` && |\n| &&
+             `      const inherited =` && |\n| &&
+             `        method === "constructor" || isRootPrototypeMethod(control, method);` && |\n| &&
+             `      if (!control || inherited || typeof control[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
              `        );` && |\n| &&
@@ -641,7 +672,14 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (target.display) {` && |\n| &&
-             `        return target.display(oController, method, raw, mOptions || {}, ctx);` && |\n| &&
+             `        return target.display(` && |\n| &&
+             `          oController,` && |\n| &&
+             `          method,` && |\n| &&
+             `          raw,` && |\n| &&
+             `          mOptions || {},` && |\n| &&
+             `          ctx,` && |\n| &&
+             `          obj,` && |\n| &&
+             `        );` && |\n| &&
              `      }` && |\n| &&
              `      if (typeof obj[method] !== "function") {` && |\n| &&
              `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
@@ -787,7 +825,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { handlers };` && |\n| &&
-             `  },` && |\n| &&
+             `  },` && |\n|.
+    result = result &&
              `);` && |\n| &&
              `` && |\n| &&
               ``.

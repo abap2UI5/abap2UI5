@@ -126,8 +126,15 @@ function load({ documentElements = {}, mediaDevices } = {}) {
     inst.getHeight = () => inst._props.height;
     inst.photos = [];
     inst.fireOnPhoto = (p) => inst.photos.push(p);
+    // press is declared allowPreventDefault, so the real firePress( )
+    // answers FALSE when a handler vetoed the event and true otherwise -
+    // the trigger button acts on that answer.
     inst.pressed = 0;
-    inst.firePress = () => inst.pressed++;
+    inst.pressVetoed = false;
+    inst.firePress = () => {
+      inst.pressed++;
+      return !inst.pressVetoed;
+    };
     inst._destroyed = false;
     inst.isDestroyed = () => inst._destroyed;
     return inst;
@@ -147,6 +154,31 @@ function captureDom({ videoWidth = 640, videoHeight = 480, toDataURL } = {}) {
 }
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+test("the trigger fires press and opens the camera dialog", () => {
+  const { makeInstance } = load();
+  const inst = makeInstance();
+  const rendered = [];
+  inst.renderer.render({ renderControl: (c) => rendered.push(c) }, inst);
+
+  expect(rendered).toEqual([inst._oButton]);
+  inst._oButton.settings.press();
+  expect(inst.pressed).toBe(1);
+  expect(inst._oScanDialog.opened).toBe(true);
+});
+
+test("a vetoed press leaves the camera dialog closed", () => {
+  const { makeInstance } = load();
+  const inst = makeInstance();
+  inst.pressVetoed = true;
+  inst.renderer.render({ renderControl: () => {} }, inst);
+
+  inst._oButton.settings.press();
+  // The backend was still told about the press; only the default action -
+  // opening the camera - is what the veto cancels.
+  expect(inst.pressed).toBe(1);
+  expect(inst._oScanDialog).toBe(undefined);
+});
 
 test("capture() without the DOM elements returns false, never throws", () => {
   const { makeInstance } = load();

@@ -81,7 +81,15 @@ sap.ui.define(
       delete o.class;
       if (o.onClose) {
         const sEvent = o.onClose;
-        o.onClose = () => oController.eB([sEvent]);
+        // A toast closes on its own, seconds after the roundtrip that showed
+        // it: an app reset or an FLP re-launch in between leaves this
+        // callback pointing at a dead controller, whose eB( ) would round-
+        // trip the old session's event into the app that replaced it. Same
+        // guard the timer tick and the SET_FOCUS retry carry.
+        o.onClose = () => {
+          if (!Lib.isControllerAlive(oController)) return;
+          oController.eB([sEvent]);
+        };
       }
       const doShow = (MT) => {
         // no option set -> a plain show(), so UI5 owns every default
@@ -134,7 +142,13 @@ sap.ui.define(
         // reaches T_EVENT_ARG - the action then has to be the first
         // positional argument, like evImageEditorPopupClose's eB(["SAVE"], image)
         const sEvent = o.onClose;
-        o.onClose = (sAction) => oController.eB([sEvent], sAction);
+        // ... and the same liveness guard showToast carries: a message box
+        // waits for a user, so the app it belongs to may well be gone by the
+        // time an action is pressed.
+        o.onClose = (sAction) => {
+          if (!Lib.isControllerAlive(oController)) return;
+          oController.eB([sEvent], sAction);
+        };
       }
       if (o.details) {
         o.details = Lib.sanitizeMessageDetails(o.details);
@@ -493,8 +507,10 @@ sap.ui.define(
       ICON_POOL: {
         get: () => sap.ui.require("sap/ui/core/IconPool"),
         methods: { registerFont: ["string", "string"] },
-        display: (oController, method, aArgs) =>
-          registerIconFont(aArgs[0], aArgs[1]),
+        // the resolved global rides along as the hook's last argument (see
+        // evControlCall) - registerIconFont needs the module itself
+        display: (oController, method, aArgs, mOptions, ctx, oIconPool) =>
+          registerIconFont(oIconPool, aArgs[0], aArgs[1]),
       },
       // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a
       // hard dependency (it 404s on 1.71 and kills the whole component load).
@@ -615,6 +631,16 @@ sap.ui.define(
       return item;
     }
 
+    // The "empty means null" contract shared by the `controlIdOrNull` and
+    // `within` kinds: an EMPTY argument is the app CLEARING the association /
+    // the within-area, so it has to arrive as an explicit null - and a
+    // non-empty id that resolves to nothing is null too, never `undefined`,
+    // which some UI5 setters read as "no argument given" instead of "clear".
+    function resolveControlOrNull(raw, view) {
+      if (raw === "" || raw === undefined || raw === null) return null;
+      return resolveControl(raw, view) || null;
+    }
+
     function castArg(kind, raw, view) {
       switch (kind) {
         case "int":
@@ -648,9 +674,9 @@ sap.ui.define(
           // (setSelectedSection(null), setSelectedItem(null)) can only travel
           // as a method argument - and an EMPTY argument must arrive as null,
           // not as the `false` castArgAuto would infer. Same "empty means
-          // null" contract as the `within` kind below.
-          if (raw === "" || raw === undefined || raw === null) return null;
-          return resolveControl(raw, view) || null;
+          // null" contract as the `within` kind below, so both go through the
+          // one helper.
+          return resolveControlOrNull(raw, view);
         case "anchor":
           // anchor argument for openBy-style methods: resolve the control id
           // and hand over the CONTROL itself, not its DOM element. Every
@@ -667,8 +693,7 @@ sap.ui.define(
           // accepts a sap.ui.core.Element and dereferences its DOM node when a
           // popup opens, so handing over the CONTROL - not its DOM element -
           // is what survives a re-render of the area in between.
-          if (raw === "" || raw === undefined || raw === null) return null;
-          return resolveControl(raw, view) || null;
+          return resolveControlOrNull(raw, view);
         case "object":
           // the backend embeds an argument that starts with { or [ as real
           // JSON (get_event_client_ajson), so on that path the value arrives
@@ -756,12 +781,11 @@ sap.ui.define(
     // init branch would do so on every single round-trip.
     const registeredIconFonts = new Set();
 
-    function registerIconFont(fontFamily, fontURI) {
-      const IconPool = sap.ui.require("sap/ui/core/IconPool");
-      if (!IconPool) {
-        Lib.logError("ICON_POOL: sap/ui/core/IconPool is not loaded");
-        return;
-      }
+    // `IconPool` is handed in, not required a second time: evControlCall has
+    // already resolved the target and refused the call when it was absent
+    // ("ICON_POOL.registerFont not available"), so a probe here could only
+    // ever answer "loaded" - it was a guard that could not fire.
+    function registerIconFont(IconPool, fontFamily, fontURI) {
       if (!fontFamily || !fontURI) {
         Lib.logError(
           "ICON_POOL: registerFont needs a fontFamily AND a fontURI",
@@ -808,13 +832,200 @@ sap.ui.define(
     // goes through Lib.whenRendered (immediate if already rendered, otherwise
     // after its next onAfterRendering); anything else (a bare DOM element, or a
     // missing anchor) runs fn straight away.
+    //
+    // The controller liveness is asked HERE, not left to Lib.whenRendered's
+    // `owner` guard: that guard asks isDestroyed( ), which cannot answer for a
+    // controller - sap.ui.core.mvc.Controller is no ManagedObject, so it reads
+    // "alive" for an app that was torn down (see Lib.isControllerAlive), and
+    // the guard was dead on this path. The deferred branch can fire a whole
+    // roundtrip later, so it needs the same check the timer tick and the
+    // SET_FOCUS retry carry.
     function whenAnchorRendered(anchor, oController, fn) {
-      if (anchor && typeof anchor.getDomRef === "function") {
-        Lib.whenRendered(anchor, oController, fn);
-      } else {
+      const guarded = () => {
+        if (!Lib.isControllerAlive(oController)) return;
         fn();
+      };
+      if (anchor && typeof anchor.getDomRef === "function") {
+        Lib.whenRendered(anchor, oController, guarded);
+      } else {
+        guarded();
       }
     }
+
+    // ------------------------------------------------------------------
+    // The PSEUDO-METHODS of the CONTROL_BY_ID wire: names an app sends like
+    // a control method that NO control has. They live in a table rather than
+    // as branches in the dispatcher because each one is a small method in its
+    // own right - it decides for itself what "callable" means here (toggleBy
+    // needs openBy, openBy accepts a plain open( ) as well, css needs a DOM
+    // node, expandSelected needs a readable selection) and says so in its own
+    // log line. The dispatcher below only resolves the target and hands over.
+    //
+    // Prototype-less for the reason CONTROL_METHODS is (see there): the key
+    // comes off the wire, and a plain object answers for every name
+    // Object.prototype has.
+    //
+    // Each entry is called with ONE record: { control, id, view, method,
+    // kinds, args, oController } - `args` is the raw wire array
+    // [_, id, view, method, ...params], so an entry that reads its parameters
+    // positionally (css, setAsyncURLHandler - both are LISTED in
+    // CONTROL_METHODS with string kinds they do not use, because what they
+    // take is a CSS property name and a policy name, neither of which any
+    // castArg kind describes) can do so.
+    // ------------------------------------------------------------------
+
+    // toggleBy: open the control anchored to the anchor control if it is
+    // closed, close it if it is already open (mirrors openBy for a
+    // press-to-toggle button). The popup's open state lives client-side, so
+    // the decision stays here rather than round-tripping.
+    function pseudoToggleBy({ control, id, view, kinds, args, oController }) {
+      if (!control || typeof control.openBy !== "function") {
+        Lib.logError(
+          `CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'`,
+        );
+        return;
+      }
+      const anchor = castArgs(kinds, args.slice(4), view)[0];
+      // Defer the open until the anchor is rendered: a Save-style roundtrip
+      // can make the anchor (e.g. a button hidden until there are messages)
+      // visible in the same response, so it may not be in the DOM yet.
+      whenAnchorRendered(anchor, oController, () => {
+        if (control.isOpen?.()) control.close();
+        else control.openBy(anchor);
+      });
+    }
+
+    // openBy resolves BEFORE the generic callable check of the dispatcher: a
+    // control without an own openBy (sap.ui.unified.Menu) still supports the
+    // anchored open via its open(bWithKeyboard, opener, my, at, of)
+    // signature - the anchor doubles as opener and dock reference.
+    function pseudoOpenBy({ control, id, view, kinds, args, oController }) {
+      if (
+        !control ||
+        (typeof control.openBy !== "function" &&
+          typeof control.open !== "function")
+      ) {
+        Lib.logError(`CONTROL_BY_ID: 'openBy' not callable on control '${id}'`);
+        return;
+      }
+      const anchor = castArgs(kinds, args.slice(4), view)[0];
+      // Same reason as toggleBy: wait for the anchor to render.
+      whenAnchorRendered(anchor, oController, () => {
+        if (typeof control.openBy === "function") control.openBy(anchor);
+        else control.open(false, anchor, "begin top", "begin bottom", anchor);
+      });
+    }
+
+    // css writes one whitelisted CSS declaration onto the control's own DOM
+    // node, for the case where the control has no property carrying that
+    // value (sap.m.Page has no `width`). Like the original jQuery-style
+    // samples do, the declaration lives on the element and is gone after a
+    // re-render - the backend re-sends it with the next view, exactly as it
+    // re-sends every property.
+    function pseudoCss({ control, id, args }) {
+      const prop = String(args[4] ?? "").toLowerCase();
+      if (!CSS_PROPERTIES.includes(prop)) {
+        Lib.logError(
+          `CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})`,
+        );
+        return;
+      }
+      const el = control?.getDomRef?.();
+      if (!el) {
+        Lib.logError(`CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref`);
+        return;
+      }
+      el.style.setProperty(prop, String(args[5] ?? ""));
+    }
+
+    // expandSelected / collapseSelected: both trees take INDICES
+    // (`expand(int|int[])`, `collapse(int|int[])`), and only
+    // sap.ui.table.TreeTable can hand them over - it has
+    // getSelectedIndices(). sap.m.Tree offers getSelectedItems() plus
+    // indexOfItem(), so the mapping is a LOOP - and a loop written into an
+    // event argument needs a JS callback, which UI5's ExpressionParser has no
+    // grammar for (no `function` keyword, `{` is the object-literal nud), so
+    // `.getSelectedItems().map(function (o) { ... })` does not fail on that
+    // argument, it takes the WHOLE handler down and every argument with it.
+    // The loop therefore lives here, which is the same reason `css` does: the
+    // app has no spelling for it at all. It stays a thin executor - no
+    // decision is made, the selection is read and handed straight back to the
+    // control's own method.
+    function pseudoExpandCollapse({ control, id, method }) {
+      const op = method === "expandSelected" ? "expand" : "collapse";
+      if (!control || typeof control[op] !== "function") {
+        Lib.logError(
+          `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
+        );
+        return;
+      }
+      const indices = selectedIndicesOf(control);
+      if (indices === null) {
+        Lib.logError(
+          `CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection`,
+        );
+        return;
+      }
+      // an empty selection is not an error: nothing selected, nothing to
+      // expand. Calling expand([]) would be a no-op anyway, but skipping it
+      // keeps a stray re-render off a tree the user did not touch.
+      if (indices.length) control[op](indices);
+    }
+
+    // setAsyncURLHandler takes a FUNCTION, so the argument names a policy
+    // (see URL_POLICIES) and the client installs the matching built-in
+    // validator - the wire still carries data, never code.
+    function pseudoSetAsyncURLHandler({ control, id, args }) {
+      const policy = String(args[4] ?? "").toUpperCase();
+      const isAllowed = URL_POLICIES[policy];
+      if (!isAllowed) {
+        Lib.logError(
+          `CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})`,
+        );
+        return;
+      }
+      if (!control || typeof control.setAsyncURLHandler !== "function") {
+        Lib.logError(
+          `CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'`,
+        );
+        return;
+      }
+      control.setAsyncURLHandler((config) => {
+        // the control hands over { url, id, promise }; the promise's
+        // resolve() decides whether the link stays clickable
+        config?.promise?.resolve({
+          allowed: isAllowed(config.url),
+          id: config.id,
+        });
+      });
+    }
+
+    // Does `obj` get `method` from the ROOT prototype of its realm - the
+    // Object.prototype every plain object ends in? Walked along the chain
+    // rather than compared with this module's Object.prototype: a control
+    // created in another realm (an iframe, the unit-test sandbox) has a
+    // root prototype of its own, and an identity compare would let its
+    // hasOwnProperty through.
+    function isRootPrototypeMethod(obj, method) {
+      let owner = obj;
+      while (
+        owner !== null &&
+        owner !== undefined &&
+        !Object.prototype.hasOwnProperty.call(owner, method)
+      ) {
+        owner = Object.getPrototypeOf(owner);
+      }
+      return !!owner && Object.getPrototypeOf(owner) === null;
+    }
+
+    const PSEUDO_METHODS = Object.assign(Object.create(null), {
+      toggleBy: pseudoToggleBy,
+      openBy: pseudoOpenBy,
+      css: pseudoCss,
+      expandSelected: pseudoExpandCollapse,
+      collapseSelected: pseudoExpandCollapse,
+      setAsyncURLHandler: pseudoSetAsyncURLHandler,
+    });
 
     // args: [_, id, view, method, ...params]
     function evControlCallById(oController, args) {
@@ -829,143 +1040,27 @@ sap.ui.define(
         }
         kinds = null;
       }
-      // slot first, registry fallback - the SAME rule resolveControl
-      // applies to argument controls. The target used to be slot-ONLY when
-      // `view` was set, so a fully-qualified id (the form UI5 messages
-      // return from getControlIds()) resolved fine as an argument and
-      // reported "not callable" as the target of the very same call.
-      const control = view
-        ? (ViewSlots.byId(view.toUpperCase(), id) ?? ViewSlots.resolveById(id))
-        : ViewSlots.resolveById(id);
-      // toggleBy is not a real control method: open the control anchored to
-      // the anchor control if it is closed, close it if it is already open
-      // (mirrors openBy for a press-to-toggle button). The popup's open state lives
-      // client-side, so the decision stays here rather than round-tripping.
-      if (method === "toggleBy") {
-        if (!control || typeof control.openBy !== "function") {
-          Lib.logError(
-            `CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'`,
-          );
-          return;
-        }
-        const anchor = castArgs(kinds, args.slice(4), view)[0];
-        // Defer the open until the anchor is rendered: a Save-style roundtrip
-        // can make the anchor (e.g. a button hidden until there are messages)
-        // visible in the same response, so it may not be in the DOM yet.
-        whenAnchorRendered(anchor, oController, () => {
-          if (control.isOpen?.()) control.close();
-          else control.openBy(anchor);
-        });
+      // The target resolves through resolveControl, the same helper the
+      // `controlId` argument kind uses: slot first, registry fallback. It
+      // used to be re-implemented here and slot-ONLY when `view` was set, so
+      // a fully-qualified id (the form UI5 messages return from
+      // getControlIds()) resolved fine as an argument and reported "not
+      // callable" as the target of the very same call.
+      const control = resolveControl(id, view);
+      const pseudo = PSEUDO_METHODS[method];
+      if (pseudo) {
+        pseudo({ control, id, view, method, kinds, args, oController });
         return;
       }
-      // css is not a UI5 method either: it writes one whitelisted CSS
-      // declaration onto the control's own DOM node, for the case where the
-      // control has no property carrying that value (sap.m.Page has no
-      // `width`). Like the original jQuery-style samples do, the declaration
-      // lives on the element and is gone after a re-render - the backend
-      // re-sends it with the next view, exactly as it re-sends every property.
-      if (method === "css") {
-        const prop = String(args[4] ?? "").toLowerCase();
-        if (!CSS_PROPERTIES.includes(prop)) {
-          Lib.logError(
-            `CONTROL_BY_ID: css property '${args[4]}' not allowed (allowed: ${CSS_PROPERTIES.join(", ")})`,
-          );
-          return;
-        }
-        const el = control?.getDomRef?.();
-        if (!el) {
-          Lib.logError(`CONTROL_BY_ID: 'css' - control '${id}' has no DOM ref`);
-          return;
-        }
-        el.style.setProperty(prop, String(args[5] ?? ""));
-        return;
-      }
-      // expandSelected / collapseSelected are not UI5 methods either. Both
-      // trees take INDICES (`expand(int|int[])`, `collapse(int|int[])`), and
-      // only sap.ui.table.TreeTable can hand them over: it has
-      // getSelectedIndices(). sap.m.Tree offers getSelectedItems() plus
-      // indexOfItem(), so the mapping is a LOOP - and a loop written into an
-      // event argument needs a JS callback, which UI5's ExpressionParser has
-      // no grammar for (no `function` keyword, `{` is the object-literal nud),
-      // so `.getSelectedItems().map(function (o) { ... })` does not fail on that
-      // argument, it takes the WHOLE handler down and every argument with it.
-      // The loop therefore lives here, which is the same reason `css` does:
-      // the app has no spelling for it at all. It stays a thin executor - no
-      // decision is made, the selection is read and handed straight back to
-      // the control's own method.
-      if (method === "expandSelected" || method === "collapseSelected") {
-        const op = method === "expandSelected" ? "expand" : "collapse";
-        if (!control || typeof control[op] !== "function") {
-          Lib.logError(
-            `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
-          );
-          return;
-        }
-        const indices = selectedIndicesOf(control);
-        if (indices === null) {
-          Lib.logError(
-            `CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection`,
-          );
-          return;
-        }
-        // an empty selection is not an error: nothing selected, nothing to
-        // expand. Calling expand([]) would be a no-op anyway, but skipping it
-        // keeps a stray re-render off a tree the user did not touch.
-        if (indices.length) control[op](indices);
-        return;
-      }
-      // setAsyncURLHandler takes a FUNCTION, so the argument names a policy
-      // (see URL_POLICIES) and the client installs the matching built-in
-      // validator - the wire still carries data, never code.
-      if (method === "setAsyncURLHandler") {
-        const policy = String(args[4] ?? "").toUpperCase();
-        const isAllowed = URL_POLICIES[policy];
-        if (!isAllowed) {
-          Lib.logError(
-            `CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})`,
-          );
-          return;
-        }
-        if (!control || typeof control.setAsyncURLHandler !== "function") {
-          Lib.logError(
-            `CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'`,
-          );
-          return;
-        }
-        control.setAsyncURLHandler((config) => {
-          // the control hands over { url, id, promise }; the promise's
-          // resolve() decides whether the link stays clickable
-          config?.promise?.resolve({
-            allowed: isAllowed(config.url),
-            id: config.id,
-          });
-        });
-        return;
-      }
-      // openBy is handled BEFORE the generic callable check: a control
-      // without an own openBy (sap.ui.unified.Menu) still supports the
-      // anchored open via its open(bWithKeyboard, opener, my, at, of)
-      // signature - the anchor doubles as opener and dock reference.
-      if (method === "openBy") {
-        if (
-          !control ||
-          (typeof control.openBy !== "function" &&
-            typeof control.open !== "function")
-        ) {
-          Lib.logError(
-            `CONTROL_BY_ID: 'openBy' not callable on control '${id}'`,
-          );
-          return;
-        }
-        const anchor = castArgs(kinds, args.slice(4), view)[0];
-        // Same reason as toggleBy: wait for the anchor to render.
-        whenAnchorRendered(anchor, oController, () => {
-          if (typeof control.openBy === "function") control.openBy(anchor);
-          else control.open(false, anchor, "begin top", "begin bottom", anchor);
-        });
-        return;
-      }
-      if (!control || typeof control[method] !== "function") {
+      // a method the control only INHERITS from Object.prototype - toString,
+      // hasOwnProperty, valueOf ... - is no control method, whatever
+      // `typeof control[method]` answers, and `constructor` is the class
+      // itself; this wire has no whitelist of its own (the target decides),
+      // so the check is what stands between the wire and Object.prototype. A
+      // control that implements its own toString keeps it callable.
+      const inherited =
+        method === "constructor" || isRootPrototypeMethod(control, method);
+      if (!control || inherited || typeof control[method] !== "function") {
         Lib.logError(
           `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
         );
@@ -1025,8 +1120,18 @@ sap.ui.define(
       // A display hook is the executor, not obj[method] - so only the plain
       // path needs the "does this UI5 version carry it" probe (which is also
       // what let VIEW_SLOTS route methods that never exist on the target).
+      // The resolved global travels as the last argument: a hook that needs
+      // the object itself (ICON_POOL) would otherwise re-resolve what the
+      // `get( )` above already produced and re-check what it already refused.
       if (target.display) {
-        return target.display(oController, method, raw, mOptions || {}, ctx);
+        return target.display(
+          oController,
+          method,
+          raw,
+          mOptions || {},
+          ctx,
+          obj,
+        );
       }
       if (typeof obj[method] !== "function") {
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);

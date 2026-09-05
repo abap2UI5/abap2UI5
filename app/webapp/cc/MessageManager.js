@@ -15,11 +15,14 @@ sap.ui.define(
     // text/type/target, so distinct rows never collide into one key. Built
     // via fromCharCode so the separator stays visible in the source (a raw
     // control-char literal is invisible and easily mangled by tooling).
+    //
+    // Upper case only: `items` is an ABAP table, so its components arrive
+    // upper-cased, and reconcile( ) builds the Message from those columns
+    // alone. Reading a lower-case twin here keyed a row that the add path
+    // would then have built empty - a key for a message that could not
+    // exist.
     const KEY_SEP = String.fromCharCode(1);
-    const keyOf = (o) =>
-      [o.MESSAGE ?? o.message, o.TYPE ?? o.type, o.TARGET ?? o.target].join(
-        KEY_SEP,
-      );
+    const keyOf = (o) => [o.MESSAGE, o.TYPE, o.TARGET].join(KEY_SEP);
 
     // Invisible companion control that bridges the UI5 message manager to a
     // bound ABAP table (`items`). The table is the app's OWN messages:

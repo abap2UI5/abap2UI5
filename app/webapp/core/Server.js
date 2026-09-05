@@ -33,10 +33,14 @@ sap.ui.define(
     //                                 delta and hands it to roundtrip(oBody)
     //   2. Server.roundtrip(oBody)    adds S_FRONT (device/focus/scroll info)
     //   3. Server.readHttp(oBody)     POSTs { value: oBody }, parses the JSON
-    //   4. Server.responseSuccess()   shows messages, rebuilds/updates views
-    //   5. View1._processAfterRendering()  system actions (popups, nested
-    //      views, model push), history, then the app follow-up actions once
-    //      rendering is done
+    //   4. Server.responseSuccess()   adopts the response, parks its
+    //                                 follow-up actions and starts phase 5 -
+    //                                 no view work of its own: the view
+    //                                 rebuild, the messages and the model
+    //                                 push are all system actions now
+    //   5. View1._processAfterRendering()  system actions (the MAIN rebuild,
+    //      popups, nested views, model push), history, then the app follow-up
+    //      actions once rendering is done
     // The request body travels through the steps as a parameter; it is
     // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the developer tools
     // can inspect it. Only the response side still crosses an async boundary
@@ -140,6 +144,14 @@ sap.ui.define(
       // _abortInflight( ) existed for the other case (a newer request
       // superseding older ones) and was never reachable from teardown.
       reset() {
+        // stale FIRST, abort second: the aborted fetch rejects with an
+        // AbortError that lands in readHttp's catch, and only a sequence the
+        // request no longer holds makes isStale( ) swallow it there. Without
+        // the bump the teardown's own abort was reported as a client-side
+        // timeout - BusyIndicator.hide( ) over the next app, isBusy false on
+        // the state just rebuilt, and the fatal "No backend response within
+        // N seconds" dialog with a Retry that re-sent the dead session's body
+        this._requestSeq += 1;
         this._abortInflight();
         this._viewBuild = null;
         // the error overlay's module state is the same kind of survivor -
@@ -160,6 +172,11 @@ sap.ui.define(
         // feedback. _processAfterRendering / responseError clear it again.
         AppState.state.isBusy = true;
         BusyIndicator.show(0);
+        // A restore is a new roundtrip like any other, so the timers armed by
+        // the screen being left go with it (View1.eB does the same before its
+        // dispatch) - a poll armed one Back ago otherwise kept ticking its
+        // old event into the app the restore just brought up.
+        Lib.cancelPendingTimers();
         this.roundtrip({});
       },
 

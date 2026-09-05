@@ -50,6 +50,13 @@ sap.ui.define(
         this.readSort(table);
       },
 
+      // The ONE apply path. There used to be a second, imperative one -
+      // setFilter( )/setSort( ) with their own _applyToTable deferral - and it
+      // lost its last caller when the hooks moved to readBackend/applyBackend:
+      // nothing in app/webapp called it, and no backend-driven control call
+      // can (it is not in the ControlCall whitelists). All it still pinned was
+      // a deferral the app never takes, while the dedupe below - the one the
+      // app runs on every roundtrip - went unpinned. Re-apply stays here.
       applyBackend() {
         try {
           const oTable = this._getTable();
@@ -171,32 +178,6 @@ sap.ui.define(
         }
       },
 
-      _applyToTable(applyFn, errorMsg) {
-        try {
-          const oTable = this._getTable();
-          if (!oTable) return;
-          // whenRendered may defer applyFn to a later onAfterRendering, i.e.
-          // outside this try/catch. Guard the deferred call itself so a throw
-          // there is logged too (log, never throw) instead of escaping.
-          Lib.whenRendered(oTable, this, () => {
-            try {
-              applyFn(oTable);
-            } catch (e) {
-              Lib.logError(errorMsg, e);
-            }
-          });
-        } catch (e) {
-          Lib.logError(errorMsg, e);
-        }
-      },
-
-      setFilter() {
-        this._applyToTable(
-          (oTable) => this._applyFilters(oTable, this.aFilters),
-          "UITableExt.setFilter failed",
-        );
-      },
-
       readSort(oTable) {
         try {
           const table = oTable ?? this._getTable();
@@ -238,12 +219,6 @@ sap.ui.define(
         }
       },
 
-      setSort() {
-        this._applyToTable(
-          (oTable) => this._applySorters(oTable, this.aSorters),
-          "UITableExt.setSort failed",
-        );
-      },
       renderer: Lib.EMPTY_RENDERER,
     });
   },

@@ -88,7 +88,20 @@ sap.ui.define(
 
         let stored;
         try {
-          const storageType = Storage.Type[type] || Storage.Type.session;
+          // The type arrives from the backend as free text, so it is matched
+          // case-insensitively: `local`, `Local` and the `LOCAL` an ABAP
+          // constant tends to spell all name the same store. An unknown one
+          // still falls back to the session store - a control that reads
+          // nothing at all is worse - but it is logged now: the silent
+          // fallback made a mistyped type look like an empty key, which is
+          // the same symptom as a store that was never written.
+          const typeKey = String(type || "").toLowerCase();
+          const storageType = Storage.Type[typeKey] || Storage.Type.session;
+          if (type && !Storage.Type[typeKey]) {
+            Lib.logError(
+              `Storage: unknown type '${type}', reading the session store`,
+            );
+          }
           // The wrapper is kept across renders and rebuilt only when type
           // or prefix change: the read itself has to repeat (the write side
           // is the STORE_DATA frontend action, with no hook to observe), but

@@ -157,30 +157,6 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _applyToTable(applyFn, errorMsg) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const oTable = this._getTable();` && |\n| &&
-             `          if (!oTable) return;` && |\n| &&
-             `` && |\n| &&
-             `          Lib.whenRendered(oTable, this, () => {` && |\n| &&
-             `            try {` && |\n| &&
-             `              applyFn(oTable);` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              Lib.logError(errorMsg, e);` && |\n| &&
-             `            }` && |\n| &&
-             `          });` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(errorMsg, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      setFilter() {` && |\n| &&
-             `        this._applyToTable(` && |\n| &&
-             `          (oTable) => this._applyFilters(oTable, this.aFilters),` && |\n| &&
-             `          "UITableExt.setFilter failed",` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      readSort(oTable) {` && |\n| &&
              `        try {` && |\n| &&
              `          const table = oTable ?? this._getTable();` && |\n| &&
@@ -217,12 +193,6 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      setSort() {` && |\n| &&
-             `        this._applyToTable(` && |\n| &&
-             `          (oTable) => this._applySorters(oTable, this.aSorters),` && |\n| &&
-             `          "UITableExt.setSort failed",` && |\n| &&
-             `        );` && |\n| &&
-             `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

@@ -13,7 +13,10 @@
 //
 // Nothing hash/route related belongs here: core/Router.js is the one module
 // that knows how a URL hash is split between the FLP shell and the running
-// app, and nothing else may reach for the hash directly.
+// app, and the only one that writes it. Two modules read the raw hash
+// without splitting it (core/Server.js ships it as S_FRONT.HASH,
+// core/actions/Launchpad.js takes the part before the "#" as a base URL);
+// everything else asks the Router.
 sap.ui.define(
   ["z2ui5/core/AppState", "sap/ui/core/Element"],
   (AppState, Element) => {
@@ -252,16 +255,101 @@ sap.ui.define(
 
     // Read a File object as a data URL and hand the result to onLoaded.
     // The callback is skipped when `owner` was destroyed while the
-    // FileReader was busy; read errors are logged under `errorContext`.
-    function readFileAsDataURL(file, owner, onLoaded, errorContext) {
+    // FileReader was busy; read errors are logged under `errorContext` and
+    // reported to `onFailed` (readFilesInTurn's way of stepping over a file
+    // that cannot be read - see there).
+    function readFileAsDataURL(file, owner, onLoaded, errorContext, onFailed) {
       const reader = new FileReader();
       reader.onload = () => {
         if (isDestroyed(owner)) return;
         onLoaded(reader.result);
       };
-      reader.onerror = () =>
+      reader.onerror = () => {
         logError(`${errorContext}: FileReader failed`, reader.error);
+        if (onFailed && !isDestroyed(owner)) onFailed();
+      };
       reader.readAsDataURL(file);
+    }
+
+    // Read a set of picked files ONE AT A TIME, the next only once the
+    // roundtrip the previous one started has landed. Both file controls
+    // (cc/FileUploader, cc/UploadSetExt) carry ONE file in their bindable
+    // properties and fire ONE event per file, so a multi-select that read
+    // every file at once overwrote the properties before the busy guard
+    // (View1.eB) had let the second event through - three files picked, one
+    // arrived. They had a copy of this queue each, and the copies drifted.
+    //
+    // `onFile(file, result)` is all a control keeps: it writes its properties
+    // and fires its event, and the queue takes it from there. A FAILED read
+    // steps to the next file instead of stalling the queue - a single
+    // NotReadableError used to leave `_reading` true forever, and every file
+    // picked afterwards was queued and never read until the view was rebuilt.
+    // The chain also ends when `owner` is destroyed, so a torn-down control
+    // stops reading.
+    function readFilesInTurn(owner, errorContext, onFile) {
+      const queue = [];
+      let reading = false;
+      let cancelWait = null;
+
+      const readNext = () => {
+        const file = queue.shift();
+        if (!file || isDestroyed(owner)) {
+          reading = false;
+          return;
+        }
+        reading = true;
+        const step = () => {
+          cancelWait = afterRoundtrip(owner, () => {
+            cancelWait = null;
+            readNext();
+          });
+        };
+        readFileAsDataURL(
+          file,
+          owner,
+          (result) => {
+            onFile(file, result);
+            step();
+          },
+          errorContext,
+          // the reader failed on THIS file - the rest of the selection is
+          // still readable, and nothing started a roundtrip to wait for
+          readNext,
+        );
+      };
+
+      return {
+        add(files) {
+          for (const file of files) queue.push(file);
+          if (!reading) readNext();
+        },
+        // for the control's exit( ): drop what is left and stop waiting
+        cancel() {
+          queue.length = 0;
+          reading = false;
+          if (cancelWait) {
+            cancelWait();
+            cancelWait = null;
+          }
+        },
+      };
+    }
+
+    // Cancel every pending backend timer (evStartTimer's single slot, and
+    // whatever an app armed through it). A new roundtrip overrides them:
+    // a timer that already fired removed itself before calling eB, so this
+    // only cancels the ones still waiting. It lives here because every path
+    // that starts a roundtrip owes it - View1.eB had the loop written out
+    // and Server.restoreFromRoute, the Back/Forward restore, had nothing at
+    // all, so a poll armed by the app one screen back kept ticking into the
+    // restored one.
+    function cancelPendingTimers() {
+      const timers = AppState.state.timers;
+      if (!timers) return;
+      for (const key in timers) {
+        clearTimeout(timers[key]);
+        delete timers[key];
+      }
     }
 
     // Shared tokenUpdate handling for the multi-input extensions: map the
@@ -319,6 +407,12 @@ sap.ui.define(
     // Runs `fn` once `control` has a DOM reference: immediately when it is
     // already rendered, otherwise once after its next rendering. The call
     // is skipped when `owner` was destroyed in the meantime.
+    //
+    // `owner` is a CONTROL: the guard is isDestroyed( ), which cannot answer
+    // for a View1 CONTROLLER (no ManagedObject - see isControllerAlive). A
+    // caller whose owner is a controller therefore has to ask
+    // isControllerAlive( ) in `fn` itself; core/actions/ControlCall.js
+    // (whenAnchorRendered) and core/actions/ViewOps.js (SET_FOCUS) both do.
     function whenRendered(control, owner, fn) {
       if (control.getDomRef()) {
         // Same owner-liveness guard as the deferred branch below: a caller
@@ -838,6 +932,8 @@ sap.ui.define(
       registerCallback,
       unregisterCallback,
       readFileAsDataURL,
+      readFilesInTurn,
+      cancelPendingTimers,
       applyTokenUpdate,
       runCallbacks,
       whenRendered,

@@ -2,8 +2,9 @@
 "!
 "! The framework's extension point: implement this interface in a class of
 "! your own, in a package of your own, and abap2UI5 finds it and calls it -
-"! set_config_http_get on the initial page request, set_config_http_post on
-"! every roundtrip after it.
+"! set_config_http_get on the initial page request - and once more per
+"! response for its t_security_header, which every response of the handler
+"! carries - set_config_http_post on every roundtrip after it.
 "!
 "! Supersedes z2ui5_if_exit, which carries the same two methods under the old
 "! name and is still found and still called. Nothing has to change today; new
@@ -13,7 +14,12 @@ INTERFACE z2ui5_if_ui5_exit
 
   TYPES:
     "! What the request the exit is answering for is - path, the app named by
-    "! the URL, and the URL parameters.
+    "! the URL, and the URL parameters. app_start is the app_start query
+    "! parameter of THIS request, trimmed, upper-cased and with a
+    "! percent-encoded namespace unpacked - the way the framework reads it.
+    "! It is empty on every POST (the SPA posts to the manifest URI) and when
+    "! the app is named by the hash route, which never reaches the server: a
+    "! hint for the page request, not the authority on which app runs.
     BEGIN OF ty_s_http_context,
       path      TYPE string,
       app_start TYPE string,

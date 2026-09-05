@@ -62,9 +62,16 @@
 // backlog item. The canary that proves the shim still WORKS is
 // `test_bind_tab_cell` in z2ui5_cl_ui5_client's test class: it writes the
 // natural spelling and is only green because of this patch.
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+// The read / idempotence / anchor / replace / write routine, shared with the
+// two transpile-side patch scripts next to this one. Only the edit table and
+// the two messages below are this shim's own.
+// A missing file or a missing anchor arrives as a PatchError carrying exactly
+// the message composed below; this shim is also imported (samples-controls'
+// e2e-build calls it), so it lets that throw rather than exiting the process.
+import { patchFile } from './lib/anchored-patch.mjs';
 
 const BUNDLE = new URL('../../node_modules/@abaplint/cli/build/cli.js', import.meta.url);
 
@@ -131,34 +138,29 @@ const LOOP_ANCHOR = `            const name = "temp" + this.counter + postfix;
 const LOOP_PATCH = `            const name = decorate("temp" + this.counter + postfix);
             const exists = this.existsRecursive(spag, name);`;
 
-const EDITS = [
-  [OUTLINE_ANCHOR, OUTLINE_PATCH, 'downport replaceTableExpression outline'],
-  [NAME_ANCHOR, NAME_PATCH, 'downport uniqueName signature'],
-  [LOOP_ANCHOR, LOOP_PATCH, 'downport uniqueName collision check'],
+/* No marker comment goes into a minified bundle, so `applied` stays the
+ * patched text itself - the helper's default. */
+export const EDITS = [
+  { label: 'downport replaceTableExpression outline', anchor: OUTLINE_ANCHOR, patch: OUTLINE_PATCH },
+  { label: 'downport uniqueName signature', anchor: NAME_ANCHOR, patch: NAME_PATCH },
+  { label: 'downport uniqueName collision check', anchor: LOOP_ANCHOR, patch: LOOP_PATCH },
 ];
 
 export function patchAbaplintDownport(bundle = fileURLToPath(BUNDLE)) {
-  if (!existsSync(bundle)) {
-    throw new Error(`patch-abaplint-downport: ${bundle} not found - run npm install first`);
-  }
-  let src = readFileSync(bundle, 'utf8');
-  let applied = 0;
-  for (const [anchor, patch, note] of EDITS) {
-    if (src.includes(patch)) continue; // already patched (re-runnable)
-    if (!src.includes(anchor)) {
-      throw new Error(
-        `patch-abaplint-downport: anchor not found (${note}).\n`
-        + `  Anchors last verified against ${VERIFIED_AGAINST}; installed now: ${installedVersion()}.\n`
-        + '  Either abaplint changed the downport rule between those versions, or it SHIPPED the fix.\n'
-        + '  Check abaplint/abaplint against backlog/items/abaplint-downport-table-expression-copy.md:\n'
-        + '  if the fix is upstream, delete this script, its call in the `downport` npm script,\n'
-        + '  the call in samples-controls/scripts/e2e-build.mjs and the backlog item;\n'
-        + '  if only the bundle text moved, re-fit the anchors and bump VERIFIED_AGAINST.');
-    }
-    src = src.replace(anchor, patch);
-    applied++;
-  }
-  if (applied) writeFileSync(bundle, src);
+  const results = patchFile({
+    file: bundle,
+    edits: EDITS,
+    missingFile: (file) => `patch-abaplint-downport: ${file} not found - run npm install first`,
+    missingAnchor: (edit) =>
+      `patch-abaplint-downport: anchor not found (${edit.label}).\n`
+      + `  Anchors last verified against ${VERIFIED_AGAINST}; installed now: ${installedVersion()}.\n`
+      + '  Either abaplint changed the downport rule between those versions, or it SHIPPED the fix.\n'
+      + '  Check abaplint/abaplint against backlog/items/abaplint-downport-table-expression-copy.md:\n'
+      + '  if the fix is upstream, delete this script, its call in the `downport` npm script,\n'
+      + '  the call in samples-controls/scripts/e2e-build.mjs and the backlog item;\n'
+      + '  if only the bundle text moved, re-fit the anchors and bump VERIFIED_AGAINST.',
+  });
+  const applied = results.filter((r) => r.status === 'applied').length;
   console.log(`patch-abaplint-downport: ${applied ? `${applied} edit(s) applied` : 'already patched'} - ${bundle}`);
 }
 

@@ -83,9 +83,14 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `          const name = args[2] || undefined;` && |\n| &&
              `` && |\n| &&
              `          const previous = oView.getModel(name);` && |\n| &&
-             `          oModel._z2ui5OwnedOData = true;` && |\n| &&
              `          oView.setModel(oModel, name);` && |\n| &&
-             `          if (previous?._z2ui5OwnedOData && previous !== oModel) {` && |\n| &&
+             `          AppState.state.odataClients.add(oModel);` && |\n| &&
+             `` && |\n| &&
+             `          if (` && |\n| &&
+             `            previous !== oModel &&` && |\n| &&
+             `            AppState.state.odataClients.has(previous)` && |\n| &&
+             `          ) {` && |\n| &&
+             `            AppState.state.odataClients.delete(previous);` && |\n| &&
              `            previous.destroy();` && |\n| &&
              `          }` && |\n| &&
              `        } else {` && |\n| &&
@@ -94,6 +99,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `` && |\n| &&
+             `        AppState.state.odataClients.delete(oModel);` && |\n| &&
              `        oModel?.destroy?.();` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -146,8 +152,14 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      timers[timerKey] = setTimeout(fire, delay);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function resolveTarget(action, id) {` && |\n| &&
+             `      const oElement = ViewSlots.resolveById(id);` && |\n| &&
+             `      if (!oElement) Lib.logError(``${action}: no control '${id}'``);` && |\n| &&
+             `      return oElement;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
-             `      const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
+             `      const oElement = resolveTarget("SET_FOCUS", args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
              `` && |\n| &&
              `      const applyFocus = () => {` && |\n| &&
@@ -195,7 +207,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
+             `        const oElement = resolveTarget("SCROLL_TO", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
@@ -231,7 +243,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evScrollIntoView(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
+             `        const oElement = resolveTarget("SCROLL_INTO_VIEW", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&

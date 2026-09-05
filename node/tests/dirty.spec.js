@@ -18,7 +18,7 @@ function load({ oLaunchpad = null } = {}) {
     inst.setProperty = () => {};
     return inst;
   };
-  return { instance, sandbox };
+  return { Dirty, instance, sandbox };
 }
 
 test("standalone: prompt stays while ANY instance is dirty", () => {
@@ -99,4 +99,23 @@ test("FLP: falls back to the browser prompt when setDirtyFlag throws", () => {
 
   instance().setIsDirty(true);
   expect(typeof sandbox.window.onbeforeunload).toBe("function");
+});
+
+// The set is module state and an instance only leaves it through its own
+// exit( ) - which a control inside a popup/popover never runs, because no
+// teardown path destroys those slots. Component.exit calls this so the
+// unload prompt cannot outlive the app that raised it.
+test("reset() drops every mark and the prompt with it", () => {
+  const { Dirty, instance, sandbox } = load();
+  // the instance a popup carries: nothing ever destroys it, so its own
+  // exit( ) never runs
+  instance().setIsDirty(true);
+  expect(typeof sandbox.window.onbeforeunload).toBe("function");
+
+  Dirty.reset();
+
+  expect(sandbox.window.onbeforeunload).toBe(null);
+  // a fresh instance starts from an empty set, not from the old mark
+  instance().setIsDirty(false);
+  expect(sandbox.window.onbeforeunload).toBe(null);
 });

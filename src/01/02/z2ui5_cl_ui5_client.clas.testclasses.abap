@@ -90,6 +90,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_box_no_data  FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_routing      FOR TESTING RAISING cx_static_check.
+    METHODS test_set_nav_routing_lower FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_routing_default FOR TESTING RAISING cx_static_check.
     METHODS test_hash_attach_changed  FOR TESTING RAISING cx_static_check.
     METHODS test_hash_replace         FOR TESTING RAISING cx_static_check.
@@ -522,6 +523,27 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " that inherits from it, carry it again ) and queues no action of its own
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_nav_routing
                                  t_arg = VALUE #( ( z2ui5_if_client=>cs_nav_mode-fresh ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
+                                        act = mo_action->ms_next-s_nav-set_nav_routing ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
+                                        act = mo_action->mo_app->mv_nav_mode ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
+
+  ENDMETHOD.
+
+  METHOD test_set_nav_routing_lower.
+
+    " the mode as an app may well write it - lower case - lands upper-cased
+    " on both sides, as the constants spell it
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " SET_NAV_ROUTING configures the app rather than calling the frontend: it
+    " is remembered on the app ( so a later response of this app, and an app
+    " that inherits from it, carry it again ) and queues no action of its own
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_nav_routing
+                                 t_arg = VALUE #( ( `fresh` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
                                         act = mo_action->ms_next-s_nav-set_nav_routing ).

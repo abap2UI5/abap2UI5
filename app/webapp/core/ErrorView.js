@@ -15,6 +15,16 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // full text stays behind Details and in Copy); longer previews are cut.
   const PREVIEW_MAX_LENGTH = 500;
 
+  // How much of the raw body the HTML scan below is allowed to look at.
+  // Its regexes are lazy ([\s\S]*?) and therefore quadratic on a body whose
+  // opening tag is never closed - a 50 KB ABAP dump with a hundred unclosed
+  // <p> would be scanned a hundred times over, in the one code path that
+  // has to stay fast because the app is already broken. Everything the
+  // preview can show sits in the first few KB (a SAP error page carries its
+  // header and message paragraphs at the top), and the untruncated text
+  // still travels behind Details and Copy.
+  const PREVIEW_SCAN_MAX = 16000;
+
   // The default headline of the fatal-error overlay. Also the first line of
   // what Copy puts on the clipboard, so it must match what a registered
   // details provider renders from AppState.state.lastError.
@@ -39,6 +49,18 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // reopenErrorDialog call) never stacks two of them.
   let friendlyDialog = null;
 
+  // A numeric entity as the character it names. fromCodePoint, not
+  // fromCharCode: everything above U+FFFF (an emoji in a backend message,
+  // any supplementary-plane character) needs a surrogate PAIR, and
+  // fromCharCode truncates the code point to 16 bits and produces a
+  // different character instead. A value outside the Unicode range is left
+  // as written - fromCodePoint throws on it, and nothing in the fatal-error
+  // overlay may throw.
+  function fromCodePoint(raw, codePoint) {
+    if (!(codePoint >= 0 && codePoint <= 0x10ffff)) return raw;
+    return String.fromCodePoint(codePoint);
+  }
+
   // Decode the HTML entities that turn up in backend error pages. Non-ASCII
   // replacements go through fromCharCode so this source file stays 7-bit ASCII
   // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an
@@ -51,9 +73,9 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       .replace(/&quot;/gi, '"')
       .replace(/&apos;|&#0*39;/gi, "'")
       .replace(/&copy;/gi, String.fromCharCode(169))
-      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-      .replace(/&#x([0-9a-f]+);/gi, (_, n) =>
-        String.fromCharCode(parseInt(n, 16)),
+      .replace(/&#(\d+);/g, (raw, n) => fromCodePoint(raw, Number(n)))
+      .replace(/&#x([0-9a-f]+);/gi, (raw, n) =>
+        fromCodePoint(raw, parseInt(n, 16)),
       )
       .replace(/&amp;/gi, "&");
   }
@@ -116,7 +138,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     if (!text) return "";
     let preview = extractFrameworkMessages(text);
     if (!preview) {
-      preview = text;
+      preview = text.slice(0, PREVIEW_SCAN_MAX);
       if (/<[a-z][\s\S]*>/i.test(preview)) {
         preview =
           extractServerError(preview) ||

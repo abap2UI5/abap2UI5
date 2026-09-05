@@ -392,7 +392,12 @@ try {
     runUi5Build();
 
     const built = stripSourceMappingUrl(fs.readFileSync(path.join(distDir, builtBundleName), 'utf8'));
-    const bundle = minifyForBsp(built) + bootTail;
+    // on a line of its own: glued onto the last wrapped bundle line, the
+    // tail's first statement lengthened that line by its own width, and a
+    // last piece long enough failed assertBspCompatible with a message that
+    // blamed a frontend source line
+    const minified = minifyForBsp(built);
+    const bundle = minified.endsWith('\n') ? minified + bootTail : `${minified}\n${bootTail}`;
     assertBspCompatible(bundle);
     fs.writeFileSync(path.join(webappDir, bundleName), bundle, 'utf8');
     patchIndexHtml();

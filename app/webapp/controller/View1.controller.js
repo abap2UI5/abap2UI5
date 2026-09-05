@@ -80,17 +80,18 @@ sap.ui.define(
             state.treeStates = {};
             state.renderedApp = oResponse.APP;
           }
+          // Stamp of the request this response belongs to: every await in
+          // the display phase re-checks it, so a response superseded by a
+          // parallel request (check_allow_multi_req, Back/Forward restore)
+          // never attaches popups/nested views the backend no longer knows.
+          // ONE stamp for BOTH phases - see the guard below.
+          const seq = reqSeq ?? Server._requestSeq;
           // No early return on an empty action list: a response without any
           // action still gets its model push, its hash sync and the
           // after-render hooks below - with the ROUTER and updateModel
           // actions derived/gated away, an action-free response is the
           // COMMON case now, not the exception.
           if (oResponse.S_ACTION) {
-            // Stamp of the request this response belongs to: every await in
-            // the display phase re-checks it, so a response superseded by a
-            // parallel request (check_allow_multi_req, Back/Forward restore)
-            // never attaches popups/nested views the backend no longer knows.
-            const seq = reqSeq ?? Server._requestSeq;
             await this._runSystemActions(oResponse, seq);
           }
           // The app may have been torn down (reset / FLP re-launch) while the
@@ -101,8 +102,19 @@ sap.ui.define(
           // the push would read the NEWER response's data into this stale
           // render, and the sync would mix this draft id with the newer app.
           // The newer response runs its own push and sync.
+          //
+          // The request STAMP is what says "superseded", not the response
+          // record: the display phase stops on it, and it flips the moment
+          // the newer request is DISPATCHED, while the record only flips
+          // when that request's response LANDS. Asking the record alone left
+          // the window in between - a phase 1 cut short by a Back/Forward
+          // restore still ran phase 2 here: it ended the busy state the
+          // restore relies on (so a click could dispatch a third request and
+          // abort it) and let Router.sync consume the restore's navFromHash
+          // flag, which the restore's own response then no longer found.
           if (
             !Lib.isControllerAlive(this) ||
+            seq !== Server._requestSeq ||
             oResponse !== AppState.state.oResponse
           ) {
             // a NEWER request owns the busy state, the pending custom JS and
@@ -112,10 +124,11 @@ sap.ui.define(
             return;
           }
           // A MODEL key in the response IS the model push - run it after the
-          // displays, so a slot built in this same roundtrip is filled before
-          // it is pushed to. This reaches what a fresh build alone does not:
-          // a nested view re-displayed without its MAIN view (it inherits the
-          // MAIN model by UI5 propagation) and a popup left open across a
+          // displays. A slot built in this same roundtrip already holds the
+          // model and is recognised as such (actions/Slots createViewModel),
+          // so the push reaches what a fresh build alone does not: a nested
+          // view re-displayed without its MAIN view (it inherits the MAIN
+          // model by UI5 propagation) and a popup left open across a
           // roundtrip that rebuilt no view (one that DOES rebuild MAIN takes
           // the standalone slots down with it - see actions/Slots).
           if (oResponse.MODELPRESENT) Slots.action("updateModel");
@@ -301,13 +314,10 @@ sap.ui.define(
           return;
         }
 
-        // A new roundtrip overrides any pending timer - timers that fired
-        // already removed themselves before calling eB, so this only cancels
-        // timers that are still waiting.
-        for (const key in AppState.state.timers) {
-          clearTimeout(AppState.state.timers[key]);
-          delete AppState.state.timers[key];
-        }
+        // A new roundtrip overrides any pending timer - the shared helper,
+        // because the OTHER path that starts one (Server.restoreFromRoute,
+        // the Back/Forward restore) owes the same cancel and had nothing.
+        Lib.cancelPendingTimers();
 
         AppState.state.isBusy = true;
         BusyIndicator.show();

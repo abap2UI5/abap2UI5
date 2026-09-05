@@ -55,12 +55,6 @@ sap.ui.define(
     // Environment
     // ------------------------------------------------------------------
 
-    // The running theme, version-independently - the probe lives in
-    // core/Lib.js (getTheme), shared with Component.init's S_UI5 block.
-    function getTheme() {
-      return Lib.getTheme();
-    }
-
     // The bootstrap <script> of the page. Both pages abap2UI5 can run on
     // give it the id "sap-ui-bootstrap": the standalone app/webapp/index.html
     // and the HTML the backend generates (z2ui5_cl_ui5_http_handler), whose
@@ -91,12 +85,6 @@ sap.ui.define(
       } catch {
         return "";
       }
-    }
-
-    // Language and text direction, version-independently - the probe lives
-    // in core/Lib.js (getLocale), next to its theme twin.
-    function getLocale() {
-      return Lib.getLocale();
     }
 
     // Compact vs cozy decides control heights and is set on the body by the
@@ -196,8 +184,11 @@ sap.ui.define(
       /* ui5lint-enable no-globals */
       out.push(line("Distribution", getDistribution(sUi5)));
       out.push(line("Build timestamp", sUi5?.BUILDTIMESTAMP));
-      out.push(line("Theme", getTheme()));
-      const locale = getLocale();
+      // Theme and locale are read through the shared probes in core/Lib.js
+      // (the same ones Component.init's S_UI5 block uses), not through a
+      // wrapper of their own.
+      out.push(line("Theme", Lib.getTheme()));
+      const locale = Lib.getLocale();
       out.push(line("Language", locale.language));
       out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));
       out.push(line("Content density", getContentDensity()));
@@ -341,6 +332,27 @@ sap.ui.define(
     // Registry - what the frontend currently has registered
     // ------------------------------------------------------------------
 
+    // The view XML a slot currently holds: the live view's own viewContent
+    // when UI5 kept it, else the source ViewSlots recorded when the slot was
+    // filled (a fragment or a `definition`-built view keeps none).
+    //
+    // Private member access, developer tools only: XMLView keeps the raw XML
+    // as a pseudo property in mProperties but does not declare it in its
+    // metadata, so getProperty("viewContent") throws. Read the plain object
+    // instead. devtools/Tabs.js keeps the same read for the tab registry and
+    // is the only other place that has it: this module cannot borrow ITS
+    // copy (Tabs already depends on this one, so the import would close a
+    // cycle), and driving the registry through this one instead would leave
+    // the Tabs specs exercising an Inspect stub rather than the shipped
+    // read. Two readers, one rule - change them together.
+    function slotXml(slotKey) {
+      return (
+        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||
+        ViewSlots.getViewXml(slotKey) ||
+        ""
+      );
+    }
+
     // Backend event names bound in a view's XML. The framework binds an
     // event as `.eB(['NAME'])` / `.eF(['NAME'])` (see the backend's
     // get_event), so the names can be read back off the XML the slot was
@@ -391,11 +403,16 @@ sap.ui.define(
       out.push(timers.length ? `  ${timers.join(", ")}` : "  (none pending)");
 
       out.push(section("Framework callbacks registered"));
+      // All FIVE arrays AppState.createState declares - onErrorDetails was
+      // missing here, and it is the one whose absence is a defect a reader
+      // would want to see: with no provider registered the fatal-error
+      // overlay shows no Details button at all.
       for (const name of [
         "onBeforeRoundtrip",
         "onAfterRoundtrip",
         "onAfterRendering",
         "onBeforeEventFrontend",
+        "onErrorDetails",
       ]) {
         out.push(line(name, String((state[name] || []).length)));
       }
@@ -409,10 +426,7 @@ sap.ui.define(
       out.push(section("Backend events bound in the current views"));
       let any = false;
       for (const slot of ViewSlots.slots) {
-        const xml =
-          ViewSlots.getView(slot.key)?.mProperties?.viewContent ||
-          ViewSlots.getViewXml(slot.key);
-        const events = scrapeEvents(xml);
+        const events = scrapeEvents(slotXml(slot.key));
         if (!events.length) continue;
         any = true;
         out.push(`  [${slot.key}]`);
@@ -734,10 +748,7 @@ sap.ui.define(
     // renamed ABAP attribute, a typo, or a forgotten client->_bind( ) all
     // land here, and nothing else in the tools makes them visible.
     function formatBindingCheck(slotKey, data) {
-      const xml =
-        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||
-        ViewSlots.getViewXml(slotKey);
-      const bound = scrapeBindingAttributes(xml);
+      const bound = scrapeBindingAttributes(slotXml(slotKey));
       if (!bound.length) return [];
       const missing = bound.filter((name) => !(name in data));
       const out = [];
@@ -974,7 +985,7 @@ sap.ui.define(
           getDistribution((AppState.getGlobal("oConfig") || {}).S_UI5),
         ),
       );
-      out.push(line("Theme", getTheme()));
+      out.push(line("Theme", Lib.getTheme()));
 
       out.push(section("View slots"));
       out.push(...formatSlots());

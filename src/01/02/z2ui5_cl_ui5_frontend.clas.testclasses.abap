@@ -10,6 +10,7 @@ CLASS ltcl_test_frontend DEFINITION FINAL
     METHODS test_toast_plain          FOR TESTING RAISING cx_static_check.
     METHODS test_toast_options        FOR TESTING RAISING cx_static_check.
     METHODS test_toast_duration_junk  FOR TESTING RAISING cx_static_check.
+    METHODS test_toast_duration_overflow FOR TESTING RAISING cx_static_check.
     METHODS test_toast_opt_out        FOR TESTING RAISING cx_static_check.
     METHODS test_box_default_type     FOR TESTING RAISING cx_static_check.
     METHODS test_box_explicit_type    FOR TESTING RAISING cx_static_check.
@@ -79,6 +80,18 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
                                              class    = `myCls` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"class":"myCls","duration":250,"my":"center center"}]`
+                                        act = queued( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_toast_duration_overflow.
+
+    " a digit string past the integer range is dropped like junk, not
+    " converted into an overflow exception
+    mo_cut->msg_toast( text     = `Saved`
+                       duration = `99999999999` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved"]`
                                         act = queued( ) ).
 
   ENDMETHOD.

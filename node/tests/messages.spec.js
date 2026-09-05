@@ -58,11 +58,17 @@ function loadControlCall(sandbox) {
     dialogs[sId] = { items, getContent: () => [{ getItems: () => items }] };
     return dialogs[sId];
   };
+  // A toast fades on its own and a box waits for a user, so both onClose
+  // callbacks fire long after the roundtrip that showed them - they ask
+  // Lib.isControllerAlive first. `killController()` below is how a spec makes
+  // the app they belong to go away in between.
+  let controllerAlive = true;
   const Lib = {
     logError: (message) => errors.push(message),
     sanitizeMessageDetails: (html) => `sanitized:${html}`,
     whenRendered: (_control, _owner, fn) => fn(),
     getElementById: (sId) => dialogs[sId] || null,
+    isControllerAlive: () => controllerAlive,
   };
   // ViewSlots.resolveById maps a control id to its element for the
   // dependentOn option. Only "knownId" resolves here.
@@ -107,7 +113,18 @@ function loadControlCall(sandbox) {
     if (mOptions) args.push(mOptions);
     module.handlers.CONTROL_GLOBAL(oController, args);
   };
-  return { dispatch, boxCalls, toastCalls, errors, ebCalls, elements, dialogs };
+  return {
+    dispatch,
+    boxCalls,
+    toastCalls,
+    errors,
+    ebCalls,
+    elements,
+    dialogs,
+    killController: () => {
+      controllerAlive = false;
+    },
+  };
 }
 
 function showBox(sType, mOptions) {
@@ -202,6 +219,17 @@ test.describe("message box options", () => {
     // be shifted away with the array and never reach T_EVENT_ARG
     expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
+
+  // A box waits for a user: an app reset or an FLP re-launch in between
+  // leaves the callback holding a dead controller, and the round-trip would
+  // land in the session that replaced it.
+  test("onClose of a box outliving its app round-trips nothing", () => {
+    const env = loadControlCall();
+    env.dispatch("MESSAGE_BOX", "confirm", "boom", { onClose: "ANSWERED" });
+    env.killController();
+    env.boxCalls[0].params.onClose("OK");
+    expect(env.ebCalls).toEqual([]);
+  });
 });
 
 test.describe("message toast", () => {
@@ -236,5 +264,15 @@ test.describe("message toast", () => {
     env.dispatch("MESSAGE_TOAST", "show", "hi", { onClose: "CLOSED" });
     env.toastCalls[0].opts.onClose();
     expect(env.ebCalls).toEqual([[["CLOSED"]]]);
+  });
+
+  // the toast's own fade-out is what fires this, seconds later - by then the
+  // app may be gone (same guard as the message box above)
+  test("onClose of a toast outliving its app round-trips nothing", () => {
+    const env = loadControlCall();
+    env.dispatch("MESSAGE_TOAST", "show", "hi", { onClose: "CLOSED" });
+    env.killController();
+    env.toastCalls[0].opts.onClose();
+    expect(env.ebCalls).toEqual([]);
   });
 });

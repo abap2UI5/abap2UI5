@@ -431,9 +431,13 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
       DATA(object) = get_response_onprem( ).
 
+      " a string, whatever clike the caller passed: IF_HTTP_RESPONSE~SET_CDATA
+      " takes a STRING, and a dynamic call with a C actual for it is
+      " CX_SY_DYN_CALL_ILLEGAL_TYPE - the typed call would have converted
+      DATA(lv_data) = CONV string( val ).
       CALL METHOD object->(`SET_CDATA`)
         EXPORTING
-          data = val.
+          data = lv_data.
 
     ELSE.
 

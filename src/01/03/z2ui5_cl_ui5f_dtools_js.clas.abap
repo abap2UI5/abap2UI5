@@ -165,12 +165,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        this.displayEditor(` && |\n| &&
-             `          oModel,` && |\n| &&
-             `          Tabs.render(key),` && |\n| &&
-             `          tab.kind,` && |\n| &&
-             `          Tabs.renderTemplated(key),` && |\n| &&
-             `        );` && |\n| &&
+             `        this.displayEditor(oModel, Tabs.render(key), tab.kind);` && |\n| &&
              `` && |\n| &&
              `        data.canApply = LiveEdit.canApply(key);` && |\n| &&
              `        oModel.refresh();` && |\n| &&
@@ -201,7 +196,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.renderTab("SEARCH", oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      displayEditor(oModel, content, type, xcontent = "") {` && |\n| &&
+             `      displayEditor(oModel, content, type) {` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
              `        data.editor_visible = true;` && |\n| &&
              `        data.source_visible = false;` && |\n| &&
@@ -212,7 +207,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        data.templatingSource = false;` && |\n| &&
              `        data.value = content;` && |\n| &&
              `        data.previousValue = content;` && |\n| &&
-             `        data.xContent = xcontent;` && |\n| &&
+             `        data.xContent = "";` && |\n| &&
              `        data.type = type;` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
@@ -222,7 +217,14 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const oModel = oSource.getModel();` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
              `` && |\n| &&
-             `        data.value = oSource.getPressed() ? data.xContent : data.previousValue;` && |\n| &&
+             `        if (oSource.getPressed()) {` && |\n| &&
+             `          if (!data.xContent) {` && |\n| &&
+             `            data.xContent = Tabs.renderTemplated(data.selectedTab);` && |\n| &&
+             `          }` && |\n| &&
+             `          data.value = data.xContent;` && |\n| &&
+             `        } else {` && |\n| &&
+             `          data.value = data.previousValue;` && |\n| &&
+             `        }` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -272,15 +274,17 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        Report.openDialog(AbapSource.appName(), source);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      onCopyTab(oEvent) {` && |\n| &&
+             `      async onCopyTab(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
-             `        Lib.copyToClipboard(oSource.getModel().getData().value || "");` && |\n| &&
+             `        const data = oSource.getModel().getData();` && |\n| &&
+             `        let text = data.value || "";` && |\n| &&
+             `        if (data.isSourceView) {` && |\n| &&
+             `          text = await AbapSource.fetchSource();` && |\n| &&
+             `          if (Lib.isDestroyed(oSource)) return;` && |\n| &&
+             `        }` && |\n| &&
+             `        Lib.copyToClipboard(text);` && |\n| &&
              `` && |\n| &&
-             `        const original = oSource.getText();` && |\n| &&
-             `        oSource.setText("Copied");` && |\n| &&
-             `        setTimeout(() => {` && |\n| &&
-             `          if (!Lib.isDestroyed(oSource)) oSource.setText(original);` && |\n| &&
-             `        }, 1500);` && |\n| &&
+             `        Report.confirmOnButton(oSource);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onErrorRetry() {` && |\n| &&
@@ -329,15 +333,35 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          this.showStatus(oModel, "A roundtrip is running - try again.");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        const result = await LiveEdit.apply(data.selectedTab, data.value);` && |\n| &&
+             `        const tabKey = data.selectedTab;` && |\n| &&
+             `` && |\n| &&
+             `        const before = this.backendXml(tabKey);` && |\n| &&
+             `        const result = await LiveEdit.apply(tabKey, data.value);` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        if (!this._appliedXml) this._appliedXml = {};` && |\n| &&
+             `        this._appliedXml[tabKey] = {` && |\n| &&
+             `          original: before,` && |\n| &&
+             `` && |\n| &&
+             `          applied: Tabs.render(tabKey),` && |\n| &&
+             `        };` && |\n| &&
              `        this.showStatus(oModel, result);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      backendXml(tabKey) {` && |\n| &&
+             `        const current = Tabs.render(tabKey);` && |\n| &&
+             `        const record = this._appliedXml?.[tabKey];` && |\n| &&
+             `        if (!record) return current;` && |\n| &&
+             `        if (record.applied !== current) {` && |\n| &&
+             `          delete this._appliedXml[tabKey];` && |\n| &&
+             `          return current;` && |\n| &&
+             `        }` && |\n| &&
+             `        return record.original;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onResetXml(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
-             `        const xml = Tabs.render(data.selectedTab);` && |\n| &&
+             `        const xml = this.backendXml(data.selectedTab);` && |\n| &&
              `        data.value = xml;` && |\n| &&
              `        data.previousValue = xml;` && |\n| &&
              `        oModel.refresh();` && |\n| &&
@@ -400,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `          const requested =` && |\n| &&
              `            typeof initialTab === "string" && initialTab` && |\n| &&
              `              ? initialTab` && |\n| &&
@@ -424,8 +449,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            isViewData: false,` && |\n| &&
              `            isSearch: false,` && |\n| &&
              `            isErrorView: false,` && |\n| &&
-             `            isSourceView: false,` && |\n|.
-    result = result &&
+             `            isSourceView: false,` && |\n| &&
              `            hasRetry: false,` && |\n| &&
              `            canApply: false,` && |\n| &&
              `            isTemplating: false,` && |\n| &&
@@ -474,6 +498,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      exit() {` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
              `        clearTimeout(this._statusTimer);` && |\n| &&
+             `        this._appliedXml = null;` && |\n| &&
              `        if (this.oDialog) {` && |\n| &&
              `          this.oDialog.close();` && |\n| &&
              `          this.oDialog.destroy();` && |\n| &&

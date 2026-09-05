@@ -49,46 +49,30 @@
 // reaches private attributes for block 2, delete the block, and when both
 // are gone delete this file, take it out of `auto_transpile`, `unit` and
 // `express` in package.json and close the backlog items.
-import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
+// The read / idempotence / anchor / replace / write routine, shared with the
+// other two patch scripts next to this one - only the edit table and the two
+// messages below are this shim's own.
+import { patchFile, PatchError, reportEdits } from "./lib/anchored-patch.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const FILE = join(ROOT, "node_modules", "@abaplint", "runtime", "build", "src", "statements", "assign.js");
 const MARKER = "// abap2UI5 patch (node/setup/patch-abaplint-runtime-assign.mjs)";
+const MARKER2 = "// abap2UI5 patch 2 (node/setup/patch-abaplint-runtime-assign.mjs)";
 
-// the read reports a missing file itself - an existsSync ahead of it is a
-// check-then-use the file can change between (CodeQL js/file-system-race)
-let source;
-try {
-  source = readFileSync(FILE, "utf8");
-} catch (e) {
-  if (e.code === "ENOENT") {
-    console.error("patch-abaplint-runtime-assign: " + FILE + " not found - run npm ci first");
-    process.exit(1);
-  }
-  throw e;
-}
-
-function apply(label, marker, anchor, patched) {
-  if (source.includes(marker)) {
-    console.log("patch-abaplint-runtime-assign: " + label + " already applied");
-    return;
-  }
-  if (!source.includes(anchor)) {
-    console.error("patch-abaplint-runtime-assign: " + label + " - anchor not found in assign.js - the installed runtime changed, review the patch");
-    process.exit(1);
-  }
-  source = source.replace(anchor, patched);
-  writeFileSync(FILE, source);
-  console.log("patch-abaplint-runtime-assign: " + label + " applied to " + FILE);
-}
-
-// block 1: a missing component before a `*` segment is sy-subrc 4
-apply("missing component", MARKER, `                    if (upperS === "*") {
+/* Both edits insert their marker comment, so that - and not the whole patched
+ * block - is what says the edit is already in place. */
+export const EDITS = [
+  {
+    label: "missing component",
+    applied: MARKER,
+    // block 1: a missing component before a `*` segment is sy-subrc 4
+    anchor: `                    if (upperS === "*") {
                         // @ts-ignore
                         input.dynamicSource = input.dynamicSource.dereference();
-                    }`, `                    if (upperS === "*") {
+                    }`,
+    patch: `                    if (upperS === "*") {
                         ${MARKER}: a segment
                         // before this one resolved to nothing - the name has no
                         // address, which is sy-subrc 4 and not a TypeError
@@ -98,13 +82,16 @@ apply("missing component", MARKER, `                    if (upperS === "*") {
                         }
                         // @ts-ignore
                         input.dynamicSource = input.dynamicSource.dereference();
-                    }`);
-
-// block 2: a private attribute of an object, for the asXML serializer
-const MARKER2 = "// abap2UI5 patch 2 (node/setup/patch-abaplint-runtime-assign.mjs)";
-apply("private attribute", MARKER2, `                        // @ts-ignore
+                    }`,
+  },
+  {
+    label: "private attribute",
+    applied: MARKER2,
+    // block 2: a private attribute of an object, for the asXML serializer
+    anchor: `                        // @ts-ignore
                         input.dynamicSource = source[componentName];
-                    }`, `                        // @ts-ignore
+                    }`,
+    patch: `                        // @ts-ignore
                         input.dynamicSource = source[componentName];
                         ${MARKER2}: a private
                         // attribute is a #field - the asXML writer and reader of
@@ -113,4 +100,21 @@ apply("private attribute", MARKER2, `                        // @ts-ignore
                         if (input.dynamicSource === undefined && source?.FRIENDS_ACCESS_INSTANCE?.[componentName] !== undefined) {
                             input.dynamicSource = source.FRIENDS_ACCESS_INSTANCE[componentName];
                         }
-                    }`);
+                    }`,
+  },
+];
+
+try {
+  reportEdits("patch-abaplint-runtime-assign", FILE, patchFile({
+    file: FILE,
+    edits: EDITS,
+    missingFile: (file) => "patch-abaplint-runtime-assign: " + file + " not found - run npm ci first",
+    missingAnchor: (edit) =>
+      "patch-abaplint-runtime-assign: " + edit.label
+      + " - anchor not found in assign.js - the installed runtime changed, review the patch",
+  }));
+} catch (e) {
+  if (!(e instanceof PatchError)) throw e;
+  console.error(e.message);
+  process.exit(1);
+}

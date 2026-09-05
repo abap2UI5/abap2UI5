@@ -458,6 +458,9 @@ CLASS ltcl_exit_stub DEFINITION FINAL FOR TESTING.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ui5_exit.
     DATA mv_trust_forwarded TYPE abap_bool.
+    " a customer exit whose GET config raises - the shape set_response has
+    " to survive (test_exit_get_raises_answers)
+    DATA mv_raise_get       TYPE abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -467,6 +470,11 @@ ENDCLASS.
 CLASS ltcl_exit_stub IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_exit~set_config_http_get.
+    IF mv_raise_get = abap_true.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `EXIT_GET_BROKEN`.
+    ENDIF.
     cs_config-theme = `sap_horizon`.
   ENDMETHOD.
 
@@ -547,6 +555,8 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_cache_key_covers_inputs FOR TESTING RAISING cx_static_check.
     METHODS test_cache_hit_same_config   FOR TESTING RAISING cx_static_check.
     METHODS test_get_304_on_if_none_match FOR TESTING RAISING cx_static_check.
+    METHODS test_get_304_weak_tag FOR TESTING RAISING cx_static_check.
+    METHODS test_etag_match_rules FOR TESTING RAISING cx_static_check.
     METHODS test_get_no_304_on_stale_tag FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_post      FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_error     FOR TESTING RAISING cx_static_check.
@@ -555,6 +565,8 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_fwd_host_opt_out        FOR TESTING RAISING cx_static_check.
     METHODS test_etag_equal_length       FOR TESTING RAISING cx_static_check.
     METHODS test_etag_position_mix       FOR TESTING RAISING cx_static_check.
+    METHODS test_etag_follows_cache_key  FOR TESTING RAISING cx_static_check.
+    METHODS test_exit_get_raises_answers FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -703,6 +715,66 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                         act = header_value( `etag` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
                                         act = header_value( `cache-control` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_get_304_weak_tag.
+
+    " the validator as a recompressing proxy hands it back: weak-marked, in
+    " a list, with whitespace - still the bodyless 304 of an exact match
+    handler_create( ).
+    mo_handler->ms_req-method = `GET`.
+    mo_handler->ms_res = VALUE #( body          = `<html>shell</html>`
+                                  status_code   = 200
+                                  status_reason = `OK` ).
+    z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
+    INSERT VALUE #( n = `if-none-match`
+                    v = `"1.0-00-00-00", W/"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->set_response( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 304
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_initial( mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = `"1.0-11-22-33"`
+                                        act = header_value( `etag` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_etag_match_rules.
+
+    DATA(lv_tag) = `"1.0-11-22-33"`.
+
+    " exact, weak, listed, any, the Apache suffix - all a match
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"1.0-11-22-33"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `W/"1.0-11-22-33"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"a" , "1.0-11-22-33" ,"b"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `*`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"1.0-11-22-33-gzip"`
+        iv_etag   = lv_tag ) ).
+
+    " another tag, a tag that merely starts like ours, nothing at all
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"1.0-99-99-99"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"1.0-11-22-33-x"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = ``
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `*`
+        iv_etag   = `` ) ).
 
   ENDMETHOD.
 
@@ -856,12 +928,12 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
   METHOD test_etag_equal_length.
 
-    " the tag carries the version constant and the byte count, and both are
-    " EQUAL for two builds of the same release with a same-length shell - so
-    " the accumulators alone must separate two different bodies of equal
-    " length, or a redeploy 304s the browser into keeping the stale shell
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_body_etag( `<html>shell content A</html>` ).
-    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_body_etag( `<html>shell content B</html>` ).
+    " the tag carries the version constant, the build hash and the byte
+    " count, and all three are EQUAL for two exit configs of the same length
+    " - so the accumulators alone must separate two different keys of equal
+    " length, or a changed config 304s the browser into keeping the old shell
+    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content A</html>` ).
+    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content B</html>` ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
     cl_abap_unit_assert=>assert_not_initial( lv_tag_b ).
@@ -872,7 +944,7 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " its own input would kill every 304
     cl_abap_unit_assert=>assert_equals(
         exp = lv_tag_a
-        act = z2ui5_cl_ui5_http_handler=>_get_body_etag( `<html>shell content A</html>` ) ).
+        act = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content A</html>` ) ).
 
   ENDMETHOD.
 
@@ -880,12 +952,62 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     " same bytes, different order, equal length - a sum-style validator
     " cannot tell them apart, the position-weighted accumulator must
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_body_etag( `abcdefgh` ).
-    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_body_etag( `hgfedcba` ).
+    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_etag( `abcdefgh` ).
+    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_etag( `hgfedcba` ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
     cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
                                          act = lv_tag_b ).
+
+  ENDMETHOD.
+
+  METHOD test_etag_follows_cache_key.
+
+    " the tag is derived from the cache key and the build hash, not from
+    " the assembled body: it changes with the config, comes back for the
+    " same config, and names the embedded frontend's build
+    DATA(ls_config_a) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme = `sap_horizon`
+        src   = `https://sdk.example/sap-ui-core.js` ).
+    shell_for_config( ls_config_a ).
+    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
+    cl_abap_unit_assert=>assert_char_cp( act = lv_tag_a
+                                         exp = |*-{ z2ui5_cl_ui5f_preload=>build_hash }-*| ).
+
+    DATA(ls_config_b) = ls_config_a.
+    ls_config_b-theme = `sap_fiori_3`.
+    shell_for_config( ls_config_b ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
+                                         act = z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+
+    shell_for_config( ls_config_a ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_tag_a
+                                        act = z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+
+  ENDMETHOD.
+
+  METHOD test_exit_get_raises_answers.
+
+    " a customer exit whose set_config_http_get raises: the GET is a 500
+    " WITH a status and a body. It used to raise a second time out of
+    " set_response( ) - after the outer catch had already produced the 500 -
+    " and left the ICF stack to dump with neither.
+    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    lo_exit->mv_raise_get = abap_true.
+    ltcl_exit_injector=>inject( lo_exit ).
+
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `GET` ).
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 500
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_not_initial( mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = `text/plain; charset=UTF-8`
+                                        act = header_value( `content-type` ) ).
 
   ENDMETHOD.
 

@@ -91,7 +91,12 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      slotKey = "MAIN",` && |\n| &&
              `      data = AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
              `    ) {` && |\n| &&
-             `      return trackChanges(new JSONModel(dataForSlot(slotKey, data)));` && |\n| &&
+             `      const oModel = trackChanges(new JSONModel(dataForSlot(slotKey, data)));` && |\n| &&
+             `` && |\n| &&
+             `      if (data && data === AppState.state.oResponse?.OVIEWMODEL) {` && |\n| &&
+             `        oModel._z2ui5BuiltFrom = AppState.state.oResponse;` && |\n| &&
+             `      }` && |\n| &&
+             `      return oModel;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function isSuperseded(seq) {` && |\n| &&
@@ -205,7 +210,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          annotationURI: mOptions.switchDefaultModelAnnoUri || "",` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        oModel._z2ui5OwnedOData = true;` && |\n| &&
+             `        AppState.state.odataClients.add(oModel);` && |\n| &&
              `      } else {` && |\n| &&
              `        oModel = oViewModel;` && |\n| &&
              `      }` && |\n| &&
@@ -223,6 +228,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `` && |\n| &&
              `      const discardBuild = () => {` && |\n| &&
              `        oView.destroy();` && |\n| &&
+             `` && |\n| &&
+             `        AppState.state.odataClients.delete(oModel);` && |\n| &&
              `        oModel.destroy();` && |\n| &&
              `        if (switchPath) oViewModel.destroy();` && |\n| &&
              `      };` && |\n| &&
@@ -251,9 +258,9 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `            return undefined;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          const oldMainDefault = ViewSlots.getView("MAIN")?.getModel?.();` && |\n| &&
              `          ViewSlots.destroy("MAIN");` && |\n| &&
-             `          if (oldMainDefault?._z2ui5OwnedOData) oldMainDefault.destroy();` && |\n| &&
+             `          for (const oClient of AppState.state.odataClients) oClient.destroy();` && |\n| &&
+             `          AppState.state.odataClients.clear();` && |\n| &&
              `` && |\n| &&
              `          ViewSlots.destroy("POPUP");` && |\n| &&
              `          ViewSlots.destroy("POPOVER");` && |\n| &&
@@ -277,6 +284,12 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `` && |\n| &&
              `      const tracked = resolveTrackedModel(oView);` && |\n| &&
              `      if (tracked) {` && |\n| &&
+             `        if (` && |\n| &&
+             `          tracked._z2ui5BuiltFrom &&` && |\n| &&
+             `          tracked._z2ui5BuiltFrom === AppState.state.oResponse` && |\n| &&
+             `        ) {` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
              `` && |\n| &&
              `        const pending = tracked._z2ui5ChangedPaths;` && |\n| &&
@@ -303,6 +316,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function action(method, slotKey, xml, mOptions, seq) {` && |\n| &&
+             `      const options = mOptions || {};` && |\n| &&
              `      if (method === "destroy") {` && |\n| &&
              `        ViewSlots.destroy(slotKey);` && |\n| &&
              `        return undefined;` && |\n| &&
@@ -317,15 +331,15 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      if (isSuperseded(seq)) return undefined;` && |\n| &&
              `` && |\n| &&
              `      if (slotKey === "MAIN") {` && |\n| &&
-             `        AppState.state.lastMainDisplayOptions = mOptions || {};` && |\n| &&
-             `        return displayMain(xml, mOptions, seq);` && |\n| &&
+             `        AppState.state.lastMainDisplayOptions = options;` && |\n| &&
+             `        return displayMain(xml, options, seq);` && |\n| &&
              `      }` && |\n| &&
              `      ViewSlots.destroy(slotKey);` && |\n| &&
              `      if (slotKey === "POPUP") return displayFragment(xml, seq);` && |\n| &&
              `      if (slotKey === "POPOVER") {` && |\n| &&
-             `        return displayPopover(xml, mOptions.openById, seq);` && |\n| &&
+             `        return displayPopover(xml, options.openById, seq);` && |\n| &&
              `      }` && |\n| &&
-             `      return displayNestedView(xml, slotKey, mOptions, seq);` && |\n| &&
+             `      return displayNestedView(xml, slotKey, options, seq);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&

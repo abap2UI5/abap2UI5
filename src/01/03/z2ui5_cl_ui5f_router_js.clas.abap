@@ -69,7 +69,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `    function hrefFor(sAppHash) {` && |\n| &&
              `      const base = window.location.href.split("#")[0];` && |\n| &&
-             `      const raw = String(window.location.hash || "").replace(/^#/, "");` && |\n| &&
+             `      const raw = getRawHash();` && |\n| &&
              `      let shell = splitHash(raw).shell;` && |\n| &&
              `` && |\n| &&
              `      if (!shell && raw && !raw.startsWith("/")) shell = raw;` && |\n| &&
@@ -101,22 +101,27 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      return { app: parts[0], draft: parts.length > 1 ? parts[1] : "" };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function appOf(sHash) {` && |\n| &&
-             `      const route = parse(sHash);` && |\n| &&
-             `      return route ? route.app : "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function draftOf(sHash) {` && |\n| &&
-             `      const route = parse(sHash);` && |\n| &&
-             `      return route ? route.draft : "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function navTo(sRoute, bReplace) {` && |\n| &&
              `      const sHash = String(sRoute || "").replace(/^\/+/, "");` && |\n| &&
              `      if (bReplace) {` && |\n| &&
              `        hashChanger().replaceHash(sHash);` && |\n| &&
              `      } else {` && |\n| &&
              `        hashChanger().setHash(sHash);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function writeHash(sHash, bPush) {` && |\n| &&
+             `      if (bPush) AppState.state.hashPushCount += 1;` && |\n| &&
+             `      navTo(sHash, !bPush);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function writeLegacyUrl(sSuffix, bPush) {` && |\n| &&
+             `      const url = ``${window.location.pathname}${window.location.search}#${getRawHash()}${sSuffix}``;` && |\n| &&
+             `      if (bPush) {` && |\n| &&
+             `        AppState.state.hashPushCount += 1;` && |\n| &&
+             `        history.pushState(null, "", url);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        history.replaceState(null, "", url);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -237,54 +242,34 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `        applyHashEvent(mOptions);` && |\n| &&
              `` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
+             `` && |\n| &&
+             `        const sAppWrite = mOptions.setPushState || mOptions.setHashReplace;` && |\n| &&
+             `        const bPush = Boolean(mOptions.setPushState);` && |\n| &&
+             `` && |\n| &&
              `        if (state.navRouting) {` && |\n| &&
              `          const app = state.oResponse?.APP;` && |\n| &&
              `          if (app) updateAppRoute(mOptions, ID, app);` && |\n| &&
              `` && |\n| &&
-             `          if (!mOptions.setPushState && !mOptions.setHashReplace) return;` && |\n| &&
+             `          if (!sAppWrite) return;` && |\n| &&
              `` && |\n| &&
              `          if (state.currentDraftId) {` && |\n| &&
-             `            if (mOptions.setPushState) {` && |\n| &&
-             `              state.hashPushCount += 1;` && |\n| &&
-             `              navTo(` && |\n| &&
-             `                patternFor(state.currentApp, state.currentDraftId) +` && |\n| &&
-             `                  mOptions.setPushState,` && |\n| &&
-             `              );` && |\n| &&
-             `            } else {` && |\n| &&
-             `              navTo(` && |\n| &&
-             `                patternFor(state.currentApp, state.currentDraftId) +` && |\n| &&
-             `                  mOptions.setHashReplace,` && |\n| &&
-             `                true,` && |\n| &&
-             `              );` && |\n| &&
-             `            }` && |\n| &&
+             `            writeHash(` && |\n| &&
+             `              patternFor(state.currentApp, state.currentDraftId) + sAppWrite,` && |\n| &&
+             `              bPush,` && |\n| &&
+             `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (mOptions.setPushState) {` && |\n| &&
+             `        if (sAppWrite) {` && |\n| &&
              `          if (state.hashEvent) {` && |\n| &&
-             `            state.appHash = appHashNormalized(mOptions.setPushState);` && |\n| &&
-             `            state.hashPushCount += 1;` && |\n| &&
-             `            navTo(mOptions.setPushState);` && |\n| &&
+             `            state.appHash = appHashNormalized(sAppWrite);` && |\n| &&
+             `            writeHash(sAppWrite, bPush);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          const newUrl = ``${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setPushState}``;` && |\n| &&
-             `          state.hashPushCount += 1;` && |\n| &&
-             `          history.pushState(null, "", newUrl);` && |\n| &&
+             `          writeLegacyUrl(sAppWrite, bPush);` && |\n| &&
              `` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (mOptions.setHashReplace) {` && |\n| &&
-             `          if (state.hashEvent) {` && |\n| &&
-             `            state.appHash = appHashNormalized(mOptions.setHashReplace);` && |\n| &&
-             `            navTo(mOptions.setHashReplace, true);` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          const replUrl = ``${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setHashReplace}``;` && |\n| &&
-             `          history.replaceState(null, "", replUrl);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -324,8 +309,6 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      hrefFor,` && |\n| &&
              `      patternFor,` && |\n| &&
              `      parse,` && |\n| &&
-             `      appOf,` && |\n| &&
-             `      draftOf,` && |\n| &&
              `      navTo,` && |\n| &&
              `      navBack,` && |\n| &&
              `      onHashChanged,` && |\n| &&

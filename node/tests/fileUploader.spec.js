@@ -24,6 +24,12 @@ function makeFileReaderStub() {
       this.result = "data:mock;base64," + this.file.name;
       this.onload();
     }
+    // the browser's own failure mode for a file that is picked but cannot be
+    // read (NotReadableError: moved, unmounted, permission withdrawn)
+    fail() {
+      this.error = new Error("NotReadableError");
+      this.onerror();
+    }
   }
   return { readers, FakeFileReader };
 }
@@ -142,7 +148,13 @@ function load() {
     getSource: () => uploader,
   });
 
-  return { makeInstance, render, changeEvent, readers, state: sandbox.z2ui5 };
+  return {
+    makeInstance,
+    render,
+    changeEvent,
+    readers,
+    state: sandbox.z2ui5,
+  };
 }
 
 test("button mode renders uploader + Upload button, disabled while no file", () => {
@@ -327,4 +339,82 @@ test("exit() destroys the owned HBox; before any render it is a no-op", () => {
   expect(box.destroyed).toBe(true);
 
   makeInstance().exit();
+});
+
+// The sequential read queue is Lib.readFilesInTurn now (cc/UploadSetExt uses
+// the same one). Two things it owes the control: a file that cannot be read
+// must not take the rest of the selection down with it, and the selection
+// must be read exactly once.
+test("a file the reader cannot read does not stall the ones behind it", () => {
+  const { makeInstance, render, readers, state } = load();
+  const inst = makeInstance({ multiple: true });
+  render(inst);
+  const files = [{ name: "locked.txt" }, { name: "ok.txt" }];
+  inst.fireUpload = () => {
+    inst.uploads++;
+    state.isBusy = true;
+  };
+
+  inst.oFileUploader.settings.change({
+    getParameter: (name) => (name === "files" ? files : null),
+    getSource: () => inst.oFileUploader,
+  });
+  inst.oUploadButton.settings.press();
+
+  // the first read fails: nothing is uploaded, and the failure is reported
+  readers[0].fail();
+  expect(inst.uploads).toBe(0);
+  // logError writes into the shared state (the real Lib's own log)
+  expect(state.errors.map((e) => e.message)).toEqual([
+    "FileUploader: FileReader failed",
+  ]);
+  // ... and the queue moves on right away - no roundtrip was started, so
+  // there is none to wait for
+  expect(readers).toHaveLength(2);
+  readers[1].finish();
+  expect(inst._props.value).toBe("data:mock;base64,ok.txt");
+  expect(inst.uploads).toBe(1);
+});
+
+// The picked files used to stay remembered after the press, so pressing
+// Upload again without picking anything queued the identical set a second
+// time and every file reached the backend twice.
+test("pressing Upload twice does not queue the same selection twice", () => {
+  const { makeInstance, render, changeEvent, readers } = load();
+  const inst = makeInstance();
+  render(inst);
+
+  inst.oFileUploader.settings.value = "doc.txt";
+  inst.oFileUploader.settings.change(
+    changeEvent(inst.oFileUploader, { name: "doc.txt" }),
+  );
+  inst.oUploadButton.settings.press();
+  readers[0].finish();
+  inst.oUploadButton.settings.press();
+
+  expect(readers).toHaveLength(1);
+  expect(inst.uploads).toBe(1);
+});
+
+// same for the direct-upload path, whose uploadComplete is what consumes the
+// selection there
+test("a second uploadComplete does not re-read the same file", () => {
+  const { makeInstance, render, changeEvent, readers } = load();
+  const inst = makeInstance({ checkDirectUpload: true });
+  render(inst);
+
+  inst.oFileUploader.settings.change(
+    changeEvent(inst.oFileUploader, { name: "auto.bin" }),
+  );
+  inst.oFileUploader.settings.value = "auto.bin";
+  inst.oFileUploader.settings.uploadComplete(
+    changeEvent(inst.oFileUploader, null),
+  );
+  readers[0].finish();
+  inst.oFileUploader.settings.uploadComplete(
+    changeEvent(inst.oFileUploader, null),
+  );
+
+  expect(readers).toHaveLength(1);
+  expect(inst.uploads).toBe(1);
 });

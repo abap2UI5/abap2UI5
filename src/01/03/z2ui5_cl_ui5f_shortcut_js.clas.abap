@@ -90,8 +90,11 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function shortcutEntry(combo) {` && |\n| &&
-             `      const scopes = AppState.state.shortcuts[combo];` && |\n| &&
-             `      if (!scopes) return undefined;` && |\n| &&
+             `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
+             `      if (!Object.prototype.hasOwnProperty.call(shortcuts, combo)) {` && |\n| &&
+             `        return undefined;` && |\n| &&
+             `      }` && |\n| &&
+             `      const scopes = shortcuts[combo];` && |\n| &&
              `      for (const key of Object.keys(scopes)) {` && |\n| &&
              `        if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;` && |\n| &&
              `        if (scopeControlOpen(key)) return scopes[key];` && |\n| &&
@@ -136,6 +139,13 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `        ? raw.toUpperCase()` && |\n| &&
              `        : raw;` && |\n| &&
              `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
+             `` && |\n| &&
+             `      if (combo in Object.prototype) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``KEYBOARD_SHORTCUT: '${args[1]}' is not a key combination``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
              `      if (!args[2]) {` && |\n| &&
              `        delete scopes[scope];` && |\n| &&

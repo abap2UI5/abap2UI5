@@ -28,6 +28,16 @@
  * statements is a comment of its own. Trailing comments stay inside the
  * statement text on purpose — the pseudo-comments the extended-check gate
  * decides on ("#EC ...) live in exactly that trailing comment.
+ *
+ * The same scan answers a second question TWO MORE gates were asking with a
+ * hand-written loop of their own: what is the CODE half of one line - the
+ * trailing comment cut off and every literal's content dropped, because a
+ * literal is full of words a name or keyword pattern would otherwise match.
+ * Both of those loops knew `'` and backtick and not `|`, which is the exact
+ * defect this module exists to end one level up: in `t[ name = |a"b| ]` the
+ * `"` INSIDE the template ended the scan, and the operand position and the
+ * call after it were never looked at. So `stripNoise` lives here, on the
+ * lexer, and check:frozen-only and check:downport both import it.
  */
 
 /**
@@ -52,7 +62,7 @@ export function statements(source) {
     }
     code.push(raw);
 
-    if (terminatorAt(raw) >= 0) {
+    if (scanLine(raw).terminator >= 0) {
       out.push({ start, text: code.join("\n") });
       code = [];
     }
@@ -61,15 +71,26 @@ export function statements(source) {
   return out;
 }
 
-/* The statement terminator on one line: a period in code at the top level —
- * outside every literal, outside a template, outside a template's embedded
- * expression — and before any trailing comment. -1 when the line has none.
+/* ONE pass over one line, answering both questions the callers have:
+ *
+ *   terminator  the index of the statement-terminating period - a `.` in code
+ *               at the top level, outside every literal, outside a template,
+ *               outside a template's embedded expression, and before any
+ *               trailing comment. -1 when the line has none.
+ *   code        the same line with the trailing comment cut off and every
+ *               literal's content AND delimiters dropped. A template's
+ *               embedded `{ ... }` expressions are KEPT, because they are
+ *               code: `|{ zcl_x=>frozen( ) }|` is a call, and a gate that
+ *               dropped the whole template would stop seeing it.
  *
  * `stack` is the lexical nesting: "code" at the bottom, a literal or template
  * pushed on entry and popped on its closing character, and an embedding
  * pushing "code" again so the normal rules apply inside `{ }`. */
-function terminatorAt(raw) {
+function scanLine(raw) {
   const stack = ["code"];
+  let code = "";
+  let terminator = -1;
+
   for (let i = 0; i < raw.length; i += 1) {
     const c = raw[i];
     const mode = stack[stack.length - 1];
@@ -83,19 +104,33 @@ function terminatorAt(raw) {
       continue;
     }
     if (mode === "tmpl") {
-      if (c === "\\") i += 1; // \| \{ \} \\ — escaped, not structural
+      if (c === "\\") i += 1; // \| \{ \} \\ - escaped, not structural
       else if (c === "|") stack.pop();
       else if (c === "{") stack.push("code");
       continue;
     }
 
     // mode === "code"
-    if (c === "`") stack.push("tick");
-    else if (c === "'") stack.push("quote");
-    else if (c === "|") stack.push("tmpl");
-    else if (c === "}" && stack.length > 1) stack.pop(); // embedding closes
-    else if (c === '"' && stack.length === 1) return -1; // rest is a comment
-    else if (c === "." && stack.length === 1) return i;
+    if (c === "`") { stack.push("tick"); continue; }
+    if (c === "'") { stack.push("quote"); continue; }
+    if (c === "|") { stack.push("tmpl"); continue; }
+    if (c === "}" && stack.length > 1) { stack.pop(); continue; } // embedding closes
+    if (c === '"' && stack.length === 1) return { code, terminator }; // rest is a comment
+    if (c === "." && stack.length === 1 && terminator < 0) terminator = i;
+    code += c;
   }
-  return -1;
+  return { code, terminator };
+}
+
+/**
+ * The code half of ONE line: no trailing comment, no literal content.
+ *
+ * A full-line `*` comment is NOT handled here - the two callers disagree
+ * about whether an indented `*` counts, and each says so at its own call site.
+ *
+ * @param {string} line  one source line
+ * @returns {string}     its code, literals emptied out
+ */
+export function stripNoise(line) {
+  return scanLine(line).code;
 }

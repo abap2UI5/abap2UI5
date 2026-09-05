@@ -405,6 +405,23 @@ test.describe("Registry", () => {
     expect(out).toMatch(/onAfterRendering\s+2/);
   });
 
+  test("lists every callback array the state declares, five of five", () => {
+    // onErrorDetails was the one missing here, and it is the one whose
+    // absence is a defect worth seeing: with no provider registered the
+    // fatal-error overlay offers no Details button at all.
+    const Inspect = loadInspect({ state: { onErrorDetails: [() => {}] } });
+    const out = Inspect.formatRegistry();
+    for (const name of [
+      "onBeforeRoundtrip",
+      "onAfterRoundtrip",
+      "onAfterRendering",
+      "onBeforeEventFrontend",
+    ]) {
+      expect(out).toMatch(new RegExp(`${name}\\s+0`));
+    }
+    expect(out).toMatch(/onErrorDetails\s+1/);
+  });
+
   test("scrapes the backend event names out of the view XML", () => {
     const Inspect = loadInspect();
     const { scrapeEvents } = Inspect._internals;

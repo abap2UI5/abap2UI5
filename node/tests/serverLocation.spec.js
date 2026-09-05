@@ -12,6 +12,7 @@ const { loadModule } = require("./loadModule");
 
 function loadServer() {
   const bodies = [];
+  const cancels = [];
   // the cadence latch lives in core/Session.js - load the real module (a
   // fresh instance per test, so each test starts with an unsent location)
   const { module: Session } = loadModule("core/Session.js", {
@@ -43,7 +44,12 @@ function loadServer() {
         getFocusInfo: () => undefined,
         getScrollInfo: () => undefined,
       },
-      "z2ui5/core/Lib": {},
+      // restoreFromRoute hands the timer cancel to the shared helper - the
+      // stub only records that it was asked (Lib's own spec proves it clears)
+      "z2ui5/core/Lib": {
+        cancelPendingTimers: () => cancels.push("cancelPendingTimers"),
+      },
+      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
       "z2ui5/core/AppState": {
         state: {},
         getGlobal: () => undefined,
@@ -72,7 +78,7 @@ function loadServer() {
   const dropNext = (v = true) => {
     drop = v;
   };
-  return { Server, bodies, dropNext };
+  return { Server, bodies, dropNext, cancels };
 }
 
 test("the first roundtrip carries the location, an event roundtrip omits it", () => {
@@ -122,4 +128,20 @@ test("a dropped request does not latch the location - the next one re-sends it",
 
   Server.roundtrip({ ID: "DRAFT1" });
   expect(bodies[2].S_FRONT.ORIGIN).toBeUndefined();
+});
+
+// A restore is a new roundtrip, so the timers armed by the screen being left
+// go with it - the same cancel View1.eB does before its own dispatch. This
+// path had none, so a poll armed one Back ago kept ticking its old event into
+// the app the restore had just brought up.
+test("the Back/Forward restore cancels the timers of the screen it leaves", () => {
+  const { Server, bodies, cancels } = loadServer();
+
+  Server.restoreFromRoute();
+
+  expect(cancels).toEqual(["cancelPendingTimers"]);
+  // and it is still the app-start-shaped request the backend resolves the
+  // route from
+  expect(bodies).toHaveLength(1);
+  expect(bodies[0].ID).toBeUndefined();
 });

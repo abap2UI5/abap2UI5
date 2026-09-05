@@ -17,15 +17,31 @@ sap.ui.define(
 
     // Reconnect policy for a connection the app did not close: exponential
     // backoff starting here, capped there, and after MAX_CONNECT_ATTEMPTS
-    // consecutive failed handshakes the control stops trying until the app
+    // consecutive failed attempts the control stops trying until the app
     // changes path/checkActive (each failure already fired `error`, so the
     // backend heard about every one). Without this, an app that answers the
     // error event with a view-rebuilding roundtrip re-entered _connect on
     // every render - an unbounded reconnect storm against an inactive ICF
-    // node.
+    // node. A "failed attempt" is every way the connection can fail to
+    // become usable, counted in _countFailure: a constructor that throws, a
+    // handshake that never completes, and a socket that was closed again
+    // before it proved stable - each of those was its own storm.
     const RECONNECT_BASE_MS = 500;
     const RECONNECT_MAX_MS = 30000;
     const MAX_CONNECT_ATTEMPTS = 5;
+
+    // How long a socket must stay open before it counts as an established
+    // connection rather than a failed attempt. A completed handshake alone
+    // proves nothing: an APC whose ON_START refuses the connection, and a
+    // proxy that drops it, both close the socket again within milliseconds
+    // - and while `onopen` reset the counter, every such drop reconnected
+    // after the RECONNECT_BASE_MS minimum, with no backoff and no give-up,
+    // firing one `error` event per drop for the life of the view.
+    // Deliberately NOT RECONNECT_BASE_MS: at 500 ms a refusing endpoint
+    // still looks healthy, which is the storm this guards against. Ten
+    // seconds is far above any refuse-on-open turnaround and far below the
+    // lifetime of a push channel that is actually serving.
+    const CONNECT_STABLE_MS = 10000;
 
     // The queue is bounded like every other buffer in the frontend
     // (Lib.MAX_ERRORS, Console.MAX_ENTRIES, Recorder.MAX_RECORDS): a fast
@@ -144,15 +160,29 @@ sap.ui.define(
         } catch (err) {
           const message = "Cannot open " + url + ": " + (err.message || err);
           Lib.logError("Websocket: " + message, err);
+          // A constructor that throws (mixed content on an https page, a
+          // "#" in the path) is a failed attempt like a handshake that
+          // never completes, and has to count as one. It used to return
+          // without touching the counter, so the give-up above could never
+          // trigger on this path: onAfterRendering re-entered _connect on
+          // EVERY render, and an app answering the `error` event with a
+          // view-rebuilding roundtrip looped one roundtrip per render for
+          // the life of the view.
+          this._countFailure(url);
           this._report({ kind: "error", code: "CONSTRUCT", message });
           return;
         }
         this._ws = ws;
         this._opened = false;
+        this._openedAt = 0;
         ws.onopen = () => {
           if (this._ws === ws) {
             this._opened = true;
-            this._failedAttempts = 0;
+            // Only WHEN the socket opened is recorded here - the counter is
+            // deliberately not reset (see CONNECT_STABLE_MS). It is cleared
+            // by the first message below, the one proof the channel really
+            // carries data, or by a close after a stable lifetime.
+            this._openedAt = Date.now();
           }
         };
         ws.onmessage = (event) => {
@@ -163,6 +193,10 @@ sap.ui.define(
             Lib.logError("Websocket: ignored a non-text message");
             return;
           }
+          // The channel really carries data - the proof the handshake
+          // alone does not give, so the failure budget is whole again for
+          // whatever drop comes next.
+          this._failedAttempts = 0;
           if (!this.getProperty("checkRepeat")) {
             this._doneAfterFirst = true;
             this._disconnect();
@@ -187,17 +221,17 @@ sap.ui.define(
             : "Connection to " + url + " could not be established";
           const message = event.reason ? cause + ": " + event.reason : cause;
           Lib.logError("Websocket (" + event.code + "): " + message);
-          if (!this._opened) {
-            this._failedAttempts += 1;
-            if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) {
-              Lib.logError(
-                "Websocket: " +
-                  MAX_CONNECT_ATTEMPTS +
-                  " failed connection attempts to " +
-                  url +
-                  " - giving up until path or checkActive changes",
-              );
-            }
+          // A socket that opened and was closed again right away failed just
+          // as much as one that never opened - only a lifetime of at least
+          // CONNECT_STABLE_MS is an established connection, and only that
+          // one hands the next attempt an untouched budget.
+          if (
+            this._opened &&
+            Date.now() - this._openedAt >= CONNECT_STABLE_MS
+          ) {
+            this._failedAttempts = 0;
+          } else {
+            this._countFailure(url);
           }
           this._report({
             kind: "error",
@@ -206,6 +240,22 @@ sap.ui.define(
           });
           this._scheduleReconnect();
         };
+      },
+      // Count one failed attempt against the give-up budget and say so once
+      // the budget is spent. The single place every door into the give-up
+      // goes through (see MAX_CONNECT_ATTEMPTS) - a door that counted
+      // nothing was a reconnect storm each time.
+      _countFailure(url) {
+        this._failedAttempts += 1;
+        if (this._failedAttempts >= MAX_CONNECT_ATTEMPTS) {
+          Lib.logError(
+            "Websocket: " +
+              MAX_CONNECT_ATTEMPTS +
+              " failed connection attempts to " +
+              url +
+              " - giving up until path or checkActive changes",
+          );
+        }
       },
       // Try again on our own timer, not only on the next render: a model-only
       // response never re-renders, and the push channel used to stay silently
