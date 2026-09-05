@@ -742,7 +742,6 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         " table decides it once for its rows (msg_get_internal_tab) and hands
         " the answer down, instead of asking for every row
         iv_check_rap  TYPE abap_bool DEFAULT abap_true
-          PREFERRED PARAMETER val
       RETURNING
         VALUE(result) TYPE ty_t_msg.
 
