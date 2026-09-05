@@ -250,7 +250,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " container around a DIFFERENT instance of the same id stays unusable
     " here, as before
     READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf)
-         WITH TABLE KEY id = CONV string( app->id_draft ).
+         WITH TABLE KEY id = app->id_draft.
     IF sy-subrc = 0 AND lr_buf->app->mo_app = app.
       result = lr_buf->app.
       RETURN.
@@ -278,7 +278,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " mt_buffer has a UNIQUE KEY, so this insert is the whole "only if absent"
     " logic: an id already in the buffer leaves the existing entry alone and
     " sets sy-subrc = 4, which is the wanted outcome and not an error
-    INSERT VALUE #( id  = CONV string( app->id_draft )
+    INSERT VALUE #( id  = app->id_draft
                     app = result ) INTO TABLE mt_buffer.
 
   ENDMETHOD.

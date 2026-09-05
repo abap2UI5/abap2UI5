@@ -286,7 +286,7 @@ const builds = branches.map((b) => {
   }
   const build = BUILDERS[b] ?? renamedBuilder(b);
   if (!build) {
-    console.error(`Unknown branch '${b}' - allowed: ${Object.keys(BUILDERS).join(", ")}, standard_<name>, standard_v2_<name> (<name> auch als #ns#name)`);
+    console.error(`Unknown branch '${b}' - allowed: ${Object.keys(BUILDERS).join(", ")}, standard_<name>, standard_v2_<name> (<name> also in the #ns#name spelling)`);
     process.exit(1);
   }
   return build;

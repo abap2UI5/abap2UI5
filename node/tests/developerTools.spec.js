@@ -107,7 +107,6 @@ function loadDeveloperTools({
     apply: () => Promise.resolve("applied"),
     canApply: () => false,
     slotOfTab: () => undefined,
-    originalXml: () => "",
     isBusy: () => false,
   };
   // Control.extend returns the class spec itself; the spec's methods are
@@ -570,7 +569,6 @@ test.describe("Live view editing", () => {
         apply: () => Promise.resolve("ok"),
         canApply: (tab) => tab === "VIEW",
         slotOfTab: () => "MAIN",
-        originalXml: () => "<mvc:View/>",
         isBusy: () => false,
       },
     });
@@ -593,7 +591,6 @@ test.describe("Live view editing", () => {
         },
         canApply: () => true,
         slotOfTab: () => "MAIN",
-        originalXml: () => "",
         isBusy: () => false,
       },
     });
@@ -618,7 +615,6 @@ test.describe("Live view editing", () => {
         },
         canApply: () => true,
         slotOfTab: () => "MAIN",
-        originalXml: () => "",
         isBusy: () => true,
       },
     });
@@ -660,7 +656,6 @@ test.describe("Live view editing", () => {
         },
         canApply: () => true,
         slotOfTab: () => "MAIN",
-        originalXml: () => "",
         isBusy: () => false,
       },
     });
@@ -846,7 +841,6 @@ test.describe("Search", () => {
         apply: () => Promise.resolve("ok"),
         canApply: () => true,
         slotOfTab: () => "MAIN",
-        originalXml: () => "",
         isBusy: () => false,
       },
     });
@@ -997,7 +991,6 @@ test.describe("ABAP Source view", () => {
         apply: () => Promise.resolve("ok"),
         canApply: (tab) => tab === "VIEW",
         slotOfTab: () => "MAIN",
-        originalXml: () => "",
         isBusy: () => false,
       },
       extraSandbox: { fetch: async () => ({ ok: false }) },

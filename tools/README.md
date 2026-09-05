@@ -17,7 +17,7 @@ whether a pull request may merge.
 | `build-branches.mjs` | drives the above into one delivery branch |
 | `branch-stamp.mjs` | the provenance of a branch (`VERSION`, README banner), written at deploy time |
 | `check-pages.mjs` | the BSP page invariants, checked on the built artefact |
-| `verify-branches.mjs` | compares the committed trees against what abap2UI5/frontend publishes today |
+| `verify-branches.mjs` | compares a local build in `tools/out/` against what abap2UI5/frontend publishes today |
 | `check-v2-sdk.mjs` | the monthly guard on the pinned legacy-free SDK |
 
 What these consume besides the webapp — the ABAP artefacts of the delivery

@@ -245,3 +245,44 @@ test("restore skips unresolvable controls and survives throwing ones", () => {
 
   expect(errors.some((m) => m.includes("_restoreScrollPosition"))).toBe(true);
 });
+
+// A target that is not rendered yet is waited for through a rendering
+// delegate. onAfterRendering runs again on every roundtrip, so the wait
+// has to be per control - one delegate per pass piles them up on a
+// control that may never render, and each of them would restore.
+test("an unrendered target collects one rendering delegate, not one per pass", () => {
+  const scrolled = [];
+  const delegates = [];
+  const control = {
+    getId: () => "tbl",
+    getDomRef: () => null,
+    addEventDelegate: (d) => delegates.push(d),
+    removeEventDelegate: (d) => {
+      const i = delegates.indexOf(d);
+      if (i >= 0) delegates.splice(i, 1);
+    },
+    scrollTo: (v) => scrolled.push(v),
+  };
+  const { makeInstance } = load({ controls: { tbl: control } });
+  const inst = makeInstance({ items: [{ N: "tbl", V: 10 }] });
+
+  inst._pendingScroll = true;
+  inst.onAfterRendering();
+  expect(delegates).toHaveLength(1);
+
+  // the next roundtrip brings a newer position for the same control
+  inst.setProperty("items", [{ N: "tbl", V: 55 }]);
+  inst._pendingScroll = true;
+  inst.onAfterRendering();
+  expect(delegates).toHaveLength(1);
+
+  // when it finally renders, the ONE wait restores the CURRENT position
+  delegates[0].onAfterRendering();
+  expect(scrolled).toEqual([55]);
+  expect(delegates).toHaveLength(0);
+
+  // and the control can be waited for again afterwards
+  inst._pendingScroll = true;
+  inst.onAfterRendering();
+  expect(delegates).toHaveLength(1);
+});

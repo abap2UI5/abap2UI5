@@ -54,6 +54,7 @@ import { fileURLToPath } from "url";
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { walk } from "./lib/walk.mjs";
+import { stripNoise } from "./lib/abap-statements.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const MARKER = "FROZEN-ONLY:";
@@ -112,24 +113,45 @@ if (marked.size === 0) {
  * between two of them is one removal unit, not a new caller. */
 const ownerFiles = new Set([...marked.values()].map((m) => m.file));
 
-/* Code only: a name inside a comment or a string literal is not a call. */
-function stripNoise(line) {
-  if (/^\s*[*]/.test(line)) return "";
-  let out = "";
-  let quote = null;
-  for (const c of line) {
-    if (quote) {
-      if (c === quote) quote = null;
-      continue;
-    }
-    if (c === "`" || c === "'") {
-      quote = c;
-      continue;
-    }
-    if (c === '"') break;
-    out += c;
+/* Code only: a name inside a comment or a string literal is not a call.
+ *
+ * The line scan itself is the statement lexer's - this gate carried its own,
+ * and that one knew `'` and backtick and not `|`, so a `"` inside a string
+ * template ended the scan and a call on the rest of the line was invisible.
+ * The full-line comment stays here: what counts as one is this gate's own
+ * looser reading (any indentation, not only column 1). */
+const codeOf = (line) => (/^\s*[*]/.test(line) ? "" : stripNoise(line));
+
+/* Self-test: the line scan, on the four shapes that decide whether a name is
+ * a CALL or text, before a single source file is read. This gate is green
+ * over src/ either way - there is no live caller today - so a scan that
+ * stopped seeing calls would report "no findings" and nobody would notice,
+ * which is exactly what the `|...|` gap did: a `"` inside a template ended
+ * the scan and every call after it on that line was invisible.
+ * `true` means "the name is in the code half of the line". */
+const SELF_TEST = [
+  ["a call after a template that carries a quote",
+    'IF lv_msg = |say "hi"| AND zcl_x=>frozen_sym( ) = abap_true.', true],
+  ["an embedded expression inside a template is still code",
+    "lv_msg = |{ zcl_x=>frozen_sym( ) }|.", true],
+  ["the same name as TEXT inside a template is not a call",
+    "lv_msg = |see zcl_x=>frozen_sym( ) in the docs|.", false],
+  ["...nor in a quoted literal", "lv_msg = 'zcl_x=>frozen_sym( )'.", false],
+  ["...nor in a trailing comment", 'lv = 1. " zcl_x=>frozen_sym( )', false],
+  ["...nor in a full-line comment", "* zcl_x=>frozen_sym( )", false],
+];
+
+for (const [name, line, expected] of SELF_TEST) {
+  const got = codeOf(line).includes("frozen_sym");
+  if (got !== expected) {
+    console.error(`frozen-only: the gate's own self-test failed - "${name}"`);
+    console.error(`  ${line}`);
+    console.error(`  expected the name ${expected ? "in" : "out of"} the code, got the opposite`);
+    console.error("");
+    console.error("The line scan changed. A green run over src/ proves nothing while this");
+    console.error("case fails - src/ has no live caller, so nothing else would notice.");
+    process.exit(1);
   }
-  return out;
 }
 
 const NAMES = new RegExp(`\\b(${[...marked.keys()].join("|")})\\b`, "gi");
@@ -161,7 +183,7 @@ for (const file of files) {
     if (start) inMethod = start[1].toLowerCase();
     else if (/^\s*ENDMETHOD\b/i.test(raw)) inMethod = null;
 
-    const code = stripNoise(raw);
+    const code = codeOf(raw);
     if (!code) return;
 
     for (const m of code.matchAll(NAMES)) {
@@ -199,7 +221,8 @@ for (const file of files) {
 }
 
 console.log(
-  `frozen-only: ${marked.size} marked symbol(s), ${files.length} file(s) in src/00 - src/02 checked`,
+  `frozen-only: ${marked.size} marked symbol(s), ${files.length} file(s) in src/00 - src/02 checked, `
+  + `${SELF_TEST.length} self-test case(s) passed`,
 );
 
 if (findings.length === 0) {

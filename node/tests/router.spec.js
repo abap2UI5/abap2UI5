@@ -177,23 +177,27 @@ test("hrefFor treats a bare intent hash as all shell", () => {
 // 2. Route patterns
 // ---------------------------------------------------------------------------
 
-test("patternFor / appOf / draftOf round-trip", () => {
+test("patternFor / parse round-trip", () => {
   const { Router } = loadRouter();
   expect(Router.patternFor("Z2UI5_CL_X", "DRAFT9")).toBe(
     "/app/Z2UI5_CL_X/DRAFT9",
   );
   expect(Router.patternFor("Z2UI5_CL_X")).toBe("/app/Z2UI5_CL_X"); // no draft
-  expect(Router.appOf("/app/Z2UI5_CL_X/DRAFT9")).toBe("Z2UI5_CL_X");
-  expect(Router.draftOf("/app/Z2UI5_CL_X/DRAFT9")).toBe("DRAFT9");
-  expect(Router.draftOf("#/app/Z2UI5_CL_X/DRAFT9")).toBe("DRAFT9");
-  expect(Router.draftOf("/app/Z2UI5_CL_X")).toBe(""); // class only
+  // parse( ) is the one reader of a route: the appOf / draftOf accessors
+  // next to it had no caller left outside this spec
+  expect(Router.parse("/app/Z2UI5_CL_X/DRAFT9")).toEqual({
+    app: "Z2UI5_CL_X",
+    draft: "DRAFT9",
+  });
+  expect(Router.parse("#/app/Z2UI5_CL_X/DRAFT9").draft).toBe("DRAFT9");
+  expect(Router.parse("/app/Z2UI5_CL_X").draft).toBe(""); // class only
 });
 
 test("non-app hashes parse to no route", () => {
   const { Router } = loadRouter();
   expect(Router.parse("")).toBe(null);
-  expect(Router.appOf("/head/pos/42")).toBe("");
-  expect(Router.draftOf("#/z2ui5-xapp-state=abc")).toBe("");
+  expect(Router.parse("/head/pos/42")).toBe(null);
+  expect(Router.parse("#/z2ui5-xapp-state=abc")).toBe(null);
   expect(Router.parse(`#${FLP_SHELL}`)).toBe(null); // bare launchpad hash
 });
 
@@ -424,7 +428,7 @@ test("set_push_state in KEEP mode pushes the route through the HashChanger", () 
   ]);
   // the entry below the push still names D1, so its echo must not be
   // swallowed: a D1 route differs from the current draft and restores
-  expect(Router.draftOf(`#/app/${CALLER}/D1`)).toBe("D1");
+  expect(Router.parse(`#/app/${CALLER}/D1`).draft).toBe("D1");
   expect(state.currentDraftId).toBe("D2");
 });
 
@@ -690,7 +694,7 @@ test("routes with stacked leading slashes still parse (old history entries)", ()
     app: CALLEE,
     draft: "D9",
   });
-  expect(Router.appOf(`//app/${CALLEE}`)).toBe(CALLEE);
+  expect(Router.parse(`//app/${CALLEE}`).app).toBe(CALLEE);
 });
 
 // The option names are a contract with the backend: z2ui5_cl_ui5_act_front=>

@@ -35,25 +35,15 @@ export const BUILTINS = [
 export const CALL = new RegExp(`\\b(${BUILTINS.join("|")})\\s*\\(`, "i");
 
 /* Comments and string literals never hold an operand position, and both are
- * full of words that would otherwise match. */
-export function stripNoise(line) {
-  let out = "";
-  let quote = null;
-  for (let i = 0; i < line.length; i += 1) {
-    const c = line[i];
-    if (quote) {
-      if (c === quote) quote = null;
-      continue;
-    }
-    if (c === "`" || c === "'") {
-      quote = c;
-      continue;
-    }
-    if (c === '"') break; // rest of the line is a comment
-    out += c;
-  }
-  return out;
-}
+ * full of words that would otherwise match.
+ *
+ * Re-exported from the statement lexer rather than written here: this file
+ * carried its own loop, and that loop knew `'` and backtick and not `|`, so a
+ * `"` inside a string template ended the scan and everything after it on the
+ * line - the table-expression key, the WITH KEY operand, the WHERE - went
+ * unchecked. The lexer is the module that already gets `|...|` right, escapes
+ * and embedded `{ }` included. */
+export { stripNoise } from "./abap-statements.mjs";
 
 /* The three positions, each as the slice of the line that IS the position.
  * Line-scoped on purpose: a key or a WHERE operand split across lines still

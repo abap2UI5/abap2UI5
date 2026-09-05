@@ -2408,6 +2408,10 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     " the payload lives on the canonical row - also when that row is in the
     " nested object (sample 339 with the sort order turned around)
     METHODS payload_on_canonical_row FOR TESTING RAISING cx_static_check.
+    " the payload travels as two documents, type and data - and a row
+    " written before (one combined document) is still restored
+    METHODS payload_two_documents    FOR TESTING RAISING cx_static_check.
+    METHODS payload_one_document_old FOR TESTING RAISING cx_static_check.
     " what does NOT survive, quietly
     METHODS dead_objects_stay_quiet  FOR TESTING RAISING cx_static_check.
     " what has to survive, loudly if it cannot
@@ -2544,6 +2548,46 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     ASSIGN mo_app->mr_shared_a->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( <tab> ) ).
+
+  ENDMETHOD.
+
+  METHOD payload_two_documents.
+
+    bind( mo_app->mr_shared_a ).
+    mo_model->main_attri_db_save_srtti( ).
+
+    " type and data on the canonical row, each a document of its own
+    cl_abap_unit_assert=>assert_not_initial( row( `MR_SHARED_B` )-srtti_type ).
+    cl_abap_unit_assert=>assert_not_initial( row( `MR_SHARED_B` )-srtti_data ).
+    cl_abap_unit_assert=>assert_initial( row( `MR_SHARED_A` )-srtti_type ).
+
+    mo_model->main_attri_db_load( ).
+    inv_identity_shared( ).
+    cl_abap_unit_assert=>assert_initial( row( `MR_SHARED_B` )-srtti_type ).
+
+  ENDMETHOD.
+
+  METHOD payload_one_document_old.
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    bind( mo_app->mr_shared_a ).
+    mo_model->main_attri_db_save_srtti( ).
+
+    " rewrite the row the way every draft before 2026-09 carried it: one
+    " combined document and no type of its own
+    DATA(lr_row) = REF #( mr_attri->*[ name = `MR_SHARED_B` ] ).
+    DATA(lr_val) = z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair( iv_type = lr_row->srtti_type
+                                                                    iv_data = lr_row->srtti_data ).
+    ASSIGN lr_val->* TO <val>.
+    lr_row->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val> ).
+    CLEAR lr_row->srtti_type.
+
+    mo_model->main_attri_db_load( ).
+    cl_abap_unit_assert=>assert_bound( act = mo_app->mr_shared_a
+                                       msg = `the one-document payload was not restored` ).
+    cl_abap_unit_assert=>assert_initial( row( `MR_SHARED_B` )-srtti_data ).
+    inv_identity_shared( ).
 
   ENDMETHOD.
 

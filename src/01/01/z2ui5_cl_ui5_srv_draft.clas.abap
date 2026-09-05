@@ -49,14 +49,13 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
     METHODS cleanup.
 
   PROTECTED SECTION.
+  PRIVATE SECTION.
     METHODS read
       IMPORTING
         id             TYPE clike
         check_load_app TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result)  TYPE ty_s_db.
-
-  PRIVATE SECTION.
 ENDCLASS.
 
 

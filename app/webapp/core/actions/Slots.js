@@ -478,6 +478,14 @@ sap.ui.define(
     // context (FrontendAction.runSystem) - a display superseded by a newer
     // request discards its build instead of overwriting the newer view.
     function action(method, slotKey, xml, mOptions, seq) {
+      // The options are optional on the wire - a display that needs none
+      // (a popup, or the devtools' local re-render) carries no fourth
+      // argument at all. Normalized once, for every slot: MAIN was the
+      // only one that took care of it, while the POPOVER read
+      // mOptions.openById and the nested display destructured mOptions
+      // straight away, so exactly those two died on the shape MAIN
+      // tolerated.
+      const options = mOptions || {};
       if (method === "destroy") {
         ViewSlots.destroy(slotKey);
         return undefined;
@@ -505,15 +513,15 @@ sap.ui.define(
         // slot (devtools LiveEdit) can reuse them: a switch-mode MAIN
         // re-displayed with empty options came back without its OData
         // default model and looked broken in the preview
-        AppState.state.lastMainDisplayOptions = mOptions || {};
-        return displayMain(xml, mOptions, seq);
+        AppState.state.lastMainDisplayOptions = options;
+        return displayMain(xml, options, seq);
       }
       ViewSlots.destroy(slotKey);
       if (slotKey === "POPUP") return displayFragment(xml, seq);
       if (slotKey === "POPOVER") {
-        return displayPopover(xml, mOptions.openById, seq);
+        return displayPopover(xml, options.openById, seq);
       }
-      return displayNestedView(xml, slotKey, mOptions, seq);
+      return displayNestedView(xml, slotKey, options, seq);
     }
 
     // action is the module's entry point (the VIEW_SLOTS target);

@@ -6,6 +6,29 @@ const { loadModule } = require("./loadModule");
 // app/webapp/devtools/LiveEdit.js - the local, roundtrip-free
 // re-render of a view slot from the developer tools editor.
 
+// The REAL tab registry, with the modules it renders from stubbed away:
+// LiveEdit resolves a tab's slot through Tabs.get(), so the mapping is
+// pinned to the shipped table instead of to a copy in this spec (which is
+// what the second table inside LiveEdit was).
+function realTabs() {
+  const { module } = loadModule("devtools/Tabs.js", {
+    deps: {
+      // Only the table is read here (Tabs.get), never a produce() - so
+      // the modules a tab renders from stay empty stubs.
+      "z2ui5/core/AppState": { state: {} },
+      "z2ui5/core/ViewSlots": {
+        getView: () => undefined,
+        getViewXml: () => "",
+      },
+      "z2ui5/devtools/Format": {},
+      "z2ui5/devtools/Inspect": {},
+      "z2ui5/devtools/Picker": {},
+      "z2ui5/devtools/Recorder": {},
+    },
+  });
+  return module;
+}
+
 function loadLiveEdit({ views = {}, slotXml = {}, isBusy = false } = {}) {
   const calls = [];
   const logged = [];
@@ -29,6 +52,7 @@ function loadLiveEdit({ views = {}, slotXml = {}, isBusy = false } = {}) {
         getViewXml: (key) => slotXml[key],
         destroy: (key) => destroyed.push(key),
       },
+      "z2ui5/devtools/Tabs": realTabs(),
     },
   });
   return {
@@ -60,15 +84,32 @@ test.describe("tab to slot mapping", () => {
     const { LiveEdit } = loadLiveEdit();
     expect(LiveEdit.slotOfTab("VIEW")).toBe("MAIN");
     expect(LiveEdit.slotOfTab("POPUP")).toBe("POPUP");
+    expect(LiveEdit.slotOfTab("POPOVER")).toBe("POPOVER");
     expect(LiveEdit.slotOfTab("NEST1")).toBe("NEST");
     expect(LiveEdit.slotOfTab("NEST2")).toBe("NEST2");
   });
 
+  // The mapping IS the registry: every tab that names a slot and shows
+  // its XML is editable, and nothing else - so a slot tab added to
+  // Tabs.js is applicable without a second table being touched here.
+  test("every XML sub-view of the registry is editable, no other tab is", () => {
+    const { LiveEdit } = loadLiveEdit();
+    const Tabs = realTabs();
+    for (const tab of Tabs._internals.TABS) {
+      const expected = tab.aspect === "XML" ? tab.slot : undefined;
+      expect(LiveEdit.slotOfTab(tab.key)).toBe(expected);
+    }
+  });
+
   test("a non-view tab maps to nothing and cannot be applied", () => {
     const { LiveEdit } = loadLiveEdit();
+    // MODEL names a slot in the registry, but shows the model rather than
+    // the XML - there is nothing to render back into the slot.
     expect(LiveEdit.slotOfTab("MODEL")).toBe(undefined);
+    expect(LiveEdit.slotOfTab("PICK")).toBe(undefined);
     expect(LiveEdit.canApply("MODEL")).toBe(false);
     expect(LiveEdit.canApply("HISTORY")).toBe(false);
+    expect(LiveEdit.canApply("NOT_A_TAB")).toBe(false);
   });
 
   test("a view tab is only applicable while its slot is filled", () => {
@@ -127,17 +168,18 @@ test.describe("apply", () => {
   });
 });
 
-test.describe("originalXml / isBusy", () => {
-  test("returns the view's own XML, falling back to the recorded one", () => {
-    const withView = loadLiveEdit({
-      views: { MAIN: fakeView({ xml: "<live/>" }) },
-      slotXml: { MAIN: "<recorded/>" },
-    });
-    expect(withView.LiveEdit.originalXml("VIEW")).toBe("<live/>");
-
-    const xmlOnly = loadLiveEdit({ slotXml: { POPUP: "<recorded/>" } });
-    expect(xmlOnly.LiveEdit.originalXml("POPUP")).toBe("<recorded/>");
-    expect(xmlOnly.LiveEdit.originalXml("MODEL")).toBe("");
+test.describe("isBusy", () => {
+  // originalXml( ) is gone with the private table: the dialog's Reset
+  // reads the slot's XML through the tab registry (Tabs.render), so this
+  // module no longer offers a second reader of the same string.
+  test("the module exposes only what the dialog calls", () => {
+    const { LiveEdit } = loadLiveEdit();
+    expect(Object.keys(LiveEdit).sort()).toEqual([
+      "apply",
+      "canApply",
+      "isBusy",
+      "slotOfTab",
+    ]);
   });
 
   test("reports a running roundtrip", () => {

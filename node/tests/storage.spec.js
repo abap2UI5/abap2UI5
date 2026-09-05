@@ -8,13 +8,15 @@ const { loadModule } = require("./loadModule");
 // what it holds, so a structured payload comes back as a fresh object every
 // read and a reference comparison would fire on every render (round-trip
 // loop).
-function load({ stored = null, value = "" } = {}) {
+function load({ stored = null, value = "", type = "local" } = {}) {
   const errors = [];
+  const built = [];
   const { module: StorageControl } = loadModule("cc/Storage.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "sap/ui/util/Storage": class {
-        constructor() {
+        constructor(storageType, prefix) {
+          built.push({ storageType, prefix });
           this.get = () => stored;
         }
         static Type = { local: "local", session: "session" };
@@ -29,12 +31,12 @@ function load({ stored = null, value = "" } = {}) {
   const fired = [];
   const instance = Object.create(StorageControl);
   instance._pendingRead = true;
-  instance._props = { type: "local", prefix: "p", key: "k", value };
+  instance._props = { type, prefix: "p", key: "k", value };
   instance.getProperty = (name) => instance._props[name];
   instance.setProperty = (name, v) => (instance._props[name] = v);
   instance.fireFinished = (payload) => fired.push(payload);
 
-  return { instance, fired, errors };
+  return { instance, fired, errors, built };
 }
 
 test("a changed string value fires finished once", () => {
@@ -179,4 +181,25 @@ test("the read runs only once per render", () => {
   instance.onAfterRendering();
 
   expect(fired).toHaveLength(1);
+});
+
+// The type is free text from the backend, and `LOCAL` is how an ABAP
+// constant spells it. Both halves of the pair resolve it the same way -
+// the write side is STORE_DATA (node/tests/browserActions.spec.js).
+test("the storage type is matched case-insensitively", () => {
+  const { instance, built, errors } = load({ stored: "v", type: "LOCAL" });
+
+  instance.onAfterRendering();
+
+  expect(built).toEqual([{ storageType: "local", prefix: "p" }]);
+  expect(errors).toEqual([]);
+});
+
+test("an unknown type is logged and read from the session store", () => {
+  const { instance, built, errors } = load({ stored: "v", type: "cookie" });
+
+  instance.onAfterRendering();
+
+  expect(built[0].storageType).toBe("session");
+  expect(errors.some((m) => m.includes("unknown type 'cookie'"))).toBe(true);
 });

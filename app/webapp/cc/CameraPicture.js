@@ -253,9 +253,14 @@ sap.ui.define(
               text: "Camera",
               // Pressing the trigger notifies the backend (press event, when
               // bound) and opens the local camera dialog.
+              //
+              // press is declared allowPreventDefault, so firePress( )
+              // returns false when a handler vetoed it - and a veto means
+              // "do not do the default thing", which here is opening the
+              // camera. Opening it anyway made the declaration a lie: an
+              // app could not stop the dialog, only be told afterwards.
               press: () => {
-                oControl.firePress();
-                oControl.onPicture();
+                if (oControl.firePress()) oControl.onPicture();
               },
             });
           }

@@ -451,21 +451,19 @@ console.log(
  * is for, and only a person can say whether a given wait is still reasonable. */
 const byState = {};
 for (const i of items) byState[i.meta.state] = (byState[i.meta.state] || 0) + 1;
-const today = new Date();
-const ageOf = (d) => Math.round((today - new Date(d)) / 86400000);
 
 console.log(`  ${[...STATES].map(([s, spec]) => `${spec.label.toLowerCase()}: ${byState[s] || 0}`).join(' · ')}`);
 
 const stale = items
-  .filter((i) => i.meta.state === 'open' && ageOf(i.meta.first_seen) > STALE_DAYS)
-  .sort((a, b) => ageOf(b.meta.first_seen) - ageOf(a.meta.first_seen));
+  .filter((i) => i.meta.state === 'open' && ageInDays(i.meta.first_seen) > STALE_DAYS)
+  .sort((a, b) => ageInDays(b.meta.first_seen) - ageInDays(a.meta.first_seen));
 if (stale.length) {
   console.log(`\n  ${stale.length} open item(s) older than ${STALE_DAYS} days — file it, or delete it:`);
-  for (const i of stale) console.log(`    ${i.id}  ${ageOf(i.meta.first_seen)} days  (${i.meta.upstream || TARGETS.find((x) => x.key === i.meta.target).upstream})`);
+  for (const i of stale) console.log(`    ${i.id}  ${ageInDays(i.meta.first_seen)} days  (${i.meta.upstream || TARGETS.find((x) => x.key === i.meta.target).upstream})`);
 } else {
   const open = items.filter((i) => i.meta.state === 'open');
-  const oldest = open.sort((a, b) => ageOf(b.meta.first_seen) - ageOf(a.meta.first_seen))[0];
-  if (oldest) console.log(`  oldest open: ${oldest.id}, ${ageOf(oldest.meta.first_seen)} days`);
+  const oldest = open.sort((a, b) => ageInDays(b.meta.first_seen) - ageInDays(a.meta.first_seen))[0];
+  if (oldest) console.log(`  oldest open: ${oldest.id}, ${ageInDays(oldest.meta.first_seen)} days`);
 }
 
 /* `checked_upstream:` is required once (above), but the search it records goes
@@ -478,12 +476,12 @@ if (stale.length) {
  * work hostage, which is the same trade STALE_DAYS above makes. */
 const unchecked = items
   .filter((i) => i.meta.state === 'open' && i.meta.checked_upstream
-    && ageOf(i.meta.checked_upstream) > UPSTREAM_CHECK_DAYS)
-  .sort((a, b) => ageOf(b.meta.checked_upstream) - ageOf(a.meta.checked_upstream));
+    && ageInDays(i.meta.checked_upstream) > UPSTREAM_CHECK_DAYS)
+  .sort((a, b) => ageInDays(b.meta.checked_upstream) - ageInDays(a.meta.checked_upstream));
 if (unchecked.length) {
   console.log(`\n  ${unchecked.length} open item(s) whose upstream search is older than ${UPSTREAM_CHECK_DAYS} days:`);
   for (const i of unchecked) {
-    console.log(`    ${i.id}  checked ${ageOf(i.meta.checked_upstream)} days ago  (${i.meta.upstream || TARGETS.find((x) => x.key === i.meta.target).upstream})`);
+    console.log(`    ${i.id}  checked ${ageInDays(i.meta.checked_upstream)} days ago  (${i.meta.upstream || TARGETS.find((x) => x.key === i.meta.target).upstream})`);
   }
 }
 

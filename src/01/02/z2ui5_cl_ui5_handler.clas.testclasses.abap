@@ -402,6 +402,8 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_sanitized FOR TESTING RAISING cx_static_check.
+    METHODS test_context_info_stale_action FOR TESTING RAISING cx_static_check.
+    METHODS test_request_app_start_ns FOR TESTING RAISING cx_static_check.
     METHODS test_app_start_encoded_slash FOR TESTING RAISING cx_static_check.
     METHODS test_hash_app_part FOR TESTING RAISING cx_static_check.
     METHODS test_hash_shell_part FOR TESTING RAISING cx_static_check.
@@ -740,6 +742,45 @@ CLASS ltcl_01_request IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `ABC123`
                                         act = ls_request-s_front-id ).
+
+  ENDMETHOD.
+
+  METHOD test_context_info_stale_action.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " a sticky handler whose next body fails to parse still holds the
+    " previous roundtrip's action - its event must not annotate the failure
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action = NEW z2ui5_cl_ui5_action( lo_handler ).
+    lo_handler->mo_action->ms_actual-event = `PREVIOUS_EVENT`.
+
+    DATA(lv_info) = lo_handler->request_context_info( ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_info CS `PREVIOUS_EVENT` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS `request not parsed` ) ).
+
+    " once the body is parsed the event is this request's
+    lo_handler->mv_request_parsed = abap_true.
+    lv_info = lo_handler->request_context_info( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS `event PREVIOUS_EVENT` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_request_app_start_ns.
+
+    " a namespaced class in a launchpad startup parameter arrives as
+    " `-ns-class` (no slash survives the intent) and is the class it spells
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"CONFIG":{"ComponentData":{"startupParameters":{"app_start":["-ns-zcl_my_app"]}}}}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
+                                        act = ls_request-s_control-app_start ).
 
   ENDMETHOD.
 

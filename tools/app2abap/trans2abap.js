@@ -176,7 +176,7 @@ function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
 const CLASS_NAME_PREFIX = 'z2ui5_cl_ui5f_';
 
 // ABAP object names are capped at 30 characters, but a generated name must
-// survive the rename workflow (.github/workflows/build_rename.yaml), which
+// survive the rename workflow (.github/workflows/build-rename.yaml), which
 // swaps the 5-character `z2ui5` for a namespace of up to 10 characters. So the
 // budget here is 25, not 30 - that is what keeps
 // .github/abaplint/rename.jsonc down to a single catch-all pattern with no
@@ -317,7 +317,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
     " Every non-.js resource in get( ) is embedded as a JavaScript
     " single-quoted string literal, inside the single <script> block that
-    " defines onInitComponent (z2ui5_cl_http_handler=>_http_get). Its content
+    " defines onInitComponent (z2ui5_cl_ui5_http_handler=>_http_get). Its content
     " is arbitrary text and does carry apostrophes - a UI5 expression binding
     " in a fragment (title="{= \${/appName} ? 'a' : 'b' }") writes them, and so
     " does a customer's own styles_css from the exit. An unescaped one ends the

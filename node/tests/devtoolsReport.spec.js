@@ -166,12 +166,17 @@ test.describe("buildExport", () => {
     expect(out).toContain("===== POPUP MODEL =====");
   });
 
-  test("truncates a huge section and points at the tab that has it whole", () => {
+  test("truncates a huge section and names it as the section it is", () => {
+    // The hint names the SECTION, not a tab: for a View & Data sub-view a
+    // section title is "POPUP MODEL" or "VIEW BINDINGS" - a slot plus an
+    // aspect, which no tab is called.
     const { Report } = loadReport({
       lastError: { title: "T", text: "x".repeat(150000) },
     });
     const out = Report.buildExport();
-    expect(out).toContain("more characters - open the ERROR tab");
+    expect(out).toContain(
+      "more characters - the developer tools show the full ERROR content",
+    );
   });
 });
 

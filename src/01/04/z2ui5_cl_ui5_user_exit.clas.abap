@@ -9,11 +9,11 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
 
     CLASS-METHODS get_instance
       RETURNING
-        VALUE(ri_exit) TYPE REF TO z2ui5_if_ui5_exit.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_exit.
 
     CLASS-METHODS get_user_exit_class
       RETURNING
-        VALUE(r_class_name) TYPE string.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
     CLASS-DATA gi_me            TYPE REF TO z2ui5_if_ui5_exit.
@@ -47,7 +47,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   METHOD get_instance.
 
     IF gi_me IS BOUND.
-      ri_exit = gi_me.
+      result = gi_me.
       RETURN.
     ENDIF.
 
@@ -58,7 +58,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     ENDIF.
 
     gi_me = NEW z2ui5_cl_ui5_user_exit( ).
-    ri_exit = gi_me.
+    result = gi_me.
 
   ENDMETHOD.
 
@@ -138,7 +138,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " transport or a system copy. Sorting makes it reproducible.
         SORT exit_classes BY classname.
 
-        r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
+        result = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 

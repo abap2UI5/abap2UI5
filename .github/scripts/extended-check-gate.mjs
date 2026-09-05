@@ -51,7 +51,7 @@ import { walk } from "./lib/walk.mjs";
 // comments rather than stripping them: the pseudo-comments this gate is about
 // ("#EC ...) live in exactly the trailing comment of the statement they
 // annotate.
-import { statements } from "./lib/abap-statements.mjs";
+import { statements, stripNoise } from "./lib/abap-statements.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -76,14 +76,25 @@ const NOTHING_TO_DOCUMENT =
   /^\s*(end\s+of\b|endclass\b|endinterface\b|(public|protected|private)\s+section\b)/i;
 
 function abapdocFindings(file, source) {
+  const out = [];
   const src = source.split("\n");
   src.forEach((line, i) => {
     if (!/^\s*"!/.test(line)) return;
     if (/^\s*"!/.test(src[i - 1] || "")) return; // only the block's first line
 
+    /* Walk up to the previous line of CODE. What is skipped is everything
+     * that cannot end a statement: a blank line and a full-line comment -
+     * `"` and `*` alike. The `*` half was missing, so a `*` note above a
+     * correctly placed block became the "previous line", ended in no
+     * terminator, and the block was reported as sitting in a parameter list.
+     * The `"` half now includes `"!`, because an ABAP Doc block is not code
+     * either. */
     let p = i - 1;
-    while (p >= 0 && (!src[p].trim() || /^\s*"[^!]/.test(src[p]) || src[p].trim() === '"')) p -= 1;
-    const prev = p >= 0 ? src[p].trim() : "";
+    while (p >= 0 && (!src[p].trim() || /^\s*[*"]/.test(src[p]))) p -= 1;
+    /* ...and the code line's own TRAILING comment is not part of it. Testing
+     * the raw line for its terminator made `DATA foo TYPE i. " why` end in a
+     * `y`, which is the same false finding from the other side. */
+    const prev = p >= 0 ? stripNoise(src[p]).trim() : "";
 
     let n = i + 1;
     while (n < src.length && (/^\s*"!/.test(src[n]) || !src[n].trim())) n += 1;
@@ -91,21 +102,77 @@ function abapdocFindings(file, source) {
 
     const at = `${file}:${i + 1}`;
     if (prev && !/[.:,]$/.test(prev)) {
-      findings.push({
+      out.push({
         at,
         rule: "abapdoc",
         message: '"! inside a parameter list documents nothing - use "! @parameter <name> | <text> in the method\'s own block',
       });
     } else if (CHAIN_KEYWORD.test(next)) {
-      findings.push({
+      out.push({
         at,
         rule: "abapdoc",
         message: `"! before the chain keyword \`${next}\` documents nothing - move it inside the chain, directly before the member`,
       });
     } else if (NOTHING_TO_DOCUMENT.test(next)) {
-      findings.push({ at, rule: "abapdoc", message: `"! before \`${next}\` documents nothing` });
+      out.push({ at, rule: "abapdoc", message: `"! before \`${next}\` documents nothing` });
     }
   });
+  return out;
+}
+
+/* Self-test: the placement rule, on the shapes that decide it, before a
+ * single source file is read. The gate is green over src/ either way - the
+ * findings it was written for were repaired in the change that added it - so
+ * a rule that started reporting correctly placed blocks, or stopped reporting
+ * misplaced ones, would be invisible here. Both halves below actually
+ * happened: a `*` note and a trailing comment each made a correctly placed
+ * block look like one sitting in a parameter list.
+ *
+ * `expect` is the number of findings on the snippet. */
+const ABAPDOC_SELF_TEST = [
+  {
+    name: "a block directly before its declaration - the correct shape",
+    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    "! what it does\n    METHODS run.\nENDCLASS.',
+    expect: 0,
+  },
+  {
+    name: "the code line above ends in a TRAILING COMMENT",
+    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    DATA mv_a TYPE i. " the counter\n    "! what it does\n    METHODS run.\nENDCLASS.',
+    expect: 0,
+  },
+  {
+    name: "a `*` comment line sits between the code and the block",
+    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    DATA mv_a TYPE i.\n* a note about what follows\n    "! what it does\n    METHODS run.\nENDCLASS.',
+    expect: 0,
+  },
+  {
+    name: "inside a parameter list - the finding the rule exists for",
+    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    METHODS run\n      IMPORTING\n        "! the value\n        val TYPE i.\nENDCLASS.',
+    expect: 1,
+  },
+  {
+    name: "before the chain keyword instead of inside the chain",
+    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    "! the modes\n    CONSTANTS:\n      BEGIN OF cs_mode,\n        a TYPE string VALUE `A`,\n      END OF cs_mode.\nENDCLASS.',
+    expect: 1,
+  },
+  {
+    name: "before a section end, where there is nothing to document",
+    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    METHODS run.\n    "! orphaned\n  PROTECTED SECTION.\n  PRIVATE SECTION.\nENDCLASS.',
+    expect: 1,
+  },
+];
+
+for (const testCase of ABAPDOC_SELF_TEST) {
+  const got = abapdocFindings("selftest.clas.abap", testCase.source);
+  if (got.length !== testCase.expect) {
+    console.error(`extended-check: the gate's own self-test failed - "${testCase.name}"`);
+    console.error(`  expected ${testCase.expect} finding(s), got ${got.length}`);
+    for (const f of got) console.error(`    ${f.at}: ${f.message}`);
+    console.error("");
+    console.error("The ABAP Doc placement rule changed. A green run over src/ says nothing");
+    console.error("while this case fails - src/ carries no misplaced block to fire on.");
+    process.exit(1);
+  }
 }
 
 // ABAP Doc is parsed as HTML. The tags it knows are the few below; anything
@@ -131,7 +198,7 @@ function abapdocHtmlFindings(file, source) {
 
 for (const file of files) {
   const source = readFileSync(join(ROOT, file), "utf8");
-  if (/\.(clas|intf)\.abap$/.test(file)) abapdocFindings(file, source);
+  if (/\.(clas|intf)\.abap$/.test(file)) findings.push(...abapdocFindings(file, source));
   abapdocHtmlFindings(file, source);
   const stmts = statements(source);
 
@@ -234,4 +301,4 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(`extended-check: ${files.length} file(s) checked - OK`);
+console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length} self-test case(s) checked - OK`);

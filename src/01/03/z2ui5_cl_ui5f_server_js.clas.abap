@@ -83,6 +83,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `      restoreFromRoute() {` && |\n| &&
              `        AppState.state.isBusy = true;` && |\n| &&
              `        BusyIndicator.show(0);` && |\n| &&
+             `` && |\n| &&
+             `        Lib.cancelPendingTimers();` && |\n| &&
              `        this.roundtrip({});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

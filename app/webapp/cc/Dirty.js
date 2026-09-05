@@ -22,7 +22,7 @@ sap.ui.define(
         : null;
     }
 
-    return Control.extend("z2ui5.cc.Dirty", {
+    const Dirty = Control.extend("z2ui5.cc.Dirty", {
       metadata: {
         properties: {
           isDirty: {
@@ -74,5 +74,20 @@ sap.ui.define(
       },
       renderer: Lib.EMPTY_RENDERER,
     });
+
+    // Component teardown (Component.exit). The set above is MODULE state -
+    // it has to be, because the two mechanisms it feeds are single global
+    // slots - and an instance only leaves it through its own exit( ). The
+    // POPUP and POPOVER slots are not destroyed on the way out, so a Dirty
+    // control inside a dialog never runs one: its entry survived the
+    // component and kept window.onbeforeunload installed, and the next app
+    // (an FLP re-launch keeps the page alive) asked "leave page?" for
+    // unsaved changes that belonged to an app that no longer exists.
+    Dirty.reset = function reset() {
+      dirtyControls.clear();
+      syncUnloadPrompt(false);
+    };
+
+    return Dirty;
   },
 );

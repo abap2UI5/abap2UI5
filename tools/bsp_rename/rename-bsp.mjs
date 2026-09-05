@@ -72,7 +72,8 @@
 
 import { readFile, writeFile, rename, readdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { join, basename, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { join, basename, dirname, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout, argv, exit } from "node:process";
 
@@ -162,7 +163,7 @@ only when you are rebranding the backend as well.`;
 //   up/lo ......... full BSP application name   (Z2UI5 / /ABAPGIT/UI5)
 //   leafUp/leafLo . ICF node name, no slashes   (= up/lo for plain names)
 //   handlerUp/Lo .. ICF handler class name
-function deriveNames(input) {
+export function deriveNames(input) {
   const name = input.trim().replace(/#/g, "/"); // accept the abapGit file-name spelling
   const warnings = [];
 
@@ -216,7 +217,7 @@ function deriveNames(input) {
 }
 
 // abapGit escapes the "/" of namespaced object names as "#" in file names.
-const toFileName = (s) => s.replace(/\//g, "#");
+export const toFileName = (s) => s.replace(/\//g, "#");
 
 // ---------------------------------------------------------------------------
 // Content transforms (one per file category)
@@ -224,13 +225,34 @@ const toFileName = (s) => s.replace(/\//g, "#");
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const sicfHash = (url) => createHash("sha1").update(url).digest("hex").slice(0, SICF_HASH_LEN);
 
-// The handler class token contains the BSP token as prefix, so it must be
-// replaced FIRST - with a namespace the two are no longer prefix-compatible
-// (Z2UI5_CL_LP_HANDLER -> /ABAPGIT/CL_LP_HANDLER, Z2UI5 -> /ABAPGIT/UI5).
-function replaceHandler(content, N) {
-  return content
-    .split(OLD_HANDLER_LO.toUpperCase()).join(N.handlerUp)
-    .split(OLD_HANDLER_LO).join(N.handlerLo);
+// The old tokens and what each becomes, longest first: the handler class
+// token starts with the BSP token, so a scan that took the short one first
+// would cut the handler name in half.
+const tokenPairs = (N, up, lo) => [
+  [OLD_HANDLER_LO.toUpperCase(), N.handlerUp],
+  [OLD_HANDLER_LO, N.handlerLo],
+  [OLD_UP, up],
+  [OLD_LO, lo],
+];
+
+// ONE pass over the text, replacing whichever token matches at each position.
+//
+// It used to be two passes - handler first, then the bare BSP name - and the
+// second pass walked over what the FIRST one had written. That is harmless
+// only while the new handler name does not itself contain the old BSP token,
+// and for the documented `ZMYUI5` / `/ABAPGIT/` cases it does not. For a name
+// that KEEPS the prefix it does: Z2UI5 -> Z2UI5_V2 makes the handler
+// Z2UI5_V2_CL_LP_HANDLER, whose leading `Z2UI5` the second pass renamed
+// again, and the SICF node shipped pointing at Z2UI5_V2_V2_CL_LP_HANDLER - a
+// class that exists nowhere, so the renamed ICF node answers 500 on the first
+// request. `Z2UI5_V2` is the name this repository's own README hands out.
+//
+// A function replacer, so a `$&` or `$1` in a name is text and not a
+// back-reference.
+function replaceTokens(content, pairs) {
+  const map = new Map(pairs);
+  const re = new RegExp(pairs.map(([from]) => escapeRe(from)).join("|"), "g");
+  return content.replace(re, (m) => map.get(m));
 }
 
 // SICF node: URL, ICF_NAME/ORIG_NAME fields, handler class. For /NS/ names
@@ -238,32 +260,31 @@ function replaceHandler(content, N) {
 // namespaced BSPs) and the remaining bare tokens are the ICF node name
 // fields, which carry only the leaf name (no slashes allowed).
 function transformSicf(content, N) {
-  let c = replaceHandler(content, N);
   if (N.ns) {
-    c = c
+    const c = content
       .split(`/bsp/sap/${OLD_LO}/`).join(`/bsp/${N.nsLo}/${N.leafLo}/`)
       .split(`/ui5_ui5/sap/${OLD_LO}/`).join(`/ui5_ui5/${N.nsLo}/${N.leafLo}/`)
       .split(`/sap/bc/${OLD_LO}/`).join(`/sap/bc/${N.nsLo}/${N.leafLo}/`);
-    return c.split(OLD_UP).join(N.leafUp).split(OLD_LO).join(N.leafLo);
+    return replaceTokens(c, tokenPairs(N, N.leafUp, N.leafLo));
   }
-  return c.split(OLD_UP).join(N.up).split(OLD_LO).join(N.lo);
+  return replaceTokens(content, tokenPairs(N, N.up, N.lo));
 }
 
 // SMIM folder: the MIME URL of a namespaced BSP is /SAP/BC/BSP/<NS>/<NAME>.
 function transformSmim(content, N) {
-  let c = replaceHandler(content, N);
+  let c = content;
   if (N.ns) {
     c = c
       .split(`/BSP/SAP/${OLD_UP}`).join(`/BSP/${N.ns}/${N.leafUp}`)
       .split(`/bsp/sap/${OLD_LO}`).join(`/bsp/${N.nsLo}/${N.leafLo}`);
   }
-  return c.split(OLD_UP).join(N.up).split(OLD_LO).join(N.lo);
+  return replaceTokens(c, tokenPairs(N, N.up, N.lo));
 }
 
 // BSP application descriptor (z2ui5.wapa.xml): APPLNAME/APPLEXT carry the
 // full (possibly namespaced) application name.
 function transformWapa(content, N) {
-  return replaceHandler(content, N).split(OLD_UP).join(N.up).split(OLD_LO).join(N.lo);
+  return replaceTokens(content, tokenPairs(N, N.up, N.lo));
 }
 
 // ABAP class source / metadata: rename ONLY our own handler class and KEEP
@@ -519,4 +540,11 @@ async function main() {
   console.log(`Review with "git status" / "git diff" before committing.\n`);
 }
 
-main().catch((err) => { console.error(err); exit(1); });
+/* CLI only. `deriveNames` and `toFileName` are exported because
+ * app2app_v2/build-legacy-free.mjs has to compute the data source and the
+ * manifest FILE NAME this script writes; it read them off the raw --name
+ * argument instead and found no file for a namespaced one. Importing the
+ * module must not start a rename, hence the guard. */
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+  main().catch((err) => { console.error(err); exit(1); });
+}

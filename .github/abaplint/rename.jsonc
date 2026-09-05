@@ -2,7 +2,7 @@
   // Namespace rename config. Renames every artifact from z2ui5 to the
   // placeholder namespace "znamespace"; the build_rename workflow replaces the
   // placeholder with the chosen name (max. 10 characters) before running
-  // `abaplint <config> --rename` - see .github/workflows/build_rename.yaml.
+  // `abaplint <config> --rename` - see .github/workflows/build-rename.yaml.
   //
   // This is also what the rename step of the abaplint PR gate runs
   // (`npm run rename`), against
@@ -12,7 +12,7 @@
   //
   // A single catch-all pattern is enough because every object name in src/ is
   // kept at 25 characters or less: generated frontend artifacts are capped by
-  // MAX_CLASS_NAME_LENGTH in .github/app2abap/trans2abap.js, hand-written ones
+  // MAX_CLASS_NAME_LENGTH in tools/app2abap/trans2abap.js, hand-written ones
   // by review. 25 + 5 (znamespace is 10 chars, z2ui5 is 5) = the 30-character
   // ABAP limit, hit exactly.
   "global": {

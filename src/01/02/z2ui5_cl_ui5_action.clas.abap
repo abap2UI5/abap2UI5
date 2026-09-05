@@ -46,6 +46,11 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
   PRIVATE SECTION.
+    " the requested app class as it may be quoted in an error text
+    METHODS app_start_safe
+      RETURNING
+        VALUE(result) TYPE string.
+
     " set by prepare_app_stack on the action it builds: whether the target
     " came out of a persisted draft. Read by factory_stack_leave right
     " after, which used to ask the database a third time for the same fact
@@ -141,20 +146,22 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
         result->ms_actual-check_on_navigated = abap_true.
 
-      CATCH cx_root INTO DATA(x).
+      CATCH cx_sy_create_object_error INTO DATA(x_create).
         " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
         " non-existent class). Just raise with a readable text - the single
         " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ) turns it into a
         " 500 whose body carries this message for the frontend to display.
-        " app_start is client-controlled, so strip it down to class-name-safe
-        " characters before reflecting it into the error text - a real typo
-        " still shows for diagnostics, but a crafted value cannot smuggle
-        " markup/script into the response body.
-        DATA(lv_app_name) = mo_handler->ms_request-s_control-app_start.
-        REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH `` ##REGEX_POSIX.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val      = |The app '{ lv_app_name }' does not exist in the system.|
+            val      = |The app '{ app_start_safe( ) }' does not exist in the system.|
+            previous = x_create.
+      CATCH cx_root INTO DATA(x).
+        " anything else that failed on the way - the class exists. It used
+        " to be reported as "does not exist" too, which sent whoever read the
+        " 500 to check a class name that was right all along
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = |APP_START_ERROR - the app '{ app_start_safe( ) }' could not be started.|
             previous = x.
     ENDTRY.
 
@@ -233,6 +240,17 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         CATCH cx_root ##NO_HANDLER.
       ENDTRY.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD app_start_safe.
+
+    " app_start is client-controlled and reflected into the error text:
+    " stripped to class-name-safe characters, so a real typo still shows for
+    " diagnostics while a crafted value cannot smuggle markup/script into
+    " the response body
+    result = mo_handler->ms_request-s_control-app_start.
+    REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN result WITH `` ##REGEX_POSIX.
 
   ENDMETHOD.
 

@@ -42,10 +42,12 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     DATA mo_app   TYPE REF TO object.
 
     "! The table cells this parse could not apply - one entry per delta cell
-    "! whose value arrived and would not convert (see delta_apply_field). The
-    "! instance is created per roundtrip (z2ui5_cl_ui5_app_cont=>create_model),
-    "! so the list covers exactly one model parse; the caller hands it to the
-    "! app as client->get( )-t_model_skipped.
+    "! whose value would not convert (delta_apply_field's CATCH), whose column
+    "! takes no value of that shape at all (delta_check_refused), or whose row
+    "! sits in a table the delta cannot address (delta_skip_nodes: a sorted or
+    "! hashed table). The instance is created per roundtrip
+    "! (z2ui5_cl_ui5_app_cont=>create_model), so the list covers exactly one
+    "! model parse; the caller hands it to the app as client->get( )-t_model_skipped.
     DATA mt_skipped TYPE z2ui5_if_client=>ty_t_model_skip.
 
   PROTECTED SECTION.
@@ -63,7 +65,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS main_attri_db_load_resolve.
 
     " Is anything the VIEW reads stored under this attribute - the attribute
-    " itself, or one of its dissolved children? Decides how loud a failed
+    " itself, or one of its dissolved descendants at ANY depth (the bound row
+    " below a struct alias sits two levels down)? Decides how loud a failed
     " restore is (main_attri_db_load_resolve).
     METHODS check_attri_bound
       IMPORTING
@@ -77,7 +80,20 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     " cannot be reached or cannot take a generic data object.
     METHODS dref_parent_recreate
       IMPORTING
-        iv_name       TYPE string
+        iv_name TYPE string.
+
+    "! the S-RTTI payload of a row: type and data as two documents, so the
+    "! restore parses each once (see z2ui5_cl_ui5_util_context)
+    METHODS attri_srtti_store
+      IMPORTING
+        ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        iv_val   TYPE any.
+
+    "! the payload back into a data object - from the two documents, or from
+    "! the one combined document a draft written before 2026-09 carries
+    METHODS attri_srtti_parse
+      IMPORTING
+        is_attri      TYPE z2ui5_if_ui5_types=>ty_s_attri
       RETURNING
         VALUE(result) TYPE REF TO data.
 
@@ -633,7 +649,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
           TRY.
-              lr_ref = dref_parent_recreate( lr_attri->name_parent ).
+              dref_parent_recreate( lr_attri->name_parent ).
               lr_ref = attri_get_val_ref( lr_attri->name ).
             CATCH cx_root.
               CONTINUE.
@@ -663,7 +679,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " payload a second time into the object the first parse had built
       ASSIGN lr_ref->* TO FIELD-SYMBOL(<live>).
       IF <live> IS NOT INITIAL.
-        CLEAR lr_attri->srtti_data.
+        CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
         CONTINUE.
       ENDIF.
 
@@ -691,8 +707,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " a scratch reference of an exotic type is no reason to end a session.
       TRY.
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
-          <val> = z2ui5_cl_ui5_util_context=>xml_srtti_parse( lr_attri->srtti_data ).
-          CLEAR lr_attri->srtti_data.
+          <val> = attri_srtti_parse( lr_attri->* ).
+          CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
         CATCH cx_root INTO DATA(x).
           IF check_attri_bound( lr_attri->name ) = abap_false.
             CONTINUE.
@@ -708,13 +724,34 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD attri_srtti_store.
+
+    z2ui5_cl_ui5_util_context=>xml_srtti_stringify_pair( EXPORTING data    = iv_val
+                                                         IMPORTING ev_type = ir_attri->srtti_type
+                                                                   ev_data = ir_attri->srtti_data ).
+
+  ENDMETHOD.
+
+  METHOD attri_srtti_parse.
+
+    IF is_attri-srtti_type IS NOT INITIAL.
+      result = z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair( iv_type = is_attri-srtti_type
+                                                                iv_data = is_attri-srtti_data ).
+    ELSE.
+      " one combined document, lexed twice - the format every draft carried
+      " until the type travelled on its own
+      result = z2ui5_cl_ui5_util_context=>xml_srtti_parse( is_attri-srtti_data ).
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD dref_parent_recreate.
 
     FIELD-SYMBOLS <parent> TYPE any.
     DATA lr_new TYPE REF TO data.
 
-    result = attri_get_val_ref( iv_name ).
-    ASSIGN result->* TO <parent>.
+    DATA(lr_parent) = attri_get_val_ref( iv_name ).
+    ASSIGN lr_parent->* TO <parent>.
     IF <parent> IS NOT INITIAL.
       RETURN.
     ENDIF.
@@ -727,12 +764,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD check_attri_bound.
 
+    " every bound row, and the chain of parents above it: the method used
+    " to look one level down only, while its promise (and the restore that
+    " decides on it) is about every dissolved child
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE bind = abap_true.
-      IF lr_attri->name = iv_name OR lr_attri->name_parent = iv_name.
-        result = abap_true.
-        RETURN.
-      ENDIF.
+      DATA(lv_name) = lr_attri->name.
+      WHILE lv_name IS NOT INITIAL.
+        IF lv_name = iv_name.
+          result = abap_true.
+          RETURN.
+        ENDIF.
+        READ TABLE mt_attri->* REFERENCE INTO DATA(lr_up)
+             WITH TABLE KEY name = lv_name.
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+        lv_name = lr_up->name_parent.
+      ENDWHILE.
     ENDLOOP.
 
   ENDMETHOD.
@@ -874,12 +923,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                WHERE name_parent = lr_attri->name
                      AND name_ref IS INITIAL
                      AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
+            attri_srtti_store( ir_attri = lr_attri
+                               iv_val   = <val_deref> ).
             EXIT.
           ENDLOOP.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1 OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-          lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
+          attri_srtti_store( ir_attri = lr_attri
+                             iv_val   = <val_deref> ).
 
         WHEN OTHERS.
           " an ELEMENTARY deref (CREATE DATA mr TYPE string / i / ...) is
@@ -892,7 +943,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " is left alone: S-RTTI cannot serialize it, and clearing it is
           " what happened before
           IF lo_descr->kind = z2ui5_cl_ui5_util_context=>cv_typedescr_kind_elem.
-            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
+            attri_srtti_store( ir_attri = lr_attri
+                               iv_val   = <val_deref> ).
           ENDIF.
 
       ENDCASE.
@@ -938,7 +990,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " would only be stale by the next save, which writes them again
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL.
-      CLEAR lr_attri->srtti_data.
+      CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1585,6 +1637,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
     ASSIGN lr_ref_d->* TO <delta_tab>.
     IF sy-subrc <> 0.
+      " unreachable after the RTTI decision above on a system; the transpiler
+      " answers a type conflict with the subrc. Either way the rows are
+      " traced like the sorted-table case - a bare RETURN dropped the whole
+      " delta with nothing in t_model_skipped
+      delta_skip_nodes( io_delta = io_val_front
+                        iv_base  = lv_delta
+                        iv_table = iv_name ).
       RETURN.
     ENDIF.
 

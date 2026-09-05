@@ -38,10 +38,15 @@ sap.ui.define(
         if (!content) return;
         let body = String(content);
         if (body.length > MAX_SECTION) {
+          // The hint names the SECTION, not a tab: a section title is what
+          // Tabs.exportTitle produces, and for a View & Data sub-view that
+          // is "POPUP MODEL" or "VIEW BINDINGS" - a slot plus an aspect,
+          // which no tab is called. Pointing at the tools is enough; the
+          // reader is looking at the section it names.
           body =
             `${body.slice(0, MAX_SECTION)}\n\n... [truncated ` +
-            `${body.length - MAX_SECTION} more characters - open the ` +
-            `${title} tab for the full content]`;
+            `${body.length - MAX_SECTION} more characters - the developer ` +
+            `tools show the full ${title} content]`;
         }
         sections.push(`===== ${title} =====\n${body}`);
       };
@@ -126,6 +131,8 @@ sap.ui.define(
 
     // Say "Copied" on the button that was pressed and put its label back.
     // A copy that leaves no trace looks like a copy that did not happen.
+    // Exported because the dialog's own Copy button needs the same feedback
+    // (DeveloperTools.onCopyTab) - it had a second copy of these six lines.
     function confirmOnButton(oButton) {
       const original = oButton.getText();
       oButton.setText("Copied");
@@ -220,6 +227,7 @@ sap.ui.define(
     return {
       buildExport,
       buildMarkdown,
+      confirmOnButton,
       copyMarkdown,
       downloadText,
       exportFileName,

@@ -93,16 +93,32 @@ const release = git("tag", "--list", "--sort=-v:refname").find((t) =>
 const shipped = release ? git("ls-tree", "-r", "--name-only", release, "--", "src") : [];
 
 const basename = (f) => f.slice(f.lastIndexOf("/") + 1);
-const has = (list, f) => list.some((p) => basename(p) === basename(f));
+const sameObject = (p, f) => basename(p) === basename(f);
+
+/* The basename is the object name - for an OBJECT. `package.devc.xml` is not
+ * one: it IS the package, and one sits in every folder under src/, so a
+ * basename match finds another package's descriptor and answers "yes, it
+ * still ships". That read an in-place edit of src/99/01/package.devc.xml as a
+ * relocation INTO the package and a deletion of it as a relocation OUT - the
+ * frozen package's own descriptor was the one file in it nothing guarded.
+ *
+ * So a MOVE is decided on the whole path, not on the name: the path must be
+ * one that was not already in the tree before the change. Nothing changes for
+ * a real relocation - z2ui5_if_types arriving from src/02 is a path that was
+ * not there - and everything changes for a file that merely shares a name
+ * with one that never moved. */
+const has = (list, f) => list.some((p) => sameObject(p, f));
+const relocatedTo = (list, f) => list.find((p) => sameObject(p, f) && !before.includes(p));
 const outside99 = (list, f) =>
-  list.find((p) => basename(p) === basename(f) && !p.startsWith("src/99/"));
+  list.find((p) => sameObject(p, f) && !p.startsWith("src/99/"));
 
 // An object that shipped from another package before and sits here now moved
 // IN. It was not frozen while it was changed, and it still ships - so nothing
 // downstream notices, which is the whole test this gate applies.
 const edited = [];
 for (const f of touched) {
-  const from = outside99(before, f);
+  // Already at this exact path before the change: not moved in, edited here.
+  const from = before.includes(f) ? undefined : outside99(before, f);
   if (from) {
     console.log(`relocated into the package: ${from} -> ${f}`);
   } else {
@@ -112,8 +128,9 @@ for (const f of touched) {
 
 const dropped = [];
 for (const f of deleted) {
-  if (has(tree, f)) {
-    console.log(`relocated, still ships: ${f} -> ${tree.find((p) => basename(p) === basename(f))}`);
+  const to = relocatedTo(tree, f);
+  if (to) {
+    console.log(`relocated, still ships: ${f} -> ${to}`);
   } else if (release && !has(shipped, f)) {
     console.log(`never shipped (absent from ${release}), nothing to break: ${f}`);
   } else {

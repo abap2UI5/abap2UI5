@@ -365,6 +365,36 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO data.
 
+    "! The S-RTTI descriptor graph and the data of a dynamically typed object
+    "! as TWO asXML documents. xml_srtti_stringify writes both into ONE, and
+    "! the way back then has to lex the whole document twice - once for the
+    "! type (skipping every byte of the data), once for the data. Written per
+    "! generic reference on every draft save and read back on every draft
+    "! load, so a multi-MB table behind a REF TO data paid a redundant full
+    "! lex per roundtrip in a stateless session. Same content, split.
+    CLASS-METHODS xml_srtti_stringify_pair
+      IMPORTING
+        !data   TYPE any
+      EXPORTING
+        ev_type TYPE string
+        ev_data TYPE string.
+
+    "! The way back for xml_srtti_stringify_pair: one parse per document
+    CLASS-METHODS xml_srtti_parse_pair
+      IMPORTING
+        iv_type       TYPE clike
+        iv_data       TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
+    "! the S-RTTI descriptor object of a data object - the shipped mirror, or
+    "! the system's own S-RTTI where it is installed
+    CLASS-METHODS xml_srtti_descr
+      IMPORTING
+        !data         TYPE any
+      RETURNING
+        VALUE(result) TYPE REF TO object.
+
     CLASS-METHODS time_get_timestampl
       RETURNING
         VALUE(result) TYPE timestampl.
@@ -665,7 +695,6 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     " Guards the cycle z2ui5_cx_ui5_util_error=>constructor -> uuid_get_c32 ->
     " RAISE z2ui5_cx_ui5_util_error -> ... see uuid_get_c32.
-    CLASS-DATA gv_uuid_failed TYPE abap_bool.
 
     CLASS-METHODS rtti_get_classes_intf_cloud
       IMPORTING
@@ -717,6 +746,15 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         val           TYPE any
       RETURNING
         VALUE(result) TYPE ty_t_msg.
+
+    "! the public attributes of an object that carry a message part (TEXT,
+    "! TYPE, MSGV1 ...), mapped over is_msg - see msg_map
+    CLASS-METHODS msg_get_by_oref_attri
+      IMPORTING
+        io_obj        TYPE REF TO object
+        is_msg        TYPE ty_s_msg
+      RETURNING
+        VALUE(result) TYPE ty_s_msg.
 
     CLASS-METHODS check_is_rap_struct
       IMPORTING
@@ -1332,18 +1370,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " declared, not CONV string( ) - see error_get_attributes
     DATA lv_absolute_name TYPE string.
 
-    TRY.
-        lo_type = cl_abap_typedescr=>describe_by_data( val ).
-        IF lo_type->kind = cl_abap_typedescr=>kind_ref.
-          lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
-        ENDIF.
-      CATCH cx_root.
-        TRY.
-            lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
-          CATCH cx_root.
-            lo_type = cl_abap_structdescr=>describe_by_name( val ).
-        ENDTRY.
-    ENDTRY.
+    " describe_by_data never fails for a data object, and the reference case
+    " is the one branch. The fallback chain that used to sit here - a second
+    " describe_by_data_ref, then describe_by_name( val ) - could rescue no
+    " input: the first only re-raised what the branch above had raised, and
+    " a data object is no type name
+    lo_type = cl_abap_typedescr=>describe_by_data( val ).
+    IF lo_type->kind = cl_abap_typedescr=>kind_ref.
+      lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
+    ENDIF.
 
     CASE lo_type->kind.
       WHEN cl_abap_typedescr=>kind_struct.
@@ -1513,6 +1548,55 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     CALL TRANSFORMATION id
          SOURCE XML xml
          RESULT data = any.
+
+  ENDMETHOD.
+
+  METHOD xml_srtti_descr.
+
+    DATA(lv_classname) = COND string( WHEN rtti_check_class_exists( `ZCL_SRTTI_TYPEDESCR` ) = abap_true
+                                      THEN `ZCL_SRTTI_TYPEDESCR`
+                                      ELSE `Z2UI5_CL_SRT_TYPEDESCR` ).
+    CALL METHOD (lv_classname)=>(`CREATE_BY_DATA_OBJECT`)
+      EXPORTING
+        data_object = data
+      RECEIVING
+        srtti       = result.
+
+  ENDMETHOD.
+
+  METHOD xml_srtti_stringify_pair.
+
+    TRY.
+        DATA(lo_srtti) = xml_srtti_descr( data ).
+        CALL TRANSFORMATION id SOURCE srtti = lo_srtti RESULT XML ev_type.
+        CALL TRANSFORMATION id SOURCE dobj = data RESULT XML ev_data.
+      CATCH cx_root INTO DATA(lx_srtti).
+        " keep the root cause - a transformation error on the app's own
+        " data must not be masked behind a bare UNSUPPORTED_FEATURE
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = `UNSUPPORTED_FEATURE`
+            previous = lx_srtti.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD xml_srtti_parse_pair.
+
+    DATA srtti TYPE REF TO object.
+    CALL TRANSFORMATION id SOURCE XML iv_type RESULT srtti = srtti.
+
+    DATA rtti_type TYPE REF TO cl_abap_typedescr.
+    CALL METHOD srtti->(`GET_RTTI`)
+      RECEIVING
+        rtti = rtti_type.
+
+    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
+    lo_datadescr ?= rtti_type.
+
+    CREATE DATA result TYPE HANDLE lo_datadescr.
+    ASSIGN result->* TO FIELD-SYMBOL(<variable>).
+    CALL TRANSFORMATION id SOURCE XML iv_data RESULT dobj = <variable>.
 
   ENDMETHOD.
 
@@ -2472,15 +2556,18 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RECEIVING
         ro_interface = obj.
 
+    " an XCO object without the attribute knows no implementations: the
+    " answer is the empty list the on-prem twin gives for an interface
+    " nobody implements - not a kernel exception raised by hand
     ASSIGN obj->(`IF_XCO_AO_INTERFACE~IMPLEMENTATIONS`) TO <any>.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+      RETURN.
     ENDIF.
     obj = <any>.
 
     ASSIGN obj->(`IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL`) TO <any>.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+      RETURN.
     ENDIF.
     obj = <any>.
 
@@ -2761,22 +2848,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         " both UUID mechanisms failed - raise the framework exception so the
         " single top-level catch in the HTTP handler turns it into a 500.
         " ASSERT would raise the uncatchable ASSERTION_FAILED and bypass that
-        " catch (short dump instead of a handled error response).
-        " z2ui5_cx_ui5_util_error=>constructor itself calls uuid_get_c32, so the
-        " raise below re-enters this method. gv_uuid_failed makes that nested
-        " call return an empty UUID instead of raising again (endless recursion
-        " until the stack overflows, which would defeat the handled 500 above).
-        IF gv_uuid_failed = abap_true.
-          RETURN.
-        ENDIF.
-        gv_uuid_failed = abap_true.
-        TRY.
-            RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-              EXPORTING
-                val = lx_uuid.
-          CLEANUP.
-            CLEAR gv_uuid_failed.
-        ENDTRY.
+        " catch (short dump instead of a handled error response). No
+        " re-entrancy guard any more: z2ui5_cx_ui5_util_error's constructor
+        " no longer asks for a uuid (it is computed on the first render,
+        " inside a CATCH of its own), so the raise cannot come back here
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = lx_uuid.
     ENDTRY.
   ENDMETHOD.
 
@@ -2886,75 +2964,74 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD msg_get_by_oref.
 
-    FIELD-SYMBOLS <comp> TYPE any.
+    " four shapes, tried in turn and each on its own level - the nested
+    " TRY/CATCH pyramid this used to be carried the attribute mapping twice,
+    " three CATCH blocks deep, one fix away from drifting. Every attempt
+    " that fails falls through to the next; the last one cannot fail
+    " quietly, it maps whatever public attributes the object has
 
+    " 1. an exception: its text, and its public attributes over it
     TRY.
         DATA(lx) = CAST cx_root( val ).
-        DATA(ls_result) = VALUE ty_s_msg( type = `E` text = lx->get_text( ) ).
-        DATA(lt_attri_o) = rtti_get_t_attri_by_oref( val ).
-        LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o) "#EC CI_SORTSEQ
-             WHERE visibility = cv_objectdescr_public.
-          DATA(lv_name) = ls_attri_o->name.
-          ASSIGN lx->(lv_name) TO <comp>.
-          IF sy-subrc <> 0.
-            CONTINUE.
-          ENDIF.
-          ls_result = msg_map( name = ls_attri_o->name
-                               val  = <comp>
-                               msg  = ls_result ).
-        ENDLOOP.
-        INSERT ls_result INTO TABLE result.
-      CATCH cx_root.
-
-        DATA obj TYPE REF TO object.
-        obj = val.
-
-        TRY.
-
-            DATA lr_tab TYPE REF TO data.
-            CREATE DATA lr_tab TYPE (`if_bali_log=>ty_item_table`).
-            ASSIGN lr_tab->* TO FIELD-SYMBOL(<tab2>).
-
-            CALL METHOD obj->(`IF_BALI_LOG~GET_ALL_ITEMS`)
-              RECEIVING
-                item_table = <tab2>.
-
-            DATA(lt_tab2) = msg_get_internal( <tab2> ).
-            INSERT LINES OF lt_tab2 INTO TABLE result.
-
-          CATCH cx_root.
-
-            TRY.
-
-                CREATE DATA lr_tab TYPE (`BAPIRETTAB`).
-                ASSIGN lr_tab->* TO <tab2>.
-
-                CALL METHOD obj->(`ZIF_LOGGER~EXPORT_TO_TABLE`)
-                  RECEIVING
-                    rt_bapiret = <tab2>.
-
-                lt_tab2 = msg_get_internal( <tab2> ).
-                INSERT LINES OF lt_tab2 INTO TABLE result.
-
-              CATCH cx_root.
-
-                lt_attri_o = rtti_get_t_attri_by_oref( val ).
-                LOOP AT lt_attri_o REFERENCE INTO ls_attri_o "#EC CI_SORTSEQ
-                     WHERE visibility = cv_objectdescr_public.
-                  lv_name = ls_attri_o->name.
-                  ASSIGN obj->(lv_name) TO <comp>.
-                  IF sy-subrc <> 0.
-                    CONTINUE.
-                  ENDIF.
-                  ls_result = msg_map( name = ls_attri_o->name
-                                       val  = <comp>
-                                       msg  = ls_result ).
-                ENDLOOP.
-                INSERT ls_result INTO TABLE result.
-
-            ENDTRY.
-        ENDTRY.
+        INSERT msg_get_by_oref_attri( io_obj = lx
+                                      is_msg = VALUE #( type = `E`
+                                                        text = lx->get_text( ) ) ) INTO TABLE result.
+        RETURN.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
+
+    DATA obj TYPE REF TO object.
+    obj = val.
+    DATA lr_tab TYPE REF TO data.
+    FIELD-SYMBOLS <tab> TYPE any.
+
+    " 2. an application log (IF_BALI_LOG)
+    TRY.
+        CREATE DATA lr_tab TYPE (`if_bali_log=>ty_item_table`).
+        ASSIGN lr_tab->* TO <tab>.
+        CALL METHOD obj->(`IF_BALI_LOG~GET_ALL_ITEMS`)
+          RECEIVING
+            item_table = <tab>.
+        INSERT LINES OF msg_get_internal( <tab> ) INTO TABLE result.
+        RETURN.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    " 3. a logger (ZIF_LOGGER)
+    TRY.
+        CREATE DATA lr_tab TYPE (`BAPIRETTAB`).
+        ASSIGN lr_tab->* TO <tab>.
+        CALL METHOD obj->(`ZIF_LOGGER~EXPORT_TO_TABLE`)
+          RECEIVING
+            rt_bapiret = <tab>.
+        INSERT LINES OF msg_get_internal( <tab> ) INTO TABLE result.
+        RETURN.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    " 4. any object: whatever public attributes carry a message part
+    INSERT msg_get_by_oref_attri( io_obj = obj
+                                  is_msg = VALUE #( ) ) INTO TABLE result.
+
+  ENDMETHOD.
+
+  METHOD msg_get_by_oref_attri.
+
+    FIELD-SYMBOLS <comp> TYPE any.
+
+    result = is_msg.
+    DATA(lt_attri_o) = rtti_get_t_attri_by_oref( io_obj ).
+    LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o) "#EC CI_SORTSEQ
+         WHERE visibility = cv_objectdescr_public.
+      DATA(lv_name) = ls_attri_o->name.
+      ASSIGN io_obj->(lv_name) TO <comp>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      result = msg_map( name = ls_attri_o->name
+                        val  = <comp>
+                        msg  = result ).
+    ENDLOOP.
 
   ENDMETHOD.
 

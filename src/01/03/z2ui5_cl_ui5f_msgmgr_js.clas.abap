@@ -36,10 +36,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const KEY_SEP = String.fromCharCode(1);` && |\n| &&
-             `    const keyOf = (o) =>` && |\n| &&
-             `      [o.MESSAGE ?? o.message, o.TYPE ?? o.type, o.TARGET ?? o.target].join(` && |\n| &&
-             `        KEY_SEP,` && |\n| &&
-             `      );` && |\n| &&
+             `    const keyOf = (o) => [o.MESSAGE, o.TYPE, o.TARGET].join(KEY_SEP);` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.MessageManager", {` && |\n| &&
              `      metadata: {` && |\n| &&

@@ -24,6 +24,7 @@ function load() {
 
   const historyBacks = [];
   const navBacks = [];
+  const stores = [];
   const documentStub = {
     createElement: (tag) => {
       const el = {
@@ -55,7 +56,23 @@ function load() {
           triggerTel: (...a) => urlHelperCalls.push(["triggerTel", ...a]),
         },
       },
-      "sap/ui/util/Storage": function () {},
+      // Records what STORE_DATA built and wrote; Type mirrors the two
+      // members sap/ui/util/Storage really carries.
+      "sap/ui/util/Storage": Object.assign(
+        class {
+          constructor(storageType, prefix) {
+            stores.push({ storageType, prefix, ops: [] });
+            this._ops = stores[stores.length - 1].ops;
+          }
+          put(key, value) {
+            this._ops.push(["put", key, value]);
+          }
+          remove(key) {
+            this._ops.push(["remove", key]);
+          }
+        },
+        { Type: { local: "local", session: "session" } },
+      ),
       "z2ui5/core/Router": {
         navBack: (fallback) => navBacks.push(fallback),
       },
@@ -79,6 +96,7 @@ function load() {
 
   return {
     handlers: Browser.handlers,
+    stores,
     historyBacks,
     navBacks,
     anchors,
@@ -107,6 +125,45 @@ test.describe("HASH_BACK", () => {
     const { handlers, navBacks } = load();
     handlers.HASH_BACK({}, ["HASH_BACK", "/home"]);
     expect(navBacks).toEqual(["/home"]);
+  });
+});
+
+// The write half of the browser-storage pair; the read half is the
+// cc/Storage control (node/tests/storage.spec.js). Both resolve the type
+// the same way, which is the point: a write that lands in another store
+// than the read is a value nobody ever sees again.
+test.describe("STORE_DATA", () => {
+  test("the type is matched case-insensitively", () => {
+    const { handlers, stores } = load();
+    handlers.STORE_DATA(null, [
+      "STORE_DATA",
+      { TYPE: "LOCAL", PREFIX: "p", KEY: "k", VALUE: "v" },
+    ]);
+    expect(stores).toHaveLength(1);
+    expect(stores[0].storageType).toBe("local");
+    expect(stores[0].ops).toEqual([["put", "k", "v"]]);
+  });
+
+  test("an unknown type is logged and written to the session store", () => {
+    const { handlers, stores, errors } = load();
+    handlers.STORE_DATA(null, [
+      "STORE_DATA",
+      { TYPE: "cookie", PREFIX: "p", KEY: "k", VALUE: "v" },
+    ]);
+    expect(stores[0].storageType).toBe("session");
+    expect(errors().some((m) => m.includes("unknown type 'cookie'"))).toBe(
+      true,
+    );
+  });
+
+  test("an empty value removes the key instead of storing it", () => {
+    const { handlers, stores, errors } = load();
+    handlers.STORE_DATA(null, [
+      "STORE_DATA",
+      { TYPE: "session", PREFIX: "p", KEY: "k", VALUE: "" },
+    ]);
+    expect(stores[0].ops).toEqual([["remove", "k"]]);
+    expect(errors()).toEqual([]);
   });
 });
 

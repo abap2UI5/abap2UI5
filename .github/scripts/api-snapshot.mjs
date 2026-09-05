@@ -195,8 +195,12 @@ const releaseNeutral = (file, kind, name, entry) =>
 function extract() {
   const api = {};
   for (const f of fs.readdirSync(SRC02).sort()) {
+    /* The class-pool MAIN sources only. A `.clas.testclasses.abap` ends in
+     * neither of these, so the class-pool includes - test classes, locals -
+     * are already out; the separate `.testclasses.abap` line that used to sit
+     * here could never fire, and reading it as the thing that kept test
+     * classes out of the snapshot was the risk. */
     if (!f.endsWith(".intf.abap") && !f.endsWith(".clas.abap")) continue;
-    if (f.endsWith(".testclasses.abap")) continue;
     const code = stripComments(fs.readFileSync(path.join(SRC02, f), "utf8"));
     const body = publicBody(f, code);
     const stmts = statements(body).flatMap(unchain);

@@ -400,26 +400,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD _attr_escape.
 
     result = val.
-    " the common value carries none of these - skip the four copies then
-    IF result NA `&<"'`.
+    " the common value carries none of these - skip the copies then
+    IF result NA `&<>"'`.
       RETURN.
     ENDIF.
-    result = replace( val  = result
-                      sub  = `&`
-                      with = `&amp;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `<`
-                      with = `&lt;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `"`
-                      with = `&quot;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `'`
-                      with = `&#39;`
-                      occ  = 0 ).
+    " the one HTML escaper of the framework - this method used to carry its
+    " own four replacements, one drift away from the shared one
+    result = z2ui5_cl_ui5_util_context=>c_escape_html( result ).
 
   ENDMETHOD.
 

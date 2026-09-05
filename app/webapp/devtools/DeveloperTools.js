@@ -390,12 +390,10 @@ sap.ui.define(
         }
         Lib.copyToClipboard(text);
         // Confirm on the button itself and put the label back - the dialog
-        // is modal, so a toast behind it would be invisible.
-        const original = oSource.getText();
-        oSource.setText("Copied");
-        setTimeout(() => {
-          if (!Lib.isDestroyed(oSource)) oSource.setText(original);
-        }, 1500);
+        // is modal, so a toast behind it would be invisible. Report owns
+        // that feedback for the export popup's copy buttons; the same one
+        // serves here.
+        Report.confirmOnButton(oSource);
       },
 
       // The Error view's actions mirror the ErrorView overlay: re-run the

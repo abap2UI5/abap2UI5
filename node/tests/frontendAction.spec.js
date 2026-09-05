@@ -662,6 +662,25 @@ test.describe("ICON_POOL (registering an icon collection)", () => {
     expect(fonts.length).toEqual(0);
     expect(errors.join(" ")).toContain("fontURI");
   });
+
+  // A release without the module never reaches the hook at all: the
+  // CONTROL_GLOBAL dispatch resolves the target first and refuses the call.
+  // That is why the hook takes the resolved IconPool as an argument instead
+  // of requiring it a second time to re-check what was already checked.
+  test("a UI5 without the module is refused by the dispatch itself", () => {
+    // no `requires` entry: the lazy require answers null
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "ICON_POOL",
+      "registerFont",
+      "SAP-icons-TNT",
+      "sap/tnt/themes/base/fonts/",
+    ]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'ICON_POOL.registerFont' not available",
+    ]);
+  });
 });
 
 test.describe("CONTROL_BY_ID", () => {
@@ -1330,6 +1349,66 @@ test.describe("CONTROL_BY_ID", () => {
       "anchorBtn",
     ]);
     expect(calls).toEqual([["close"]]);
+  });
+
+  // The anchored opens are the one CONTROL_BY_ID path that can run a whole
+  // roundtrip later (the anchor renders when the response that made it
+  // visible lands), so they carry the same liveness guard as the timer tick
+  // and the SET_FOCUS retry. Lib.whenRendered's own `owner` guard cannot
+  // supply it: it asks isDestroyed( ), which a controller never answers.
+  test("an anchored open whose app died in between opens nothing", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.anchorBtn = { getDomRef: () => ({}) };
+    controls.theMenu = {
+      isOpen: () => false,
+      openBy: (ref) => calls.push(["openBy", ref]),
+      close: () => calls.push(["close"]),
+    };
+    const dead = { isDestroyed: () => true };
+    FrontendAction.execute(dead, [
+      "CONTROL_BY_ID",
+      "theMenu",
+      "",
+      "toggleBy",
+      "anchorBtn",
+    ]);
+    FrontendAction.execute(dead, [
+      "CONTROL_BY_ID",
+      "theMenu",
+      "",
+      "openBy",
+      "anchorBtn",
+    ]);
+    expect(calls).toEqual([]);
+  });
+
+  // The pseudo-method table is prototype-less (Object.create(null)): its keys
+  // come off the wire, and a plain object would answer for every name
+  // Object.prototype carries - `toString` would have been dispatched as a
+  // pseudo-method instead of falling through to the control's own method.
+  test("a wire name Object.prototype carries is no pseudo-method", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.thing = { toString: () => calls.push(["toString"]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "thing", "", "toString"]);
+    expect(calls).toEqual([["toString"]]);
+  });
+
+  // The target resolves through the same helper the `controlId` argument kind
+  // uses, so an aggregation item addresses a TARGET too - it used to be a
+  // re-implementation that only understood a plain id.
+  test("an aggregation item can be the target of the call", () => {
+    const { FrontendAction, calls, controls } = load();
+    const page = { focus: () => calls.push(["focus"]) };
+    controls.carousel = {
+      getAggregation: (name) => (name === "pages" ? [{}, page] : null),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "carousel/pages/1",
+      "",
+      "focus",
+    ]);
+    expect(calls).toEqual([["focus"]]);
   });
 
   test("setActivePage resolves the page control (Carousel)", () => {
@@ -2672,6 +2751,38 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
     expect(fx.applied).toHaveLength(1);
     expect(fx.doc.activeElement).toBe(otherField);
     expect(fx.delegates).toEqual([]);
+  });
+});
+
+// SET_FOCUS, SCROLL_TO and SCROLL_INTO_VIEW used to return silently when the
+// id resolved to nothing, while every sibling handler of core/actions/ViewOps
+// reports its own miss. Silence is the one failure an app cannot see from the
+// outside: a focus that does not move and a view that does not scroll look
+// exactly like a control that ignored the call.
+test.describe("an unknown control id is reported, not swallowed", () => {
+  for (const [action, args] of [
+    ["SET_FOCUS", ["SET_FOCUS", "ghost", "0", "4"]],
+    ["SCROLL_TO", ["SCROLL_TO", "ghost", "100"]],
+    ["SCROLL_INTO_VIEW", ["SCROLL_INTO_VIEW", "ghost"]],
+  ]) {
+    test(`${action} names the action and the id`, () => {
+      const { FrontendAction, errors } = load();
+      FrontendAction.execute(null, args);
+      expect(errors).toEqual([`${action}: no control 'ghost'`]);
+    });
+  }
+
+  test("a control that DOES resolve is not reported", () => {
+    const { FrontendAction, errors, controls } = load();
+    controls.known = {
+      getDomRef: () => null,
+      getFocusInfo: () => ({}),
+      applyFocusInfo: () => {},
+      addEventDelegate: () => {},
+      removeEventDelegate: () => {},
+    };
+    FrontendAction.execute(null, ["SCROLL_INTO_VIEW", "known"]);
+    expect(errors).toEqual([]);
   });
 });
 

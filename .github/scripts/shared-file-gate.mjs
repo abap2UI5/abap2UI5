@@ -537,6 +537,52 @@ const notes = [];
 let compared = 0;
 let expected = 0;
 
+/* One consumer copy, as lib-ecosystem's `read` answers: `{ text, from }`,
+ * `{ missing }` for a copy that is gone upstream, or `{ note }` for a
+ * repository that could not be reached at all.
+ *
+ * lib-ecosystem.read, not a hand fetch: it checks a sibling CHECKOUT first
+ * (so a checkout with the copy deleted no longer falls back to the still-
+ * published GitHub main and reads green), and it tells a deleted file apart
+ * from an unreachable repository via the sentinel probe - a consumer that
+ * dropped its copy is exactly the drift this gate exists for, and the old
+ * reader reported it as "not compared". */
+async function readConsumer(repo, consumerFile) {
+  const entry2 = repoEntry(repo);
+  if (entry2) return ecoRead(entry2, consumerFile);
+  /* a consumer OFF the ecosystem list (the generated `frontend` channel
+   * repository) keeps the plain reader: checkout first, then raw main.
+   * It loses the deleted-vs-unreachable distinction, which is the price
+   * of not putting a generated repository on a list about source
+   * repositories. */
+  const local = path.join(ROOT, '..', repo, consumerFile);
+  if (fs.existsSync(local)) return { text: fs.readFileSync(local, 'utf8'), from: 'checkout' };
+  try {
+    const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return { text: await res.text(), from: 'github' };
+  } catch (err) {
+    return { note: err.message };
+  }
+}
+
+/* All ~31 consumer reads in flight at once - the nested loop below consumes
+ * settled results in list order, so the report stays deterministic. Awaiting
+ * inside the loop made this gate's wall time the SUM of the round trips, each
+ * with a 15-second timeout; toolchain-gate.mjs and scripts-gate.mjs carry the
+ * same pattern for the same reason. Keyed by repository AND file, because two
+ * SHARED entries may name the same consumer. */
+const key = (repo, consumerFile) => `${repo}\u0000${consumerFile}`;
+const prefetch = new Map();
+for (const entry of SHARED) {
+  const consumerFile = entry.consumerFile || entry.file;
+  for (const repo of entry.consumers) {
+    if (!prefetch.has(key(repo, consumerFile))) {
+      prefetch.set(key(repo, consumerFile), readConsumer(repo, consumerFile));
+    }
+  }
+}
+
 for (const entry of SHARED) {
   const source = path.join(ROOT, entry.file);
   if (!fs.existsSync(source)) {
@@ -560,39 +606,11 @@ for (const entry of SHARED) {
 
   for (const repo of entry.consumers) {
     expected += 1;
-    const local = path.join(ROOT, '..', repo, consumerFile);
     let theirs;
     let from;
-
-    /* lib-ecosystem.read, not a hand fetch: it checks a sibling CHECKOUT
-     * first (so a checkout with the copy deleted no longer falls back to
-     * the still-published GitHub main and reads green), and it tells a
-     * deleted file apart from an unreachable repository via the sentinel
-     * probe - a consumer that dropped its copy is exactly the drift this
-     * gate exists for, and the old reader reported it as "not compared". */
     let text;
-    const entry2 = repoEntry(repo);
-    let got;
-    if (entry2) {
-      got = await ecoRead(entry2, consumerFile);
-    } else {
-      /* a consumer OFF the ecosystem list (the generated `frontend` channel
-       * repository) keeps the plain reader: checkout first, then raw main.
-       * It loses the deleted-vs-unreachable distinction, which is the price
-       * of not putting a generated repository on a list about source
-       * repositories. */
-      if (fs.existsSync(local)) {
-        got = { text: fs.readFileSync(local, 'utf8'), from: 'checkout' };
-      } else {
-        try {
-          const res = await fetch(raw(repo, consumerFile), { signal: AbortSignal.timeout(15000) });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          got = { text: await res.text(), from: 'github' };
-        } catch (err) {
-          got = { note: err.message };
-        }
-      }
-    }
+
+    const got = await prefetch.get(key(repo, consumerFile));
     if (got.text !== undefined) {
       text = got.text;
       from = got.from;

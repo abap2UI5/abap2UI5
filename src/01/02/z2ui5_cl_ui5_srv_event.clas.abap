@@ -29,16 +29,6 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ajson.
 
-    "! The same action stringified. No production caller any more - kept for
-    "! the unit specs that pin the TEXT form of a client event.
-    METHODS get_event_client_json
-      IMPORTING
-        val           TYPE clike
-        view          TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
-        t_arg         TYPE string_table OPTIONAL
-      RETURNING
-        VALUE(result) TYPE string.
-
   PROTECTED SECTION.
     TYPES:
       BEGIN OF ty_s_client_event,
@@ -57,10 +47,21 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
     METHODS get_t_arg
       IMPORTING
         val           TYPE string_table
+        iv_literal    TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
+    "! The same action stringified. No production caller any more - kept for
+    "! the unit specs that pin the TEXT form of a client event.
+    METHODS get_event_client_json
+      IMPORTING
+        val           TYPE clike
+        view          TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
+        t_arg         TYPE string_table OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
     " Escape a value so it is safe as the body of a single-quoted JS string
     " literal emitted into the view XML. Backslash MUST be escaped first (so
     " the escapes added afterwards are not themselves re-escaped); without it a
@@ -107,7 +108,8 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
       result = |{ result },false,true|.
     ENDIF.
 
-    result = |{ result }]{ get_t_arg( t_arg ) }|.
+    result = |{ result }]{ get_t_arg( val       = t_arg
+                                     iv_literal = s_cnt-check_arg_literal ) }|.
 
   ENDMETHOD.
 
@@ -328,11 +330,15 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         FIND REGEX `^\{[0-9]+[?}]` IN lv_new ##REGEX_POSIX.
         lv_is_placeholder = xsdbool( sy-subrc = 0 ).
       ENDIF.
-      IF (     lv_new(1) <> `$`
-           AND lv_new(1) <> `{`
-           AND lv_new NP `.eB(*`
-           AND lv_new NP `.eBP(*`
-           AND lv_new NP `.eF(*` ) OR lv_is_placeholder = abap_true.
+      " iv_literal: the wire carries DATA, and every argument is quoted -
+      " a value that happens to start with `$` or `{` is a string then, not
+      " an expression the client evaluates (see ty_s_event_control)
+      IF iv_literal = abap_true
+          OR (     lv_new(1) <> `$`
+               AND lv_new(1) <> `{`
+               AND lv_new NP `.eB(*`
+               AND lv_new NP `.eBP(*`
+               AND lv_new NP `.eF(*` ) OR lv_is_placeholder = abap_true.
         " a quoted arg becomes a single-quoted JS string literal; escape it in
         " full (backslash, quote, CR/LF) so no value - including one carrying a
         " literal backslash or ending in '\' - can close the '...' wrapper and

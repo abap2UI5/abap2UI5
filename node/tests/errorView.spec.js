@@ -279,6 +279,46 @@ test.describe("ErrorView friendly dialog", () => {
     expect(state.lastError.text).toBe(dump);
   });
 
+  test("decodes an entity above U+FFFF as one character", () => {
+    const { ErrorView, created } = load();
+    // fromCharCode truncates a code point to 16 bits and yields a
+    // different character; both spellings must survive as the same one.
+    const grinning = String.fromCodePoint(0x1f600);
+    ErrorView.show(
+      '<p class="detailText">emoji &#128512; and &#x1F600; done</p>',
+    );
+    const message = created.dialogs[0].settings.content[0].settings.text;
+    expect(message).toBe(`emoji ${grinning} and ${grinning} done`);
+  });
+
+  test("leaves a numeric entity outside the Unicode range as written", () => {
+    const { ErrorView, created } = load();
+    // String.fromCodePoint would throw a RangeError on it, and nothing in
+    // the fatal-error overlay may throw.
+    ErrorView.show('<p class="detailText">bad &#1114112; entity</p>');
+    expect(created.dialogs[0].settings.content[0].settings.text).toBe(
+      "bad &#1114112; entity",
+    );
+  });
+
+  test("scans only the head of a huge HTML body for the preview", () => {
+    const { ErrorView, state, created } = load();
+    // The markup scan is quadratic on a body with unclosed tags, so it
+    // runs on a bounded prefix. A pathological 40 KB dump must therefore
+    // still come back with a preview - and with the head of the body,
+    // not with a message hidden far behind the bound.
+    const body =
+      `<b>${"x".repeat(20000)}` +
+      '<p class="errorTextHeader">LATE MESSAGE</p>' +
+      '<p class="detailText">unclosed '.repeat(600);
+    ErrorView.show(body);
+    const message = created.dialogs[0].settings.content[0].settings.text;
+    expect(message.length).toBeLessThanOrEqual(503);
+    expect(message).not.toContain("LATE MESSAGE");
+    // The whole body still travels to Details / Copy and the Error tab.
+    expect(state.lastError.text).toBe(body);
+  });
+
   test("keeps the single-line preview for a non-framework error", () => {
     const { ErrorView, created } = load();
     // No `--- error ---` section: a network failure is one line as before.

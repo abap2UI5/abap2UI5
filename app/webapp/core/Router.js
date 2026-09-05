@@ -1,5 +1,10 @@
 // The abap2UI5 hash router - the framework counterpart of
-// sap.ui.core.routing.Router, and the ONLY module that touches the URL hash.
+// sap.ui.core.routing.Router, and the only module that WRITES the URL hash
+// or interprets its structure. Two others read the raw hash and neither
+// splits it: core/Server.js ships it as S_FRONT.HASH on every request, and
+// core/actions/Launchpad.js takes the part before the "#" as a base URL. A
+// module that needs more than that - a link to rebuild, a route to parse -
+// asks this one (hrefFor, parse), it does not read location.hash itself.
 //
 // Why a module of its own: a UI5 app hash means two different things
 // depending on where the app runs, and every place that reads or writes the
@@ -23,7 +28,9 @@
 // the <CLASS> segment names the app (human-readable), the <DRAFT> segment is
 // the server draft holding its state, so Back/Forward/reload/bookmark restore
 // the EXACT state. In FRESH mode the draft segment is omitted and the app
-// restarts clean. Routing is opt-in per app (cs_event-set_nav_routing).
+// restarts clean. Routing is opt-in per app (cs_event-hash_routing; the
+// wire value SET_NAV_ROUTING is also what the superseded spelling
+// cs_event-set_nav_routing sends, so both names reach this module).
 sap.ui.define(
   ["sap/ui/core/routing/HashChanger", "z2ui5/core/AppState", "z2ui5/core/Lib"],
   (HashChanger, AppState, Lib) => {
@@ -88,7 +95,7 @@ sap.ui.define(
     }
 
     // The same normalization for a hash string from anywhere - a hashChanged
-    // event's newHash, a raw location hash, an app's set_push_state value -
+    // event's newHash, a raw location hash, an app's hash_set value -
     // so every comparison in this module runs on one canonical form.
     function appHashNormalized(sHash) {
       const app = appHashOf(sHash);
@@ -106,7 +113,7 @@ sap.ui.define(
     // would drop the shell hash and land the recipient on the FLP home page.
     function hrefFor(sAppHash) {
       const base = window.location.href.split("#")[0];
-      const raw = String(window.location.hash || "").replace(/^#/, "");
+      const raw = getRawHash();
       let shell = splitHash(raw).shell;
       // location.hash is the RAW hash: a bare non-"/" form is a launchpad
       // intent opened from the tile - ALL shell - even though splitHash
@@ -120,8 +127,10 @@ sap.ui.define(
       return `${base}#${shell}${SHELL_SEPARATOR}${String(sAppHash).replace(/^\/+/, "")}`;
     }
 
-    // The raw hash (shell part included) - for callers that rebuild a whole
-    // URL rather than hand an app hash to the HashChanger.
+    // The raw hash (shell part included) - for the callers that rebuild a
+    // whole URL rather than hand an app hash to the HashChanger. Read
+    // straight from the location, not through the HashChanger, which hands
+    // out the app part alone inside the FLP.
     function getRawHash() {
       return String(window.location.hash || "").replace(/^#/, "");
     }
@@ -146,22 +155,12 @@ sap.ui.define(
     }
 
     // Parse a hash into the route it matches, or null when it is no app
-    // route at all (an app-owned hash from set_push_state, the legacy
+    // route at all (an app-owned hash from cs_event-hash_set, the legacy
     // app-state hash, a bare FLP shell hash - all ignored by the router).
     function parse(sHash) {
       const parts = segmentsOf(sHash);
       if (!parts || !parts[0]) return null;
       return { app: parts[0], draft: parts.length > 1 ? parts[1] : "" };
-    }
-
-    function appOf(sHash) {
-      const route = parse(sHash);
-      return route ? route.app : "";
-    }
-
-    function draftOf(sHash) {
-      const route = parse(sHash);
-      return route ? route.draft : "";
     }
 
     // ------------------------------------------------------------------
@@ -188,6 +187,33 @@ sap.ui.define(
         hashChanger().replaceHash(sHash);
       } else {
         hashChanger().setHash(sHash);
+      }
+    }
+
+    // Every hash write of sync( ) comes in the same two flavours, and the
+    // three places that write one used to spell both halves out: a PUSH
+    // adds a history entry (Back returns to what was there) and counts
+    // towards hashPushCount - navBack's stand-in for UI5's
+    // History.getPreviousHash - while a REPLACE writes in place and leaves
+    // the history depth alone. What differs between the three is only WHAT
+    // is written, never what a push or a replace means.
+    function writeHash(sHash, bPush) {
+      if (bPush) AppState.state.hashPushCount += 1;
+      navTo(sHash, !bPush);
+    }
+
+    // The same pair for the legacy write, which goes through the History
+    // API rather than the HashChanger: the app's suffix is appended to the
+    // RAW hash so the FLP shell hash survives - appending it to the app
+    // hash alone would rewrite "#SO-action&/x" to "#x" and strand the
+    // launchpad.
+    function writeLegacyUrl(sSuffix, bPush) {
+      const url = `${window.location.pathname}${window.location.search}#${getRawHash()}${sSuffix}`;
+      if (bPush) {
+        AppState.state.hashPushCount += 1;
+        history.pushState(null, "", url);
+      } else {
+        history.replaceState(null, "", url);
       }
     }
 
@@ -220,8 +246,8 @@ sap.ui.define(
     function onHashChanged(sNewHash) {
       const state = AppState.state;
 
-      // Routing is opt-in per app (cs_event-set_nav_routing); until one
-      // enabled it, the hash belongs entirely to the app (set_push_state,
+      // Routing is opt-in per app (cs_event-hash_routing); until one
+      // enabled it, the hash belongs entirely to the app (cs_event-hash_set,
       // and - when the app registered one - the HASH_LISTENER event).
       if (!state.navRouting) {
         dispatchAppHashChange(sNewHash);
@@ -425,11 +451,18 @@ sap.ui.define(
         applyHashEvent(mOptions);
 
         const state = AppState.state;
+        // The hash the app asked to have written, and in which flavour:
+        // set_push_state adds a history entry, hash_replace writes in
+        // place. Every branch below writes THIS value - only where it goes
+        // differs - so the pair is read once here.
+        const sAppWrite = mOptions.setPushState || mOptions.setHashReplace;
+        const bPush = Boolean(mOptions.setPushState);
+
         if (state.navRouting) {
           const app = state.oResponse?.APP;
           if (app) updateAppRoute(mOptions, ID, app);
           // Routing owns the app-state hash; skip the legacy handling below.
-          if (!mOptions.setPushState && !mOptions.setHashReplace) return;
+          if (!sAppWrite) return;
           // In KEEP mode the suffix is pushed as a real ROUTE through the
           // HashChanger, not via history.pushState: pushState writes the URL
           // bar but not hasher's cached hash, so the next browser Back lands
@@ -444,66 +477,34 @@ sap.ui.define(
           // the legacy push below, where Back is inert by design (a FRESH
           // route restarts the app either way).
           if (state.currentDraftId) {
-            if (mOptions.setPushState) {
-              state.hashPushCount += 1;
-              navTo(
-                patternFor(state.currentApp, state.currentDraftId) +
-                  mOptions.setPushState,
-              );
-            } else {
-              // the replace twin: the same route+suffix write, in place -
-              // no new history entry, Back does not step through it
-              navTo(
-                patternFor(state.currentApp, state.currentDraftId) +
-                  mOptions.setHashReplace,
-                true,
-              );
-            }
+            writeHash(
+              patternFor(state.currentApp, state.currentDraftId) + sAppWrite,
+              bPush,
+            );
             return;
           }
         }
 
-        if (mOptions.setPushState) {
+        if (sAppWrite) {
           if (state.hashEvent) {
             // The app owns the hash AND listens for its changes: write the
             // value as the real app hash through the HashChanger - a pushed
             // history entry hasher's cache follows, so the next browser Back
             // fires hashChanged instead of being read as "no change" (the
-            // history.pushState below bypasses that cache). Adopt the value
-            // first so the write's own echo dies in dispatchAppHashChange.
-            state.appHash = appHashNormalized(mOptions.setPushState);
-            state.hashPushCount += 1;
-            navTo(mOptions.setPushState);
+            // history.pushState of the legacy write below bypasses that
+            // cache). Adopt the value first so the write's own echo dies in
+            // dispatchAppHashChange.
+            state.appHash = appHashNormalized(sAppWrite);
+            writeHash(sAppWrite, bPush);
             return;
           }
-          // The app pushes its own hash suffix. Build the new URL on the RAW
-          // hash so the FLP shell hash survives - appending to the app hash
-          // alone would rewrite "#SO-action&/x" to "#x" and strand the
-          // launchpad.
-          const newUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setPushState}`;
-          state.hashPushCount += 1;
-          history.pushState(null, "", newUrl);
-          // The pushed hash IS the desired URL - stop here. The cleanup below
-          // is a no-op while hasher's cached hash is empty (legacy mode), but
-          // with routing on the cache holds the app route, so replaceHash("")
-          // would count as a change and wipe both the route and the suffix
-          // pushed one line above.
-          return;
-        }
-
-        if (mOptions.setHashReplace) {
-          if (state.hashEvent) {
-            // the replace twin of the push above: adopt first so the write's
-            // own echo dies, then write WITHOUT a new history entry - the
-            // router's navTo( ..., true ), e.g. an FCL navigation arrow
-            state.appHash = appHashNormalized(mOptions.setHashReplace);
-            navTo(mOptions.setHashReplace, true);
-            return;
-          }
-          // legacy replace: the same suffix-on-raw-hash URL as the legacy
-          // push, written in place
-          const replUrl = `${window.location.pathname}${window.location.search}#${getRawHash()}${mOptions.setHashReplace}`;
-          history.replaceState(null, "", replUrl);
+          // The app writes its own hash suffix, the legacy way.
+          writeLegacyUrl(sAppWrite, bPush);
+          // The written hash IS the desired URL - stop here. The cleanup
+          // below is a no-op while hasher's cached hash is empty (legacy
+          // mode), but with routing on the cache holds the app route, so
+          // replaceHash("") would count as a change and wipe both the route
+          // and the suffix just written.
           return;
         }
         // While a HASH_LISTENER owns the hash, the cleanup below must not
@@ -568,8 +569,6 @@ sap.ui.define(
       hrefFor,
       patternFor,
       parse,
-      appOf,
-      draftOf,
       navTo,
       navBack,
       onHashChanged,

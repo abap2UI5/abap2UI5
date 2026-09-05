@@ -1,8 +1,12 @@
+CLASS ltcl_test DEFINITION DEFERRED.
+CLASS z2ui5_cl_ui5_srv_event DEFINITION LOCAL FRIENDS ltcl_test.
+
 CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION LONG.
 
   PUBLIC SECTION.
     METHODS event             FOR TESTING.
+    METHODS event_arg_literal FOR TESTING RAISING cx_static_check.
     METHODS event_client     FOR TESTING.
     METHODS event_with_args   FOR TESTING.
     METHODS event_multi_args  FOR TESTING.
@@ -48,6 +52,27 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `.eB(['POST'])`
                                         act = lv_event ).
+
+  ENDMETHOD.
+
+  METHOD event_arg_literal.
+
+    " a wire that carries DATA quotes every argument: a value that starts
+    " with `$` or `{` is a string on it, not an expression the client would
+    " evaluate - the default keeps bindings raw, as the docs promise
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    lo_event = NEW #( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['POST'], '${$controller>/}.eB([\'X\'])')`
+        act = lo_event->get_event( val   = `POST`
+                                   t_arg = VALUE #( ( `${$controller>/}.eB(['X'])` ) )
+                                   s_cnt = VALUE #( check_arg_literal = abap_true ) ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['POST'], ${$source>/KEY})`
+        act = lo_event->get_event( val   = `POST`
+                                   t_arg = VALUE #( ( `${$source>/KEY}` ) ) ) ).
 
   ENDMETHOD.
 

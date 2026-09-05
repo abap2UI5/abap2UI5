@@ -152,8 +152,14 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      timers[timerKey] = setTimeout(fire, delay);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function resolveTarget(action, id) {` && |\n| &&
+             `      const oElement = ViewSlots.resolveById(id);` && |\n| &&
+             `      if (!oElement) Lib.logError(``${action}: no control '${id}'``);` && |\n| &&
+             `      return oElement;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
-             `      const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
+             `      const oElement = resolveTarget("SET_FOCUS", args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
              `` && |\n| &&
              `      const applyFocus = () => {` && |\n| &&
@@ -201,7 +207,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
+             `        const oElement = resolveTarget("SCROLL_TO", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
@@ -237,7 +243,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evScrollIntoView(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
+             `        const oElement = resolveTarget("SCROLL_INTO_VIEW", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&

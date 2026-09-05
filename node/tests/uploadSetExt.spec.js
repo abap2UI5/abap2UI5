@@ -21,6 +21,12 @@ function makeFileReaderStub() {
       this.result = "data:mock;base64," + this.file.name;
       this.onload();
     }
+    // the browser's own failure mode for a file that is picked but cannot be
+    // read (NotReadableError: moved, unmounted, permission withdrawn)
+    fail() {
+      this.error = new Error("NotReadableError");
+      this.onerror();
+    }
   }
   return { readers, FakeFileReader };
 }
@@ -46,9 +52,8 @@ function load({ uploadSet } = {}) {
 
   function makeInstance() {
     const inst = Object.create(UploadSetExtDef);
-    // what the real init( ) sets up - the tests build the instance by hand
-    inst._queue = [];
-    inst._reading = false;
+    // the read queue is created on the first file (Lib.readFilesInTurn), so
+    // there is nothing for the tests to set up by hand any more
     inst._props = {
       uploadSetId: "upSet",
       fileData: "",
@@ -71,6 +76,11 @@ function load({ uploadSet } = {}) {
 
   return { makeInstance, readers, errors, state: sandbox.z2ui5 };
 }
+
+// Lib.logError is captured by the module factory, so replacing the export
+// after the fact does not intercept the calls the shipped helpers make - the
+// real log is the shared state's `errors` array.
+const loggedMessages = (state) => (state.errors || []).map((e) => e.message);
 
 // An UploadSet stub recording the attached handlers.
 function uploadSetStub() {
@@ -252,4 +262,71 @@ test("a removed item without a name reports the empty string", () => {
 
   expect(inst._props.removedFileName).toBe("");
   expect(inst.removes).toBe(1);
+});
+
+// The queue is Lib.readFilesInTurn now (cc/FileUploader uses the same one).
+// A read that fails used to leave the `_reading` flag raised for good: every
+// file added afterwards was queued and never read, and only rebuilding the
+// view got the control going again.
+test("a file the reader cannot read does not stall the ones behind it", () => {
+  const { makeInstance, readers, state } = load();
+  const inst = makeInstance();
+  const files = [
+    { name: "locked.pdf", type: "application/pdf", size: 1 },
+    { name: "ok.pdf", type: "application/pdf", size: 2 },
+  ];
+  inst.fireChange = () => {
+    inst.changes++;
+    state.isBusy = true;
+  };
+
+  for (const file of files) inst.onItemAdded(itemEvent({ getFileObject: () => file }));
+
+  readers[0].fail();
+  expect(inst.changes).toBe(0);
+  expect(loggedMessages(state)).toEqual(["UploadSetExt: FileReader failed"]);
+  // no roundtrip was started, so the next file follows straight away
+  expect(readers).toHaveLength(2);
+  readers[1].finish();
+  expect(inst._props.fileName).toBe("ok.pdf");
+  expect(inst.changes).toBe(1);
+});
+
+test("a file added after a failed read is still read", () => {
+  const { makeInstance, readers, state } = load();
+  const inst = makeInstance();
+
+  inst.onItemAdded(itemEvent({ getFileObject: () => ({ name: "locked.pdf" }) }));
+  readers[0].fail();
+  inst.onItemAdded(itemEvent({ getFileObject: () => ({ name: "later.pdf" }) }));
+  readers[1].finish();
+
+  expect(inst._props.fileName).toBe("later.pdf");
+  expect(inst.changes).toBe(1);
+  expect(loggedMessages(state)).toEqual(["UploadSetExt: FileReader failed"]);
+});
+
+// exit() drops what is left of the selection and stops waiting for the
+// roundtrip of the file that was reported last
+test("exit() empties the queue and cancels the pending wait", () => {
+  const { makeInstance, readers, state } = load();
+  const inst = makeInstance();
+  inst.init();
+  inst.fireChange = () => {
+    inst.changes++;
+    state.isBusy = true;
+  };
+  const files = [
+    { name: "a.pdf", type: "application/pdf", size: 1 },
+    { name: "b.pdf", type: "application/pdf", size: 2 },
+  ];
+  for (const file of files) inst.onItemAdded(itemEvent({ getFileObject: () => file }));
+  readers[0].finish();
+
+  inst.exit();
+
+  // the wait for the roundtrip is gone with the hook it registered ...
+  expect(state.onAfterRendering).toHaveLength(0);
+  // ... and the file still queued is never read
+  expect(readers).toHaveLength(1);
 });

@@ -284,11 +284,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        Lib.copyToClipboard(text);` && |\n| &&
              `` && |\n| &&
-             `        const original = oSource.getText();` && |\n| &&
-             `        oSource.setText("Copied");` && |\n| &&
-             `        setTimeout(() => {` && |\n| &&
-             `          if (!Lib.isDestroyed(oSource)) oSource.setText(original);` && |\n| &&
-             `        }, 1500);` && |\n| &&
+             `        Report.confirmOnButton(oSource);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onErrorRetry() {` && |\n| &&
@@ -424,12 +420,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (Lib.isDestroyed(this)) {` && |\n| &&
-             `            if (this.oDialog) this.oDialog.destroy();` && |\n|.
-    result = result &&
+             `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `          const requested =` && |\n| &&
              `            typeof initialTab === "string" && initialTab` && |\n| &&
              `              ? initialTab` && |\n| &&

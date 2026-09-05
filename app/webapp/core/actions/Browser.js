@@ -76,7 +76,19 @@ sap.ui.define(
       // STORE_DATA-specific error instead of a generic dispatch failure.
       const { TYPE, PREFIX, VALUE, KEY } = args[1] ?? {};
       try {
-        const storageType = Storage.Type[TYPE] || Storage.Type.session;
+        // Same type resolution as the read side (cc/Storage.js): matched
+        // case-insensitively, because the type is free text from the
+        // backend and `LOCAL` is how an ABAP constant spells it. The two
+        // sides have to agree - a write that silently lands in the session
+        // store while the read control takes the type at its word would
+        // put the value somewhere nobody reads.
+        const typeKey = String(TYPE || "").toLowerCase();
+        const storageType = Storage.Type[typeKey] || Storage.Type.session;
+        if (TYPE && !Storage.Type[typeKey]) {
+          Lib.logError(
+            `STORE_DATA: unknown type '${TYPE}', writing to the session store`,
+          );
+        }
         const oStorage = new Storage(storageType, PREFIX);
         if (VALUE === "" || VALUE == null) {
           oStorage.remove(KEY);

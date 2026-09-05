@@ -43,8 +43,8 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `        if (body.length > MAX_SECTION) {` && |\n| &&
              `          body =` && |\n| &&
              `            ``${body.slice(0, MAX_SECTION)}\n\n... [truncated `` +` && |\n| &&
-             `            ``${body.length - MAX_SECTION} more characters - open the `` +` && |\n| &&
-             `            ``${title} tab for the full content]``;` && |\n| &&
+             `            ``${body.length - MAX_SECTION} more characters - the developer `` +` && |\n| &&
+             `            ``tools show the full ${title} content]``;` && |\n| &&
              `        }` && |\n| &&
              `        sections.push(``===== ${title} =====\n${body}``);` && |\n| &&
              `      };` && |\n| &&
@@ -198,6 +198,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `    return {` && |\n| &&
              `      buildExport,` && |\n| &&
              `      buildMarkdown,` && |\n| &&
+             `      confirmOnButton,` && |\n| &&
              `      copyMarkdown,` && |\n| &&
              `      downloadText,` && |\n| &&
              `      exportFileName,` && |\n| &&

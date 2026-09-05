@@ -2,6 +2,40 @@
 *"* local helper classes, interface definitions and type
 *"* declarations
 
+" One answer to "is this ajson VALUE node initial?", for the two filters
+" below - each used to carry the same line and the same explanation.
+CLASS lcl_node_value DEFINITION FINAL.
+
+  PUBLIC SECTION.
+    " any spelling of a numeric zero is initial - ajson writes a packed field
+    " with decimals as `0.00` and a float as `0.0E+00` (both are |{ value }|),
+    " and a plain compare against `0` kept exactly the "price" column
+    " omit_initial is documented for. CO: every character of the value is one
+    " of these, i.e. no non-zero digit. A string, a bool and null are initial
+    " when empty
+    CLASS-METHODS check_initial
+      IMPORTING
+        is_node       TYPE z2ui5_if_ajson_types=>ty_node
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+ENDCLASS.
+
+
+CLASS lcl_node_value IMPLEMENTATION.
+
+  METHOD check_initial.
+
+    IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
+      result = xsdbool( is_node-value CO `0.-+Ee` ).
+    ELSE.
+      result = xsdbool( is_node-value IS INITIAL ).
+    ENDIF.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 " The row-preserving replacement for ajson's empty filter, behind
 " z2ui5_if_client~_bind( omit_initial = abap_true ).
 "
@@ -46,17 +80,7 @@ CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
 
     " everything below mirrors the vendored lcl_empty_filter
     IF iv_visit = z2ui5_if_ajson_filter=>visit_type-value.
-      IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
-        " any spelling of a numeric zero is initial - ajson writes a packed
-        " field with decimals as `0.00` and a float as `0.0E+00` (both are
-        " |{ value }|), and a plain compare against `0` kept exactly the
-        " "price" column omit_initial is documented for. CN: the value holds
-        " a character that is not one of these, i.e. a non-zero digit
-        rv_keep = xsdbool( is_node-value CN `0.-+Ee` ).
-      ELSE.
-        " string & bool & null
-        rv_keep = xsdbool( is_node-value IS NOT INITIAL ).
-      ENDIF.
+      rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
     ELSE.
       " children = 0 on open for initially empty nodes and on close for
       " fully filtered ones
@@ -140,16 +164,7 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
-      " any spelling of a numeric zero is initial - ajson writes a packed
-      " field with decimals as `0.00` and a float as `0.0E+00` (both are
-      " |{ value }|), and a plain compare against `0` kept exactly the
-      " "price" column omit_initial is documented for. CN: the value holds
-      " a character that is not one of these, i.e. a non-zero digit
-      rv_keep = xsdbool( is_node-value CN `0.-+Ee` ).
-    ELSE.
-      rv_keep = xsdbool( is_node-value IS NOT INITIAL ).
-    ENDIF.
+    rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
 
   ENDMETHOD.
 

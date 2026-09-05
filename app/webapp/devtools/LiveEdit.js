@@ -16,23 +16,24 @@ sap.ui.define(
     "z2ui5/core/AppState",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
+    "z2ui5/devtools/Tabs",
   ],
-  (Slots, AppState, Lib, ViewSlots) => {
+  (Slots, AppState, Lib, ViewSlots, Tabs) => {
     "use strict";
 
-    // Which developer-tools tab edits which view slot. Only the tabs that
-    // show a slot's own XML can be applied; the model / response / history
-    // tabs have no slot to render into.
-    const TAB_TO_SLOT = {
-      VIEW: "MAIN",
-      POPUP: "POPUP",
-      POPOVER: "POPOVER",
-      NEST1: "NEST",
-      NEST2: "NEST2",
-    };
-
+    // Which view slot a developer-tools tab edits, read from the tab
+    // registry - which already carries the slot and the aspect of every
+    // tab, and promises that adding one is a single entry there
+    // (devtools/Tabs.js). The private copy of that mapping this module
+    // used to keep is exactly the drift the registry exists to prevent: a
+    // new slot tab would have been offered everywhere except here.
+    //
+    // Only the XML aspect can be applied: the model and bindings
+    // sub-views name a slot too, but show nothing that could be rendered
+    // back into it.
     function slotOfTab(tabKey) {
-      return TAB_TO_SLOT[tabKey];
+      const tab = Tabs.get(tabKey);
+      return tab?.aspect === "XML" ? tab.slot : undefined;
     }
 
     // True when the given tab can be applied right now: it maps to a slot
@@ -96,24 +97,17 @@ sap.ui.define(
       );
     }
 
-    // The XML the slot currently holds, so the editor can be reset to the
-    // version the backend actually sent.
-    function originalXml(tabKey) {
-      const slotKey = slotOfTab(tabKey);
-      if (!slotKey) return "";
-      return (
-        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||
-        ViewSlots.getViewXml(slotKey) ||
-        ""
-      );
-    }
-
     // True while a roundtrip is running - applying then would race the
     // response's own display of the same slot.
     function isBusy() {
       return Boolean(AppState.state.isBusy);
     }
 
-    return { apply, canApply, slotOfTab, originalXml, isBusy };
+    // No originalXml( ) here any more: the dialog's Reset reads the slot
+    // through the tab registry like every other view (DeveloperTools
+    // backendXml -> Tabs.render), so a second reader of the same XML -
+    // with its own copy of the private viewContent access - had no caller
+    // left.
+    return { apply, canApply, slotOfTab, isBusy };
   },
 );

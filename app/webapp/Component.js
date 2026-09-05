@@ -160,9 +160,10 @@ sap.ui.define(
         // sap.ui.core.routing.Router uses, and inside the FLP the shell's own
         // one - so the native browser Back/Forward buttons and the launchpad
         // back button drive navigation. Only apps that opted in via
-        // follow_up_action( cs_event-set_nav_routing ) act on it, so apps that manage their own
-        // hash are unaffected. Server does the actual restore roundtrip; it is
-        // injected here so the router stays free of a Server dependency.
+        // follow_up_action( cs_event-hash_routing ) act on it, so apps that
+        // manage their own hash are unaffected. Server does the actual
+        // restore roundtrip; it is injected here so the router stays free of
+        // a Server dependency.
         Router.init(() => Server.restoreFromRoute());
       },
 
@@ -263,25 +264,38 @@ sap.ui.define(
         Server.reset();
 
         // Global state that would outlive the component (FLP keeps the page
-        // alive): cancel any pending backend timer, empty the shortcut
-        // registry so the module-scoped keydown listener becomes a no-op,
-        // and detach the device model's handlers from the Device singleton.
+        // alive). Only what AppState.reset( ) at the end of this method
+        // cannot do is done here: reset REBUILDS the state object, so every
+        // plain field (the timer handles, the shortcut registry, the model
+        // reference) is back at its default by itself - but a pending
+        // timeout keeps firing and a device model keeps its handlers on the
+        // Device singleton unless they are cancelled and destroyed first.
+        // Clearing those fields by hand on top of that only restated three
+        // lines further down what reset already does.
         for (const key of Object.keys(AppState.state.timers)) {
           clearTimeout(AppState.state.timers[key]);
-          delete AppState.state.timers[key];
         }
-        AppState.state.shortcuts = {};
         if (AppState.state.oDeviceModel) {
           AppState.state.oDeviceModel.destroy();
-          AppState.state.oDeviceModel = null;
         }
+
+        // The unsaved-changes guard of cc/Dirty is MODULE state (one global
+        // browser prompt, one FLP dirty flag, so the control has to know
+        // about every live instance at once) and no teardown path destroys
+        // the POPUP and POPOVER slots - a Dirty control inside a dialog
+        // never runs its own exit( ), and its entry kept
+        // window.onbeforeunload installed for an app that is already gone.
+        // Resolved lazily: an app that uses no Dirty control has not loaded
+        // the module, and then there is nothing to reset.
+        sap.ui.require("z2ui5/cc/Dirty")?.reset?.();
+
         // The OData clients the framework created for MAIN (the inventory
         // AppState.state.odataClients documents): a model is no aggregation,
         // so neither the view's destroy nor AppState.reset( ) below releases
-        // one - reset only drops the set - and an FLP re-launch kept every
-        // client that was open alive, $metadata request, caches and queues
-        // included. Each destroy on its own: one that throws must not stop
-        // the rest of this teardown.
+        // one - reset only drops the inventory - and an FLP re-launch kept
+        // every client that was open alive, $metadata request, caches and
+        // queues included. Each destroy on its own: one that throws must not
+        // stop the rest of this teardown.
         for (const oClient of AppState.state.odataClients) {
           try {
             oClient.destroy();
@@ -289,21 +303,19 @@ sap.ui.define(
             Lib.logError("Component: destroying an OData client failed", e);
           }
         }
-        AppState.state.odataClients.clear();
 
         // Robust launchpad teardown:
         //  1. Clear the FLP dirty flag so it does not carry over into the
         //     next app the user opens.
-        //  2. Detach the shared launchpad object so a subsequent re-launch
-        //     starts from a clean state and any still-pending init Promises
-        //     become no-ops via setIfAlive().
+        //  2. Drop this component's own reference to the shared launchpad
+        //     object, which is what turns every still-pending init Promise
+        //     into a no-op (setIfAlive compares against it). The shared
+        //     AppState field is not nulled here - AppState.reset( ) below
+        //     rebuilds the state and with it that field.
         try {
           this._launchpad?.Container?.setDirtyFlag?.(false);
         } catch (e) {
           Lib.logError("Component: clearing FLP dirty flag failed", e);
-        }
-        if (AppState.state.oLaunchpad === this._launchpad) {
-          AppState.state.oLaunchpad = null;
         }
         this._launchpad = null;
 

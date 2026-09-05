@@ -160,12 +160,20 @@ function runGate(gate) {
       [path.join(SCRIPTS, gate.script), ...(gate.args ?? [])],
       { cwd: ROOT },
     );
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (d) => { stdout += d; });
-    child.stderr.on("data", (d) => { stderr += d; });
-    child.on("error", (error) => resolve({ gate, status: null, stdout, stderr, error }));
-    child.on("close", (status, signal) => resolve({ gate, status, stdout, stderr, signal }));
+    /* Collect the raw chunks and decode ONCE at the end. `out += chunk`
+     * decodes each Buffer on its own, and a chunk boundary can fall inside a
+     * multi-byte character - these gates print `—`, `·` and `→` - which then
+     * arrives as two replacement characters in a report somebody has to
+     * read. */
+    const stdoutChunks = [];
+    const stderrChunks = [];
+    const text = (chunks) => Buffer.concat(chunks).toString("utf8");
+    child.stdout.on("data", (d) => { stdoutChunks.push(d); });
+    child.stderr.on("data", (d) => { stderrChunks.push(d); });
+    child.on("error", (error) =>
+      resolve({ gate, status: null, stdout: text(stdoutChunks), stderr: text(stderrChunks), error }));
+    child.on("close", (status, signal) =>
+      resolve({ gate, status, stdout: text(stdoutChunks), stderr: text(stderrChunks), signal }));
   });
 }
 

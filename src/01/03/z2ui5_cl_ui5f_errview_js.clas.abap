@@ -32,6 +32,8 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `` && |\n| &&
              `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
              `` && |\n| &&
+             `  const PREVIEW_SCAN_MAX = 16000;` && |\n| &&
+             `` && |\n| &&
              `  const DEFAULT_TITLE = "Application Error - Please Restart The App";` && |\n| &&
              `` && |\n| &&
              `  const STYLE_ID = "z2ui5ErrorViewStyle";` && |\n| &&
@@ -45,6 +47,11 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `` && |\n| &&
              `  let friendlyDialog = null;` && |\n| &&
              `` && |\n| &&
+             `  function fromCodePoint(raw, codePoint) {` && |\n| &&
+             `    if (!(codePoint >= 0 && codePoint <= 0x10ffff)) return raw;` && |\n| &&
+             `    return String.fromCodePoint(codePoint);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function decodeEntities(s) {` && |\n| &&
              `    return s` && |\n| &&
              `      .replace(/&nbsp;/gi, " ")` && |\n| &&
@@ -53,9 +60,9 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      .replace(/&quot;/gi, '"')` && |\n| &&
              `      .replace(/&apos;|&#0*39;/gi, "'")` && |\n| &&
              `      .replace(/&copy;/gi, String.fromCharCode(169))` && |\n| &&
-             `      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))` && |\n| &&
-             `      .replace(/&#x([0-9a-f]+);/gi, (_, n) =>` && |\n| &&
-             `        String.fromCharCode(parseInt(n, 16)),` && |\n| &&
+             `      .replace(/&#(\d+);/g, (raw, n) => fromCodePoint(raw, Number(n)))` && |\n| &&
+             `      .replace(/&#x([0-9a-f]+);/gi, (raw, n) =>` && |\n| &&
+             `        fromCodePoint(raw, parseInt(n, 16)),` && |\n| &&
              `      )` && |\n| &&
              `      .replace(/&amp;/gi, "&");` && |\n| &&
              `  }` && |\n| &&
@@ -97,7 +104,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    if (!text) return "";` && |\n| &&
              `    let preview = extractFrameworkMessages(text);` && |\n| &&
              `    if (!preview) {` && |\n| &&
-             `      preview = text;` && |\n| &&
+             `      preview = text.slice(0, PREVIEW_SCAN_MAX);` && |\n| &&
              `      if (/<[a-z][\s\S]*>/i.test(preview)) {` && |\n| &&
              `        preview =` && |\n| &&
              `          extractServerError(preview) ||` && |\n| &&
@@ -417,15 +424,15 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `` && |\n| &&
              `    const h3 = document.createElement("h3");` && |\n| &&
              `    h3.id = "serverErrorTitle";` && |\n| &&
-             `    h3.textContent = title || DEFAULT_TITLE;` && |\n| &&
+             `    h3.textContent = title || DEFAULT_TITLE;` && |\n|.
+    result = result &&
              `    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
              `    const btnStyle =` && |\n| &&
              `      "padding: 0.375rem 0.875rem; background: white; color: #bb0000; border: 1px solid white; border-radius: 0; cursor: pointer; font: inherit; font-weight: bold; white-space: nowrap;";` && |\n| &&
              `` && |\n| &&
-             `    const actionsDiv = document.createElement("div");` && |\n|.
-    result = result &&
+             `    const actionsDiv = document.createElement("div");` && |\n| &&
              `    actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
              `` && |\n| &&
              `    const addAction = (label, onClick) => {` && |\n| &&

@@ -174,6 +174,21 @@ test.describe("MessageManager companion control", () => {
     expect(env.changeCount).toBe(2);
   });
 
+  test("a row without the ABAP columns cannot key itself apart", () => {
+    // `items` is an ABAP table, so reconcile builds every Message from the
+    // UPPER-case columns. The key used to fall back to lower-case twins
+    // that the add path never reads: two such rows produced two different
+    // keys for two identical (empty) messages, and the manager collected a
+    // duplicate for a message that carries nothing.
+    const env = load();
+    const ext = makeExt(env);
+    ext.init();
+    ext.setup();
+    ext.setItems([{ message: "one" }, { message: "two" }]);
+    expect(env.messaging.added).toHaveLength(1);
+    expect(env.messaging.added[0]).toMatchObject({ message: "", type: "Error" });
+  });
+
   test("defers reconcile until setup when items arrive before ready", () => {
     const env = load();
     const ext = makeExt(env);

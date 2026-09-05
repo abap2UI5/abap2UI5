@@ -22,9 +22,17 @@
  *
  * `--full` is `npm run verify:full`: the same run plus the frontend gates —
  * the ui5lint zero-error gate (check:ui5) and the app ESLint — which need
- * app/node_modules. The runner installs that itself when it is missing, the
- * way check:app2abap already does (ensure-app-deps.mjs), and only in --full
- * mode: the default `verify` stays free of the Fiori toolchain install.
+ * app/node_modules. The runner HOISTS that install out of the pool in --full
+ * mode only, the way it hoists `npm run deps`, because both members need it
+ * and a concurrent install twice over is not a thing.
+ *
+ * That is not the same as "the default run does not install the app
+ * toolchain", which this paragraph used to claim: `check:app2abap` is a
+ * BUILD member in both modes and its first command is the same
+ * ensure-app-deps.mjs, because the drift gate regenerates src/01/03 through
+ * `npm --prefix app run format`. So a default `verify` on a checkout without
+ * app/node_modules still installs it — later, from inside that gate, and only
+ * when it is missing.
  *
  * Each member is still the command a developer reruns on its own; the report
  * names it. The npm wrapper cost is irrelevant here — the members are
@@ -92,11 +100,17 @@ const CONCURRENCY = Math.min(8, Math.max(2, os.cpus().length));
 function runCheck(member) {
   return new Promise((resolve) => {
     const child = spawn(member.argv[0], member.argv.slice(1), { cwd: ROOT });
-    let out = "";
-    child.stdout.on("data", (d) => { out += d; });
-    child.stderr.on("data", (d) => { out += d; });
-    child.on("error", (error) => resolve({ member, status: null, out, error }));
-    child.on("close", (status, signal) => resolve({ member, status, out, signal }));
+    /* Collect the raw chunks and decode ONCE at the end. `out += chunk`
+     * decodes each Buffer on its own, and a chunk boundary can fall inside a
+     * multi-byte character - abaplint's output and these gates' reports are
+     * full of `—` and `·` - which then arrives as two replacement characters
+     * in a report somebody has to read. */
+    const chunks = [];
+    const out = () => Buffer.concat(chunks).toString("utf8");
+    child.stdout.on("data", (d) => { chunks.push(d); });
+    child.stderr.on("data", (d) => { chunks.push(d); });
+    child.on("error", (error) => resolve({ member, status: null, out: out(), error }));
+    child.on("close", (status, signal) => resolve({ member, status, out: out(), signal }));
   });
 }
 

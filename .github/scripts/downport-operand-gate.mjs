@@ -91,6 +91,17 @@ const SELF_TEST = [
   ["LOOP AT lt_rows INTO DATA(ls_row) WHERE name = lo_app->get_name( ).", null],
   // a built-in outside any of the three positions
   ["DATA(lv_name) = to_upper( is_node-name ).", null],
+  /* A `"` inside a `|...|` string template is TEXT, not the start of a
+   * comment. The line scan used to stop there, so the operand position after
+   * it was never looked at and the finding was silently lost - the bug class
+   * lib/abap-statements.mjs was written to end, in the one caller that still
+   * had its own loop. */
+  [`READ TABLE lt_x WITH KEY msg = |say "hi"| name = to_upper( iv_name ) INTO ls_x.`, "WITH KEY operand"],
+  [`LOOP AT lt_rows INTO DATA(ls) WHERE text = |a "b" c| AND name = to_upper( iv_name ).`, "internal-table WHERE operand"],
+  // the template's own text is a literal and holds no operand position
+  ["DATA(lv) = |x[ name = to_upper( a ) ]|.", null],
+  // an embedded expression inside a template IS code and is still scanned
+  [`READ TABLE lt_x WITH KEY name = |{ to_upper( iv_name ) }| INTO ls_x.`, "WITH KEY operand"],
 ];
 
 for (const [line, expected] of SELF_TEST) {

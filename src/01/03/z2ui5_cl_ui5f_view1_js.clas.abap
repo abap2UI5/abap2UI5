@@ -76,13 +76,15 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            state.renderedApp = oResponse.APP;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
+             `          const seq = reqSeq ?? Server._requestSeq;` && |\n| &&
+             `` && |\n| &&
              `          if (oResponse.S_ACTION) {` && |\n| &&
-             `            const seq = reqSeq ?? Server._requestSeq;` && |\n| &&
              `            await this._runSystemActions(oResponse, seq);` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (` && |\n| &&
              `            !Lib.isControllerAlive(this) ||` && |\n| &&
+             `            seq !== Server._requestSeq ||` && |\n| &&
              `            oResponse !== AppState.state.oResponse` && |\n| &&
              `          ) {` && |\n| &&
              `            superseded = true;` && |\n| &&
@@ -184,10 +186,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        for (const key in AppState.state.timers) {` && |\n| &&
-             `          clearTimeout(AppState.state.timers[key]);` && |\n| &&
-             `          delete AppState.state.timers[key];` && |\n| &&
-             `        }` && |\n| &&
+             `        Lib.cancelPendingTimers();` && |\n| &&
              `` && |\n| &&
              `        AppState.state.isBusy = true;` && |\n| &&
              `        BusyIndicator.show();` && |\n| &&

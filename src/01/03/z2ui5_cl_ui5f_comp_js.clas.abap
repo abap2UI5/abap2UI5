@@ -193,13 +193,12 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `` && |\n| &&
              `        for (const key of Object.keys(AppState.state.timers)) {` && |\n| &&
              `          clearTimeout(AppState.state.timers[key]);` && |\n| &&
-             `          delete AppState.state.timers[key];` && |\n| &&
              `        }` && |\n| &&
-             `        AppState.state.shortcuts = {};` && |\n| &&
              `        if (AppState.state.oDeviceModel) {` && |\n| &&
              `          AppState.state.oDeviceModel.destroy();` && |\n| &&
-             `          AppState.state.oDeviceModel = null;` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        sap.ui.require("z2ui5/cc/Dirty")?.reset?.();` && |\n| &&
              `` && |\n| &&
              `        for (const oClient of AppState.state.odataClients) {` && |\n| &&
              `          try {` && |\n| &&
@@ -208,15 +207,11 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `            Lib.logError("Component: destroying an OData client failed", e);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
-             `        AppState.state.odataClients.clear();` && |\n| &&
              `` && |\n| &&
              `        try {` && |\n| &&
              `          this._launchpad?.Container?.setDirtyFlag?.(false);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `        if (AppState.state.oLaunchpad === this._launchpad) {` && |\n| &&
-             `          AppState.state.oLaunchpad = null;` && |\n| &&
              `        }` && |\n| &&
              `        this._launchpad = null;` && |\n| &&
              `` && |\n| &&

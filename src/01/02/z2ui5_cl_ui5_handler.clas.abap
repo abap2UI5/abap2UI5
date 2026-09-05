@@ -84,6 +84,10 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
         VALUE(check_go_client) TYPE abap_bool.
 
     METHODS main_end.
+    " the URL intent of this response - routing mode and app-state hash -
+    " re-asserted from what the app remembers; the state machine main_end
+    " used to carry inline
+    METHODS main_end_nav.
 
     "! the draft save at the end of main_end - a sticky app saves only when
     "! a route or app-state link carries its draft id
@@ -100,6 +104,10 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " request - an app that navigates unconditionally in main( ) would
     " otherwise loop the work process forever
     DATA mv_dispatch_limit TYPE i VALUE 1000.
+
+    " whether THIS request's body has been parsed into ms_request - see
+    " main_begin and request_context_info
+    DATA mv_request_parsed TYPE abap_bool.
 
     " upper bound for the event arguments one request may carry. The
     " frontend fills T_EVENT_ARG from the view's own argument list, so a
@@ -382,6 +390,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ENDTRY.
 
     IF result IS NOT INITIAL.
+      " a launchpad startup parameter cannot carry a slash, so a namespaced
+      " class travels as `-ns-class` in the intent and is spelled back to
+      " `/ns/class` here - the first two hyphens only, a hyphen inside the
+      " class name itself is not one an ABAP name can have anyway
       IF result(1) = `-`.
         REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
         REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
@@ -679,10 +691,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
             previous = x.
     ENDTRY.
 
+    " `OK`, the reason phrase every other 200 of this handler carries
     result = VALUE #( body          = mv_response
                       s_stateful    = mo_action->ms_next-s_stateful
                       status_code   = 200
-                      status_reason = `success` ).
+                      status_reason = `OK` ).
 
     " the handler may be sticky and answer the next request too - nothing of
     " this roundtrip's queues and intents may leak into it
@@ -702,7 +715,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " missing detail must shorten the context line, never replace the
     " original error with a follow-up dump. Nested IFs, not a chained AND -
     " the guard must hold on every target the sources are compiled for.
-    IF mo_action IS BOUND.
+    " ...and only once THIS request was parsed: before that, a sticky
+    " handler's action is the previous roundtrip's, whose event and draft
+    " have nothing to do with the body that just failed
+    IF mo_action IS BOUND AND mv_request_parsed = abap_true.
       lv_event = mo_action->ms_actual-event.
 
       IF mo_action->mo_app IS BOUND.
@@ -730,7 +746,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     result = |Request failed| &&
              COND #( WHEN lv_app   IS NOT INITIAL THEN | in app { lv_app }| ) &&
-             COND #( WHEN lv_event IS NOT INITIAL THEN |, event { lv_event }|
+             COND #( WHEN mv_request_parsed = abap_false THEN |, request not parsed|
+                     WHEN lv_event IS NOT INITIAL THEN |, event { lv_event }|
                      ELSE |, no event (initial rendering)| ) &&
              COND #( WHEN lv_draft IS NOT INITIAL THEN |, draft { lv_draft }| ) &&
              COND #( WHEN lv_app_start IS NOT INITIAL
@@ -768,7 +785,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " intra-request cache while preventing cross-request growth.
     z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
 
+    " a sticky handler still holds the PREVIOUS roundtrip's action while this
+    " body is parsed; the flag keeps request_context_info from annotating a
+    " parse failure with that roundtrip's event and draft
+    CLEAR mv_request_parsed.
     ms_request = request_json_to_abap( mv_request_json ).
+    mv_request_parsed = abap_true.
 
     IF ms_request-s_front-id IS NOT INITIAL.
       mo_action = mo_action->factory_by_frontend( ).
@@ -906,7 +928,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD main_end.
+  METHOD main_end_nav.
 
     " Hash routing is configured once and then belongs to the app, not to the
     " session: re-send the app's own mode whenever this roundtrip did not set
@@ -967,6 +989,13 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         AND mo_action->mo_app->mv_app_state_active = abap_true.
       mo_action->ms_next-s_nav-set_app_state_active = abap_true.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD main_end.
+
+    " the URL intent first - see main_end_nav
+    main_end_nav( ).
 
     DATA(lo_front) = NEW z2ui5_cl_ui5_frontend( mo_action ).
 

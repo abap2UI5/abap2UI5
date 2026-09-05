@@ -635,9 +635,9 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
       result-details = details.
     ENDIF.
 
-    " MessageBox display methods are lowercase (show, error, warning, ...) but
-    " the type arrives capitalized from ui5_msg_box_format ( `Error` for a
-    " multi-message box ) or however an app spelled it
+    " MessageBox display methods are lowercase (show, error, warning, ...);
+    " the type arrives however an app spelled it (ui5_msg_box_format
+    " lower-cases its own already)
     result-type = to_lower( result-type ).
 
     " the type travels as the method of the whitelisted global call, so a type
@@ -681,8 +681,11 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " converted, so a stray string can never reach MessageToast as NaN.
     " Condense first: `1 000` would pass a check that allows blanks and then
     " dump in CONV, and a blanks-only value must count as left-alone.
+    " Nine digits at most: a longer digit string is past the integer range
+    " and CONV raised CX_SY_CONVERSION_OVERFLOW out of a method whose only
+    " CATCH is the ajson one - dropped like a non-numeric value instead
     DATA(lv_val) = condense( CONV string( val ) ).
-    IF lv_val IS NOT INITIAL AND lv_val CO `0123456789`.
+    IF lv_val IS NOT INITIAL AND lv_val CO `0123456789` AND strlen( lv_val ) <= 9.
       json->set_integer( iv_path = |/{ name }|
                          iv_val  = CONV i( lv_val ) ).
     ENDIF.

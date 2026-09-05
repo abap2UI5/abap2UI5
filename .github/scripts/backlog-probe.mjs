@@ -123,7 +123,13 @@ for (const name of probes) {
 
   let text = fs.readFileSync(item, 'utf8');
   const marked = /<!-- probe:start[\s\S]*?<!-- probe:end -->/;
-  text = marked.test(text) ? text.replace(marked, block) : `${text.trimEnd()}\n\n${block}\n`;
+  /* A function replacer, not the string: `block` is BUILT from the source
+   * lines a probe found, and `$&`, `$\`` and `$'` in a string replacement are
+   * back-references, not text. A quoted ABAP or JS line carrying `$&` - a
+   * regex replacement is the obvious way to write one - would expand into the
+   * whole block it was replacing, and the item would then say something no
+   * probe ever measured. */
+  text = marked.test(text) ? text.replace(marked, () => block) : `${text.trimEnd()}\n\n${block}\n`;
   fs.writeFileSync(item, text);
 
   console.log(`  ${id}: ${sites.length} site(s) in ${repos.join(', ') || '—'}, ${negatives.length} negative(s)`);
