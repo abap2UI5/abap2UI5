@@ -42,6 +42,7 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS teardown.
 
     METHODS test_defaults_http_get   FOR TESTING RAISING cx_static_check.
+    METHODS test_no_secure_ctx_header FOR TESTING RAISING cx_static_check.
     METHODS test_defaults_http_post  FOR TESTING RAISING cx_static_check.
     METHODS test_expiry_clamped      FOR TESTING RAISING cx_static_check.
     METHODS test_superseded_intf     FOR TESTING RAISING cx_static_check.
@@ -95,6 +96,28 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-t_security_header ).
+
+  ENDMETHOD.
+
+  METHOD test_no_secure_ctx_header.
+
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA temp2 TYPE xsdboolean.
+
+    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+
+    " a secure-context-only header must not be in the shipped defaults: the
+    " plain-HTTP on-premise system ignores it and logs a console error on
+    " every app start (reasoning at set_config_http_get). HTTPS installations
+    " add it in their own exit
+    temp2 = xsdbool( line_exists(
+        ls_config-t_security_header[ n = `Cross-Origin-Opener-Policy` ] ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_false( temp2 ).
+
+    " ... while the one that IS honoured over plain HTTP stays
+    temp2 = xsdbool( line_exists(
+        ls_config-t_security_header[ n = `Cross-Origin-Resource-Policy` ] ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_true( temp2 ).
 
   ENDMETHOD.
 
