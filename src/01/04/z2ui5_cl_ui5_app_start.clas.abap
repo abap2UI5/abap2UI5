@@ -66,6 +66,13 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    " what the page shows for a class that could not be instantiated - the
+    " exception text, or a plain sentence where the exit hides error details
+    METHODS error_text_for_user
+      IMPORTING
+        ix            TYPE REF TO cx_root
+      RETURNING
+        VALUE(result) TYPE string.
     METHODS header_icon
       IMPORTING
         toolbar TYPE REF TO z2ui5_cl_ui5_view_builder
@@ -298,11 +305,32 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         ms_home-url               = get_app_url( ms_home-classname ).
 
       CATCH cx_root INTO DATA(lx).
-        ms_home-class_value_state_text = lx->get_text( ).
+        ms_home-class_value_state_text = error_text_for_user( lx ).
         ms_home-class_value_state      = `Warning`.
         client->message_box_display( text = ms_home-class_value_state_text
                                      type = `error` ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD error_text_for_user.
+
+    " the exception text of a CREATE OBJECT for a class name the user typed
+    " goes onto the page - with the same switch the 500 body honours: an
+    " installation whose exit hides error details gets a plain sentence
+    " here too, not the raw system text. The exit is asked the way the
+    " draft cleanup asks it; an exit that raises leaves the switch at its
+    " default (details shown)
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    TRY.
+        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+    IF ls_config-check_hide_error_details = abap_true.
+      result = `The class could not be instantiated - see the system log for details`.
+    ELSE.
+      result = ix->get_text( ).
+    ENDIF.
 
   ENDMETHOD.
 

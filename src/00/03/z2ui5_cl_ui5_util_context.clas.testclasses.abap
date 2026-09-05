@@ -396,6 +396,7 @@ CLASS ltcl_rtti DEFINITION FINAL
     METHODS test_check_clike     FOR TESTING RAISING cx_static_check.
     METHODS test_printable_decfloat FOR TESTING RAISING cx_static_check.
     METHODS test_srtti_pair_roundtrip FOR TESTING RAISING cx_static_check.
+    METHODS test_html_get_plain FOR TESTING RAISING cx_static_check.
     METHODS test_check_table     FOR TESTING RAISING cx_static_check.
     METHODS test_check_structure FOR TESTING RAISING cx_static_check.
     METHODS test_check_ref_data  FOR TESTING RAISING cx_static_check.
@@ -410,6 +411,25 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION LOCAL FRIENDS ltcl_rtti.
 
 
 CLASS ltcl_rtti IMPLEMENTATION.
+
+  METHOD test_html_get_plain.
+
+    " tags become blanks, entities their characters, an unclosed tag takes
+    " the rest with it - the contract the one-pass rewrite has to keep
+    cl_abap_unit_assert=>assert_equals(
+        exp = `a b`
+        act = z2ui5_cl_ui5_util_context=>html_get_plain( `<td>a</td><td>b</td>` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `x < y & z`
+        act = z2ui5_cl_ui5_util_context=>html_get_plain( `<p>x &lt; y &amp; z</p>` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `a`
+        act = z2ui5_cl_ui5_util_context=>html_get_plain( `a <b` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `plain`
+        act = z2ui5_cl_ui5_util_context=>html_get_plain( `plain` ) ).
+
+  ENDMETHOD.
 
   METHOD test_srtti_pair_roundtrip.
 

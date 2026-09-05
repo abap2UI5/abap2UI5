@@ -1000,6 +1000,24 @@ sap.ui.define(
       });
     }
 
+    // Does `obj` get `method` from the ROOT prototype of its realm - the
+    // Object.prototype every plain object ends in? Walked along the chain
+    // rather than compared with this module's Object.prototype: a control
+    // created in another realm (an iframe, the unit-test sandbox) has a
+    // root prototype of its own, and an identity compare would let its
+    // hasOwnProperty through.
+    function isRootPrototypeMethod(obj, method) {
+      let owner = obj;
+      while (
+        owner !== null &&
+        owner !== undefined &&
+        !Object.prototype.hasOwnProperty.call(owner, method)
+      ) {
+        owner = Object.getPrototypeOf(owner);
+      }
+      return !!owner && Object.getPrototypeOf(owner) === null;
+    }
+
     const PSEUDO_METHODS = Object.assign(Object.create(null), {
       toggleBy: pseudoToggleBy,
       openBy: pseudoOpenBy,
@@ -1034,7 +1052,15 @@ sap.ui.define(
         pseudo({ control, id, view, method, kinds, args, oController });
         return;
       }
-      if (!control || typeof control[method] !== "function") {
+      // a method the control only INHERITS from Object.prototype - toString,
+      // hasOwnProperty, valueOf ... - is no control method, whatever
+      // `typeof control[method]` answers, and `constructor` is the class
+      // itself; this wire has no whitelist of its own (the target decides),
+      // so the check is what stands between the wire and Object.prototype. A
+      // control that implements its own toString keeps it callable.
+      const inherited =
+        method === "constructor" || isRootPrototypeMethod(control, method);
+      if (!control || inherited || typeof control[method] !== "function") {
         Lib.logError(
           `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
         );

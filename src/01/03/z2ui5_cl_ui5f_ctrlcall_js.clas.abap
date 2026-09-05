@@ -587,6 +587,18 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function isRootPrototypeMethod(obj, method) {` && |\n| &&
+             `      let owner = obj;` && |\n| &&
+             `      while (` && |\n| &&
+             `        owner !== null &&` && |\n| &&
+             `        owner !== undefined &&` && |\n| &&
+             `        !Object.prototype.hasOwnProperty.call(owner, method)` && |\n| &&
+             `      ) {` && |\n| &&
+             `        owner = Object.getPrototypeOf(owner);` && |\n| &&
+             `      }` && |\n| &&
+             `      return !!owner && Object.getPrototypeOf(owner) === null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const PSEUDO_METHODS = Object.assign(Object.create(null), {` && |\n| &&
              `      toggleBy: pseudoToggleBy,` && |\n| &&
              `      openBy: pseudoOpenBy,` && |\n| &&
@@ -613,7 +625,10 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        pseudo({ control, id, view, method, kinds, args, oController });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      if (!control || typeof control[method] !== "function") {` && |\n| &&
+             `` && |\n| &&
+             `      const inherited =` && |\n| &&
+             `        method === "constructor" || isRootPrototypeMethod(control, method);` && |\n| &&
+             `      if (!control || inherited || typeof control[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
              `        );` && |\n| &&
@@ -810,7 +825,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { handlers };` && |\n| &&
-             `  },` && |\n| &&
+             `  },` && |\n|.
+    result = result &&
              `);` && |\n| &&
              `` && |\n| &&
               ``.

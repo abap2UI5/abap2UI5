@@ -2262,9 +2262,42 @@ test.describe("CONTROL_BY_ID setAsyncURLHandler (MessagePopover URL policy)", ()
     ]);
     expect(errors[0]).toContain("not callable");
   });
+
+  test("a method name Object.prototype carries is not callable on a control", () => {
+    const { FrontendAction, errors, controls } = load();
+    let constructed = 0;
+    class Victim {
+      constructor() {
+        constructed += 1;
+      }
+    }
+    controls.victim = new Victim();
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "victim", "", "constructor"]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "victim",
+      "",
+      "hasOwnProperty",
+      "x",
+    ]);
+    expect(errors).toHaveLength(2);
+    expect(errors[0]).toContain("'constructor' not callable");
+    expect(constructed).toBe(1);
+  });
 });
 
 test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
+  test("a combo that spells a prototype property is refused, never written onto Object.prototype", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute(null, ["KEYBOARD_SHORTCUT", "__proto__", "EVT", "MAIN"]);
+    expect(errors[0]).toContain("is not a key combination");
+    // the registration used to reach shortcuts.__proto__ = Object.prototype
+    // and write the scope there - visible on every object of the page
+    expect("MAIN" in {}).toBe(false);
+    FrontendAction.execute(null, ["KEYBOARD_SHORTCUT", "constructor", "EVT", "MAIN"]);
+    expect(errors).toHaveLength(2);
+  });
+
   // a minimal document that records the keydown listener the action installs
   function docStub() {
     const listeners = [];

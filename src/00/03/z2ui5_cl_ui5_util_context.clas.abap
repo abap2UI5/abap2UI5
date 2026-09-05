@@ -738,6 +738,18 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     CLASS-METHODS msg_get_internal
       IMPORTING
         val           TYPE any
+        " the RAP-shape check of a structure is a property of its TYPE - a
+        " table decides it once for its rows (msg_get_internal_tab) and hands
+        " the answer down, instead of asking for every row
+        iv_check_rap  TYPE abap_bool DEFAULT abap_true
+          PREFERRED PARAMETER val
+      RETURNING
+        VALUE(result) TYPE ty_t_msg.
+
+    "! the rows of a table, the RAP shape decided on the first structured row
+    CLASS-METHODS msg_get_internal_tab
+      IMPORTING
+        it_tab        TYPE ANY TABLE
       RETURNING
         VALUE(result) TYPE ty_t_msg.
 
@@ -2326,29 +2338,18 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD html_get_plain.
 
-    DATA lv_rest TYPE string.
-    DATA lv_pos  TYPE i.
-
-    lv_rest = val.
-
-    " everything between < and > goes, and a blank takes its place so that
-    " `<td>a</td><td>b</td>` does not read as `ab`
-    WHILE lv_rest CS `<`.
-      lv_pos = sy-fdpos.
-      result = result && substring( val = lv_rest
-                                    len = lv_pos ) && ` `.
-      lv_rest = substring( val = lv_rest
-                           off = lv_pos ).
-      IF lv_rest CS `>`.
-        lv_pos = sy-fdpos + 1.
-        lv_rest = substring( val = lv_rest
-                             off = lv_pos ).
-      ELSE.
-        CLEAR lv_rest.
-      ENDIF.
-    ENDWHILE.
-
-    result = result && lv_rest.
+    " one pass over the text: every tag becomes a blank (so that
+    " `<td>a</td><td>b</td>` does not read as `ab`), and an unclosed `<`
+    " takes the rest of the text with it. The loop this used to be re-sliced
+    " the remainder once per tag - quadratic over a long body, in the path
+    " that renders an HTML message for the box
+    result = val.
+    REPLACE ALL OCCURRENCES OF REGEX `<[^>]*>` IN result WITH ` ` ##REGEX_POSIX.
+    FIND `<` IN result MATCH OFFSET DATA(lv_open).
+    IF sy-subrc = 0.
+      result = substring( val = result
+                          len = lv_open ) && ` `.
+    ENDIF.
 
     " the entities the stripped text would otherwise show as written
     REPLACE ALL OCCURRENCES OF `&nbsp;` IN result WITH ` `.
@@ -2896,10 +2897,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       WHEN cl_abap_datadescr=>typekind_table.
         FIELD-SYMBOLS <tab> TYPE ANY TABLE.
         ASSIGN val TO <tab>.
-        LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
-          DATA(lt_tab) = msg_get_internal( <row> ).
-          INSERT LINES OF lt_tab INTO TABLE result.
-        ENDLOOP.
+        result = msg_get_internal_tab( <tab> ).
 
       WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
 
@@ -2907,7 +2905,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        IF check_is_rap_struct( val ) = abap_true.
+        IF iv_check_rap = abap_true AND check_is_rap_struct( val ) = abap_true.
           result = msg_get_rap( val ).
           RETURN.
         ENDIF.
@@ -2922,8 +2920,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           ENDIF.
 
           IF ls_attri->name = `ITEM`.
-            lt_tab = msg_get_internal( <comp> ).
-            INSERT LINES OF lt_tab INTO TABLE result.
+            INSERT LINES OF msg_get_internal( <comp> ) INTO TABLE result.
             RETURN.
           ELSE.
             ls_result = msg_map( name = ls_attri->name
@@ -2959,6 +2956,34 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           INSERT VALUE #( text = val ) INTO TABLE result.
         ENDIF.
     ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD msg_get_internal_tab.
+
+    " the RAP shape is a property of the ROW TYPE: decided on the first
+    " structured row and handed down, not asked of every row - the check
+    " describes every table component of a row, which a business table of a
+    " few thousand rows paid a few thousand times before the box even
+    " decided it carries no message at all
+    DATA(lv_rap)   = abap_false.
+    DATA(lv_first) = abap_true.
+    LOOP AT it_tab ASSIGNING FIELD-SYMBOL(<row>).
+      IF lv_first = abap_true.
+        lv_first = abap_false.
+        DATA(lv_row_kind) = rtti_get_type_kind( <row> ).
+        IF lv_row_kind = cl_abap_datadescr=>typekind_struct1
+            OR lv_row_kind = cl_abap_datadescr=>typekind_struct2.
+          lv_rap = check_is_rap_struct( <row> ).
+        ENDIF.
+      ENDIF.
+      IF lv_rap = abap_true AND <row> IS NOT INITIAL.
+        INSERT LINES OF msg_get_rap( <row> ) INTO TABLE result.
+      ELSE.
+        INSERT LINES OF msg_get_internal( val          = <row>
+                                          iv_check_rap = abap_false ) INTO TABLE result.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 

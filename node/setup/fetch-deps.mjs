@@ -21,7 +21,7 @@
 //
 // To bump a pin: run --print-latest, replace the sha below, run the script,
 // then `npm run verify` - the bump is an ordinary reviewed commit.
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,11 +47,15 @@ const PINS = [
   },
 ];
 
-const run = (cmd, cwd) => execSync(cmd, { cwd, stdio: ["ignore", "pipe", "pipe"] }).toString().trim();
+// git with an ARGUMENT ARRAY, never a shell string: the URLs and SHAs above
+// are constants today, and this stays the one spawner in the tooling that
+// cannot be turned into a shell injection by a value that stops being one
+const run = (args, cwd) =>
+  execFileSync("git", args, { cwd, stdio: ["ignore", "pipe", "pipe"] }).toString().trim();
 
 if (process.argv.includes("--print-latest")) {
   for (const p of PINS) {
-    const head = run(`git ls-remote ${p.url} HEAD`).split("\t")[0];
+    const head = run(["ls-remote", p.url, "HEAD"]).split("\t")[0];
     const mark = head === p.sha ? "(pinned = latest)" : `(pinned: ${p.sha})`;
     console.log(`${p.name}: ${head} ${mark}`);
   }
@@ -62,17 +66,17 @@ let failures = 0;
 for (const p of PINS) {
   const dir = path.join(DEPS_DIR, p.name);
   try {
-    if (fs.existsSync(path.join(dir, ".git")) && run("git rev-parse HEAD", dir) === p.sha) {
+    if (fs.existsSync(path.join(dir, ".git")) && run(["rev-parse", "HEAD"], dir) === p.sha) {
       continue; // already at the pin
     }
     fs.rmSync(dir, { recursive: true, force: true });
     fs.mkdirSync(dir, { recursive: true });
-    run("git init --quiet", dir);
-    run(`git remote add origin ${p.url}`, dir);
-    run(`git fetch --quiet --depth 1 origin ${p.sha}`, dir);
-    run("git checkout --quiet --detach FETCH_HEAD", dir);
+    run(["init", "--quiet"], dir);
+    run(["remote", "add", "origin", p.url], dir);
+    run(["fetch", "--quiet", "--depth", "1", "origin", p.sha], dir);
+    run(["checkout", "--quiet", "--detach", "FETCH_HEAD"], dir);
     // what was checked out IS the pin - not whatever the remote resolved
-    const head = run("git rev-parse HEAD", dir);
+    const head = run(["rev-parse", "HEAD"], dir);
     if (head !== p.sha) throw new Error(`checked out ${head}, the pin is ${p.sha}`);
     console.log(`fetch-deps: ${p.name} @ ${p.sha.slice(0, 12)}`);
   } catch (e) {
