@@ -260,7 +260,20 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   METHOD init_context.
 
     context = CORRESPONDING #( http_info ).
-    context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ). "#EC CI_SORTSEQ
+    " normalized the way request_app_start reads the parameter - trimmed,
+    " upper-cased, a percent-encoded namespace unpacked - so an exit keyed on
+    " the app (details hidden for one, a tighter CSP for another) is not
+    " bypassed by a case change or an encoded slash. It stays what the URL of
+    " THIS request says: empty on every POST (the SPA posts to the manifest
+    " URI) and when the app is named by the hash route, which never reaches
+    " the server - a hint for the page request, not the authority on what
+    " runs (see the interface doc)
+    context-app_start = z2ui5_cl_ui5_util_context=>c_trim_upper(
+        VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ) ). "#EC CI_SORTSEQ
+    context-app_start = replace( val  = context-app_start
+                                 sub  = `%2F`
+                                 with = `/`
+                                 occ  = 0 ).
 
   ENDMETHOD.
 

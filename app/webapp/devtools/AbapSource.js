@@ -11,7 +11,7 @@ sap.ui.define(
   (AppState, Inspect) => {
     "use strict";
 
-    // { app, source } of the last fetch - the class name is part of it
+    // { app, source } of the last SUCCESSFUL fetch - the class name is part of it
     // because a navigation swaps the app under the tools and the cached
     // source would otherwise be attributed to the new one.
     let cache = null;
@@ -91,7 +91,15 @@ sap.ui.define(
       } catch {
         source = "";
       }
-      cache = { app: name, source };
+      // Only a SUCCESSFUL fetch is cached. A failure says nothing about the
+      // class, it says something about the SESSION: the endpoint needs an
+      // authenticated, ADT-enabled one, and a single 401 before the
+      // developer had logged on used to be remembered for the rest of the
+      // session - Report a Bug, Export and the ADT deep link then stayed
+      // sourceless no matter how often they were pressed. An empty answer
+      // is retried on the next request instead; that is one request per
+      // press, and only while it keeps failing.
+      if (source) cache = { app: name, source };
       return source;
     }
 

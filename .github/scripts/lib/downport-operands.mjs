@@ -76,7 +76,17 @@ export function positions(code) {
   // 3. the WHERE condition of an internal-table statement. LOOP AT / DELETE /
   //    MODIFY only - an ABAP SQL WHERE is a different position with different
   //    rules, and this gate has no evidence about it.
-  const where = /^\s*(?:LOOP\s+AT|DELETE|MODIFY)\b(?![^"]*\bFROM\b)[^"]*?\bWHERE\b(.*)$/i.exec(code);
+  //
+  //    The ABAP SQL half is excluded by the ONE spelling that carries it into
+  //    a WHERE: `DELETE FROM <dbtab> WHERE …`. This used to be a blanket
+  //    "no FROM anywhere on the line", which excluded the two internal-table
+  //    shapes that legitimately have one and left the position unchecked:
+  //    `MODIFY <itab> FROM <wa> TRANSPORTING … WHERE …` - the ONLY itab MODIFY
+  //    that takes a WHERE at all, so that alternative could never match - and
+  //    `LOOP AT <itab> FROM <idx> WHERE …`. Open SQL MODIFY has no WHERE clause
+  //    and Open SQL DELETE only reaches one through `DELETE FROM`, so the
+  //    narrow exclusion loses nothing and buys back both shapes.
+  const where = /^\s*(?:LOOP\s+AT|DELETE(?!\s+FROM\b)|MODIFY)\b[^"]*?\bWHERE\b(.*)$/i.exec(code);
   if (where) found.push({ where: "internal-table WHERE operand", text: where[1] });
 
   return found;

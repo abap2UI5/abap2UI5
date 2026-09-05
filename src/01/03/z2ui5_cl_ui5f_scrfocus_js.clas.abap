@@ -47,9 +47,12 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function stripViewPrefix(fullId, view) {` && |\n| &&
+             `    function stripSlotPrefix(fullId, slot) {` && |\n| &&
+             `      const view = ViewSlots.getView(slot.key);` && |\n| &&
              `      if (!view) return fullId;` && |\n| &&
-             `      const prefix = ``${view.getId()}--``;` && |\n| &&
+             `      const prefix = slot.fragmentId` && |\n| &&
+             `        ? ``${slot.fragmentId}--``` && |\n| &&
+             `        : ``${view.getId()}--``;` && |\n| &&
              `      return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -71,7 +74,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `        const fullId = ui5El.getId();` && |\n| &&
              `        let id = fullId;` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          const local = stripViewPrefix(fullId, ViewSlots.getView(slot.key));` && |\n| &&
+             `          const local = stripSlotPrefix(fullId, slot);` && |\n| &&
              `          if (local !== fullId) {` && |\n| &&
              `            id = local;` && |\n| &&
              `            break;` && |\n| &&
@@ -136,10 +139,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `          continue;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        const id = stripViewPrefix(` && |\n| &&
-             `          entry.control.getId(),` && |\n| &&
-             `          ViewSlots.getView(slot.key),` && |\n| &&
-             `        );` && |\n| &&
+             `        const id = stripSlotPrefix(entry.control.getId(), slot);` && |\n| &&
              `        out[slot.key] = {` && |\n| &&
              `          ID: id,` && |\n| &&
              `          X: entry.dom.scrollLeft || 0,` && |\n| &&

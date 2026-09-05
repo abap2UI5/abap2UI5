@@ -22,7 +22,8 @@
 //   2. every external host token in the default policy comes from
 //      lv_ui5_hosts (the two legacy `schemas` tokens are named exceptions,
 //      confined to non-script directives; the list only shrinks)
-//   3. script-src is an explicit directive and carries no data:/blob:
+//   3. script-src is an explicit directive, and every `scheme:` source stands
+//      in a directive that is listed for it - script-src is in no such list
 //
 // If the anchors stop matching, the gate has to learn the new spelling rather
 // than pass silently on a grep that matches nothing.
@@ -54,6 +55,24 @@ const UI5_HOSTS = new Set([
 const LEGACY_TOKENS = new Map([
   ["schemas", ["default-src"]],
   ["*.schemas", ["default-src"]],
+]);
+
+/* Which directive may carry which `scheme:` source, closed and per directive.
+ * The test used to be the open regex `^[a-z][a-z0-9+.-]*:$` with one exception
+ * for script-src, which passed ANY scheme anywhere else: `connect-src 'self'
+ * https:` allows the authenticated session to talk to every host on the
+ * internet, and `style-src https:` is a step from there - both green in a gate
+ * SECURITY.md names as the holder of "only the UI5 CDN hosts". A scheme source
+ * is a wildcard over hosts, so it belongs in the same closed list the hosts
+ * themselves are in.
+ *
+ * The two entries are what the SHIPPED default needs today and nothing else:
+ * default-src carries data:/blob: for images, fonts and media, and worker-src
+ * carries blob: because that is how a UI5 worker is started. A new one is a
+ * line here and a look - the ratchet the host list already has. */
+const SCHEME_SOURCES = new Map([
+  ["default-src", new Set(["data:", "blob:"])],
+  ["worker-src", new Set(["blob:"])],
 ]);
 
 const abap = readFileSync(join(ROOT, SOURCE), "utf8");
@@ -131,6 +150,7 @@ if (!content) {
 
 const directives = content.split(";").map((d) => d.trim()).filter(Boolean);
 const seenLegacy = new Set();
+const seenScheme = new Set();
 let sawScriptSrc = false;
 
 for (const directive of directives) {
@@ -140,15 +160,34 @@ for (const directive of directives) {
     if (/^'.*'$/.test(token)) continue; // 'self', 'none', the unsafe-* keywords
     if (token === "@UI5_HOSTS@") continue; // the reviewed list, checked above
     if (/^[a-z][a-z0-9+.-]*:$/.test(token)) {
-      // a scheme source (data:, blob:). Confined to the non-script
-      // directives - falling through into script execution is the bypass
-      // the source's own comment describes
+      // a scheme source (data:, blob:, and everything else a scheme can be).
+      // Allowed only where SCHEME_SOURCES lists it: a scheme is a wildcard
+      // over hosts, so an unlisted one is the host claim broken by another
+      // spelling
       if (name === "script-src") {
         problems.push(
-          `script-src carries \`${token}\` - a data:/blob: script source turns any\n`
-          + "    HTML-injection foothold into script execution. It must not be there.",
+          `script-src carries \`${token}\` - a scheme source turns any HTML-injection\n`
+          + "    foothold into script execution (<script src=\"data:...\">). It must not\n"
+          + "    be there, which is why script-src is explicit rather than left to the\n"
+          + "    default-src fallback that carries data:/blob: for images.",
         );
+        continue;
       }
+      const schemes = SCHEME_SOURCES.get(name);
+      if (!schemes || !schemes.has(token)) {
+        problems.push(
+          `${name} carries the scheme source \`${token}\`, which is not listed for it\n`
+          + `    ${schemes ? `only ${[...schemes].join(", ")} are listed here` : "no scheme source is listed for this directive"}\n`
+          + "    A scheme is a wildcard over every host that speaks it - `connect-src\n"
+          + "    https:` reaches the whole internet from an authenticated SAP session,\n"
+          + "    which is the claim SECURITY.md makes about the DEFAULT policy (\"only the\n"
+          + "    UI5 CDN hosts\") in another spelling. If the shipped default genuinely\n"
+          + "    needs it: add it to SCHEME_SOURCES in this gate, with a look at what it\n"
+          + "    opens. An installation that needs it adds it in its exit instead.",
+        );
+        continue;
+      }
+      seenScheme.add(`${name} ${token}`);
       continue;
     }
     // an external host token written directly into the policy
@@ -190,6 +229,16 @@ for (const token of LEGACY_TOKENS.keys()) {
     );
   }
 }
+for (const [name, schemes] of SCHEME_SOURCES) {
+  for (const token of schemes) {
+    if (!seenScheme.has(`${name} ${token}`)) {
+      problems.push(
+        `SCHEME_SOURCES allows \`${token}\` in ${name}, but the policy no longer carries it\n`
+        + "    - drop the entry, so the list stays what the default policy actually needs",
+      );
+    }
+  }
+}
 
 if (problems.length) {
   console.log(`csp-default: ${problems.length} problem(s) with the default CSP in ${SOURCE}:`);
@@ -200,5 +249,5 @@ if (problems.length) {
 
 console.log(
   `csp-default: ${declaredHosts.length} UI5 CDN host(s), ${directives.length} directive(s), `
-  + `script-src explicit and free of data:/blob: - OK`,
+  + `${seenScheme.size} listed scheme source(s), script-src explicit and free of them - OK`,
 );

@@ -100,6 +100,15 @@
 //                     the way a UI5 CommandExecution in dependents does;
 //                     an app switch resets it, the document listener stays
 //   lastScrolled      last scrolled element per slot (ScrollFocus.onScrollCapture)
+//   odataClients      every OData client the FRAMEWORK created for the MAIN
+//                     view - the switch-mode default model (actions/Slots
+//                     displayView) and every SET_ODATA_MODEL client, named
+//                     or not (actions/ViewOps). A model is no aggregation,
+//                     so none of them dies with the view: the next MAIN
+//                     rebuild destroys the whole set (actions/Slots
+//                     displayMain) and every display/replace path removes
+//                     what it destroyed itself. Nothing an APP put on a
+//                     view is ever in here, so nothing app-owned is touched
 //   viewSizeLimits    per-slot model size limits (actions/ViewOps)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
 //   lastError         the last fatal error shown by ErrorView (title/text/
@@ -204,6 +213,7 @@ sap.ui.define([], () => {
       timers: {},
       shortcuts: {},
       lastScrolled: {},
+      odataClients: new Set(),
       viewSizeLimits: {},
       treeStates: {},
       lastError: null,

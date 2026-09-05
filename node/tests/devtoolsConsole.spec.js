@@ -235,6 +235,82 @@ test.describe("UI5 log", () => {
   });
 });
 
+// One sap/base/Log call the way the real one runs: the listeners are
+// notified FIRST, and the same entry is then echoed to console.* as
+// "<date> <time> <message> - <details> <component>" (Log.js, unchanged
+// since 1.71). Both are captured sources, which is what made every UI5
+// entry land in the ring twice.
+function emitUi5(h, entry, method = "warn", extraArgs = []) {
+  h.ui5(entry);
+  const line =
+    `${entry.date || ""} ${entry.time || ""} ${entry.message || ""} - ` +
+    `${entry.details || ""} ${entry.component || ""}`;
+  h.consoleStub[method](line, ...extraArgs);
+}
+
+test.describe("no double capture of a UI5 entry", () => {
+  const ENTRY = {
+    level: 3,
+    date: "2026-09-05",
+    time: "10:11:12.345678",
+    message: "Property 'x' does not exist",
+    details: "sap.m.Input",
+    component: "sap.ui.base.ManagedObject",
+  };
+
+  test("the console echo of a UI5 entry does not land a second time", () => {
+    const h = loadConsole();
+    h.Console.install();
+    emitUi5(h, ENTRY);
+
+    const entries = h.Console.getEntries();
+    expect(entries.length).toBe(1);
+    // the listener entry is the one kept - it has the component and the
+    // details as fields, the echo flattens them into one line
+    expect(entries[0].source).toBe("ui5");
+    expect(entries[0].text).toContain("[sap.ui.base.ManagedObject]");
+    // the browser console still saw the echo - nothing is suppressed there
+    expect(h.nativeCalls.length).toBe(1);
+  });
+
+  test("an Error handed to Log as the details is still one entry", () => {
+    // Log echoes `logText, "\n", oError` for that case - three arguments
+    const h = loadConsole();
+    h.Console.install();
+    const err = new Error("boom");
+    err.stack = "Error: boom\n    at x (App.js:1:1)";
+    emitUi5(h, { ...ENTRY, level: 2, details: String(err) }, "error", [
+      "\n",
+      err,
+    ]);
+    expect(h.Console.getEntries().length).toBe(1);
+    expect(h.Console.getEntries()[0].source).toBe("ui5");
+  });
+
+  test("a real console call right after a UI5 entry still lands", () => {
+    const h = loadConsole();
+    h.Console.install();
+    emitUi5(h, ENTRY);
+    h.consoleStub.log("app says hello");
+    const entries = h.Console.getEntries();
+    expect(entries.map((e) => e.source)).toEqual(["ui5", "console"]);
+    expect(entries[1].text).toBe("app says hello");
+  });
+
+  test("a console call that is no echo is kept even when one was expected", () => {
+    // the echo is only dropped when the line IS it: a UI5 entry whose level
+    // has no captured console method (TRACE) must not swallow the next call
+    const h = loadConsole();
+    h.Console.install();
+    h.ui5({ ...ENTRY, level: 6 });
+    h.consoleStub.log("unrelated");
+    expect(h.Console.getEntries().map((e) => e.text)).toEqual([
+      "[sap.ui.base.ManagedObject] Property 'x' does not exist - sap.m.Input",
+      "unrelated",
+    ]);
+  });
+});
+
 test.describe("lifecycle", () => {
   test("install is idempotent", () => {
     const h = loadConsole();

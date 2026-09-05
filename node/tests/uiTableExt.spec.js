@@ -8,7 +8,11 @@ const { loadModule } = require("./loadModule");
 // does the rebuilt binding exist), so a view rebuild does not drop the
 // column filter/sort state.
 //
-// Two behaviors are pinned here:
+// Driven through the LIVE pair, readBackend / applyBackend - the two
+// methods the hooks in init( ) call. The imperative setFilter( )/setSort( )
+// these specs used to drive were unreachable in the app and are gone.
+//
+// Three behaviors are pinned here:
 //   1. Preservation: when the table binding was replaced (e.g. a fresh view
 //      build produced a new, unfiltered binding) the stored filters/sorters
 //      are re-applied to the new binding and reflected on the columns.
@@ -16,6 +20,9 @@ const { loadModule } = require("./loadModule");
 //      state was read from, re-applying is skipped - it already carries the
 //      filters/sorters and re-running binding.filter()/sort() would
 //      re-evaluate the whole client dataset for an identical result.
+//   3. Deferral dedupe: applyBackend defers ONE re-apply per roundtrip.
+//      whenRendered leaves its delegate on a table without DOM until that
+//      table renders, so two deferrals piled up there and both fired.
 
 // Minimal Control.extend stub: returns a constructor whose prototype carries
 // the control's methods, so the specs can instantiate it and call them.
@@ -29,8 +36,12 @@ function controlStub() {
   };
 }
 
-function load() {
+// `deferRender: true` keeps the whenRendered callbacks pending (as UI5 does
+// for a table without DOM - a collapsed tab, a closed popup) so a spec can
+// count them and run them itself.
+function load({ deferRender = false } = {}) {
   const errors = [];
+  const pendingRenders = [];
   const callbacks = { onBeforeRoundtrip: [], onAfterRendering: [] };
   const z2ui5 = {};
   // The currently resolvable MAIN-view table; tests set it via setTable.
@@ -51,8 +62,12 @@ function load() {
       this.registerCallback(name, bound);
       return () => this.unregisterCallback(name, bound);
     },
-    // Simulate an already-rendered control: run the work immediately.
-    whenRendered: (_control, _owner, fn) => fn(),
+    // Simulate an already-rendered control: run the work immediately -
+    // unless the spec asked for the not-yet-rendered case.
+    whenRendered: (_control, _owner, fn) => {
+      if (deferRender) pendingRenders.push(fn);
+      else fn();
+    },
   };
 
   const ViewSlots = {
@@ -75,6 +90,11 @@ function load() {
     Ext,
     errors,
     callbacks,
+    pendingRenders,
+    flushRenders: () => {
+      const fns = pendingRenders.splice(0);
+      for (const fn of fns) fn();
+    },
     setTable: (t) => {
       currentTable = t;
     },
@@ -159,11 +179,11 @@ test.describe("filter preservation across a binding rebuild", () => {
     const table = makeTable(b0, [col]);
     env.setTable(table);
 
-    ext.readFilter();
+    ext.readBackend();
     // Simulate a full view rebuild: a new, unfiltered binding takes over.
     const b1 = makeBinding({ filters: [] });
     table._binding = b1;
-    ext.setFilter();
+    ext.applyBackend();
 
     expect(b1.calls.filter).toBe(1);
     expect(b1.calls.lastFilters).toEqual([
@@ -190,7 +210,7 @@ test.describe("filter preservation across a binding rebuild", () => {
     };
     env.setTable(makeTable(b0, [col]));
 
-    ext.readFilter();
+    ext.readBackend();
 
     expect(asked).toEqual(["Control"]);
     expect(ext.aFilters).toEqual([
@@ -244,9 +264,9 @@ test.describe("filter preservation across a binding rebuild", () => {
       const table = makeTable(makeBinding({ filters: [filter] }), [col]);
       env.setTable(table);
 
-      ext.readFilter();
+      ext.readBackend();
       table._binding = makeBinding({ filters: [] });
-      ext.setFilter();
+      ext.applyBackend();
 
       expect(col.state.filterValue).toBe(display);
       expect(col.state.filtered).toBe(true);
@@ -263,9 +283,9 @@ test.describe("filter preservation across a binding rebuild", () => {
     const table = makeTable(makeBinding({ filters: [multi] }), [col]);
     env.setTable(table);
 
-    ext.readFilter();
+    ext.readBackend();
     table._binding = makeBinding({ filters: [] });
-    ext.setFilter();
+    ext.applyBackend();
 
     // The operator is read from the outer (multi) filter, which has none, so
     // the value is shown verbatim - this pins the current behavior.
@@ -283,10 +303,10 @@ test.describe("sort preservation across a binding rebuild", () => {
     const table = makeTable(b0, [col]);
     env.setTable(table);
 
-    ext.readSort();
+    ext.readBackend();
     const b1 = makeBinding({ sorters: [] });
     table._binding = b1;
-    ext.setSort();
+    ext.applyBackend();
 
     expect(b1.calls.sort).toBe(1);
     expect(col.state.sorted).toBe(true);
@@ -306,8 +326,8 @@ test.describe("redundancy guard: binding unchanged since read", () => {
     const table = makeTable(b0, [col]);
     env.setTable(table);
 
-    ext.readFilter();
-    ext.setFilter(); // binding is still b0 -> redundant, must skip
+    ext.readBackend();
+    ext.applyBackend(); // binding is still b0 -> redundant, must skip
 
     expect(b0.calls.filter).toBe(0);
     expect(col.state.filterValue).toBeUndefined();
@@ -322,10 +342,55 @@ test.describe("redundancy guard: binding unchanged since read", () => {
     const table = makeTable(b0, [col]);
     env.setTable(table);
 
-    ext.readSort();
-    ext.setSort(); // binding is still b0 -> redundant, must skip
+    ext.readBackend();
+    ext.applyBackend(); // binding is still b0 -> redundant, must skip
 
     expect(b0.calls.sort).toBe(0);
     expect(col.state.sorted).toBeUndefined();
+  });
+});
+
+test.describe("one deferred re-apply per roundtrip", () => {
+  test("a second applyBackend does not queue a second deferral", () => {
+    // whenRendered leaves its delegate on a table WITHOUT DOM (a collapsed
+    // tab, a closed popup) until that table renders. Two passes over such a
+    // table piled up two deferrals and both fired - and re-applied - on the
+    // eventual render.
+    const env = load({ deferRender: true });
+    const ext = makeExt(env);
+    const col = makeColumn("NAME");
+    const b0 = makeBinding({
+      filters: [{ sPath: "NAME", sOperator: "EQ", oValue1: "Bob" }],
+    });
+    const table = makeTable(b0, [col]);
+    env.setTable(table);
+
+    ext.readBackend();
+    ext.applyBackend();
+    ext.applyBackend();
+    expect(env.pendingRenders).toHaveLength(1);
+
+    // the rebuild lands, then the table finally renders: the one pending
+    // deferral applies what the latest readBackend recorded, once
+    const b1 = makeBinding({ filters: [] });
+    table._binding = b1;
+    env.flushRenders();
+    expect(b1.calls.filter).toBe(1);
+    expect(col.state.filterValue).toBe("Bob");
+  });
+
+  test("the next roundtrip defers again once the pending one has run", () => {
+    // the guard must be released by the deferred callback, otherwise the
+    // first render would be the last re-apply of the session
+    const env = load({ deferRender: true });
+    const ext = makeExt(env);
+    const table = makeTable(makeBinding(), [makeColumn("NAME")]);
+    env.setTable(table);
+
+    ext.readBackend();
+    ext.applyBackend();
+    env.flushRenders();
+    ext.applyBackend();
+    expect(env.pendingRenders).toHaveLength(1);
   });
 });

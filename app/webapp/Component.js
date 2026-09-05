@@ -275,6 +275,21 @@ sap.ui.define(
           AppState.state.oDeviceModel.destroy();
           AppState.state.oDeviceModel = null;
         }
+        // The OData clients the framework created for MAIN (the inventory
+        // AppState.state.odataClients documents): a model is no aggregation,
+        // so neither the view's destroy nor AppState.reset( ) below releases
+        // one - reset only drops the set - and an FLP re-launch kept every
+        // client that was open alive, $metadata request, caches and queues
+        // included. Each destroy on its own: one that throws must not stop
+        // the rest of this teardown.
+        for (const oClient of AppState.state.odataClients) {
+          try {
+            oClient.destroy();
+          } catch (e) {
+            Lib.logError("Component: destroying an OData client failed", e);
+          }
+        }
+        AppState.state.odataClients.clear();
 
         // Robust launchpad teardown:
         //  1. Clear the FLP dirty flag so it does not carry over into the

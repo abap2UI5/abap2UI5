@@ -172,6 +172,32 @@ test.describe("Fetching the source", () => {
     expect(await AbapSource.fetchSource()).toBe("");
   });
 
+  test("a failed fetch is retried, not remembered for the session", async () => {
+    // one 401 before the developer has logged on to ADT used to leave
+    // Report a Bug, Export and the ADT deep link sourceless for the rest
+    // of the session - the failure was cached like an answer
+    let ok = false;
+    let calls = 0;
+    const AbapSource = loadAbapSource({
+      responseData: { S_FRONT: { APP } },
+      fetchImpl: async () => {
+        calls += 1;
+        return { ok, text: async () => "CLASS zcl DEFINITION." };
+      },
+    });
+    AbapSource._setCache(null);
+    expect(await AbapSource.fetchSource()).toBe("");
+
+    // the ADT logon happened in another tab; the next press must ask again
+    ok = true;
+    expect(await AbapSource.fetchSource()).toBe("CLASS zcl DEFINITION.");
+    expect(calls).toBe(2);
+
+    // and from there on the success is cached as before
+    expect(await AbapSource.fetchSource()).toBe("CLASS zcl DEFINITION.");
+    expect(calls).toBe(2);
+  });
+
   test("does not call out at all without a class name", async () => {
     let calls = 0;
     const AbapSource = loadAbapSource({

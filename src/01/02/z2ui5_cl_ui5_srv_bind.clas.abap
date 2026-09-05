@@ -294,9 +294,18 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " the table first, as a bare path - bind_attri sets ms_config to that
     " call's config, so THIS call's config (switch_default_model,
     " path_only) is put in place afterwards for the cell and its
-    " decoration
+    " decoration. The mapper and the filter (omit_initial arrives as one)
+    " belong to the TABLE, which is what the serializer applies them to:
+    " passed on, they are stored on a first bind, adopted on a later one and
+    " refused when they differ from what is there - exactly as a _bind( ) of
+    " the table itself treats them. The cell bind used to hand the table an
+    " empty config, so the options were dropped without a word while the
+    " _bind( ) doc promised none of that. check_json stays with the cell
+    " and has no effect there - a property of the table's rows, see the doc
     result = bind_attri( val    = config-tab
-                         config = VALUE #( path_only = abap_true ) ).
+                         config = VALUE #( path_only     = abap_true
+                                           custom_mapper = config-custom_mapper
+                                           custom_filter = config-custom_filter ) ).
     ms_config = config.
 
     result = bind_tab_cell( iv_name = result

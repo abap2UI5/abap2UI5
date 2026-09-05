@@ -675,7 +675,13 @@ INTERFACE z2ui5_if_client
   "!                                keys `sap.app`/`sap.card` are not valid ABAP
   "!                                field names, and a string is read as a
   "!                                manifest URL). Outbound only - see
-  "!                                z2ui5_cl_ui5_srv_model.
+  "!                                z2ui5_cl_ui5_srv_model. Ignored for a
+  "!                                CELL (tab supplied): whether a value is
+  "!                                JSON is decided on the table's bind.
+  "!                                custom_mapper, custom_filter and the
+  "!                                omit_initial pair are passed on to the
+  "!                                table there, like a _bind( ) of the
+  "!                                table itself would store them.
   METHODS _bind
     IMPORTING
       val                  TYPE data

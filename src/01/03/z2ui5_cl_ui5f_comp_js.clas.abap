@@ -201,6 +201,15 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          AppState.state.oDeviceModel = null;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
+             `        for (const oClient of AppState.state.odataClients) {` && |\n| &&
+             `          try {` && |\n| &&
+             `            oClient.destroy();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            Lib.logError("Component: destroying an OData client failed", e);` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `        AppState.state.odataClients.clear();` && |\n| &&
+             `` && |\n| &&
              `        try {` && |\n| &&
              `          this._launchpad?.Container?.setDirtyFlag?.(false);` && |\n| &&
              `        } catch (e) {` && |\n| &&

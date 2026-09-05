@@ -71,6 +71,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      timers: {},` && |\n| &&
              `      shortcuts: {},` && |\n| &&
              `      lastScrolled: {},` && |\n| &&
+             `      odataClients: new Set(),` && |\n| &&
              `      viewSizeLimits: {},` && |\n| &&
              `      treeStates: {},` && |\n| &&
              `      lastError: null,` && |\n| &&

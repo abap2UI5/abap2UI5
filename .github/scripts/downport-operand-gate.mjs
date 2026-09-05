@@ -68,6 +68,47 @@ import { BUILTINS, CALL, stripNoise, positions } from "./lib/downport-operands.m
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
+/* Self-test: the three positions, on statements written for them, before the
+ * tree is scanned. This gate is green over `src/` either way - the one site it
+ * ever had was repaired in the change that added it - so a position that stops
+ * matching costs nothing visible and is noticed by nobody. That is not
+ * hypothetical: the internal-table WHERE excluded any line carrying a `FROM`,
+ * which silently covered `MODIFY <itab> FROM <wa> … WHERE` (the only itab
+ * MODIFY that HAS a WHERE, so the alternative could never fire) and
+ * `LOOP AT <itab> FROM <idx> WHERE`. `null` means "no position on this line".
+ */
+const SELF_TEST = [
+  // the #2664 line itself
+  ["IF NOT line_exists( mt_names[ table_line = to_upper( is_node-name ) ] ).", "table expression key"],
+  ["READ TABLE lt_parts WITH KEY name = to_upper( iv_name ) INTO DATA(ls_part).", "WITH KEY operand"],
+  ["DELETE lt_param WHERE n = to_lower( iv_name ).", "internal-table WHERE operand"],
+  // the two shapes the blanket FROM exclusion used to swallow
+  ["MODIFY lt_rows FROM ls_row TRANSPORTING val WHERE name = to_upper( iv_name ).", "internal-table WHERE operand"],
+  ["LOOP AT lt_rows FROM lv_idx INTO DATA(ls) WHERE name = to_upper( iv_name ).", "internal-table WHERE operand"],
+  // ABAP SQL is a different position with different rules - not this gate's
+  ["DELETE FROM z2ui5_t_01 WHERE id = @( to_upper( lv_id ) ).", null],
+  // a functional METHOD call in the same position is correct at 7.02
+  ["LOOP AT lt_rows INTO DATA(ls_row) WHERE name = lo_app->get_name( ).", null],
+  // a built-in outside any of the three positions
+  ["DATA(lv_name) = to_upper( is_node-name ).", null],
+];
+
+for (const [line, expected] of SELF_TEST) {
+  const code = stripNoise(line);
+  const hit = positions(code).find((pos) => CALL.test(pos.text));
+  const got = hit ? hit.where : null;
+  if (got !== expected) {
+    console.error("downport-operand: the gate's own self-test failed");
+    console.error(`  ${line}`);
+    console.error(`  expected: ${expected ?? "no finding"}`);
+    console.error(`  got:      ${got ?? "no finding"}`);
+    console.error("");
+    console.error("The position patterns changed. A green run over src/ proves nothing while");
+    console.error("this case fails - src/ carries no such site, so nothing else would notice.");
+    process.exit(1);
+  }
+}
+
 const EXCLUDED = [/^src\/99\//, /^src\/00\/01\//, /^src\/00\/02\//];
 
 const files = walk(ROOT, "src")
@@ -90,7 +131,8 @@ for (const file of files) {
 }
 
 console.log(
-  `downport-operand: ${files.length} file(s), ${BUILTINS.length} built-in(s) checked`,
+  `downport-operand: ${files.length} file(s), ${BUILTINS.length} built-in(s) checked, `
+  + `${SELF_TEST.length} self-test case(s) passed`,
 );
 
 if (findings.length) {

@@ -43,6 +43,26 @@
  * main too is the real drift this gate exists for, and stays a failure. A
  * clone that cannot happen (offline) keeps the conservative red.
  *
+ * THAT SECOND OPINION IS CI-ONLY, and deliberately so. It downloads the
+ * UNPINNED main of another repository and executes it — the one such step in a
+ * tree that pins its actions by sha, its dependencies by lockfile and its
+ * transpiler by version. In CI that runs in a throwaway container under
+ * `contents: read`; locally it would run on every `npm run gates` and every
+ * `npm run verify`, with the developer's ssh keys, tokens and dotfiles in
+ * reach, on a compromise nobody here would see. So a local run stops at the
+ * conservative red the offline case already produces, and says how to get the
+ * upstream answer (push the branch, or run the clone by hand). Reported and
+ * SKIPPED there, not failed: a drift upstream has already fixed is the ordinary
+ * state between two monthly releases, and a red `npm run verify` on every
+ * developer machine for those weeks would teach people to ignore the gate. The
+ * CI run of the same gate is the one that decides.
+ *
+ * The spawned processes get a NAMED environment rather than this one:
+ * check-upstream reads no variable at all in `--local` mode (its GITHUB_TOKEN
+ * is for the network path), and `git clone` needs a PATH, a HOME for its
+ * config, and the proxy variables where there is a proxy. Nothing else it
+ * cannot ask for is anything it should have.
+ *
  *   node .github/scripts/linter-mirror-gate.mjs     (npm run check:mirrors)
  */
 import fs from 'fs';
@@ -54,6 +74,16 @@ import { fileURLToPath } from 'url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PKG = path.join(ROOT, 'node_modules', '@abap2ui5', 'linter');
 const SCRIPT = path.join(PKG, 'scripts', 'check-upstream.mjs');
+
+/* What a spawned child gets. Named, not inherited - see the header. PATH finds
+ * node and git, HOME is where git reads its config and its credential helper,
+ * TMPDIR is where the clone lands on a runner that redirects it, and the proxy
+ * pair is what a runner behind one needs to reach github.com at all. */
+const CHILD_ENV = Object.fromEntries(
+  ['PATH', 'HOME', 'TMPDIR', 'HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY', 'http_proxy', 'NO_PROXY', 'no_proxy']
+    .filter((name) => process.env[name] !== undefined)
+    .map((name) => [name, process.env[name]]),
+);
 
 /* Both halves have to be there, and the second is not pedantry: the script
  * imports the three mirrors out of the package's own lib/, so a checkout with
@@ -71,7 +101,7 @@ if (!fs.existsSync(SCRIPT)) {
   process.exit(0);
 }
 
-const run = spawnSync(process.execPath, [SCRIPT, '--local', ROOT], { encoding: 'utf8' });
+const run = spawnSync(process.execPath, [SCRIPT, '--local', ROOT], { encoding: 'utf8', env: CHILD_ENV });
 if (run.stdout) process.stdout.write(run.stdout);
 if (run.stderr) process.stderr.write(run.stderr);
 
@@ -83,22 +113,45 @@ if (run.status !== 0) {
   /* The installed RELEASE drifted — but releases never gate a merge. Ask the
    * linter's MAIN the same question: green there means the fix is already
    * upstream and only waits for the monthly release + dep bump. */
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'linter-main-'));
-  const clone = spawnSync('git', [
-    'clone', '--depth', '1', '--quiet',
-    'https://github.com/abap2UI5/linter', tmp,
-  ], { encoding: 'utf8' });
   let mainStatus = null;
-  if (clone.status === 0 && fs.existsSync(path.join(tmp, 'scripts', 'check-upstream.mjs'))) {
-    const onMain = spawnSync(process.execPath, [path.join(tmp, 'scripts', 'check-upstream.mjs'), '--local', ROOT], { encoding: 'utf8' });
-    mainStatus = onMain.status;
+  if (process.env.GITHUB_ACTIONS) {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'linter-main-'));
+    const clone = spawnSync('git', [
+      'clone', '--depth', '1', '--quiet',
+      'https://github.com/abap2UI5/linter', tmp,
+    ], { encoding: 'utf8', env: CHILD_ENV });
+    if (clone.status === 0 && fs.existsSync(path.join(tmp, 'scripts', 'check-upstream.mjs'))) {
+      const onMain = spawnSync(
+        process.execPath,
+        [path.join(tmp, 'scripts', 'check-upstream.mjs'), '--local', ROOT],
+        { encoding: 'utf8', env: CHILD_ENV },
+      );
+      mainStatus = onMain.status;
+    }
+    fs.rmSync(tmp, { recursive: true, force: true });
   }
-  fs.rmSync(tmp, { recursive: true, force: true });
 
   if (mainStatus === 0) {
     console.log('\nlinter-mirror: the INSTALLED @abap2ui5/linter drifted, but the linter\'s MAIN');
     console.log('already matches this tree — fixed upstream, PENDING the monthly linter');
     console.log('release and the dep bump here. Not a failure: releases never gate a merge.');
+    process.exit(0);
+  }
+
+  if (!process.env.GITHUB_ACTIONS) {
+    /* Locally the drift is reported and SKIPPED, not failed: the local run
+     * used to answer green here after consulting main, and a drift the
+     * linter has already fixed upstream (the ordinary case between two
+     * monthly releases) would otherwise turn every `npm run verify` on every
+     * developer machine red for weeks. CI holds the authority - the same
+     * check_gates run answers the question with the clone this gate no
+     * longer does here. The shape is the two "not verified" skips above. */
+    console.log(`\nlinter-mirror: the INSTALLED @abap2ui5/linter mirrors something this change moved (exit ${run.status}).`);
+    console.log('SKIPPED locally, not verified: whether the linter\'s MAIN already carries the fix');
+    console.log('costs a clone-and-execute of an unpinned repository, which this gate does in');
+    console.log('CI\'s throwaway container only - never on a developer machine. check_gates');
+    console.log('answers it on the pushed branch; to see it now, clone abap2UI5/linter and run');
+    console.log('`node scripts/check-upstream.mjs --local <this checkout>` there.');
     process.exit(0);
   }
 

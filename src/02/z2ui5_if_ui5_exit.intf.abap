@@ -13,7 +13,12 @@ INTERFACE z2ui5_if_ui5_exit
 
   TYPES:
     "! What the request the exit is answering for is - path, the app named by
-    "! the URL, and the URL parameters.
+    "! the URL, and the URL parameters. app_start is the app_start query
+    "! parameter of THIS request, trimmed, upper-cased and with a
+    "! percent-encoded namespace unpacked - the way the framework reads it.
+    "! It is empty on every POST (the SPA posts to the manifest URI) and when
+    "! the app is named by the hash route, which never reaches the server: a
+    "! hint for the page request, not the authority on which app runs.
     BEGIN OF ty_s_http_context,
       path      TYPE string,
       app_start TYPE string,

@@ -46,6 +46,10 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
   PRIVATE SECTION.
+    " set by prepare_app_stack on the action it builds: whether the target
+    " came out of a persisted draft. Read by factory_stack_leave right
+    " after, which used to ask the database a third time for the same fact
+    DATA mv_stack_loaded TYPE abap_bool.
 ENDCLASS.
 
 
@@ -205,8 +209,12 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
 
     " the leave target was never persisted (a fresh app instance) - it takes
-    " over the current app's position in the stack
-    IF lo_draft->check_exists( ms_next-o_app_leave->id_draft ) = abap_false.
+    " over the current app's position in the stack. Whether it was is what
+    " prepare_app_stack just found out: its load fails closed for exactly
+    " the cases check_exists( ) answered false for (no row, a foreign
+    " owner), so the SELECT that used to sit here was the third read of the
+    " same key per hop
+    IF result->mv_stack_loaded = abap_false.
       result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
       RETURN.
     ENDIF.
@@ -246,17 +254,30 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     " val is always the ms_next-o_app_leave / ms_next-o_app_call reference
     " itself (see factory_stack_leave / factory_stack_call), so an already
-    " assigned draft id is kept as is
+    " assigned draft id is kept as is. An id minted HERE has no draft behind
+    " it: the load below used to run for it anyway - a guaranteed miss that
+    " ended in a NO_DRAFT_ENTRY exception on every nav_app_call of a fresh
+    " app, caught two lines further down
+    DATA(lv_minted) = abap_false.
     IF val->id_draft IS INITIAL.
       val->id_draft = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+      lv_minted = abap_true.
     ENDIF.
 
     result = NEW #( mo_handler ).
-    TRY.
-        result->mo_app = z2ui5_cl_ui5_app_cont=>db_load_by_app( val ).
-      CATCH cx_root.
-        result->mo_app->mo_app = val.
-    ENDTRY.
+    IF lv_minted = abap_true.
+      result->mo_app->mo_app = val.
+    ELSE.
+      " a persisted target is restored against the live instance. The
+      " fallback keeps an id whose draft is gone (purged by cleanup( ), a
+      " session that outlived it) running as a fresh instance, as before
+      TRY.
+          result->mo_app = z2ui5_cl_ui5_app_cont=>db_load_by_app( val ).
+          result->mv_stack_loaded = abap_true.
+        CATCH cx_root.
+          result->mo_app->mo_app = val.
+      ENDTRY.
+    ENDIF.
 
     " The browser told us about itself once, for this PAGE session - the
     " freshest copy always sits on the app running right now, so it is

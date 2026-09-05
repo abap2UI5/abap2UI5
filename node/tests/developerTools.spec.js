@@ -643,6 +643,144 @@ test.describe("Live view editing", () => {
     expect(data.value).toBe('<mvc:View original="1"/>');
     expect(data.hasStatusText).toBe(false);
   });
+
+  // Apply re-renders the SLOT from the editor, so from the first Apply on
+  // the slot itself carries the edit - reading it back for Reset handed the
+  // developer their own edit and called it the original.
+  const applying = () => {
+    const views = { MAIN: fakeXmlView('<mvc:View original="1"/>') };
+    const { DeveloperTools } = loadDeveloperTools({
+      views,
+      liveEdit: {
+        // what LiveEdit.apply really does: the slot ends up holding the XML
+        // that was applied to it
+        apply: (_tab, xml) => {
+          views.MAIN = fakeXmlView(xml);
+          return Promise.resolve("Applied to slot MAIN.");
+        },
+        canApply: () => true,
+        slotOfTab: () => "MAIN",
+        originalXml: () => "",
+        isBusy: () => false,
+      },
+    });
+    return { DeveloperTools, views };
+  };
+
+  const applyAndReset = async (DeveloperTools, model, between) => {
+    const oEvent = { getSource: () => ({ getModel: () => model }) };
+    await DeveloperTools.onApplyXml(oEvent);
+    if (between) between();
+    DeveloperTools.onResetXml(oEvent);
+  };
+
+  test("Reset after Apply restores the backend's XML, not the edit", async () => {
+    const { DeveloperTools } = applying();
+    const { model, data } = fakeModel({
+      selectedTab: "VIEW",
+      value: '<mvc:View edited="1"/>',
+    });
+    await applyAndReset(DeveloperTools, model);
+    expect(data.value).toBe('<mvc:View original="1"/>');
+    expect(data.previousValue).toBe('<mvc:View original="1"/>');
+    DeveloperTools.exit();
+  });
+
+  test("a second Apply does not turn the first edit into the original", async () => {
+    const { DeveloperTools } = applying();
+    const { model, data } = fakeModel({
+      selectedTab: "VIEW",
+      value: '<mvc:View edited="1"/>',
+    });
+    const oEvent = { getSource: () => ({ getModel: () => model }) };
+    await DeveloperTools.onApplyXml(oEvent);
+    data.value = '<mvc:View edited="2"/>';
+    await applyAndReset(DeveloperTools, model);
+    expect(data.value).toBe('<mvc:View original="1"/>');
+    DeveloperTools.exit();
+  });
+
+  test("once a roundtrip replaced the view, Reset restores what IT delivered", async () => {
+    // the recorded original is only good while the slot still holds what
+    // Apply put there - a response has its own original
+    const { DeveloperTools, views } = applying();
+    const { model, data } = fakeModel({
+      selectedTab: "VIEW",
+      value: '<mvc:View edited="1"/>',
+    });
+    await applyAndReset(DeveloperTools, model, () => {
+      views.MAIN = fakeXmlView('<mvc:View fromBackend="2"/>');
+    });
+    expect(data.value).toBe('<mvc:View fromBackend="2"/>');
+    DeveloperTools.exit();
+  });
+});
+
+test.describe("After Templating toggle", () => {
+  // A view whose post-templating DOM records every time it is serialized:
+  // producing that variant means walking and prettifying the whole rendered
+  // view, and the toggle it feeds is offered only for a templated view.
+  const templated = () => {
+    const rendered = [];
+    const view = fakeXmlView('<mvc:View xmlns:template="x"/>', { A: 1 });
+    view._xContent = {
+      get outerHTML() {
+        rendered.push(1);
+        return "<div>after templating</div>";
+      },
+    };
+    const { DeveloperTools } = loadDeveloperTools({ views: { MAIN: view } });
+    return { DeveloperTools, rendered };
+  };
+
+  const press = (DeveloperTools, oModel, pressed) =>
+    DeveloperTools.onTemplatingPress({
+      getSource: () => ({ getPressed: () => pressed, getModel: () => oModel }),
+    });
+
+  test("selecting a sub-view does not compute the post-templating XML", () => {
+    const { DeveloperTools, rendered } = templated();
+    const view = fakeSelectEvent("VIEW");
+    DeveloperTools.onViewSelect(view.oEvent);
+    // the toggle is offered...
+    expect(view.modelData.isTemplating).toBe(true);
+    // ...but nothing was serialized for it yet
+    expect(rendered).toHaveLength(0);
+    expect(view.modelData.xContent).toBe("");
+  });
+
+  test("the first press computes it, the next one reuses it", () => {
+    const { DeveloperTools, rendered } = templated();
+    const view = fakeSelectEvent("VIEW");
+    DeveloperTools.onViewSelect(view.oEvent);
+    const original = view.modelData.value;
+
+    press(DeveloperTools, view.oModel, true);
+    expect(view.modelData.value).toBe("<div>after templating</div>");
+    expect(rendered).toHaveLength(1);
+
+    press(DeveloperTools, view.oModel, false);
+    expect(view.modelData.value).toBe(original);
+
+    press(DeveloperTools, view.oModel, true);
+    expect(view.modelData.value).toBe("<div>after templating</div>");
+    // computed once, then kept in the model
+    expect(rendered).toHaveLength(1);
+  });
+
+  test("moving to another sub-view drops it instead of showing a stale one", () => {
+    const { DeveloperTools, rendered } = templated();
+    const view = fakeSelectEvent("VIEW");
+    DeveloperTools.onViewSelect(view.oEvent);
+    press(DeveloperTools, view.oModel, true);
+
+    DeveloperTools.renderTab("LOG", view.oModel);
+    expect(view.modelData.xContent).toBe("");
+
+    DeveloperTools.renderTab("VIEW", view.oModel);
+    press(DeveloperTools, view.oModel, true);
+    expect(rendered).toHaveLength(2);
+  });
 });
 
 test.describe("Search", () => {
@@ -744,6 +882,39 @@ test.describe("Copy", () => {
     };
     DeveloperTools.onCopyTab({ getSource: () => oSource });
     expect(copied).toEqual(["REPORT BODY"]);
+    expect(label).toBe("Copied");
+  });
+
+  test("on the ABAP Source view it copies the class, not the previous tab", async () => {
+    // that view frames the class and never goes through displayEditor, so
+    // `value` still held the sub-view opened before it - Copy put THAT on
+    // the clipboard and confirmed "Copied"
+    const copied = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: { S_FRONT: { APP: "Z2UI5_CL_MY_APP" } },
+      extraDeps: {
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          logError() {},
+          copyToClipboard: (text) => copied.push(text),
+        },
+      },
+      extraSandbox: {
+        fetch: async () => ({ ok: true, text: async () => "CLASS zcl." }),
+      },
+    });
+    let label = "Copy";
+    const oSource = {
+      getModel: () => ({
+        getData: () => ({ isSourceView: true, value: "PREVIOUS TAB" }),
+      }),
+      getText: () => label,
+      setText: (t) => {
+        label = t;
+      },
+    };
+    await DeveloperTools.onCopyTab({ getSource: () => oSource });
+    expect(copied).toEqual(["CLASS zcl."]);
     expect(label).toBe("Copied");
   });
 

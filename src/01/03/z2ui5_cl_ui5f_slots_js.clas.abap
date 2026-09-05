@@ -210,7 +210,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          annotationURI: mOptions.switchDefaultModelAnnoUri || "",` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        oModel._z2ui5OwnedOData = true;` && |\n| &&
+             `        AppState.state.odataClients.add(oModel);` && |\n| &&
              `      } else {` && |\n| &&
              `        oModel = oViewModel;` && |\n| &&
              `      }` && |\n| &&
@@ -228,6 +228,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `` && |\n| &&
              `      const discardBuild = () => {` && |\n| &&
              `        oView.destroy();` && |\n| &&
+             `` && |\n| &&
+             `        AppState.state.odataClients.delete(oModel);` && |\n| &&
              `        oModel.destroy();` && |\n| &&
              `        if (switchPath) oViewModel.destroy();` && |\n| &&
              `      };` && |\n| &&
@@ -256,9 +258,9 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `            return undefined;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          const oldMainDefault = ViewSlots.getView("MAIN")?.getModel?.();` && |\n| &&
              `          ViewSlots.destroy("MAIN");` && |\n| &&
-             `          if (oldMainDefault?._z2ui5OwnedOData) oldMainDefault.destroy();` && |\n| &&
+             `          for (const oClient of AppState.state.odataClients) oClient.destroy();` && |\n| &&
+             `          AppState.state.odataClients.clear();` && |\n| &&
              `` && |\n| &&
              `          ViewSlots.destroy("POPUP");` && |\n| &&
              `          ViewSlots.destroy("POPOVER");` && |\n| &&

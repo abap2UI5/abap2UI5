@@ -273,10 +273,13 @@ sap.ui.define(
           serviceUrl: switchPath,
           annotationURI: mOptions.switchDefaultModelAnnoUri || "",
         });
-        // marks the OData client as FRAMEWORK-created, so the next MAIN
-        // rebuild may destroy it (displayMain) - an app-provided model via
-        // SET_ODATA_MODEL is never touched through this marker
-        oModel._z2ui5OwnedOData = true;
+        // records the OData client as FRAMEWORK-created, so the next MAIN
+        // rebuild destroys it (displayMain). SET_ODATA_MODEL records its
+        // clients in the same inventory and for the same reason: both are
+        // built by the framework from a service URL the app named, and
+        // neither dies with the view - what an app puts on a view itself
+        // is not in the inventory and is never touched
+        AppState.state.odataClients.add(oModel);
       } else {
         oModel = oViewModel;
       }
@@ -299,6 +302,9 @@ sap.ui.define(
       // switchPath); with an OData default model both must go.
       const discardBuild = () => {
         oView.destroy();
+        // ...and out of the inventory again: this build never reached the
+        // slot, so no later rebuild must find its client there
+        AppState.state.odataClients.delete(oModel);
         oModel.destroy();
         if (switchPath) oViewModel.destroy();
       };
@@ -348,15 +354,19 @@ sap.ui.define(
           // build may still be awaiting, which would let that stale build
           // slip past displayView's "a newer view took the slot" guard and
           // then crash THIS build on a duplicate id.
-          // the previous MAIN's framework-created OData default model does
-          // not die with the view (a model is no aggregation): without this
-          // every switch-mode rebuild leaked a full OData client - its
-          // $metadata request, caches and queues included. Only the model
-          // the framework itself created is destroyed (see the marker in
-          // displayView); dependent slots are already down at this point.
-          const oldMainDefault = ViewSlots.getView("MAIN")?.getModel?.();
+          // the previous MAIN's framework-created OData clients do not die
+          // with the view (a model is no aggregation): without this every
+          // switch-mode rebuild leaked a full OData client - its $metadata
+          // request, caches and queues included. EVERY tracked client goes,
+          // not just the one in the default slot: this used to inspect
+          // getModel() alone, so a NAMED SET_ODATA_MODEL client (see
+          // actions/ViewOps) survived the view that carried it and the next
+          // re-issue found nothing to destroy - the same leak, one model
+          // name over. Only clients the framework created are in the
+          // inventory; dependent slots are already down at this point.
           ViewSlots.destroy("MAIN");
-          if (oldMainDefault?._z2ui5OwnedOData) oldMainDefault.destroy();
+          for (const oClient of AppState.state.odataClients) oClient.destroy();
+          AppState.state.odataClients.clear();
           // A new MAIN view means a new screen, so the two STANDALONE slots
           // go with it. They live outside the MAIN control tree and would
           // otherwise float on top of a page they no longer belong to - a

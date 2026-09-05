@@ -92,6 +92,18 @@ sap.ui.define([], () => {
   // warns). One flag is enough - capture is synchronous.
   let capturing = false;
 
+  // The line sap/base/Log is about to ECHO to console.* for the entry the
+  // listener just handed over. Both of those are sources here (1 and 3
+  // above), so every UI5 entry above the active level landed in the ring
+  // TWICE - once richly from the listener, once as the flattened console
+  // line - and the 300 entries were in truth 150. Log notifies its
+  // listeners first and echoes immediately afterwards, in the same call, so
+  // remembering that one line is enough to recognise the echo and drop it:
+  // see captureConsole. The listener entry is the one worth keeping - it
+  // has the component and the details as fields, which the echo joins into
+  // one string.
+  let pendingUi5Echo = null;
+
   function push(level, source, text) {
     if (entries.length >= MAX_ENTRIES) {
       entries.shift();
@@ -255,7 +267,17 @@ sap.ui.define([], () => {
     if (capturing) return;
     capturing = true;
     try {
-      push(level, "console", renderArgs(args));
+      const text = renderArgs(args);
+      // Consumed either way: the echo follows its listener call directly,
+      // so a line that is not it is proof the echo did not come (a level
+      // whose console method is not captured, a console that dropped it).
+      const echo = pendingUi5Echo;
+      pendingUi5Echo = null;
+      // startsWith, not equality: an Error passed as the details makes Log
+      // echo `logText, "\n", oError` - three arguments, one rendered string
+      // here, and the entry the listener already carries has the same text.
+      if (echo && (text === echo || text.startsWith(`${echo} `))) return;
+      push(level, "console", text);
     } catch {
       // capture must never break the call it is observing
     } finally {
@@ -281,6 +303,13 @@ sap.ui.define([], () => {
       const component = logEntry?.component ? `[${logEntry.component}] ` : "";
       const details = logEntry?.details ? ` - ${logEntry.details}` : "";
       push(level, "ui5", `${component}${logEntry?.message || ""}${details}`);
+      // Rebuilt exactly as sap/base/Log builds the line it is about to
+      // print (`date time message - details component`, unchanged from 1.71
+      // to today), so the next console capture recognises its own echo.
+      pendingUi5Echo =
+        `${logEntry?.date || ""} ${logEntry?.time || ""} ` +
+        `${logEntry?.message || ""} - ${logEntry?.details || ""} ` +
+        `${logEntry?.component || ""}`;
     } catch {
       // never let a malformed log entry escape
     }
@@ -389,6 +418,7 @@ sap.ui.define([], () => {
     onRejection = null;
     onPageHide = null;
     onErrorEntry = null;
+    pendingUi5Echo = null;
     entries = [];
     dropped = 0;
   }

@@ -511,6 +511,8 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
         "z2ui5/core/AppState": {
           state: {
             viewSizeLimits: {},
+            // the shipped default - displayMain empties it on every rebuild
+            odataClients: new Set(),
             oApp: {
               removeAllPages: () => {},
               insertPage: (v) => pages.push(v),
@@ -551,5 +553,141 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
     await Slots.action("display", "MAIN", "<View/>", {}, 1);
 
     expect(destroyed).toEqual([]);
+  });
+});
+
+test.describe("framework-created OData clients die with the MAIN view", () => {
+  // A model is no aggregation, so it does NOT die with the view it sits on.
+  // The framework builds OData clients in two places - the switch-mode
+  // default model of a MAIN display (actions/Slots) and SET_ODATA_MODEL
+  // (actions/ViewOps) - and both record theirs in ONE inventory
+  // (AppState.state.odataClients) that the next MAIN rebuild empties. The
+  // rebuild used to inspect the default model alone, so a NAMED
+  // SET_ODATA_MODEL client survived its view and the next re-issue found
+  // nothing to destroy. The two modules are loaded on one shared state
+  // object here because that is the only place the leak is visible.
+  function loadODataOwnership() {
+    const clients = [];
+    const destroyed = [];
+    class ODataModel {
+      constructor({ serviceUrl }) {
+        this.serviceUrl = serviceUrl;
+        clients.push(this);
+      }
+      setSizeLimit() {}
+      destroy() {
+        destroyed.push(this);
+      }
+    }
+    function JSONModel() {
+      this.attachPropertyChange = () => {};
+      this.setSizeLimit = () => {};
+      this.destroy = () => {};
+    }
+    function makeView(id) {
+      const models = {};
+      return {
+        getId: () => id,
+        getModel: (name) => models[name],
+        setModel: (model, name) => {
+          models[name] = model;
+        },
+        destroy: () => {},
+      };
+    }
+    const state = {
+      oResponse: { OVIEWMODEL: { A: 1 }, APP: "ZCL_APP" },
+      viewSizeLimits: {},
+      odataClients: new Set(),
+      oApp: { removeAllPages: () => {}, insertPage: () => {} },
+    };
+    const openSlots = { MAIN: makeView("mainView") };
+    const shared = {
+      "sap/ui/model/odata/v2/ODataModel": ODataModel,
+      "z2ui5/core/Lib": {
+        effectiveSizeLimit: () => undefined,
+        isRootModelSlot: (k) => k === "MAIN",
+        isAlive: () => true,
+        logError: () => {},
+      },
+      "z2ui5/core/ViewSlots": {
+        slots: [{ key: "MAIN", ownsModel: true }],
+        getView: (key) => openSlots[key],
+        getController: () => undefined,
+        setView: (key, view) => (openSlots[key] = view),
+        destroy: (key) => delete openSlots[key],
+        trackedModel: () => undefined,
+      },
+      "z2ui5/core/AppState": { state },
+    };
+    const { module: Slots } = loadModule("core/actions/Slots.js", {
+      deps: {
+        ...shared,
+        "sap/ui/core/mvc/XMLView": {
+          // as UI5 does it: the `models` config lands as the DEFAULT model
+          // of the new view - which is where the switch-mode OData client
+          // ends up
+          create: async (cfg) => {
+            const view = makeView("mainView");
+            if (cfg.models) view.setModel(cfg.models);
+            return view;
+          },
+        },
+        "sap/ui/core/Fragment": {},
+        "sap/ui/model/json/JSONModel": JSONModel,
+        "z2ui5/core/Server": {},
+      },
+    });
+    const { module: ViewOps } = loadModule("core/actions/ViewOps.js", {
+      deps: shared,
+    });
+    return { Slots, ViewOps, state, clients, destroyed, openSlots };
+  }
+
+  const setOData = (ViewOps, url, name) =>
+    ViewOps.handlers.SET_ODATA_MODEL(null, ["SET_ODATA_MODEL", url, name]);
+
+  test("a NAMED SET_ODATA_MODEL client is destroyed on the next MAIN rebuild", async () => {
+    const { Slots, ViewOps, clients, destroyed } = loadODataOwnership();
+
+    setOData(ViewOps, "/sap/opu/odata/sap/ORDERS/", "orders");
+    expect(clients).toHaveLength(1);
+
+    await Slots.action("display", "MAIN", "<View/>", {}, undefined);
+
+    expect(destroyed).toEqual([clients[0]]);
+  });
+
+  test("the switch-mode default client is destroyed on the next MAIN rebuild", async () => {
+    const { Slots, clients, destroyed } = loadODataOwnership();
+
+    await Slots.action(
+      "display",
+      "MAIN",
+      "<View/>",
+      { switchDefaultModelPath: "/sap/opu/odata/sap/MAIN/" },
+      undefined,
+    );
+    expect(clients).toHaveLength(1);
+
+    await Slots.action("display", "MAIN", "<View/>", {}, undefined);
+
+    expect(destroyed).toEqual([clients[0]]);
+  });
+
+  test("a re-issue destroys the client it replaces, an app's own model never", () => {
+    const { ViewOps, state, clients, destroyed, openSlots } =
+      loadODataOwnership();
+    // a model the app itself put on the view is in no inventory
+    const appOwned = { destroy: () => destroyed.push(appOwned) };
+    openSlots.MAIN.setModel(appOwned, "app");
+
+    setOData(ViewOps, "/svc/one/", "orders");
+    setOData(ViewOps, "/svc/two/", "orders");
+    expect(destroyed).toEqual([clients[0]]);
+
+    setOData(ViewOps, "/svc/three/", "app");
+    expect(destroyed).toEqual([clients[0]]);
+    expect(state.odataClients.size).toBe(2);
   });
 });

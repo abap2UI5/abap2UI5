@@ -394,10 +394,49 @@ CLASS ltcl_02_cell DEFINITION FINAL INHERITING FROM ltcl_00_base
     " the runtime-built table after main( ) created that table again
     METHODS cells_of_two_tables     FOR TESTING RAISING cx_static_check.
     METHODS cell_after_recreate     FOR TESTING RAISING cx_static_check.
+    " the mapper and the filter of a cell bind land on the TABLE, and a
+    " second cell with a different mapper is refused like a second _bind( )
+    " of the table would be
+    METHODS cell_carries_options    FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
 CLASS ltcl_02_cell IMPLEMENTATION.
+
+  METHOD cell_carries_options.
+
+    DATA(lo_filter) = NEW ltcl_test_filter( ).
+    DATA(lo_mapper) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
+
+    bind( ir_val    = cell_name( 1 )
+          is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
+                               tab_index     = 1
+                               custom_filter = lo_filter
+                               custom_mapper = lo_mapper ) ).
+
+    " stored on the table's row - the one the serializer applies them to
+    DATA(lr_tab) = mo_bind->get_model( )->main_attri_search( REF #( mo_app->mt_tab ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_filter
+                                        act = lr_tab->custom_filter ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_mapper
+                                        act = lr_tab->custom_mapper ).
+
+    " the same options again, for another cell: no conflict
+    bind( ir_val    = cell_name( 2 )
+          is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
+                               tab_index     = 2
+                               custom_filter = lo_filter
+                               custom_mapper = lo_mapper ) ).
+
+    " a different mapper for a cell of the same table: refused, as the
+    " table's own second bind would be - it used to be dropped silently
+    expect_bind_error( ir_val    = cell_name( 1 )
+                       is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
+                                            tab_index     = 1
+                                            custom_mapper = z2ui5_cl_ajson_mapping=>create_lower_case( ) )
+                       iv_text   = `Two different mappers` ).
+
+  ENDMETHOD.
 
   METHOD row_index_shifted.
 

@@ -118,6 +118,18 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
+    "! the scan of the binding search over the rows of the sought kind -
+    "! either the rows this instance has not resolved yet (iv_indexed =
+    "! abap_false) or the ones it has (abap_true), each confirmed by a fresh
+    "! ASSIGN and put into the index
+    METHODS attri_search_scan
+      IMPORTING
+        io_descr      TYPE REF TO cl_abap_typedescr
+        ir_val        TYPE REF TO data
+        iv_indexed    TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+
     METHODS dissolve.
     METHODS dissolve_run.
 
@@ -1046,10 +1058,39 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
+    " the rows this instance has not resolved yet first: the index pass
+    " above compared every indexed row that could match already, and
+    " re-resolving the others - one dynamic ASSIGN each - on every miss made
+    " a form of k elementary attributes, bound in name order, pay k*k/2
+    " ASSIGNs per roundtrip instead of k (dissolve indexes tables, references
+    " and structures, the elementary rows only ever reach the index through
+    " this scan). Indexed rows are re-resolved only when that pass finds
+    " nothing - an app that re-pointed a reference since. Every hit is still
+    " confirmed by a fresh ASSIGN: the index stays a prefilter, never an
+    " answer
+    result = attri_search_scan( io_descr   = lo_datadescr
+                                ir_val     = val
+                                iv_indexed = abap_false ).
+    IF result IS INITIAL.
+      result = attri_search_scan( io_descr   = lo_datadescr
+                                  ir_val     = val
+                                  iv_indexed = abap_true ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD attri_search_scan.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL
-               AND type_kind = lo_datadescr->type_kind
-               AND kind = lo_datadescr->kind.
+               AND type_kind = io_descr->type_kind
+               AND kind = io_descr->kind.
+
+      " which rows this pass visits - see attri_search
+      READ TABLE mt_ref_idx WITH TABLE KEY name = lr_attri->name TRANSPORTING NO FIELDS.
+      IF xsdbool( sy-subrc = 0 ) <> iv_indexed.
+        CONTINUE.
+      ENDIF.
 
       " compare by name - descriptor instances are not stable in the
       " abaplint transpiler runtime; the data reference check below is
@@ -1063,7 +1104,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " written before the component existed) skips the prefilter, not the
       " row: the data-reference compare below still decides
       IF lr_attri->type_name IS NOT INITIAL.
-        DATA(lv_name_val) = lo_datadescr->absolute_name.
+        DATA(lv_name_val) = io_descr->absolute_name.
         IF lr_attri->type_name <> lv_name_val
             AND lr_attri->type_name NS `%`
             AND lv_name_val NS `%`.
@@ -1079,7 +1120,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ref_idx_put( iv_name = lr_attri->name
                    ir_ref  = lr_ref ).
 
-      IF lr_ref = val.
+      IF lr_ref = ir_val.
         result = lr_attri.
         RETURN.
       ENDIF.
@@ -1308,6 +1349,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       ir_res->attri->name_ref = lr_other->name.
+      " a typed attribute owns its table and is never an alias itself: the
+      " final answer. Among `->*` rows of other references the LAST in name
+      " order is kept (the loop runs on) - that is the one left without an
+      " owner when its own turn comes, every earlier one names it by then.
+      " A typed owner that sorts BEFORE the references used to lose to the
+      " later `->*` row: MR_A->* named MR_B->*, MR_B->* named the table,
+      " and the fresh-instance load resolved MR_A while MR_B was still
+      " initial - the miss was swallowed and mr_a came back unbound
+      " (2026-09-05)
+      IF check_alias_capable( lr_other->name ) = abap_false.
+        RETURN.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.

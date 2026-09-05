@@ -46,6 +46,7 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS test_expiry_clamped      FOR TESTING RAISING cx_static_check.
     METHODS test_superseded_intf     FOR TESTING RAISING cx_static_check.
     METHODS test_broken_exit_closed  FOR TESTING RAISING cx_static_check.
+    METHODS test_context_app_start   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -153,6 +154,29 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 9
                                         act = ls_post-draft_exp_time_in_hours ).
+
+  ENDMETHOD.
+
+  METHOD test_context_app_start.
+
+    " the exit sees the app the way the handler resolves it: a case change
+    " or an encoded namespace used to bypass an exit keyed on the name
+    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `app_start` v = ` zcl_my_app ` ) ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_MY_APP`
+                                        act = z2ui5_cl_ui5_user_exit=>context-app_start ).
+    cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
+                                        act = z2ui5_cl_ui5_user_exit=>context-path ).
+
+    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
+        t_params = VALUE #( ( n = `app_start` v = `%2Fns%2Fzcl_my_app` ) ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
+                                        act = z2ui5_cl_ui5_user_exit=>context-app_start ).
+
+    " a POST carries no app_start - the context says so instead of guessing
+    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>context-app_start ).
 
   ENDMETHOD.
 
