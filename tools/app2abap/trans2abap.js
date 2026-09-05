@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const acorn = require('acorn');
 const terser = require('terser');
 const abapClassTemplate = require('./abapClassTemplate');
@@ -244,10 +245,14 @@ function generateClassName(filePath) {
 
 // Builds the generated z2ui5_cl_ui5f_preload class. It returns the
 // sap.ui.require.preload entries for every embedded frontend file, so the
-// preload list used by z2ui5_cl_http_handler can never run out of sync with
-// the files in app/webapp. style.css and Component.js take their content /
-// custom-js suffix from the exit configuration, hence the two parameters.
-function buildPreloadClass(entries) {
+// preload list used by z2ui5_cl_ui5_http_handler=>_http_get can never run out
+// of sync with the files in app/webapp. style.css and Component.js take their
+// content / custom-js suffix from the exit configuration, hence the two
+// parameters. buildHash is a digest of every embedded source, computed here
+// once: the GET shell's ETag carries it, so a redeployed frontend with the
+// same version constant still changes the tag - the handler used to hash the
+// assembled ~700 KB body on every page load for that guarantee.
+function buildPreloadClass(entries, buildHash) {
     const entryLines = entries.map(({ urlPath, className, isJs, isComponent, isStyleCss }) => {
         // A .js entry is a function body - the source is JavaScript and goes in
         // verbatim. Every other entry is a text resource embedded as a
@@ -276,6 +281,10 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+
+    " digest of every embedded frontend source, fixed at generation time -
+    " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
+    CONSTANTS build_hash TYPE string VALUE '${buildHash}'.
 
     CLASS-METHODS get
       IMPORTING
@@ -384,6 +393,9 @@ async function main() {
         // regardless of the filesystem's readdir order.
         const files = getAllFiles(sourceDir).sort();
         const preloadEntries = [];
+        // every embedded source as the class carries it, in generation order
+        // (sorted above), so the digest is a function of the committed tree
+        const buildDigest = crypto.createHash('sha256');
 
         // Class names ignore folders (cc/Foo.js and Foo.js would both map to
         // z2ui5_cl_ui5f_foo_js), so duplicate basenames silently overwrite
@@ -429,6 +441,7 @@ async function main() {
             // Collect the preload entry. index.html is the standalone dev
             // page and is not preloaded by the generated GET response.
             if (relPath !== 'index.html') {
+                buildDigest.update(relPath, 'utf8').update('\0').update(sourceContent, 'utf8').update('\0');
                 preloadEntries.push({
                     urlPath: `z2ui5/${relPath}`,
                     className: className.toLowerCase(),
@@ -444,7 +457,10 @@ async function main() {
         // localeCompare depends on the host locale/ICU build, and the sort
         // order is committed output (src/01/03).
         preloadEntries.sort((a, b) => (a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0));
-        emit(path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap'), buildPreloadClass(preloadEntries));
+        // 16 hex characters: a validator, not a security digest, and the tag
+        // travels in every GET response header
+        const buildHash = buildDigest.digest('hex').slice(0, 16);
+        emit(path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap'), buildPreloadClass(preloadEntries, buildHash));
         emit(
             path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml'),
             `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`,

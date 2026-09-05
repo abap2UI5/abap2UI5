@@ -32,6 +32,13 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     " constructor: a public class_constructor is what abap-check names a
     " trap, and the view builder's gv_escape_specials takes the same road
     CLASS-DATA gv_csp_default TYPE string.
+
+    " the exit class the lookup named, instantiated and bound to the
+    " reference of the interface it implements - or a chained exception,
+    " never a silent fall-back to the shipped defaults (see there)
+    CLASS-METHODS exit_instantiate
+      IMPORTING
+        iv_class_name TYPE string.
 ENDCLASS.
 
 
@@ -47,25 +54,50 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     DATA(lv_class_name) = get_user_exit_class( ).
 
     IF lv_class_name IS NOT INITIAL.
-      TRY.
-          DATA lo_exit TYPE REF TO object.
-          CREATE OBJECT lo_exit TYPE (lv_class_name).
-
-          " Which interface the class implements decides how it is called, and
-          " the cast is what asks the object rather than the class list. A
-          " class implementing BOTH lands in gi_user_exit and is therefore
-          " called once, through the current interface - never twice.
-          TRY.
-              gi_user_exit ?= lo_exit.
-            CATCH cx_sy_move_cast_error.
-              gi_user_exit_dep ?= lo_exit.
-          ENDTRY.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
+      exit_instantiate( lv_class_name ).
     ENDIF.
 
     gi_me = NEW z2ui5_cl_ui5_user_exit( ).
     ri_exit = gi_me.
+
+  ENDMETHOD.
+
+  METHOD exit_instantiate.
+
+    " The lookup may legitimately name nothing - no exit installed, a
+    " runtime without a class repository - and the framework then runs on
+    " the shipped defaults. A class it DID name is a different matter: the
+    " installation configured an exit. When that class cannot be
+    " instantiated (a constructor that raises, an abstract or CREATE
+    " PRIVATE class, a class left inactive by a transport), the failure
+    " used to be swallowed here, and every request ran on the shipped
+    " defaults - error details visible, the public CDN bootstrap, the
+    " default CSP, forwarded-host trust, none of the exit's headers - with
+    " no log and no error page, while the start page still named the exit
+    " as installed. A hardening control that fails open silently is the
+    " one thing it must not do, so it fails closed: the cause is chained
+    " into the framework's exception, the handler's outer TRY turns it into
+    " a visible 500 on the first request (_error_response tolerates a
+    " raising get_instance), and gi_me stays unbound so the next request
+    " asks again instead of caching the failure.
+    TRY.
+        DATA lo_exit TYPE REF TO object.
+        CREATE OBJECT lo_exit TYPE (iv_class_name).
+
+        " Which interface the class implements decides how it is called, and
+        " the cast is what asks the object rather than the class list. A
+        " class implementing BOTH lands in gi_user_exit and is therefore
+        " called once, through the current interface - never twice.
+        TRY.
+            gi_user_exit ?= lo_exit.
+          CATCH cx_sy_move_cast_error.
+            gi_user_exit_dep ?= lo_exit.
+        ENDTRY.
+      CATCH cx_root INTO DATA(lx).
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = lx.
+    ENDTRY.
 
   ENDMETHOD.
 

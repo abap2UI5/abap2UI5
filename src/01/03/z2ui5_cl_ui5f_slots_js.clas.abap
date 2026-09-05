@@ -91,7 +91,12 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      slotKey = "MAIN",` && |\n| &&
              `      data = AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
              `    ) {` && |\n| &&
-             `      return trackChanges(new JSONModel(dataForSlot(slotKey, data)));` && |\n| &&
+             `      const oModel = trackChanges(new JSONModel(dataForSlot(slotKey, data)));` && |\n| &&
+             `` && |\n| &&
+             `      if (data && data === AppState.state.oResponse?.OVIEWMODEL) {` && |\n| &&
+             `        oModel._z2ui5BuiltFrom = AppState.state.oResponse;` && |\n| &&
+             `      }` && |\n| &&
+             `      return oModel;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function isSuperseded(seq) {` && |\n| &&
@@ -277,6 +282,12 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `` && |\n| &&
              `      const tracked = resolveTrackedModel(oView);` && |\n| &&
              `      if (tracked) {` && |\n| &&
+             `        if (` && |\n| &&
+             `          tracked._z2ui5BuiltFrom &&` && |\n| &&
+             `          tracked._z2ui5BuiltFrom === AppState.state.oResponse` && |\n| &&
+             `        ) {` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
              `` && |\n| &&
              `        const pending = tracked._z2ui5ChangedPaths;` && |\n| &&

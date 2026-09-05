@@ -358,16 +358,20 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
     result = val.
 
-    " a value without a brace is never parsed as a binding, and UI5 leaves
-    " its backslashes alone too (the binding parser only unescapes strings
-    " it processes) - so it must leave here untouched: escaping the
-    " backslash in e.g. a Windows path would MAKE the value wrong
-    IF result NA `{}`.
+    " nothing to escape: no brace, no backslash. Note that the shortcut is
+    " NOT "no brace": UI5's XMLTemplateProcessor hands EVERY string property
+    " to the binding parser with unescaping on, brace or not, and the
+    " parser unescapes `\\`, `\{` and `\}` even when it finds no binding
+    " (OpenUI5 1.71 BindingParser.complexParser, the bUnescaped tail). A
+    " lone backslash is left alone, so `C:\temp\file` rendered fine either
+    " way - but `\\server\share` lost one backslash per pair until the
+    " backslash was escaped whenever present (2026-09-05)
+    IF result NA `{}\`.
       RETURN.
     ENDIF.
 
-    " a braced value IS processed by the binding parser, which then also
-    " unescapes - so the backslash has to be escaped first, then the braces
+    " the backslash first (UI5 unescapes `\\` back to one), then the braces,
+    " which would otherwise start a binding
     result = replace( val  = result
                       sub  = `\`
                       with = `\\`

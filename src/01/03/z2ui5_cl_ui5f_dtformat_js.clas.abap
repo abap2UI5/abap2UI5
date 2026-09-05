@@ -90,9 +90,7 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `      if (!resultDoc) return sourceXml;` && |\n| &&
              `      const resultXml = _xmlSerializer.serializeToString(resultDoc);` && |\n| &&
              `` && |\n| &&
-             `      return resultXml.replace(/&gt;|&lt;/g, (match) =>` && |\n| &&
-             `        match === "&gt;" ? ">" : "<",` && |\n| &&
-             `      );` && |\n| &&
+             `      return resultXml.replace(/&gt;/g, ">");` && |\n| &&
              `    } catch {` && |\n| &&
              `      return sourceXml;` && |\n| &&
              `    }` && |\n| &&

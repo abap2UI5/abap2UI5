@@ -92,11 +92,13 @@ sap.ui.define([], () => {
       const resultDoc = getXsltProcessor().transformToDocument(xmlDoc);
       if (!resultDoc) return sourceXml;
       const resultXml = _xmlSerializer.serializeToString(resultDoc);
-      // The serializer escapes < and > inside text nodes; undo this so
-      // the output is browseable XML again.
-      return resultXml.replace(/&gt;|&lt;/g, (match) =>
-        match === "&gt;" ? ">" : "<",
-      );
+      // The serializer escapes > as &gt; in text nodes AND attribute values;
+      // a raw > is legal in both, so it is put back for readability. &lt; is
+      // NOT touched: a raw < is never legal there, and the view builder
+      // escapes every < an attribute carries (htmlText, core:HTML content,
+      // a text with a comparison) - unescaping it showed malformed XML and
+      // made "Apply to App" fail on a view the developer had not edited.
+      return resultXml.replace(/&gt;/g, ">");
     } catch {
       return sourceXml;
     }

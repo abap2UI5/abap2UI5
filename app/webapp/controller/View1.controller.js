@@ -112,10 +112,11 @@ sap.ui.define(
             return;
           }
           // A MODEL key in the response IS the model push - run it after the
-          // displays, so a slot built in this same roundtrip is filled before
-          // it is pushed to. This reaches what a fresh build alone does not:
-          // a nested view re-displayed without its MAIN view (it inherits the
-          // MAIN model by UI5 propagation) and a popup left open across a
+          // displays. A slot built in this same roundtrip already holds the
+          // model and is recognised as such (actions/Slots createViewModel),
+          // so the push reaches what a fresh build alone does not: a nested
+          // view re-displayed without its MAIN view (it inherits the MAIN
+          // model by UI5 propagation) and a popup left open across a
           // roundtrip that rebuilt no view (one that DOES rebuild MAIN takes
           // the standalone slots down with it - see actions/Slots).
           if (oResponse.MODELPRESENT) Slots.action("updateModel");

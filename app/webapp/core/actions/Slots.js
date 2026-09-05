@@ -104,7 +104,17 @@ sap.ui.define(
       slotKey = "MAIN",
       data = AppState.state.oResponse?.OVIEWMODEL,
     ) {
-      return trackChanges(new JSONModel(dataForSlot(slotKey, data)));
+      const oModel = trackChanges(new JSONModel(dataForSlot(slotKey, data)));
+      // A model built from THIS response remembers the response record, so
+      // the model push the same response carries (updateModelIfRequired)
+      // knows the slot is already filled. The backend ships MODEL with every
+      // display, and the push used to land in the model just built from it:
+      // a full binding sweep on MAIN, and for a popup or popover a second
+      // deep copy of the whole model on every open.
+      if (data && data === AppState.state.oResponse?.OVIEWMODEL) {
+        oModel._z2ui5BuiltFrom = AppState.state.oResponse;
+      }
+      return oModel;
     }
 
     // True when this response was superseded by a newer request while an
@@ -398,6 +408,16 @@ sap.ui.define(
       // Never overwrite an OData default (switch mode) with a fresh JSON model.
       const tracked = resolveTrackedModel(oView);
       if (tracked) {
+        // built from this very response (createViewModel): it holds the data
+        // already, its pending set is empty and it has its size limit - the
+        // push would only sweep every binding again, and clone the whole
+        // model a second time for a standalone slot
+        if (
+          tracked._z2ui5BuiltFrom &&
+          tracked._z2ui5BuiltFrom === AppState.state.oResponse
+        ) {
+          return;
+        }
         applyStoredSizeLimit(slotKey, tracked);
         // Edits this slot has not sent yet survive the push. Change tracking
         // is per model, and a roundtrip from another slot (a MAIN timer

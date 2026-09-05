@@ -1795,6 +1795,8 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS delta_trace              FOR TESTING RAISING cx_static_check.
     " a table kind that takes no row delta
     METHODS delta_sorted_refused     FOR TESTING RAISING cx_static_check.
+    " a column kind that takes no value of the shape the wire carries
+    METHODS delta_kind_refused       FOR TESTING RAISING cx_static_check.
     " a delta over many rows with a refused cell and a refused nested table
     " in the middle: every good cell lands, the refused ones keep their
     " values and are traced, nothing else is touched
@@ -2249,6 +2251,44 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD delta_kind_refused.
+
+    " a cell whose column takes no value of the shape the wire carries is
+    " traced and left alone, never assigned: a string into a REF TO data or
+    " a scalar into a nested table is no class-based exception on a system
+    " but a runtime error, so the skip has to be decided up front. The
+    " reference cell needs no crafted request - ajson ships it as its plain
+    " value, and an Input bound to it sends a string back
+    bind( REF #( mo_app->mt_rows_ref ) ).
+    DATA(lr_before) = mo_app->mt_rows_ref[ 1 ]-r_elem.
+    mo_model->main_json_to_attri( delta( `{"MT_ROWS_REF":{"__delta":{"0":{"R_ELEM":"x"}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `R_ELEM`
+                                        act = mo_model->mt_skipped[ 1 ]-field ).
+    cl_abap_unit_assert=>assert_equals( exp = `x`
+                                        act = mo_model->mt_skipped[ 1 ]-value ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_app->mt_rows_ref[ 1 ]-r_elem = lr_before ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `cell-ref`
+                                        act = mo_app->mt_rows_ref[ 1 ]-r_elem->* ).
+
+    " a scalar into a nested table column, next to a digit-only key that
+    " would address a component by position: the first is traced, the
+    " second skipped, the row is untouched
+    CLEAR mo_model->mt_skipped.
+    bind( REF #( mo_app->mt_nested ) ).
+    mo_model->main_json_to_attri( delta( `{"MT_NESTED":{"__delta":{"0":{"T_ITEMS":"x","0":"y"}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `T_ITEMS`
+                                        act = mo_model->mt_skipped[ 1 ]-field ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_app->mt_nested[ 1 ]-t_items ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `n1`
+                                        act = mo_app->mt_nested[ 1 ]-id ).
+
+  ENDMETHOD.
 
   METHOD delta_mass_edit.
 
@@ -3243,4 +3283,116 @@ CLASS ltcl_05_draft IMPLEMENTATION.
                                         act = mo_app->mo_inner->mo_deeper->mo_deeper->mv_inner ).
 
   ENDMETHOD.
+ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" 06 - a generic reference at a structure that carries a table component. On
+" its own fixture: the shared one above has struct aliases of flat structures
+" only, and this shape is about what the restore does with the rows BELOW the
+" alias - `<alias>->t_items` carries `<owner>-t_items` as name_ref for the
+" binding search, and the restore used to follow it and re-point the alias at
+" the table component of its own target (2026-09-05)
+" ---------------------------------------------------------------------------
+CLASS ltcl_app_struct_alias DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        col1 TYPE string,
+        col2 TYPE i,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_nested,
+        id      TYPE string,
+        t_items TYPE ty_t_row,
+      END OF ty_s_nested.
+
+    DATA ms_nested TYPE ty_s_nested.
+    DATA mr_alias  TYPE REF TO data.
+
+    METHODS fill.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_struct_alias IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD fill.
+    ms_nested-id      = `n1`.
+    ms_nested-t_items = VALUE #( ( col1 = `a` col2 = 1 ) ).
+    mr_alias = REF #( ms_nested ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_06_struct_alias DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    METHODS alias_stays_on_struct FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_06_struct_alias IMPLEMENTATION.
+
+  METHOD alias_stays_on_struct.
+
+    FIELD-SYMBOLS <struc> TYPE any.
+    FIELD-SYMBOLS <tab>   TYPE any.
+    DATA lo_app   TYPE REF TO ltcl_app_struct_alias.
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+
+    lo_app = NEW #( ).
+    lo_app->fill( ).
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    " the table bound through the alias, as _bind( mr_alias->t_items ) does
+    ASSIGN lo_app->mr_alias->* TO <struc>.
+    ASSIGN COMPONENT `T_ITEMS` OF STRUCTURE <struc> TO <tab>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    DATA(lr_row) = lo_model->main_attri_search( REF #( <tab> ) ).
+    lr_row->bind        = abap_true.
+    lr_row->name_client = `/T_ITEMS`.
+
+    " the draft roundtrip as the container runs it
+    lo_model->main_attri_db_save_srtti( ).
+    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( lo_app ).
+    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lr_attri->* ).
+    CLEAR lo_app.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
+                                          IMPORTING any = lo_app ).
+    CREATE DATA lr_attri.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
+                                          IMPORTING any = lr_attri->* ).
+    lo_model = NEW #( attri = lr_attri
+                      app   = lo_app ).
+    lo_model->main_attri_db_load( ).
+
+    " the alias points at the STRUCTURE again, not at its table component
+    cl_abap_unit_assert=>assert_bound( act = lo_app->mr_alias
+                                       msg = `alias lost across the draft` ).
+    DATA(lo_descr) = cl_abap_typedescr=>describe_by_data_ref( lo_app->mr_alias ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>kind_struct
+                                        act = lo_descr->kind
+                                        msg = |alias re-pointed - it derefs to kind { lo_descr->kind } ({ lo_descr->absolute_name })| ).
+    DATA(lr_struc) = REF #( lo_app->ms_nested ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mr_alias = lr_struc )
+                                      msg = `alias no longer points at ms_nested` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_app->ms_nested-t_items ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.

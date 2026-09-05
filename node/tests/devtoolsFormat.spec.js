@@ -102,15 +102,30 @@ test.describe("prettifyXml", () => {
     expect(Format.prettifyXml("<not xml")).toBe("<not xml");
   });
 
-  test("unescapes the angle brackets the serializer escaped", () => {
-    // the serializer escapes < and > inside text nodes; the output has to
-    // be browseable XML again
+  test("unescapes &gt; and keeps &lt; escaped", () => {
+    // the serializer escapes > in text nodes and attribute values; a raw >
+    // is legal there and reads better. A raw < never is, so &lt; stays -
+    // otherwise the shown XML is malformed and Apply to App fails on it
     const Format = loadFormat({
       xml: {
         transformed: {},
         serialized: "&lt;Input value=&quot;x&quot;/&gt;",
       },
     });
-    expect(Format.prettifyXml("<Input/>")).toBe('<Input value=&quot;x&quot;/>');
+    expect(Format.prettifyXml("<Input/>")).toBe("&lt;Input value=&quot;x&quot;/>");
+  });
+
+  test("an attribute carrying escaped markup stays well-formed", () => {
+    // what the view builder ships for htmlText / core:HTML content
+    const Format = loadFormat({
+      xml: {
+        transformed: {},
+        serialized:
+          '<FormattedText htmlText="&lt;strong&gt;x&lt;/strong&gt;"/>',
+      },
+    });
+    expect(Format.prettifyXml("<FormattedText/>")).toBe(
+      '<FormattedText htmlText="&lt;strong>x&lt;/strong>"/>',
+    );
   });
 });

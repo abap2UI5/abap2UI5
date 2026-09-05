@@ -47,9 +47,17 @@ function withRecordedEB() {
 // app the response belongs to - the pair the cross-app guard reads. Left out,
 // both are undefined and the guard stays out of the way, which is also the
 // real behaviour for a slot no response has claimed.
-function withSlots(openKeys, model, { slotApps = {}, responseApp } = {}) {
+// `builtFrom` names the open slots whose model was built from THIS response
+// (Slots.createViewModel stamps the response record on it) - the push must
+// leave those alone, they hold the data already.
+function withSlots(
+  openKeys,
+  model,
+  { slotApps = {}, responseApp, builtFrom = [] } = {},
+) {
   const applied = [];
   const views = {};
+  const oResponse = { OVIEWMODEL: model, APP: responseApp };
   for (const key of openKeys) {
     // each open slot carries its own framework-owned (tracked) model; a
     // push must land as setData on exactly that model
@@ -57,6 +65,7 @@ function withSlots(openKeys, model, { slotApps = {}, responseApp } = {}) {
       _z2ui5Tracked: true,
       setData: (data) => applied.push({ key, data }),
     };
+    if (builtFrom.includes(key)) tracked._z2ui5BuiltFrom = oResponse;
     views[key] = { getModel: (name) => (name ? undefined : tracked) };
   }
   const ViewSlots = {
@@ -90,7 +99,7 @@ function withSlots(openKeys, model, { slotApps = {}, responseApp } = {}) {
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": {
         state: {
-          oResponse: { OVIEWMODEL: model, APP: responseApp },
+          oResponse,
           viewSizeLimits: {},
         },
       },
@@ -136,6 +145,30 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
     const { Slots, applied } = withSlots([], {});
     Slots.action("updateModel", undefined, undefined, {});
     expect(applied).toEqual([]);
+  });
+
+  test("a slot built from this response is not pushed to again", () => {
+    // the backend ships MODEL with every display; the model a display just
+    // built from it holds the data already - pushing it again was a full
+    // binding sweep on MAIN and a second whole-model clone per dialog open
+    const model = { A: 1 };
+    const { Slots, applied } = withSlots(["MAIN", "POPUP"], model, {
+      builtFrom: ["MAIN", "POPUP"],
+    });
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied).toEqual([]);
+  });
+
+  test("a slot built from an EARLIER response is still pushed to", () => {
+    // a popup left open across a roundtrip that rebuilt no view: its model
+    // came from the previous response and needs this one's data
+    const model = { A: 2 };
+    const { Slots, applied, views } = withSlots(["MAIN", "POPUP"], model, {
+      builtFrom: ["MAIN"],
+    });
+    views.POPUP.getModel()._z2ui5BuiltFrom = { OVIEWMODEL: { A: 1 } };
+    Slots.action("updateModel", undefined, undefined, {});
+    expect(applied.map((a) => a.key)).toEqual(["POPUP"]);
   });
 
   test("a slot's unsent edits survive the push and stay pending", () => {

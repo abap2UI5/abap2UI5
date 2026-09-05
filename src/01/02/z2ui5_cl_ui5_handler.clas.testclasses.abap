@@ -398,6 +398,7 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_parse_body_no_config FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_arg_limit FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_sanitized FOR TESTING RAISING cx_static_check.
@@ -675,6 +676,39 @@ CLASS ltcl_01_request IMPLEMENTATION.
                                         act = ls_request-s_front-t_event_arg[ 4 ] ).
     cl_abap_unit_assert=>assert_equals( exp = `[1,2]`
                                         act = ls_request-s_front-t_event_arg[ 5 ] ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_arg_limit.
+    " one over the bound of object/array arguments is refused before the
+    " quadratic slice( ) per argument can run; the bound itself still parses
+    DATA lv_payload TYPE string.
+    DATA lv_args    TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+
+    DO 99 TIMES.
+      lv_args = lv_args && `[],`.
+    ENDDO.
+    " 101 arguments: the 99 arrays, one more array and a string
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":[` && lv_args && `[],"last"]}}}`.
+    lo_handler = NEW #( val = lv_payload ).
+    TRY.
+        ls_request = lo_handler->request_json_to_abap( lv_payload ).
+        cl_abap_unit_assert=>fail( `101 event arguments were accepted` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( act = lx->get_text( )
+                                             exp = `*EVENT_ARG_LIMIT_ERROR*` ).
+    ENDTRY.
+
+    " exactly 100 arguments - the bound itself - still parse, the object
+    " among them included
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":[` && lv_args && `{"KEY":"val"}]}}}`.
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    cl_abap_unit_assert=>assert_equals( exp = 100
+                                        act = lines( ls_request-s_front-t_event_arg ) ).
   ENDMETHOD.
 
   METHOD test_request_app_start.

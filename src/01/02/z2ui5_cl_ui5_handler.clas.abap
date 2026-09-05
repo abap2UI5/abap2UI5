@@ -101,6 +101,15 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " otherwise loop the work process forever
     DATA mv_dispatch_limit TYPE i VALUE 1000.
 
+    " upper bound for the event arguments one request may carry. The
+    " frontend fills T_EVENT_ARG from the view's own argument list, so a
+    " legitimate event has a handful - and every object or array argument
+    " costs a slice( ) over the whole S_FRONT node table (a CP walk, the
+    " sorted key cannot serve it), which made the parse quadratic in the
+    " count: 50,000 `[]` entries in a 150 KB POST held a dialog work
+    " process for minutes. Nothing else bounded the request's shape.
+    CONSTANTS c_event_arg_limit TYPE i VALUE 100.
+
     " automatic model update: the model snapshot taken in main_process BEFORE
     " main( ) ran, compared in main_end. The taken flag exists because the
     " snapshot string cannot distinguish "not taken" from an empty model, and
@@ -334,9 +343,16 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     DATA(lv_arg_index) = 1.
     DO.
       DATA(lv_arg_path) = |/T_EVENT_ARG/{ lv_arg_index }|.
-      CASE io_front->get_node_type( lv_arg_path ).
-        WHEN ``.
-          EXIT.
+      DATA(lv_node_type) = io_front->get_node_type( lv_arg_path ).
+      IF lv_node_type = ``.
+        EXIT.
+      ENDIF.
+      IF lv_arg_index > c_event_arg_limit.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = |EVENT_ARG_LIMIT_ERROR - more than { c_event_arg_limit } event arguments in one request|.
+      ENDIF.
+      CASE lv_node_type.
         WHEN z2ui5_if_ajson_types=>node_type-object OR z2ui5_if_ajson_types=>node_type-array.
           ev_check_override = abap_true.
           APPEND io_front->slice( lv_arg_path )->stringify( ) TO et_event_arg.
