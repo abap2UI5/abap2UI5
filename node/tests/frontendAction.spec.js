@@ -583,6 +583,13 @@ test.describe("executeSystem (the SYSTEM phase entry point)", () => {
     FrontendAction.executeSystem(null, ["NO_SUCH_ACTION"]);
     expect(errors[0]).toContain("unknown system action");
   });
+
+  test("an unknown APP action is reported too, not dropped silently", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute(null, ["NO_SUCH_ACTION"]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toContain("unknown action 'NO_SUCH_ACTION'");
+  });
 });
 
 /* An icon collection outside the default SAP-icons font resolves only after

@@ -254,7 +254,16 @@ function isAdditiveOptionalParams(oldSig, newSig) {
   const oldHead = oldSig.slice(0, oldSig.length - oldTail.length);
   const newHead = newSig.slice(0, newSig.length - newTail.length);
   if (!newHead.startsWith(`${oldHead} `)) return false;
-  const appended = newHead.slice(oldHead.length);
+  let appended = newHead.slice(oldHead.length);
+  // a method that had no importing parameter at all (parameterless, or
+  // returning-only) grows its first one WITH the keyword: `methods foo` to
+  // `methods foo importing x type y optional`. The keyword is no parameter,
+  // so it is taken off before the per-parameter walk - which read
+  // ` importing` as a parameter named importing without a type and reported
+  // the first optional parameter of such a method as a rule-5 violation
+  if (!/\simporting\s/.test(oldHead) && appended.startsWith(" importing ")) {
+    appended = appended.slice(" importing".length);
+  }
   return appendedParamsAllOptional(appended);
 }
 

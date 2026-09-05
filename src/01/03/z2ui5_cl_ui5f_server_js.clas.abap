@@ -73,6 +73,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      reset() {` && |\n| &&
+             `        this._requestSeq += 1;` && |\n| &&
              `        this._abortInflight();` && |\n| &&
              `        this._viewBuild = null;` && |\n| &&
              `` && |\n| &&

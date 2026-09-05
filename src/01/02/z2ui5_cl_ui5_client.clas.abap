@@ -67,6 +67,12 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         " the re-send on the nav_mode_sent latch; an app called via
         " nav_app_call inherits it, and a draft restored later still knows how
         " it was routed
+        " upper-cased at the one write point: the frontend upper-cases the
+        " mode before it compares, the backend compares it as written
+        " against cs_nav_mode (check_nav_app_call, the sticky main_end_save
+        " branch) - `keep` used to switch routing on in the browser and
+        " leave it off on the server
+        lv_arg = to_upper( lv_arg ).
         IF lv_arg IS INITIAL.
           lv_arg = z2ui5_if_client=>cs_nav_mode-keep.
         ENDIF.

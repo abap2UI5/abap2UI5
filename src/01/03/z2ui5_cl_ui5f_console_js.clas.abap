@@ -34,6 +34,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `` && |\n| &&
              `  const MAX_DEPTH = 4;` && |\n| &&
              `` && |\n| &&
+             `  const MAX_ITEMS = 20;` && |\n| &&
+             `` && |\n| &&
              `  const RELOAD_KEY = "z2ui5.devtools.console";` && |\n| &&
              `  const RELOAD_MAX_ENTRIES = 40;` && |\n| &&
              `` && |\n| &&
@@ -161,6 +163,12 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `          if (parent >= MAX_DEPTH) return "[...]";` && |\n| &&
              `          seen.add(val);` && |\n| &&
              `          nodeDepth.set(val, parent + 1);` && |\n| &&
+             `          if (Array.isArray(val) && val.length > MAX_ITEMS) {` && |\n| &&
+             `            const head = val.slice(0, MAX_ITEMS);` && |\n| &&
+             `            head.push(``[... ${val.length - MAX_ITEMS} more]``);` && |\n| &&
+             `            nodeDepth.set(head, parent + 1);` && |\n| &&
+             `            return head;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `        if (isErrorLike(val)) return val.stack || String(val);` && |\n| &&
              `        return val;` && |\n| &&
@@ -321,7 +329,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    getEntries,` && |\n| &&
              `    getDropped,` && |\n| &&
              `` && |\n| &&
-             `    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS },` && |\n| &&
+             `    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS, MAX_ITEMS },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

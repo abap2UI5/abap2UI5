@@ -555,6 +555,8 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_cache_key_covers_inputs FOR TESTING RAISING cx_static_check.
     METHODS test_cache_hit_same_config   FOR TESTING RAISING cx_static_check.
     METHODS test_get_304_on_if_none_match FOR TESTING RAISING cx_static_check.
+    METHODS test_get_304_weak_tag FOR TESTING RAISING cx_static_check.
+    METHODS test_etag_match_rules FOR TESTING RAISING cx_static_check.
     METHODS test_get_no_304_on_stale_tag FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_post      FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_error     FOR TESTING RAISING cx_static_check.
@@ -713,6 +715,66 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                         act = header_value( `etag` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
                                         act = header_value( `cache-control` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_get_304_weak_tag.
+
+    " the validator as a recompressing proxy hands it back: weak-marked, in
+    " a list, with whitespace - still the bodyless 304 of an exact match
+    handler_create( ).
+    mo_handler->ms_req-method = `GET`.
+    mo_handler->ms_res = VALUE #( body          = `<html>shell</html>`
+                                  status_code   = 200
+                                  status_reason = `OK` ).
+    z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
+    INSERT VALUE #( n = `if-none-match`
+                    v = `"1.0-00-00-00", W/"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->set_response( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 304
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_initial( mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = `"1.0-11-22-33"`
+                                        act = header_value( `etag` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_etag_match_rules.
+
+    DATA(lv_tag) = `"1.0-11-22-33"`.
+
+    " exact, weak, listed, any, the Apache suffix - all a match
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"1.0-11-22-33"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `W/"1.0-11-22-33"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"a" , "1.0-11-22-33" ,"b"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `*`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"1.0-11-22-33-gzip"`
+        iv_etag   = lv_tag ) ).
+
+    " another tag, a tag that merely starts like ours, nothing at all
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"1.0-99-99-99"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `"1.0-11-22-33-x"`
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = ``
+        iv_etag   = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
+        iv_header = `*`
+        iv_etag   = `` ) ).
 
   ENDMETHOD.
 

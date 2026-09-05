@@ -166,6 +166,15 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    " If-None-Match against the current tag, RFC 7232 weak comparison over a
+    " list - see the method
+    CLASS-METHODS _check_etag_match
+      IMPORTING
+        iv_header     TYPE string
+        iv_etag       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
     " (see z2ui5_cx_ui5_util_error=>get_text_full). Only reached when the exit
@@ -626,6 +635,38 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _check_etag_match.
+
+    " RFC 7232: If-None-Match is a LIST of validators, compared weakly - a
+    " proxy that recompresses the page weak-marks the tag (nginx gzip sends
+    " W/"tag" back), a browser may echo several, and `*` matches whatever is
+    " current. Apache mod_deflate (DeflateAlterETag AddSuffix, its default)
+    " instead appends `-gzip` INSIDE the quotes and passes the browser's
+    " echo through untouched, so that suffix is accepted too - no tag of
+    " this class ever carries it by itself. Exact string equality answered
+    " none of the four, and behind such a proxy the conditional GET quietly
+    " degraded to a full shell transfer on every reload for every user
+    IF iv_header IS INITIAL OR iv_etag IS INITIAL.
+      RETURN.
+    ENDIF.
+    DATA(lv_gzip) = substring( val = iv_etag
+                               len = strlen( iv_etag ) - 1 ) && `-gzip"`.
+    SPLIT iv_header AT `,` INTO TABLE DATA(lt_candidate).
+    LOOP AT lt_candidate INTO DATA(lv_candidate).
+      CONDENSE lv_candidate.
+      IF strlen( lv_candidate ) > 2 AND substring( val = lv_candidate
+                                                   len = 2 ) = `W/`.
+        lv_candidate = substring( val = lv_candidate
+                                  off = 2 ).
+      ENDIF.
+      IF lv_candidate = `*` OR lv_candidate = iv_etag OR lv_candidate = lv_gzip.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD run.
 
     DATA(lo_handler) = factory( server = server
@@ -650,7 +691,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ms_res-status_code = 200 AND sv_get_etag IS NOT INITIAL.
       lv_etag_get = sv_get_etag.
-      IF mo_server->get_header_field( `if-none-match` ) = sv_get_etag.
+      IF _check_etag_match( iv_header = mo_server->get_header_field( `if-none-match` )
+                            iv_etag   = sv_get_etag ) = abap_true.
         ms_res-status_code   = 304.
         ms_res-status_reason = `Not Modified`.
         CLEAR ms_res-body.

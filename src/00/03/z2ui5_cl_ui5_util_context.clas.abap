@@ -1665,6 +1665,8 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           cl_abap_datadescr=>typekind_int2 OR
           cl_abap_datadescr=>typekind_packed OR
           cl_abap_datadescr=>typekind_float OR
+          cl_abap_datadescr=>typekind_decfloat16 OR
+          cl_abap_datadescr=>typekind_decfloat34 OR
           cl_abap_datadescr=>typekind_hex.
         result = abap_true.
     ENDCASE.
@@ -1903,8 +1905,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " several messages: a counting headline plus every text as a bullet
     result-text = | { lv_lines } Messages found: |.
     DATA lt_detail_items TYPE string_table.
+    " the texts are data inside markup, escaped like every sibling renderer
+    " escapes its values: unescaped, `Enter a value for <MATNR>` lost its
+    " token to the frontend sanitizer, which drops an unknown element
     LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
-      INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
+      INSERT |<li>{ c_escape_html( lr_msg->text ) }</li>| INTO TABLE lt_detail_items.
     ENDLOOP.
     result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
 
@@ -2858,7 +2863,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         INSERT ls_result INTO TABLE result.
 
       WHEN cl_abap_datadescr=>typekind_oref.
-        result = msg_get_by_oref( val ).
+        " an unbound reference carries no message - guarded like the struct
+        " and table branches guard theirs. Unguarded it fell through the
+        " three handlers of msg_get_by_oref into a describe on the null
+        " reference, and message_box_display( unbound ) ended in a 500
+        " instead of the documented silence
+        IF val IS NOT INITIAL.
+          result = msg_get_by_oref( val ).
+        ENDIF.
 
       WHEN OTHERS.
 

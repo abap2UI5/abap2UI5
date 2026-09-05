@@ -45,6 +45,14 @@ sap.ui.define([], () => {
   // Depth at which an argument stops being expanded.
   const MAX_DEPTH = 4;
 
+  // Items of an array that are expanded; the rest is one marker. The depth
+  // cap alone counts nesting, and scalars pass at any depth, so root, table,
+  // row, column serialized a 10,000-row table IN FULL (millions of
+  // characters, tens of milliseconds) on every console.log of a model
+  // before the 2000-character cut - paid by every user, since the capture
+  // installs unconditionally.
+  const MAX_ITEMS = 20;
+
   // sessionStorage key of the entries carried across a page reload, and
   // how many travel. Only ERROR level: an app that died and was reloaded
   // throws away exactly the evidence you need, and the errors are the
@@ -194,11 +202,14 @@ sap.ui.define([], () => {
     try {
       // A plain stringify covers arrays and objects; the replacer keeps a
       // circular graph (a UI5 control reaches its parent) from throwing -
-      // and it is ALSO where the depth cap has to live: stringify walks the
-      // graph itself, so the `depth` parameter above never counted anything
-      // and MAX_DEPTH was dead code while a console.log(oModel.getData())
-      // serialized a multi-MB model in full before the 2000-char cut. The
-      // parent map answers "how deep is this node" without a second walk.
+      // and it is ALSO where the depth and the array caps have to live:
+      // stringify walks the graph itself, so the `depth` parameter above
+      // never counted anything and MAX_DEPTH was dead code while a
+      // console.log(oModel.getData()) serialized a multi-MB model in full
+      // before the 2000-char cut. The parent map answers "how deep is this
+      // node" without a second walk; a long array is replaced by its first
+      // MAX_ITEMS items plus a marker, and the replacement is what
+      // stringify walks next, so it takes the depth of the original.
       const seen = new WeakSet();
       const nodeDepth = new WeakMap();
       return JSON.stringify(value, function replace(key, val) {
@@ -211,6 +222,12 @@ sap.ui.define([], () => {
           if (parent >= MAX_DEPTH) return "[...]";
           seen.add(val);
           nodeDepth.set(val, parent + 1);
+          if (Array.isArray(val) && val.length > MAX_ITEMS) {
+            const head = val.slice(0, MAX_ITEMS);
+            head.push(`[... ${val.length - MAX_ITEMS} more]`);
+            nodeDepth.set(head, parent + 1);
+            return head;
+          }
         }
         if (isErrorLike(val)) return val.stack || String(val);
         return val;
@@ -395,6 +412,6 @@ sap.ui.define([], () => {
     getEntries,
     getDropped,
     // exposed for the unit specs
-    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS },
+    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS, MAX_ITEMS },
   };
 });

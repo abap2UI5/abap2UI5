@@ -39,17 +39,29 @@ const EXTERNAL = new Map([
     "Z2UI5_CL_CC_DEMO_OUT",
     "sample custom control of the samples repository - referenced from frozen src/99",
   ],
+  // the start page's sample tiles - each guarded by rtti_check_class_exists
+  // and spelled in lower case, which is why the gate reads both cases
+  ["Z2UI5_CL_SMP_APP_000", "ships in abap2UI5/samples - guarded by rtti_check_class_exists"],
+  ["Z2UI5_CL_DEMO_APP_G00", "superseded name of the samples entry - guarded by rtti_check_class_exists"],
+  ["Z2UI5_CL_SMPC_APP_000", "ships in abap2UI5/samples-controls - guarded by rtti_check_class_exists"],
+  ["Z2UI5_CL_SMPC_APP_OVERVIEW", "superseded name of the samples-controls entry - guarded by rtti_check_class_exists"],
+  ["Z2UI5_CL_SMPS_APP_000", "ships in abap2UI5/samples-stack - guarded by rtti_check_class_exists"],
+  ["Z2UI5_CL_SMPS_APP_00", "superseded name of the samples-stack entry - guarded by rtti_check_class_exists"],
 ]);
 
 // backtick literals are how this repository writes strings; the downported
-// packages also carry single-quoted ones
-const LITERAL = /[`'](Z2UI5_(?:CL|CX|IF)_[A-Z0-9_]+)[`']/g;
+// packages also carry single-quoted ones. Both cases: rtti_check_class_exists
+// upper-cases its argument, and the start page spells its sample tiles in
+// lower case - an upper-case-only scan let a lower-case typo there through
+// with the #2564 shape and a green gate
+const LITERAL = /[`'](Z2UI5_(?:CL|CX|IF)_[A-Z0-9_]+)[`']/gi;
 
 const files = walk(ROOT, "src").filter(f => f.endsWith(".abap"));
 
 // what the repository ships, by the file name - abapGit derives the object name
 // from it, so the file name IS the object name (see check:abapgit, rule
-// `clsname`)
+// `clsname`). Every package counts, the frozen one included: src/99 still
+// ships, and the superseded exit interface named from src/01 lives there
 const shipped = new Set();
 for (const file of files) {
   const base = file.slice(file.lastIndexOf("/") + 1);
@@ -57,12 +69,18 @@ for (const file of files) {
   if (match) shipped.add(match[1].toUpperCase());
 }
 
+// scanned: every package but the frozen one. src/99 is history only - never
+// changed, so a gate that governs change has nothing to decide there, and
+// its lower-case literals are event ids spelled like class names
+const scanned = files.filter(f => !f.startsWith("src/99/"));
+
 const findings = [];
-for (const file of files) {
+for (const file of scanned) {
   const lines = readFileSync(join(ROOT, file), "utf8").split("\n");
   lines.forEach((line, index) => {
     if (line.trimStart().startsWith("*") || line.trimStart().startsWith('"')) return;
-    for (const [, name] of line.matchAll(LITERAL)) {
+    for (const [, raw] of line.matchAll(LITERAL)) {
+      const name = raw.toUpperCase();
       if (shipped.has(name) || EXTERNAL.has(name)) continue;
       findings.push({ file, line: index + 1, name });
     }
@@ -85,5 +103,5 @@ if (findings.length > 0) {
 
 const external = EXTERNAL.size === 1 ? "1 external name" : `${EXTERNAL.size} external names`;
 console.log(
-  `dynamic-name: ${files.length} file(s) checked, every literal resolves - OK (${external} allowed)`,
+  `dynamic-name: ${scanned.length} file(s) checked, every literal resolves - OK (${external} allowed)`,
 );

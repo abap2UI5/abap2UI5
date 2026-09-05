@@ -110,6 +110,18 @@ test.describe("console capture", () => {
     expect(text).toContain("[Circular]");
   });
 
+  test("bounds a long array instead of serializing every row", () => {
+    const h = loadConsole();
+    const max = h.Console._internals.MAX_ITEMS;
+    const rows = Array.from({ length: 100 }, (_, i) => ({ i, name: `row ${i}` }));
+    const text = h.Console._internals.renderArg({ rows }, 0);
+    expect(text).toContain(`"i":${max - 1}`);
+    expect(text).not.toContain(`"i":${max}`);
+    expect(text).toContain(`${100 - max} more`);
+    // an array within the bound is untouched
+    expect(h.Console._internals.renderArg([1, 2, 3], 0)).toBe("[1,2,3]");
+  });
+
   test("a throwing getter cannot break the call it observes", () => {
     const h = loadConsole();
     h.Console.install();

@@ -125,9 +125,10 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " carries one class per interface - a configuration the class doc
         " rules out, only one exit can be active - gets the current one
         " instead of whichever sorted first across both lists.
+        " no self-exclusion on this list: the shipped exit implements
+        " z2ui5_if_ui5_exit only, so it is never in it
         IF lines( exit_classes ) = 0.
           exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
-          DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
         ENDIF.
 
         " only one user exit can be active, so the pick must not depend on the

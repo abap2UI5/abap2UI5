@@ -10,7 +10,11 @@
 // node/deps/<name>/ (gitignored). It is wired into `npm run check` and
 // `npm run downport`; a no-op (~50ms) when everything is already at
 // the pinned SHA. Without network and without node/deps the tools fall back
-// to their old floating-clone behavior.
+// to their old floating-clone behavior - LOCALLY. In CI (the CI variable is
+// set) a pin that cannot be materialized fails the step instead: `check`,
+// `downport` and the setup action chain on this exit code, and the fallback
+// would silently lint, transpile and RUN the floating HEAD of three upstream
+// repositories, which is exactly what the pins exist to prevent.
 //
 //   node node/setup/fetch-deps.mjs                 fetch/refresh the pins
 //   node node/setup/fetch-deps.mjs --print-latest  show upstream HEADs (to bump)
@@ -67,6 +71,9 @@ for (const p of PINS) {
     run(`git remote add origin ${p.url}`, dir);
     run(`git fetch --quiet --depth 1 origin ${p.sha}`, dir);
     run("git checkout --quiet --detach FETCH_HEAD", dir);
+    // what was checked out IS the pin - not whatever the remote resolved
+    const head = run("git rev-parse HEAD", dir);
+    if (head !== p.sha) throw new Error(`checked out ${head}, the pin is ${p.sha}`);
     console.log(`fetch-deps: ${p.name} @ ${p.sha.slice(0, 12)}`);
   } catch (e) {
     // no network / fetch failed: leave nothing half-checked-out behind so the
@@ -76,4 +83,9 @@ for (const p of PINS) {
     console.error(`fetch-deps: WARN could not pin ${p.name} (${String(e.message).split("\n")[0]}) - tools will fall back to a floating clone`);
   }
 }
-if (!failures) console.log("fetch-deps: all dependencies at pinned SHAs");
+if (!failures) {
+  console.log("fetch-deps: all dependencies at pinned SHAs");
+} else if (process.env.CI) {
+  console.error(`fetch-deps: ${failures} pin(s) could not be materialized - failing: CI must not fall back to floating clones`);
+  process.exitCode = 1;
+}

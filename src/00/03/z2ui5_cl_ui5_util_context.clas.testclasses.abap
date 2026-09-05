@@ -394,6 +394,7 @@ CLASS ltcl_rtti DEFINITION FINAL
     TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
     METHODS test_check_clike     FOR TESTING RAISING cx_static_check.
+    METHODS test_printable_decfloat FOR TESTING RAISING cx_static_check.
     METHODS test_check_table     FOR TESTING RAISING cx_static_check.
     METHODS test_check_structure FOR TESTING RAISING cx_static_check.
     METHODS test_check_ref_data  FOR TESTING RAISING cx_static_check.
@@ -408,6 +409,19 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION LOCAL FRIENDS ltcl_rtti.
 
 
 CLASS ltcl_rtti IMPLEMENTATION.
+
+  METHOD test_printable_decfloat.
+
+    " decfloat16/34 are numbers like i, p and f: printable in an exception's
+    " attribute dump and as a message box headline. They used to fall
+    " through the CASE and rendered as UNKNOWN_ERROR / a `Data` headline.
+    " Only the 34-digit kind here: the NodeJS runtime has no decfloat16
+    " type, the production CASE names both
+    DATA lv_d34 TYPE decfloat34 VALUE '2.25'.
+
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_printable( lv_d34 ) ).
+
+  ENDMETHOD.
 
   METHOD test_check_clike.
 
@@ -681,6 +695,8 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_box_empty_skips  FOR TESTING RAISING cx_static_check.
     METHODS test_box_single       FOR TESTING RAISING cx_static_check.
     METHODS test_box_multiple     FOR TESTING RAISING cx_static_check.
+    METHODS test_box_multiple_escaped FOR TESTING RAISING cx_static_check.
+    METHODS test_box_unbound_oref_skips FOR TESTING RAISING cx_static_check.
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
     METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
 
@@ -756,6 +772,37 @@ CLASS ltcl_msg IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `<ul><li>first</li><li>second</li></ul>`
         act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_box_multiple_escaped.
+
+    " the texts are DATA inside the HTML list: a token in angle brackets is
+    " shown as written instead of being dropped by the frontend sanitizer
+    " as an unknown element - every sibling renderer escapes, this did not
+    DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
+
+    lt_msg = VALUE #( ( text = `Enter a value for <MATNR>` type = `E` )
+                      ( text = `a & b`                    type = `E` ) ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `<ul><li>Enter a value for &lt;MATNR&gt;</li><li>a &amp; b</li></ul>`
+        act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_box_unbound_oref_skips.
+
+    " an unbound object reference carries no message: `skip`, like a
+    " business table - it used to fall through msg_get_by_oref's handlers
+    " into a describe on the null reference and end in a 500
+    DATA lo_unbound TYPE REF TO object.
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lo_unbound ).
+
+    cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
   ENDMETHOD.
 

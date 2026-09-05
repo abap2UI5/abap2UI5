@@ -185,7 +185,13 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
         result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
         lo_model->main_attri_reattach( ).
         RETURN.
-      CATCH cx_root ##NO_HANDLER.
+      CATCH cx_root.
+        " the retry's save detached the references again - put them back
+        " like the first CATCH does. The exception below ends THIS request,
+        " and in a sticky session the same instance serves the next one,
+        " whose main( ) then ran on an app whose data references were
+        " initial
+        lo_model->main_attri_reattach( ).
     ENDTRY.
 
     " chain the FIRST serialization failure - it names the attribute/type

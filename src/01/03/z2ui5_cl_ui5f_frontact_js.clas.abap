@@ -65,7 +65,11 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `` && |\n| &&
              `      try {` && |\n| &&
              `        const handler = handlers[args[0]];` && |\n| &&
-             `        if (handler) handler(oController, args);` && |\n| &&
+             `        if (handler) {` && |\n| &&
+             `          handler(oController, args);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          Lib.logError(``FrontendAction: unknown action '${args[0]}'``);` && |\n| &&
+             `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``FrontendAction: handler '${args[0]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&

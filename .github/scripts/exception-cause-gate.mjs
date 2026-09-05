@@ -67,7 +67,10 @@ for (const file of files) {
   for (const stmt of stmts) {
     const flat = stmt.text.replace(/\n/g, " ");
 
-    if (/^\s*TRY\s*\.?\s*$/i.test(flat.trim())) {
+    // statements keep their trailing comment (see abap-statements.mjs), so
+    // `TRY. " why` is a TRY too - anchored on the period alone, every RAISE
+    // in such a block escaped the check
+    if (/^\s*TRY\s*\.?\s*(?:".*)?$/i.test(flat.trim())) {
       tryStack.push(false);
       continue;
     }

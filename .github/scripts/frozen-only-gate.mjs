@@ -133,7 +133,8 @@ function stripNoise(line) {
 }
 
 const NAMES = new RegExp(`\\b(${[...marked.keys()].join("|")})\\b`, "gi");
-const METHOD_START = /^\s*METHOD\s+([a-z_0-9~]+)\s*\.\s*$/i;
+// a trailing comment after the period is still the same statement
+const METHOD_START = /^\s*METHOD\s+([a-z_0-9~]+)\s*\.\s*(?:".*)?$/i;
 
 const findings = [];
 

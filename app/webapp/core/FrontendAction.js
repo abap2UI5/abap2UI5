@@ -56,7 +56,14 @@ sap.ui.define(
 
       try {
         const handler = handlers[args[0]];
-        if (handler) handler(oController, args);
+        if (handler) {
+          handler(oController, args);
+        } else {
+          // a typo in follow_up_action( ) or a wire an older frontend does
+          // not know used to say nothing anywhere, while the SYSTEM phase
+          // below reports its unknown action
+          Lib.logError(`FrontendAction: unknown action '${args[0]}'`);
+        }
       } catch (e) {
         // Backstop: individual handlers already guard themselves, but a
         // malformed payload must never let an error escape into the caller.

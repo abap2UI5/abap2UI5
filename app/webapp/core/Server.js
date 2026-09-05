@@ -140,6 +140,14 @@ sap.ui.define(
       // _abortInflight( ) existed for the other case (a newer request
       // superseding older ones) and was never reachable from teardown.
       reset() {
+        // stale FIRST, abort second: the aborted fetch rejects with an
+        // AbortError that lands in readHttp's catch, and only a sequence the
+        // request no longer holds makes isStale( ) swallow it there. Without
+        // the bump the teardown's own abort was reported as a client-side
+        // timeout - BusyIndicator.hide( ) over the next app, isBusy false on
+        // the state just rebuilt, and the fatal "No backend response within
+        // N seconds" dialog with a Retry that re-sent the dead session's body
+        this._requestSeq += 1;
         this._abortInflight();
         this._viewBuild = null;
         // the error overlay's module state is the same kind of survivor -
