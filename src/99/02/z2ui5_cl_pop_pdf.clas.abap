@@ -44,7 +44,7 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
     r_result->question_text       = i_label.
     r_result->button_text_confirm = i_button_text_confirm.
@@ -61,7 +61,22 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+    DATA temp4 TYPE z2ui5_if_types=>ty_t_name_value.
+    DATA temp5 LIKE LINE OF temp4.
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    CLEAR temp4.
+
+    temp5-n = `src`.
+    temp5-v = mv_pdf.
+    INSERT temp5 INTO TABLE temp4.
+    temp5-n = `height`.
+    temp5-v = `800px`.
+    INSERT temp5 INTO TABLE temp4.
+    temp5-n = `width`.
+    temp5-v = `99%`.
+    INSERT temp5 INTO TABLE temp4.
+
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                stretch    = abap_true
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
@@ -69,10 +84,7 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
                   )->label( question_text
                   )->_generic( ns     = `html`
                                name   = `iframe`
-                               t_prop = VALUE #( ( n = `src`    v = mv_pdf )
-                                                 ( n = `height` v = `800px` )
-                                                 ( n = `width`  v = `99%` )
-                           )
+                               t_prop = temp4
               )->get_parent( )->get_parent( )->get_parent(
               )->buttons(
                   )->button( text  = button_text_cancel
@@ -86,19 +98,24 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+    DATA lv_event TYPE z2ui5_if_client=>ty_s_get-event.
+        DATA temp1 TYPE xsdboolean.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
 
-    DATA(lv_event) = client->get( )-event.
+
+    lv_event = client->get( )-event.
     CASE lv_event.
 
       WHEN `BUTTON_CONFIRM` OR `BUTTON_CANCEL`.
-        ms_result-check_confirmed = xsdbool( lv_event = `BUTTON_CONFIRM` ).
+
+        temp1 = boolc( lv_event = `BUTTON_CONFIRM` ).
+        ms_result-check_confirmed = temp1.
         client->popup_destroy( ).
         client->nav_app_leave( ).
     ENDCASE.

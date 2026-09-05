@@ -45,24 +45,28 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
   METHOD get_instance.
+    DATA lv_class_name TYPE string.
 
     IF gi_me IS BOUND.
       result = gi_me.
       RETURN.
     ENDIF.
 
-    DATA(lv_class_name) = get_user_exit_class( ).
+
+    lv_class_name = get_user_exit_class( ).
 
     IF lv_class_name IS NOT INITIAL.
       exit_instantiate( lv_class_name ).
     ENDIF.
 
-    gi_me = NEW z2ui5_cl_ui5_user_exit( ).
+    CREATE OBJECT gi_me TYPE z2ui5_cl_ui5_user_exit.
     result = gi_me.
 
   ENDMETHOD.
 
   METHOD exit_instantiate.
+        DATA lo_exit TYPE REF TO object.
+        DATA lx TYPE REF TO cx_root.
 
     " The lookup may legitimately name nothing - no exit installed, a
     " runtime without a class repository - and the framework then runs on
@@ -81,7 +85,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " raising get_instance), and gi_me stays unbound so the next request
     " asks again instead of caching the failure.
     TRY.
-        DATA lo_exit TYPE REF TO object.
+
         CREATE OBJECT lo_exit TYPE (iv_class_name).
 
         " Which interface the class implements decides how it is called, and
@@ -93,7 +97,8 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
           CATCH cx_sy_move_cast_error.
             gi_user_exit_dep ?= lo_exit.
         ENDTRY.
-      CATCH cx_root INTO DATA(lx).
+
+      CATCH cx_root INTO lx.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = lx.
@@ -102,6 +107,9 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_user_exit_class.
+        DATA exit_classes TYPE z2ui5_cl_ui5_util_context=>ty_t_classes.
+        DATA temp4 TYPE string.
+        DATA temp5 TYPE z2ui5_cl_ui5_util_context=>ty_s_class_descr.
 
     TRY.
         " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user
@@ -111,7 +119,8 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " implements it, so every user exit in every system silently stopped
         " being found. A dynamic name is not a reference the compiler checks -
         " .github/scripts/dynamic-name-gate.mjs does it instead
-        DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
+
+        exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
         DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
 
         " The superseded interface is looked up too, for as long as it ships -
@@ -138,13 +147,23 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " transport or a system copy. Sorting makes it reproducible.
         SORT exit_classes BY classname.
 
-        result = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
+
+        CLEAR temp4.
+
+        READ TABLE exit_classes INTO temp5 INDEX 1.
+        IF sy-subrc = 0.
+          temp4 = temp5-classname.
+        ENDIF.
+        result = temp4.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_exit~set_config_http_get.
+      DATA lv_ui5_hosts TYPE string.
+    DATA temp6 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp7 LIKE LINE OF temp6.
 
     " No title here: the page carries a constant <title> (see
     " z2ui5_cl_ui5_http_handler), and an app that wants its own tab title sets
@@ -160,7 +179,8 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " from them, and every allowed script host is a host whose compromise is
       " script execution in an authenticated SAP session. An exit that needs
       " another host adds it - to the one directive that needs it.
-      DATA(lv_ui5_hosts) =
+
+      lv_ui5_hosts =
         `ui5.sap.com *.ui5.sap.com ` &&
         `sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com ` &&
         `openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
@@ -203,16 +223,28 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " NO Strict-Transport-Security either, deliberately: many on-premise
     " systems serve plain HTTP, and HSTS belongs on the TLS terminator that
     " knows the deployment - an exit behind HTTPS adds it here.
-    cs_config-t_security_header = VALUE #(
-        ( n = `X-Content-Type-Options` v = `nosniff` )
-        ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
-        ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
-        ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` )
-        " sever cross-origin window references / cross-origin embedding of
-        " the shell - both are cheap, and X-Frame-Options above already
-        " forbids the framing case they would otherwise soften
-        ( n = `Cross-Origin-Opener-Policy`   v = `same-origin` )
-        ( n = `Cross-Origin-Resource-Policy` v = `same-origin` ) ).
+
+    CLEAR temp6.
+
+    temp7-n = `X-Content-Type-Options`.
+    temp7-v = `nosniff`.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-n = `X-Frame-Options`.
+    temp7-v = `SAMEORIGIN`.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-n = `Referrer-Policy`.
+    temp7-v = `strict-origin-when-cross-origin`.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-n = `Permissions-Policy`.
+    temp7-v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()`.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-n = `Cross-Origin-Opener-Policy`.
+    temp7-v = `same-origin`.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-n = `Cross-Origin-Resource-Policy`.
+    temp7-v = `same-origin`.
+    INSERT temp7 INTO TABLE temp6.
+    cs_config-t_security_header = temp6.
 
     IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_get( EXPORTING is_context = context
@@ -258,8 +290,10 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD init_context.
+    DATA temp8 TYPE z2ui5_if_client=>ty_s_name_value-v.
+    DATA temp9 TYPE z2ui5_if_client=>ty_s_name_value.
 
-    context = CORRESPONDING #( http_info ).
+    MOVE-CORRESPONDING http_info TO context.
     " normalized the way request_app_start reads the parameter - trimmed,
     " upper-cased, a percent-encoded namespace unpacked - so an exit keyed on
     " the app (details hidden for one, a tighter CSP for another) is not
@@ -268,8 +302,15 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " URI) and when the app is named by the hash route, which never reaches
     " the server - a hint for the page request, not the authority on what
     " runs (see the interface doc)
+
+    CLEAR temp8.
+
+    READ TABLE http_info-t_params INTO temp9 WITH KEY n = `app_start`.
+    IF sy-subrc = 0.
+      temp8 = temp9-v.
+    ENDIF.
     context-app_start = z2ui5_cl_ui5_util_context=>c_trim_upper(
-        VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ) ). "#EC CI_SORTSEQ
+        temp8 ). "#EC CI_SORTSEQ
     context-app_start = replace( val  = context-app_start
                                  sub  = `%2F`
                                  with = `/`

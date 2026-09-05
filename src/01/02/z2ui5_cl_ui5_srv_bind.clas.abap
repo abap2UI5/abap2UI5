@@ -107,9 +107,13 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <ele> TYPE any.
+    DATA lv_kind TYPE string.
+      DATA lt_attri TYPE abap_component_tab.
+      FIELD-SYMBOLS <comp> LIKE LINE OF lt_attri.
+    DATA lv_comp_name LIKE LINE OF mt_cell_names.
 
     ASSIGN ms_config-tab->* TO <tab>.
-    ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
+    READ TABLE <tab> INDEX ms_config-tab_index ASSIGNING <row>.
     " an out-of-range tab_index leaves <row> unassigned; raise the intended
     " binding error instead of dumping GETWA_NOT_ASSIGNED on the ASSIGN
     " COMPONENT below
@@ -122,7 +126,8 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " a table of an elementary line type (string_table) has no components
     " to bind a cell of; rtti_get_t_attri_by_any would answer that with a
     " raw CX_SY_MOVE_CAST_ERROR instead of the binding error it is
-    DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <row> ).
+
+    lv_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <row> ).
     IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
         AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -132,21 +137,24 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     IF mr_cell_tab <> ms_config-tab OR mt_cell_names IS INITIAL.
       CLEAR mt_cell_names.
-      DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
-      LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      lt_attri = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
+
+      LOOP AT lt_attri ASSIGNING <comp>.
         APPEND <comp>-name TO mt_cell_names.
       ENDLOOP.
       mr_cell_tab = ms_config-tab.
     ENDIF.
 
-    LOOP AT mt_cell_names INTO DATA(lv_comp_name).
+
+    LOOP AT mt_cell_names INTO lv_comp_name.
 
       ASSIGN COMPONENT lv_comp_name OF STRUCTURE <row> TO <ele>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = |Binding Error - component '{ lv_comp_name }' not found in the bound row|.
       ENDIF.
-      lr_ref_in = REF #( <ele> ).
+      GET REFERENCE OF <ele> INTO lr_ref_in.
 
       IF iv_val = lr_ref_in.
         result = |{ iv_name }/{ ms_config-tab_index - 1 }/{ lv_comp_name }|.
@@ -224,8 +232,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD get_model.
 
     IF mo_model IS NOT BOUND.
-      mo_model = NEW z2ui5_cl_ui5_srv_model( attri = mo_app->mt_attri
-                                             app   = mo_app->mo_app ).
+      CREATE OBJECT mo_model TYPE z2ui5_cl_ui5_srv_model EXPORTING attri = mo_app->mt_attri app = mo_app->mo_app.
     ENDIF.
     result = mo_model.
 
@@ -246,7 +253,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD main.
 
-    IF z2ui5_cl_ui5_util_context=>check_bound_a_not_initial( config-tab ).
+    IF z2ui5_cl_ui5_util_context=>check_bound_a_not_initial( config-tab ) IS NOT INITIAL.
       result = main_cell( val    = val
                           config = config ).
     ELSE.
@@ -257,6 +264,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD bind_attri.
+      DATA lr_ref_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     ms_config = config.
 
@@ -268,7 +276,8 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field.
       " name is the table's unique primary key - a keyed read, spelled as
       " one (a free-key table expression reads as a sequential access)
-      READ TABLE mo_app->mt_attri->* REFERENCE INTO DATA(lr_ref_attri)
+
+      READ TABLE mo_app->mt_attri->* REFERENCE INTO lr_ref_attri
            WITH TABLE KEY name = mr_attri->name_ref.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -302,10 +311,13 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " empty config, so the options were dropped without a word while the
     " _bind( ) doc promised none of that. check_json stays with the cell
     " and has no effect there - a property of the table's rows, see the doc
+    DATA temp72 TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
+    CLEAR temp72.
+    temp72-path_only = abap_true.
+    temp72-custom_mapper = config-custom_mapper.
+    temp72-custom_filter = config-custom_filter.
     result = bind_attri( val    = config-tab
-                         config = VALUE #( path_only     = abap_true
-                                           custom_mapper = config-custom_mapper
-                                           custom_filter = config-custom_filter ) ).
+                         config = temp72 ).
     ms_config = config.
 
     result = bind_tab_cell( iv_name = result

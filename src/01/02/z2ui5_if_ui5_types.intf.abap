@@ -118,7 +118,7 @@ INTERFACE z2ui5_if_ui5_types
       " nested view's insert/destroy methods, the MAIN view's model switch
       options TYPE REF TO z2ui5_if_ajson,
     END OF ty_s_system_action.
-  TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
+  TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH DEFAULT KEY.
 
   " One QUEUED frontend action. A framework action is built as JSON right
   " away (o_json, the ["EVENT",...] array) and embedded into the response
@@ -130,7 +130,7 @@ INTERFACE z2ui5_if_ui5_types
       o_json TYPE REF TO z2ui5_if_ajson,
       js     TYPE string,
     END OF ty_s_queued_action.
-  TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
+  TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH DEFAULT KEY.
 
   " SYSTEM actions run FIRST, in the display phase, before the view is
   " rendered - they are the framework's own view-lifecycle calls (destroy a

@@ -77,11 +77,13 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_json IMPLEMENTATION.
 
   METHOD factory.
+        DATA x TYPE REF TO cx_root.
 
     TRY.
-        result = NEW #( ).
+        CREATE OBJECT result.
         result->mi_json = z2ui5_cl_ajson=>parse( val ).
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = x.
@@ -91,14 +93,23 @@ CLASS z2ui5_cl_ui5_json IMPLEMENTATION.
 
   METHOD get_string.
 
-    DATA(lv_path) = CONV string( path ).
+    DATA temp1 TYPE string.
+    DATA lv_path LIKE temp1.
+    temp1 = path.
+
+    lv_path = temp1.
     result = mi_json->get_string( lv_path ).
 
   ENDMETHOD.
 
   METHOD get_integer.
 
-    DATA(lv_path) = CONV string( path ).
+    DATA temp2 TYPE string.
+    DATA lv_path LIKE temp2.
+        DATA lv_number TYPE decfloat34.
+    temp2 = path.
+
+    lv_path = temp2.
     " a JSON number outside the range of an ABAP integer is "not a number"
     " for this getter - 0 as documented, not an escaping
     " CX_SY_CONVERSION_OVERFLOW. Decided on the raw text rather than by
@@ -107,7 +118,7 @@ CLASS z2ui5_cl_ui5_json IMPLEMENTATION.
         IF mi_json->get_node_type( lv_path ) <> z2ui5_if_ajson_types=>node_type-number.
           RETURN.
         ENDIF.
-        DATA lv_number TYPE decfloat34.
+
         lv_number = mi_json->get_string( lv_path ).
         IF lv_number > 2147483647 OR lv_number < -2147483648.
           RETURN.
@@ -121,7 +132,11 @@ CLASS z2ui5_cl_ui5_json IMPLEMENTATION.
 
   METHOD get_boolean.
 
-    DATA(lv_path) = CONV string( path ).
+    DATA temp3 TYPE string.
+    DATA lv_path LIKE temp3.
+    temp3 = path.
+
+    lv_path = temp3.
     " ajson's get_boolean answers abap_true for ANY non-empty value that is
     " not a JSON boolean - the number 0, the string "false", "abc" - which
     " is not what the contract above promises. Only a boolean node is asked
@@ -133,14 +148,22 @@ CLASS z2ui5_cl_ui5_json IMPLEMENTATION.
 
   METHOD exists.
 
-    DATA(lv_path) = CONV string( path ).
+    DATA temp4 TYPE string.
+    DATA lv_path LIKE temp4.
+    temp4 = path.
+
+    lv_path = temp4.
     result = mi_json->exists( lv_path ).
 
   ENDMETHOD.
 
   METHOD members.
 
-    DATA(lv_path) = CONV string( path ).
+    DATA temp5 TYPE string.
+    DATA lv_path LIKE temp5.
+    temp5 = path.
+
+    lv_path = temp5.
     result = mi_json->members( lv_path ).
 
   ENDMETHOD.

@@ -83,6 +83,7 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
@@ -91,7 +92,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-src ).
 
-    temp1 = xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ).
+
+    temp2 = boolc( ls_config-content_security_policy CS `Content-Security-Policy` ).
+    temp1 = temp2.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-t_security_header ).
@@ -140,9 +143,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     DATA ls_post   TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA li_exit TYPE REF TO z2ui5_if_ui5_exit.
+    li_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
 
-    z2ui5_cl_ui5_user_exit=>gi_user_exit_dep = NEW ltcl_exit_dep( ).
+    CREATE OBJECT z2ui5_cl_ui5_user_exit=>gi_user_exit_dep TYPE ltcl_exit_dep.
 
     li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
     li_exit->set_config_http_post( CHANGING cs_config = ls_post ).
@@ -161,21 +165,45 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     " the exit sees the app the way the handler resolves it: a case change
     " or an encoded namespace used to bypass an exit keyed on the name
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
-        path     = `/sap/bc/z2ui5`
-        t_params = VALUE #( ( n = `app_start` v = ` zcl_my_app ` ) ) ) ).
+    DATA temp1 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp4 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp5 LIKE LINE OF temp4.
+    DATA temp2 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp6 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp7 LIKE LINE OF temp6.
+    DATA temp3 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    CLEAR temp1.
+    temp1-path = `/sap/bc/z2ui5`.
+
+    CLEAR temp4.
+
+    temp5-n = `app_start`.
+    temp5-v = ` zcl_my_app `.
+    INSERT temp5 INTO TABLE temp4.
+    temp1-t_params = temp4.
+    z2ui5_cl_ui5_user_exit=>init_context( temp1 ).
     cl_abap_unit_assert=>assert_equals( exp = `ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>context-app_start ).
     cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
                                         act = z2ui5_cl_ui5_user_exit=>context-path ).
 
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
-        t_params = VALUE #( ( n = `app_start` v = `%2Fns%2Fzcl_my_app` ) ) ) ).
+
+    CLEAR temp2.
+
+    CLEAR temp6.
+
+    temp7-n = `app_start`.
+    temp7-v = `%2Fns%2Fzcl_my_app`.
+    INSERT temp7 INTO TABLE temp6.
+    temp2-t_params = temp6.
+    z2ui5_cl_ui5_user_exit=>init_context( temp2 ).
     cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>context-app_start ).
 
     " a POST carries no app_start - the context says so instead of guessing
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( ) ).
+
+    CLEAR temp3.
+    z2ui5_cl_ui5_user_exit=>init_context( temp3 ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>context-app_start ).
 
   ENDMETHOD.

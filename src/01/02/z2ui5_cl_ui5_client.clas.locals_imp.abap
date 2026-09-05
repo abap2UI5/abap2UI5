@@ -24,11 +24,17 @@ ENDCLASS.
 CLASS lcl_node_value IMPLEMENTATION.
 
   METHOD check_initial.
+      DATA temp1 TYPE xsdboolean.
+      DATA temp2 TYPE xsdboolean.
 
     IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
-      result = xsdbool( is_node-value CO `0.-+Ee` ).
+
+      temp1 = boolc( is_node-value CO `0.-+Ee` ).
+      result = temp1.
     ELSE.
-      result = xsdbool( is_node-value IS INITIAL ).
+
+      temp2 = boolc( is_node-value IS INITIAL ).
+      result = temp2.
     ENDIF.
 
   ENDMETHOD.
@@ -68,6 +74,8 @@ ENDCLASS.
 CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
 
   METHOD z2ui5_if_ajson_filter~keep_node.
+      DATA temp3 TYPE xsdboolean.
+      DATA temp4 TYPE xsdboolean.
 
     " ajson numbers array children 1-based in is_node-index and leaves 0 on
     " every object member (lcl_abap_to_json / lcl_filter_runner=>walk), so
@@ -80,11 +88,15 @@ CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
 
     " everything below mirrors the vendored lcl_empty_filter
     IF iv_visit = z2ui5_if_ajson_filter=>visit_type-value.
-      rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
+
+      temp3 = boolc( lcl_node_value=>check_initial( is_node ) = abap_false ).
+      rv_keep = temp3.
     ELSE.
       " children = 0 on open for initially empty nodes and on close for
       " fully filtered ones
-      rv_keep = xsdbool( is_node-children > 0 ).
+
+      temp4 = boolc( is_node-children > 0 ).
+      rv_keep = temp4.
     ENDIF.
 
   ENDMETHOD.
@@ -118,7 +130,8 @@ CLASS lcl_initial_paths_filter DEFINITION FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA mt_names TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+    TYPES temp1_65587aa3fe TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+DATA mt_names TYPE temp1_65587aa3fe.
 
 ENDCLASS.
 
@@ -127,14 +140,34 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
 
   METHOD constructor.
 
-    LOOP AT it_paths INTO DATA(lv_path).
-      DATA(lv_name) = to_upper( lv_path ).
+    DATA lv_path LIKE LINE OF it_paths.
+      DATA lv_name TYPE string.
+        TYPES temp2 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_parts TYPE temp2.
+        DATA temp107 TYPE string.
+        DATA temp108 TYPE string.
+      DATA temp109 LIKE sy-subrc.
+    LOOP AT it_paths INTO lv_path.
+
+      lv_name = to_upper( lv_path ).
       " a caller may write the field with or without a leading slash
       IF lv_name CS `/`.
-        SPLIT lv_name AT `/` INTO TABLE DATA(lt_parts).
-        lv_name = VALUE #( lt_parts[ lines( lt_parts ) ] OPTIONAL ).
+
+
+        SPLIT lv_name AT `/` INTO TABLE lt_parts.
+
+        CLEAR temp107.
+
+        READ TABLE lt_parts INTO temp108 INDEX lines( lt_parts ).
+        IF sy-subrc = 0.
+          temp107 = temp108.
+        ENDIF.
+        lv_name = temp107.
       ENDIF.
-      IF lv_name IS NOT INITIAL AND NOT line_exists( mt_names[ table_line = lv_name ] ). "#EC CI_SORTSEQ
+
+      READ TABLE mt_names WITH KEY table_line = lv_name TRANSPORTING NO FIELDS.
+      temp109 = sy-subrc.
+      IF lv_name IS NOT INITIAL AND NOT temp109 = 0. "#EC CI_SORTSEQ
         INSERT lv_name INTO TABLE mt_names.
       ENDIF.
     ENDLOOP.
@@ -143,6 +176,9 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson_filter~keep_node.
+    DATA lv_name TYPE string.
+    DATA temp110 LIKE sy-subrc.
+    DATA temp5 TYPE xsdboolean.
 
     rv_keep = abap_true.
 
@@ -159,12 +195,18 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
     " a method call and the whole class pool fails to compile with "method
     " TO_UPPER is unknown" (#2664). In a plain assignment the built-in is fine
     " on 7.02, so the variable is all it takes.
-    DATA(lv_name) = to_upper( is_node-name ).
-    IF NOT line_exists( mt_names[ table_line = lv_name ] ). "#EC CI_SORTSEQ
+
+    lv_name = to_upper( is_node-name ).
+
+    READ TABLE mt_names WITH KEY table_line = lv_name TRANSPORTING NO FIELDS.
+    temp110 = sy-subrc.
+    IF NOT temp110 = 0. "#EC CI_SORTSEQ
       RETURN.
     ENDIF.
 
-    rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
+
+    temp5 = boolc( lcl_node_value=>check_initial( is_node ) = abap_false ).
+    rv_keep = temp5.
 
   ENDMETHOD.
 

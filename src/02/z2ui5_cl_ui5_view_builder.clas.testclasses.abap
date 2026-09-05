@@ -23,7 +23,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD render_nested_view.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( n  = `View`
                ns = `mvc`
@@ -48,7 +49,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " ele( ) descends into a node that has no children yet, so a( ) sets the
     " attribute on that node itself
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
         )->a( n   = `title`
@@ -69,7 +71,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     " tag( ) does not move, but the tag is now this node's last child, so the
     " a( ) still reaches it - this is what makes tag( ) usable for a leaf
     " that carries attributes
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->tag( `Title`
@@ -89,7 +92,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     " container just closed - so a( ) attaches to that container, not to the
     " parent. The flip side of the rule: an element that already has children
     " can no longer be given an attribute
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
         )->ele( `Panel`
@@ -109,7 +113,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " tag( ) does not move, so siblings follow directly and no end( ) is
     " needed - each a( ) block travels with the tag it follows
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
         )->tag( `Text`
@@ -131,14 +136,17 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD trailing_end_is_optional.
 
     " stringify( ) renders from the root, so the chain may simply stop
-    DATA(closed) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA closed TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA open TYPE REF TO z2ui5_cl_ui5_view_builder.
+    closed = z2ui5_cl_ui5_view_builder=>factory( ).
     closed->ele( `Page`
         )->ele( `Panel`
             )->ele( `Title`
             )->end(
         )->end( ).
 
-    DATA(open) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    open = z2ui5_cl_ui5_view_builder=>factory( ).
     open->ele( `Page`
         )->ele( `Panel`
             )->ele( `Title` ).
@@ -152,7 +160,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD escape_attribute_value.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
         )->a( n   = `text`
@@ -169,7 +178,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " a literal LF/TAB in an attribute value must survive XML attribute-value
     " normalization as a character reference (e.g. a two-line noDataText)
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
         )->a( n   = `text`
@@ -188,8 +198,14 @@ CLASS ltcl_builder IMPLEMENTATION.
     " long text: illegal in XML 1.0 even as a character reference, the whole
     " view failed at the parser - they are dropped, the legal whitespace
     " next to them still becomes its character reference
-    DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `0C1E` ) ).
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA temp1 TYPE xstring.
+    DATA lv_ctrl TYPE string.
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    temp1 = `0C1E`.
+
+    lv_ctrl = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( temp1 ).
+
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
         )->a( n   = `text`
@@ -252,7 +268,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " b is the only way to render a boolean - abap_false must come out as
     " `false`, not vanish, which is why it is read with IS SUPPLIED
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->a( n   = `visible`

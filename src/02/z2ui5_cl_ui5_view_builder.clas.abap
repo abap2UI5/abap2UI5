@@ -103,13 +103,13 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH EMPTY KEY.
+    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH DEFAULT KEY.
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
         v TYPE string,
       END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH DEFAULT KEY.
 
     DATA name    TYPE string.
     DATA prefix  TYPE string.
@@ -147,7 +147,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = result.
 
   ENDMETHOD.
@@ -155,7 +155,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD ele.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = root.
     result->parent = me.
     result->name = n.
@@ -176,6 +176,15 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
 
   METHOD a.
+    DATA val LIKE v.
+      DATA temp2 TYPE string.
+      DATA temp3 LIKE sy-subrc.
+      DATA temp4 TYPE z2ui5_cl_ui5_view_builder=>ty_s_name_value.
+      DATA target LIKE LINE OF t_child.
+      FIELD-SYMBOLS <temp1> LIKE LINE OF t_child.
+      DATA temp7 LIKE sy-tabix.
+      DATA temp5 LIKE sy-subrc.
+      DATA temp6 TYPE z2ui5_cl_ui5_view_builder=>ty_s_name_value.
 
     " one rule: the attribute lands on the element the chain is pointing at -
     " the child just added by ele( )/tag( ), or this node itself while it has
@@ -193,21 +202,49 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " and the one invariant of the three in the ABAP Doc above that nothing
     " checked
     ASSERT v IS SUPPLIED OR b IS SUPPLIED.
-    DATA(val) = v.
+
+    val = v.
     IF b IS SUPPLIED.
       ASSERT v IS INITIAL.
-      val = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
+
+      IF b = abap_true.
+        temp2 = `true`.
+      ELSE.
+        temp2 = `false`.
+      ENDIF.
+      val = temp2.
     ENDIF.
 
     IF t_child IS INITIAL.
-      ASSERT NOT line_exists( t_pair[ n = n ] ). "#EC CI_SORTSEQ
-      APPEND VALUE #( n = n
-                      v = val ) TO t_pair.
+
+      READ TABLE t_pair WITH KEY n = n TRANSPORTING NO FIELDS.
+      temp3 = sy-subrc.
+      ASSERT NOT temp3 = 0. "#EC CI_SORTSEQ
+
+      CLEAR temp4.
+      temp4-n = n.
+      temp4-v = val.
+      APPEND temp4 TO t_pair.
     ELSE.
-      DATA(target) = t_child[ lines( t_child ) ].
-      ASSERT NOT line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
-      APPEND VALUE #( n = n
-                      v = val ) TO target->t_pair.
+
+
+
+      temp7 = sy-tabix.
+      READ TABLE t_child INDEX lines( t_child ) ASSIGNING <temp1>.
+      sy-tabix = temp7.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      target = <temp1>.
+
+      READ TABLE target->t_pair WITH KEY n = n TRANSPORTING NO FIELDS.
+      temp5 = sy-subrc.
+      ASSERT NOT temp5 = 0. "#EC CI_SORTSEQ
+
+      CLEAR temp6.
+      temp6-n = n.
+      temp6-v = val.
+      APPEND temp6 TO target->t_pair.
     ENDIF.
     result = me.
 
@@ -227,6 +264,16 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
   METHOD render_into.
 
     DATA child TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp7 TYPE string.
+    DATA qname LIKE temp7.
+    DATA lt_attr TYPE string_table.
+    DATA temp8 LIKE LINE OF t_pair.
+    DATA lr_pair LIKE REF TO temp8.
+      DATA temp9 LIKE LINE OF lt_attr.
+    DATA attrs TYPE string.
+      DATA temp10 LIKE LINE OF ct_out.
+    DATA temp11 LIKE LINE OF ct_out.
+    DATA temp12 LIKE LINE OF ct_out.
 
     " empty builder root - render only the children
     IF name IS INITIAL.
@@ -236,32 +283,53 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
+
+    IF prefix IS INITIAL.
+      temp7 = name.
+    ELSE.
+      temp7 = |{ prefix }:{ name }|.
+    ENDIF.
+
+    qname = temp7.
     " table-then-concat for the attributes: a string template accumulator
     " re-copied every attribute rendered so far on each further one,
     " quadratic on attribute-heavy elements. REFERENCE INTO - the loop used
     " to copy a two-string structure per attribute
-    DATA lt_attr TYPE string_table.
-    LOOP AT t_pair REFERENCE INTO DATA(lr_pair).
-      INSERT | { lr_pair->n }="{ xml_escape( lr_pair->v ) }"| INTO TABLE lt_attr.
+
+
+
+    LOOP AT t_pair REFERENCE INTO lr_pair.
+
+      temp9 = | { lr_pair->n }="{ xml_escape( lr_pair->v ) }"|.
+      INSERT temp9 INTO TABLE lt_attr.
     ENDLOOP.
-    DATA(attrs) = concat_lines_of( lt_attr ).
+
+    attrs = concat_lines_of( lt_attr ).
 
     IF t_child IS INITIAL.
-      APPEND |<{ qname }{ attrs }/>| TO ct_out.
+
+      temp10 = |<{ qname }{ attrs }/>|.
+      APPEND temp10 TO ct_out.
       RETURN.
     ENDIF.
 
-    APPEND |<{ qname }{ attrs }>| TO ct_out.
+
+    temp11 = |<{ qname }{ attrs }>|.
+    APPEND temp11 TO ct_out.
     LOOP AT t_child INTO child.
       child->render_into( CHANGING ct_out = ct_out ).
     ENDLOOP.
-    APPEND |</{ qname }>| TO ct_out.
+
+    temp12 = |</{ qname }>|.
+    APPEND temp12 TO ct_out.
 
   ENDMETHOD.
 
 
   METHOD xml_escape.
+      DATA temp13 TYPE xstring.
+      DATA lv_off TYPE i.
+      DATA lv_len TYPE i.
 
     " one CA scan up front: replace( occ = 0 ) copies the whole string on
     " every call even when nothing matches, and a value without any special
@@ -272,8 +340,10 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       " the XML-illegal control characters as one string, so the CA scan
       " stays a single statement; built from their UTF-8 bytes through the
       " context class (the one door to the codepage API)
+
+      temp13 = `0102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F`.
       gv_escape_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring(
-          CONV xstring( `0102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
+          temp13 ).
       gv_escape_specials = `&<>"`
           && z2ui5_cl_ui5_util_context=>cv_char_util_newline
           && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
@@ -331,8 +401,10 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       " one replace per character, no regex: [[:cntrl:]] is not a class every
       " runtime this code runs on knows (the transpiled one left every byte
       " in place), and this branch is the rare one
-      DATA(lv_off) = 0.
-      DATA(lv_len) = strlen( gv_escape_controls ).
+
+      lv_off = 0.
+
+      lv_len = strlen( gv_escape_controls ).
       WHILE lv_off < lv_len.
         result = replace( val  = result
                           sub  = gv_escape_controls+lv_off(1)

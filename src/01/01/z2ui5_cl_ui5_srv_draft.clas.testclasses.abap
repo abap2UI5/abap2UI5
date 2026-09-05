@@ -24,7 +24,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
     DATA temp1 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp1.
@@ -45,7 +45,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
     DATA temp2 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp2.
@@ -71,7 +71,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
     DATA temp3 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_info TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp3.
@@ -98,7 +98,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp4 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
+    CREATE OBJECT lo_draft.
 
     CLEAR temp4.
     temp4-id = `TEST_BUF`.
@@ -110,8 +112,12 @@ CLASS ltcl_test IMPLEMENTATION.
                       model_xml = `overwritten data` ).
     ls_second = lo_draft->read_draft( `TEST_BUF` ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_first-data CS `buffered data` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_second-data CS `overwritten data` ) ).
+
+    temp1 = boolc( ls_first-data CS `buffered data` ).
+    cl_abap_unit_assert=>assert_true( temp1 ).
+
+    temp2 = boolc( ls_second-data CS `overwritten data` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
 
   ENDMETHOD.
 
@@ -121,7 +127,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp5 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA temp6 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
 
 
     CLEAR temp5.
@@ -149,16 +155,18 @@ CLASS ltcl_test IMPLEMENTATION.
     " write a row with a foreign owner directly, then assert both read_draft
     " and check_exists refuse it for the current user
     DATA ls_db TYPE z2ui5_t_01.
+    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA lv_raised TYPE abap_bool.
     ls_db-id    = `TEST_OWNER`.
     ls_db-uname = |{ sy-uname }_OTHER|.
     ls_db-data  = `secret state`.
-    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    MODIFY z2ui5_t_01 FROM ls_db ##SUBRC_OK.
     COMMIT WORK.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    lo_draft = NEW #( ).
 
-    DATA lv_raised TYPE abap_bool.
+    CREATE OBJECT lo_draft.
+
+
     TRY.
         lo_draft->read_draft( `TEST_OWNER` ).
       CATCH z2ui5_cx_ui5_util_error.
@@ -177,18 +185,23 @@ CLASS ltcl_test IMPLEMENTATION.
     " who owns the row only on a key collision - a foreign row must still
     " be refused there, and stay as it was
     DATA ls_db TYPE z2ui5_t_01.
+    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA ls_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    DATA lv_raised TYPE abap_bool.
+    DATA lv_data TYPE z2ui5_t_01-data.
+    DATA temp1 TYPE string.
     ls_db-id    = `TEST_OWNER_WRITE`.
     ls_db-uname = |{ sy-uname }_OTHER|.
     ls_db-data  = `foreign state`.
-    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    MODIFY z2ui5_t_01 FROM ls_db ##SUBRC_OK.
     COMMIT WORK.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    lo_draft = NEW #( ).
 
-    DATA ls_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    CREATE OBJECT lo_draft.
+
+
     ls_draft-id = `TEST_OWNER_WRITE`.
-    DATA lv_raised TYPE abap_bool.
+
     TRY.
         lo_draft->create( draft     = ls_draft
                           model_xml = `overwrite attempt` ).
@@ -197,9 +210,12 @@ CLASS ltcl_test IMPLEMENTATION.
     ENDTRY.
     cl_abap_unit_assert=>assert_true( lv_raised ).
 
-    SELECT SINGLE data FROM z2ui5_t_01
-      WHERE id = @( `TEST_OWNER_WRITE` )
-      INTO @DATA(lv_data).
+
+
+    temp1 = `TEST_OWNER_WRITE`.
+SELECT SINGLE data FROM z2ui5_t_01 INTO lv_data
+      WHERE id = temp1
+      .
     cl_abap_unit_assert=>assert_subrc( exp = 0 ).
     cl_abap_unit_assert=>assert_equals( exp = `foreign state`
                                         act = lv_data ).
@@ -218,17 +234,19 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_total_exp TYPE i.
 
     " start from a known state, so a second run of the test counts the same
-    DELETE FROM z2ui5_t_01 WHERE id = @( `TEST_COUNT_FOREIGN` ) ##SUBRC_OK.
+    DATA temp1 TYPE string.
+    temp1 = `TEST_COUNT_FOREIGN`.
+DELETE FROM z2ui5_t_01 WHERE id = temp1 ##SUBRC_OK.
     COMMIT WORK.
 
-    lo_draft = NEW #( ).
+    CREATE OBJECT lo_draft.
     lv_own   = lo_draft->count_entries( ).
     lv_total = lo_draft->count_entries_total( ).
 
     ls_db-id    = `TEST_COUNT_FOREIGN`.
     ls_db-uname = |{ sy-uname }_OTHER_COUNT|.
     ls_db-data  = `foreign row`.
-    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    MODIFY z2ui5_t_01 FROM ls_db ##SUBRC_OK.
     COMMIT WORK.
 
     cl_abap_unit_assert=>assert_equals( exp = lv_own

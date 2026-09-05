@@ -18,7 +18,8 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_get_string.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory(
+    DATA lo_json TYPE REF TO z2ui5_cl_ui5_json.
+    lo_json = z2ui5_cl_ui5_json=>factory(
         `{"name":"Notebook","price":1249.5,"active":true}` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Notebook`
@@ -32,7 +33,8 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_get_integer.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory( `{"qty":7,"label":"7"}` ).
+    DATA lo_json TYPE REF TO z2ui5_cl_ui5_json.
+    lo_json = z2ui5_cl_ui5_json=>factory( `{"qty":7,"label":"7"}` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 7
                                         act = lo_json->get_integer( `/qty` ) ).
@@ -47,7 +49,8 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_get_integer_overflow.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory( `{"big":99999999999,"n":7}` ).
+    DATA lo_json TYPE REF TO z2ui5_cl_ui5_json.
+    lo_json = z2ui5_cl_ui5_json=>factory( `{"big":99999999999,"n":7}` ).
 
     " out of range for an ABAP i: 0 as documented, never an escaping overflow
     cl_abap_unit_assert=>assert_equals( exp = 0
@@ -59,7 +62,8 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_get_boolean.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory(
+    DATA lo_json TYPE REF TO z2ui5_cl_ui5_json.
+    lo_json = z2ui5_cl_ui5_json=>factory(
         `{"active":true,"closed":false,"zero":0,"one":1,"word":"false","text":"abc","nil":null}` ).
 
     cl_abap_unit_assert=>assert_true( lo_json->get_boolean( `/active` ) ).
@@ -78,7 +82,8 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_exists.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory( `{"name":"","s":{"deep":1}}` ).
+    DATA lo_json TYPE REF TO z2ui5_cl_ui5_json.
+    lo_json = z2ui5_cl_ui5_json=>factory( `{"name":"","s":{"deep":1}}` ).
 
     " exists( ) is what tells an absent value from an empty one
     cl_abap_unit_assert=>assert_true( lo_json->exists( `/name` ) ).
@@ -89,9 +94,12 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_members_object.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory( `{"b":1,"a":2}` ).
+    DATA lo_json TYPE REF TO z2ui5_cl_ui5_json.
+    DATA lt_members TYPE string_table.
+    lo_json = z2ui5_cl_ui5_json=>factory( `{"b":1,"a":2}` ).
 
-    DATA(lt_members) = lo_json->members( `/` ).
+
+    lt_members = lo_json->members( `/` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_members ) ).
@@ -100,17 +108,24 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_array_iteration.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory(
+    DATA lo_json TYPE REF TO z2ui5_cl_ui5_json.
+    DATA lt_idx TYPE string_table.
+    DATA lv_names TYPE string.
+    DATA lv_idx LIKE LINE OF lt_idx.
+    lo_json = z2ui5_cl_ui5_json=>factory(
         `{"items":[{"name":"A"},{"name":"B"},{"name":"C"}]}` ).
 
     " array members are the 1-based indices, in document order - the loop
     " builds each child path from them
-    DATA(lt_idx) = lo_json->members( `/items` ).
+
+    lt_idx = lo_json->members( `/items` ).
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lt_idx ) ).
 
-    DATA(lv_names) = ``.
-    LOOP AT lt_idx INTO DATA(lv_idx).
+
+    lv_names = ``.
+
+    LOOP AT lt_idx INTO lv_idx.
       lv_names = lv_names && lo_json->get_string( |/items/{ lv_idx }/name| ).
     ENDLOOP.
 
@@ -121,7 +136,8 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_missing_path.
 
-    DATA(lo_json) = z2ui5_cl_ui5_json=>factory( `{"a":1}` ).
+    DATA lo_json TYPE REF TO z2ui5_cl_ui5_json.
+    lo_json = z2ui5_cl_ui5_json=>factory( `{"a":1}` ).
 
     " a missing path answers with the type's initial value, never a dump
     cl_abap_unit_assert=>assert_initial( lo_json->get_string( `/b/c` ) ).

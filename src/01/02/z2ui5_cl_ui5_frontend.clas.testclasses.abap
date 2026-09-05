@@ -42,9 +42,9 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
   METHOD setup.
 
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_http = NEW #( val = `` ).
-    mo_action = NEW #( val = lo_http ).
-    mo_cut = NEW #( mo_action ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
+    CREATE OBJECT mo_action EXPORTING val = lo_http.
+    CREATE OBJECT mo_cut EXPORTING ACTION = mo_action.
 
   ENDMETHOD.
 
@@ -52,7 +52,17 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
     " the APP-phase action the call queued - there is exactly one per test,
     " built as its JSON array and stringified here only to assert on it
-    DATA(ls_action) = VALUE #( mo_action->ms_next-s_action-t_custom[ 1 ] OPTIONAL ).
+    DATA temp1 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    DATA temp2 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    DATA ls_action LIKE temp1.
+    CLEAR temp1.
+
+    READ TABLE mo_action->ms_next-s_action-t_custom INTO temp2 INDEX 1.
+    IF sy-subrc = 0.
+      temp1 = temp2.
+    ENDIF.
+
+    ls_action = temp1.
     IF ls_action-o_json IS BOUND.
       result = ls_action-o_json->stringify( ).
     ENDIF.
@@ -169,9 +179,13 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
   METHOD test_box_actions.
 
+    DATA temp3 TYPE string_table.
+    CLEAR temp3.
+    INSERT `OK` INTO TABLE temp3.
+    INSERT `CANCEL` INTO TABLE temp3.
     mo_cut->msg_box( text                          = `Delete?`
                                            type    = `confirm`
-                                           actions = VALUE #( ( `OK` ) ( `CANCEL` ) ) ).
+                                           actions = temp3 ).
 
     cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","confirm","Delete?",{"actions":["OK","CANCEL"]}]`
                                         act = queued( ) ).
@@ -186,7 +200,7 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
              type    TYPE string,
              message TYPE string,
            END OF ty_s_row.
-    DATA lt_msg TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    DATA lt_msg TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     mo_cut->msg_box( lt_msg ).
 
@@ -196,10 +210,12 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD serialized.
+    DATA ls_action LIKE LINE OF mo_action->ms_next-s_action-t_system.
 
     mo_cut->slots_serialize( ).
 
-    LOOP AT mo_action->ms_next-s_action-t_system INTO DATA(ls_action).
+
+    LOOP AT mo_action->ms_next-s_action-t_system INTO ls_action.
       IF result IS NOT INITIAL.
         result = result && `|`.
       ENDIF.
