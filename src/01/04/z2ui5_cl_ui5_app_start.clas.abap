@@ -437,28 +437,29 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                  tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
                  press   = client->_event( c_event_system ) ).
 
-    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( c_class_icf_config ).
-      header_icon( toolbar = toolbar
-                   icon    = `sap-icon://settings`
-                   tooltip = `Configuration`
-                   press   = client->_event( cs_event-set_config ) ).
-    ENDIF.
+*    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( c_class_icf_config ).
+*      header_icon( toolbar = toolbar
+*                   icon    = `sap-icon://settings`
+*                   tooltip = `Configuration`
+*                   press   = client->_event( cs_event-set_config ) ).
+*    ENDIF.
 
     " ... then, set apart by a wider gap, the entries that leave the system:
     " the icons above open something in this system, these two open a site.
     " The gap rides on the first of them (c_icon_class_group) instead of on a
     " separator control of its own - see the note above on what a block-level
     " child does to this bar on 1.71
-    header_icon( toolbar = toolbar
-                 icon    = c_icon_docs
-                 tooltip = `Documentation - guides, tutorials and the API reference on abap2UI5.org`
-                 press   = open_url( `https://abap2UI5.org` )
-                 class   = c_icon_class_group ).
+*    header_icon( toolbar = toolbar
+*                 icon    = c_icon_repo
+*                 tooltip = `Documentation - guides, tutorials and the API reference on abap2UI5.org`
+*                 press   = open_url( `https://abap2UI5.org` )
+*                 class   = c_icon_class_group ).
 
-    header_icon( toolbar = toolbar
-                 icon    = c_icon_repo
-                 tooltip = `The abap2UI5 repository on GitHub - source code, issues, releases and the abapGit installation`
-                 press   = open_url( `https://github.com/abap2UI5/abap2UI5` ) ).
+*
+*    header_icon( toolbar = toolbar
+*                 icon    = c_icon_repo
+*                 tooltip = `The abap2UI5 repository on GitHub - source code, issues, releases and the abapGit installation`
+*                 press   = open_url( `https://github.com/abap2UI5/abap2UI5` ) ).
 
   ENDMETHOD.
 
@@ -486,24 +487,24 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     render_section( form  = form
                     title = `Learn more` ).
 
-    render_icon_row( form    = form
-                     label   = `GitHub`
-                     icon    = c_icon_repo
-                     text    = `abap2UI5`
-                     href    = `https://github.com/abap2UI5/abap2UI5`
-                     new_tab = abap_true
-        )->tag( `Text`
-            )->a( n = `text`   v = `The repository itself - source code, issues, releases, and what abapGit installs from`
-            )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
+*    render_icon_row( form    = form
+*                     label   = `GitHub`
+*                     icon    = c_icon_repo
+*                     text    = `abap2UI5`
+*                     href    = `https://github.com/abap2UI5/abap2UI5`
+*                     new_tab = abap_true
+*        )->tag( `Text`
+*            )->a( n = `text`   v = `The repository itself - source code, issues, releases, and what abapGit installs from`
+*            )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
 
     render_icon_row( form    = form
                      label   = `Docs`
-                     icon    = c_icon_docs
+                     icon    = c_icon_repo
                      text    = `abap2UI5.org`
                      href    = `https://abap2UI5.org`
                      new_tab = abap_true
         )->tag( `Text`
-            )->a( n = `text`   v = `Guides, tutorials and the API reference - from your first app to the full client API`
+            )->a( n = `text`   v = `Guides, tutorials and the Sample reference - from your first app to the full client API`
             )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
