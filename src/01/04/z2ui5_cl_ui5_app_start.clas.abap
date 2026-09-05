@@ -146,9 +146,8 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " the same place in every row - the alignment the samples app has
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
-    " the two icons the page names twice - once in the title row, once in the
+    " the icon the page names twice - once in the title row, once in the
     " "Learn more" section - so the header and the section cannot drift apart
-    CONSTANTS c_icon_docs TYPE string VALUE `sap-icon://learning-assistant`.
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
     " the icon of a row belongs to the link behind it, so it carries the link's
@@ -161,12 +160,6 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " the samples overview renders its header icons at this size; a stock
     " core:Icon is 1rem and looks undersized next to the page title
     CONSTANTS c_icon_size_header TYPE string VALUE `1.125rem`.
-
-    " What sets the outbound icons apart from the system ones: a gap, not a
-    " rule. A sap.m.ToolbarSeparator would draw the rule, but it renders a
-    " <div> and only lays out as expected inside a flex container - see
-    " render_header_toolbar( ), which is where that matters.
-    CONSTANTS c_icon_class_group TYPE string VALUE `sapUiMediumMarginBegin sapUiTinyMarginEnd`.
 
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
@@ -197,15 +190,6 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
         class     TYPE string
         class_old TYPE string OPTIONAL.
 
-    " the press wire of a button whose target is EXTERNAL: a Button carries no
-    " href, and cs_event-open_new_tab is same-origin only (isValidRedirectURL),
-    " so the new tab is opened by the URLHELPER frontend action - client-side,
-    " inside the click handler, which is what keeps the popup blocker quiet
-    METHODS open_url
-      IMPORTING
-        href          TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -444,23 +428,6 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 *                   press   = client->_event( cs_event-set_config ) ).
 *    ENDIF.
 
-    " ... then, set apart by a wider gap, the entries that leave the system:
-    " the icons above open something in this system, these two open a site.
-    " The gap rides on the first of them (c_icon_class_group) instead of on a
-    " separator control of its own - see the note above on what a block-level
-    " child does to this bar on 1.71
-*    header_icon( toolbar = toolbar
-*                 icon    = c_icon_repo
-*                 tooltip = `Documentation - guides, tutorials and the API reference on abap2UI5.org`
-*                 press   = open_url( `https://abap2UI5.org` )
-*                 class   = c_icon_class_group ).
-
-*
-*    header_icon( toolbar = toolbar
-*                 icon    = c_icon_repo
-*                 tooltip = `The abap2UI5 repository on GitHub - source code, issues, releases and the abapGit installation`
-*                 press   = open_url( `https://github.com/abap2UI5/abap2UI5` ) ).
-
   ENDMETHOD.
 
   METHOD header_icon.
@@ -503,9 +470,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                      text    = `abap2UI5.org`
                      href    = `https://abap2UI5.org`
                      new_tab = abap_true
-        )->tag( `Text`
-            )->a( n = `text`   v = `Guides, tutorials and the Sample reference - from your first app to the full client API`
-            )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
+    )->tag( `Text`
+        )->a( n = `text`   v = `Guides, tutorials and the Sample reference - from your first app to the full client API`
+        )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
 
@@ -709,17 +676,6 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     row->tag( `Text`
         )->a( n = `text`   v = descr
         )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
-
-  ENDMETHOD.
-
-  METHOD open_url.
-
-    " REDIRECT takes a { URL, NEW_WINDOW } object literal - NEW_WINDOW true is
-    " what target="_blank" does on a Link
-    result = client->follow_up_action(
-                 val   = client->cs_event-urlhelper
-                 t_arg = VALUE #( ( `REDIRECT` )
-                                  ( |\{ URL: '{ href }', NEW_WINDOW: true \}| ) ) ).
 
   ENDMETHOD.
 

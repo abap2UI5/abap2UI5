@@ -203,15 +203,32 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " NO Strict-Transport-Security either, deliberately: many on-premise
     " systems serve plain HTTP, and HSTS belongs on the TLS terminator that
     " knows the deployment - an exit behind HTTPS adds it here.
+    " NO Cross-Origin-Opener-Policy either, and for the same reason: COOP is
+    " honoured on a TRUSTWORTHY origin only (https, or a localhost host). On
+    " the plain-HTTP on-premise system - the majority of them - the browser
+    " drops it and logs a red console error on EVERY app start ("The
+    " Cross-Origin-Opener-Policy header has been ignored, because the URL's
+    " origin was untrustworthy"), so the framework was producing a console
+    " error out of the box for a header that did nothing there. Sending it
+    " only over TLS is not something this code can decide: the request side
+    " hands out the path, the parameters and the Host, never whether TLS
+    " terminated in front of the ICF node (X-Forwarded-Proto only exists
+    " behind a proxy that sets it, and it is client-suppliable), so a guess
+    " would either keep the noise or silently drop the header on a system
+    " that IS behind HTTPS. An installation served over HTTPS adds it in its
+    " own exit, next to the HSTS it sets there anyway:
+    "   APPEND VALUE #( n = `Cross-Origin-Opener-Policy` v = `same-origin` )
+    "          TO cs_config-t_security_header.
+    " Cross-Origin-Resource-Policy below is NOT secure-context-only - it is
+    " honoured over plain HTTP and warns about nothing - so it stays.
     cs_config-t_security_header = VALUE #(
         ( n = `X-Content-Type-Options` v = `nosniff` )
         ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
         ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
         ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` )
-        " sever cross-origin window references / cross-origin embedding of
-        " the shell - both are cheap, and X-Frame-Options above already
-        " forbids the framing case they would otherwise soften
-        ( n = `Cross-Origin-Opener-Policy`   v = `same-origin` )
+        " sever cross-origin embedding of the shell - cheap, and
+        " X-Frame-Options above already forbids the framing case it would
+        " otherwise soften
         ( n = `Cross-Origin-Resource-Policy` v = `same-origin` ) ).
 
     IF gi_user_exit IS BOUND.
