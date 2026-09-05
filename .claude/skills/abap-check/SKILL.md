@@ -399,7 +399,7 @@ system, or must fetch data dynamically.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-abapdoc-block-placement
+**Backlog:** abaplint · abaplint-abapdoc-block-placement, abaplint-preferred-parameter-ignored
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -451,6 +451,47 @@ pitfalls".
   `"!` line for a complete tag-like token outside the tags ABAP Doc knows
   (`p em strong ul ol li h1-h3 br`). A comparison `a < b` is not a token and
   not a finding.
+
+- **`PREFERRED PARAMETER` is ignored unless every IMPORTING parameter is
+  optional.** The addition names the parameter a short-form call `meth( x )`
+  fills; with a mandatory parameter in the list it does nothing, and the
+  compiler warns against the declaration: *"Declare the parameter "VAL" as
+  OPTIONAL. The addition PREFERRED PARAMETER is ignored if non-optional
+  parameters are used"*. Nothing breaks — the short form goes to the single
+  mandatory parameter, which is the same binding — so it is a warning that
+  only a system reports, and a user's did (2026-09-05,
+  `z2ui5_cl_ui5_util_context: Private Section @82`). `msg_get_internal` had
+  one importing parameter and no addition until #2719 gave it a second,
+  defaulted one and added `PREFERRED PARAMETER val` to keep its positional
+  callers reading the same. They read the same without it, so the addition is
+  gone rather than `val` made OPTIONAL — a mandatory parameter is the
+  contract, and the ignored addition was the only thing wrong.
+
+  Why nothing here saw it: abaplint **parses** the addition
+  (`MethodDefImporting` accepts `PREFERRED PARAMETER <field>` as part of the
+  IMPORTING clause) and no rule reads it — the token appears once in the whole
+  2.120.38 bundle, in the grammar. Measured on the pre-fix file: `npx abaplint`
+  green, 0 issues in 264 files. Now gated by `check:atc` (`preferred_param`),
+  which reads the IMPORTING block of every `METHODS` statement that carries the
+  addition and reports the first parameter with neither `OPTIONAL` nor
+  `DEFAULT`. Two boundaries: `WITH DEFAULT KEY` is a table type and not a
+  parameter default, and a chained `METHODS:` is split into its elements first,
+  so the addition is read against the signature that carries it. Both are in
+  the gate's self-test, because a green run proves little on its own: the one
+  declaration the rule was written for was repaired in the same change, and the
+  seven uses left in `src/` are correct ones it stays silent on (measured by
+  inverting the rule - it reads all seven, the escaped `!previous` form
+  included, and finds every parameter optional).
+
+  **abaplint does not merely miss it — it hides the consequence.** Since
+  abaplint#2843 the syntax check treats a preferred parameter as optional,
+  which is right where every importing parameter already is and inverted here:
+  with the addition ignored, `val` stays mandatory on a system. Measured in an
+  isolated two-file project on 2.120.38, `check_syntax` on: a call that omits
+  `val` is accepted while the addition is there, and deleting that one line
+  turns the same call into *"method parameter "VAL" must be supplied"*. So a
+  green abaplint over a declaration carrying an ignored addition says nothing
+  about its callers either. Backlog: abaplint-preferred-parameter-ignored.
 
 **Not gated — a script cannot decide these:**
 

@@ -385,11 +385,12 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. The six traps a script can
+which flags things `npm run check` cannot see. The seven traps a script can
 decide are gated by `npm run check:atc` — a **sequential read** over a standard
 table (wants `"#EC CI_SORTSEQ` on the statement), an empty
-`CATCH` block (wants `##NO_HANDLER`), POSIX regex (below) and a misplaced
-ABAP Doc block (below). "Sequential read" is all three spellings, not just the
+`CATCH` block (wants `##NO_HANDLER`), POSIX regex (below), a misplaced
+ABAP Doc block (below) and an ignored `PREFERRED PARAMETER` (below).
+"Sequential read" is all three spellings, not just the
 `LOOP AT ... WHERE` the gate started with: `READ TABLE ... WITH KEY` (not
 `WITH TABLE KEY`, which is a primary-key read) and a table expression keyed on
 a component — `line_exists( tab[ name = ... ] )` — are the same finding, and
@@ -439,6 +440,14 @@ front, a green abaplint does not prove their absence:
   operand (`TYPE HANDLE cl_abap_structdescr=>create( … )`) is a syntax error
   on a system that abaplint and the transpiler both accept; assign the
   descriptor to a variable first. Gated by `npm run check:atc`.
+- **`PREFERRED PARAMETER` needs every IMPORTING parameter to be optional.**
+  With a mandatory one in the list the addition is ignored — the short form
+  `meth( x )` fills that single mandatory parameter anyway — and the compiler
+  warns *"Declare the parameter … as OPTIONAL"*. Do not add it to keep
+  positional callers working when a second, defaulted parameter arrives; they
+  keep working without it (bit us in
+  `z2ui5_cl_ui5_util_context=>msg_get_internal`, found on a user's system hours
+  after #2719 added it). Gated by `npm run check:atc`.
 - **No `DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`): SLIN reports the fixed type the inline declaration picks.
   Declare the variable and assign. Not gated, the statement does not carry the
