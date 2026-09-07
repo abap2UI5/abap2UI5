@@ -34,6 +34,13 @@
 //                method call; abaplint and the transpiler accept the call
 //                (found by a user's system on 2026-09-02, in a test class
 //                that was green through every gate).
+//   deref_call   "->*" chained onto a call - `row_ref( iv_name )->*`. The
+//                dereferencing operator wants a data reference VARIABLE in
+//                front of it; the result of a functional method call is not
+//                one on the releases this repo targets. abaplint parses it
+//                at v750 and the
+//                transpiler runs it, so a test class shipped with it and a
+//                user on SAP_ABA 750 SP33 reported the syntax error (#2722).
 //   preferred_   'Declare the parameter "VAL" as OPTIONAL. The addition
 //   param        PREFERRED PARAMETER is ignored if non-optional parameters
 //                are used' - the addition only picks the parameter a
@@ -316,6 +323,83 @@ selfTest(
     + "in the same change, and the seven uses left there are correct ones.",
 );
 
+// `->*` chained straight onto a call - `row_ref( iv_name )->*`, and the same
+// shape after a constructor expression. The dereferencing operator takes a
+// data reference VARIABLE; the result of a call is not one, so a 7.50 system
+// answers with a syntax error while everything here is green - abaplint
+// parses the chain at v750 and the
+// transpiler has no notion of the restriction. #2722, in the test class of
+// z2ui5_cl_ui5_srv_model, reported by a user on SAP_ABA 750 SP33. The fix is
+// the same one `handle_call` asks for: give the reference its own variable on
+// the line above, then dereference that.
+//
+// Read per line, not per statement: a chain cannot be broken between the `)`
+// and the `->`, so anything the line scan cannot see is not this shape.
+const DEREF_CALL = /\)\s*->\*/;
+function derefCallFindings(file, source) {
+  const out = [];
+  source.split(/\r?\n/).forEach((line, i) => {
+    if (!DEREF_CALL.test(stripNoise(line))) return;
+    out.push({
+      at: `${file}:${i + 1}`,
+      rule: "deref_call",
+      message: "->* takes a data reference variable - dereferencing a call result is a syntax error on 7.50; assign the reference to a variable first",
+    });
+  });
+  return out;
+}
+
+const DEREF_SELF_TEST = [
+  {
+    name: "the #2722 line itself",
+    source: "    result = row_ref( iv_name )->*.",
+    expect: 1,
+  },
+  {
+    name: "a constructor expression is the same shape",
+    source: "    DATA(ls_row) = REF #( lt_tab[ 1 ] )->*.",
+    expect: 1,
+  },
+  {
+    name: "the repaired form - the reference has its own variable",
+    source: "    DATA(lr_row) = row_ref( iv_name ).\n    result = lr_row->*.",
+    expect: 0,
+  },
+  {
+    name: "an ordinary dereference of an attribute chain",
+    source: "    ASSIGN mo_app->mo_inner->mr_shared->* TO <tab>.",
+    expect: 0,
+  },
+  {
+    name: "a table expression on a dereferenced table - `]` is not `(`",
+    source: "    DATA(ls) = mr_attri->*[ name = iv_name ].",
+    expect: 0,
+  },
+  {
+    name: "a closing paren that ends something else on the line",
+    source: "    IF ( lv_a = lv_b ) AND lr_row->* IS NOT INITIAL.",
+    expect: 0,
+  },
+  {
+    name: "the shape inside a string literal is text, not code",
+    source: "    cl_abap_unit_assert=>assert_equals( exp = `MR_A( 1 )->*` act = lv_name ).",
+    expect: 0,
+  },
+  {
+    name: "the shape inside a comment is not code either",
+    source: "    \" row_ref( iv_name )->* is what 7.50 refuses",
+    expect: 0,
+  },
+];
+
+selfTest(
+  DEREF_SELF_TEST,
+  source => derefCallFindings("selftest.clas.testclasses.abap", source),
+  "The chained-dereference rule changed. A green run over src/ says nothing while\n"
+    + "this case fails - the one site it was written for was repaired in the same\n"
+    + "change, so src/ carries no example of the shape.",
+);
+
 // ABAP Doc is parsed as HTML. The tags it knows are the few below; anything
 // else between < and > - a field symbol, a placeholder like #/app/<CLASS> -
 // is "not supported" and "not closed" in a system, and the block renders
@@ -341,6 +425,7 @@ for (const file of files) {
   const source = readFileSync(join(ROOT, file), "utf8");
   if (/\.(clas|intf)\.abap$/.test(file)) findings.push(...abapdocFindings(file, source));
   abapdocHtmlFindings(file, source);
+  findings.push(...derefCallFindings(file, source));
   const stmts = statements(source);
 
   stmts.forEach((stmt, index) => {
@@ -444,4 +529,4 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length} self-test case(s) checked - OK`);
+console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length} self-test case(s) checked - OK`);
