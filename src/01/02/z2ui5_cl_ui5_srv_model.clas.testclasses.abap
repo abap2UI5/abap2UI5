@@ -847,7 +847,10 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD row.
 
-    result = row_ref( iv_name )->*.
+    " no chained dereference of a functional method call - 7.50 rejects
+    " `row_ref( ... )->*`, the reference needs its own variable first
+    DATA(lr_row) = row_ref( iv_name ).
+    result = lr_row->*.
 
   ENDMETHOD.
 

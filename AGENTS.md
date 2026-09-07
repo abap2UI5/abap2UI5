@@ -440,6 +440,12 @@ front, a green abaplint does not prove their absence:
   operand (`TYPE HANDLE cl_abap_structdescr=>create( … )`) is a syntax error
   on a system that abaplint and the transpiler both accept; assign the
   descriptor to a variable first. Gated by `npm run check:atc`.
+- **`->*` dereferences a variable, not a call.** `row_ref( iv_name )->*`
+  and the same shape after a constructor expression are a syntax error on
+  7.50; abaplint parses the chain at v750 and the transpiler runs it. Give
+  the reference its own variable on the line above and dereference that
+  (bit us in the test class of `z2ui5_cl_ui5_srv_model`, reported from a
+  user's SAP_ABA 750 SP33 system, #2722). Gated by `npm run check:atc`.
 - **`PREFERRED PARAMETER` needs every IMPORTING parameter to be optional.**
   With a mandatory one in the list the addition is ignored — the short form
   `meth( x )` fills that single mandatory parameter anyway — and the compiler
