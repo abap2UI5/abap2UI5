@@ -359,7 +359,11 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const destroys = [];
     const busy = [];
     const pendingHash = [];
+    const customs = [];
     const state = { onAfterRendering: [() => hooks.push("ran")], isBusy: true };
+    // mutable: a spec tears the app down mid-phase (reset / FLP re-launch),
+    // which is the OTHER way this response's screen can be gone
+    const app = { alive: true };
     const { module: ctrl } = loadModule("controller/View1.controller.js", {
       deps: {
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
@@ -368,7 +372,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
         "z2ui5/core/Server": server,
         "z2ui5/core/Lib": {
           isDestroyed: () => false,
-          isControllerAlive: () => true,
+          isControllerAlive: () => app.alive,
           runCallbacks: (arr) => (arr || []).forEach((f) => f()),
           logError: () => {},
         },
@@ -376,7 +380,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           // a spec may replace the response mid-phase, the way a parallel
           // request does while the system actions are still awaiting
           runSystem: () => hooks.onRunSystem?.(),
-          runCustom: () => {},
+          runCustom: (item) => customs.push(item),
         },
         "z2ui5/core/actions/Slots": { action: (method) => pushes.push(method) },
         "z2ui5/core/ViewSlots": { destroy: (key) => destroys.push(key) },
@@ -397,11 +401,14 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       destroys,
       busy,
       pendingHash,
+      customs,
+      app,
     };
   }
 
-  test("a superseded response leaves busy, custom JS and the parked hash to the newer one", async () => {
-    const { ctrl, state, pushes, syncs, hooks, busy, pendingHash } = loadForAfterRendering();
+  test("a REPLACED response leaves busy, custom JS and the parked hash to the newer one", async () => {
+    const { ctrl, state, pushes, syncs, hooks, busy, pendingHash, customs } =
+      loadForAfterRendering();
     state.oResponse = {
       ID: "D1",
       MODELPRESENT: true,
@@ -420,10 +427,14 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(pushes).toEqual([]);
     expect(syncs).toEqual([]);
     // ... and it did not end the busy state the newer request relies on,
-    // ran no custom JS and delivered no parked hash - the newer response does
+    // ran no custom JS and delivered no parked hash - the newer response does.
+    // The custom JS is ASSERTED, not only claimed in the title: the newer
+    // response has LANDED here, so the screen this one queued its actions for
+    // is gone. (The stamp-only case below is the other half of the pair.)
     expect(busy).toEqual([]);
     expect(state.isBusy).toBe(true);
     expect(pendingHash).toEqual([]);
+    expect(customs).toEqual([]);
   });
 
   // The display phase stops on the request STAMP, the phase-2 guard used to
@@ -433,7 +444,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   // phase 2: it ended the busy state the restore relies on and let Router.sync
   // consume the restore's navFromHash flag. ONE stamp answers both phases.
   test("a response cut short by a newer REQUEST stops before phase 2", async () => {
-    const { ctrl, state, server, pushes, syncs, hooks, busy, pendingHash } =
+    const { ctrl, state, server, pushes, syncs, hooks, busy, pendingHash, customs } =
       loadForAfterRendering();
     state.oResponse = {
       ID: "D1",
@@ -455,6 +466,35 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(busy).toEqual([]);
     expect(state.isBusy).toBe(true);
     expect(pendingHash).toEqual([]);
+    // ... but its OWN follow-up actions still ran: the newer request is
+    // merely DISPATCHED, so the screen they were queued for is still the one
+    // on display, and nothing else will ever run them - the superseding
+    // request answers with its own T_CUSTOM. This is what the app's first
+    // roundtrip lost every time a control fired an event while the initial
+    // view rendered (samples-controls 350: ICON_POOL registerFont; 534:
+    // eight Wizard setNextStep calls).
+    expect(customs).toEqual([["TOAST"]]);
+  });
+
+  // The app torn down mid-phase is the other half of "the screen is gone":
+  // there is no screen left to act on, so the queued actions are dropped -
+  // the case the stamp-only test above must NOT be confused with.
+  test("an app torn down mid-phase runs no follow-up actions", async () => {
+    const { ctrl, state, hooks, busy, customs, app } = loadForAfterRendering();
+    state.oResponse = {
+      ID: "D1",
+      S_ACTION: { T_SYSTEM: [{}] },
+      _pendingCustomJs: [["TOAST"]],
+    };
+    hooks.onRunSystem = () => {
+      app.alive = false;
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(busy).toEqual([]);
+    expect(state.isBusy).toBe(true);
+    expect(customs).toEqual([]);
   });
 
   // the same stamp is what the onAfterRendering entry falls back to, so a

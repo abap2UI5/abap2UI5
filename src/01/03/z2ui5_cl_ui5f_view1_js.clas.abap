@@ -59,6 +59,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      async _processAfterRendering(reqSeq) {` && |\n| &&
              `        let superseded = false;` && |\n| &&
+             `        let replaced = false;` && |\n| &&
              `` && |\n| &&
              `        const oResponse = AppState.state.oResponse;` && |\n| &&
              `        if (!oResponse || oResponse._processed) return;` && |\n| &&
@@ -82,12 +83,15 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            await this._runSystemActions(oResponse, seq);` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
+             `          const alive = Lib.isControllerAlive(this);` && |\n| &&
              `          if (` && |\n| &&
-             `            !Lib.isControllerAlive(this) ||` && |\n| &&
+             `            !alive ||` && |\n| &&
              `            seq !== Server._requestSeq ||` && |\n| &&
              `            oResponse !== AppState.state.oResponse` && |\n| &&
              `          ) {` && |\n| &&
              `            superseded = true;` && |\n| &&
+             `` && |\n| &&
+             `            replaced = !alive || oResponse !== AppState.state.oResponse;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -109,9 +113,10 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          if (!superseded) {` && |\n| &&
              `            BusyIndicator.hide();` && |\n| &&
              `            AppState.state.isBusy = false;` && |\n| &&
+             `          }` && |\n| &&
              `` && |\n| &&
-             `            this._runPendingCustomJs(oResponse);` && |\n| &&
-             `` && |\n| &&
+             `          if (!replaced) this._runPendingCustomJs(oResponse);` && |\n| &&
+             `          if (!superseded) {` && |\n| &&
              `            Router.dispatchPendingAppHash();` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&

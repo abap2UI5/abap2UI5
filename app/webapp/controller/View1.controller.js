@@ -44,7 +44,14 @@ sap.ui.define(
       // response being processed belongs to (Server.responseSuccess); the
       // onAfterRendering entry above has none and falls back to the newest.
       async _processAfterRendering(reqSeq) {
+        // Two different "too late"s, and they are not the same moment.
+        // `superseded` - a newer REQUEST was dispatched: the busy protocol
+        // and the parked hash belong to it from here on. `replaced` - the
+        // screen this response built is GONE: the app was torn down, or the
+        // newer request's response has already LANDED. Only the second one
+        // invalidates this response's own follow-up actions (see the finally).
         let superseded = false;
+        let replaced = false;
         // The claim happens BEFORE the try: the MAIN rebuild is a system
         // action now, so slots render (and re-enter here via their own
         // onAfterRendering - possibly with a NESTED controller as `this`)
@@ -112,15 +119,19 @@ sap.ui.define(
           // restore relies on (so a click could dispatch a third request and
           // abort it) and let Router.sync consume the restore's navFromHash
           // flag, which the restore's own response then no longer found.
+          const alive = Lib.isControllerAlive(this);
           if (
-            !Lib.isControllerAlive(this) ||
+            !alive ||
             seq !== Server._requestSeq ||
             oResponse !== AppState.state.oResponse
           ) {
-            // a NEWER request owns the busy state, the pending custom JS and
-            // the parked hash from here on (see the finally below) - this
-            // response only stops
+            // a NEWER request owns the busy state and the parked hash from
+            // here on (see the finally below) - this response only stops
             superseded = true;
+            // ... but what is ON SCREEN is still what this response built,
+            // unless the app is gone or the newer response has landed - a
+            // request merely DISPATCHED is still in flight.
+            replaced = !alive || oResponse !== AppState.state.oResponse;
             return;
           }
           // A MODEL key in the response IS the model push - run it after the
@@ -155,17 +166,29 @@ sap.ui.define(
           // request replaced it while its views were still loading) leaves
           // the busy protocol to the request that superseded it: hiding
           // the indicator here ended the busy state the restore relied on
-          // and let a click dispatch a third request that aborted it, and
-          // running its custom JS (SET_FOCUS, toasts, timers) acted on a
-          // screen the newer response is about to replace.
+          // and let a click dispatch a third request that aborted it.
           if (!superseded) {
             BusyIndicator.hide();
             AppState.state.isBusy = false;
-            // Now that the view is rendered (and any busy indicator is gone),
-            // run the follow-up JS snippets the backend asked for. Doing it here
-            // - rather than as an early microtask - guarantees render-dependent
-            // actions like SET_FOCUS find their target control in the DOM.
-            this._runPendingCustomJs(oResponse);
+          }
+          // Its OWN follow-up actions are a different matter, and they run.
+          // They are what the backend queued FOR THIS RESPONSE, and nothing
+          // else will ever run them: the superseding request answers with its
+          // own T_CUSTOM, so everything queued here was simply dropped.
+          // The app's very FIRST roundtrip lost them every time, because it
+          // is the one roundtrip eB does not mark busy (Server.roundtrip is
+          // called straight from onInit) - so a control that fires an event
+          // while the initial view renders dispatches request 2 and
+          // supersedes the response that is building the screen. Measured on
+          // the samples-controls corpus: an ICON_POOL registerFont (350) and
+          // eight Wizard setNextStep calls (534) sat in the response, in
+          // _pendingCustomJs, and never ran.
+          // Only a response whose screen is GONE skips them - and
+          // _runPendingCustomJs asks isControllerAlive for the torn-down app.
+          // Order unchanged: after the busy indicator is down, so
+          // render-dependent actions like SET_FOCUS find their control.
+          if (!replaced) this._runPendingCustomJs(oResponse);
+          if (!superseded) {
             // an app-hash change (Back/Forward under app-owned routing) that
             // arrived while this roundtrip was in flight was parked by the
             // router - deliver it now that the busy guard would let it through
