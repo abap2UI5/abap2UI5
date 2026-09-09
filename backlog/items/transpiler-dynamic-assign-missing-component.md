@@ -5,7 +5,7 @@ summary: '`ASSIGN (''MO_APP->MT_TABLE->*'') TO <fs>` with an object that has no 
 priority: medium
 state: open
 first_seen: 2026-09-02
-checked_upstream: 2026-09-02
+checked_upstream: 2026-09-09
 upstream: abaplint/transpiler
 evidence:
   - '@abaplint/runtime `build/src/statements/assign.js`, the `->` walk: a missing component yields `input.dynamicSource = source[componentName]` = undefined, and the following `*` segment runs `input.dynamicSource.dereference()` unguarded'
