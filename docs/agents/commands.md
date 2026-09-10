@@ -64,9 +64,8 @@ build rather than passing silently once its anchors stop matching.
 `test_bind_tab_cell` (in `z2ui5_cl_ui5_client`'s test class) is the canary that
 the shim still works.
 
-**Six more, the same way.** `npm run auto_transpile` runs
-`node/setup/patch-open-abap-core.mjs` and
-`node/setup/patch-abaplint-runtime-assign.mjs` first. The former patches the
+**Four more, the same way.** `npm run auto_transpile` runs
+`node/setup/patch-open-abap-core.mjs` first. It patches the
 pinned open-abap-core checkout four times: `cl_abap_typedescr=>describe_by_name`
 learns the absolute spelling of a type name (`\TYPE=STRING`,
 `\TYPE-POOL=ABAP\TYPE=ABAP_BOOL`, the spelling S-RTTI resolves a serialized
@@ -76,18 +75,21 @@ draft with a generic data reference - came back truncated); a line feed
 travels as `&#10;` (the parser strips every literal one, so a text area lost
 its line breaks across the draft); and the parser resolves `&amp;` last (it
 resolved it first and so double-unescaped an escaped payload inside an
-escaped value - `<b>` in a cell of a generic table came back as markup). The
-latter patches the installed `@abaplint/runtime` twice: a dynamic ASSIGN
-through a component that does not exist answers sy-subrc 4 instead of a
-TypeError, and one that reaches a PRIVATE attribute falls back to the
-transpiler's friends map - the asXML heap writer reads every attribute that
-way, and every mapper of `z2ui5_cl_ajson_mapping` has a private one, so no
-bound attribute with a `custom_mapper` survived a draft here. Without them no
-draft that carries a TYPE HANDLE table restores in the transpiled backend
-(`ltcl_test_app_root4->test_tab_ref_gen` was skipped for exactly that) and a
-host that swaps its sub-app's class crashes the restore. All are filed in
-`backlog/` (`open-abap-*`, `transpiler-*`); each is idempotent by marker and
-FAILS the transpile when the line it anchors on moves upstream.
+escaped value - `<b>` in a cell of a generic table came back as markup).
+Without them no draft that carries a TYPE HANDLE table restores in the
+transpiled backend (`ltcl_test_app_root4->test_tab_ref_gen` was skipped for
+exactly that). All are filed in `backlog/` (`open-abap-*`); each is idempotent
+by marker and FAILS the transpile when the line it anchors on moves upstream.
+
+A fifth and sixth patch lived next to them until 2026-09-10, in
+`node/setup/patch-abaplint-runtime-assign.mjs`: the installed
+`@abaplint/runtime` answered sy-subrc 4 for a dynamic ASSIGN through a missing
+component instead of throwing a TypeError, and reached a PRIVATE attribute
+through the transpiler's friends map. Both are upstream now - the first as
+abaplint/transpiler#1822, the second as larshp's own `4b2a506` - so the pin
+moved to 2.13.83 and the script is gone. That is the intended end of one of
+these: the anchor stops matching, the transpile fails loudly, and the patch is
+deleted rather than re-anchored.
 
 **Pinned git dependencies:** abaplint and the transpiler clone three upstream
 repos (steampunk API intersection, open-abap-core, express-icf-shim). These
