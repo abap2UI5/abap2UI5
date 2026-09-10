@@ -3,9 +3,10 @@ target: abaplint
 title: 'Downport: outline a table expression with ASSIGNING, not INTO — the component-level read loses the row reference'
 summary: '`REF #( tab[ n ]-comp )` and `_bind( val = tab[ n ]-comp )` downport to `READ TABLE tab INDEX n INTO <wa>`, so the address taken is the work area''s and not the table row''s — while the whole-row form of the same expression is already lowered with ASSIGNING and keeps it'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4276
 first_seen: 2026-08-29
-checked_upstream: 2026-08-30
+checked_upstream: 2026-09-10
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5 `_bind( tab / tab_index )` — the cell binding matches the bound cell by data reference (`z2ui5_cl_ui5_srv_bind->bind_tab_cell`), so after the downport it refuses every cell written the natural way and the app gets BINDING_ERROR_TAB_CELL_LEVEL'
