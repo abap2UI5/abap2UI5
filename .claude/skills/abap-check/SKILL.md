@@ -680,7 +680,6 @@ transpiled tests. Nothing here is a linter rule and nothing here should be: the
 downport is a build of this repository, not a property of somebody's app.
 
 **Backlog:** open-abap · transpiler-reserved-js-identifiers
-**Backlog:** abaplint · abaplint-downport-builtin-operand
 
 Every framework file is downported to 7.02 (`npm run auto_downport`) and
 transpiled to JS (`npm run auto_transpile`), and is linted against
