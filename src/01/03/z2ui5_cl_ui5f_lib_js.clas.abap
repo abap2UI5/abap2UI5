@@ -232,9 +232,25 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      const timers = AppState.state.timers;` && |\n| &&
              `      if (!timers) return;` && |\n| &&
              `      for (const key in timers) {` && |\n| &&
-             `        clearTimeout(timers[key]);` && |\n| &&
+             `        cancelTimer(timers[key]);` && |\n| &&
              `        delete timers[key];` && |\n| &&
              `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function resolveStorageType(Storage, type, context, verb) {` && |\n| &&
+             `      const typeKey = String(type || "").toLowerCase();` && |\n| &&
+             `      const storageType = Storage.Type[typeKey] || Storage.Type.session;` && |\n| &&
+             `      if (type && !Storage.Type[typeKey]) {` && |\n| &&
+             `        logError(` && |\n| &&
+             `          ``${context}: unknown type '${type}', ${verb} the session store``,` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      return storageType;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function cancelTimer(handle) {` && |\n| &&
+             `      if (typeof handle === "function") handle();` && |\n| &&
+             `      else clearTimeout(handle);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function applyTokenUpdate(control, oEvent) {` && |\n| &&
@@ -275,18 +291,47 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function whenRendered(control, owner, fn) {` && |\n| &&
-             `      if (control.getDomRef()) {` && |\n| &&
-             `        if (!isDestroyed(owner)) fn();` && |\n| &&
-             `        return;` && |\n| &&
+             `    const pendingDelegates = new WeakMap();` && |\n| &&
+             `` && |\n| &&
+             `    function onNextRendering(control, fn, key) {` && |\n| &&
+             `      let byKey;` && |\n| &&
+             `      if (key) {` && |\n| &&
+             `        byKey = pendingDelegates.get(control);` && |\n| &&
+             `        if (!byKey) {` && |\n| &&
+             `          byKey = new Map();` && |\n| &&
+             `          pendingDelegates.set(control, byKey);` && |\n| &&
+             `        }` && |\n| &&
+             `        const prev = byKey.get(key);` && |\n| &&
+             `        if (prev) control.removeEventDelegate(prev);` && |\n| &&
              `      }` && |\n| &&
              `      const delegate = {` && |\n| &&
              `        onAfterRendering: () => {` && |\n| &&
              `          control.removeEventDelegate(delegate);` && |\n| &&
-             `          if (!isDestroyed(owner)) fn();` && |\n| &&
+             `          if (byKey) byKey.delete(key);` && |\n| &&
+             `          fn();` && |\n| &&
              `        },` && |\n| &&
              `      };` && |\n| &&
+             `      if (byKey) byKey.set(key, delegate);` && |\n| &&
              `      control.addEventDelegate(delegate);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function whenRendered(control, owner, fn, key) {` && |\n| &&
+             `      if (control.getDomRef()) {` && |\n| &&
+             `        if (!isDestroyed(owner)) fn();` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      onNextRendering(` && |\n| &&
+             `        control,` && |\n| &&
+             `        () => {` && |\n| &&
+             `          if (!isDestroyed(owner)) fn();` && |\n| &&
+             `        },` && |\n| &&
+             `        key,` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const XML_TEMPLATING = /sap\.ui\.core\.template\/1|\{\s*template>/;` && |\n| &&
+             `    function usesXmlTemplating(xml) {` && |\n| &&
+             `      return XML_TEMPLATING.test(String(xml ?? ""));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getTextPath(control, separator) {` && |\n| &&
@@ -379,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
              `      logError(` && |\n| &&
              `        ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
-             `      );` && |\n| &&
+             `      );` && |\n|.
+    result = result &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -424,8 +470,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `          field === "" ||` && |\n| &&
              `          !Number.isNaN(Number(field))` && |\n| &&
              `        ) {` && |\n| &&
-             `          return null;` && |\n|.
-    result = result &&
+             `          return null;` && |\n| &&
              `        }` && |\n| &&
              `        i += 2;` && |\n| &&
              `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
@@ -613,9 +658,13 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      readFileAsDataURL,` && |\n| &&
              `      readFilesInTurn,` && |\n| &&
              `      cancelPendingTimers,` && |\n| &&
+             `      cancelTimer,` && |\n| &&
+             `      resolveStorageType,` && |\n| &&
              `      applyTokenUpdate,` && |\n| &&
              `      runCallbacks,` && |\n| &&
              `      whenRendered,` && |\n| &&
+             `      onNextRendering,` && |\n| &&
+             `      usesXmlTemplating,` && |\n| &&
              `      getTextPath,` && |\n| &&
              `      copyToClipboard,` && |\n| &&
              `      toText,` && |\n| &&

@@ -193,6 +193,17 @@ sap.ui.define(
       Lib.whenRendered(oControl, oFragment, () => oFragment.openBy(oControl));
     }
 
+    // The `preprocessors` setting of a view build - only for a view that
+    // uses XML templating. The setting switches the on-demand XMLPreprocessor
+    // on, and that is a full walk over every element and every bound
+    // attribute of the view, run on top of the parse UI5 does anyway: paid
+    // on every MAIN and nested build for a feature nearly no app uses
+    // (Lib.usesXmlTemplating). Undefined leaves the build as it was.
+    function templatePreprocessors(xml, oTemplateModel) {
+      if (!Lib.usesXmlTemplating(xml)) return undefined;
+      return { xml: { models: { template: oTemplateModel } } };
+    }
+
     async function displayNestedView(xml, slotKey, mOptions, seq) {
       // Nested views do NOT create their own model. They are inserted into
       // the MAIN control tree below and inherit its default JSON model via
@@ -209,7 +220,7 @@ sap.ui.define(
       const oView = await XMLView.create({
         definition: xml,
         controller: ViewSlots.getController(slotKey),
-        preprocessors: { xml: { models: { template: oTemplateModel } } },
+        preprocessors: templatePreprocessors(xml, oTemplateModel),
       });
 
       if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {
@@ -295,7 +306,7 @@ sap.ui.define(
         models: oModel,
         controller: ViewSlots.getController("MAIN"),
         id: "mainView",
-        preprocessors: { xml: { models: { template: oViewModel } } },
+        preprocessors: templatePreprocessors(xml, oViewModel),
       });
 
       // oModel covers oViewModel too when they are the same object (no

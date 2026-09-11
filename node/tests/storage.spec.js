@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadLib } = require("./loadLibModule");
 
 // cc/Storage.js: reads a value out of browser storage into its `value`
 // property and fires `finished` only when the stored value actually differs.
@@ -11,6 +12,10 @@ const { loadModule } = require("./loadModule");
 function load({ stored = null, value = "", type = "local" } = {}) {
   const errors = [];
   const built = [];
+  // The REAL Lib for the type resolution the control shares with the
+  // STORE_DATA action (Lib.resolveStorageType): its log lands in Lib's own
+  // sandbox, which the errors below read together with the control's
+  const { Lib, sandbox: libSandbox } = loadLib();
   const { module: StorageControl } = loadModule("cc/Storage.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
@@ -22,11 +27,14 @@ function load({ stored = null, value = "", type = "local" } = {}) {
         static Type = { local: "local", session: "session" };
       },
       "z2ui5/core/Lib": {
+        resolveStorageType: Lib.resolveStorageType,
         logError: (msg) => errors.push(msg),
         renderInvisibleSpan() {},
       },
     },
   });
+  const libErrors = () =>
+    (libSandbox.z2ui5.errors || []).map((e) => e.message);
 
   const fired = [];
   const instance = Object.create(StorageControl);
@@ -36,7 +44,7 @@ function load({ stored = null, value = "", type = "local" } = {}) {
   instance.setProperty = (name, v) => (instance._props[name] = v);
   instance.fireFinished = (payload) => fired.push(payload);
 
-  return { instance, fired, errors, built };
+  return { instance, fired, errors, libErrors, built };
 }
 
 test("a changed string value fires finished once", () => {
@@ -196,10 +204,12 @@ test("the storage type is matched case-insensitively", () => {
 });
 
 test("an unknown type is logged and read from the session store", () => {
-  const { instance, built, errors } = load({ stored: "v", type: "cookie" });
+  const { instance, built, libErrors } = load({ stored: "v", type: "cookie" });
 
   instance.onAfterRendering();
 
   expect(built[0].storageType).toBe("session");
-  expect(errors.some((m) => m.includes("unknown type 'cookie'"))).toBe(true);
+  expect(libErrors().some((m) => m.includes("unknown type 'cookie'"))).toBe(
+    true,
+  );
 });

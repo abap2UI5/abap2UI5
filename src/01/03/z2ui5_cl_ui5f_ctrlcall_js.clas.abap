@@ -491,7 +491,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        fn();` && |\n| &&
              `      };` && |\n| &&
              `      if (anchor && typeof anchor.getDomRef === "function") {` && |\n| &&
-             `        Lib.whenRendered(anchor, oController, guarded);` && |\n| &&
+             `        Lib.whenRendered(anchor, oController, guarded, "open");` && |\n| &&
              `      } else {` && |\n| &&
              `        guarded();` && |\n| &&
              `      }` && |\n| &&

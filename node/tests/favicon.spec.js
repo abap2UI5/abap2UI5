@@ -63,14 +63,17 @@ function load({ head = [] } = {}) {
   return { instance, links, created, errors: () => libSandbox.z2ui5.errors };
 }
 
-test("no icon link yet: one is created as rel='shortcut icon'", () => {
+// rel="icon", the spelling the SET_FAVICON action creates too - the
+// control used to write the legacy "shortcut icon", so which of the two a
+// page carried depended on which side set the icon first
+test("no icon link yet: one is created as rel='icon'", () => {
   const { instance, links, created } = load();
 
   instance().setFavicon("/img/a.ico");
 
   expect(created).toHaveLength(1);
   expect(links).toHaveLength(1);
-  expect(links[0].rel).toBe("shortcut icon");
+  expect(links[0].rel).toBe("icon");
   expect(links[0].href).toBe("/img/a.ico");
 });
 

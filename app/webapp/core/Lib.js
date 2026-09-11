@@ -347,9 +347,38 @@ sap.ui.define(
       const timers = AppState.state.timers;
       if (!timers) return;
       for (const key in timers) {
-        clearTimeout(timers[key]);
+        cancelTimer(timers[key]);
         delete timers[key];
       }
+    }
+
+    // The storage a type names, for the two sides of the browser store: the
+    // STORE_DATA action writes (actions/Browser), the Storage control reads
+    // (cc/Storage) - and the two have to agree, or a write lands in a store
+    // nobody reads. Matched case-insensitively, because the type is free
+    // text from the backend and `LOCAL` is how an ABAP constant spells it.
+    // An unknown one still falls back to the session store - a side that
+    // does nothing at all is worse - but it is logged: the silent fallback
+    // made a mistyped type look like an empty key, which is the same symptom
+    // as a store that was never written. `verb` is the caller's half of the
+    // message ("writing to" / "reading").
+    function resolveStorageType(Storage, type, context, verb) {
+      const typeKey = String(type || "").toLowerCase();
+      const storageType = Storage.Type[typeKey] || Storage.Type.session;
+      if (type && !Storage.Type[typeKey]) {
+        logError(
+          `${context}: unknown type '${type}', ${verb} the session store`,
+        );
+      }
+      return storageType;
+    }
+
+    // A timer slot holds either a setTimeout handle or, while a tick waits
+    // for the roundtrip in flight (evStartTimer), the cancel function that
+    // afterRoundtrip returned - this is the one place that knows both.
+    function cancelTimer(handle) {
+      if (typeof handle === "function") handle();
+      else clearTimeout(handle);
     }
 
     // Shared tokenUpdate handling for the multi-input extensions: map the
@@ -413,7 +442,43 @@ sap.ui.define(
     // caller whose owner is a controller therefore has to ask
     // isControllerAlive( ) in `fn` itself; core/actions/ControlCall.js
     // (whenAnchorRendered) and core/actions/ViewOps.js (SET_FOCUS) both do.
-    function whenRendered(control, owner, fn) {
+    // The one-shot rendering delegates that are still waiting, per control
+    // and per key - so a caller that asks again before the control rendered
+    // REPLACES its pending delegate instead of stacking a second one. A
+    // poll-driven app (START_TIMER plus a SET_FOCUS follow-up in every
+    // model-only response) targeting a control that never re-renders added
+    // one delegate per tick, and when the control finally rendered they all
+    // fired at once, each with its own deferred focus; an openBy on a still
+    // hidden anchor queued N opens the same way. A WeakMap, so a destroyed
+    // control takes its entry with it.
+    const pendingDelegates = new WeakMap();
+
+    // Run fn once after the control's next onAfterRendering. With a key, at
+    // most one delegate per control and key is pending: a newer call cancels
+    // the older one (see pendingDelegates).
+    function onNextRendering(control, fn, key) {
+      let byKey;
+      if (key) {
+        byKey = pendingDelegates.get(control);
+        if (!byKey) {
+          byKey = new Map();
+          pendingDelegates.set(control, byKey);
+        }
+        const prev = byKey.get(key);
+        if (prev) control.removeEventDelegate(prev);
+      }
+      const delegate = {
+        onAfterRendering: () => {
+          control.removeEventDelegate(delegate);
+          if (byKey) byKey.delete(key);
+          fn();
+        },
+      };
+      if (byKey) byKey.set(key, delegate);
+      control.addEventDelegate(delegate);
+    }
+
+    function whenRendered(control, owner, fn, key) {
       if (control.getDomRef()) {
         // Same owner-liveness guard as the deferred branch below: a caller
         // resuming from an async continuation may reach here after its owner
@@ -421,13 +486,25 @@ sap.ui.define(
         if (!isDestroyed(owner)) fn();
         return;
       }
-      const delegate = {
-        onAfterRendering: () => {
-          control.removeEventDelegate(delegate);
+      onNextRendering(
+        control,
+        () => {
           if (!isDestroyed(owner)) fn();
         },
-      };
-      control.addEventDelegate(delegate);
+        key,
+      );
+    }
+
+    // Whether a view uses XML templating - the sap.ui.core.template/1
+    // namespace (whatever prefix it is declared under) or a {template>...}
+    // binding. Decides whether the view build pays for the XMLPreprocessor
+    // (see actions/Slots): UI5 registers it on demand, and the `preprocessors`
+    // setting is what turns it on, for a walk over every element and every
+    // bound attribute of the view. Nearly no app uses templating, and every
+    // MAIN and nested build paid that walk anyway.
+    const XML_TEMPLATING = /sap\.ui\.core\.template\/1|\{\s*template>/;
+    function usesXmlTemplating(xml) {
+      return XML_TEMPLATING.test(String(xml ?? ""));
     }
 
     // Join a control's own text with its ancestors' texts, outermost first
@@ -934,9 +1011,13 @@ sap.ui.define(
       readFileAsDataURL,
       readFilesInTurn,
       cancelPendingTimers,
+      cancelTimer,
+      resolveStorageType,
       applyTokenUpdate,
       runCallbacks,
       whenRendered,
+      onNextRendering,
+      usesXmlTemplating,
       getTextPath,
       copyToClipboard,
       toText,

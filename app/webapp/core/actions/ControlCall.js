@@ -846,7 +846,9 @@ sap.ui.define(
         fn();
       };
       if (anchor && typeof anchor.getDomRef === "function") {
-        Lib.whenRendered(anchor, oController, guarded);
+        // keyed: one pending open per anchor - N openBy calls on a still
+        // hidden anchor used to open N times at once when it rendered
+        Lib.whenRendered(anchor, oController, guarded, "open");
       } else {
         guarded();
       }

@@ -50,8 +50,9 @@ CLASS z2ui5_cl_ui5f_favicon_js IMPLEMENTATION.
              `        existing.href = href;` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `` && |\n| &&
              `      const link = document.createElement("link");` && |\n| &&
-             `      link.rel = "shortcut icon";` && |\n| &&
+             `      link.rel = "icon";` && |\n| &&
              `      link.href = href;` && |\n| &&
              `      document.head.appendChild(link);` && |\n| &&
              `    },` && |\n| &&

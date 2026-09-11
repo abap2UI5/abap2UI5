@@ -19,6 +19,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | Module under test | Spec | What it pins |
 |---|---|---|
 | `core/Lib.js` | `buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js` | — |
+| `core/Lib.js` rendering and timer helpers | `libRendering.spec.js` | `onNextRendering`/`whenRendered` - one pending delegate per control and key (a keyed call replaces, an unkeyed one stacks, a dead owner is dropped), `usesXmlTemplating` - the templating namespace under any prefix or a `template>` binding, and `cancelTimer`/`cancelPendingTimers` - a slot holding a setTimeout handle or an afterRoundtrip cancel |
 | `core/Lib.js` Theming/Localization probes | `libEnvProbes.spec.js` | `getThemingModule`/`getTheme`/`getLocale` - the 1.118+ module branch, the 1.71 Configuration fallback, and the never-throw bare-bootstrap answer shared by Component, Inspect and the THEMING action target |
 | `core/AppState.js` | `appState.spec.js` | — |
 | `core/ViewSlots.js` | `viewSlots.spec.js` | — |

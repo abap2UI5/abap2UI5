@@ -111,9 +111,7 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `      _textInput(oElement) {` && |\n| &&
              `        try {` && |\n| &&
              `          const ref = oElement.getFocusDomRef?.();` && |\n| &&
-             `          if (ref && (ref.tagName === "INPUT" || ref.tagName === "TEXTAREA")) {` && |\n| &&
-             `            return ref;` && |\n| &&
-             `          }` && |\n| &&
+             `          if (Lib.isTextInput(ref)) return ref;` && |\n| &&
              `          const root = oElement.getDomRef?.();` && |\n| &&
              `          return root?.querySelector?.("input, textarea") || null;` && |\n| &&
              `        } catch {` && |\n| &&

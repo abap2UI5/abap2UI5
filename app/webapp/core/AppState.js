@@ -81,6 +81,15 @@
 //                     besides oResponse because the developer tools render
 //                     the raw payload
 //   contextId         stateful session id, header transport (Server)
+//   lastRequestBytes  length of the last request body as serialized
+//                     (Server.readHttp) - in UTF-16 code units, the
+//                     JSON.stringify result's length, not the bytes on the
+//                     wire; the developer tools' recorder shows it as REQ
+//                     so the body is not serialized a second time for it
+//   lastMainDisplayOptions  the options of the last MAIN display
+//                     (actions/Slots), so a re-display of the slot outside
+//                     a roundtrip (devtools LiveEdit) keeps the OData
+//                     default model a switch-mode view was built with
 //   isBusy            roundtrip in flight (View1.eB / Server)
 //   oSentModel        the JSON model whose edited-path set the in-flight
 //                     request carried; its own _z2ui5ChangedPaths is cleared
@@ -153,6 +162,8 @@ sap.ui.define([], () => {
       contextId: null,
       isBusy: false,
       oSentModel: null,
+      lastRequestBytes: null,
+      lastMainDisplayOptions: null,
       search: null,
 
       // Hash-based app routing (UI5 Router style, opt-in per app via

@@ -38,6 +38,15 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
       IMPORTING
         val TYPE REF TO z2ui5_cl_ui5_handler.
 
+    " the requested app class as it may be quoted in an error text - one
+    " strip for every place that reflects the client value (here and in
+    " z2ui5_cl_ui5_handler=>request_context_info), so the two cannot drift
+    CLASS-METHODS app_start_safe
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
     METHODS prepare_app_stack
       IMPORTING
@@ -46,10 +55,6 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
   PRIVATE SECTION.
-    " the requested app class as it may be quoted in an error text
-    METHODS app_start_safe
-      RETURNING
-        VALUE(result) TYPE string.
 
     " set by prepare_app_stack on the action it builds: whether the target
     " came out of a persisted draft. Read by factory_stack_leave right
@@ -153,7 +158,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         " 500 whose body carries this message for the frontend to display.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val      = |The app '{ app_start_safe( ) }' does not exist in the system.|
+            val      = |The app '{ app_start_safe( mo_handler->ms_request-s_control-app_start ) }' | &&
+                       |does not exist in the system.|
             previous = x_create.
       CATCH cx_root INTO DATA(x).
         " anything else that failed on the way - the class exists. It used
@@ -161,7 +167,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
         " 500 to check a class name that was right all along
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val      = |APP_START_ERROR - the app '{ app_start_safe( ) }' could not be started.|
+            val      = |APP_START_ERROR - the app | &&
+                       |'{ app_start_safe( mo_handler->ms_request-s_control-app_start ) }' could not be started.|
             previous = x.
     ENDTRY.
 
@@ -248,9 +255,16 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " app_start is client-controlled and reflected into the error text:
     " stripped to class-name-safe characters, so a real typo still shows for
     " diagnostics while a crafted value cannot smuggle markup/script into
-    " the response body
-    result = mo_handler->ms_request-s_control-app_start.
-    REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN result WITH `` ##REGEX_POSIX.
+    " the response body. A character loop instead of the (deprecated) POSIX
+    " regex it used to be: the value is a class name, a few dozen characters
+    DATA(lv_len) = strlen( val ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_len.
+      IF val+lv_off(1) CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/`.
+        result = result && val+lv_off(1).
+      ENDIF.
+      lv_off = lv_off + 1.
+    ENDWHILE.
 
   ENDMETHOD.
 

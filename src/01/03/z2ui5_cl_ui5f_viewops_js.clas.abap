@@ -35,8 +35,6 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `  (ODataModel, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const TIMER_BUSY_RETRY_MS = 50;` && |\n| &&
-             `` && |\n| &&
              `    const SMOOTH_SCROLL_MS = 300;` && |\n| &&
              `` && |\n| &&
              `    function evSetSizeLimit(oController, args) {` && |\n| &&
@@ -136,14 +134,17 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      const callbackEvent = args[1];` && |\n| &&
              `      const delay = Number(args[2]) || 0;` && |\n| &&
              `      const timers = AppState.state.timers;` && |\n| &&
-             `      clearTimeout(timers[timerKey]);` && |\n| &&
+             `      Lib.cancelTimer(timers[timerKey]);` && |\n| &&
              `      const fire = () => {` && |\n| &&
              `        delete timers[timerKey];` && |\n| &&
              `` && |\n| &&
              `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
              `` && |\n| &&
              `        if (AppState.state.isBusy) {` && |\n| &&
-             `          timers[timerKey] = setTimeout(fire, TIMER_BUSY_RETRY_MS);` && |\n| &&
+             `          const cancel = Lib.afterRoundtrip(oController, () => {` && |\n| &&
+             `            timers[timerKey] = setTimeout(fire, 0);` && |\n| &&
+             `          });` && |\n| &&
+             `          if (!(timerKey in timers)) timers[timerKey] = cancel;` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -177,32 +178,37 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
-             `      Lib.whenRendered(oElement, oController, () => {` && |\n| &&
-             `        applyFocus();` && |\n| &&
-             `        const dom = oElement.getDomRef();` && |\n| &&
-             `        if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
+             `      Lib.whenRendered(` && |\n| &&
+             `        oElement,` && |\n| &&
+             `        oController,` && |\n| &&
+             `        () => {` && |\n| &&
+             `          applyFocus();` && |\n| &&
+             `          const dom = oElement.getDomRef();` && |\n| &&
+             `          if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
              `` && |\n| &&
-             `        const prevActive = document.activeElement;` && |\n| &&
+             `          const prevActive = document.activeElement;` && |\n| &&
              `` && |\n| &&
-             `        const samePlace = (el) =>` && |\n| &&
-             `          el == null ||` && |\n| &&
-             `          el === document.body ||` && |\n| &&
-             `          el === prevActive ||` && |\n| &&
-             `          Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
-             `        const delegate = {` && |\n| &&
-             `          onAfterRendering: () => {` && |\n| &&
-             `            oElement.removeEventDelegate(delegate);` && |\n| &&
+             `          const samePlace = (el) =>` && |\n| &&
+             `            el == null ||` && |\n| &&
+             `            el === document.body ||` && |\n| &&
+             `            el === prevActive ||` && |\n| &&
+             `            Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
              `` && |\n| &&
-             `            setTimeout(() => {` && |\n| &&
-             `              if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `          Lib.onNextRendering(` && |\n| &&
+             `            oElement,` && |\n| &&
+             `            () => {` && |\n| &&
+             `              setTimeout(() => {` && |\n| &&
+             `                if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
              `` && |\n| &&
-             `              if (!samePlace(document.activeElement)) return;` && |\n| &&
-             `              applyFocus();` && |\n| &&
-             `            }, 0);` && |\n| &&
-             `          },` && |\n| &&
-             `        };` && |\n| &&
-             `        oElement.addEventDelegate(delegate);` && |\n| &&
-             `      });` && |\n| &&
+             `                if (!samePlace(document.activeElement)) return;` && |\n| &&
+             `                applyFocus();` && |\n| &&
+             `              }, 0);` && |\n| &&
+             `            },` && |\n| &&
+             `            "focusRetry",` && |\n| &&
+             `          );` && |\n| &&
+             `        },` && |\n| &&
+             `        "focus",` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&

@@ -30,6 +30,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_first_start        FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_error  FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_draft_gone FOR TESTING RAISING cx_static_check.
+    METHODS test_app_start_safe      FOR TESTING RAISING cx_static_check.
     METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call_cross_class FOR TESTING RAISING cx_static_check.
@@ -103,6 +104,20 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( lo_result->mo_app->ms_draft-id ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lo_result->ms_actual-check_on_navigated ).
+
+  ENDMETHOD.
+
+  METHOD test_app_start_safe.
+
+    " class-name-safe characters survive, everything else - markup, quotes,
+    " blanks - is stripped, so the value can be quoted in an error body
+    cl_abap_unit_assert=>assert_equals(
+      exp = `Z2UI5_CL_UI5_APP_HI_WORLD`
+      act = z2ui5_cl_ui5_action=>app_start_safe( `Z2UI5_CL_UI5_APP_HI_WORLD` ) ).
+    cl_abap_unit_assert=>assert_equals(
+      exp = `/ns/zcl_appscriptalert1/script`
+      act = z2ui5_cl_ui5_action=>app_start_safe( `/ns/zcl_app<script>alert(1)</script>` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_action=>app_start_safe( `` ) ).
 
   ENDMETHOD.
 

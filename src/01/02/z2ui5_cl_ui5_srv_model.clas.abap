@@ -465,6 +465,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           ASSIGN lr_before->* TO <before>.
           <before> = <val>.
 
+          " a CATCH that re-raises, not the CLEANUP block the style rule
+          " prefers: the transpiled runtime the unit suite runs on ignores
+          " CLEANUP ("Transpiler todo" in the generated module), and the
+          " restore below is exactly what test_refused_scalar_reported pins.
+          " The exception does not leave the method - the CATCH below is
+          " its one consumer
           TRY.
               lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
                                      IMPORTING ev_container     = <val> ).
@@ -1577,8 +1583,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_attri_refresh.
 
-    DATA(lt_attri) = mt_attri->*.
-    DELETE lt_attri WHERE bind = abap_false.            "#EC CI_SORTSEQ
+    " only the bound rows are carried over - the few of them are copied,
+    " instead of the whole table copied and then the unbound majority
+    " deleted from the copy again
+    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_bound)   "#EC CI_SORTSEQ
+         WHERE bind = abap_true.
+      INSERT lr_bound->* INTO TABLE lt_attri.
+    ENDLOOP.
     CLEAR mt_attri->*.
 
     dissolve( ).
@@ -1726,15 +1738,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
       DATA(lt_fld) = io_delta->members( lv_row_path ).
       LOOP AT lt_fld INTO DATA(lv_fld).
-        DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name        = iv_table
-                                                                 row        = lv_tabix
-                                                                 field      = lv_fld
-                                                                 row_parent = iv_row_parent ).
-        TRY.
-            ls_skip-value = io_delta->get_string( |{ lv_row_path }/{ lv_fld }| ).
-          CATCH cx_root ##NO_HANDLER.
-        ENDTRY.
-        APPEND ls_skip TO mt_skipped.
+        delta_trace_skipped( io_delta = io_delta
+                             iv_path  = |{ lv_row_path }/{ lv_fld }|
+                             is_cell  = VALUE #( name       = iv_table
+                                                 row        = lv_tabix
+                                                 field      = lv_fld
+                                                 row_parent = iv_row_parent ) ).
       ENDLOOP.
     ENDLOOP.
 
