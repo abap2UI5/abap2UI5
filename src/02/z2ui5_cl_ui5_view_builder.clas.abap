@@ -140,6 +140,12 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
     " class_constructor is the alternative and abap-check names it a trap
     CLASS-DATA gv_escape_specials TYPE string.
     CLASS-DATA gv_escape_controls TYPE string.
+
+    " every misuse of the chain ends here: a catchable exception naming the
+    " element and attribute, which the framework renders like any other error
+    METHODS raise
+      IMPORTING
+        val TYPE string.
 ENDCLASS.
 
 
@@ -182,30 +188,45 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " no children yet. That way a( ) follows the control it belongs to
     " whether that control was opened with ele( ) or added with tag( ).
     " fail fast instead of dropping silently: on the empty builder root there
-    " is no element to attach to, and a duplicate name renders invalid XML
-    ASSERT name IS NOT INITIAL OR t_child IS NOT INITIAL.
+    " is no element to attach to, and a duplicate name renders invalid XML.
+    " Raised, not ASSERTed: ASSERTION_FAILED is a short dump that no TRY can
+    " take, so it bypassed the single top-level catch in
+    " z2ui5_cl_ui5_http_handler=>_main( ) - the developer got an ST22 dump
+    " instead of the 500 body with the error overlay every other framework
+    " error produces, and the dump could not even name the attribute
+    IF name IS INITIAL AND t_child IS INITIAL.
+      raise( |a( n = '{ n }' ) on the empty builder root - open an element with ele( ) first| ).
+    ENDIF.
     " b and v are mutually exclusive - b is checked with IS SUPPLIED because
     " abap_false and "not passed" are the same character.
-    " "never neither" is asserted with IS SUPPLIED rather than IS NOT INITIAL
+    " "never neither" is checked with IS SUPPLIED rather than IS NOT INITIAL
     " so that a deliberately empty value ( a( n = `text` v = `` ) ) stays
     " legal: what this refuses is a( n = `visible` ) with no value at all,
     " which used to render visible="" - a working view that behaves wrongly,
     " and the one invariant of the three in the ABAP Doc above that nothing
     " checked
-    ASSERT v IS SUPPLIED OR b IS SUPPLIED.
+    IF v IS NOT SUPPLIED AND b IS NOT SUPPLIED.
+      raise( |a( n = '{ n }' ) without a value - pass v or b| ).
+    ENDIF.
     DATA(val) = v.
     IF b IS SUPPLIED.
-      ASSERT v IS INITIAL.
+      IF v IS NOT INITIAL.
+        raise( |a( n = '{ n }' ) with both v and b - pass one of the two| ).
+      ENDIF.
       val = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
     ENDIF.
 
     IF t_child IS INITIAL.
-      ASSERT NOT line_exists( t_pair[ n = n ] ). "#EC CI_SORTSEQ
+      IF line_exists( t_pair[ n = n ] ). "#EC CI_SORTSEQ
+        raise( |duplicate attribute '{ n }' on element '{ name }'| ).
+      ENDIF.
       APPEND VALUE #( n = n
                       v = val ) TO t_pair.
     ELSE.
       DATA(target) = t_child[ lines( t_child ) ].
-      ASSERT NOT line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
+      IF line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
+        raise( |duplicate attribute '{ n }' on element '{ target->name }'| ).
+      ENDIF.
       APPEND VALUE #( n = n
                       v = val ) TO target->t_pair.
     ENDIF.
@@ -218,8 +239,19 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
     " fail fast: an end( ) past the mvc:View root would hand back a null
     " reference that only crashes at the next chained call, far from the bug
-    ASSERT parent IS BOUND.
+    IF parent IS NOT BOUND.
+      raise( |end( ) past the root - one end( ) more than there are ele( )| ).
+    ENDIF.
     result = parent.
+
+  ENDMETHOD.
+
+
+  METHOD raise.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+      EXPORTING
+        val = |VIEW_BUILDER_ERROR - { val }|.
 
   ENDMETHOD.
 

@@ -322,13 +322,21 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
       " still be quoted - the `{`-raw exception below is only for real
       " bindings/object literals like {/PATH} or {..}. {0/field} (relative
       " binding) keeps a `/` after the digits and is therefore not matched, so
-      " it stays raw as before. The regex only matters for values starting
+      " it stays raw as before. The scan only matters for values starting
       " with `{` (any other value is quoted by the first condition group
       " below anyway), so it only runs for those instead of on every argument.
+      " A plain digit scan, not a regex: this runs once per binding argument
+      " of every _event( ) on every render, and the POSIX regex it replaced
+      " was compiled on each of those calls (the engine is deprecated anyway)
       DATA(lv_is_placeholder) = abap_false.
       IF lv_new(1) = `{`.
-        FIND REGEX `^\{[0-9]+[?}]` IN lv_new ##REGEX_POSIX.
-        lv_is_placeholder = xsdbool( sy-subrc = 0 ).
+        DATA(lv_len) = strlen( lv_new ).
+        DATA(lv_off) = 1.
+        WHILE lv_off < lv_len AND lv_new+lv_off(1) CO `0123456789`.
+          lv_off = lv_off + 1.
+        ENDWHILE.
+        lv_is_placeholder = xsdbool( lv_off > 1 AND lv_off < lv_len
+                                     AND ( lv_new+lv_off(1) = `?` OR lv_new+lv_off(1) = `}` ) ).
       ENDIF.
       " iv_literal: the wire carries DATA, and every argument is quoted -
       " a value that happens to start with `$` or `{` is a string then, not

@@ -191,9 +191,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `` && |\n| &&
              `        Server.reset();` && |\n| &&
              `` && |\n| &&
-             `        for (const key of Object.keys(AppState.state.timers)) {` && |\n| &&
-             `          clearTimeout(AppState.state.timers[key]);` && |\n| &&
-             `        }` && |\n| &&
+             `        Lib.cancelPendingTimers();` && |\n| &&
              `        if (AppState.state.oDeviceModel) {` && |\n| &&
              `          AppState.state.oDeviceModel.destroy();` && |\n| &&
              `        }` && |\n| &&

@@ -31,8 +31,12 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
         existing.href = href;
         return;
       }
+      // rel="icon", the same link the SET_FAVICON action creates
+      // (actions/Browser.js) - the control used to write the legacy
+      // "shortcut icon", so which of the two spellings a page carried
+      // depended on which side set the icon first
       const link = document.createElement("link");
-      link.rel = "shortcut icon";
+      link.rel = "icon";
       link.href = href;
       document.head.appendChild(link);
     },

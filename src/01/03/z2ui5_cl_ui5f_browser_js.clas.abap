@@ -76,13 +76,12 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    function evStoreData(oController, args) {` && |\n| &&
              `      const { TYPE, PREFIX, VALUE, KEY } = args[1] ?? {};` && |\n| &&
              `      try {` && |\n| &&
-             `        const typeKey = String(TYPE || "").toLowerCase();` && |\n| &&
-             `        const storageType = Storage.Type[typeKey] || Storage.Type.session;` && |\n| &&
-             `        if (TYPE && !Storage.Type[typeKey]) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``STORE_DATA: unknown type '${TYPE}', writing to the session store``,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
+             `        const storageType = Lib.resolveStorageType(` && |\n| &&
+             `          Storage,` && |\n| &&
+             `          TYPE,` && |\n| &&
+             `          "STORE_DATA",` && |\n| &&
+             `          "writing to",` && |\n| &&
+             `        );` && |\n| &&
              `        const oStorage = new Storage(storageType, PREFIX);` && |\n| &&
              `        if (VALUE === "" || VALUE == null) {` && |\n| &&
              `          oStorage.remove(KEY);` && |\n| &&

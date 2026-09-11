@@ -16,6 +16,8 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS escape_literal_passthrough FOR TESTING.
     METHODS escape_literal_backslash FOR TESTING.
     METHODS bool_parameter FOR TESTING.
+    METHODS misuse_raises_not_dumps FOR TESTING.
+    METHODS end_past_root_raises FOR TESTING.
 ENDCLASS.
 
 
@@ -263,6 +265,63 @@ CLASS ltcl_builder IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = view->stringify( )
       exp = `<Panel visible="true" expanded="false"/>` ).
+
+  ENDMETHOD.
+
+  METHOD misuse_raises_not_dumps.
+
+    " every misuse of the chain is a catchable exception naming the element
+    " and the attribute - not an ASSERT, whose ASSERTION_FAILED bypasses the
+    " framework's top-level catch and dumps instead of rendering the error
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    TRY.
+        view->a( n = `text`
+                 v = `x` ).
+        cl_abap_unit_assert=>fail( `a( ) on the empty root must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_root).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_root->get_text( ) CS `text` ) ).
+    ENDTRY.
+
+    view->ele( `Panel` ).
+    TRY.
+        view->a( `visible` ).
+        cl_abap_unit_assert=>fail( `a( ) without v and b must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_none).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_none->get_text( ) CS `visible` ) ).
+    ENDTRY.
+
+    TRY.
+        view->a( n = `visible`
+                 v = `true`
+                 b = abap_true ).
+        cl_abap_unit_assert=>fail( `a( ) with v and b must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_both).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_both->get_text( ) CS `visible` ) ).
+    ENDTRY.
+
+    view->a( n = `text`
+             v = `once` ).
+    TRY.
+        view->a( n = `text`
+                 v = `twice` ).
+        cl_abap_unit_assert=>fail( `a duplicate attribute must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_dup).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_dup->get_text( ) CS `Panel` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD end_past_root_raises.
+
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    TRY.
+        view->ele( `Panel` )->end( )->end( ).
+        cl_abap_unit_assert=>fail( `end( ) past the root must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_end).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_end->get_text( ) CS `end( )` ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

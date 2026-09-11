@@ -44,7 +44,8 @@ CLASS z2ui5_cl_ui5f_models_js IMPLEMENTATION.
              `        const refresh = () => {` && |\n| &&
              `          const oRange = Device.media.getCurrentRange(RANGE_SET);` && |\n| &&
              `          oModel.setProperty("/media/range", oRange ? oRange.name : "");` && |\n| &&
-             `          oModel.refresh(true);` && |\n| &&
+             `` && |\n| &&
+             `          oModel.checkUpdate();` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
              `        Device.resize.attachHandler(refresh);` && |\n| &&

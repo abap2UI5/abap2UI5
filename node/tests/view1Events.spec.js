@@ -91,6 +91,8 @@ function withSlots(
     deps: {
       "z2ui5/core/Server": {},
       "z2ui5/core/Lib": {
+        // no view in these specs uses XML templating (Slots.templatePreprocessors)
+        usesXmlTemplating: () => false,
         effectiveSizeLimit: () => undefined,
         // the root slots share one model, a standalone slot gets a copy
         // (Slots.dataForSlot) - the shipped helper's answer, as a stub
@@ -664,6 +666,7 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
         "sap/ui/model/json/JSONModel": JSONModel,
         "z2ui5/core/Server": { _requestSeq: requestSeq },
         "z2ui5/core/Lib": {
+          usesXmlTemplating: () => false,
           effectiveSizeLimit: () => undefined,
           isRootModelSlot: (k) => k === "MAIN" || k === "NEST" || k === "NEST2",
           isAlive: () => true,
@@ -773,6 +776,8 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     const shared = {
       "sap/ui/model/odata/v2/ODataModel": ODataModel,
       "z2ui5/core/Lib": {
+        // no view in these specs uses XML templating (Slots.templatePreprocessors)
+        usesXmlTemplating: () => false,
         effectiveSizeLimit: () => undefined,
         isRootModelSlot: (k) => k === "MAIN",
         isAlive: () => true,

@@ -272,9 +272,7 @@ sap.ui.define(
         // Device singleton unless they are cancelled and destroyed first.
         // Clearing those fields by hand on top of that only restated three
         // lines further down what reset already does.
-        for (const key of Object.keys(AppState.state.timers)) {
-          clearTimeout(AppState.state.timers[key]);
-        }
+        Lib.cancelPendingTimers();
         if (AppState.state.oDeviceModel) {
           AppState.state.oDeviceModel.destroy();
         }

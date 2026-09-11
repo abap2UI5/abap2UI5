@@ -148,6 +148,11 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      Lib.whenRendered(oControl, oFragment, () => oFragment.openBy(oControl));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function templatePreprocessors(xml, oTemplateModel) {` && |\n| &&
+             `      if (!Lib.usesXmlTemplating(xml)) return undefined;` && |\n| &&
+             `      return { xml: { models: { template: oTemplateModel } } };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    async function displayNestedView(xml, slotKey, mOptions, seq) {` && |\n| &&
              `      const oMainView = ViewSlots.getView("MAIN");` && |\n| &&
              `      const oTemplateModel =` && |\n| &&
@@ -155,7 +160,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      const oView = await XMLView.create({` && |\n| &&
              `        definition: xml,` && |\n| &&
              `        controller: ViewSlots.getController(slotKey),` && |\n| &&
-             `        preprocessors: { xml: { models: { template: oTemplateModel } } },` && |\n| &&
+             `        preprocessors: templatePreprocessors(xml, oTemplateModel),` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&
              `      if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {` && |\n| &&
@@ -223,7 +228,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        models: oModel,` && |\n| &&
              `        controller: ViewSlots.getController("MAIN"),` && |\n| &&
              `        id: "mainView",` && |\n| &&
-             `        preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
+             `        preprocessors: templatePreprocessors(xml, oViewModel),` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&
              `      const discardBuild = () => {` && |\n| &&

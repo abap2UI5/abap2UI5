@@ -78,6 +78,8 @@ function load({ resolveById = null, byId = null } = {}) {
       "z2ui5/core/Server": { _requestSeq: 7, _viewBuild: null },
       "z2ui5/core/Lib": {
         logError: (m) => errors.push(m),
+        // no view in this spec uses XML templating (Slots.templatePreprocessors)
+        usesXmlTemplating: () => false,
         isAlive: () => true,
         isRootModelSlot: (key) => ["MAIN", "NEST", "NEST2"].includes(key),
         effectiveSizeLimit: () => undefined,

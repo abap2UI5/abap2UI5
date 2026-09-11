@@ -10,7 +10,6 @@ sap.ui.define(
 
     // how long a backend timer tick waits before asking again whether the
     // roundtrip it collided with has landed (evStartTimer)
-    const TIMER_BUSY_RETRY_MS = 50;
 
     // ------------------------------------------------------------------
     // Actions against the running VIEWS and their models: focus, scrolling,
@@ -153,7 +152,7 @@ sap.ui.define(
       const callbackEvent = args[1];
       const delay = Number(args[2]) || 0;
       const timers = AppState.state.timers;
-      clearTimeout(timers[timerKey]);
+      Lib.cancelTimer(timers[timerKey]);
       const fire = () => {
         delete timers[timerKey];
         // nothing cancels a pending timer on app teardown - an FLP close or
@@ -165,12 +164,21 @@ sap.ui.define(
         // dispatch right away as a background event, and Server.readHttp
         // treats every new request as superseding - it ABORTED the fetch in
         // flight, whose response was then dropped as stale: the user's
-        // action was lost without any feedback. Re-arming into the same
-        // single slot keeps the poll chain alive (the reason the tick must
-        // not simply be swallowed by the busy guard) without taking the
-        // request down with it.
+        // action was lost without any feedback. Waiting in the same single
+        // slot keeps the poll chain alive (the reason the tick must not
+        // simply be swallowed by the busy guard) without taking the request
+        // down with it. Event-driven, not a retry timer: a 50 ms poll used to
+        // wake the main thread twenty times a second for the whole roundtrip
+        // (a 3 s backend call cost ~60 wakeups); afterRoundtrip fires once,
+        // when the response has rendered, and the tick then fires on the
+        // next macrotask like the Websocket queue drains (cc/Websocket).
+        // The slot holds the cancel function meanwhile, which is why every
+        // cancel goes through Lib.cancelTimer.
         if (AppState.state.isBusy) {
-          timers[timerKey] = setTimeout(fire, TIMER_BUSY_RETRY_MS);
+          const cancel = Lib.afterRoundtrip(oController, () => {
+            timers[timerKey] = setTimeout(fire, 0);
+          });
+          if (!(timerKey in timers)) timers[timerKey] = cancel;
           return;
         }
         // dispatch as a background event (args[2] = ignore busy): between
@@ -220,47 +228,55 @@ sap.ui.define(
 
       // The control may still be missing from the DOM when SET_FOCUS runs
       // together with a fresh view build. Apply now if it is rendered,
-      // otherwise once it is.
-      Lib.whenRendered(oElement, oController, () => {
-        applyFocus();
-        const dom = oElement.getDomRef();
-        if (dom && dom.contains(document.activeElement)) return;
-        // The focus did not stick. A view_model_update in the same response
-        // may have changed the control - e.g. re-enabled a locked input via
-        // its `enabled` binding: the control already reports the new state,
-        // but the DOM still carries the OLD rendering until UI5's async
-        // re-render, and the browser silently ignores focus() on a disabled
-        // element. Re-apply once after the pending re-render has replaced
-        // the DOM.
-        const prevActive = document.activeElement;
-        // "Same place" by node OR by element id: when the re-render also
-        // rebuilt the element that held the focus (the pressed button in the
-        // same form), the focus sits on a NEW node of the SAME control
-        // afterwards - that still counts as "the user did not move it".
-        const samePlace = (el) =>
-          el == null ||
-          el === document.body ||
-          el === prevActive ||
-          Boolean(el.id && prevActive && el.id === prevActive.id);
-        const delegate = {
-          onAfterRendering: () => {
-            oElement.removeEventDelegate(delegate);
-            // Defer past the rendering task: when the re-render replaced the
-            // focused element, UI5's FocusHandler restores its focus AFTER
-            // all onAfterRendering delegates ran - focusing here would be
-            // overridden right away.
-            setTimeout(() => {
-              if (!Lib.isControllerAlive(oController)) return;
-              // Only when the focus was not actively moved elsewhere in
-              // between - a re-render at some arbitrary later point must
-              // never steal the user's focus.
-              if (!samePlace(document.activeElement)) return;
-              applyFocus();
-            }, 0);
-          },
-        };
-        oElement.addEventDelegate(delegate);
-      });
+      // otherwise once it is. Keyed: one pending focus per control, so a
+      // SET_FOCUS in every response of a poll-driven app does not stack a
+      // delegate per tick on a control that never re-renders (Lib.onNextRendering)
+      Lib.whenRendered(
+        oElement,
+        oController,
+        () => {
+          applyFocus();
+          const dom = oElement.getDomRef();
+          if (dom && dom.contains(document.activeElement)) return;
+          // The focus did not stick. A view_model_update in the same response
+          // may have changed the control - e.g. re-enabled a locked input via
+          // its `enabled` binding: the control already reports the new state,
+          // but the DOM still carries the OLD rendering until UI5's async
+          // re-render, and the browser silently ignores focus() on a disabled
+          // element. Re-apply once after the pending re-render has replaced
+          // the DOM.
+          const prevActive = document.activeElement;
+          // "Same place" by node OR by element id: when the re-render also
+          // rebuilt the element that held the focus (the pressed button in the
+          // same form), the focus sits on a NEW node of the SAME control
+          // afterwards - that still counts as "the user did not move it".
+          const samePlace = (el) =>
+            el == null ||
+            el === document.body ||
+            el === prevActive ||
+            Boolean(el.id && prevActive && el.id === prevActive.id);
+          // one pending retry per control, like the outer wait (same reason)
+          Lib.onNextRendering(
+            oElement,
+            () => {
+              // Defer past the rendering task: when the re-render replaced the
+              // focused element, UI5's FocusHandler restores its focus AFTER
+              // all onAfterRendering delegates ran - focusing here would be
+              // overridden right away.
+              setTimeout(() => {
+                if (!Lib.isControllerAlive(oController)) return;
+                // Only when the focus was not actively moved elsewhere in
+                // between - a re-render at some arbitrary later point must
+                // never steal the user's focus.
+                if (!samePlace(document.activeElement)) return;
+                applyFocus();
+              }, 0);
+            },
+            "focusRetry",
+          );
+        },
+        "focus",
+      );
     }
 
     function evScrollTo(oController, args) {

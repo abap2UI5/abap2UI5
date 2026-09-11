@@ -100,6 +100,16 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
+    " the shared prologue of hash_get_app_part / hash_get_shell_part - see
+    " the method body
+    CLASS-METHODS hash_split
+      IMPORTING
+        iv_hash      TYPE string
+      EXPORTING
+        ev_hash      TYPE string
+        ev_off       TYPE i
+        ev_check_app TYPE abap_bool.
+
     " upper bound for nav_app_call/nav_app_leave hops within a single
     " request - an app that navigates unconditionally in main( ) would
     " otherwise loop the work process forever
@@ -414,6 +424,44 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                       occ  = 0 ).
   ENDMETHOD.
 
+  METHOD hash_split.
+
+    " The prologue both halves of the split share - once, so the two
+    " cannot drift apart (their comments used to ask the reader to keep
+    " them in lockstep by hand). Strip the leading '#'; then decide the
+    " one shape that needs no search: an app hash starts with '/', a shell
+    " hash never does, and checking this BEFORE the '&/' search matters,
+    " because an app hash may itself contain '&/' in a parameter and
+    " splitting on that would truncate it (or fabricate a shell part out
+    " of an app-owned prefix). ev_off is the offset of '&/' in ev_hash, or
+    " -1 when there is none; ev_check_app says the leading-'/' shape was
+    " met, which the shell half answers differently from "no separator"
+    ev_hash      = iv_hash.
+    ev_off       = -1.
+    ev_check_app = abap_false.
+
+    IF ev_hash IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    IF ev_hash(1) = `#`.
+      ev_hash = substring( val = ev_hash
+                           off = 1 ).
+      IF ev_hash IS INITIAL.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    IF ev_hash(1) = `/`.
+      ev_check_app = abap_true.
+      RETURN.
+    ENDIF.
+
+    ev_off = find( val = ev_hash
+                   sub = `&/` ).
+
+  ENDMETHOD.
+
   METHOD hash_get_app_part.
     " Reduce a browser hash to the part that belongs to the running app - the
     " "app hash". Inside the SAP Fiori Launchpad the shell owns everything
@@ -422,29 +470,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " frontend and is the single place the backend knows about the shell hash;
     " without it every launchpad hash looks like "no route" and Back / reload /
     " a bookmark fall back to the '?app_start=' query.
-    result = iv_hash.
+    hash_split( EXPORTING iv_hash = iv_hash
+                IMPORTING ev_hash = result
+                          ev_off  = DATA(lv_off) ).
 
-    IF result IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    IF result(1) = `#`.
-      result = substring( val = result
-                          off = 1 ).
-      IF result IS INITIAL.
-        RETURN.
-      ENDIF.
-    ENDIF.
-
-    " An app hash starts with '/', a shell hash never does. Checking this
-    " first matters: an app hash may itself contain '&/' in a parameter, and
-    " splitting on that would truncate it.
-    IF result(1) = `/`.
-      RETURN.
-    ENDIF.
-
-    DATA(lv_off) = find( val = result
-                         sub = `&/` ).
+    " no separator - a leading '/', a bare hash, nothing at all: all app
     IF lv_off < 0.
       RETURN.
     ENDIF.
@@ -458,33 +488,19 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " launchpad SHELL owns - everything in front of '&/'
     " ('#<SemanticObject>-<action>&/<app hash>'). Standalone, or when the
     " hash is all app, there is no shell part and the result is empty.
-    " Same guard order as above, for the same reason: the leading-'/' check
-    " runs BEFORE the '&/' search, because an app hash may itself contain
-    " '&/' in a parameter and splitting on that would fabricate a shell part
-    " out of an app-owned prefix. Mirrors the shell half of Router.splitHash;
+    " Mirrors the shell half of Router.splitHash;
     " z2ui5_cl_ui5_client->app_state_get_href keeps the shell part in the
     " link it composes, so the recipient lands in this app instead of on the
     " launchpad home page.
-    DATA(lv_hash) = iv_hash.
+    hash_split( EXPORTING iv_hash      = iv_hash
+                IMPORTING ev_hash      = DATA(lv_hash)
+                          ev_off       = DATA(lv_off)
+                          ev_check_app = DATA(lv_check_app) ).
 
-    IF lv_hash IS INITIAL.
+    IF lv_hash IS INITIAL OR lv_check_app = abap_true.
       RETURN.
     ENDIF.
 
-    IF lv_hash(1) = `#`.
-      lv_hash = substring( val = lv_hash
-                           off = 1 ).
-      IF lv_hash IS INITIAL.
-        RETURN.
-      ENDIF.
-    ENDIF.
-
-    IF lv_hash(1) = `/`.
-      RETURN.
-    ENDIF.
-
-    DATA(lv_off) = find( val = lv_hash
-                         sub = `&/` ).
     IF lv_off < 0.
       " no separator: an inner hash reads as app (canonical, the default),
       " a raw location hash as a bare launchpad intent - all shell. See the
@@ -741,8 +757,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " app_start is client-controlled and is reflected into the error body:
     " the same class-name-safe strip as z2ui5_cl_ui5_action=>factory_first_start
     " applies, so a crafted value cannot smuggle markup into the response
-    DATA(lv_app_start) = ms_request-s_control-app_start.
-    REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_start WITH `` ##REGEX_POSIX.
+    DATA(lv_app_start) = z2ui5_cl_ui5_action=>app_start_safe( ms_request-s_control-app_start ).
 
     result = |Request failed| &&
              COND #( WHEN lv_app   IS NOT INITIAL THEN | in app { lv_app }| ) &&

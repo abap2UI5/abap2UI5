@@ -51,14 +51,24 @@ test("pagehide into the back/forward cache keeps the app alive", () => {
 // reaches it (every open client leaked across the re-launch).
 function loadForExit(appState, { modules = {} } = {}) {
   const noop = () => {};
-  return loadModule("Component.js", {
+  // exit() cancels the timers through Lib.cancelPendingTimers; the stub does
+  // what the shipped helper does (clear every slot) with the sandbox's
+  // clearTimeout, so runExit can see which handles were cleared
+  let sandboxRef = null;
+  const cancelPendingTimers = () => {
+    for (const key of Object.keys(appState.state.timers)) {
+      sandboxRef?.clearTimeout?.(appState.state.timers[key]);
+      delete appState.state.timers[key];
+    }
+  };
+  const loaded = loadModule("Component.js", {
     deps: {
       "sap/ui/core/UIComponent": { extend: (_name, def) => def, prototype: {} },
       "sap/ui/VersionInfo": {},
       "z2ui5/model/models": {},
       "z2ui5/core/Server": { endSession: noop, reset: noop },
       "z2ui5/devtools/DevTools": { exit: noop },
-      "z2ui5/core/Lib": { logError: noop },
+      "z2ui5/core/Lib": { logError: noop, cancelPendingTimers },
       "z2ui5/core/AppState": appState,
       "z2ui5/Util": {},
       "z2ui5/model/formatter": {},
@@ -70,6 +80,8 @@ function loadForExit(appState, { modules = {} } = {}) {
     // has not loaded it.
     sandbox: { sap: { ui: { require: (name) => modules[name] } } },
   });
+  sandboxRef = loaded.sandbox;
+  return loaded;
 }
 
 // The state fields exit() touches, at the defaults AppState.createState()

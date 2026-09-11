@@ -22,6 +22,14 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     " is ever bound, see get_instance
     CLASS-DATA gi_user_exit_dep TYPE REF TO z2ui5_if_exit.
     CLASS-DATA context          TYPE z2ui5_if_ui5_exit=>ty_s_http_context.
+    " the class name the lookup answered, remembered together with gi_me:
+    " get_user_exit_class is asked again after get_instance in the same
+    " request (the start page's system popup names the exit), and each
+    " lookup is a repository read. Known only once the instance is built -
+    " a failed instantiation leaves both unset, so the next request asks
+    " again (see exit_instantiate)
+    CLASS-DATA gv_exit_class       TYPE string.
+    CLASS-DATA gv_exit_class_known TYPE abap_bool.
 
   PRIVATE SECTION.
     " the default CSP meta tag, assembled once per roll area. This method
@@ -58,6 +66,8 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     ENDIF.
 
     gi_me = NEW z2ui5_cl_ui5_user_exit( ).
+    gv_exit_class       = lv_class_name.
+    gv_exit_class_known = abap_true.
     result = gi_me.
 
   ENDMETHOD.
@@ -102,6 +112,11 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_user_exit_class.
+
+    IF gv_exit_class_known = abap_true.
+      result = gv_exit_class.
+      RETURN.
+    ENDIF.
 
     TRY.
         " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user

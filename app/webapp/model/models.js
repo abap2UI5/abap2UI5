@@ -39,7 +39,13 @@ sap.ui.define(
           // class="{= ${device>/media/range} === 'Phone' ? 'a' : 'b' }".
           const oRange = Device.media.getCurrentRange(RANGE_SET);
           oModel.setProperty("/media/range", oRange ? oRange.name : "");
-          oModel.refresh(true);
+          // one UNFORCED sweep: every binding re-reads its path from the
+          // live Device object and fires change only where the value moved
+          // (the width on a resize, the orientation on a rotation). The
+          // refresh(true) this used to be on top of setProperty's own sweep
+          // forced a change on EVERY device> binding - {device>/system/phone}
+          // and friends re-rendered their controls on each resize frame
+          oModel.checkUpdate();
         };
 
         Device.resize.attachHandler(refresh);

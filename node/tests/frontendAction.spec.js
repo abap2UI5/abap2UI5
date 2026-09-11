@@ -43,11 +43,46 @@ function load({ sandbox, requires = {} } = {}) {
   // one defers to onAfterRendering when it is not. The stub runs it straight
   // away (the specs treat the anchor as already rendered).
   const Router = { sync: (...a) => calls.push(["router.sync", ...a]) };
+  const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
   const Lib = {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
     toText: (val) => (val == null ? "" : String(val)),
     whenRendered: (_control, _owner, fn) => fn(),
+    // the shipped helper's shape: a one-shot onAfterRendering delegate on
+    // the control, removed when it fired (SET_FOCUS's retry sits on it)
+    onNextRendering: (control, fn) => {
+      const delegate = {
+        onAfterRendering: () => {
+          control.removeEventDelegate(delegate);
+          fn();
+        },
+      };
+      control.addEventDelegate(delegate);
+    },
+    // the shipped helper's shape: run now when idle, else once after the
+    // roundtrip in flight rendered (START_TIMER's busy tick waits on it);
+    // returns the cancel
+    afterRoundtrip: (_owner, fn) => {
+      if (!AppState.state.isBusy) {
+        fn();
+        return () => {};
+      }
+      const waiting = (AppState.state.onAfterRendering ??= []);
+      const once = () => {
+        waiting.splice(waiting.indexOf(once), 1);
+        fn();
+      };
+      waiting.push(once);
+      return () => {
+        const i = waiting.indexOf(once);
+        if (i >= 0) waiting.splice(i, 1);
+      };
+    },
+    cancelTimer: (handle) => {
+      if (typeof handle === "function") handle();
+      else clearTimeout(handle);
+    },
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
     // the controller fixtures answer their own liveness (see START_TIMER);
     // the many specs that pass no controller at all run as "alive"
@@ -64,7 +99,6 @@ function load({ sandbox, requires = {} } = {}) {
       }
     },
   };
-  const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
   // the VIEW_SLOTS display/updateModel hook routes into actions/Slots; the
   // stub records the routed calls and lets a test swap the behavior
   const slotCalls = [];
@@ -2636,8 +2670,10 @@ test.describe("START_TIMER (backend timer liveness)", () => {
   test("a tick during a roundtrip waits for it instead of superseding it", () => {
     // a background eB while a request is in flight makes Server.readHttp
     // abort that request (newest wins) - the user's action was lost without
-    // feedback. The tick re-arms itself into the same slot until the
-    // roundtrip has landed, so the poll chain survives AND the request does
+    // feedback. The tick waits in the same slot until the roundtrip has
+    // landed, so the poll chain survives AND the request does. Event-driven:
+    // the slot holds the cancel of an afterRoundtrip wait, not a retry timer
+    // (a 50 ms poll used to wake the main thread twenty times a second)
     const timers = [];
     const { FrontendAction, AppState } = load({
       sandbox: {
@@ -2649,28 +2685,58 @@ test.describe("START_TIMER (backend timer liveness)", () => {
       },
     });
     AppState.state.timers = {};
+    AppState.state.onAfterRendering = [];
     const ebCalls = [];
     const oController = { eB: (a) => ebCalls.push(a) };
 
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
     AppState.state.isBusy = true;
     timers[0].fn();
-    // not dispatched, re-armed with a short retry, slot still occupied
+    // not dispatched, no retry timer armed, the slot holds the wait
     expect(ebCalls).toEqual([]);
-    expect(timers).toHaveLength(2);
-    expect(timers[1].ms).toBeLessThan(1000);
-    expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
+    expect(timers).toHaveLength(1);
+    expect(typeof AppState.state.timers.START_TIMER).toBe("function");
+    expect(AppState.state.onAfterRendering).toHaveLength(1);
 
-    // still busy: keeps waiting
-    timers[1].fn();
-    expect(ebCalls).toEqual([]);
-    expect(timers).toHaveLength(3);
-
-    // the roundtrip landed: the next retry dispatches as a background event
+    // the roundtrip landed: the tick fires on the next macrotask, as a
+    // background event
     AppState.state.isBusy = false;
-    timers[2].fn();
+    for (const fn of [...AppState.state.onAfterRendering]) fn();
+    expect(AppState.state.onAfterRendering).toEqual([]);
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBe(0);
+    expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
+    timers[1].fn();
     expect(ebCalls).toEqual([["POLL", false, true]]);
     expect(AppState.state.timers).toEqual({});
+  });
+
+  test("a new START_TIMER cancels a tick that is waiting for the roundtrip", () => {
+    const timers = [];
+    const { FrontendAction, AppState } = load({
+      sandbox: {
+        setTimeout: (fn, ms) => {
+          timers.push({ fn, ms });
+          return timers.length;
+        },
+        clearTimeout: () => {},
+      },
+    });
+    AppState.state.timers = {};
+    AppState.state.onAfterRendering = [];
+    const oController = { eB: () => {} };
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    AppState.state.isBusy = true;
+    timers[0].fn();
+    expect(AppState.state.onAfterRendering).toHaveLength(1);
+
+    // the slot holds a cancel function, and a replacing START_TIMER runs it:
+    // the old wait must not fire the old tick on top of the new timer
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "500"]);
+    expect(AppState.state.onAfterRendering).toEqual([]);
+    expect(timers).toHaveLength(2);
+    expect(timers[1].ms).toBe(500);
   });
 });
 

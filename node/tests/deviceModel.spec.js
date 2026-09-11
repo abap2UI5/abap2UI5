@@ -34,7 +34,10 @@ function loadModels({ range = "Desktop" } = {}) {
   const oModel = {
     setDefaultBindingMode(mode) { this.mode = mode; },
     setProperty(path, value) { set[path] = value; },
-    refresh() { refreshed += 1; },
+    // the unforced sweep the handler asks for - refresh(true) on top of it
+    // used to force a change on every device> binding per resize frame
+    checkUpdate() { refreshed += 1; },
+    refresh() { throw new Error("refresh(true) forces every device> binding"); },
   };
 
   const { module: models } = loadModule("model/models.js", {

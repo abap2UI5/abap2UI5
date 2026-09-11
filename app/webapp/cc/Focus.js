@@ -117,9 +117,7 @@ sap.ui.define(
       _textInput(oElement) {
         try {
           const ref = oElement.getFocusDomRef?.();
-          if (ref && (ref.tagName === "INPUT" || ref.tagName === "TEXTAREA")) {
-            return ref;
-          }
+          if (Lib.isTextInput(ref)) return ref;
           const root = oElement.getDomRef?.();
           return root?.querySelector?.("input, textarea") || null;
         } catch {
