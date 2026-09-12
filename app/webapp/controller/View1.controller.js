@@ -200,6 +200,12 @@ sap.ui.define(
           // render-dependent actions like SET_FOCUS find their control.
           if (!replaced) this._runPendingCustomJs(oResponse);
           if (!superseded) {
+            // The event a check_queue_last wire kept while this roundtrip ran
+            // goes out first: it belongs to the screen this response built.
+            // A parked hash change is re-parked by the router when that
+            // dispatch made the app busy again, and delivered by the next
+            // response - order preserved, nothing lost.
+            this._dispatchQueuedEvent();
             // an app-hash change (Back/Forward under app-owned routing) that
             // arrived while this roundtrip was in flight was parked by the
             // router - deliver it now that the busy guard would let it through
@@ -235,6 +241,24 @@ sap.ui.define(
 
       // Execute the follow-up JS snippets stashed by Server.responseSuccess.
       // Runs once per roundtrip, after the view has rendered.
+      // The read side of the queueLast slot in eB: the LAST event a
+      // check_queue_last wire fired while the roundtrip that just landed was
+      // in flight. Dispatched through eB itself, so it is a roundtrip like
+      // any other - it picks its model (the edits typed meanwhile are still
+      // pending, see Server._clearSentPaths), marks the app busy, and is
+      // queued AGAIN should something else have started a roundtrip first.
+      // The slot is cleared before the dispatch, so the dispatch can refill
+      // it. An event whose controller is gone - the app torn down, the popup
+      // it was typed into closed by the response - is dropped: its screen
+      // is gone, and its model with it.
+      _dispatchQueuedEvent() {
+        const queued = AppState.state.oQueuedEvent;
+        if (!queued) return;
+        AppState.state.oQueuedEvent = null;
+        if (!Lib.isControllerAlive(queued.controller)) return;
+        queued.controller.eB(...queued.args);
+      },
+
       _runPendingCustomJs(oResponse) {
         const customJs = oResponse?._pendingCustomJs;
         if (oResponse) oResponse._pendingCustomJs = null;
@@ -325,9 +349,16 @@ sap.ui.define(
       //   [3] "use main view model" flag - events fired from a popup or
       //       popover controller that still target the main app's model;
       //       not emitted by the framework today, only by custom JS
+      //   [4] "queue last" flag (s_ctrl-check_queue_last) - while a roundtrip
+      //       is in flight the LAST event fired on this wire is kept and
+      //       dispatched once the response has landed (see the busy guard
+      //       below and _dispatchQueuedEvent); for per-keystroke wires
+      // A new flag goes BEHIND the existing ones - the backend (get_event)
+      // and this destructuring agree on the positions, and a wire rendered
+      // by an older backend must keep reading the same.
       // ------------------------------------------------------------------
       eB(...args) {
-        const [, , ignoreBusy, useMainModel] = args[0];
+        const [, , ignoreBusy, useMainModel, queueLast] = args[0];
 
         if (!navigator.onLine) {
           MessageBox.alert(
@@ -343,7 +374,24 @@ sap.ui.define(
         // one steady indicator until the response lands - not a modal flashing
         // in and straight back out over the (1s-delayed) global one. show() is
         // idempotent, so repeated drops during the same roundtrip are cheap.
+        //
+        // A wire that carries queueLast is not dropped but KEPT - one slot,
+        // last wins - and dispatched through this very method once the
+        // in-flight roundtrip has landed (_dispatchQueuedEvent). Dropping is
+        // right for a click; for a per-keystroke wire it lost every keystroke
+        // typed while a roundtrip ran, the last one included, and left the
+        // backend at the value of the last COMPLETED roundtrip while the
+        // control showed the current one (samples-controls 280, sap.m.TextArea:
+        // `abc` typed at once left the bound field at `a`). The arguments are
+        // marshalled now, not at dispatch: a control-valued argument may well
+        // be destroyed by the response that lands in between.
         if (AppState.state.isBusy && !ignoreBusy) {
+          if (queueLast) {
+            AppState.state.oQueuedEvent = {
+              controller: this,
+              args: Lib.normalizeEventArgs(args),
+            };
+          }
           BusyIndicator.show(0);
           return;
         }
@@ -379,6 +427,16 @@ sap.ui.define(
           if (data) {
             oBody.MODEL = Lib.buildDeltaFromPaths(changedPaths, data);
           }
+          // The value of every path as it goes out. The winning response
+          // clears a path only when the model still holds this value
+          // (Server._clearSentPaths) - a path re-edited while the request
+          // was in flight stays pending and travels with the next roundtrip.
+          oModel._z2ui5SentValues = new Map(
+            Array.from(changedPaths, (path) => [
+              path,
+              oModel.getProperty(path),
+            ]),
+          );
         }
         // Remember which model this request carried so the winning response
         // clears exactly its edits (Server.readHttp) - a stale response clears

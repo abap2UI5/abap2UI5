@@ -77,6 +77,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        this._abortInflight();` && |\n| &&
              `        this._viewBuild = null;` && |\n| &&
              `` && |\n| &&
+             `        AppState.state.oQueuedEvent = null;` && |\n| &&
+             `` && |\n| &&
              `        ErrorView.reset();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -261,7 +263,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          Session.confirmSent(sessionCarried);` && |\n| &&
              `` && |\n| &&
-             `          AppState.state.oSentModel?._z2ui5ChangedPaths?.clear();` && |\n| &&
+             `          this._clearSentPaths(AppState.state.oSentModel);` && |\n| &&
              `          AppState.state.oSentModel = null;` && |\n| &&
              `          this.responseSuccess(` && |\n| &&
              `            {` && |\n| &&
@@ -281,6 +283,25 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        } finally {` && |\n| &&
              `          this._inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _clearSentPaths(oModel) {` && |\n| &&
+             `        const pending = oModel?._z2ui5ChangedPaths;` && |\n| &&
+             `        if (!pending) return;` && |\n| &&
+             `        const sentValues = oModel._z2ui5SentValues;` && |\n| &&
+             `        oModel._z2ui5SentValues = null;` && |\n| &&
+             `        if (!sentValues) {` && |\n| &&
+             `          pending.clear();` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        for (const path of Array.from(pending)) {` && |\n| &&
+             `          if (` && |\n| &&
+             `            sentValues.has(path) &&` && |\n| &&
+             `            sentValues.get(path) === oModel.getProperty(path)` && |\n| &&
+             `          ) {` && |\n| &&
+             `            pending.delete(path);` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -336,6 +357,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `      responseError(response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
              `        AppState.state.isBusy = false;` && |\n| &&
+             `` && |\n| &&
+             `        AppState.state.oQueuedEvent = null;` && |\n| &&
              `        ErrorView.show(response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&

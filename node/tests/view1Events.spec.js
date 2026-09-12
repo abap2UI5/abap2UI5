@@ -224,9 +224,13 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
   });
 
   test("a slot with no recorded owner keeps the unconditional push", () => {
-    const { Slots, applied } = withSlots(["MAIN"], {}, {
-      responseApp: "ZCL_LIST_POPUP",
-    });
+    const { Slots, applied } = withSlots(
+      ["MAIN"],
+      {},
+      {
+        responseApp: "ZCL_LIST_POPUP",
+      },
+    );
     Slots.action("updateModel", undefined, undefined, {});
     expect(applied.map((a) => a.key)).toEqual(["MAIN"]);
   });
@@ -247,10 +251,18 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
   // MAIN - a popup app's response leaves them alone with it
   test("nested slots stay with the caller while a popup app answers", () => {
     const model = { MS_ROW: { A: 1 } };
-    const { Slots, applied } = withSlots(["MAIN", "NEST", "NEST2", "POPUP"], model, {
-      slotApps: { MAIN: "ZCL_LIST", NEST: "ZCL_LIST", POPUP: "ZCL_LIST_POPUP" },
-      responseApp: "ZCL_LIST_POPUP",
-    });
+    const { Slots, applied } = withSlots(
+      ["MAIN", "NEST", "NEST2", "POPUP"],
+      model,
+      {
+        slotApps: {
+          MAIN: "ZCL_LIST",
+          NEST: "ZCL_LIST",
+          POPUP: "ZCL_LIST_POPUP",
+        },
+        responseApp: "ZCL_LIST_POPUP",
+      },
+    );
     Slots.action("updateModel", undefined, undefined, {});
     expect(applied).toEqual([{ key: "POPUP", data: model }]);
   });
@@ -472,8 +484,17 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   // phase 2: it ended the busy state the restore relies on and let Router.sync
   // consume the restore's navFromHash flag. ONE stamp answers both phases.
   test("a response cut short by a newer REQUEST stops before phase 2", async () => {
-    const { ctrl, state, server, pushes, syncs, hooks, busy, pendingHash, customs } =
-      loadForAfterRendering();
+    const {
+      ctrl,
+      state,
+      server,
+      pushes,
+      syncs,
+      hooks,
+      busy,
+      pendingHash,
+      customs,
+    } = loadForAfterRendering();
     state.oResponse = {
       ID: "D1",
       MODELPRESENT: true,
@@ -888,5 +909,207 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     setOData(ViewOps, "/svc/three/", "app");
     expect(destroyed).toEqual([clients[0]]);
     expect(state.odataClients.size).toBe(2);
+  });
+});
+
+test.describe("eB busy guard with check_queue_last (queued last event)", () => {
+  // The wire of client->_event( s_ctrl-check_queue_last ): the event array
+  // carries the flag at position [4], behind the reserved placeholder,
+  // ignoreBusy and useMainModel (z2ui5_cl_ui5_srv_event=>get_event).
+  const QUEUED = ["LIVE_CHANGE", false, false, false, true];
+  const PLAIN = ["PRESS"];
+
+  // One harness for BOTH sides of the slot: eB (the write side - the busy
+  // guard that keeps instead of drops) and _processAfterRendering (the
+  // read side - the dispatch once the roundtrip landed), on the same
+  // controller, with a model whose edits the dispatch has to carry.
+  function loadForQueue() {
+    const roundtrips = [];
+    const busy = [];
+    const pendingHash = [];
+    const state = {
+      isBusy: false,
+      oQueuedEvent: null,
+      oSentModel: null,
+      onBeforeRoundtrip: [],
+      onAfterRoundtrip: [],
+      onAfterRendering: [],
+    };
+    const values = { VALUE: "" };
+    const model = {
+      _z2ui5ChangedPaths: new Set(),
+      getData: () => values,
+      getProperty: (path) => values[path.slice(1)],
+    };
+    const app = { alive: true };
+    const { module: ctrl } = loadModule("controller/View1.controller.js", {
+      deps: {
+        "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
+        "sap/ui/core/BusyIndicator": {
+          show: (delay) => busy.push(delay === 0 ? "show(0)" : "show"),
+          hide: () => busy.push("hide"),
+        },
+        "sap/m/MessageBox": {},
+        "z2ui5/core/Server": {
+          _requestSeq: 1,
+          responseError: () => {},
+          roundtrip: (body) => roundtrips.push(body),
+        },
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          isControllerAlive: (c) => app.alive && c === ctrl,
+          runCallbacks: (arr) => (arr || []).forEach((f) => f()),
+          logError: () => {},
+          cancelPendingTimers: () => {},
+          // the shipped helper returns a fresh array and leaves plain data
+          // alone - which is all a queued event holds
+          normalizeEventArgs: (args) => args.slice(),
+          buildDeltaFromPaths: (paths, data) => {
+            const delta = {};
+            for (const p of paths) delta[p.slice(1)] = data[p.slice(1)];
+            return delta;
+          },
+          isRootModelSlot: () => true,
+        },
+        "z2ui5/core/FrontendAction": {
+          runSystem: () => {},
+          runCustom: () => {},
+        },
+        "z2ui5/core/actions/Slots": {
+          action: () => {},
+          resolveTrackedModel: () => model,
+        },
+        "z2ui5/core/ViewSlots": {
+          keyOfController: () => "MAIN",
+          getView: () => ({}),
+          destroy: () => {},
+        },
+        "z2ui5/core/Router": {
+          sync: () => {},
+          dispatchPendingAppHash: () => pendingHash.push("delivered"),
+        },
+        "z2ui5/core/AppState": { state },
+      },
+      sandbox: { navigator: { onLine: true } },
+    });
+    // typing into the bound field: the control writes the model and the
+    // change tracker (actions/Slots trackChanges) records the path
+    const type = (text) => {
+      values.VALUE = text;
+      model._z2ui5ChangedPaths.add("/VALUE");
+    };
+    return { ctrl, state, roundtrips, busy, pendingHash, model, type, app };
+  }
+
+  test("a queued wire fired while busy keeps the LAST event only, and shows the indicator", () => {
+    const { ctrl, state, roundtrips, busy } = loadForQueue();
+    state.isBusy = true;
+
+    ctrl.eB(QUEUED, "a");
+    ctrl.eB(QUEUED, "ab");
+    ctrl.eB(QUEUED, "abc");
+
+    expect(roundtrips).toEqual([]);
+    expect(state.oQueuedEvent.controller).toBe(ctrl);
+    expect(state.oQueuedEvent.args).toEqual([QUEUED, "abc"]);
+    // the same steady overlay a dropped click shows, once per firing
+    expect(busy).toEqual(["show(0)", "show(0)", "show(0)"]);
+  });
+
+  test("a wire without the flag is dropped as before", () => {
+    const { ctrl, state, roundtrips, busy } = loadForQueue();
+    state.isBusy = true;
+
+    ctrl.eB(PLAIN);
+
+    expect(roundtrips).toEqual([]);
+    expect(state.oQueuedEvent).toBeNull();
+    expect(busy).toEqual(["show(0)"]);
+  });
+
+  test("the queued event is dispatched through eB once the response has landed", async () => {
+    const { ctrl, state, roundtrips, pendingHash, type } = loadForQueue();
+
+    // keystroke 1 goes out at once ...
+    type("a");
+    ctrl.eB(QUEUED, "a");
+    expect(roundtrips).toHaveLength(1);
+    expect(roundtrips[0].MODEL).toEqual({ VALUE: "a" });
+    expect(state.isBusy).toBe(true);
+
+    // ... keystrokes 2 and 3 meet the roundtrip in flight
+    type("ab");
+    ctrl.eB(QUEUED, "ab");
+    type("abc");
+    ctrl.eB(QUEUED, "abc");
+    expect(roundtrips).toHaveLength(1);
+
+    // the response lands: the winning request's clear keeps /VALUE pending,
+    // because the model no longer holds the value that went out (the
+    // Server side of that rule is serverRequestSeq.spec.js)
+    state.oResponse = { ID: "D1", MODELPRESENT: false };
+    await ctrl._processAfterRendering(1);
+
+    // the last keystroke went out as a roundtrip of its own, carrying the
+    // control's current value both as its argument and in the model delta
+    expect(roundtrips).toHaveLength(2);
+    expect(roundtrips[1].ARGUMENTS).toEqual([QUEUED, "abc"]);
+    expect(roundtrips[1].MODEL).toEqual({ VALUE: "abc" });
+    expect(state.oQueuedEvent).toBeNull();
+    // one roundtrip in flight at a time: the app is busy again ...
+    expect(state.isBusy).toBe(true);
+    // ... and the parked hash was still offered to the router (which
+    // re-parks it while busy)
+    expect(pendingHash).toEqual(["delivered"]);
+  });
+
+  test("the queued event's own dispatch is not swallowed by the guard", async () => {
+    const { ctrl, state, roundtrips } = loadForQueue();
+    state.isBusy = true;
+    ctrl.eB(QUEUED, "abc");
+
+    state.oResponse = { ID: "D1", MODELPRESENT: false };
+    await ctrl._processAfterRendering(1);
+
+    expect(roundtrips).toHaveLength(1);
+    expect(roundtrips[0].ARGUMENTS).toEqual([QUEUED, "abc"]);
+  });
+
+  test("a superseded response leaves the queued event to the newer request", async () => {
+    const { ctrl, state, roundtrips } = loadForQueue();
+    state.isBusy = true;
+    ctrl.eB(QUEUED, "abc");
+
+    // a newer request went out while this response's actions ran
+    state.oResponse = { ID: "D1", MODELPRESENT: false };
+    await ctrl._processAfterRendering(0);
+
+    expect(roundtrips).toEqual([]);
+    expect(state.oQueuedEvent.args).toEqual([QUEUED, "abc"]);
+    expect(state.isBusy).toBe(true);
+  });
+
+  test("a queued event whose controller is gone is dropped, not dispatched", async () => {
+    const { ctrl, state, roundtrips } = loadForQueue();
+    state.isBusy = true;
+    ctrl.eB(QUEUED, "abc");
+    // the popup the keystroke was typed into was closed by the response
+    state.oQueuedEvent.controller = { eB: () => roundtrips.push("dead") };
+
+    state.oResponse = { ID: "D1", MODELPRESENT: false };
+    await ctrl._processAfterRendering(1);
+
+    expect(roundtrips).toEqual([]);
+    expect(state.oQueuedEvent).toBeNull();
+  });
+
+  test("ignoreBusy wins over queueLast - the event is sent at once, never queued", () => {
+    const { ctrl, state, roundtrips } = loadForQueue();
+    state.isBusy = true;
+
+    ctrl.eB(["LIVE_CHANGE", false, true, false, true], "abc");
+
+    expect(roundtrips).toHaveLength(1);
+    expect(state.oQueuedEvent).toBeNull();
   });
 });

@@ -199,3 +199,65 @@ test("the single response commits in the default (non-parallel) case", async () 
   expect(successes).toHaveLength(1);
   expect(successes[0].ID).toBe("only");
 });
+
+// The winning request's clear is value-aware: View1.eB snapshots the value of
+// every path it ships (_z2ui5SentValues), and Server._clearSentPaths clears a
+// path only while the model still holds that value. What was typed while the
+// request was in flight - a path re-edited since it went out, or one edited
+// for the first time - stays pending and travels with the next roundtrip; the
+// event a check_queue_last wire kept meanwhile is exactly that roundtrip.
+test("the winning response keeps the paths edited while it was in flight", async () => {
+  const { Server, fetchCalls, appState } = load();
+  const values = { VALUE: "abc", QTY: 2, NAME: "x" };
+  const oModel = {
+    _z2ui5ChangedPaths: new Set(["/VALUE", "/QTY", "/NAME"]),
+    // shipped: VALUE as "a", QTY as 2; NAME was edited during the flight
+    _z2ui5SentValues: new Map([
+      ["/VALUE", "a"],
+      ["/QTY", 2],
+    ]),
+    getProperty: (path) => values[path.slice(1)],
+  };
+  appState.state.oSentModel = oModel;
+
+  const p = Server.readHttp({});
+  fetchCalls[0].resolve(okResponse("A"));
+  await p;
+
+  // QTY reached the backend as the model still holds it; VALUE was re-edited
+  // since it went out and NAME never went out at all
+  expect(Array.from(oModel._z2ui5ChangedPaths).sort()).toEqual([
+    "/NAME",
+    "/VALUE",
+  ]);
+  expect(oModel._z2ui5SentValues).toBeNull();
+  expect(appState.state.oSentModel).toBeNull();
+});
+
+test("reset() drops a queued event, so it never lands in the next app", () => {
+  const { Server, appState } = load();
+  appState.state.oQueuedEvent = { controller: {}, args: [["LIVE_CHANGE"]] };
+
+  Server.reset(); // the FLP teardown
+
+  expect(appState.state.oQueuedEvent).toBeNull();
+});
+
+test("responseError drops a queued event - the overlay ends the app", () => {
+  // the real responseError, not the spy load() installs
+  const shown = [];
+  const appState = { state: { isBusy: true, oQueuedEvent: { args: [] } } };
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      "z2ui5/core/AppState": appState,
+      "z2ui5/core/ErrorView": { show: (e) => shown.push(e), reset: () => {} },
+    },
+  });
+
+  Server.responseError("HTTP 500");
+
+  expect(shown).toEqual(["HTTP 500"]);
+  expect(appState.state.isBusy).toBe(false);
+  expect(appState.state.oQueuedEvent).toBeNull();
+});
