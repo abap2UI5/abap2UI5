@@ -32,13 +32,13 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `` && |\n| &&
              `    const dirtyControls = new Set();` && |\n| &&
              `` && |\n| &&
+             `    const promptOnUnload = (e) => {` && |\n| &&
+             `      e.preventDefault();` && |\n| &&
+             `      e.returnValue = "";` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    function syncUnloadPrompt(anyDirty) {` && |\n| &&
-             `      window.onbeforeunload = anyDirty` && |\n| &&
-             `        ? (e) => {` && |\n| &&
-             `            e.preventDefault();` && |\n| &&
-             `            e.returnValue = "";` && |\n| &&
-             `          }` && |\n| &&
-             `        : null;` && |\n| &&
+             `      window.onbeforeunload = anyDirty ? promptOnUnload : null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const Dirty = Control.extend("z2ui5.cc.Dirty", {` && |\n| &&

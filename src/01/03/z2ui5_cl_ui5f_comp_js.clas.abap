@@ -63,14 +63,12 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      init() {` && |\n| &&
              `        AppState.initGlobal();` && |\n| &&
              `` && |\n| &&
+             `        const paths = {};` && |\n| &&
              `        const ccResourceRoot = AppState.getGlobal("ccResourceRoot");` && |\n| &&
-             `        if (ccResourceRoot) {` && |\n| &&
-             `          sap.ui.loader.config({ paths: { z2ui5_cci: ccResourceRoot } });` && |\n| &&
-             `        }` && |\n| &&
+             `        if (ccResourceRoot) paths.z2ui5_cci = ccResourceRoot;` && |\n| &&
              `        const cccResourceRoot = AppState.getGlobal("cccResourceRoot");` && |\n| &&
-             `        if (cccResourceRoot) {` && |\n| &&
-             `          sap.ui.loader.config({ paths: { z2ui5_ccc: cccResourceRoot } });` && |\n| &&
-             `        }` && |\n| &&
+             `        if (cccResourceRoot) paths.z2ui5_ccc = cccResourceRoot;` && |\n| &&
+             `        if (Object.keys(paths).length) sap.ui.loader.config({ paths });` && |\n| &&
              `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
              `` && |\n| &&

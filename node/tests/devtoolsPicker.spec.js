@@ -9,6 +9,10 @@ const { loadModule } = require("./loadModule");
 
 function loadPicker({ slotKey = "MAIN", closestTo, viewXml = "" } = {}) {
   const { module } = loadModule("devtools/Picker.js", {
+    // devtools/Format.js (the shared FRAMEWORK_CALL regex) is loaded for
+    // real: every other dependency is stubbed below, so autoLoad reaches
+    // only that one module
+    autoLoad: true,
     deps: {
       "sap/ui/core/Element": closestTo ? { closestTo } : {},
       "z2ui5/core/Lib": { logError() {}, getElementById: () => null },
@@ -206,6 +210,7 @@ test.describe("last report", () => {
   function loadPickerWithDom() {
     const listeners = [];
     const { module } = loadModule("devtools/Picker.js", {
+      autoLoad: true, // the real devtools/Format.js, as in loadPicker
       deps: {
         "sap/ui/core/Element": {},
         "z2ui5/core/Lib": { logError() {}, getElementById: () => null },

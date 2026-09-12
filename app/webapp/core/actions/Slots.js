@@ -465,8 +465,12 @@ sap.ui.define(
         const pending = tracked._z2ui5ChangedPaths;
         const keep = [];
         if (pending?.size) {
-          for (const path of pending)
-            keep.push([path, tracked.getProperty(path)]);
+          for (const path of pending) {
+            const value = tracked.getProperty(path);
+            // an unreadable path has nothing to re-apply; dropped HERE so
+            // the batch below ends on a write that exists
+            if (value !== undefined) keep.push([path, value]);
+          }
         }
         tracked.setData(
           dataForSlot(slotKey, AppState.state.oResponse?.OVIEWMODEL),
@@ -477,9 +481,7 @@ sap.ui.define(
         // Only the last write triggers the synchronous sweep; the earlier
         // ones publish with it (the flag is on setProperty since 1.71).
         keep.forEach(([path, value], i) => {
-          if (value !== undefined) {
-            tracked.setProperty(path, value, undefined, i < keep.length - 1);
-          }
+          tracked.setProperty(path, value, undefined, i < keep.length - 1);
         });
         return;
       }

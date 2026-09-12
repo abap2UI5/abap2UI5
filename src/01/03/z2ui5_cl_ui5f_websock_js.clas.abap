@@ -38,6 +38,9 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `` && |\n| &&
              `    const MAX_QUEUE = 100;` && |\n| &&
              `` && |\n| &&
+             `    const WS_URL = /^wss?:\/\//i;` && |\n| &&
+             `    const HTTP_SCHEME = /^http/i;` && |\n| &&
+             `` && |\n| &&
              `    return Control.extend("z2ui5.cc.Websocket", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -114,9 +117,9 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `      _resolveUrl() {` && |\n| &&
              `        const path = this.getProperty("path");` && |\n| &&
              `        if (!path) return "";` && |\n| &&
-             `        if (/^wss?:\/\//i.test(path)) return path;` && |\n| &&
+             `        if (WS_URL.test(path)) return path;` && |\n| &&
              `` && |\n| &&
-             `        const origin = window.location.origin.replace(/^http/i, "ws");` && |\n| &&
+             `        const origin = window.location.origin.replace(HTTP_SCHEME, "ws");` && |\n| &&
              `        return path.charAt(0) === "/" ? origin + path : origin + "/" + path;` && |\n| &&
              `      },` && |\n| &&
              `      _connect() {` && |\n| &&
@@ -278,12 +281,7 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `          }, 0);` && |\n| &&
              `        });` && |\n| &&
              `      },` && |\n| &&
-             `      renderer: {` && |\n| &&
-             `        apiVersion: 2,` && |\n| &&
-             `        render(oRm, oControl) {` && |\n| &&
-             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
+             `      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

@@ -516,7 +516,7 @@ sap.ui.define(
         // exclusive by construction - both claim the whole app hash.
         if (state.hashEvent) return;
         // The live URL must match the format the copy link
-        // (FrontendAction.evClipboardAppState) writes and the backend restore
+        // (actions/Browser.js evClipboardAppState) writes and the backend restore
         // path expects: the app-state id is read as a URL parameter of the
         // app hash, i.e. after exactly one "/". navTo strips the leading
         // slash and standalone hasher prepends exactly one again; inside the

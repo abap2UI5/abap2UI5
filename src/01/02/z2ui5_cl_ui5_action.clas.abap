@@ -220,8 +220,6 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
            result->ms_next-s_nav-nav_app_call_prev_app,
            result->ms_next-s_nav-nav_app_call_prev_id.
 
-    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
-
     " the leave target was never persisted (a fresh app instance) - it takes
     " over the current app's position in the stack. Whether it was is what
     " prepare_app_stack just found out: its load fails closed for exactly
@@ -241,6 +239,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " check_exists( ) in front of it answered false for (no row, a foreign
     " owner), so the guard was a second SELECT on the same key per hop
     IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
+      DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
       TRY.
           DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
           result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.

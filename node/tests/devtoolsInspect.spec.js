@@ -95,6 +95,10 @@ function loadInspect({
   };
   const { Lib } = loadLib({ sap: sapGlobal });
   const { module } = loadModule("devtools/Inspect.js", {
+    // devtools/Format.js (the shared truncate/formatBytes) is loaded for
+    // real: every other dependency is stubbed below, so autoLoad reaches
+    // only that one module
+    autoLoad: true,
     deps: {
       "sap/ui/Device": {
         system: { desktop: true },

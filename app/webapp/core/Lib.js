@@ -364,8 +364,9 @@ sap.ui.define(
     // message ("writing to" / "reading").
     function resolveStorageType(Storage, type, context, verb) {
       const typeKey = String(type || "").toLowerCase();
-      const storageType = Storage.Type[typeKey] || Storage.Type.session;
-      if (type && !Storage.Type[typeKey]) {
+      const known = Storage.Type[typeKey];
+      const storageType = known || Storage.Type.session;
+      if (type && !known) {
         logError(
           `${context}: unknown type '${type}', ${verb} the session store`,
         );
@@ -392,13 +393,13 @@ sap.ui.define(
         KEY: item.getKey(),
         TEXT: item.getText(),
       }));
-      control.setProperty("addedTokens", isRemoved ? [] : tokens);
-      control.setProperty("removedTokens", isRemoved ? tokens : []);
+      // suppressed invalidation: both callers render nothing
+      // (Lib.EMPTY_RENDERER), and the binding write the backend reads
+      // happens either way
+      control.setProperty("addedTokens", isRemoved ? [] : tokens, true);
+      control.setProperty("removedTokens", isRemoved ? tokens : [], true);
     }
 
-    // Run every callback in `callbacks` (the shared callback arrays above),
-    // swallowing individual failures so one bad callback cannot break the
-    // whole event sequence.
     // Runs `fn` once the roundtrip a control just started has landed - right
     // away when it started none (state.isBusy is set synchronously by
     // View1.eB, so the answer is known the moment the event was fired). A
@@ -421,6 +422,9 @@ sap.ui.define(
       return () => unregisterCallback("onAfterRendering", once);
     }
 
+    // Run every callback in `callbacks` (the shared callback arrays above),
+    // swallowing individual failures so one bad callback cannot break the
+    // whole event sequence.
     function runCallbacks(callbacks, ...args) {
       if (!callbacks) return;
       for (const fn of callbacks) {
@@ -433,15 +437,6 @@ sap.ui.define(
       }
     }
 
-    // Runs `fn` once `control` has a DOM reference: immediately when it is
-    // already rendered, otherwise once after its next rendering. The call
-    // is skipped when `owner` was destroyed in the meantime.
-    //
-    // `owner` is a CONTROL: the guard is isDestroyed( ), which cannot answer
-    // for a View1 CONTROLLER (no ManagedObject - see isControllerAlive). A
-    // caller whose owner is a controller therefore has to ask
-    // isControllerAlive( ) in `fn` itself; core/actions/ControlCall.js
-    // (whenAnchorRendered) and core/actions/ViewOps.js (SET_FOCUS) both do.
     // The one-shot rendering delegates that are still waiting, per control
     // and per key - so a caller that asks again before the control rendered
     // REPLACES its pending delegate instead of stacking a second one. A
@@ -478,6 +473,15 @@ sap.ui.define(
       control.addEventDelegate(delegate);
     }
 
+    // Runs `fn` once `control` has a DOM reference: immediately when it is
+    // already rendered, otherwise once after its next rendering. The call
+    // is skipped when `owner` was destroyed in the meantime.
+    //
+    // `owner` is a CONTROL: the guard is isDestroyed( ), which cannot answer
+    // for a View1 CONTROLLER (no ManagedObject - see isControllerAlive). A
+    // caller whose owner is a controller therefore has to ask
+    // isControllerAlive( ) in `fn` itself; core/actions/ControlCall.js
+    // (whenAnchorRendered) and core/actions/ViewOps.js (SET_FOCUS) both do.
     function whenRendered(control, owner, fn, key) {
       if (control.getDomRef()) {
         // Same owner-liveness guard as the deferred branch below: a caller
@@ -533,10 +537,12 @@ sap.ui.define(
       for (let i = 0; node && i < 100; i++) {
         if (typeof node.getText !== "function") break;
         const text = node.getText();
-        if (text) texts.unshift(text);
+        if (text) texts.push(text);
         node = typeof node.getParent === "function" ? node.getParent() : null;
       }
-      return texts.join(separator || " > ");
+      // collected leaf first, so one reverse puts the outermost ancestor
+      // in front (an unshift per level shifted the whole array every time)
+      return texts.reverse().join(separator || " > ");
     }
 
     // Copy text to the clipboard, preferring the async clipboard API with a
@@ -946,6 +952,10 @@ sap.ui.define(
      * empty optional date, and it must not become the string "Invalid Date" -
      * the existing path yields null, which is what the curated formatter's
      * DateCreateObject returns for a falsy input. */
+    // zero-pad a date part - hoisted so projectValue does not build the
+    // closure anew for every Date it serializes
+    const pad = (n, w = 2) => String(n).padStart(w, "0");
+
     function projectValue(value) {
       // toString rather than `instanceof Date`: instanceof compares against
       // ONE realm's constructor, so a Date that crossed a realm boundary (an
@@ -956,10 +966,9 @@ sap.ui.define(
         Object.prototype.toString.call(value) === "[object Date]" &&
         !isNaN(value)
       ) {
-        const p = (n, w = 2) => String(n).padStart(w, "0");
         return (
-          `${p(value.getFullYear(), 4)}-${p(value.getMonth() + 1)}-${p(value.getDate())}` +
-          `T${p(value.getHours())}:${p(value.getMinutes())}:${p(value.getSeconds())}`
+          `${pad(value.getFullYear(), 4)}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}` +
+          `T${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`
         );
       }
       return value;

@@ -1805,6 +1805,12 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS alias_written_once       FOR TESTING RAISING cx_static_check.
     " a scalar the type refuses keeps its value and is traced
     METHODS scalar_refused_traced    FOR TESTING RAISING cx_static_check.
+    " a scalar whole value is read in place, with the row delta's typed
+    " conversions: ISO and plain dates, a time, a boolean, a number, a null
+    METHODS whole_scalar_typed       FOR TESTING RAISING cx_static_check.
+    " a scalar sent for a structure attribute is refused and traced, never
+    " assigned - the assignment would be a runtime error, not an exception
+    METHODS whole_scalar_into_struc  FOR TESTING RAISING cx_static_check.
     " markup and quotes come back as they went out
     METHODS markup_round_trips       FOR TESTING RAISING cx_static_check.
     " the whole model out and in again - the count the backend holds (199)
@@ -2015,6 +2021,74 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 0
                                         act = mo_model->mt_skipped[ 1 ]-row ).
     cl_abap_unit_assert=>assert_equals( exp = `1,250.00`
+                                        act = mo_model->mt_skipped[ 1 ]-value ).
+
+  ENDMETHOD.
+
+  METHOD whole_scalar_typed.
+
+    bind( REF #( mo_app->mv_date ) ).
+    bind( REF #( mo_app->mv_time ) ).
+    bind( REF #( mo_app->mv_bool ) ).
+    bind( REF #( mo_app->mv_int ) ).
+    bind( REF #( mo_app->mv_string ) ).
+
+    " the spellings ajson writes outbound - unpacked like a delta cell
+    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_front->set( iv_path = `/MV_DATE`
+                   iv_val  = `2024-01-15` ).
+    lo_front->set( iv_path = `/MV_TIME`
+                   iv_val  = `12:30:45` ).
+    lo_front->set_boolean( iv_path = `/MV_BOOL`
+                           iv_val  = abap_true ).
+    lo_front->set( iv_path = `/MV_INT`
+                   iv_val  = 42 ).
+    lo_front->set_null( `/MV_STRING` ).
+
+    mo_model->main_json_to_attri( lo_front ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `20240115`
+                                        act = CONV string( mo_app->mv_date ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `123045`
+                                        act = CONV string( mo_app->mv_time ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_app->mv_bool ).
+    cl_abap_unit_assert=>assert_equals( exp = 42
+                                        act = mo_app->mv_int ).
+    " a null is the cleared target - what to_abap( ) left behind for it
+    cl_abap_unit_assert=>assert_initial( mo_app->mv_string ).
+    cl_abap_unit_assert=>assert_initial( mo_model->mt_skipped ).
+
+    " a plain date keeps the direct assignment, like a delta cell does
+    lo_front = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_front->set( iv_path = `/MV_DATE`
+                   iv_val  = `20240116` ).
+
+    mo_model->main_json_to_attri( lo_front ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `20240116`
+                                        act = CONV string( mo_app->mv_date ) ).
+    cl_abap_unit_assert=>assert_initial( mo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD whole_scalar_into_struc.
+
+    bind( REF #( mo_app->ms_flat ) ).
+    DATA(ls_before) = mo_app->ms_flat.
+    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_front->set( iv_path = `/MS_FLAT`
+                   iv_val  = `not a structure` ).
+
+    mo_model->main_json_to_attri( lo_front ).
+
+    cl_abap_unit_assert=>assert_equals( exp = ls_before
+                                        act = mo_app->ms_flat ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_FLAT`
+                                        act = mo_model->mt_skipped[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `not a structure`
                                         act = mo_model->mt_skipped[ 1 ]-value ).
 
   ENDMETHOD.

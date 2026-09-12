@@ -87,10 +87,10 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `            this,` && |\n| &&
              `            "UploadSetExt",` && |\n| &&
              `            (f, result) => {` && |\n| &&
-             `              this.setProperty("fileData", result);` && |\n| &&
-             `              this.setProperty("fileName", f.name);` && |\n| &&
-             `              this.setProperty("mediaType", f.type);` && |\n| &&
-             `              this.setProperty("fileSize", String(f.size));` && |\n| &&
+             `              this.setProperty("fileData", result, true);` && |\n| &&
+             `              this.setProperty("fileName", f.name, true);` && |\n| &&
+             `              this.setProperty("mediaType", f.type, true);` && |\n| &&
+             `              this.setProperty("fileSize", String(f.size), true);` && |\n| &&
              `              this.fireChange();` && |\n| &&
              `            },` && |\n| &&
              `          );` && |\n| &&
@@ -105,7 +105,7 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `` && |\n| &&
              `      onItemRemoved(oEvent) {` && |\n| &&
              `        const name = oEvent.getParameter("item")?.getFileName?.() ?? "";` && |\n| &&
-             `        this.setProperty("removedFileName", name);` && |\n| &&
+             `        this.setProperty("removedFileName", name, true);` && |\n| &&
              `        this.fireRemove();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

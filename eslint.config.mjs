@@ -40,7 +40,6 @@ export default [
       // outputs - git-ignored like them, and vendored code either way
       "node/open-abap-core/**",
       "node/coverage/**",
-      "tools/out/**",
       "node_modules/**",
     ],
   },

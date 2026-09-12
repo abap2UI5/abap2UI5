@@ -140,7 +140,8 @@ sap.ui.define(
 
     // args: [_, combo, eventName, scope] - an empty event name unregisters the
     // combo IN THAT SCOPE; scope is a view slot key (cs_view-popover/popup/...)
-    // and defaults to the unscoped, always-eligible registration
+    // or a control id (see the scope section above) and defaults to the
+    // unscoped, always-eligible registration
     function evKeyboardShortcut(oController, args) {
       const combo = normalizeShortcut(args[1]);
       if (!combo) {
@@ -152,9 +153,8 @@ sap.ui.define(
       // a slot key is matched case-insensitively; anything else is taken as a
       // control id and keeps its case, because that is how it must resolve
       const raw = String(args[3] ?? "");
-      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())
-        ? raw.toUpperCase()
-        : raw;
+      const upper = raw.toUpperCase();
+      const scope = SHORTCUT_SLOTS.includes(upper) ? upper : raw;
       const shortcuts = AppState.state.shortcuts;
       // a combo that spells a property Object.prototype carries - `__proto__`,
       // `constructor` - is no key combination, and shortcuts[combo] for it
