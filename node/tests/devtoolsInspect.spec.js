@@ -715,6 +715,27 @@ test.describe("Bindings diagnostics", () => {
     expect(found).toContain("D");
     // a relative binding resolves against the row context and says nothing
     expect(found).not.toContain("REL");
+    // parts lists continue after a comma, as objects or as strings
+    const parts = scrapeBindingAttributes(
+      `<Text text="{parts: ['/E', '/F'], formatter: 'x'}"/>` +
+        `<Text text="{parts: [{path: '/G'}, {path: '/H'}]}"/>`,
+    );
+    expect(parts).toEqual(["E", "F", "G", "H"]);
+  });
+
+  // An absolute URL in a plain attribute is not a binding. Any quote
+  // followed by "/" used to count, so src="/sap/public/..." reported /sap
+  // as BOUND IN THE VIEW BUT NOT IN THE MODEL - in the section that is
+  // meant to answer "why is my field empty", which trained the reader to
+  // ignore it.
+  test("does not read a URL-shaped attribute value as a binding", () => {
+    const Inspect = loadInspect();
+    const { scrapeBindingAttributes } = Inspect._internals;
+    const xml =
+      `<Image src="/sap/public/bc/ui5_ui5/logo.png"/>` +
+      `<Link href="/some/page" text="{/TITLE}"/>` +
+      `<html:iframe src="/sap/bc/ui5_ui5/ui2/ushell/shells/abap/FioriLaunchpad.html"/>`;
+    expect(scrapeBindingAttributes(xml)).toEqual(["TITLE"]);
   });
 
   test("mentions the model attributes the view does not bind", () => {

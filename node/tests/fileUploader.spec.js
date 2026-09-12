@@ -115,7 +115,6 @@ function load() {
     inst._props = {
       value: "",
       path: "",
-      tooltip: "",
       fileType: "",
       placeholder: "",
       buttonText: "",
@@ -132,6 +131,10 @@ function load() {
     };
     inst.getProperty = (k) => inst._props[k];
     inst.setProperty = (k, v) => (inst._props[k] = v);
+    // the tooltip is NOT a property of this control: it is the aggregation
+    // every Element carries, read through the inherited string accessor
+    inst._tooltip = props.tooltip ?? "";
+    inst.getTooltip_AsString = () => inst._tooltip;
     inst.uploads = 0;
     inst.fireUpload = () => inst.uploads++;
     inst._destroyed = false;
@@ -300,7 +303,7 @@ test("re-rendering keeps the control set and syncs the new property values", () 
   const firstBox = inst._oHBox;
   const firstUploader = inst.oFileUploader;
 
-  inst._props.tooltip = "changed";
+  inst._tooltip = "changed";
   render(inst);
 
   expect(inst._oHBox).toBe(firstBox);
@@ -308,6 +311,24 @@ test("re-rendering keeps the control set and syncs the new property values", () 
   expect(inst.oFileUploader).toBe(firstUploader);
   // ... but the property values still reach the inner control per render
   expect(firstUploader.settings.tooltip).toBe("changed");
+});
+
+// `tooltip` is an aggregation of every sap.ui.core.Element, with the
+// inherited setTooltip/getTooltip on the prototype - a PROPERTY of that name
+// never gets an accessor of its own (ManagedObjectMetadata.generateAccessors
+// skips names the prototype has), so the XML value landed in the aggregation
+// while the sync read getProperty("tooltip") and forwarded "" forever. The
+// same for `visible`, which sap.ui.core.Control already declares.
+test("tooltip and visible are not redeclared as properties - they are inherited", () => {
+  const { makeInstance, render } = load();
+  const inst = makeInstance({ tooltip: "from the aggregation" });
+  const FileUploaderDef = Object.getPrototypeOf(inst);
+
+  expect(FileUploaderDef.metadata.properties.tooltip).toBeUndefined();
+  expect(FileUploaderDef.metadata.properties.visible).toBeUndefined();
+
+  render(inst);
+  expect(inst.oFileUploader.settings.tooltip).toBe("from the aggregation");
 });
 
 // checkDirectUpload changes the STRUCTURE (upload button yes/no, and

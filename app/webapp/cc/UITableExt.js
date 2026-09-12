@@ -133,6 +133,10 @@ sap.ui.define(
         // (a fresh view build produced a new, unfiltered binding).
         if (binding === this._filterBinding) return;
         binding.filter(aFilters);
+        // the NEW binding now carries these filters - remember it, or every
+        // incidental re-render until the next roundtrip (theme, density, a
+        // popup re-rendering the page) re-filtered the whole dataset again
+        this._filterBinding = binding;
         const columns = oTable.getColumns();
 
         for (const oFilter of aFilters) {
@@ -203,6 +207,9 @@ sap.ui.define(
         // an identical result. Re-apply only after a binding rebuild.
         if (binding === this._sortBinding) return;
         binding.sort(aSorters);
+        // same as _applyFilters: the re-applied binding is the one to skip
+        // from now on
+        this._sortBinding = binding;
 
         const columns = oTable.getColumns();
         for (const [index, sorter] of aSorters.entries()) {

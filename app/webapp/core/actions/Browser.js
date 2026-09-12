@@ -125,13 +125,17 @@ sap.ui.define(
     // FLP; otherwise terminate a possible stateful BSP session first and
     // then navigate to the logout URL.
     function evSystemLogout(oController, args) {
-      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
+      // one reading of "no URL given" for both branches: an empty second
+      // argument (a legacy eF('SYSTEM_LOGOUT','') snippet) fell back to the
+      // ICF logoff URL here but counted as "URL given" for the launchpad
+      // branch below, which was arity-based
+      const explicitUrl = args[1];
+      const logoutUrl = explicitUrl || "/sap/public/bc/icf/logoff";
       try {
         const container = AppState.state.oLaunchpad?.Container;
-        // No explicit logout URL was passed (args is just the event name):
-        // inside the launchpad, prefer its own logout over the BSP/ICF
-        // redirect below.
-        if (container?.logout && args.length <= 1) {
+        // No explicit logout URL was passed: inside the launchpad, prefer
+        // its own logout over the BSP/ICF redirect below.
+        if (container?.logout && !explicitUrl) {
           container.logout();
           return;
         }

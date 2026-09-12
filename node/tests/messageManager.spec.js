@@ -128,6 +128,30 @@ test.describe("MessageManager companion control", () => {
     expect(env.messaging.removed).toHaveLength(0);
   });
 
+  // The Message carries six columns, and all six are its identity: a row
+  // whose description or code changes while message/type/target stay the
+  // same used to hit the existing key and keep the OLD long text (the
+  // popover's drill-down) and the old group (MessageItem.groupName binds
+  // {message>code}) until the message text itself changed.
+  test("a changed description or code replaces the message", () => {
+    const env = load();
+    const ext = makeExt(env);
+    ext.init();
+    ext.setup();
+    ext.setItems([
+      { MESSAGE: "A", TYPE: "Error", TARGET: "/X", DESCRIPTION: "old", CODE: "G1" },
+    ]);
+    ext.setItems([
+      { MESSAGE: "A", TYPE: "Error", TARGET: "/X", DESCRIPTION: "new", CODE: "G2" },
+    ]);
+    expect(env.messaging.removed).toHaveLength(1);
+    expect(env.messaging.added).toHaveLength(2);
+    expect(env.messaging.added[1]).toMatchObject({
+      description: "new",
+      code: "G2",
+    });
+  });
+
   test("removes the control's own row when it drops out of the table", () => {
     const env = load();
     const ext = makeExt(env);

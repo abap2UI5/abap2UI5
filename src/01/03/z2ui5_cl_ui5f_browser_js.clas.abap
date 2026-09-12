@@ -111,11 +111,12 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSystemLogout(oController, args) {` && |\n| &&
-             `      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
+             `      const explicitUrl = args[1];` && |\n| &&
+             `      const logoutUrl = explicitUrl || "/sap/public/bc/icf/logoff";` && |\n| &&
              `      try {` && |\n| &&
              `        const container = AppState.state.oLaunchpad?.Container;` && |\n| &&
              `` && |\n| &&
-             `        if (container?.logout && args.length <= 1) {` && |\n| &&
+             `        if (container?.logout && !explicitUrl) {` && |\n| &&
              `          container.logout();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

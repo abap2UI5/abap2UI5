@@ -146,15 +146,18 @@ test("setRangeData normalizes ABAP keys to camelCase, keyField preserved", async
   const input = smartInputStub([tokenStub("old")]);
   inst.onInnerControlsCreated({ getSource: () => input });
 
-  await inst.setRangeData([
-    {
-      KEYFIELD: "PRICE",
-      OPERATION: "BT",
-      VALUE1: "10",
-      TOKENTEXT: "10...20",
-      TOKENLONGKEY: "range_0",
-    },
-  ]);
+  expect(
+    inst.setRangeData([
+      {
+        KEYFIELD: "PRICE",
+        OPERATION: "BT",
+        VALUE1: "10",
+        TOKENTEXT: "10...20",
+        TOKENLONGKEY: "range_0",
+      },
+    ]),
+  ).toBe(inst); // a UI5 mutator answers the control, not a Promise
+  await inst._rangeDataApply;
 
   expect(input.rangeDataCalls[0]).toEqual([
     {
@@ -178,10 +181,10 @@ test("setRangeData after destroy touches neither input nor tokens", async () => 
   const inst = makeInstance();
   const input = smartInputStub();
 
-  const pending = inst.setRangeData([{ KEYFIELD: "X" }]);
+  inst.setRangeData([{ KEYFIELD: "X" }]);
   inst._destroyed = true;
   inst.onInnerControlsCreated({ getSource: () => input });
-  await pending;
+  await inst._rangeDataApply;
 
   expect(input.rangeDataCalls).toHaveLength(0);
 });
@@ -197,9 +200,27 @@ test("a throwing input.setRangeData is logged, never thrown", async () => {
   };
   inst.onInnerControlsCreated({ getSource: () => input });
 
-  await inst.setRangeData([{ KEYFIELD: "X" }]);
+  inst.setRangeData([{ KEYFIELD: "X" }]);
+  await inst._rangeDataApply;
 
   expect(errors.some((m) => m.includes("setRangeData failed"))).toBe(true);
+});
+
+// A bound rangeData arrives as whatever the model holds - null before the
+// backend filled it, a scalar when the wrong attribute was bound. The
+// .map( ) over it threw and was logged as a failure on every roundtrip.
+test("setRangeData with a non-array stores it and applies nothing", () => {
+  const { makeInstance, errors } = load();
+  const inst = makeInstance();
+  const input = smartInputStub();
+  inst.onInnerControlsCreated({ getSource: () => input });
+
+  expect(inst.setRangeData(null)).toBe(inst);
+  expect(inst.setRangeData("X")).toBe(inst);
+
+  expect(inst._rangeDataApply).toBeUndefined();
+  expect(input.rangeDataCalls).toHaveLength(0);
+  expect(errors).toEqual([]);
 });
 
 test("onTokenUpdate enriches the ranges with token text and long key", () => {

@@ -97,8 +97,14 @@ sap.ui.define(
         else MT.show(sText);
         if (sClass) applyToastClass(sClass);
       };
-      if (MessageToast) doShow(MessageToast);
-      else sap.ui.require(["sap/m/MessageToast"], doShow);
+      // MessageToast is always resolved here: the only caller is the
+      // MESSAGE_TOAST.display hook, and evControlCall refuses the call with
+      // "not available" BEFORE the hook runs when MESSAGE_TOAST.get( ) - the
+      // same module variable - is still unset. A lazy-require fallback used
+      // to sit here for exactly that case and was unreachable behind that
+      // guard; deferring a toast until the module lands would have to skip
+      // the guard for display targets, not add a branch here
+      doShow(MessageToast);
     }
 
     // A message box whose details this module expands needs an id to be found
@@ -733,16 +739,29 @@ sap.ui.define(
     // screenshot that reads like a typo rather than a type bug.
     //
     // The control and the method are both known here, so UI5's own declaration
-    // can settle it instead of a guess: for a setXxx whose property is declared
-    // `string`, pass the raw value through untouched. Everything else keeps the
-    // inference, so the "X"/space boolean contract is untouched.
+    // can settle it instead of a guess: for a setXxx whose property is a
+    // string - declared `string` OR a string-derived type - pass the raw
+    // value through untouched. Everything else keeps the inference, so the
+    // "X"/space boolean contract is untouched.
+    //
+    // The PRIMITIVE type decides, not the declared name: ManagedObject
+    // coerces a boolean to text only for the type named exactly "string"
+    // (validateProperty), every derived type - sap.ui.core.CSSSize, URI,
+    // ID, CSSColor - is validated as it is. So `setWidth("")` inferred to
+    // `false` threw '"false" is of type boolean, expected sap.ui.core.CSSSize',
+    // and `setSrc("")` passed URI validation as the relative path "false"
+    // and showed it. Property.getType( ) and DataType.getPrimitiveType( )
+    // both exist in 1.71; a metadata double without them falls back to the
+    // declared name.
     function setsStringProperty(control, method) {
       if (!control || typeof method !== "string" || !/^set[A-Z]/.test(method))
         return false;
       const prop = control.getMetadata?.()?.getAllProperties?.()[
         method.charAt(3).toLowerCase() + method.slice(4)
       ];
-      return !!prop && prop.type === "string";
+      if (!prop) return false;
+      const primitive = prop.getType?.()?.getPrimitiveType?.()?.getName?.();
+      return primitive ? primitive === "string" : prop.type === "string";
     }
 
     // kinds whose EMPTY value is meaningful (null), so a missing trailing

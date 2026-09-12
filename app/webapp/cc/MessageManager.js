@@ -22,7 +22,20 @@ sap.ui.define(
     // would then have built empty - a key for a message that could not
     // exist.
     const KEY_SEP = String.fromCharCode(1);
-    const keyOf = (o) => [o.MESSAGE, o.TYPE, o.TARGET].join(KEY_SEP);
+    // every column the Message is built from is part of the identity: a row
+    // whose description, additional text or code changed while message,
+    // type and target stayed the same is a DIFFERENT message and is removed
+    // and re-added. With the three-column key it mapped onto the existing
+    // entry and the popover kept showing the old long text / group
+    const keyOf = (o) =>
+      [
+        o.MESSAGE,
+        o.TYPE,
+        o.TARGET,
+        o.DESCRIPTION,
+        o.ADDITIONALTEXT,
+        o.CODE,
+      ].join(KEY_SEP);
 
     // Invisible companion control that bridges the UI5 message manager to a
     // bound ABAP table (`items`). The table is the app's OWN messages:

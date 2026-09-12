@@ -427,14 +427,18 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD set_cdata.
 
+    " a string, whatever clike the caller passed: IF_HTTP_RESPONSE~SET_CDATA
+    " and IF_WEB_HTTP_RESPONSE~SET_TEXT both take a STRING, and a dynamic
+    " call with a C actual for it is CX_SY_DYN_CALL_ILLEGAL_TYPE - the typed
+    " call would have converted. Converted ONCE, above the branch: the cloud
+    " half used to pass the generic value through, so a CHAR caller worked
+    " on-prem and failed on cloud only
+    DATA(lv_data) = CONV string( val ).
+
     IF mo_server_onprem IS BOUND.
 
       DATA(object) = get_response_onprem( ).
 
-      " a string, whatever clike the caller passed: IF_HTTP_RESPONSE~SET_CDATA
-      " takes a STRING, and a dynamic call with a C actual for it is
-      " CX_SY_DYN_CALL_ILLEGAL_TYPE - the typed call would have converted
-      DATA(lv_data) = CONV string( val ).
       CALL METHOD object->(`SET_CDATA`)
         EXPORTING
           data = lv_data.
@@ -443,7 +447,7 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
       CALL METHOD mo_response_cloud->(`IF_WEB_HTTP_RESPONSE~SET_TEXT`)
         EXPORTING
-          i_text = val.
+          i_text = lv_data.
 
     ENDIF.
 

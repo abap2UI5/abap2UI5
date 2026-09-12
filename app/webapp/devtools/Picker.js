@@ -134,18 +134,63 @@ sap.ui.define(
       return out;
     }
 
+    // The framework's event handler: eB / eBP / eF, then the quoted event
+    // name (single, double or the XML-escaped apostrophe of a view
+    // attribute) - either right after the parenthesis or as the first entry
+    // of the argument array, which for eBP sits behind the $event and the
+    // veto expression: `.eBP($event,true,['ITEM_PRESS'])`.
+    const FRAMEWORK_CALL =
+      /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;
+
+    // The XML a view slot was filled with - the two readers Inspect.slotXml
+    // documents, in the same order.
+    function slotXml(slotKey) {
+      if (!slotKey) return "";
+      return (
+        ViewSlots.getView?.(slotKey)?.mProperties?.viewContent ||
+        ViewSlots.getViewXml?.(slotKey) ||
+        ""
+      );
+    }
+
+    // The attributes of the element that declares this control in its
+    // slot's XML, found by the control's LOCAL id (the view prefixes the
+    // XML id with its own: "mainView--btn1"). Empty for a control the XML
+    // gives no id, and for one outside a slot.
+    function xmlAttributesOf(control, slotKey) {
+      const localId = String(control.getId?.() || "")
+        .split("--")
+        .pop();
+      const xml = slotXml(slotKey);
+      if (!localId || !xml) return "";
+      const idAttr = new RegExp(`\\sid\\s*=\\s*(?:"${localId}"|'${localId}')`);
+      const at = xml.search(idAttr);
+      if (at < 0) return "";
+      const open = xml.lastIndexOf("<", at);
+      const close = xml.indexOf(">", at);
+      return open < 0 || close < 0 ? "" : xml.slice(open, close);
+    }
+
     // Event handlers the backend bound on this control. UI5 keeps them in
-    // mEventRegistry; the framework's are always eB / eBP / eF calls, so
-    // the registered handler's source carries the event name.
-    function collectEvents(control) {
+    // mEventRegistry - but for a `.eB(['NAME'])` view attribute the
+    // registered fFunction is EventHandlerResolver's generic wrapper, whose
+    // source never contains the event name (it lives in a closure), so the
+    // handler's source only answers for a handler attached in code. The
+    // name is read where it IS written: off the element's attribute in the
+    // slot XML the view was built from, `press=".eB(['SAVE'])"`.
+    function collectEvents(control, slotKey) {
       const registry = control.mEventRegistry || {};
+      const attributes = xmlAttributesOf(control, slotKey);
       const out = [];
       for (const name of Object.keys(registry)) {
         for (const handler of registry[name] || []) {
-          const source = String(handler?.fFunction || "");
-          const match = /\b(eB|eBP|eF)\s*\(\s*\[?\s*['"]([A-Za-z0-9_.-]+)/.exec(
-            source,
-          );
+          let match = FRAMEWORK_CALL.exec(String(handler?.fFunction || ""));
+          if (!match && attributes) {
+            const attr = new RegExp(
+              `\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`,
+            ).exec(attributes);
+            match = attr ? FRAMEWORK_CALL.exec(attr[1] ?? attr[2] ?? "") : null;
+          }
           out.push(match ? `${name} -> ${match[1]}('${match[2]}')` : name);
         }
       }
@@ -187,7 +232,7 @@ sap.ui.define(
         out.push(`      value  ${renderValue(binding.value)}`);
       }
 
-      const events = collectEvents(control);
+      const events = collectEvents(control, slotKey);
       out.push("");
       out.push("Events");
       out.push("------");
