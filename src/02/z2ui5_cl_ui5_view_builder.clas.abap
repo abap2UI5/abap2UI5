@@ -30,6 +30,13 @@
 "! flag reaches the view without a conversion of its own:
 "!   )->a( n = `editable` b = mv_edit_mode
 "!   )->a( n = `visible`  b = xsdbool( lines( mt_item ) > 0 ) )
+"! For TEXT that must render as it is - a value that carries user input or
+"! external data - pass t instead of v: it is escaped as a literal
+"! (escape_literal), so a `{` in it is shown, not read as a binding:
+"!   )->a( n = `title` t = |Results for { mv_search }| )
+"! v stays the form for everything with binding vocabulary - a _bind( ), an
+"! _event( ), a `{/path}` template, an expression - and for constant text,
+"! which needs no escaping.
 CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
 
   PUBLIC SECTION.
@@ -62,14 +69,21 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
 
     "! set an attribute on the element the chain is pointing at - the child
     "! just added by ele( )/tag( ), or this node itself while it has none.
-    "! Pass either v (any string expression) or b (an ABAP boolean, rendered
-    "! as `true` / `false`) - exactly one of the two, never both and never
-    "! neither.
+    "! Pass exactly one of v, b or t - never two, never none:
+    "!   v  any string expression, written as it is - a binding, an event,
+    "!      a template, an expression, or constant text
+    "!   b  an ABAP boolean, rendered as `true` / `false`
+    "!   t  TEXT to render literally: escaped with escape_literal( ) so a
+    "!      brace or backslash in it is shown instead of parsed as a binding.
+    "!      The form for a value that carries user input or external data.
+    "!      Appended after b: rule 5 allows a new optional parameter at the
+    "!      END of the list only
     METHODS a
       IMPORTING
         n             TYPE string
         v             TYPE string    OPTIONAL
         b             TYPE abap_bool OPTIONAL
+        t             TYPE string    OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
@@ -90,11 +104,15 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
     "! by UI5 as a binding path (or an expression) instead of shown as text,
     "! and can read arbitrary paths out of the view model. Backslash-escaping
     "! the braces is UI5's own convention for literal text.
-    "! Deliberately NOT applied by a( ) itself: a deliberate binding in v -
-    "! client-&gt;_bind( ), an event, a template - is the builder's bread and
-    "! butter, and only the app knows which values are literals. Use it on
-    "! any user- or external-supplied string an app renders via a( v = ... ):
-    "!   )-&gt;a( n = `text` v = z2ui5_cl_ui5_view_builder=&gt;escape_literal( lv_input ) )
+    "! Deliberately NOT applied to v by a( ) itself: a deliberate binding in
+    "! v - client-&gt;_bind( ), an event, a template - is the builder's bread
+    "! and butter, and only the app knows which values are literals. The app
+    "! says so with the t parameter of a( ), which is this method applied to
+    "! the whole value - the form to reach for:
+    "!   )-&gt;a( n = `text` t = lv_input )
+    "! Call this method directly only when ONE attribute value mixes literal
+    "! text with a binding, so the escaping has to be applied to a part:
+    "!   )-&gt;a( n = `title` v = |{ z2ui5_cl_ui5_view_builder=&gt;escape_literal( lv_input ) }: \{/COUNT\} hits| )
     "! XML escaping is a separate concern and always applied on render.
     CLASS-METHODS escape_literal
       IMPORTING
@@ -146,6 +164,21 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
     METHODS raise
       IMPORTING
         val TYPE string.
+
+    " the value of a( ) from whichever of v, b and t was passed - the
+    " supplied flags travel as parameters because IS SUPPLIED only answers
+    " inside the method that declares the optional
+    METHODS attr_value
+      IMPORTING
+        n             TYPE string
+        v             TYPE string
+        b             TYPE abap_bool
+        t             TYPE string
+        check_v       TYPE abap_bool
+        check_b       TYPE abap_bool
+        check_t       TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -197,24 +230,15 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     IF name IS INITIAL AND t_child IS INITIAL.
       raise( |a( n = '{ n }' ) on the empty builder root - open an element with ele( ) first| ).
     ENDIF.
-    " b and v are mutually exclusive - b is checked with IS SUPPLIED because
-    " abap_false and "not passed" are the same character.
-    " "never neither" is checked with IS SUPPLIED rather than IS NOT INITIAL
-    " so that a deliberately empty value ( a( n = `text` v = `` ) ) stays
-    " legal: what this refuses is a( n = `visible` ) with no value at all,
-    " which used to render visible="" - a working view that behaves wrongly,
-    " and the one invariant of the three in the ABAP Doc above that nothing
-    " checked
-    IF v IS NOT SUPPLIED AND b IS NOT SUPPLIED.
-      raise( |a( n = '{ n }' ) without a value - pass v or b| ).
-    ENDIF.
-    DATA(val) = v.
-    IF b IS SUPPLIED.
-      IF v IS NOT INITIAL.
-        raise( |a( n = '{ n }' ) with both v and b - pass one of the two| ).
-      ENDIF.
-      val = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
-    ENDIF.
+    " v, b and t are mutually exclusive, and one of them is required - the
+    " check and the resolution sit in attr_value, see there
+    DATA(val) = attr_value( n       = n
+                            v       = v
+                            b       = b
+                            t       = t
+                            check_v = xsdbool( v IS SUPPLIED )
+                            check_b = xsdbool( b IS SUPPLIED )
+                            check_t = xsdbool( t IS SUPPLIED ) ).
 
     IF t_child IS INITIAL.
       IF line_exists( t_pair[ n = n ] ). "#EC CI_SORTSEQ
@@ -372,6 +396,51 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
                           occ  = 0 ).
         lv_off = lv_off + 1.
       ENDWHILE.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD attr_value.
+
+    " v, b and t are mutually exclusive - each is judged by whether it was
+    " SUPPLIED, because an empty value and "not passed" look the same
+    " (abap_false is the same character as an initial abap_bool, an empty
+    " string the same as an initial one).
+    " "never neither" is judged the same way rather than by IS NOT INITIAL
+    " so that a deliberately empty value ( a( n = `text` v = `` ) ) stays
+    " legal: what this refuses is a( n = `visible` ) with no value at all,
+    " which used to render visible="" - a working view that behaves wrongly,
+    " and the one invariant of the three in the ABAP Doc above that nothing
+    " checked
+    IF check_v = abap_false AND check_b = abap_false AND check_t = abap_false.
+      raise( |a( n = '{ n }' ) without a value - pass v, b or t| ).
+    ENDIF.
+    " ...with one tolerance kept from the days of v and b alone: an EMPTY v
+    " next to b or t is ignored rather than refused, so a call that passed
+    " `v = `` b = flag` before this parameter existed still renders
+    DATA(lv_supplied) = 0.
+    IF check_v = abap_true AND v IS NOT INITIAL.
+      lv_supplied = lv_supplied + 1.
+    ENDIF.
+    IF check_b = abap_true.
+      lv_supplied = lv_supplied + 1.
+    ENDIF.
+    IF check_t = abap_true.
+      lv_supplied = lv_supplied + 1.
+    ENDIF.
+    IF lv_supplied > 1.
+      raise( |a( n = '{ n }' ) with more than one of v, b and t - pass exactly one| ).
+    ENDIF.
+
+    IF check_b = abap_true.
+      result = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
+    ELSEIF check_t = abap_true.
+      " t is text: the literal escaping the app used to have to remember is
+      " applied here; the XML escaping follows on render like for every value
+      result = escape_literal( t ).
+    ELSE.
+      result = v.
     ENDIF.
 
   ENDMETHOD.
