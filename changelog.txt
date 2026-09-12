@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
++ z2ui5_cl_ui5_view_builder=>a( ) takes t for TEXT next to v and b: the value is escaped as a literal (escape_literal) so a brace or backslash in it is shown instead of parsed as a binding - the form for a value that carries user input or external data, where the escape_literal( ) call was a step the app had to remember. v stays the form for bindings, events, templates, expressions and constant text; escape_literal( ) stays public for the one attribute that mixes text with a binding
 * The app-owned hash listener (cs_event-hash_attach_changed) dies with the app switch, as z2ui5_if_client promises: only the component teardown ever cleared it, so a listener app A registered kept dispatching A's event name into app B on every Back / hash edit after a nav_app_call, and the URL upkeep of B's app-state link was skipped as long as it lived
 * z2ui5.cc.FileUploader forwards its tooltip to the inner sap.ui.unified.FileUploader - `tooltip` was redeclared as a property although every Element already carries it as an aggregation, so the XML value landed in the aggregation and the sync read an empty property; the same redeclaration of `visible` is gone
 * An empty argument of a CONTROL_BY_ID setter reaches a string-DERIVED property (sap.ui.core.CSSSize, URI, ID, CSSColor) as the empty string: only the type named exactly `string` was exempt from the ""-to-false inference, so setWidth("") threw '"false" is of type boolean, expected sap.ui.core.CSSSize' and setSrc("") showed the relative path "false"
