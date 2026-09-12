@@ -208,12 +208,12 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  const UI5_LEVELS = {` && |\n| &&
+             `    0: "error",` && |\n| &&
              `    1: "error",` && |\n| &&
-             `    2: "error",` && |\n| &&
-             `    3: "warn",` && |\n| &&
-             `    4: "info",` && |\n| &&
+             `    2: "warn",` && |\n| &&
+             `    3: "info",` && |\n| &&
+             `    4: "debug",` && |\n| &&
              `    5: "debug",` && |\n| &&
-             `    6: "debug",` && |\n| &&
              `  };` && |\n| &&
              `` && |\n| &&
              `  function captureUi5(logEntry) {` && |\n| &&

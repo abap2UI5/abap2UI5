@@ -285,16 +285,20 @@ sap.ui.define([], () => {
     }
   }
 
-  // UI5 log levels are numeric (Log.Level): 1 FATAL, 2 ERROR, 3 WARNING,
-  // 4 INFO, 5 DEBUG, 6 TRACE. Mapped onto the console level names so one
-  // rendering serves both sources.
+  // UI5 log levels are numeric (Log.Level): 0 FATAL, 1 ERROR, 2 WARNING,
+  // 3 INFO, 4 DEBUG, 5 TRACE (NONE is -1, ALL is 6 - neither is ever the
+  // level of an entry). Mapped onto the console level names so one
+  // rendering serves both sources. The table used to start at 1, which
+  // shifted every level by one: a WARNING was recorded as an error - and
+  // opened the tools through the open-on-error hook on every binding
+  // warning - INFO showed as a warning and FATAL fell through to info.
   const UI5_LEVELS = {
+    0: "error",
     1: "error",
-    2: "error",
-    3: "warn",
-    4: "info",
+    2: "warn",
+    3: "info",
+    4: "debug",
     5: "debug",
-    6: "debug",
   };
 
   function captureUi5(logEntry) {

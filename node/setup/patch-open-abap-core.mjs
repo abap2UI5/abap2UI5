@@ -1,9 +1,12 @@
 // Pre-transpile patches for the pinned open-abap-core checkout under
 // node/deps, applied before `abap_transpile` reads it (npm run auto_transpile).
-// Both are temporary shims for gaps filed upstream in backlog/items/
+// All of them are temporary shims for gaps filed upstream in backlog/items/
 // (open-abap/open-abap-core); each goes away the moment the pinned SHA
-// carries the fix - see "Removing this" below. Both are idempotent (marker
-// comment) and FAIL when the line they anchor on moves upstream.
+// carries the fix - see "Removing this" below. Each is idempotent (marker
+// comment) and FAILS when the line it anchors on moves upstream. Patches 3
+// and 4 are the two further asXML gaps of the same backlog item as 2 - the
+// line feeds the parser strips and the entity order on the way back - and
+// are described where they are defined below.
 //
 // 1. cl_abap_typedescr=>describe_by_name and ABSOLUTE type names
 //    (backlog/items/open-abap-describe-by-name-absolute.md)
@@ -33,14 +36,14 @@
 // restore fails on it. The patch escapes `&`, `<` and `>` in character-like
 // values, which is what a system does.
 //
-// Removing either: bump the open-abap-core pin in node/setup/fetch-deps.mjs
+// Removing one: bump the open-abap-core pin in node/setup/fetch-deps.mjs
 // to a SHA that carries the upstream fix, delete that patch below (the file
-// once both are gone, together with its entry in `auto_transpile` in
+// once all are gone, together with its entry in `auto_transpile` in
 // package.json) and close the backlog item.
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 // The read / idempotence / anchor / replace / write routine, shared with the
-// two abaplint-side patch scripts next to this one - only the edit tables and
+// abaplint-side patch script next to this one - only the edit tables and
 // the two messages below are this shim's own.
 import { patchFile, PatchError, reportEdits } from "./lib/anchored-patch.mjs";
 

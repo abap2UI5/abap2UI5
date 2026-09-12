@@ -467,7 +467,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    if (!isRecordingPayloads()) {` && |\n| &&
              `      lines.push(` && |\n| &&
              `        ``Switch "Record Payloads" on to keep request/response bodies and`` +` && |\n| &&
-             `          `` enable the Model Diff tab.``,` && |\n| &&
+             `          `` enable the Model Diff and View Diff tabs.``,` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
              `    lines.push("");` && |\n| &&

@@ -431,8 +431,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD load_startup_app.
     DATA lv_payload TYPE string.
     DATA lo_post TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA temp1 TYPE REF TO z2ui5_cl_ui5_app_start.
-    DATA lo_startup LIKE temp1.
+    DATA lo_startup TYPE REF TO z2ui5_cl_ui5_app_start.
 
     lv_payload = `{"value" : { "S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}}`.
 
@@ -447,10 +446,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `PATHNAME`
                                         act = lo_post->ms_request-s_front-pathname ).
 
-
-    temp1 ?= lo_post->mo_action->mo_app->mo_app.
-
-    lo_startup = temp1.
+    lo_startup ?= lo_post->mo_action->mo_app->mo_app.
 
   ENDMETHOD.
 
@@ -1059,33 +1055,23 @@ CLASS ltcl_02_response IMPLEMENTATION.
   METHOD test_response_json.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA temp2 TYPE z2ui5_if_ui5_types=>ty_s_response.
-    DATA ls_response LIKE temp2.
+    DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
     DATA lv_json TYPE string.
-    DATA temp1 TYPE xsdboolean.
-    DATA temp3 TYPE xsdboolean.
-    DATA temp4 TYPE xsdboolean.
     lo_handler = NEW #( val = `` ).
 
-    CLEAR temp2.
-    temp2-s_front-id = `ID123`.
-    temp2-s_front-app = `Z2UI5_CL_UI5_APP_HI_WORLD`.
-    temp2-model = `{"name":"test"}`.
-
-    ls_response = temp2.
+    ls_response = VALUE #( s_front-id  = `ID123`
+                           s_front-app = `Z2UI5_CL_UI5_APP_HI_WORLD`
+                           model       = `{"name":"test"}` ).
 
 
     lv_json = lo_handler->response_abap_to_json( ls_response ).
 
 
-    temp1 = xsdbool( lv_json CS `S_FRONT` ).
-    cl_abap_unit_assert=>assert_true( temp1 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `S_FRONT` ) ).
 
-    temp3 = xsdbool( lv_json CS `MODEL` ).
-    cl_abap_unit_assert=>assert_true( temp3 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `MODEL` ) ).
 
-    temp4 = xsdbool( lv_json CS `{"name":"test"}` ).
-    cl_abap_unit_assert=>assert_true( temp4 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `{"name":"test"}` ) ).
 
   ENDMETHOD.
 

@@ -140,7 +140,8 @@ sap.ui.define(
 
     // args: [_, combo, eventName, scope] - an empty event name unregisters the
     // combo IN THAT SCOPE; scope is a view slot key (cs_view-popover/popup/...)
-    // and defaults to the unscoped, always-eligible registration
+    // or a control id (see the scope section above) and defaults to the
+    // unscoped, always-eligible registration
     function evKeyboardShortcut(oController, args) {
       const combo = normalizeShortcut(args[1]);
       if (!combo) {

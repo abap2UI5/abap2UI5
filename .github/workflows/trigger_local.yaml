@@ -61,7 +61,9 @@ jobs:
     # package-lock.json there to key an npm cache on either.
     - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
-        node-version: '22'
+        # the same .nvmrc ./.github/actions/setup reads, from the upstream/
+        # checkout above - one place for the Node version, not a second pin
+        node-version-file: upstream/.nvmrc
 
     # The script this job runs belongs to the OTHER repository, and the step
     # after this one runs it as bash, in this workflow, with ACTION_KEY_LOCAL

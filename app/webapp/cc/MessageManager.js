@@ -76,10 +76,8 @@ sap.ui.define(
       renderer: Lib.EMPTY_RENDERER,
 
       setup() {
-        if (this.getProperty("checkInit")) return;
         const messaging = Lib.getMessaging?.();
-        if (!messaging) return;
-        this.setProperty("checkInit", true, true);
+        if (!Lib.claimOnce(this, messaging)) return;
         this._messaging = messaging;
         const view = ViewSlots.getView(
           ViewSlots.containingSlotKey(this) ?? "MAIN",

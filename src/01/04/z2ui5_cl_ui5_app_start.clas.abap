@@ -93,9 +93,9 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     CONSTANTS c_event_system TYPE string VALUE `OPEN_SYSTEM`.
     CONSTANTS c_event_close  TYPE string VALUE `CLOSE_POPUP`.
     " lives in the abap2UI5-setup repository, resolved dynamically (listed
-    " in dynamic-name-gate's EXTERNAL). ONE constant for both the render
-    " check and the CREATE - the same name used to exist in two spellings
-    " here, which is how a rename gets one of them wrong
+    " in dynamic-name-gate's EXTERNAL) - a constant, because the same name
+    " used to exist in two spellings here, which is how a rename gets one of
+    " them wrong
     CONSTANTS c_class_icf_config TYPE string VALUE `Z2UI5_CL_APP_ICF_CONFIG`.
 
     " the class name input of step 4 - the only control on the page that is
@@ -146,8 +146,7 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " the same place in every row - the alignment the samples app has
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
-    " the icon the page names twice - once in the title row, once in the
-    " "Learn more" section - so the header and the section cannot drift apart
+    " the icon of the "Learn more" row that links the project site
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
     " the icon of a row belongs to the link behind it, so it carries the link's
@@ -421,13 +420,6 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                  tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
                  press   = client->_event( c_event_system ) ).
 
-*    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( c_class_icf_config ).
-*      header_icon( toolbar = toolbar
-*                   icon    = `sap-icon://settings`
-*                   tooltip = `Configuration`
-*                   press   = client->_event( cs_event-set_config ) ).
-*    ENDIF.
-
   ENDMETHOD.
 
   METHOD header_icon.
@@ -450,19 +442,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     " its own section, so the samples above get their separator back and where
     " to read on is what the page says right after them - same row shape as a
-    " sample repository, and the same two icons the title row carries
+    " sample repository
     render_section( form  = form
                     title = `Learn more` ).
-
-*    render_icon_row( form    = form
-*                     label   = `GitHub`
-*                     icon    = c_icon_repo
-*                     text    = `abap2UI5`
-*                     href    = `https://github.com/abap2UI5/abap2UI5`
-*                     new_tab = abap_true
-*        )->tag( `Text`
-*            )->a( n = `text`   v = `The repository itself - source code, issues, releases, and what abapGit installs from`
-*            )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
 
     render_icon_row( form    = form
                      label   = `Docs`
@@ -470,9 +452,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                      text    = `abap2UI5.org`
                      href    = `https://abap2UI5.org`
                      new_tab = abap_true
-    )->tag( `Text`
-        )->a( n = `text`   v = `Guides, tutorials and the Sample reference - from your first app to the full client API`
-        )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
+        )->tag( `Text`
+            )->a( n = `text`   v = `Guides, tutorials and the Sample reference - from your first app to the full client API`
+            )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
 

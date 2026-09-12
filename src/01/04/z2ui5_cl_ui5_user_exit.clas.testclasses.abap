@@ -83,7 +83,6 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
   METHOD test_defaults_http_get.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
-    DATA temp1 TYPE xsdboolean.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
@@ -92,8 +91,7 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-src ).
 
-    temp1 = xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ).
-    cl_abap_unit_assert=>assert_true( temp1 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ) ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-t_security_header ).
 
@@ -102,7 +100,6 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
   METHOD test_no_secure_ctx_header.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
-    DATA temp2 TYPE xsdboolean.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
@@ -110,14 +107,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " plain-HTTP on-premise system ignores it and logs a console error on
     " every app start (reasoning at set_config_http_get). HTTPS installations
     " add it in their own exit
-    temp2 = xsdbool( line_exists(
-        ls_config-t_security_header[ n = `Cross-Origin-Opener-Policy` ] ) ). "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_false( temp2 ).
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( ls_config-t_security_header[ n = `Cross-Origin-Opener-Policy` ] ) ) ). "#EC CI_SORTSEQ
 
     " ... while the one that IS honoured over plain HTTP stays
-    temp2 = xsdbool( line_exists(
-        ls_config-t_security_header[ n = `Cross-Origin-Resource-Policy` ] ) ). "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_true( temp2 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( ls_config-t_security_header[ n = `Cross-Origin-Resource-Policy` ] ) ) ). "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
@@ -188,18 +181,18 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
         path     = `/sap/bc/z2ui5`
         t_params = VALUE #( ( n = `app_start` v = ` zcl_my_app ` ) ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = `ZCL_MY_APP`
-                                        act = z2ui5_cl_ui5_user_exit=>context-app_start ).
+                                        act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
     cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
-                                        act = z2ui5_cl_ui5_user_exit=>context-path ).
+                                        act = z2ui5_cl_ui5_user_exit=>gs_context-path ).
 
     z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
         t_params = VALUE #( ( n = `app_start` v = `%2Fns%2Fzcl_my_app` ) ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
-                                        act = z2ui5_cl_ui5_user_exit=>context-app_start ).
+                                        act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
     " a POST carries no app_start - the context says so instead of guessing
     z2ui5_cl_ui5_user_exit=>init_context( VALUE #( ) ).
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>context-app_start ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
   ENDMETHOD.
 

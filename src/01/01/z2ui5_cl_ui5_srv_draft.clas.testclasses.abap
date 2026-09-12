@@ -22,14 +22,9 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_create.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp1 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
-
-
-    CLEAR temp1.
-    temp1-id = `TEST_ID`.
-    lo_draft->create( draft     = temp1
+    lo_draft->create( draft     = VALUE #( id = `TEST_ID` )
                       model_xml = `my xml` ).
 
 
@@ -43,17 +38,12 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_create_and_read.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp2 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
-
-
-    CLEAR temp2.
-    temp2-id = `TEST_CR`.
-    temp2-id_prev = `PREV1`.
-    temp2-id_prev_app = `APP1`.
-    temp2-id_prev_app_stack = `STACK1`.
-    lo_draft->create( draft     = temp2
+    lo_draft->create( draft     = VALUE #( id                = `TEST_CR`
+                                           id_prev           = `PREV1`
+                                           id_prev_app       = `APP1`
+                                           id_prev_app_stack = `STACK1` )
                       model_xml = `<xml>data</xml>` ).
 
 
@@ -69,15 +59,9 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_read_info.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp3 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_info TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     lo_draft = NEW #( ).
-
-
-    CLEAR temp3.
-    temp3-id = `TEST_INFO`.
-    temp3-id_prev_app_stack = `MY_STACK`.
-    lo_draft->create( draft     = temp3
+    lo_draft->create( draft     = VALUE #( id = `TEST_INFO` id_prev_app_stack = `MY_STACK` )
                       model_xml = `info test` ).
 
 
@@ -95,18 +79,16 @@ CLASS ltcl_test IMPLEMENTATION.
     " there is NO read buffer: a second read after an overwrite must see the
     " new row, not a stale copy of the first - the property callers rely on
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp4 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
+    DATA(ls_draft) = VALUE z2ui5_cl_ui5_srv_draft=>ty_s_draft( id = `TEST_BUF` ).
 
-    CLEAR temp4.
-    temp4-id = `TEST_BUF`.
-    lo_draft->create( draft     = temp4
+    lo_draft->create( draft     = ls_draft
                       model_xml = `buffered data` ).
     ls_first = lo_draft->read_draft( `TEST_BUF` ).
 
-    lo_draft->create( draft     = temp4
+    lo_draft->create( draft     = ls_draft
                       model_xml = `overwritten data` ).
     ls_second = lo_draft->read_draft( `TEST_BUF` ).
 
@@ -118,21 +100,11 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_overwrite.
 
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    DATA temp5 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
-    DATA temp6 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
     lo_draft = NEW #( ).
-
-
-    CLEAR temp5.
-    temp5-id = `TEST_OW`.
-    lo_draft->create( draft     = temp5
+    lo_draft->create( draft     = VALUE #( id = `TEST_OW` )
                       model_xml = `original` ).
-
-
-    CLEAR temp6.
-    temp6-id = `TEST_OW`.
-    lo_draft->create( draft     = temp6
+    lo_draft->create( draft     = VALUE #( id = `TEST_OW` )
                       model_xml = `updated` ).
 
 

@@ -1,9 +1,10 @@
 // The unified fatal-error overlay. Shown via Server.responseError whenever
 // the app reaches an unrecoverable state - a failed roundtrip (network,
 // HTTP != 2xx, bad JSON, backend dump) or a client-side failure (invalid
-// view XML, post-render crash, missing SDK module). The only way out is a
-// restart, hence the Refresh / Logout actions. Built from raw DOM so it
-// still works when the UI5 core itself is in a broken state.
+// view XML, post-render crash, missing SDK module). The only ways out are
+// the explicit actions - Retry when the caller offered one, Restart /
+// Refresh, Logout. Built from raw DOM so it still works when the UI5 core
+// itself is in a broken state.
 sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   "use strict";
 

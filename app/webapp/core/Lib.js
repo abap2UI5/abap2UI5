@@ -396,9 +396,6 @@ sap.ui.define(
       control.setProperty("removedTokens", isRemoved ? tokens : []);
     }
 
-    // Run every callback in `callbacks` (the shared callback arrays above),
-    // swallowing individual failures so one bad callback cannot break the
-    // whole event sequence.
     // Runs `fn` once the roundtrip a control just started has landed - right
     // away when it started none (state.isBusy is set synchronously by
     // View1.eB, so the answer is known the moment the event was fired). A
@@ -421,6 +418,9 @@ sap.ui.define(
       return () => unregisterCallback("onAfterRendering", once);
     }
 
+    // Run every callback in `callbacks` (the shared callback arrays above),
+    // swallowing individual failures so one bad callback cannot break the
+    // whole event sequence.
     function runCallbacks(callbacks, ...args) {
       if (!callbacks) return;
       for (const fn of callbacks) {
@@ -433,15 +433,6 @@ sap.ui.define(
       }
     }
 
-    // Runs `fn` once `control` has a DOM reference: immediately when it is
-    // already rendered, otherwise once after its next rendering. The call
-    // is skipped when `owner` was destroyed in the meantime.
-    //
-    // `owner` is a CONTROL: the guard is isDestroyed( ), which cannot answer
-    // for a View1 CONTROLLER (no ManagedObject - see isControllerAlive). A
-    // caller whose owner is a controller therefore has to ask
-    // isControllerAlive( ) in `fn` itself; core/actions/ControlCall.js
-    // (whenAnchorRendered) and core/actions/ViewOps.js (SET_FOCUS) both do.
     // The one-shot rendering delegates that are still waiting, per control
     // and per key - so a caller that asks again before the control rendered
     // REPLACES its pending delegate instead of stacking a second one. A
@@ -478,6 +469,15 @@ sap.ui.define(
       control.addEventDelegate(delegate);
     }
 
+    // Runs `fn` once `control` has a DOM reference: immediately when it is
+    // already rendered, otherwise once after its next rendering. The call
+    // is skipped when `owner` was destroyed in the meantime.
+    //
+    // `owner` is a CONTROL: the guard is isDestroyed( ), which cannot answer
+    // for a View1 CONTROLLER (no ManagedObject - see isControllerAlive). A
+    // caller whose owner is a controller therefore has to ask
+    // isControllerAlive( ) in `fn` itself; core/actions/ControlCall.js
+    // (whenAnchorRendered) and core/actions/ViewOps.js (SET_FOCUS) both do.
     function whenRendered(control, owner, fn, key) {
       if (control.getDomRef()) {
         // Same owner-liveness guard as the deferred branch below: a caller

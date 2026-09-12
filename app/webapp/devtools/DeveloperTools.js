@@ -517,7 +517,7 @@ sap.ui.define(
       },
 
       // The help used to be a tab of its own, which put a page of prose
-      // in the same row as the twenty tabs that show live state. It is
+      // in the same row as the twenty-two tabs that show live state. It is
       // reached from the info icon in the footer now and opens in its own
       // dialog, so it does not take the current view away.
       onShowHelp() {

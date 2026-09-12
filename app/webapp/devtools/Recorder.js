@@ -6,8 +6,8 @@
 // the browser's Resource Timing API - and never asks the framework to
 // carry anything for it. Server.js, View1.controller.js, AppState.js and
 // Lib.js contain no recorder code and no recorder-shaped hooks; the whole
-// feature can be deleted by removing this file and its tabs in
-// devtools/DeveloperTools.js - devtools/DevTools.js is what
+// feature can be deleted by removing this file and its tab entries in
+// devtools/Tabs.js - devtools/DevTools.js is what
 // installs it, and that is the framework's only entry point here.
 //
 // Two tiers, because they cost very different amounts:
@@ -634,7 +634,7 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     if (!isRecordingPayloads()) {
       lines.push(
         `Switch "Record Payloads" on to keep request/response bodies and` +
-          ` enable the Model Diff tab.`,
+          ` enable the Model Diff and View Diff tabs.`,
       );
     }
     lines.push("");
