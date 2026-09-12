@@ -443,8 +443,12 @@ CLASS ltcl_rtti IMPLEMENTATION.
                                         act = lt_comp[ 2 ]-name ).
     cl_abap_unit_assert=>assert_equals( exp = `ZIP`
                                         act = lt_comp[ 3 ]-name ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_false
-                                        act = line_exists( lt_comp[ as_include = abap_true ] ) ). "#EC CI_SORTSEQ
+    " no include entry survives the expansion (a plain READ: the downport
+    " does not rewrite a line_exists( ) inside a method call argument)
+    READ TABLE lt_comp WITH KEY as_include = abap_true TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
+    DATA(lv_subrc) = sy-subrc.
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lv_subrc ).
 
   ENDMETHOD.
 
