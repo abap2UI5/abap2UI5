@@ -19,6 +19,35 @@ sap.ui.define(
 
     const _URLHelper = mobileLibrary.URLHelper;
 
+    // The URLHELPER sub-actions, each taking the call's params object. Built
+    // ONCE at module level rather than as a fresh object of four closures on
+    // every call, and prototype-less like the dispatch tables in
+    // core/actions/ControlCall.js: the name comes off the wire, and on a
+    // plain object a name Object.prototype carries resolves to a function.
+    const URL_HELPER_ACTIONS = Object.assign(Object.create(null), {
+      REDIRECT: (params) => {
+        if (!Lib.isSafeRedirectProtocol(params.URL)) {
+          MessageBox.error(
+            "Invalid redirect URL. Only http/https protocols are allowed.",
+          );
+          return;
+        }
+        _URLHelper.redirect(params.URL, params.NEW_WINDOW);
+      },
+      TRIGGER_EMAIL: (params) =>
+        _URLHelper.triggerEmail(
+          params.EMAIL,
+          params.SUBJECT,
+          params.BODY,
+          params.CC,
+          params.BCC,
+          params.NEW_WINDOW,
+        ),
+      TRIGGER_SMS: (params) =>
+        _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),
+      TRIGGER_TEL: (params) => _URLHelper.triggerTel(params.TEL),
+    });
+
     // ------------------------------------------------------------------
     // Individual event handlers - one per entry in the dispatch table at
     // the bottom. Uniform signature (oController, args) so the dispatch
@@ -228,32 +257,9 @@ sap.ui.define(
         Lib.logError("URLHELPER: blocked CR/LF in parameters");
         return;
       }
-      const actions = {
-        REDIRECT: () => {
-          if (!Lib.isSafeRedirectProtocol(params.URL)) {
-            MessageBox.error(
-              "Invalid redirect URL. Only http/https protocols are allowed.",
-            );
-            return;
-          }
-          _URLHelper.redirect(params.URL, params.NEW_WINDOW);
-        },
-        TRIGGER_EMAIL: () =>
-          _URLHelper.triggerEmail(
-            params.EMAIL,
-            params.SUBJECT,
-            params.BODY,
-            params.CC,
-            params.BCC,
-            params.NEW_WINDOW,
-          ),
-        TRIGGER_SMS: () =>
-          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),
-        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),
-      };
       try {
-        const fn = actions[args[1]];
-        if (fn) fn();
+        const fn = URL_HELPER_ACTIONS[args[1]];
+        if (fn) fn(params);
       } catch (e) {
         Lib.logError(`URLHELPER: '${args[1]}' failed`, e);
       }
