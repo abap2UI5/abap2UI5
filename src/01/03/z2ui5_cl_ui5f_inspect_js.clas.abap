@@ -306,7 +306,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      const found = new Set();` && |\n| &&
              `` && |\n| &&
              `      const pattern =` && |\n| &&
-             `        /\b(eB|eBP|eF)\s*\(\s*\[?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/g;` && |\n| &&
+             `        /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/g;` && |\n| &&
              `      let match = pattern.exec(xml);` && |\n| &&
              `      while (match !== null && found.size < MAX_SCRAPED_EVENTS) {` && |\n| &&
              `        found.add(``${match[1]}  ${match[2]}``);` && |\n| &&
@@ -622,7 +622,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      if (!xml) return [];` && |\n| &&
              `      const found = new Set();` && |\n| &&
              `` && |\n| &&
-             `      const pattern = /[{$'",:[\s]\/([A-Za-z_][A-Za-z0-9_]*)/g;` && |\n| &&
+             `      const pattern =` && |\n| &&
+             `        /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;` && |\n| &&
              `      let match = pattern.exec(xml);` && |\n| &&
              `      while (match !== null) {` && |\n| &&
              `        found.add(match[1]);` && |\n| &&
@@ -824,9 +825,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        ),` && |\n| &&
              `      );` && |\n| &&
              `      out.push(line("Theme", Lib.getTheme()));` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("View slots"));` && |\n|.
+             `` && |\n|.
     result = result &&
+             `      out.push(section("View slots"));` && |\n| &&
              `      out.push(...formatSlots());` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Getting around"));` && |\n| &&

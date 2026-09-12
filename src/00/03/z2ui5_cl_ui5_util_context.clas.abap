@@ -353,12 +353,18 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    "! The S-RTTI descriptor graph and the data of a dynamically typed
+    "! object as ONE combined asXML document - the shape a draft written
+    "! before 2026-09 carries. No production caller since the pair methods
+    "! below replaced it; kept as the writer of that legacy shape for the
+    "! draft-restore fixture in z2ui5_cl_ui5_srv_model's test class
     CLASS-METHODS xml_srtti_stringify
       IMPORTING
         !data         TYPE any
       RETURNING
         VALUE(result) TYPE string.
 
+    "! The way back for the ONE combined asXML document (see above)
     CLASS-METHODS xml_srtti_parse
       IMPORTING
         rtti_data     TYPE clike
@@ -366,8 +372,8 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         VALUE(result) TYPE REF TO data.
 
     "! The S-RTTI descriptor graph and the data of a dynamically typed object
-    "! as TWO asXML documents. xml_srtti_stringify writes both into ONE, and
-    "! the way back then has to lex the whole document twice - once for the
+    "! as TWO asXML documents. The former single-document writer put both
+    "! into ONE, and the way back then had to lex the whole document twice - once for the
     "! type (skipping every byte of the data), once for the data. Written per
     "! generic reference on every draft save and read back on every draft
     "! load, so a multi-MB table behind a REF TO data paid a redundant full
@@ -692,9 +698,6 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     CLASS-DATA gv_check_cloud TYPE abap_bool.
 
     CLASS-DATA gv_check_cloud_cached TYPE abap_bool.
-
-    " Guards the cycle z2ui5_cx_ui5_util_error=>constructor -> uuid_get_c32 ->
-    " RAISE z2ui5_cx_ui5_util_error -> ... see uuid_get_c32.
 
     CLASS-METHODS rtti_get_classes_intf_cloud
       IMPORTING
@@ -1093,7 +1096,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD conv_get_as_data_ref.
 
-    GET REFERENCE OF val INTO result.
+    " REF #( ), not GET REFERENCE OF: the statement form is not released for
+    " ABAP Cloud, and neither check:cloud nor the transpiled unit run sees
+    " it (abap-check skill, section 3). The target is a typed REF TO data,
+    " so `#` infers - the "Unexpected operator REF" trap of that section
+    " only bites a TYPE any field symbol target
+    result = REF #( val ).
 
   ENDMETHOD.
 
@@ -1326,18 +1334,21 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_include.
 
-    cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
-                                         RECEIVING p_descr_ref     = DATA(type_desc)
-                                         EXCEPTIONS type_not_found = 1 ).
-    " classic exception method: a missing type sets sy-subrc and leaves the
-    " ref unbound instead of raising - check it, or get_components below
-    " dumps with CX_SY_REF_IS_INITIAL
-    IF sy-subrc <> 0 OR type_desc IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING
-          val = |Include type '{ type->absolute_name }' not found|.
-    ENDIF.
-    DATA(sdescr) = CAST cl_abap_structdescr( type_desc ).
+    " `type` IS the include's descriptor - the component the caller took it
+    " from (as_include = abap_true) carries the structure descriptor, and
+    " RTTI descriptors are singletons. It used to be re-described by name,
+    " an RTTI lookup per include on the binding path that could only hand
+    " back the object already in hand - or fail for a local include type
+    " whose absolute name does not resolve, where the direct cast cannot
+    DATA sdescr TYPE REF TO cl_abap_structdescr.
+    TRY.
+        sdescr ?= type.
+      CATCH cx_sy_move_cast_error INTO DATA(lx_cast).
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = |Include type '{ type->absolute_name }' is not a structure|
+            previous = lx_cast.
+    ENDTRY.
     DATA(comps) = sdescr->get_components( ).
     result = expand_components( val   = comps
                                 depth = depth ).
@@ -1613,20 +1624,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD xml_srtti_parse.
 
-    DATA srtti TYPE REF TO object.
-    CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
-
-    DATA rtti_type TYPE REF TO cl_abap_typedescr.
-    CALL METHOD srtti->(`GET_RTTI`)
-      RECEIVING
-        rtti = rtti_type.
-
-    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
-    lo_datadescr ?= rtti_type.
-
-    CREATE DATA result TYPE HANDLE lo_datadescr.
-    ASSIGN result->* TO FIELD-SYMBOL(<variable>).
-    CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
+    " the one combined document holds both elements, so it is the pair
+    " parse with the same document on both sides - one copy of the
+    " GET_RTTI / cast / CREATE DATA TYPE HANDLE sequence instead of two
+    " that drift apart. Only a draft written before the split still comes
+    " here (z2ui5_cl_ui5_srv_model=>attri_srtti_parse)
+    result = xml_srtti_parse_pair( iv_type = rtti_data
+                                   iv_data = rtti_data ).
 
   ENDMETHOD.
 
@@ -2088,8 +2092,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab> TYPE ANY TABLE.
 
+    " IS ASSIGNED, not sy-subrc - the unassign_data rule: on some releases a
+    " successful ASSIGN leaves sy-subrc as it was, and the caller chain
+    " (box_resolve -> ui5_msg_box_format's DELETE ... WHERE with no hit ->
+    " here) arrives with a stale 4, which rendered "Table with N entries"
+    " over an empty body. The symbol is declared fresh and assigned once
     ASSIGN val TO <tab>.
-    IF sy-subrc <> 0.
+    IF <tab> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
 
@@ -2207,8 +2216,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " IS ASSIGNED, not sy-subrc - see data_render_tab and unassign_data
     ASSIGN lr_data->* TO <val>.
-    IF sy-subrc <> 0.
+    IF <val> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
 
@@ -2636,17 +2646,22 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    type = `SEOC_CLASS_R`.
-    CREATE DATA class TYPE (type).
-
-    ASSIGN class->* TO <class>.
-
     LOOP AT lt_impl REFERENCE INTO lr_impl.
 
       CLEAR ls_class.
       ls_class-classname = lr_impl->clsname.
 
       IF read_description = abap_true.
+
+        " the repository structure only when a description is asked for -
+        " the user-exit lookup (get_user_exit_class) never asks, and in a
+        " stateless ICF session it runs once per request, so the dynamic
+        " CREATE DATA of SEOC_CLASS_R was paid on every request for nothing
+        IF class IS NOT BOUND.
+          type = `SEOC_CLASS_R`.
+          CREATE DATA class TYPE (type).
+          ASSIGN class->* TO <class>.
+        ENDIF.
 
         CLEAR <class>.
         ls_clskey-clsname = lr_impl->clsname.

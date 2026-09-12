@@ -45,6 +45,8 @@ function loadRecorder({ storage = {} } = {}) {
 
   const performanceStub = {
     now: () => clock.value,
+    // a fixed page time origin, so a mark converts to a known wall-clock time
+    timeOrigin: Date.UTC(2026, 0, 1, 12, 0, 0),
     getEntriesByName: (name) => entries.filter((e) => e.name === name),
   };
 
@@ -247,7 +249,32 @@ test.describe("network pairing", () => {
     expect(list[0].rendered).toBe(false);
     expect(list[0].backendMs).toBe(10);
     expect(list[0].respBytes).toBe(64);
+    // stamped with the time the request went OUT (origin + its start mark),
+    // not with the time of the flush seconds later
+    expect(list[0].ts).toBe("2026-01-01T12:00:00.010Z");
     expect(h.Recorder.formatHistory()).toContain("(no render)");
+  });
+
+  // The flush appends, but the roundtrip it records happened BEFORE the
+  // renders written since - it takes its place in time, so the history reads
+  // in the order things happened
+  test("a flushed unrendered row sorts by its own time, not by the flush", () => {
+    const h = loadRecorder();
+    h.Recorder.install();
+    h.addEntry({ start: 10, end: 20, bytes: 64 }); // fails, never renders
+    h.deliverToObserver();
+    h.addEntry({ start: 30, end: 40, bytes: 64 });
+    h.deliverToObserver();
+    h.clock.value = 45;
+    h.fireAfterRendering(); // pairs with the second, flushes the first
+    h.addEntry({ start: 50, end: 60, bytes: 64 });
+    h.deliverToObserver();
+    h.clock.value = 65;
+    h.fireAfterRendering();
+
+    const list = h.Recorder.getRecords();
+    expect(list.map((r) => r.rendered)).toEqual([false, true, true]);
+    expect(list.map((r) => r.ts)).toEqual([...list.map((r) => r.ts)].sort());
   });
 
   test("pairs the render with the request that finished before it", () => {

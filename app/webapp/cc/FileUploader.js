@@ -25,10 +25,14 @@ sap.ui.define(
             type: "string",
             defaultValue: "",
           },
-          tooltip: {
-            type: "string",
-            defaultValue: "",
-          },
+          // No `tooltip` property: sap.ui.core.Element already declares
+          // `tooltip` as an aggregation (altType string) and ships
+          // setTooltip/getTooltip, and ManagedObjectMetadata only generates
+          // an accessor for a property when the prototype has none - so a
+          // property of that name got the INHERITED aggregation setter, its
+          // value landed in the aggregation, and the getProperty("tooltip")
+          // the sync read stayed "" forever. The inherited aggregation is
+          // the tooltip; _syncControls forwards it as a string.
           fileType: {
             type: "string",
             defaultValue: "",
@@ -69,10 +73,8 @@ sap.ui.define(
             type: "boolean",
             defaultValue: false,
           },
-          visible: {
-            type: "boolean",
-            defaultValue: true,
-          },
+          // `visible` is inherited from sap.ui.core.Control - same type,
+          // same default; a redeclaration here was dead metadata
           checkDirectUpload: {
             type: "boolean",
             defaultValue: false,
@@ -183,7 +185,10 @@ sap.ui.define(
       // and UI5 only invalidates them when a value actually changed.
       _syncControls() {
         const u = this.oFileUploader;
-        u.setTooltip(this.getProperty("tooltip"));
+        // the inherited Element aggregation, as a string: a TooltipBase
+        // instance has one parent and must not be re-parented into the
+        // inner control (see the metadata comment on the missing property)
+        u.setTooltip(this.getTooltip_AsString());
         u.setIcon(this.getProperty("icon"));
         u.setIconOnly(this.getProperty("iconOnly"));
         u.setButtonOnly(this.getProperty("buttonOnly"));

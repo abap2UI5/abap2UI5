@@ -361,10 +361,13 @@ sap.ui.define(
     function scrapeEvents(xml) {
       if (!xml) return [];
       const found = new Set();
-      // eB / eBP / eF, then an optional array bracket, then the quoted
-      // event name - single, double or the XML-escaped apostrophe.
+      // eB / eBP / eF, then the quoted event name - single, double or the
+      // XML-escaped apostrophe - right after the parenthesis or as the
+      // first entry of the argument array. For eBP that array sits behind
+      // the $event and the veto expression (`.eBP($event,true,['X'])`), so
+      // the name of every prevent-default wire went unlisted before.
       const pattern =
-        /\b(eB|eBP|eF)\s*\(\s*\[?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/g;
+        /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/g;
       let match = pattern.exec(xml);
       while (match !== null && found.size < MAX_SCRAPED_EVENTS) {
         found.add(`${match[1]}  ${match[2]}`);
@@ -732,9 +735,13 @@ sap.ui.define(
     function scrapeBindingAttributes(xml) {
       if (!xml) return [];
       const found = new Set();
-      // a "/" directly after {, ${, a quote or a comma-separated path:
-      // covers {/A}, {path:'/A'}, {parts:['/A','/B']}, {= ${/A} > 1 }
-      const pattern = /[{$'",:[\s]\/([A-Za-z_][A-Za-z0-9_]*)/g;
+      // a "/" only where a BINDING starts an absolute path: {/A}, ${/A} in
+      // an expression, path:'/A', parts:['/A','/B'] (the comma continues a
+      // parts list). Any quote followed by "/" used to count, which read
+      // src="/sap/public/..." and href="/some/page" as bindings of /sap and
+      // /some and reported them as missing from the model
+      const pattern =
+        /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;
       let match = pattern.exec(xml);
       while (match !== null) {
         found.add(match[1]);

@@ -290,9 +290,10 @@ sap.ui.define(
     // hash as a real route through the HashChanger (see sync) and the
     // cleanup leaves the hash alone. The value is the event name; a blank
     // (single space) unregisters, empty means "no change" - the same
-    // encoding app_state_set_active uses. AppState's reset clears it on an
-    // app switch. Applies with routing OFF only - a routed app's hash
-    // belongs to the router, not to the app.
+    // encoding app_state_set_active uses. View1 clears it on an app switch
+    // (a response naming another app), AppState.reset( ) on the teardown.
+    // Applies with routing OFF only - a routed app's hash belongs to the
+    // router, not to the app.
     function applyHashEvent(mOptions) {
       if (!mOptions.setHashEvent) return;
       const state = AppState.state;

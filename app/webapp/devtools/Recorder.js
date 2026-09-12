@@ -133,6 +133,18 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
     }
   }
 
+  // A performance-timeline mark (what Resource Timing reports) as a
+  // wall-clock ISO timestamp, so a record built from an observation can
+  // carry the time of the request instead of the time it was written.
+  function wallClockIso(mark) {
+    const origin =
+      typeof performance !== "undefined" ? performance.timeOrigin : undefined;
+    if (typeof origin === "number" && typeof mark === "number") {
+      return new Date(origin + mark).toISOString();
+    }
+    return new Date().toISOString();
+  }
+
   function now() {
     return typeof performance !== "undefined" && performance.now
       ? performance.now()
@@ -226,7 +238,14 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
   // exactly the roundtrips a developer is looking for.
   function pushUnrendered(entry) {
     pushRecord({
-      ts: new Date().toISOString(),
+      // the time the REQUEST went out, not the time of this flush: the
+      // flush runs on the next render or when the history is read, at
+      // least UNPAIRED_FLUSH_MS later, so the failed roundtrip used to show
+      // a timestamp seconds late and sat below roundtrips that happened
+      // after it. Resource Timing marks are relative to the page's time
+      // origin; without one (an old browser, a test double) the flush time
+      // stays the best available
+      ts: wallClockIso(entry.start),
       event: "",
       idSent: "",
       idReceived: "",
@@ -243,6 +262,10 @@ sap.ui.define(["z2ui5/core/AppState", "z2ui5/core/Lib"], (AppState, Lib) => {
       request: null,
       response: null,
     });
+    // ... and in its place in time: the flush appends, but the roundtrip
+    // happened before the records written since. seq stays the arrival
+    // order - it is the stable number the diff views refer to
+    records.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));
   }
 
   // Pull the user-visible backend messages out of a response's app action

@@ -334,6 +334,32 @@ test.describe("redundancy guard: binding unchanged since read", () => {
     expect(col.state.filtered).toBeUndefined();
   });
 
+  // The guard has to follow the re-apply: after a rebuild the state was
+  // written into the NEW binding, and that one is now the binding to skip.
+  // It kept pointing at the binding readBackend saw, so every incidental
+  // re-render until the next roundtrip (theme, density, a popup
+  // re-rendering the page) re-filtered and re-sorted the whole dataset.
+  test("a re-render after the re-apply does not filter or sort again", () => {
+    const env = load();
+    const ext = makeExt(env);
+    const col = makeColumn("NAME");
+    const b0 = makeBinding({
+      filters: [{ sPath: "NAME", sOperator: "EQ", oValue1: "Bob" }],
+      sorters: [{ sPath: "NAME", bDescending: true }],
+    });
+    const table = makeTable(b0, [col]);
+    env.setTable(table);
+
+    ext.readBackend();
+    const b1 = makeBinding();
+    table._binding = b1;
+    ext.applyBackend(); // rebuild -> re-apply once
+    ext.applyBackend(); // an incidental re-render of the same binding
+
+    expect(b1.calls.filter).toBe(1);
+    expect(b1.calls.sort).toBe(1);
+  });
+
   test("does not re-run binding.sort() when the binding is unchanged", () => {
     const env = load();
     const ext = makeExt(env);

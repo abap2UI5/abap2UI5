@@ -138,15 +138,45 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function collectEvents(control) {` && |\n| &&
+             `    const FRAMEWORK_CALL =` && |\n| &&
+             `      /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;` && |\n| &&
+             `` && |\n| &&
+             `    function slotXml(slotKey) {` && |\n| &&
+             `      if (!slotKey) return "";` && |\n| &&
+             `      return (` && |\n| &&
+             `        ViewSlots.getView?.(slotKey)?.mProperties?.viewContent ||` && |\n| &&
+             `        ViewSlots.getViewXml?.(slotKey) ||` && |\n| &&
+             `        ""` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function xmlAttributesOf(control, slotKey) {` && |\n| &&
+             `      const localId = String(control.getId?.() || "")` && |\n| &&
+             `        .split("--")` && |\n| &&
+             `        .pop();` && |\n| &&
+             `      const xml = slotXml(slotKey);` && |\n| &&
+             `      if (!localId || !xml) return "";` && |\n| &&
+             `      const idAttr = new RegExp(``\\sid\\s*=\\s*(?:"${localId}"|'${localId}')``);` && |\n| &&
+             `      const at = xml.search(idAttr);` && |\n| &&
+             `      if (at < 0) return "";` && |\n| &&
+             `      const open = xml.lastIndexOf("<", at);` && |\n| &&
+             `      const close = xml.indexOf(">", at);` && |\n| &&
+             `      return open < 0 || close < 0 ? "" : xml.slice(open, close);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function collectEvents(control, slotKey) {` && |\n| &&
              `      const registry = control.mEventRegistry || {};` && |\n| &&
+             `      const attributes = xmlAttributesOf(control, slotKey);` && |\n| &&
              `      const out = [];` && |\n| &&
              `      for (const name of Object.keys(registry)) {` && |\n| &&
              `        for (const handler of registry[name] || []) {` && |\n| &&
-             `          const source = String(handler?.fFunction || "");` && |\n| &&
-             `          const match = /\b(eB|eBP|eF)\s*\(\s*\[?\s*['"]([A-Za-z0-9_.-]+)/.exec(` && |\n| &&
-             `            source,` && |\n| &&
-             `          );` && |\n| &&
+             `          let match = FRAMEWORK_CALL.exec(String(handler?.fFunction || ""));` && |\n| &&
+             `          if (!match && attributes) {` && |\n| &&
+             `            const attr = new RegExp(` && |\n| &&
+             `              ``\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')``,` && |\n| &&
+             `            ).exec(attributes);` && |\n| &&
+             `            match = attr ? FRAMEWORK_CALL.exec(attr[1] ?? attr[2] ?? "") : null;` && |\n| &&
+             `          }` && |\n| &&
              `          out.push(match ? ``${name} -> ${match[1]}('${match[2]}')`` : name);` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
@@ -186,7 +216,7 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `        out.push(``      value  ${renderValue(binding.value)}``);` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const events = collectEvents(control);` && |\n| &&
+             `      const events = collectEvents(control, slotKey);` && |\n| &&
              `      out.push("");` && |\n| &&
              `      out.push("Events");` && |\n| &&
              `      out.push("------");` && |\n| &&
