@@ -19,35 +19,6 @@ sap.ui.define(
 
     const _URLHelper = mobileLibrary.URLHelper;
 
-    // The URLHELPER sub-actions, each taking the call's params object. Built
-    // ONCE at module level rather than as a fresh object of four closures on
-    // every call, and prototype-less like the dispatch tables in
-    // core/actions/ControlCall.js: the name comes off the wire, and on a
-    // plain object a name Object.prototype carries resolves to a function.
-    const URL_HELPER_ACTIONS = Object.assign(Object.create(null), {
-      REDIRECT: (params) => {
-        if (!Lib.isSafeRedirectProtocol(params.URL)) {
-          MessageBox.error(
-            "Invalid redirect URL. Only http/https protocols are allowed.",
-          );
-          return;
-        }
-        _URLHelper.redirect(params.URL, params.NEW_WINDOW);
-      },
-      TRIGGER_EMAIL: (params) =>
-        _URLHelper.triggerEmail(
-          params.EMAIL,
-          params.SUBJECT,
-          params.BODY,
-          params.CC,
-          params.BCC,
-          params.NEW_WINDOW,
-        ),
-      TRIGGER_SMS: (params) =>
-        _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),
-      TRIGGER_TEL: (params) => _URLHelper.triggerTel(params.TEL),
-    });
-
     // ------------------------------------------------------------------
     // Individual event handlers - one per entry in the dispatch table at
     // the bottom. Uniform signature (oController, args) so the dispatch
@@ -257,9 +228,44 @@ sap.ui.define(
         Lib.logError("URLHELPER: blocked CR/LF in parameters");
         return;
       }
+      // A plain literal INSIDE this function on purpose, like the three
+      // tables in core/actions/ControlCall.js: the abap2UI5 linter mirrors
+      // this set and finds it by the exact source text `actions = {` within
+      // `function evUrlHelper` in the embedded carrier (its
+      // scripts/check-upstream.mjs, parseUrlHelperActions). Hoisting it to
+      // module level - built once instead of four closures per call - made
+      // that lookup miss, and the mirror check degraded to "SKIPPED, not
+      // verified": a cross-repository check that stops checking without
+      // failing. Same effect, marker intact. Prototype-less, because the
+      // name comes off the wire and a plain object answers for every name
+      // Object.prototype carries.
+      const actions = {
+        REDIRECT: () => {
+          if (!Lib.isSafeRedirectProtocol(params.URL)) {
+            MessageBox.error(
+              "Invalid redirect URL. Only http/https protocols are allowed.",
+            );
+            return;
+          }
+          _URLHelper.redirect(params.URL, params.NEW_WINDOW);
+        },
+        TRIGGER_EMAIL: () =>
+          _URLHelper.triggerEmail(
+            params.EMAIL,
+            params.SUBJECT,
+            params.BODY,
+            params.CC,
+            params.BCC,
+            params.NEW_WINDOW,
+          ),
+        TRIGGER_SMS: () =>
+          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),
+        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),
+      };
+      Object.setPrototypeOf(actions, null);
       try {
-        const fn = URL_HELPER_ACTIONS[args[1]];
-        if (fn) fn(params);
+        const fn = actions[args[1]];
+        if (fn) fn();
       } catch (e) {
         Lib.logError(`URLHELPER: '${args[1]}' failed`, e);
       }
