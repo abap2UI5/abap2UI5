@@ -34,13 +34,50 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/devtools/Console",` && |\n| &&
              `    "z2ui5/devtools/Recorder",` && |\n| &&
+             `    "z2ui5/devtools/Format",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Device, AppState, Lib, ScrollFocus, ViewSlots, Console, Recorder) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    Device,` && |\n| &&
+             `    AppState,` && |\n| &&
+             `    Lib,` && |\n| &&
+             `    ScrollFocus,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
+             `    Console,` && |\n| &&
+             `    Recorder,` && |\n| &&
+             `    Format,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const MAX_ARG_CHARS = 160;` && |\n| &&
              `` && |\n| &&
              `    const MAX_SCRAPED_EVENTS = 200;` && |\n| &&
+             `` && |\n| &&
+             `    const BOOTSTRAP_ATTRS = [` && |\n| &&
+             `      ["Bootstrap theme", "theme"],` && |\n| &&
+             `      ["Resource roots", "resourceroots"],` && |\n| &&
+             `      ["On init", "oninit"],` && |\n| &&
+             `      ["Compat version", "compatversion"],` && |\n| &&
+             `      ["Async", "async"],` && |\n| &&
+             `      ["Frame options", "frameoptions"],` && |\n| &&
+             `      ["Binding syntax", "bindingsyntax"],` && |\n| &&
+             `      ["Libs", "libs"],` && |\n| &&
+             `    ];` && |\n| &&
+             `` && |\n| &&
+             `    const CALLBACK_ARRAYS = [` && |\n| &&
+             `      "onBeforeRoundtrip",` && |\n| &&
+             `      "onAfterRoundtrip",` && |\n| &&
+             `      "onAfterRendering",` && |\n| &&
+             `      "onBeforeEventFrontend",` && |\n| &&
+             `      "onErrorDetails",` && |\n| &&
+             `    ];` && |\n| &&
+             `` && |\n| &&
+             `    const EVENT_CALL = new RegExp(Format.FRAMEWORK_CALL.source, "g");` && |\n| &&
+             `` && |\n| &&
+             `    const BINDING_PATH =` && |\n| &&
+             `      /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;` && |\n| &&
+             `` && |\n| &&
+             `    const WORD_CHAR = /[a-z0-9_]/;` && |\n| &&
+             `    const isWordChar = (ch) => ch !== undefined && WORD_CHAR.test(ch);` && |\n| &&
              `` && |\n| &&
              `    const LABEL_WIDTH = 24;` && |\n| &&
              `` && |\n| &&
@@ -58,11 +95,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return value ? "yes" : "no";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function truncate(text, max) {` && |\n| &&
-             `      const str = String(text);` && |\n| &&
-             `      if (str.length <= max) return str;` && |\n| &&
-             `      return ``${str.slice(0, max)}... (${str.length} chars)``;` && |\n| &&
-             `    }` && |\n| &&
+             `    const { truncate, formatBytes } = Format;` && |\n| &&
              `` && |\n| &&
              `    function bootstrapElement() {` && |\n| &&
              `      try {` && |\n| &&
@@ -226,16 +259,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        out.push("  UI5 was started some other way, e.g. by a launchpad)");` && |\n| &&
              `      } else {` && |\n| &&
              `        out.push(line("SDK source", el.src || bootstrapAttr(el, "src")));` && |\n| &&
-             `        for (const [label, attr] of [` && |\n| &&
-             `          ["Bootstrap theme", "theme"],` && |\n| &&
-             `          ["Resource roots", "resourceroots"],` && |\n| &&
-             `          ["On init", "oninit"],` && |\n| &&
-             `          ["Compat version", "compatversion"],` && |\n| &&
-             `          ["Async", "async"],` && |\n| &&
-             `          ["Frame options", "frameoptions"],` && |\n| &&
-             `          ["Binding syntax", "bindingsyntax"],` && |\n| &&
-             `          ["Libs", "libs"],` && |\n| &&
-             `        ]) {` && |\n| &&
+             `        for (const [label, attr] of BOOTSTRAP_ATTRS) {` && |\n| &&
              `          const value = bootstrapAttr(el, attr);` && |\n| &&
              `          if (value) out.push(line(label, truncate(value, MAX_ARG_CHARS)));` && |\n| &&
              `        }` && |\n| &&
@@ -305,12 +329,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      if (!xml) return [];` && |\n| &&
              `      const found = new Set();` && |\n| &&
              `` && |\n| &&
-             `      const pattern =` && |\n| &&
-             `        /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/g;` && |\n| &&
-             `      let match = pattern.exec(xml);` && |\n| &&
-             `      while (match !== null && found.size < MAX_SCRAPED_EVENTS) {` && |\n| &&
+             `      for (const match of xml.matchAll(EVENT_CALL)) {` && |\n| &&
+             `        if (found.size >= MAX_SCRAPED_EVENTS) break;` && |\n| &&
              `        found.add(``${match[1]}  ${match[2]}``);` && |\n| &&
-             `        match = pattern.exec(xml);` && |\n| &&
              `      }` && |\n| &&
              `      return Array.from(found).sort();` && |\n| &&
              `    }` && |\n| &&
@@ -345,22 +366,15 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(timers.length ? ``  ${timers.join(", ")}`` : "  (none pending)");` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Framework callbacks registered"));` && |\n| &&
-             `` && |\n| &&
-             `      for (const name of [` && |\n| &&
-             `        "onBeforeRoundtrip",` && |\n| &&
-             `        "onAfterRoundtrip",` && |\n| &&
-             `        "onAfterRendering",` && |\n| &&
-             `        "onBeforeEventFrontend",` && |\n| &&
-             `        "onErrorDetails",` && |\n| &&
-             `      ]) {` && |\n| &&
-             `        out.push(line(name, String((state[name] || []).length)));` && |\n| &&
+             `      for (const name of CALLBACK_ARRAYS) {` && |\n| &&
+             `        out.push(line(name, (state[name] || []).length));` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Model size limits"));` && |\n| &&
              `      const limits = state.viewSizeLimits || {};` && |\n| &&
              `      const limitKeys = Object.keys(limits);` && |\n| &&
              `      if (!limitKeys.length) out.push("  (UI5 default everywhere)");` && |\n| &&
-             `      for (const key of limitKeys) out.push(line(key, String(limits[key])));` && |\n| &&
+             `      for (const key of limitKeys) out.push(line(key, limits[key]));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Backend events bound in the current views"));` && |\n| &&
              `      let any = false;` && |\n| &&
@@ -410,7 +424,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        for (const arg of args) out.push(``       ${renderArg(arg)}``);` && |\n| &&
              `      });` && |\n| &&
              `      return out;` && |\n| &&
-             `    }` && |\n| &&
+             `    }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    function formatActions() {` && |\n| &&
              `      const sAction = AppState.state.responseData?.S_FRONT?.S_ACTION;` && |\n| &&
@@ -424,8 +439,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        ...renderActionList(sAction?.T_SYSTEM, "T_SYSTEM (view lifecycle)"),` && |\n| &&
              `      );` && |\n| &&
              `      out.push(...renderActionList(sAction?.T_CUSTOM, "T_CUSTOM (app)"));` && |\n| &&
-             `      return out.join("\n");` && |\n|.
-    result = result &&
+             `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const LEVEL_LABEL = {` && |\n| &&
@@ -592,8 +606,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      if (!data) return [];` && |\n| &&
              `      const out = [section(``Slot ${slotKey}``)];` && |\n| &&
              `` && |\n| &&
-             `      const changed = model._z2ui5ChangedPaths;` && |\n| &&
-             `      const dirty = changed ? new Set(changed) : new Set();` && |\n| &&
+             `      const dirty = model._z2ui5ChangedPaths || new Set();` && |\n| &&
              `` && |\n| &&
              `      const dirtyAttrs = new Set(` && |\n| &&
              `        Array.from(dirty, (p) => p.split("/")[1]).filter(Boolean),` && |\n| &&
@@ -622,13 +635,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      if (!xml) return [];` && |\n| &&
              `      const found = new Set();` && |\n| &&
              `` && |\n| &&
-             `      const pattern =` && |\n| &&
-             `        /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;` && |\n| &&
-             `      let match = pattern.exec(xml);` && |\n| &&
-             `      while (match !== null) {` && |\n| &&
-             `        found.add(match[1]);` && |\n| &&
-             `        match = pattern.exec(xml);` && |\n| &&
-             `      }` && |\n| &&
+             `      for (const match of xml.matchAll(BINDING_PATH)) found.add(match[1]);` && |\n| &&
              `      return Array.from(found).sort();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -647,7 +654,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        );` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const unused = Object.keys(data).filter((name) => !bound.includes(name));` && |\n| &&
+             `      const boundSet = new Set(bound);` && |\n| &&
+             `      const unused = Object.keys(data).filter((name) => !boundSet.has(name));` && |\n| &&
              `      if (unused.length) {` && |\n| &&
              `        out.push("");` && |\n| &&
              `        out.push(` && |\n| &&
@@ -666,12 +674,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      } catch {` && |\n| &&
              `        return 0;` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatBytes(bytes) {` && |\n| &&
-             `      if (bytes < 1024) return ``${bytes} B``;` && |\n| &&
-             `      if (bytes < 1024 * 1024) return ``${Math.round(bytes / 1024)} KB``;` && |\n| &&
-             `      return ``${(bytes / (1024 * 1024)).toFixed(1)} MB``;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function formatSizeRanking(data) {` && |\n| &&
@@ -746,7 +748,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        while (from !== -1) {` && |\n| &&
              `          const before = haystack[from - 1];` && |\n| &&
              `          const after = haystack[from + needle.length];` && |\n| &&
-             `          const isWordChar = (ch) => ch !== undefined && /[a-z0-9_]/.test(ch);` && |\n| &&
              `          if (!isWordChar(before) && !isWordChar(after)) return i + 1;` && |\n| &&
              `          from = haystack.indexOf(needle, from + 1);` && |\n| &&
              `        }` && |\n| &&
@@ -824,9 +825,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `          getDistribution((AppState.getGlobal("oConfig") || {}).S_UI5),` && |\n| &&
              `        ),` && |\n| &&
              `      );` && |\n| &&
-             `      out.push(line("Theme", Lib.getTheme()));` && |\n| &&
-             `` && |\n|.
+             `      out.push(line("Theme", Lib.getTheme()));` && |\n|.
     result = result &&
+             `` && |\n| &&
              `      out.push(section("View slots"));` && |\n| &&
              `      out.push(...formatSlots());` && |\n| &&
              `` && |\n| &&

@@ -91,7 +91,7 @@ sap.ui.define(
     }
 
     // ------------------------------------------------------------------
-    // Groups - the five questions the tools are opened with
+    // Groups - the five questions the tools are opened with, plus the search
     // ------------------------------------------------------------------
 
     // A group is a top-level tab. They are ordered the way a session
@@ -486,7 +486,11 @@ sap.ui.define(
     // The tab a group opens on when it is selected without a specific
     // sub-view - the first one that is enabled.
     function firstTabOf(groupKey) {
-      const [first] = enabledTabs(groupKey);
+      // find( ) stops at the first hit: enabledTabs( ) would run every
+      // probe of the group to hand back one entry
+      const first = TABS.find(
+        (tab) => tab.group === groupKey && isEnabled(tab),
+      );
       return first?.key || "";
     }
 

@@ -67,7 +67,7 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
              `` && |\n| &&
-             `        this._aPendingInnerControlsCreated.forEach((resolve) => resolve(null));` && |\n| &&
+             `        for (const resolve of this._aPendingInnerControlsCreated) resolve(null);` && |\n| &&
              `        this._aPendingInnerControlsCreated = [];` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -154,9 +154,9 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `      onInnerControlsCreated(oEvent) {` && |\n| &&
              `        this._oInput = oEvent.getSource();` && |\n| &&
              `        this._bInnerControlsCreated = true;` && |\n| &&
-             `        this._aPendingInnerControlsCreated.forEach((resolve) =>` && |\n| &&
-             `          resolve(this._oInput),` && |\n| &&
-             `        );` && |\n| &&
+             `        for (const resolve of this._aPendingInnerControlsCreated) {` && |\n| &&
+             `          resolve(this._oInput);` && |\n| &&
+             `        }` && |\n| &&
              `        this._aPendingInnerControlsCreated = [];` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

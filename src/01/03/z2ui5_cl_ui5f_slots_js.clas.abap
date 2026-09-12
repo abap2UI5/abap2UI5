@@ -302,17 +302,18 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        const pending = tracked._z2ui5ChangedPaths;` && |\n| &&
              `        const keep = [];` && |\n| &&
              `        if (pending?.size) {` && |\n| &&
-             `          for (const path of pending)` && |\n| &&
-             `            keep.push([path, tracked.getProperty(path)]);` && |\n| &&
+             `          for (const path of pending) {` && |\n| &&
+             `            const value = tracked.getProperty(path);` && |\n| &&
+             `` && |\n| &&
+             `            if (value !== undefined) keep.push([path, value]);` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `        tracked.setData(` && |\n| &&
              `          dataForSlot(slotKey, AppState.state.oResponse?.OVIEWMODEL),` && |\n| &&
              `        );` && |\n| &&
              `` && |\n| &&
              `        keep.forEach(([path, value], i) => {` && |\n| &&
-             `          if (value !== undefined) {` && |\n| &&
-             `            tracked.setProperty(path, value, undefined, i < keep.length - 1);` && |\n| &&
-             `          }` && |\n| &&
+             `          tracked.setProperty(path, value, undefined, i < keep.length - 1);` && |\n| &&
              `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&

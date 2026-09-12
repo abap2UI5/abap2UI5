@@ -21,7 +21,7 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     " the same exit found under the superseded interface - only one of the two
     " is ever bound, see get_instance
     CLASS-DATA gi_user_exit_dep TYPE REF TO z2ui5_if_exit.
-    CLASS-DATA context          TYPE z2ui5_if_ui5_exit=>ty_s_http_context.
+    CLASS-DATA gs_context       TYPE z2ui5_if_ui5_exit=>ty_s_http_context.
     " the class name the lookup answered, remembered together with gi_me:
     " get_user_exit_class is asked again after get_instance in the same
     " request (the start page's system popup names the exit), and each
@@ -247,10 +247,10 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         ( n = `Cross-Origin-Resource-Policy` v = `same-origin` ) ).
 
     IF gi_user_exit IS BOUND.
-      gi_user_exit->set_config_http_get( EXPORTING is_context = context
+      gi_user_exit->set_config_http_get( EXPORTING is_context = gs_context
                                          CHANGING  cs_config  = cs_config ).
     ELSEIF gi_user_exit_dep IS BOUND.
-      gi_user_exit_dep->set_config_http_get( EXPORTING is_context = context
+      gi_user_exit_dep->set_config_http_get( EXPORTING is_context = gs_context
                                              CHANGING  cs_config  = cs_config ).
     ENDIF.
 
@@ -276,10 +276,10 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     cs_config-check_trust_forwarded_host = abap_true.
 
     IF gi_user_exit IS BOUND.
-      gi_user_exit->set_config_http_post( EXPORTING is_context = context
+      gi_user_exit->set_config_http_post( EXPORTING is_context = gs_context
                                           CHANGING  cs_config  = cs_config ).
     ELSEIF gi_user_exit_dep IS BOUND.
-      gi_user_exit_dep->set_config_http_post( EXPORTING is_context = context
+      gi_user_exit_dep->set_config_http_post( EXPORTING is_context = gs_context
                                               CHANGING  cs_config  = cs_config ).
     ENDIF.
 
@@ -291,7 +291,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
   METHOD init_context.
 
-    context = CORRESPONDING #( http_info ).
+    gs_context = CORRESPONDING #( http_info ).
     " normalized the way request_app_start reads the parameter - trimmed,
     " upper-cased, a percent-encoded namespace unpacked - so an exit keyed on
     " the app (details hidden for one, a tighter CSP for another) is not
@@ -300,12 +300,12 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " URI) and when the app is named by the hash route, which never reaches
     " the server - a hint for the page request, not the authority on what
     " runs (see the interface doc)
-    context-app_start = z2ui5_cl_ui5_util_context=>c_trim_upper(
+    gs_context-app_start = z2ui5_cl_ui5_util_context=>c_trim_upper(
         VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ) ). "#EC CI_SORTSEQ
-    context-app_start = replace( val  = context-app_start
-                                 sub  = `%2F`
-                                 with = `/`
-                                 occ  = 0 ).
+    gs_context-app_start = replace( val = gs_context-app_start
+                                 sub    = `%2F`
+                                 with   = `/`
+                                 occ    = 0 ).
 
   ENDMETHOD.
 

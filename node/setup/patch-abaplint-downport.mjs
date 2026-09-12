@@ -66,7 +66,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 // The read / idempotence / anchor / replace / write routine, shared with the
-// two transpile-side patch scripts next to this one. Only the edit table and
+// transpile-side patch script next to this one. Only the edit table and
 // the two messages below are this shim's own.
 // A missing file or a missing anchor arrives as a PatchError carrying exactly
 // the message composed below; this shim is also imported (samples-controls'

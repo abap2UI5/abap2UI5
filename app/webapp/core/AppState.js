@@ -37,6 +37,9 @@
 //   cccResourceRoot   same for the customer frontend-extension BSP
 //                     ("../z2ui5_ccc/") (backend HTML)
 //   requestTimeoutMs  optional override for the roundtrip timeout (apps)
+//   developerTools    the developer-tools facade, published under the name
+//                     apps and bookmarklets already reach it by
+//                     (devtools/DevTools.js)
 //   <custom>          apps can register functions via the js_loader popup
 //                     and call them through the Z2UI5 frontend event
 //
@@ -286,7 +289,8 @@ sap.ui.define([], () => {
 
   // Read/write a field on the public z2ui5 global facade - the PUBLIC
   // contract fields listed in the header (checkLocal, url, oConfig, Util,
-  // requestTimeoutMs) and app-registered custom members (js_loader).
+  // Formatter, ccResourceRoot, cccResourceRoot, requestTimeoutMs,
+  // developerTools) and app-registered custom members (js_loader).
   // Internal fields are accessed via the `state` export instead. Reads and
   // writes go through the global on purpose: these fields are shared with
   // apps and the backend-generated HTML.

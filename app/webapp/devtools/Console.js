@@ -197,7 +197,7 @@ sap.ui.define([], () => {
   // Render one console argument the way the browser console would - but as
   // a string, and without ever throwing. Errors keep their stack, which is
   // the whole point of capturing them.
-  function renderArg(value, depth) {
+  function renderArg(value) {
     if (value === undefined) return "undefined";
     if (value === null) return "null";
     const type = typeof value;
@@ -210,13 +210,12 @@ sap.ui.define([], () => {
     if (isErrorLike(value)) {
       return value.stack || `${value.name || "Error"}: ${value.message}`;
     }
-    if ((depth || 0) >= MAX_DEPTH) return "[...]";
     try {
       // A plain stringify covers arrays and objects; the replacer keeps a
       // circular graph (a UI5 control reaches its parent) from throwing -
       // and it is ALSO where the depth and the array caps have to live:
-      // stringify walks the graph itself, so the `depth` parameter above
-      // never counted anything and MAX_DEPTH was dead code while a
+      // stringify walks the graph itself, so a depth parameter on this
+      // function never counted anything and MAX_DEPTH was dead code while a
       // console.log(oModel.getData()) serialized a multi-MB model in full
       // before the 2000-char cut. The parent map answers "how deep is this
       // node" without a second walk; a long array is replaced by its first
@@ -254,9 +253,7 @@ sap.ui.define([], () => {
   }
 
   function renderArgs(args) {
-    const parts = [];
-    for (const arg of args) parts.push(renderArg(arg, 0));
-    return parts.join(" ");
+    return args.map(renderArg).join(" ");
   }
 
   // ------------------------------------------------------------------
@@ -285,16 +282,20 @@ sap.ui.define([], () => {
     }
   }
 
-  // UI5 log levels are numeric (Log.Level): 1 FATAL, 2 ERROR, 3 WARNING,
-  // 4 INFO, 5 DEBUG, 6 TRACE. Mapped onto the console level names so one
-  // rendering serves both sources.
+  // UI5 log levels are numeric (Log.Level): 0 FATAL, 1 ERROR, 2 WARNING,
+  // 3 INFO, 4 DEBUG, 5 TRACE (NONE is -1, ALL is 6 - neither is ever the
+  // level of an entry). Mapped onto the console level names so one
+  // rendering serves both sources. The table used to start at 1, which
+  // shifted every level by one: a WARNING was recorded as an error - and
+  // opened the tools through the open-on-error hook on every binding
+  // warning - INFO showed as a warning and FATAL fell through to info.
   const UI5_LEVELS = {
+    0: "error",
     1: "error",
-    2: "error",
-    3: "warn",
-    4: "info",
+    2: "warn",
+    3: "info",
+    4: "debug",
     5: "debug",
-    6: "debug",
   };
 
   function captureUi5(logEntry) {
@@ -340,8 +341,8 @@ sap.ui.define([], () => {
   }
 
   function uninstallConsole() {
-    for (const name of Object.keys(originals)) {
-      window.console[name] = originals[name];
+    for (const [name, original] of Object.entries(originals)) {
+      window.console[name] = original;
       delete originals[name];
     }
   }
@@ -392,7 +393,7 @@ sap.ui.define([], () => {
       push(
         "error",
         "rejection",
-        reason?.stack || renderArg(reason, 0) || "unhandled rejection",
+        reason?.stack || renderArg(reason) || "unhandled rejection",
       );
     };
     onPageHide = persist;

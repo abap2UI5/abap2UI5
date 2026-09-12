@@ -517,7 +517,7 @@ sap.ui.define(
       },
 
       // The help used to be a tab of its own, which put a page of prose
-      // in the same row as the twenty tabs that show live state. It is
+      // in the same row as the twenty-two tabs that show live state. It is
       // reached from the info icon in the footer now and opens in its own
       // dialog, so it does not take the current view away.
       onShowHelp() {
@@ -662,7 +662,7 @@ sap.ui.define(
       },
 
       close() {
-        if (!this.oDialog || !this.oDialog.isOpen()) return;
+        if (!this.oDialog?.isOpen()) return;
         // When the dialog was opened from the error popup's Details
         // action, closing it (Close or Escape) re-shows that popup so the
         // user never ends up on the dismissed, broken app.
@@ -696,7 +696,7 @@ sap.ui.define(
       },
 
       toggle() {
-        if (this.oDialog && this.oDialog.isOpen()) {
+        if (this.oDialog?.isOpen()) {
           this.close();
         } else {
           this.show();

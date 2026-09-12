@@ -157,7 +157,6 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
-    DATA temp1 TYPE xsdboolean.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=NONEXISTENT_CLASS"}}}`.
 
     lo_http = NEW #( val = lv_payload ).
@@ -172,8 +171,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
       CATCH z2ui5_cx_ui5_util_error INTO lx.
 
-        temp1 = xsdbool( lx->get_text( ) CS `NONEXISTENT_CLASS` ).
-        cl_abap_unit_assert=>assert_true( temp1 ).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `NONEXISTENT_CLASS` ) ).
     ENDTRY.
 
   ENDMETHOD.

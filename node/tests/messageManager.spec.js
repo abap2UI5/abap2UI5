@@ -44,6 +44,12 @@ function load() {
       return () => this.unregisterCallback(name, bound);
     },
     getMessaging: () => messaging,
+    // the one-shot claim the real Lib keeps in the control's checkInit
+    claimOnce(owner, target) {
+      if (!target || owner.getProperty("checkInit")) return false;
+      owner.setProperty("checkInit", true, true);
+      return true;
+    },
   };
   const ViewSlots = {
     getView: () => view,

@@ -486,7 +486,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      close() {` && |\n| &&
-             `        if (!this.oDialog || !this.oDialog.isOpen()) return;` && |\n| &&
+             `        if (!this.oDialog?.isOpen()) return;` && |\n| &&
              `` && |\n| &&
              `        const reopenError = this.reopenErrorOnClose;` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
@@ -507,7 +507,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      toggle() {` && |\n| &&
-             `        if (this.oDialog && this.oDialog.isOpen()) {` && |\n| &&
+             `        if (this.oDialog?.isOpen()) {` && |\n| &&
              `          this.close();` && |\n| &&
              `        } else {` && |\n| &&
              `          this.show();` && |\n| &&

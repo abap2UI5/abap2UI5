@@ -240,20 +240,17 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
                             check_b = xsdbool( b IS SUPPLIED )
                             check_t = xsdbool( t IS SUPPLIED ) ).
 
-    IF t_child IS INITIAL.
-      IF line_exists( t_pair[ n = n ] ). "#EC CI_SORTSEQ
-        raise( |duplicate attribute '{ n }' on element '{ name }'| ).
-      ENDIF.
-      APPEND VALUE #( n = n
-                      v = val ) TO t_pair.
-    ELSE.
-      DATA(target) = t_child[ lines( t_child ) ].
-      IF line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
-        raise( |duplicate attribute '{ n }' on element '{ target->name }'| ).
-      ENDIF.
-      APPEND VALUE #( n = n
-                      v = val ) TO target->t_pair.
+    " the attribute goes on the element opened last - the root itself as
+    " long as it has no child
+    DATA(target) = me.
+    IF t_child IS NOT INITIAL.
+      target = t_child[ lines( t_child ) ].
     ENDIF.
+    IF line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
+      raise( |duplicate attribute '{ n }' on element '{ target->name }'| ).
+    ENDIF.
+    APPEND VALUE #( n = n
+                    v = val ) TO target->t_pair.
     result = me.
 
   ENDMETHOD.

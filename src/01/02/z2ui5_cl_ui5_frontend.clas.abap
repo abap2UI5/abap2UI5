@@ -615,8 +615,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      " lowercased right here, so `Information` gets the same show-mapping
-      " and default title as `information`
+      " MessageBox display methods are lowercase (show, error, warning, ...)
+      " and the type arrives however an app spelled it, so it is lowercased
+      " right here - `Information` gets the same show-mapping and default
+      " title as `information` (ui5_msg_box_format lower-cases its own)
       result-type  = to_lower( type ).
       result-title = title.
 
@@ -634,11 +636,6 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     IF result-details IS INITIAL.
       result-details = details.
     ENDIF.
-
-    " MessageBox display methods are lowercase (show, error, warning, ...);
-    " the type arrives however an app spelled it (ui5_msg_box_format
-    " lower-cases its own already)
-    result-type = to_lower( result-type ).
 
     " the type travels as the method of the whitelisted global call, so a type
     " that is no MessageBox display method would be rejected there and the box
