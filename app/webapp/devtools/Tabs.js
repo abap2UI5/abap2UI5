@@ -91,7 +91,7 @@ sap.ui.define(
     }
 
     // ------------------------------------------------------------------
-    // Groups - the five questions the tools are opened with
+    // Groups - the five questions the tools are opened with, plus the search
     // ------------------------------------------------------------------
 
     // A group is a top-level tab. They are ordered the way a session

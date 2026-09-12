@@ -413,7 +413,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     result = z2ui5_cl_ui5_util_context=>c_trim_upper(
         z2ui5_cl_ui5_util_context=>url_param_get( val = `app_start`
-                                               url    = iv_search ) ).
+                                                  url = iv_search ) ).
     " a namespaced class name carries slashes, and a client that
     " percent-encodes the value (%2Fns%2Fclass) is well within the URL
     " rules; url_param_get leaves values encoded, so the one encoding a
@@ -542,7 +542,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         SHIFT lv_hash LEFT DELETING LEADING `/`.
         result = z2ui5_cl_ui5_util_context=>c_trim_upper(
             z2ui5_cl_ui5_util_context=>url_param_get( val = `z2ui5-xapp-state`
-                                                   url    = lv_hash ) ).
+                                                      url = lv_hash ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
@@ -634,7 +634,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
   METHOD response_abap_to_json.
     TRY.
 
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+        DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                                       ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
         " the action queues are serialized explicitly below - the generic
@@ -646,21 +646,21 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         ls_front-id  = val-s_front-id.
         ls_front-app = val-s_front-app.
 
-        ajson_result->set( iv_path = `/`
-                           iv_val  = ls_front ).
-        ajson_result = ajson_result->filter( z2ui5_cl_ui5_util_json_fl=>create_no_empty_values( ) ).
+        li_ajson_result->set( iv_path = `/`
+                           iv_val     = ls_front ).
+        li_ajson_result = li_ajson_result->filter( z2ui5_cl_ui5_util_json_fl=>create_no_empty_values( ) ).
 
         " AFTER the filter, never before: an action array carries empty
         " strings as positional placeholders, which the no-empty-values
         " filter would silently drop
-        actions_serialize( ajson    = ajson_result
+        actions_serialize( ajson    = li_ajson_result
                            path     = `/S_ACTION/T_SYSTEM`
                            t_action = val-s_front-s_action-t_system ).
-        actions_serialize( ajson    = ajson_result
+        actions_serialize( ajson    = li_ajson_result
                            path     = `/S_ACTION/T_CUSTOM`
                            t_action = val-s_front-s_action-t_custom ).
 
-        DATA(lv_frontend) = ajson_result->stringify( ).
+        DATA(lv_frontend) = li_ajson_result->stringify( ).
 
         " An unchanged model is not sent at all - the key is left off rather
         " than carrying an empty object. Most round-trips are events that

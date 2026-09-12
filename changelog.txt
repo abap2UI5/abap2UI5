@@ -12,6 +12,8 @@ Legend
 
 unreleased
 ----------
+* The developer tools' console maps a UI5 log entry by the real values of sap/base/Log.Level (FATAL 0, ERROR 1, WARNING 2, INFO 3, DEBUG 4, TRACE 5): the table started at 1, so every UI5 WARNING was recorded as an error - and opened the tools through "Open on Error" on each binding warning - INFO showed as a warning and FATAL fell through to info
+* The developer tools' hint on a diff tab without recorded payloads names both tabs the "Record Payloads" switch enables, Model Diff and View Diff
 * The app-owned hash listener (cs_event-hash_attach_changed) dies with the app switch, as z2ui5_if_client promises: only the component teardown ever cleared it, so a listener app A registered kept dispatching A's event name into app B on every Back / hash edit after a nav_app_call, and the URL upkeep of B's app-state link was skipped as long as it lived
 * z2ui5.cc.FileUploader forwards its tooltip to the inner sap.ui.unified.FileUploader - `tooltip` was redeclared as a property although every Element already carries it as an aggregation, so the XML value landed in the aggregation and the sync read an empty property; the same redeclaration of `visible` is gone
 * An empty argument of a CONTROL_BY_ID setter reaches a string-DERIVED property (sap.ui.core.CSSSize, URI, ID, CSSColor) as the empty string: only the type named exactly `string` was exempt from the ""-to-false inference, so setWidth("") threw '"false" is of type boolean, expected sap.ui.core.CSSSize' and setSrc("") showed the relative path "false"

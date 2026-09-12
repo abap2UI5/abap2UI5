@@ -136,123 +136,80 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_with_args.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp1 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp2 TYPE xsdboolean.
-    DATA temp3 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp1.
-    INSERT `arg1` INTO TABLE temp1.
-
     lv_event = lo_event->get_event( val         = `MY_EVT`
-                                          t_arg = temp1 ).
+                                          t_arg = VALUE #( ( `arg1` ) ) ).
 
 
-    temp2 = xsdbool( lv_event CS `MY_EVT` ).
-    cl_abap_unit_assert=>assert_true( temp2 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `MY_EVT` ) ).
 
-    temp3 = xsdbool( lv_event CS `'arg1'` ).
-    cl_abap_unit_assert=>assert_true( temp3 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'arg1'` ) ).
 
   ENDMETHOD.
 
   METHOD event_multi_args.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp3 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp4 TYPE xsdboolean.
-    DATA temp5 TYPE xsdboolean.
-    DATA temp6 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp3.
-    INSERT `a1` INTO TABLE temp3.
-    INSERT `a2` INTO TABLE temp3.
-    INSERT `a3` INTO TABLE temp3.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = temp3 ).
+                                          t_arg = VALUE #( ( `a1` ) ( `a2` ) ( `a3` ) ) ).
 
 
-    temp4 = xsdbool( lv_event CS `'a1'` ).
-    cl_abap_unit_assert=>assert_true( temp4 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a1'` ) ).
 
-    temp5 = xsdbool( lv_event CS `'a2'` ).
-    cl_abap_unit_assert=>assert_true( temp5 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a2'` ) ).
 
-    temp6 = xsdbool( lv_event CS `'a3'` ).
-    cl_abap_unit_assert=>assert_true( temp6 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a3'` ) ).
 
   ENDMETHOD.
 
   METHOD event_dollar_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp5 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp7 TYPE xsdboolean.
-    DATA temp8 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp5.
-    INSERT `$event` INTO TABLE temp5.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = temp5 ).
+                                          t_arg = VALUE #( ( `$event` ) ) ).
 
 
-    temp7 = xsdbool( lv_event CS `$event` ).
-    cl_abap_unit_assert=>assert_true( temp7 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `$event` ) ).
 
-    temp8 = xsdbool( lv_event CS `'$event'` ).
-    cl_abap_unit_assert=>assert_false( temp8 ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS `'$event'` ) ).
 
   ENDMETHOD.
 
   METHOD event_binding_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp7 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp9 TYPE xsdboolean.
-    DATA temp10 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp7.
-    INSERT `{/MY_PATH}` INTO TABLE temp7.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = temp7 ).
+                                          t_arg = VALUE #( ( `{/MY_PATH}` ) ) ).
 
 
-    temp9 = xsdbool( lv_event CS `{/MY_PATH}` ).
-    cl_abap_unit_assert=>assert_true( temp9 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `{/MY_PATH}` ) ).
 
-    temp10 = xsdbool( lv_event CS `'{/MY_PATH}'` ).
-    cl_abap_unit_assert=>assert_false( temp10 ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS `'{/MY_PATH}'` ) ).
 
   ENDMETHOD.
 
   METHOD event_empty_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp9 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp11 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp9.
-    INSERT `` INTO TABLE temp9.
-    INSERT `real` INTO TABLE temp9.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = temp9 ).
+                                          t_arg = VALUE #( ( `` ) ( `real` ) ) ).
 
 
-    temp11 = xsdbool( lv_event CS `'real'` ).
-    cl_abap_unit_assert=>assert_true( temp11 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'real'` ) ).
 
   ENDMETHOD.
 
@@ -314,20 +271,14 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_multi_req.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp11 TYPE z2ui5_if_client=>ty_s_event_control.
     DATA lv_event TYPE string.
-    DATA temp12 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp11.
-    temp11-check_allow_multi_req = abap_true.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          s_cnt = temp11 ).
+                                          s_cnt = VALUE #( check_allow_multi_req = abap_true ) ).
 
 
-    temp12 = xsdbool( lv_event CS `false,true` ).
-    cl_abap_unit_assert=>assert_true( temp12 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `false,true` ) ).
 
   ENDMETHOD.
 
@@ -409,24 +360,16 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_client_args.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp12 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp13 TYPE xsdboolean.
-    DATA temp14 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp12.
-    INSERT `param1` INTO TABLE temp12.
-
     lv_event = lo_event->get_event_client( val         = `CLOSE`
-                                                 t_arg = temp12 ).
+                                                 t_arg = VALUE #( ( `param1` ) ) ).
 
 
-    temp13 = xsdbool( lv_event CS `CLOSE` ).
-    cl_abap_unit_assert=>assert_true( temp13 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `CLOSE` ) ).
 
-    temp14 = xsdbool( lv_event CS `'param1'` ).
-    cl_abap_unit_assert=>assert_true( temp14 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'param1'` ) ).
 
   ENDMETHOD.
 

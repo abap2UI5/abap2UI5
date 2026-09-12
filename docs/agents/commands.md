@@ -8,7 +8,7 @@
 > `package.json` is not named in this file, so a new script comes with a row
 > here (or a declared omission in the gate, with the reason).
 
-Install dependencies: `npm install` (frontend gates additionally need
+Install dependencies: `npm ci` (frontend gates additionally need
 `npm --prefix app ci` — `verify:full` runs that itself)
 
 ## Validation sequence
@@ -220,13 +220,14 @@ node/output/z2ui5_cl_ui5_http_handler.clas.mjs.map
 downporter rewrites the source on the way. One `DATA(ls_config) = …` becomes
 seven `DATA` declarations plus an assignment, `COND` becomes an `IF`, a string
 template becomes a concatenation. The measurable numbers (re-measured
-2026-08-30 — both files grow, so measure before citing):
+2026-09-12 — both files grow, so measure before citing; the 2026-08-30
+figures were 669/743 lines and had gone stale within two weeks):
 
 | | `src/02/…` | `node/downport/02/…` |
 |---|---:|---:|
-| the file | 669 lines | **743** lines |
-| `_http_get( )` starts at | 370 | **399** |
-| `_http_get( )` is | 88 lines | **105** lines |
+| the file | 942 lines | **1046** lines |
+| `_http_get( )` starts at | 456 | **493** |
+| `_http_get( )` is | 114 lines | **138** lines |
 
 The right-hand column is the downported count — it never was `src/`'s.
 So the covered ranges are real, and reading them against `src/` shifts them by

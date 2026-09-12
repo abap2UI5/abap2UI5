@@ -515,11 +515,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " same either way; the path leaf (name_client) is upper case by
         " construction (attribute names come from RTTI), so the mapping is
         " a no-op on it
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+        DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                        ii_custom_mapping = mapper_upper( ) ) ).
         " the scratch instance for a filtered attribute without a mapper
         " of its own - created when the first such attribute asks for it
-        DATA ajson_default TYPE REF TO z2ui5_if_ajson.
+        DATA li_ajson_default TYPE REF TO z2ui5_if_ajson.
 
         TYPES: BEGIN OF ty_s_mapper_cache,
                  mapper TYPE REF TO z2ui5_if_ajson_mapping,
@@ -552,8 +552,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " (an ajson value is copied node for node, the result's mapping does
           " not touch it)
           IF lr_attri->check_json = abap_true.
-            ajson_result->set( iv_path = lr_attri->name_client
-                               iv_val  = z2ui5_cl_ajson=>parse( <val> ) ).
+            li_ajson_result->set( iv_path = lr_attri->name_client
+                               iv_val     = z2ui5_cl_ajson=>parse( <val> ) ).
             CONTINUE.
           ENDIF.
 
@@ -573,11 +573,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                 ajson  = ajson ) INTO TABLE lt_mapper_cache.
               ENDIF.
             ELSE.
-              IF ajson_default IS NOT BOUND.
-                ajson_default = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+              IF li_ajson_default IS NOT BOUND.
+                li_ajson_default = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                           ii_custom_mapping = mapper_upper( ) ) ).
               ENDIF.
-              ajson = ajson_default.
+              ajson = li_ajson_default.
             ENDIF.
 
             ajson->set( iv_ignore_empty = abap_false
@@ -588,17 +588,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               ajson = ajson->filter( lr_attri->custom_filter ).
             ENDIF.
 
-            ajson_result->set( iv_path = lr_attri->name_client
-                               iv_val  = ajson ).
+            li_ajson_result->set( iv_path = lr_attri->name_client
+                               iv_val     = ajson ).
             CONTINUE.
           ENDIF.
 
-          ajson_result->set( iv_ignore_empty = abap_false
-                             iv_path         = lr_attri->name_client
-                             iv_val          = <val> ).
+          li_ajson_result->set( iv_ignore_empty = abap_false
+                             iv_path            = lr_attri->name_client
+                             iv_val             = <val> ).
         ENDLOOP.
 
-        result = ajson_result->stringify( ).
+        result = li_ajson_result->stringify( ).
         IF result IS INITIAL.
           result = `{}`.
         ENDIF.
@@ -1192,11 +1192,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ref_idx_put( iv_name = name
                  ir_ref  = lr_ref ).
     DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
-    result = VALUE z2ui5_if_ui5_types=>ty_s_attri( name         = name
-                                                    o_typedescr = lo_descr
-                                                    type_name   = lo_descr->absolute_name
-                                                    type_kind   = lo_descr->type_kind
-                                                    kind        = lo_descr->kind ).
+    result = VALUE z2ui5_if_ui5_types=>ty_s_attri( name        = name
+                                                   o_typedescr = lo_descr
+                                                   type_name   = lo_descr->absolute_name
+                                                   type_kind   = lo_descr->type_kind
+                                                   kind        = lo_descr->kind ).
 
   ENDMETHOD.
 

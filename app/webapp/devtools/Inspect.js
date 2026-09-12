@@ -339,12 +339,13 @@ sap.ui.define(
     // Private member access, developer tools only: XMLView keeps the raw XML
     // as a pseudo property in mProperties but does not declare it in its
     // metadata, so getProperty("viewContent") throws. Read the plain object
-    // instead. devtools/Tabs.js keeps the same read for the tab registry and
-    // is the only other place that has it: this module cannot borrow ITS
-    // copy (Tabs already depends on this one, so the import would close a
-    // cycle), and driving the registry through this one instead would leave
-    // the Tabs specs exercising an Inspect stub rather than the shipped
-    // read. Two readers, one rule - change them together.
+    // instead. devtools/Tabs.js keeps the same read for the tab registry
+    // and devtools/Picker.js for the picked control's handlers: this module
+    // cannot borrow Tabs' copy (Tabs already depends on this one, so the
+    // import would close a cycle), and driving the registry through this
+    // one instead would leave the Tabs specs exercising an Inspect stub
+    // rather than the shipped read. Three readers, one rule - change them
+    // together.
     function slotXml(slotKey) {
       return (
         ViewSlots.getView(slotKey)?.mProperties?.viewContent ||

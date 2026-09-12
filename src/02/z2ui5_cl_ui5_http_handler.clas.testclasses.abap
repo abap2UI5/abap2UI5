@@ -42,38 +42,28 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_http_get_html.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp1 TYPE xsdboolean.
-    DATA temp2 TYPE xsdboolean.
-    DATA temp3 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_result-body ).
 
-    temp1 = xsdbool( ls_result-body CS `<!DOCTYPE html>` ).
-    cl_abap_unit_assert=>assert_true( temp1 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
 
-    temp2 = xsdbool( ls_result-body CS `<html` ).
-    cl_abap_unit_assert=>assert_true( temp2 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<html` ) ).
 
-    temp3 = xsdbool( ls_result-body CS `</html>` ).
-    cl_abap_unit_assert=>assert_true( temp3 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `</html>` ) ).
 
   ENDMETHOD.
 
   METHOD test_http_get_ui5_boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp4 TYPE xsdboolean.
-    DATA temp5 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    temp4 = xsdbool( ls_result-body CS `sap-ui-bootstrap` ).
-    cl_abap_unit_assert=>assert_true( temp4 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `sap-ui-bootstrap` ) ).
 
-    temp5 = xsdbool( ls_result-body CS `z2ui5` ).
-    cl_abap_unit_assert=>assert_true( temp5 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `z2ui5` ) ).
 
   ENDMETHOD.
 
@@ -86,12 +76,10 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " an empty one would leave the URL in the tab during the UI5 boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp7 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    temp7 = xsdbool( ls_result-body CS `<title>abap2UI5</title>` ).
-    cl_abap_unit_assert=>assert_true( temp7 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<title>abap2UI5</title>` ) ).
 
   ENDMETHOD.
 
@@ -99,7 +87,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp6 TYPE xsdboolean.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
@@ -109,8 +96,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    temp6 = xsdbool( ls_result-body CS `S_FRONT` ).
-    cl_abap_unit_assert=>assert_true( temp6 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `S_FRONT` ) ).
 
   ENDMETHOD.
 
@@ -191,7 +177,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp8 TYPE xsdboolean.
 
     ls_req-method = `GET`.
 
@@ -200,8 +185,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    temp8 = xsdbool( ls_result-body CS `<!DOCTYPE html>` ).
-    cl_abap_unit_assert=>assert_true( temp8 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
 
   ENDMETHOD.
 
@@ -297,28 +281,20 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " single-quoted string literal, so an apostrophe, a backslash or a line
     " break in a customer's own CSS has to arrive escaped.
     DATA lv_css TYPE string.
-    DATA temp30 TYPE xsdboolean.
-    DATA temp31 TYPE xsdboolean.
-    DATA temp32 TYPE xsdboolean.
-    DATA temp33 TYPE xsdboolean.
 
     lv_css = `.a::after { content: 'x'; }` && |\n| && `.b { background: url("i\c.png"); }`.
 
     DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_css
                                                   custom_js   = `` ).
 
-    temp30 = xsdbool( lv_preload CS `content: \'x\';` ).
-    cl_abap_unit_assert=>assert_true( temp30 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `content: \'x\';` ) ).
 
-    temp31 = xsdbool( lv_preload CS `}\n.b` ).
-    cl_abap_unit_assert=>assert_true( temp31 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `}\n.b` ) ).
 
-    temp32 = xsdbool( lv_preload CS `url("i\\c.png")` ).
-    cl_abap_unit_assert=>assert_true( temp32 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `url("i\\c.png")` ) ).
 
     " and nothing raw survives next to the escaped copies
-    temp33 = xsdbool( lv_preload CS `content: 'x';` ).
-    cl_abap_unit_assert=>assert_false( temp33 ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_preload CS `content: 'x';` ) ).
 
   ENDMETHOD.
 

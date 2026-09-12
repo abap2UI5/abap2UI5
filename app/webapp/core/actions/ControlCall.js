@@ -360,8 +360,9 @@ sap.ui.define(
     // still checked to be a function before the call, so a typo just no-ops.)
     // Named setters/mutators (setVisible, addItem, removeItem, ...) stay
     // allowed - they are the API the backend legitimately drives. Denied are
-    // the framework-hostile methods: teardown/reparenting (destroy, exit,
-    // setParent, addDependent, placeAt), model/binding swaps (setModel,
+    // the framework-hostile methods: teardown/reparenting/duplication (destroy,
+    // exit, setParent, addDependent, placeAt, clone, applySettings),
+    // model/binding swaps (setModel,
     // setBinding*, bind*/unbind*), event-handler tampering (attach*/detach*,
     // fireEvent), the render lifecycle (rerender, invalidate) and the GENERIC
     // reflection mutators (setAggregation/addAggregation/insertAggregation/
