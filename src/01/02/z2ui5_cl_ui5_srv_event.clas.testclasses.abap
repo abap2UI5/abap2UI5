@@ -17,6 +17,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_trailing_empty_arg FOR TESTING.
     METHODS event_view_param FOR TESTING.
     METHODS event_multi_req   FOR TESTING.
+    METHODS event_queue_last  FOR TESTING.
     METHODS event_prevent_default FOR TESTING.
     METHODS event_prevent_default_expr FOR TESTING.
     METHODS event_client_args FOR TESTING.
@@ -273,6 +274,50 @@ CLASS ltcl_test IMPLEMENTATION.
 
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `false,true` ) ).
+
+  ENDMETHOD.
+
+  METHOD event_queue_last.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
+    lo_event = NEW #( ).
+
+    CLEAR ls_ctrl.
+    ls_ctrl-check_queue_last = abap_true.
+
+    " the flag rides at position [4] of the event array, behind the reserved
+    " placeholder, ignoreBusy and useMainModel - View1.eB reads the array by
+    " index, so the earlier positions keep their place and their value
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,false,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
+
+    " the arguments follow the array unchanged
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,false,false,true], ${$parameters>/value})`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   t_arg = VALUE #( ( `${$parameters>/value}` ) )
+                                   s_cnt = ls_ctrl ) ).
+
+    " with check_allow_multi_req as well, both flags keep their position -
+    " the frontend lets ignoreBusy win, so the wire is documented as not
+    " combined, but the array must not shift when an app does
+    ls_ctrl-check_allow_multi_req = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,true,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
+
+    " the prevent-default form carries the same array
+    CLEAR ls_ctrl.
+    ls_ctrl-check_queue_last      = abap_true.
+    ls_ctrl-check_prevent_default = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,true,['LIVE_CHANGE',false,false,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
 
   ENDMETHOD.
 

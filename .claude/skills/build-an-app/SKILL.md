@@ -94,6 +94,14 @@ Quick orientation while it loads:
   `CASE client->get_event( ).`; client-resolved args are `$`-prefixed.
   Changed bound data is pushed automatically — `view_model_update( )` is
   obsolete, does nothing, and gets deleted whenever you touch an app.
+- **A per-keystroke wire (`liveChange`, `liveSearch`, `sliderChange`) sets
+  `s_ctrl-check_queue_last`**: an event fired while a roundtrip is in flight
+  is dropped by default, so typing under a running roundtrip lost its last
+  keystrokes and the backend sat one value behind the control. The flag keeps
+  the LAST firing and sends it once the response has landed — one roundtrip
+  at a time, order preserved. `check_allow_multi_req` is NOT the substitute:
+  it sends one roundtrip per keystroke with responses landing in any order —
+  it is for a timer tick or a poll that must not wait. Never both on one wire.
 - Business logic is computed in ABAP, never in frontend formatters (thin
   frontend). UI5 1.71 is the compatibility floor — check "available since".
 - The app checks its own authorizations at the top of `main`.

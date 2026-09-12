@@ -328,6 +328,18 @@ INTERFACE z2ui5_if_client
       " would be EVALUATED by the client, so a wire that carries data rather
       " than bindings sets this and gives up expressions for its arguments
       check_arg_literal     TYPE abap_bool,
+      " while a roundtrip is in flight, the LAST event fired on this wire is
+      " kept and dispatched once the response has landed, instead of being
+      " dropped - one roundtrip in flight at a time, order preserved, the
+      " backend ends on the control's current value. For per-keystroke wires
+      " (liveChange, liveSearch, sliderChange): without it every keystroke
+      " typed while a roundtrip runs is lost, the last one included, and the
+      " backend stays at the value of the last COMPLETED roundtrip until the
+      " user pauses and types again. Not combined with check_allow_multi_req,
+      " which sends every firing at once and lets the responses land in any
+      " order. Appended at the END of the structure (rule 5, see the note on
+      " ty_s_get-t_model_skipped)
+      check_queue_last      TYPE abap_bool,
     END OF ty_s_event_control.
 
   CONSTANTS:
@@ -796,7 +808,14 @@ INTERFACE z2ui5_if_client
   "! expression evaluated when the event fires, so one wire can protect one
   "! row/column and let the rest through
   "! (`$\{$parameters>/column\}.getId().indexOf('COL_DATE') >= 0`). It wins
-  "! over the flag when both are set.
+  "! over the flag when both are set. check_queue_last keeps the LAST event
+  "! fired on the wire while a roundtrip is in flight and dispatches it once
+  "! the response has landed, instead of dropping it - one roundtrip in
+  "! flight at a time, order preserved, the backend ends on the control's
+  "! current value; it is the flag for a per-keystroke wire (liveChange,
+  "! liveSearch, sliderChange), where check_allow_multi_req would send one
+  "! roundtrip per keystroke with responses landing in any order. Not
+  "! combined with check_allow_multi_req.
   "!
   "! @parameter val | the event name the handler checks with
   "!                  check_on_event( `SAVE` ) - upper case by convention,
@@ -807,8 +826,9 @@ INTERFACE z2ui5_if_client
   "!                  expression evaluated when the event fires, or
   "!                  `$event>...` for a field of the UI5 event itself.
   "! @parameter s_ctrl | the per-wire options (ty_s_event_control): send while
-  "!                  another roundtrip runs, cancel the control's default,
-  "!                  quote every argument as a literal.
+  "!                  another roundtrip runs, keep the last firing until the
+  "!                  running roundtrip has landed, cancel the control's
+  "!                  default, quote every argument as a literal.
   "! @parameter arg | the ONE-VALUE spelling of t_arg: `arg = x` is exactly
   "!                  `t_arg = VALUE #( ( x ) )`, byte for byte, and the
   "!                  handler reads it back with the same `get_event_arg( )`.

@@ -121,6 +121,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `          if (!replaced) this._runPendingCustomJs(oResponse);` && |\n| &&
              `          if (!superseded) {` && |\n| &&
+             `            this._dispatchQueuedEvent();` && |\n| &&
+             `` && |\n| &&
              `            Router.dispatchPendingAppHash();` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
@@ -137,6 +139,14 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            response: oResponse,` && |\n| &&
              `          });` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _dispatchQueuedEvent() {` && |\n| &&
+             `        const queued = AppState.state.oQueuedEvent;` && |\n| &&
+             `        if (!queued) return;` && |\n| &&
+             `        AppState.state.oQueuedEvent = null;` && |\n| &&
+             `        if (!Lib.isControllerAlive(queued.controller)) return;` && |\n| &&
+             `        queued.controller.eB(...queued.args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _runPendingCustomJs(oResponse) {` && |\n| &&
@@ -181,7 +191,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      eB(...args) {` && |\n| &&
-             `        const [, , ignoreBusy, useMainModel] = args[0];` && |\n| &&
+             `        const [, , ignoreBusy, useMainModel, queueLast] = args[0];` && |\n| &&
              `` && |\n| &&
              `        if (!navigator.onLine) {` && |\n| &&
              `          MessageBox.alert(` && |\n| &&
@@ -191,6 +201,12 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (AppState.state.isBusy && !ignoreBusy) {` && |\n| &&
+             `          if (queueLast) {` && |\n| &&
+             `            AppState.state.oQueuedEvent = {` && |\n| &&
+             `              controller: this,` && |\n| &&
+             `              args: Lib.normalizeEventArgs(args),` && |\n| &&
+             `            };` && |\n| &&
+             `          }` && |\n| &&
              `          BusyIndicator.show(0);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -213,6 +229,13 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          if (data) {` && |\n| &&
              `            oBody.MODEL = Lib.buildDeltaFromPaths(changedPaths, data);` && |\n| &&
              `          }` && |\n| &&
+             `` && |\n| &&
+             `          oModel._z2ui5SentValues = new Map(` && |\n| &&
+             `            Array.from(changedPaths, (path) => [` && |\n| &&
+             `              path,` && |\n| &&
+             `              oModel.getProperty(path),` && |\n| &&
+             `            ]),` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        AppState.state.oSentModel = oModel;` && |\n| &&

@@ -53,6 +53,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      responseData: null,` && |\n| &&
              `      contextId: null,` && |\n| &&
              `      isBusy: false,` && |\n| &&
+             `      oQueuedEvent: null,` && |\n| &&
              `      oSentModel: null,` && |\n| &&
              `      lastRequestBytes: null,` && |\n| &&
              `      lastMainDisplayOptions: null,` && |\n| &&
