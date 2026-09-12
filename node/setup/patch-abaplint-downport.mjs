@@ -2,10 +2,11 @@
 // reference instead of copying it into a work area.
 //
 // Runs against the INSTALLED @abaplint/cli bundle in this checkout, before
-// `abaplint --fix` reads it. It is a temporary shim for a defect filed
-// upstream as `backlog/items/abaplint-downport-table-expression-copy.md`
-// (abaplint/abaplint); the patch it applies is the one that item carries, and
-// it goes away the moment abaplint ships the fix - see "Removing this" below.
+// `abaplint --fix` reads it. It is a temporary shim for a defect that is
+// FIXED upstream: abaplint/abaplint#4276 (merged 2026-09-11, b6ebd9b) applies
+// exactly the edits below. The merge landed AFTER v2.120.50 was cut, so no
+// published @abaplint/cli carries it yet; the shim stays until the pin here
+// moves to the first release that does - see "Removing this" below.
 //
 // Why:
 //
@@ -56,12 +57,15 @@
 // 10885 passing, four `testFix` expectations updated to the new output (they
 // are fixture text, not assertions about semantics).
 //
-// Removing this: when abaplint ships the fix, the anchors below stop matching
-// and this script FAILS the build rather than passing silently. That is
-// deliberate - it is the signal to delete the script, its call sites and the
-// backlog item. The canary that proves the shim still WORKS is
-// `test_bind_tab_cell` in z2ui5_cl_ui5_client's test class: it writes the
-// natural spelling and is only green because of this patch.
+// Removing this: the bump of @abaplint/cli to the first release after
+// 2.120.50 makes the anchors below stop matching, and this script then FAILS
+// the build rather than passing silently. That is deliberate - it is the
+// signal to delete the script and its call sites (the `downport` npm script
+// here, samples-controls/scripts/e2e-build.mjs) in the same change as the
+// bump. The canary that proves the shim still WORKS is `test_bind_tab_cell`
+// in z2ui5_cl_ui5_client's test class: it writes the natural spelling and is
+// only green because of this patch - after the bump it is green because of
+// abaplint, and its comment goes with the shim.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
@@ -154,10 +158,10 @@ export function patchAbaplintDownport(bundle = fileURLToPath(BUNDLE)) {
     missingAnchor: (edit) =>
       `patch-abaplint-downport: anchor not found (${edit.label}).\n`
       + `  Anchors last verified against ${VERIFIED_AGAINST}; installed now: ${installedVersion()}.\n`
-      + '  Either abaplint changed the downport rule between those versions, or it SHIPPED the fix.\n'
-      + '  Check abaplint/abaplint against backlog/items/abaplint-downport-table-expression-copy.md:\n'
-      + '  if the fix is upstream, delete this script, its call in the `downport` npm script,\n'
-      + '  the call in samples-controls/scripts/e2e-build.mjs and the backlog item;\n'
+      + '  Either abaplint changed the downport rule between those versions, or the installed\n'
+      + '  release carries the fix (abaplint/abaplint#4276, merged after v2.120.50):\n'
+      + '  if it does, delete this script, its call in the `downport` npm script and\n'
+      + '  the call in samples-controls/scripts/e2e-build.mjs;\n'
       + '  if only the bundle text moved, re-fit the anchors and bump VERIFIED_AGAINST.',
   });
   const applied = results.filter((r) => r.status === 'applied').length;

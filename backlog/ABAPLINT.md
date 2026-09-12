@@ -27,16 +27,6 @@ _nothing exists upstream yet — this is the stock_
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`abaplint-downport-table-expression-copy`](items/abaplint-downport-table-expression-copy.md) | '`REF #( tab[ n ]-comp )` and `_bind( val = tab[ n ]-comp )` downport to `READ TABLE tab INDEX n INTO <wa>`, so the address taken is the work area''s and not the table row''s — while the whole-row form of the same expression is already lowered with ASSIGNING and keeps it'<br><sub>https://github.com/abaplint/abaplint/pull/4276</sub> | medium | 2026-08-29 | abaplint/abaplint |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_
