@@ -226,9 +226,6 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
           CALL METHOD lo_client->(`GET_LAST_ERROR`)
             IMPORTING
               message = lv_message.
-          CALL METHOD lo_client->(`CLOSE`)
-            EXCEPTIONS
-              OTHERS = 1.
           RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
             EXPORTING val = |HTTP_COMMUNICATION_ERROR - { lv_message }|.
         ENDIF.

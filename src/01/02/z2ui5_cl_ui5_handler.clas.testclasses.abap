@@ -448,6 +448,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
                                         act = lo_post->ms_request-s_front-pathname ).
 
     lo_startup ?= lo_post->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_bound( lo_startup ).
 
   ENDMETHOD.
 
@@ -1223,8 +1224,8 @@ CLASS ltcl_02_response IMPLEMENTATION.
     li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
     li_client->view_display( `<View/>` ).
 
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
+                                                     iv_slot    = z2ui5_if_client=>cs_view-main ) ).
 
   ENDMETHOD.
 
@@ -1237,15 +1238,15 @@ CLASS ltcl_02_response IMPLEMENTATION.
     li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
     li_client->popup_display( `<Dialog/>` ).
 
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
+                                                     iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
 
     " ...and a display a later destroy voided counts as NO view, so the
     " model is not sent for a dialog that never reaches the browser
     li_client->popup_destroy( ).
 
-    cl_abap_unit_assert=>assert_false(
-        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+    cl_abap_unit_assert=>assert_false( check_display( io_handler = lo_handler
+                                                      iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
 
   ENDMETHOD.
 
@@ -1276,9 +1277,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     " the MODEL key itself IS the push - no updateModel action travels,
     " the frontend pushes into every open slot when a model arrived
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
     cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
 
@@ -1301,9 +1300,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lo_handler->ms_response-model ).
     " an unchanged model asks for no push at all
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
@@ -1331,9 +1328,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = lo_handler->mo_action->mo_app->model_json_stringify( )
         act = lo_handler->ms_response-model ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
@@ -1700,15 +1695,13 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
   METHOD test_dispatch_loop_guard.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_loop_app TYPE REF TO ltcl_app_nav_loop.
     DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
 
     " an app that calls nav_app_call unconditionally in main( ) must not
     " loop the dispatch forever - the handler raises once the limit is hit
     lo_handler = NEW #( val = `` ).
     lo_handler->mv_dispatch_limit = 5.
-    lo_loop_app = NEW #( ).
-    lo_handler->mo_action->mo_app->mo_app = lo_loop_app.
+    lo_handler->mo_action->mo_app->mo_app = NEW ltcl_app_nav_loop( ).
     " db_save asserts a draft id, normally set by the action factories
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
@@ -1782,15 +1775,13 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
   METHOD test_nav_mode_resent.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_app TYPE REF TO ltcl_app_nav_loop.
 
     " An app configures routing ONCE. main_end therefore re-sends the mode the
     " app carries whenever the roundtrip did not set one itself, so a later
     " render of the same app stays routed without queueing set_nav_routing
     " again - and an app that never opted in keeps sending nothing.
     lo_handler = NEW #( val = `` ).
-    lo_app = NEW #( ).
-    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
 
@@ -1809,9 +1800,7 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
     CLEAR lo_handler->mo_action->ms_next.
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
@@ -1819,9 +1808,7 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
   ENDMETHOD.
 

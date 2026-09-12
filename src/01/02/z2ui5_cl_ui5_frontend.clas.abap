@@ -71,7 +71,7 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! URL once per response anyway (View1), with the response's own id.
     METHODS nav_serialize.
 
-    "! Queue a message toast for the APP phase.
+    "! Queue a message toast for the APP phase. The call carries
     "! `MESSAGE_TOAST`, `show`, the text, and the options object. Only the
     "! options the app actually set end up in that object, and when it would
     "! be empty it is left off entirely - the control then applies its own
@@ -190,9 +190,9 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     TYPES ty_t_opt TYPE STANDARD TABLE OF ty_s_opt WITH EMPTY KEY.
 
     "! The same for a whole set of options at once: four payloads are built
-    "! out of nothing but string options, and written call by call each one
-    "! was four lines of marshalling per option - 28 of the 31 calls in this
-    "! class, in which the only thing worth reading is the pairing of a name
+    "! mostly out of string options, and written call by call each one
+    "! was four lines of marshalling per option - most of the option calls in
+    "! this class, in which the only thing worth reading is the pairing of a name
     "! with a value. A table of pairs puts the pairs on one line each and
     "! leaves the one behaviour ( absent when unset ) in set_opt_string( ),
     "! where it is stated once.
@@ -239,7 +239,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
   METHOD build_global_call.
 
     TRY.
-        result = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        result = z2ui5_cl_ajson=>create_empty( ).
         result->touch_array( `/` ).
         " REFERENCE INTO - an argument can be a whole view XML
         LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
@@ -370,10 +370,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " roundtrip that rebuilds the view. Their DISPLAYS are untouched - the
     " slot order below puts them behind MAIN, and each action is awaited
     " before the next runs, so a popup this roundtrip opens still opens.
-    DATA(lv_main_displayed) = xsdbool( line_exists(
-        mo_action->ms_next-t_action_front[ slot   = z2ui5_if_client=>cs_view-main
-                                           method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ). "#EC CI_SORTSEQ
-    IF lv_main_displayed = abap_true.
+    IF line_exists( mo_action->ms_next-t_action_front[ slot   = z2ui5_if_client=>cs_view-main
+                                                       method = z2ui5_if_ui5_types=>cs_slot_action-display ] ). "#EC CI_SORTSEQ
       DELETE mo_action->ms_next-t_action_front
              WHERE method = z2ui5_if_ui5_types=>cs_slot_action-destroy
                AND ( slot = z2ui5_if_client=>cs_view-popup
@@ -547,11 +545,8 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         ENDIF.
 
         IF actions IS NOT INITIAL.
-          li_opt->touch_array( `/actions` ).
-          LOOP AT actions INTO DATA(lv_action).
-            li_opt->push( iv_path = `/actions`
-                          iv_val  = lv_action ).
-          ENDLOOP.
+          li_opt->set( iv_path = `/actions`
+                       iv_val  = actions ).
         ENDIF.
 
         " abap_true is UI5's own default, so only the opt-out is worth sending
@@ -681,7 +676,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     " Nine digits at most: a longer digit string is past the integer range
     " and CONV raised CX_SY_CONVERSION_OVERFLOW out of a method whose only
     " CATCH is the ajson one - dropped like a non-numeric value instead
-    DATA(lv_val) = condense( CONV string( val ) ).
+    DATA(lv_val) = condense( val ).
     IF lv_val IS NOT INITIAL AND lv_val CO `0123456789` AND strlen( lv_val ) <= 9.
       json->set_integer( iv_path = |/{ name }|
                          iv_val  = CONV i( lv_val ) ).

@@ -76,8 +76,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     " Re-create the cleared outer reference of a dref-to-dref chain so the
     " child row's payload has somewhere to go (main_attri_db_load_resolve).
-    " Answers the reference to the parent attribute; raises when the parent
-    " cannot be reached or cannot take a generic data object.
+    " Raises when the parent cannot be reached or cannot take a generic
+    " data object.
     METHODS dref_parent_recreate
       IMPORTING
         iv_name TYPE string.
@@ -553,15 +553,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               IF sy-subrc = 0.
                 DATA(ajson) = lr_mapper_cache->ajson.
               ELSE.
-                ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                     ii_custom_mapping = lr_attri->custom_mapper ) ).
+                ajson = z2ui5_cl_ajson=>create_empty(
+                            ii_custom_mapping = lr_attri->custom_mapper ).
                 INSERT VALUE #( mapper = lr_attri->custom_mapper
                                 ajson  = ajson ) INTO TABLE lt_mapper_cache.
               ENDIF.
             ELSE.
               IF li_ajson_default IS NOT BOUND.
-                li_ajson_default = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                          ii_custom_mapping = mapper_upper( ) ) ).
+                li_ajson_default = z2ui5_cl_ajson=>create_empty(
+                                       ii_custom_mapping = mapper_upper( ) ).
               ENDIF.
               ajson = li_ajson_default.
             ENDIF.
@@ -698,8 +698,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " `<name>->*` child). Data no view reads keeps the lenient treatment:
       " a scratch reference of an exotic type is no reason to end a session.
       TRY.
-          ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
-          <val> = attri_srtti_parse( lr_attri->* ).
+          <live> = attri_srtti_parse( lr_attri->* ).
           CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
         CATCH cx_root INTO DATA(x).
           IF check_attri_bound( lr_attri->name ) = abap_false.
@@ -824,11 +823,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " REF data( ), not REF #( ): the target is a field symbol TYPE any (the
-    " dynamic ASSIGN above), so # has no type to infer the reference from -
-    " a system refuses that with "Unexpected operator REF", abaplint does not
-    ASSIGN lr_ref_source->* TO FIELD-SYMBOL(<source_value>).
-    <parent_ref> = REF data( <source_value> ).
+    " the owner's data object itself - the reference attri_get_val_ref
+    " answered points at it already
+    <parent_ref> = lr_ref_source.
 
   ENDMETHOD.
 
@@ -846,7 +843,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     IF <parent_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
-    " REF data( ) into the generic target - see main_attri_db_load_table
+    " REF data( ), not REF #( ): the target is a field symbol TYPE any (the
+    " dynamic ASSIGN above), so # has no type to infer the reference from -
+    " a system refuses that with "Unexpected operator REF", abaplint does not
     <parent_ref> = REF data( <source_ref> ).
 
   ENDMETHOD.
@@ -1125,6 +1124,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_search_scan.
 
+    DATA(lv_name_val) = io_descr->absolute_name.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL
                AND type_kind = io_descr->type_kind
@@ -1147,13 +1147,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " row on every load - for a prefilter. A row without a name (a draft
       " written before the component existed) skips the prefilter, not the
       " row: the data-reference compare below still decides
-      IF lr_attri->type_name IS NOT INITIAL.
-        DATA(lv_name_val) = io_descr->absolute_name.
-        IF lr_attri->type_name <> lv_name_val
-            AND lr_attri->type_name NS `%`
-            AND lv_name_val NS `%`.
-          CONTINUE.
-        ENDIF.
+      IF lr_attri->type_name IS NOT INITIAL
+          AND lr_attri->type_name <> lv_name_val
+          AND lr_attri->type_name NS `%`
+          AND lv_name_val NS `%`.
+        CONTINUE.
       ENDIF.
 
       TRY.
@@ -1199,23 +1197,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(ls_attri2) = VALUE z2ui5_if_ui5_types=>ty_s_attri( ).
-    ls_attri2-o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
+    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
 
-    CASE ls_attri2-o_typedescr->kind.
+    CASE lo_descr->kind.
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_kind_struct.
-        DATA(lt_attri) = diss_struc( ir_attri ).
-        INSERT LINES OF lt_attri INTO TABLE result.
+        result = diss_struc( ir_attri ).
 
       WHEN OTHERS.
 
-        ls_attri2-name        = |{ ir_attri->name }->*|.
-        ls_attri2-name_parent = ir_attri->name.
-        ls_attri2-type_name   = ls_attri2-o_typedescr->absolute_name.
-        ls_attri2-type_kind   = ls_attri2-o_typedescr->type_kind.
-        ls_attri2-kind        = ls_attri2-o_typedescr->kind.
-        INSERT ls_attri2 INTO TABLE result.
+        INSERT VALUE #( name        = |{ ir_attri->name }->*|
+                        name_parent = ir_attri->name
+                        o_typedescr = lo_descr
+                        type_name   = lo_descr->absolute_name
+                        type_kind   = lo_descr->type_kind
+                        kind        = lo_descr->kind ) INTO TABLE result.
 
     ENDCASE.
 
@@ -1262,15 +1258,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       lr_ref = lr_val.
     ENDIF.
 
-    IF lr_ref IS BOUND.
-      DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( lr_ref ).
-
-      LOOP AT lt_attri INTO DATA(ls_attri).
-        DATA(ls_new) = attri_create_new( lv_name && ls_attri-name ).
-        ls_new-name_parent = ir_attri->name.
-        INSERT ls_new INTO TABLE result.
-      ENDLOOP.
+    IF lr_ref IS NOT BOUND.
+      RETURN.
     ENDIF.
+
+    DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( lr_ref ).
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_comp).
+      DATA(ls_new) = attri_create_new( lv_name && lr_comp->name ).
+      ls_new-name_parent = ir_attri->name.
+      INSERT ls_new INTO TABLE result.
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD dissolve.
@@ -1581,8 +1579,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     dissolve( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
-      READ TABLE lt_attri REFERENCE INTO DATA(lr_old) WITH TABLE KEY name = lr_attri->name.
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_old).
+      READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = lr_old->name.
       IF sy-subrc = 0.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the

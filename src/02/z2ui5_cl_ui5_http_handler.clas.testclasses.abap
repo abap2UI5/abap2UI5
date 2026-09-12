@@ -416,7 +416,7 @@ CLASS ltcl_http_mock IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_response_cookie.
-    CLEAR result.
+    " no cookie store in the double - nothing to answer
   ENDMETHOD.
 
   METHOD delete_response_cookie.

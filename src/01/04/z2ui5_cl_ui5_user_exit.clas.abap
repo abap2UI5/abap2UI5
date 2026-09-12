@@ -19,7 +19,7 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     CLASS-DATA gi_me            TYPE REF TO z2ui5_if_ui5_exit.
     CLASS-DATA gi_user_exit     TYPE REF TO z2ui5_if_ui5_exit.
     " the same exit found under the superseded interface - only one of the two
-    " is ever bound, see get_instance
+    " is ever bound, see exit_instantiate
     CLASS-DATA gi_user_exit_dep TYPE REF TO z2ui5_if_exit.
     CLASS-DATA gs_context       TYPE z2ui5_if_ui5_exit=>ty_s_http_context.
     " the class name the lookup answered, remembered together with gi_me:
@@ -136,7 +136,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         " both were paid on every request. An exit written against
         " Z2UI5_IF_EXIT is still found exactly as before; a class implementing
         " both is found under the current name (the cast order in
-        " get_instance calls it once, through that interface). A system that
+        " exit_instantiate calls it once, through that interface). A system that
         " carries one class per interface - a configuration the class doc
         " rules out, only one exit can be active - gets the current one
         " instead of whichever sorted first across both lists.
