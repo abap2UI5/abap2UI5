@@ -393,22 +393,18 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _csrf_host_authority.
 
-    DATA(lv_val) = to_lower( val ).
+    result = to_lower( val ).
 
     " drop the scheme (e.g. `https://`)
-    DATA(lv_pos) = find( val = lv_val
-                         sub = `://` ).
-    IF lv_pos >= 0.
-      lv_val = substring( val = lv_val
-                          off = lv_pos + 3 ).
+    IF result CS `://`.
+      result = substring_after( val = result
+                                sub = `://` ).
     ENDIF.
 
     " the authority ends at the first path / query / fragment separator
-    SPLIT lv_val AT `/` INTO lv_val DATA(lv_rest).
-    SPLIT lv_val AT `?` INTO lv_val lv_rest.
-    SPLIT lv_val AT `#` INTO lv_val lv_rest.
-
-    result = lv_val.
+    SPLIT result AT `/` INTO result DATA(lv_rest).
+    SPLIT result AT `?` INTO result lv_rest.
+    SPLIT result AT `#` INTO result lv_rest.
 
   ENDMETHOD.
 
@@ -593,9 +589,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
       lv_add_config = |{ lv_add_config } { _attr_escape( lr_config->n ) }='{ _attr_escape( lr_config->v ) }'|.
     ENDLOOP.
-    result-body = result-body && lv_add_config.
 
-    result-body = result-body &&
+    result-body = result-body && lv_add_config &&
                   | ></script></head>\n| &&
                   |<body class="sapUiBody sapUiSizeCompact" id="content">\n| &&
                   |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='\{"id" : "z2ui5"\}' data-handle-validation="true"></div>\n| &&

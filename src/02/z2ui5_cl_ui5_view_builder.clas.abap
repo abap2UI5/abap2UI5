@@ -37,7 +37,7 @@
 "! v stays the form for everything with binding vocabulary - a _bind( ), an
 "! _event( ), a `{/path}` template, an expression - and for constant text,
 "! which needs no escaping.
-CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
+CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
 
   PUBLIC SECTION.
 
@@ -333,12 +333,11 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
           && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
           && gv_escape_controls.
     ENDIF.
-    IF val NA gv_escape_specials.
-      result = val.
+    result = val.
+    IF result NA gv_escape_specials.
       RETURN.
     ENDIF.
 
-    result = val.
     result = replace( val  = result
                       sub  = `&`
                       with = `&amp;`

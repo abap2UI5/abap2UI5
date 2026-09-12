@@ -130,14 +130,11 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
     lo_draft = NEW #( ).
 
-    DATA lv_raised TYPE abap_bool.
     TRY.
         lo_draft->read_draft( `TEST_OWNER` ).
-      CATCH z2ui5_cx_ui5_util_error.
-        lv_raised = abap_true.
+        cl_abap_unit_assert=>fail( `a draft of another user must not be readable` ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
     ENDTRY.
-
-    cl_abap_unit_assert=>assert_true( lv_raised ).
 
     cl_abap_unit_assert=>assert_false( lo_draft->check_exists( `TEST_OWNER` ) ).
 
@@ -160,14 +157,12 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA ls_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     ls_draft-id = `TEST_OWNER_WRITE`.
-    DATA lv_raised TYPE abap_bool.
     TRY.
         lo_draft->create( draft     = ls_draft
                           model_xml = `overwrite attempt` ).
-      CATCH z2ui5_cx_ui5_util_error.
-        lv_raised = abap_true.
+        cl_abap_unit_assert=>fail( `a foreign row must not be overwritten` ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
     ENDTRY.
-    cl_abap_unit_assert=>assert_true( lv_raised ).
 
     SELECT SINGLE data FROM z2ui5_t_01
       WHERE id = @( `TEST_OWNER_WRITE` )
@@ -187,7 +182,6 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_db TYPE z2ui5_t_01.
     DATA lv_own TYPE i.
     DATA lv_total TYPE i.
-    DATA lv_total_exp TYPE i.
 
     " start from a known state, so a second run of the test counts the same
     DELETE FROM z2ui5_t_01 WHERE id = @( `TEST_COUNT_FOREIGN` ) ##SUBRC_OK.
@@ -207,8 +201,7 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_draft->count_entries( )
                                         msg = `a row of another user must not raise the own count` ).
 
-    lv_total_exp = lv_total + 1.
-    cl_abap_unit_assert=>assert_equals( exp = lv_total_exp
+    cl_abap_unit_assert=>assert_equals( exp = lv_total + 1
                                         act = lo_draft->count_entries_total( )
                                         msg = `the total count must include every owner` ).
 

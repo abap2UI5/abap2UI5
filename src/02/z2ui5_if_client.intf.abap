@@ -795,7 +795,7 @@ INTERFACE z2ui5_if_client
   "! prevent_default_expr is the same veto decided per FIRING - a client
   "! expression evaluated when the event fires, so one wire can protect one
   "! row/column and let the rest through
-  "! (`${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`). It wins
+  "! (`$\{$parameters>/column\}.getId().indexOf('COL_DATE') >= 0`). It wins
   "! over the flag when both are set.
   "!
   "! @parameter val | the event name the handler checks with
@@ -813,7 +813,7 @@ INTERFACE z2ui5_if_client
   "!                  `t_arg = VALUE #( ( x ) )`, byte for byte, and the
   "!                  handler reads it back with the same `get_event_arg( )`.
   "!                  It exists because the single argument is what most
-  "!                  wires carry - a row key, a `${$source>/...}`, one event
+  "!                  wires carry - a row key, a `$\{$source>/...\}`, one event
   "!                  parameter - and there the table constructor is longer
   "!                  than the value inside it. From two values on, t_arg is
   "!                  the right parameter and stays it; arg deliberately does
@@ -822,9 +822,9 @@ INTERFACE z2ui5_if_client
   "!                  into the parameter names.
   "!                  Passing both APPENDS arg behind the t_arg rows - a
   "!                  defined composition, not a guess between two readings.
-  "!                  An argument that starts with `$` or `{` (or an .eB(
+  "!                  An argument that starts with `$` or `\{` (or an .eB(
   "!                  expression) is written RAW, as live UI5 expression
-  "!                  syntax - that is how `${$source>/KEY}` reaches the
+  "!                  syntax - that is how `$\{$source>/KEY\}` reaches the
   "!                  handler as the row's value. Data that may start with
   "!                  those characters (text a user typed, a key from a
   "!                  foreign system) is therefore evaluated, not passed:
@@ -899,7 +899,7 @@ INTERFACE z2ui5_if_client
   "!                                itself, e.g.
   "!                                `_bind( val       = mt_emp[ 1 ]-name
   "!                                        tab       = mt_emp
-  "!                                        tab_index = 1 )` -> `{/MT_EMP/0/NAME}`.
+  "!                                        tab_index = 1 )` -> `\{/MT_EMP/0/NAME\}`.
   "!                                The cell is identified by REFERENCE: val
   "!                                has to BE the component of that row, not a
   "!                                copy of its value (a helper variable holding

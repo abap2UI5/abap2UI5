@@ -190,7 +190,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         " on demand - not in session_merge for a reader that may never come
         " (z2ui5_if_ui5_types=>ty_s_request-s_front-o_comp_data)
         DATA(lo_comp) = mo_action->mo_handler->ms_request-s_front-o_comp_data.
-        IF lo_comp IS NOT BOUND AND mo_action->mo_app IS BOUND
+        IF lo_comp IS NOT BOUND
             AND mo_action->mo_app->ms_session-comp_data IS NOT INITIAL.
           lo_comp = z2ui5_cl_ajson=>parse( mo_action->mo_app->ms_session-comp_data ).
         ENDIF.
@@ -237,10 +237,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get_event_arg.
 
-    TRY.
-        result = mo_action->ms_actual-t_event_arg[ v ].
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
+    result = VALUE #( mo_action->ms_actual-t_event_arg[ v ] OPTIONAL ).
 
   ENDMETHOD.
 

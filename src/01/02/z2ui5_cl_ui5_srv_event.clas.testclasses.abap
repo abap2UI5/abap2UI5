@@ -45,13 +45,10 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA lv_event TYPE string.
     lo_event = NEW #( ).
 
-    lv_event = lo_event->get_event( `POST` ).
-
     cl_abap_unit_assert=>assert_equals( exp = `.eB(['POST'])`
-                                        act = lv_event ).
+                                        act = lo_event->get_event( `POST` ) ).
 
   ENDMETHOD.
 
@@ -79,13 +76,10 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_client.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA lv_event TYPE string.
     lo_event = NEW #( ).
 
-    lv_event = lo_event->get_event_client( z2ui5_if_client=>cs_event-set_focus ).
-
     cl_abap_unit_assert=>assert_equals( exp = `.eF('SET_FOCUS')`
-                                        act = lv_event ).
+                                        act = lo_event->get_event_client( z2ui5_if_client=>cs_event-set_focus ) ).
 
   ENDMETHOD.
 
@@ -288,7 +282,6 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
     lo_event = NEW #( ).
 
-    CLEAR ls_ctrl.
     ls_ctrl-check_prevent_default = abap_true.
 
     " the event is bound to .eBP and receives the UI5 event object, which the
@@ -327,7 +320,6 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
     lo_event = NEW #( ).
 
-    CLEAR ls_ctrl.
     ls_ctrl-prevent_default_expr = `${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`.
 
     " the expression takes the place of the constant `true`, so the veto is

@@ -446,9 +446,7 @@ CLASS ltcl_rtti IMPLEMENTATION.
     " no include entry survives the expansion (a plain READ: the downport
     " does not rewrite a line_exists( ) inside a method call argument)
     READ TABLE lt_comp WITH KEY as_include = abap_true TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
-    DATA(lv_subrc) = sy-subrc.
-    cl_abap_unit_assert=>assert_equals( exp = 4
-                                        act = lv_subrc ).
+    cl_abap_unit_assert=>assert_subrc( exp = 4 ).
 
   ENDMETHOD.
 

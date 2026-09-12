@@ -279,13 +279,10 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " contains none of these characters. Runs once per _event( ) per render,
     " plus once per quoted argument. NOTE the backslash IS in this set
     " (xml_escape's set has none)
-    DATA(lv_specials) = `\'` && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
-    IF val NA lv_specials.
-      result = val.
+    result = val.
+    IF result NA `\'` AND result NA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
       RETURN.
     ENDIF.
-
-    result = val.
     REPLACE ALL OCCURRENCES OF `\` IN result WITH `\\`.
     REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
     " read the newline constants from the context class, not cl_abap_char_
@@ -304,9 +301,8 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
     DATA lv_new TYPE string.
     DATA lv_pending TYPE string.
-    LOOP AT val REFERENCE INTO DATA(lr_arg).
+    LOOP AT val INTO lv_new.
 
-      lv_new = lr_arg->*.
       IF lv_new IS INITIAL.
         " an empty argument between filled ones must keep its position -
         " dropping it would shift every following argument into the wrong

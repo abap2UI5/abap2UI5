@@ -211,7 +211,6 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_stack_call.
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_new_app TYPE REF TO ltcl_test_app.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_chained TYPE REF TO z2ui5_cl_ui5_action.
 
@@ -226,8 +225,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " only then does the ROUTER intent travel at all
     lo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
 
-    lo_new_app = NEW #( ).
-    lo_action->ms_next-o_app_call = lo_new_app.
+    lo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
 
     " frontend actions queued by the calling app - messages travel as
     " follow-up actions too and must not leak into the newly called app...
@@ -498,7 +496,6 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_stack_leave.
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_prev_app TYPE REF TO ltcl_test_app.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lo_http = NEW #( val = `` ).
@@ -508,8 +505,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
 
 
-    lo_prev_app = NEW #( ).
-    lo_action->ms_next-o_app_leave = lo_prev_app.
+    lo_action->ms_next-o_app_leave = NEW ltcl_test_app( ).
 
     " frontend actions queued by the leaving app - messages travel as
     " follow-up actions too and must not leak into the app that is

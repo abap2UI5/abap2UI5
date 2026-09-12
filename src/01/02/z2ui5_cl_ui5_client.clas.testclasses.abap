@@ -155,12 +155,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD setup.
 
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_test_app TYPE REF TO ltcl_test_app.
     lo_http = NEW #( val = `` ).
     mo_action = NEW #( val = lo_http ).
-    lo_test_app = NEW #( ).
-    mo_test_app = lo_test_app.
-    mo_action->mo_app->mo_app = lo_test_app.
+    mo_test_app = NEW #( ).
+    mo_action->mo_app->mo_app = mo_test_app.
     mo_action->mo_app->mv_check_initialized = abap_false.
     mo_client = NEW #( action = mo_action ).
 
@@ -785,15 +783,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_nav_app_call.
 
-    DATA lo_new_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_id TYPE string.
-    lo_new_app = NEW #( ).
 
     li_client ?= mo_client.
 
-
-    lv_id = li_client->nav_app_call( lo_new_app ).
+    lv_id = li_client->nav_app_call( NEW ltcl_test_app( ) ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_id ).
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-o_app_call ).
@@ -834,8 +829,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `MY_EVENT`
                                         act = mo_action->ms_next-next_event ).
     " the dedicated backend event must not emit any client side JS snippet
-    cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
 
   ENDMETHOD.
 
@@ -1042,8 +1036,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " FLP component data: one array per parameter name, first entry counts
     mo_action->mo_handler->ms_request-s_front-o_comp_data =
-        CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
-            `{"startupParameters":{"foo":["bar"],"qty":["7","8"]}}` ) ).
+        z2ui5_cl_ajson=>parse( `{"startupParameters":{"foo":["bar"],"qty":["7","8"]}}` ).
 
     DATA(ls_get_1) = li_client->get( ).
 
@@ -1163,7 +1156,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " a non-zero value in the same spelling survives
     ls_row-price = '0.01'.
-    lo_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_ajson = z2ui5_cl_ajson=>create_empty( ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/row`
                    iv_val          = ls_row ).
@@ -1217,7 +1210,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " empty-filter behavior: an all-initial sub-structure vanishes entirely,
     " taking the then-empty root with it - stringify of the empty tree is ``
     DATA(ls_nest) = VALUE ty_s_row( ).
-    lo_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    lo_ajson = z2ui5_cl_ajson=>create_empty( ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/sub`
                    iv_val          = ls_nest ).
@@ -1263,14 +1256,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_bind_filter_not_serial.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA lo_app TYPE REF TO ltcl_test_app.
     DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
 
     li_client ?= mo_client.
-    lo_app ?= mo_action->mo_app->mo_app.
 
     TRY.
-        li_client->_bind( val           = lo_app->mv_name
+        li_client->_bind( val           = mo_test_app->mv_name
                           custom_filter = NEW ltcl_bad_filter( ) ).
         cl_abap_unit_assert=>fail(
             `a non-serializable custom_filter must be refused at bind time - serialized into the draft it fails only at db_save on a real system` ).
@@ -1339,25 +1330,23 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " before looking at the binding. The cell logic itself is covered
     " everywhere by ltcl_02_cell in z2ui5_cl_ui5_srv_bind
     DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA lo_app TYPE REF TO ltcl_test_app.
 
     li_client ?= mo_client.
-    lo_app ?= mo_action->mo_app->mo_app.
     INSERT VALUE #( name = `Michael Adams`
-                    job  = `Scrum Master` ) INTO TABLE lo_app->mt_emp.
+                    job  = `Scrum Master` ) INTO TABLE mo_test_app->mt_emp.
     INSERT VALUE #( name = `John Miller`
-                    job  = `Product Owner` ) INTO TABLE lo_app->mt_emp.
+                    job  = `Product Owner` ) INTO TABLE mo_test_app->mt_emp.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/0/NAME}`
-        act = li_client->_bind( val       = lo_app->mt_emp[ 1 ]-name
-                                tab       = lo_app->mt_emp
+        act = li_client->_bind( val       = mo_test_app->mt_emp[ 1 ]-name
+                                tab       = mo_test_app->mt_emp
                                 tab_index = 1 ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/1/JOB}`
-        act = li_client->_bind( val       = lo_app->mt_emp[ 2 ]-job
-                                tab       = lo_app->mt_emp
+        act = li_client->_bind( val       = mo_test_app->mt_emp[ 2 ]-job
+                                tab       = mo_test_app->mt_emp
                                 tab_index = 2 ) ).
 
   ENDMETHOD.
@@ -1371,28 +1360,26 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " (READ TABLE ... ASSIGNING), the component-level one does not. So this
     " test runs on every target, including this pipeline
     DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA lo_app TYPE REF TO ltcl_test_app.
     FIELD-SYMBOLS <emp> TYPE ltcl_test_app=>ty_s_emp.
 
     li_client ?= mo_client.
-    lo_app ?= mo_action->mo_app->mo_app.
     INSERT VALUE #( name = `Michael Adams`
-                    job  = `Scrum Master` ) INTO TABLE lo_app->mt_emp.
+                    job  = `Scrum Master` ) INTO TABLE mo_test_app->mt_emp.
     INSERT VALUE #( name = `John Miller`
-                    job  = `Product Owner` ) INTO TABLE lo_app->mt_emp.
+                    job  = `Product Owner` ) INTO TABLE mo_test_app->mt_emp.
 
-    ASSIGN lo_app->mt_emp[ 1 ] TO <emp>.
+    ASSIGN mo_test_app->mt_emp[ 1 ] TO <emp>.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/0/NAME}`
         act = li_client->_bind( val       = <emp>-name
-                                tab       = lo_app->mt_emp
+                                tab       = mo_test_app->mt_emp
                                 tab_index = 1 ) ).
 
-    ASSIGN lo_app->mt_emp[ 2 ] TO <emp>.
+    ASSIGN mo_test_app->mt_emp[ 2 ] TO <emp>.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/1/JOB}`
         act = li_client->_bind( val       = <emp>-job
-                                tab       = lo_app->mt_emp
+                                tab       = mo_test_app->mt_emp
                                 tab_index = 2 ) ).
 
   ENDMETHOD.
@@ -1603,8 +1590,7 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
     CLEAR mo_action->ms_actual.
 
     IF model IS NOT INITIAL.
-      mo_action->ms_actual-t_model_skipped = mo_action->mo_app->model_json_parse(
-                                                 CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( model ) ) ).
+      mo_action->ms_actual-t_model_skipped = mo_action->mo_app->model_json_parse( z2ui5_cl_ajson=>parse( model ) ).
     ENDIF.
     mo_action->ms_actual-event = event.
 
