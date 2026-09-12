@@ -104,10 +104,10 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
              `            "reading",` && |\n| &&
              `          );` && |\n| &&
              `` && |\n| &&
-             `          const storeKey = JSON.stringify([storageType, prefix]);` && |\n| &&
-             `          if (this._storeKey !== storeKey) {` && |\n| &&
+             `          if (this._storeType !== storageType || this._storePrefix !== prefix) {` && |\n| &&
              `            this._store = new Storage(storageType, prefix);` && |\n| &&
-             `            this._storeKey = storeKey;` && |\n| &&
+             `            this._storeType = storageType;` && |\n| &&
+             `            this._storePrefix = prefix;` && |\n| &&
              `          }` && |\n| &&
              `          stored = this._store.get(key);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -115,7 +115,7 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (stored === null || stored === undefined) return;` && |\n| &&
+             `        if (stored == null) return;` && |\n| &&
              `` && |\n| &&
              `        if (!isSameValue(stored, value)) {` && |\n| &&
              `          this.setProperty("value", stored, true);` && |\n| &&

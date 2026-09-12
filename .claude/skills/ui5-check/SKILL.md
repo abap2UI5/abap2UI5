@@ -486,6 +486,18 @@ statically, and inventing an empty string for it makes UI5's strict mode reject
 a perfectly good view."* It would need "is this component ever assigned
 anywhere in the class" — data flow over the ABAP, not the view.
 
+**Measured 2026-09-12 on the samples-controls corpus (622 ports), so the next
+person does not re-measure it:** 194 bindings in 98 classes bind an enum-typed
+property to a bare `{PATH}` with no fallback (`type` 79, `state` 40,
+`ariaHasPopup` 14, `infoState` 8, `valueState` 6, …), and only 4 bindings in
+the whole corpus carry the expression-binding fallback this entry shows. That
+194:4 ratio is the shape the reverted rule hit: unscoped, the binding-side rule
+reports nearly every enum binding there is, and every one of the 194 is a
+correct port. The only viable narrowing is the one named above and nothing has
+built — inside an aggregation template AND the bound table can be emptied at
+runtime — which is data flow over the ABAP, not a view test. Do not attempt
+the binding side a third time without that half.
+
 **Linter: `validating-setter-out-of-range` ships (2026-08-30), and the harvest
 this entry asked for is what made it possible — with one correction that
 matters.** Recording "the setter throws" was too coarse to act on: 23

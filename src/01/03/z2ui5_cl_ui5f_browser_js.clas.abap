@@ -193,6 +193,7 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        Lib.logError("URLHELPER: blocked CR/LF in parameters");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `` && |\n| &&
              `      const actions = {` && |\n| &&
              `        REDIRECT: () => {` && |\n| &&
              `          if (!Lib.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
@@ -216,6 +217,7 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),` && |\n| &&
              `        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),` && |\n| &&
              `      };` && |\n| &&
+             `      Object.setPrototypeOf(actions, null);` && |\n| &&
              `      try {` && |\n| &&
              `        const fn = actions[args[1]];` && |\n| &&
              `        if (fn) fn();` && |\n| &&

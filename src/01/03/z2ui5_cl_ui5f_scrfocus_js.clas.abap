@@ -100,6 +100,12 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      slotKey: undefined,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    function clearScrollCache() {` && |\n| &&
+             `      _scrollCache.target = undefined;` && |\n| &&
+             `      _scrollCache.ui5El = undefined;` && |\n| &&
+             `      _scrollCache.slotKey = undefined;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function onScrollCapture(event) {` && |\n| &&
              `      const target = event.target;` && |\n| &&
              `      if (!target || target.nodeType !== 1) return;` && |\n| &&
@@ -123,9 +129,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `` && |\n| &&
              `    function getScrollInfo() {` && |\n| &&
              `      if (_scrollCache.target && !_scrollCache.target.isConnected) {` && |\n| &&
-             `        _scrollCache.target = undefined;` && |\n| &&
-             `        _scrollCache.ui5El = undefined;` && |\n| &&
-             `        _scrollCache.slotKey = undefined;` && |\n| &&
+             `        clearScrollCache();` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      const store = AppState.state.lastScrolled;` && |\n| &&
@@ -151,9 +155,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function reset() {` && |\n| &&
-             `      _scrollCache.target = undefined;` && |\n| &&
-             `      _scrollCache.ui5El = undefined;` && |\n| &&
-             `      _scrollCache.slotKey = undefined;` && |\n| &&
+             `      clearScrollCache();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&

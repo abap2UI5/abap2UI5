@@ -119,6 +119,14 @@ sap.ui.define(
       slotKey: undefined,
     };
 
+    // The one way the cache is emptied - getScrollInfo releases it once
+    // the node left the document, reset( ) on the component teardown.
+    function clearScrollCache() {
+      _scrollCache.target = undefined;
+      _scrollCache.ui5El = undefined;
+      _scrollCache.slotKey = undefined;
+    }
+
     // Records which element the user actually scrolled, per view slot.
     // Bound to a single document-level capture-phase listener (installed
     // in Component.init): scroll events do not bubble, but they do fire
@@ -159,9 +167,7 @@ sap.ui.define(
       // detached element and its control would otherwise stay referenced
       // until the user scrolls the next time.
       if (_scrollCache.target && !_scrollCache.target.isConnected) {
-        _scrollCache.target = undefined;
-        _scrollCache.ui5El = undefined;
-        _scrollCache.slotKey = undefined;
+        clearScrollCache();
       }
 
       // Reads scrollLeft/scrollTop straight from the DOM element the user
@@ -200,9 +206,7 @@ sap.ui.define(
     // and after an exit there is none - the detached node and its control
     // stayed referenced by this module until the next app's first scroll.
     function reset() {
-      _scrollCache.target = undefined;
-      _scrollCache.ui5El = undefined;
-      _scrollCache.slotKey = undefined;
+      clearScrollCache();
     }
 
     // closestUi5Element and focusTextInput are pure resolution helpers,

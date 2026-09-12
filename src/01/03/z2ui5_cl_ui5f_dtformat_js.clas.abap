@@ -70,13 +70,26 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `        <xsl:output indent="yes" />` && |\n| &&
              `      </xsl:stylesheet>``;` && |\n| &&
              `` && |\n| &&
-             `  const _xmlSerializer = new XMLSerializer();` && |\n| &&
-             `  const _domParser = new DOMParser();` && |\n| &&
+             `  let _xmlSerializer = null;` && |\n| &&
+             `  let _domParser = null;` && |\n| &&
              `  let _xsltProcessor = null;` && |\n| &&
+             `` && |\n| &&
+             `  function getDomParser() {` && |\n| &&
+             `    if (!_domParser) _domParser = new DOMParser();` && |\n| &&
+             `    return _domParser;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function getXmlSerializer() {` && |\n| &&
+             `    if (!_xmlSerializer) _xmlSerializer = new XMLSerializer();` && |\n| &&
+             `    return _xmlSerializer;` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
              `  function getXsltProcessor() {` && |\n| &&
              `    if (_xsltProcessor) return _xsltProcessor;` && |\n| &&
-             `    const xsltDoc = _domParser.parseFromString(PRETTIFY_XSL, "application/xml");` && |\n| &&
+             `    const xsltDoc = getDomParser().parseFromString(` && |\n| &&
+             `      PRETTIFY_XSL,` && |\n| &&
+             `      "application/xml",` && |\n| &&
+             `    );` && |\n| &&
              `    _xsltProcessor = new XSLTProcessor();` && |\n| &&
              `    _xsltProcessor.importStylesheet(xsltDoc);` && |\n| &&
              `    return _xsltProcessor;` && |\n| &&
@@ -85,10 +98,13 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `  function prettifyXml(sourceXml) {` && |\n| &&
              `    if (!sourceXml) return "";` && |\n| &&
              `    try {` && |\n| &&
-             `      const xmlDoc = _domParser.parseFromString(sourceXml, "application/xml");` && |\n| &&
+             `      const xmlDoc = getDomParser().parseFromString(` && |\n| &&
+             `        sourceXml,` && |\n| &&
+             `        "application/xml",` && |\n| &&
+             `      );` && |\n| &&
              `      const resultDoc = getXsltProcessor().transformToDocument(xmlDoc);` && |\n| &&
              `      if (!resultDoc) return sourceXml;` && |\n| &&
-             `      const resultXml = _xmlSerializer.serializeToString(resultDoc);` && |\n| &&
+             `      const resultXml = getXmlSerializer().serializeToString(resultDoc);` && |\n| &&
              `` && |\n| &&
              `      return resultXml.replace(/&gt;/g, ">");` && |\n| &&
              `    } catch {` && |\n| &&
@@ -96,7 +112,23 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { toJson, prettifyXml };` && |\n| &&
+             `  function truncate(text, max) {` && |\n| &&
+             `    const str = String(text);` && |\n| &&
+             `    if (str.length <= max) return str;` && |\n| &&
+             `    return ``${str.slice(0, max)}... (${str.length} chars)``;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function formatBytes(bytes) {` && |\n| &&
+             `    if (bytes === null || bytes === undefined) return "-";` && |\n| &&
+             `    if (bytes < 1024) return ``${bytes} B``;` && |\n| &&
+             `    if (bytes < 1024 * 1024) return ``${Math.round(bytes / 1024)} KB``;` && |\n| &&
+             `    return ``${(bytes / (1024 * 1024)).toFixed(1)} MB``;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const FRAMEWORK_CALL =` && |\n| &&
+             `    /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;` && |\n| &&
+             `` && |\n| &&
+             `  return { toJson, prettifyXml, truncate, formatBytes, FRAMEWORK_CALL };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

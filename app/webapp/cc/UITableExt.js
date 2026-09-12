@@ -37,7 +37,7 @@ sap.ui.define(
       },
 
       exit() {
-        this._unhooks.forEach((unhook) => unhook());
+        for (const unhook of this._unhooks) unhook();
       },
 
       // The table is resolved ONCE per pass here and handed down: every
@@ -98,8 +98,9 @@ sap.ui.define(
 
       readFilter(oTable) {
         try {
-          const table = oTable ?? this._getTable();
-          const binding = table?.getBinding();
+          // no fallback lookup: readBackend( ) already resolved the table,
+          // and a second walk cannot find what the first did not
+          const binding = oTable?.getBinding();
           // Remember the binding object we read from so the re-apply pass
           // can skip when that same binding is still in place (see
           // _applyFilters).
@@ -184,8 +185,7 @@ sap.ui.define(
 
       readSort(oTable) {
         try {
-          const table = oTable ?? this._getTable();
-          const binding = table?.getBinding();
+          const binding = oTable?.getBinding();
           // Same binding reference the sort re-apply checks against (see
           // _applySorters).
           this._sortBinding = binding;

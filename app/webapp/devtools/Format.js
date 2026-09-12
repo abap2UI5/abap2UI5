@@ -69,14 +69,29 @@ sap.ui.define([], () => {
       </xsl:stylesheet>`;
 
   // The XSLT processor and (de)serializers are expensive to construct, so
-  // we keep them as module-level singletons.
-  const _xmlSerializer = new XMLSerializer();
-  const _domParser = new DOMParser();
+  // we keep them as module-level singletons - built on FIRST USE, not at
+  // module load: this module is in every page's preload, and the text
+  // helpers below are used without ever prettifying an XML.
+  let _xmlSerializer = null;
+  let _domParser = null;
   let _xsltProcessor = null;
+
+  function getDomParser() {
+    if (!_domParser) _domParser = new DOMParser();
+    return _domParser;
+  }
+
+  function getXmlSerializer() {
+    if (!_xmlSerializer) _xmlSerializer = new XMLSerializer();
+    return _xmlSerializer;
+  }
 
   function getXsltProcessor() {
     if (_xsltProcessor) return _xsltProcessor;
-    const xsltDoc = _domParser.parseFromString(PRETTIFY_XSL, "application/xml");
+    const xsltDoc = getDomParser().parseFromString(
+      PRETTIFY_XSL,
+      "application/xml",
+    );
     _xsltProcessor = new XSLTProcessor();
     _xsltProcessor.importStylesheet(xsltDoc);
     return _xsltProcessor;
@@ -88,10 +103,13 @@ sap.ui.define([], () => {
   function prettifyXml(sourceXml) {
     if (!sourceXml) return "";
     try {
-      const xmlDoc = _domParser.parseFromString(sourceXml, "application/xml");
+      const xmlDoc = getDomParser().parseFromString(
+        sourceXml,
+        "application/xml",
+      );
       const resultDoc = getXsltProcessor().transformToDocument(xmlDoc);
       if (!resultDoc) return sourceXml;
-      const resultXml = _xmlSerializer.serializeToString(resultDoc);
+      const resultXml = getXmlSerializer().serializeToString(resultDoc);
       // The serializer escapes > as &gt; in text nodes AND attribute values;
       // a raw > is legal in both, so it is put back for readability. &lt; is
       // NOT touched: a raw < is never legal there, and the view builder
@@ -104,5 +122,33 @@ sap.ui.define([], () => {
     }
   }
 
-  return { toJson, prettifyXml };
+  // Cut a value for an inline preview and say how long it really was.
+  // Shared by the inspectors and the recorder's diff renderer, which each
+  // carried a copy.
+  function truncate(text, max) {
+    const str = String(text);
+    if (str.length <= max) return str;
+    return `${str.slice(0, max)}... (${str.length} chars)`;
+  }
+
+  // A byte count as B / KB / MB; a missing count renders as "-".
+  function formatBytes(bytes) {
+    if (bytes === null || bytes === undefined) return "-";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  // A framework event wire in a handler's source or a view attribute:
+  // eB / eBP / eF, then the quoted event name (single, double or the
+  // XML-escaped apostrophe of a view attribute) - either right after the
+  // parenthesis or as the first entry of the argument array, which for eBP
+  // sits behind the $event and the veto expression:
+  // `.eBP($event,true,['ITEM_PRESS'])`. Match 1 is the method, match 2 the
+  // event name. No `g` flag, so exec( ) on it is stateless; a scan over a
+  // whole view compiles its own global copy from `.source`.
+  const FRAMEWORK_CALL =
+    /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;
+
+  return { toJson, prettifyXml, truncate, formatBytes, FRAMEWORK_CALL };
 });

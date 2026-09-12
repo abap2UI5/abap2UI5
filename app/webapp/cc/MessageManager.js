@@ -76,7 +76,7 @@ sap.ui.define(
       renderer: Lib.EMPTY_RENDERER,
 
       setup() {
-        const messaging = Lib.getMessaging?.();
+        const messaging = Lib.getMessaging();
         if (!Lib.claimOnce(this, messaging)) return;
         this._messaging = messaging;
         const view = ViewSlots.getView(

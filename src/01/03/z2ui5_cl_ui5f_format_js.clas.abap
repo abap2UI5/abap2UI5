@@ -41,9 +41,9 @@ CLASS z2ui5_cl_ui5f_format_js IMPLEMENTATION.
              `    if (!/^\d{8}$/.test(s)) return true;` && |\n| &&
              `` && |\n| &&
              `    return (` && |\n| &&
-             `      Number(s.slice(0, 4)) === 0 ||` && |\n| &&
-             `      Number(s.slice(4, 6)) === 0 ||` && |\n| &&
-             `      Number(s.slice(6, 8)) === 0` && |\n| &&
+             `      s.slice(0, 4) === "0000" ||` && |\n| &&
+             `      s.slice(4, 6) === "00" ||` && |\n| &&
+             `      s.slice(6, 8) === "00"` && |\n| &&
              `    );` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&

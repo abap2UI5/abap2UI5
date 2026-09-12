@@ -102,10 +102,10 @@ sap.ui.define(
           // a fresh sap/ui/util/Storage per rerender was an allocation for
           // nothing. Both inputs are re-read on every pass, so a rebound
           // prefix still gets its own instance.
-          const storeKey = JSON.stringify([storageType, prefix]);
-          if (this._storeKey !== storeKey) {
+          if (this._storeType !== storageType || this._storePrefix !== prefix) {
             this._store = new Storage(storageType, prefix);
-            this._storeKey = storeKey;
+            this._storeType = storageType;
+            this._storePrefix = prefix;
           }
           stored = this._store.get(key);
         } catch (e) {
@@ -120,7 +120,7 @@ sap.ui.define(
         // ("JSON_PARSING_ERROR ... Unsupported target for value [v]", because
         // a string cannot land on a deep ABAP target). "Nothing is stored" is
         // not a value, so there is nothing to report.
-        if (stored === null || stored === undefined) return;
+        if (stored == null) return;
 
         // Only fire "finished" when the stored value differs from the
         // current property to avoid feedback loops.

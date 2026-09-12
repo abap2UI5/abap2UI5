@@ -10,9 +10,17 @@
 // against the public UI5 element API and the view-slot registry, and
 // installs its own document listener only while a pick is running.
 sap.ui.define(
-  ["sap/ui/core/Element", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Element, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Element",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/devtools/Format",
+  ],
+  (Element, Lib, ViewSlots, Format) => {
     "use strict";
+
+    // the framework event wire, shared with the inspectors (see Format)
+    const { FRAMEWORK_CALL } = Format;
 
     // Preview length of a bound value in the report.
     const MAX_VALUE_CHARS = 80;
@@ -96,8 +104,7 @@ sap.ui.define(
     }
 
     function removeOverlay() {
-      const el = document.getElementById(OVERLAY_ID);
-      if (el && el.parentElement) el.parentElement.removeChild(el);
+      document.getElementById(OVERLAY_ID)?.remove();
     }
 
     // The binding info UI5 keeps per property/aggregation, flattened to
@@ -107,8 +114,7 @@ sap.ui.define(
     function collectBindings(control) {
       const out = [];
       const infos = control.mBindingInfos || {};
-      for (const name of Object.keys(infos)) {
-        const info = infos[name];
+      for (const [name, info] of Object.entries(infos)) {
         const parts = info.parts || (info.path !== undefined ? [info] : []);
         for (const part of parts) {
           const model = control.getModel(part.model);
@@ -133,14 +139,6 @@ sap.ui.define(
       }
       return out;
     }
-
-    // The framework's event handler: eB / eBP / eF, then the quoted event
-    // name (single, double or the XML-escaped apostrophe of a view
-    // attribute) - either right after the parenthesis or as the first entry
-    // of the argument array, which for eBP sits behind the $event and the
-    // veto expression: `.eBP($event,true,['ITEM_PRESS'])`.
-    const FRAMEWORK_CALL =
-      /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;
 
     // The XML a view slot was filled with - the two readers Inspect.slotXml
     // documents, in the same order.
@@ -182,8 +180,8 @@ sap.ui.define(
       const registry = control.mEventRegistry || {};
       const attributes = xmlAttributesOf(control, slotKey);
       const out = [];
-      for (const name of Object.keys(registry)) {
-        for (const handler of registry[name] || []) {
+      for (const [name, handlers] of Object.entries(registry)) {
+        for (const handler of handlers || []) {
           let match = FRAMEWORK_CALL.exec(String(handler?.fFunction || ""));
           if (!match && attributes) {
             const attr = new RegExp(

@@ -49,6 +49,11 @@ sap.ui.define(
     // one item drained per roundtrip.
     const MAX_QUEUE = 100;
 
+    // an absolute websocket URL, and the http(s) scheme a relative path
+    // is rebased from - compiled once, _resolveUrl runs on every render
+    const WS_URL = /^wss?:\/\//i;
+    const HTTP_SCHEME = /^http/i;
+
     return Control.extend("z2ui5.cc.Websocket", {
       metadata: {
         properties: {
@@ -139,9 +144,9 @@ sap.ui.define(
       _resolveUrl() {
         const path = this.getProperty("path");
         if (!path) return "";
-        if (/^wss?:\/\//i.test(path)) return path;
+        if (WS_URL.test(path)) return path;
         // https -> wss, http -> ws
-        const origin = window.location.origin.replace(/^http/i, "ws");
+        const origin = window.location.origin.replace(HTTP_SCHEME, "ws");
         return path.charAt(0) === "/" ? origin + path : origin + "/" + path;
       },
       _connect() {
@@ -352,12 +357,7 @@ sap.ui.define(
           }, 0);
         });
       },
-      renderer: {
-        apiVersion: 2,
-        render(oRm, oControl) {
-          Lib.renderInvisibleSpan(oRm, oControl);
-        },
-      },
+      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },
     });
   },
 );

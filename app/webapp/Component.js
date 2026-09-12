@@ -62,14 +62,14 @@ sap.ui.define(
         // right. Neither BSP is loaded from here - nothing is requested until
         // a view actually names the namespace - so a system that has only one
         // of them installed (or neither) never pays for the other.
+        // one loader.config( ) for both roots - each call re-runs the
+        // loader's whole configuration merge
+        const paths = {};
         const ccResourceRoot = AppState.getGlobal("ccResourceRoot");
-        if (ccResourceRoot) {
-          sap.ui.loader.config({ paths: { z2ui5_cci: ccResourceRoot } });
-        }
+        if (ccResourceRoot) paths.z2ui5_cci = ccResourceRoot;
         const cccResourceRoot = AppState.getGlobal("cccResourceRoot");
-        if (cccResourceRoot) {
-          sap.ui.loader.config({ paths: { z2ui5_ccc: cccResourceRoot } });
-        }
+        if (cccResourceRoot) paths.z2ui5_ccc = cccResourceRoot;
+        if (Object.keys(paths).length) sap.ui.loader.config({ paths });
 
         UIComponent.prototype.init.call(this);
 

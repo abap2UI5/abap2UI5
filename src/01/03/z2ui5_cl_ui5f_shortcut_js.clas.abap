@@ -135,9 +135,8 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      }` && |\n| &&
              `` && |\n| &&
              `      const raw = String(args[3] ?? "");` && |\n| &&
-             `      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())` && |\n| &&
-             `        ? raw.toUpperCase()` && |\n| &&
-             `        : raw;` && |\n| &&
+             `      const upper = raw.toUpperCase();` && |\n| &&
+             `      const scope = SHORTCUT_SLOTS.includes(upper) ? upper : raw;` && |\n| &&
              `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
              `` && |\n| &&
              `      if (combo in Object.prototype) {` && |\n| &&

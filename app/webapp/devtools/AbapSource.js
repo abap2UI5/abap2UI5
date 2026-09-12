@@ -89,7 +89,7 @@ sap.ui.define(
         });
         if (response.ok) source = await response.text();
       } catch {
-        source = "";
+        // a failed fetch leaves the "" from above - nothing to reset
       }
       // Only a SUCCESSFUL fetch is cached. A failure says nothing about the
       // class, it says something about the SESSION: the endpoint needs an

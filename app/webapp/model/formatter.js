@@ -83,11 +83,14 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     const s = String(d);
     if (!/^\d{8}$/.test(s)) return true;
     // a zero year, month or day is never a real date - "00000000" is the
-    // initial DATS value, the partial forms turn up in half-filled records
+    // initial DATS value, the partial forms turn up in half-filled records.
+    // The test above guarantees eight digits, so a zero part IS the literal
+    // "0000" / "00" - three string compares, no number parsing, on a path
+    // a bound table runs once per row
     return (
-      Number(s.slice(0, 4)) === 0 ||
-      Number(s.slice(4, 6)) === 0 ||
-      Number(s.slice(6, 8)) === 0
+      s.slice(0, 4) === "0000" ||
+      s.slice(4, 6) === "00" ||
+      s.slice(6, 8) === "00"
     );
   }
 

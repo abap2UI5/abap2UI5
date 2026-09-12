@@ -662,7 +662,7 @@ sap.ui.define(
       },
 
       close() {
-        if (!this.oDialog || !this.oDialog.isOpen()) return;
+        if (!this.oDialog?.isOpen()) return;
         // When the dialog was opened from the error popup's Details
         // action, closing it (Close or Escape) re-shows that popup so the
         // user never ends up on the dismissed, broken app.
@@ -696,7 +696,7 @@ sap.ui.define(
       },
 
       toggle() {
-        if (this.oDialog && this.oDialog.isOpen()) {
+        if (this.oDialog?.isOpen()) {
           this.close();
         } else {
           this.show();

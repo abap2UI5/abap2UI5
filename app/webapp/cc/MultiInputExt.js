@@ -127,7 +127,7 @@ sap.ui.define(
           // free-text entry becomes a Token whose key and visible text are
           // both the input string.
           input.addValidator((args) => {
-            const picked = args && args.suggestionObject;
+            const picked = args?.suggestionObject;
             if (picked && typeof picked.getCells === "function") {
               // a tabular suggestion ROW: a Token only once TokenKeyCell
               // says which cell; an unconfigured instance stays inert
