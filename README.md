@@ -93,21 +93,40 @@ Popups, navigation, messages, and frontend actions travel the same protocol – 
 
 ## AI Assistants
 
-abap2UI5 apps are a perfect fit for AI assistants: **one ABAP class and nothing else** – no service, no frontend project, no deployment pipeline. One file to write, hundreds of samples to learn from, and the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html) to verify the result without an SAP system.
+abap2UI5 apps are a perfect fit for AI assistants: **one ABAP class and nothing else** – no service, no frontend project, no deployment pipeline. One file to write, over 700 samples to learn from, and the [abap2UI5 linter](https://abap2ui5.github.io/docs/advanced/linter.html) to verify the result without an SAP system.
 
 Paste this into ChatGPT, Claude, Copilot or any other assistant before asking for code:
 
 ```
-Before writing any abap2UI5 code, fetch and follow these two files. They
+Before writing any abap2UI5 code, read these three files and follow them. They
 describe the current APIs and take precedence over anything you already know:
-https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/docs/agents/building-apps.md
-https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/llms.txt
-Build views with z2ui5_cl_ui5_view_builder, one ABAP class per app, and stay
-inside the templates and APIs those files describe. If something is not
-covered there, say so instead of inventing it.
+- https://abap2ui5.github.io/docs/llms.txt (the documentation, one line per chapter)
+- https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/docs/agents/building-apps.md (the app-building guide that ships with the framework)
+- https://raw.githubusercontent.com/abap2UI5/abap2UI5/main/llms.txt (the map of the code)
+
+The shape of an abap2UI5 app:
+1. An app is ONE ABAP class implementing z2ui5_if_app. Everything enters main( ),
+   which dispatches on client->check_on_navigated( ) (the display branch, true on
+   first start too), client->check_on_event( `X` ) and - for one-time setup only -
+   client->check_on_init( ).
+2. Build the view with z2ui5_cl_ui5_view_builder and its verbs ele / tag / a / end /
+   stringify.
+3. Bind with client->_bind( ). It is bidirectional; only what the user edited comes back.
+4. Every roundtrip is a fresh ABAP session. Nothing survives on the server except
+   the app class itself, which is serialized.
+
+Before building something from scratch, check whether it exists: the sample
+catalog's index at https://abap2ui5.github.io/playground/samples/apps.json lists
+every sample of all three sample repositories with title, summary and keywords,
+and https://abap2ui5.github.io/playground/samples/<class>/ prints each one's ABAP.
+
+When you are done, check the result with the abap2UI5 linter
+(npx @abap2ui5/linter src) - it reads the view your ABAP builds and needs no
+SAP system. If something is not covered by those files, say so instead of
+inventing it.
 ```
 
-Claude Code users can add the [mcp-server](https://github.com/abap2UI5/mcp-server) — validate, deploy, and screenshot apps without an SAP system — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`. The full setup is described in [Building with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
+Claude Code users can add the [mcp-server](https://github.com/abap2UI5/mcp-server) — validate, deploy, and screenshot apps without an SAP system — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`. The full setup is described in [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
 ## References
 * Field Service Management Mobile Logging using abap2UI5 [(Decabase Blog - 22.08.2026)](https://blog.decabase.com/field-service-management-mobile-logging-using-abap2ui5-2c18e4ed455d)
