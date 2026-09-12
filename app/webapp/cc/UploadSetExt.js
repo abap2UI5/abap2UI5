@@ -72,10 +72,12 @@ sap.ui.define(
             this,
             "UploadSetExt",
             (f, result) => {
-              this.setProperty("fileData", result);
-              this.setProperty("fileName", f.name);
-              this.setProperty("mediaType", f.type);
-              this.setProperty("fileSize", String(f.size));
+              // suppressed invalidation: the control renders nothing, and
+              // the binding write the backend reads happens either way
+              this.setProperty("fileData", result, true);
+              this.setProperty("fileName", f.name, true);
+              this.setProperty("mediaType", f.type, true);
+              this.setProperty("fileSize", String(f.size), true);
               this.fireChange();
             },
           );
@@ -90,7 +92,7 @@ sap.ui.define(
 
       onItemRemoved(oEvent) {
         const name = oEvent.getParameter("item")?.getFileName?.() ?? "";
-        this.setProperty("removedFileName", name);
+        this.setProperty("removedFileName", name, true);
         this.fireRemove();
       },
 

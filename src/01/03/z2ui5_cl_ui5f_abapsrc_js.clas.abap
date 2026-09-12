@@ -75,9 +75,7 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
              `          credentials: "same-origin",` && |\n| &&
              `        });` && |\n| &&
              `        if (response.ok) source = await response.text();` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        source = "";` && |\n| &&
-             `      }` && |\n| &&
+             `      } catch {}` && |\n| &&
              `` && |\n| &&
              `      if (source) cache = { app: name, source };` && |\n| &&
              `      return source;` && |\n| &&

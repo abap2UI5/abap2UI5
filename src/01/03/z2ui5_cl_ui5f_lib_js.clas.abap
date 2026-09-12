@@ -262,8 +262,9 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        KEY: item.getKey(),` && |\n| &&
              `        TEXT: item.getText(),` && |\n| &&
              `      }));` && |\n| &&
-             `      control.setProperty("addedTokens", isRemoved ? [] : tokens);` && |\n| &&
-             `      control.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
+             `` && |\n| &&
+             `      control.setProperty("addedTokens", isRemoved ? [] : tokens, true);` && |\n| &&
+             `      control.setProperty("removedTokens", isRemoved ? tokens : [], true);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function afterRoundtrip(owner, fn) {` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function hasSafeProtocol(parsed) {` && |\n| &&
-             `      if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
-             `      logError(` && |\n|.
+             `      if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n|.
     result = result &&
+             `      logError(` && |\n| &&
              `        ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
              `      );` && |\n| &&
              `      return false;` && |\n| &&

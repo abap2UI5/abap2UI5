@@ -393,8 +393,11 @@ sap.ui.define(
         KEY: item.getKey(),
         TEXT: item.getText(),
       }));
-      control.setProperty("addedTokens", isRemoved ? [] : tokens);
-      control.setProperty("removedTokens", isRemoved ? tokens : []);
+      // suppressed invalidation: both callers render nothing
+      // (Lib.EMPTY_RENDERER), and the binding write the backend reads
+      // happens either way
+      control.setProperty("addedTokens", isRemoved ? [] : tokens, true);
+      control.setProperty("removedTokens", isRemoved ? tokens : [], true);
     }
 
     // Runs `fn` once the roundtrip a control just started has landed - right

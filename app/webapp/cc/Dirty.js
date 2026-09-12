@@ -13,13 +13,14 @@ sap.ui.define(
     // guard (e.g. a main-view form plus a form in a dialog).
     const dirtyControls = new Set();
 
+    // one handler for the page, not a new closure per dirty transition
+    const promptOnUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
     function syncUnloadPrompt(anyDirty) {
-      window.onbeforeunload = anyDirty
-        ? (e) => {
-            e.preventDefault();
-            e.returnValue = "";
-          }
-        : null;
+      window.onbeforeunload = anyDirty ? promptOnUnload : null;
     }
 
     const Dirty = Control.extend("z2ui5.cc.Dirty", {
