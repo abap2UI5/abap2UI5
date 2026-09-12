@@ -902,6 +902,46 @@ test.describe("CONTROL_BY_ID", () => {
       expect(calls).toEqual([["setText", ""]]);
     });
 
+    /* The PRIMITIVE type decides, not the declared name: ManagedObject casts
+     * a boolean to text only for the type named exactly "string" - every
+     * string-DERIVED type (sap.ui.core.CSSSize, URI, ID, CSSColor) is
+     * validated as it is. So `setWidth("")` inferred to `false` threw
+     * '"false" is of type boolean, expected sap.ui.core.CSSSize', and
+     * `setSrc("")` passed URI validation as the relative path "false". */
+    function typed(calls, controls, name, primitive) {
+      const prop = {
+        type: name,
+        getType: () => ({
+          getPrimitiveType: () => ({ getName: () => primitive }),
+        }),
+      };
+      controls.img = {
+        getMetadata: () => ({
+          getAllProperties: () => ({ width: prop, src: prop }),
+        }),
+        setWidth: (v) => calls.push(["setWidth", v]),
+        setSrc: (v) => calls.push(["setSrc", v]),
+      };
+    }
+
+    test("an empty argument reaches a string-DERIVED property as the empty string", () => {
+      const { FrontendAction, calls, controls } = load();
+      typed(calls, controls, "sap.ui.core.CSSSize", "string");
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "img", "", "setWidth", ""]);
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "img", "", "setSrc", "X"]);
+      expect(calls).toEqual([
+        ["setWidth", ""],
+        ["setSrc", "X"],
+      ]);
+    });
+
+    test("a non-string primitive keeps the boolean inference", () => {
+      const { FrontendAction, calls, controls } = load();
+      typed(calls, controls, "sap.ui.core.Percentage", "int");
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "img", "", "setWidth", ""]);
+      expect(calls).toEqual([["setWidth", false]]);
+    });
+
     test("a string property keeps 'X' and 'true' as text, not as booleans", () => {
       const { FrontendAction, calls, controls } = load();
       labelled(calls, controls, "string");

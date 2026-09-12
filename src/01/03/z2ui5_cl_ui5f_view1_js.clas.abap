@@ -74,6 +74,10 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `            state.shortcuts = {};` && |\n| &&
              `            state.treeStates = {};` && |\n| &&
+             `` && |\n| &&
+             `            state.hashEvent = null;` && |\n| &&
+             `            state.appHash = "";` && |\n| &&
+             `            state.pendingAppHash = null;` && |\n| &&
              `            state.renderedApp = oResponse.APP;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&

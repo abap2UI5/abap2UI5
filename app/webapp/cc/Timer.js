@@ -54,6 +54,11 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       this._timerId = setTimeout(() => {
         // The control might have been destroyed during the delay.
         if (Lib.isDestroyed(this)) return;
+        // ... or switched off while the timer was armed: a bound checkActive
+        // the backend flipped to false (the way a poll is stopped) only
+        // reached the ARMING check before, so the tick already pending fired
+        // one more event into an app that had said stop
+        if (!this.getProperty("checkActive")) return;
         if (!repeat) this.setProperty("checkActive", false, true);
         this.fireFinished();
         // For repeating timers, queue the next iteration. Re-check destroy
@@ -68,6 +73,10 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       render(oRm, oControl) {
         Lib.renderInvisibleSpan(oRm, oControl);
         oControl._pendingTimer = oControl.getProperty("checkActive");
+        // a render with checkActive false is the app switching the timer
+        // off - release a tick that is still armed (the callback would
+        // bail out anyway, this frees the timer as well)
+        if (!oControl._pendingTimer) clearTimeout(oControl._timerId);
       },
     },
   });

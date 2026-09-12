@@ -16,6 +16,9 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS escape_literal_passthrough FOR TESTING.
     METHODS escape_literal_backslash FOR TESTING.
     METHODS bool_parameter FOR TESTING.
+    METHODS text_parameter FOR TESTING.
+    METHODS text_parameter_empty FOR TESTING.
+    METHODS text_parameter_beside_empty_v FOR TESTING.
     METHODS misuse_raises_not_dumps FOR TESTING.
     METHODS end_past_root_raises FOR TESTING.
 ENDCLASS.
@@ -268,6 +271,58 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD text_parameter.
+
+    " t renders TEXT: a brace that would otherwise start a binding and a
+    " backslash UI5 would unescape are escaped the escape_literal( ) way,
+    " and the XML escaping of the render still follows on top
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->a( n = `headerText`
+              t = `Results for {/PASSWORD} & co`
+        )->a( n = `tooltip`
+              t = `\\server\share` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel headerText="Results for \{/PASSWORD\} &amp; co" tooltip="\\\\server\\share"/>` ).
+
+  ENDMETHOD.
+
+  METHOD text_parameter_beside_empty_v.
+
+    " the tolerance b always had, carried over: an empty v next to t is
+    " ignored, t decides the value
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->a( n = `headerText`
+              v = ``
+              t = `{x}` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel headerText="\{x\}"/>` ).
+
+  ENDMETHOD.
+
+  METHOD text_parameter_empty.
+
+    " an empty t is a value like an empty v - the refusal is for NO
+    " parameter at all, not for an empty one
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->a( n = `headerText`
+              t = `` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel headerText=""/>` ).
+
+  ENDMETHOD.
+
   METHOD misuse_raises_not_dumps.
 
     " every misuse of the chain is a catchable exception naming the element
@@ -298,6 +353,27 @@ CLASS ltcl_builder IMPLEMENTATION.
         cl_abap_unit_assert=>fail( `a( ) with v and b must raise` ).
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_both).
         cl_abap_unit_assert=>assert_true( xsdbool( lx_both->get_text( ) CS `visible` ) ).
+    ENDTRY.
+
+    " t is the third of the exclusive three - with v as much as with b. An
+    " EMPTY v next to it is tolerated, as it always was next to b (see
+    " attr_value), so the conflict needs a v that carries something
+    TRY.
+        view->a( n = `title`
+                 v = `y`
+                 t = `x` ).
+        cl_abap_unit_assert=>fail( `a( ) with v and t must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_v_t).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_v_t->get_text( ) CS `title` ) ).
+    ENDTRY.
+
+    TRY.
+        view->a( n = `title`
+                 b = abap_true
+                 t = `x` ).
+        cl_abap_unit_assert=>fail( `a( ) with b and t must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_b_t).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_b_t->get_text( ) CS `title` ) ).
     ENDTRY.
 
     view->a( n = `text`

@@ -244,11 +244,6 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      if (isSuperseded(reqSeq) && ViewSlots.getView("MAIN")) {` && |\n| &&
-             `        discardBuild();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
              `      ViewSlots.setView("MAIN", oView, xml);` && |\n| &&
              `      if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
              `      AppState.state.oApp.removeAllPages();` && |\n| &&
@@ -264,7 +259,14 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          ViewSlots.destroy("MAIN");` && |\n| &&
-             `          for (const oClient of AppState.state.odataClients) oClient.destroy();` && |\n| &&
+             `` && |\n| &&
+             `          for (const oClient of AppState.state.odataClients) {` && |\n| &&
+             `            try {` && |\n| &&
+             `              oClient.destroy();` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              Lib.logError("displayMain: destroying an OData client failed", e);` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
              `          AppState.state.odataClients.clear();` && |\n| &&
              `` && |\n| &&
              `          ViewSlots.destroy("POPUP");` && |\n| &&

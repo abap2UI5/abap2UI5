@@ -116,6 +116,8 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (binding === this._filterBinding) return;` && |\n| &&
              `        binding.filter(aFilters);` && |\n| &&
+             `` && |\n| &&
+             `        this._filterBinding = binding;` && |\n| &&
              `        const columns = oTable.getColumns();` && |\n| &&
              `` && |\n| &&
              `        for (const oFilter of aFilters) {` && |\n| &&
@@ -177,6 +179,8 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (binding === this._sortBinding) return;` && |\n| &&
              `        binding.sort(aSorters);` && |\n| &&
+             `` && |\n| &&
+             `        this._sortBinding = binding;` && |\n| &&
              `` && |\n| &&
              `        const columns = oTable.getColumns();` && |\n| &&
              `        for (const [index, sorter] of aSorters.entries()) {` && |\n| &&

@@ -393,6 +393,18 @@ CLASS ltcl_rtti DEFINITION FINAL
       END OF ty_s_row.
     TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
+    " a structure with an include, for the component expansion: the
+    " include's own components are expanded in place of the include entry
+    TYPES BEGIN OF ty_s_incl.
+    TYPES name TYPE string.
+    TYPES city TYPE string.
+    TYPES END OF ty_s_incl.
+    TYPES BEGIN OF ty_s_with_incl.
+    INCLUDE TYPE ty_s_incl.
+    TYPES zip TYPE string.
+    TYPES END OF ty_s_with_incl.
+
+    METHODS test_attri_include    FOR TESTING RAISING cx_static_check.
     METHODS test_check_clike     FOR TESTING RAISING cx_static_check.
     METHODS test_printable_decfloat FOR TESTING RAISING cx_static_check.
     METHODS test_srtti_pair_roundtrip FOR TESTING RAISING cx_static_check.
@@ -411,6 +423,34 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION LOCAL FRIENDS ltcl_rtti.
 
 
 CLASS ltcl_rtti IMPLEMENTATION.
+
+  METHOD test_attri_include.
+
+    " the include is expanded into its own components, in place, and the
+    " components after it follow - rtti_get_t_attri_by_include used to
+    " re-describe the include by its absolute name, which a local type
+    " like this one need not resolve; the descriptor the component carries
+    " is the include's own
+    DATA ls_with_incl TYPE ty_s_with_incl.
+
+    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ls_with_incl ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lt_comp ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `NAME`
+                                        act = lt_comp[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `CITY`
+                                        act = lt_comp[ 2 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `ZIP`
+                                        act = lt_comp[ 3 ]-name ).
+    " no include entry survives the expansion (a plain READ: the downport
+    " does not rewrite a line_exists( ) inside a method call argument)
+    READ TABLE lt_comp WITH KEY as_include = abap_true TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
+    DATA(lv_subrc) = sy-subrc.
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lv_subrc ).
+
+  ENDMETHOD.
 
   METHOD test_html_get_plain.
 

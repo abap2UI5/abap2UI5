@@ -47,10 +47,7 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
-             `          tooltip: {` && |\n| &&
-             `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
+             `` && |\n| &&
              `          fileType: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
@@ -91,10 +88,7 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `            type: "boolean",` && |\n| &&
              `            defaultValue: false,` && |\n| &&
              `          },` && |\n| &&
-             `          visible: {` && |\n| &&
-             `            type: "boolean",` && |\n| &&
-             `            defaultValue: true,` && |\n| &&
-             `          },` && |\n| &&
+             `` && |\n| &&
              `          checkDirectUpload: {` && |\n| &&
              `            type: "boolean",` && |\n| &&
              `            defaultValue: false,` && |\n| &&
@@ -179,7 +173,8 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `` && |\n| &&
              `      _syncControls() {` && |\n| &&
              `        const u = this.oFileUploader;` && |\n| &&
-             `        u.setTooltip(this.getProperty("tooltip"));` && |\n| &&
+             `` && |\n| &&
+             `        u.setTooltip(this.getTooltip_AsString());` && |\n| &&
              `        u.setIcon(this.getProperty("icon"));` && |\n| &&
              `        u.setIconOnly(this.getProperty("iconOnly"));` && |\n| &&
              `        u.setButtonOnly(this.getProperty("buttonOnly"));` && |\n| &&

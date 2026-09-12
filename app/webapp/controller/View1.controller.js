@@ -85,6 +85,17 @@ sap.ui.define(
             // of the next app
             state.shortcuts = {};
             state.treeStates = {};
+            // ... and so does the app-owned hash listener
+            // (cs_event-hash_attach_changed): the backend keeps no record of
+            // it and z2ui5_if_client promises it dies with the app switch,
+            // but AppState.reset( ) only runs on the component teardown. A
+            // listener the leaving app registered kept dispatching ITS event
+            // name into the next app on every Back / hash edit, and
+            // Router.sync skipped the app-state URL upkeep for that app as
+            // long as it lived
+            state.hashEvent = null;
+            state.appHash = "";
+            state.pendingAppHash = null;
             state.renderedApp = oResponse.APP;
           }
           // Stamp of the request this response belongs to: every await in

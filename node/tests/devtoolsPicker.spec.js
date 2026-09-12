@@ -7,12 +7,17 @@ const { loadModule } = require("./loadModule");
 // the feature (the DOM pick around it only decides WHICH control it gets),
 // so the specs drive it with UI5-shaped control doubles.
 
-function loadPicker({ slotKey = "MAIN", closestTo } = {}) {
+function loadPicker({ slotKey = "MAIN", closestTo, viewXml = "" } = {}) {
   const { module } = loadModule("devtools/Picker.js", {
     deps: {
       "sap/ui/core/Element": closestTo ? { closestTo } : {},
       "z2ui5/core/Lib": { logError() {}, getElementById: () => null },
-      "z2ui5/core/ViewSlots": { containingSlotKey: () => slotKey },
+      "z2ui5/core/ViewSlots": {
+        containingSlotKey: () => slotKey,
+        // the XML the slot was filled with - where a view attribute's
+        // `.eB(['NAME'])` is written
+        getViewXml: (key) => (key === slotKey ? viewXml : ""),
+      },
     },
     sandbox: {
       document: {
@@ -94,7 +99,7 @@ test.describe("describe", () => {
     expect(Picker.describe(fakeControl())).toContain("no binding");
   });
 
-  test("reads the backend event name off the attached handler", () => {
+  test("reads the backend event name off a handler attached in code", () => {
     const Picker = loadPicker();
     const control = fakeControl({
       events: {
@@ -103,6 +108,40 @@ test.describe("describe", () => {
     });
     const out = Picker.describe(control);
     expect(out).toContain("press -> eB('BUTTON_SAVE')");
+  });
+
+  // A `press=".eB(['SAVE'])"` view attribute is registered by UI5's
+  // EventHandlerResolver as a generic wrapper whose source never carries
+  // the event name (it lives in a closure) - so the handler's source, the
+  // only place the picker used to look, answered bare `press` for every
+  // control the backend bound. The name is read off the element in the
+  // slot's XML instead, found by the control's local id.
+  test("reads the backend event name off the slot XML for a view-bound handler", () => {
+    const viewXml =
+      `<mvc:View><Button id="btnSave" text="Save"` +
+      ` press=".eB([&apos;BUTTON_SAVE&apos;])"/>` +
+      `<Input id="inp" change=".eBP($event, true, ['INPUT_CHANGE'])"/></mvc:View>`;
+    const Picker = loadPicker({ viewXml });
+    // the wrapper as EventHandlerResolver registers it - no name inside
+    const wrapper = function (oEvent) {
+      return oEvent && this;
+    };
+    const out = Picker.describe(
+      fakeControl({ id: "mainView--btnSave", events: { press: [{ fFunction: wrapper }] } }),
+    );
+    expect(out).toContain("press -> eB('BUTTON_SAVE')");
+
+    const outInput = Picker.describe(
+      fakeControl({ id: "mainView--inp", events: { change: [{ fFunction: wrapper }] } }),
+    );
+    expect(outInput).toContain("change -> eBP('INPUT_CHANGE')");
+
+    // a control the XML gives no id keeps the bare event name
+    const outAnon = Picker.describe(
+      fakeControl({ id: "__button3", events: { press: [{ fFunction: wrapper }] } }),
+    );
+    expect(outAnon).toContain("press");
+    expect(outAnon).not.toContain("press ->");
   });
 
   test("keeps an event whose handler is not a framework call", () => {

@@ -73,6 +73,8 @@ CLASS z2ui5_cl_ui5f_timer_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      this._timerId = setTimeout(() => {` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `` && |\n| &&
+             `        if (!this.getProperty("checkActive")) return;` && |\n| &&
              `        if (!repeat) this.setProperty("checkActive", false, true);` && |\n| &&
              `        this.fireFinished();` && |\n| &&
              `` && |\n| &&
@@ -86,6 +88,8 @@ CLASS z2ui5_cl_ui5f_timer_js IMPLEMENTATION.
              `      render(oRm, oControl) {` && |\n| &&
              `        Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
              `        oControl._pendingTimer = oControl.getProperty("checkActive");` && |\n| &&
+             `` && |\n| &&
+             `        if (!oControl._pendingTimer) clearTimeout(oControl._timerId);` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
