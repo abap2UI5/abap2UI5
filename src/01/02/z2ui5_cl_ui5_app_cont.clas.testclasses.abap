@@ -826,17 +826,18 @@ CLASS ltcl_03_errors IMPLEMENTATION.
         z2ui5_cl_ui5_app_cont=>db_load( mo_cont->ms_draft-id ).
         cl_abap_unit_assert=>fail( `a draft whose bound data cannot be restored must not load silently` ).
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `APP_STATE_RESTORE_ERROR` ) ).
+        DATA(lv_text) = lx->get_text( ).
+        cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `APP_STATE_RESTORE_ERROR` ) ).
         " the error names a broken row - the canonical one of the shared
         " table, whichever of its references sorts last
         DATA(lv_named) = abap_false.
         LOOP AT lt_broken INTO DATA(lv_name).
-          IF lx->get_text( ) CS lv_name.
+          IF lv_text CS lv_name.
             lv_named = abap_true.
           ENDIF.
         ENDLOOP.
         cl_abap_unit_assert=>assert_true( act = lv_named
-                                          msg = |the error names no row: { lx->get_text( ) }| ).
+                                          msg = |the error names no row: { lv_text }| ).
     ENDTRY.
 
   ENDMETHOD.
@@ -918,9 +919,9 @@ CLASS ltcl_04_model IMPLEMENTATION.
     bind_all( ).
     " a whole value for the scalars, a cell edit (the __delta form) for
     " the runtime-built table
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+    DATA(lo_front) = z2ui5_cl_ajson=>parse(
         `{"MV_STRING":"written","MO_INNER_MV_INNER":"inner-written",` &&
-        `"MR_HANDLE_TAB":{"__delta":{"0":{"COL1":"handle-written"}}}}` ) ).
+        `"MR_HANDLE_TAB":{"__delta":{"0":{"COL1":"handle-written"}}}}` ).
 
     DATA(lt_skipped) = mo_cont->model_json_parse( lo_front ).
 
@@ -947,8 +948,8 @@ CLASS ltcl_04_model IMPLEMENTATION.
           iv_path = `/MT_STD` ).
     " a cell edit whose number is no number: refused, kept, and reported -
     " the other cell of the same edit is written
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
-        `{"MT_STD":{"__delta":{"0":{"COL1":"still fine","COL2":"not a number"}}}}` ) ).
+    DATA(lo_front) = z2ui5_cl_ajson=>parse(
+        `{"MT_STD":{"__delta":{"0":{"COL1":"still fine","COL2":"not a number"}}}}` ).
 
     DATA(lt_skipped) = mo_cont->model_json_parse( lo_front ).
 

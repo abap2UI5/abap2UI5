@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
+CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -78,8 +78,7 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
         toolbar TYPE REF TO z2ui5_cl_ui5_view_builder
         icon    TYPE string
         tooltip TYPE string
-        press   TYPE string
-        class   TYPE string DEFAULT `sapUiTinyMarginBeginEnd`.
+        press   TYPE string.
 
     " Building blocks of the SimpleForm rows above. Private on purpose: not
     " because a contract guards them (the class sits in src/01/04, outside
@@ -126,14 +125,13 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     METHODS render_spacer
       IMPORTING form TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    " a form row of Label + external Link; an empty label renders a blank one,
-    " which is how the SimpleForm keeps the link in the value column
+    " a form row of empty Label + external Link; the blank label is how the
+    " SimpleForm keeps the link in the value column
     METHODS render_link
       IMPORTING
-        form  TYPE REF TO z2ui5_cl_ui5_view_builder
-        label TYPE string OPTIONAL
-        text  TYPE string
-        href  TYPE string.
+        form TYPE REF TO z2ui5_cl_ui5_view_builder
+        text TYPE string
+        href TYPE string.
 
     " a form row of Label + read-only Text
     METHODS render_text
@@ -238,11 +236,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     CASE client->get_event( ).
 
       WHEN cs_event-set_config.
-        " the button is only rendered when the class exists (see
-        " reset_button_state) - but the EVENT can arrive without it: a
-        " draft restored from before a deletion, Back/Forward, a hand-built
-        " request. That must degrade to a message, not to a 500 on the
-        " framework's own start page (same guard shape as on_event_check)
+        " no control on the page fires this event any more (the configuration
+        " gear left the title row when the outbound icons were parked) - but
+        " the EVENT can still arrive: a draft restored from before that,
+        " Back/Forward, a bookmark, a hand-built request. That must degrade to
+        " a message, not to a 500 on the framework's own start page (same
+        " guard shape as on_event_check)
         TRY.
             CREATE OBJECT li_app_config TYPE (c_class_icf_config).
             client->nav_app_call( li_app_config ).
@@ -410,11 +409,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " No ToolbarSpacer either: contentRight is right-aligned on its own.
     DATA(toolbar) = bar->ele( `contentRight` ).
 
-    " first what this system is: the information popup, and the configuration
-    " when it is installed. Sliders rather than a monitor on the first one -
-    " what opens there is the backend side of the installation, user exit and
-    " drafts included, and that reads as settings. The gear next to it stays
-    " with the ICF configuration, so the two are still told apart at a glance
+    " what this system is: the information popup. Sliders rather than a
+    " monitor - what opens there is the backend side of the installation,
+    " user exit and drafts included, and that reads as settings. (The gear of
+    " the ICF configuration app that used to sit next to it is gone from the
+    " title row; cs_event-set_config and on_event still accept its event.)
     header_icon( toolbar = toolbar
                  icon    = `sap-icon://action-settings`
                  tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
@@ -431,7 +430,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     toolbar->tag( n = `Icon` ns = `core`
         )->a( n = `src`      v = icon
         )->a( n = `size`     v = c_icon_size_header
-        )->a( n = `class`    v = class
+        )->a( n = `class`    v = `sapUiTinyMarginBeginEnd`
         )->a( n = `color`    v = c_icon_color
         )->a( n = `tooltip`  v = tooltip
         )->a( n = `press`    v = press ).
@@ -665,7 +664,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     " the system facts are read once and then not again, so they are a popup
     " rather than a block of the page - reached from the icon at the right end
-    " of the closing line. The one part that is not free is the draft count at
+    " of the title row. The one part that is not free is the draft count at
     " the bottom: two COUNT( * ), the own rows and the whole table, which
     " together say whether cleanup( ) is keeping up. In a popup they run when
     " the popup is opened, which is exactly when somebody asks
@@ -695,12 +694,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `class`     v = `sapUiSmallMarginBeginEnd sapUiTinyMarginTop` ).
 
     DATA(form) = create_layout_form( content ).
-    DATA(ls_client) = client->get( ).
 
     form->tag( `Label`
         )->a( n = `text`  v = `Launchpad active` ).
     form->tag( `CheckBox`
-        )->a( n = `selected`  b = ls_client-check_launchpad_active
+        )->a( n = `selected`  b = client->get( )-check_launchpad_active
         )->a( n = `enabled`   v = `false` ).
 
     form->tag( `Label`
@@ -760,9 +758,6 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD render_link.
 
     form->tag( `Label` ).
-    IF label IS NOT INITIAL.
-      form->a( n = `text`  v = label ).
-    ENDIF.
 
     form->tag( `Link`
         )->a( n = `text`    v = text

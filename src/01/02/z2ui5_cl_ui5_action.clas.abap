@@ -239,9 +239,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " check_exists( ) in front of it answered false for (no row, a foreign
     " owner), so the guard was a second SELECT on the same key per hop
     IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
-      DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
       TRY.
-          DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
+          DATA(ls_draft) = NEW z2ui5_cl_ui5_srv_draft( )->read_info( mo_app->ms_draft-id_prev_app_stack ).
           result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
         CATCH cx_root ##NO_HANDLER.
       ENDTRY.
@@ -357,8 +356,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       " a raw-JS entry can carry one, and it is not necessarily the FIRST
       " queued action - a toast or box queued before it sits in the same
       " table - so take the first entry that looks like the snippet.
-      LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action) "#EC CI_SORTSEQ
-           WHERE js IS NOT INITIAL.
+      LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action).
         IF lr_action->js NS `.eB(['`.
           CONTINUE.
         ENDIF.

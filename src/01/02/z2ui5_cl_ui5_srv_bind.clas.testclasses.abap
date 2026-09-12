@@ -208,8 +208,7 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
 
-    DATA(lr_row) = REF #( mo_app->mt_tab[ iv_index ] ).
-    ASSIGN lr_row->* TO <row>.
+    ASSIGN mo_app->mt_tab[ iv_index ] TO <row>.
     result = REF #( <row>-name ).
 
   ENDMETHOD.
@@ -455,8 +454,7 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
 
-    DATA(lr_row) = REF #( mo_app->mt_tab[ 2 ] ).
-    ASSIGN lr_row->* TO <row>.
+    ASSIGN mo_app->mt_tab[ 2 ] TO <row>.
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/1/JOB}`
                                         act = bind( ir_val    = REF #( <row>-job )
@@ -484,8 +482,7 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
 
-    DATA(lr_row) = REF #( mo_app->mo_obj->mt_tab[ 1 ] ).
-    ASSIGN lr_row->* TO <row>.
+    ASSIGN mo_app->mo_obj->mt_tab[ 1 ] TO <row>.
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MO_OBJ/MT_TAB/0/NAME}`
                                         act = bind( ir_val    = REF #( <row>-name )
@@ -547,8 +544,7 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
 
-    DATA(lr_helper_row) = REF #( mo_app->mo_obj->mt_tab[ 1 ] ).
-    ASSIGN lr_helper_row->* TO <row>.
+    ASSIGN mo_app->mo_obj->mt_tab[ 1 ] TO <row>.
 
     " app table, helper table, app table again - each answer names ITS table
     cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/0/NAME}`

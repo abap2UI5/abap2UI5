@@ -132,15 +132,11 @@ CLASS ltcl_test_json IMPLEMENTATION.
 
   METHOD test_invalid_json.
 
-    DATA lv_raised TYPE abap_bool.
-
     TRY.
         z2ui5_cl_ui5_json=>factory( `not json at all {{{` ).
-      CATCH z2ui5_cx_ui5_util_error.
-        lv_raised = abap_true.
+        cl_abap_unit_assert=>fail( `invalid JSON must raise` ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
     ENDTRY.
-
-    cl_abap_unit_assert=>assert_true( lv_raised ).
 
   ENDMETHOD.
 

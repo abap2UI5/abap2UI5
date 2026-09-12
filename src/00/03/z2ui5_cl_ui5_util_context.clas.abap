@@ -302,8 +302,8 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     CLASS-METHODS url_param_get
       IMPORTING
-        val           TYPE string
-        url           TYPE string
+        val           TYPE clike
+        url           TYPE clike
       RETURNING
         VALUE(result) TYPE string.
 
@@ -426,7 +426,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     "! Escape what would otherwise be read as markup. Vendored from
     "! abap-util's `c_escape_html`, name and body: this class used to carry a
-    "! private `html_escape` that did the same for `&`, `<` and `>` only,
+    "! private `html_escape` that did the same for `&amp;`, `&lt;` and `&gt;` only,
     "! which is a re-implementation of something the catalog already had -
     "! and the next sync would have reported it as a second name for one
     "! method rather than as a missing one.
@@ -601,8 +601,8 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     " back in the utility surface since 2026-09 - it used to carry the
     " frozen-only marker (no framework caller, kept for src/99), but the
-    " GET-shell ETag hashes the page body's UTF-8 bytes, so the framework
-    " itself calls this again: see z2ui5_cl_ui5_http_handler=>_get_body_etag
+    " GET-shell ETag hashes the UTF-8 bytes of its cache key, so the
+    " framework itself calls this again: see z2ui5_cl_ui5_http_handler=>_get_etag
     CLASS-METHODS conv_get_xstring_by_string
       IMPORTING
         val           TYPE string
@@ -656,13 +656,13 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
   PROTECTED SECTION.
 
+  PRIVATE SECTION.
+
     CLASS-METHODS rtti_get_class_descr_on_cloud
       IMPORTING
         classname     TYPE clike
       RETURNING
         VALUE(result) TYPE string.
-
-  PRIVATE SECTION.
 
     TYPES:
       BEGIN OF ty_s_bool_cache,
@@ -1022,8 +1022,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
-        result = boolean_check_by_name( lo_ele->get_relative_name( ) ).
+        result = boolean_check_by_name( lo_descr->get_relative_name( ) ).
 
         INSERT VALUE #( typedescr = lo_descr is_bool = result ) INTO TABLE mt_bool_cache.
 
@@ -1051,10 +1050,6 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD check_bound_a_not_initial.
 
-    IF val IS NOT BOUND.
-      result = abap_false.
-      RETURN.
-    ENDIF.
     result = xsdbool( check_unassign_initial( val ) = abap_false ).
 
   ENDMETHOD.
@@ -1117,7 +1112,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD c_trim.
 
-    result = CONV string( val ).
+    result = val.
     " spaces and tabs alternate at either end (`\t \tx`) - one pass of each
     " leaves the inner layer standing, so strip until nothing changes
     DO 10 TIMES.
@@ -1136,13 +1131,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD c_trim_lower.
 
-    result = to_lower( c_trim( CONV string( val ) ) ).
+    result = to_lower( c_trim( val ) ).
 
   ENDMETHOD.
 
   METHOD c_trim_upper.
 
-    result = to_upper( c_trim( CONV string( val ) ) ).
+    result = to_upper( c_trim( val ) ).
 
   ENDMETHOD.
 
@@ -1167,7 +1162,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     DATA(lt_mapping) = filter_get_token_range_mapping( ).
 
-    DATA(lt_tab) = VALUE ty_t_range( ).
+    DATA lt_tab TYPE ty_t_range.
 
     itab_corresponding( EXPORTING val = val
                         CHANGING  tab = lt_tab ).
@@ -1320,8 +1315,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_classname) = cl_abap_classdescr=>get_class_name( val ).
-    result = substring_after( val = lv_classname
+    result = substring_after( val = cl_abap_classdescr=>get_class_name( val )
                               sub = `\CLASS=` ).
 
   ENDMETHOD.
@@ -1349,8 +1343,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             val      = |Include type '{ type->absolute_name }' is not a structure|
             previous = lx_cast.
     ENDTRY.
-    DATA(comps) = sdescr->get_components( ).
-    result = expand_components( val   = comps
+    result = expand_components( val   = sdescr->get_components( )
                                 depth = depth ).
 
   ENDMETHOD.
@@ -1368,11 +1361,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     LOOP AT val REFERENCE INTO DATA(lr_comp).
       IF lr_comp->as_include = abap_true.
-        DATA(lt_incl) = rtti_get_t_attri_by_include( type  = lr_comp->type
-                                                     depth = depth + 1 ).
-        APPEND LINES OF lt_incl TO result.
+        INSERT LINES OF rtti_get_t_attri_by_include( type  = lr_comp->type
+                                                     depth = depth + 1 ) INTO TABLE result.
       ELSE.
-        APPEND lr_comp->* TO result.
+        INSERT lr_comp->* INTO TABLE result.
       ENDIF.
     ENDLOOP.
 
@@ -1380,8 +1372,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_oref.
 
-    DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( val ).
-    result = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
+    result = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( val ) )->attributes.
 
   ENDMETHOD.
 
@@ -1421,8 +1412,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(comps) = lo_struct->get_components( ).
-    result = expand_components( comps ).
+    result = expand_components( lo_struct->get_components( ) ).
 
     IF lr_cache IS BOUND.
       lr_cache->o_struct = lo_struct.
@@ -1661,10 +1651,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
           " keep the root cause - a transformation error on the app's own
           " data must not be masked behind a bare UNSUPPORTED_FEATURE
-          DATA(lv_text) = `UNSUPPORTED_FEATURE`.
           RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
             EXPORTING
-              val      = lv_text
+              val      = `UNSUPPORTED_FEATURE`
               previous = lx_srtti.
 
       ENDTRY.
@@ -1736,8 +1725,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_check_clike.
 
-    DATA(lv_type) = rtti_get_type_kind( val ).
-    CASE lv_type.
+    CASE rtti_get_type_kind( val ).
       " typekind_clike/_csequence are generic kinds of formal parameters and
       " can never be returned for a concrete data object - list the concrete
       " character-like kinds (c, string, n, d, t) instead
@@ -1904,15 +1892,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_check_table_standard.
 
-    DATA lo_tab TYPE REF TO cl_abap_tabledescr.
-
     TRY.
         DATA(lo_type) = cl_abap_typedescr=>describe_by_data_ref( val ).
         IF lo_type->kind <> cl_abap_typedescr=>kind_table.
           RETURN.
         ENDIF.
-        lo_tab ?= lo_type.
-        result = xsdbool( lo_tab->table_kind = cl_abap_tabledescr=>tablekind_std ).
+        result = xsdbool( CAST cl_abap_tabledescr( lo_type )->table_kind = cl_abap_tabledescr=>tablekind_std ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -1956,8 +1941,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_check_table.
 
-    DATA(lv_type_kind) = cl_abap_datadescr=>get_data_type_kind( val ).
-    result = xsdbool( lv_type_kind = cl_abap_typedescr=>typekind_table ).
+    result = xsdbool( rtti_get_type_kind( val ) = cl_abap_typedescr=>typekind_table ).
 
   ENDMETHOD.
 
@@ -2010,7 +1994,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
       INSERT |<li>{ c_escape_html( lr_msg->text ) }</li>| INTO TABLE lt_detail_items.
     ENDLOOP.
-    result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
+    result-details = html_get_list( lt_detail_items ).
 
   ENDMETHOD.
 
@@ -2298,8 +2282,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD data_get_exc_text.
 
     TRY.
-        DATA(lx) = CAST cx_root( val ).
-        result = lx->get_text( ).
+        result = CAST cx_root( val )->get_text( ).
       CATCH cx_root ##NO_HANDLER.
         " not an exception, or one that cannot render itself
     ENDTRY.
@@ -2737,7 +2720,6 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA struct_descr TYPE REF TO cl_abap_structdescr.
     FIELD-SYMBOLS <ddic> TYPE data.
     DATA lo_typedescr TYPE REF TO cl_abap_typedescr.
-    DATA data_descr   TYPE REF TO cl_abap_datadescr.
 
     CLEAR texts.
     do_fallback = abap_false.
@@ -2758,9 +2740,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    data_descr ?= lo_typedescr.
-
-    CALL METHOD data_descr->(`GET_DDIC_FIELD`)
+    CALL METHOD lo_typedescr->(`GET_DDIC_FIELD`)
       RECEIVING
         p_flddescr   = <ddic>
       EXCEPTIONS
@@ -2905,8 +2885,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD msg_get_internal.
 
-    DATA(lv_kind) = rtti_get_type_kind( val ).
-    CASE lv_kind.
+    CASE rtti_get_type_kind( val ).
 
       WHEN cl_abap_datadescr=>typekind_table.
         FIELD-SYMBOLS <tab> TYPE ANY TABLE.
@@ -2934,13 +2913,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           ENDIF.
 
           IF ls_attri->name = `ITEM`.
-            INSERT LINES OF msg_get_internal( <comp> ) INTO TABLE result.
+            result = msg_get_internal( <comp> ).
             RETURN.
-          ELSE.
-            ls_result = msg_map( name = ls_attri->name
-                                 val  = <comp>
-                                 msg  = ls_result ).
           ENDIF.
+          ls_result = msg_map( name = ls_attri->name
+                               val  = <comp>
+                               msg  = ls_result ).
 
         ENDLOOP.
         IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
@@ -3062,8 +3040,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lt_attri_o) = rtti_get_t_attri_by_oref( io_obj ).
     LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o) "#EC CI_SORTSEQ
          WHERE visibility = cv_objectdescr_public.
-      DATA(lv_name) = ls_attri_o->name.
-      ASSIGN io_obj->(lv_name) TO <comp>.
+      ASSIGN io_obj->(ls_attri_o->name) TO <comp>.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
@@ -3113,13 +3090,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDLOOP.
 
     LOOP AT lt_attri REFERENCE INTO ls_attri.
-      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<tab>).
-      CHECK sy-subrc = 0.
-      CHECK rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
+      " the component's descriptor is already in the attribute table - no
+      " ASSIGN and no describe_by_data per component
+      CHECK ls_attri->type->kind = cl_abap_typedescr=>kind_table.
 
       TRY.
-          DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
-          DATA(lo_line) = lo_tab->get_table_line_type( ).
+          DATA(lo_line) = CAST cl_abap_tabledescr( ls_attri->type )->get_table_line_type( ).
           CHECK lo_line->kind = cl_abap_typedescr=>kind_struct.
           DATA(lt_comps) = CAST cl_abap_structdescr( lo_line )->get_components( ).
           LOOP AT lt_comps REFERENCE INTO DATA(ls_comp).
@@ -3159,8 +3135,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       FIELD-SYMBOLS <ftab> TYPE ANY TABLE.
       ASSIGN <tab> TO <ftab>.
 
+      " the row kind is a property of the table TYPE - decided once per
+      " table, not asked of every row (same idea as msg_get_internal_tab)
+      DATA(lo_line) = CAST cl_abap_tabledescr( ls_attri->type )->get_table_line_type( ).
       LOOP AT <ftab> ASSIGNING FIELD-SYMBOL(<row>).
-        IF rtti_get_type_kind( <row> ) = cl_abap_datadescr=>typekind_oref.
+        IF lo_line->type_kind = cl_abap_datadescr=>typekind_oref.
           IF <row> IS NOT INITIAL.
             TRY.
                 INSERT LINES OF msg_get_t( <row> ) INTO TABLE result.
@@ -3308,6 +3287,8 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDIF.
 
     DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
+    DATA lt_part TYPE string_table.
+
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
       CHECK sy-subrc = 0.
@@ -3317,23 +3298,20 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           OR lv_sub_kind = cl_abap_datadescr=>typekind_struct2.
         DATA(lv_sub) = msg_get_rap_flatten( <comp> ).
         IF lv_sub IS NOT INITIAL.
-          IF result IS NOT INITIAL.
-            result = |{ result }, |.
-          ENDIF.
-          result = |{ result }{ lv_sub }|.
+          APPEND lv_sub TO lt_part.
         ENDIF.
       ELSEIF <comp> IS NOT INITIAL.
         TRY.
             DATA lv_str TYPE string.
             lv_str = <comp>.
-            IF result IS NOT INITIAL.
-              result = |{ result }, |.
-            ENDIF.
-            result = |{ result }{ ls_attri->name }={ lv_str }|.
+            APPEND |{ ls_attri->name }={ lv_str }| TO lt_part.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
       ENDIF.
     ENDLOOP.
+
+    result = concat_lines_of( table = lt_part
+                              sep   = `, ` ).
 
   ENDMETHOD.
 
@@ -3380,8 +3358,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       WHEN 1  THEN `Entity not found`
       WHEN 2  THEN `Entity is locked`
       WHEN 3  THEN `Authorization failure`
-      WHEN 4  THEN `Concurrent modification`
-      WHEN 5  THEN `Concurrent modification`
+      WHEN 4 OR 5 THEN `Concurrent modification`
       WHEN 6  THEN `Operation disabled`
       WHEN 7  THEN `Operation forbidden`
       WHEN 8  THEN `Semantic error`
