@@ -132,7 +132,7 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
              `` && |\n| &&
              `          input.addValidator((args) => {` && |\n| &&
-             `            const picked = args && args.suggestionObject;` && |\n| &&
+             `            const picked = args?.suggestionObject;` && |\n| &&
              `            if (picked && typeof picked.getCells === "function") {` && |\n| &&
              `              return this.tokenFromRow(picked);` && |\n| &&
              `            }` && |\n| &&

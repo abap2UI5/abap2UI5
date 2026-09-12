@@ -15,7 +15,8 @@ sap.ui.define(
     const _CTX_2D_OPTS = { willReadFrequently: true };
     const _THUMB_W = 300;
     // width/height size the trigger button; a bare number is treated as px.
-    const toCssSize = (val) => (/^\d+$/.test(val) ? `${val}px` : val);
+    const PX_NUMBER = /^\d+$/;
+    const toCssSize = (val) => (PX_NUMBER.test(val) ? `${val}px` : val);
     return Control.extend("z2ui5.cc.CameraPicture", {
       metadata: {
         properties: {
@@ -124,6 +125,7 @@ sap.ui.define(
           this._oStatus = new Text().addStyleClass(
             "sapUiSmallMarginBegin sapUiSmallMarginTop",
           );
+          const id = this.getId();
           this._oScanDialog = new Dialog({
             title: "Device Photo Function",
             contentWidth: "640px",
@@ -135,12 +137,12 @@ sap.ui.define(
             content: [
               this._oStatus,
               new HTML({
-                id: `${this.getId()}PictureContainer`,
+                id: `${id}PictureContainer`,
                 // playsinline + muted are required for autoplay of a live
                 // stream on iOS/Safari; min-height keeps the preview visible
                 // even if the dialog content box does not give it a height;
                 // the tag must be explicitly closed or the parser mangles it.
-                content: `<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay() ? " autoplay" : ""} id="${this.getId()}-video"></video>`,
+                content: `<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay() ? " autoplay" : ""} id="${id}-video"></video>`,
               }),
               new Button({
                 text: "Capture",
@@ -151,7 +153,7 @@ sap.ui.define(
                 },
               }),
               new HTML({
-                content: `<canvas hidden id="${this.getId()}-canvas" style="overflow:auto"></canvas>`,
+                content: `<canvas hidden id="${id}-canvas" style="overflow:auto"></canvas>`,
               }),
             ],
             endButton: new Button({
@@ -226,7 +228,7 @@ sap.ui.define(
 
       // Update the status line inside the camera dialog, if it exists.
       _setStatus(message) {
-        if (this._oStatus && !Lib.isDestroyed(this._oStatus)) {
+        if (Lib.isAlive(this._oStatus)) {
           this._oStatus.setText(message);
         }
       },

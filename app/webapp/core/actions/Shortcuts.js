@@ -153,9 +153,8 @@ sap.ui.define(
       // a slot key is matched case-insensitively; anything else is taken as a
       // control id and keeps its case, because that is how it must resolve
       const raw = String(args[3] ?? "");
-      const scope = SHORTCUT_SLOTS.includes(raw.toUpperCase())
-        ? raw.toUpperCase()
-        : raw;
+      const upper = raw.toUpperCase();
+      const scope = SHORTCUT_SLOTS.includes(upper) ? upper : raw;
       const shortcuts = AppState.state.shortcuts;
       // a combo that spells a property Object.prototype carries - `__proto__`,
       // `constructor` - is no key combination, and shortcuts[combo] for it

@@ -26,9 +26,16 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Element", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Element, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Element",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/devtools/Format",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Element, Lib, ViewSlots, Format) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    const { FRAMEWORK_CALL } = Format;` && |\n| &&
              `` && |\n| &&
              `    const MAX_VALUE_CHARS = 80;` && |\n| &&
              `` && |\n| &&
@@ -104,15 +111,13 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function removeOverlay() {` && |\n| &&
-             `      const el = document.getElementById(OVERLAY_ID);` && |\n| &&
-             `      if (el && el.parentElement) el.parentElement.removeChild(el);` && |\n| &&
+             `      document.getElementById(OVERLAY_ID)?.remove();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function collectBindings(control) {` && |\n| &&
              `      const out = [];` && |\n| &&
              `      const infos = control.mBindingInfos || {};` && |\n| &&
-             `      for (const name of Object.keys(infos)) {` && |\n| &&
-             `        const info = infos[name];` && |\n| &&
+             `      for (const [name, info] of Object.entries(infos)) {` && |\n| &&
              `        const parts = info.parts || (info.path !== undefined ? [info] : []);` && |\n| &&
              `        for (const part of parts) {` && |\n| &&
              `          const model = control.getModel(part.model);` && |\n| &&
@@ -137,9 +142,6 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      return out;` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
-             `    const FRAMEWORK_CALL =` && |\n| &&
-             `      /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;` && |\n| &&
              `` && |\n| &&
              `    function slotXml(slotKey) {` && |\n| &&
              `      if (!slotKey) return "";` && |\n| &&
@@ -168,8 +170,8 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      const registry = control.mEventRegistry || {};` && |\n| &&
              `      const attributes = xmlAttributesOf(control, slotKey);` && |\n| &&
              `      const out = [];` && |\n| &&
-             `      for (const name of Object.keys(registry)) {` && |\n| &&
-             `        for (const handler of registry[name] || []) {` && |\n| &&
+             `      for (const [name, handlers] of Object.entries(registry)) {` && |\n| &&
+             `        for (const handler of handlers || []) {` && |\n| &&
              `          let match = FRAMEWORK_CALL.exec(String(handler?.fFunction || ""));` && |\n| &&
              `          if (!match && attributes) {` && |\n| &&
              `            const attr = new RegExp(` && |\n| &&

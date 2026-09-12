@@ -18,8 +18,18 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/devtools/Console",
     "z2ui5/devtools/Recorder",
+    "z2ui5/devtools/Format",
   ],
-  (Device, AppState, Lib, ScrollFocus, ViewSlots, Console, Recorder) => {
+  (
+    Device,
+    AppState,
+    Lib,
+    ScrollFocus,
+    ViewSlots,
+    Console,
+    Recorder,
+    Format,
+  ) => {
     "use strict";
 
     // Longest argument rendered inline in the action list; a view XML
@@ -28,6 +38,47 @@ sap.ui.define(
 
     // Cap for the scraped event list - a generated view can bind hundreds.
     const MAX_SCRAPED_EVENTS = 200;
+
+    // The bootstrap attributes the Environment section reports, label first.
+    const BOOTSTRAP_ATTRS = [
+      ["Bootstrap theme", "theme"],
+      ["Resource roots", "resourceroots"],
+      ["On init", "oninit"],
+      ["Compat version", "compatversion"],
+      ["Async", "async"],
+      ["Frame options", "frameoptions"],
+      ["Binding syntax", "bindingsyntax"],
+      ["Libs", "libs"],
+    ];
+
+    // All FIVE callback arrays AppState.createState declares - onErrorDetails
+    // was missing here once, and it is the one whose absence is a defect a
+    // reader would want to see: with no provider registered the fatal-error
+    // overlay shows no Details button at all.
+    const CALLBACK_ARRAYS = [
+      "onBeforeRoundtrip",
+      "onAfterRoundtrip",
+      "onAfterRendering",
+      "onBeforeEventFrontend",
+      "onErrorDetails",
+    ];
+
+    // The event wires of a view, scanned whole: the shared regex compiled
+    // once with the global flag (matchAll clones it per scan, so the
+    // early exit on MAX_SCRAPED_EVENTS never leaves a lastIndex behind).
+    const EVENT_CALL = new RegExp(Format.FRAMEWORK_CALL.source, "g");
+
+    // An absolute binding path in view XML: a `{/A` binding, `${/A` in
+    // an expression, path:'/A', parts:['/A','/B'] (the comma continues a
+    // parts list). Any quote followed by "/" used to count, which read
+    // src="/sap/public/..." and href="/some/page" as bindings of /sap and
+    // /some and reported them as missing from the model
+    const BINDING_PATH =
+      /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;
+
+    // A word character for the whole-word test of findEventLine.
+    const WORD_CHAR = /[a-z0-9_]/;
+    const isWordChar = (ch) => ch !== undefined && WORD_CHAR.test(ch);
 
     const LABEL_WIDTH = 24;
 
@@ -45,11 +96,7 @@ sap.ui.define(
       return value ? "yes" : "no";
     }
 
-    function truncate(text, max) {
-      const str = String(text);
-      if (str.length <= max) return str;
-      return `${str.slice(0, max)}... (${str.length} chars)`;
-    }
+    const { truncate, formatBytes } = Format;
 
     // ------------------------------------------------------------------
     // Environment
@@ -248,16 +295,7 @@ sap.ui.define(
         // .src resolves relative to the page, so this is the absolute URL
         // the browser actually fetched the SDK from.
         out.push(line("SDK source", el.src || bootstrapAttr(el, "src")));
-        for (const [label, attr] of [
-          ["Bootstrap theme", "theme"],
-          ["Resource roots", "resourceroots"],
-          ["On init", "oninit"],
-          ["Compat version", "compatversion"],
-          ["Async", "async"],
-          ["Frame options", "frameoptions"],
-          ["Binding syntax", "bindingsyntax"],
-          ["Libs", "libs"],
-        ]) {
+        for (const [label, attr] of BOOTSTRAP_ATTRS) {
           const value = bootstrapAttr(el, attr);
           if (value) out.push(line(label, truncate(value, MAX_ARG_CHARS)));
         }
@@ -367,12 +405,9 @@ sap.ui.define(
       // first entry of the argument array. For eBP that array sits behind
       // the $event and the veto expression (`.eBP($event,true,['X'])`), so
       // the name of every prevent-default wire went unlisted before.
-      const pattern =
-        /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/g;
-      let match = pattern.exec(xml);
-      while (match !== null && found.size < MAX_SCRAPED_EVENTS) {
+      for (const match of xml.matchAll(EVENT_CALL)) {
+        if (found.size >= MAX_SCRAPED_EVENTS) break;
         found.add(`${match[1]}  ${match[2]}`);
-        match = pattern.exec(xml);
       }
       return Array.from(found).sort();
     }
@@ -407,25 +442,15 @@ sap.ui.define(
       out.push(timers.length ? `  ${timers.join(", ")}` : "  (none pending)");
 
       out.push(section("Framework callbacks registered"));
-      // All FIVE arrays AppState.createState declares - onErrorDetails was
-      // missing here, and it is the one whose absence is a defect a reader
-      // would want to see: with no provider registered the fatal-error
-      // overlay shows no Details button at all.
-      for (const name of [
-        "onBeforeRoundtrip",
-        "onAfterRoundtrip",
-        "onAfterRendering",
-        "onBeforeEventFrontend",
-        "onErrorDetails",
-      ]) {
-        out.push(line(name, String((state[name] || []).length)));
+      for (const name of CALLBACK_ARRAYS) {
+        out.push(line(name, (state[name] || []).length));
       }
 
       out.push(section("Model size limits"));
       const limits = state.viewSizeLimits || {};
       const limitKeys = Object.keys(limits);
       if (!limitKeys.length) out.push("  (UI5 default everywhere)");
-      for (const key of limitKeys) out.push(line(key, String(limits[key])));
+      for (const key of limitKeys) out.push(line(key, limits[key]));
 
       out.push(section("Backend events bound in the current views"));
       let any = false;
@@ -694,8 +719,8 @@ sap.ui.define(
       // The edited-path set the next roundtrip will ship as its delta.
       // Slots.trackChanges parks it on the model itself; nothing surfaces
       // it today, which is why "why was my edit not sent" is hard to answer.
-      const changed = model._z2ui5ChangedPaths;
-      const dirty = changed ? new Set(changed) : new Set();
+      // read only below, so the model's own set serves as is - no copy
+      const dirty = model._z2ui5ChangedPaths || new Set();
       // a table edit is tracked on the deep path, so an attribute is dirty
       // when any tracked path starts with it: the attribute is the first
       // segment (`/TAB/0/COL` -> TAB, the rule buildDeltaFromPaths applies).
@@ -737,17 +762,8 @@ sap.ui.define(
       if (!xml) return [];
       const found = new Set();
       // a "/" only where a BINDING starts an absolute path: {/A}, ${/A} in
-      // an expression, path:'/A', parts:['/A','/B'] (the comma continues a
-      // parts list). Any quote followed by "/" used to count, which read
-      // src="/sap/public/..." and href="/some/page" as bindings of /sap and
-      // /some and reported them as missing from the model
-      const pattern =
-        /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;
-      let match = pattern.exec(xml);
-      while (match !== null) {
-        found.add(match[1]);
-        match = pattern.exec(xml);
-      }
+      // an expression, path:'/A', parts:['/A','/B'] - see BINDING_PATH
+      for (const match of xml.matchAll(BINDING_PATH)) found.add(match[1]);
       return Array.from(found).sort();
     }
 
@@ -771,7 +787,8 @@ sap.ui.define(
       }
       // The other direction is worth one line, not a list: an unbound
       // attribute is wasted payload, not a defect.
-      const unused = Object.keys(data).filter((name) => !bound.includes(name));
+      const boundSet = new Set(bound);
+      const unused = Object.keys(data).filter((name) => !boundSet.has(name));
       if (unused.length) {
         out.push("");
         out.push(
@@ -793,12 +810,6 @@ sap.ui.define(
       } catch {
         return 0;
       }
-    }
-
-    function formatBytes(bytes) {
-      if (bytes < 1024) return `${bytes} B`;
-      if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }
 
     function formatSizeRanking(data) {
@@ -895,7 +906,6 @@ sap.ui.define(
         while (from !== -1) {
           const before = haystack[from - 1];
           const after = haystack[from + needle.length];
-          const isWordChar = (ch) => ch !== undefined && /[a-z0-9_]/.test(ch);
           if (!isWordChar(before) && !isWordChar(after)) return i + 1;
           from = haystack.indexOf(needle, from + 1);
         }

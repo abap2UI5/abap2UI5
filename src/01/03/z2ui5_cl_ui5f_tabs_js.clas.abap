@@ -394,7 +394,9 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function firstTabOf(groupKey) {` && |\n| &&
-             `      const [first] = enabledTabs(groupKey);` && |\n| &&
+             `      const first = TABS.find(` && |\n| &&
+             `        (tab) => tab.group === groupKey && isEnabled(tab),` && |\n| &&
+             `      );` && |\n| &&
              `      return first?.key || "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `    function render(tabKey) {` && |\n| &&
              `      const tab = get(tabKey);` && |\n| &&
              `      if (!tab) return "";` && |\n| &&
-             `      try {` && |\n| &&
-             `        return tab.produce() ?? "";` && |\n| &&
-             `      } catch (e) {` && |\n|.
+             `      try {` && |\n|.
     result = result &&
+             `        return tab.produce() ?? "";` && |\n| &&
+             `      } catch (e) {` && |\n| &&
              `        return ``(${tab.label} could not be rendered: ${e?.message || e})``;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&

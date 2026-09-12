@@ -87,7 +87,8 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
         token += ch;
       }
     }
-    if (token.trim() !== "") args.push(parseEfValue(token.trim()));
+    const last = token.trim();
+    if (last !== "") args.push(parseEfValue(last));
     return args;
   }
 

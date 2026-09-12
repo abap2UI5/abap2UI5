@@ -46,7 +46,7 @@ sap.ui.define(
       exit() {
         this._unhook();
         // Resolve any still-pending promises so awaiters don't hang.
-        this._aPendingInnerControlsCreated.forEach((resolve) => resolve(null));
+        for (const resolve of this._aPendingInnerControlsCreated) resolve(null);
         this._aPendingInnerControlsCreated = [];
       },
 
@@ -159,9 +159,9 @@ sap.ui.define(
       onInnerControlsCreated(oEvent) {
         this._oInput = oEvent.getSource();
         this._bInnerControlsCreated = true;
-        this._aPendingInnerControlsCreated.forEach((resolve) =>
-          resolve(this._oInput),
-        );
+        for (const resolve of this._aPendingInnerControlsCreated) {
+          resolve(this._oInput);
+        }
         this._aPendingInnerControlsCreated = [];
       },
     });
