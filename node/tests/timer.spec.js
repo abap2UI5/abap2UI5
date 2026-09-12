@@ -188,6 +188,35 @@ test("a repeating timer stops when the event handler destroys the control", () =
   expect(clock.pending.size).toBe(0);
 });
 
+// The backend stops a poll by binding checkActive to false. That value used
+// to be consulted only when ARMING, so the tick already pending fired one
+// more `finished` into an app that had said stop - with a long delayMS long
+// after the user had moved on. Both halves: the re-render that carries the
+// false releases the armed timer, and a callback that still runs bails out.
+test("checkActive flipped to false while armed fires nothing more", () => {
+  const { instance, clock } = load();
+  const inst = instance({ delayMS: 30000, checkRepeat: true });
+
+  inst.render();
+  inst.onAfterRendering();
+  expect(clock.pending.size).toBe(1);
+
+  // the bound property arrives, the control re-renders with it
+  inst._props.checkActive = false;
+  inst.render();
+  inst.onAfterRendering();
+  expect(clock.pending.size).toBe(0);
+
+  // and even a tick that slipped through (armed before the release) is silent
+  inst._props.checkActive = true;
+  inst.render();
+  inst.onAfterRendering();
+  inst._props.checkActive = false;
+  clock.tick();
+  expect(inst.fired).toBe(0);
+  expect(clock.pending.size).toBe(0);
+});
+
 test("exit clears a pending timer", () => {
   const { instance, clock } = load();
   const inst = instance({ delayMS: 10 });

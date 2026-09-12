@@ -408,6 +408,32 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     };
   }
 
+  // The app-owned hash listener (cs_event-hash_attach_changed) belongs to
+  // the app that registered it: the backend keeps no record of it and the
+  // client interface promises it dies with the app switch - but only
+  // AppState.reset( ), the component teardown, ever cleared it. So app A's
+  // listener kept dispatching A's event name into app B on every Back /
+  // hash edit, and Router.sync skipped B's app-state URL upkeep meanwhile.
+  test("a response naming another app drops the leaving app's hash listener", async () => {
+    const { ctrl, state, destroys } = loadForAfterRendering();
+    state.renderedApp = "Z2UI5_CL_APP_A";
+    state.shortcuts = { "ctrl+s": {} };
+    state.hashEvent = "NAV";
+    state.appHash = "/page2";
+    state.pendingAppHash = "/page3";
+    state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_B", MODELPRESENT: false };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(state.renderedApp).toBe("Z2UI5_CL_APP_B");
+    expect(state.shortcuts).toEqual({});
+    expect(state.hashEvent).toBe(null);
+    expect(state.appHash).toBe("");
+    expect(state.pendingAppHash).toBe(null);
+    // the standalone slots of the leaving app go with it
+    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+  });
+
   test("a REPLACED response leaves busy, custom JS and the parked hash to the newer one", async () => {
     const { ctrl, state, pushes, syncs, hooks, busy, pendingHash, customs } =
       loadForAfterRendering();

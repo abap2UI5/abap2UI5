@@ -22,9 +22,9 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
-      // The backend can send custom JS snippets that are executed via the
-      // Function constructor in Server.js. Keep this visible as an explicit
-      // eslint-disable at the single place where it is allowed.
+      // A legacy app-authored raw-JS snippet is executed via the Function
+      // constructor in core/actions/LegacyCustomJs.js. Keep this visible as
+      // an explicit eslint-disable at the single place where it is allowed.
       "no-new-func": "error",
       // Many handlers intentionally swallow errors after logging them to
       // z2ui5.errors; unused catch parameters are accepted.

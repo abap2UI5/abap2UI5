@@ -8,9 +8,6 @@ sap.ui.define(
   (ODataModel, Lib, ViewSlots, AppState) => {
     "use strict";
 
-    // how long a backend timer tick waits before asking again whether the
-    // roundtrip it collided with has landed (evStartTimer)
-
     // ------------------------------------------------------------------
     // Actions against the running VIEWS and their models: focus, scrolling,
     // element binding, model size limits, the OData model switch, backend

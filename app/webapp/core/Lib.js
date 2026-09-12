@@ -1008,7 +1008,6 @@ sap.ui.define(
       readCaret,
       registerCallback,
       unregisterCallback,
-      readFileAsDataURL,
       readFilesInTurn,
       cancelPendingTimers,
       cancelTimer,

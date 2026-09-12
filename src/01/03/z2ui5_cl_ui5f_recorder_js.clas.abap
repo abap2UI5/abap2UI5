@@ -70,6 +70,15 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function wallClockIso(mark) {` && |\n| &&
+             `    const origin =` && |\n| &&
+             `      typeof performance !== "undefined" ? performance.timeOrigin : undefined;` && |\n| &&
+             `    if (typeof origin === "number" && typeof mark === "number") {` && |\n| &&
+             `      return new Date(origin + mark).toISOString();` && |\n| &&
+             `    }` && |\n| &&
+             `    return new Date().toISOString();` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function now() {` && |\n| &&
              `    return typeof performance !== "undefined" && performance.now` && |\n| &&
              `      ? performance.now()` && |\n| &&
@@ -135,7 +144,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `` && |\n| &&
              `  function pushUnrendered(entry) {` && |\n| &&
              `    pushRecord({` && |\n| &&
-             `      ts: new Date().toISOString(),` && |\n| &&
+             `      ts: wallClockIso(entry.start),` && |\n| &&
              `      event: "",` && |\n| &&
              `      idSent: "",` && |\n| &&
              `      idReceived: "",` && |\n| &&
@@ -152,6 +161,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      request: null,` && |\n| &&
              `      response: null,` && |\n| &&
              `    });` && |\n| &&
+             `` && |\n| &&
+             `    records.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function extractMessages(response) {` && |\n| &&
@@ -413,7 +424,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `  function summaryLines(list) {` && |\n| &&
              `    const timed = list.filter((r) => r.backendMs !== null);` && |\n| &&
              `    if (!timed.length) return [];` && |\n| &&
-             `    const out = ["Summary"];` && |\n| &&
+             `    const out = ["Summary"];` && |\n|.
+    result = result &&
              `    const backend = timed.map((r) => r.backendMs);` && |\n| &&
              `    const avg = Math.round(backend.reduce((a, b) => a + b, 0) / backend.length);` && |\n| &&
              `    const slowest = timed.reduce((a, b) => (b.backendMs > a.backendMs ? b : a));` && |\n| &&
@@ -424,8 +436,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    );` && |\n| &&
              `    const sized = list.filter((r) => r.respBytes !== null);` && |\n| &&
              `    if (sized.length) {` && |\n| &&
-             `      const biggest = sized.reduce((a, b) =>` && |\n|.
-    result = result &&
+             `      const biggest = sized.reduce((a, b) =>` && |\n| &&
              `        b.respBytes > a.respBytes ? b : a,` && |\n| &&
              `      );` && |\n| &&
              `      const total = sized.reduce((sum, r) => sum + r.respBytes, 0);` && |\n| &&
@@ -814,7 +825,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    exportJson,` && |\n| &&
              `    isRecordingPayloads,` && |\n| &&
              `    setRecordingPayloads,` && |\n| &&
-             `    formatHistory,` && |\n| &&
+             `    formatHistory,` && |\n|.
+    result = result &&
              `    formatModelDiff,` && |\n| &&
              `    formatViewDiff,` && |\n| &&
              `` && |\n| &&

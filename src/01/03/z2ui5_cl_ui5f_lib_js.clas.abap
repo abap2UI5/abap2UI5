@@ -655,7 +655,6 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      readCaret,` && |\n| &&
              `      registerCallback,` && |\n| &&
              `      unregisterCallback,` && |\n| &&
-             `      readFileAsDataURL,` && |\n| &&
              `      readFilesInTurn,` && |\n| &&
              `      cancelPendingTimers,` && |\n| &&
              `      cancelTimer,` && |\n| &&

@@ -40,7 +40,10 @@ sap.ui.define(
         const hash =
           nav.hrefForExternal({ target: args[1], params: args[2] }) || "";
         if (args[3] === "EXT") {
-          // External redirect: replace the location while keeping the host.
+          // External navigation: the intent is opened in a NEW window/tab
+          // (URLHelper.redirect's second argument is bNewWindow) - the
+          // behaviour the legacy handler had, kept as is; the current page
+          // stays where it is.
           // base is the current page (same origin) + a shell-hash fragment,
           // so this is same-origin by construction; validate anyway to stay
           // consistent with every other redirect handler in this file.

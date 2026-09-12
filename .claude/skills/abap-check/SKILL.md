@@ -621,11 +621,12 @@ pitfalls".
   infer from. Write `REF data( … )` (or the concrete `REF ty( … )`) whenever
   the left side is generic; `REF #( )` only into a typed variable or
   parameter. abaplint 2.120.38 accepts the generic form without a finding
-  (`check_syntax` on, default and cloud configs) - **Gate: open**. What is left
-  outside the upstream mirrors and the frozen package is the one in
-  `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` (`check_unassign_initial`'s
-  neighbourhood) - vendored from abap-util, so the rewrite belongs upstream
-  first.
+  (`check_syntax` on, default and cloud configs) - **Gate: open**. The last
+  one outside the upstream mirrors and the frozen package -
+  `conv_get_as_data_ref` in `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` -
+  was rewritten here (2026-09): the context class is not a read-only mirror,
+  this copy leads and abap-util follows (AGENTS.md, "Utilities"), so nothing
+  waits on upstream for it.
 
 - **A RAP handler names the entity by its BDEF alias.** Where the behavior
   definition declares `alias Ticket`, an event handler's

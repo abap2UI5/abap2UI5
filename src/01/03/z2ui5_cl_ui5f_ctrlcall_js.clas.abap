@@ -86,8 +86,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        else MT.show(sText);` && |\n| &&
              `        if (sClass) applyToastClass(sClass);` && |\n| &&
              `      };` && |\n| &&
-             `      if (MessageToast) doShow(MessageToast);` && |\n| &&
-             `      else sap.ui.require(["sap/m/MessageToast"], doShow);` && |\n| &&
+             `` && |\n| &&
+             `      doShow(MessageToast);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    let iBoxNo = 0;` && |\n| &&
@@ -430,7 +430,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      const prop = control.getMetadata?.()?.getAllProperties?.()[` && |\n| &&
              `        method.charAt(3).toLowerCase() + method.slice(4)` && |\n| &&
              `      ];` && |\n| &&
-             `      return !!prop && prop.type === "string";` && |\n| &&
+             `      if (!prop) return false;` && |\n| &&
+             `      const primitive = prop.getType?.()?.getPrimitiveType?.()?.getName?.();` && |\n| &&
+             `      return primitive ? primitive === "string" : prop.type === "string";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const NULLABLE_KINDS = ["controlIdOrNull"];` && |\n| &&
@@ -823,10 +825,10 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      handlers[name] = (oController, args, ctx) =>` && |\n| &&
              `        evControlCall(oController, ["CONTROL_GLOBAL", ...args], ctx);` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
-             `    return { handlers };` && |\n| &&
-             `  },` && |\n|.
+             `` && |\n|.
     result = result &&
+             `    return { handlers };` && |\n| &&
+             `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
               ``.
