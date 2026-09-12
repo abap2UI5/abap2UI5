@@ -165,21 +165,35 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
-    METHODS slice_to_abap
+    "! The CONFIG block of S_FRONT - the device, the focus, the scroll
+    "! positions, the UI5 build and the launchpad ComponentData - read field
+    "! by field below iv_config, the path of the block in the request tree
+    "! (see request_parse_body for why nothing is sliced)
+    METHODS request_parse_config
       IMPORTING
-        io_json TYPE REF TO z2ui5_if_ajson
-        iv_path TYPE string
+        io_json   TYPE REF TO z2ui5_if_ajson
+        iv_config TYPE string
       CHANGING
-        cs_data TYPE any
+        cs_front  TYPE z2ui5_if_ui5_types=>ty_s_request-s_front
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! one scroll position of S_SCROLL, iv_path naming its slot node
+    METHODS scroll_pos_read
+      IMPORTING
+        io_json       TYPE REF TO z2ui5_if_ajson
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_scroll_pos.
+
+    "! The event arguments below iv_front, the S_FRONT node of the request
+    "! tree - every one of them as the string the app receives
     METHODS request_parse_event_args
       IMPORTING
-        io_front          TYPE REF TO z2ui5_if_ajson
-      EXPORTING
-        ev_check_override TYPE abap_bool
-        et_event_arg      TYPE string_table
+        io_json       TYPE REF TO z2ui5_if_ajson
+        iv_front      TYPE string
+      RETURNING
+        VALUE(result) TYPE string_table
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -289,48 +303,39 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       result-o_model = z2ui5_cl_ajson=>create_empty( ).
     ENDIF.
 
-    lo_ajson = lo_ajson->slice( lv_root && `/S_FRONT` ).
+    " S_FRONT is read IN PLACE too, by keyed lookups on the request tree,
+    " the way the model is. It used to be sliced off and converted with
+    " to_abap( ), and the CONFIG block below it sliced once more: slice( )
+    " walks every node of the tree it is called on with a CP compare - the
+    " MODEL nodes included, which on a mass edit are nearly all of them -
+    " so a container of a few dozen fixed fields cost a walk over the whole
+    " delta on every such request. Each field is one keyed read now (a
+    " binary search on the sorted node table), whatever the model carries
+    " next to it; a missing node leaves its field initial, as to_abap( )
+    " with iv_corresponding did
+    DATA(lv_front) = lv_root && `/S_FRONT`.
+
     " valid JSON without an S_FRONT container (health-check POST, rewrapping
     " proxy) - return the empty result so main_begin takes its system-startup
-    " branch instead of dumping on the unbound slice below
-    IF lo_ajson IS NOT BOUND.
+    " branch
+    IF lo_ajson->exists( lv_front ) = abap_false.
       RETURN.
     ENDIF.
 
-    request_parse_event_args( EXPORTING io_front          = lo_ajson
-                              IMPORTING ev_check_override = DATA(lv_check_arg_object)
-                                        et_event_arg      = DATA(lt_event_arg) ).
+    result-s_front-id          = lo_ajson->get_string( lv_front && `/ID` ).
+    result-s_front-event       = lo_ajson->get_string( lv_front && `/EVENT` ).
+    result-s_front-hash        = lo_ajson->get_string( lv_front && `/HASH` ).
+    result-s_front-origin      = lo_ajson->get_string( lv_front && `/ORIGIN` ).
+    result-s_front-pathname    = lo_ajson->get_string( lv_front && `/PATHNAME` ).
+    result-s_front-search      = lo_ajson->get_string( lv_front && `/SEARCH` ).
+    result-s_front-t_event_arg = request_parse_event_args( io_json  = lo_ajson
+                                                           iv_front = lv_front ).
 
-    lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
-                       IMPORTING ev_container     = result-s_front ).
-
-    IF lv_check_arg_object = abap_true.
-      result-s_front-t_event_arg = lt_event_arg.
-    ENDIF.
-
-    " slice the small CONFIG subtree once - every slice walks the whole
-    " node table of its tree, so the per-section slices below only pay
-    " for the CONFIG nodes instead of the full S_FRONT tree each time
-    DATA(lo_config) = lo_ajson->slice( `/CONFIG` ).
-    IF lo_config IS BOUND.
-
-      result-s_front-o_comp_data = lo_config->slice( `/ComponentData` ).
-
-      slice_to_abap( EXPORTING io_json = lo_config
-                               iv_path = `/S_DEVICE`
-                     CHANGING  cs_data = result-s_front-s_device ).
-      slice_to_abap( EXPORTING io_json = lo_config
-                               iv_path = `/S_FOCUS`
-                     CHANGING  cs_data = result-s_front-s_focus ).
-      slice_to_abap( EXPORTING io_json = lo_config
-                               iv_path = `/S_SCROLL`
-                     CHANGING  cs_data = result-s_front-s_scroll ).
-
-      result-s_front-s_ui5-version         = lo_config->get_string( `/S_UI5/VERSION` ).
-      result-s_front-s_ui5-build_timestamp = lo_config->get_string( `/S_UI5/BUILDTIMESTAMP` ).
-      result-s_front-s_ui5-gav             = lo_config->get_string( `/S_UI5/GAV` ).
-      result-s_front-s_ui5-theme           = lo_config->get_string( `/S_UI5/THEME` ).
-
+    DATA(lv_config) = lv_front && `/CONFIG`.
+    IF lo_ajson->exists( lv_config ) = abap_true.
+      request_parse_config( EXPORTING io_json   = lo_ajson
+                                      iv_config = lv_config
+                            CHANGING  cs_front  = result-s_front ).
     ENDIF.
 
     " check_launchpad is NOT derived here: pathname/search only travel on
@@ -338,30 +343,80 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " draft, so the flag is computed in session_merge, from the MERGED values
   ENDMETHOD.
 
-  METHOD slice_to_abap.
-    " Slice one optional sub-container out of a parsed JSON node and write it
-    " into the ABAP target. A missing node leaves the target untouched. Shared
-    " by request_parse_body for the S_DEVICE / S_FOCUS / S_SCROLL sub-structures.
-    DATA(lo_slice) = io_json->slice( iv_path ).
-    IF lo_slice IS BOUND.
-      lo_slice->to_abap( EXPORTING iv_corresponding = abap_true
-                         IMPORTING ev_container     = cs_data ).
+  METHOD request_parse_config.
+
+    " the launchpad ComponentData is arbitrary and stays a tree of its own:
+    " the one slice left in the parse, taken only when the request carries
+    " the block - the first roundtrip of a page load, whose model is empty
+    IF io_json->exists( iv_config && `/ComponentData` ) = abap_true.
+      cs_front-o_comp_data = io_json->slice( iv_config && `/ComponentData` ).
     ENDIF.
+
+    " the typed reads answer initial for a missing node and for a node of
+    " another type, which is what the frontend never sends: the numbers are
+    " numbers (Device.resize, the caret, scrollTop) and the flags booleans
+    DATA(lv_device) = iv_config && `/S_DEVICE`.
+    cs_front-s_device-system          = io_json->get_string( lv_device && `/SYSTEM` ).
+    cs_front-s_device-orientation     = io_json->get_string( lv_device && `/ORIENTATION` ).
+    cs_front-s_device-browser-name    = io_json->get_string( lv_device && `/BROWSER/NAME` ).
+    cs_front-s_device-browser-version = io_json->get_string( lv_device && `/BROWSER/VERSION` ).
+    cs_front-s_device-os-name         = io_json->get_string( lv_device && `/OS/NAME` ).
+    cs_front-s_device-os-version      = io_json->get_string( lv_device && `/OS/VERSION` ).
+    cs_front-s_device-resize-width    = io_json->get_integer( lv_device && `/RESIZE/WIDTH` ).
+    cs_front-s_device-resize-height   = io_json->get_integer( lv_device && `/RESIZE/HEIGHT` ).
+    cs_front-s_device-support-touch   = io_json->get_boolean( lv_device && `/SUPPORT/TOUCH` ).
+    cs_front-s_device-support-pointer = io_json->get_boolean( lv_device && `/SUPPORT/POINTER` ).
+    cs_front-s_device-support-retina  = io_json->get_boolean( lv_device && `/SUPPORT/RETINA` ).
+
+    DATA(lv_focus) = iv_config && `/S_FOCUS`.
+    cs_front-s_focus-id              = io_json->get_string( lv_focus && `/ID` ).
+    cs_front-s_focus-selection_start = io_json->get_integer( lv_focus && `/SELECTION_START` ).
+    cs_front-s_focus-selection_end   = io_json->get_integer( lv_focus && `/SELECTION_END` ).
+
+    DATA(lv_scroll) = iv_config && `/S_SCROLL`.
+    cs_front-s_scroll-main    = scroll_pos_read( io_json = io_json
+                                                 iv_path = lv_scroll && `/MAIN` ).
+    cs_front-s_scroll-nest    = scroll_pos_read( io_json = io_json
+                                                 iv_path = lv_scroll && `/NEST` ).
+    cs_front-s_scroll-nest2   = scroll_pos_read( io_json = io_json
+                                                 iv_path = lv_scroll && `/NEST2` ).
+    cs_front-s_scroll-popup   = scroll_pos_read( io_json = io_json
+                                                 iv_path = lv_scroll && `/POPUP` ).
+    cs_front-s_scroll-popover = scroll_pos_read( io_json = io_json
+                                                 iv_path = lv_scroll && `/POPOVER` ).
+
+    DATA(lv_ui5) = iv_config && `/S_UI5`.
+    cs_front-s_ui5-version         = io_json->get_string( lv_ui5 && `/VERSION` ).
+    cs_front-s_ui5-build_timestamp = io_json->get_string( lv_ui5 && `/BUILDTIMESTAMP` ).
+    cs_front-s_ui5-gav             = io_json->get_string( lv_ui5 && `/GAV` ).
+    cs_front-s_ui5-theme           = io_json->get_string( lv_ui5 && `/THEME` ).
+
+  ENDMETHOD.
+
+  METHOD scroll_pos_read.
+
+    result-id = io_json->get_string( iv_path && `/ID` ).
+    result-x  = io_json->get_integer( iv_path && `/X` ).
+    result-y  = io_json->get_integer( iv_path && `/Y` ).
+
   ENDMETHOD.
 
   METHOD request_parse_event_args.
 
     " object event arguments arrive as raw JSON - the frontend sends them
-    " unserialized so the request body is only encoded once - and to_abap
-    " cannot place them in a string table, so they are serialized here and
-    " apps keep receiving every argument as a string
-    CLEAR: et_event_arg,
-           ev_check_override.
+    " unserialized so the request body is only encoded once - and reach the
+    " app serialized, so every argument is a string there. The JSON text of
+    " a sub-tree needs a tree of its own (stringify renders whole
+    " instances), so the S_FRONT container is sliced when the FIRST such
+    " argument shows up - once, and the per-argument slices then walk the
+    " S_FRONT nodes only, as before. A request without an object argument,
+    " the common one, slices nothing
+    DATA lo_front TYPE REF TO z2ui5_if_ajson.
 
     DATA(lv_arg_index) = 1.
     DO.
-      DATA(lv_arg_path) = |/T_EVENT_ARG/{ lv_arg_index }|.
-      DATA(lv_node_type) = io_front->get_node_type( lv_arg_path ).
+      DATA(lv_arg_path) = |{ iv_front }/T_EVENT_ARG/{ lv_arg_index }|.
+      DATA(lv_node_type) = io_json->get_node_type( lv_arg_path ).
       IF lv_node_type = ``.
         EXIT.
       ENDIF.
@@ -372,21 +427,18 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       ENDIF.
       CASE lv_node_type.
         WHEN z2ui5_if_ajson_types=>node_type-object OR z2ui5_if_ajson_types=>node_type-array.
-          ev_check_override = abap_true.
-          APPEND io_front->slice( lv_arg_path )->stringify( ) TO et_event_arg.
+          IF lo_front IS NOT BOUND.
+            lo_front = io_json->slice( iv_front ).
+          ENDIF.
+          APPEND lo_front->slice( |/T_EVENT_ARG/{ lv_arg_index }| )->stringify( ) TO result.
         WHEN z2ui5_if_ajson_types=>node_type-boolean.
-          " same result as the to_abap conversion of a boolean node
-          APPEND CONV string( io_front->get_boolean( lv_arg_path ) ) TO et_event_arg.
+          " the string a boolean node became on the to_abap path: X or empty
+          APPEND CONV string( io_json->get_boolean( lv_arg_path ) ) TO result.
         WHEN OTHERS.
-          APPEND io_front->get_string( lv_arg_path ) TO et_event_arg.
+          APPEND io_json->get_string( lv_arg_path ) TO result.
       ENDCASE.
       lv_arg_index = lv_arg_index + 1.
     ENDDO.
-
-    IF ev_check_override = abap_true.
-      " to_abap raises on non-scalar members of a string table
-      io_front->delete( `/T_EVENT_ARG` ).
-    ENDIF.
 
   ENDMETHOD.
 

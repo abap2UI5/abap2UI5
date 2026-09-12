@@ -396,6 +396,43 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_path  TYPE string
         is_cell  TYPE z2ui5_if_client=>ty_s_model_skip.
 
+    "! A SCALAR whole value of the request model into the bound attribute -
+    "! one keyed read on the request tree, no tree of its own
+    "! (main_json_to_attri). The conversions are the row delta's
+    "! (delta_apply_scalar), and a target the node cannot fill at all is
+    "! refused with an exception the way to_abap( ) refused it, so the
+    "! caller traces it and the old value stands
+    METHODS scalar_apply
+      IMPORTING
+        io_model     TYPE REF TO z2ui5_if_ajson
+        iv_path      TYPE string
+        iv_node_type TYPE string
+        ir_ref       TYPE REF TO data
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! One carried whole value into its attribute (main_json_to_attri): an
+    "! OBJECT or ARRAY through a tree of its own and to_abap( ), a SCALAR
+    "! through one keyed read (scalar_apply). Answers the exception a
+    "! refused value raised - the old value is put back here, the trace is
+    "! the caller's - and nothing for a value that was written or an
+    "! attribute that cannot be reached (a draft that outlived its class)
+    METHODS whole_value_apply
+      IMPORTING
+        io_model      TYPE REF TO z2ui5_if_ajson
+        iv_path       TYPE string
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+      RETURNING
+        VALUE(result) TYPE REF TO cx_root.
+
+    "! the attribute a refused whole value belongs to, into mt_skipped -
+    "! with the raw value when its node carries one
+    METHODS whole_value_trace
+      IMPORTING
+        io_model TYPE REF TO z2ui5_if_ajson
+        iv_path  TYPE string
+        iv_name  TYPE string.
+
 ENDCLASS.
 
 
@@ -403,102 +440,51 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
-    DATA lo_val_front TYPE REF TO z2ui5_if_ajson.
-
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE bind = abap_true.                        "#EC CI_SORTSEQ
-      CLEAR lo_val_front.
+
+      " _bind( json = abap_true ) is outbound only: the attribute holds
+      " configuration the client renders but never edits, and reading the
+      " node back would mean writing an object into a string field. Skip it
+      " rather than mangle it - the ABAP side stays the single author
+      IF lr_attri->check_json = abap_true.
+        CONTINUE.
+      ENDIF.
+
+      " the frontend sends only the DELTA, so most bound attributes have
+      " no node in the request model at all. Every read below is a keyed
+      " lookup on the request tree: the row delta is applied in place, a
+      " scalar is one read, and only an object or array value takes a
+      " tree of its own (whole_value_apply) - slice( ) walks and copies
+      " the whole node tree per call (a CP compare on every node), so it
+      " runs for exactly those. The same reasoning as the /value unwrap in
+      " z2ui5_cl_ui5_handler=>request_parse_body
+      DATA(lv_node) = iv_prefix && lr_attri->name_client.
+      IF model->exists( lv_node ) = abap_false.
+        CONTINUE.
+      ENDIF.
+
       TRY.
-
-          " _bind( json = abap_true ) is outbound only: the attribute holds
-          " configuration the client renders but never edits, and reading the
-          " node back would mean writing an object into a string field. Skip it
-          " rather than mangle it - the ABAP side stays the single author
-          IF lr_attri->check_json = abap_true.
-            CONTINUE.
-          ENDIF.
-
-          " the frontend sends only the DELTA, so most bound attributes have
-          " no node in the request model at all. slice( ) walks and copies
-          " the whole node tree per call (CP compare on every node); the
-          " keyed exists( ) lookup answers "nothing there" first, so the
-          " walk only runs for attributes the request actually carries -
-          " the same reasoning as the /value unwrap in
-          " z2ui5_cl_ui5_handler=>request_parse_body
-          DATA(lv_node) = iv_prefix && lr_attri->name_client.
-          IF model->exists( lv_node ) = abap_false.
-            CONTINUE.
-          ENDIF.
-
-          " a row delta is applied on the request model itself, the rows
-          " addressed by path under the attribute's node - no copy of the
-          " attribute's sub-tree and no second copy of its __delta node.
-          " Only a WHOLE value below is sliced, because to_abap( ) takes a
-          " tree of its own
           IF model->exists( |{ lv_node }/__delta| ) = abap_true.
             delta_apply_to_table( io_val_front = model
                                   iv_path      = lv_node
                                   iv_name      = lr_attri->name ).
             CONTINUE.
           ENDIF.
-
-          lo_val_front = model->slice( lv_node ).
-          IF lo_val_front IS NOT BOUND.
-            CONTINUE.
+          DATA(lx_refused) = whole_value_apply( io_model = model
+                                                iv_path  = lv_node
+                                                ir_attri = lr_attri ).
+          IF lx_refused IS BOUND.
+            whole_value_trace( io_model = model
+                               iv_path  = lv_node
+                               iv_name  = lr_attri->name ).
           ENDIF.
-
-          TRY.
-              DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
-            CATCH cx_root.
-              CONTINUE.
-          ENDTRY.
-
-          ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
-
-          " to_abap clears the target before it fills it, so a refused value
-          " would leave the attribute initial - the trace below promises the
-          " OLD value stays. Kept aside for the one path that can refuse;
-          " only attributes the request actually carries get this far
-          DATA lr_before TYPE REF TO data.
-          CREATE DATA lr_before LIKE <val>.
-          FIELD-SYMBOLS <before> TYPE any.
-          ASSIGN lr_before->* TO <before>.
-          <before> = <val>.
-
-          " a CATCH that re-raises, not the CLEANUP block the style rule
-          " prefers: the transpiled runtime the unit suite runs on ignores
-          " CLEANUP ("Transpiler todo" in the generated module), and the
-          " restore below is exactly what test_refused_scalar_reported pins.
-          " The exception does not leave the method - the CATCH below is
-          " its one consumer
-          TRY.
-              lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
-                                     IMPORTING ev_container     = <val> ).
-            CATCH cx_root INTO DATA(lx_refused).
-              <val> = <before>.
-              RAISE EXCEPTION lx_refused.
-          ENDTRY.
-
         CATCH cx_root.
-          " A bound SCALAR (or a whole structure/table shipped as one value)
-          " the client sent in a form the ABAP type refuses - `1,250.00`
-          " typed into an Input bound to a packed field. This used to raise
-          " JSON_PARSING_ERROR and fail the whole roundtrip with the fatal
-          " overlay, while the same value in a table CELL was traced in
-          " t_model_skipped and the roundtrip went on. Same treatment now:
-          " the attribute is recorded (name = the attribute, row 0, no
-          " field), its old value stays, and the app decides what to tell
-          " the user - the reason the trace exists (see delta_apply_field)
-          DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name = lr_attri->name ).
-          " the delta path has no tree of its own to quote from - the entry
-          " then names the attribute alone, as a refused structure does
-          IF lo_val_front IS BOUND.
-            TRY.
-                ls_skip-value = lo_val_front->get_string( `` ).
-              CATCH cx_root ##NO_HANDLER.
-            ENDTRY.
-          ENDIF.
-          APPEND ls_skip TO mt_skipped.
+          " a delta the request tree refused to hand over as a whole - the
+          " attribute is traced like a refused whole value, see there
+          whole_value_trace( io_model = model
+                             iv_path  = lv_node
+                             iv_name  = lr_attri->name ).
       ENDTRY.
     ENDLOOP.
 
@@ -1995,6 +1981,121 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     DATA(ls_skip) = is_cell.
     TRY.
         ls_skip-value = io_delta->get_string( iv_path ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+    APPEND ls_skip TO mt_skipped.
+
+  ENDMETHOD.
+
+  METHOD scalar_apply.
+
+    FIELD-SYMBOLS <val> TYPE any.
+    ASSIGN ir_ref->* TO <val>.
+
+    " a table, a structure or a reference takes no scalar - decided BEFORE
+    " anything is assigned, because the assignment would not raise, it
+    " would dump (the guard delta_apply_field carries). to_abap( ) refused
+    " the shape with an exception, and the refusal stays one: the caller
+    " restores the old value and traces the attribute
+    DATA(lv_type_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
+    IF delta_check_refused( iv_type_kind = lv_type_kind
+                            iv_node_type = iv_node_type ) = abap_true.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = |MODEL_VALUE_REFUSED - a { iv_node_type } value cannot be written into a target of kind { lv_type_kind }|.
+    ENDIF.
+
+    CASE iv_node_type.
+      WHEN z2ui5_if_ajson_types=>node_type-null.
+        " what to_abap( ) left behind for a null: the cleared target
+        CLEAR <val>.
+      WHEN z2ui5_if_ajson_types=>node_type-boolean.
+        <val> = io_model->get_boolean( iv_path ).
+      WHEN OTHERS.
+        delta_apply_scalar( io_delta     = io_model
+                            iv_path      = iv_path
+                            ir_comp      = ir_ref
+                            iv_type_kind = lv_type_kind ).
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD whole_value_apply.
+
+    DATA lo_val_front TYPE REF TO z2ui5_if_ajson.
+
+    " a whole value that is an OBJECT or an ARRAY takes a tree of its own
+    " - to_abap( ) converts an instance. A SCALAR does not: it is one keyed
+    " read (scalar_apply). The slice used to run for every carried
+    " attribute, so a request carrying a mass delta next to one edited
+    " input paid a walk over the whole delta for that input
+    DATA(lv_node_type) = io_model->get_node_type( iv_path ).
+    IF lv_node_type = z2ui5_if_ajson_types=>node_type-object
+        OR lv_node_type = z2ui5_if_ajson_types=>node_type-array.
+      lo_val_front = io_model->slice( iv_path ).
+      IF lo_val_front IS NOT BOUND.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    " an attribute that cannot be reached is passed over quietly: a draft
+    " outlives the class it was taken from
+    TRY.
+        DATA(lr_ref) = attri_get_val_ref( ir_attri->name ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+    ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+
+    " to_abap clears the target before it fills it, and on a system a
+    " conversion that fails clears it before it raises - so a refused value
+    " would leave the attribute initial, while the trace promises the OLD
+    " value stays. Kept aside; only attributes the request carries get
+    " this far
+    DATA lr_before TYPE REF TO data.
+    CREATE DATA lr_before LIKE <val>.
+    FIELD-SYMBOLS <before> TYPE any.
+    ASSIGN lr_before->* TO <before>.
+    <before> = <val>.
+
+    " a CATCH that answers the exception, not the CLEANUP block the style
+    " rule prefers: the transpiled runtime the unit suite runs on ignores
+    " CLEANUP ("Transpiler todo" in the generated module), and the restore
+    " below is exactly what scalar_refused_traced pins. The exception does
+    " not travel on - it is the answer, and the caller traces the attribute
+    TRY.
+        IF lo_val_front IS BOUND.
+          lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
+                                 IMPORTING ev_container     = <val> ).
+        ELSE.
+          scalar_apply( io_model     = io_model
+                        iv_path      = iv_path
+                        iv_node_type = lv_node_type
+                        ir_ref       = lr_ref ).
+        ENDIF.
+      CATCH cx_root INTO result.
+        <val> = <before>.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD whole_value_trace.
+
+    " A bound SCALAR (or a whole structure/table shipped as one value) the
+    " client sent in a form the ABAP type refuses - `1,250.00` typed into
+    " an Input bound to a packed field. This used to raise
+    " JSON_PARSING_ERROR and fail the whole roundtrip with the fatal
+    " overlay, while the same value in a table CELL was traced in
+    " t_model_skipped and the roundtrip went on. Same treatment: the
+    " attribute is recorded (name = the attribute, row 0, no field), its
+    " old value stays (whole_value_apply put it back), and the app decides
+    " what to tell the user - the reason the trace exists (see
+    " delta_apply_field). The refused value is quoted when the node carries
+    " one - a scalar does; an object, an array and the table node of a
+    " delta path do not, so the entry names the attribute alone there
+    DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name = iv_name ).
+    TRY.
+        ls_skip-value = io_model->get_string( iv_path ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
     APPEND ls_skip TO mt_skipped.

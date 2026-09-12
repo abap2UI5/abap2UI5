@@ -399,6 +399,7 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_limit FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_config_leaves FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_sanitized FOR TESTING RAISING cx_static_check.
@@ -707,6 +708,94 @@ CLASS ltcl_01_request IMPLEMENTATION.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
     cl_abap_unit_assert=>assert_equals( exp = 100
                                         act = lines( ls_request-s_front-t_event_arg ) ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_config_leaves.
+    " every leaf of the CONFIG block is read by its own keyed lookup now
+    " (no slice, no to_abap) - so every nested field is pinned here, next to
+    " a model delta of a few rows that must not get in the way: the numbers
+    " arrive as numbers, the flags as booleans, a slot never scrolled stays
+    " initial, and the launchpad data keeps a tree of its own
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+    lv_payload = `{"value":{"MODEL":{"MT_TAB":{"__delta":{"0":{"COL1":"a"},"1":{"COL1":"b"}}},"MV_STRING":"x"},` &&
+                 `"S_FRONT":{"ID":"ABC123","EVENT":"SAVE","HASH":"#/app/X","ORIGIN":"O","PATHNAME":"/p","SEARCH":"?a=1",` &&
+                 `"CONFIG":{"ComponentData":{"startupParameters":{"p":["v"]}},` &&
+                 `"S_DEVICE":{"SYSTEM":"phone","ORIENTATION":"portrait","BROWSER":{"NAME":"cr","VERSION":"120"},` &&
+                 `"OS":{"NAME":"mac","VERSION":"14"},"RESIZE":{"WIDTH":900,"HEIGHT":600},` &&
+                 `"SUPPORT":{"TOUCH":true,"POINTER":false,"RETINA":true}},` &&
+                 `"S_FOCUS":{"ID":"inp","SELECTION_START":2,"SELECTION_END":5},` &&
+                 `"S_SCROLL":{"MAIN":{"ID":"page","X":0,"Y":150},"POPUP":{"ID":"dlg","X":3,"Y":40}},` &&
+                 `"S_UI5":{"VERSION":"1.120.0","BUILDTIMESTAMP":"20240101","GAV":"g","THEME":"sap_horizon"}}}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `ABC123`
+                                        act = ls_request-s_front-id ).
+    cl_abap_unit_assert=>assert_equals( exp = `SAVE`
+                                        act = ls_request-s_front-event ).
+    cl_abap_unit_assert=>assert_equals( exp = `#/app/X`
+                                        act = ls_request-s_front-hash ).
+    cl_abap_unit_assert=>assert_equals( exp = `?a=1`
+                                        act = ls_request-s_front-search ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-t_event_arg ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `phone`
+                                        act = ls_request-s_front-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `portrait`
+                                        act = ls_request-s_front-s_device-orientation ).
+    cl_abap_unit_assert=>assert_equals( exp = `cr`
+                                        act = ls_request-s_front-s_device-browser-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `120`
+                                        act = ls_request-s_front-s_device-browser-version ).
+    cl_abap_unit_assert=>assert_equals( exp = `mac`
+                                        act = ls_request-s_front-s_device-os-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `14`
+                                        act = ls_request-s_front-s_device-os-version ).
+    cl_abap_unit_assert=>assert_equals( exp = 900
+                                        act = ls_request-s_front-s_device-resize-width ).
+    cl_abap_unit_assert=>assert_equals( exp = 600
+                                        act = ls_request-s_front-s_device-resize-height ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_request-s_front-s_device-support-touch ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_request-s_front-s_device-support-pointer ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_request-s_front-s_device-support-retina ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `inp`
+                                        act = ls_request-s_front-s_focus-id ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = ls_request-s_front-s_focus-selection_start ).
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = ls_request-s_front-s_focus-selection_end ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `page`
+                                        act = ls_request-s_front-s_scroll-main-id ).
+    cl_abap_unit_assert=>assert_equals( exp = 150
+                                        act = ls_request-s_front-s_scroll-main-y ).
+    cl_abap_unit_assert=>assert_equals( exp = `dlg`
+                                        act = ls_request-s_front-s_scroll-popup-id ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = ls_request-s_front-s_scroll-popup-x ).
+    cl_abap_unit_assert=>assert_equals( exp = 40
+                                        act = ls_request-s_front-s_scroll-popup-y ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_scroll-nest ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_scroll-popover ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `g`
+                                        act = ls_request-s_front-s_ui5-gav ).
+
+    cl_abap_unit_assert=>assert_bound( ls_request-s_front-o_comp_data ).
+    cl_abap_unit_assert=>assert_equals( exp = `v`
+                                        act = ls_request-s_front-o_comp_data->get_string( `/startupParameters/p/1` ) ).
+
+    " the model next to it is untouched and still read in place
+    cl_abap_unit_assert=>assert_equals( exp = `x`
+                                        act = ls_request-o_model->get_string( ls_request-model_path && `/MV_STRING` ) ).
+
   ENDMETHOD.
 
   METHOD test_request_app_start.
