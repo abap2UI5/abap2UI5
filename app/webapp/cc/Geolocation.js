@@ -127,11 +127,6 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       }
     },
 
-    renderer: {
-      apiVersion: 2,
-      render(oRm, oControl) {
-        Lib.renderInvisibleSpan(oRm, oControl);
-      },
-    },
+    renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },
   });
 });

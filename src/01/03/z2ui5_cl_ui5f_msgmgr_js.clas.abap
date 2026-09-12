@@ -74,7 +74,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `` && |\n| &&
              `      setup() {` && |\n| &&
-             `        const messaging = Lib.getMessaging?.();` && |\n| &&
+             `        const messaging = Lib.getMessaging();` && |\n| &&
              `        if (!Lib.claimOnce(this, messaging)) return;` && |\n| &&
              `        this._messaging = messaging;` && |\n| &&
              `        const view = ViewSlots.getView(` && |\n| &&

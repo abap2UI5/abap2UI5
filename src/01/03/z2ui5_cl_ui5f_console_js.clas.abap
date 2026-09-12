@@ -138,7 +138,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    return typeof value.stack === "string" && typeof value.message === "string";` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function renderArg(value, depth) {` && |\n| &&
+             `  function renderArg(value) {` && |\n| &&
              `    if (value === undefined) return "undefined";` && |\n| &&
              `    if (value === null) return "null";` && |\n| &&
              `    const type = typeof value;` && |\n| &&
@@ -151,7 +151,6 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    if (isErrorLike(value)) {` && |\n| &&
              `      return value.stack || ``${value.name || "Error"}: ${value.message}``;` && |\n| &&
              `    }` && |\n| &&
-             `    if ((depth || 0) >= MAX_DEPTH) return "[...]";` && |\n| &&
              `    try {` && |\n| &&
              `      const seen = new WeakSet();` && |\n| &&
              `      const nodeDepth = new WeakMap();` && |\n| &&
@@ -185,9 +184,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function renderArgs(args) {` && |\n| &&
-             `    const parts = [];` && |\n| &&
-             `    for (const arg of args) parts.push(renderArg(arg, 0));` && |\n| &&
-             `    return parts.join(" ");` && |\n| &&
+             `    return args.map(renderArg).join(" ");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function captureConsole(level, args) {` && |\n| &&
@@ -247,8 +244,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function uninstallConsole() {` && |\n| &&
-             `    for (const name of Object.keys(originals)) {` && |\n| &&
-             `      window.console[name] = originals[name];` && |\n| &&
+             `    for (const [name, original] of Object.entries(originals)) {` && |\n| &&
+             `      window.console[name] = original;` && |\n| &&
              `      delete originals[name];` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
@@ -295,7 +292,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `      push(` && |\n| &&
              `        "error",` && |\n| &&
              `        "rejection",` && |\n| &&
-             `        reason?.stack || renderArg(reason, 0) || "unhandled rejection",` && |\n| &&
+             `        reason?.stack || renderArg(reason) || "unhandled rejection",` && |\n| &&
              `      );` && |\n| &&
              `    };` && |\n| &&
              `    onPageHide = persist;` && |\n| &&

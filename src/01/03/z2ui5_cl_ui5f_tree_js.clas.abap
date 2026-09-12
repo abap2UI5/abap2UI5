@@ -102,12 +102,7 @@ CLASS z2ui5_cl_ui5f_tree_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      renderer: {` && |\n| &&
-             `        apiVersion: 2,` && |\n| &&
-             `        render(oRm, oControl) {` && |\n| &&
-             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
+             `      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
