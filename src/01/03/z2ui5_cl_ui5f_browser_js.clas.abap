@@ -39,30 +39,6 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `` && |\n| &&
-             `    const URL_HELPER_ACTIONS = Object.assign(Object.create(null), {` && |\n| &&
-             `      REDIRECT: (params) => {` && |\n| &&
-             `        if (!Lib.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
-             `          MessageBox.error(` && |\n| &&
-             `            "Invalid redirect URL. Only http/https protocols are allowed.",` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        _URLHelper.redirect(params.URL, params.NEW_WINDOW);` && |\n| &&
-             `      },` && |\n| &&
-             `      TRIGGER_EMAIL: (params) =>` && |\n| &&
-             `        _URLHelper.triggerEmail(` && |\n| &&
-             `          params.EMAIL,` && |\n| &&
-             `          params.SUBJECT,` && |\n| &&
-             `          params.BODY,` && |\n| &&
-             `          params.CC,` && |\n| &&
-             `          params.BCC,` && |\n| &&
-             `          params.NEW_WINDOW,` && |\n| &&
-             `        ),` && |\n| &&
-             `      TRIGGER_SMS: (params) =>` && |\n| &&
-             `        _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),` && |\n| &&
-             `      TRIGGER_TEL: (params) => _URLHelper.triggerTel(params.TEL),` && |\n| &&
-             `    });` && |\n| &&
-             `` && |\n| &&
              `    function evClipboardCopy(oController, args) {` && |\n| &&
              `      Lib.copyToClipboard(args[1]);` && |\n| &&
              `    }` && |\n| &&
@@ -217,9 +193,34 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        Lib.logError("URLHELPER: blocked CR/LF in parameters");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `` && |\n| &&
+             `      const actions = {` && |\n| &&
+             `        REDIRECT: () => {` && |\n| &&
+             `          if (!Lib.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
+             `            MessageBox.error(` && |\n| &&
+             `              "Invalid redirect URL. Only http/https protocols are allowed.",` && |\n| &&
+             `            );` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          _URLHelper.redirect(params.URL, params.NEW_WINDOW);` && |\n| &&
+             `        },` && |\n| &&
+             `        TRIGGER_EMAIL: () =>` && |\n| &&
+             `          _URLHelper.triggerEmail(` && |\n| &&
+             `            params.EMAIL,` && |\n| &&
+             `            params.SUBJECT,` && |\n| &&
+             `            params.BODY,` && |\n| &&
+             `            params.CC,` && |\n| &&
+             `            params.BCC,` && |\n| &&
+             `            params.NEW_WINDOW,` && |\n| &&
+             `          ),` && |\n| &&
+             `        TRIGGER_SMS: () =>` && |\n| &&
+             `          _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),` && |\n| &&
+             `        TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),` && |\n| &&
+             `      };` && |\n| &&
+             `      Object.setPrototypeOf(actions, null);` && |\n| &&
              `      try {` && |\n| &&
-             `        const fn = URL_HELPER_ACTIONS[args[1]];` && |\n| &&
-             `        if (fn) fn(params);` && |\n| &&
+             `        const fn = actions[args[1]];` && |\n| &&
+             `        if (fn) fn();` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&
