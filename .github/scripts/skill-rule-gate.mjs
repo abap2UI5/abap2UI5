@@ -62,6 +62,8 @@ const NOT_A_RULE = new Map([
   ['sy-tabix', 'an ABAP system field'],
   ['sy-sysid', 'an ABAP system field'],
   ['unit-tests', 'the abapGit round-trip rule name in this skill\'s own table'],
+  ['pattern-lint', 'abap2UI5/samples-controls\' own gate script, not a linter rule'],
+  ['literal-no-separator', 'a rule of that pattern-lint — a kernel syntax rule filed upstream (backlog/items/abaplint-literal-no-separator.md), gated there until abaplint reports it'],
 ]);
 
 /* Rules that exist in a released linter this repository has NOT pinned yet.
