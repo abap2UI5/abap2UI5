@@ -22,7 +22,6 @@ _nothing exists upstream yet — this is the stock_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`abaplint-subrc-after-assign`](items/abaplint-subrc-after-assign.md) | on 7.40 SP7 a successful `ASSIGN` does not reset `sy-subrc`, so the test reads a value left by an earlier statement — `IS ASSIGNED` is the only correct check<br><sub>written up in [5. Runtime — green here, wrong there](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-08-17: fires on <b>61</b> site(s) in abap2UI5, samples, samples-stack, 171 correct look-alike(s)</sub> | high | 2026-08-17 | abaplint/abaplint |
-| [`abaplint-abapdoc-block-placement`](items/abaplint-abapdoc-block-placement.md) | a `"!` block before a chain keyword, or inside a parameter list, silently documents no declaration at all — SLIN accepts it and the text is simply never shown<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-08-17: fires on <b>2</b> site(s) in samples-stack, 597 correct look-alike(s)</sub> | medium | 2026-08-17 | abaplint/abaplint |
 | [`abaplint-preferred-parameter-ignored`](items/abaplint-preferred-parameter-ignored.md) | the addition does nothing unless every IMPORTING parameter is optional — ABAP warns and abaplint says nothing, while its syntax check goes the other way and accepts a call that omits the mandatory parameter<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub> | medium | 2026-09-05 | abaplint/abaplint |
 
 ---
@@ -33,7 +32,7 @@ _an issue or PR exists; the item goes when it merges_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`abaplint-downport-table-expression-copy`](items/abaplint-downport-table-expression-copy.md) | '`REF #( tab[ n ]-comp )` and `_bind( val = tab[ n ]-comp )` downport to `READ TABLE tab INDEX n INTO <wa>`, so the address taken is the work area''s and not the table row''s — while the whole-row form of the same expression is already lowered with ASSIGNING and keeps it'<br><sub>https://github.com/abaplint/abaplint/pull/4276</sub> | medium | 2026-08-29 | abaplint/abaplint |
+| [`abaplint-abapdoc-block-placement`](items/abaplint-abapdoc-block-placement.md) | a `"!` block before a chain keyword, or inside a parameter list, silently documents no declaration at all — SLIN accepts it and the text is simply never shown<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-08-17: fires on <b>2</b> site(s) in samples-stack, 597 correct look-alike(s)</sub><br><sub>https://github.com/abaplint/abaplint/issues/1951#issuecomment-5646058165</sub> | medium | 2026-08-17 | abaplint/abaplint |
 
 ---
 

@@ -3,9 +3,10 @@ target: abaplint
 title: 'Report an ABAP Doc block that documents nothing'
 summary: a `"!` block before a chain keyword, or inside a parameter list, silently documents no declaration at all — SLIN accepts it and the text is simply never shown
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/1951#issuecomment-5646058165
 first_seen: 2026-08-17
-checked_upstream: 2026-08-30
+checked_upstream: 2026-09-13
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5 `z2ui5_if_client=>cs_nav_mode` — the block sat before `CONSTANTS:` and documented nothing
@@ -16,16 +17,22 @@ evidence:
 
 # Report an ABAP Doc block that documents nothing
 
-> **Upstream check 2026-08-30: a request for this rule already exists.**
+> **Filed 2026-09-13 as a comment on the request that already existed.**
 > [abaplint/abaplint#1951](https://github.com/abaplint/abaplint/issues/1951) —
 > *"abapdoc position"*, opened by `larshp` on 2021-05-11, labelled `new
 > feature` / `new rule`, still open. Its body is a one-line pointer at an
-> `SAP/abap-file-formats` discussion and states no cases, so this item is worth
-> keeping: it carries the three positions the extended check actually flags and
-> the probe count. **Do not open a second issue** — contribute the rule as a
-> pull request against #1951, which `backlog/README.md` recommends for abaplint
-> anyway ("we can write the rule and its tests ourselves, and a PR lands far
-> more reliably than a request").
+> `SAP/abap-file-formats` discussion and states no cases, which is why this
+> item was kept rather than dropped as a duplicate: it carries the three
+> positions the extended check actually flags, the three recurrences, and the
+> probe count, and all of that now sits on the issue as
+> [a comment](https://github.com/abaplint/abaplint/issues/1951#issuecomment-5646058165)
+> asking whether a pull request is welcome.
+>
+> **Do not open a second issue.** The next step is the rule itself, as a pull
+> request against #1951 — `backlog/README.md` recommends that shape for
+> abaplint anyway ("we can write the rule and its tests ourselves, and a PR
+> lands far more reliably than a request"). The item goes when the rule
+> merges.
 
 ## What happens
 

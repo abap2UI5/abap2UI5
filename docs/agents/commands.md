@@ -58,9 +58,10 @@ smoke test (`test.yaml`, `test_node`), and the namespace-rename test
 abaplint's table-expression outline to keep the ROW reference
 (`READ TABLE ... ASSIGNING`) instead of copying it into a work area. Without it
 `_bind( tab / tab_index )` - the cell binding - is refused in every downported
-build. It is a temporary shim for a defect filed in `backlog/` against
-abaplint; the script says what to delete when the fix ships, and it FAILS the
-build rather than passing silently once its anchors stop matching.
+build. The fix is merged upstream (abaplint/abaplint#4276) but not yet in a
+published `@abaplint/cli`; the shim goes with the pin bump to the first release
+that carries it. The script says what to delete, and it FAILS the build rather
+than passing silently once its anchors stop matching.
 `test_bind_tab_cell` (in `z2ui5_cl_ui5_client`'s test class) is the canary that
 the shim still works.
 
