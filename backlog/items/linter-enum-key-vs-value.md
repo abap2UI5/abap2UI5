@@ -1,17 +1,19 @@
 ---
 target: abap2ui5-linter
 title: '`invalid-property-value` rejects the enum KEY, which is the spelling an XML view needs'
-summary: for the handful of UI5 enums whose key differs from its value (`CalendarIntervalType.OneMonth` = "One Month"), the rule accepts only the VALUE - but an XML view is parsed with `parseValue( )`, which maps key -> value, so the value form is the one that breaks and the key form is the one the rule reports
+summary: for the eight UI5 enums whose key differs from its value (`CalendarIntervalType.OneMonth` = "One Month", every `IllustratedMessageType`, `FileUploaderHttpRequestMethod.Post` = "POST"), the rule accepts only the VALUE - but an XML view is parsed with `parseValue( )`, which maps key -> value, so the value form is the one that breaks and the key form is the one the rule reports
 priority: medium
-state: open
+state: filed
 first_seen: 2026-09-13
+filed: https://github.com/abap2UI5/linter/pull/104
 upstream: abap2UI5/linter
 evidence:
   - 'found 2026-09-13 rebuilding the Team Calendar demo app (abap2UI5/samples-controls `z2ui5_cl_smpc_demo_003`): `intervalType="OneMonth"`, copied verbatim from the demo kit original, is reported as `sap.m.PlanningCalendarView intervalType="OneMonth" is not a valid value (allowed: Hour, Day, Month, Week, One Month)`'
   - 'the original writes the key: src/sap.m/test/sap/m/demokit/teamCalendar/webapp/view/PlanningCalendar.fragment.xml line 58, `intervalType="OneMonth"` - it has shipped in the demo kit for years'
-  - '`sap/ui/unified/library.js` declares `CalendarIntervalType = { Hour: "Hour", Day: "Day", Month: "Month", Week: "Week", OneMonth: "One Month" }` - the only entry in the enum whose key and value differ'
+  - '`sap/ui/unified/library.js` declares `CalendarIntervalType = { Hour: "Hour", Day: "Day", Month: "Month", Week: "Week", OneMonth: "One Month" }` - the only entry in THAT enum whose key and value differ. A scan of the installed `@openui5/*` sources found eight enum types in the same position, five of which are the declared type of a property: `PlanningCalendarView.intervalType`, `CalendarRow.intervalType`, `calendar.WeeksRow.intervalType`, `UploadSet.noDataIllustrationType` (`NoData` = "sapIllus-NoData") and `FileUploader.httpRequestMethod` (`Post` = "POST") - so the rule also ACCEPTED `httpRequestMethod="POST"`, which is the spelling that silently falls back to the default'
   - '`sap/ui/base/DataType.js` `createEnumType( )`: `parseValue = function(sValue) { return oEnum[sValue]; }` (key -> value) and `isValid = function(v) { return mValues.hasOwnProperty(v); }` where `mValues` is keyed by VALUE. An XML view attribute goes through `parseValue( )` first, so `"OneMonth"` becomes `"One Month"` and validates, while `"One Month"` becomes `undefined` and fails'
   - waived in the port with `" abap2ui5lint-disable-next-line invalid-property-value` and a comment carrying this reasoning, rather than writing the spelling that would break the app
+  - 'fixed 2026-09-13 in abap2UI5/linter#104: the snapshot gained an additive `enumKeys` section and the property gate judges keys. Confirmed first-hand by the render gate, which boots UI5 with future mode on: the value form answers `Value ''One Month'' is not valid for type ''sap.ui.unified.CalendarIntervalType''` and the key form renders. 0 findings on the samples-controls (642) and samples (159) corpora before and after'
 ---
 
 # `invalid-property-value` rejects the enum KEY, which is the spelling an XML view needs
