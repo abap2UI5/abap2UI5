@@ -53,17 +53,17 @@ every run).
 smoke test (`test.yaml`, `test_node`), and the namespace-rename test
 (`abaplint.yaml`).
 
-**One dependency is patched in place.** `npm run downport` runs
-`node/setup/patch-abaplint-downport.mjs` first, which rewrites the installed
+**One dependency is no longer patched in place.** `npm run downport` used to run
+`node/setup/patch-abaplint-downport.mjs` first, which rewrote the installed
 abaplint's table-expression outline to keep the ROW reference
-(`READ TABLE ... ASSIGNING`) instead of copying it into a work area. Without it
-`_bind( tab / tab_index )` - the cell binding - is refused in every downported
-build. The fix is merged upstream (abaplint/abaplint#4276) but not yet in a
-published `@abaplint/cli`; the shim goes with the pin bump to the first release
-that carries it. The script says what to delete, and it FAILS the build rather
-than passing silently once its anchors stop matching.
-`test_bind_tab_cell` (in `z2ui5_cl_ui5_client`'s test class) is the canary that
-the shim still works.
+(`READ TABLE ... ASSIGNING`) instead of copying it into a work area - without
+it `_bind( tab / tab_index )`, the cell binding, is refused in every downported
+build. abaplint ships that lowering itself from 2.120.51
+(abaplint/abaplint#4276), so the pin bump deleted the script and its call here
+and in `samples-controls/scripts/e2e-build.mjs`. `test_bind_tab_cell` (in
+`z2ui5_cl_ui5_client`'s test class) still proves the cell form through the
+transpiled suite - now against stock abaplint, so a failure there is an
+upstream regression rather than a missing patch.
 
 **Four more, the same way.** `npm run auto_transpile` runs
 `node/setup/patch-open-abap-core.mjs` first. It patches the

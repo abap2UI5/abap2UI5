@@ -5,9 +5,7 @@
 " the draft), the systematic coverage is in the structured suites of
 " z2ui5_cl_ui5_srv_bind (ltcl_01_path, ltcl_02_cell, ltcl_03_options) and
 " z2ui5_cl_ui5_srv_model (ltcl_01_dissolve to ltcl_05_draft); this file
-" keeps the call through the client as the app writes it - test_bind_tab_cell
-" doubles as the canary for the downport patch that keeps the cell form
-" working (node/setup/patch-abaplint-downport.mjs).
+" keeps the call through the client as the app writes it.
 " ---------------------------------------------------------------------------
 CLASS ltcl_test_app DEFINITION FINAL.
   PUBLIC SECTION.
@@ -1320,15 +1318,15 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " is the row COMPONENT, the table and the row number travel beside it.
     " ABAP counts rows from 1, the client path from 0.
     "
-    " This is the one place the app-facing form is proved, and it is also the
-    " CANARY for node/setup/patch-abaplint-downport.mjs. Stock abaplint lowers
-    " `tab[ n ]-comp` to `READ TABLE ... INTO <wa>` - a copy, so the reference
-    " this binding matches on never arrives and the cell is refused. The patch
-    " makes the outline ASSIGNING, which is what the WRITE path of the same
-    " rule already emits; this test is green in the transpiled suite only
-    " because the patch is applied. If it starts failing, look at the patch
-    " before looking at the binding. The cell logic itself is covered
-    " everywhere by ltcl_02_cell in z2ui5_cl_ui5_srv_bind
+    " This is the one place the app-facing form is proved, and it is the test
+    " that decides whether a downport keeps the row REFERENCE this binding
+    " matches on. abaplint lowered `tab[ n ]-comp` to
+    " `READ TABLE ... INTO <wa>` - a copy - until 2.120.51
+    " (abaplint/abaplint#4276), and this repository patched that lowering back
+    " to ASSIGNING until the pin moved. Nothing is patched now, so a failure
+    " here on the transpiled suite means the downport regressed upstream, not
+    " that the binding changed. The cell logic itself is covered everywhere by
+    " ltcl_02_cell in z2ui5_cl_ui5_srv_bind
     DATA li_client TYPE REF TO z2ui5_if_client.
 
     li_client ?= mo_client.

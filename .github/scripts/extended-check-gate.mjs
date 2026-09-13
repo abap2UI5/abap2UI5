@@ -17,14 +17,17 @@
 //                statement stays and carries ##REGEX_POSIX (the convention the
 //                vendored AJSON code follows).
 //   abapdoc      "ABAP Doc comment is in the wrong position" - a "! block
-//                before a chain keyword, inside a parameter list, or before a
-//                section end attaches to no declaration and is never shown.
-//                Third recurrence: z2ui5_if_client=>cs_nav_mode here, then
-//                samples-stack's cs_status (7459f39), then five findings on
-//                samples-stack's overview app from a user's system
-//                (2026-08-17). abaplint SHIPPED the rule after that case was
-//                filed: wrong_abapdoc_position, 2.120.51 (#4286). This check
-//                goes when the pin here moves and the rule is switched on.
+//                that attaches to no declaration is never shown. abaplint now
+//                decides this: wrong_abapdoc_position (2.120.51,
+//                abaplint/abaplint#4286, written from the case this
+//                repository put on abaplint/abaplint#1951), enabled in
+//                abaplint.jsonc, reports the block before a chain keyword,
+//                inside a statement, and before ENDCLASS / ENDINTERFACE / a
+//                SECTION - the three shapes that recurred here.
+//                ONE shape is left to this gate, measured against 2.120.51 on
+//                2026-09-13: a block directly before `END OF`, inside the
+//                chain it belongs to, which the rule does not report. That is
+//                all the check below still does.
 //   abapdoc_html "HTML tag <wa> is not supported in ABAP Doc" - ABAP Doc is
 //                parsed as HTML, so a placeholder or a field symbol written
 //                as <name> is an unsupported, unclosed tag. AGENTS.md said
@@ -80,16 +83,23 @@ const files = walk(ROOT, "src")
   .filter(f => !EXCLUDED.some(re => re.test(f)))
   .sort();
 
-// An ABAP Doc block attaches to the ONE declaration directly below it. The
-// statement splitter above strips comment lines, so this check reads the raw
-// lines: a block before a chain keyword, inside a parameter list (the code
-// line above it ends in neither `.` nor `:` nor `,`), or before a section end
-// documents nothing. Only the class-pool main and interface sources carry
-// declarations ABAP Doc can reach.
-const CHAIN_KEYWORD =
-  /^\s*(constants|data|types|methods|class-methods|class-data|events)\s*:\s*$/i;
-const NOTHING_TO_DOCUMENT =
-  /^\s*(end\s+of\b|endclass\b|endinterface\b|(public|protected|private)\s+section\b)/i;
+/* An ABAP Doc block attaches to the ONE declaration directly below it, and
+ * abaplint's `wrong_abapdoc_position` now reports every placement where there
+ * is no such declaration - except one: a block directly before `END OF`,
+ * inside the chain that opened with `BEGIN OF`. Measured against 2.120.51 on
+ * 2026-09-13 over the six shapes this gate used to decide; that is the only
+ * one it answered and the rule did not, so it is the only one left here.
+ *
+ * No site of that shape has ever been found - 0 across abap2UI5, samples,
+ * samples-controls, samples-stack and linter on the same day. It is kept
+ * rather than deleted because the check already existed and SLIN reports the
+ * shape; it is NOT in backlog/, because a rule request without a case that
+ * happened is exactly what backlog/README.md refuses to stock.
+ *
+ * The statement splitter above strips comment lines, so this reads the raw
+ * lines. Only the class-pool main and interface sources carry declarations
+ * ABAP Doc can reach. */
+const BEFORE_END_OF = /^\s*end\s+of\b/i;
 
 function abapdocFindings(file, source) {
   const out = [];
@@ -98,51 +108,27 @@ function abapdocFindings(file, source) {
     if (!/^\s*"!/.test(line)) return;
     if (/^\s*"!/.test(src[i - 1] || "")) return; // only the block's first line
 
-    /* Walk up to the previous line of CODE. What is skipped is everything
-     * that cannot end a statement: a blank line and a full-line comment -
-     * `"` and `*` alike. The `*` half was missing, so a `*` note above a
-     * correctly placed block became the "previous line", ended in no
-     * terminator, and the block was reported as sitting in a parameter list.
-     * The `"` half now includes `"!`, because an ABAP Doc block is not code
-     * either. */
-    let p = i - 1;
-    while (p >= 0 && (!src[p].trim() || /^\s*[*"]/.test(src[p]))) p -= 1;
-    /* ...and the code line's own TRAILING comment is not part of it. Testing
-     * the raw line for its terminator made `DATA foo TYPE i. " why` end in a
-     * `y`, which is the same false finding from the other side. */
-    const prev = p >= 0 ? stripNoise(src[p]).trim() : "";
-
     let n = i + 1;
     while (n < src.length && (/^\s*"!/.test(src[n]) || !src[n].trim())) n += 1;
     const next = n < src.length ? src[n].trim() : "";
 
-    const at = `${file}:${i + 1}`;
-    if (prev && !/[.:,]$/.test(prev)) {
+    if (BEFORE_END_OF.test(next)) {
       out.push({
-        at,
+        at: `${file}:${i + 1}`,
         rule: "abapdoc",
-        message: '"! inside a parameter list documents nothing - use "! @parameter <name> | <text> in the method\'s own block',
+        message: `"! before \`${next}\` documents nothing - the last component of the structure is above it, not below`,
       });
-    } else if (CHAIN_KEYWORD.test(next)) {
-      out.push({
-        at,
-        rule: "abapdoc",
-        message: `"! before the chain keyword \`${next}\` documents nothing - move it inside the chain, directly before the member`,
-      });
-    } else if (NOTHING_TO_DOCUMENT.test(next)) {
-      out.push({ at, rule: "abapdoc", message: `"! before \`${next}\` documents nothing` });
     }
   });
   return out;
 }
 
-/* Self-test: the placement rule, on the shapes that decide it, before a
- * single source file is read. The gate is green over src/ either way - the
- * findings it was written for were repaired in the change that added it - so
- * a rule that started reporting correctly placed blocks, or stopped reporting
- * misplaced ones, would be invisible here. Both halves below actually
- * happened: a `*` note and a trailing comment each made a correctly placed
- * block look like one sitting in a parameter list.
+/* Self-test: the one shape this gate still decides, plus the shapes it handed
+ * to abaplint - those have to come back EMPTY here, so that a revival of the
+ * old logic shows up as a failure rather than as silent duplication. The gate
+ * is green over src/ either way (the findings it was written for were
+ * repaired in the change that added it), so without this a rule that stopped
+ * reporting would be invisible.
  *
  * `expect` is the number of findings on the snippet. */
 const ABAPDOC_SELF_TEST = [
@@ -152,29 +138,24 @@ const ABAPDOC_SELF_TEST = [
     expect: 0,
   },
   {
-    name: "the code line above ends in a TRAILING COMMENT",
-    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    DATA mv_a TYPE i. " the counter\n    "! what it does\n    METHODS run.\nENDCLASS.',
-    expect: 0,
+    name: "directly before END OF - the shape abaplint does not report",
+    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    CONSTANTS:\n      BEGIN OF cs_mode,\n        a TYPE string VALUE `A`,\n      "! orphaned\n      END OF cs_mode.\nENDCLASS.',
+    expect: 1,
   },
   {
-    name: "a `*` comment line sits between the code and the block",
-    source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    DATA mv_a TYPE i.\n* a note about what follows\n    "! what it does\n    METHODS run.\nENDCLASS.',
-    expect: 0,
-  },
-  {
-    name: "inside a parameter list - the finding the rule exists for",
+    name: "inside a parameter list - abaplint's now, not this gate's",
     source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    METHODS run\n      IMPORTING\n        "! the value\n        val TYPE i.\nENDCLASS.',
-    expect: 1,
+    expect: 0,
   },
   {
-    name: "before the chain keyword instead of inside the chain",
+    name: "before the chain keyword - abaplint's now, not this gate's",
     source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    "! the modes\n    CONSTANTS:\n      BEGIN OF cs_mode,\n        a TYPE string VALUE `A`,\n      END OF cs_mode.\nENDCLASS.',
-    expect: 1,
+    expect: 0,
   },
   {
-    name: "before a section end, where there is nothing to document",
+    name: "before a section end - abaplint's now, not this gate's",
     source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    METHODS run.\n    "! orphaned\n  PROTECTED SECTION.\n  PRIVATE SECTION.\nENDCLASS.',
-    expect: 1,
+    expect: 0,
   },
 ];
 
@@ -198,8 +179,10 @@ function selfTest(cases, run, note) {
 selfTest(
   ABAPDOC_SELF_TEST,
   source => abapdocFindings("selftest.clas.abap", source),
-  "The ABAP Doc placement rule changed. A green run over src/ says nothing\n"
-    + "while this case fails - src/ carries no misplaced block to fire on.",
+  "The ABAP Doc placement check changed. A green run over src/ says nothing\n"
+    + "while this case fails - src/ carries no misplaced block to fire on.\n"
+    + "If a shape marked \"abaplint's now\" started firing again, the check has\n"
+    + "grown back into what wrong_abapdoc_position already reports.",
 );
 
 /* PREFERRED PARAMETER names the input parameter that a short-form call

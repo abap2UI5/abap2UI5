@@ -1,7 +1,8 @@
 // anchored-patch - the read / check / anchor / replace / write routine the
-// pre-build patch scripts in node/setup share (two today; the third,
-// patch-abaplint-runtime-assign.mjs, went when both of its fixes landed
-// upstream).
+// pre-build patch scripts in node/setup share (one today, patch-open-abap-core;
+// patch-abaplint-runtime-assign.mjs and patch-abaplint-downport.mjs both went
+// when their fixes landed upstream, which is what every one of these scripts
+// is for).
 //
 // All of them do the same thing to a file this repository does not own: find a
 // verbatim ANCHOR in an installed dependency, put a patched version of it in

@@ -366,6 +366,16 @@
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
+    // An ABAP Doc block documents the ONE declaration below it, so a block
+    // before a chain keyword, inside a statement or before ENDCLASS /
+    // ENDINTERFACE / a SECTION documents nothing - present in the source,
+    // never shown. It recurred three times here and in samples-stack and was
+    // only ever caught by SLIN in a user's system; abaplint shipped the rule
+    // in 2.120.51 (abaplint/abaplint#4286) after this repository put the case
+    // on abaplint/abaplint#1951. It replaces the `abapdoc` half of
+    // `npm run check:atc`, which now decides only the one shape the rule does
+    // not: a block directly before `END OF`.
+    "wrong_abapdoc_position": true,
     "xml_bom": true,
     "xml_consistency": true,
     "forbidden_void_type": {
