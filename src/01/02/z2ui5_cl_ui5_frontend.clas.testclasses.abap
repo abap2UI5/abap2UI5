@@ -9,13 +9,12 @@ CLASS ltcl_test_frontend DEFINITION FINAL
 
     METHODS test_toast_plain          FOR TESTING RAISING cx_static_check.
     METHODS test_toast_options        FOR TESTING RAISING cx_static_check.
+    METHODS test_box_no_ui5_options    FOR TESTING RAISING cx_static_check.
     METHODS test_toast_duration_junk  FOR TESTING RAISING cx_static_check.
     METHODS test_toast_duration_overflow FOR TESTING RAISING cx_static_check.
-    METHODS test_toast_opt_out        FOR TESTING RAISING cx_static_check.
     METHODS test_box_default_type     FOR TESTING RAISING cx_static_check.
     METHODS test_box_explicit_type    FOR TESTING RAISING cx_static_check.
     METHODS test_box_unknown_type     FOR TESTING RAISING cx_static_check.
-    METHODS test_box_icon_none        FOR TESTING RAISING cx_static_check.
     METHODS test_box_actions          FOR TESTING RAISING cx_static_check.
     METHODS test_box_msg_table_empty  FOR TESTING RAISING cx_static_check.
     METHODS test_main_drops_teardowns FOR TESTING RAISING cx_static_check.
@@ -72,14 +71,15 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
   METHOD test_toast_options.
 
-    " class is no MessageToast option - it rides along and the frontend puts
-    " it on the toast's DOM node
-    mo_cut->msg_toast( text                           = `Saved`
-                                             duration = `250`
-                                             my       = `center center`
-                                             class    = `myCls` ).
+    " the two options an ABAP app decides - how long it stands, and the
+    " backend event its closing raises. Everything that only positions or
+    " animates the control travels as the option object of a CONTROL_GLOBAL
+    " MESSAGE_TOAST call instead (see ltcl_test_client test_ctrl_global_opt)
+    mo_cut->msg_toast( text     = `Saved`
+                       duration = `250`
+                       onclose  = `TOAST_GONE` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"class":"myCls","duration":250,"my":"center center"}]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"duration":250,"onClose":"TOAST_GONE"}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -104,17 +104,6 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
                                              duration = `abc` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved"]`
-                                        act = queued( ) ).
-
-  ENDMETHOD.
-
-  METHOD test_toast_opt_out.
-
-    " abap_true is UI5's own default for both, so only the opt-out travels
-    mo_cut->msg_toast( text                            = `Saved`
-                                             autoclose = abap_false ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"autoClose":false}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -154,16 +143,23 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_box_icon_none.
+  METHOD test_box_no_ui5_options.
 
-    " MessageBox.Icon.NONE would defeat the icon the chosen method sets for
-    " itself, so it is dropped like an unset icon
-    mo_cut->msg_box( text                       = `Boom`
-                                           type = `error`
-                                           icon = `NONE` ).
+    " what is left on the method is what an ABAP app decides: the data, the
+    " kind of box, the buttons, the focus among them, the backend event. A
+    " pure sap.m.MessageBox option ( icon, contentWidth, textDirection, ... )
+    " has no parameter here at all - it is set on the control, as the option
+    " object of a CONTROL_GLOBAL MESSAGE_BOX call
+    mo_cut->msg_box( text             = `Delete?`
+                     type             = `confirm`
+                     actions          = VALUE #( ( `DELETE` ) ( `CANCEL` ) )
+                     emphasizedaction = `DELETE`
+                     initialfocus     = `CANCEL`
+                     onclose          = `ANSWERED` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","error","Boom"]`
-                                        act = queued( ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","confirm","Delete?",{"actions":["DELETE","CANCEL"],"emphasizedAction":"DELETE","initialFocus":"CANCEL","onClose":"ANSWERED"}]`
+        act = queued( ) ).
 
   ENDMETHOD.
 
