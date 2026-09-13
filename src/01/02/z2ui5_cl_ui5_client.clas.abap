@@ -516,7 +516,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " has no counterpart for them).
     result = z2ui5_if_client~_bind( val                  = val
                                     path                 = path
-                                    view                 = view
                                     custom_mapper        = custom_mapper
                                     custom_filter        = custom_filter
                                     tab                  = tab

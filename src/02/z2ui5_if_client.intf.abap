@@ -976,8 +976,6 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                  TYPE data
       path                 TYPE abap_bool                     DEFAULT abap_false
-      "obsolete - inactive, not passed on internally
-      view                 TYPE clike                         DEFAULT cs_view-main
       "obsolete - still evaluated, but NO AJSON TYPE BELONGS IN A BIND CALL
       "any more. Both hand an app a reference to the bundled AJSON library
       "(src/00/01), which is a MIRRORED copy of an external project, not a
@@ -1042,8 +1040,6 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                  TYPE data
       path                 TYPE abap_bool                     DEFAULT abap_false
-      "obsolete - inactive, not passed on internally
-      view                 TYPE clike                         DEFAULT cs_view-main
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL

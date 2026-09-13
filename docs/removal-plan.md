@@ -51,6 +51,18 @@ support case.
       (236 calls, 90 files); one deliberate holdout, see below
 - [x] `nest_view_model_update( )` / `nest2_view_model_update( )` delegate to
       `view_model_update( )`; `check_update_model` dropped from `ty_s_view_nest`
+- [x] `view` parameter of `_bind( )` and `_bind_edit( )` removed. Marked
+      obsolete at both declarations and inert for as long as it carried that
+      mark — never passed on internally, a leftover from the time each view
+      slot owned a model of its own. Ecosystem count at removal: **0** —
+      `samples`, `samples-controls` and `samples-stack` never named it in
+      their git history; the only in-repo caller was `_bind_edit( )` handing
+      it to `_bind( )`. It did not wait for the `_bind_edit` removal it was
+      once planned to ride along with: the two signatures are the whole
+      change, and a call that names the parameter fails at compile time with
+      "delete it" as the entire migration. `cs_view` stays — it is the view
+      slot of `follow_up_action( )` and `_event_client( )`, where it selects
+      one. API snapshot regenerated, recorded as BREAKING in `changelog.txt`
 - [x] Removed earlier: `cs_bind_type`, the `XX/` view-model node, view-based
       model filtering, `json_bind_local`, `t_startup_params`, `z2ui5_if_action`
 - [x] `cs_event-nav_to_route` removed — a frontend-side second way into a
@@ -119,9 +131,6 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
         `samples-controls` and `samples-stack` (re-checked 2026-08-21). The
         only in-repo hits are the declaration, the delegating implementation
         and its test.
-- [ ] **`view` parameter of `_bind( )` and `_bind_edit( )`** — marked
-      obsolete at both declarations. Inert, not passed on internally. Removing it is a signature change, so it rides along with the
-      `_bind_edit` removal rather than going separately.
 - [ ] **`nest_view_model_update( )` / `nest2_view_model_update( )`** of
       `z2ui5_if_client` — no-ops now (the model push is automatic), and so is
       `view_model_update( )` itself.
