@@ -65,8 +65,12 @@ jobs:
     - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
         node-version: '22'
+    # The report goes to RUNNER_TEMP, never into the working tree: a file
+    # written next to the sources is one more thing every walker in this
+    # repository would have to know about, and the gates that enumerate the
+    # tree would be right to call it undeclared.
     - id: check
-      run: node scripts/check-app-rules.mjs 2>&1 | tee report.txt; exit "${PIPESTATUS[0]}"
+      run: node scripts/check-app-rules.mjs 2>&1 | tee "$RUNNER_TEMP/app-rules-report.txt"; exit "${PIPESTATUS[0]}"
       shell: bash
 
     # Only for the scheduled run, and only when the check actually failed. A
@@ -99,7 +103,7 @@ jobs:
           "belongs upstream - to make it there first. What the run reported:" \
           "" \
           '```' \
-          "$(tail -c 3000 report.txt)" \
+          "$(tail -c 3000 "$RUNNER_TEMP/app-rules-report.txt")" \
           '```' \
           "" \
           "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")
