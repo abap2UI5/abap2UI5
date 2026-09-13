@@ -26,7 +26,9 @@ ENDCLASS.
 CLASS ltcl_app_nav_loop IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
-    client->nav_app_call( NEW ltcl_app_nav_loop( ) ).
+    DATA temp1 TYPE REF TO ltcl_app_nav_loop.
+    CREATE OBJECT temp1 TYPE ltcl_app_nav_loop.
+    client->nav_app_call( temp1 ).
   ENDMETHOD.
 
 ENDCLASS.
@@ -77,10 +79,10 @@ ENDCLASS.
 CLASS ltcl_app_popup_bound IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       ms_row-name = `edit me`.
       client->popup_display( |<Dialog><Input value="{ client->_bind( ms_row-name ) }"/></Dialog>| ).
-    ELSEIF client->check_on_event( `CLOSE` ).
+    ELSEIF client->check_on_event( `CLOSE` ) IS NOT INITIAL.
       " the edit is done: close and hand control back (sample 501)
       ms_row-name = `edited`.
       client->popup_destroy( ).
@@ -102,7 +104,7 @@ ENDCLASS.
 CLASS ltcl_app_popup_silent IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       client->popup_display( `<Dialog/>` ).
     ENDIF.
   ENDMETHOD.
@@ -118,7 +120,7 @@ CLASS ltcl_app_popup_caller DEFINITION FINAL.
       BEGIN OF ty_s_row,
         name TYPE string,
       END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
     DATA mt_tab        TYPE ty_t_row.
     " what the popup app handed back (sample 500 reads the edited table
     " out of the popup app with get_app_prev)
@@ -131,10 +133,21 @@ CLASS ltcl_app_popup_caller IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
     DATA lo_prev TYPE REF TO ltcl_app_popup_bound.
-    IF client->check_on_init( ).
-      mt_tab = VALUE #( ( name = `one` ) ( name = `two` ) ).
+      DATA temp2 TYPE ltcl_app_popup_caller=>ty_t_row.
+      DATA temp3 LIKE LINE OF temp2.
+      DATA temp4 TYPE REF TO ltcl_app_popup_bound.
+      DATA temp5 TYPE REF TO ltcl_app_popup_silent.
+    IF client->check_on_init( ) IS NOT INITIAL.
+
+      CLEAR temp2.
+
+      temp3-name = `one`.
+      INSERT temp3 INTO TABLE temp2.
+      temp3-name = `two`.
+      INSERT temp3 INTO TABLE temp2.
+      mt_tab = temp2.
       client->view_display( |<mvc:View><Table items="{ client->_bind( mt_tab ) }"/></mvc:View>| ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       TRY.
           lo_prev ?= client->get_app_prev( ).
           mv_from_popup = lo_prev->ms_row-name.
@@ -142,10 +155,14 @@ CLASS ltcl_app_popup_caller IMPLEMENTATION.
       ENDTRY.
       client->view_display( |<mvc:View><Table items="{ client->_bind( mt_tab ) }"/>| &&
                             |<Text text="{ client->_bind( mv_from_popup ) }"/></mvc:View>| ).
-    ELSEIF client->check_on_event( `ROW_SELECT` ).
-      client->nav_app_call( NEW ltcl_app_popup_bound( ) ).
-    ELSEIF client->check_on_event( `ROW_SELECT_SILENT` ).
-      client->nav_app_call( NEW ltcl_app_popup_silent( ) ).
+    ELSEIF client->check_on_event( `ROW_SELECT` ) IS NOT INITIAL.
+
+      CREATE OBJECT temp4 TYPE ltcl_app_popup_bound.
+      client->nav_app_call( temp4 ).
+    ELSEIF client->check_on_event( `ROW_SELECT_SILENT` ) IS NOT INITIAL.
+
+      CREATE OBJECT temp5 TYPE ltcl_app_popup_silent.
+      client->nav_app_call( temp5 ).
     ENDIF.
   ENDMETHOD.
 
@@ -188,20 +205,20 @@ CLASS ltcl_app_dref_popup IMPLEMENTATION.
     FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row>  TYPE any.
     FIELD-SYMBOLS <name> TYPE any.
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       " the caller was saved by the hop that opened this app - its table
       " has to be there to read
       ASSIGN mo_caller->mr_tab->* TO <tab>.
-      ASSIGN <tab>[ 2 ] TO <row>.
+      READ TABLE <tab> INDEX 2 ASSIGNING <row>.
       ASSIGN COMPONENT `NAME` OF STRUCTURE <row> TO <name>.
       IF sy-subrc = 0.
         mv_from_caller = <name>.
       ENDIF.
       client->popup_display( |<Dialog><Text text="{ client->_bind( mv_from_caller ) }"/></Dialog>| ).
-    ELSEIF client->check_on_event( `CLOSE` ).
+    ELSEIF client->check_on_event( `CLOSE` ) IS NOT INITIAL.
       client->popup_destroy( ).
       client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
-    ELSEIF client->check_on_event( `APPEND` ).
+    ELSEIF client->check_on_event( `APPEND` ) IS NOT INITIAL.
       " the popup app writes INTO the caller's table and goes back to the
       " caller it holds - the shape of a popup that edits its caller's data
       ASSIGN mo_caller->mr_tab->* TO <tab>.
@@ -223,13 +240,25 @@ CLASS ltcl_app_dref_caller IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE any.
     DATA ls_row TYPE ty_s_row.
-    IF client->check_on_init( ).
+      DATA temp6 TYPE REF TO cl_abap_structdescr.
+      DATA lo_line LIKE temp6.
+      DATA lt_comp TYPE abap_component_tab.
+      DATA lo_struc TYPE REF TO cl_abap_structdescr.
+      DATA lo_tab TYPE REF TO cl_abap_tabledescr.
+      DATA lo_popup TYPE REF TO ltcl_app_dref_popup.
+    IF client->check_on_init( ) IS NOT INITIAL.
       " an anonymous line type from the components of a known one - what
       " S-RTTI can rebuild without a type name (see ltcl_app_shapes)
-      DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_row ) ).
-      DATA(lt_comp) = lo_line->get_components( ).
-      DATA(lo_struc) = cl_abap_structdescr=>create( lt_comp ).
-      DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = lo_struc
+
+      temp6 ?= cl_abap_typedescr=>describe_by_data( ls_row ).
+
+      lo_line = temp6.
+
+      lt_comp = lo_line->get_components( ).
+
+      lo_struc = cl_abap_structdescr=>create( lt_comp ).
+
+      lo_tab = cl_abap_tabledescr=>create( p_line_type  = lo_struc
                                                  p_table_kind = cl_abap_tabledescr=>tablekind_std ).
       CREATE DATA mr_tab TYPE HANDLE lo_tab.
       ASSIGN mr_tab->* TO <tab>.
@@ -240,11 +269,12 @@ CLASS ltcl_app_dref_caller IMPLEMENTATION.
       APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
       MOVE-CORRESPONDING ls_row TO <row>.
       client->view_display( |<mvc:View><Table items="{ client->_bind( <tab> ) }"/></mvc:View>| ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       ASSIGN mr_tab->* TO <tab>.
       client->view_display( |<mvc:View><Table items="{ client->_bind( <tab> ) }"/></mvc:View>| ).
-    ELSEIF client->check_on_event( `OPEN` ).
-      DATA(lo_popup) = NEW ltcl_app_dref_popup( ).
+    ELSEIF client->check_on_event( `OPEN` ) IS NOT INITIAL.
+
+      CREATE OBJECT lo_popup TYPE ltcl_app_dref_popup.
       lo_popup->mo_caller = me.
       client->nav_app_call( lo_popup ).
     ENDIF.
@@ -314,13 +344,19 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD system_actions_of.
 
-    LOOP AT val->ms_response-s_front-s_action-t_system INTO DATA(ls_queued).
+    DATA ls_queued LIKE LINE OF val->ms_response-s_front-s_action-t_system.
+      DATA temp7 TYPE string.
+    LOOP AT val->ms_response-s_front-s_action-t_system INTO ls_queued.
       IF result IS NOT INITIAL.
         result = result && `|`.
       ENDIF.
-      result = result && COND #( WHEN ls_queued-o_json IS BOUND
-                                 THEN ls_queued-o_json->stringify( )
-                                 ELSE ls_queued-js ).
+
+      IF ls_queued-o_json IS BOUND.
+        temp7 = ls_queued-o_json->stringify( ).
+      ELSE.
+        temp7 = ls_queued-js.
+      ENDIF.
+      result = result && temp7.
     ENDLOOP.
 
   ENDMETHOD.
@@ -329,10 +365,28 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
     " the slots named by the serialized actions, in order, each one once -
     " so the assertion reads as the sequence and not as a payload dump
-    LOOP AT val->mo_action->ms_next-s_action-t_system INTO DATA(ls_queued).
-      DATA(lv_js) = ls_queued-o_json->stringify( ).
-      SPLIT lv_js AT `","` INTO TABLE DATA(lt_part).
-      DATA(lv_slot) = replace( val  = VALUE string( lt_part[ 3 ] OPTIONAL )
+    DATA ls_queued LIKE LINE OF val->mo_action->ms_next-s_action-t_system.
+      DATA lv_js TYPE string.
+      TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_part TYPE temp1.
+      DATA temp8 TYPE string.
+      DATA temp9 TYPE string.
+      DATA lv_slot TYPE string.
+    LOOP AT val->mo_action->ms_next-s_action-t_system INTO ls_queued.
+
+      lv_js = ls_queued-o_json->stringify( ).
+
+
+      SPLIT lv_js AT `","` INTO TABLE lt_part.
+
+      CLEAR temp8.
+
+      READ TABLE lt_part INTO temp9 INDEX 3.
+      IF sy-subrc = 0.
+        temp8 = temp9.
+      ENDIF.
+
+      lv_slot = replace( val  = temp8
                                sub  = `"]`
                                with = `` ).
       IF result CS lv_slot.
@@ -348,7 +402,7 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD started_with.
 
-    result = NEW z2ui5_cl_ui5_handler( val = `` ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_handler EXPORTING val = ``.
     result->mo_action->mo_app->mo_app      = io_app.
     result->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     result->main_loop( ).
@@ -357,9 +411,10 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD event_on.
 
-    DATA(lv_payload) = `{"value":{"S_FRONT":{"ID":"` && iv_id && `","EVENT":"` && iv_event &&
+    DATA lv_payload TYPE string.
+    lv_payload = `{"value":{"S_FRONT":{"ID":"` && iv_id && `","EVENT":"` && iv_event &&
                        `","ORIGIN":"O","PATHNAME":"/","SEARCH":""}}}`.
-    result = NEW #( val = lv_payload ).
+    CREATE OBJECT result EXPORTING val = lv_payload.
     result->main_begin( ).
     result->main_loop( ).
 
@@ -367,9 +422,13 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD check_display.
 
-    result = xsdbool( line_exists( io_handler->mo_action->ms_next-t_action_front[
-                                       slot   = iv_slot
-                                       method = z2ui5_if_ui5_types=>cs_slot_action-display ] ) ). "#EC CI_SORTSEQ
+    DATA temp10 LIKE sy-subrc.
+    DATA temp1 TYPE xsdboolean.
+    READ TABLE io_handler->mo_action->ms_next-t_action_front WITH KEY slot = iv_slot method = z2ui5_if_ui5_types=>cs_slot_action-display TRANSPORTING NO FIELDS.
+    temp10 = sy-subrc.
+
+    temp1 = boolc( temp10 = 0 ).
+    result = temp1. "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
@@ -421,7 +480,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD test_constructor.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `test payload` ).
+    CREATE OBJECT lo_handler EXPORTING val = `test payload`.
 
     cl_abap_unit_assert=>assert_equals( exp = `test payload`
                                         act = lo_handler->mv_request_json ).
@@ -436,7 +495,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
 
     lv_payload = `{"value" : { "S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}}`.
 
-    lo_post = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_post EXPORTING val = lv_payload.
     lo_post->main_begin( ).
 
     cl_abap_unit_assert=>assert_bound( lo_post->mo_action ).
@@ -459,7 +518,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/sap/test","SEARCH":"?param=1"}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -479,7 +538,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://example.org","PATHNAME":"/app","SEARCH":""}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -497,7 +556,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/ui2/flp","SEARCH":"?scenario=LAUNCHPAD"}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     lo_handler->ms_request = lo_handler->request_json_to_abap( lv_payload ).
 
     lo_handler->session_merge( ).
@@ -515,7 +574,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/sap/bc/z2ui5","SEARCH":""}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_equals( exp = `https://myhost.com`
@@ -533,7 +592,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/ui2/flp","SEARCH":"?scenario=LAUNCHPAD"}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_equals( exp = `https://myhost.com`
@@ -554,7 +613,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"MODEL":{"NAME":"test-value"}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     " the request tree itself, read below the path of its MODEL node - no
@@ -574,7 +633,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"MODEL":{"NAME":"test-value"}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_bound( ls_request-o_model ).
@@ -596,7 +655,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
                  `"S_SCROLL":{"MAIN":{"ID":"page","X":0,"Y":150}},` &&
                  `"S_UI5":{"VERSION":"1.120.0","BUILDTIMESTAMP":"20240101","GAV":"com.sap.ui:sdk:1.120.0","THEME":"sap_horizon"}}}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_bound( ls_request-s_front-o_comp_data ).
@@ -623,7 +682,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_not_bound( ls_request-s_front-o_comp_data ).
@@ -637,18 +696,38 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA lv_payload TYPE string.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+    FIELD-SYMBOLS <temp11> LIKE LINE OF ls_request-s_front-t_event_arg.
+    DATA temp12 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp13> LIKE LINE OF ls_request-s_front-t_event_arg.
+    DATA temp14 LIKE sy-tabix.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
                  `"EVENT":"MY_EVENT","T_EVENT_ARG":["first","second"]}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( ls_request-s_front-t_event_arg ) ).
+
+
+    temp12 = sy-tabix.
+    READ TABLE ls_request-s_front-t_event_arg INDEX 1 ASSIGNING <temp11>.
+    sy-tabix = temp12.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `first`
-                                        act = ls_request-s_front-t_event_arg[ 1 ] ).
+                                        act = <temp11> ).
+
+
+    temp14 = sy-tabix.
+    READ TABLE ls_request-s_front-t_event_arg INDEX 2 ASSIGNING <temp13>.
+    sy-tabix = temp14.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `second`
-                                        act = ls_request-s_front-t_event_arg[ 2 ] ).
+                                        act = <temp13> ).
   ENDMETHOD.
 
   METHOD test_parse_body_arg_object.
@@ -658,24 +737,74 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA lv_payload TYPE string.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+    FIELD-SYMBOLS <temp15> LIKE LINE OF ls_request-s_front-t_event_arg.
+    DATA temp16 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp17> LIKE LINE OF ls_request-s_front-t_event_arg.
+    DATA temp18 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp19> LIKE LINE OF ls_request-s_front-t_event_arg.
+    DATA temp20 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp21> LIKE LINE OF ls_request-s_front-t_event_arg.
+    DATA temp22 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp23> LIKE LINE OF ls_request-s_front-t_event_arg.
+    DATA temp24 LIKE sy-tabix.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
                  `"EVENT":"MY_EVENT","T_EVENT_ARG":["plain",5,true,{"KEY":"val"},[1,2]]}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_equals( exp = 5
                                         act = lines( ls_request-s_front-t_event_arg ) ).
+
+
+    temp16 = sy-tabix.
+    READ TABLE ls_request-s_front-t_event_arg INDEX 1 ASSIGNING <temp15>.
+    sy-tabix = temp16.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `plain`
-                                        act = ls_request-s_front-t_event_arg[ 1 ] ).
+                                        act = <temp15> ).
+
+
+    temp18 = sy-tabix.
+    READ TABLE ls_request-s_front-t_event_arg INDEX 2 ASSIGNING <temp17>.
+    sy-tabix = temp18.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `5`
-                                        act = ls_request-s_front-t_event_arg[ 2 ] ).
+                                        act = <temp17> ).
+
+
+    temp20 = sy-tabix.
+    READ TABLE ls_request-s_front-t_event_arg INDEX 3 ASSIGNING <temp19>.
+    sy-tabix = temp20.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `X`
-                                        act = ls_request-s_front-t_event_arg[ 3 ] ).
+                                        act = <temp19> ).
+
+
+    temp22 = sy-tabix.
+    READ TABLE ls_request-s_front-t_event_arg INDEX 4 ASSIGNING <temp21>.
+    sy-tabix = temp22.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `{"KEY":"val"}`
-                                        act = ls_request-s_front-t_event_arg[ 4 ] ).
+                                        act = <temp21> ).
+
+
+    temp24 = sy-tabix.
+    READ TABLE ls_request-s_front-t_event_arg INDEX 5 ASSIGNING <temp23>.
+    sy-tabix = temp24.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `[1,2]`
-                                        act = ls_request-s_front-t_event_arg[ 5 ] ).
+                                        act = <temp23> ).
   ENDMETHOD.
 
   METHOD test_parse_body_arg_limit.
@@ -685,6 +814,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA lv_args    TYPE string.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+        DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
 
     DO 99 TIMES.
       lv_args = lv_args && `[],`.
@@ -692,11 +822,12 @@ CLASS ltcl_01_request IMPLEMENTATION.
     " 101 arguments: the 99 arrays, one more array and a string
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
                  `"EVENT":"MY_EVENT","T_EVENT_ARG":[` && lv_args && `[],"last"]}}}`.
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     TRY.
         ls_request = lo_handler->request_json_to_abap( lv_payload ).
         cl_abap_unit_assert=>fail( `101 event arguments were accepted` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx.
         cl_abap_unit_assert=>assert_char_cp( act = lx->get_text( )
                                              exp = `*EVENT_ARG_LIMIT_ERROR*` ).
     ENDTRY.
@@ -705,7 +836,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     " among them included
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
                  `"EVENT":"MY_EVENT","T_EVENT_ARG":[` && lv_args && `{"KEY":"val"}]}}}`.
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
     cl_abap_unit_assert=>assert_equals( exp = 100
                                         act = lines( ls_request-s_front-t_event_arg ) ).
@@ -730,7 +861,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
                  `"S_SCROLL":{"MAIN":{"ID":"page","X":0,"Y":150},"POPUP":{"ID":"dlg","X":3,"Y":40}},` &&
                  `"S_UI5":{"VERSION":"1.120.0","BUILDTIMESTAMP":"20240101","GAV":"g","THEME":"sap_horizon"}}}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_equals( exp = `ABC123`
@@ -806,7 +937,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_HI_WORLD"}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -822,7 +953,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -834,21 +965,32 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD test_context_info_stale_action.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lv_info TYPE string.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp4 TYPE xsdboolean.
 
     " a sticky handler whose next body fails to parse still holds the
     " previous roundtrip's action - its event must not annotate the failure
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action = NEW z2ui5_cl_ui5_action( lo_handler ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action TYPE z2ui5_cl_ui5_action EXPORTING VAL = lo_handler.
     lo_handler->mo_action->ms_actual-event = `PREVIOUS_EVENT`.
 
-    DATA(lv_info) = lo_handler->request_context_info( ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_info CS `PREVIOUS_EVENT` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS `request not parsed` ) ).
+
+    lv_info = lo_handler->request_context_info( ).
+
+    temp2 = boolc( lv_info CS `PREVIOUS_EVENT` ).
+    cl_abap_unit_assert=>assert_false( temp2 ).
+
+    temp3 = boolc( lv_info CS `request not parsed` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
     " once the body is parsed the event is this request's
     lo_handler->mv_request_parsed = abap_true.
     lv_info = lo_handler->request_context_info( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS `event PREVIOUS_EVENT` ) ).
+
+    temp4 = boolc( lv_info CS `event PREVIOUS_EVENT` ).
+    cl_abap_unit_assert=>assert_true( temp4 ).
 
   ENDMETHOD.
 
@@ -862,7 +1004,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
                  `"CONFIG":{"ComponentData":{"startupParameters":{"app_start":["-ns-zcl_my_app"]}}}}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
@@ -873,17 +1015,22 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD test_context_info_sanitized.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lv_info TYPE string.
+    DATA temp5 TYPE xsdboolean.
 
     " the 500 body quotes app_start - client-controlled, so markup in it is
     " stripped the way factory_first_start strips it
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->ms_request-s_control-app_start = `ZCL_X<script>alert(1)</script>`.
 
-    DATA(lv_info) = lo_handler->request_context_info( ).
+
+    lv_info = lo_handler->request_context_info( ).
 
     cl_abap_unit_assert=>assert_char_cp( act = lv_info
                                          exp = `*app_start ZCL_Xscriptalert1/script*` ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_info CS `<` ) ).
+
+    temp5 = boolc( lv_info CS `<` ).
+    cl_abap_unit_assert=>assert_false( temp5 ).
 
   ENDMETHOD.
 
@@ -891,7 +1038,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_no_comp_data TYPE REF TO z2ui5_if_ajson.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
     " a percent-encoded namespace in the query is the class name it spells
     cl_abap_unit_assert=>assert_equals(
@@ -1017,7 +1164,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD test_route_standalone.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
     cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
                                         act = lo_handler->request_app_start_route( `#/app/ZCL_X/D1` ) ).
@@ -1045,7 +1192,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD test_route_launchpad.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
     " the same routes, but reached through the launchpad shell hash - the
     " browser Back button inside the FLP sends exactly this
@@ -1066,7 +1213,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD test_route_no_route.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
     " no hash at all (normal boot), an app-owned hash, a bare shell hash and
     " an 'app/' occurring mid-hash must all resolve to "no route", so the
@@ -1085,7 +1232,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD test_app_state_hash.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
     " the app-state link format, standalone and inside the launchpad
     cl_abap_unit_assert=>assert_equals(
@@ -1147,21 +1294,31 @@ CLASS ltcl_02_response IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
     DATA lv_json TYPE string.
-    lo_handler = NEW #( val = `` ).
+    DATA temp6 TYPE xsdboolean.
+    DATA temp7 TYPE xsdboolean.
+    DATA temp8 TYPE xsdboolean.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
-    ls_response = VALUE #( s_front-id  = `ID123`
-                           s_front-app = `Z2UI5_CL_UI5_APP_HI_WORLD`
-                           model       = `{"name":"test"}` ).
+    CLEAR ls_response.
+    ls_response-s_front-id = `ID123`.
+    ls_response-s_front-app = `Z2UI5_CL_UI5_APP_HI_WORLD`.
+    ls_response-model = `{"name":"test"}`.
 
 
     lv_json = lo_handler->response_abap_to_json( ls_response ).
 
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `S_FRONT` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `MODEL` ) ).
+    temp6 = boolc( lv_json CS `S_FRONT` ).
+    cl_abap_unit_assert=>assert_true( temp6 ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `{"name":"test"}` ) ).
+
+    temp7 = boolc( lv_json CS `MODEL` ).
+    cl_abap_unit_assert=>assert_true( temp7 ).
+
+
+    temp8 = boolc( lv_json CS `{"name":"test"}` ).
+    cl_abap_unit_assert=>assert_true( temp8 ).
 
   ENDMETHOD.
 
@@ -1170,18 +1327,29 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " a round-trip that changed nothing bound sends no MODEL key at all
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
-    lo_handler = NEW #( val = `` ).
+    DATA lv_json TYPE string.
+    DATA temp9 TYPE xsdboolean.
+    DATA temp10 TYPE xsdboolean.
+    DATA temp11 TYPE xsdboolean.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     ls_response-s_front-id = `ID123`.
 
-    DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `MODEL` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `S_FRONT` ) ).
+    lv_json = lo_handler->response_abap_to_json( ls_response ).
+
+
+    temp9 = boolc( lv_json CS `MODEL` ).
+    cl_abap_unit_assert=>assert_false( temp9 ).
+
+    temp10 = boolc( lv_json CS `S_FRONT` ).
+    cl_abap_unit_assert=>assert_true( temp10 ).
 
     " and an explicitly empty one is treated the same
     ls_response-model = `{}`.
     lv_json = lo_handler->response_abap_to_json( ls_response ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `MODEL` ) ).
+
+    temp11 = boolc( lv_json CS `MODEL` ).
+    cl_abap_unit_assert=>assert_false( temp11 ).
 
   ENDMETHOD.
 
@@ -1193,22 +1361,42 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " filter ran
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
-    lo_handler = NEW #( val = `` ).
+    DATA temp25 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    DATA temp26 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    DATA temp27 TYPE z2ui5_if_ui5_types=>ty_s_queued_action.
+    DATA lv_json TYPE string.
+    DATA temp12 TYPE xsdboolean.
+    DATA temp13 TYPE xsdboolean.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     ls_response-s_front-id = `ID123`.
-    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]` ) )
+
+    CLEAR temp25.
+    temp25-o_json = z2ui5_cl_ajson=>parse( `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]` ).
+    INSERT temp25
            INTO TABLE ls_response-s_front-s_action-t_system.
-    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SET_FOCUS","id1"]` ) )
+
+    CLEAR temp26.
+    temp26-o_json = z2ui5_cl_ajson=>parse( `["SET_FOCUS","id1"]` ).
+    INSERT temp26
            INTO TABLE ls_response-s_front-s_action-t_custom.
     " a legacy raw-JS snippet an app queued keeps riding as a string entry
-    INSERT VALUE #( js = `eF('SET_FOCUS','id2')` )
+
+    CLEAR temp27.
+    temp27-js = `eF('SET_FOCUS','id2')`.
+    INSERT temp27
            INTO TABLE ls_response-s_front-s_action-t_custom.
 
-    DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
 
+    lv_json = lo_handler->response_abap_to_json( ls_response ).
+
+
+    temp12 = boolc( lv_json CS `"T_SYSTEM":[["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]]` ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( lv_json CS `"T_SYSTEM":[["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]]` ) ).
+        temp12 ).
+
+    temp13 = boolc( lv_json CS `"T_CUSTOM":[["SET_FOCUS","id1"],"eF('SET_FOCUS','id2')"]` ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( lv_json CS `"T_CUSTOM":[["SET_FOCUS","id1"],"eF('SET_FOCUS','id2')"]` ) ).
+        temp13 ).
 
   ENDMETHOD.
 
@@ -1219,9 +1407,10 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " XML) from exactly those collected calls - no separate flag to keep in
     " sync, no slot of the response read back
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
     DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+
+    CREATE OBJECT li_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
     li_client->view_display( `<View/>` ).
 
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
@@ -1233,9 +1422,10 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     " the same holds whichever slot was displayed...
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
     DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+
+    CREATE OBJECT li_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
     li_client->popup_display( `<Dialog/>` ).
 
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
@@ -1253,22 +1443,30 @@ CLASS ltcl_02_response IMPLEMENTATION.
   METHOD test_view_update_none.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    DATA temp14 TYPE xsdboolean.
+    DATA temp1 LIKE sy-subrc.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
+
+
+    READ TABLE lo_handler->mo_action->ms_next-t_action_front WITH KEY method = `display` TRANSPORTING NO FIELDS.
+    temp1 = sy-subrc.
+    temp14 = boolc( temp1 = 0 ).
     cl_abap_unit_assert=>assert_false(
-        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+        temp14 ).
 
   ENDMETHOD.
 
   METHOD test_auto_update_push.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp15 TYPE xsdboolean.
 
     " the snapshot differs from the model after main( ) - the model is sent
     " exactly as an explicit view_model_update( ) would send it, with no app
     " opt-in of any kind: automatic model update is always on
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mv_model_before_taken = abap_true.
     lo_handler->mv_model_before       = `<other model state>`.
@@ -1277,7 +1475,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     " the MODEL key itself IS the push - no updateModel action travels,
     " the frontend pushes into every open slot when a model arrived
-    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+
+    temp15 = boolc( system_actions_of( lo_handler ) CS `updateModel` ).
+    cl_abap_unit_assert=>assert_false( temp15 ).
     cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
 
@@ -1286,11 +1486,12 @@ CLASS ltcl_02_response IMPLEMENTATION.
   METHOD test_auto_update_same.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp16 TYPE xsdboolean.
 
     " main( ) changed nothing - the response stays `{}` and no update flag is
     " set, so an idle event round-trip carries no model payload as before
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mv_model_before_taken = abap_true.
     lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
@@ -1300,7 +1501,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lo_handler->ms_response-model ).
     " an unchanged model asks for no push at all
-    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+
+    temp16 = boolc( system_actions_of( lo_handler ) CS `updateModel` ).
+    cl_abap_unit_assert=>assert_false( temp16 ).
 
   ENDMETHOD.
 
@@ -1308,15 +1511,16 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp17 TYPE xsdboolean.
 
     " a roundtrip that re-displays a NESTED view without its MAIN view must
     " carry the model: the nested view inherits the MAIN model by UI5
     " propagation, so without the push it would bind against the data of the
     " previous roundtrip (three-column samples 098/104)
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    CREATE OBJECT li_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
     li_client->nest_view_display( val           = `<Nest/>`
                                   id            = `col`
                                   method_insert = `addMidColumnPage` ).
@@ -1328,7 +1532,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = lo_handler->mo_action->mo_app->model_json_stringify( )
         act = lo_handler->ms_response-model ).
-    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+
+    temp17 = boolc( system_actions_of( lo_handler ) CS `updateModel` ).
+    cl_abap_unit_assert=>assert_false( temp17 ).
 
   ENDMETHOD.
 
@@ -1338,8 +1544,8 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     " main_process always has a before-main snapshot - taken fresh here,
     " since a fresh app carries no stored client model to reuse
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
     lo_handler->main_process( ).
@@ -1352,21 +1558,26 @@ CLASS ltcl_02_response IMPLEMENTATION.
   METHOD test_model_client_stored.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_app TYPE REF TO ltcl_app_noop.
+    DATA lo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     " a pushed model is exactly what the client is left holding - main_end
     " stores it on the app, and the next roundtrip of this app reuses it as
     " its pre-main( ) snapshot instead of serializing the model again
-    lo_handler = NEW #( val = `` ).
-    DATA(lo_app) = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+
+    CREATE OBJECT lo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->mo_app      = lo_app.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_handler->mo_action->mo_app->mt_attri
-                                                  app  = lo_app ).
+
+    CREATE OBJECT lo_model TYPE z2ui5_cl_ui5_srv_model EXPORTING attri = lo_handler->mo_action->mo_app->mt_attri app = lo_app.
     " main_attri_refresh runs the (private) dissolve pass - on this fresh,
     " unbound model it is a pure dissolve, which is all the test needs
     lo_model->main_attri_refresh( ).
-    READ TABLE lo_handler->mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri)
+
+    READ TABLE lo_handler->mo_action->mo_app->mt_attri->* REFERENCE INTO lr_attri
          WITH KEY name = `CHECK_INIT`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -1393,8 +1604,8 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " no push: the client still holds the before-state, so THAT is stored -
     " and an empty model is stored as the known `{}` rather than INITIAL,
     " so the next roundtrip can still skip its snapshot serialization
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mv_model_before_taken = abap_true.
     lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
@@ -1413,8 +1624,8 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " main_process trusts the stored client model over a fresh serialization
     " - the sentinel can only arrive in the snapshot through the reuse path,
     " a real serialization of the no-op app would produce `{}`
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->mo_app->mv_model_client = `{"SENTINEL":true}`.
 
@@ -1430,16 +1641,18 @@ CLASS ltcl_02_response IMPLEMENTATION.
   METHOD test_delta_drops_client.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
 
     " incoming model deltas change the state the stored string describes -
     " the factory drops it, so the snapshot of this roundtrip falls back to
     " a real serialization instead of trusting a stale string
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->mv_model_client = `{"SENTINEL":true}`.
     lo_handler->ms_request-o_model = z2ui5_cl_ajson=>parse( `{"NAME":"changed"}` ).
 
-    DATA(lo_action) = lo_handler->mo_action->factory_by_frontend( ).
+
+    lo_action = lo_handler->mo_action->factory_by_frontend( ).
 
     cl_abap_unit_assert=>assert_initial( lo_action->mo_app->mv_model_client ).
 
@@ -1453,8 +1666,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " built before the page it belongs to exists.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    lo_handler = NEW #( val = `` ).
-    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    DATA temp28 TYPE REF TO z2ui5_cl_ui5_frontend.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT li_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
 
     li_client->popover_display( xml   = `<Popover/>`
                                 by_id = `btn` ).
@@ -1467,7 +1681,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
     li_client->popup_display( `<Dialog/>` ).
     li_client->view_display( `<View/>` ).
 
-    NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
+
+    CREATE OBJECT temp28 TYPE z2ui5_cl_ui5_frontend EXPORTING ACTION = lo_handler->mo_action.
+    temp28->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `MAIN|NEST|NEST2|POPUP|POPOVER`
@@ -1483,20 +1699,35 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " a display REPLACES the slot.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    lo_handler = NEW #( val = `` ).
-    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    DATA temp29 TYPE REF TO z2ui5_cl_ui5_frontend.
+    DATA lt_js LIKE lo_handler->mo_action->ms_next-s_action-t_system.
+    FIELD-SYMBOLS <temp30> LIKE LINE OF lt_js.
+    DATA temp31 LIKE sy-tabix.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT li_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
 
     li_client->view_display( `<First/>` ).
     li_client->view_display( `<Second/>` ).
 
-    NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
 
-    DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
+    CREATE OBJECT temp29 TYPE z2ui5_cl_ui5_frontend EXPORTING ACTION = lo_handler->mo_action.
+    temp29->slots_serialize( ).
+
+
+    lt_js = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_js ) ).
+
+
+    temp31 = sy-tabix.
+    READ TABLE lt_js INDEX 1 ASSIGNING <temp30>.
+    sy-tabix = temp31.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["VIEW_SLOTS","display","MAIN","<Second/>"]`
-        act = lt_js[ 1 ]-o_json->stringify( ) ).
+        act = <temp30>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -1504,9 +1735,12 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     " a roundtrip that touches no slot sends no system action at all
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    DATA temp32 TYPE REF TO z2ui5_cl_ui5_frontend.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
-    NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
+
+    CREATE OBJECT temp32 TYPE z2ui5_cl_ui5_frontend EXPORTING ACTION = lo_handler->mo_action.
+    temp32->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_initial(
         lo_handler->mo_action->ms_next-s_action-t_system ).
@@ -1520,19 +1754,34 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " argument and no options object ride along
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    lo_handler = NEW #( val = `` ).
-    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    DATA temp33 TYPE REF TO z2ui5_cl_ui5_frontend.
+    DATA lt_js LIKE lo_handler->mo_action->ms_next-s_action-t_system.
+    FIELD-SYMBOLS <temp34> LIKE LINE OF lt_js.
+    DATA temp35 LIKE sy-tabix.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT li_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
 
     li_client->popup_destroy( ).
 
-    NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
 
-    DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
+    CREATE OBJECT temp33 TYPE z2ui5_cl_ui5_frontend EXPORTING ACTION = lo_handler->mo_action.
+    temp33->slots_serialize( ).
+
+
+    lt_js = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_js ) ).
+
+
+    temp35 = sy-tabix.
+    READ TABLE lt_js INDEX 1 ASSIGNING <temp34>.
+    sy-tabix = temp35.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["VIEW_SLOTS","destroy","POPUP"]`
-        act = lt_js[ 1 ]-o_json->stringify( ) ).
+        act = <temp34>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -1541,7 +1790,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " the first roundtrip of a page load carries the block - it is stored on
     " the app, and therefore in its draft
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->ms_request-s_front-s_device-system   = `desktop`.
     lo_handler->ms_request-s_front-s_device-os-name  = `Windows`.
     lo_handler->ms_request-s_front-s_ui5-version     = `1.120.0`.
@@ -1560,7 +1809,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " the page location travels with app-start-shaped requests and is stored
     " with the draft; an event roundtrip omits it and reads it back
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->ms_request-s_front-origin   = `https://host`.
     lo_handler->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
     lo_handler->ms_request-s_front-search   = `?app_start=Z_MY_APP`.
@@ -1598,7 +1847,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " request carries the pathname once, every later event roundtrip omits
     " it and must still read check_launchpad from the draft-restored value
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->ms_request-s_front-origin   = `https://host`.
     lo_handler->ms_request-s_front-pathname = `/sap/bc/ui2/flp`.
     lo_handler->ms_request-s_front-s_device-system = `desktop`.
@@ -1626,13 +1875,13 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " a later roundtrip sends none of it and is answered from the draft - but
     " orientation and resize are NOT session-constant and win from the request
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->ms_session = VALUE #(
-        s_ui5-version         = `1.120.0`
-        s_device-system       = `phone`
-        s_device-os-name      = `iOS`
-        s_device-orientation  = `portrait`
-        s_device-resize-width = 400 ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CLEAR lo_handler->mo_action->mo_app->ms_session.
+    lo_handler->mo_action->mo_app->ms_session-s_ui5-version = `1.120.0`.
+    lo_handler->mo_action->mo_app->ms_session-s_device-system = `phone`.
+    lo_handler->mo_action->mo_app->ms_session-s_device-os-name = `iOS`.
+    lo_handler->mo_action->mo_app->ms_session-s_device-orientation = `portrait`.
+    lo_handler->mo_action->mo_app->ms_session-s_device-resize-width = 400.
 
     lo_handler->ms_request-s_front-s_device-orientation  = `landscape`.
     lo_handler->ms_request-s_front-s_device-resize-width = 900.
@@ -1655,9 +1904,10 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " the same draft reopened from ANOTHER browser: its first roundtrip
     " carries a block again, and that block replaces what the draft held
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->ms_session = VALUE #( s_device-system = `phone`
-                                                        s_device-os-name = `iOS` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CLEAR lo_handler->mo_action->mo_app->ms_session.
+    lo_handler->mo_action->mo_app->ms_session-s_device-system = `phone`.
+    lo_handler->mo_action->mo_app->ms_session-s_device-os-name = `iOS`.
 
     lo_handler->ms_request-s_front-s_device-system  = `desktop`.
     lo_handler->ms_request-s_front-s_device-os-name = `Windows`.
@@ -1699,9 +1949,9 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
 
     " an app that calls nav_app_call unconditionally in main( ) must not
     " loop the dispatch forever - the handler raises once the limit is hit
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->mv_dispatch_limit = 5.
-    lo_handler->mo_action->mo_app->mo_app = NEW ltcl_app_nav_loop( ).
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_nav_loop.
     " db_save asserts a draft id, normally set by the action factories
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
@@ -1719,15 +1969,17 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_app TYPE REF TO ltcl_app_leave_root.
+    DATA lo_action_before LIKE lo_handler->mo_action.
 
     " nothing on the stack: the leave has nowhere to go and the roundtrip
     " ends with this app - it used to hop to ITSELF (a second container
     " chained to its own draft, main( ) run a second time)
-    lo_handler = NEW #( val = `` ).
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_app.
     lo_handler->mo_action->mo_app->mo_app      = lo_app.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-    DATA(lo_action_before) = lo_handler->mo_action.
+
+    lo_action_before = lo_handler->mo_action.
 
     cl_abap_unit_assert=>assert_true( lo_handler->main_process( ) ).
 
@@ -1742,16 +1994,20 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
   METHOD test_sticky_keep_saves_draft.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
+    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA lv_id_keep LIKE lo_handler->mo_action->mo_app->ms_draft-id.
+    DATA lv_id_plain LIKE lo_handler->mo_action->mo_app->ms_draft-id.
+    CREATE OBJECT lo_draft TYPE z2ui5_cl_ui5_srv_draft.
 
     " a sticky app under KEEP routing: its draft id goes into the URL, so
     " the draft has to exist for Back/Forward and a bookmark to restore it
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app          = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->ms_draft-id     = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->mo_app->mv_check_sticky = abap_true.
     lo_handler->mo_action->mo_app->mv_nav_mode     = z2ui5_if_client=>cs_nav_mode-keep.
-    DATA(lv_id_keep) = lo_handler->mo_action->mo_app->ms_draft-id.
+
+    lv_id_keep = lo_handler->mo_action->mo_app->ms_draft-id.
 
     lo_handler->main_end( ).
 
@@ -1759,11 +2015,12 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( lo_handler->mo_action->mo_app->mv_check_initialized ).
 
     " a sticky app that asked for neither keeps skipping the serialization
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app          = NEW ltcl_app_noop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_noop.
     lo_handler->mo_action->mo_app->ms_draft-id     = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->mo_app->mv_check_sticky = abap_true.
-    DATA(lv_id_plain) = lo_handler->mo_action->mo_app->ms_draft-id.
+
+    lv_id_plain = lo_handler->mo_action->mo_app->ms_draft-id.
 
     lo_handler->main_end( ).
 
@@ -1775,13 +2032,15 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
   METHOD test_nav_mode_resent.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp18 TYPE xsdboolean.
+    DATA temp19 TYPE xsdboolean.
 
     " An app configures routing ONCE. main_end therefore re-sends the mode the
     " app carries whenever the roundtrip did not set one itself, so a later
     " render of the same app stays routed without queueing set_nav_routing
     " again - and an app that never opted in keeps sending nothing.
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_nav_loop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
 
@@ -1800,30 +2059,35 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
     CLEAR lo_handler->mo_action->ms_next.
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    temp18 = boolc( system_actions_of( lo_handler ) CS `setNavRouting` ).
+    cl_abap_unit_assert=>assert_false( temp18 ).
+
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_nav_loop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
+
+    temp19 = boolc( system_actions_of( lo_handler ) CS `setNavRouting` ).
+    cl_abap_unit_assert=>assert_false( temp19 ).
 
   ENDMETHOD.
 
   METHOD test_nav_mode_hop_default.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp20 TYPE xsdboolean.
 
     " A navigation hop into an app WITHOUT a mode of its own says DEFAULT
     " explicitly: the app's initial mode would travel as empty = "no change",
     " and the PREVIOUS app's KEEP/FRESH would keep writing
     " '#/app/<CLASS>/<DRAFT>' for an app that never opted in - seen live on
     " the samples overview after nav_app_leave from a routed sample.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->ms_request-s_front-id          = `PREV_DRAFT`.
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_nav_loop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->ms_actual-check_on_navigated = abap_true.
 
@@ -1837,19 +2101,21 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
     " too - a reload, or Back/Forward under FRESH routing re-creating an app
     " that only inherited its mode - and must NOT switch routing off: the
     " frontend is in the mode that produced the route
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_nav_loop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->ms_actual-check_on_navigated = abap_true.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
+
+    temp20 = boolc( system_actions_of( lo_handler ) CS `setNavRouting` ).
+    cl_abap_unit_assert=>assert_false( temp20 ).
 
     " while a hop into an app WITH a mode - its own, or the one a called app
     " inherits from its caller (z2ui5_cl_ui5_action) - still sends that mode
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+    CREATE OBJECT lo_handler->mo_action->mo_app->mo_app TYPE ltcl_app_nav_loop.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
     lo_handler->mo_action->ms_actual-check_on_navigated = abap_true.
@@ -1884,18 +2150,20 @@ CLASS ltcl_app_twice IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
     DATA lo_prev TYPE REF TO ltcl_app_twice.
-    IF client->check_on_init( ).
+      DATA lo_inner TYPE REF TO ltcl_app_twice.
+    IF client->check_on_init( ) IS NOT INITIAL.
       client->view_display( |<mvc:View><Text text="{ client->_bind( mv_name ) }"/></mvc:View>| ).
-    ELSEIF client->check_on_navigated( ).
+    ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
       lo_prev ?= client->get_app_prev( ).
       mv_from_inner = lo_prev->mv_name.
       client->view_display( |<mvc:View><Text text="{ client->_bind( mv_name ) }"/>| &&
                             |<Text text="{ client->_bind( mv_from_inner ) }"/></mvc:View>| ).
-    ELSEIF client->check_on_event( `CALL` ).
-      DATA(lo_inner) = NEW ltcl_app_twice( ).
+    ELSEIF client->check_on_event( `CALL` ) IS NOT INITIAL.
+
+      CREATE OBJECT lo_inner TYPE ltcl_app_twice.
       lo_inner->mv_name = `inner`.
       client->nav_app_call( lo_inner ).
-    ELSEIF client->check_on_event( `BACK` ).
+    ELSEIF client->check_on_event( `BACK` ) IS NOT INITIAL.
       client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
     ENDIF.
   ENDMETHOD.
@@ -1936,13 +2204,24 @@ CLASS ltcl_04_nav IMPLEMENTATION.
 
   METHOD popup_app_answers_alone.
 
-    DATA(lv_id) = caller_started( ).
-    DATA(lo_handler) = event_on( iv_id    = lv_id
+    DATA lv_id TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lv_app LIKE lo_handler->ms_response-s_front-app.
+    DATA temp21 TYPE xsdboolean.
+    DATA temp22 TYPE xsdboolean.
+    DATA temp23 TYPE xsdboolean.
+    DATA temp24 TYPE xsdboolean.
+    lv_id = caller_started( ).
+
+    lo_handler = event_on( iv_id    = lv_id
                                  iv_event = `ROW_SELECT` ).
 
     " the response names the CALLED app...
-    DATA(lv_app) = lo_handler->ms_response-s_front-app.
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_app CS `POPUP_BOUND` )
+
+    lv_app = lo_handler->ms_response-s_front-app.
+
+    temp21 = boolc( lv_app CS `POPUP_BOUND` ).
+    cl_abap_unit_assert=>assert_true( act = temp21
                                       msg = |the response names { lv_app }, not the popup app| ).
     " ...displays its popup and no main view...
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
@@ -1951,24 +2230,39 @@ CLASS ltcl_04_nav IMPLEMENTATION.
                                                       iv_slot    = z2ui5_if_client=>cs_view-main ) ).
     " ...and ships ITS model, which knows nothing of the caller's table -
     " the reason the frontend must not push it into the caller's view
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"MS_ROW"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"edit me"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lo_handler->ms_response-model CS `"MT_TAB"` ) ).
+
+    temp22 = boolc( lo_handler->ms_response-model CS `"MS_ROW"` ).
+    cl_abap_unit_assert=>assert_true( temp22 ).
+
+    temp23 = boolc( lo_handler->ms_response-model CS `"edit me"` ).
+    cl_abap_unit_assert=>assert_true( temp23 ).
+
+    temp24 = boolc( lo_handler->ms_response-model CS `"MT_TAB"` ).
+    cl_abap_unit_assert=>assert_false( temp24 ).
 
   ENDMETHOD.
 
   METHOD silent_popup_app_no_model.
 
-    DATA(lv_id) = caller_started( ).
-    DATA(lo_handler) = event_on( iv_id    = lv_id
+    DATA lv_id TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp25 TYPE xsdboolean.
+    DATA temp26 TYPE xsdboolean.
+    lv_id = caller_started( ).
+
+    lo_handler = event_on( iv_id    = lv_id
                                  iv_event = `ROW_SELECT_SILENT` ).
 
     " a popup app with nothing bound: the popup opens, and no MODEL key
     " travels at all - the caller's view keeps what it has
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-s_front-app CS `POPUP_SILENT` ) ).
+
+    temp25 = boolc( lo_handler->ms_response-s_front-app CS `POPUP_SILENT` ).
+    cl_abap_unit_assert=>assert_true( temp25 ).
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
                                                      iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lo_handler->mv_response CS `"MODEL"` ) ).
+
+    temp26 = boolc( lo_handler->mv_response CS `"MODEL"` ).
+    cl_abap_unit_assert=>assert_false( temp26 ).
 
   ENDMETHOD.
 
@@ -1978,60 +2272,105 @@ CLASS ltcl_04_nav IMPLEMENTATION.
     " back with check_on_navigated, reads the edit out of the popup app
     " (get_app_prev) and re-displays its table - one roundtrip, and the
     " response is the CALLER's again: its class, its main view, its model
-    DATA(lv_id) = caller_started( ).
-    DATA(lo_popup) = event_on( iv_id    = lv_id
+    DATA lv_id TYPE string.
+    DATA lo_popup TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_back TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp27 TYPE xsdboolean.
+    DATA temp28 TYPE xsdboolean.
+    DATA temp29 TYPE xsdboolean.
+    lv_id = caller_started( ).
+
+    lo_popup = event_on( iv_id    = lv_id
                                iv_event = `ROW_SELECT` ).
-    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+
+    lo_back = event_on( iv_id    = lo_popup->ms_response-s_front-id
                               iv_event = `CLOSE` ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `POPUP_CALLER` ) ).
+
+    temp27 = boolc( lo_back->ms_response-s_front-app CS `POPUP_CALLER` ).
+    cl_abap_unit_assert=>assert_true( temp27 ).
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_back
                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"MT_TAB"` ) ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"edited"` )
+
+    temp28 = boolc( lo_back->ms_response-model CS `"MT_TAB"` ).
+    cl_abap_unit_assert=>assert_true( temp28 ).
+
+    temp29 = boolc( lo_back->ms_response-model CS `"edited"` ).
+    cl_abap_unit_assert=>assert_true( act = temp29
                                       msg = `the caller could not read the popup app back` ).
 
   ENDMETHOD.
 
   METHOD same_class_twice_in_stack.
 
-    DATA(lo_outer) = NEW ltcl_app_twice( ).
+    DATA lo_outer TYPE REF TO ltcl_app_twice.
+    DATA lo_start TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp30 TYPE xsdboolean.
+    DATA lo_inner TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp31 TYPE xsdboolean.
+    DATA temp32 TYPE xsdboolean.
+    DATA temp33 TYPE xsdboolean.
+    DATA lo_back TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp34 TYPE xsdboolean.
+    DATA temp35 TYPE xsdboolean.
+    CREATE OBJECT lo_outer TYPE ltcl_app_twice.
     lo_outer->mv_name = `outer`.
-    DATA(lo_start) = started_with( lo_outer ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_start->ms_response-model CS `"outer"` ) ).
+
+    lo_start = started_with( lo_outer ).
+
+    temp30 = boolc( lo_start->ms_response-model CS `"outer"` ).
+    cl_abap_unit_assert=>assert_true( temp30 ).
 
     " the hop: the inner instance answers, with ITS value under the same
     " attribute name
-    DATA(lo_inner) = event_on( iv_id    = lo_start->ms_response-s_front-id
+
+    lo_inner = event_on( iv_id    = lo_start->ms_response-s_front-id
                                iv_event = `CALL` ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_inner->ms_response-s_front-app CS `APP_TWICE` ) ).
+
+    temp31 = boolc( lo_inner->ms_response-s_front-app CS `APP_TWICE` ).
+    cl_abap_unit_assert=>assert_true( temp31 ).
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_inner
                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_inner->ms_response-model CS `"inner"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lo_inner->ms_response-model CS `"outer"` ) ).
+
+    temp32 = boolc( lo_inner->ms_response-model CS `"inner"` ).
+    cl_abap_unit_assert=>assert_true( temp32 ).
+
+    temp33 = boolc( lo_inner->ms_response-model CS `"outer"` ).
+    cl_abap_unit_assert=>assert_false( temp33 ).
     " two drafts, not one overwritten
     cl_abap_unit_assert=>assert_differs( exp = lo_start->ms_response-s_front-id
                                          act = lo_inner->ms_response-s_front-id ).
 
     " the way back: the OUTER instance again, its own value, and what it
     " read out of the inner
-    DATA(lo_back) = event_on( iv_id    = lo_inner->ms_response-s_front-id
+
+    lo_back = event_on( iv_id    = lo_inner->ms_response-s_front-id
                               iv_event = `BACK` ).
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_back
                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"MV_NAME":"outer"` ) ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"MV_FROM_INNER":"inner"` )
+
+    temp34 = boolc( lo_back->ms_response-model CS `"MV_NAME":"outer"` ).
+    cl_abap_unit_assert=>assert_true( temp34 ).
+
+    temp35 = boolc( lo_back->ms_response-model CS `"MV_FROM_INNER":"inner"` ).
+    cl_abap_unit_assert=>assert_true( act = temp35
                                       msg = `the outer could not read the inner back` ).
 
   ENDMETHOD.
 
   METHOD caller_started.
 
-    DATA(lo_handler) = started_with( NEW ltcl_app_popup_caller( ) ).
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp1 TYPE REF TO ltcl_app_popup_caller.
+    DATA temp36 TYPE xsdboolean.
+    CREATE OBJECT temp1 TYPE ltcl_app_popup_caller.
+    lo_handler = started_with( temp1 ).
 
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->ms_response-model CS `"MT_TAB"` ) ).
+
+    temp36 = boolc( lo_handler->ms_response-model CS `"MT_TAB"` ).
+    cl_abap_unit_assert=>assert_true( temp36 ).
     result = lo_handler->ms_response-s_front-id.
 
   ENDMETHOD.
@@ -2039,46 +2378,90 @@ CLASS ltcl_04_nav IMPLEMENTATION.
 
   METHOD popup_reads_caller_table.
 
-    DATA(lo_start) = started_with( NEW ltcl_app_dref_caller( ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_start->ms_response-model CS `"two"` ) ).
+    DATA lo_start TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp2 TYPE REF TO ltcl_app_dref_caller.
+    DATA temp37 TYPE xsdboolean.
+    DATA lo_popup TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp38 TYPE xsdboolean.
+    DATA temp39 TYPE xsdboolean.
+    DATA lo_back TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp40 TYPE xsdboolean.
+    DATA temp41 TYPE xsdboolean.
+    DATA temp42 TYPE xsdboolean.
+    CREATE OBJECT temp2 TYPE ltcl_app_dref_caller.
+    lo_start = started_with( temp2 ).
+
+    temp37 = boolc( lo_start->ms_response-model CS `"two"` ).
+    cl_abap_unit_assert=>assert_true( temp37 ).
 
     " the hop saves the caller - its generic reference is detached for the
     " draft and has to be back before the popup app runs
-    DATA(lo_popup) = event_on( iv_id    = lo_start->ms_response-s_front-id
+
+    lo_popup = event_on( iv_id    = lo_start->ms_response-s_front-id
                                iv_event = `OPEN` ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_popup->ms_response-s_front-app CS `DREF_POPUP` ) ).
+
+    temp38 = boolc( lo_popup->ms_response-s_front-app CS `DREF_POPUP` ).
+    cl_abap_unit_assert=>assert_true( temp38 ).
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_popup
                                                      iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_popup->ms_response-model CS `"MV_FROM_CALLER":"two"` )
+
+    temp39 = boolc( lo_popup->ms_response-model CS `"MV_FROM_CALLER":"two"` ).
+    cl_abap_unit_assert=>assert_true( act = temp39
                                       msg = `the popup app could not read the caller's table` ).
 
     " the way back: the caller renders its table again, both rows
-    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+
+    lo_back = event_on( iv_id    = lo_popup->ms_response-s_front-id
                               iv_event = `CLOSE` ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `DREF_CALLER` ) ).
+
+    temp40 = boolc( lo_back->ms_response-s_front-app CS `DREF_CALLER` ).
+    cl_abap_unit_assert=>assert_true( temp40 ).
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_back
                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"one"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"two"` ) ).
+
+    temp41 = boolc( lo_back->ms_response-model CS `"one"` ).
+    cl_abap_unit_assert=>assert_true( temp41 ).
+
+    temp42 = boolc( lo_back->ms_response-model CS `"two"` ).
+    cl_abap_unit_assert=>assert_true( temp42 ).
 
   ENDMETHOD.
 
   METHOD popup_writes_caller_table.
 
-    DATA(lo_start) = started_with( NEW ltcl_app_dref_caller( ) ).
-    DATA(lo_popup) = event_on( iv_id    = lo_start->ms_response-s_front-id
+    DATA lo_start TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp3 TYPE REF TO ltcl_app_dref_caller.
+    DATA lo_popup TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp43 TYPE xsdboolean.
+    DATA lo_back TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp44 TYPE xsdboolean.
+    DATA temp45 TYPE xsdboolean.
+    DATA temp46 TYPE xsdboolean.
+    CREATE OBJECT temp3 TYPE ltcl_app_dref_caller.
+    lo_start = started_with( temp3 ).
+
+    lo_popup = event_on( iv_id    = lo_start->ms_response-s_front-id
                                iv_event = `OPEN` ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_popup->ms_response-s_front-app CS `DREF_POPUP` ) ).
+
+    temp43 = boolc( lo_popup->ms_response-s_front-app CS `DREF_POPUP` ).
+    cl_abap_unit_assert=>assert_true( temp43 ).
 
     " the popup app appends a row to the caller's runtime-built table and
     " leaves to the caller instance it holds: the caller renders three rows
-    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+
+    lo_back = event_on( iv_id    = lo_popup->ms_response-s_front-id
                               iv_event = `APPEND` ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `DREF_CALLER` ) ).
+
+    temp44 = boolc( lo_back->ms_response-s_front-app CS `DREF_CALLER` ).
+    cl_abap_unit_assert=>assert_true( temp44 ).
     cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_back
                                                      iv_slot    = z2ui5_if_client=>cs_view-main ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"one"` ) ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"three"` )
+
+    temp45 = boolc( lo_back->ms_response-model CS `"one"` ).
+    cl_abap_unit_assert=>assert_true( temp45 ).
+
+    temp46 = boolc( lo_back->ms_response-model CS `"three"` ).
+    cl_abap_unit_assert=>assert_true( act = temp46
                                       msg = `the row the popup app appended was lost on the way back` ).
 
   ENDMETHOD.

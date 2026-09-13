@@ -24,7 +24,8 @@ CLASS ltcl_test_alias IMPLEMENTATION.
   METHOD test_alias_resolves.
 
     " an ICF handler on the old name reaches the same entry point
-    DATA(ls_result) = z2ui5_cl_http_handler=>_http_get( ).
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    ls_result = z2ui5_cl_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
@@ -33,6 +34,7 @@ CLASS ltcl_test_alias IMPLEMENTATION.
 
 
   METHOD test_alias_is_not_a_fork.
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
 
     " byte-identical to what the released class returns: the alias adds
     " nothing and overrides nothing, which is the only reason it is safe to
@@ -41,7 +43,7 @@ CLASS ltcl_test_alias IMPLEMENTATION.
         exp = z2ui5_cl_ui5_http_handler=>_http_get( )-body
         act = z2ui5_cl_http_handler=>_http_get( )-body ).
 
-    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+
     ls_req-method = `POST`.
     ls_req-body   = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 

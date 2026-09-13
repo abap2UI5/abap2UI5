@@ -14,22 +14,53 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lt_filter) = VALUE z2ui5_cl_ui5_util_context=>ty_t_filter_multi(
-      ( name = `CARRID` t_range = VALUE #( ( sign = `I` option = `EQ` low = `AA` ) ) )
-      ( name = `CONNID` ) ).
+    DATA temp1 TYPE z2ui5_cl_ui5_util_context=>ty_t_filter_multi.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA temp3 TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
+    DATA temp4 LIKE LINE OF temp3.
+    DATA lt_filter LIKE temp1.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range_m.
+    CLEAR temp1.
 
-    DATA(lo_pop) = z2ui5_cl_pop_get_range_m=>factory( lt_filter ).
+    temp2-name = `CARRID`.
+
+    CLEAR temp3.
+
+    temp4-sign = `I`.
+    temp4-option = `EQ`.
+    temp4-low = `AA`.
+    INSERT temp4 INTO TABLE temp3.
+    temp2-t_range = temp3.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-name = `CONNID`.
+    INSERT temp2 INTO TABLE temp1.
+
+    lt_filter = temp1.
+
+
+    lo_pop = z2ui5_cl_pop_get_range_m=>factory( lt_filter ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_result_initial.
 
-    DATA(lt_filter) = VALUE z2ui5_cl_ui5_util_context=>ty_t_filter_multi(
-      ( name = `FIELD1` ) ).
+    DATA temp3 TYPE z2ui5_cl_ui5_util_context=>ty_t_filter_multi.
+    DATA temp4 LIKE LINE OF temp3.
+    DATA lt_filter LIKE temp3.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range_m.
+    DATA ls_result TYPE z2ui5_cl_pop_get_range_m=>ty_s_result.
+    CLEAR temp3.
 
-    DATA(lo_pop) = z2ui5_cl_pop_get_range_m=>factory( lt_filter ).
-    DATA(ls_result) = lo_pop->result( ).
+    temp4-name = `FIELD1`.
+    INSERT temp4 INTO TABLE temp3.
+
+    lt_filter = temp3.
+
+
+    lo_pop = z2ui5_cl_pop_get_range_m=>factory( lt_filter ).
+
+    ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( ls_result-t_filter ) ).
@@ -70,30 +101,57 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD popup_displayed_xml.
 
-    result = VALUE #( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ).
+    DATA temp5 TYPE string.
+    DATA temp6 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
+    CLEAR temp5.
+
+    READ TABLE mo_action->ms_next-t_action_front INTO temp6 WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-display.
+    IF sy-subrc = 0.
+      temp5 = temp6-xml.
+    ENDIF.
+    result = temp5.
 
   ENDMETHOD.
 
 
   METHOD popup_destroy_queued.
 
-    result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-destroy ] ) ).
+    DATA temp7 LIKE sy-subrc.
+    DATA temp1 TYPE xsdboolean.
+    READ TABLE mo_action->ms_next-t_action_front WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-destroy TRANSPORTING NO FIELDS.
+    temp7 = sy-subrc.
+
+    temp1 = boolc( temp7 = 0 ).
+    result = temp1.
 
   ENDMETHOD.
 
 
   METHOD popup_create.
 
-    ro_pop = z2ui5_cl_pop_get_range_m=>factory( VALUE #(
-        ( name    = `MATNR`
-          t_range = VALUE #( ( sign = `I` option = `EQ` low = `100` ) ) ) ) ).
-    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
+    DATA temp8 TYPE z2ui5_cl_ui5_util_context=>ty_t_filter_multi.
+    DATA temp9 LIKE LINE OF temp8.
+    DATA temp5 TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
+    DATA temp6 LIKE LINE OF temp5.
+    DATA temp7 TYPE REF TO z2ui5_cl_ui5_handler.
+    CLEAR temp8.
+
+    temp9-name = `MATNR`.
+
+    CLEAR temp5.
+
+    temp6-sign = `I`.
+    temp6-option = `EQ`.
+    temp6-low = `100`.
+    INSERT temp6 INTO TABLE temp5.
+    temp9-t_range = temp5.
+    INSERT temp9 INTO TABLE temp8.
+    ro_pop = z2ui5_cl_pop_get_range_m=>factory( temp8 ).
+
+    CREATE OBJECT temp7 TYPE z2ui5_cl_ui5_handler EXPORTING VAL = ``.
+    CREATE OBJECT mo_action EXPORTING VAL = temp7.
     mo_action->mo_app->mo_app = ro_pop.
-    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
+    CREATE OBJECT mi_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = mo_action.
 
     ro_pop->z2ui5_if_app~main( mi_client ).
     mo_action->mo_app->mv_check_initialized = abap_true.
@@ -102,19 +160,29 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_init_displays_popup.
 
-    DATA(lo_pop) = popup_create( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range_m.
+    DATA lv_xml TYPE string.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
+    lo_pop = popup_create( ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
-    DATA(lv_xml) = popup_displayed_xml( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Define Filter Conditions` ) ).
+
+    lv_xml = popup_displayed_xml( ).
+
+    temp2 = boolc( lv_xml CS `Define Filter Conditions` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
     " the filter names live in the model, the list only carries the binding
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `T_FILTER` ) ).
+
+    temp3 = boolc( lv_xml CS `T_FILTER` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
 
   METHOD test_confirm.
 
-    DATA(lo_pop) = popup_create( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range_m.
+    lo_pop = popup_create( ).
 
     mo_action->ms_actual-event = `BUTTON_CONFIRM`.
     lo_pop->z2ui5_if_app~main( mi_client ).
@@ -127,25 +195,46 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_list_open_calls_pop.
 
-    DATA(lo_pop) = popup_create( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range_m.
+    DATA temp10 TYPE string_table.
+    DATA temp12 TYPE REF TO z2ui5_cl_pop_get_range.
+    DATA lo_range_pop LIKE temp12.
+    lo_pop = popup_create( ).
 
     mo_action->ms_actual-event = `LIST_OPEN`.
-    mo_action->ms_actual-t_event_arg = VALUE #( ( `MATNR` ) ).
+
+    CLEAR temp10.
+    INSERT `MATNR` INTO TABLE temp10.
+    mo_action->ms_actual-t_event_arg = temp10.
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    DATA(lo_range_pop) = CAST z2ui5_cl_pop_get_range( mo_action->ms_next-o_app_call ).
+
+    temp12 ?= mo_action->ms_next-o_app_call.
+
+    lo_range_pop = temp12.
     cl_abap_unit_assert=>assert_bound( lo_range_pop ).
 
   ENDMETHOD.
 
   METHOD test_delete_all.
 
-    DATA(lo_pop) = popup_create( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range_m.
+    FIELD-SYMBOLS <temp13> LIKE LINE OF lo_pop->ms_result-t_filter.
+    DATA temp14 LIKE sy-tabix.
+    lo_pop = popup_create( ).
 
     mo_action->ms_actual-event = `POPUP_DELETE_ALL`.
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    cl_abap_unit_assert=>assert_initial( lo_pop->ms_result-t_filter[ 1 ]-t_range ).
+
+
+    temp14 = sy-tabix.
+    READ TABLE lo_pop->ms_result-t_filter INDEX 1 ASSIGNING <temp13>.
+    sy-tabix = temp14.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    cl_abap_unit_assert=>assert_initial( <temp13>-t_range ).
 
   ENDMETHOD.
 

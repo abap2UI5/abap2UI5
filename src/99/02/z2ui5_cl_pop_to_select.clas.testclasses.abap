@@ -26,11 +26,23 @@ CLASS ltcl_test IMPLEMENTATION.
         name  TYPE string,
         value TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( name = `A` value = `1` )
-                      ( name = `B` value = `2` ) ).
+    TYPES temp3 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA lt_tab TYPE temp3.
+    DATA temp1 LIKE lt_tab.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
+    CLEAR temp1.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_select=>factory( lt_tab ).
+    temp2-name = `A`.
+    temp2-value = `1`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-name = `B`.
+    temp2-value = `2`.
+    INSERT temp2 INTO TABLE temp1.
+    lt_tab = temp1.
+
+
+    lo_pop = z2ui5_cl_pop_to_select=>factory( lt_tab ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
@@ -41,10 +53,19 @@ CLASS ltcl_test IMPLEMENTATION.
       BEGIN OF ty_row,
         name TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( name = `X` ) ).
+    TYPES temp5 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA lt_tab TYPE temp5.
+    DATA temp3 LIKE lt_tab.
+    DATA temp4 LIKE LINE OF temp3.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
+    CLEAR temp3.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_select=>factory(
+    temp4-name = `X`.
+    INSERT temp4 INTO TABLE temp3.
+    lt_tab = temp3.
+
+
+    lo_pop = z2ui5_cl_pop_to_select=>factory(
       i_tab         = lt_tab
       i_multiselect = abap_true ).
 
@@ -58,11 +79,22 @@ CLASS ltcl_test IMPLEMENTATION.
       BEGIN OF ty_row,
         name TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( name = `A` ) ).
+    TYPES temp7 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA lt_tab TYPE temp7.
+    DATA temp5 LIKE lt_tab.
+    DATA temp6 LIKE LINE OF temp5.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
+    DATA ls_result TYPE z2ui5_cl_pop_to_select=>ty_s_result.
+    CLEAR temp5.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_select=>factory( lt_tab ).
-    DATA(ls_result) = lo_pop->result( ).
+    temp6-name = `A`.
+    INSERT temp6 INTO TABLE temp5.
+    lt_tab = temp5.
+
+
+    lo_pop = z2ui5_cl_pop_to_select=>factory( lt_tab ).
+
+    ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
 
   ENDMETHOD.
@@ -73,10 +105,19 @@ CLASS ltcl_test IMPLEMENTATION.
       BEGIN OF ty_row,
         name TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( name = `A` ) ).
+    TYPES temp9 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA lt_tab TYPE temp9.
+    DATA temp7 LIKE lt_tab.
+    DATA temp8 LIKE LINE OF temp7.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
+    CLEAR temp7.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_select=>factory(
+    temp8-name = `A`.
+    INSERT temp8 INTO TABLE temp7.
+    lt_tab = temp7.
+
+
+    lo_pop = z2ui5_cl_pop_to_select=>factory(
       i_tab   = lt_tab
       i_title = `Custom` ).
 
@@ -91,11 +132,22 @@ CLASS ltcl_test IMPLEMENTATION.
       BEGIN OF ty_row,
         name TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( name = `X` ) ).
+    TYPES temp11 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA lt_tab TYPE temp11.
+    DATA temp9 LIKE lt_tab.
+    DATA temp10 LIKE LINE OF temp9.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
+    DATA ls_result TYPE z2ui5_cl_pop_to_select=>ty_s_result.
+    CLEAR temp9.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_select=>factory( lt_tab ).
-    DATA(ls_result) = lo_pop->result( ).
+    temp10-name = `X`.
+    INSERT temp10 INTO TABLE temp9.
+    lt_tab = temp9.
+
+
+    lo_pop = z2ui5_cl_pop_to_select=>factory( lt_tab ).
+
+    ls_result = lo_pop->result( ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop->mr_tab ).
     cl_abap_unit_assert=>assert_bound( ls_result-row ).
@@ -109,12 +161,26 @@ CLASS ltcl_test IMPLEMENTATION.
       BEGIN OF ty_row,
         name TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( name = `A` ) ( name = `B` ) ( name = `C` ) ).
-
-    DATA(lo_pop) = z2ui5_cl_pop_to_select=>factory( lt_tab ).
-
+    TYPES temp13 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA lt_tab TYPE temp13.
+    DATA temp11 LIKE lt_tab.
+    DATA temp12 LIKE LINE OF temp11.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    CLEAR temp11.
+
+    temp12-name = `A`.
+    INSERT temp12 INTO TABLE temp11.
+    temp12-name = `B`.
+    INSERT temp12 INTO TABLE temp11.
+    temp12-name = `C`.
+    INSERT temp12 INTO TABLE temp11.
+    lt_tab = temp11.
+
+
+    lo_pop = z2ui5_cl_pop_to_select=>factory( lt_tab ).
+
+
     ASSIGN lo_pop->mr_tab->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( <tab> ) ).
@@ -127,10 +193,14 @@ CLASS ltcl_test IMPLEMENTATION.
       BEGIN OF ty_row,
         name TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    TYPES temp14 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA lt_tab TYPE temp14.
 
-    DATA(lo_single) = z2ui5_cl_pop_to_select=>factory( lt_tab ).
-    DATA(lo_multi)  = z2ui5_cl_pop_to_select=>factory(
+    DATA lo_single TYPE REF TO z2ui5_cl_pop_to_select.
+    DATA lo_multi TYPE REF TO z2ui5_cl_pop_to_select.
+    lo_single = z2ui5_cl_pop_to_select=>factory( lt_tab ).
+
+    lo_multi  = z2ui5_cl_pop_to_select=>factory(
       i_tab         = lt_tab
       i_multiselect = abap_true ).
 
@@ -153,7 +223,7 @@ CLASS ltcl_test_roundtrip DEFINITION FINAL
         name  TYPE string,
         count TYPE i,
       END OF ty_s_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     DATA mo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA mi_client TYPE REF TO z2ui5_if_client.
@@ -191,34 +261,57 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD popup_displayed_xml.
 
-    result = VALUE #( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ).
+    DATA temp13 TYPE string.
+    DATA temp14 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
+    CLEAR temp13.
+
+    READ TABLE mo_action->ms_next-t_action_front INTO temp14 WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-display.
+    IF sy-subrc = 0.
+      temp13 = temp14-xml.
+    ENDIF.
+    result = temp13.
 
   ENDMETHOD.
 
 
   METHOD popup_destroy_queued.
 
-    result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-destroy ] ) ).
+    DATA temp15 LIKE sy-subrc.
+    DATA temp1 TYPE xsdboolean.
+    READ TABLE mo_action->ms_next-t_action_front WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-destroy TRANSPORTING NO FIELDS.
+    temp15 = sy-subrc.
+
+    temp1 = boolc( temp15 = 0 ).
+    result = temp1.
 
   ENDMETHOD.
 
 
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
+    DATA temp1 TYPE REF TO z2ui5_cl_ui5_handler.
+    CREATE OBJECT temp1 TYPE z2ui5_cl_ui5_handler EXPORTING VAL = ``.
+    CREATE OBJECT mo_action EXPORTING VAL = temp1.
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
+    CREATE OBJECT mi_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = mo_action.
 
   ENDMETHOD.
 
   METHOD popup_create.
 
-    DATA(lt_tab) = VALUE ty_t_tab( ( name = `alpha` count = 1 )
-                                   ( name = `bravo` count = 2 ) ).
+    DATA temp16 TYPE ty_t_tab.
+    DATA temp17 LIKE LINE OF temp16.
+    DATA lt_tab LIKE temp16.
+    CLEAR temp16.
+
+    temp17-name = `alpha`.
+    temp17-count = 1.
+    INSERT temp17 INTO TABLE temp16.
+    temp17-name = `bravo`.
+    temp17-count = 2.
+    INSERT temp17 INTO TABLE temp16.
+
+    lt_tab = temp16.
     ro_pop = z2ui5_cl_pop_to_select=>factory( i_tab             = lt_tab
                                               i_event_confirmed = `SEL_OK`
                                               i_event_canceled  = `SEL_CANCEL` ).
@@ -234,9 +327,11 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
     FIELD-SYMBOLS <lt_pop> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <lv_sel> TYPE any.
+    FIELD-SYMBOLS <ls_row> TYPE any.
 
     ASSIGN io_pop->mr_tab_popup->* TO <lt_pop>.
-    READ TABLE <lt_pop> ASSIGNING FIELD-SYMBOL(<ls_row>) INDEX iv_index.
+
+    READ TABLE <lt_pop> ASSIGNING <ls_row> INDEX iv_index.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>fail( `POPUP_TABLE_ROW_NOT_FOUND` ).
     ENDIF.
@@ -250,41 +345,59 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_init_displays_dialog.
 
-    DATA(lo_pop) = popup_create( ).
-
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
     FIELD-SYMBOLS <lt_pop> TYPE STANDARD TABLE.
+    DATA lv_xml TYPE string.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
+    lo_pop = popup_create( ).
+
+
     ASSIGN lo_pop->mr_tab_popup->* TO <lt_pop>.
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( <lt_pop> ) ).
-    DATA(lv_xml) = popup_displayed_xml( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `TableSelectDialog` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Single Select` ) ).
+
+    lv_xml = popup_displayed_xml( ).
+
+    temp2 = boolc( lv_xml CS `TableSelectDialog` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
+
+    temp3 = boolc( lv_xml CS `Single Select` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
 
   METHOD test_confirm_selected_row.
 
-    DATA(lo_pop) = popup_create( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
+    DATA ls_result TYPE z2ui5_cl_pop_to_select=>ty_s_result.
+    FIELD-SYMBOLS <lt_result> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <ls_row> TYPE any.
+    FIELD-SYMBOLS <lv_name> TYPE any.
+    lo_pop = popup_create( ).
     select_row( io_pop   = lo_pop
                 iv_index = 2 ).
 
     mo_action->ms_actual-event = `CONFIRM`.
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    DATA(ls_result) = lo_pop->result( ).
+
+    ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_true( ls_result-check_confirmed ).
 
-    FIELD-SYMBOLS <lt_result> TYPE STANDARD TABLE.
+
     ASSIGN ls_result-table->* TO <lt_result>.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( <lt_result> ) ).
 
-    READ TABLE <lt_result> ASSIGNING FIELD-SYMBOL(<ls_row>) INDEX 1.
+
+    READ TABLE <lt_result> ASSIGNING <ls_row> INDEX 1.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>fail( `RESULT_ROW_NOT_FOUND` ).
     ENDIF.
-    ASSIGN COMPONENT `NAME` OF STRUCTURE <ls_row> TO FIELD-SYMBOL(<lv_name>).
+
+    ASSIGN COMPONENT `NAME` OF STRUCTURE <ls_row> TO <lv_name>.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>fail( `NAME_COLUMN_NOT_FOUND` ).
     ENDIF.
@@ -299,7 +412,8 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_cancel.
 
-    DATA(lo_pop) = popup_create( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
+    lo_pop = popup_create( ).
 
     mo_action->ms_actual-event = `CANCEL`.
     lo_pop->z2ui5_if_app~main( mi_client ).
@@ -313,13 +427,19 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_search_filters.
 
-    DATA(lo_pop) = popup_create( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
+    DATA temp18 TYPE string_table.
+    FIELD-SYMBOLS <lt_pop> TYPE STANDARD TABLE.
+    lo_pop = popup_create( ).
 
     mo_action->ms_actual-event = `SEARCH`.
-    mo_action->ms_actual-t_event_arg = VALUE #( ( `bravo` ) ).
+
+    CLEAR temp18.
+    INSERT `bravo` INTO TABLE temp18.
+    mo_action->ms_actual-t_event_arg = temp18.
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    FIELD-SYMBOLS <lt_pop> TYPE STANDARD TABLE.
+
     ASSIGN lo_pop->mr_tab_popup->* TO <lt_pop>.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( <lt_pop> ) ).

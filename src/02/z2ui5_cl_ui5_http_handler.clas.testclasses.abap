@@ -42,28 +42,43 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_http_get_html.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_result-body ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<html` ) ).
+    temp1 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
+    cl_abap_unit_assert=>assert_true( temp1 ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `</html>` ) ).
+
+    temp2 = boolc( ls_result-body CS `<html` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
+
+
+    temp3 = boolc( ls_result-body CS `</html>` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
 
   METHOD test_http_get_ui5_boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `sap-ui-bootstrap` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `z2ui5` ) ).
+    temp4 = boolc( ls_result-body CS `sap-ui-bootstrap` ).
+    cl_abap_unit_assert=>assert_true( temp4 ).
+
+
+    temp5 = boolc( ls_result-body CS `z2ui5` ).
+    cl_abap_unit_assert=>assert_true( temp5 ).
 
   ENDMETHOD.
 
@@ -76,10 +91,13 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " an empty one would leave the URL in the tab during the UI5 boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp6 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<title>abap2UI5</title>` ) ).
+
+    temp6 = boolc( ls_result-body CS `<title>abap2UI5</title>` ).
+    cl_abap_unit_assert=>assert_true( temp6 ).
 
   ENDMETHOD.
 
@@ -87,6 +105,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp7 TYPE xsdboolean.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
@@ -96,7 +115,9 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `S_FRONT` ) ).
+
+    temp7 = boolc( ls_result-body CS `S_FRONT` ).
+    cl_abap_unit_assert=>assert_true( temp7 ).
 
   ENDMETHOD.
 
@@ -177,6 +198,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp8 TYPE xsdboolean.
 
     ls_req-method = `GET`.
 
@@ -185,7 +207,9 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
+
+    temp8 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
+    cl_abap_unit_assert=>assert_true( temp8 ).
 
   ENDMETHOD.
 
@@ -207,7 +231,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_inactive.
 
     " opt-out: with csrf disabled even a cross-origin request is allowed
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_false
                             origin  = `https://evil.example.com`
                             referer = ``
@@ -220,7 +245,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_same_origin.
 
     " same host authority (scheme/case ignored) -> allowed
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = `https://App.Corp:44300`
                             referer = ``
@@ -233,7 +259,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_cross_origin.
 
     " different host authority -> rejected
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = `https://evil.example.com`
                             referer = ``
@@ -246,7 +273,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_no_headers.
 
     " lenient: no Origin and no Referer -> allowed (proxies / old clients)
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = ``
                             referer = ``
@@ -259,7 +287,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_referer.
 
     " Origin absent -> fall back to Referer (with a path), cross-site -> rejected
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = ``
                             referer = `https://evil.example.com/attack?x=1`
@@ -281,20 +310,34 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " single-quoted string literal, so an apostrophe, a backslash or a line
     " break in a customer's own CSS has to arrive escaped.
     DATA lv_css TYPE string.
+    DATA lv_preload TYPE string.
+    DATA temp9 TYPE xsdboolean.
+    DATA temp10 TYPE xsdboolean.
+    DATA temp11 TYPE xsdboolean.
+    DATA temp12 TYPE xsdboolean.
 
     lv_css = `.a::after { content: 'x'; }` && |\n| && `.b { background: url("i\c.png"); }`.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_css
+
+    lv_preload = z2ui5_cl_ui5f_preload=>get( styles_css = lv_css
                                                   custom_js   = `` ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `content: \'x\';` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `}\n.b` ) ).
+    temp9 = boolc( lv_preload CS `content: \'x\';` ).
+    cl_abap_unit_assert=>assert_true( temp9 ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `url("i\\c.png")` ) ).
+
+    temp10 = boolc( lv_preload CS `}\n.b` ).
+    cl_abap_unit_assert=>assert_true( temp10 ).
+
+
+    temp11 = boolc( lv_preload CS `url("i\\c.png")` ).
+    cl_abap_unit_assert=>assert_true( temp11 ).
 
     " and nothing raw survives next to the escaped copies
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_preload CS `content: 'x';` ) ).
+
+    temp12 = boolc( lv_preload CS `content: 'x';` ).
+    cl_abap_unit_assert=>assert_false( temp12 ).
 
   ENDMETHOD.
 
@@ -314,12 +357,15 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA lv_rest   TYPE string.
     DATA lv_checked TYPE i.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = `.a { content: 'x'; }`
+    DATA lv_preload TYPE string.
+    DATA lv_line LIKE LINE OF lt_lines.
+    lv_preload = z2ui5_cl_ui5f_preload=>get( styles_css = `.a { content: 'x'; }`
                                                   custom_js   = `` ).
 
     SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
 
-    LOOP AT lt_lines INTO DATA(lv_line).
+
+    LOOP AT lt_lines INTO lv_line.
 
       IF lv_line NP `      "z2ui5/*": '*',`.
         CONTINUE.
@@ -387,8 +433,11 @@ CLASS ltcl_http_mock IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_header_field.
-    DATA(lv_name) = to_lower( val ).
-    READ TABLE mt_req_header INTO DATA(ls_header) WITH KEY n = lv_name.
+    DATA lv_name TYPE string.
+    DATA ls_header TYPE z2ui5_if_client=>ty_s_name_value.
+    lv_name = to_lower( val ).
+
+    READ TABLE mt_req_header INTO ls_header WITH KEY n = lv_name.
     IF sy-subrc = 0.
       result = ls_header-v.
     ENDIF.
@@ -396,10 +445,15 @@ CLASS ltcl_http_mock IMPLEMENTATION.
 
   METHOD set_header_field.
     " last write wins, like the real stack - replace an existing entry
-    DATA(lv_name) = to_lower( n ).
+    DATA lv_name TYPE string.
+    DATA temp1 TYPE z2ui5_if_client=>ty_s_name_value.
+    lv_name = to_lower( n ).
     DELETE mt_res_header WHERE n = lv_name.
-    INSERT VALUE #( n = lv_name
-                    v = v ) INTO TABLE mt_res_header.
+
+    CLEAR temp1.
+    temp1-n = lv_name.
+    temp1-v = v.
+    INSERT temp1 INTO TABLE mt_res_header.
   ENDMETHOD.
 
   METHOD set_cdata.
@@ -572,22 +626,25 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD handler_create.
-    mo_handler = NEW #( ).
-    mo_mock    = NEW #( ).
+    CREATE OBJECT mo_handler.
+    CREATE OBJECT mo_mock.
     mo_handler->mo_server = mo_mock.
   ENDMETHOD.
 
   METHOD header_value.
-    READ TABLE mo_mock->mt_res_header INTO DATA(ls_header) WITH KEY n = name.
+    DATA ls_header TYPE z2ui5_if_client=>ty_s_name_value.
+    READ TABLE mo_mock->mt_res_header INTO ls_header WITH KEY n = name.
     IF sy-subrc = 0.
       result = ls_header-v.
     ENDIF.
   ENDMETHOD.
 
   METHOD shell_for_config.
+    DATA ls_res TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     z2ui5_cl_ui5_http_handler=>ss_config_http_get     = is_config.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
-    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    ls_res = z2ui5_cl_ui5_http_handler=>_http_get( ).
     result = ls_res-body.
   ENDMETHOD.
 
@@ -596,18 +653,32 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " every input the shell body is built from must be part of the cache
     " key: a changed input that leaves the key unchanged would serve the
     " previous page to the whole work process
-    DATA(ls_base) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme                   = `sap_horizon`
-        src                     = `https://sdk.example/sap-ui-core.js`
-        content_security_policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'"/>` ).
+    DATA temp2 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_base LIKE temp2.
+    DATA lv_body_base TYPE string.
+    DATA lv_key_base LIKE z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
+    DATA ls_config LIKE ls_base.
+    DATA lv_body TYPE string.
+    DATA temp3 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp4 LIKE LINE OF temp3.
+    CLEAR temp2.
+    temp2-theme = `sap_horizon`.
+    temp2-src = `https://sdk.example/sap-ui-core.js`.
+    temp2-content_security_policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'"/>`.
 
-    DATA(lv_body_base) = shell_for_config( ls_base ).
-    DATA(lv_key_base)  = z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
+    ls_base = temp2.
+
+
+    lv_body_base = shell_for_config( ls_base ).
+
+    lv_key_base = z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
     cl_abap_unit_assert=>assert_not_initial( lv_key_base ).
 
-    DATA(ls_config) = ls_base.
+
+    ls_config = ls_base.
     ls_config-theme = `sap_fiori_3`.
-    DATA(lv_body) = shell_for_config( ls_config ).
+
+    lv_body = shell_for_config( ls_config ).
     cl_abap_unit_assert=>assert_differs( exp = lv_key_base
                                          act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).
     cl_abap_unit_assert=>assert_differs( exp = lv_body_base
@@ -646,8 +717,13 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                          act = lv_body ).
 
     ls_config = ls_base.
-    ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-language`
-                                        v = `EN` ) ).
+
+    CLEAR temp3.
+
+    temp4-n = `data-sap-ui-language`.
+    temp4-v = `EN`.
+    INSERT temp4 INTO TABLE temp3.
+    ls_config-t_add_config = temp3.
     lv_body = shell_for_config( ls_config ).
     cl_abap_unit_assert=>assert_differs( exp = lv_key_base
                                          act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).
@@ -658,16 +734,22 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
   METHOD test_cache_hit_same_config.
 
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
+    DATA temp5 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config LIKE temp5.
+    DATA lv_body TYPE string.
+    CLEAR temp5.
+    temp5-theme = `sap_horizon`.
+    temp5-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config = temp5.
 
     shell_for_config( ls_config ).
 
     " prove the second call is answered from the cache, not rebuilt: plant a
     " sentinel as the cached body - an unchanged key must hand it back
     z2ui5_cl_ui5_http_handler=>sv_get_cache_body = `CACHED_SENTINEL`.
-    DATA(lv_body) = shell_for_config( ls_config ).
+
+    lv_body = shell_for_config( ls_config ).
 
     cl_abap_unit_assert=>assert_equals( exp = `CACHED_SENTINEL`
                                         act = lv_body ).
@@ -675,15 +757,20 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_get_304_on_if_none_match.
+    DATA temp6 TYPE z2ui5_if_client=>ty_s_name_value.
 
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `<html>shell</html>`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `<html>shell</html>`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp6.
+    temp6-n = `if-none-match`.
+    temp6-v = `"1.0-11-22-33"`.
+    INSERT temp6 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -699,17 +786,22 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_get_304_weak_tag.
+    DATA temp7 TYPE z2ui5_if_client=>ty_s_name_value.
 
     " the validator as a recompressing proxy hands it back: weak-marked, in
     " a list, with whitespace - still the bodyless 304 of an exact match
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `<html>shell</html>`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `<html>shell</html>`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-00-00-00", W/"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp7.
+    temp7-n = `if-none-match`.
+    temp7-v = `"1.0-00-00-00", W/"1.0-11-22-33"`.
+    INSERT temp7 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -723,7 +815,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
   METHOD test_etag_match_rules.
 
-    DATA(lv_tag) = `"1.0-11-22-33"`.
+    DATA lv_tag TYPE string.
+    lv_tag = `"1.0-11-22-33"`.
 
     " exact, weak, listed, any, the Apache suffix - all a match
     cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
@@ -759,15 +852,20 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_get_no_304_on_stale_tag.
+    DATA temp8 TYPE z2ui5_if_client=>ty_s_name_value.
 
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `<html>shell</html>`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `<html>shell</html>`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-99-99-99"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp8.
+    temp8-n = `if-none-match`.
+    temp8-v = `"1.0-99-99-99"`.
+    INSERT temp8 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -787,9 +885,10 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     handler_create( ).
     mo_handler->ms_req-method = `POST`.
-    mo_handler->ms_res = VALUE #( body          = `{}`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `{}`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     " even with a shell tag cached, a POST reply must never carry it
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
 
@@ -808,15 +907,20 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_cache_control_error.
+    DATA temp9 TYPE z2ui5_if_client=>ty_s_name_value.
 
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `Internal Server Error`
-                                  status_code   = 500
-                                  status_reason = `Internal Server Error` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `Internal Server Error`.
+    mo_handler->ms_res-status_code = 500.
+    mo_handler->ms_res-status_reason = `Internal Server Error`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp9.
+    temp9-n = `if-none-match`.
+    temp9-v = `"1.0-11-22-33"`.
+    INSERT temp9 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -831,16 +935,21 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_cache_control_head.
+    DATA temp10 TYPE z2ui5_if_client=>ty_s_name_value.
 
     handler_create( ).
     " HEAD is the session-terminate ping, deliberately answered no-store and
     " never through the ETag/304 path - see the HEAD branch in main( )
     mo_handler->ms_req-method = `HEAD`.
-    mo_handler->ms_res = VALUE #( status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp10.
+    temp10-n = `if-none-match`.
+    temp10-v = `"1.0-11-22-33"`.
+    INSERT temp10 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -857,19 +966,30 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " default posture: behind a proxy the external authority arrives in
     " X-Forwarded-Host (first entry), and comparing Origin against it lets
     " the legitimate request through although Host names the internal server
-    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_stub.
+    DATA temp11 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp12 LIKE LINE OF temp11.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_stub.
     lo_exit->mv_trust_forwarded = abap_true.
     ltcl_exit_injector=>inject( lo_exit ).
 
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `POST`
-                                    body   = `{"value":{}}` ).
-    mo_mock->mt_req_header = VALUE #( ( n = `origin`
-                                        v = `https://portal.corp` )
-                                      ( n = `host`
-                                        v = `internal.host:8000` )
-                                      ( n = `x-forwarded-host`
-                                        v = `portal.corp, internal.host:8000` ) ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `POST`.
+    mo_mock->ms_req_info-body = `{"value":{}}`.
+
+    CLEAR temp11.
+
+    temp12-n = `origin`.
+    temp12-v = `https://portal.corp`.
+    INSERT temp12 INTO TABLE temp11.
+    temp12-n = `host`.
+    temp12-v = `internal.host:8000`.
+    INSERT temp12 INTO TABLE temp11.
+    temp12-n = `x-forwarded-host`.
+    temp12-v = `portal.corp, internal.host:8000`.
+    INSERT temp12 INTO TABLE temp11.
+    mo_mock->mt_req_header = temp11.
 
     mo_handler->main( ).
 
@@ -883,19 +1003,30 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " hardened posture: an installation without a proxy stops trusting the
     " client-suppliable X-Forwarded-Host via the exit - the same request is
     " then compared against the transport-level Host and rejected
-    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_stub.
+    DATA temp13 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp14 LIKE LINE OF temp13.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_stub.
     lo_exit->mv_trust_forwarded = abap_false.
     ltcl_exit_injector=>inject( lo_exit ).
 
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `POST`
-                                    body   = `{"value":{}}` ).
-    mo_mock->mt_req_header = VALUE #( ( n = `origin`
-                                        v = `https://portal.corp` )
-                                      ( n = `host`
-                                        v = `internal.host:8000` )
-                                      ( n = `x-forwarded-host`
-                                        v = `portal.corp, internal.host:8000` ) ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `POST`.
+    mo_mock->ms_req_info-body = `{"value":{}}`.
+
+    CLEAR temp13.
+
+    temp14-n = `origin`.
+    temp14-v = `https://portal.corp`.
+    INSERT temp14 INTO TABLE temp13.
+    temp14-n = `host`.
+    temp14-v = `internal.host:8000`.
+    INSERT temp14 INTO TABLE temp13.
+    temp14-n = `x-forwarded-host`.
+    temp14-v = `portal.corp, internal.host:8000`.
+    INSERT temp14 INTO TABLE temp13.
+    mo_mock->mt_req_header = temp13.
 
     mo_handler->main( ).
 
@@ -912,8 +1043,11 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " count, and all three are EQUAL for two exit configs of the same length
     " - so the accumulators alone must separate two different keys of equal
     " length, or a changed config 304s the browser into keeping the old shell
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content A</html>` ).
-    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content B</html>` ).
+    DATA lv_tag_a TYPE string.
+    DATA lv_tag_b TYPE string.
+    lv_tag_a = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content A</html>` ).
+
+    lv_tag_b = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content B</html>` ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
     cl_abap_unit_assert=>assert_not_initial( lv_tag_b ).
@@ -932,8 +1066,11 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     " same bytes, different order, equal length - a sum-style validator
     " cannot tell them apart, the position-weighted accumulator must
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_etag( `abcdefgh` ).
-    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_etag( `hgfedcba` ).
+    DATA lv_tag_a TYPE string.
+    DATA lv_tag_b TYPE string.
+    lv_tag_a = z2ui5_cl_ui5_http_handler=>_get_etag( `abcdefgh` ).
+
+    lv_tag_b = z2ui5_cl_ui5_http_handler=>_get_etag( `hgfedcba` ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
     cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
@@ -946,17 +1083,25 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the tag is derived from the cache key and the build hash, not from
     " the assembled body: it changes with the config, comes back for the
     " same config, and names the embedded frontend's build
-    DATA(ls_config_a) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
+    DATA temp15 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config_a LIKE temp15.
+    DATA lv_tag_a LIKE z2ui5_cl_ui5_http_handler=>sv_get_etag.
+    DATA ls_config_b LIKE ls_config_a.
+    CLEAR temp15.
+    temp15-theme = `sap_horizon`.
+    temp15-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config_a = temp15.
     shell_for_config( ls_config_a ).
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    lv_tag_a = z2ui5_cl_ui5_http_handler=>sv_get_etag.
 
     cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
     cl_abap_unit_assert=>assert_char_cp( act = lv_tag_a
                                          exp = |*-{ z2ui5_cl_ui5f_preload=>build_hash }-*| ).
 
-    DATA(ls_config_b) = ls_config_a.
+
+    ls_config_b = ls_config_a.
     ls_config_b-theme = `sap_fiori_3`.
     shell_for_config( ls_config_b ).
     cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
@@ -976,11 +1121,18 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " is a function of the config, the version and the build hash, so a
     " fresh work process (no cached body, the cache cleared below) computes
     " the same tag the previous one sent
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
+    DATA temp16 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config LIKE temp16.
+    DATA lv_tag LIKE z2ui5_cl_ui5_http_handler=>sv_get_etag.
+    DATA ls_res TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    CLEAR temp16.
+    temp16-theme = `sap_horizon`.
+    temp16-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config = temp16.
     shell_for_config( ls_config ).
-    DATA(lv_tag) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    lv_tag = z2ui5_cl_ui5_http_handler=>sv_get_etag.
     cl_abap_unit_assert=>assert_not_initial( lv_tag ).
 
     caches_clear( ).
@@ -988,7 +1140,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     z2ui5_cl_ui5_http_handler=>ss_config_http_get     = ls_config.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
 
-    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    ls_res = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 304
                                         act = ls_res-status_code ).
@@ -1010,14 +1163,20 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     " a validator of another shell: the full page is built and travels,
     " and the body cache is filled by it
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
+    DATA temp17 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config LIKE temp17.
+    DATA ls_res TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    CLEAR temp17.
+    temp17-theme = `sap_horizon`.
+    temp17-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config = temp17.
     z2ui5_cl_ui5_http_handler=>sv_if_none_match       = `"1.0-stale-tag"`.
     z2ui5_cl_ui5_http_handler=>ss_config_http_get     = ls_config.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
 
-    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    ls_res = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_res-status_code ).
@@ -1029,6 +1188,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_get_304_end_to_end.
+    DATA lv_tag TYPE string.
+    DATA temp18 TYPE z2ui5_if_client=>ty_s_name_value.
 
     " the two requests of a reload as the stack sees them: the first GET
     " answers 200 with a tag, the second - in a NEW work process, so the
@@ -1036,21 +1197,27 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " bodyless 304 with the tag and the revalidation policy, without the
     " shell ever having been assembled
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `GET` ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
 
     mo_handler->main( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = mo_mock->mv_status ).
     cl_abap_unit_assert=>assert_not_initial( mo_mock->mv_cdata ).
-    DATA(lv_tag) = header_value( `etag` ).
+
+    lv_tag = header_value( `etag` ).
     cl_abap_unit_assert=>assert_not_initial( lv_tag ).
 
     caches_clear( ).
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `GET` ).
-    INSERT VALUE #( n = `if-none-match`
-                    v = lv_tag ) INTO TABLE mo_mock->mt_req_header.
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
+
+    CLEAR temp18.
+    temp18-n = `if-none-match`.
+    temp18-v = lv_tag.
+    INSERT temp18 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->main( ).
 
@@ -1071,12 +1238,14 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " WITH a status and a body. It used to raise a second time out of
     " set_response( ) - after the outer catch had already produced the 500 -
     " and left the ICF stack to dump with neither.
-    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_stub.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_stub.
     lo_exit->mv_raise_get = abap_true.
     ltcl_exit_injector=>inject( lo_exit ).
 
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `GET` ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
 
     mo_handler->main( ).
 
