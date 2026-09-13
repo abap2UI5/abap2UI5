@@ -51,6 +51,32 @@ support case.
       (236 calls, 90 files); one deliberate holdout, see below
 - [x] `nest_view_model_update( )` / `nest2_view_model_update( )` delegate to
       `view_model_update( )`; `check_update_model` dropped from `ty_s_view_nest`
+- [x] `cs_event-wizard_set_next_step` removed, with `evWizardSetNextStep` in
+      `app/webapp/core/actions/ViewOps.js` and the regenerated `src/01/03/`.
+      It bundled `discardProgress( oStep )` + `oStep.setNextStep( oNext )`
+      into one fixed pair; both methods are on the `CONTROL_METHODS`
+      whitelist, so the same flow is two ordinary `control_by_id` calls —
+      which additionally reach `goToStep`, a step the bundled event could not
+      express. Ecosystem count at removal: **0** — the Wizard sample
+      (`samples` `z2ui5_cl_smp_app_202`) already drives the flow through
+      `control_by_id` and is the migration example. API snapshot regenerated,
+      recorded as BREAKING in `changelog.txt`
+- [x] The obsolete spellings of the URL API removed: the methods
+      `set_push_state( )` → `hash_set( )` and `set_app_state_active( )` →
+      `app_state_set_active( )`, and the constants `cs_event-set_nav_routing`
+      → `cs_event-hash_routing` and `cs_event-clipboard_app_state` →
+      `app_state_get_href( )` + `cs_event-clipboard_copy`. The first three
+      shared their wire value with the surviving name, so nothing moved on
+      the wire and the two delegating method bodies went rather than being
+      reimplemented. The fourth was not a rename: it composed the share link
+      in the BROWSER and could only put it on the clipboard, so its handler
+      (`evClipboardAppState` in `app/webapp/core/actions/Browser.js`) went
+      with it and `src/01/03/` was regenerated. Ecosystem count at removal:
+      **0** in code — the samples-controls hits are prose naming the constant
+      in an explanation of the bookmark URL. In-repo callers converted: the
+      three `cs_event-set_nav_routing` client tests and the two e2e hub apps
+      under `node/srv/`. API snapshot regenerated, recorded as BREAKING in
+      `changelog.txt`
 - [x] `view` parameter of `_bind( )` and `_bind_edit( )` removed. Marked
       obsolete at both declarations and inert for as long as it carried that
       mark — never passed on internally, a leftover from the time each view
@@ -145,15 +171,6 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       - Zero usages in samples and samples-controls (checked, incl. raw literals).
 - [ ] **`cs_event-image_editor_popup_close`** — the same "obsolet" block.
       Belongs to `z2ui5_cl_pop_image_editor`; goes when `src/99/02` goes.
-- [ ] **`cs_event-wizard_set_next_step`** — marked obsolete in the interface.
-      Bundles `discardProgress( oStep )` + `oStep.setNextStep( oNext )` into
-      one fixed pair; both methods are on the `CONTROL_METHODS` whitelist, so
-      two `control_by_id` calls do the same and additionally reach `goToStep`.
-      - Removing it also deletes `evWizardSetNextStep` in
-        `app/webapp/core/actions/ViewOps.js` — regenerate `src/01/03/`.
-      - Zero usages in samples: the Wizard sample (`samples`
-        `z2ui5_cl_smp_app_202`) already drives the flow through `control_by_id`,
-        which is the migration example.
 - [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** — marked obsolete at
       the declaration. Still evaluated. They hand app code a reference into the **mirrored**
       AJSON library (`src/00/01`, synced from an external project), so an app
@@ -282,7 +299,7 @@ controls a public contract, so these break hand-written view XML. Regenerate
       | `cc/Info.js` (121) | `client->get( )-s_device` / `-s_ui5` |
       | `cc/LPTitle.js` (56) | `cs_event-set_title_launchpad` |
       | `cc/Favicon.js` (36) | `cs_event-set_favicon` |
-      | `cc/History.js` (34) | `set_push_state( )` |
+      | `cc/History.js` (34) | `hash_set( )` |
       | `cc/Title.js` (22) | `cs_event-set_title` |
 
 - [ ] **`app/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** — alias
@@ -294,7 +311,11 @@ controls a public contract, so these break hand-written view XML. Regenerate
       them from custom JS.
 - [ ] **Legacy app-state hash handling in `core/Router.js`** (the note in
       `parse( )`, and the two branches in `sync( )`) — only removable if the pre-routing app-state hash is dropped
-      entirely. Check `clipboard_app_state` and `set_app_state_active` first.
+      entirely. The two names this entry used to say to check first are
+      settled: `cs_event-clipboard_app_state` is gone and
+      `set_app_state_active( )` is now only `app_state_set_active( )`. The
+      hash itself stays — `app_state_set_active( )` writes it, and
+      `app_state_get_href( )` composes the link that restores it.
 
 > **Cannot go yet:** the `eF('…')` string parser in `core/actions/LegacyCustomJs.js`. It is
 > the legacy path only for *framework* follow-up actions (those are JSON since

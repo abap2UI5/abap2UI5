@@ -87,12 +87,12 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_box_data     FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_no_data  FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
-    METHODS test_set_nav_routing      FOR TESTING RAISING cx_static_check.
-    METHODS test_set_nav_routing_lower FOR TESTING RAISING cx_static_check.
-    METHODS test_set_nav_routing_default FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_routing         FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_routing_lower   FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_routing_default FOR TESTING RAISING cx_static_check.
     METHODS test_hash_attach_changed  FOR TESTING RAISING cx_static_check.
     METHODS test_hash_replace         FOR TESTING RAISING cx_static_check.
-    METHODS test_hash_set_alias       FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_set             FOR TESTING RAISING cx_static_check.
     METHODS test_app_state_get_href   FOR TESTING RAISING cx_static_check.
     METHODS test_app_state_href_flp   FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
@@ -113,10 +113,9 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_nav_leave_r_data_not_sup FOR TESTING RAISING cx_static_check.
     METHODS test_nav_leave_r_data_unbound FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
-    METHODS test_set_push_state       FOR TESTING RAISING cx_static_check.
     METHODS test_get_event            FOR TESTING RAISING cx_static_check.
     METHODS test_get_event_arg        FOR TESTING RAISING cx_static_check.
-    METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
+    METHODS test_app_state_set_active FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_keeps_rows FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_decimals FOR TESTING RAISING cx_static_check.
@@ -481,15 +480,15 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_set_nav_routing.
+  METHOD test_hash_routing.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    " SET_NAV_ROUTING configures the app rather than calling the frontend: it
+    " hash_routing configures the app rather than calling the frontend: it
     " is remembered on the app ( so a later response of this app, and an app
     " that inherits from it, carry it again ) and queues no action of its own
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_nav_routing
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_routing
                                  t_arg = VALUE #( ( z2ui5_if_client=>cs_nav_mode-fresh ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
@@ -500,17 +499,17 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_set_nav_routing_lower.
+  METHOD test_hash_routing_lower.
 
     " the mode as an app may well write it - lower case - lands upper-cased
     " on both sides, as the constants spell it
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    " SET_NAV_ROUTING configures the app rather than calling the frontend: it
+    " hash_routing configures the app rather than calling the frontend: it
     " is remembered on the app ( so a later response of this app, and an app
     " that inherits from it, carry it again ) and queues no action of its own
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_nav_routing
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_routing
                                  t_arg = VALUE #( ( `fresh` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
@@ -521,13 +520,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_set_nav_routing_default.
+  METHOD test_hash_routing_default.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
     " an empty argument list means keep
-    li_client->follow_up_action( z2ui5_if_client=>cs_event-set_nav_routing ).
+    li_client->follow_up_action( z2ui5_if_client=>cs_event-hash_routing ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
                                         act = mo_action->mo_app->mv_nav_mode ).
@@ -576,18 +575,19 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_hash_set_alias.
+  METHOD test_hash_set.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    " hash_set and the obsolete set_push_state write the same field
+    " the typed method writes the field the cs_event-hash_set branch of
+    " follow_up_action writes, and a second call overwrites the first
     li_client->hash_set( `/Page2` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `/Page2`
                                         act = mo_action->ms_next-s_nav-set_push_state ).
 
-    li_client->set_push_state( `/Page3` ).
+    li_client->hash_set( `/Page3` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `/Page3`
                                         act = mo_action->ms_next-s_nav-set_push_state ).
@@ -955,19 +955,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = li_client->check_app_prev_stack( ) ).
 
   ENDMETHOD.
-
-  METHOD test_set_push_state.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->set_push_state( `mystate` ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `mystate`
-                                        act = mo_action->ms_next-s_nav-set_push_state ).
-
-  ENDMETHOD.
-
 
   METHOD test_get_event.
 
@@ -1425,15 +1412,19 @@ CLASS ltcl_test_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD test_set_app_state_active.
+  METHOD test_app_state_set_active.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
 
     li_client ?= mo_client.
-    li_client->set_app_state_active( abap_true ).
+    li_client->app_state_set_active( abap_true ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_action->ms_next-s_nav-set_app_state_active ).
+
+    " and remembered on the app, so main_end can re-assert it next roundtrip
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_action->mo_app->mv_app_state_active ).
 
   ENDMETHOD.
 

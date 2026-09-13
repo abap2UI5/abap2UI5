@@ -75,7 +75,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     ENDIF.
 
     CASE val.
-      " the current spelling; cs_event-set_nav_routing is the same value
       WHEN z2ui5_if_client=>cs_event-hash_routing.
         " the mode is remembered on the app ( z2ui5_cl_ui5_app_cont->mv_nav_mode )
         " and re-sent when the frontend may not still hold it - main_end gates
@@ -570,14 +569,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_push_state.
-
-    " obsolete spelling - delegates to keep exactly one write path
-    z2ui5_if_client~hash_set( val ).
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~app_state_set_active.
 
     " same field the cs_event-app_state_set_active branch of follow_up_action
@@ -587,14 +578,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " and remember it on the app, so main_end can re-assert it on the next
     " response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
     mo_action->mo_app->mv_app_state_active = val.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~set_app_state_active.
-
-    " obsolete spelling - delegates to keep exactly one write path
-    z2ui5_if_client~app_state_set_active( val ).
 
   ENDMETHOD.
 
