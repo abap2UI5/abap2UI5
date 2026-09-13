@@ -86,8 +86,11 @@ INTERFACE z2ui5_if_client
       " attachHashChanged (registers a backend event for foreign hash changes),
       " hash_routing = the hash-based app routing modes (cs_nav_mode).
       " app_state_set_active keeps the id of the CURRENT app state in the URL.
-      " hash_set / app_state_set_active share their wire value with their
-      " obsolete spellings below - both names reach the same branch.
+      " hash_set and app_state_set_active keep the WIRE values of the names
+      " they were renamed from (SET_PUSH_STATE, SET_APP_STATE_ACTIVE): the
+      " rename was a rename, so no queued action and no frontend branch had
+      " to move with it. Do not "fix" a value to match its constant - that
+      " breaks every draft holding a queued action.
       " The one-word comment right before the run is its LABEL on the
       " documentation site (docs, scripts/lib/client-interface.mjs reads the
       " first line of a comment run): keep it one line, keep it last.
@@ -105,9 +108,6 @@ INTERFACE z2ui5_if_client
       " with its successor): the site's generator drops every member under a
       " label that opens with "obsolete", so a run added here needs one
 
-      "obsolete - the hash_* / app_state_* spellings above replace these
-      set_app_state_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
-      set_push_state            TYPE string VALUE `SET_PUSH_STATE`,
       "obsolete
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,

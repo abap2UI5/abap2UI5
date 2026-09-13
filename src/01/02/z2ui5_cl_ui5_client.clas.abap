@@ -95,8 +95,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         RETURN.
 
       WHEN z2ui5_if_client=>cs_event-hash_set.
-        " same value as the obsolete cs_event-set_push_state - one branch
-        " serves both spellings
+        " the wire value is SET_PUSH_STATE, the name this event was renamed
+        " from - see the note on cs_event
         mo_action->ms_next-s_nav-set_push_state = lv_arg.
         RETURN.
 
@@ -117,7 +117,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                                              ELSE lv_arg ).
         RETURN.
 
-      " the current spelling; cs_event-set_app_state_active is the same value
       WHEN z2ui5_if_client=>cs_event-app_state_set_active.
         " an empty argument list switches it ON - a single space is how an
         " app switches it off again, since an empty t_arg cannot say `false`

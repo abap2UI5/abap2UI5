@@ -65,10 +65,15 @@ support case.
       `set_push_state( )` → `hash_set( )` and `set_app_state_active( )` →
       `app_state_set_active( )`, and the constants `cs_event-set_nav_routing`
       → `cs_event-hash_routing` and `cs_event-clipboard_app_state` →
-      `app_state_get_href( )` + `cs_event-clipboard_copy`. The first three
-      shared their wire value with the surviving name, so nothing moved on
-      the wire and the two delegating method bodies went rather than being
-      reimplemented. The fourth was not a rename: it composed the share link
+      `app_state_get_href( )` + `cs_event-clipboard_copy`. The alias
+      constants `cs_event-set_push_state` and `cs_event-set_app_state_active`
+      went with their methods, so the obsolete run of the family is empty.
+      All but the last shared their wire value with the surviving name, so
+      nothing moved on the wire and the two delegating method bodies went
+      rather than being reimplemented — which is why `hash_set` and
+      `app_state_set_active` still carry `SET_PUSH_STATE` /
+      `SET_APP_STATE_ACTIVE` as their values, and have to: a draft can hold a
+      queued action, so a value is not renamable the way a constant is. The fourth was not a rename: it composed the share link
       in the BROWSER and could only put it on the clipboard, so its handler
       (`evClipboardAppState` in `app/webapp/core/actions/Browser.js`) went
       with it and `src/01/03/` was regenerated. Ecosystem count at removal:
