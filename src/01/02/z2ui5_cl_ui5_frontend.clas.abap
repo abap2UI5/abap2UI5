@@ -78,40 +78,24 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! defaults for everything.
     METHODS msg_toast
       IMPORTING
-        text                     TYPE clike
-        duration                 TYPE clike     OPTIONAL
-        width                    TYPE clike     OPTIONAL
-        my                       TYPE clike     OPTIONAL
-        at                       TYPE clike     OPTIONAL
-        of                       TYPE clike     OPTIONAL
-        offset                   TYPE clike     OPTIONAL
-        collision                TYPE clike     OPTIONAL
-        onclose                  TYPE clike     OPTIONAL
-        autoclose                TYPE abap_bool DEFAULT abap_true
-        animationtimingfunction  TYPE clike     OPTIONAL
-        animationduration        TYPE clike     OPTIONAL
-        closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
-        class                    TYPE clike     OPTIONAL.
+        text     TYPE clike
+        duration TYPE clike OPTIONAL
+        onclose  TYPE clike OPTIONAL.
 
     "! The same for a message box. text is TYPE any: a message table (
     "! BAPIRET2 and friends ) is run through the formatter first, and a
     "! formatter that finds nothing worth showing queues nothing at all.
     METHODS msg_box
       IMPORTING
-        text              TYPE any
-        type              TYPE clike        DEFAULT `information`
-        title             TYPE clike        OPTIONAL
-        styleclass        TYPE clike        OPTIONAL
-        onclose           TYPE clike        OPTIONAL
-        actions           TYPE string_table OPTIONAL
-        emphasizedaction  TYPE clike        OPTIONAL
-        initialfocus      TYPE clike        OPTIONAL
-        textdirection     TYPE clike        OPTIONAL
-        icon              TYPE clike        OPTIONAL
-        details           TYPE clike        OPTIONAL
-        closeonnavigation TYPE abap_bool    DEFAULT abap_true
-        dependenton       TYPE clike        OPTIONAL
-        contentwidth      TYPE clike        OPTIONAL.
+        text             TYPE any
+        type             TYPE clike        DEFAULT `information`
+        title            TYPE clike        OPTIONAL
+        styleclass       TYPE clike        OPTIONAL
+        onclose          TYPE clike        OPTIONAL
+        actions          TYPE string_table OPTIONAL
+        emphasizedaction TYPE clike        OPTIONAL
+        initialfocus     TYPE clike        OPTIONAL
+        details          TYPE clike        OPTIONAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -211,14 +195,13 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
       RAISING
         z2ui5_cx_ajson_error.
 
-    "! Add a boolean option only when it differs from the receiver's own
-    "! default - the default value carries no information.
+    "! Add a boolean option only when it is set - an unset flag carries no
+    "! information, the receiver's own default covers it.
     METHODS set_opt_bool
       IMPORTING
-        json        TYPE REF TO z2ui5_if_ajson
-        name        TYPE string
-        val         TYPE abap_bool
-        default_val TYPE abap_bool DEFAULT abap_false
+        json TYPE REF TO z2ui5_if_ajson
+        name TYPE string
+        val  TYPE abap_bool
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -456,38 +439,17 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         " default for every option, and it applies its vertical lift ONLY
         " while none of my/at/of/offset is passed ( its hasDefaultPosition
         " check ) - so mirroring a UI5 default here would both suppress that
-        " lift and silently freeze the value if UI5 ever changes it.
+        " lift and silently freeze the value if UI5 ever changes it. Those
+        " four, and every other pure MessageToast option, are no parameter of
+        " this method anymore ( 2026-09 ): they are set on the control, as the
+        " option object of a CONTROL_GLOBAL MESSAGE_TOAST call - which is the
+        " very object built here, so both ways meet in showToast( ).
         set_opt_int( json = li_opt
                      name = `duration`
                      val  = duration ).
-        set_opt_int( json = li_opt
-                     name = `animationDuration`
-                     val  = animationduration ).
-        set_opt_strings(
-            json = li_opt
-            " `class` is NOT a MessageToast option - the frontend puts the
-            " classes on the DOM node of the toast, which carries no id to
-            " address it by
-            opt  = VALUE #( ( name = `width`                   val = width )
-                            ( name = `my`                      val = my )
-                            ( name = `at`                      val = at )
-                            ( name = `of`                      val = of )
-                            ( name = `offset`                  val = offset )
-                            ( name = `collision`               val = collision )
-                            ( name = `onClose`                 val = onclose )
-                            ( name = `animationTimingFunction` val = animationtimingfunction )
-                            ( name = `class`                   val = class ) ) ).
-
-        " abap_true is UI5's own default for both, so only the opt-out is
-        " worth sending
-        set_opt_bool( json        = li_opt
-                      name        = `autoClose`
-                      val         = autoclose
-                      default_val = abap_true ).
-        set_opt_bool( json        = li_opt
-                      name        = `closeOnBrowserNavigation`
-                      val         = closeonbrowsernavigation
-                      default_val = abap_true ).
+        set_opt_string( json = li_opt
+                        name = `onClose`
+                        val  = onclose ).
 
         " sap.m.MessageToast is a global object, so the toast rides the
         " generic whitelisted global call
@@ -522,7 +484,12 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
         " only what the app actually set travels - every MessageBox method
         " carries its OWN defaults ( confirm's [OK, CANCEL], error's [CLOSE],
         " the emphasized action derived from them ), so sending a value for an
-        " option the app left alone would override those
+        " option the app left alone would override those. What is left here is
+        " what an ABAP app decides; a pure pass-through option ( textDirection,
+        " icon, closeOnNavigation, dependentOn, contentWidth ) is no parameter
+        " of this method anymore ( 2026-09 ) and is set on the control, as the
+        " option object of a CONTROL_GLOBAL MESSAGE_BOX call - which is the
+        " very object built here, so both ways meet in showBox( ).
         set_opt_strings(
             json = li_opt
             opt  = VALUE #( ( name = `title`            val = ls_msg-title )
@@ -530,30 +497,12 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                             ( name = `onClose`          val = onclose )
                             ( name = `emphasizedAction` val = emphasizedaction )
                             ( name = `initialFocus`     val = initialfocus )
-                            ( name = `textDirection`    val = textdirection )
-                            ( name = `details`          val = ls_msg-details )
-                            ( name = `dependentOn`      val = dependenton )
-                            ( name = `contentWidth`     val = contentwidth ) ) ).
-
-        " MessageBox.Icon.NONE is a valid UI5 value, but passing it would
-        " defeat the icon the chosen method sets for itself ( error -> the
-        " error icon ), so it is dropped like an unset icon
-        IF icon <> `NONE`.
-          set_opt_string( json = li_opt
-                          name = `icon`
-                          val  = icon ).
-        ENDIF.
+                            ( name = `details`          val = ls_msg-details ) ) ).
 
         IF actions IS NOT INITIAL.
           li_opt->set( iv_path = `/actions`
                        iv_val  = actions ).
         ENDIF.
-
-        " abap_true is UI5's own default, so only the opt-out is worth sending
-        set_opt_bool( json        = li_opt
-                      name        = `closeOnNavigation`
-                      val         = closeonnavigation
-                      default_val = abap_true ).
 
         " sap.m.MessageBox is a global too - and its display methods are the
         " box types, so the type IS the method of the global call
@@ -687,7 +636,7 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD set_opt_bool.
 
-    IF val <> default_val.
+    IF val = abap_true.
       json->set_boolean( iv_path = |/{ name }|
                          iv_val  = val ).
     ENDIF.

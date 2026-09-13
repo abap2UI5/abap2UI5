@@ -256,40 +256,24 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
-    mo_frontend->msg_box( text              = text
-                          type              = type
-                          title             = title
-                          styleclass        = styleclass
-                          onclose           = onclose
-                          actions           = actions
-                          emphasizedaction  = emphasizedaction
-                          initialfocus      = initialfocus
-                          textdirection     = textdirection
-                          icon              = icon
-                          details           = details
-                          closeonnavigation = closeonnavigation
-                          dependenton       = dependenton
-                          contentwidth      = contentwidth ).
+    mo_frontend->msg_box( text             = text
+                          type             = type
+                          title            = title
+                          styleclass       = styleclass
+                          onclose          = onclose
+                          actions          = actions
+                          emphasizedaction = emphasizedaction
+                          initialfocus     = initialfocus
+                          details          = details ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~message_toast_display.
 
-    mo_frontend->msg_toast( text                     = text
-                            duration                 = duration
-                            width                    = width
-                            my                       = my
-                            at                       = at
-                            of                       = of
-                            offset                   = offset
-                            collision                = collision
-                            onclose                  = onclose
-                            autoclose                = autoclose
-                            animationtimingfunction  = animationtimingfunction
-                            animationduration        = animationduration
-                            closeonbrowsernavigation = closeonbrowsernavigation
-                            class                    = class ).
+    mo_frontend->msg_toast( text     = text
+                            duration = duration
+                            onclose  = onclose ).
 
   ENDMETHOD.
 

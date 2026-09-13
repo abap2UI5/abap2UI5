@@ -693,8 +693,18 @@ INTERFACE z2ui5_if_client
   "! The one case that shows nothing at all is complex data that is initial
   "! (an empty message table stays as silent as it always was).
   "!
-  "! Every option below is the sap.m.MessageBox option of the same name,
-  "! passed through when set; onclose is the one abap2UI5-shaped exception.
+  "! What this method carries is what an ABAP app decides: the data in any
+  "! shape it has, the kind of box, the buttons as a table, the backend event
+  "! its closing raises. A plain sap.m.MessageBox option that abap2UI5 only
+  "! passes through is set on the CONTROL instead - through the whitelisted
+  "! global call, whose last argument is the UI5 option object 1:1:
+  "!
+  "! ``client->follow_up_action( val = client->cs_event-control_global t_arg = VALUE #( ( `MESSAGE_BOX` ) ( `error` ) ( `Not saved.` ) ( `\{"contentWidth":"30rem","icon":"WARNING"\}` ) ) )``
+  "!
+  "! The method IS the box type there, and the option object lands in the
+  "! same frontend code this method reaches. `textDirection`, `icon`,
+  "! `closeOnNavigation`, `dependentOn` (UI5 1.124 on) and `contentWidth`
+  "! were parameters here until 2026-09 and travel that way now.
   "!
   "! @parameter text | what to show - a text, or any of the shapes above.
   "! @parameter type | the kind of box, which decides icon and default title:
@@ -714,79 +724,46 @@ INTERFACE z2ui5_if_client
   "!                  emphasized button.
   "! @parameter initialfocus | the action (or control id) that has the focus
   "!                  when the box opens.
-  "! @parameter textdirection | `LTR`, `RTL` or `Inherit` for the text.
-  "! @parameter icon | an icon of sap.m.MessageBox.Icon (`NONE`,
-  "!                  `INFORMATION`, `WARNING`, `ERROR`, `SUCCESS`,
-  "!                  `QUESTION`) instead of the one the type implies.
   "! @parameter details | a further text (or JSON) shown behind the box's
   "!                  "Show details" link.
-  "! @parameter closeonnavigation | close the box when the page navigates
-  "!                  (the default); abap_false keeps it open.
-  "! @parameter dependenton | the id of a control the box becomes a dependent
-  "!                  of, so it is destroyed with that control (UI5 1.124 on).
-  "! @parameter contentwidth | a CSS width for the box's content.
   METHODS message_box_display
     IMPORTING
-      text              TYPE any
-      type              TYPE clike        DEFAULT `information`
-      title             TYPE clike        OPTIONAL
-      styleclass        TYPE clike        OPTIONAL
-      onclose           TYPE clike        OPTIONAL
-      actions           TYPE string_table OPTIONAL
-      emphasizedaction  TYPE clike        OPTIONAL
-      initialfocus      TYPE clike        OPTIONAL
-      textdirection     TYPE clike        OPTIONAL
-      icon              TYPE clike        OPTIONAL
-      details           TYPE clike        OPTIONAL
-      closeonnavigation TYPE abap_bool    DEFAULT abap_true
-      dependenton       TYPE clike        OPTIONAL
-      contentwidth      TYPE clike        OPTIONAL.
+      text             TYPE any
+      type             TYPE clike        DEFAULT `information`
+      title            TYPE clike        OPTIONAL
+      styleclass       TYPE clike        OPTIONAL
+      onclose          TYPE clike        OPTIONAL
+      actions          TYPE string_table OPTIONAL
+      emphasizedaction TYPE clike        OPTIONAL
+      initialfocus     TYPE clike        OPTIONAL
+      details          TYPE clike        OPTIONAL.
 
   "! Show a sap.m.MessageToast with text - the fire-and-forget notification
   "! for a saved record or a copied link, gone again after a few seconds.
-  "! Every other parameter is the option of the same name of
-  "! sap.m.MessageToast.show( ), passed through only when set, so UI5 owns
-  "! every default; onclose and class are abap2UI5-shaped.
+  "!
+  "! Three parameters, and two of them are not UI5 options at all: the text
+  "! an ABAP app composed, and the backend event its closing raises. Where
+  "! the toast docks, how it animates, how wide it is - that is the CONTROL,
+  "! and it is steered through the whitelisted global call, whose last
+  "! argument is the sap.m.MessageToast.show( ) option object 1:1:
+  "!
+  "! ``client->follow_up_action( val = client->cs_event-control_global t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `Saved.` ) ( `\{"my":"center center","at":"center center","width":"20em"\}` ) ) )``
+  "!
+  "! `width`, `my`, `at`, `of`, `offset`, `collision`, `autoClose`,
+  "! `animationTimingFunction`, `animationDuration`, `closeOnBrowserNavigation`
+  "! and the abap2UI5-own `class` were parameters here until 2026-09 and
+  "! travel that way now. That call also composes its text on the CLIENT -
+  "! extra arguments fill `\{0\}`, `\{1\}` placeholders - so a toast over an
+  "! event parameter needs no round-trip at all.
   "!
   "! @parameter text | the text shown.
   "! @parameter duration | milliseconds the toast stays (UI5 default 3000).
-  "! @parameter width | the toast's CSS width (UI5 default 15em).
-  "! @parameter my | the toast's own docking point, a sap.ui.core.Popup.Dock
-  "!                  value (UI5 default `center bottom`).
-  "! @parameter at | the docking point of `of` the toast is placed at (UI5
-  "!                  default `center bottom`).
-  "! @parameter of | the control id or DOM reference the toast is positioned
-  "!                  relative to (UI5 default: the window).
-  "! @parameter offset | the offset from that position as `x y` in pixels.
-  "! @parameter collision | how a toast that would leave the window is moved
-  "!                  (`fit`, `flip`, `none`, one value per axis; UI5 default
-  "!                  `fit fit`).
   "! @parameter onclose | a BACKEND event name raised when the toast closes.
-  "! @parameter autoclose | close after duration (the default) or stay until
-  "!                  the user clicks elsewhere.
-  "! @parameter animationtimingfunction | the CSS timing function of the fade
-  "!                  (UI5 default `ease`).
-  "! @parameter animationduration | the fade duration in milliseconds (UI5
-  "!                  default 1000).
-  "! @parameter closeonbrowsernavigation | close on browser navigation (the
-  "!                  default).
-  "! @parameter class | one or more CSS classes added to the toast.
   METHODS message_toast_display
     IMPORTING
-      text                     TYPE clike
-      duration                 TYPE clike     OPTIONAL
-      width                    TYPE clike     OPTIONAL
-      my                       TYPE clike     OPTIONAL
-      at                       TYPE clike     OPTIONAL
-      of                       TYPE clike     OPTIONAL
-      offset                   TYPE clike     OPTIONAL
-      collision                TYPE clike     OPTIONAL
-      onclose                  TYPE clike     DEFAULT ``
-      autoclose                TYPE abap_bool DEFAULT abap_true
-      animationtimingfunction  TYPE clike     OPTIONAL
-      animationduration        TYPE clike     OPTIONAL
-      closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
-      class                    TYPE clike     OPTIONAL.
+      text     TYPE clike
+      duration TYPE clike OPTIONAL
+      onclose  TYPE clike DEFAULT ``.
 
   " arg is appended rather than slotted next to t_arg, where it would read
   " better: rule 5 allows a new optional parameter at the END of the list -

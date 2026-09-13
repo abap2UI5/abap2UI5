@@ -99,6 +99,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_nav FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ctrl FOR TESTING RAISING cx_static_check.
+    METHODS test_ctrl_global_opt      FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init        FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init_done   FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event       FOR TESTING RAISING cx_static_check.
@@ -448,13 +449,20 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
 
     li_client ?= mo_client.
-    li_client->message_box_display( text         = `The quantity exceeds the plan.`
-                                    type         = `confirm`
-                                    dependenton  = `myPage`
-                                    contentwidth = `20rem` ).
+    " dependentOn and contentWidth are sap.m.MessageBox options, so they are
+    " set on the control: the option object of the global call, which is the
+    " same object the method below builds for what an ABAP app decides. The
+    " object is PARSED on its way to the wire, so its keys arrive sorted -
+    " the order an app writes them in carries nothing
+    li_client->follow_up_action(
+        val   = z2ui5_if_client=>cs_event-control_global
+        t_arg = VALUE #( ( `MESSAGE_BOX` )
+                         ( `confirm` )
+                         ( `The quantity exceeds the plan.` )
+                         ( `{"dependentOn":"myPage","contentWidth":"20rem"}` ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
+        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
               `{"contentWidth":"20rem","dependentOn":"myPage"}]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
@@ -720,6 +728,40 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
         act = mo_action->ms_next-s_action-t_custom[ 3 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ctrl_global_opt.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " The UI5 options of a toast and of a message box are set on the CONTROL:
+    " a t_arg that starts with a brace is embedded as REAL JSON, and the
+    " frontend takes an object in last position as the option object of the
+    " call ( ControlCall.js, evControlCall ). That is the path the pure
+    " pass-through parameters of message_toast_display( ) /
+    " message_box_display( ) took when they left those signatures in 2026-09 -
+    " so nothing an app could express before is out of reach.
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
+                                 t_arg = VALUE #( ( `MESSAGE_TOAST` )
+                                                  ( `show` )
+                                                  ( `Saved` )
+                                                  ( `{"my":"center center","width":"20em"}` ) ) ).
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
+                                 t_arg = VALUE #( ( `MESSAGE_BOX` )
+                                                  ( `error` )
+                                                  ( `Not saved.` )
+                                                  ( `{"contentWidth":"30rem","icon":"WARNING"}` ) ) ).
+
+    " the braces are gone from the wire - the option object is a JSON object,
+    " not a string that happens to look like one
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved",{"my":"center center","width":"20em"}]`
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Not saved.",{"contentWidth":"30rem","icon":"WARNING"}]`
+        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
