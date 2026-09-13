@@ -717,8 +717,14 @@ break one of those four.
   is what 7.02 already applies), and the pre-7.02 built-ins — the same
   downported method has `READ TABLE lt_parts INDEX lines( lt_parts )` ten lines
   above the failure and the compiler accepted it.
-  **Gate:** `npm run check:downport` over `src/`, and the downport is asked to
-  hoist it upstream (backlog below).
+  **The downport hoists it now.** abaplint/abaplint#4272 (2.120.46, pinned here
+  at 2.120.51) lowers `line_exists( tab[ k = to_upper( x ) ] )` into
+  `temp1 = to_upper( x ).` plus `READ TABLE tab WITH KEY k = temp1`, so the
+  table-expression shape is safe at the version this repository builds with -
+  measured on it, and `check:downport` no longer reports that shape.
+  **Gate:** `npm run check:downport` over `src/` keeps the two positions an
+  author writes 7.02-ready themselves, which the downport passes through as
+  they stand: a `WITH [TABLE] KEY` operand and an internal-table `WHERE`.
 - **Do not let an inline `DATA(…)` take its type from an offset/length
   expression.** `DATA(lv_field) = ls_attri->name+9.` made abaplint's
   `definitions_top` infer `TYPE name`, which is no DDIC type at v702, and

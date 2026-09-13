@@ -1,12 +1,12 @@
 /*
  * downport-operands — where a 7.02 built-in function may not stand.
  *
- * Two callers, one definition: `check:downport` fails this repository's own
- * source on it (.github/scripts/downport-operand-gate.mjs, #2664), and the
- * `abaplint-downport-builtin-operand` backlog probe measures the same shape
- * across the four sibling checkouts to say how much a rule would report. A
- * detector that disagreed with the gate would be arguing for a rule this
- * repository does not itself enforce, so there is one of it.
+ * One caller today: `check:downport` fails this repository's own source on it
+ * (.github/scripts/downport-operand-gate.mjs, #2664). It had a second - the
+ * `abaplint-downport-builtin-operand` backlog probe, which measured the same
+ * shape across the sibling checkouts to say how much a rule would report.
+ * That rule is abaplint/abaplint#4272 now, so probe and item are gone and the
+ * definition stays here, where the gate reads it.
  *
  * The reasoning - why these built-ins and not the pre-7.02 ones, why a
  * functional method call in the same position is NOT a finding, why the
@@ -45,25 +45,30 @@ export const CALL = new RegExp(`\\b(${BUILTINS.join("|")})\\s*\\(`, "i");
  * and embedded `{ }` included. */
 export { stripNoise } from "./abap-statements.mjs";
 
-/* The three positions, each as the slice of the line that IS the position.
+/* The two positions, each as the slice of the line that IS the position.
  * Line-scoped on purpose: a key or a WHERE operand split across lines still
  * gets its `= builtin( ` on one of them, and a whole-statement parse would buy
- * nothing but a way to disagree with the reader about where the finding is. */
+ * nothing but a way to disagree with the reader about where the finding is.
+ *
+ * There were THREE. The table-expression key - `line_exists( tab[ k =
+ * to_upper( x ) ] )`, the shape of #2664 itself - is gone, because it is not
+ * a position a 7.02 system ever sees: it is v740 source, and what reaches the
+ * system is whatever the downport makes of it. Since abaplint/abaplint#4272
+ * (2.120.46, this repository pins 2.120.51) that lowering hoists the call
+ * into a variable of its own, which is the fix this gate asked authors to
+ * write by hand. Measured on 2.120.51, not assumed: `line_exists( it[ k =
+ * to_upper( v ) ] )` downports to `temp1 = to_upper( v ).` followed by
+ * `READ TABLE it WITH KEY k = temp1`. The two positions below are the ones an
+ * author writes 7.02-ready themselves, so the downport passes them through
+ * untouched - verified the same way, on the same version. */
 export function positions(code) {
   const found = [];
 
-  // 1. a table expression: everything between `[` and its `]`. Nested
-  //    brackets do not occur in this corpus; an unclosed one takes the rest
-  //    of the line, which is the safe direction for a check.
-  for (const m of code.matchAll(/\[([^\]]*)\]/g)) {
-    if (m[1].includes("=")) found.push({ where: "table expression key", text: m[1] });
-  }
-
-  // 2. WITH KEY / WITH TABLE KEY, to the end of the statement fragment.
+  // 1. WITH KEY / WITH TABLE KEY, to the end of the statement fragment.
   const key = /\bWITH\s+(?:TABLE\s+)?KEY\b(.*)$/i.exec(code);
   if (key) found.push({ where: "WITH KEY operand", text: key[1] });
 
-  // 3. the WHERE condition of an internal-table statement. LOOP AT / DELETE /
+  // 2. the WHERE condition of an internal-table statement. LOOP AT / DELETE /
   //    MODIFY only - an ABAP SQL WHERE is a different position with different
   //    rules, and this gate has no evidence about it.
   //
