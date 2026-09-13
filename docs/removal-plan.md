@@ -33,6 +33,18 @@ support case.
 
 ## 0. Already done (do not re-litigate)
 
+- [x] `ty_s_event_control-check_allow_multi_req` removed. It sent the event
+      while another roundtrip was still running and let the responses land in
+      any order — but only the newest response may commit, so every earlier
+      roundtrip was work whose answer was thrown away. The case it was reached
+      for is the per-keystroke wire, and `check_queue_last` serves that one
+      strictly better (one roundtrip at a time, order preserved, the backend
+      ends on the control's current value). Ecosystem count at removal: **1**
+      — samples app 059, the sample demonstrating the flag itself, converted
+      to `check_queue_last` in the same change. Position [2] of the event
+      array stays reserved and always false so nothing behind it shifts;
+      `View1.eB` ignores a truthy value there. API snapshot regenerated,
+      recorded as BREAKING in `changelog.txt`
 - [x] `ty_s_get-viewname` removed — never filled by the framework. API snapshot
       regenerated, recorded as BREAKING in `changelog.txt`
 - [x] `_bind_edit( )` migrated out of the framework apps and the samples

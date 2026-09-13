@@ -326,10 +326,10 @@ sap.ui.define(
         return;
       }
 
-      // A MAIN build superseded by a newer parallel request
-      // (check_allow_multi_req) while XMLView.create was awaiting is still
-      // INSTALLED: displayMain destroyed the slot synchronously before this
-      // await and serialises every MAIN build through Server._viewBuild, so
+      // A MAIN build superseded by a newer request while XMLView.create was
+      // awaiting is still INSTALLED: displayMain destroyed the slot
+      // synchronously before this await and serialises every MAIN build
+      // through Server._viewBuild, so
       // no newer view can have taken the slot in the meantime - the newer
       // request's own build is chained behind this one and replaces it. A
       // guard here that discarded the build "when a newer view took the

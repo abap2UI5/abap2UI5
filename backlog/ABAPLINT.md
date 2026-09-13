@@ -21,7 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`abaplint-subrc-after-assign`](items/abaplint-subrc-after-assign.md) | on 7.40 SP7 a successful `ASSIGN` does not reset `sy-subrc`, so the test reads a value left by an earlier statement — `IS ASSIGNED` is the only correct check<br><sub>written up in [5. Runtime — green here, wrong there](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-08-17: fires on <b>61</b> site(s) in abap2UI5, samples, samples-stack, 171 correct look-alike(s)</sub> | high | 2026-08-17 | abaplint/abaplint |
+| [`abaplint-subrc-after-assign`](items/abaplint-subrc-after-assign.md) | on 7.40 SP7 a successful `ASSIGN` does not reset `sy-subrc`, so the test reads a value left by an earlier statement — `IS ASSIGNED` is the only correct check<br><sub>written up in [5. Runtime — green here, wrong there](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-09-13: fires on <b>67</b> site(s) in abap2UI5, samples, samples-controls, samples-stack, 156 correct look-alike(s)</sub> | high | 2026-08-17 | abaplint/abaplint |
 | [`abaplint-preferred-parameter-ignored`](items/abaplint-preferred-parameter-ignored.md) | the addition does nothing unless every IMPORTING parameter is optional — ABAP warns and abaplint says nothing, while its syntax check goes the other way and accepts a call that omits the mandatory parameter<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub> | medium | 2026-09-05 | abaplint/abaplint |
 
 ---

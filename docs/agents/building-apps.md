@@ -544,12 +544,13 @@ The same tree, with the subtree held in a variable:
   `check_queue_last = abap_true` keeps the LAST event fired on the wire and
   dispatches it once the response has landed — one roundtrip in flight at a
   time, order preserved, the backend ends on the control's current value;
-  no debounce, so a pause still costs one roundtrip. `check_allow_multi_req`
-  is the other flag and the wrong one for typing: it sends every firing at
-  once, one roundtrip per keystroke, and the responses may land in any order
-  (only the newest is committed) — use it for a background wire that must
-  not wait, a timer tick or a poll. Never both on one wire; `ignoreBusy`
-  wins. `check_prevent_default` / `prevent_default_expr` cancel the
+  no debounce, so a pause still costs one roundtrip. There is no flag for
+  sending every firing at once: only the newest response may commit, so the
+  earlier roundtrips would be work thrown away. A background wire that must
+  not wait — a timer tick, a poll — needs no flag either: `START_TIMER`
+  carries its own slot and waits out the roundtrip in flight
+  (`core/actions/ViewOps.js`, `evStartTimer`).
+  `check_prevent_default` / `prevent_default_expr` cancel the
   control's built-in default before the roundtrip, `check_arg_literal`
   quotes every argument — see the doc on `z2ui5_if_client=>_event`.
 - Roundtrip-free client actions: `client->follow_up_action( val = … t_arg = … )`
@@ -592,6 +593,19 @@ The same tree, with the subtree held in a variable:
   silent, as it always has. The sample `Z2UI5_CL_SMP_APP_502` in
   [abap2UI5/samples](https://github.com/abap2UI5/samples) walks every one of
   those cases with one button each.
+- **A pure UI5 option is not a parameter of those two methods.** They carry
+  what an ABAP app decides — the data, the kind of box, the buttons as a
+  table, the backend event raised when it closes. Where a toast docks, how
+  wide a box is, which icon it carries, what it is a dependent of: that is
+  the control, and it is set through the whitelisted global call, whose last
+  argument is the `sap.m.MessageToast.show( )` / `sap.m.MessageBox.<type>( )`
+  option object 1:1 (the display method IS the box type there, and a `t_arg`
+  starting with a brace travels as real JSON):
+  `client->follow_up_action( val = z2ui5_if_client=>cs_event-control_global t_arg =
+  VALUE #( ( `MESSAGE_BOX` ) ( `error` ) ( `Not saved.` ) ( `{"contentWidth":"30rem","icon":"WARNING"}` ) ) )`.
+  `Z2UI5_CL_SMP_APP_381` and `Z2UI5_CL_SMP_APP_512` are the two samples that
+  show that half. Wired into a view the same call runs without a round-trip
+  at all, and extra arguments fill `{0}`, `{1}` placeholders in the text.
 - Bind popup data exactly like main-view data; changed bound data reaches
   an open popup automatically.
 - A popup or popover is closed automatically by anything that replaces the

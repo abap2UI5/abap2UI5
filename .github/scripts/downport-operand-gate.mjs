@@ -34,10 +34,22 @@
 // be activated. The only thing that could have caught it before a user's
 // system did is a rule about the SOURCE shape, which is what this is.
 //
-// What it reports: a built-in function call inside a table-expression key, a
-// WITH [TABLE] KEY operand, or an internal-table WHERE operand. Hoist the call
-// into a variable on the line above - a plain assignment IS an expression
-// position at 7.02, so the variable is the entire fix.
+// What it reports: a built-in function call inside a WITH [TABLE] KEY operand
+// or an internal-table WHERE operand - the two positions an author writes
+// 7.02-ready themselves, so the downport passes them through as they stand.
+// Hoist the call into a variable on the line above - a plain assignment IS an
+// expression position at 7.02, so the variable is the entire fix.
+//
+// The THIRD position, the table-expression key of #2664 above, is no longer
+// reported. It is v740 source; what reaches a 7.02 system is whatever the
+// downport makes of it, and since abaplint/abaplint#4272 (2.120.46, pinned
+// here at 2.120.51) that lowering hoists the call itself - the fix this gate
+// used to ask for by hand. Measured on 2.120.51: `line_exists( it[ k =
+// to_upper( v ) ] )` comes out as `temp1 = to_upper( v ).` followed by
+// `READ TABLE it WITH KEY k = temp1`, while a hand-written `WITH KEY k =
+// to_upper( v )` and a `LOOP ... WHERE k = to_upper( v )` come out unchanged.
+// The self-test below carries that line with a `null` expectation, so a
+// regression upstream fails here rather than going unnoticed.
 //
 // What it deliberately does NOT report:
 //
@@ -68,8 +80,8 @@ import { BUILTINS, CALL, stripNoise, positions } from "./lib/downport-operands.m
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
-/* Self-test: the three positions, on statements written for them, before the
- * tree is scanned. This gate is green over `src/` either way - the one site it
+/* Self-test: the two positions, on statements written for them, plus the
+ * shape the downport now handles itself, before the tree is scanned. This gate is green over `src/` either way - the one site it
  * ever had was repaired in the change that added it - so a position that stops
  * matching costs nothing visible and is noticed by nobody. That is not
  * hypothetical: the internal-table WHERE excluded any line carrying a `FROM`,
@@ -78,8 +90,11 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
  * `LOOP AT <itab> FROM <idx> WHERE`. `null` means "no position on this line".
  */
 const SELF_TEST = [
-  // the #2664 line itself
-  ["IF NOT line_exists( mt_names[ table_line = to_upper( is_node-name ) ] ).", "table expression key"],
+  /* The #2664 line itself - NOT a finding any more. abaplint's downport hoists
+   * the call out of the generated READ TABLE (abaplint/abaplint#4272), so the
+   * source shape is safe at the pinned version. If that stops being true this
+   * expectation is the wrong one, and it is the only place that would say so. */
+  ["IF NOT line_exists( mt_names[ table_line = to_upper( is_node-name ) ] ).", null],
   ["READ TABLE lt_parts WITH KEY name = to_upper( iv_name ) INTO DATA(ls_part).", "WITH KEY operand"],
   ["DELETE lt_param WHERE n = to_lower( iv_name ).", "internal-table WHERE operand"],
   // the two shapes the blanket FROM exclusion used to swallow

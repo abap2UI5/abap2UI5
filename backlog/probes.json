@@ -16,18 +16,19 @@
   },
   "abaplint-subrc-after-assign": {
     "describe": "a sy-subrc test whose nearest sy-subrc-setting statement is a plain ASSIGN, with ASSIGN COMPONENT as the negative",
-    "ran": "2026-08-17",
+    "ran": "2026-09-13",
     "checkouts": [
       "abap2UI5",
       "samples",
       "samples-controls",
       "samples-stack"
     ],
-    "sites": 61,
-    "negatives": 171,
+    "sites": 67,
+    "negatives": 156,
     "repos": [
       "abap2UI5",
       "samples",
+      "samples-controls",
       "samples-stack"
     ]
   },

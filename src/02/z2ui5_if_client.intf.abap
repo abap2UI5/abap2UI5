@@ -305,7 +305,6 @@ INTERFACE z2ui5_if_client
     "! The per-wire options of _event( ) - see the documentation on the method
     "! for what each one decides.
     BEGIN OF ty_s_event_control,
-      check_allow_multi_req TYPE abap_bool,
       " cancel the control's built-in default for this event before the
       " roundtrip (oEvent.preventDefault(), e.g. sap.tnt NavigationListItem
       " press without the automatic item selection); the event itself is
@@ -335,10 +334,8 @@ INTERFACE z2ui5_if_client
       " (liveChange, liveSearch, sliderChange): without it every keystroke
       " typed while a roundtrip runs is lost, the last one included, and the
       " backend stays at the value of the last COMPLETED roundtrip until the
-      " user pauses and types again. Not combined with check_allow_multi_req,
-      " which sends every firing at once and lets the responses land in any
-      " order. Appended at the END of the structure (rule 5, see the note on
-      " ty_s_get-t_model_skipped)
+      " user pauses and types again. Appended at the END of the structure
+      " (rule 5, see the note on ty_s_get-t_model_skipped)
       check_queue_last      TYPE abap_bool,
     END OF ty_s_event_control.
 
@@ -696,8 +693,18 @@ INTERFACE z2ui5_if_client
   "! The one case that shows nothing at all is complex data that is initial
   "! (an empty message table stays as silent as it always was).
   "!
-  "! Every option below is the sap.m.MessageBox option of the same name,
-  "! passed through when set; onclose is the one abap2UI5-shaped exception.
+  "! What this method carries is what an ABAP app decides: the data in any
+  "! shape it has, the kind of box, the buttons as a table, the backend event
+  "! its closing raises. A plain sap.m.MessageBox option that abap2UI5 only
+  "! passes through is set on the CONTROL instead - through the whitelisted
+  "! global call, whose last argument is the UI5 option object 1:1:
+  "!
+  "! ``client->follow_up_action( val = client->cs_event-control_global t_arg = VALUE #( ( `MESSAGE_BOX` ) ( `error` ) ( `Not saved.` ) ( `\{"contentWidth":"30rem","icon":"WARNING"\}` ) ) )``
+  "!
+  "! The method IS the box type there, and the option object lands in the
+  "! same frontend code this method reaches. `textDirection`, `icon`,
+  "! `closeOnNavigation`, `dependentOn` (UI5 1.124 on) and `contentWidth`
+  "! were parameters here until 2026-09 and travel that way now.
   "!
   "! @parameter text | what to show - a text, or any of the shapes above.
   "! @parameter type | the kind of box, which decides icon and default title:
@@ -717,79 +724,46 @@ INTERFACE z2ui5_if_client
   "!                  emphasized button.
   "! @parameter initialfocus | the action (or control id) that has the focus
   "!                  when the box opens.
-  "! @parameter textdirection | `LTR`, `RTL` or `Inherit` for the text.
-  "! @parameter icon | an icon of sap.m.MessageBox.Icon (`NONE`,
-  "!                  `INFORMATION`, `WARNING`, `ERROR`, `SUCCESS`,
-  "!                  `QUESTION`) instead of the one the type implies.
   "! @parameter details | a further text (or JSON) shown behind the box's
   "!                  "Show details" link.
-  "! @parameter closeonnavigation | close the box when the page navigates
-  "!                  (the default); abap_false keeps it open.
-  "! @parameter dependenton | the id of a control the box becomes a dependent
-  "!                  of, so it is destroyed with that control (UI5 1.124 on).
-  "! @parameter contentwidth | a CSS width for the box's content.
   METHODS message_box_display
     IMPORTING
-      text              TYPE any
-      type              TYPE clike        DEFAULT `information`
-      title             TYPE clike        OPTIONAL
-      styleclass        TYPE clike        OPTIONAL
-      onclose           TYPE clike        OPTIONAL
-      actions           TYPE string_table OPTIONAL
-      emphasizedaction  TYPE clike        OPTIONAL
-      initialfocus      TYPE clike        OPTIONAL
-      textdirection     TYPE clike        OPTIONAL
-      icon              TYPE clike        OPTIONAL
-      details           TYPE clike        OPTIONAL
-      closeonnavigation TYPE abap_bool    DEFAULT abap_true
-      dependenton       TYPE clike        OPTIONAL
-      contentwidth      TYPE clike        OPTIONAL.
+      text             TYPE any
+      type             TYPE clike        DEFAULT `information`
+      title            TYPE clike        OPTIONAL
+      styleclass       TYPE clike        OPTIONAL
+      onclose          TYPE clike        OPTIONAL
+      actions          TYPE string_table OPTIONAL
+      emphasizedaction TYPE clike        OPTIONAL
+      initialfocus     TYPE clike        OPTIONAL
+      details          TYPE clike        OPTIONAL.
 
   "! Show a sap.m.MessageToast with text - the fire-and-forget notification
   "! for a saved record or a copied link, gone again after a few seconds.
-  "! Every other parameter is the option of the same name of
-  "! sap.m.MessageToast.show( ), passed through only when set, so UI5 owns
-  "! every default; onclose and class are abap2UI5-shaped.
+  "!
+  "! Three parameters, and two of them are not UI5 options at all: the text
+  "! an ABAP app composed, and the backend event its closing raises. Where
+  "! the toast docks, how it animates, how wide it is - that is the CONTROL,
+  "! and it is steered through the whitelisted global call, whose last
+  "! argument is the sap.m.MessageToast.show( ) option object 1:1:
+  "!
+  "! ``client->follow_up_action( val = client->cs_event-control_global t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `Saved.` ) ( `\{"my":"center center","at":"center center","width":"20em"\}` ) ) )``
+  "!
+  "! `width`, `my`, `at`, `of`, `offset`, `collision`, `autoClose`,
+  "! `animationTimingFunction`, `animationDuration`, `closeOnBrowserNavigation`
+  "! and the abap2UI5-own `class` were parameters here until 2026-09 and
+  "! travel that way now. That call also composes its text on the CLIENT -
+  "! extra arguments fill `\{0\}`, `\{1\}` placeholders - so a toast over an
+  "! event parameter needs no round-trip at all.
   "!
   "! @parameter text | the text shown.
   "! @parameter duration | milliseconds the toast stays (UI5 default 3000).
-  "! @parameter width | the toast's CSS width (UI5 default 15em).
-  "! @parameter my | the toast's own docking point, a sap.ui.core.Popup.Dock
-  "!                  value (UI5 default `center bottom`).
-  "! @parameter at | the docking point of `of` the toast is placed at (UI5
-  "!                  default `center bottom`).
-  "! @parameter of | the control id or DOM reference the toast is positioned
-  "!                  relative to (UI5 default: the window).
-  "! @parameter offset | the offset from that position as `x y` in pixels.
-  "! @parameter collision | how a toast that would leave the window is moved
-  "!                  (`fit`, `flip`, `none`, one value per axis; UI5 default
-  "!                  `fit fit`).
   "! @parameter onclose | a BACKEND event name raised when the toast closes.
-  "! @parameter autoclose | close after duration (the default) or stay until
-  "!                  the user clicks elsewhere.
-  "! @parameter animationtimingfunction | the CSS timing function of the fade
-  "!                  (UI5 default `ease`).
-  "! @parameter animationduration | the fade duration in milliseconds (UI5
-  "!                  default 1000).
-  "! @parameter closeonbrowsernavigation | close on browser navigation (the
-  "!                  default).
-  "! @parameter class | one or more CSS classes added to the toast.
   METHODS message_toast_display
     IMPORTING
-      text                     TYPE clike
-      duration                 TYPE clike     OPTIONAL
-      width                    TYPE clike     OPTIONAL
-      my                       TYPE clike     OPTIONAL
-      at                       TYPE clike     OPTIONAL
-      of                       TYPE clike     OPTIONAL
-      offset                   TYPE clike     OPTIONAL
-      collision                TYPE clike     OPTIONAL
-      onclose                  TYPE clike     DEFAULT ``
-      autoclose                TYPE abap_bool DEFAULT abap_true
-      animationtimingfunction  TYPE clike     OPTIONAL
-      animationduration        TYPE clike     OPTIONAL
-      closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
-      class                    TYPE clike     OPTIONAL.
+      text     TYPE clike
+      duration TYPE clike OPTIONAL
+      onclose  TYPE clike DEFAULT ``.
 
   " arg is appended rather than slotted next to t_arg, where it would read
   " better: rule 5 allows a new optional parameter at the END of the list -
@@ -798,12 +772,11 @@ INTERFACE z2ui5_if_client
   " the parameter table the way it prints a comment inside the list.)
   "! Register a backend event and return the handler expression for a view
   "! attribute (press = client->_event( `SAVE` )). s_ctrl carries the optional
-  "! event flags: check_allow_multi_req sends the event while another
-  "! roundtrip is still running, check_prevent_default cancels the control's
-  "! built-in default for this event (oEvent.preventDefault(), e.g. a
-  "! sap.tnt NavigationListItem press that must not select the item) before
-  "! the roundtrip - the event is still sent, so the backend stays in charge
-  "! of what happens instead. That flag is baked per WIRE at render time;
+  "! event flags: check_prevent_default cancels the control's built-in
+  "! default for this event (oEvent.preventDefault(), e.g. a sap.tnt
+  "! NavigationListItem press that must not select the item) before the
+  "! roundtrip - the event is still sent, so the backend stays in charge of
+  "! what happens instead. That flag is baked per WIRE at render time;
   "! prevent_default_expr is the same veto decided per FIRING - a client
   "! expression evaluated when the event fires, so one wire can protect one
   "! row/column and let the rest through
@@ -813,9 +786,8 @@ INTERFACE z2ui5_if_client
   "! the response has landed, instead of dropping it - one roundtrip in
   "! flight at a time, order preserved, the backend ends on the control's
   "! current value; it is the flag for a per-keystroke wire (liveChange,
-  "! liveSearch, sliderChange), where check_allow_multi_req would send one
-  "! roundtrip per keystroke with responses landing in any order. Not
-  "! combined with check_allow_multi_req.
+  "! liveSearch, sliderChange), which without it loses every keystroke typed
+  "! while a roundtrip runs, the last one included.
   "!
   "! @parameter val | the event name the handler checks with
   "!                  check_on_event( `SAVE` ) - upper case by convention,
@@ -825,10 +797,10 @@ INTERFACE z2ui5_if_client
   "!                  `$\{$source>/...\}` or `$\{$parameters>/...\}` client
   "!                  expression evaluated when the event fires, or
   "!                  `$event>...` for a field of the UI5 event itself.
-  "! @parameter s_ctrl | the per-wire options (ty_s_event_control): send while
-  "!                  another roundtrip runs, keep the last firing until the
-  "!                  running roundtrip has landed, cancel the control's
-  "!                  default, quote every argument as a literal.
+  "! @parameter s_ctrl | the per-wire options (ty_s_event_control): keep the
+  "!                  last firing until the running roundtrip has landed,
+  "!                  cancel the control's default, quote every argument as
+  "!                  a literal.
   "! @parameter arg | the ONE-VALUE spelling of t_arg: `arg = x` is exactly
   "!                  `t_arg = VALUE #( ( x ) )`, byte for byte, and the
   "!                  handler reads it back with the same `get_event_arg( )`.
@@ -1006,16 +978,36 @@ INTERFACE z2ui5_if_client
       path                 TYPE abap_bool                     DEFAULT abap_false
       "obsolete - inactive, not passed on internally
       view                 TYPE clike                         DEFAULT cs_view-main
-      "obsolete - still evaluated, but do not use in new code. Both hand an
-      "app a reference to the bundled AJSON library (src/00/01), which is a
-      "MIRRORED copy of an external project, not a contract this framework
-      "owns: an app implementing z2ui5_if_ajson_mapping / _filter binds
-      "itself to whatever that mirror looks like today. Everything they were
-      "reached for has a declarative counterpart on this method now -
-      "omit_initial / omit_initial_paths drop initial fields, json splices a
-      "JSON node - and the ABAP side can shape the value before it is bound
+      "obsolete - still evaluated, but NO AJSON TYPE BELONGS IN A BIND CALL
+      "any more. Both hand an app a reference to the bundled AJSON library
+      "(src/00/01), which is a MIRRORED copy of an external project, not a
+      "contract this framework owns: an app implementing
+      "z2ui5_if_ajson_mapping / _filter binds itself to whatever that mirror
+      "looks like today, and a resync of the mirror is free to break it.
+      "Everything they were ever reached for is declarative on this method
+      "now, and each replacement has a sample that proves it:
+      "  drop initial fields   -> omit_initial / omit_initial_paths
+      "                           (z2ui5_cl_smp_app_507)
+      "  a model NODE instead
+      "  of a quoted string,
+      "  under keys no ABAP
+      "  component can carry   -> json = abap_true
+      "                           (z2ui5_cl_smp_app_509)
+      "  anything else         -> shape the value in ABAP before binding it
+      "The one thing _bind( ) deliberately cannot do is a mapping that
+      "differs per direction - see the _back pair on _bind_edit( ), which is
+      "dead there. Measured 2026-09-13 across samples, samples-controls and
+      "samples-stack: not one app class passes either parameter or
+      "implements either interface, and none ever did in their git history -
+      "so nothing has to be migrated, only nothing new written. AJSON itself
+      "stays: it is the model engine (z2ui5_cl_ui5_srv_model), and json =
+      "abap_true is implemented with it. What goes is the LEAK of the
+      "mirrored library into the app-facing interface.
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      "obsolete - the filter half of custom_mapper, see there
+      "obsolete - the filter half of custom_mapper, see there. This is the
+      "half that had the one real use - do not send initial fields, i.e.
+      "z2ui5_cl_ajson_filter_lib=>create_empty_filter - and that use is
+      "exactly what omit_initial replaced: it is wired into this very slot
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
       tab                  TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
@@ -1029,6 +1021,13 @@ INTERFACE z2ui5_if_client
   "! obsolete - alias of _bind with identical behaviour, please use _bind.
   "! custom_mapper_back / custom_filter_back are still accepted for source
   "! compatibility but are no longer evaluated.
+  "!
+  "! All four AJSON parameters here are dead ends: this is the only place
+  "! that ever offered a per-direction mapping, and the two _back halves
+  "! that made it one are inert. Do not reach for any of them in new code -
+  "! bind with _bind( ) and say what you mean with omit_initial /
+  "! omit_initial_paths or json = abap_true, whose notes on _bind( ) carry
+  "! the full reasoning and a sample each.
   "!
   "! @parameter val | as _bind( ).
   "! @parameter path | as _bind( ).
