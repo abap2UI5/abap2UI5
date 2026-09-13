@@ -18,6 +18,8 @@ CLASS lcl_node_value DEFINITION FINAL.
         is_node       TYPE z2ui5_if_ajson_types=>ty_node
       RETURNING
         VALUE(result) TYPE abap_bool.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -134,7 +136,7 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
         SPLIT lv_name AT `/` INTO TABLE DATA(lt_parts).
         lv_name = VALUE #( lt_parts[ lines( lt_parts ) ] OPTIONAL ).
       ENDIF.
-      IF lv_name IS NOT INITIAL AND NOT line_exists( mt_names[ table_line = lv_name ] ). "#EC CI_SORTSEQ
+      IF lv_name IS NOT INITIAL.
         INSERT lv_name INTO TABLE mt_names.
       ENDIF.
     ENDLOOP.

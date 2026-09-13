@@ -123,12 +123,7 @@ sap.ui.define(
         }
       },
 
-      renderer: {
-        apiVersion: 2,
-        render(oRm, oControl) {
-          Lib.renderInvisibleSpan(oRm, oControl);
-        },
-      },
+      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },
     });
   },
 );

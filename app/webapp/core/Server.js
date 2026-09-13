@@ -154,6 +154,9 @@ sap.ui.define(
         this._requestSeq += 1;
         this._abortInflight();
         this._viewBuild = null;
+        // a keystroke a check_queue_last wire kept for the app being torn
+        // down must never be dispatched into the next one
+        AppState.state.oQueuedEvent = null;
         // the error overlay's module state is the same kind of survivor -
         // the last error dump stays referenced across the teardown otherwise
         ErrorView.reset();
@@ -422,7 +425,7 @@ sap.ui.define(
           // nothing, so a slower older response can never wipe newer edits;
           // and edits made in a different model stay pending for their own
           // roundtrip.
-          AppState.state.oSentModel?._z2ui5ChangedPaths?.clear();
+          this._clearSentPaths(AppState.state.oSentModel);
           AppState.state.oSentModel = null;
           this.responseSuccess(
             {
@@ -452,6 +455,37 @@ sap.ui.define(
         } finally {
           this._inflight.delete(superseder);
           cancel();
+        }
+      },
+
+      // The edits a winning request carried are done with; the ones made
+      // WHILE it was in flight are not. View1.eB snapshots the value of every
+      // path it ships (_z2ui5SentValues), so a path is cleared only when the
+      // model still holds the value that went out: a path first edited during
+      // the flight, or re-edited since it was sent (the keystrokes typed under
+      // a running liveChange roundtrip - the very edits a check_queue_last
+      // wire's queued event has to carry), stays pending and travels with the
+      // next roundtrip. Clearing the whole set - what this did before - lost
+      // those edits twice over: the delta no longer named them, and the
+      // response's model push (actions/Slots updateModel) only re-applies what
+      // is pending, so the backend's stale value overwrote the field. A model
+      // without a snapshot (a roundtrip that shipped no delta) clears as before.
+      _clearSentPaths(oModel) {
+        const pending = oModel?._z2ui5ChangedPaths;
+        if (!pending) return;
+        const sentValues = oModel._z2ui5SentValues;
+        oModel._z2ui5SentValues = null;
+        if (!sentValues) {
+          pending.clear();
+          return;
+        }
+        for (const path of Array.from(pending)) {
+          if (
+            sentValues.has(path) &&
+            sentValues.get(path) === oModel.getProperty(path)
+          ) {
+            pending.delete(path);
+          }
         }
       },
 
@@ -553,6 +587,12 @@ sap.ui.define(
       responseError(response, title, oOptions) {
         BusyIndicator.hide();
         AppState.state.isBusy = false;
+        // The overlay below ends the app: every further request is the
+        // overlay's own Retry / Restart. A keystroke a check_queue_last wire
+        // kept for the roundtrip that just failed is dropped, not dispatched -
+        // it would re-send the failing value under the overlay and answer
+        // with a second one.
+        AppState.state.oQueuedEvent = null;
         ErrorView.show(response, title, oOptions);
       },
     };

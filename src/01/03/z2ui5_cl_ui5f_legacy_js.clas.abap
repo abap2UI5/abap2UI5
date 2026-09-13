@@ -86,7 +86,8 @@ CLASS z2ui5_cl_ui5f_legacy_js IMPLEMENTATION.
              `        token += ch;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
-             `    if (token.trim() !== "") args.push(parseEfValue(token.trim()));` && |\n| &&
+             `    const last = token.trim();` && |\n| &&
+             `    if (last !== "") args.push(parseEfValue(last));` && |\n| &&
              `    return args;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&

@@ -42,38 +42,28 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_http_get_html.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp1 TYPE xsdboolean.
-    DATA temp2 TYPE xsdboolean.
-    DATA temp3 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_result-body ).
 
-    temp1 = xsdbool( ls_result-body CS `<!DOCTYPE html>` ).
-    cl_abap_unit_assert=>assert_true( temp1 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
 
-    temp2 = xsdbool( ls_result-body CS `<html` ).
-    cl_abap_unit_assert=>assert_true( temp2 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<html` ) ).
 
-    temp3 = xsdbool( ls_result-body CS `</html>` ).
-    cl_abap_unit_assert=>assert_true( temp3 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `</html>` ) ).
 
   ENDMETHOD.
 
   METHOD test_http_get_ui5_boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp4 TYPE xsdboolean.
-    DATA temp5 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    temp4 = xsdbool( ls_result-body CS `sap-ui-bootstrap` ).
-    cl_abap_unit_assert=>assert_true( temp4 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `sap-ui-bootstrap` ) ).
 
-    temp5 = xsdbool( ls_result-body CS `z2ui5` ).
-    cl_abap_unit_assert=>assert_true( temp5 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `z2ui5` ) ).
 
   ENDMETHOD.
 
@@ -86,12 +76,10 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " an empty one would leave the URL in the tab during the UI5 boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp7 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    temp7 = xsdbool( ls_result-body CS `<title>abap2UI5</title>` ).
-    cl_abap_unit_assert=>assert_true( temp7 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<title>abap2UI5</title>` ) ).
 
   ENDMETHOD.
 
@@ -99,7 +87,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp6 TYPE xsdboolean.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
@@ -109,8 +96,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    temp6 = xsdbool( ls_result-body CS `S_FRONT` ).
-    cl_abap_unit_assert=>assert_true( temp6 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `S_FRONT` ) ).
 
   ENDMETHOD.
 
@@ -191,7 +177,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
-    DATA temp8 TYPE xsdboolean.
 
     ls_req-method = `GET`.
 
@@ -200,8 +185,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    temp8 = xsdbool( ls_result-body CS `<!DOCTYPE html>` ).
-    cl_abap_unit_assert=>assert_true( temp8 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
 
   ENDMETHOD.
 
@@ -297,28 +281,20 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " single-quoted string literal, so an apostrophe, a backslash or a line
     " break in a customer's own CSS has to arrive escaped.
     DATA lv_css TYPE string.
-    DATA temp30 TYPE xsdboolean.
-    DATA temp31 TYPE xsdboolean.
-    DATA temp32 TYPE xsdboolean.
-    DATA temp33 TYPE xsdboolean.
 
     lv_css = `.a::after { content: 'x'; }` && |\n| && `.b { background: url("i\c.png"); }`.
 
     DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_css
                                                   custom_js   = `` ).
 
-    temp30 = xsdbool( lv_preload CS `content: \'x\';` ).
-    cl_abap_unit_assert=>assert_true( temp30 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `content: \'x\';` ) ).
 
-    temp31 = xsdbool( lv_preload CS `}\n.b` ).
-    cl_abap_unit_assert=>assert_true( temp31 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `}\n.b` ) ).
 
-    temp32 = xsdbool( lv_preload CS `url("i\\c.png")` ).
-    cl_abap_unit_assert=>assert_true( temp32 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `url("i\\c.png")` ) ).
 
     " and nothing raw survives next to the escaped copies
-    temp33 = xsdbool( lv_preload CS `content: 'x';` ).
-    cl_abap_unit_assert=>assert_false( temp33 ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_preload CS `content: 'x';` ) ).
 
   ENDMETHOD.
 
@@ -440,7 +416,7 @@ CLASS ltcl_http_mock IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_response_cookie.
-    CLEAR result.
+    " no cookie store in the double - nothing to answer
   ENDMETHOD.
 
   METHOD delete_response_cookie.
@@ -567,6 +543,9 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_etag_position_mix       FOR TESTING RAISING cx_static_check.
     METHODS test_etag_follows_cache_key  FOR TESTING RAISING cx_static_check.
     METHODS test_exit_get_raises_answers FOR TESTING RAISING cx_static_check.
+    METHODS test_get_304_skips_build     FOR TESTING RAISING cx_static_check.
+    METHODS test_get_stale_tag_builds    FOR TESTING RAISING cx_static_check.
+    METHODS test_get_304_end_to_end      FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -589,6 +568,7 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     CLEAR z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
     CLEAR z2ui5_cl_ui5_http_handler=>sv_get_cache_body.
     CLEAR z2ui5_cl_ui5_http_handler=>sv_get_etag.
+    CLEAR z2ui5_cl_ui5_http_handler=>sv_if_none_match.
   ENDMETHOD.
 
   METHOD handler_create.
@@ -985,6 +965,103 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     shell_for_config( ls_config_a ).
     cl_abap_unit_assert=>assert_equals( exp = lv_tag_a
                                         act = z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+
+  ENDMETHOD.
+
+  METHOD test_get_304_skips_build.
+
+    " the browser still holds the current shell: _http_get answers the
+    " conditional GET BEFORE the page is assembled - a bodyless 304, and
+    " the body cache stays empty because nothing was built. The validator
+    " is a function of the config, the version and the build hash, so a
+    " fresh work process (no cached body, the cache cleared below) computes
+    " the same tag the previous one sent
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme = `sap_horizon`
+        src   = `https://sdk.example/sap-ui-core.js` ).
+    shell_for_config( ls_config ).
+    DATA(lv_tag) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+    cl_abap_unit_assert=>assert_not_initial( lv_tag ).
+
+    caches_clear( ).
+    z2ui5_cl_ui5_http_handler=>sv_if_none_match       = lv_tag.
+    z2ui5_cl_ui5_http_handler=>ss_config_http_get     = ls_config.
+    z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
+
+    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 304
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = `Not Modified`
+                                        act = ls_res-status_reason ).
+    cl_abap_unit_assert=>assert_initial( ls_res-body ).
+    " the proof that the build was skipped, not thrown away
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
+    " the tag set_response sends with the 304 is the one that matched
+    cl_abap_unit_assert=>assert_equals( exp = lv_tag
+                                        act = z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+    " consumed: a later direct _main( ) call meets no validator of this
+    " request
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_if_none_match ).
+
+  ENDMETHOD.
+
+  METHOD test_get_stale_tag_builds.
+
+    " a validator of another shell: the full page is built and travels,
+    " and the body cache is filled by it
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme = `sap_horizon`
+        src   = `https://sdk.example/sap-ui-core.js` ).
+    z2ui5_cl_ui5_http_handler=>sv_if_none_match       = `"1.0-stale-tag"`.
+    z2ui5_cl_ui5_http_handler=>ss_config_http_get     = ls_config.
+    z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
+
+    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_not_initial( ls_res-body ).
+    cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
+    cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_if_none_match ).
+
+  ENDMETHOD.
+
+  METHOD test_get_304_end_to_end.
+
+    " the two requests of a reload as the stack sees them: the first GET
+    " answers 200 with a tag, the second - in a NEW work process, so the
+    " caches are cleared in between - carries that tag back and gets the
+    " bodyless 304 with the tag and the revalidation policy, without the
+    " shell ever having been assembled
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `GET` ).
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_not_initial( mo_mock->mv_cdata ).
+    DATA(lv_tag) = header_value( `etag` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_tag ).
+
+    caches_clear( ).
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `GET` ).
+    INSERT VALUE #( n = `if-none-match`
+                    v = lv_tag ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 304
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_initial( mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_tag
+                                        act = header_value( `etag` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
+                                        act = header_value( `cache-control` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
 
   ENDMETHOD.
 

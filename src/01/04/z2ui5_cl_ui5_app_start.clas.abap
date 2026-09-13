@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
+CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -78,8 +78,7 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
         toolbar TYPE REF TO z2ui5_cl_ui5_view_builder
         icon    TYPE string
         tooltip TYPE string
-        press   TYPE string
-        class   TYPE string DEFAULT `sapUiTinyMarginBeginEnd`.
+        press   TYPE string.
 
     " Building blocks of the SimpleForm rows above. Private on purpose: not
     " because a contract guards them (the class sits in src/01/04, outside
@@ -93,9 +92,9 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     CONSTANTS c_event_system TYPE string VALUE `OPEN_SYSTEM`.
     CONSTANTS c_event_close  TYPE string VALUE `CLOSE_POPUP`.
     " lives in the abap2UI5-setup repository, resolved dynamically (listed
-    " in dynamic-name-gate's EXTERNAL). ONE constant for both the render
-    " check and the CREATE - the same name used to exist in two spellings
-    " here, which is how a rename gets one of them wrong
+    " in dynamic-name-gate's EXTERNAL) - a constant, because the same name
+    " used to exist in two spellings here, which is how a rename gets one of
+    " them wrong
     CONSTANTS c_class_icf_config TYPE string VALUE `Z2UI5_CL_APP_ICF_CONFIG`.
 
     " the class name input of step 4 - the only control on the page that is
@@ -126,14 +125,13 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     METHODS render_spacer
       IMPORTING form TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    " a form row of Label + external Link; an empty label renders a blank one,
-    " which is how the SimpleForm keeps the link in the value column
+    " a form row of empty Label + external Link; the blank label is how the
+    " SimpleForm keeps the link in the value column
     METHODS render_link
       IMPORTING
-        form  TYPE REF TO z2ui5_cl_ui5_view_builder
-        label TYPE string OPTIONAL
-        text  TYPE string
-        href  TYPE string.
+        form TYPE REF TO z2ui5_cl_ui5_view_builder
+        text TYPE string
+        href TYPE string.
 
     " a form row of Label + read-only Text
     METHODS render_text
@@ -146,8 +144,7 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
     " the same place in every row - the alignment the samples app has
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
-    " the icon the page names twice - once in the title row, once in the
-    " "Learn more" section - so the header and the section cannot drift apart
+    " the icon of the "Learn more" row that links the project site
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
     " the icon of a row belongs to the link behind it, so it carries the link's
@@ -239,11 +236,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     CASE client->get_event( ).
 
       WHEN cs_event-set_config.
-        " the button is only rendered when the class exists (see
-        " reset_button_state) - but the EVENT can arrive without it: a
-        " draft restored from before a deletion, Back/Forward, a hand-built
-        " request. That must degrade to a message, not to a 500 on the
-        " framework's own start page (same guard shape as on_event_check)
+        " no control on the page fires this event any more (the configuration
+        " gear left the title row when the outbound icons were parked) - but
+        " the EVENT can still arrive: a draft restored from before that,
+        " Back/Forward, a bookmark, a hand-built request. That must degrade to
+        " a message, not to a 500 on the framework's own start page (same
+        " guard shape as on_event_check)
         TRY.
             CREATE OBJECT li_app_config TYPE (c_class_icf_config).
             client->nav_app_call( li_app_config ).
@@ -411,22 +409,15 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " No ToolbarSpacer either: contentRight is right-aligned on its own.
     DATA(toolbar) = bar->ele( `contentRight` ).
 
-    " first what this system is: the information popup, and the configuration
-    " when it is installed. Sliders rather than a monitor on the first one -
-    " what opens there is the backend side of the installation, user exit and
-    " drafts included, and that reads as settings. The gear next to it stays
-    " with the ICF configuration, so the two are still told apart at a glance
+    " what this system is: the information popup. Sliders rather than a
+    " monitor - what opens there is the backend side of the installation,
+    " user exit and drafts included, and that reads as settings. (The gear of
+    " the ICF configuration app that used to sit next to it is gone from the
+    " title row; cs_event-set_config and on_event still accept its event.)
     header_icon( toolbar = toolbar
                  icon    = `sap-icon://action-settings`
                  tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
                  press   = client->_event( c_event_system ) ).
-
-*    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( c_class_icf_config ).
-*      header_icon( toolbar = toolbar
-*                   icon    = `sap-icon://settings`
-*                   tooltip = `Configuration`
-*                   press   = client->_event( cs_event-set_config ) ).
-*    ENDIF.
 
   ENDMETHOD.
 
@@ -439,7 +430,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     toolbar->tag( n = `Icon` ns = `core`
         )->a( n = `src`      v = icon
         )->a( n = `size`     v = c_icon_size_header
-        )->a( n = `class`    v = class
+        )->a( n = `class`    v = `sapUiTinyMarginBeginEnd`
         )->a( n = `color`    v = c_icon_color
         )->a( n = `tooltip`  v = tooltip
         )->a( n = `press`    v = press ).
@@ -450,19 +441,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     " its own section, so the samples above get their separator back and where
     " to read on is what the page says right after them - same row shape as a
-    " sample repository, and the same two icons the title row carries
+    " sample repository
     render_section( form  = form
                     title = `Learn more` ).
-
-*    render_icon_row( form    = form
-*                     label   = `GitHub`
-*                     icon    = c_icon_repo
-*                     text    = `abap2UI5`
-*                     href    = `https://github.com/abap2UI5/abap2UI5`
-*                     new_tab = abap_true
-*        )->tag( `Text`
-*            )->a( n = `text`   v = `The repository itself - source code, issues, releases, and what abapGit installs from`
-*            )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
 
     render_icon_row( form    = form
                      label   = `Docs`
@@ -470,9 +451,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
                      text    = `abap2UI5.org`
                      href    = `https://abap2UI5.org`
                      new_tab = abap_true
-    )->tag( `Text`
-        )->a( n = `text`   v = `Guides, tutorials and the Sample reference - from your first app to the full client API`
-        )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
+        )->tag( `Text`
+            )->a( n = `text`   v = `Guides, tutorials and the Sample reference - from your first app to the full client API`
+            )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
 
@@ -683,7 +664,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     " the system facts are read once and then not again, so they are a popup
     " rather than a block of the page - reached from the icon at the right end
-    " of the closing line. The one part that is not free is the draft count at
+    " of the title row. The one part that is not free is the draft count at
     " the bottom: two COUNT( * ), the own rows and the whole table, which
     " together say whether cleanup( ) is keeping up. In a popup they run when
     " the popup is opened, which is exactly when somebody asks
@@ -713,12 +694,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `class`     v = `sapUiSmallMarginBeginEnd sapUiTinyMarginTop` ).
 
     DATA(form) = create_layout_form( content ).
-    DATA(ls_client) = client->get( ).
 
     form->tag( `Label`
         )->a( n = `text`  v = `Launchpad active` ).
     form->tag( `CheckBox`
-        )->a( n = `selected`  b = ls_client-check_launchpad_active
+        )->a( n = `selected`  b = client->get( )-check_launchpad_active
         )->a( n = `enabled`   v = `false` ).
 
     form->tag( `Label`
@@ -778,9 +758,6 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD render_link.
 
     form->tag( `Label` ).
-    IF label IS NOT INITIAL.
-      form->a( n = `text`  v = label ).
-    ENDIF.
 
     form->tag( `Link`
         )->a( n = `text`    v = text

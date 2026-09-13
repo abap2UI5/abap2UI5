@@ -37,6 +37,9 @@
 //   cccResourceRoot   same for the customer frontend-extension BSP
 //                     ("../z2ui5_ccc/") (backend HTML)
 //   requestTimeoutMs  optional override for the roundtrip timeout (apps)
+//   developerTools    the developer-tools facade, published under the name
+//                     apps and bookmarklets already reach it by
+//                     (devtools/DevTools.js)
 //   <custom>          apps can register functions via the js_loader popup
 //                     and call them through the Z2UI5 frontend event
 //
@@ -91,6 +94,12 @@
 //                     a roundtrip (devtools LiveEdit) keeps the OData
 //                     default model a switch-mode view was built with
 //   isBusy            roundtrip in flight (View1.eB / Server)
+//   oQueuedEvent      { controller, args } of the LAST event a
+//                     check_queue_last wire fired while a roundtrip was in
+//                     flight (View1.eB keeps it instead of dropping it);
+//                     one slot, last wins. Dispatched by
+//                     View1._dispatchQueuedEvent once the roundtrip has
+//                     landed, dropped by Server.reset / responseError
 //   oSentModel        the JSON model whose edited-path set the in-flight
 //                     request carried; its own _z2ui5ChangedPaths is cleared
 //                     once that request wins (Server), so a stale response
@@ -161,6 +170,7 @@ sap.ui.define([], () => {
       responseData: null,
       contextId: null,
       isBusy: false,
+      oQueuedEvent: null,
       oSentModel: null,
       lastRequestBytes: null,
       lastMainDisplayOptions: null,
@@ -286,7 +296,8 @@ sap.ui.define([], () => {
 
   // Read/write a field on the public z2ui5 global facade - the PUBLIC
   // contract fields listed in the header (checkLocal, url, oConfig, Util,
-  // requestTimeoutMs) and app-registered custom members (js_loader).
+  // Formatter, ccResourceRoot, cccResourceRoot, requestTimeoutMs,
+  // developerTools) and app-registered custom members (js_loader).
   // Internal fields are accessed via the `state` export instead. Reads and
   // writes go through the global on purpose: these fields are shared with
   // apps and the backend-generated HTML.

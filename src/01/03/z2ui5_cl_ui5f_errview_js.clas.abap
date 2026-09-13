@@ -52,18 +52,23 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    return String.fromCodePoint(codePoint);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  const NAMED_ENTITIES = {` && |\n| &&
+             `    nbsp: " ",` && |\n| &&
+             `    lt: "<",` && |\n| &&
+             `    gt: ">",` && |\n| &&
+             `    quot: '"',` && |\n| &&
+             `    apos: "'",` && |\n| &&
+             `    copy: String.fromCharCode(169),` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  const ENTITY = /&(?:([a-z]+)|#(\d+)|#x([0-9a-f]+));/gi;` && |\n| &&
              `  function decodeEntities(s) {` && |\n| &&
              `    return s` && |\n| &&
-             `      .replace(/&nbsp;/gi, " ")` && |\n| &&
-             `      .replace(/&lt;/gi, "<")` && |\n| &&
-             `      .replace(/&gt;/gi, ">")` && |\n| &&
-             `      .replace(/&quot;/gi, '"')` && |\n| &&
-             `      .replace(/&apos;|&#0*39;/gi, "'")` && |\n| &&
-             `      .replace(/&copy;/gi, String.fromCharCode(169))` && |\n| &&
-             `      .replace(/&#(\d+);/g, (raw, n) => fromCodePoint(raw, Number(n)))` && |\n| &&
-             `      .replace(/&#x([0-9a-f]+);/gi, (raw, n) =>` && |\n| &&
-             `        fromCodePoint(raw, parseInt(n, 16)),` && |\n| &&
-             `      )` && |\n| &&
+             `      .replace(ENTITY, (raw, name, dec, hex) => {` && |\n| &&
+             `        if (name) return NAMED_ENTITIES[name.toLowerCase()] ?? raw;` && |\n| &&
+             `        if (dec) return fromCodePoint(raw, Number(dec));` && |\n| &&
+             `        return fromCodePoint(raw, parseInt(hex, 16));` && |\n| &&
+             `      })` && |\n| &&
              `      .replace(/&amp;/gi, "&");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
@@ -77,10 +82,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    const rx = /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;` && |\n| &&
              `    let m;` && |\n| &&
              `    while ((m = rx.exec(html))) parts.push(cleanText(m[1]));` && |\n| &&
-             `    return parts` && |\n| &&
-             `      .filter(Boolean)` && |\n| &&
-             `      .filter((t) => !/^server time:/i.test(t))` && |\n| &&
-             `      .join(" - ");` && |\n| &&
+             `    return parts.filter((t) => t && !/^server time:/i.test(t)).join(" - ");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  const ERROR_SECTION_HEADER = "--- error ---";` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    headerDiv.style.cssText =` && |\n| &&
              `      "padding: 0.75rem 1rem; background: #bb0000; color: white; display: flex; justify-content: space-between; align-items: center; gap: 1rem;";` && |\n| &&
              `` && |\n| &&
-             `    const h3 = document.createElement("h3");` && |\n| &&
-             `    h3.id = "serverErrorTitle";` && |\n| &&
-             `    h3.textContent = title || DEFAULT_TITLE;` && |\n|.
+             `    const h3 = document.createElement("h3");` && |\n|.
     result = result &&
+             `    h3.id = "serverErrorTitle";` && |\n| &&
+             `    h3.textContent = title || DEFAULT_TITLE;` && |\n| &&
              `    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&

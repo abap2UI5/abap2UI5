@@ -1,7 +1,6 @@
 CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
-    CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
 
     TYPES ty_s_db TYPE z2ui5_t_01.
 
@@ -50,6 +49,8 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
+
     METHODS read
       IMPORTING
         id             TYPE clike

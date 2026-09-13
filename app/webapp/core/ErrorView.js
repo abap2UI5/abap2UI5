@@ -1,9 +1,10 @@
 // The unified fatal-error overlay. Shown via Server.responseError whenever
 // the app reaches an unrecoverable state - a failed roundtrip (network,
 // HTTP != 2xx, bad JSON, backend dump) or a client-side failure (invalid
-// view XML, post-render crash, missing SDK module). The only way out is a
-// restart, hence the Refresh / Logout actions. Built from raw DOM so it
-// still works when the UI5 core itself is in a broken state.
+// view XML, post-render crash, missing SDK module). The only ways out are
+// the explicit actions - Retry when the caller offered one, Restart /
+// Refresh, Logout. Built from raw DOM so it still works when the UI5 core
+// itself is in a broken state.
 sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   "use strict";
 
@@ -61,22 +62,31 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     return String.fromCodePoint(codePoint);
   }
 
-  // Decode the HTML entities that turn up in backend error pages. Non-ASCII
-  // replacements go through fromCharCode so this source file stays 7-bit ASCII
-  // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an
-  // already-encoded entity is not decoded twice.
+  // The named entities backend error pages carry. Non-ASCII replacements go
+  // through fromCharCode so this source file stays 7-bit ASCII (it is
+  // embedded verbatim into an ABAP class).
+  const NAMED_ENTITIES = {
+    nbsp: " ",
+    lt: "<",
+    gt: ">",
+    quot: '"',
+    apos: "'",
+    copy: String.fromCharCode(169),
+  };
+
+  // Decode the HTML entities that turn up in backend error pages: the named
+  // ones above plus decimal and hex numeric references, in ONE pass over the
+  // text instead of one full pass per entity kind (the preview path scans
+  // up to 16 KB). &amp; is decoded in a second pass, last, so an
+  // already-encoded entity (&amp;lt;) is not decoded twice.
+  const ENTITY = /&(?:([a-z]+)|#(\d+)|#x([0-9a-f]+));/gi;
   function decodeEntities(s) {
     return s
-      .replace(/&nbsp;/gi, " ")
-      .replace(/&lt;/gi, "<")
-      .replace(/&gt;/gi, ">")
-      .replace(/&quot;/gi, '"')
-      .replace(/&apos;|&#0*39;/gi, "'")
-      .replace(/&copy;/gi, String.fromCharCode(169))
-      .replace(/&#(\d+);/g, (raw, n) => fromCodePoint(raw, Number(n)))
-      .replace(/&#x([0-9a-f]+);/gi, (raw, n) =>
-        fromCodePoint(raw, parseInt(n, 16)),
-      )
+      .replace(ENTITY, (raw, name, dec, hex) => {
+        if (name) return NAMED_ENTITIES[name.toLowerCase()] ?? raw;
+        if (dec) return fromCodePoint(raw, Number(dec));
+        return fromCodePoint(raw, parseInt(hex, 16));
+      })
       .replace(/&amp;/gi, "&");
   }
 
@@ -95,10 +105,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     const rx = /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;
     let m;
     while ((m = rx.exec(html))) parts.push(cleanText(m[1]));
-    return parts
-      .filter(Boolean)
-      .filter((t) => !/^server time:/i.test(t))
-      .join(" - ");
+    return parts.filter((t) => t && !/^server time:/i.test(t)).join(" - ");
   }
 
   // A framework 500 body is a sectioned plain-text dump built by

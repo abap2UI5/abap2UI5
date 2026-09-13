@@ -104,7 +104,20 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
     result = |{ lv_func }({ lv_event_arg }['{ escape_js_string( CONV string( val ) ) }'|.
 
+    " The event array is read by POSITION in View1.eB: [0] the name, [1] a
+    " reserved placeholder (always false), [2] ignoreBusy
+    " (check_allow_multi_req), [3] useMainModel (custom JS only, never
+    " emitted here), [4] queueLast (check_queue_last). A flag is appended
+    " behind the existing ones so nothing shifts; a wire without any flag
+    " stays the bare ['NAME'] every existing app was rendered with.
+    DATA lv_multi TYPE string.
+    lv_multi = `false`.
     IF s_cnt-check_allow_multi_req = abap_true.
+      lv_multi = `true`.
+    ENDIF.
+    IF s_cnt-check_queue_last = abap_true.
+      result = |{ result },false,{ lv_multi },false,true|.
+    ELSEIF s_cnt-check_allow_multi_req = abap_true.
       result = |{ result },false,true|.
     ENDIF.
 
@@ -279,13 +292,10 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " contains none of these characters. Runs once per _event( ) per render,
     " plus once per quoted argument. NOTE the backslash IS in this set
     " (xml_escape's set has none)
-    DATA(lv_specials) = `\'` && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
-    IF val NA lv_specials.
-      result = val.
+    result = val.
+    IF result NA `\'` AND result NA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
       RETURN.
     ENDIF.
-
-    result = val.
     REPLACE ALL OCCURRENCES OF `\` IN result WITH `\\`.
     REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
     " read the newline constants from the context class, not cl_abap_char_
@@ -304,9 +314,8 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
     DATA lv_new TYPE string.
     DATA lv_pending TYPE string.
-    LOOP AT val REFERENCE INTO DATA(lr_arg).
+    LOOP AT val INTO lv_new.
 
-      lv_new = lr_arg->*.
       IF lv_new IS INITIAL.
         " an empty argument between filled ones must keep its position -
         " dropping it would shift every following argument into the wrong

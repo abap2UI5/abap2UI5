@@ -21,7 +21,6 @@ INTERFACE z2ui5_if_ui5_types
       target       TYPE string VALUE `VIEW_SLOTS`,
       display      TYPE string VALUE `display`,
       destroy      TYPE string VALUE `destroy`,
-      update_model TYPE string VALUE `updateModel`,
     END OF cs_slot_action.
 
   " The other whitelisted global-call targets the backend queues actions
@@ -162,7 +161,7 @@ INTERFACE z2ui5_if_ui5_types
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash
       " (see app/webapp/core/Router.js). Opt-in per APP via
-      " follow_up_action( cs_event-set_nav_routing ) - the mode is remembered on the app,
+      " follow_up_action( cs_event-hash_routing ) - the mode is remembered on the app,
       " travels in its draft and is re-sent whenever the frontend may not
       " still hold it (see z2ui5_cl_ui5_app_cont->mv_nav_mode and the
       " nav_mode_sent latch in main_end). The value carries the MODE (see

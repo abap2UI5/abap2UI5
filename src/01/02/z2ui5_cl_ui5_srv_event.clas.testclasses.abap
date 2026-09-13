@@ -17,6 +17,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_trailing_empty_arg FOR TESTING.
     METHODS event_view_param FOR TESTING.
     METHODS event_multi_req   FOR TESTING.
+    METHODS event_queue_last  FOR TESTING.
     METHODS event_prevent_default FOR TESTING.
     METHODS event_prevent_default_expr FOR TESTING.
     METHODS event_client_args FOR TESTING.
@@ -45,13 +46,10 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA lv_event TYPE string.
     lo_event = NEW #( ).
 
-    lv_event = lo_event->get_event( `POST` ).
-
     cl_abap_unit_assert=>assert_equals( exp = `.eB(['POST'])`
-                                        act = lv_event ).
+                                        act = lo_event->get_event( `POST` ) ).
 
   ENDMETHOD.
 
@@ -79,13 +77,10 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_client.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA lv_event TYPE string.
     lo_event = NEW #( ).
 
-    lv_event = lo_event->get_event_client( z2ui5_if_client=>cs_event-set_focus ).
-
     cl_abap_unit_assert=>assert_equals( exp = `.eF('SET_FOCUS')`
-                                        act = lv_event ).
+                                        act = lo_event->get_event_client( z2ui5_if_client=>cs_event-set_focus ) ).
 
   ENDMETHOD.
 
@@ -136,123 +131,80 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_with_args.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp1 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp2 TYPE xsdboolean.
-    DATA temp3 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp1.
-    INSERT `arg1` INTO TABLE temp1.
-
     lv_event = lo_event->get_event( val         = `MY_EVT`
-                                          t_arg = temp1 ).
+                                          t_arg = VALUE #( ( `arg1` ) ) ).
 
 
-    temp2 = xsdbool( lv_event CS `MY_EVT` ).
-    cl_abap_unit_assert=>assert_true( temp2 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `MY_EVT` ) ).
 
-    temp3 = xsdbool( lv_event CS `'arg1'` ).
-    cl_abap_unit_assert=>assert_true( temp3 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'arg1'` ) ).
 
   ENDMETHOD.
 
   METHOD event_multi_args.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp3 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp4 TYPE xsdboolean.
-    DATA temp5 TYPE xsdboolean.
-    DATA temp6 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp3.
-    INSERT `a1` INTO TABLE temp3.
-    INSERT `a2` INTO TABLE temp3.
-    INSERT `a3` INTO TABLE temp3.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = temp3 ).
+                                          t_arg = VALUE #( ( `a1` ) ( `a2` ) ( `a3` ) ) ).
 
 
-    temp4 = xsdbool( lv_event CS `'a1'` ).
-    cl_abap_unit_assert=>assert_true( temp4 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a1'` ) ).
 
-    temp5 = xsdbool( lv_event CS `'a2'` ).
-    cl_abap_unit_assert=>assert_true( temp5 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a2'` ) ).
 
-    temp6 = xsdbool( lv_event CS `'a3'` ).
-    cl_abap_unit_assert=>assert_true( temp6 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a3'` ) ).
 
   ENDMETHOD.
 
   METHOD event_dollar_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp5 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp7 TYPE xsdboolean.
-    DATA temp8 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp5.
-    INSERT `$event` INTO TABLE temp5.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = temp5 ).
+                                          t_arg = VALUE #( ( `$event` ) ) ).
 
 
-    temp7 = xsdbool( lv_event CS `$event` ).
-    cl_abap_unit_assert=>assert_true( temp7 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `$event` ) ).
 
-    temp8 = xsdbool( lv_event CS `'$event'` ).
-    cl_abap_unit_assert=>assert_false( temp8 ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS `'$event'` ) ).
 
   ENDMETHOD.
 
   METHOD event_binding_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp7 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp9 TYPE xsdboolean.
-    DATA temp10 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp7.
-    INSERT `{/MY_PATH}` INTO TABLE temp7.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = temp7 ).
+                                          t_arg = VALUE #( ( `{/MY_PATH}` ) ) ).
 
 
-    temp9 = xsdbool( lv_event CS `{/MY_PATH}` ).
-    cl_abap_unit_assert=>assert_true( temp9 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `{/MY_PATH}` ) ).
 
-    temp10 = xsdbool( lv_event CS `'{/MY_PATH}'` ).
-    cl_abap_unit_assert=>assert_false( temp10 ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS `'{/MY_PATH}'` ) ).
 
   ENDMETHOD.
 
   METHOD event_empty_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp9 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp11 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp9.
-    INSERT `` INTO TABLE temp9.
-    INSERT `real` INTO TABLE temp9.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = temp9 ).
+                                          t_arg = VALUE #( ( `` ) ( `real` ) ) ).
 
 
-    temp11 = xsdbool( lv_event CS `'real'` ).
-    cl_abap_unit_assert=>assert_true( temp11 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'real'` ) ).
 
   ENDMETHOD.
 
@@ -314,20 +266,58 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_multi_req.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp11 TYPE z2ui5_if_client=>ty_s_event_control.
     DATA lv_event TYPE string.
-    DATA temp12 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp11.
-    temp11-check_allow_multi_req = abap_true.
-
     lv_event = lo_event->get_event( val         = `EVT`
-                                          s_cnt = temp11 ).
+                                          s_cnt = VALUE #( check_allow_multi_req = abap_true ) ).
 
 
-    temp12 = xsdbool( lv_event CS `false,true` ).
-    cl_abap_unit_assert=>assert_true( temp12 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `false,true` ) ).
+
+  ENDMETHOD.
+
+  METHOD event_queue_last.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
+    lo_event = NEW #( ).
+
+    CLEAR ls_ctrl.
+    ls_ctrl-check_queue_last = abap_true.
+
+    " the flag rides at position [4] of the event array, behind the reserved
+    " placeholder, ignoreBusy and useMainModel - View1.eB reads the array by
+    " index, so the earlier positions keep their place and their value
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,false,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
+
+    " the arguments follow the array unchanged
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,false,false,true], ${$parameters>/value})`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   t_arg = VALUE #( ( `${$parameters>/value}` ) )
+                                   s_cnt = ls_ctrl ) ).
+
+    " with check_allow_multi_req as well, both flags keep their position -
+    " the frontend lets ignoreBusy win, so the wire is documented as not
+    " combined, but the array must not shift when an app does
+    ls_ctrl-check_allow_multi_req = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,true,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
+
+    " the prevent-default form carries the same array
+    CLEAR ls_ctrl.
+    ls_ctrl-check_queue_last      = abap_true.
+    ls_ctrl-check_prevent_default = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,true,['LIVE_CHANGE',false,false,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
 
   ENDMETHOD.
 
@@ -337,7 +327,6 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
     lo_event = NEW #( ).
 
-    CLEAR ls_ctrl.
     ls_ctrl-check_prevent_default = abap_true.
 
     " the event is bound to .eBP and receives the UI5 event object, which the
@@ -376,7 +365,6 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
     lo_event = NEW #( ).
 
-    CLEAR ls_ctrl.
     ls_ctrl-prevent_default_expr = `${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`.
 
     " the expression takes the place of the constant `true`, so the veto is
@@ -409,24 +397,16 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_client_args.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA temp12 TYPE string_table.
     DATA lv_event TYPE string.
-    DATA temp13 TYPE xsdboolean.
-    DATA temp14 TYPE xsdboolean.
     lo_event = NEW #( ).
 
-    CLEAR temp12.
-    INSERT `param1` INTO TABLE temp12.
-
     lv_event = lo_event->get_event_client( val         = `CLOSE`
-                                                 t_arg = temp12 ).
+                                                 t_arg = VALUE #( ( `param1` ) ) ).
 
 
-    temp13 = xsdbool( lv_event CS `CLOSE` ).
-    cl_abap_unit_assert=>assert_true( temp13 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `CLOSE` ) ).
 
-    temp14 = xsdbool( lv_event CS `'param1'` ).
-    cl_abap_unit_assert=>assert_true( temp14 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'param1'` ) ).
 
   ENDMETHOD.
 

@@ -78,7 +78,7 @@ Required for everything below: `npx abaplint`, `npm run check`, `npm run verify`
 and every `npm run check:*` gate come from these dependencies.
 
 ```bash
-npm install
+npm ci
 ```
 
 This installs the abaplint CLI (`@abaplint/cli`) and the other tools
@@ -128,7 +128,7 @@ The framework supports easy installation via abapGit with no extra deployment ne
 
 #### abaplint CLI Usage
 
-The abaplint CLI (`@abaplint/cli`) is automatically installed with `npm install`. Use these commands:
+The abaplint CLI (`@abaplint/cli`) is automatically installed with `npm ci`. Use these commands:
 
 ```bash
 # Check code quality with main rules

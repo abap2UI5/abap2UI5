@@ -228,6 +228,17 @@ sap.ui.define(
         Lib.logError("URLHELPER: blocked CR/LF in parameters");
         return;
       }
+      // A plain literal INSIDE this function on purpose, like the three
+      // tables in core/actions/ControlCall.js: the abap2UI5 linter mirrors
+      // this set and finds it by the exact source text `actions = {` within
+      // `function evUrlHelper` in the embedded carrier (its
+      // scripts/check-upstream.mjs, parseUrlHelperActions). Hoisting it to
+      // module level - built once instead of four closures per call - made
+      // that lookup miss, and the mirror check degraded to "SKIPPED, not
+      // verified": a cross-repository check that stops checking without
+      // failing. Same effect, marker intact. Prototype-less, because the
+      // name comes off the wire and a plain object answers for every name
+      // Object.prototype carries.
       const actions = {
         REDIRECT: () => {
           if (!Lib.isSafeRedirectProtocol(params.URL)) {
@@ -251,6 +262,7 @@ sap.ui.define(
           _URLHelper.triggerSms(params.TEL, params.TEXT, params.NEW_WINDOW),
         TRIGGER_TEL: () => _URLHelper.triggerTel(params.TEL),
       };
+      Object.setPrototypeOf(actions, null);
       try {
         const fn = actions[args[1]];
         if (fn) fn();

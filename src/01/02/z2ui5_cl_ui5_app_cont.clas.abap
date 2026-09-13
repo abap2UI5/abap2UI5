@@ -147,7 +147,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   METHOD all_xml_parse.
 
     z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = xml
-                                       IMPORTING any    = result ).
+                                          IMPORTING any = result ).
 
   ENDMETHOD.
 
@@ -155,7 +155,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
     DATA(lo_model) = create_model( ).
 
-    DATA x_first TYPE REF TO cx_root.
+    DATA lx_first TYPE REF TO cx_root.
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).
@@ -166,7 +166,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
         " the draft has to pay, and what this instance never has to)
         lo_model->main_attri_reattach( ).
         RETURN.
-      CATCH cx_root INTO x_first.
+      CATCH cx_root INTO lx_first.
         " main_attri_db_save_srtti detached the data references - put them
         " back before the retry below, otherwise the second save would
         " start from the half-cleared app state
@@ -198,13 +198,13 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " that is not serializable and carries the source position of the
     " transformation that gave up; the retries fail for the same root cause
     " or a follow-up one.
-    " x_first is always bound here: the only path to this statement runs
+    " lx_first is always bound here: the only path to this statement runs
     " through the first CATCH, since every success above RETURNs
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
         val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
                    |Please check if all generic data references are public attributes of your class|
-        previous = x_first.
+        previous = lx_first.
 
   ENDMETHOD.
 
@@ -300,9 +300,8 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       app_refresh_draft_id( ).
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
-    lo_db->create( draft     = ms_draft
-                   model_xml = all_xml_stringify( ) ).
+    NEW z2ui5_cl_ui5_srv_draft( )->create( draft     = ms_draft
+                                           model_xml = all_xml_stringify( ) ).
 
   ENDMETHOD.
 
@@ -323,8 +322,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD draft_parse.
 
-    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( iv_id ).
+    DATA(ls_db) = NEW z2ui5_cl_ui5_srv_draft( )->read_draft( iv_id ).
     result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.
@@ -332,7 +330,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   METHOD create_model.
 
     result = NEW z2ui5_cl_ui5_srv_model( attri = mt_attri
-                                          app  = mo_app ).
+                                         app   = mo_app ).
 
   ENDMETHOD.
 ENDCLASS.

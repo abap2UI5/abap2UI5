@@ -239,8 +239,9 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `    function resolveStorageType(Storage, type, context, verb) {` && |\n| &&
              `      const typeKey = String(type || "").toLowerCase();` && |\n| &&
-             `      const storageType = Storage.Type[typeKey] || Storage.Type.session;` && |\n| &&
-             `      if (type && !Storage.Type[typeKey]) {` && |\n| &&
+             `      const known = Storage.Type[typeKey];` && |\n| &&
+             `      const storageType = known || Storage.Type.session;` && |\n| &&
+             `      if (type && !known) {` && |\n| &&
              `        logError(` && |\n| &&
              `          ``${context}: unknown type '${type}', ${verb} the session store``,` && |\n| &&
              `        );` && |\n| &&
@@ -261,8 +262,9 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        KEY: item.getKey(),` && |\n| &&
              `        TEXT: item.getText(),` && |\n| &&
              `      }));` && |\n| &&
-             `      control.setProperty("addedTokens", isRemoved ? [] : tokens);` && |\n| &&
-             `      control.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
+             `` && |\n| &&
+             `      control.setProperty("addedTokens", isRemoved ? [] : tokens, true);` && |\n| &&
+             `      control.setProperty("removedTokens", isRemoved ? tokens : [], true);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function afterRoundtrip(owner, fn) {` && |\n| &&
@@ -341,10 +343,11 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      for (let i = 0; node && i < 100; i++) {` && |\n| &&
              `        if (typeof node.getText !== "function") break;` && |\n| &&
              `        const text = node.getText();` && |\n| &&
-             `        if (text) texts.unshift(text);` && |\n| &&
+             `        if (text) texts.push(text);` && |\n| &&
              `        node = typeof node.getParent === "function" ? node.getParent() : null;` && |\n| &&
              `      }` && |\n| &&
-             `      return texts.join(separator || " > ");` && |\n| &&
+             `` && |\n| &&
+             `      return texts.reverse().join(separator || " > ");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function copyToClipboard(textToCopy) {` && |\n| &&
@@ -421,11 +424,11 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function hasSafeProtocol(parsed) {` && |\n| &&
-             `      if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
+             `      if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n|.
+    result = result &&
              `      logError(` && |\n| &&
              `        ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
-             `      );` && |\n|.
-    result = result &&
+             `      );` && |\n| &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -604,15 +607,16 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const pad = (n, w = 2) => String(n).padStart(w, "0");` && |\n| &&
+             `` && |\n| &&
              `    function projectValue(value) {` && |\n| &&
              `      if (` && |\n| &&
              `        Object.prototype.toString.call(value) === "[object Date]" &&` && |\n| &&
              `        !isNaN(value)` && |\n| &&
              `      ) {` && |\n| &&
-             `        const p = (n, w = 2) => String(n).padStart(w, "0");` && |\n| &&
              `        return (` && |\n| &&
-             `          ``${p(value.getFullYear(), 4)}-${p(value.getMonth() + 1)}-${p(value.getDate())}`` +` && |\n| &&
-             `          ``T${p(value.getHours())}:${p(value.getMinutes())}:${p(value.getSeconds())}``` && |\n| &&
+             `          ``${pad(value.getFullYear(), 4)}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`` +` && |\n| &&
+             `          ``T${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}``` && |\n| &&
              `        );` && |\n| &&
              `      }` && |\n| &&
              `      return value;` && |\n| &&

@@ -143,19 +143,33 @@ const ABSENT = (() => {
   return new Map(Object.entries(raw).map(([n, why]) => [n.toLowerCase(), why]));
 })();
 
-const here = (() => {
+/* Directory NAMES under `src/` that are on disk but are not the repository.
+ * `src/zz_dev` is where abap2UI5/mcp-server's `deploy_app` writes the class an
+ * agent is working on: it is in `.gitignore`, it is scratch, and it is the
+ * documented way an agent gets an app onto the transpiled backend to run it.
+ * A walk reads the filesystem, and the filesystem does not read `.gitignore`,
+ * so a class that exists ONLY in that scratch folder used to make a prose
+ * reference to it pass. Kept in step with the SKIPPED_DIRS the sample
+ * repositories' own walkers carry. */
+const SKIPPED_DIRS = new Set(['zz_dev']);
+
+/* Every class a src/ tree ships, by file name. */
+function classNames(root) {
   const names = new Set();
   const walk = (dir) => {
     if (!fs.existsSync(dir)) return;
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (e.isDirectory() && SKIPPED_DIRS.has(e.name)) continue;
       const f = path.join(dir, e.name);
       if (e.isDirectory()) walk(f);
       else if (e.name.endsWith('.clas.abap')) names.add(e.name.replace('.clas.abap', '').toLowerCase());
     }
   };
-  walk(path.join(ROOT, 'src'));
+  walk(path.join(root, 'src'));
   return names;
-})();
+}
+
+const here = classNames(ROOT);
 
 /* Where a sibling repository is, if it is here at all. The environment wins,
  * the way it does for abap2UI5/mcp-server's resolvers - and it has to: a CI runner
@@ -180,19 +194,8 @@ const raw = (repo) => `https://raw.githubusercontent.com/abap2UI5/${repo}/main/S
 /* Every class a checkout ships, by file name. Read once. */
 let frameworkCache = null;
 function frameworkClasses(root) {
-  if (frameworkCache) return frameworkCache;
-  const names = new Set();
-  const walk = (dir) => {
-    if (!fs.existsSync(dir)) return;
-    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-      const f = path.join(dir, e.name);
-      if (e.isDirectory()) walk(f);
-      else if (e.name.endsWith('.clas.abap')) names.add(e.name.replace('.clas.abap', '').toLowerCase());
-    }
-  };
-  walk(path.join(root, 'src'));
-  frameworkCache = names;
-  return names;
+  frameworkCache ??= classNames(root);
+  return frameworkCache;
 }
 const notes = [];
 const catalogues = new Map();

@@ -33,7 +33,7 @@ serializes fine and cannot be read back in the transpiled backend.
 
 ## The shim
 
-`node/setup/patch-open-abap-rtti.mjs` inserts, at the top of
+`node/setup/patch-open-abap-core.mjs` (patch 1) inserts, at the top of
 `describe_by_name`, a re-entry with the relative part of an absolute name:
 
 ```abap
@@ -55,5 +55,5 @@ segment, so the same FIND serves both spellings. The patch is idempotent
 ## Removing this
 
 Bump the open-abap-core pin in `node/setup/fetch-deps.mjs` to a SHA that
-resolves the absolute spelling, delete `node/setup/patch-open-abap-rtti.mjs`,
+resolves the absolute spelling, delete patch 1 from `node/setup/patch-open-abap-core.mjs`,
 take it out of `auto_transpile` in `package.json`, and close this item.

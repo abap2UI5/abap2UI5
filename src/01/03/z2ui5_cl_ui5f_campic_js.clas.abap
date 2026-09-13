@@ -40,7 +40,8 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
              `    const _THUMB_W = 300;` && |\n| &&
              `` && |\n| &&
-             `    const toCssSize = (val) => (/^\d+$/.test(val) ? ``${val}px`` : val);` && |\n| &&
+             `    const PX_NUMBER = /^\d+$/;` && |\n| &&
+             `    const toCssSize = (val) => (PX_NUMBER.test(val) ? ``${val}px`` : val);` && |\n| &&
              `    return Control.extend("z2ui5.cc.CameraPicture", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -136,6 +137,7 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `          this._oStatus = new Text().addStyleClass(` && |\n| &&
              `            "sapUiSmallMarginBegin sapUiSmallMarginTop",` && |\n| &&
              `          );` && |\n| &&
+             `          const id = this.getId();` && |\n| &&
              `          this._oScanDialog = new Dialog({` && |\n| &&
              `            title: "Device Photo Function",` && |\n| &&
              `            contentWidth: "640px",` && |\n| &&
@@ -147,9 +149,9 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `            content: [` && |\n| &&
              `              this._oStatus,` && |\n| &&
              `              new HTML({` && |\n| &&
-             `                id: ``${this.getId()}PictureContainer``,` && |\n| &&
+             `                id: ``${id}PictureContainer``,` && |\n| &&
              `` && |\n| &&
-             `                content: ``<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay() ? " autoplay" : ""} id="${this.getId()}-video"></video>``,` && |\n| &&
+             `                content: ``<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay() ? " autoplay" : ""} id="${id}-video"></video>``,` && |\n| &&
              `              }),` && |\n| &&
              `              new Button({` && |\n| &&
              `                text: "Capture",` && |\n| &&
@@ -159,7 +161,7 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `                },` && |\n| &&
              `              }),` && |\n| &&
              `              new HTML({` && |\n| &&
-             `                content: ``<canvas hidden id="${this.getId()}-canvas" style="overflow:auto"></canvas>``,` && |\n| &&
+             `                content: ``<canvas hidden id="${id}-canvas" style="overflow:auto"></canvas>``,` && |\n| &&
              `              }),` && |\n| &&
              `            ],` && |\n| &&
              `            endButton: new Button({` && |\n| &&
@@ -228,7 +230,7 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _setStatus(message) {` && |\n| &&
-             `        if (this._oStatus && !Lib.isDestroyed(this._oStatus)) {` && |\n| &&
+             `        if (Lib.isAlive(this._oStatus)) {` && |\n| &&
              `          this._oStatus.setText(message);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

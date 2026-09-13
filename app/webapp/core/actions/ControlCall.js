@@ -91,12 +91,6 @@ sap.ui.define(
           oController.eB([sEvent]);
         };
       }
-      const doShow = (MT) => {
-        // no option set -> a plain show(), so UI5 owns every default
-        if (Object.keys(o).length) MT.show(sText, o);
-        else MT.show(sText);
-        if (sClass) applyToastClass(sClass);
-      };
       // MessageToast is always resolved here: the only caller is the
       // MESSAGE_TOAST.display hook, and evControlCall refuses the call with
       // "not available" BEFORE the hook runs when MESSAGE_TOAST.get( ) - the
@@ -104,7 +98,10 @@ sap.ui.define(
       // to sit here for exactly that case and was unreachable behind that
       // guard; deferring a toast until the module lands would have to skip
       // the guard for display targets, not add a branch here
-      doShow(MessageToast);
+      // no option set -> a plain show(), so UI5 owns every default
+      if (Object.keys(o).length) MessageToast.show(sText, o);
+      else MessageToast.show(sText);
+      if (sClass) applyToastClass(sClass);
     }
 
     // A message box whose details this module expands needs an id to be found
@@ -360,8 +357,9 @@ sap.ui.define(
     // still checked to be a function before the call, so a typo just no-ops.)
     // Named setters/mutators (setVisible, addItem, removeItem, ...) stay
     // allowed - they are the API the backend legitimately drives. Denied are
-    // the framework-hostile methods: teardown/reparenting (destroy, exit,
-    // setParent, addDependent, placeAt), model/binding swaps (setModel,
+    // the framework-hostile methods: teardown/reparenting/duplication (destroy,
+    // exit, setParent, addDependent, placeAt, clone, applySettings),
+    // model/binding swaps (setModel,
     // setBinding*, bind*/unbind*), event-handler tampering (attach*/detach*,
     // fireEvent), the render lifecycle (rerender, invalidate) and the GENERIC
     // reflection mutators (setAggregation/addAggregation/insertAggregation/

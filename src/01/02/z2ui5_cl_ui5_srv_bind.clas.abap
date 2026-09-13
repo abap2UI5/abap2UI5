@@ -51,7 +51,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     METHODS main_cell
       IMPORTING
         val           TYPE REF TO data
-        config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config OPTIONAL
+        config        TYPE z2ui5_if_ui5_types=>ty_s_bind_config
       RETURNING
         VALUE(result) TYPE string.
 
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
 
     " Apply the ms_config decorations to a finished binding path: the http>
     " model prefix (switch_default_model) and the surrounding curly braces
-    " (unless path_only). Shared tail of main( ) and main_cell( ).
+    " (unless path_only). Shared tail of bind_attri( ) and main_cell( ).
     METHODS finalize_path
       IMPORTING
         val           TYPE string
@@ -119,18 +119,19 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
           val = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range`.
     ENDIF.
 
-    " a table of an elementary line type (string_table) has no components
-    " to bind a cell of; rtti_get_t_attri_by_any would answer that with a
-    " raw CX_SY_MOVE_CAST_ERROR instead of the binding error it is
-    DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <row> ).
-    IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
-        AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING
-          val = `BINDING_ERROR_TAB_CELL_LEVEL - the row of the bound table is not a structure`.
-    ENDIF.
+    IF mr_cell_tab <> ms_config-tab.
+      " a table of an elementary line type (string_table) has no components
+      " to bind a cell of; rtti_get_t_attri_by_any would answer that with a
+      " raw CX_SY_MOVE_CAST_ERROR instead of the binding error it is. The
+      " line type belongs to the table, so it is checked once per memo
+      DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <row> ).
+      IF lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+          AND lv_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = `BINDING_ERROR_TAB_CELL_LEVEL - the row of the bound table is not a structure`.
+      ENDIF.
 
-    IF mr_cell_tab <> ms_config-tab OR mt_cell_names IS INITIAL.
       CLEAR mt_cell_names.
       DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ms_config-tab ).
       LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
@@ -311,8 +312,8 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     result = bind_tab_cell( iv_name = result
                             iv_val  = val ).
 
-    " same model-switch handling as in main( ) - otherwise a cell bind with
-    " switch_default_model = abap_true silently targets the default model
+    " same model-switch handling as in bind_attri( ) - otherwise a cell bind
+    " with switch_default_model = abap_true silently targets the default model
     result = finalize_path( result ).
 
   ENDMETHOD.

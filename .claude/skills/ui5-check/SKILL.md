@@ -486,6 +486,18 @@ statically, and inventing an empty string for it makes UI5's strict mode reject
 a perfectly good view."* It would need "is this component ever assigned
 anywhere in the class" — data flow over the ABAP, not the view.
 
+**Measured 2026-09-12 on the samples-controls corpus (622 ports), so the next
+person does not re-measure it:** 194 bindings in 98 classes bind an enum-typed
+property to a bare `{PATH}` with no fallback (`type` 79, `state` 40,
+`ariaHasPopup` 14, `infoState` 8, `valueState` 6, …), and only 4 bindings in
+the whole corpus carry the expression-binding fallback this entry shows. That
+194:4 ratio is the shape the reverted rule hit: unscoped, the binding-side rule
+reports nearly every enum binding there is, and every one of the 194 is a
+correct port. The only viable narrowing is the one named above and nothing has
+built — inside an aggregation template AND the bound table can be emptied at
+runtime — which is data flow over the ABAP, not a view test. Do not attempt
+the binding side a third time without that half.
+
 **Linter: `validating-setter-out-of-range` ships (2026-08-30), and the harvest
 this entry asked for is what made it possible — with one correction that
 matters.** Recording "the setter throws" was too coarse to act on: 23
@@ -532,18 +544,23 @@ Second limit found on the way: `sap.m.ObjectStatus.state` is declared
   paths out of the view model. The builder deliberately does **not** escape
   inside `a( )` itself: a deliberate binding in `v` — `client->_bind( )`, an
   event, a template — is its bread and butter, and only the app knows which
-  values are literals. So the app wraps any user- or external-supplied string
-  it renders via `a( v = … )` in `z2ui5_cl_ui5_view_builder=>escape_literal( )`,
-  which backslash-escapes the braces (UI5's own convention for literal text;
-  XML escaping is a separate concern and always applied on render). The
-  mechanism and the split of responsibility are documented at the method's
-  own ABAP Doc in `src/02/z2ui5_cl_ui5_view_builder.clas.abap` (#2698), and
-  the app guide carries the rule as "untrusted text needs escape_literal".
+  values are literals. So the app passes any user- or external-supplied
+  string it renders as `t` instead of `v` — `a( n = … t = … )` applies
+  `z2ui5_cl_ui5_view_builder=>escape_literal( )` to the whole value, which
+  backslash-escapes the braces (UI5's own convention for literal text; XML
+  escaping is a separate concern and always applied on render). The direct
+  `escape_literal( )` call stays for the one attribute that mixes text with a
+  binding. The mechanism and the split of responsibility are documented at
+  the method's own ABAP Doc in `src/02/z2ui5_cl_ui5_view_builder.clas.abap`
+  (#2698), and the app guide carries the rule as "text from data goes
+  through t".
 
 **Linter:** **ready in shape, blocked on origin — staged so the scope argument
 is not lost.** The chain side is decidable: the linter already models `a( )`
 calls, so "a `v =` argument that is not a string literal or template, and not
-already wrapped in `escape_literal( )`" is a syntactic test. What no view-side
+already wrapped in `escape_literal( )`" is a syntactic test — and the `t`
+parameter gives it a fix to name (`t =` is never a finding: the builder
+escapes it). What no view-side
 test can see is the half that matters — whether that non-literal value carries
 user or external input (must be escaped) or IS a deliberate binding the app
 assembled in a variable (must NOT be: escaping it breaks the binding). The

@@ -159,6 +159,14 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     CLASS-DATA sv_get_cache_body TYPE string.
     CLASS-DATA sv_get_etag       TYPE string.
 
+    " The If-None-Match header of THIS request, read in main( ) - the one
+    " place that holds the server object - for the class-level _http_get( ),
+    " which answers a matching validator with a bodyless 304 BEFORE the shell
+    " is assembled. Consumed there (read once, then cleared), so a later
+    " direct _main( ) call never meets the header of an earlier request.
+    " Per request like ss_config_http_get, and reset with it
+    CLASS-DATA sv_if_none_match  TYPE string.
+
     " a cache validator, not a cryptographic hash - see the method
     CLASS-METHODS _get_etag
       IMPORTING
@@ -253,7 +261,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " previous request's cached security headers ( _main( ) repeats both,
         " harmlessly - they are idempotent )
         z2ui5_cl_ui5_user_exit=>init_context( ms_req ).
-        CLEAR: ss_config_http_get, sv_config_http_get_set.
+        CLEAR: ss_config_http_get, sv_config_http_get_set, sv_if_none_match.
+
+        " the validator of a conditional GET, for _http_get( ) - only a GET
+        " carries one worth reading: the read is a dynamic call into the ICF
+        " request, and the shell is the one response that revalidates
+        IF ms_req-method = `GET`.
+          sv_if_none_match = mo_server->get_header_field( `if-none-match` ).
+        ENDIF.
 
         CASE ms_req-method.
           WHEN `HEAD` OR `POST`.
@@ -378,22 +393,18 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _csrf_host_authority.
 
-    DATA(lv_val) = to_lower( val ).
+    result = to_lower( val ).
 
     " drop the scheme (e.g. `https://`)
-    DATA(lv_pos) = find( val = lv_val
-                         sub = `://` ).
-    IF lv_pos >= 0.
-      lv_val = substring( val = lv_val
-                          off = lv_pos + 3 ).
+    IF result CS `://`.
+      result = substring_after( val = result
+                                sub = `://` ).
     ENDIF.
 
     " the authority ends at the first path / query / fragment separator
-    SPLIT lv_val AT `/` INTO lv_val DATA(lv_rest).
-    SPLIT lv_val AT `?` INTO lv_val lv_rest.
-    SPLIT lv_val AT `#` INTO lv_val lv_rest.
-
-    result = lv_val.
+    SPLIT result AT `/` INTO result DATA(lv_rest).
+    SPLIT result AT `?` INTO result lv_rest.
+    SPLIT result AT `#` INTO result lv_rest.
 
   ENDMETHOD.
 
@@ -439,7 +450,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     result = NEW #( ).
     result->mo_server = z2ui5_cl_ui5_util_http=>factory_cloud( req = req
-                                                            res    = res ).
+                                                               res = res ).
 
   ENDMETHOD.
 
@@ -471,6 +482,33 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                      |{ strlen( lr_config_key->n ) }:{ lr_config_key->n }| &&
                      |{ strlen( lr_config_key->v ) }:{ lr_config_key->v }|.
     ENDLOOP.
+
+    " The validator BEFORE the body. It is a function of the cache key, the
+    " version constant and the embedded frontend's build hash alone
+    " (_get_etag), never of the assembled page - so a browser that still
+    " holds the current shell is answered right here, with a bodyless 304,
+    " and the ~700 KB concatenation of the preload below never runs.
+    " set_response used to decide the 304 AFTER this method had built the
+    " body and threw it away; the cache below is CLASS-DATA and never hits
+    " on stateless ICF, so every reload and every FLP re-entry paid the
+    " full build for a reply without a body. The tag of the cached body is
+    " reused when the key still matches - a hash over the key otherwise
+    IF sv_get_cache_key = lv_cache_key AND sv_get_etag IS NOT INITIAL.
+      DATA(lv_etag) = sv_get_etag.
+    ELSE.
+      lv_etag = _get_etag( lv_cache_key ).
+    ENDIF.
+    sv_get_etag = lv_etag.
+
+    " consumed once - see sv_if_none_match
+    DATA(lv_if_none_match) = sv_if_none_match.
+    CLEAR sv_if_none_match.
+    IF _check_etag_match( iv_header = lv_if_none_match
+                          iv_etag   = lv_etag ) = abap_true.
+      result-status_code   = 304.
+      result-status_reason = `Not Modified`.
+      RETURN.
+    ENDIF.
 
     IF sv_get_cache_body IS NOT INITIAL AND sv_get_cache_key = lv_cache_key.
       result-body          = sv_get_cache_body.
@@ -551,9 +589,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
       lv_add_config = |{ lv_add_config } { _attr_escape( lr_config->n ) }='{ _attr_escape( lr_config->v ) }'|.
     ENDLOOP.
-    result-body = result-body && lv_add_config.
 
-    result-body = result-body &&
+    result-body = result-body && lv_add_config &&
                   | ></script></head>\n| &&
                   |<body class="sapUiBody sapUiSizeCompact" id="content">\n| &&
                   |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='\{"id" : "z2ui5"\}' data-handle-validation="true"></div>\n| &&
@@ -564,7 +601,6 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     sv_get_cache_key  = lv_cache_key.
     sv_get_cache_body = result-body.
-    sv_get_etag       = _get_etag( lv_cache_key ).
 
   ENDMETHOD.
 
@@ -675,11 +711,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " GET exactly, not HEAD: HEAD of this URL is the session-terminate ping,
     " deliberately answered no-store rather than as "GET without a body" -
     " the reasoning sits at the HEAD branch in main( ).
+    " The 304 itself is decided in _http_get( ) now, before the page is
+    " assembled (see sv_if_none_match) - it arrives here as a bodyless 304
+    " that still has to carry the tag and the revalidation policy. The
+    " compare below stays for a 200 that reached this method without
+    " main( ) having read the header (a direct _main( ) call), and costs one
+    " header read on a full shell reply
     DATA(lv_etag_get) = ``.
-    IF ms_req-method = `GET` AND ms_res-status_code = 200 AND sv_get_etag IS NOT INITIAL.
+    IF ms_req-method = `GET` AND sv_get_etag IS NOT INITIAL
+        AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
       lv_etag_get = sv_get_etag.
-      IF _check_etag_match( iv_header = mo_server->get_header_field( `if-none-match` )
-                            iv_etag   = sv_get_etag ) = abap_true.
+      IF ms_res-status_code = 200
+          AND _check_etag_match( iv_header = mo_server->get_header_field( `if-none-match` )
+                                 iv_etag   = sv_get_etag ) = abap_true.
         ms_res-status_code   = 304.
         ms_res-status_reason = `Not Modified`.
         CLEAR ms_res-body.

@@ -68,9 +68,9 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `core/actions/Launchpad.js` through the REAL `core/Lib.js` validators | `launchpad.spec.js` | `CROSS_APP_NAV_TO_PREV_APP`/`CROSS_APP_NAV_TO_EXT` against a stubbed `AppState.state.oLaunchpad` navigator (the no-op-with-log outside the FLP, the `hrefForExternal`→`toExternal` composition, the EXT redirect through the real `isValidRedirectURL` guard, the caught callback failure) and `SET_TITLE_LAUNCHPAD` (the deliberately silent absence of `ShellUIService`, a rejecting `setTitle` caught into the log) |
 | the action runners and the legacy `eF()`-string parsing in `core/actions/LegacyCustomJs.js` | `actionRunner.spec.js` | — |
 | the `action( )` entry point of `core/actions/Slots.js` (the VIEW_SLOTS target) | `slotsAction.spec.js` | the argument shapes every slot has to survive - a display without options, the popover anchor, a superseded display; the model fan-out is covered by `view1Events.spec.js`, the display internals only through it |
-| `controller/View1.controller.js` event handling, the after-render phase (model push by MODEL presence, per-response router sync) and the `core/actions/Slots.js` model fan-out | `view1Events.spec.js` | — |
+| `controller/View1.controller.js` event handling (incl. the `eB` busy guard and the one-slot `check_queue_last` queue: last firing kept, dispatched after the response, left to a superseding request, dropped with its controller), the after-render phase (model push by MODEL presence, per-response router sync) and the `core/actions/Slots.js` model fan-out | `view1Events.spec.js` | — |
 | `core/Server.js` timeout handling | `serverTimeout.spec.js` | — |
-| `core/Server.js` request sequencing | `serverRequestSeq.spec.js` | — |
+| `core/Server.js` request sequencing, the value-aware clear of a winning request's sent paths (`_clearSentPaths`) and the queued-event drop on `reset( )` / `responseError` | `serverRequestSeq.spec.js` | — |
 | `core/Server.js` session-constant location cadence | `serverLocation.spec.js` | — |
 | `core/Server.js` error routing outside the inner handlers (`readHttp`'s outer catch, `showRenderError`) | `serverRenderError.spec.js` | — |
 | `core/Session.js` | `session.spec.js` | — |

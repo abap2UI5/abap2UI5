@@ -399,6 +399,7 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_limit FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_config_leaves FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_sanitized FOR TESTING RAISING cx_static_check.
@@ -431,8 +432,7 @@ CLASS ltcl_01_request IMPLEMENTATION.
   METHOD load_startup_app.
     DATA lv_payload TYPE string.
     DATA lo_post TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA temp1 TYPE REF TO z2ui5_cl_ui5_app_start.
-    DATA lo_startup LIKE temp1.
+    DATA lo_startup TYPE REF TO z2ui5_cl_ui5_app_start.
 
     lv_payload = `{"value" : { "S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}}`.
 
@@ -447,10 +447,8 @@ CLASS ltcl_01_request IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `PATHNAME`
                                         act = lo_post->ms_request-s_front-pathname ).
 
-
-    temp1 ?= lo_post->mo_action->mo_app->mo_app.
-
-    lo_startup = temp1.
+    lo_startup ?= lo_post->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_bound( lo_startup ).
 
   ENDMETHOD.
 
@@ -711,6 +709,94 @@ CLASS ltcl_01_request IMPLEMENTATION.
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
     cl_abap_unit_assert=>assert_equals( exp = 100
                                         act = lines( ls_request-s_front-t_event_arg ) ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_config_leaves.
+    " every leaf of the CONFIG block is read by its own keyed lookup now
+    " (no slice, no to_abap) - so every nested field is pinned here, next to
+    " a model delta of a few rows that must not get in the way: the numbers
+    " arrive as numbers, the flags as booleans, a slot never scrolled stays
+    " initial, and the launchpad data keeps a tree of its own
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+    lv_payload = `{"value":{"MODEL":{"MT_TAB":{"__delta":{"0":{"COL1":"a"},"1":{"COL1":"b"}}},"MV_STRING":"x"},` &&
+                 `"S_FRONT":{"ID":"ABC123","EVENT":"SAVE","HASH":"#/app/X","ORIGIN":"O","PATHNAME":"/p","SEARCH":"?a=1",` &&
+                 `"CONFIG":{"ComponentData":{"startupParameters":{"p":["v"]}},` &&
+                 `"S_DEVICE":{"SYSTEM":"phone","ORIENTATION":"portrait","BROWSER":{"NAME":"cr","VERSION":"120"},` &&
+                 `"OS":{"NAME":"mac","VERSION":"14"},"RESIZE":{"WIDTH":900,"HEIGHT":600},` &&
+                 `"SUPPORT":{"TOUCH":true,"POINTER":false,"RETINA":true}},` &&
+                 `"S_FOCUS":{"ID":"inp","SELECTION_START":2,"SELECTION_END":5},` &&
+                 `"S_SCROLL":{"MAIN":{"ID":"page","X":0,"Y":150},"POPUP":{"ID":"dlg","X":3,"Y":40}},` &&
+                 `"S_UI5":{"VERSION":"1.120.0","BUILDTIMESTAMP":"20240101","GAV":"g","THEME":"sap_horizon"}}}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `ABC123`
+                                        act = ls_request-s_front-id ).
+    cl_abap_unit_assert=>assert_equals( exp = `SAVE`
+                                        act = ls_request-s_front-event ).
+    cl_abap_unit_assert=>assert_equals( exp = `#/app/X`
+                                        act = ls_request-s_front-hash ).
+    cl_abap_unit_assert=>assert_equals( exp = `?a=1`
+                                        act = ls_request-s_front-search ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-t_event_arg ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `phone`
+                                        act = ls_request-s_front-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `portrait`
+                                        act = ls_request-s_front-s_device-orientation ).
+    cl_abap_unit_assert=>assert_equals( exp = `cr`
+                                        act = ls_request-s_front-s_device-browser-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `120`
+                                        act = ls_request-s_front-s_device-browser-version ).
+    cl_abap_unit_assert=>assert_equals( exp = `mac`
+                                        act = ls_request-s_front-s_device-os-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `14`
+                                        act = ls_request-s_front-s_device-os-version ).
+    cl_abap_unit_assert=>assert_equals( exp = 900
+                                        act = ls_request-s_front-s_device-resize-width ).
+    cl_abap_unit_assert=>assert_equals( exp = 600
+                                        act = ls_request-s_front-s_device-resize-height ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_request-s_front-s_device-support-touch ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_request-s_front-s_device-support-pointer ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_request-s_front-s_device-support-retina ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `inp`
+                                        act = ls_request-s_front-s_focus-id ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = ls_request-s_front-s_focus-selection_start ).
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = ls_request-s_front-s_focus-selection_end ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `page`
+                                        act = ls_request-s_front-s_scroll-main-id ).
+    cl_abap_unit_assert=>assert_equals( exp = 150
+                                        act = ls_request-s_front-s_scroll-main-y ).
+    cl_abap_unit_assert=>assert_equals( exp = `dlg`
+                                        act = ls_request-s_front-s_scroll-popup-id ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = ls_request-s_front-s_scroll-popup-x ).
+    cl_abap_unit_assert=>assert_equals( exp = 40
+                                        act = ls_request-s_front-s_scroll-popup-y ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_scroll-nest ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_scroll-popover ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `g`
+                                        act = ls_request-s_front-s_ui5-gav ).
+
+    cl_abap_unit_assert=>assert_bound( ls_request-s_front-o_comp_data ).
+    cl_abap_unit_assert=>assert_equals( exp = `v`
+                                        act = ls_request-s_front-o_comp_data->get_string( `/startupParameters/p/1` ) ).
+
+    " the model next to it is untouched and still read in place
+    cl_abap_unit_assert=>assert_equals( exp = `x`
+                                        act = ls_request-o_model->get_string( ls_request-model_path && `/MV_STRING` ) ).
+
   ENDMETHOD.
 
   METHOD test_request_app_start.
@@ -1059,33 +1145,23 @@ CLASS ltcl_02_response IMPLEMENTATION.
   METHOD test_response_json.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA temp2 TYPE z2ui5_if_ui5_types=>ty_s_response.
-    DATA ls_response LIKE temp2.
+    DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
     DATA lv_json TYPE string.
-    DATA temp1 TYPE xsdboolean.
-    DATA temp3 TYPE xsdboolean.
-    DATA temp4 TYPE xsdboolean.
     lo_handler = NEW #( val = `` ).
 
-    CLEAR temp2.
-    temp2-s_front-id = `ID123`.
-    temp2-s_front-app = `Z2UI5_CL_UI5_APP_HI_WORLD`.
-    temp2-model = `{"name":"test"}`.
-
-    ls_response = temp2.
+    ls_response = VALUE #( s_front-id  = `ID123`
+                           s_front-app = `Z2UI5_CL_UI5_APP_HI_WORLD`
+                           model       = `{"name":"test"}` ).
 
 
     lv_json = lo_handler->response_abap_to_json( ls_response ).
 
 
-    temp1 = xsdbool( lv_json CS `S_FRONT` ).
-    cl_abap_unit_assert=>assert_true( temp1 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `S_FRONT` ) ).
 
-    temp3 = xsdbool( lv_json CS `MODEL` ).
-    cl_abap_unit_assert=>assert_true( temp3 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `MODEL` ) ).
 
-    temp4 = xsdbool( lv_json CS `{"name":"test"}` ).
-    cl_abap_unit_assert=>assert_true( temp4 ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `{"name":"test"}` ) ).
 
   ENDMETHOD.
 
@@ -1148,8 +1224,8 @@ CLASS ltcl_02_response IMPLEMENTATION.
     li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
     li_client->view_display( `<View/>` ).
 
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
+                                                     iv_slot    = z2ui5_if_client=>cs_view-main ) ).
 
   ENDMETHOD.
 
@@ -1162,15 +1238,15 @@ CLASS ltcl_02_response IMPLEMENTATION.
     li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
     li_client->popup_display( `<Dialog/>` ).
 
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_handler
+                                                     iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
 
     " ...and a display a later destroy voided counts as NO view, so the
     " model is not sent for a dialog that never reaches the browser
     li_client->popup_destroy( ).
 
-    cl_abap_unit_assert=>assert_false(
-        xsdbool( line_exists( lo_handler->mo_action->ms_next-t_action_front[ method = `display` ] ) ) ).
+    cl_abap_unit_assert=>assert_false( check_display( io_handler = lo_handler
+                                                      iv_slot    = z2ui5_if_client=>cs_view-popup ) ).
 
   ENDMETHOD.
 
@@ -1201,9 +1277,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     " the MODEL key itself IS the push - no updateModel action travels,
     " the frontend pushes into every open slot when a model arrived
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
     cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
                                         act = lo_handler->ms_response-model ).
 
@@ -1226,9 +1300,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lo_handler->ms_response-model ).
     " an unchanged model asks for no push at all
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
@@ -1256,9 +1328,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = lo_handler->mo_action->mo_app->model_json_stringify( )
         act = lo_handler->ms_response-model ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `updateModel` ) ).
 
   ENDMETHOD.
 
@@ -1625,15 +1695,13 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
   METHOD test_dispatch_loop_guard.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_loop_app TYPE REF TO ltcl_app_nav_loop.
     DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
 
     " an app that calls nav_app_call unconditionally in main( ) must not
     " loop the dispatch forever - the handler raises once the limit is hit
     lo_handler = NEW #( val = `` ).
     lo_handler->mv_dispatch_limit = 5.
-    lo_loop_app = NEW #( ).
-    lo_handler->mo_action->mo_app->mo_app = lo_loop_app.
+    lo_handler->mo_action->mo_app->mo_app = NEW ltcl_app_nav_loop( ).
     " db_save asserts a draft id, normally set by the action factories
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
@@ -1707,15 +1775,13 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
   METHOD test_nav_mode_resent.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_app TYPE REF TO ltcl_app_nav_loop.
 
     " An app configures routing ONCE. main_end therefore re-sends the mode the
     " app carries whenever the roundtrip did not set one itself, so a later
     " render of the same app stays routed without queueing set_nav_routing
     " again - and an app that never opted in keeps sending nothing.
     lo_handler = NEW #( val = `` ).
-    lo_app = NEW #( ).
-    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
 
@@ -1734,9 +1800,7 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
     CLEAR lo_handler->mo_action->ms_next.
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
@@ -1744,9 +1808,7 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( system_actions_of( lo_handler ) CS `setNavRouting` ) ).
 
   ENDMETHOD.
 

@@ -204,16 +204,21 @@ test.describe("UI5 log", () => {
   test("maps the UI5 numeric levels onto the console ones", () => {
     const h = loadConsole();
     h.Console.install();
-    h.ui5({ level: 1, message: "fatal" });
-    h.ui5({ level: 2, message: "error" });
-    h.ui5({ level: 3, message: "warning" });
-    h.ui5({ level: 4, message: "info" });
-    h.ui5({ level: 5, message: "debug" });
+    // the values of sap/base/Log.Level: FATAL 0, ERROR 1, WARNING 2, INFO 3,
+    // DEBUG 4, TRACE 5 - a table that started at 1 recorded every WARNING
+    // as an error
+    h.ui5({ level: 0, message: "fatal" });
+    h.ui5({ level: 1, message: "error" });
+    h.ui5({ level: 2, message: "warning" });
+    h.ui5({ level: 3, message: "info" });
+    h.ui5({ level: 4, message: "debug" });
+    h.ui5({ level: 5, message: "trace" });
     expect(h.Console.getEntries().map((e) => e.level)).toEqual([
       "error",
       "error",
       "warn",
       "info",
+      "debug",
       "debug",
     ]);
   });
@@ -222,7 +227,7 @@ test.describe("UI5 log", () => {
     const h = loadConsole();
     h.Console.install();
     h.ui5({
-      level: 3,
+      level: 2,
       message: "Property 'x' does not exist",
       details: "sap.m.Input",
       component: "sap.ui.base.ManagedObject",
@@ -250,7 +255,7 @@ function emitUi5(h, entry, method = "warn", extraArgs = []) {
 
 test.describe("no double capture of a UI5 entry", () => {
   const ENTRY = {
-    level: 3,
+    level: 2,
     date: "2026-09-05",
     time: "10:11:12.345678",
     message: "Property 'x' does not exist",
@@ -279,7 +284,7 @@ test.describe("no double capture of a UI5 entry", () => {
     h.Console.install();
     const err = new Error("boom");
     err.stack = "Error: boom\n    at x (App.js:1:1)";
-    emitUi5(h, { ...ENTRY, level: 2, details: String(err) }, "error", [
+    emitUi5(h, { ...ENTRY, level: 1, details: String(err) }, "error", [
       "\n",
       err,
     ]);
@@ -302,7 +307,7 @@ test.describe("no double capture of a UI5 entry", () => {
     // has no captured console method (TRACE) must not swallow the next call
     const h = loadConsole();
     h.Console.install();
-    h.ui5({ ...ENTRY, level: 6 });
+    h.ui5({ ...ENTRY, level: 5 });
     h.consoleStub.log("unrelated");
     expect(h.Console.getEntries().map((e) => e.text)).toEqual([
       "[sap.ui.base.ManagedObject] Property 'x' does not exist - sap.m.Input",
