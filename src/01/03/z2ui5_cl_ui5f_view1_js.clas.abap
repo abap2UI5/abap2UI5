@@ -191,7 +191,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      eB(...args) {` && |\n| &&
-             `        const [, , ignoreBusy, useMainModel, queueLast] = args[0];` && |\n| &&
+             `        const [, , , useMainModel, queueLast] = args[0];` && |\n| &&
              `` && |\n| &&
              `        if (!navigator.onLine) {` && |\n| &&
              `          MessageBox.alert(` && |\n| &&
@@ -200,7 +200,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (AppState.state.isBusy && !ignoreBusy) {` && |\n| &&
+             `        if (AppState.state.isBusy) {` && |\n| &&
              `          if (queueLast) {` && |\n| &&
              `            AppState.state.oQueuedEvent = {` && |\n| &&
              `              controller: this,` && |\n| &&

@@ -100,7 +100,8 @@ sap.ui.define(
           }
           // Stamp of the request this response belongs to: every await in
           // the display phase re-checks it, so a response superseded by a
-          // parallel request (check_allow_multi_req, Back/Forward restore)
+          // parallel request (a Back/Forward restore, or a teardown that
+          // bumped the sequence)
           // never attaches popups/nested views the backend no longer knows.
           // ONE stamp for BOTH phases - see the guard below.
           const seq = reqSeq ?? Server._requestSeq;
@@ -344,8 +345,9 @@ sap.ui.define(
       // args[0] is the event array built by the backend (get_event):
       //   [0] event name
       //   [1] reserved placeholder, always false
-      //   [2] "ignore busy" flag - background events (e.g. timers) skip the
-      //       busy guard below
+      //   [2] reserved, always false. The slot keeps its place rather than
+      //       closing up, so the positions behind it never move: custom JS
+      //       builds these arrays against the same protocol.
       //   [3] "use main view model" flag - events fired from a popup or
       //       popover controller that still target the main app's model;
       //       not emitted by the framework today, only by custom JS
@@ -358,7 +360,7 @@ sap.ui.define(
       // by an older backend must keep reading the same.
       // ------------------------------------------------------------------
       eB(...args) {
-        const [, , ignoreBusy, useMainModel, queueLast] = args[0];
+        const [, , , useMainModel, queueLast] = args[0];
 
         if (!navigator.onLine) {
           MessageBox.alert(
@@ -385,7 +387,7 @@ sap.ui.define(
         // `abc` typed at once left the bound field at `a`). The arguments are
         // marshalled now, not at dispatch: a control-valued argument may well
         // be destroyed by the response that lands in between.
-        if (AppState.state.isBusy && !ignoreBusy) {
+        if (AppState.state.isBusy) {
           if (queueLast) {
             AppState.state.oQueuedEvent = {
               controller: this,

@@ -2,12 +2,13 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests Server.readHttp request sequencing (last-write-wins). When parallel
-// requests are allowed (check_allow_multi_req), responses can arrive out of
-// order. Only the newest dispatched request may commit its result; a slower
-// older response is dropped so it can never overwrite a newer view/caret/
-// session id. In the default blocking mode only one request is in flight, so
-// the single response always commits.
+// Tests Server.readHttp request sequencing (last-write-wins). Only the newest
+// dispatched request may commit its result; a slower older response is dropped
+// so it can never overwrite a newer view/caret/session id. The busy guard
+// keeps one roundtrip in flight at a time, so the sequencing earns its keep on
+// the paths that bypass it - a Back/Forward restore, and reset( ), which bumps
+// the sequence on a teardown so the old session's response is not adopted by
+// the new one.
 
 function defer() {
   let resolve, reject;

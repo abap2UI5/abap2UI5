@@ -544,12 +544,13 @@ The same tree, with the subtree held in a variable:
   `check_queue_last = abap_true` keeps the LAST event fired on the wire and
   dispatches it once the response has landed — one roundtrip in flight at a
   time, order preserved, the backend ends on the control's current value;
-  no debounce, so a pause still costs one roundtrip. `check_allow_multi_req`
-  is the other flag and the wrong one for typing: it sends every firing at
-  once, one roundtrip per keystroke, and the responses may land in any order
-  (only the newest is committed) — use it for a background wire that must
-  not wait, a timer tick or a poll. Never both on one wire; `ignoreBusy`
-  wins. `check_prevent_default` / `prevent_default_expr` cancel the
+  no debounce, so a pause still costs one roundtrip. There is no flag for
+  sending every firing at once: only the newest response may commit, so the
+  earlier roundtrips would be work thrown away. A background wire that must
+  not wait — a timer tick, a poll — needs no flag either: `START_TIMER`
+  carries its own slot and waits out the roundtrip in flight
+  (`core/actions/ViewOps.js`, `evStartTimer`).
+  `check_prevent_default` / `prevent_default_expr` cancel the
   control's built-in default before the roundtrip, `check_arg_literal`
   quotes every argument — see the doc on `z2ui5_if_client=>_event`.
 - Roundtrip-free client actions: `client->follow_up_action( val = … t_arg = … )`

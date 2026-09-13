@@ -914,8 +914,8 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
 
 test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   // The wire of client->_event( s_ctrl-check_queue_last ): the event array
-  // carries the flag at position [4], behind the reserved placeholder,
-  // ignoreBusy and useMainModel (z2ui5_cl_ui5_srv_event=>get_event).
+  // carries the flag at position [4], behind two reserved placeholders and
+  // useMainModel (z2ui5_cl_ui5_srv_event=>get_event).
   const QUEUED = ["LIVE_CHANGE", false, false, false, true];
   const PLAIN = ["PRESS"];
 
@@ -1103,13 +1103,15 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(state.oQueuedEvent).toBeNull();
   });
 
-  test("ignoreBusy wins over queueLast - the event is sent at once, never queued", () => {
+  test("the reserved slot [2] is ignored - a truthy value there never bypasses the busy guard", () => {
     const { ctrl, state, roundtrips } = loadForQueue();
     state.isBusy = true;
 
+    // a wire rendered by an older backend can still carry true here; eB must
+    // read straight past it and queue on the flag at [4] as usual
     ctrl.eB(["LIVE_CHANGE", false, true, false, true], "abc");
 
-    expect(roundtrips).toHaveLength(1);
-    expect(state.oQueuedEvent).toBeNull();
+    expect(roundtrips).toEqual([]);
+    expect(state.oQueuedEvent).not.toBeNull();
   });
 });

@@ -105,20 +105,15 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     result = |{ lv_func }({ lv_event_arg }['{ escape_js_string( CONV string( val ) ) }'|.
 
     " The event array is read by POSITION in View1.eB: [0] the name, [1] a
-    " reserved placeholder (always false), [2] ignoreBusy
-    " (check_allow_multi_req), [3] useMainModel (custom JS only, never
-    " emitted here), [4] queueLast (check_queue_last). A flag is appended
-    " behind the existing ones so nothing shifts; a wire without any flag
-    " stays the bare ['NAME'] every existing app was rendered with.
-    DATA lv_multi TYPE string.
-    lv_multi = `false`.
-    IF s_cnt-check_allow_multi_req = abap_true.
-      lv_multi = `true`.
-    ENDIF.
+    " reserved placeholder (always false), [2] reserved (always false), [3]
+    " useMainModel (custom JS only, never emitted here), [4] queueLast
+    " (check_queue_last). Slot [2] keeps its place rather than closing up:
+    " the positions are a protocol custom JS builds these arrays against
+    " too, so renumbering would silently move every flag behind it. A wire
+    " without any flag stays the bare ['NAME'] every existing app was
+    " rendered with.
     IF s_cnt-check_queue_last = abap_true.
-      result = |{ result },false,{ lv_multi },false,true|.
-    ELSEIF s_cnt-check_allow_multi_req = abap_true.
-      result = |{ result },false,true|.
+      result = |{ result },false,false,false,true|.
     ENDIF.
 
     result = |{ result }]{ get_t_arg( val       = t_arg

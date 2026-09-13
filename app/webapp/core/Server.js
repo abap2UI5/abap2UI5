@@ -97,10 +97,10 @@ sap.ui.define(
     // Inspect live payloads via the developer tools (Ctrl+F12): "Previous
     // Request" and "Response".
     return {
-      // Monotonic id stamped on every dispatched request (see readHttp). When
-      // parallel requests are allowed (check_allow_multi_req), it lets a
-      // response tell whether a newer request has since gone out, so only the
-      // newest result is committed and stale ones are dropped.
+      // Monotonic id stamped on every dispatched request (see readHttp). It
+      // lets a response tell whether a newer request has since gone out, so
+      // only the newest result is committed and stale ones are dropped - a
+      // Back/Forward restore and reset( )'s teardown bump both land here.
       _requestSeq: 0,
 
       // Abort controllers of the requests still in flight. A newly dispatched
@@ -308,12 +308,13 @@ sap.ui.define(
         };
 
         // Stamp this request and treat its response as stale once a newer
-        // request has been dispatched. With parallel requests allowed
-        // (check_allow_multi_req) responses can arrive out of order; only the
-        // newest may commit its result, so a slow older response never
-        // overwrites a newer view, caret or session id. In the default
-        // blocking mode only one request is ever in flight, so this never
-        // fires. The check is repeated before every state mutation because the
+        // request has been dispatched: only the newest may commit its result,
+        // so a slow older response never overwrites a newer view, caret or
+        // session id. The busy guard keeps one roundtrip in flight at a time,
+        // so the stamp earns its keep on the paths that bypass it - a
+        // Back/Forward restore, and reset( ), which bumps the sequence on a
+        // teardown so the old session's response is not adopted by the new
+        // one. The check is repeated before every state mutation because the
         // body reads below (text/json) each yield the event loop, giving a
         // newer request the chance to supersede this one mid-parse.
         const seq = ++this._requestSeq;
