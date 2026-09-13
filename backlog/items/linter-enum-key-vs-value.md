@@ -1,5 +1,5 @@
 ---
-target: linter
+target: abap2ui5-linter
 title: '`invalid-property-value` rejects the enum KEY, which is the spelling an XML view needs'
 summary: for the handful of UI5 enums whose key differs from its value (`CalendarIntervalType.OneMonth` = "One Month"), the rule accepts only the VALUE - but an XML view is parsed with `parseValue( )`, which maps key -> value, so the value form is the one that breaks and the key form is the one the rule reports
 priority: medium

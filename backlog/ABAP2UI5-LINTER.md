@@ -21,6 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
+| [`linter-enum-key-vs-value`](items/linter-enum-key-vs-value.md) | for the handful of UI5 enums whose key differs from its value (`CalendarIntervalType.OneMonth` = "One Month"), the rule accepts only the VALUE - but an XML view is parsed with `parseValue( )`, which maps key -> value, so the value form is the one that breaks and the key form is the one the rule reports | medium | 2026-09-13 | abap2UI5/linter |
 | [`navcontainer-position-not-reissued`](items/navcontainer-position-not-reissued.md) | `control-state-lost-on-rebuild` judges only `set…( )` wires, so the containers whose position is moved by a NAVIGATION call (`to`, `backToPage`, `toDetail`, `toMaster`) are structurally outside it - and there the discriminator is not "the value is non-literal" but "a surviving bound field names a page id of that container" | medium | 2026-08-26 | abap2UI5/linter |
 
 ---
