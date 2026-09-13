@@ -10,17 +10,50 @@ name: check-app-rules
 # When that fails it says so and passes: this repository's checks must not go
 # red because github.com is unreachable, and must not claim to have verified
 # what they did not.
+#
+# WHY IT ALSO RUNS ON A SCHEDULE (2026-09-13). The rule set is a SECTION of
+# abaplint.jsonc rather than a file of its own, which is why `sync-shared`
+# deliberately does not carry it: copying the source over this file would
+# destroy the rest, which this repository owns. So a change to the rule set
+# upstream is never pulled in automatically - it has to be carried by hand,
+# and until it is, this repository has drifted.
+#
+# On `pull_request` and `push` alone, nothing notices that. The drift is
+# created by a commit in ANOTHER repository, and this workflow only runs on a
+# commit in THIS one - so with no activity here the divergence sits unseen for
+# as long as nobody happens to push. That is not a hypothetical: abap2UI5
+# #2739 changed the rule set on 2026-09-12 and carried it into one of the
+# three consumers, and the other two were red from that moment without a
+# single run to say so. They were found by a person reading the gate output in
+# the source repository a day later.
+#
+# A daily run closes that. It costs one job a day and answers the question the
+# push-triggered runs cannot: is this repository still in step with the source
+# right now, whether or not anybody touched it.
 
 on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    - cron: '17 4 * * *'   # daily, 04:17 UTC
+  workflow_dispatch:
 
+# `issues: write` is for the scheduled channel below, and for nothing else. A
+# scheduled run has no pull request to redden and no author watching, so a red
+# one would sit in the Actions tab - the same failure mode `e2e-nightly`
+# records in samples-controls. The issue is the tracked half; it is
+# best-effort on top of the job's own verdict and must never be the reason
+# this job is red.
 permissions:
   contents: read
+  issues: write
 
+# The event is part of the group so that a scheduled run and a push do not
+# cancel each other: they answer different questions about the same ref, and
+# `cancel-in-progress` is here to drop superseded runs of the SAME kind.
 concurrency:
-  group: check-app-rules-${{ github.ref }}
+  group: check-app-rules-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -32,4 +65,72 @@ jobs:
     - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
       with:
         node-version: '22'
-    - run: node scripts/check-app-rules.mjs
+    - id: check
+      run: node scripts/check-app-rules.mjs 2>&1 | tee report.txt; exit "${PIPESTATUS[0]}"
+      shell: bash
+
+    # Only for the scheduled run, and only when the check actually failed. A
+    # failure on a pull request is already in front of the person who caused
+    # it; this is the one that would otherwise be seen by nobody.
+    #
+    # One issue, reopened and updated rather than a new one per night: a daily
+    # cron against a drift that takes days to fix would otherwise file a
+    # duplicate every morning. `gh` failing here (issues disabled on the
+    # repository, a token without the scope) is a warning, never a failure -
+    # the job is already red on its own account.
+    - name: File the drift where somebody sees it
+      if: ${{ failure() && steps.check.outcome == 'failure' && github.event_name == 'schedule' }}
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TITLE: 'check-app-rules is red: the shared rule set has drifted'
+      run: |
+        set -uo pipefail
+        BODY=$(printf '%s\n' \
+          "The scheduled \`check-app-rules\` run is red, which means the app rule" \
+          "set in \`abaplint.jsonc\` no longer matches its source in" \
+          "[abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5/blob/main/.github/abaplint/app-rules.json)." \
+          "" \
+          "Nothing in this repository has to be at fault: the rule set is a SECTION" \
+          "of a file this repository owns the rest of, so \`sync-shared\` cannot carry" \
+          "it and a change upstream has to be brought across by hand." \
+          "" \
+          "The fix is to copy the rule block from the source, or - if the change" \
+          "belongs upstream - to make it there first. What the run reported:" \
+          "" \
+          '```' \
+          "$(tail -c 3000 report.txt)" \
+          '```' \
+          "" \
+          "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")
+        EXISTING=$(gh issue list --state all --search "$TITLE in:title" \
+          --json number,state --jq 'first(.[]) | "\(.number) \(.state)"' 2>/dev/null) || {
+          echo "::warning::could not reach the issue tracker - the run's own red is the only signal"
+          exit 0
+        }
+        if [ -z "$EXISTING" ]; then
+          gh issue create --title "$TITLE" --body "$BODY" \
+            || echo "::warning::could not open the issue - the run's own red is the only signal"
+        else
+          NUMBER=${EXISTING%% *}
+          STATE=${EXISTING##* }
+          [ "$STATE" = "OPEN" ] || gh issue reopen "$NUMBER" || true
+          gh issue comment "$NUMBER" --body "$BODY" \
+            || echo "::warning::could not update issue #$NUMBER - the run's own red is the only signal"
+        fi
+
+    # The counterpart: a green scheduled run closes the issue the red ones
+    # opened, so the tracker says what is true now rather than what was true
+    # the first morning somebody noticed.
+    - name: Close it again once the drift is gone
+      if: ${{ success() && github.event_name == 'schedule' }}
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TITLE: 'check-app-rules is red: the shared rule set has drifted'
+      run: |
+        set -uo pipefail
+        NUMBER=$(gh issue list --state open --search "$TITLE in:title" \
+          --json number --jq 'first(.[]) | .number' 2>/dev/null) || exit 0
+        [ -n "$NUMBER" ] || exit 0
+        gh issue close "$NUMBER" --comment "The scheduled run is green again - the rule set matches its source." || true
