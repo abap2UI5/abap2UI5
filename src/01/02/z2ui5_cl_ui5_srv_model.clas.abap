@@ -546,6 +546,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " a mapper or filter is attached to an ajson INSTANCE, so those
           " attributes keep the scratch-instance detour the direct set cannot
           " express: convert into the scratch, filter, copy into the result
+          "
+          " This branch is COMPATIBILITY ONLY - _bind( custom_mapper ) and
+          " _bind( custom_filter ) are obsolete (the note on those parameters
+          " in z2ui5_if_client says why and what to write instead), and no app
+          " class in samples, samples-controls or samples-stack has ever
+          " reached them. Do not extend it, and do not route a new feature
+          " through it: the branch above is where a declarative flag belongs -
+          " omit_initial was built exactly there, out of the one filter this
+          " slot was really used for (create_empty_filter). Kept because a
+          " customer app that passes one must keep working
           IF lr_attri->custom_mapper IS BOUND OR lr_attri->custom_filter IS BOUND.
             IF lr_attri->custom_mapper IS BOUND.
               READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
