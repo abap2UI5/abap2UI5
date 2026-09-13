@@ -26,16 +26,6 @@ _nothing exists upstream yet — this is the stock_
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`abaplint-abapdoc-block-placement`](items/abaplint-abapdoc-block-placement.md) | a `"!` block before a chain keyword, or inside a parameter list, silently documents no declaration at all — SLIN accepts it and the text is simply never shown<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-08-17: fires on <b>2</b> site(s) in samples-stack, 597 correct look-alike(s)</sub><br><sub>https://github.com/abaplint/abaplint/issues/1951#issuecomment-5646058165</sub> | medium | 2026-08-17 | abaplint/abaplint |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_

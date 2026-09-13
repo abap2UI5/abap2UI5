@@ -1,19 +1,4 @@
 {
-  "abaplint-abapdoc-block-placement": {
-    "describe": "an ABAP Doc block whose next statement is a chain keyword or a section end, with the correct in-chain placement as the negative",
-    "ran": "2026-08-17",
-    "checkouts": [
-      "abap2UI5",
-      "samples",
-      "samples-controls",
-      "samples-stack"
-    ],
-    "sites": 2,
-    "negatives": 597,
-    "repos": [
-      "samples-stack"
-    ]
-  },
   "abaplint-delete-index-in-loop": {
     "describe": "DELETE <t> INDEX sy-tabix inside an open LOOP AT <t>, and the correct READ-TABLE-then-DELETE form as the negative",
     "ran": "2026-08-17",
