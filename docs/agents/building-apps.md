@@ -600,7 +600,7 @@ The same tree, with the subtree held in a variable:
   argument is the `sap.m.MessageToast.show( )` / `sap.m.MessageBox.<type>( )`
   option object 1:1 (the display method IS the box type there, and a `t_arg`
   starting with a brace travels as real JSON):
-  `client->follow_up_action( val = client->cs_event-control_global t_arg =
+  `client->follow_up_action( val = z2ui5_if_client=>cs_event-control_global t_arg =
   VALUE #( ( `MESSAGE_BOX` ) ( `error` ) ( `Not saved.` ) ( `{"contentWidth":"30rem","icon":"WARNING"}` ) ) )`.
   `Z2UI5_CL_SMP_APP_381` and `Z2UI5_CL_SMP_APP_512` are the two samples that
   show that half. Wired into a view the same call runs without a round-trip
