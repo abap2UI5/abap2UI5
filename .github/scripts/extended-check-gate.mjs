@@ -22,8 +22,9 @@
 //                Third recurrence: z2ui5_if_client=>cs_nav_mode here, then
 //                samples-stack's cs_status (7459f39), then five findings on
 //                samples-stack's overview app from a user's system
-//                (2026-08-17). Upstream rule proposed - backlog:
-//                abaplint-abapdoc-block-placement.
+//                (2026-08-17). abaplint SHIPPED the rule after that case was
+//                filed: wrong_abapdoc_position, 2.120.51 (#4286). This check
+//                goes when the pin here moves and the rule is switched on.
 //   abapdoc_html "HTML tag <wa> is not supported in ABAP Doc" - ABAP Doc is
 //                parsed as HTML, so a placeholder or a field symbol written
 //                as <name> is an unsupported, unclosed tag. AGENTS.md said

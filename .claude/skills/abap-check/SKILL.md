@@ -401,7 +401,7 @@ system, or must fetch data dynamically.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-abapdoc-block-placement, abaplint-preferred-parameter-ignored
+**Backlog:** abaplint · abaplint-preferred-parameter-ignored
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -441,8 +441,14 @@ pitfalls".
   third recurrence turned it into a gate: decided here by `check:atc`, in
   samples-stack by its own `npm run check:abapdoc`, both by the same purely
   structural test (what statement follows the block; what the code line above
-  it ends with). The rule itself is proposed upstream — backlog:
-  abaplint-abapdoc-block-placement, with a measured probe.
+  it ends with). **abaplint now has the rule**: `wrong_abapdoc_position`,
+  shipped in 2.120.51 (abaplint/abaplint#4286, 2026-09-12), written by larshp
+  from the case this catalogue collected — the three recurrences, the three
+  positions and the probe's 2 sites against 597 look-alikes, put on his own
+  five-year-old request abaplint/abaplint#1951 as a comment. It reports the
+  same three positions and carries `cs_nav_mode` as its bad example. The local
+  gates stay until the `@abaplint/cli` pin here moves to 2.120.51 and the rule
+  is switched on; they go in that change.
 
 - **ABAP Doc is parsed as HTML.** A field symbol or a placeholder written as
   `<wa>`, `<row>`, `<CLASS>` inside a `"!` block is "HTML tag not supported"
