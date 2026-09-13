@@ -627,8 +627,6 @@ The same tree, with the subtree held in a variable:
   Back/Forward buttons — the mode rides in `t_arg`: `cs_nav_mode-keep` (the
   default when `t_arg` is empty) restores the exact draft state,
   `cs_nav_mode-fresh` restarts clean. Works inside the Fiori Launchpad.
-  (`cs_event-set_nav_routing` is the obsolete spelling of the same wire
-  value — new code uses the `hash_*` names.)
 - The URL hash and the app state have named APIs of their own:
   `client->hash_set( val )` writes `val` as the app's URL hash with a pushed
   history entry (the UI5 router's `navTo`), `client->hash_replace( val )`

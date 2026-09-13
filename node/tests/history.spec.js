@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// cc/History.js (obsolete, replaced by the framework's set_push_state):
+// cc/History.js (obsolete, replaced by the framework's hash_set):
 // rewrites the query string of the current URL via history.replaceState.
 //
 // Three things it has to get right, and each of them is a way a URL rewrite

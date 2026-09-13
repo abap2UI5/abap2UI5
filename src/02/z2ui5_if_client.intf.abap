@@ -86,8 +86,11 @@ INTERFACE z2ui5_if_client
       " attachHashChanged (registers a backend event for foreign hash changes),
       " hash_routing = the hash-based app routing modes (cs_nav_mode).
       " app_state_set_active keeps the id of the CURRENT app state in the URL.
-      " hash_set / hash_routing / app_state_set_active share their wire value
-      " with their obsolete spellings below - both names reach the same branch.
+      " hash_set and app_state_set_active keep the WIRE values of the names
+      " they were renamed from (SET_PUSH_STATE, SET_APP_STATE_ACTIVE): the
+      " rename was a rename, so no queued action and no frontend branch had
+      " to move with it. Do not "fix" a value to match its constant - that
+      " breaks every draft holding a queued action.
       " The one-word comment right before the run is its LABEL on the
       " documentation site (docs, scripts/lib/client-interface.mjs reads the
       " first line of a comment run): keep it one line, keep it last.
@@ -105,14 +108,6 @@ INTERFACE z2ui5_if_client
       " with its successor): the site's generator drops every member under a
       " label that opens with "obsolete", so a run added here needs one
 
-      "obsolete - the hash_* / app_state_* spellings above replace these
-      set_app_state_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
-      set_push_state            TYPE string VALUE `SET_PUSH_STATE`,
-      set_nav_routing           TYPE string VALUE `SET_NAV_ROUTING`,
-      "obsolete - superseded by app_state_get_href( ) + cs_event-clipboard_copy:
-      " the backend composes the same link itself now (the browser location
-      " and the live hash ride with the requests), so the app can also SHOW it
-      clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
       "obsolete
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
@@ -121,7 +116,6 @@ INTERFACE z2ui5_if_client
       popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
       popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
       z2ui5                     TYPE string VALUE `Z2UI5`,
-      wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
 
     END OF cs_event.
 
@@ -456,24 +450,6 @@ INTERFACE z2ui5_if_client
   "!
   "! @parameter val | the hash to write, spelled as for hash_set( ).
   METHODS hash_replace
-    IMPORTING
-      val TYPE string OPTIONAL.
-
-  "! obsolete spelling of app_state_set_active( ) - same behavior. It stays
-  "! in the interface so existing apps keep compiling.
-  "!
-  "! @parameter val | as app_state_set_active( ).
-  METHODS set_app_state_active
-    IMPORTING
-      val TYPE abap_bool DEFAULT abap_true.
-
-  "! obsolete spelling of hash_set( ) - same behavior ('push state' described
-  "! the old history.pushState implementation, which the HashChanger-backed
-  "! write replaced). It stays in the interface so existing apps keep
-  "! compiling.
-  "!
-  "! @parameter val | as hash_set( ).
-  METHODS set_push_state
     IMPORTING
       val TYPE string OPTIONAL.
 
@@ -976,8 +952,6 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                  TYPE data
       path                 TYPE abap_bool                     DEFAULT abap_false
-      "obsolete - inactive, not passed on internally
-      view                 TYPE clike                         DEFAULT cs_view-main
       "obsolete - still evaluated, but NO AJSON TYPE BELONGS IN A BIND CALL
       "any more. Both hand an app a reference to the bundled AJSON library
       "(src/00/01), which is a MIRRORED copy of an external project, not a
@@ -1042,8 +1016,6 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                  TYPE data
       path                 TYPE abap_bool                     DEFAULT abap_false
-      "obsolete - inactive, not passed on internally
-      view                 TYPE clike                         DEFAULT cs_view-main
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL

@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 
 // Reproduces the browser Back/Forward cycle over a FRESH-mode routed app
 // (the z2ui5_cl_demo_app_468 / 469 scenario) against the transpiled backend:
-// hub app with set_nav_routing(fresh) -> nav_app_call(detail) -> browser
+// hub app with hash_routing(fresh) -> nav_app_call(detail) -> browser
 // Back (hub restarts fresh) -> browser Forward (detail must come back).
 //
 // Regression coverage for the doubled route slash: hasher (the HashChanger's

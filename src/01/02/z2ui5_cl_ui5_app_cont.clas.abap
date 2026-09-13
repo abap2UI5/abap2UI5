@@ -8,7 +8,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mo_app   TYPE REF TO object.
     DATA ms_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     " Hash routing mode of THIS app (z2ui5_if_client=>cs_nav_mode), set via
-    " follow_up_action( cs_event-set_nav_routing ). It lives on the app - and therefore in its
+    " follow_up_action( cs_event-hash_routing ). It lives on the app - and therefore in its
     " draft - rather than on the session, so it is re-sent with every response
     " of this app: an app configures routing ONCE (in check_on_init, the way a
     " UI5 app configures it once in the manifest) instead of re-asserting it on
@@ -17,8 +17,8 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mv_nav_mode TYPE string.
 
     " Whether THIS app wants its draft id carried in the URL hash
-    " (z2ui5-xapp-state), set via client->set_app_state_active( ) or
-    " follow_up_action( cs_event-set_app_state_active ). On the app - and
+    " (z2ui5-xapp-state), set via client->app_state_set_active( ) or
+    " follow_up_action( cs_event-app_state_set_active ). On the app - and
     " therefore in its draft - for the same reason as mv_nav_mode above, and
     " it has to be: the intent is re-asserted on every response, but
     " ms_next-s_nav is per-request (z2ui5_cl_ui5_handler=>main clears it) and

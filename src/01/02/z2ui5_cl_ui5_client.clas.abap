@@ -75,7 +75,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     ENDIF.
 
     CASE val.
-      " the current spelling; cs_event-set_nav_routing is the same value
       WHEN z2ui5_if_client=>cs_event-hash_routing.
         " the mode is remembered on the app ( z2ui5_cl_ui5_app_cont->mv_nav_mode )
         " and re-sent when the frontend may not still hold it - main_end gates
@@ -96,8 +95,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         RETURN.
 
       WHEN z2ui5_if_client=>cs_event-hash_set.
-        " same value as the obsolete cs_event-set_push_state - one branch
-        " serves both spellings
+        " the wire value is SET_PUSH_STATE, the name this event was renamed
+        " from - see the note on cs_event
         mo_action->ms_next-s_nav-set_push_state = lv_arg.
         RETURN.
 
@@ -118,7 +117,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                                              ELSE lv_arg ).
         RETURN.
 
-      " the current spelling; cs_event-set_app_state_active is the same value
       WHEN z2ui5_if_client=>cs_event-app_state_set_active.
         " an empty argument list switches it ON - a single space is how an
         " app switches it off again, since an empty t_arg cannot say `false`
@@ -516,7 +514,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " has no counterpart for them).
     result = z2ui5_if_client~_bind( val                  = val
                                     path                 = path
-                                    view                 = view
                                     custom_mapper        = custom_mapper
                                     custom_filter        = custom_filter
                                     tab                  = tab
@@ -571,14 +568,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~set_push_state.
-
-    " obsolete spelling - delegates to keep exactly one write path
-    z2ui5_if_client~hash_set( val ).
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~app_state_set_active.
 
     " same field the cs_event-app_state_set_active branch of follow_up_action
@@ -588,14 +577,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " and remember it on the app, so main_end can re-assert it on the next
     " response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
     mo_action->mo_app->mv_app_state_active = val.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~set_app_state_active.
-
-    " obsolete spelling - delegates to keep exactly one write path
-    z2ui5_if_client~app_state_set_active( val ).
 
   ENDMETHOD.
 
