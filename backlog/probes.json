@@ -31,20 +31,5 @@
       "samples-controls",
       "samples-stack"
     ]
-  },
-  "transpiler-reserved-js-identifiers": {
-    "describe": "an ABAP declaration named after a reserved JavaScript word, with the seven abap2UI5 already configures as the negatives",
-    "ran": "2026-08-17",
-    "checkouts": [
-      "abap2UI5",
-      "samples",
-      "samples-controls",
-      "samples-stack"
-    ],
-    "sites": 1,
-    "negatives": 7,
-    "repos": [
-      "abap2UI5"
-    ]
   }
 }

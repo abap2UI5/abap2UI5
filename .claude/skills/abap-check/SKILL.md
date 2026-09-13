@@ -692,8 +692,6 @@ wrote this, so the bundler itself was not read. What IS measured is that
 transpiled tests. Nothing here is a linter rule and nothing here should be: the
 downport is a build of this repository, not a property of somebody's app.
 
-**Backlog:** open-abap · transpiler-reserved-js-identifiers
-
 Every framework file is downported to 7.02 (`npm run auto_downport`) and
 transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
@@ -740,12 +738,16 @@ break one of those four.
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a
   containment test → `CS`; `IS NOT INITIAL` on an internal table →
   `lines( … ) > 0`; a local class type in `CREATE DATA … TYPE` → `LIKE`.
-- **An ABAP name that is a reserved JS word breaks the transpiler.** The
+- **An ABAP name that is a reserved JS word used to break the transpiler.** The
   importing parameter `with` of `c_replace_all` was emitted as `let with = …`,
-  illegal in strict mode, and the unit job went red. The fix was to add the
-  word to `keywords` in `node/setup/abap_transpile.json` rather than rename a
-  public parameter (`e3d8889c`, #2351) — check that list before renaming
-  anything, and extend it rather than bending the ABAP API.
+  illegal in strict mode, and the unit job went red. The fix at the time was a
+  `keywords` entry in `node/setup/abap_transpile.json` rather than a rename of
+  a public parameter (`e3d8889c`, #2351), and that list grew to seven words,
+  each one discovered by a red build. The transpiler escapes every reserved
+  word itself since abaplint/transpiler#1840, so the list is gone — do not
+  start a new one. A reserved name that still comes out raw is an upstream
+  bug and belongs in the transpiler's `DEFAULT_KEYWORDS`, not in a per-project
+  option here.
 - **`xsdbool`, never `boolc`** — the downport converts `xsdbool` to `boolc`
   automatically, so writing `boolc` yourself breaks in the other direction.
 - **Not every released class is released in ABAP Cloud.**
