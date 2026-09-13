@@ -1006,16 +1006,36 @@ INTERFACE z2ui5_if_client
       path                 TYPE abap_bool                     DEFAULT abap_false
       "obsolete - inactive, not passed on internally
       view                 TYPE clike                         DEFAULT cs_view-main
-      "obsolete - still evaluated, but do not use in new code. Both hand an
-      "app a reference to the bundled AJSON library (src/00/01), which is a
-      "MIRRORED copy of an external project, not a contract this framework
-      "owns: an app implementing z2ui5_if_ajson_mapping / _filter binds
-      "itself to whatever that mirror looks like today. Everything they were
-      "reached for has a declarative counterpart on this method now -
-      "omit_initial / omit_initial_paths drop initial fields, json splices a
-      "JSON node - and the ABAP side can shape the value before it is bound
+      "obsolete - still evaluated, but NO AJSON TYPE BELONGS IN A BIND CALL
+      "any more. Both hand an app a reference to the bundled AJSON library
+      "(src/00/01), which is a MIRRORED copy of an external project, not a
+      "contract this framework owns: an app implementing
+      "z2ui5_if_ajson_mapping / _filter binds itself to whatever that mirror
+      "looks like today, and a resync of the mirror is free to break it.
+      "Everything they were ever reached for is declarative on this method
+      "now, and each replacement has a sample that proves it:
+      "  drop initial fields   -> omit_initial / omit_initial_paths
+      "                           (z2ui5_cl_smp_app_507)
+      "  a model NODE instead
+      "  of a quoted string,
+      "  under keys no ABAP
+      "  component can carry   -> json = abap_true
+      "                           (z2ui5_cl_smp_app_509)
+      "  anything else         -> shape the value in ABAP before binding it
+      "The one thing _bind( ) deliberately cannot do is a mapping that
+      "differs per direction - see the _back pair on _bind_edit( ), which is
+      "dead there. Measured 2026-09-13 across samples, samples-controls and
+      "samples-stack: not one app class passes either parameter or
+      "implements either interface, and none ever did in their git history -
+      "so nothing has to be migrated, only nothing new written. AJSON itself
+      "stays: it is the model engine (z2ui5_cl_ui5_srv_model), and json =
+      "abap_true is implemented with it. What goes is the LEAK of the
+      "mirrored library into the app-facing interface.
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      "obsolete - the filter half of custom_mapper, see there
+      "obsolete - the filter half of custom_mapper, see there. This is the
+      "half that had the one real use - do not send initial fields, i.e.
+      "z2ui5_cl_ajson_filter_lib=>create_empty_filter - and that use is
+      "exactly what omit_initial replaced: it is wired into this very slot
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
       tab                  TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
@@ -1029,6 +1049,13 @@ INTERFACE z2ui5_if_client
   "! obsolete - alias of _bind with identical behaviour, please use _bind.
   "! custom_mapper_back / custom_filter_back are still accepted for source
   "! compatibility but are no longer evaluated.
+  "!
+  "! All four AJSON parameters here are dead ends: this is the only place
+  "! that ever offered a per-direction mapping, and the two _back halves
+  "! that made it one are inert. Do not reach for any of them in new code -
+  "! bind with _bind( ) and say what you mean with omit_initial /
+  "! omit_initial_paths or json = abap_true, whose notes on _bind( ) carry
+  "! the full reasoning and a sample each.
   "!
   "! @parameter val | as _bind( ).
   "! @parameter path | as _bind( ).
