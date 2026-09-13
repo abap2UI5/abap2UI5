@@ -8,22 +8,12 @@
 // line feeds the parser strips and the entity order on the way back - and
 // are described where they are defined below.
 //
-// 1. cl_abap_typedescr=>describe_by_name and ABSOLUTE type names
-//    (backlog/items/open-abap-describe-by-name-absolute.md)
-//
-// S-RTTI (src/00/02, the draft's way of carrying a runtime-built type across
-// the roundtrip) serializes each elementary component by its absolute name
-// and, on the way back, asks describe_by_name( absolute_name ) for every
-// component that is not anonymous. On a system `\TYPE=STRING` answers with
-// the string descriptor. In the NodeJS runtime the same call reaches
-// CREATE DATA with the absolute name and dies with type_not_found - so no
-// draft that carries a TYPE HANDLE table whose line was built from a NAMED
-// structure could be restored in the transpiled backend. That is the shape
-// of every runtime-typed sample (a DDIC structure's components plus SELKZ),
-// and it is why ltcl_test_app_root4->test_tab_ref_gen was skipped in
-// node/setup/abap_transpile.json for years. The patch re-enters
-// describe_by_name with the part after the last `\TYPE=` - `STRING`, `I`,
-// `ABAP_BOOL` - which the runtime already resolves.
+// The numbering starts at 2 because patch 1 is GONE: it taught
+// cl_abap_typedescr=>describe_by_name to resolve an absolute type name, and
+// open-abap/open-abap-core#1217 merged it (0800491, the SHA this repository
+// now pins). The numbers of the rest stay as they are - the backlog item
+// cites them by number, and renaming a shim to close a gap in the counting
+// is how a reference goes stale.
 //
 // 2. CALL TRANSFORMATION id writes elementary values UNESCAPED
 //    (backlog/items/open-abap-asxml-text-escape.md)
@@ -50,31 +40,8 @@ import { patchFile, PatchError, reportEdits } from "./lib/anchored-patch.mjs";
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const CORE = join(ROOT, "node", "deps", "open-abap-core", "src");
 
-const TYPEDESCR = join(CORE, "rtti", "cl_abap_typedescr.clas.abap");
 const TRANSFORMATION = join(CORE, "kernel", "call_transformation", "kernel_call_transformation.clas.locals_imp.abap");
 const IXML = join(CORE, "ixml", "cl_ixml.clas.locals_imp.abap");
-
-// 1. describe_by_name with an absolute name
-const MARKER1 = "* abap2UI5 patch 1 (node/setup/patch-open-abap-core.mjs)";
-const ANCHOR1 = "* note, p_name might be internal name, so check and skip these,";
-const PATCH1 = [
-  MARKER1 + ": an ABSOLUTE type name of a",
-  "* built-in or dictionary type - the spelling S-RTTI resolves a serialized",
-  "* descriptor by - is looked up by its relative part, as a system does",
-  "    DATA lv_absolute TYPE string.",
-  "    DATA lv_offset   TYPE i.",
-  "    lv_absolute = p_name.",
-  "    IF lv_absolute CP '\\TYPE*' AND lv_absolute NA '%'.",
-  "      FIND FIRST OCCURRENCE OF '\\TYPE=' IN lv_absolute MATCH OFFSET lv_offset.",
-  "      IF sy-subrc = 0.",
-  "        lv_offset = lv_offset + 6.",
-  "        lv_absolute = lv_absolute+lv_offset.",
-  "        type = describe_by_name( lv_absolute ).",
-  "        RETURN.",
-  "      ENDIF.",
-  "    ENDIF.",
-  "",
-].join("\n") + ANCHOR1;
 
 // 2. asXML text escaping
 const MARKER2 = "* abap2UI5 patch 2 (node/setup/patch-open-abap-core.mjs)";
@@ -169,7 +136,6 @@ const PATCH4B = [
  * lets 3a anchor on the line patch 2 inserts and 4b on the one 3b inserts:
  * the text is carried in memory and written once at the end of the group. */
 export const FILES = [
-  { file: TYPEDESCR, edits: [{ label: "describe_by_name", applied: MARKER1, anchor: ANCHOR1, patch: PATCH1 }] },
   {
     file: TRANSFORMATION,
     edits: [
