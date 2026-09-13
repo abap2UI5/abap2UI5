@@ -32,6 +32,7 @@ _an issue or PR exists; the item goes when it merges_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`linter-event-arg-shorthand`](items/linter-event-arg-shorthand.md) | 187 false positives across 125 of 637 ported classes the moment the corpus adopts the one-value shorthand — the rule extracts arguments from `t_arg = VALUE #( )` alone and has no case for `arg`<br><sub>https://github.com/abap2UI5/linter/pull/78</sub> | high | 2026-08-29 | abap2UI5/linter |
+| [`linter-enum-key-vs-value`](items/linter-enum-key-vs-value.md) | for the eight UI5 enums whose key differs from its value (`CalendarIntervalType.OneMonth` = "One Month", every `IllustratedMessageType`, `FileUploaderHttpRequestMethod.Post` = "POST"), the rule accepts only the VALUE - but an XML view is parsed with `parseValue( )`, which maps key -> value, so the value form is the one that breaks and the key form is the one the rule reports<br><sub>https://github.com/abap2UI5/linter/pull/104</sub> | medium | 2026-09-13 | abap2UI5/linter |
 
 ---
 
