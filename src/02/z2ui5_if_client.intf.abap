@@ -305,7 +305,6 @@ INTERFACE z2ui5_if_client
     "! The per-wire options of _event( ) - see the documentation on the method
     "! for what each one decides.
     BEGIN OF ty_s_event_control,
-      check_allow_multi_req TYPE abap_bool,
       " cancel the control's built-in default for this event before the
       " roundtrip (oEvent.preventDefault(), e.g. sap.tnt NavigationListItem
       " press without the automatic item selection); the event itself is
@@ -335,10 +334,8 @@ INTERFACE z2ui5_if_client
       " (liveChange, liveSearch, sliderChange): without it every keystroke
       " typed while a roundtrip runs is lost, the last one included, and the
       " backend stays at the value of the last COMPLETED roundtrip until the
-      " user pauses and types again. Not combined with check_allow_multi_req,
-      " which sends every firing at once and lets the responses land in any
-      " order. Appended at the END of the structure (rule 5, see the note on
-      " ty_s_get-t_model_skipped)
+      " user pauses and types again. Appended at the END of the structure
+      " (rule 5, see the note on ty_s_get-t_model_skipped)
       check_queue_last      TYPE abap_bool,
     END OF ty_s_event_control.
 
@@ -798,12 +795,11 @@ INTERFACE z2ui5_if_client
   " the parameter table the way it prints a comment inside the list.)
   "! Register a backend event and return the handler expression for a view
   "! attribute (press = client->_event( `SAVE` )). s_ctrl carries the optional
-  "! event flags: check_allow_multi_req sends the event while another
-  "! roundtrip is still running, check_prevent_default cancels the control's
-  "! built-in default for this event (oEvent.preventDefault(), e.g. a
-  "! sap.tnt NavigationListItem press that must not select the item) before
-  "! the roundtrip - the event is still sent, so the backend stays in charge
-  "! of what happens instead. That flag is baked per WIRE at render time;
+  "! event flags: check_prevent_default cancels the control's built-in
+  "! default for this event (oEvent.preventDefault(), e.g. a sap.tnt
+  "! NavigationListItem press that must not select the item) before the
+  "! roundtrip - the event is still sent, so the backend stays in charge of
+  "! what happens instead. That flag is baked per WIRE at render time;
   "! prevent_default_expr is the same veto decided per FIRING - a client
   "! expression evaluated when the event fires, so one wire can protect one
   "! row/column and let the rest through
@@ -813,9 +809,8 @@ INTERFACE z2ui5_if_client
   "! the response has landed, instead of dropping it - one roundtrip in
   "! flight at a time, order preserved, the backend ends on the control's
   "! current value; it is the flag for a per-keystroke wire (liveChange,
-  "! liveSearch, sliderChange), where check_allow_multi_req would send one
-  "! roundtrip per keystroke with responses landing in any order. Not
-  "! combined with check_allow_multi_req.
+  "! liveSearch, sliderChange), which without it loses every keystroke typed
+  "! while a roundtrip runs, the last one included.
   "!
   "! @parameter val | the event name the handler checks with
   "!                  check_on_event( `SAVE` ) - upper case by convention,
@@ -825,10 +820,10 @@ INTERFACE z2ui5_if_client
   "!                  `$\{$source>/...\}` or `$\{$parameters>/...\}` client
   "!                  expression evaluated when the event fires, or
   "!                  `$event>...` for a field of the UI5 event itself.
-  "! @parameter s_ctrl | the per-wire options (ty_s_event_control): send while
-  "!                  another roundtrip runs, keep the last firing until the
-  "!                  running roundtrip has landed, cancel the control's
-  "!                  default, quote every argument as a literal.
+  "! @parameter s_ctrl | the per-wire options (ty_s_event_control): keep the
+  "!                  last firing until the running roundtrip has landed,
+  "!                  cancel the control's default, quote every argument as
+  "!                  a literal.
   "! @parameter arg | the ONE-VALUE spelling of t_arg: `arg = x` is exactly
   "!                  `t_arg = VALUE #( ( x ) )`, byte for byte, and the
   "!                  handler reads it back with the same `get_event_arg( )`.

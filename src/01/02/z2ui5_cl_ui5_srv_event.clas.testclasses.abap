@@ -16,7 +16,6 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_empty_middle_arg FOR TESTING.
     METHODS event_trailing_empty_arg FOR TESTING.
     METHODS event_view_param FOR TESTING.
-    METHODS event_multi_req   FOR TESTING.
     METHODS event_queue_last  FOR TESTING.
     METHODS event_prevent_default FOR TESTING.
     METHODS event_prevent_default_expr FOR TESTING.
@@ -263,20 +262,6 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD event_multi_req.
-
-    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    DATA lv_event TYPE string.
-    lo_event = NEW #( ).
-
-    lv_event = lo_event->get_event( val         = `EVT`
-                                          s_cnt = VALUE #( check_allow_multi_req = abap_true ) ).
-
-
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `false,true` ) ).
-
-  ENDMETHOD.
-
   METHOD event_queue_last.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
@@ -286,9 +271,9 @@ CLASS ltcl_test IMPLEMENTATION.
     CLEAR ls_ctrl.
     ls_ctrl-check_queue_last = abap_true.
 
-    " the flag rides at position [4] of the event array, behind the reserved
-    " placeholder, ignoreBusy and useMainModel - View1.eB reads the array by
-    " index, so the earlier positions keep their place and their value
+    " the flag rides at position [4] of the event array, behind two reserved
+    " placeholders and useMainModel - View1.eB reads the array by index, so
+    " the earlier positions keep their place and their value
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['LIVE_CHANGE',false,false,false,true])`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
@@ -299,15 +284,6 @@ CLASS ltcl_test IMPLEMENTATION.
         exp = `.eB(['LIVE_CHANGE',false,false,false,true], ${$parameters>/value})`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    t_arg = VALUE #( ( `${$parameters>/value}` ) )
-                                   s_cnt = ls_ctrl ) ).
-
-    " with check_allow_multi_req as well, both flags keep their position -
-    " the frontend lets ignoreBusy win, so the wire is documented as not
-    " combined, but the array must not shift when an app does
-    ls_ctrl-check_allow_multi_req = abap_true.
-    cl_abap_unit_assert=>assert_equals(
-        exp = `.eB(['LIVE_CHANGE',false,true,false,true])`
-        act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    s_cnt = ls_ctrl ) ).
 
     " the prevent-default form carries the same array
@@ -344,9 +320,9 @@ CLASS ltcl_test IMPLEMENTATION.
                                    s_cnt = ls_ctrl ) ).
 
     " both flags together stay independent
-    ls_ctrl-check_allow_multi_req = abap_true.
+    ls_ctrl-check_queue_last = abap_true.
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,true,['ITEM_PRESS',false,true])`
+        exp = `.eBP($event,true,['ITEM_PRESS',false,false,false,true])`
         act = lo_event->get_event( val   = `ITEM_PRESS`
                                    s_cnt = ls_ctrl ) ).
 
@@ -383,12 +359,12 @@ CLASS ltcl_test IMPLEMENTATION.
         act = lo_event->get_event( val   = `COLUMN_RESIZE`
                                    s_cnt = ls_ctrl ) ).
 
-    " and it combines with the multi-request flag like the plain form
+    " and it combines with the queue-last flag like the plain form
     CLEAR ls_ctrl.
-    ls_ctrl-prevent_default_expr  = `${$parameters>/on}`.
-    ls_ctrl-check_allow_multi_req = abap_true.
+    ls_ctrl-prevent_default_expr = `${$parameters>/on}`.
+    ls_ctrl-check_queue_last     = abap_true.
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,${$parameters>/on},['COLUMN_RESIZE',false,true])`
+        exp = `.eBP($event,${$parameters>/on},['COLUMN_RESIZE',false,false,false,true])`
         act = lo_event->get_event( val   = `COLUMN_RESIZE`
                                    s_cnt = ls_ctrl ) ).
 
