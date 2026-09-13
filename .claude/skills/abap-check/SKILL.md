@@ -446,9 +446,15 @@ pitfalls".
   from the case this catalogue collected — the three recurrences, the three
   positions and the probe's 2 sites against 597 look-alikes, put on his own
   five-year-old request abaplint/abaplint#1951 as a comment. It reports the
-  same three positions and carries `cs_nav_mode` as its bad example. The local
-  gates stay until the `@abaplint/cli` pin here moves to 2.120.51 and the rule
-  is switched on; they go in that change.
+  same three positions and carries `cs_nav_mode` as its bad example. So it is
+  **the linter's** finding here now: `wrong_abapdoc_position` is on in
+  `abaplint.jsonc` since the 2.120.51 pin, and `check:atc` kept exactly one
+  shape the rule does not decide — a block directly before `END OF`, measured
+  against that version. (No site of that shape has ever been found in any of
+  the five checkouts, which is why it is a leftover regex and not a backlog
+  item.) `abap2UI5/samples-stack` still runs its own `check:abapdoc`: its
+  abaplint pin has not moved yet, and that script goes the same way when it
+  does.
 
 - **ABAP Doc is parsed as HTML.** A field symbol or a placeholder written as
   `<wa>`, `<row>`, `<CLASS>` inside a `"!` block is "HTML tag not supported"

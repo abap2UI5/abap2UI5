@@ -925,23 +925,24 @@ INTERFACE z2ui5_if_client
   "!                                copy of its value (a helper variable holding
   "!                                the same string is refused with
   "!                                BINDING_ERROR_TAB_CELL_LEVEL).
-  "!                                One toolchain caveat, not an ABAP one: a
-  "!                                STOCK abaplint downport lowers a table
-  "!                                expression read at COMPONENT level to
-  "!                                `READ TABLE ... INTO &lt;wa&gt;` - a copy - and
-  "!                                the cell is then refused on code that is
-  "!                                correct at the v750 target. This repository
-  "!                                patches that lowering to `ASSIGNING`
-  "!                                (node/setup/patch-abaplint-downport.mjs,
-  "!                                filed upstream), so `tab[ n ]-comp` works
-  "!                                through every build here. An app downported
-  "!                                by an UNPATCHED abaplint has to assign the
-  "!                                row first - `ASSIGN tab[ n ] TO &lt;row&gt;`, then
-  "!                                `val = &lt;row&gt;-comp` - which the same rule
-  "!                                already lowers with ASSIGNING and which is
+  "!                                One toolchain caveat, not an ABAP one, and
+  "!                                only for an app that DOWNPORTS with
+  "!                                abaplint older than 2.120.51: that downport
+  "!                                lowered a table expression read at
+  "!                                COMPONENT level to
+  "!                                `READ TABLE ... INTO &lt;wa&gt;` - a copy - so
+  "!                                the cell was refused on code correct at the
+  "!                                v750 target. Fixed upstream
+  "!                                (abaplint/abaplint#4276): the outline is
+  "!                                `ASSIGNING` from 2.120.51 on, which is what
+  "!                                the write path of the same rule always
+  "!                                emitted. On an older abaplint, assign the
+  "!                                row first - `ASSIGN tab[ n ] TO &lt;row&gt;`,
+  "!                                then `val = &lt;row&gt;-comp` - which that rule
+  "!                                already lowered with ASSIGNING and which is
   "!                                7.02-native. Measured, not assumed: the
   "!                                transpiler resolves every form correctly;
-  "!                                only the downport loses the reference.
+  "!                                only the old downport lost the reference.
   "!                                What travels
   "!                                is still the whole table - this only writes
   "!                                a row-qualified path into the view, so the
