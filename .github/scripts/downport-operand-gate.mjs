@@ -43,7 +43,7 @@
 // The THIRD position, the table-expression key of #2664 above, is no longer
 // reported. It is v740 source; what reaches a 7.02 system is whatever the
 // downport makes of it, and since abaplint/abaplint#4272 (2.120.46, pinned
-// here at 2.120.51) that lowering hoists the call itself - the fix this gate
+// here at 2.120.52) that lowering hoists the call itself - the fix this gate
 // used to ask for by hand. Measured on 2.120.51: `line_exists( it[ k =
 // to_upper( v ) ] )` comes out as `temp1 = to_upper( v ).` followed by
 // `READ TABLE it WITH KEY k = temp1`, while a hand-written `WITH KEY k =

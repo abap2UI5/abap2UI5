@@ -54,7 +54,7 @@ export { stripNoise } from "./abap-statements.mjs";
  * to_upper( x ) ] )`, the shape of #2664 itself - is gone, because it is not
  * a position a 7.02 system ever sees: it is v740 source, and what reaches the
  * system is whatever the downport makes of it. Since abaplint/abaplint#4272
- * (2.120.46, this repository pins 2.120.51) that lowering hoists the call
+ * (2.120.46, this repository pins 2.120.52) that lowering hoists the call
  * into a variable of its own, which is the fix this gate asked authors to
  * write by hand. Measured on 2.120.51, not assumed: `line_exists( it[ k =
  * to_upper( v ) ] )` downports to `temp1 = to_upper( v ).` followed by

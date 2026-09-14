@@ -739,7 +739,7 @@ break one of those four.
   downported method has `READ TABLE lt_parts INDEX lines( lt_parts )` ten lines
   above the failure and the compiler accepted it.
   **The downport hoists it now.** abaplint/abaplint#4272 (2.120.46, pinned here
-  at 2.120.51) lowers `line_exists( tab[ k = to_upper( x ) ] )` into
+  at 2.120.52) lowers `line_exists( tab[ k = to_upper( x ) ] )` into
   `temp1 = to_upper( x ).` plus `READ TABLE tab WITH KEY k = temp1`, so the
   table-expression shape is safe at the version this repository builds with -
   measured on it, and `check:downport` no longer reports that shape.
