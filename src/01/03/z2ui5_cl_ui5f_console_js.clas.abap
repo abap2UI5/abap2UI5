@@ -152,22 +152,25 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `      return value.stack || ``${value.name || "Error"}: ${value.message}``;` && |\n| &&
              `    }` && |\n| &&
              `    try {` && |\n| &&
-             `      const seen = new WeakSet();` && |\n| &&
-             `      const nodeDepth = new WeakMap();` && |\n| &&
+             `      const ancestors = [];` && |\n| &&
+             `      const walked = new WeakMap();` && |\n| &&
              `      return JSON.stringify(value, function replace(key, val) {` && |\n| &&
              `        if (typeof val === "object" && val !== null) {` && |\n| &&
-             `          if (seen.has(val)) return "[Circular]";` && |\n| &&
-             `          const parent =` && |\n| &&
-             `            typeof this === "object" && this !== null` && |\n| &&
-             `              ? nodeDepth.get(this) || 0` && |\n| &&
-             `              : 0;` && |\n| &&
-             `          if (parent >= MAX_DEPTH) return "[...]";` && |\n| &&
-             `          seen.add(val);` && |\n| &&
-             `          nodeDepth.set(val, parent + 1);` && |\n| &&
+             `          const holder = walked.get(this) || this;` && |\n| &&
+             `          while (` && |\n| &&
+             `            ancestors.length > 0 &&` && |\n| &&
+             `            ancestors[ancestors.length - 1] !== holder` && |\n| &&
+             `          ) {` && |\n| &&
+             `            ancestors.pop();` && |\n| &&
+             `          }` && |\n| &&
+             `          if (ancestors.includes(val)) return "[Circular]";` && |\n| &&
+             `` && |\n| &&
+             `          if (ancestors.length >= MAX_DEPTH) return "[...]";` && |\n| &&
+             `          ancestors.push(val);` && |\n| &&
              `          if (Array.isArray(val) && val.length > MAX_ITEMS) {` && |\n| &&
              `            const head = val.slice(0, MAX_ITEMS);` && |\n| &&
              `            head.push(``[... ${val.length - MAX_ITEMS} more]``);` && |\n| &&
-             `            nodeDepth.set(head, parent + 1);` && |\n| &&
+             `            walked.set(head, val);` && |\n| &&
              `            return head;` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&

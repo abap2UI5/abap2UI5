@@ -493,8 +493,18 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
           )->a( n = `submit`          v = client->_event( ms_home-btn_event_id )
           )->a( n = `width`           v = `70%` ).
     ELSE.
+      " t, not v: the class name is USER INPUT and the page bootstraps with
+      " complex binding syntax, so a `{` in it is read by UI5 as a binding
+      " path instead of shown - a malformed one takes the whole view build
+      " down with it. Reachable without a crafted class name at all:
+      " class_editable is a bound attribute, so a client can set it to
+      " abap_false in the same model delta that writes the name, and this
+      " branch then renders whatever the name says. t is escape_literal( )
+      " applied to the value, which is the form the builder's own ABAP Doc
+      " names for a value carrying user input - this was the one v = in the
+      " shipped apps that did not carry a literal or a binding
       form->tag( `Text`
-          )->a( n = `text`  v = ms_home-classname ).
+          )->a( n = `text`  t = ms_home-classname ).
     ENDIF.
 
     form->tag( `Label` ).

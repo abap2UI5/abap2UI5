@@ -65,6 +65,14 @@ function loadDeveloperTools({
   const ViewSlots = {
     getView: (key) => views[key],
     getViewXml: (key) => slotXml[key],
+    // mirrors core/ViewSlots.trackedModel: the framework model is the
+    // DEFAULT one, or the named "http" one in switch mode. devtools/Tabs.js
+    // resolves the model tabs through it
+    trackedModel: (owner) => {
+      const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+      if (!owner?.getModel) return undefined;
+      return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
+    },
   };
   const ErrorView = {
     handleLogout: () => logoutCalls?.push(true),

@@ -217,26 +217,44 @@ sap.ui.define([], () => {
       // stringify walks the graph itself, so a depth parameter on this
       // function never counted anything and MAX_DEPTH was dead code while a
       // console.log(oModel.getData()) serialized a multi-MB model in full
-      // before the 2000-char cut. The parent map answers "how deep is this
-      // node" without a second walk; a long array is replaced by its first
-      // MAX_ITEMS items plus a marker, and the replacement is what
-      // stringify walks next, so it takes the depth of the original.
-      const seen = new WeakSet();
-      const nodeDepth = new WeakMap();
+      // before the 2000-char cut.
+      //
+      // The ANCESTOR CHAIN is what answers both questions - "is this a
+      // cycle" and "how deep is this node" - and it has to be the chain,
+      // not a flat set of everything seen: with a set, a value referenced
+      // TWICE IN SIBLING BRANCHES (one lookup table two rows point at, one
+      // control two entries name) was reported as "[Circular]" although
+      // nothing loops, which is a wrong diagnostic in the one tool a
+      // developer without F12 has. `this` is the object the key belongs to,
+      // so the stack unwinds back to it before the test.
+      // devtools/Format.js toJson( ) tracks the same chain for the same
+      // reason - change them together.
+      //
+      // A long array is replaced by its first MAX_ITEMS items plus a
+      // marker, and the REPLACEMENT is what stringify walks next, so its
+      // children arrive with the copy as `this`: walked maps it back to the
+      // original, which is what keeps the chain - and with it a
+      // self-referencing long array - intact.
+      const ancestors = [];
+      const walked = new WeakMap();
       return JSON.stringify(value, function replace(key, val) {
         if (typeof val === "object" && val !== null) {
-          if (seen.has(val)) return "[Circular]";
-          const parent =
-            typeof this === "object" && this !== null
-              ? nodeDepth.get(this) || 0
-              : 0;
-          if (parent >= MAX_DEPTH) return "[...]";
-          seen.add(val);
-          nodeDepth.set(val, parent + 1);
+          const holder = walked.get(this) || this;
+          while (
+            ancestors.length > 0 &&
+            ancestors[ancestors.length - 1] !== holder
+          ) {
+            ancestors.pop();
+          }
+          if (ancestors.includes(val)) return "[Circular]";
+          // the chain holds root..parent, so its length IS this node's
+          // depth below the root
+          if (ancestors.length >= MAX_DEPTH) return "[...]";
+          ancestors.push(val);
           if (Array.isArray(val) && val.length > MAX_ITEMS) {
             const head = val.slice(0, MAX_ITEMS);
             head.push(`[... ${val.length - MAX_ITEMS} more]`);
-            nodeDepth.set(head, parent + 1);
+            walked.set(head, val);
             return head;
           }
         }

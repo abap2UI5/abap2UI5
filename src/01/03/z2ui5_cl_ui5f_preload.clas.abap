@@ -14,7 +14,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
     " digest of every embedded frontend source, fixed at generation time -
     " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '45810a3431b2556c'.
+    CONSTANTS build_hash TYPE string VALUE 'f3cf7585ec141928'.
 
     CLASS-METHODS get
       IMPORTING

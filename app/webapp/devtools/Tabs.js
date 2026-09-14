@@ -38,8 +38,20 @@ sap.ui.define(
     // Slot readers - the developer tools' view onto ViewSlots
     // ------------------------------------------------------------------
 
+    // The framework-owned JSON model of a slot, as DATA. Resolved through
+    // the shared resolver, not with a bare getModel( ): with
+    // SWITCH_DEFAULT_MODEL_PATH the DEFAULT model of the MAIN view is the
+    // app's OData client and the framework model sits under "http>" - the
+    // OData client carries no getData( ) at all, so this answered undefined
+    // and hasModelData( ) below then hid BOTH the Model and the Bindings
+    // sub-view of every switch-mode app, while the bindings renderer next
+    // door (devtools/Inspect.js) resolved the model correctly and had plenty
+    // to show. ViewSlots.trackedModel is the one answer to "which model is
+    // the framework's" (see there - this was the fifth call site that
+    // answered it its own way); the fallback keeps a slot whose model
+    // predates the tracker readable, exactly as actions/ViewOps does it.
     function getModelJson(view) {
-      const model = view?.getModel?.();
+      const model = ViewSlots.trackedModel(view) ?? view?.getModel?.();
       return model?.getData?.();
     }
 

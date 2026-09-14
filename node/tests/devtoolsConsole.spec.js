@@ -110,6 +110,31 @@ test.describe("console capture", () => {
     expect(text).toContain("[Circular]");
   });
 
+  // A value reachable twice is not a cycle. A flat "everything seen" set
+  // reported the SECOND sibling as "[Circular]" - a wrong answer in the one
+  // log a developer without F12 has, and the exact defect devtools/Format.js
+  // documents for its own serializer.
+  test("a value referenced twice in sibling branches is not circular", () => {
+    const h = loadConsole();
+    const shared = { id: 7, name: "shared" };
+    const text = h.Console._internals.renderArg({ a: shared, b: shared });
+    expect(text).not.toContain("[Circular]");
+    expect(text).toBe('{"a":{"id":7,"name":"shared"},"b":{"id":7,"name":"shared"}}');
+  });
+
+  // ...and a real cycle still is one, whichever shape it takes - including
+  // a self-referencing array long enough to be replaced by its head, where
+  // the chain has to be followed through the replacement copy.
+  test("a self-referencing long array is still reported as circular", () => {
+    const h = loadConsole();
+    const max = h.Console._internals.MAX_ITEMS;
+    const arr = Array.from({ length: max + 5 }, (_, i) => i);
+    arr[0] = arr;
+    const text = h.Console._internals.renderArg(arr);
+    expect(text).toContain("[Circular]");
+    expect(text).toContain("5 more");
+  });
+
   test("bounds a long array instead of serializing every row", () => {
     const h = loadConsole();
     const max = h.Console._internals.MAX_ITEMS;
