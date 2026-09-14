@@ -139,8 +139,6 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      show,` && |\n| &&
              `      isAutoOpenRequested,` && |\n| &&
              `      autoOpenTab,` && |\n| &&
-             `` && |\n| &&
-             `      _peek: () => instance,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

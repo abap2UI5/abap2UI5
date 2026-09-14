@@ -158,6 +158,15 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     CLASS-DATA sv_get_cache_key  TYPE string.
     CLASS-DATA sv_get_cache_body TYPE string.
     CLASS-DATA sv_get_etag       TYPE string.
+    " ...and the key sv_get_etag was computed FOR. It cannot be read off
+    " sv_get_cache_key: that one describes the cached BODY and is written
+    " at the very end of _http_get( ), which a 304 never reaches - so after
+    " one 304 for config A the body cache still said B while sv_get_etag
+    " said A, and the next GET of B matched the BODY key, reused A's tag and
+    " shipped `ETag: <A>` with body B. A browser that stored B under A's
+    " validator is then 304'd into keeping it the next time A is current:
+    " the stale shell this whole tag exists to prevent. One slot per fact
+    CLASS-DATA sv_get_etag_key   TYPE string.
 
     " The If-None-Match header of THIS request, read in main( ) - the one
     " place that holds the server object - for the class-level _http_get( ),
@@ -493,12 +502,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " on stateless ICF, so every reload and every FLP re-entry paid the
     " full build for a reply without a body. The tag of the cached body is
     " reused when the key still matches - a hash over the key otherwise
-    IF sv_get_cache_key = lv_cache_key AND sv_get_etag IS NOT INITIAL.
+    IF sv_get_etag_key = lv_cache_key AND sv_get_etag IS NOT INITIAL.
       DATA(lv_etag) = sv_get_etag.
     ELSE.
       lv_etag = _get_etag( lv_cache_key ).
     ENDIF.
-    sv_get_etag = lv_etag.
+    sv_get_etag     = lv_etag.
+    sv_get_etag_key = lv_cache_key.
 
     " consumed once - see sv_if_none_match
     DATA(lv_if_none_match) = sv_if_none_match.

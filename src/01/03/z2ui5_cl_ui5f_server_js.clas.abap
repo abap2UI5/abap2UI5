@@ -291,10 +291,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        if (!pending) return;` && |\n| &&
              `        const sentValues = oModel._z2ui5SentValues;` && |\n| &&
              `        oModel._z2ui5SentValues = null;` && |\n| &&
-             `        if (!sentValues) {` && |\n| &&
-             `          pending.clear();` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
+             `        if (!sentValues) return;` && |\n| &&
              `        for (const path of Array.from(pending)) {` && |\n| &&
              `          if (` && |\n| &&
              `            sentValues.has(path) &&` && |\n| &&

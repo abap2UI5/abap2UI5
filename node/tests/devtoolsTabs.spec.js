@@ -46,6 +46,14 @@ function loadTabs({
       "z2ui5/core/ViewSlots": {
         getView: (key) => views[key],
         getViewXml: (key) => slotXml[key],
+        // the shipped resolver, byte for byte (core/ViewSlots.js): the
+        // framework model is the DEFAULT one, or the named "http" one once
+        // SWITCH_DEFAULT_MODEL_PATH moved OData into the default slot
+        trackedModel: (owner) => {
+          const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+          if (!owner?.getModel) return undefined;
+          return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
+        },
       },
       "z2ui5/devtools/Inspect": {
         formatOverview: () => "OVERVIEW REPORT",
@@ -88,6 +96,21 @@ function loadTabs({
     },
   });
   return module;
+}
+
+// A MAIN view built with switch_default_model_path: the DEFAULT model is the
+// app's OData client - which carries no getData( ) at all - and the framework
+// JSON model sits under the name "http", carrying the tracker marker.
+function fakeSwitchModeView(viewContent, data) {
+  const odata = { isA: () => true };
+  const json = { _z2ui5Tracked: true, getData: () => data };
+  return {
+    mProperties: { viewContent },
+    getProperty(name) {
+      throw new Error(`Property "${name}" does not exist in Element`);
+    },
+    getModel: (name) => (name === "http" ? json : odata),
+  };
 }
 
 test.describe("Groups", () => {
@@ -183,6 +206,20 @@ test.describe("Availability", () => {
       views: { MAIN: fakeXmlView("<View/>", { NAME: "x" }) },
     });
     expect(filled.isEnabled(filled.get("MODEL"))).toBe(true);
+  });
+
+  // With OData in the default slot the framework model is the named "http"
+  // one. Reading the DEFAULT model here answered the OData client, which has
+  // no getData( ) - so both the Model and the Bindings sub-view of a
+  // switch-mode app were hidden, while the bindings renderer next door
+  // resolved the model correctly and had plenty to show.
+  test("switch mode: the model sub-views follow the framework model", () => {
+    const Tabs = loadTabs({
+      views: { MAIN: fakeSwitchModeView("<View/>", { NAME: "x" }) },
+    });
+    expect(Tabs.isEnabled(Tabs.get("MODEL"))).toBe(true);
+    expect(Tabs.isEnabled(Tabs.get("BINDINGS"))).toBe(true);
+    expect(Tabs.render("MODEL")).toContain("NAME");
   });
 
   test("a source that throws while deciding hides its tab rather than the strip", () => {

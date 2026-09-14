@@ -203,7 +203,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      ViewSlots.setView(slotKey, oView, xml);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function displayView(xml, viewModel, reqSeq, mOptions = {}) {` && |\n| &&
+             `    async function displayView(xml, viewModel, mOptions = {}) {` && |\n| &&
              `      const oViewModel = createViewModel("MAIN", viewModel);` && |\n| &&
              `` && |\n| &&
              `      const switchPath = mOptions.switchDefaultModelPath;` && |\n| &&
@@ -274,7 +274,6 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          return displayView(` && |\n| &&
              `            xml,` && |\n| &&
              `            AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
-             `            seq,` && |\n| &&
              `            mOptions,` && |\n| &&
              `          );` && |\n| &&
              `        });` && |\n| &&
