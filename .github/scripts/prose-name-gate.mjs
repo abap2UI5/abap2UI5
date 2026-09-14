@@ -104,6 +104,16 @@ const HISTORICAL = new Map([
   ["Z2UI5_CL_POP_BAL", "docs/removal-plan.md"],
 ]);
 
+// Same idea again, but for a name that several files have to keep saying. The
+// JSON reader lived in src/02 for two weeks and was removed unshipped
+// (2026-09-14): the changelog entry that records the removal has to name it,
+// the removal plan's JSON item explains why the gap is closed WITHOUT it, and
+// building-apps.md tells an agent not to reach for a substitute. Three
+// passages about an absence, so the name is right in each - and nowhere else.
+const HISTORICAL_FILES = new Map([
+  ["Z2UI5_CL_UI5_JSON", new Set(["changelog.txt", "docs/removal-plan.md", "docs/agents/building-apps.md"])],
+]);
+
 // Same idea, per file: the abap-check catalogue is a list of defects that
 // shipped, so it names the objects as they were named when they broke - the
 // file whose missing final newline is the evidence, and both halves of the
@@ -165,6 +175,7 @@ for (const file of files) {
       if (EXTERNAL_PATTERNS.some((p) => p.re.test(name))) continue;
       if (HISTORICAL.get(name) === file) continue;
       if (HISTORICAL_IN.get(file)?.has(name)) continue;
+      if (HISTORICAL_FILES.get(name)?.has(file)) continue;
       findings.push({ file, line: index + 1, name: raw });
     }
   });

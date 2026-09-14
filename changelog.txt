@@ -182,7 +182,7 @@ unreleased
 * A draft row whose attribute the instance no longer has (a host that swapped its REF TO object sub-app for another class, a class that lost an attribute since the draft was written) is skipped by the reference restore instead of failing the load with ATTRI_GET_VAL_REF_ERROR
 * A bound leaf deeper than five structure levels (sample 138: eight components down) is found by the binding search - the dissolve ran five passes and stopped, which read as BINDING_ERROR; the depth guard now counts reference hops (the only way an attribute graph can be cyclic) and the passes go on until every level is resolved
 * Data references restored from the draft no longer fail silently: when a view is bound to the data, a restore that cannot read it back raises APP_STATE_RESTORE_ERROR instead of running the app on a cleared reference - which showed as a view that renders once and comes back empty on the next round-trip
-+ New released JSON reader z2ui5_cl_ui5_json for app code: factory( json ) + get_string/get_integer/get_boolean/exists by path and members( ) for iteration - closes the "no portable way to parse JSON" gap of the removal plan
+- The released JSON reader z2ui5_cl_ui5_json is removed again, unshipped: it was added in this same unreleased block and is in no release tag, so no installation ever had it and nothing has to be migrated. JSON is built and read by hand instead - composed as a string and bound with _bind( json = abap_true ) outbound, read with a targeted find/substring_before inbound, which is what the framework-written payloads that reach an app need. z2ui5_t_02 below is unaffected and stays released
 + New released DDIC structure z2ui5_t_02 (name/value, both string) - the object app code points a dynamic type at instead of naming the framework's internal draft table
 + A skipped delta cell (client->get( )-t_model_skipped) now records the refused raw value and, for a nested cell, the parent row index - two components appended to z2ui5_if_client=>ty_s_model_skip
 ! Shell ETag strengthened: a third position-weighted accumulator makes a same-version, same-length collision (which would 304 a browser into keeping a stale shell) implausible
@@ -212,7 +212,6 @@ unreleased
 * An app that only inherited its routing mode keeps it on a fresh route start (a reload, Back/Forward under FRESH): the explicit DEFAULT is sent on a navigation hop only
 * nav_app_leave( ) without a target on an empty app stack is a no-op instead of a navigation to the app itself
 * A cell binding on a table with an elementary line type raises the binding error instead of a raw CX_SY_MOVE_CAST_ERROR
-* z2ui5_cl_ui5_json=>get_integer answers 0 for a JSON number outside the integer range, as documented, instead of letting the overflow escape
 * c_trim strips alternating tab/space padding completely
 * The view builder drops the control characters XML 1.0 forbids outright (U+0000-U+0008, U+000B, U+000C, U+000E-U+001F) from attribute values - one such byte out of a legacy long text used to fail the whole view at the XML parser
 * A response model push no longer overwrites the unsent edits of an open popup/popover: the pending values are re-applied on top of the pushed data and travel with the popup's next event
@@ -225,7 +224,6 @@ unreleased
 * An anonymous elementary data reference (CREATE DATA mr TYPE string) bound via mr->* survives the draft save; it used to be cleared and never restored
 * _bind( omit_initial ) also omits an initial packed field with decimals (0.00) and an initial float (0.0E+00)
 * url_param_get / url_param_get_tab: only the sap-startup-params value is percent-decoded (an encoded & or = inside any other value stays that value's own), and a literal ? inside a value no longer cuts away the parameters before it
-* z2ui5_cl_ui5_json=>get_boolean answers abap_true only for a JSON boolean true, as documented (a number or a string used to read as true)
 * MultiInputExt: a pick from plain suggestionItems makes its Token again (it used to be routed through the row validator and vanished)
 * UITableExt: the column filter row is restored after a view rebuild on UI5 >= 1.96 as well (getFilters was asked for the Application filters, the column filter is a Control filter)
 * App-owned hash routing: a Back/Forward that lands while a roundtrip is in flight is delivered once the roundtrip landed, instead of being dropped by the busy guard for good
