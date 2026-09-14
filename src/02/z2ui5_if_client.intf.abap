@@ -1203,6 +1203,17 @@ INTERFACE z2ui5_if_client
   "! registered event, which shows the fallback route:
   "! ``client->follow_up_action( val = client->cs_event-hash_back t_arg = VALUE #( ( `/` ) ) )``.
   "!
+  "! **cs_event-store_data** - write a structure into the browser's local or
+  "! session storage, the write half of the invisible z2ui5:Storage control
+  "! that reads it back. t_arg = the structure holding TYPE (`local`/`session`),
+  "! PREFIX, KEY and VALUE - handed over as the BINDING of that structure, so
+  "! the frontend takes the current value:
+  "! ``client->follow_up_action( val = client->cs_event-store_data t_arg = VALUE #( ( client->_bind( ms_storage ) ) ) )``.
+  "! It works from a view wire and from a handler alike: on a wire UI5 resolves
+  "! the binding when the view is built, and a follow-up action queued in a
+  "! handler carries the model PATH, which the frontend resolves when it runs.
+  "! An empty VALUE removes the key.
+  "!
   "! **cs_event-binding_call** - apply a declarative filter or sorter to an
   "! aggregation binding, the client-side equivalent of the UI5 controller
   "! pattern getBinding('items').filter(...); the model data stays untouched.

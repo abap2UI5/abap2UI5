@@ -169,7 +169,13 @@ test("a superseded response keeps the pending delta paths so the newest request 
   const { Server, fetchCalls, successes, appState } = load();
   // The model whose edits the in-flight request carried. Its own path set
   // must survive a stale response and only be cleared by the winning one.
-  const oModel = { _z2ui5ChangedPaths: new Set(["/PRODUCT"]) };
+  const oModel = {
+    _z2ui5ChangedPaths: new Set(["/PRODUCT"]),
+    // the snapshot eB writes for every path it ships - without one the path
+    // never went out and the winning response has nothing of it to clear
+    _z2ui5SentValues: new Map([["/PRODUCT", "P1"]]),
+    getProperty: () => "P1",
+  };
   appState.state.oSentModel = oModel;
 
   const pA = Server.readHttp({}); // seq 1 - carried /PRODUCT
@@ -232,6 +238,33 @@ test("the winning response keeps the paths edited while it was in flight", async
     "/VALUE",
   ]);
   expect(oModel._z2ui5SentValues).toBeNull();
+  expect(appState.state.oSentModel).toBeNull();
+});
+
+// The same guarantee for the roundtrip that ships NOTHING - the common one: a
+// button press on a screen nothing has been typed into yet, a timer tick, a
+// shortcut, a Back/Forward restore. eB writes a snapshot only when it builds
+// a delta, so an ABSENT one says "this request carried nothing of this
+// model", and everything the set holds when the response lands was edited
+// WHILE it was in flight (a Switch flipped, a CheckBox ticked under the busy
+// indicator). Clearing it dropped those edits twice over - out of the next
+// delta, and out of the model, because the response's own push only re-applies
+// what is still pending.
+test("a roundtrip that shipped no delta clears nothing - it carried nothing", async () => {
+  const { Server, fetchCalls, appState } = load();
+  const oModel = {
+    // edited while the request was in flight; no _z2ui5SentValues, because
+    // the set was empty when eB dispatched
+    _z2ui5ChangedPaths: new Set(["/ACTIVE"]),
+    getProperty: () => true,
+  };
+  appState.state.oSentModel = oModel;
+
+  const p = Server.readHttp({});
+  fetchCalls[0].resolve(okResponse("A"));
+  await p;
+
+  expect(Array.from(oModel._z2ui5ChangedPaths)).toEqual(["/ACTIVE"]);
   expect(appState.state.oSentModel).toBeNull();
 });
 

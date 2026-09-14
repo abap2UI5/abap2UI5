@@ -38,7 +38,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function getModelJson(view) {` && |\n| &&
-             `      const model = view?.getModel?.();` && |\n| &&
+             `      const model = ViewSlots.trackedModel(view) ?? view?.getModel?.();` && |\n| &&
              `      return model?.getData?.();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

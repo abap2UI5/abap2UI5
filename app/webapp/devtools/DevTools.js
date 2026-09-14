@@ -209,8 +209,6 @@ sap.ui.define(
       show,
       isAutoOpenRequested,
       autoOpenTab,
-      // exposed for the specs
-      _peek: () => instance,
     };
   },
 );
