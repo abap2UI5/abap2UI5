@@ -32,9 +32,10 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (MessageBox, mobileLibrary, Storage, Router, Lib, AppState) => {` && |\n| &&
+             `  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
@@ -67,8 +68,31 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      document.body.removeChild(a);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function storagePayload(oController, raw) {` && |\n| &&
+             `      if (raw == null || typeof raw !== "string") return raw;` && |\n| &&
+             `` && |\n| &&
+             `      const path = raw.trim().replace(/^\$?\{(.*)\}$/, "$1");` && |\n| &&
+             `      if (!path.startsWith("/")) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``STORE_DATA: '${raw}' is neither a payload nor a model path``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return undefined;` && |\n| &&
+             `      }` && |\n| &&
+             `      const oView = oController?.getView?.();` && |\n| &&
+             `` && |\n| &&
+             `      const oModel = oView` && |\n| &&
+             `        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())` && |\n| &&
+             `        : undefined;` && |\n| &&
+             `      const value = oModel?.getProperty(path);` && |\n| &&
+             `      if (value == null) {` && |\n| &&
+             `        Lib.logError(``STORE_DATA: nothing bound at the model path '${path}'``);` && |\n| &&
+             `      }` && |\n| &&
+             `      return value;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evStoreData(oController, args) {` && |\n| &&
-             `      const { TYPE, PREFIX, VALUE, KEY } = args[1] ?? {};` && |\n| &&
+             `      const { TYPE, PREFIX, VALUE, KEY } =` && |\n| &&
+             `        storagePayload(oController, args[1]) ?? {};` && |\n| &&
              `      try {` && |\n| &&
              `        const storageType = Lib.resolveStorageType(` && |\n| &&
              `          Storage,` && |\n| &&
