@@ -5,7 +5,8 @@ summary: on 7.40 SP7 a successful `ASSIGN` does not reset `sy-subrc`, so the tes
 priority: high
 state: open
 first_seen: 2026-08-17
-checked_upstream: 2026-08-30
+checked_upstream: 2026-09-14
+patch: backlog/patches/abaplint-three-rules.patch
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5 issue #1937 — every app on a 7.40 SP7 system ran into an endless loop; fixed by `41890d59` testing the field symbol instead
@@ -111,6 +112,26 @@ mutually exclusive branches, so nothing can be left over from before.
 A warning rather than an error. The code is correct on current releases, and a
 project that has dropped 7.40 support can turn it off knowingly — which is the
 distinction between this and a defect that is wrong everywhere.
+
+## The change
+
+All three rules are written, tested and measured. The change is attached as
+[`backlog/patches/abaplint-three-rules.patch`](../patches/abaplint-three-rules.patch)
+(`git am` against `abaplint/abaplint`) - one commit carrying all three, because
+they were written and measured in one pass:
+
+| rule | findings on abap2UI5 / samples / samples-controls / samples-stack |
+|---|---|
+| `subrc_after_assign` | **66** (28 / 14 / 22 / 2) |
+| `delete_index_in_loop` | **2** - the vendored ajson filter lib, and one port |
+| `preferred_parameter_ignored` | **0** - those code bases run an ATC gate for it already, so this rule has fixture evidence only |
+
+`npm test` in `packages/core`: **11020 passing**, eslint clean,
+`scripts/schema.json` regenerated.
+
+It is not open as a pull request because this session has no write access to
+`abaplint/abaplint` (the Claude GitHub App is not installed on the `abaplint`
+organization).
 
 <!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 

@@ -1,0 +1,1157 @@
+From 2c470d364819ce7c4be4d09800e6243726e552fe Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 14 Sep 2026 08:22:31 +0000
+Subject: [PATCH] Three rules: subrc_after_assign, preferred_parameter_ignored,
+ delete_index_in_loop
+
+subrc_after_assign (warning). A sy-subrc test whose nearest preceding
+sy-subrc-setting statement is a plain ASSIGN. On 7.40 SP7 a successful ASSIGN
+does not reset sy-subrc, so the test reads whatever the last statement that
+DOES set it left there - abap2UI5#1937 was an endless loop on one customer's
+system from exactly this, the value still 4 from a READ TABLE in a branch that
+had not been taken. Release-dependent and silent everywhere else, which is the
+worst combination.
+
+IS ASSIGNED is not a drop-in replacement everywhere, and the rule says so
+rather than offering a fix that would introduce a bug: a FAILED ASSIGN leaves
+the field symbol bound to whatever it pointed at before, so inside a loop, or
+after an earlier ASSIGN to the same symbol, IS ASSIGNED reads TRUE for a
+failure. Those sites are still reported - the sy-subrc read is wrong either
+way - with the UNASSIGN the remedy needs named in the message and no quick
+fix attached. ASSIGN COMPONENT ... OF STRUCTURE is not reported at all: there
+sy-subrc distinguishes "component not found" from "assigned" and is the
+documented check.
+
+The quick fix rewrites the comparison in place, so it survives a compound
+condition: `IF sy-subrc = 0 AND lv_flag = abap_true.` becomes
+`IF <fs> IS ASSIGNED AND lv_flag = abap_true.`
+
+preferred_parameter_ignored (warning). PREFERRED PARAMETER names the importing
+parameter a positional call fills, which only means something when a parameter
+may be LEFT OUT - so the addition is ignored while any importing parameter is
+neither OPTIONAL nor carries a DEFAULT. The quick fix REMOVES the addition
+rather than making the parameter optional: the compiler's own wording suggests
+the opposite, and that is the more dangerous of the two, because it widens the
+contract so a call that forgets the parameter compiles.
+
+delete_index_in_loop. DELETE itab INDEX sy-tabix inside a LOOP AT that same
+table: sy-tabix is the loop's own cursor, so the delete shortens the table
+under the walk - the next row is skipped and the last round raises
+TABLE_INVALID_INDEX. Anchored on the ENCLOSING LOOP rather than on the
+statement, because `DELETE itab INDEX sy-tabix` right after `READ TABLE itab`
+is the standard read-then-delete and is correct; a rule that reported the
+shape unconditionally would be switched off within a week.
+
+Measured on four real code bases (abap2UI5, abap2UI5/samples,
+abap2UI5/samples-controls, abap2UI5/samples-stack - 1054 files):
+
+  subrc_after_assign            66  (28 / 14 / 22 / 2)
+  delete_index_in_loop           2  the vendored ajson filter lib, and one
+                                    port - both real, both the shape above
+  preferred_parameter_ignored    0  those code bases run an ATC gate for it
+                                    already, so the rule has fixture evidence
+                                    only
+
+  npm test (packages/core)   11020 passing, eslint clean, schema regenerated
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01WNnsZnJAf6zEg8phCFVoB5
+---
+ packages/core/scripts/schema.json             | 124 +++++++++
+ packages/core/scripts/schema.ts               |   9 +
+ .../core/src/rules/delete_index_in_loop.ts    | 157 ++++++++++++
+ packages/core/src/rules/index.ts              |   3 +
+ .../src/rules/preferred_parameter_ignored.ts  | 113 +++++++++
+ packages/core/src/rules/subrc_after_assign.ts | 240 ++++++++++++++++++
+ .../core/test/rules/delete_index_in_loop.ts   |  54 ++++
+ .../test/rules/preferred_parameter_ignored.ts |  90 +++++++
+ .../core/test/rules/subrc_after_assign.ts     | 107 ++++++++
+ 9 files changed, 897 insertions(+)
+ create mode 100644 packages/core/src/rules/delete_index_in_loop.ts
+ create mode 100644 packages/core/src/rules/preferred_parameter_ignored.ts
+ create mode 100644 packages/core/src/rules/subrc_after_assign.ts
+ create mode 100644 packages/core/test/rules/delete_index_in_loop.ts
+ create mode 100644 packages/core/test/rules/preferred_parameter_ignored.ts
+ create mode 100644 packages/core/test/rules/subrc_after_assign.ts
+
+diff --git a/packages/core/scripts/schema.json b/packages/core/scripts/schema.json
+index 46b3911..44a9d6e 100644
+--- a/packages/core/scripts/schema.json
++++ b/packages/core/scripts/schema.json
+@@ -1210,6 +1210,23 @@
+       },
+       "type": "object"
+     },
++    "DeleteIndexInLoopConf": {
++      "additionalProperties": false,
++      "properties": {
++        "exclude": {
++          "description": "List of file regex filename patterns to exclude, case insensitive",
++          "items": {
++            "type": "string"
++          },
++          "type": "array"
++        },
++        "severity": {
++          "$ref": "#/definitions/Severity",
++          "description": "Problem severity"
++        }
++      },
++      "type": "object"
++    },
+     "DescriptionEmptyConf": {
+       "additionalProperties": false,
+       "properties": {
+@@ -2323,6 +2340,17 @@
+               ],
+               "description": "Checks that definitions are placed at the beginning of METHODs, FORMs and FUNCTIONs.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/definitions_top"
+             },
++            "delete_index_in_loop": {
++              "anyOf": [
++                {
++                  "$ref": "#/definitions/DeleteIndexInLoopConf"
++                },
++                {
++                  "type": "boolean"
++                }
++              ],
++              "description": "DELETE itab INDEX sy-tabix inside a LOOP AT that same table. The loop's own cursor is what sy-tabix holds, so deleting by it shortens the table under the walk: the following row is skipped, and the last round runs off the end.\nTags: SingleFile\nhttps://rules.abaplint.org/delete_index_in_loop"
++            },
+             "description_empty": {
+               "anyOf": [
+                 {
+@@ -3335,6 +3363,17 @@
+               ],
+               "description": "Configure undesired operator variants\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_compare_operator"
+             },
++            "preferred_parameter_ignored": {
++              "anyOf": [
++                {
++                  "$ref": "#/definitions/PreferredParameterIgnoredConf"
++                },
++                {
++                  "type": "boolean"
++                }
++              ],
++              "description": "PREFERRED PARAMETER on an IMPORTING clause that still has a mandatory parameter. The addition names the parameter a positional call fills, which only means something when every parameter may be left out - so with a mandatory one present it does nothing.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_parameter_ignored"
++            },
+             "prefix_is_current_class": {
+               "anyOf": [
+                 {
+@@ -3599,6 +3638,17 @@
+               ],
+               "description": "Strict SQL\nTags: Upport, Quickfix\nhttps://rules.abaplint.org/strict_sql"
+             },
++            "subrc_after_assign": {
++              "anyOf": [
++                {
++                  "$ref": "#/definitions/SubrcAfterAssignConf"
++                },
++                {
++                  "type": "boolean"
++                }
++              ],
++              "description": "A sy-subrc test whose nearest preceding sy-subrc-setting statement is a plain ASSIGN. On 7.40 SP7 a successful ASSIGN does not reset sy-subrc, so the test reads a value an earlier statement left behind.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/subrc_after_assign"
++            },
+             "superclass_final": {
+               "anyOf": [
+                 {
+@@ -4446,6 +4496,17 @@
+               ],
+               "description": "Checks that definitions are placed at the beginning of METHODs, FORMs and FUNCTIONs.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/definitions_top"
+             },
++            "delete_index_in_loop": {
++              "anyOf": [
++                {
++                  "$ref": "#/definitions/DeleteIndexInLoopConf"
++                },
++                {
++                  "type": "boolean"
++                }
++              ],
++              "description": "DELETE itab INDEX sy-tabix inside a LOOP AT that same table. The loop's own cursor is what sy-tabix holds, so deleting by it shortens the table under the walk: the following row is skipped, and the last round runs off the end.\nTags: SingleFile\nhttps://rules.abaplint.org/delete_index_in_loop"
++            },
+             "description_empty": {
+               "anyOf": [
+                 {
+@@ -5458,6 +5519,17 @@
+               ],
+               "description": "Configure undesired operator variants\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_compare_operator"
+             },
++            "preferred_parameter_ignored": {
++              "anyOf": [
++                {
++                  "$ref": "#/definitions/PreferredParameterIgnoredConf"
++                },
++                {
++                  "type": "boolean"
++                }
++              ],
++              "description": "PREFERRED PARAMETER on an IMPORTING clause that still has a mandatory parameter. The addition names the parameter a positional call fills, which only means something when every parameter may be left out - so with a mandatory one present it does nothing.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_parameter_ignored"
++            },
+             "prefix_is_current_class": {
+               "anyOf": [
+                 {
+@@ -5722,6 +5794,17 @@
+               ],
+               "description": "Strict SQL\nTags: Upport, Quickfix\nhttps://rules.abaplint.org/strict_sql"
+             },
++            "subrc_after_assign": {
++              "anyOf": [
++                {
++                  "$ref": "#/definitions/SubrcAfterAssignConf"
++                },
++                {
++                  "type": "boolean"
++                }
++              ],
++              "description": "A sy-subrc test whose nearest preceding sy-subrc-setting statement is a plain ASSIGN. On 7.40 SP7 a successful ASSIGN does not reset sy-subrc, so the test reads a value an earlier statement left behind.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/subrc_after_assign"
++            },
+             "superclass_final": {
+               "anyOf": [
+                 {
+@@ -8268,6 +8351,23 @@
+       ],
+       "type": "object"
+     },
++    "PreferredParameterIgnoredConf": {
++      "additionalProperties": false,
++      "properties": {
++        "exclude": {
++          "description": "List of file regex filename patterns to exclude, case insensitive",
++          "items": {
++            "type": "string"
++          },
++          "type": "array"
++        },
++        "severity": {
++          "$ref": "#/definitions/Severity",
++          "description": "Problem severity"
++        }
++      },
++      "type": "object"
++    },
+     "PrefixIsCurrentClassConf": {
+       "additionalProperties": false,
+       "properties": {
+@@ -8920,6 +9020,30 @@
+       },
+       "type": "object"
+     },
++    "SubrcAfterAssignConf": {
++      "additionalProperties": false,
++      "properties": {
++        "exclude": {
++          "description": "List of file regex filename patterns to exclude, case insensitive",
++          "items": {
++            "type": "string"
++          },
++          "type": "array"
++        },
++        "loops": {
++          "description": "Also report the shapes where `IS ASSIGNED` is not a drop-in replacement: the ASSIGN sits inside a loop, or the same field symbol was already assigned earlier in the same block. The finding is correct there too - the sy-subrc read is wrong either way - but the remedy needs an `UNASSIGN` first, so no quick fix is offered for them.",
++          "type": "boolean"
++        },
++        "severity": {
++          "$ref": "#/definitions/Severity",
++          "description": "Problem severity"
++        }
++      },
++      "required": [
++        "loops"
++      ],
++      "type": "object"
++    },
+     "SuperclassFinalConf": {
+       "additionalProperties": false,
+       "properties": {
+diff --git a/packages/core/scripts/schema.ts b/packages/core/scripts/schema.ts
+index 53ee9ba..c433836 100644
+--- a/packages/core/scripts/schema.ts
++++ b/packages/core/scripts/schema.ts
+@@ -46,6 +46,7 @@ import {CyclomaticComplexityConf} from "../src/rules/cyclomatic_complexity";
+ import {DangerousStatementConf} from "../src/rules/dangerous_statement";
+ import {DbOperationInLoopConf} from "../src/rules/db_operation_in_loop";
+ import {DefinitionsTopConf} from "../src/rules/definitions_top";
++import {DeleteIndexInLoopConf} from "../src/rules/delete_index_in_loop";
+ import {DescriptionEmptyConf} from "../src/rules/description_empty";
+ import {DoubleSpaceConf} from "../src/rules/double_space";
+ import {DownportConf} from "../src/rules/downport";
+@@ -138,6 +139,7 @@ import {PreferRaiseExceptionNewConf} from "../src/rules/prefer_raise_exception_n
+ import {PreferReturningToExportingConf} from "../src/rules/prefer_returning_to_exporting";
+ import {PreferXsdboolConf} from "../src/rules/prefer_xsdbool";
+ import {PreferredCompareOperatorConf} from "../src/rules/preferred_compare_operator";
++import {PreferredParameterIgnoredConf} from "../src/rules/preferred_parameter_ignored";
+ import {PrefixIsCurrentClassConf} from "../src/rules/prefix_is_current_class";
+ import {ReduceProceduralCodeConf} from "../src/rules/reduce_procedural_code";
+ import {ReduceStringTemplatesConf} from "../src/rules/reduce_string_templates";
+@@ -162,6 +164,7 @@ import {SQLValueConversionConf} from "../src/rules/sql_value_conversion";
+ import {StartAtTabConf} from "../src/rules/start_at_tab";
+ import {StaticCallViaInstanceConf} from "../src/rules/static_call_via_instance";
+ import {StrictSQLConf} from "../src/rules/strict_sql";
++import {SubrcAfterAssignConf} from "../src/rules/subrc_after_assign";
+ import {SuperclassFinalConf} from "../src/rules/superclass_final";
+ import {SuperfluousValueConf} from "../src/rules/superfluous_value";
+ import {SyModificationConf} from "../src/rules/sy_modification";
+@@ -252,6 +255,7 @@ export interface IConfig {
+     "dangerous_statement"?: DangerousStatementConf | boolean,
+     "db_operation_in_loop"?: DbOperationInLoopConf | boolean,
+     "definitions_top"?: DefinitionsTopConf | boolean,
++    "delete_index_in_loop"?: DeleteIndexInLoopConf | boolean,
+     "description_empty"?: DescriptionEmptyConf | boolean,
+     "double_space"?: DoubleSpaceConf | boolean,
+     "downport"?: DownportConf | boolean,
+@@ -344,6 +348,7 @@ export interface IConfig {
+     "prefer_returning_to_exporting"?: PreferReturningToExportingConf | boolean,
+     "prefer_xsdbool"?: PreferXsdboolConf | boolean,
+     "preferred_compare_operator"?: PreferredCompareOperatorConf | boolean,
++    "preferred_parameter_ignored"?: PreferredParameterIgnoredConf | boolean,
+     "prefix_is_current_class"?: PrefixIsCurrentClassConf | boolean,
+     "reduce_procedural_code"?: ReduceProceduralCodeConf | boolean,
+     "reduce_string_templates"?: ReduceStringTemplatesConf | boolean,
+@@ -368,6 +373,7 @@ export interface IConfig {
+     "start_at_tab"?: StartAtTabConf | boolean,
+     "static_call_via_instance"?: StaticCallViaInstanceConf | boolean,
+     "strict_sql"?: StrictSQLConf | boolean,
++    "subrc_after_assign"?: SubrcAfterAssignConf | boolean,
+     "superclass_final"?: SuperclassFinalConf | boolean,
+     "superfluous_value"?: SuperfluousValueConf | boolean,
+     "sy_modification"?: SyModificationConf | boolean,
+@@ -447,6 +453,7 @@ export interface IConfig {
+     "dangerous_statement"?: DangerousStatementConf | boolean,
+     "db_operation_in_loop"?: DbOperationInLoopConf | boolean,
+     "definitions_top"?: DefinitionsTopConf | boolean,
++    "delete_index_in_loop"?: DeleteIndexInLoopConf | boolean,
+     "description_empty"?: DescriptionEmptyConf | boolean,
+     "double_space"?: DoubleSpaceConf | boolean,
+     "downport"?: DownportConf | boolean,
+@@ -539,6 +546,7 @@ export interface IConfig {
+     "prefer_returning_to_exporting"?: PreferReturningToExportingConf | boolean,
+     "prefer_xsdbool"?: PreferXsdboolConf | boolean,
+     "preferred_compare_operator"?: PreferredCompareOperatorConf | boolean,
++    "preferred_parameter_ignored"?: PreferredParameterIgnoredConf | boolean,
+     "prefix_is_current_class"?: PrefixIsCurrentClassConf | boolean,
+     "reduce_procedural_code"?: ReduceProceduralCodeConf | boolean,
+     "reduce_string_templates"?: ReduceStringTemplatesConf | boolean,
+@@ -563,6 +571,7 @@ export interface IConfig {
+     "start_at_tab"?: StartAtTabConf | boolean,
+     "static_call_via_instance"?: StaticCallViaInstanceConf | boolean,
+     "strict_sql"?: StrictSQLConf | boolean,
++    "subrc_after_assign"?: SubrcAfterAssignConf | boolean,
+     "superclass_final"?: SuperclassFinalConf | boolean,
+     "superfluous_value"?: SuperfluousValueConf | boolean,
+     "sy_modification"?: SyModificationConf | boolean,
+diff --git a/packages/core/src/rules/delete_index_in_loop.ts b/packages/core/src/rules/delete_index_in_loop.ts
+new file mode 100644
+index 0000000..c8e03f5
+--- /dev/null
++++ b/packages/core/src/rules/delete_index_in_loop.ts
+@@ -0,0 +1,157 @@
++import * as Statements from "../abap/2_statements/statements";
++import * as Expressions from "../abap/2_statements/expressions";
++import {Issue} from "../issue";
++import {BasicRuleConfig} from "./_basic_rule_config";
++import {ABAPRule} from "./_abap_rule";
++import {IRuleMetadata, RuleTag} from "./_irule";
++import {StatementNode} from "../abap/nodes/statement_node";
++import {Comment} from "../abap/2_statements/statements/_statement";
++import {ABAPFile} from "../abap/abap_file";
++
++export class DeleteIndexInLoopConf extends BasicRuleConfig {
++}
++
++export class DeleteIndexInLoop extends ABAPRule {
++  private conf = new DeleteIndexInLoopConf();
++
++  public getMetadata(): IRuleMetadata {
++    return {
++      key: "delete_index_in_loop",
++      title: "DELETE INDEX sy-tabix inside a LOOP over the same table",
++      shortDescription: `DELETE itab INDEX sy-tabix inside a LOOP AT that same table. The loop's own
++cursor is what sy-tabix holds, so deleting by it shortens the table under the
++walk: the following row is skipped, and the last round runs off the end.`,
++      extendedInformation: `\`LOOP AT itab\` sets \`sy-tabix\` to the index of the row it is on, so
++\`DELETE itab INDEX sy-tabix\` inside that loop deletes the row being visited
++and shifts every later row down by one. The loop's cursor does not shift with
++it: the next row is skipped, and on the last round the index is past the end,
++which raises \`TABLE_INVALID_INDEX\` rather than doing nothing.
++
++Build the result instead of mutating the table being walked:
++
++\`\`\`abap
++DATA keep LIKE tab.
++LOOP AT tab INTO DATA(row).
++  IF <keep it>.
++    APPEND row TO keep.
++  ENDIF.
++ENDLOOP.
++tab = keep.
++\`\`\`
++
++or say it in one statement with \`DELETE tab WHERE ...\` where the condition
++fits there.
++
++NOT reported: \`DELETE itab INDEX sy-tabix\` right after a \`READ TABLE itab\`,
++which is the standard read-then-delete - there \`sy-tabix\` is the index that
++read just set. That form is common and correct, and a rule that reported it
++would be switched off within a week.`,
++      tags: [RuleTag.SingleFile],
++      badExample: `LOOP AT tab INTO row.
++  IF row-flag = abap_true.
++    DELETE tab INDEX sy-tabix.
++  ENDIF.
++ENDLOOP.`,
++      goodExample: `DELETE tab WHERE flag = abap_true.`,
++    };
++  }
++
++  public getConfig() {
++    return this.conf;
++  }
++
++  public setConfig(conf: DeleteIndexInLoopConf) {
++    this.conf = conf;
++  }
++
++  public runParsed(file: ABAPFile): Issue[] {
++    const issues: Issue[] = [];
++    const statements = file.getStatements();
++
++    for (let i = 0; i < statements.length; i++) {
++      const statement = statements[i];
++      if (!(statement.get() instanceof Statements.DeleteInternal)) {
++        continue;
++      }
++      const deleted = this.deletedTable(statement);
++      if (deleted === undefined || this.byTabix(statement) === false) {
++        continue;
++      }
++      if (this.afterReadOn(i, statements, deleted) === true) {
++        continue;
++      }
++      if (this.enclosingLoops(i, statements).includes(deleted) === false) {
++        continue;
++      }
++
++      const message = `DELETE ${deleted} INDEX sy-tabix inside LOOP AT ${deleted}`
++        + ` - the loop's own cursor: the next row is skipped and the last round runs off the end`;
++      issues.push(Issue.atStatement(file, statement, message, this.getMetadata().key, this.conf.severity));
++    }
++
++    return issues;
++  }
++
++////////////////
++
++  private deletedTable(statement: StatementNode): string | undefined {
++    const concat = statement.concatTokens().toUpperCase();
++    // `DELETE TABLE itab ...` addresses by key, not by index
++    if (concat.startsWith("DELETE TABLE ") || concat.startsWith("DELETE ADJACENT ")) {
++      return undefined;
++    }
++    return statement.findDirectExpression(Expressions.Target)?.concatTokens().toUpperCase();
++  }
++
++  private byTabix(statement: StatementNode): boolean {
++    return statement.concatTokens().toUpperCase().includes("INDEX SY-TABIX");
++  }
++
++  /** The standard read-then-delete: the nearest preceding statement that is
++   *  not a comment is a READ TABLE on the SAME table, so sy-tabix is the one
++   *  that read set. */
++  private afterReadOn(index: number, statements: readonly StatementNode[], table: string): boolean {
++    for (let i = index - 1; i >= 0; i--) {
++      const statement = statements[i];
++      if (statement.get() instanceof Comment) {
++        continue;
++      }
++      if (!(statement.get() instanceof Statements.ReadTable)) {
++        return false;
++      }
++      const read = statement.findDirectExpression(Expressions.Target)?.concatTokens().toUpperCase();
++      return read === table;
++    }
++    return false;
++  }
++
++  /** The tables of every LOOP AT still open at this statement. */
++  private enclosingLoops(index: number, statements: readonly StatementNode[]): string[] {
++    const open: string[] = [];
++    let depth = 0;
++    for (let i = index - 1; i >= 0; i--) {
++      const statement = statements[i];
++      const s = statement.get();
++      if (s instanceof Statements.EndLoop) {
++        depth++;
++      } else if (s instanceof Statements.Loop) {
++        if (depth === 0) {
++          const table = statement.findFirstExpression(Expressions.SimpleSource2)?.concatTokens().toUpperCase()
++            ?? statement.findFirstExpression(Expressions.Source)?.concatTokens().toUpperCase();
++          if (table !== undefined) {
++            open.push(table);
++          }
++        } else {
++          depth--;
++        }
++      } else if (s instanceof Statements.MethodImplementation
++          || s instanceof Statements.Form
++          || s instanceof Statements.EndMethod
++          || s instanceof Statements.EndForm) {
++        break;
++      }
++    }
++    return open;
++  }
++
++}
+diff --git a/packages/core/src/rules/index.ts b/packages/core/src/rules/index.ts
+index c118ffa..f689c93 100644
+--- a/packages/core/src/rules/index.ts
++++ b/packages/core/src/rules/index.ts
+@@ -27,6 +27,9 @@ export * from "./check_comments";
+ export * from "./check_ddic";
+ export * from "./check_include";
+ export * from "./check_subrc";
++export * from "./subrc_after_assign";
++export * from "./preferred_parameter_ignored";
++export * from "./delete_index_in_loop";
+ export * from "./check_syntax";
+ export * from "./check_text_elements";
+ export * from "./check_transformation_exists";
+diff --git a/packages/core/src/rules/preferred_parameter_ignored.ts b/packages/core/src/rules/preferred_parameter_ignored.ts
+new file mode 100644
+index 0000000..61849e0
+--- /dev/null
++++ b/packages/core/src/rules/preferred_parameter_ignored.ts
+@@ -0,0 +1,113 @@
++import * as Expressions from "../abap/2_statements/expressions";
++import {Issue} from "../issue";
++import {BasicRuleConfig} from "./_basic_rule_config";
++import {ABAPRule} from "./_abap_rule";
++import {IRuleMetadata, RuleTag} from "./_irule";
++import {ABAPFile} from "../abap/abap_file";
++import {EditHelper, IEdit} from "../edit_helper";
++import {ExpressionNode} from "../abap/nodes";
++
++export class PreferredParameterIgnoredConf extends BasicRuleConfig {
++}
++
++export class PreferredParameterIgnored extends ABAPRule {
++  private conf = new PreferredParameterIgnoredConf();
++
++  public getMetadata(): IRuleMetadata {
++    return {
++      key: "preferred_parameter_ignored",
++      title: "PREFERRED PARAMETER is ignored",
++      shortDescription: `PREFERRED PARAMETER on an IMPORTING clause that still has a mandatory
++parameter. The addition names the parameter a positional call fills, which only
++means something when every parameter may be left out - so with a mandatory one
++present it does nothing.`,
++      extendedInformation: `\`PREFERRED PARAMETER\` names the importing parameter that a call filling exactly
++one parameter positionally fills. That question only arises when a parameter
++may be LEFT OUT, so the addition is ignored while any importing parameter is
++neither \`OPTIONAL\` nor carries a \`DEFAULT\`.
++
++The quick fix REMOVES the addition rather than making the parameter optional.
++The compiler's own wording suggests the opposite, and that is the more
++dangerous of the two: making a mandatory parameter optional widens the
++contract, so a call that forgets it compiles and the method runs on an
++unfilled parameter. Removing an addition that is already ignored changes
++nothing at all.`,
++      tags: [RuleTag.SingleFile, RuleTag.Quickfix],
++      badExample: `METHODS meth
++  IMPORTING
++    val   TYPE string
++    other TYPE i OPTIONAL
++      PREFERRED PARAMETER val.`,
++      goodExample: `METHODS meth
++  IMPORTING
++    val   TYPE string OPTIONAL
++    other TYPE i OPTIONAL
++      PREFERRED PARAMETER val.`,
++    };
++  }
++
++  public getConfig() {
++    return this.conf;
++  }
++
++  public setConfig(conf: PreferredParameterIgnoredConf) {
++    this.conf = conf;
++  }
++
++  public runParsed(file: ABAPFile): Issue[] {
++    const issues: Issue[] = [];
++
++    for (const statement of file.getStatements()) {
++      const importing = statement.findFirstExpression(Expressions.MethodDefImporting);
++      if (importing === undefined) {
++        continue;
++      }
++      const preferred = this.preferredTokens(importing);
++      if (preferred === undefined) {
++        continue;
++      }
++
++      const mandatory = this.firstMandatory(importing);
++      if (mandatory === undefined) {
++        continue;
++      }
++
++      const fix: IEdit = EditHelper.replaceRange(file,
++                                                 preferred.start, preferred.end, "");
++      const message = `PREFERRED PARAMETER is ignored while ${mandatory} is not optional`;
++      issues.push(Issue.atStatement(file, statement, message, this.getMetadata().key, this.conf.severity, fix));
++    }
++
++    return issues;
++  }
++
++////////////////
++
++  /** The span of `PREFERRED PARAMETER <name>`, or undefined when the clause
++   *  does not carry the addition. */
++  private preferredTokens(importing: ExpressionNode) {
++    const tokens = importing.getTokens();
++    for (let i = 0; i + 2 < tokens.length; i++) {
++      if (tokens[i].getStr().toUpperCase() === "PREFERRED"
++          && tokens[i + 1].getStr().toUpperCase() === "PARAMETER") {
++        return {start: tokens[i].getStart(), end: tokens[i + 2].getEnd()};
++      }
++    }
++    return undefined;
++  }
++
++  /** The first importing parameter that is neither OPTIONAL nor has a
++   *  DEFAULT, or undefined when every one of them may be left out. */
++  private firstMandatory(importing: ExpressionNode): string | undefined {
++    for (const param of importing.findDirectExpressions(Expressions.MethodParamOptional)) {
++      const concat = param.concatTokens().toUpperCase();
++      if (concat.endsWith(" OPTIONAL") || concat.includes(" DEFAULT ")) {
++        continue;
++      }
++      const name = param.findFirstExpression(Expressions.MethodParamName)?.concatTokens();
++      return name ?? param.concatTokens();
++    }
++    return undefined;
++  }
++
++}
+diff --git a/packages/core/src/rules/subrc_after_assign.ts b/packages/core/src/rules/subrc_after_assign.ts
+new file mode 100644
+index 0000000..41d3d04
+--- /dev/null
++++ b/packages/core/src/rules/subrc_after_assign.ts
+@@ -0,0 +1,240 @@
++import * as Statements from "../abap/2_statements/statements";
++import * as Expressions from "../abap/2_statements/expressions";
++import {Issue} from "../issue";
++import {BasicRuleConfig} from "./_basic_rule_config";
++import {ABAPRule} from "./_abap_rule";
++import {IRuleMetadata, RuleTag} from "./_irule";
++import {StatementNode} from "../abap/nodes/statement_node";
++import {Comment} from "../abap/2_statements/statements/_statement";
++import {ABAPFile} from "../abap/abap_file";
++import {EditHelper, IEdit} from "../edit_helper";
++import {AbstractToken} from "../abap/1_lexer/tokens/abstract_token";
++
++export class SubrcAfterAssignConf extends BasicRuleConfig {
++  /** Also report the shapes where `IS ASSIGNED` is not a drop-in replacement:
++   * the ASSIGN sits inside a loop, or the same field symbol was already
++   * assigned earlier in the same block. The finding is correct there too -
++   * the sy-subrc read is wrong either way - but the remedy needs an
++   * `UNASSIGN` first, so no quick fix is offered for them. */
++  public loops: boolean = true;
++}
++
++export class SubrcAfterAssign extends ABAPRule {
++  private conf = new SubrcAfterAssignConf();
++
++  public getMetadata(): IRuleMetadata {
++    return {
++      key: "subrc_after_assign",
++      title: "sy-subrc is not the success check of an ASSIGN",
++      shortDescription: `A sy-subrc test whose nearest preceding sy-subrc-setting statement is a plain
++ASSIGN. On 7.40 SP7 a successful ASSIGN does not reset sy-subrc, so the test
++reads a value an earlier statement left behind.`,
++      extendedInformation: `A successful \`ASSIGN\` does not reset \`sy-subrc\` on every release - 7.40 SP7 is
++the one measured - so the value read is whatever the last statement that DOES
++set it left there. The failure is release-dependent and silent everywhere
++else, which is the worst combination: the code passes every check its author
++can run, ships, and then breaks for one customer.
++
++\`IS [NOT] ASSIGNED\` asks the question directly and has no such gap.
++
++It is NOT always a drop-in replacement. A FAILED \`ASSIGN\` leaves the field
++symbol bound to whatever it pointed at before, so wherever the same symbol can
++already be bound - inside a loop, or after an earlier \`ASSIGN\` to it -
++\`IS ASSIGNED\` reads TRUE for a failure. Those sites need \`UNASSIGN <fs>.\`
++before the \`ASSIGN\`, and the rule says so in the message rather than offering
++a quick fix that would introduce the bug it is meant to remove.
++
++\`ASSIGN COMPONENT ... OF STRUCTURE\` is not reported: there \`sy-subrc\`
++distinguishes "component not found" from "assigned" and is the documented
++check.`,
++      tags: [RuleTag.SingleFile, RuleTag.Quickfix],
++      badExample: `ASSIGN (lv_name) TO <attri>.
++IF sy-subrc = 0.
++  WRITE <attri>.
++ENDIF.`,
++      goodExample: `ASSIGN (lv_name) TO <attri>.
++IF <attri> IS ASSIGNED.
++  WRITE <attri>.
++ENDIF.`,
++    };
++  }
++
++  public getConfig() {
++    return this.conf;
++  }
++
++  public setConfig(conf: SubrcAfterAssignConf) {
++    this.conf = conf;
++  }
++
++  public runParsed(file: ABAPFile): Issue[] {
++    const issues: Issue[] = [];
++    const statements = file.getStatements();
++
++    for (let i = 0; i < statements.length; i++) {
++      const statement = statements[i];
++      if (!(statement.get() instanceof Statements.Assign)) {
++        continue;
++      }
++      if (this.isAssignComponent(statement) === true) {
++        continue;
++      }
++
++      const fs = statement.findFirstExpression(Expressions.FSTarget)
++        ?.findFirstExpression(Expressions.FieldSymbol)?.getFirstToken().getStr();
++      if (fs === undefined) {
++        continue;
++      }
++
++      const check = this.nextStatementReadingSubrc(i, statements);
++      if (check === undefined) {
++        continue;
++      }
++
++      const reassigned = this.assignedEarlier(i, statements, fs);
++      const inLoop = this.insideLoop(i, statements);
++      if ((reassigned === true || inLoop === true) && this.conf.loops === false) {
++        continue;
++      }
++
++      let fix: IEdit | undefined = undefined;
++      let message = `sy-subrc is not the success check of an ASSIGN, use "${fs} IS ASSIGNED"`;
++      if (reassigned === true || inLoop === true) {
++        // the naive rewrite would read TRUE for a FAILED assign here, because
++        // the symbol can still be bound from before
++        message += `, with UNASSIGN ${fs} before the ASSIGN - `
++          + (inLoop === true ? `it is inside a loop` : `${fs} is assigned earlier in this block`);
++      } else {
++        fix = this.buildFix(file, check, fs);
++      }
++
++      issues.push(Issue.atStatement(file, check, message, this.getMetadata().key, this.conf.severity, fix));
++    }
++
++    return issues;
++  }
++
++////////////////
++
++  /** `ASSIGN COMPONENT x OF STRUCTURE y TO <fs>` - sy-subrc is the documented
++   *  check there, and there is no alternative to it. */
++  private isAssignComponent(statement: StatementNode): boolean {
++    const source = statement.findDirectExpression(Expressions.AssignSource);
++    return source?.concatTokens().toUpperCase().startsWith("COMPONENT ") === true;
++  }
++
++  /** The next statement that actually looks at sy-subrc, or undefined when the
++   *  next one that matters does something else. Comments and ENDIF are skipped
++   *  the way check_subrc skips them; an `IS [NOT] ASSIGNED` on the same symbol
++   *  is the correct check and ends the search. */
++  private nextStatementReadingSubrc(index: number, statements: readonly StatementNode[]): StatementNode | undefined {
++    const fs = statements[index].findFirstExpression(Expressions.FSTarget)
++      ?.findFirstExpression(Expressions.FieldSymbol)?.getFirstToken().getStr().toUpperCase();
++
++    for (let i = index + 1; i < statements.length; i++) {
++      const statement = statements[i];
++      const concat = statement.concatTokens().toUpperCase();
++      if (statement.get() instanceof Comment) {
++        continue;
++      } else if (statement.get() instanceof Statements.EndIf
++          || statement.get() instanceof Statements.EndTestSeam) {
++        continue;
++      }
++      if (fs !== undefined
++          && (concat.includes(fs + " IS ASSIGNED") || concat.includes(fs + " IS NOT ASSIGNED"))) {
++        return undefined;
++      }
++      if (concat.includes("SY-SUBRC")) {
++        return statement;
++      }
++      return undefined;
++    }
++    return undefined;
++  }
++
++  /** Is the ASSIGN inside a LOOP / DO / WHILE of the same block? Counted by
++   *  walking back for an unclosed loop opener. */
++  private insideLoop(index: number, statements: readonly StatementNode[]): boolean {
++    let depth = 0;
++    for (let i = index - 1; i >= 0; i--) {
++      const s = statements[i].get();
++      if (s instanceof Statements.EndLoop || s instanceof Statements.EndDo || s instanceof Statements.EndWhile) {
++        depth++;
++      } else if (s instanceof Statements.Loop || s instanceof Statements.Do || s instanceof Statements.While) {
++        if (depth === 0) {
++          return true;
++        }
++        depth--;
++      } else if (this.startsBlock(statements[i])) {
++        return false;
++      }
++    }
++    return false;
++  }
++
++  /** Was the same field symbol already the target of an ASSIGN or READ TABLE
++   *  earlier in this block? Then a failed ASSIGN leaves it bound. */
++  private assignedEarlier(index: number, statements: readonly StatementNode[], fs: string): boolean {
++    const upper = fs.toUpperCase();
++    for (let i = index - 1; i >= 0; i--) {
++      const statement = statements[i];
++      if (this.startsBlock(statement)) {
++        return false;
++      }
++      const s = statement.get();
++      if (s instanceof Statements.Assign || s instanceof Statements.ReadTable || s instanceof Statements.Loop) {
++        const target = statement.findFirstExpression(Expressions.FSTarget)
++          ?.findFirstExpression(Expressions.FieldSymbol)?.getFirstToken().getStr().toUpperCase();
++        if (target === upper) {
++          return true;
++        }
++      }
++    }
++    return false;
++  }
++
++  private startsBlock(statement: StatementNode): boolean {
++    const s = statement.get();
++    return s instanceof Statements.MethodImplementation
++      || s instanceof Statements.Form
++      || s instanceof Statements.FunctionModule
++      || s instanceof Statements.EndMethod
++      || s instanceof Statements.EndForm;
++  }
++
++  /** Rewrite the `sy-subrc = 0` / `sy-subrc <> 0` comparison in place, which
++   *  works inside a compound condition too. Anything else - a comparison to
++   *  another value, a CASE, an operator this does not know - gets no fix. */
++  private buildFix(file: ABAPFile, statement: StatementNode, fs: string): IEdit | undefined {
++    // `sy-subrc` is THREE tokens - `sy`, `-`, `subrc` - so the comparison to
++    // rewrite is five, and the fix spans from the first to the last of them
++    const tokens = statement.getTokens();
++    for (let i = 0; i + 4 < tokens.length; i++) {
++      if (tokens[i].getStr().toUpperCase() !== "SY"
++          || tokens[i + 1].getStr() !== "-"
++          || tokens[i + 2].getStr().toUpperCase() !== "SUBRC") {
++        continue;
++      }
++      const op = tokens[i + 3].getStr().toUpperCase();
++      if (tokens[i + 4].getStr() !== "0") {
++        return undefined;
++      }
++      let text: string | undefined = undefined;
++      if (op === "=" || op === "EQ") {
++        text = `${fs} IS ASSIGNED`;
++      } else if (op === "<>" || op === "NE") {
++        text = `${fs} IS NOT ASSIGNED`;
++      }
++      if (text === undefined) {
++        return undefined;
++      }
++      return EditHelper.replaceRange(file, tokens[i].getStart(), this.endOf(tokens[i + 4]), text);
++    }
++    return undefined;
++  }
++
++  private endOf(token: AbstractToken) {
++    return token.getEnd();
++  }
++
++}
+diff --git a/packages/core/test/rules/delete_index_in_loop.ts b/packages/core/test/rules/delete_index_in_loop.ts
+new file mode 100644
+index 0000000..66b6741
+--- /dev/null
++++ b/packages/core/test/rules/delete_index_in_loop.ts
+@@ -0,0 +1,54 @@
++import {DeleteIndexInLoop} from "../../src/rules/delete_index_in_loop";
++import {testRule} from "./_utils";
++
++const tests = [
++  {abap: "parser error", cnt: 0},
++  {abap: "WRITE hello.", cnt: 0},
++
++  // the defect
++  {abap: `LOOP AT tab INTO row.
++  DELETE tab INDEX sy-tabix.
++ENDLOOP.`, cnt: 1},
++  {abap: `LOOP AT tab INTO row.
++  IF row-flag = abap_true.
++    DELETE tab INDEX sy-tabix.
++  ENDIF.
++ENDLOOP.`, cnt: 1},
++  // …and the shape that is wrong twice over: sy-tabix belongs to the INNER
++  // loop, so the index deleted is another table's
++  {abap: `LOOP AT outer INTO row.
++  LOOP AT inner INTO line.
++    DELETE outer INDEX sy-tabix.
++  ENDLOOP.
++ENDLOOP.`, cnt: 1},
++
++  // the standard read-then-delete, which is correct and common
++  {abap: `READ TABLE tab INTO row WITH KEY id = 1.
++DELETE tab INDEX sy-tabix.`, cnt: 0},
++  {abap: `LOOP AT other INTO line.
++  READ TABLE tab INTO row WITH KEY id = line-id.
++  DELETE tab INDEX sy-tabix.
++ENDLOOP.`, cnt: 0},
++
++  // a DELETE on a table nobody is looping over
++  {abap: `LOOP AT tab INTO row.
++  DELETE other INDEX sy-tabix.
++ENDLOOP.`, cnt: 0},
++  // outside a loop entirely
++  {abap: `DELETE tab INDEX sy-tabix.`, cnt: 0},
++  // the right way to say it
++  {abap: `DELETE tab WHERE flag = abap_true.`, cnt: 0},
++  {abap: `LOOP AT tab INTO row.
++  DELETE tab INDEX 1.
++ENDLOOP.`, cnt: 0},
++  // a closed loop before it is not an enclosing one
++  {abap: `LOOP AT tab INTO row.
++ENDLOOP.
++DELETE tab INDEX sy-tabix.`, cnt: 0},
++  // DELETE TABLE addresses by key, not by index
++  {abap: `LOOP AT tab INTO row.
++  DELETE TABLE tab FROM row.
++ENDLOOP.`, cnt: 0},
++];
++
++testRule(tests, DeleteIndexInLoop);
+diff --git a/packages/core/test/rules/preferred_parameter_ignored.ts b/packages/core/test/rules/preferred_parameter_ignored.ts
+new file mode 100644
+index 0000000..48dad94
+--- /dev/null
++++ b/packages/core/test/rules/preferred_parameter_ignored.ts
+@@ -0,0 +1,90 @@
++import {PreferredParameterIgnored} from "../../src/rules/preferred_parameter_ignored";
++import {testRule, testRuleFix} from "./_utils";
++
++const tests = [
++  {abap: "parser error", cnt: 0},
++  {abap: "WRITE hello.", cnt: 0},
++
++  // the defect: `val` is mandatory, so the addition does nothing
++  {abap: `CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    METHODS meth
++      IMPORTING
++        val   TYPE string
++        other TYPE i OPTIONAL
++          PREFERRED PARAMETER val.
++ENDCLASS.`, cnt: 1},
++  {abap: `CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    CLASS-METHODS meth
++      IMPORTING
++        val   TYPE string
++        other TYPE i DEFAULT 1
++          PREFERRED PARAMETER val.
++ENDCLASS.`, cnt: 1},
++
++  // the correct use, and the whole point of the addition
++  {abap: `CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    METHODS meth
++      IMPORTING
++        val   TYPE string OPTIONAL
++        other TYPE i OPTIONAL
++          PREFERRED PARAMETER val.
++ENDCLASS.`, cnt: 0},
++  {abap: `CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    METHODS meth
++      IMPORTING
++        val   TYPE string DEFAULT 'a'
++        other TYPE i DEFAULT 1
++          PREFERRED PARAMETER val.
++ENDCLASS.`, cnt: 0},
++
++  // no addition at all: a mandatory parameter is not this rule's business
++  {abap: `CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    METHODS meth
++      IMPORTING
++        val   TYPE string
++        other TYPE i OPTIONAL.
++ENDCLASS.`, cnt: 0},
++
++  // RETURNING/EXPORTING next to it changes nothing
++  {abap: `CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    METHODS meth
++      IMPORTING
++        val           TYPE string
++        other         TYPE i OPTIONAL
++          PREFERRED PARAMETER val
++      RETURNING
++        VALUE(result) TYPE i.
++ENDCLASS.`, cnt: 1},
++];
++
++testRule(tests, PreferredParameterIgnored);
++
++const fixes = [
++  {
++    // the addition goes, the mandatory parameter stays mandatory
++    input: `CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    METHODS meth
++      IMPORTING
++        val   TYPE string
++        other TYPE i OPTIONAL
++          PREFERRED PARAMETER val.
++ENDCLASS.`,
++    output: `CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    METHODS meth
++      IMPORTING
++        val   TYPE string
++        other TYPE i OPTIONAL
++          .
++ENDCLASS.`,
++  },
++];
++
++testRuleFix(fixes, PreferredParameterIgnored);
+diff --git a/packages/core/test/rules/subrc_after_assign.ts b/packages/core/test/rules/subrc_after_assign.ts
+new file mode 100644
+index 0000000..df29e90
+--- /dev/null
++++ b/packages/core/test/rules/subrc_after_assign.ts
+@@ -0,0 +1,107 @@
++import {SubrcAfterAssign} from "../../src/rules/subrc_after_assign";
++import {testRule, testRuleFix} from "./_utils";
++
++const tests = [
++  {abap: "parser error", cnt: 0},
++  {abap: "WRITE hello.", cnt: 0},
++
++  // the defect: the sy-subrc read belongs to the ASSIGN
++  {abap: `ASSIGN (lv_name) TO <attri>.
++IF sy-subrc = 0.
++ENDIF.`, cnt: 1},
++  {abap: `ASSIGN (lv_name) TO <attri>.
++IF sy-subrc <> 0.
++  RETURN.
++ENDIF.`, cnt: 1},
++  {abap: `ASSIGN (lv_name) TO <attri>.
++ASSERT sy-subrc = 0.`, cnt: 1},
++  // …also inside a compound condition
++  {abap: `ASSIGN (lv_name) TO <attri>.
++IF sy-subrc = 0 AND <attri> = abap_true.
++ENDIF.`, cnt: 1},
++
++  // the correct check, and the whole point of the rule
++  {abap: `ASSIGN (lv_name) TO <attri>.
++IF <attri> IS ASSIGNED.
++ENDIF.`, cnt: 0},
++  {abap: `ASSIGN (lv_name) TO <attri>.
++IF <attri> IS NOT ASSIGNED.
++  RETURN.
++ENDIF.`, cnt: 0},
++
++  // ASSIGN COMPONENT: sy-subrc IS the documented check there
++  {abap: `ASSIGN COMPONENT lv_name OF STRUCTURE ls_data TO <attri>.
++IF sy-subrc = 0.
++ENDIF.`, cnt: 0},
++  {abap: `ASSIGN COMPONENT 1 OF STRUCTURE ls_data TO <attri>.
++IF sy-subrc <> 0.
++  RETURN.
++ENDIF.`, cnt: 0},
++
++  // a sy-subrc belonging to something else
++  {abap: `READ TABLE tab INTO row INDEX 1.
++IF sy-subrc = 0.
++ENDIF.`, cnt: 0},
++  {abap: `ASSIGN (lv_name) TO <attri>.
++WRITE 'hello'.
++IF sy-subrc = 0.
++ENDIF.`, cnt: 0},
++  // an ASSIGN nobody checks at all is check_subrc's business, not this rule's
++  {abap: `ASSIGN (lv_name) TO <attri>.
++WRITE 'hello'.`, cnt: 0},
++
++  // still reported inside a loop - the read is wrong there too - and the
++  // message names the UNASSIGN the fix needs
++  {abap: `LOOP AT tab INTO row.
++  ASSIGN (lv_name) TO <attri>.
++  IF sy-subrc = 0.
++  ENDIF.
++ENDLOOP.`, cnt: 1},
++  // …and when the same symbol was already assigned earlier in the block
++  {abap: `ASSIGN (first) TO <attri>.
++IF <attri> IS ASSIGNED.
++ENDIF.
++ASSIGN (second) TO <attri>.
++IF sy-subrc = 0.
++ENDIF.`, cnt: 1},
++];
++
++testRule(tests, SubrcAfterAssign);
++
++const fixes = [
++  {
++    input: `ASSIGN (lv_name) TO <attri>.
++IF sy-subrc = 0.
++ENDIF.`,
++    output: `ASSIGN (lv_name) TO <attri>.
++IF <attri> IS ASSIGNED.
++ENDIF.`,
++  },
++  {
++    input: `ASSIGN (lv_name) TO <attri>.
++IF sy-subrc <> 0.
++  RETURN.
++ENDIF.`,
++    output: `ASSIGN (lv_name) TO <attri>.
++IF <attri> IS NOT ASSIGNED.
++  RETURN.
++ENDIF.`,
++  },
++  {
++    // the comparison is rewritten in place, so a compound condition survives
++    input: `ASSIGN (lv_name) TO <attri>.
++IF sy-subrc = 0 AND lv_flag = abap_true.
++ENDIF.`,
++    output: `ASSIGN (lv_name) TO <attri>.
++IF <attri> IS ASSIGNED AND lv_flag = abap_true.
++ENDIF.`,
++  },
++  {
++    input: `ASSIGN (lv_name) TO <attri>.
++ASSERT sy-subrc = 0.`,
++    output: `ASSIGN (lv_name) TO <attri>.
++ASSERT <attri> IS ASSIGNED.`,
++  },
++];
++
++testRuleFix(fixes, SubrcAfterAssign);
+-- 
+2.43.0
+

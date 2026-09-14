@@ -127,3 +127,23 @@ a parameter optional when every importing parameter of the method already is.
 measured is the warning on the declaration (a user's system, 2026-09-05) and
 the compiler's own statement that the addition *is ignored*, from which the
 parameter's mandatory-ness follows.
+
+## The change
+
+All three rules are written, tested and measured. The change is attached as
+[`backlog/patches/abaplint-three-rules.patch`](../patches/abaplint-three-rules.patch)
+(`git am` against `abaplint/abaplint`) - one commit carrying all three, because
+they were written and measured in one pass:
+
+| rule | findings on abap2UI5 / samples / samples-controls / samples-stack |
+|---|---|
+| `subrc_after_assign` | **66** (28 / 14 / 22 / 2) |
+| `delete_index_in_loop` | **2** - the vendored ajson filter lib, and one port |
+| `preferred_parameter_ignored` | **0** - those code bases run an ATC gate for it already, so this rule has fixture evidence only |
+
+`npm test` in `packages/core`: **11020 passing**, eslint clean,
+`scripts/schema.json` regenerated.
+
+It is not open as a pull request because this session has no write access to
+`abaplint/abaplint` (the Claude GitHub App is not installed on the `abaplint`
+organization).
