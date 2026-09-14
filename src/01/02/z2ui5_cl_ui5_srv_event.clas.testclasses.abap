@@ -17,6 +17,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_trailing_empty_arg FOR TESTING.
     METHODS event_view_param FOR TESTING.
     METHODS event_queue_last  FOR TESTING.
+    METHODS event_no_busy     FOR TESTING.
     METHODS event_prevent_default FOR TESTING.
     METHODS event_prevent_default_expr FOR TESTING.
     METHODS event_client_args FOR TESTING.
@@ -292,6 +293,56 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_ctrl-check_prevent_default = abap_true.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eBP($event,true,['LIVE_CHANGE',false,false,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
+
+  ENDMETHOD.
+
+  METHOD event_no_busy.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
+    lo_event = NEW #( ).
+
+    CLEAR ls_ctrl.
+    ls_ctrl-check_no_busy = abap_true.
+
+    " the flag rides at position [5], one behind queueLast - and queueLast
+    " is written as FALSE rather than left out, so [5] stays [5] for a wire
+    " that carries only this flag
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,false,false,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
+
+    " the pair a per-keystroke wire wants: nothing lost, nothing blinking
+    ls_ctrl-check_queue_last = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,false,false,true,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
+
+    " the arguments still follow the array unchanged
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE',false,false,false,true,true], ${$parameters>/newValue})`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   t_arg = VALUE #( ( `${$parameters>/newValue}` ) )
+                                   s_cnt = ls_ctrl ) ).
+
+    " and the prevent-default form carries the same array
+    CLEAR ls_ctrl.
+    ls_ctrl-check_no_busy         = abap_true.
+    ls_ctrl-check_prevent_default = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,true,['LIVE_CHANGE',false,false,false,false,true])`
+        act = lo_event->get_event( val   = `LIVE_CHANGE`
+                                   s_cnt = ls_ctrl ) ).
+
+    " a wire with neither flag is untouched - the bare array every existing
+    " app is rendered with
+    CLEAR ls_ctrl.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['LIVE_CHANGE'])`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    s_cnt = ls_ctrl ) ).
 

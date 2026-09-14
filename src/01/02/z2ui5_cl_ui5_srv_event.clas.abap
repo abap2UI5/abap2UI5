@@ -107,13 +107,21 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " The event array is read by POSITION in View1.eB: [0] the name, [1] a
     " reserved placeholder (always false), [2] reserved (always false), [3]
     " useMainModel (custom JS only, never emitted here), [4] queueLast
-    " (check_queue_last). Slot [2] keeps its place rather than closing up:
-    " the positions are a protocol custom JS builds these arrays against
-    " too, so renumbering would silently move every flag behind it. A wire
-    " without any flag stays the bare ['NAME'] every existing app was
-    " rendered with.
-    IF s_cnt-check_queue_last = abap_true.
-      result = |{ result },false,false,false,true|.
+    " (check_queue_last), [5] noBusy (check_no_busy). Slot [2] keeps its
+    " place rather than closing up: the positions are a protocol custom JS
+    " builds these arrays against too, so renumbering would silently move
+    " every flag behind it. A wire without any flag stays the bare ['NAME']
+    " every existing app was rendered with.
+    "
+    " A flag is emitted with every slot IN FRONT of it, at its own value -
+    " a wire that carries only check_no_busy still writes queueLast as
+    " false rather than closing the gap, because a position is only a
+    " position if nothing ever moves into it.
+    IF s_cnt-check_queue_last = abap_true OR s_cnt-check_no_busy = abap_true.
+      result = |{ result },false,false,false,{ COND string( WHEN s_cnt-check_queue_last = abap_true THEN `true` ELSE `false` ) }|.
+      IF s_cnt-check_no_busy = abap_true.
+        result = |{ result },true|.
+      ENDIF.
     ENDIF.
 
     result = |{ result }]{ get_t_arg( val       = t_arg

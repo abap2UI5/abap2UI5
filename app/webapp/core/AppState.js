@@ -93,7 +93,10 @@
 //                     (actions/Slots), so a re-display of the slot outside
 //                     a roundtrip (devtools LiveEdit) keeps the OData
 //                     default model a switch-mode view was built with
-//   isBusy            roundtrip in flight (View1.eB / Server)
+//   isBusy            roundtrip in flight (View1.eB / Server). Set for every
+//                     roundtrip, a check_no_busy wire included - that flag
+//                     hides the OVERLAY, it does not exempt the wire from
+//                     being the one request in flight
 //   oQueuedEvent      { controller, args } of the LAST event a
 //                     check_queue_last wire fired while a roundtrip was in
 //                     flight (View1.eB keeps it instead of dropping it);

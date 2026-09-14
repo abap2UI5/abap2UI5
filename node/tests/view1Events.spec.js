@@ -1114,4 +1114,68 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(roundtrips).toEqual([]);
     expect(state.oQueuedEvent).not.toBeNull();
   });
+
+  // ------------------------------------------------------------------
+  // check_no_busy - the same wire, with the overlay left down. What is
+  // suppressed is ONLY the two BusyIndicator.show calls; the roundtrip,
+  // the busy state, the guard and the queue behave exactly as above.
+  // ------------------------------------------------------------------
+  // position [5], behind queueLast - which is written as false rather than
+  // left out, so [5] is [5] for a wire that carries only this flag
+  const SILENT = ["LIVE_CHANGE", false, false, false, false, true];
+  const SILENT_QUEUED = ["LIVE_CHANGE", false, false, false, true, true];
+
+  test("a check_no_busy wire round-trips without raising the indicator", () => {
+    const { ctrl, state, roundtrips, busy, type } = loadForQueue();
+
+    type("a");
+    ctrl.eB(SILENT, "a");
+
+    // the request went out and the app IS busy - only the overlay stayed down
+    expect(roundtrips).toHaveLength(1);
+    expect(roundtrips[0].MODEL).toEqual({ VALUE: "a" });
+    expect(state.isBusy).toBe(true);
+    expect(busy).toEqual([]);
+  });
+
+  test("a check_no_busy wire that meets a roundtrip in flight shows nothing", () => {
+    const { ctrl, state, busy } = loadForQueue();
+    state.isBusy = true;
+
+    // the show(0) of the busy guard is the one this flag is really about:
+    // every keystroke typed during a roundtrip raised the overlay instantly
+    ctrl.eB(SILENT_QUEUED, "ab");
+    ctrl.eB(SILENT_QUEUED, "abc");
+
+    expect(busy).toEqual([]);
+    // suppressed, not exempted: the keystroke is still kept, last wins
+    expect(state.oQueuedEvent.args).toEqual([SILENT_QUEUED, "abc"]);
+  });
+
+  test("the flag travels with the queued event - its own dispatch is silent too", async () => {
+    const { ctrl, state, roundtrips, busy } = loadForQueue();
+    state.isBusy = true;
+    ctrl.eB(SILENT_QUEUED, "abc");
+
+    state.oResponse = { ID: "D1", MODELPRESENT: false };
+    await ctrl._processAfterRendering(1);
+
+    expect(roundtrips).toHaveLength(1);
+    expect(roundtrips[0].ARGUMENTS).toEqual([SILENT_QUEUED, "abc"]);
+    // the response's own hide, and no show from the re-dispatch behind it
+    expect(busy).toEqual(["hide"]);
+  });
+
+  test("a PLAIN wire dropped during a silent roundtrip still gets its overlay", () => {
+    const { ctrl, busy, type } = loadForQueue();
+
+    type("a");
+    ctrl.eB(SILENT, "a");
+    expect(busy).toEqual([]);
+
+    // the flag is per WIRE, not per roundtrip: a click dropped while the
+    // silent roundtrip runs needs the feedback the click always got
+    ctrl.eB(PLAIN);
+    expect(busy).toEqual(["show(0)"]);
+  });
 });

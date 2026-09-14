@@ -179,6 +179,11 @@ sap.ui.define(
           // the busy protocol to the request that superseded it: hiding
           // the indicator here ended the busy state the restore relied on
           // and let a click dispatch a third request that aborted it.
+          //
+          // hide() is unconditional even for a check_no_busy roundtrip that
+          // never showed it: the indicator is a singleton, not a counter, and
+          // a wire that opted out may still have to take the overlay down -
+          // a CLICK dropped while its roundtrip ran raised it at 0 delay.
           if (!superseded) {
             BusyIndicator.hide();
             AppState.state.isBusy = false;
@@ -355,12 +360,16 @@ sap.ui.define(
       //       is in flight the LAST event fired on this wire is kept and
       //       dispatched once the response has landed (see the busy guard
       //       below and _dispatchQueuedEvent); for per-keystroke wires
+      //   [5] "no busy" flag (s_ctrl-check_no_busy) - the roundtrip runs
+      //       exactly as it otherwise would, state.isBusy included, but the
+      //       global busy indicator is not raised for it (both show() calls
+      //       below are skipped); for the same per-keystroke wires
       // A new flag goes BEHIND the existing ones - the backend (get_event)
       // and this destructuring agree on the positions, and a wire rendered
       // by an older backend must keep reading the same.
       // ------------------------------------------------------------------
       eB(...args) {
-        const [, , , useMainModel, queueLast] = args[0];
+        const [, , , useMainModel, queueLast, noBusy] = args[0];
 
         if (!navigator.onLine) {
           MessageBox.alert(
@@ -387,6 +396,14 @@ sap.ui.define(
         // `abc` typed at once left the bound field at `a`). The arguments are
         // marshalled now, not at dispatch: a control-valued argument may well
         // be destroyed by the response that lands in between.
+        //
+        // noBusy suppresses the indicator, not the guard: the event is still
+        // kept or dropped exactly as above, only nothing is shown. The 0 delay
+        // is what makes this the wire's worst moment - the FIRST roundtrip of
+        // a live search is invisible for a second, and the second character
+        // typed raises the overlay instantly, over the very field being typed
+        // into. That is the right answer for a dropped click and the wrong one
+        // for a keystroke, which is why it is a per-wire decision.
         if (AppState.state.isBusy) {
           if (queueLast) {
             AppState.state.oQueuedEvent = {
@@ -394,7 +411,7 @@ sap.ui.define(
               args: Lib.normalizeEventArgs(args),
             };
           }
-          BusyIndicator.show(0);
+          if (!noBusy) BusyIndicator.show(0);
           return;
         }
 
@@ -403,8 +420,12 @@ sap.ui.define(
         // the Back/Forward restore) owes the same cancel and had nothing.
         Lib.cancelPendingTimers();
 
+        // The busy STATE is set either way - the guard above, the queued
+        // dispatch, the parked hash routing and the request sequencing all
+        // read it, and a wire that opted out of the overlay has not opted out
+        // of being one roundtrip in flight. Only the overlay is skipped.
         AppState.state.isBusy = true;
-        BusyIndicator.show();
+        if (!noBusy) BusyIndicator.show();
 
         // The request body is built locally and handed explicitly through
         // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right
