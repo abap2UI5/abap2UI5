@@ -331,6 +331,20 @@ INTERFACE z2ui5_if_client
       " user pauses and types again. Appended at the END of the structure
       " (rule 5, see the note on ty_s_get-t_model_skipped)
       check_queue_last      TYPE abap_bool,
+      " do not raise the GLOBAL busy indicator for this wire. The roundtrip
+      " is unchanged - one request in flight at a time, the busy STATE is
+      " still set, the guard, check_queue_last and the parked hash routing
+      " all keep working - only the full-screen overlay stays down. For a
+      " per-keystroke wire it is the overlay that is wrong: the first
+      " roundtrip raises it after the usual delay, and every keystroke that
+      " lands on a roundtrip already in flight raises it with NO delay,
+      " because a dropped CLICK needs that feedback immediately. Typing is
+      " the opposite case - the user is looking at the field, not waiting
+      " for a screen - so a live search flashes the overlay over itself from
+      " the second character on. Pair it with check_queue_last: nothing is
+      " lost and nothing blinks. Appended at the END of the structure
+      " (rule 5, see the note on ty_s_get-t_model_skipped)
+      check_no_busy         TYPE abap_bool,
     END OF ty_s_event_control.
 
   CONSTANTS:
@@ -763,7 +777,12 @@ INTERFACE z2ui5_if_client
   "! flight at a time, order preserved, the backend ends on the control's
   "! current value; it is the flag for a per-keystroke wire (liveChange,
   "! liveSearch, sliderChange), which without it loses every keystroke typed
-  "! while a roundtrip runs, the last one included.
+  "! while a roundtrip runs, the last one included. check_no_busy keeps the
+  "! global busy indicator down for the wire - the roundtrip and the busy
+  "! STATE are unchanged, only the full-screen overlay is not shown. It is
+  "! the second half of a per-keystroke wire: check_queue_last stops the
+  "! keystrokes from being lost, check_no_busy stops the overlay from
+  "! flashing over the field while they are typed.
   "!
   "! @parameter val | the event name the handler checks with
   "!                  check_on_event( `SAVE` ) - upper case by convention,
@@ -776,7 +795,7 @@ INTERFACE z2ui5_if_client
   "! @parameter s_ctrl | the per-wire options (ty_s_event_control): keep the
   "!                  last firing until the running roundtrip has landed,
   "!                  cancel the control's default, quote every argument as
-  "!                  a literal.
+  "!                  a literal, leave the global busy indicator down.
   "! @parameter arg | the ONE-VALUE spelling of t_arg: `arg = x` is exactly
   "!                  `t_arg = VALUE #( ( x ) )`, byte for byte, and the
   "!                  handler reads it back with the same `get_event_arg( )`.

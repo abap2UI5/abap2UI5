@@ -191,7 +191,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      eB(...args) {` && |\n| &&
-             `        const [, , , useMainModel, queueLast] = args[0];` && |\n| &&
+             `        const [, , , useMainModel, queueLast, noBusy] = args[0];` && |\n| &&
              `` && |\n| &&
              `        if (!navigator.onLine) {` && |\n| &&
              `          MessageBox.alert(` && |\n| &&
@@ -207,14 +207,14 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `              args: Lib.normalizeEventArgs(args),` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&
-             `          BusyIndicator.show(0);` && |\n| &&
+             `          if (!noBusy) BusyIndicator.show(0);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        Lib.cancelPendingTimers();` && |\n| &&
              `` && |\n| &&
              `        AppState.state.isBusy = true;` && |\n| &&
-             `        BusyIndicator.show();` && |\n| &&
+             `        if (!noBusy) BusyIndicator.show();` && |\n| &&
              `` && |\n| &&
              `        const oBody = {};` && |\n| &&
              `        AppState.state.oBody = oBody;` && |\n| &&
