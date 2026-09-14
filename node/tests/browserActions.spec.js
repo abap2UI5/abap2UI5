@@ -77,6 +77,11 @@ function load() {
         navBack: (fallback) => navBacks.push(fallback),
       },
       "z2ui5/core/Lib": Lib,
+      // STORE_DATA resolves a model-path payload the way SET_SIZE_LIMIT
+      // does - through the TRACKED framework model when there is one
+      "z2ui5/core/ViewSlots": {
+        trackedModel: (owner) => owner?.__tracked,
+      },
       "z2ui5/core/AppState": { state: {} },
     },
     sandbox: {
@@ -164,6 +169,63 @@ test.describe("STORE_DATA", () => {
     ]);
     expect(stores[0].ops).toEqual([["remove", "k"]]);
     expect(errors()).toEqual([]);
+  });
+
+  // A follow-up action queued from a HANDLER carries the payload as the model
+  // PATH of the structure: T_CUSTOM is pure data, so the `${/S_STORAGE}` that
+  // a view wire has UI5 resolve at view-build time arrives here as a literal
+  // string. Before it was read as a path, every field destructured to
+  // undefined and the write was a silent no-op - the samples-controls
+  // Shopping Cart demo wrote its cart on every change and stored nothing.
+  const controllerWithModel = (data, tracked) => {
+    const model = { getProperty: (path) => data[path] };
+    const view = { getModel: () => (tracked ? undefined : model) };
+    if (tracked) view.__tracked = model;
+    return { getView: () => view };
+  };
+
+  for (const raw of ["${/S_STORAGE}", "{/S_STORAGE}", "/S_STORAGE"]) {
+    test(`the payload '${raw}' is resolved against the view model`, () => {
+      const { handlers, stores, errors } = load();
+      const oController = controllerWithModel({
+        "/S_STORAGE": { TYPE: "local", PREFIX: "", KEY: "CART", VALUE: { A: 1 } },
+      });
+      handlers.STORE_DATA(oController, ["STORE_DATA", raw]);
+      expect(stores).toHaveLength(1);
+      expect(stores[0].storageType).toBe("local");
+      expect(stores[0].ops).toEqual([["put", "CART", { A: 1 }]]);
+      expect(errors()).toEqual([]);
+    });
+  }
+
+  test("the TRACKED model wins over the default one", () => {
+    const { handlers, stores } = load();
+    const oController = controllerWithModel(
+      { "/S_STORAGE": { TYPE: "local", PREFIX: "", KEY: "CART", VALUE: "v" } },
+      true,
+    );
+    handlers.STORE_DATA(oController, ["STORE_DATA", "${/S_STORAGE}"]);
+    expect(stores[0].ops).toEqual([["put", "CART", "v"]]);
+  });
+
+  test("a string that is no model path is logged, not written", () => {
+    const { handlers, stores, errors } = load();
+    handlers.STORE_DATA(controllerWithModel({}), ["STORE_DATA", "S_STORAGE"]);
+    expect(stores[0].ops).toEqual([["remove", undefined]]);
+    expect(
+      errors().some((m) =>
+        m.includes("is neither a payload nor a model path"),
+      ),
+    ).toBe(true);
+  });
+
+  test("a path with nothing bound under it is logged, not written", () => {
+    const { handlers, stores, errors } = load();
+    handlers.STORE_DATA(controllerWithModel({}), ["STORE_DATA", "${/NOPE}"]);
+    expect(stores[0].ops).toEqual([["remove", undefined]]);
+    expect(
+      errors().some((m) => m.includes("nothing bound at the model path")),
+    ).toBe(true);
   });
 });
 
