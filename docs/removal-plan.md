@@ -371,14 +371,32 @@ rather than by guessing; each entry names the callers that exist today.
         one removal from `src/02` rule 5 does not cover, because the contract
         it protects is what downstream installs compile against and this
         never reached one.
-      - **Closed without an API instead.** Both callers — `samples`
-        `z2ui5_cl_smp_app_197` and `z2ui5_cl_smp_app_327` — read their one
-        field with a few lines of `find` / `substring_before` and carry no
-        directive and no `non-released-api` finding. The payloads are written
-        by the framework and are flat, so a targeted walk IS the right size of
-        answer; a parser was a bigger tool than the problem. Outbound JSON is
-        composed as a string in ABAP and bound with `json = abap_true`.
-        building-apps.md documents both directions.
+      - **Closed without an API instead.** Every app-side caller in the
+        ecosystem reads what it needs by hand now and carries no directive and
+        no `non-released-api` finding: `samples` `z2ui5_cl_smp_app_197` and
+        `_327`; `samples-controls` `_103`, `_109`, `_203`, `_298` and `_307`
+        (a flat array of projected controls, walked per object); and
+        `samples-stack` `z2ui5_cl_smps_app_489`, which also WRITES its payload
+        and therefore escapes on the way out and walks escapes on the way in.
+        Outbound JSON is composed as a string in ABAP and bound with
+        `json = abap_true`. building-apps.md documents both directions.
+      - The one payload that could NOT be read this way was the Shopping Cart's
+        (`samples-controls` `z2ui5_cl_smpc_demo_004`): it is nested, two arrays
+        of six-field rows. It needs no reader either — the control's `value` is
+        bound two-way, so `whole_value_apply` converts the whole object with
+        `to_abap( iv_corresponding = abap_true )`. **Nested means bind it, not
+        parse it**, and that is the general answer rather than this app's.
+      - **Measured late, and that cost a red build.** The removal commit
+        counted the two callers in `samples` and stopped there; five classes in
+        `samples-controls`, one in `samples-stack` and the whole API written out
+        in `app-template`'s `AGENTS.md` were not looked at, and
+        `samples-controls` went red the same day (`abaplint`: *Class
+        z2ui5_cl_ui5_json not found*) because its `abaplint.jsonc` resolves the
+        framework against branch `main`. **Removing anything from `src/02` means
+        running the count over every sibling first** — that is what
+        `npm run blockers -- ../samples ../samples-controls ../samples-stack ../app-template`
+        is for, and a class too young to be in the deprecated list is exactly
+        the case a hand-count misses.
 - [x] **A DDIC object to point a dynamic type at.** `src/02` releases no table
       or structure, so a sample demonstrating
       `CREATE DATA … TYPE STANDARD TABLE OF (name)` has to name the framework's

@@ -509,16 +509,26 @@ The same tree, with the subtree held in a variable:
   `SinglePlanningCalendar.selectedDatesChange` a list of `DateRange`. Pass the
   parameter like any other (`` `${$parameters>/filterItems}` ``); the frontend
   marshals each control into an object carrying its `ID` plus its public
-  properties, so `client->get_event_arg( )` returns a JSON array you read with
-  `z2ui5_cl_ajson`. Do **not** parse a display string such as
-  `filterString` — it is localized and its format is not a contract.
-  **Map corresponding fields only**: the payload carries *every* public
-  property of the control, not just the ones you modelled — a
+  properties, so `client->get_event_arg( )` returns a JSON array. Read the one
+  property you need out of it BY HAND, per the bullet below — not with
+  `z2ui5_cl_ajson`, which is framework-internal. Do **not** parse a display
+  string such as `filterString` — it is localized and its format is not a
+  contract.
+  **Read only the fields you need**, and never expect the payload to be the
+  shape you modelled: it carries *every* public property of the control — a
   `ViewSettingsItem` also brings `enabled`, `textDirection` and `wrapping` —
-  and a plain `to_abap( )` aborts on the first field your structure lacks
-  (`Path not found @/1/wrapping`). Chain
-  `parse( … )->to_abap_corresponding_only( )->to_abap( … )` and declare only
-  the fields you actually use.
+  so a reader that walks for one named key is both the smallest and the most
+  robust thing to write. Two properties on the same object need two walks,
+  which is still less code than a mapping that has to anticipate the rest.
+  **Not every such payload is flat.** `projectValue` in
+  `app/webapp/core/Lib.js` passes an object- or array-valued property through
+  unchanged (up to `MAX_ARG_DEPTH`), so a control with a property typed
+  `object`/`any` marshals as a nested node. When that is what you are looking
+  at, do not grow the reader: bind the value into the model instead and let
+  the framework's own write-back fill the ABAP structure — `whole_value_apply`
+  in `z2ui5_cl_ui5_srv_model` converts a whole object or array with
+  `to_abap( iv_corresponding = abap_true )`, which is the corresponding-only
+  mapping this used to reach ajson for, already written and already released.
 - **JSON is built and read BY HAND, and there is no released parser.**
   `z2ui5_cl_ui5_json` was one for two weeks and was removed on 2026-09-14,
   before it had shipped in any release — nothing downstream lost it, and
@@ -531,13 +541,29 @@ The same tree, with the subtree held in a variable:
     ABAP and bind it with `_bind( val = … json = abap_true )`, which splices
     it in as a model node instead of a quoted string.
   - **Inbound** (an event argument that arrives as JSON): write the few
-    lines that read the one field you need. These payloads are written by
-    the framework and are flat, so a targeted `find`/`substring_before` walk
-    is the whole job — `z2ui5_cl_smp_app_197` (`json_get_values`, one
-    property across an array of objects) and `z2ui5_cl_smp_app_327`
-    (`json_get_value`, one field of a flat object) in `abap2UI5/samples` are
-    the pattern to copy. An app parsing genuinely arbitrary, nested JSON is
-    doing something this framework does not hand it a tool for.
+    lines that read the one field you need. Where the payload is written by
+    the framework and flat, a targeted `find`/`substring_before` walk is the
+    whole job — `z2ui5_cl_smp_app_197` (`json_get_values`, one property
+    across an array of objects) and `z2ui5_cl_smp_app_327` (`json_get_value`,
+    one field of a flat object) in `abap2UI5/samples` are the pattern to copy.
+    Two cases need more than that, and both have an answer that is not a
+    bigger parser:
+    - **The payload is NESTED** (see the control-parameter bullet above):
+      bind the value instead of parsing the event argument. A two-way bound
+      attribute is filled by the framework's own write-back, corresponding
+      fields only, with no app-side parsing at all.
+    - **The app WROTE the payload itself** — publishing into an AMC channel,
+      writing browser storage — so it carries free user input. Then escaping
+      is the job: a quote the user typed reaches the reader as `\"`, and a
+      `substring_before` on the next quote ends the value early. Escape on
+      the way out and WALK the value on the way in, resolving escapes;
+      `z2ui5_cl_smps_app_489` in `abap2UI5/samples-stack` (`json_build`,
+      `json_escape`, `json_get_string`) is that case written out. The walk
+      also makes the key search safe: text containing `","author":"` cannot
+      forge a sibling field, because its quotes are escaped and no longer
+      match the marker.
+    An app parsing genuinely arbitrary, nested JSON is doing something this
+    framework does not hand it a tool for.
 - **A dynamic type names `z2ui5_t_02`** — the released DDIC structure (two
   string fields, `name`/`value`) for
   `CREATE DATA … TYPE STANDARD TABLE OF ('Z2UI5_T_02')` and friends; the
